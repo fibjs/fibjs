@@ -22,7 +22,7 @@ public:
     class CloneStream: public MemoryStream_base
     {
     public:
-        CloneStream(qstring buffer, date_t tm) :
+        CloneStream(exlib::string buffer, date_t tm) :
             m_buffer(buffer), m_time(tm), m_pos(0)
         {
             extMemory((int32_t)m_buffer.length());
@@ -51,7 +51,7 @@ public:
         virtual result_t clear();
 
     private:
-        qstring m_buffer;
+        exlib::string m_buffer;
         date_t m_time;
         int32_t m_pos;
     };

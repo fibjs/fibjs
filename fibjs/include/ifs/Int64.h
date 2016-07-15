@@ -41,7 +41,7 @@ public:
     virtual result_t add(Int64_base* num, obj_ptr<Int64_base>& retVal) = 0;
     virtual result_t sub(Int64_base* num, obj_ptr<Int64_base>& retVal) = 0;
     virtual result_t toNumber(double& retVal) = 0;
-    virtual result_t toString(int32_t base, qstring& retVal) = 0;
+    virtual result_t toString(int32_t base, exlib::string& retVal) = 0;
 
 public:
     template<typename T>
@@ -329,7 +329,7 @@ namespace fibjs
 
     inline void Int64_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(Int64_base);
         METHOD_ENTER(1, 0);

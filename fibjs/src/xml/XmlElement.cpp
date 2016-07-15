@@ -15,13 +15,13 @@
 namespace fibjs
 {
 
-result_t XmlElement::get_nodeName(qstring &retVal)
+result_t XmlElement::get_nodeName(exlib::string &retVal)
 {
     retVal = m_tagName;
     return 0;
 }
 
-result_t XmlElement::get_nodeValue(qstring &retVal)
+result_t XmlElement::get_nodeValue(exlib::string &retVal)
 {
     return CALL_RETURN_NULL;
 }
@@ -36,7 +36,7 @@ result_t XmlElement::get_nodeType(int32_t &retVal)
     return XmlNodeImpl::get_nodeType(retVal);
 }
 
-result_t XmlElement::get_namespaceURI(qstring &retVal)
+result_t XmlElement::get_namespaceURI(exlib::string &retVal)
 {
     if (m_namespaceURI.empty())
         return CALL_RETURN_NULL;
@@ -45,7 +45,7 @@ result_t XmlElement::get_namespaceURI(qstring &retVal)
     return 0;
 }
 
-result_t XmlElement::get_prefix(qstring &retVal)
+result_t XmlElement::get_prefix(exlib::string &retVal)
 {
     if (m_prefix.empty())
         return CALL_RETURN_NULL;
@@ -60,7 +60,7 @@ result_t XmlElement::set_prefix(const char *newVal)
     return 0;
 }
 
-result_t XmlElement::get_localName(qstring &retVal)
+result_t XmlElement::get_localName(exlib::string &retVal)
 {
     retVal = m_localName;
     return 0;
@@ -101,7 +101,7 @@ result_t XmlElement::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
-result_t XmlElement::lookupPrefix(const char *namespaceURI, qstring &retVal)
+result_t XmlElement::lookupPrefix(const char *namespaceURI, exlib::string &retVal)
 {
     if (globalPrefix(namespaceURI, retVal))
         return 0;
@@ -115,7 +115,7 @@ result_t XmlElement::lookupPrefix(const char *namespaceURI, qstring &retVal)
     return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
 }
 
-result_t XmlElement::lookupNamespaceURI(const char *prefix, qstring &retVal)
+result_t XmlElement::lookupNamespaceURI(const char *prefix, exlib::string &retVal)
 {
     if (globalNamespaceURI(prefix, retVal))
         return 0;
@@ -177,13 +177,13 @@ result_t XmlElement::normalize()
     return m_childs->normalize();
 }
 
-result_t XmlElement::get_tagName(qstring &retVal)
+result_t XmlElement::get_tagName(exlib::string &retVal)
 {
     retVal = m_tagName;
     return 0;
 }
 
-result_t XmlElement::get_id(qstring &retVal)
+result_t XmlElement::get_id(exlib::string &retVal)
 {
     getAttribute("id", retVal);
     return 0;
@@ -197,7 +197,7 @@ result_t XmlElement::set_id(const char *newVal)
     return setAttribute("id", newVal);
 }
 
-result_t XmlElement::get_textContent(qstring &retVal)
+result_t XmlElement::get_textContent(exlib::string &retVal)
 {
     StringBuffer strs;
     getTextContent(strs);
@@ -218,7 +218,7 @@ result_t XmlElement::set_textContent(const char *newVal)
     return 0;
 }
 
-result_t XmlElement::get_innerHTML(qstring &retVal)
+result_t XmlElement::get_innerHTML(exlib::string &retVal)
 {
     if (m_isXml)
         return CALL_E_INVALID_CALL;
@@ -256,7 +256,7 @@ result_t XmlElement::set_innerHTML(const char *newVal)
     return 0;
 }
 
-result_t XmlElement::get_className(qstring &retVal)
+result_t XmlElement::get_className(exlib::string &retVal)
 {
     if (m_isXml)
         return CALL_E_INVALID_CALL;
@@ -282,7 +282,7 @@ result_t XmlElement::get_attributes(obj_ptr<XmlNamedNodeMap_base> &retVal)
     return 0;
 }
 
-result_t XmlElement::getAttribute(const char *name, qstring &retVal)
+result_t XmlElement::getAttribute(const char *name, exlib::string &retVal)
 {
     result_t hr;
     obj_ptr<XmlAttr_base> node;
@@ -295,7 +295,7 @@ result_t XmlElement::getAttribute(const char *name, qstring &retVal)
 }
 
 result_t XmlElement::getAttributeNS(const char *namespaceURI, const char *localName,
-                                    qstring &retVal)
+                                    exlib::string &retVal)
 {
     result_t hr;
     obj_ptr<XmlAttr_base> node;
@@ -384,9 +384,9 @@ result_t XmlElement::hasAttributeNS(const char *namespaceURI, const char *localN
     return 0;
 }
 
-void XmlElement::fix_prefix(const char *namespaceURI, qstring &prefix)
+void XmlElement::fix_prefix(const char *namespaceURI, exlib::string &prefix)
 {
-    qstring _namespaceURI;
+    exlib::string _namespaceURI;
     int32_t i;
 
     if (!prefix.empty() && lookupNamespaceURI(prefix.c_str(), _namespaceURI) == CALL_RETURN_NULL)
@@ -408,11 +408,11 @@ void XmlElement::fix_prefix(const char *namespaceURI, qstring &prefix)
     }
 }
 
-result_t XmlElement::toString(qstring &retVal)
+result_t XmlElement::toString(exlib::string &retVal)
 {
     retVal = "<";
 
-    qstring tagName(m_tagName);
+    exlib::string tagName(m_tagName);
 
     if (!m_isXml)
         qstrlwr(&tagName[0]);
@@ -430,7 +430,7 @@ result_t XmlElement::toString(qstring &retVal)
                 m_parent->get_nodeType(type);
                 if (type == xml_base::_ELEMENT_NODE)
                 {
-                    qstring def_ns;
+                    exlib::string def_ns;
                     ((XmlElement *)m_parent->m_node)->get_defaultNamespace(def_ns);
 
                     if (!qstrcmp(def_ns.c_str(), m_namespaceURI.c_str()))
@@ -452,13 +452,13 @@ result_t XmlElement::toString(qstring &retVal)
         retVal.append(m_localName);
     }
 
-    qstring strAttr;
+    exlib::string strAttr;
     m_attrs->toString(strAttr);
     retVal.append(strAttr);
 
     if (m_childs->hasChildNodes())
     {
-        qstring strChild;
+        exlib::string strChild;
         m_childs->toString(strChild);
 
         retVal += '>';

@@ -27,16 +27,16 @@ class BufferedStream_base : public Stream_base
 public:
     // BufferedStream_base
     static result_t _new(Stream_base* stm, obj_ptr<BufferedStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t readText(int32_t size, qstring& retVal, AsyncEvent* ac) = 0;
-    virtual result_t readLine(int32_t maxlen, qstring& retVal, AsyncEvent* ac) = 0;
+    virtual result_t readText(int32_t size, exlib::string& retVal, AsyncEvent* ac) = 0;
+    virtual result_t readLine(int32_t maxlen, exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array>& retVal) = 0;
-    virtual result_t readUntil(const char* mk, int32_t maxlen, qstring& retVal, AsyncEvent* ac) = 0;
+    virtual result_t readUntil(const char* mk, int32_t maxlen, exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t writeText(const char* txt, AsyncEvent* ac) = 0;
     virtual result_t writeLine(const char* txt, AsyncEvent* ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
-    virtual result_t get_charset(qstring& retVal) = 0;
+    virtual result_t get_charset(exlib::string& retVal) = 0;
     virtual result_t set_charset(const char* newVal) = 0;
-    virtual result_t get_EOL(qstring& retVal) = 0;
+    virtual result_t get_EOL(exlib::string& retVal) = 0;
     virtual result_t set_EOL(const char* newVal) = 0;
 
 public:
@@ -58,9 +58,9 @@ public:
     static void s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 
 public:
-    ASYNC_MEMBERVALUE2(BufferedStream_base, readText, int32_t, qstring);
-    ASYNC_MEMBERVALUE2(BufferedStream_base, readLine, int32_t, qstring);
-    ASYNC_MEMBERVALUE3(BufferedStream_base, readUntil, const char*, int32_t, qstring);
+    ASYNC_MEMBERVALUE2(BufferedStream_base, readText, int32_t, exlib::string);
+    ASYNC_MEMBERVALUE2(BufferedStream_base, readLine, int32_t, exlib::string);
+    ASYNC_MEMBERVALUE3(BufferedStream_base, readUntil, const char*, int32_t, exlib::string);
     ASYNC_MEMBER1(BufferedStream_base, writeText, const char*);
     ASYNC_MEMBER1(BufferedStream_base, writeLine, const char*);
 };
@@ -114,7 +114,7 @@ namespace fibjs
 
     inline void BufferedStream_base::s_get_charset(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(BufferedStream_base);
@@ -137,7 +137,7 @@ namespace fibjs
 
     inline void BufferedStream_base::s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(BufferedStream_base);
@@ -179,7 +179,7 @@ namespace fibjs
 
     inline void BufferedStream_base::s_readText(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(BufferedStream_base);
         ASYNC_METHOD_ENTER(1, 1);
@@ -197,7 +197,7 @@ namespace fibjs
 
     inline void BufferedStream_base::s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(BufferedStream_base);
         ASYNC_METHOD_ENTER(1, 0);
@@ -229,7 +229,7 @@ namespace fibjs
 
     inline void BufferedStream_base::s_readUntil(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(BufferedStream_base);
         ASYNC_METHOD_ENTER(2, 1);

@@ -27,18 +27,18 @@ public:
 
 	public:
 		// ZipInfo_base
-		virtual result_t get_filename(qstring& retVal);
+		virtual result_t get_filename(exlib::string& retVal);
 		virtual result_t get_date(date_t& retVal);
-		virtual result_t get_compress_type(qstring& retVal);
+		virtual result_t get_compress_type(exlib::string& retVal);
 		virtual result_t get_compress_size(int64_t& retVal);
 		virtual result_t get_file_size(int64_t& retVal);
 		virtual result_t get_password(bool& retVal);
 		virtual result_t get_data(obj_ptr<Buffer_base>& retVal);
 
 	public:
-		qstring m_name;
+		exlib::string m_name;
 		date_t m_date;
-		qstring m_compress_type;
+		exlib::string m_compress_type;
 		int64_t m_compress_size;
 		int64_t m_file_size;
 		bool m_password;

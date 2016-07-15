@@ -49,7 +49,7 @@ private:
 		if (hr < 0)
 			return 0;
 
-		qstring strData;
+		exlib::string strData;
 		data->toString(strData);
 		memcpy(buf, strData.c_str(), strData.length());
 
@@ -199,7 +199,7 @@ result_t zip_base::open(Buffer_base* data, const char* mod, int32_t compress_typ
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
-	qstring strData;
+	exlib::string strData;
 
 	data->toString(strData);
 	obj_ptr<SeekableStream_base> strm = new MemoryStream::CloneStream(strData, 0);
@@ -235,7 +235,7 @@ ZipFile::Info::Info(const char* name, unz_file_info64& info)
 	m_password = info.flag & 1;
 }
 
-result_t ZipFile::Info::get_filename(qstring& retVal)
+result_t ZipFile::Info::get_filename(exlib::string& retVal)
 {
 	retVal = m_name;
 	return 0;
@@ -247,7 +247,7 @@ result_t ZipFile::Info::get_date(date_t& retVal)
 	return 0;
 }
 
-result_t ZipFile::Info::get_compress_type(qstring& retVal)
+result_t ZipFile::Info::get_compress_type(exlib::string& retVal)
 {
 	retVal = m_compress_type;
 	return 0;

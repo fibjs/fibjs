@@ -24,10 +24,10 @@ public:
     }
 
 public:
-    qstring str()
+    exlib::string str()
     {
         int32_t i, p = 0;
-        qstring s;
+        exlib::string s;
 
         if (m_size > 0)
         {
@@ -38,7 +38,7 @@ public:
                 s.resize(m_size);
                 for (i = 0; i < (int32_t) m_array.size(); i++)
                 {
-                    qstring &s1 = m_array[i];
+                    exlib::string &s1 = m_array[i];
                     size_t len = s1.length();
 
                     memcpy(&s[p], s1.c_str(), len);
@@ -58,7 +58,7 @@ public:
         return m_size;
     }
 
-    void append(qstring s)
+    void append(exlib::string s)
     {
         if (s.length() > 0)
         {
@@ -75,7 +75,7 @@ public:
         if (sz > 0)
         {
             m_size += sz;
-            m_array.append(qstring(s, sz));
+            m_array.append(exlib::string(s, sz));
         }
     }
 
@@ -89,7 +89,7 @@ public:
     }
 
 private:
-    QuickArray<qstring> m_array;
+    QuickArray<exlib::string> m_array;
     size_t m_size;
 };
 

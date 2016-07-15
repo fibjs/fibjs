@@ -28,10 +28,10 @@ public:
     // process_base
     static result_t get_argv(v8::Local<v8::Array>& retVal);
     static result_t get_execArgv(v8::Local<v8::Array>& retVal);
-    static result_t get_execPath(qstring& retVal);
+    static result_t get_execPath(exlib::string& retVal);
     static result_t get_env(v8::Local<v8::Object>& retVal);
     static result_t exit(int32_t code);
-    static result_t cwd(qstring& retVal);
+    static result_t cwd(exlib::string& retVal);
     static result_t chdir(const char* directory);
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
     static result_t system(const char* cmd, int32_t& retVal, AsyncEvent* ac);
@@ -142,7 +142,7 @@ namespace fibjs
 
     inline void process_base::s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
 
@@ -175,7 +175,7 @@ namespace fibjs
 
     inline void process_base::s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_ENTER(0, 0);
 

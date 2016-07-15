@@ -52,9 +52,9 @@ public:
     // Socket_base
     virtual result_t get_family(int32_t &retVal);
     virtual result_t get_type(int32_t &retVal);
-    virtual result_t get_remoteAddress(qstring &retVal);
+    virtual result_t get_remoteAddress(exlib::string &retVal);
     virtual result_t get_remotePort(int32_t &retVal);
-    virtual result_t get_localAddress(qstring &retVal);
+    virtual result_t get_localAddress(exlib::string &retVal);
     virtual result_t get_localPort(int32_t &retVal);
     virtual result_t connect(const char *host, int32_t port,
                              AsyncEvent *ac);

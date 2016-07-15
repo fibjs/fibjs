@@ -22,14 +22,14 @@ public:
     {
     }
 
-    XmlDataImpl(const qstring &data) : m_data(data)
+    XmlDataImpl(const exlib::string &data) : m_data(data)
     {}
 
     XmlDataImpl(const XmlDataImpl &data) : m_data(data.m_data)
     {}
 
 public:
-    result_t get_data(qstring &retVal)
+    result_t get_data(exlib::string &retVal)
     {
         retVal = m_data;
         return 0;
@@ -47,9 +47,9 @@ public:
         return 0;
     }
 
-    result_t substringData(int32_t offset, int32_t count, qstring &retVal)
+    result_t substringData(int32_t offset, int32_t count, exlib::string &retVal)
     {
-        wstring _data(utf8to16String(m_data));
+        exlib::wstring _data(utf8to16String(m_data));
 
         if (offset < 0 || offset > (int32_t)_data.length())
             return CHECK_ERROR(CALL_E_BADINDEX);
@@ -69,7 +69,7 @@ public:
 
     result_t insertData(int32_t offset, const char *arg)
     {
-        wstring _data(utf8to16String(m_data));
+        exlib::wstring _data(utf8to16String(m_data));
 
         if (offset < 0 || offset > (int32_t)_data.length())
             return CHECK_ERROR(CALL_E_BADINDEX);
@@ -81,7 +81,7 @@ public:
 
     result_t deleteData(int32_t offset, int32_t count)
     {
-        wstring _data(utf8to16String(m_data));
+        exlib::wstring _data(utf8to16String(m_data));
 
         if (offset < 0 || offset > (int32_t)_data.length())
             return CHECK_ERROR(CALL_E_BADINDEX);
@@ -96,7 +96,7 @@ public:
 
     result_t replaceData(int32_t offset, int32_t count, const char *arg)
     {
-        wstring _data(utf8to16String(m_data));
+        exlib::wstring _data(utf8to16String(m_data));
 
         if (offset < 0 || offset > (int32_t)_data.length())
             return CHECK_ERROR(CALL_E_BADINDEX);
@@ -109,9 +109,9 @@ public:
         return 0;
     }
 
-    result_t splitText(int32_t offset, qstring &retVal)
+    result_t splitText(int32_t offset, exlib::string &retVal)
     {
-        wstring _data(utf8to16String(m_data));
+        exlib::wstring _data(utf8to16String(m_data));
 
         if (offset < 0 || offset > (int32_t)_data.length())
             return CHECK_ERROR(CALL_E_BADINDEX);
@@ -122,13 +122,13 @@ public:
         return 0;
     }
 
-    qstring encodedText()
+    exlib::string encodedText()
     {
-        qstring str;
+        exlib::string str;
         int32_t sz = (int32_t)m_data.length();
 
         if (!sz)
-            return qstring();
+            return exlib::string();
 
         const char *data = m_data.c_str();
         int32_t sz1 = 0;
@@ -183,13 +183,13 @@ public:
         return str;
     }
 
-    qstring data()
+    exlib::string data()
     {
         return m_data;
     }
 
 private:
-    qstring m_data;
+    exlib::string m_data;
 };
 
 } /* namespace fibjs */

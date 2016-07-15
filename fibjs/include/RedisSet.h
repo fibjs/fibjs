@@ -46,7 +46,7 @@ public:
     virtual result_t randMember(int32_t count, v8::Local<v8::Value> &retVal);
 
 private:
-    qstring m_key;
+    exlib::string m_key;
     obj_ptr<Redis> m_rdb;
 };
 

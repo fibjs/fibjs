@@ -28,7 +28,7 @@ public:
 
 public:
     // Message_base
-    virtual result_t get_value(qstring &retVal);
+    virtual result_t get_value(exlib::string &retVal);
     virtual result_t set_value(const char *newVal);
     virtual result_t get_params(obj_ptr<List_base> &retVal);
     virtual result_t set_params(List_base *newVal);
@@ -45,12 +45,12 @@ public:
     virtual result_t readFrom(Stream_base *stm, AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
     virtual result_t get_response(obj_ptr<Message_base> &retVal);
-    virtual result_t get_lastError(qstring& retVal);
+    virtual result_t get_lastError(exlib::string& retVal);
     virtual result_t set_lastError(const char* newVal);
 
 public:
     // HttpMessage_base
-    virtual result_t get_protocol(qstring &retVal);
+    virtual result_t get_protocol(exlib::string &retVal);
     virtual result_t set_protocol(const char *newVal);
     virtual result_t get_headers(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_keepAlive(bool &retVal);
@@ -72,18 +72,18 @@ public:
 
 public:
     // HttpRequest_base
-    virtual result_t get_method(qstring &retVal);
+    virtual result_t get_method(exlib::string &retVal);
     virtual result_t set_method(const char *newVal);
-    virtual result_t get_address(qstring &retVal);
+    virtual result_t get_address(exlib::string &retVal);
     virtual result_t set_address(const char *newVal);
-    virtual result_t get_queryString(qstring &retVal);
+    virtual result_t get_queryString(exlib::string &retVal);
     virtual result_t set_queryString(const char *newVal);
     virtual result_t get_cookies(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_form(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_query(obj_ptr<HttpCollection_base> &retVal);
 
 public:
-    void header(const char *name, qstring &retVal)
+    void header(const char *name, exlib::string &retVal)
     {
         Variant varCookie;
         obj_ptr<HttpCollection_base> hdrs;
@@ -93,14 +93,14 @@ public:
         retVal = varCookie.string();
     }
 
-    void parse(qstring &str, char split,
+    void parse(exlib::string &str, char split,
                obj_ptr<HttpCollection_base> &retVal);
 
 private:
     obj_ptr<HttpMessage> m_message;
-    qstring m_method;
-    qstring m_address;
-    qstring m_queryString;
+    exlib::string m_method;
+    exlib::string m_address;
+    exlib::string m_queryString;
     obj_ptr<HttpResponse_base> m_response;
     obj_ptr<HttpCollection_base> m_cookies;
     obj_ptr<HttpCollection_base> m_query;

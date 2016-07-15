@@ -114,14 +114,14 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             if (hr == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: missing Sec-WebSocket-Key header."));
 
-            qstring key(v.string());
+            exlib::string key(v.string());
 
             key.append("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
 
             unsigned char output[20];
             mbedtls_sha1((const unsigned char*)key.c_str(), key.length(), output);
 
-            qstring out;
+            exlib::string out;
 
             baseEncode(
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
@@ -221,7 +221,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             if (is(send))
             {
-                qstring err = getResultMessage(v);
+                exlib::string err = getResultMessage(v);
 
                 m_error = v;
                 m_msg->set_lastError(err.c_str());

@@ -39,13 +39,13 @@ static PROCNTQSI pNtQuerySystemInformation;
 namespace fibjs
 {
 
-result_t os_base::get_type(qstring &retVal)
+result_t os_base::get_type(exlib::string &retVal)
 {
     retVal = "Windows";
     return 0;
 }
 
-result_t os_base::get_version(qstring &retVal)
+result_t os_base::get_version(exlib::string &retVal)
 {
     OSVERSIONINFO info =
     {   sizeof(info)};
@@ -61,7 +61,7 @@ result_t os_base::get_version(qstring &retVal)
     return 0;
 }
 
-result_t os_base::get_EOL(qstring& retVal)
+result_t os_base::get_EOL(exlib::string& retVal)
 {
     retVal.assign("\r\n", 2);
     return 0;
@@ -264,7 +264,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 
     for (i = 0; i < cpu_count; i++)
     {
-        WCHAR key_name[128];
+        exlib::wchar key_name[128];
         HKEY processor_key;
         DWORD cpu_speed;
         DWORD cpu_speed_size = sizeof(cpu_speed);
@@ -391,9 +391,9 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
     return 0;
 }
 
-result_t os_base::get_execPath(qstring &retVal)
+result_t os_base::get_execPath(exlib::string &retVal)
 {
-    WCHAR szFileName[MAX_PATH];
+    exlib::wchar szFileName[MAX_PATH];
 
     GetModuleFileNameW(NULL, szFileName, MAX_PATH);
     retVal = utf16to8String(szFileName);
@@ -434,10 +434,10 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
     return 0;
 }
 
-result_t process_base::cwd(qstring &retVal)
+result_t process_base::cwd(exlib::string &retVal)
 {
     DWORD utf16_len;
-    wchar utf16_buffer[MAX_PATH];
+    exlib::wchar utf16_buffer[MAX_PATH];
 
     utf16_len = GetCurrentDirectoryW(MAX_PATH, utf16_buffer);
     if (utf16_len == 0)
@@ -459,10 +459,10 @@ result_t process_base::cwd(qstring &retVal)
 
 result_t process_base::chdir(const char *directory)
 {
-    wstring str = utf8to16String(directory);
-    wchar utf16_buffer[MAX_PATH];
+    exlib::wstring str = utf8to16String(directory);
+    exlib::wchar utf16_buffer[MAX_PATH];
     DWORD utf16_len;
-    wchar drive_letter;
+    exlib::wchar drive_letter;
 
     if (!SetCurrentDirectoryW(str.c_str()))
         return CHECK_ERROR(LastError());
@@ -489,7 +489,7 @@ result_t process_base::chdir(const char *directory)
 
     if (drive_letter != 0)
     {
-        wchar env_var[4];
+        exlib::wchar env_var[4];
 
         env_var[0] = L'=';
         env_var[1] = drive_letter;

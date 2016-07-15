@@ -23,14 +23,14 @@ class path_base : public object_base
 
 public:
     // path_base
-    static result_t normalize(const char* path, qstring& retVal);
-    static result_t basename(const char* path, const char* ext, qstring& retVal);
-    static result_t extname(const char* path, qstring& retVal);
-    static result_t dirname(const char* path, qstring& retVal);
-    static result_t fullpath(const char* path, qstring& retVal);
-    static result_t join(const v8::FunctionCallbackInfo<v8::Value>& args, qstring& retVal);
-    static result_t get_sep(qstring& retVal);
-    static result_t get_delimiter(qstring& retVal);
+    static result_t normalize(const char* path, exlib::string& retVal);
+    static result_t basename(const char* path, const char* ext, exlib::string& retVal);
+    static result_t extname(const char* path, exlib::string& retVal);
+    static result_t dirname(const char* path, exlib::string& retVal);
+    static result_t fullpath(const char* path, exlib::string& retVal);
+    static result_t join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
+    static result_t get_sep(exlib::string& retVal);
+    static result_t get_delimiter(exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -89,7 +89,7 @@ namespace fibjs
 
     inline void path_base::s_get_sep(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
 
@@ -100,7 +100,7 @@ namespace fibjs
 
     inline void path_base::s_get_delimiter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
 
@@ -111,7 +111,7 @@ namespace fibjs
 
     inline void path_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_ENTER(1, 1);
 
@@ -124,7 +124,7 @@ namespace fibjs
 
     inline void path_base::s_basename(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_ENTER(2, 1);
 
@@ -138,7 +138,7 @@ namespace fibjs
 
     inline void path_base::s_extname(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_ENTER(1, 1);
 
@@ -151,7 +151,7 @@ namespace fibjs
 
     inline void path_base::s_dirname(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_ENTER(1, 1);
 
@@ -164,7 +164,7 @@ namespace fibjs
 
     inline void path_base::s_fullpath(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_ENTER(1, 1);
 
@@ -177,7 +177,7 @@ namespace fibjs
 
     inline void path_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_ENTER(-1, 0);
 

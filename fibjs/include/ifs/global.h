@@ -32,9 +32,9 @@ public:
     static result_t get_global(obj_ptr<global_base>& retVal);
     static result_t run(const char* fname, v8::Local<v8::Array> argv);
     static result_t get_argv(v8::Local<v8::Array>& retVal);
-    static result_t get___filename(qstring& retVal);
-    static result_t get___dirname(qstring& retVal);
-    static result_t get___sbname(qstring& retVal);
+    static result_t get___filename(exlib::string& retVal);
+    static result_t get___dirname(exlib::string& retVal);
+    static result_t get___sbname(exlib::string& retVal);
     static result_t clearInterval(Timer_base* t);
     static result_t clearTimeout(Timer_base* t);
     static result_t clearImmediate(Timer_base* t);
@@ -155,7 +155,7 @@ namespace fibjs
 
     inline void global_base::s_get___filename(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
 
@@ -166,7 +166,7 @@ namespace fibjs
 
     inline void global_base::s_get___dirname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
 
@@ -177,7 +177,7 @@ namespace fibjs
 
     inline void global_base::s_get___sbname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
 

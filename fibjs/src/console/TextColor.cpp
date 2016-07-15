@@ -10,7 +10,7 @@
 namespace fibjs
 {
 
-result_t TextColor::get_notice(qstring &retVal)
+result_t TextColor::get_notice(exlib::string &retVal)
 {
     retVal = m_notice;
     return 0;
@@ -22,7 +22,7 @@ result_t TextColor::set_notice(const char *newVal)
     return 0;
 }
 
-result_t TextColor::get_warn(qstring &retVal)
+result_t TextColor::get_warn(exlib::string &retVal)
 {
     retVal = m_warn;
     return 0;
@@ -34,7 +34,7 @@ result_t TextColor::set_warn(const char *newVal)
     return 0;
 }
 
-result_t TextColor::get_error(qstring &retVal)
+result_t TextColor::get_error(exlib::string &retVal)
 {
     retVal = m_error;
     return 0;
@@ -46,7 +46,7 @@ result_t TextColor::set_error(const char *newVal)
     return 0;
 }
 
-result_t TextColor::get_highLight(qstring &retVal)
+result_t TextColor::get_highLight(exlib::string &retVal)
 {
     retVal = m_highLight;
     return 0;

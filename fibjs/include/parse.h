@@ -24,7 +24,7 @@ public:
         sz = n;
     }
 
-    _parser(qstring &s) :
+    _parser(exlib::string &s) :
         string(s.c_str()), sz((int32_t) s.length()), pos(0)
     {
     }
@@ -155,7 +155,7 @@ public:
         return ch;
     }
 
-    int32_t getWord(qstring &retVal)
+    int32_t getWord(exlib::string &retVal)
     {
         int32_t p1, p2;
 
@@ -168,7 +168,7 @@ public:
         return p2;
     }
 
-    int32_t getWord(qstring &retVal, char ch1)
+    int32_t getWord(exlib::string &retVal, char ch1)
     {
         int32_t p1, p2;
 
@@ -181,7 +181,7 @@ public:
         return p2;
     }
 
-    int32_t getWord(qstring &retVal, char ch1, char ch2)
+    int32_t getWord(exlib::string &retVal, char ch1, char ch2)
     {
         int32_t p1, p2;
 
@@ -194,7 +194,7 @@ public:
         return p2;
     }
 
-    int32_t getWord(qstring &retVal, char ch1, char ch2, char ch3)
+    int32_t getWord(exlib::string &retVal, char ch1, char ch2, char ch3)
     {
         int32_t p1, p2;
 
@@ -207,7 +207,7 @@ public:
         return p2;
     }
 
-    int32_t getString(qstring &retVal, char ch1)
+    int32_t getString(exlib::string &retVal, char ch1)
     {
         int32_t p1, p2;
 
@@ -220,7 +220,7 @@ public:
         return p2;
     }
 
-    int32_t getString(qstring &retVal, char ch1, char ch2)
+    int32_t getString(exlib::string &retVal, char ch1, char ch2)
     {
         int32_t p1, p2;
 
@@ -233,7 +233,7 @@ public:
         return p2;
     }
 
-    int32_t getString(qstring &retVal, char ch1, char ch2, char ch3)
+    int32_t getString(exlib::string &retVal, char ch1, char ch2, char ch3)
     {
         int32_t p1, p2;
 
@@ -246,7 +246,7 @@ public:
         return p2;
     }
 
-    int32_t getLeft(qstring &retVal)
+    int32_t getLeft(exlib::string &retVal)
     {
         int32_t p2 = sz - pos;
         retVal.assign(string + pos, p2);
@@ -255,7 +255,7 @@ public:
         return p2;
     }
 
-    int32_t getLine(qstring &retVal)
+    int32_t getLine(exlib::string &retVal)
     {
         int32_t p1, p2;
         char ch;

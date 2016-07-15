@@ -339,7 +339,7 @@ int32_t inetAddr::addr(const char *s)
            inet_pton4(s, &addr4.sin_addr.s_addr);
 }
 
-qstring inetAddr::str()
+exlib::string inetAddr::str()
 {
     char tmp[MAX_IPv6_STR_LEN];
 

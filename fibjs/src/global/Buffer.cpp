@@ -102,7 +102,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     if (cutLength < -1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    qstring str;
+    exlib::string str;
     Isolate* isolate = Isolate::current();
 
     for (int32_t i = 0; i < sz; i ++)
@@ -114,7 +114,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
         if (hr < 0)
             return CHECK_ERROR(hr);
 
-        qstring vstr;
+        exlib::string vstr;
         vdata -> toString(vstr);
         buf_length = (int32_t) vstr.length();
 
@@ -203,7 +203,7 @@ result_t Buffer::append(v8::Local<v8::ArrayBuffer> datas)
 
 result_t Buffer::append(Buffer_base *data)
 {
-    qstring strBuf;
+    exlib::string strBuf;
     data->toString(strBuf);
 
     extMemory((int32_t) strBuf.length());
@@ -267,7 +267,7 @@ result_t Buffer::write(const char* str, int32_t offset, int32_t length, const ch
 
     result_t hr;
     obj_ptr<Buffer_base> data;
-    qstring strBuf;
+    exlib::string strBuf;
 
     if (!qstrcmp(codec, "hex"))
         hr = hex_base::decode(str, data);
@@ -385,7 +385,7 @@ result_t Buffer::indexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
         return CHECK_ERROR(hr);
 
     obj_ptr<Buffer> v_data = dynamic_cast<Buffer *>(v);
-    qstring vstr;
+    exlib::string vstr;
     v_data->toString(vstr);
 
     const char* find = exlib::qmemfind(m_data.c_str() + offset, m_data.length() - offset,
@@ -816,19 +816,19 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
     return 0;
 }
 
-result_t Buffer::toString(qstring &retVal)
+result_t Buffer::toString(exlib::string &retVal)
 {
     retVal = m_data;
     return 0;
 }
 
-result_t Buffer::hex(qstring &retVal)
+result_t Buffer::hex(exlib::string &retVal)
 {
     obj_ptr<Buffer_base> data = this;
     return hex_base::encode(data, retVal);
 }
 
-result_t Buffer::base64(qstring &retVal)
+result_t Buffer::base64(exlib::string &retVal)
 {
     obj_ptr<Buffer_base> data = this;
     return base64_base::encode(data, retVal);
@@ -843,7 +843,7 @@ result_t Buffer::equals(object_base* expected, bool& retVal)
         return 0;
     }
 
-    qstring str;
+    exlib::string str;
     buf->toString(str);
 
     retVal = (m_data.length() == str.length()) &&
@@ -852,10 +852,10 @@ result_t Buffer::equals(object_base* expected, bool& retVal)
     return 0;
 }
 
-result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, qstring &retVal)
+result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, exlib::string &retVal)
 {
     result_t hr;
-    qstring str;
+    exlib::string str;
     int32_t str_length;
 
     if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8") ||
@@ -883,7 +883,7 @@ result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, qstrin
         } else if (!qstrcmp(codec, "ucs2") || !qstrcmp(codec, "ucs-2") ||
                    !qstrcmp(codec, "utf16le") || !qstrcmp(codec, "utf-16le"))
         {
-            str = utf16to8String((const wchar *)m_data.c_str(), (int32_t)m_data.length() / 2);
+            str = utf16to8String((const exlib::wchar *)m_data.c_str(), (int32_t)m_data.length() / 2);
             hr = 0;
         }
         else

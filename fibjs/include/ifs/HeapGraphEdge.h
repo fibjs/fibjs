@@ -26,8 +26,8 @@ class HeapGraphEdge_base : public object_base
 public:
     // HeapGraphEdge_base
     virtual result_t get_type(int32_t& retVal) = 0;
-    virtual result_t get_name(qstring& retVal) = 0;
-    virtual result_t get_description(qstring& retVal) = 0;
+    virtual result_t get_name(exlib::string& retVal) = 0;
+    virtual result_t get_description(exlib::string& retVal) = 0;
     virtual result_t getFromNode(obj_ptr<HeapGraphNode_base>& retVal) = 0;
     virtual result_t getToNode(obj_ptr<HeapGraphNode_base>& retVal) = 0;
 
@@ -96,7 +96,7 @@ namespace fibjs
 
     inline void HeapGraphEdge_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HeapGraphEdge_base);
@@ -108,7 +108,7 @@ namespace fibjs
 
     inline void HeapGraphEdge_base::s_get_description(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HeapGraphEdge_base);

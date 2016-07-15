@@ -22,7 +22,7 @@ public:
     }
 
 public:
-    void setField(int32_t i, qstring &s)
+    void setField(int32_t i, exlib::string &s)
     {
         m_fields[i] = s;
     }
@@ -38,7 +38,7 @@ public:
         return -1;
     }
 
-    qstring &name(int32_t i)
+    exlib::string &name(int32_t i)
     {
         return m_fields[i];
     }
@@ -54,7 +54,7 @@ public:
 
 
 private:
-    std::vector<qstring> m_fields;
+    std::vector<exlib::string> m_fields;
 };
 
 }

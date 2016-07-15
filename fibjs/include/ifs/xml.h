@@ -41,7 +41,7 @@ public:
     // xml_base
     static result_t parse(const char* source, const char* type, obj_ptr<XmlDocument_base>& retVal);
     static result_t parse(Buffer_base* source, const char* type, obj_ptr<XmlDocument_base>& retVal);
-    static result_t serialize(XmlNode_base* node, qstring& retVal);
+    static result_t serialize(XmlNode_base* node, exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -190,7 +190,7 @@ namespace fibjs
 
     inline void xml_base::s_serialize(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_ENTER(1, 1);
 

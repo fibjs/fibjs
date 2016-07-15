@@ -11,13 +11,13 @@
 namespace fibjs
 {
 
-result_t XmlComment::get_nodeName(qstring &retVal)
+result_t XmlComment::get_nodeName(exlib::string &retVal)
 {
     retVal = "#comment";
     return 0;
 }
 
-result_t XmlComment::get_nodeValue(qstring &retVal)
+result_t XmlComment::get_nodeValue(exlib::string &retVal)
 {
     return m_data.get_data(retVal);
 }
@@ -67,12 +67,12 @@ result_t XmlComment::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
-result_t XmlComment::lookupPrefix(const char *namespaceURI, qstring &retVal)
+result_t XmlComment::lookupPrefix(const char *namespaceURI, exlib::string &retVal)
 {
     return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
 }
 
-result_t XmlComment::lookupNamespaceURI(const char *prefix, qstring &retVal)
+result_t XmlComment::lookupNamespaceURI(const char *prefix, exlib::string &retVal)
 {
     return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
 }
@@ -121,7 +121,7 @@ result_t XmlComment::normalize()
     return m_childs->normalize();
 }
 
-result_t XmlComment::get_data(qstring &retVal)
+result_t XmlComment::get_data(exlib::string &retVal)
 {
     return m_data.get_data(retVal);
 }
@@ -136,7 +136,7 @@ result_t XmlComment::get_length(int32_t &retVal)
     return m_data.get_length(retVal);
 }
 
-result_t XmlComment::substringData(int32_t offset, int32_t count, qstring &retVal)
+result_t XmlComment::substringData(int32_t offset, int32_t count, exlib::string &retVal)
 {
     return m_data.substringData(offset, count, retVal);
 }
@@ -161,7 +161,7 @@ result_t XmlComment::replaceData(int32_t offset, int32_t count, const char *arg)
     return m_data.replaceData(offset, count, arg);
 }
 
-result_t XmlComment::toString(qstring &retVal)
+result_t XmlComment::toString(exlib::string &retVal)
 {
     retVal = "<!--";
     retVal.append(m_data.data());

@@ -182,7 +182,7 @@ function parserIDL(fname) {
 			"Long": "int64_t",
 			"Number": "double",
 			"Boolean": "bool",
-			"String": "qstring",
+			"String": "exlib::string",
 			"Date": "date_t",
 			"Object": "v8::Local<v8::Object>",
 			"Array": "v8::Local<v8::Array>",

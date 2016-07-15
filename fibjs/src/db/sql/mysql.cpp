@@ -64,7 +64,7 @@ void *API_createResult(int32_t columns)
 void API_resultSetField(void *result, int32_t ifield, UMTypeInfo *ti, void *name,
                         size_t cbName)
 {
-    qstring s((char *) name, cbName);
+    exlib::string s((char *) name, cbName);
     ((DBResult *) result)->setField(ifield, s);
 }
 
@@ -109,11 +109,11 @@ int32_t API_resultRowValue(void *result, int32_t icolumn, UMTypeInfo *ti, void *
         case MFTYPE_MEDIUM_BLOB:
         case MFTYPE_LONG_BLOB:
         case MFTYPE_BLOB:
-            v = new Buffer(qstring((const char *) value, cbValue));
+            v = new Buffer(exlib::string((const char *) value, cbValue));
             break;
 
         default:
-            v = qstring((const char *) value, cbValue);
+            v = exlib::string((const char *) value, cbValue);
             break;
         }
 
@@ -243,7 +243,7 @@ result_t mysql::use(const char *dbName, AsyncEvent *ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<DBResult_base> retVal;
-    qstring s("USE ", 4);
+    exlib::string s("USE ", 4);
     s.append(dbName);
     return execute(s.c_str(), (int32_t) s.length(), retVal);
 }
@@ -315,7 +315,7 @@ result_t mysql::execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncEv
 result_t mysql::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
                         obj_ptr<DBResult_base> &retVal)
 {
-    qstring str;
+    exlib::string str;
     result_t hr = format(sql, args, str);
     if (hr < 0)
         return hr;
@@ -324,7 +324,7 @@ result_t mysql::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Valu
 }
 
 result_t mysql::format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
-                       qstring &retVal)
+                       exlib::string &retVal)
 {
     return db_base::formatMySQL(sql, args, retVal);
 }

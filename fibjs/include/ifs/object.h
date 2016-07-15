@@ -25,7 +25,7 @@ public:
     // object_base
     virtual result_t dispose() = 0;
     virtual result_t equals(object_base* expected, bool& retVal) = 0;
-    virtual result_t toString(qstring& retVal) = 0;
+    virtual result_t toString(exlib::string& retVal) = 0;
     virtual result_t toJSON(const char* key, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t valueOf(v8::Local<v8::Value>& retVal) = 0;
 
@@ -101,7 +101,7 @@ namespace fibjs
 
     inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(object_base);
         METHOD_ENTER(0, 0);

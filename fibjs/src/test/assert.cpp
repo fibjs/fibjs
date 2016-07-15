@@ -14,7 +14,7 @@ namespace fibjs
 
 DECLARE_MODULE(assert);
 
-qstring json_format(v8::Local<v8::Value> obj);
+exlib::string json_format(v8::Local<v8::Value> obj);
 
 class _msg
 {
@@ -119,9 +119,9 @@ public:
         }
     }
 
-    qstring str()
+    exlib::string str()
     {
-        qstring str;
+        exlib::string str;
 
         str = strs[0];
 

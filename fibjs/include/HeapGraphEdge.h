@@ -19,7 +19,7 @@ class HeapGraphEdge : public HeapGraphEdge_base
 {
 public:
 	HeapGraphEdge(HeapSnapshot_base* snapshot, int32_t _type,
-	              qstring& _name, int32_t _fromid, int32_t _toid) :
+	              exlib::string& _name, int32_t _fromid, int32_t _toid) :
 		m_snapshot(snapshot), m_type(_type), m_name(_name),
 		m_fromId(_fromid), m_toId(_toid)
 	{
@@ -28,8 +28,8 @@ public:
 public:
 	// HeapGraphEdge_base
 	virtual result_t get_type(int32_t& retVal);
-	virtual result_t get_name(qstring& retVal);
-	virtual result_t get_description(qstring& retVal);
+	virtual result_t get_name(exlib::string& retVal);
+	virtual result_t get_description(exlib::string& retVal);
 	virtual result_t getFromNode(obj_ptr<HeapGraphNode_base>& retVal);
 	virtual result_t getToNode(obj_ptr<HeapGraphNode_base>& retVal);
 
@@ -39,7 +39,7 @@ public:
 		return m_toId;
 	}
 
-	static void get_description(HeapGraphEdge_base* edge, qstring& retVal)
+	static void get_description(HeapGraphEdge_base* edge, exlib::string& retVal)
 	{
 		static const char* types[] = {
 			"ContextVariable",
@@ -52,7 +52,7 @@ public:
 		};
 
 		int32_t type;
-		qstring name;
+		exlib::string name;
 
 		edge->get_type(type);
 		edge->get_name(retVal);
@@ -68,7 +68,7 @@ public:
 private:
 	weak_ptr<HeapSnapshot_base> m_snapshot;
 	int32_t m_type;
-	qstring m_name;
+	exlib::string m_name;
 	int32_t m_fromId;
 	int32_t m_toId;
 };

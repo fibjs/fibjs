@@ -28,11 +28,11 @@ class HttpRequest_base : public HttpMessage_base
 public:
     // HttpRequest_base
     static result_t _new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t get_method(qstring& retVal) = 0;
+    virtual result_t get_method(exlib::string& retVal) = 0;
     virtual result_t set_method(const char* newVal) = 0;
-    virtual result_t get_address(qstring& retVal) = 0;
+    virtual result_t get_address(exlib::string& retVal) = 0;
     virtual result_t set_address(const char* newVal) = 0;
-    virtual result_t get_queryString(qstring& retVal) = 0;
+    virtual result_t get_queryString(exlib::string& retVal) = 0;
     virtual result_t set_queryString(const char* newVal) = 0;
     virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal) = 0;
     virtual result_t get_form(obj_ptr<HttpCollection_base>& retVal) = 0;
@@ -86,7 +86,7 @@ namespace fibjs
 
     inline void HttpRequest_base::s_get_method(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpRequest_base);
@@ -109,7 +109,7 @@ namespace fibjs
 
     inline void HttpRequest_base::s_get_address(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpRequest_base);
@@ -132,7 +132,7 @@ namespace fibjs
 
     inline void HttpRequest_base::s_get_queryString(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpRequest_base);

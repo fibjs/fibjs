@@ -324,7 +324,7 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
     if (!db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    qstring name;
+    exlib::string name;
 
     v8::Local<v8::Array> ks = keys->GetPropertyNames();
     int32_t len = (int32_t) ks->Length();
@@ -413,8 +413,8 @@ result_t MongoCollection::getCollection(const char *name,
     if (!db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    qstring nsStr(m_ns);
-    qstring nameStr(m_name);
+    exlib::string nsStr(m_ns);
+    exlib::string nameStr(m_name);
 
     nsStr += '.';
     nsStr.append(name);

@@ -81,7 +81,7 @@ public:
         operator=(v);
     }
 
-    Variant(const qstring &v) :
+    Variant(const exlib::string &v) :
         m_type(VT_Undefined)
     {
         operator=(v);
@@ -199,13 +199,13 @@ public:
         return *this;
     }
 
-    Variant &operator=(const qstring &v)
+    Variant &operator=(const exlib::string &v)
     {
         if (type() != VT_String)
         {
             clear();
             set_type(VT_String);
-            new (m_Val.strVal) qstring(v);
+            new (m_Val.strVal) exlib::string(v);
         }
         else
             strVal() = v;
@@ -215,7 +215,7 @@ public:
 
     Variant &operator=(const char *v)
     {
-        qstring s(v);
+        exlib::string s(v);
 
         return operator=(s);
     }
@@ -278,7 +278,7 @@ public:
         return sizeof(Variant) + strVal().length();
     }
 
-    qstring string() const
+    exlib::string string() const
     {
         if (type() != VT_String)
             return "";
@@ -301,7 +301,7 @@ public:
         dateVal().parse(str, len);
     }
 
-    bool toString(qstring &retVal);
+    bool toString(exlib::string &retVal);
 
     void toJSON();
 
@@ -325,9 +325,9 @@ private:
         return *this;
     }
 
-    qstring &strVal() const
+    exlib::string &strVal() const
     {
-        qstring *pval = (qstring *)m_Val.strVal;
+        exlib::string *pval = (exlib::string *)m_Val.strVal;
         return *pval;
     }
 
@@ -359,7 +359,7 @@ private:
         double dblVal;
         obj_base *objVal;
         char dateVal[sizeof(date_t)];
-        char strVal[sizeof(qstring)];
+        char strVal[sizeof(exlib::string)];
         char jsVal[sizeof(v8::Persistent<v8::Value>)];
     } m_Val;
 };
@@ -391,7 +391,7 @@ public:
         operator=(v);
     }
 
-    VariantEx(const qstring &v)
+    VariantEx(const exlib::string &v)
     {
         toPersistent();
         operator=(v);

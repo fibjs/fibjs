@@ -37,13 +37,13 @@ public:
 
 public:
     // net_base
-    static result_t resolve(const char* name, int32_t family, qstring& retVal, AsyncEvent* ac);
-    static result_t ip(const char* name, qstring& retVal, AsyncEvent* ac);
-    static result_t ipv6(const char* name, qstring& retVal, AsyncEvent* ac);
+    static result_t resolve(const char* name, int32_t family, exlib::string& retVal, AsyncEvent* ac);
+    static result_t ip(const char* name, exlib::string& retVal, AsyncEvent* ac);
+    static result_t ipv6(const char* name, exlib::string& retVal, AsyncEvent* ac);
     static result_t connect(const char* host, int32_t port, int32_t family, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(const char* url, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t openSmtp(const char* host, int32_t port, int32_t family, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
-    static result_t backend(qstring& retVal);
+    static result_t backend(exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -69,9 +69,9 @@ public:
     static void s_backend(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE3(net_base, resolve, const char*, int32_t, qstring);
-    ASYNC_STATICVALUE2(net_base, ip, const char*, qstring);
-    ASYNC_STATICVALUE2(net_base, ipv6, const char*, qstring);
+    ASYNC_STATICVALUE3(net_base, resolve, const char*, int32_t, exlib::string);
+    ASYNC_STATICVALUE2(net_base, ip, const char*, exlib::string);
+    ASYNC_STATICVALUE2(net_base, ipv6, const char*, exlib::string);
     ASYNC_STATICVALUE4(net_base, connect, const char*, int32_t, int32_t, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE2(net_base, connect, const char*, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE4(net_base, openSmtp, const char*, int32_t, int32_t, obj_ptr<Smtp_base>);
@@ -156,7 +156,7 @@ namespace fibjs
 
     inline void net_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         ASYNC_METHOD_ENTER(2, 1);
 
@@ -174,7 +174,7 @@ namespace fibjs
 
     inline void net_base::s_ip(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         ASYNC_METHOD_ENTER(1, 1);
 
@@ -191,7 +191,7 @@ namespace fibjs
 
     inline void net_base::s_ipv6(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         ASYNC_METHOD_ENTER(1, 1);
 
@@ -256,7 +256,7 @@ namespace fibjs
 
     inline void net_base::s_backend(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_ENTER(0, 0);
 

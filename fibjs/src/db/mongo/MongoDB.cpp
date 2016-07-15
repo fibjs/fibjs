@@ -188,8 +188,8 @@ result_t MongoDB::open(const char *connString)
 
         while (true)
         {
-            qstring hostname;
-            qstring port;
+            exlib::string hostname;
+            exlib::string port;
 
             Url::parseHost(host, hostname, port);
 
@@ -234,7 +234,7 @@ result_t MongoDB::open(const char *connString)
 result_t MongoDB::getCollection(const char *name,
                                 obj_ptr<MongoCollection_base> &retVal)
 {
-    qstring nsStr;
+    exlib::string nsStr;
     const char *ns = name;
 
     if (!m_ns.empty())

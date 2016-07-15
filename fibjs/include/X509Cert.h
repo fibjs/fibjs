@@ -31,15 +31,15 @@ public:
     virtual result_t dump(v8::Local<v8::Array> &retVal);
     virtual result_t clear();
     virtual result_t get_version(int32_t &retVal);
-    virtual result_t get_serial(qstring &retVal);
-    virtual result_t get_issuer(qstring &retVal);
-    virtual result_t get_subject(qstring &retVal);
+    virtual result_t get_serial(exlib::string &retVal);
+    virtual result_t get_issuer(exlib::string &retVal);
+    virtual result_t get_subject(exlib::string &retVal);
     virtual result_t get_notBefore(date_t &retVal);
     virtual result_t get_notAfter(date_t &retVal);
     virtual result_t get_ca(bool &retVal);
     virtual result_t get_pathlen(int32_t &retVal);
-    virtual result_t get_usage(qstring &retVal);
-    virtual result_t get_type(qstring &retVal);
+    virtual result_t get_usage(exlib::string &retVal);
+    virtual result_t get_type(exlib::string &retVal);
     virtual result_t get_publicKey(obj_ptr<PKey_base> &retVal);
     virtual result_t get_next(obj_ptr<X509Cert_base> &retVal);
 

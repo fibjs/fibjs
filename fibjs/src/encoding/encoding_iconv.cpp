@@ -149,7 +149,7 @@ void encoding_iconv::open(const char *charset)
     m_charset = charset;
 }
 
-result_t encoding_iconv::encode(const char *data, qstring &retVal)
+result_t encoding_iconv::encode(const char *data, exlib::string &retVal)
 {
     if (!qstricmp(m_charset.c_str(), "utf8") || !qstricmp(m_charset.c_str(), "utf-8"))
         retVal = data;
@@ -184,7 +184,7 @@ result_t encoding_iconv::encode(const char *data, qstring &retVal)
 
 result_t encoding_iconv::encode(const char *data, obj_ptr<Buffer_base> &retVal)
 {
-    qstring strBuf;
+    exlib::string strBuf;
 
     result_t hr = encode(data, strBuf);
     if (hr < 0)
@@ -195,7 +195,7 @@ result_t encoding_iconv::encode(const char *data, obj_ptr<Buffer_base> &retVal)
     return 0;
 }
 
-result_t encoding_iconv::decode(const qstring &data, qstring &retVal)
+result_t encoding_iconv::decode(const exlib::string &data, exlib::string &retVal)
 {
     if (!qstricmp(m_charset.c_str(), "utf8") || !qstricmp(m_charset.c_str(), "utf-8"))
         retVal = data;
@@ -213,7 +213,7 @@ result_t encoding_iconv::decode(const qstring &data, qstring &retVal)
 
         size_t sz = data.length();
         const char *ptr = data.c_str();
-        qstring strBuf;
+        exlib::string strBuf;
 
         strBuf.resize(sz * 2);
         char *output_buf = &strBuf[0];
@@ -232,9 +232,9 @@ result_t encoding_iconv::decode(const qstring &data, qstring &retVal)
     return 0;
 }
 
-result_t encoding_iconv::decode(Buffer_base *data, qstring &retVal)
+result_t encoding_iconv::decode(Buffer_base *data, exlib::string &retVal)
 {
-    qstring strData;
+    exlib::string strData;
     data->toString(strData);
 
     return decode(strData, retVal);
@@ -247,7 +247,7 @@ result_t iconv_base::encode(const char *charset, const char *data,
 }
 
 result_t iconv_base::decode(const char *charset, Buffer_base *data,
-                            qstring &retVal)
+                            exlib::string &retVal)
 {
     return encoding_iconv(charset).decode(data, retVal);
 }

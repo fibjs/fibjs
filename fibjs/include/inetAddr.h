@@ -52,7 +52,7 @@ union inetAddr
     }
 
     int32_t addr(const char *s);
-    qstring str();
+    exlib::string str();
 };
 
 } /* namespace fibjs */

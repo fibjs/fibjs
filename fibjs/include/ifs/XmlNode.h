@@ -27,8 +27,8 @@ class XmlNode_base : public object_base
 public:
     // XmlNode_base
     virtual result_t get_nodeType(int32_t& retVal) = 0;
-    virtual result_t get_nodeName(qstring& retVal) = 0;
-    virtual result_t get_nodeValue(qstring& retVal) = 0;
+    virtual result_t get_nodeName(exlib::string& retVal) = 0;
+    virtual result_t get_nodeValue(exlib::string& retVal) = 0;
     virtual result_t set_nodeValue(const char* newVal) = 0;
     virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base>& retVal) = 0;
     virtual result_t get_parentNode(obj_ptr<XmlNode_base>& retVal) = 0;
@@ -40,8 +40,8 @@ public:
     virtual result_t get_nextSibling(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t normalize() = 0;
     virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal) = 0;
-    virtual result_t lookupPrefix(const char* namespaceURI, qstring& retVal) = 0;
-    virtual result_t lookupNamespaceURI(const char* prefix, qstring& retVal) = 0;
+    virtual result_t lookupPrefix(const char* namespaceURI, exlib::string& retVal) = 0;
+    virtual result_t lookupNamespaceURI(const char* prefix, exlib::string& retVal) = 0;
     virtual result_t insertBefore(XmlNode_base* newChild, XmlNode_base* refChild, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t insertAfter(XmlNode_base* newChild, XmlNode_base* refChild, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal) = 0;
@@ -145,7 +145,7 @@ namespace fibjs
 
     inline void XmlNode_base::s_get_nodeName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlNode_base);
@@ -157,7 +157,7 @@ namespace fibjs
 
     inline void XmlNode_base::s_get_nodeValue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlNode_base);
@@ -300,7 +300,7 @@ namespace fibjs
 
     inline void XmlNode_base::s_lookupPrefix(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(XmlNode_base);
         METHOD_ENTER(1, 1);
@@ -314,7 +314,7 @@ namespace fibjs
 
     inline void XmlNode_base::s_lookupNamespaceURI(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(XmlNode_base);
         METHOD_ENTER(1, 1);

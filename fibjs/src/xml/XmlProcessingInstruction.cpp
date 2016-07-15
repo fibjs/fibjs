@@ -11,13 +11,13 @@
 namespace fibjs
 {
 
-result_t XmlProcessingInstruction::get_nodeName(qstring &retVal)
+result_t XmlProcessingInstruction::get_nodeName(exlib::string &retVal)
 {
     retVal = m_target;
     return 0;
 }
 
-result_t XmlProcessingInstruction::get_nodeValue(qstring &retVal)
+result_t XmlProcessingInstruction::get_nodeValue(exlib::string &retVal)
 {
     retVal = m_data;
     return 0;
@@ -69,12 +69,12 @@ result_t XmlProcessingInstruction::get_ownerDocument(obj_ptr<XmlDocument_base> &
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
-result_t XmlProcessingInstruction::lookupPrefix(const char *namespaceURI, qstring &retVal)
+result_t XmlProcessingInstruction::lookupPrefix(const char *namespaceURI, exlib::string &retVal)
 {
     return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
 }
 
-result_t XmlProcessingInstruction::lookupNamespaceURI(const char *prefix, qstring &retVal)
+result_t XmlProcessingInstruction::lookupNamespaceURI(const char *prefix, exlib::string &retVal)
 {
     return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
 }
@@ -123,13 +123,13 @@ result_t XmlProcessingInstruction::normalize()
     return m_childs->normalize();
 }
 
-result_t XmlProcessingInstruction::get_target(qstring &retVal)
+result_t XmlProcessingInstruction::get_target(exlib::string &retVal)
 {
     retVal = m_target;
     return 0;
 }
 
-result_t XmlProcessingInstruction::get_data(qstring &retVal)
+result_t XmlProcessingInstruction::get_data(exlib::string &retVal)
 {
     retVal = m_data;
     return 0;
@@ -141,7 +141,7 @@ result_t XmlProcessingInstruction::set_data(const char *newVal)
     return 0;
 }
 
-result_t XmlProcessingInstruction::toString(qstring &retVal)
+result_t XmlProcessingInstruction::toString(exlib::string &retVal)
 {
     retVal = "<?";
     retVal.append(m_target);

@@ -66,7 +66,7 @@ public:
 
 private:
     VariantEx m_actual;
-    qstring m_msg;
+    exlib::string m_msg;
     bool m_not;
     bool m_deep;
 };

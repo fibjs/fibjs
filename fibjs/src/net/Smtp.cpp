@@ -23,7 +23,7 @@ result_t Smtp_base::_new(obj_ptr<Smtp_base> &retVal, v8::Local<v8::Object> This)
 class asyncSmtp: public AsyncState
 {
 public:
-    asyncSmtp(Smtp *pThis, qstring &retVal, AsyncEvent *ac) :
+    asyncSmtp(Smtp *pThis, exlib::string &retVal, AsyncEvent *ac) :
         AsyncState(ac), m_pThis(pThis), m_retVal(retVal)
     {
         m_stmBuffered = pThis->m_stmBuffered;
@@ -50,7 +50,7 @@ public:
     {
         asyncSmtp *pThis = (asyncSmtp *) pState;
 
-        qstring &strLine = pThis->m_strLine;
+        exlib::string &strLine = pThis->m_strLine;
 
         if (&pThis->m_retVal != &strLine)
         {
@@ -91,7 +91,7 @@ public:
 
     int32_t command(const char *cmd, const char *arg)
     {
-        qstring s(cmd);
+        exlib::string s(cmd);
 
         s.append(" ", 1);
         s.append(arg);
@@ -108,9 +108,9 @@ public:
 
 protected:
     obj_ptr<Smtp> m_pThis;
-    qstring &m_retVal;
+    exlib::string &m_retVal;
     obj_ptr<BufferedStream_base> m_stmBuffered;
-    qstring m_strLine;
+    exlib::string m_strLine;
 };
 
 result_t Smtp::connect(const char *host, int32_t port, int32_t family,
@@ -137,7 +137,7 @@ result_t Smtp::connect(const char *host, int32_t port, int32_t family,
     return (new asyncSmtp(this, ac))->connect(host, port);
 }
 
-result_t Smtp::command(const char *cmd, const char *arg, qstring &retVal,
+result_t Smtp::command(const char *cmd, const char *arg, exlib::string &retVal,
                        AsyncEvent *ac)
 {
     if (!m_sock)
@@ -183,7 +183,7 @@ result_t Smtp::login(const char *username, const char *password,
         {
             asyncLogin *pThis = (asyncLogin *) pState;
 
-            qstring s("AUTH LOGIN\r\n", 12);
+            exlib::string s("AUTH LOGIN\r\n", 12);
 
             obj_ptr<Buffer> buf = new Buffer(s);
             pThis->set(ok);
@@ -193,7 +193,7 @@ result_t Smtp::login(const char *username, const char *password,
         int32_t send_base64(const char *str)
         {
             obj_ptr<Buffer> buf = new Buffer(str);
-            qstring s;
+            exlib::string s;
 
             base64_base::encode(buf, s);
             s.append("\r\n", 2);
@@ -272,7 +272,7 @@ result_t Smtp::data(const char *txt, AsyncEvent *ac)
         {
             asyncData *pThis = (asyncData *) pState;
 
-            qstring s("DATA\r\n", 6);
+            exlib::string s("DATA\r\n", 6);
 
             obj_ptr<Buffer> buf = new Buffer(s);
             pThis->set(ok);
@@ -283,7 +283,7 @@ result_t Smtp::data(const char *txt, AsyncEvent *ac)
         {
             asyncData *pThis = (asyncData *) pState;
 
-            qstring s(pThis->m_txt);
+            exlib::string s(pThis->m_txt);
 
             s.append("\r\n.\r\n", 5);
 

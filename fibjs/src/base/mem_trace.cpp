@@ -15,7 +15,7 @@
 #include <dlfcn.h>
 #include <unistd.h>
 #include <vector>
-#include <qstring.h>
+#include <exlib::string.h>
 
 #include <exlib/include/list.h>
 #include <exlib/include/fiber.h>
@@ -206,7 +206,7 @@ public:
 
 		void dump(FILE* fp, int32_t level)
 		{
-			qstring str;
+			exlib::string str;
 
 			if (level == 0)
 				fprintf(fp, "\n");

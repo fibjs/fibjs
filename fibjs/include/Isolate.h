@@ -75,7 +75,7 @@ public:
 		return v8::String::NewFromUtf8(m_isolate, data, v8::String::kNormalString, length);
 	}
 
-	v8::Local<v8::String> NewFromUtf8(qstring str)
+	v8::Local<v8::String> NewFromUtf8(exlib::string str)
 	{
 		return v8::String::NewFromUtf8(m_isolate, str.c_str(), v8::String::kNormalString, (int32_t)str.length());
 	}
@@ -102,7 +102,7 @@ public:
 
 public:
 	int32_t m_id;
-	qstring m_fname;
+	exlib::string m_fname;
 
 	QuickArray<void*> m_classInfo;
 

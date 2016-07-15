@@ -16,7 +16,7 @@ namespace fibjs
 DECLARE_MODULE(path);
 
 result_t path_base::basename(const char *path, const char *ext,
-                             qstring &retVal)
+                             exlib::string &retVal)
 {
     char ch;
     const char *p1 = path;
@@ -38,7 +38,7 @@ result_t path_base::basename(const char *path, const char *ext,
     return 0;
 }
 
-result_t path_base::extname(const char *path, qstring &retVal)
+result_t path_base::extname(const char *path, exlib::string &retVal)
 {
     char ch;
     const char *p1 = NULL;
@@ -65,7 +65,7 @@ result_t path_base::extname(const char *path, qstring &retVal)
     return 0;
 }
 
-result_t path_base::dirname(const char *path, qstring &retVal)
+result_t path_base::dirname(const char *path, exlib::string &retVal)
 {
     char ch;
     const char *p1 = path;
@@ -123,9 +123,9 @@ inline char fixChar(char ch)
     return isPathSlash(ch) ? PATH_SLASH : ch;
 }
 
-result_t path_base::normalize(const char *path, qstring &retVal)
+result_t path_base::normalize(const char *path, exlib::string &retVal)
 {
-    qstring str;
+    exlib::string str;
     const char *p1 = path;
     char *pstr;
     int32_t pos = 0;
@@ -244,9 +244,9 @@ result_t path_base::normalize(const char *path, qstring &retVal)
     return 0;
 }
 
-result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, qstring &retVal)
+result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, exlib::string &retVal)
 {
-    qstring strBuffer;
+    exlib::string strBuffer;
     int32_t argc = args.Length();
     int32_t i;
 
@@ -259,11 +259,11 @@ result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, qstrin
     return normalize(strBuffer.c_str(), retVal);
 }
 
-result_t path_base::fullpath(const char *path, qstring &retVal)
+result_t path_base::fullpath(const char *path, exlib::string &retVal)
 {
 #ifdef _WIN32
-    wstring str = utf8to16String(path);
-    wchar utf16_buffer[MAX_PATH];
+    exlib::wstring str = utf8to16String(path);
+    exlib::wchar utf16_buffer[MAX_PATH];
 
     DWORD utf16_len = GetFullPathNameW(str.c_str(), MAX_PATH, utf16_buffer, NULL);
     if (!utf16_len)
@@ -275,7 +275,7 @@ result_t path_base::fullpath(const char *path, qstring &retVal)
     if (isPathSlash(path[0]))
         return normalize(path, retVal);
 
-    qstring str;
+    exlib::string str;
 
     process_base::cwd(str);
     str.append(1, PATH_SLASH);
@@ -285,14 +285,14 @@ result_t path_base::fullpath(const char *path, qstring &retVal)
 #endif
 }
 
-result_t path_base::get_sep(qstring &retVal)
+result_t path_base::get_sep(exlib::string &retVal)
 {
     retVal.clear();
     retVal.append(1, PATH_SLASH);
     return 0;
 }
 
-result_t path_base::get_delimiter(qstring &retVal)
+result_t path_base::get_delimiter(exlib::string &retVal)
 {
     retVal.clear();
     retVal.append(1, PATH_DELIMITER);

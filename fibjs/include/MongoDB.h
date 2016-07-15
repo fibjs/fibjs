@@ -57,7 +57,7 @@ public:
 
 public:
     mongo m_conn;
-    qstring m_ns;
+    exlib::string m_ns;
 };
 
 } /* namespace fibjs */

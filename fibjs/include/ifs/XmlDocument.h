@@ -37,15 +37,15 @@ public:
     static result_t _new(const char* type, obj_ptr<XmlDocument_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t load(const char* source) = 0;
     virtual result_t load(Buffer_base* source) = 0;
-    virtual result_t get_inputEncoding(qstring& retVal) = 0;
+    virtual result_t get_inputEncoding(exlib::string& retVal) = 0;
     virtual result_t get_xmlStandalone(bool& retVal) = 0;
     virtual result_t set_xmlStandalone(bool newVal) = 0;
-    virtual result_t get_xmlVersion(qstring& retVal) = 0;
+    virtual result_t get_xmlVersion(exlib::string& retVal) = 0;
     virtual result_t set_xmlVersion(const char* newVal) = 0;
     virtual result_t get_doctype(obj_ptr<XmlDocumentType_base>& retVal) = 0;
     virtual result_t get_documentElement(obj_ptr<XmlElement_base>& retVal) = 0;
     virtual result_t get_head(obj_ptr<XmlElement_base>& retVal) = 0;
-    virtual result_t get_title(qstring& retVal) = 0;
+    virtual result_t get_title(exlib::string& retVal) = 0;
     virtual result_t get_body(obj_ptr<XmlElement_base>& retVal) = 0;
     virtual result_t getElementsByTagName(const char* tagName, obj_ptr<XmlNodeList_base>& retVal) = 0;
     virtual result_t getElementsByTagNameNS(const char* namespaceURI, const char* localName, obj_ptr<XmlNodeList_base>& retVal) = 0;
@@ -136,7 +136,7 @@ namespace fibjs
 
     inline void XmlDocument_base::s_get_inputEncoding(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlDocument_base);
@@ -171,7 +171,7 @@ namespace fibjs
 
     inline void XmlDocument_base::s_get_xmlVersion(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlDocument_base);
@@ -230,7 +230,7 @@ namespace fibjs
 
     inline void XmlDocument_base::s_get_title(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlDocument_base);

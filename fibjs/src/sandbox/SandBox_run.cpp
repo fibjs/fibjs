@@ -24,7 +24,7 @@ namespace fibjs
 #define NO_SEARCH   2
 #define FULL_SEARCH 3
 
-static qstring s_root;
+static exlib::string s_root;
 
 
 void init_sandbox()
@@ -32,15 +32,15 @@ void init_sandbox()
     process_base::cwd(s_root);
 }
 
-inline qstring resolvePath(qstring base, qstring id)
+inline exlib::string resolvePath(exlib::string base, exlib::string id)
 {
-    qstring fname;
+    exlib::string fname;
 
     if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
     {
         if (!base.empty())
         {
-            qstring strPath;
+            exlib::string strPath;
 
             path_base::dirname(base.c_str(), strPath);
             if (strPath.length())
@@ -73,7 +73,7 @@ void _require(const v8::FunctionCallbackInfo<v8::Value> &args)
     v8::Isolate* isolate = args.GetIsolate();
     V8_SCOPE(isolate);
 
-    qstring id;
+    exlib::string id;
     result_t hr = GetArgumentValue(args[0], id);
     if (hr < 0)
     {
@@ -119,7 +119,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
         return;
     }
 
-    qstring id;
+    exlib::string id;
     result_t hr = GetArgumentValue(args[0], id);
     if (hr < 0)
     {
@@ -148,7 +148,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
     {
         v8::Local<v8::Value> path = _mod->Get(v8::String::NewFromUtf8(isolate, "_id"));
 
-        qstring strPath;
+        exlib::string strPath;
 
         path_base::dirname(*v8::String::Utf8Value(path), strPath);
         if (strPath.length())
@@ -183,13 +183,13 @@ SandBox::Context::Context(SandBox *sb, const char *id) : m_sb(sb)
     m_fnRun = createV8Function("run", isolate->m_isolate, _run, _mod);
 }
 
-result_t SandBox::Context::run(qstring src, const char *name, const char **argNames,
+result_t SandBox::Context::run(exlib::string src, const char *name, const char **argNames,
                                v8::Local<v8::Value> *args, int32_t argCount)
 {
     Isolate* isolate = m_sb->holder();
     const char *oname = name;
 
-    qstring sname = m_sb->name();
+    exlib::string sname = m_sb->name();
     if (!sname.empty())
     {
         sname.append(oname);
@@ -197,7 +197,7 @@ result_t SandBox::Context::run(qstring src, const char *name, const char **argNa
     }
 
     v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
-    qstring pname;
+    exlib::string pname;
     path_base::dirname(name, pname);
 
     v8::Local<v8::Script> script;
@@ -214,7 +214,7 @@ result_t SandBox::Context::run(qstring src, const char *name, const char **argNa
                 return throwSyntaxError(try_catch);
         }
 
-        qstring str("(function(");
+        exlib::string str("(function(");
         int32_t i;
 
         for (i = 0; i < argCount; i ++)
@@ -246,7 +246,7 @@ result_t SandBox::Context::run(qstring src, const char *name, const char **argNa
     return 0;
 }
 
-result_t SandBox::Context::run(qstring src, const char *name, v8::Local<v8::Array> argv, bool main)
+result_t SandBox::Context::run(exlib::string src, const char *name, v8::Local<v8::Array> argv, bool main)
 {
     static const char *names[] = {"require", "run", "argv", "global", "repl"};
 
@@ -266,7 +266,7 @@ result_t SandBox::Context::run(qstring src, const char *name, v8::Local<v8::Arra
     }
 }
 
-result_t SandBox::Context::run(qstring src, const char *name, v8::Local<v8::Object> module,
+result_t SandBox::Context::run(exlib::string src, const char *name, v8::Local<v8::Object> module,
                                v8::Local<v8::Object> exports)
 {
     static const char *names[] = {"module", "exports", "require", "run"};
@@ -278,11 +278,11 @@ result_t SandBox::Context::run(qstring src, const char *name, v8::Local<v8::Obje
 result_t SandBox::addScript(const char *srcname, const char *script,
                             v8::Local<v8::Value> &retVal)
 {
-    qstring fname(srcname);
+    exlib::string fname(srcname);
     result_t hr;
 
     // add to modules
-    qstring id(fname);
+    exlib::string id(fname);
 
     if (id.length() > 5 && !qstrcmp(id.c_str() + id.length() - 5, ".json"))
     {
@@ -345,12 +345,12 @@ result_t SandBox::addScript(const char *srcname, const char *script,
     return 0;
 }
 
-result_t SandBox::require(qstring base, qstring id,
+result_t SandBox::require(exlib::string base, exlib::string id,
                           v8::Local<v8::Value> &retVal, int32_t mode)
 {
-    qstring strId = resolvePath(base, id);
-    qstring fname;
-    std::map<qstring, VariantEx >::iterator it;
+    exlib::string strId = resolvePath(base, id);
+    exlib::string fname;
+    std::map<exlib::string, VariantEx >::iterator it;
     Isolate* isolate = holder();
 
     if (strId.length() > 5 && !qstrcmp(strId.c_str() + strId.length() - 5, ".json"))
@@ -370,7 +370,7 @@ result_t SandBox::require(qstring base, qstring id,
     if (!IsEmpty(retVal))
         return 1;
 
-    qstring fullname;
+    exlib::string fullname;
 
     fullname = s_root;
     pathAdd(fullname, strId.c_str());
@@ -401,11 +401,11 @@ result_t SandBox::require(qstring base, qstring id,
     }
 
     result_t hr;
-    qstring buf;
+    exlib::string buf;
 
     if (!fname.empty())
     {
-        qstring fname1;
+        exlib::string fname1;
 
         fname1 = s_root;
         pathAdd(fname1, fname.c_str());
@@ -484,7 +484,7 @@ result_t SandBox::require(qstring base, qstring id,
 
     if (!base.empty())
     {
-        qstring str, str1;
+        exlib::string str, str1;
 
         str = base;
         while (true)
@@ -519,7 +519,7 @@ result_t SandBox::require(qstring base, qstring id,
 
 result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
 {
-    qstring sid;
+    exlib::string sid;
     path_base::normalize(id, sid);
     return require("", sid, retVal, FULL_SEARCH);
 }
@@ -528,14 +528,14 @@ result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv, bool main)
 {
     result_t hr;
 
-    qstring sfname = s_root;
+    exlib::string sfname = s_root;
 
     pathAdd(sfname, fname);
     path_base::normalize(sfname.c_str(), sfname);
 
     const char *pname = sfname.c_str();
 
-    qstring buf;
+    exlib::string buf;
     hr = fs_base::cc_readFile(pname, buf);
     if (hr < 0)
         return hr;

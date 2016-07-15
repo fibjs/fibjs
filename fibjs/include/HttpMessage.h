@@ -28,7 +28,7 @@ public:
     }
 
 public:
-    result_t get_protocol(qstring &retVal);
+    result_t get_protocol(exlib::string &retVal);
     result_t set_protocol(const char *newVal);
     result_t get_headers(obj_ptr<HttpCollection_base> &retVal);
     result_t get_keepAlive(bool &retVal);
@@ -52,29 +52,29 @@ public:
     result_t clear();
 
 public:
-    result_t sendTo(Stream_base *stm, qstring &strCommand,
+    result_t sendTo(Stream_base *stm, exlib::string &strCommand,
                     AsyncEvent *ac);
-    result_t sendHeader(Stream_base *stm, qstring &strCommand,
+    result_t sendHeader(Stream_base *stm, exlib::string &strCommand,
                         AsyncEvent *ac);
     result_t readFrom(Stream_base *stm, AsyncEvent *ac);
 
 public:
     void addHeader(const char *name, int32_t szName, const char *value,
                    int32_t szValue);
-    result_t addHeader(qstring &strLine);
+    result_t addHeader(exlib::string &strLine);
     size_t size();
     size_t getData(char *buf, size_t sz);
 
 public:
     obj_ptr<Stream_base> m_stm;
     bool m_bResponse;
-    qstring m_protocol;
+    exlib::string m_protocol;
     bool m_keepAlive;
     bool m_upgrade;
     int32_t m_maxHeadersCount;
     int32_t m_maxUploadSize;
-    qstring m_origin;
-    qstring m_encoding;
+    exlib::string m_origin;
+    exlib::string m_encoding;
     obj_ptr<HttpCollection> m_headers;
 };
 

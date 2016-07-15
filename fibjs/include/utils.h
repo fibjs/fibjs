@@ -374,9 +374,9 @@ public:
         return m_v;
     }
 
-    qstring toString() const
+    exlib::string toString() const
     {
-        return qstring(m_v, tmp->length());
+        return exlib::string(m_v, tmp->length());
     }
 
 private:
@@ -400,7 +400,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, a
     return GetArgumentValue(v, n, bStrict);
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, qstring &n, bool bStrict = false)
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string &n, bool bStrict = false)
 {
     arg_string str;
 
@@ -412,7 +412,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, qstring &n, bool bStric
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, qstring &n, bool bStrict = false)
+inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, exlib::string &n, bool bStrict = false)
 {
     return GetArgumentValue(v, n, bStrict);
 }
@@ -742,7 +742,7 @@ inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, int64_t v)
     return v8::Number::New(isolate, (double) v);
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, qstring &str)
+inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, exlib::string &str)
 {
     return v8::String::NewFromUtf8(isolate, str.c_str(),
                                    v8::String::kNormalString, (int32_t) str.length());
@@ -826,11 +826,11 @@ inline result_t SocketError()
 #endif
 }
 
-qstring traceInfo(int32_t deep);
-qstring getResultMessage(result_t hr);
+exlib::string traceInfo(int32_t deep);
+exlib::string getResultMessage(result_t hr);
 v8::Local<v8::Value> ThrowResult(result_t hr);
 void ReportException(TryCatch &try_catch, result_t hr);
-qstring GetException(TryCatch &try_catch, result_t hr);
+exlib::string GetException(TryCatch &try_catch, result_t hr);
 result_t throwSyntaxError(TryCatch &try_catch);
 
 #ifdef _WIN32
@@ -862,13 +862,13 @@ inline bool isUrlSlash(char ch)
     return ch == '/';
 }
 
-void asyncLog(int32_t priority, qstring msg);
+void asyncLog(int32_t priority, exlib::string msg);
 
 inline result_t _error_checker(result_t hr, const char *file, int32_t line)
 {
     if (hr < 0 && hr != CALL_E_NOSYNC && hr != CALL_E_NOASYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_PENDDING)
     {
-        qstring str = file;
+        exlib::string str = file;
         char tmp[64];
 
         sprintf(tmp, ":%d ", line);
@@ -888,10 +888,10 @@ inline result_t _error_checker(result_t hr, const char *file, int32_t line)
 
 #define DEPRECATED_SOON(name) \
     {static bool once = false; \
-        if(!once){once = true; qstring str(name); str.append(" is deprecated and will soon be removed."); \
+        if(!once){once = true; exlib::string str(name); str.append(" is deprecated and will soon be removed."); \
          asyncLog(4, str + traceInfo(16));}}
 
-inline qstring niceSize(intptr_t sz)
+inline exlib::string niceSize(intptr_t sz)
 {
     char buf[64];
     double num = (double)sz;
@@ -907,13 +907,13 @@ inline qstring niceSize(intptr_t sz)
     else
         cnt = sprintf(buf, "%.1f GB", num / (1024 * 1024 * 1024));
 
-    return qstring(buf, cnt);
+    return exlib::string(buf, cnt);
 }
 
-inline qstring dump_str(qstring str)
+inline exlib::string dump_str(exlib::string str)
 {
     static const char hexs[] = "0123456789abcdef";
-    qstring strHex;
+    exlib::string strHex;
     int32_t i;
 
     for (i = 0; i < (int32_t)str.length(); i ++)

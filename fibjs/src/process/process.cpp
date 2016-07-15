@@ -95,7 +95,7 @@ result_t process_base::get_execArgv(v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-result_t process_base::get_execPath(qstring &retVal)
+result_t process_base::get_execPath(exlib::string &retVal)
 {
     return os_base::get_execPath(retVal);
 }
@@ -191,7 +191,7 @@ result_t process_base::exec(const char *cmd)
     ZeroMemory(&si, sizeof(STARTUPINFO));
     si.cb = sizeof(STARTUPINFO);
 
-    wstring wstr(L"cmd /C ");
+    exlib::wstring wstr(L"cmd /C ");
     wstr.append(utf8to16String(cmd));
 
     CreateProcessW(NULL, &wstr[0], NULL, NULL, 0, 0, NULL, NULL, &si, &pi);

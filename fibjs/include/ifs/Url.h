@@ -29,20 +29,20 @@ public:
     virtual result_t format(v8::Local<v8::Object> args) = 0;
     virtual result_t resolve(const char* url, obj_ptr<Url_base>& retVal) = 0;
     virtual result_t normalize() = 0;
-    virtual result_t get_href(qstring& retVal) = 0;
-    virtual result_t get_protocol(qstring& retVal) = 0;
+    virtual result_t get_href(exlib::string& retVal) = 0;
+    virtual result_t get_protocol(exlib::string& retVal) = 0;
     virtual result_t get_slashes(int32_t& retVal) = 0;
-    virtual result_t get_auth(qstring& retVal) = 0;
-    virtual result_t get_username(qstring& retVal) = 0;
-    virtual result_t get_password(qstring& retVal) = 0;
-    virtual result_t get_host(qstring& retVal) = 0;
-    virtual result_t get_hostname(qstring& retVal) = 0;
-    virtual result_t get_port(qstring& retVal) = 0;
-    virtual result_t get_path(qstring& retVal) = 0;
-    virtual result_t get_pathname(qstring& retVal) = 0;
-    virtual result_t get_search(qstring& retVal) = 0;
-    virtual result_t get_query(qstring& retVal) = 0;
-    virtual result_t get_hash(qstring& retVal) = 0;
+    virtual result_t get_auth(exlib::string& retVal) = 0;
+    virtual result_t get_username(exlib::string& retVal) = 0;
+    virtual result_t get_password(exlib::string& retVal) = 0;
+    virtual result_t get_host(exlib::string& retVal) = 0;
+    virtual result_t get_hostname(exlib::string& retVal) = 0;
+    virtual result_t get_port(exlib::string& retVal) = 0;
+    virtual result_t get_path(exlib::string& retVal) = 0;
+    virtual result_t get_pathname(exlib::string& retVal) = 0;
+    virtual result_t get_search(exlib::string& retVal) = 0;
+    virtual result_t get_query(exlib::string& retVal) = 0;
+    virtual result_t get_hash(exlib::string& retVal) = 0;
 
 public:
     template<typename T>
@@ -115,7 +115,7 @@ namespace fibjs
 
     inline void Url_base::s_get_href(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);
@@ -127,7 +127,7 @@ namespace fibjs
 
     inline void Url_base::s_get_protocol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);
@@ -151,7 +151,7 @@ namespace fibjs
 
     inline void Url_base::s_get_auth(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);
@@ -163,7 +163,7 @@ namespace fibjs
 
     inline void Url_base::s_get_username(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);
@@ -175,7 +175,7 @@ namespace fibjs
 
     inline void Url_base::s_get_password(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);
@@ -187,7 +187,7 @@ namespace fibjs
 
     inline void Url_base::s_get_host(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);
@@ -199,7 +199,7 @@ namespace fibjs
 
     inline void Url_base::s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);
@@ -211,7 +211,7 @@ namespace fibjs
 
     inline void Url_base::s_get_port(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);
@@ -223,7 +223,7 @@ namespace fibjs
 
     inline void Url_base::s_get_path(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);
@@ -235,7 +235,7 @@ namespace fibjs
 
     inline void Url_base::s_get_pathname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);
@@ -247,7 +247,7 @@ namespace fibjs
 
     inline void Url_base::s_get_search(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);
@@ -259,7 +259,7 @@ namespace fibjs
 
     inline void Url_base::s_get_query(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);
@@ -271,7 +271,7 @@ namespace fibjs
 
     inline void Url_base::s_get_hash(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Url_base);

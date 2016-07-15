@@ -60,7 +60,7 @@ Variant &Variant::operator=(v8::Local<v8::Value> v)
     else if (v->IsString() || v->IsStringObject())
     {
         v8::String::Utf8Value s(v);
-        qstring str(*s, s.length());
+        exlib::string str(*s, s.length());
         return operator=(str);
     }
     else
@@ -133,7 +133,7 @@ Variant::operator v8::Local<v8::Value>() const
     }
     case VT_String:
     {
-        qstring &str = strVal();
+        exlib::string &str = strVal();
         return isolate->NewFromUtf8(str);
     }
     }
@@ -245,7 +245,7 @@ void Variant::parseNumber(const char *str, int32_t len)
 
 #define STRING_BUF_SIZE 1024
 
-bool Variant::toString(qstring &retVal)
+bool Variant::toString(exlib::string &retVal)
 {
     switch (type())
     {
@@ -314,13 +314,13 @@ void Variant::toJSON()
     if (type() != VT_JSON)
     {
         v8::Local<v8::Value> v = operator v8::Local<v8::Value>();
-        qstring str;
+        exlib::string str;
 
         json_base::encode(v, str);
 
         clear();
         set_type(VT_JSON);
-        new (m_Val.strVal) qstring(str);
+        new (m_Val.strVal) exlib::string(str);
     }
 }
 

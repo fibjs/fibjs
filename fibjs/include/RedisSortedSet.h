@@ -48,7 +48,7 @@ public:
     virtual result_t rankRev(Buffer_base *member, int32_t &retVal);
 
 private:
-    qstring m_key;
+    exlib::string m_key;
     obj_ptr<Redis> m_rdb;
 };
 

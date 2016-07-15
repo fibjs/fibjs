@@ -215,15 +215,6 @@ inline void qstrupr(T* s)
         * s++ = qtoupper(c);
 }
 
-#ifdef _WIN32
-typedef wchar_t wchar;
-#else
-typedef uint16_t wchar;
-#endif
-
-typedef exlib::basic_string<char> qstring;
-typedef exlib::basic_string<wchar> wstring;
-
 }
 
 #endif /* QSTRING_H_ */

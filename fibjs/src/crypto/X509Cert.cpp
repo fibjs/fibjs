@@ -70,7 +70,7 @@ result_t X509Cert::load(Buffer_base *derCert)
 
     int32_t ret;
 
-    qstring crt;
+    exlib::string crt;
     derCert->toString(crt);
 
     ret = mbedtls_x509_crt_parse_der(&m_crt, (const unsigned char *)crt.c_str(),
@@ -113,16 +113,16 @@ result_t X509Cert::load(const char *txtCert)
     }
 
     _parser p(txtCert, (int32_t)qstrlen(txtCert));
-    QuickArray<std::pair<qstring, qstring> > values;
-    std::map<qstring, bool> verifies;
-    std::map<qstring, bool> certs;
+    QuickArray<std::pair<exlib::string, exlib::string> > values;
+    std::map<exlib::string, bool> verifies;
+    std::map<exlib::string, bool> certs;
 
     while (!p.end())
     {
-        qstring cka_label;
-        qstring cka_value;
-        qstring cka_serial;
-        qstring _value;
+        exlib::string cka_label;
+        exlib::string cka_value;
+        exlib::string cka_serial;
+        exlib::string _value;
         bool in_multiline = false, in_obj = false;
         bool is_cert = false;
         bool is_trust = false;
@@ -133,8 +133,8 @@ result_t X509Cert::load(const char *txtCert)
 
         while (!p.end())
         {
-            qstring line;
-            qstring cmd, type, value;
+            exlib::string line;
+            exlib::string cmd, type, value;
 
             p.getLine(line);
             _parser p1(line);
@@ -230,12 +230,12 @@ result_t X509Cert::load(const char *txtCert)
             if (is_trust)
             {
                 if (is_ca)
-                    certs.insert(std::pair<qstring, bool>(cka_label + cka_serial, true));
+                    certs.insert(std::pair<exlib::string, bool>(cka_label + cka_serial, true));
                 if (is_verify)
-                    verifies.insert(std::pair<qstring, bool>(cka_label + cka_serial, true));
+                    verifies.insert(std::pair<exlib::string, bool>(cka_label + cka_serial, true));
             }
             else if (is_cert && !cka_value.empty())
-                values.append(std::pair<qstring, qstring>(cka_label + cka_serial, cka_value));
+                values.append(std::pair<exlib::string, exlib::string>(cka_label + cka_serial, cka_value));
         }
     }
 
@@ -244,8 +244,8 @@ result_t X509Cert::load(const char *txtCert)
 
     for (i = 0; i < (int32_t)values.size(); i++)
     {
-        std::pair<qstring, qstring> &c = values[i];
-        std::map<qstring, bool>::iterator it_trust;
+        std::pair<exlib::string, exlib::string> &c = values[i];
+        std::map<exlib::string, bool>::iterator it_trust;
 
         it_trust = verifies.find(c.first);
         if (it_trust != verifies.end())
@@ -262,8 +262,8 @@ result_t X509Cert::load(const char *txtCert)
 
     for (i = 0; i < (int32_t)values.size(); i++)
     {
-        std::pair<qstring, qstring> &c = values[i];
-        std::map<qstring, bool>::iterator it_trust;
+        std::pair<exlib::string, exlib::string> &c = values[i];
+        std::map<exlib::string, bool>::iterator it_trust;
 
         it_trust = certs.find(c.first);
         if (it_trust != certs.end())
@@ -290,7 +290,7 @@ result_t X509Cert::loadFile(const char *filename)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     result_t hr;
-    qstring data;
+    exlib::string data;
     int32_t ret;
 
     hr = fs_base::ac_readFile(filename, data);
@@ -364,7 +364,7 @@ result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
 
     const mbedtls_x509_crt *pCert = &m_crt;
     int32_t ret, n = 0;
-    qstring buf;
+    exlib::string buf;
     size_t olen;
 
     while (pCert)
@@ -422,7 +422,7 @@ result_t X509Cert::get_version(int32_t &retVal)
     return 0;
 }
 
-result_t X509Cert::get_serial(qstring &retVal)
+result_t X509Cert::get_serial(exlib::string &retVal)
 {
     mbedtls_x509_crt *crt = get_crt();
     if (!crt)
@@ -449,14 +449,14 @@ result_t X509Cert::get_serial(qstring &retVal)
     return 0;
 }
 
-result_t X509Cert::get_issuer(qstring &retVal)
+result_t X509Cert::get_issuer(exlib::string &retVal)
 {
     mbedtls_x509_crt *crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int32_t ret;
-    qstring buf;
+    exlib::string buf;
 
     buf.resize(1024);
 
@@ -470,14 +470,14 @@ result_t X509Cert::get_issuer(qstring &retVal)
     return 0;
 }
 
-result_t X509Cert::get_subject(qstring &retVal)
+result_t X509Cert::get_subject(exlib::string &retVal)
 {
     mbedtls_x509_crt *crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int32_t ret;
-    qstring buf;
+    exlib::string buf;
 
     buf.resize(1024);
 
@@ -537,7 +537,7 @@ result_t X509Cert::get_pathlen(int32_t &retVal)
     return 0;
 }
 
-result_t X509Cert::get_usage(qstring &retVal)
+result_t X509Cert::get_usage(exlib::string &retVal)
 {
     mbedtls_x509_crt *crt = get_crt();
     if (!crt)
@@ -559,7 +559,7 @@ result_t X509Cert::get_usage(qstring &retVal)
     return 0;
 }
 
-result_t X509Cert::get_type(qstring &retVal)
+result_t X509Cert::get_type(exlib::string &retVal)
 {
     mbedtls_x509_crt *crt = get_crt();
     if (!crt)

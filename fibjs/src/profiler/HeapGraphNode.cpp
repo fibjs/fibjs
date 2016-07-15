@@ -18,13 +18,13 @@ result_t HeapGraphNode::get_type(int32_t& retVal)
 	return 0;
 }
 
-result_t HeapGraphNode::get_name(qstring& retVal)
+result_t HeapGraphNode::get_name(exlib::string& retVal)
 {
 	retVal = m_name;
 	return 0;
 }
 
-result_t HeapGraphNode::get_description(qstring& retVal)
+result_t HeapGraphNode::get_description(exlib::string& retVal)
 {
 	get_description(this, retVal);
 	return 0;

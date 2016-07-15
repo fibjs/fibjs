@@ -46,19 +46,19 @@ public:
 
 public:
     // object_base
-    virtual result_t toString(qstring &retVal);
+    virtual result_t toString(exlib::string &retVal);
 
 public:
     // XmlAttr_base
-    virtual result_t get_localName(qstring &retVal);
-    virtual result_t get_value(qstring &retVal);
+    virtual result_t get_localName(exlib::string &retVal);
+    virtual result_t get_value(exlib::string &retVal);
     virtual result_t set_value(const char *newVal);
-    virtual result_t get_name(qstring &retVal);
-    virtual result_t get_namespaceURI(qstring &retVal);
-    virtual result_t get_prefix(qstring &retVal);
+    virtual result_t get_name(exlib::string &retVal);
+    virtual result_t get_namespaceURI(exlib::string &retVal);
+    virtual result_t get_prefix(exlib::string &retVal);
     virtual result_t set_prefix(const char *newVal);
-    virtual result_t get_nodeName(qstring &retVal);
-    virtual result_t get_nodeValue(qstring &retVal);
+    virtual result_t get_nodeName(exlib::string &retVal);
+    virtual result_t get_nodeValue(exlib::string &retVal);
     virtual result_t set_nodeValue(const char *newVal);
 
 public:
@@ -100,11 +100,11 @@ public:
     XmlElement *m_owner;
 
 private:
-    qstring m_name;
-    qstring m_localName;
-    qstring m_prefix;
-    qstring m_namespaceURI;
-    qstring m_value;
+    exlib::string m_name;
+    exlib::string m_localName;
+    exlib::string m_prefix;
+    exlib::string m_namespaceURI;
+    exlib::string m_value;
 };
 
 } /* namespace fibjs */

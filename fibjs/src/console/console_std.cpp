@@ -37,11 +37,11 @@ void std_logger::out(const char *txt)
 
         void out(const char *s, FILE *stream)
         {
-            wstring ws = utf8to16String(s);
-            wchar *ptr = &ws[0];
-            wchar *ptr2;
+            exlib::wstring ws = utf8to16String(s);
+            exlib::wchar *ptr = &ws[0];
+            exlib::wchar *ptr2;
 
-            while (ptr2 = (wchar *) qstrchr(ptr, L'\x1b'))
+            while (ptr2 = (exlib::wchar *) qstrchr(ptr, L'\x1b'))
             {
                 if (ptr2[1] == '[')
                 {
@@ -177,7 +177,7 @@ result_t std_logger::write(AsyncEvent *ac)
 
     while ((p1 = m_workinglogs.getHead()) != 0)
     {
-        qstring txt;
+        exlib::string txt;
         if (p1->m_priority == console_base::_NOTICE)
             txt = logger::notice() + p1->m_msg + COLOR_RESET + "\n";
         else if (p1->m_priority == console_base::_WARN)

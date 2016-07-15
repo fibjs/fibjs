@@ -56,7 +56,7 @@ result_t websocket_base::connect(const char* url, const char* origin,
 			for (i = 0; i < (int32_t)sizeof(keys); i ++)
 				keys[i] = (char)rand();
 
-			qstring key;
+			exlib::string key;
 			baseEncode(
 			    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
 			    6, (const char*)&keys, sizeof(keys), key);
@@ -120,12 +120,12 @@ result_t websocket_base::connect(const char* url, const char* origin,
 		}
 
 	private:
-		qstring m_url;
-		qstring m_origin;
+		exlib::string m_url;
+		exlib::string m_origin;
 		obj_ptr<Stream_base>& m_retVal;
 		obj_ptr<HttpResponse_base> m_httprep;
 		obj_ptr<Map> m_headers;
-		qstring m_accept;
+		exlib::string m_accept;
 	};
 
 	if (!ac)

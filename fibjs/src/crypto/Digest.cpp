@@ -43,7 +43,7 @@ result_t Digest::update(Buffer_base *data)
     if (m_iAlgo < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    qstring str;
+    exlib::string str;
     data->toString(str);
 
     if (m_bMac)
@@ -61,7 +61,7 @@ result_t Digest::digest(obj_ptr<Buffer_base> &retVal)
     if (m_iAlgo < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    qstring strBuf;
+    exlib::string strBuf;
 
     strBuf.resize(mbedtls_md_get_size(m_ctx.md_info));
 

@@ -86,7 +86,7 @@ int32_t utf8_putchar(int32_t ch, char *&dst, const char *end)
     }
     else
     {
-        wchar ch1;
+        exlib::wchar ch1;
 
         if (ch < 0x800)
         {
@@ -137,7 +137,7 @@ int32_t utf8_putchar(int32_t ch, char *&dst, const char *end)
     return 0;
 }
 
-int32_t utf16_getchar(const wchar *&src, const wchar *end)
+int32_t utf16_getchar(const exlib::wchar *&src, const exlib::wchar *end)
 {
     int32_t ch;
 
@@ -147,7 +147,7 @@ int32_t utf16_getchar(const wchar *&src, const wchar *end)
     if (((ch = *src++) & 0xf800) != 0xd800)
         return ch;
 
-    wchar ch1;
+    exlib::wchar ch1;
     if (src >= end || ((ch1 = *src) & 0xfc00) != 0xdc00)
         return '?';
 
@@ -155,7 +155,7 @@ int32_t utf16_getchar(const wchar *&src, const wchar *end)
     return ((ch & 0x7ff) << 10) + (ch1 & 0x3ff);
 }
 
-int32_t utf16_putchar(int32_t ch, wchar *&dst, const wchar *end)
+int32_t utf16_putchar(int32_t ch, exlib::wchar *&dst, const exlib::wchar *end)
 {
     if (!dst)
         return ch >= 0x10000 ? 2 : 1;
@@ -174,21 +174,21 @@ int32_t utf16_putchar(int32_t ch, wchar *&dst, const wchar *end)
             return 1;
         }
 
-        *dst++ = (wchar)((ch >> 10) | 0xd800);
-        *dst++ = (wchar)((ch & 0x3ff) | 0xdc00);
+        *dst++ = (exlib::wchar)((ch >> 10) | 0xd800);
+        *dst++ = (exlib::wchar)((ch & 0x3ff) | 0xdc00);
 
         return 2;
     }
 
-    *dst++ = (wchar)ch;
+    *dst++ = (exlib::wchar)ch;
     return 1;
 }
 
-int32_t utf8_mbstowcs(const char *src, int32_t srclen, wchar *dst, int32_t dstlen)
+int32_t utf8_mbstowcs(const char *src, int32_t srclen, exlib::wchar *dst, int32_t dstlen)
 {
     int32_t count = 0;
     const char *src_end = src + srclen;
-    const wchar *dst_end = dst + dstlen;
+    const exlib::wchar *dst_end = dst + dstlen;
     int32_t ch;
 
     while (src < src_end)
@@ -200,10 +200,10 @@ int32_t utf8_mbstowcs(const char *src, int32_t srclen, wchar *dst, int32_t dstle
     return count;
 }
 
-int32_t utf8_wcstombs(const wchar *src, int32_t srclen, char *dst, int32_t dstlen)
+int32_t utf8_wcstombs(const exlib::wchar *src, int32_t srclen, char *dst, int32_t dstlen)
 {
     int32_t count = 0;
-    const wchar *src_end = src + srclen;
+    const exlib::wchar *src_end = src + srclen;
     const char *dst_end = dst + dstlen;
     int32_t ch;
 

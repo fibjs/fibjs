@@ -8,9 +8,9 @@
 namespace fibjs
 {
 
-static qstring fmtString(result_t hr, const char *str, int32_t len = -1)
+static exlib::string fmtString(result_t hr, const char *str, int32_t len = -1)
 {
-    qstring s;
+    exlib::string s;
     if (len < 0)
         len = (int32_t) qstrlen(str);
 
@@ -20,7 +20,7 @@ static qstring fmtString(result_t hr, const char *str, int32_t len = -1)
     return s;
 }
 
-qstring getResultMessage(result_t hr)
+exlib::string getResultMessage(result_t hr)
 {
     static const char *s_errors[] =
     {
@@ -74,7 +74,7 @@ qstring getResultMessage(result_t hr)
 
     if (hr == CALL_E_EXCEPTION)
     {
-        qstring s = Runtime::errMessage();
+        exlib::string s = Runtime::errMessage();
 
         if (s.length() > 0)
             return s;
@@ -86,12 +86,12 @@ qstring getResultMessage(result_t hr)
     hr = -hr;
 
 #ifdef _WIN32
-    WCHAR MsgBuf[1024];
+    exlib::wchar MsgBuf[1024];
 
     if (FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                        NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), MsgBuf, 1024, NULL ))
     {
-        qstring s = fmtString(hr, UTF8_A(MsgBuf));
+        exlib::string s = fmtString(hr, UTF8_A(MsgBuf));
         size_t sz = s.length();
 
         if (sz > 0 && s[sz - 1] == '\n')
@@ -120,7 +120,7 @@ inline const char *ToCString(const v8::String::Utf8Value &value)
     return *value ? *value : "<string conversion failed>";
 }
 
-qstring GetException(TryCatch &try_catch, result_t hr)
+exlib::string GetException(TryCatch &try_catch, result_t hr)
 {
     if (try_catch.HasCaught())
     {
@@ -139,7 +139,7 @@ qstring GetException(TryCatch &try_catch, result_t hr)
                 return ToCString(stack_trace);
             }
 
-            qstring strError;
+            exlib::string strError;
 
             v8::String::Utf8Value filename(message->GetScriptResourceName());
 
@@ -186,7 +186,7 @@ result_t throwSyntaxError(TryCatch &try_catch)
         ThrowError(ToCString(exception));
     else
     {
-        qstring strError;
+        exlib::string strError;
 
         v8::String::Utf8Value filename(message->GetScriptResourceName());
 
@@ -227,13 +227,13 @@ void ReportException(TryCatch &try_catch, result_t hr)
         asyncLog(console_base::_ERROR, GetException(try_catch, hr));
 }
 
-qstring traceInfo(int32_t deep)
+exlib::string traceInfo(int32_t deep)
 {
     v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
             Isolate::current()->m_isolate, deep, v8::StackTrace::kOverview);
     int32_t count = stackTrace->GetFrameCount();
     int32_t i;
-    qstring strBuffer;
+    exlib::string strBuffer;
 
     for (i = 0; i < count; i++)
     {

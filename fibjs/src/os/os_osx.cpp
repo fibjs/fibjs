@@ -169,7 +169,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
     return 0;
 }
 
-result_t os_base::get_execPath(qstring &retVal)
+result_t os_base::get_execPath(exlib::string &retVal)
 {
     char exeName[1024] = "";
     uint32_t size = sizeof(exeName);

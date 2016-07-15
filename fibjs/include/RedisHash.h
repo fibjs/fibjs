@@ -50,7 +50,7 @@ public:
     virtual result_t del(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal);
 
 private:
-    qstring m_key;
+    exlib::string m_key;
     obj_ptr<Redis> m_rdb;
 };
 

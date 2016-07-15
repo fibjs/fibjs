@@ -23,11 +23,11 @@ public:
 
 public:
     // object_base
-    virtual result_t toString(qstring &retVal);
+    virtual result_t toString(exlib::string &retVal);
 
 public:
     // PKey_base
-    virtual result_t get_name(qstring &retVal);
+    virtual result_t get_name(exlib::string &retVal);
     virtual result_t get_keySize(int32_t &retVal);
     virtual result_t get_publicKey(obj_ptr<PKey_base> &retVal);
     virtual result_t genRsaKey(int32_t size, AsyncEvent *ac);
@@ -37,7 +37,7 @@ public:
     virtual result_t importKey(Buffer_base *DerKey, const char *password);
     virtual result_t importKey(const char *pemKey, const char *password);
     virtual result_t importFile(const char* filename, const char* password);
-    virtual result_t exportPem(qstring &retVal);
+    virtual result_t exportPem(exlib::string &retVal);
     virtual result_t exportDer(obj_ptr<Buffer_base> &retVal);
     virtual result_t encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
     virtual result_t decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);

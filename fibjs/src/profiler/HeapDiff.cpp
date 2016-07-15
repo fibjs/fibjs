@@ -54,9 +54,9 @@ class example
 {
 public:
 	int32_t type;
-	qstring name;
-	qstring value;
-	qstring heap_value;
+	exlib::string name;
+	exlib::string value;
+	exlib::string heap_value;
 	intptr_t self_size;
 	intptr_t retained_size;
 	intptr_t retainers;
@@ -77,12 +77,12 @@ public:
 	change() : size(0), added(0), released(0) { }
 };
 
-typedef std::map<qstring, change>changeset;
+typedef std::map<exlib::string, change>changeset;
 
 inline void manageChange(changeset& changes, HeapGraphNode_base* node,
                          bool added)
 {
-	qstring type;
+	exlib::string type;
 
 	node->get_description(type);
 
