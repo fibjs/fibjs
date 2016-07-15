@@ -29,17 +29,17 @@ public:
 public:
     void inc(int32_t n)
     {
-        m_counters[n]++;
+        m_counters[n].inc();
     }
 
     void dec(int32_t n)
     {
-        m_counters[n]--;
+        m_counters[n].dec();
     }
 
     void add(int32_t n, int32_t value)
     {
-        m_counters[n] += value;
+        m_counters[n].add(value);
     }
 
 public:
@@ -71,7 +71,7 @@ private:
 private:
     int32_t m_static, m_size;
     std::vector<qstring> m_keys;
-    QuickArray<std::atomic_intptr_t> m_counters;
+    QuickArray<exlib::atomic> m_counters;
     date_t m_date;
 };
 

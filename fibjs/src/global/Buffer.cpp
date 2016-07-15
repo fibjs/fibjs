@@ -388,8 +388,8 @@ result_t Buffer::indexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
     qstring vstr;
     v_data->toString(vstr);
 
-    const char* find = qmemfind(m_data.c_str() + offset, m_data.length() - offset,
-                                vstr.c_str(), vstr.length());
+    const char* find = exlib::qmemfind(m_data.c_str() + offset, m_data.length() - offset,
+                                       vstr.c_str(), vstr.length());
 
     retVal = find ? (int32_t)(find - m_data.c_str()) : -1;
     return 0;
@@ -401,7 +401,7 @@ result_t Buffer::indexOf(const char* v, int32_t offset, int32_t& retVal)
     if (hr < 0)
         return CHECK_ERROR(hr);
 
-    const char* find = qmemfind(m_data.c_str() + offset, m_data.length() - offset, v, qstrlen(v));
+    const char* find = exlib::qmemfind(m_data.c_str() + offset, m_data.length() - offset, v, qstrlen(v));
 
     retVal = find ? (int32_t)(find - m_data.c_str()) : -1;
     return 0;
