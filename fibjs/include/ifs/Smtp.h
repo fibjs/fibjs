@@ -28,7 +28,7 @@ public:
     // Smtp_base
     static result_t _new(obj_ptr<Smtp_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t connect(const char* host, int32_t port, int32_t family, AsyncEvent* ac) = 0;
-    virtual result_t command(const char* cmd, const char* arg, qstring& retVal, AsyncEvent* ac) = 0;
+    virtual result_t command(const char* cmd, const char* arg, exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t hello(const char* hostname, AsyncEvent* ac) = 0;
     virtual result_t login(const char* username, const char* password, AsyncEvent* ac) = 0;
     virtual result_t from(const char* address, AsyncEvent* ac) = 0;
@@ -55,7 +55,7 @@ public:
 
 public:
     ASYNC_MEMBER3(Smtp_base, connect, const char*, int32_t, int32_t);
-    ASYNC_MEMBERVALUE3(Smtp_base, command, const char*, const char*, qstring);
+    ASYNC_MEMBERVALUE3(Smtp_base, command, const char*, const char*, exlib::string);
     ASYNC_MEMBER1(Smtp_base, hello, const char*);
     ASYNC_MEMBER2(Smtp_base, login, const char*, const char*);
     ASYNC_MEMBER1(Smtp_base, from, const char*);
@@ -150,7 +150,7 @@ namespace fibjs
 
     inline void Smtp_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(Smtp_base);
         ASYNC_METHOD_ENTER(2, 2);

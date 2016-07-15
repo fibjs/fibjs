@@ -30,7 +30,7 @@ public:
 
 public:
     // object_base
-    virtual result_t toString(qstring &retVal);
+    virtual result_t toString(exlib::string &retVal);
 
 public:
     // XmlNodeList_base

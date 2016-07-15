@@ -155,7 +155,7 @@ result_t SQLite::execute(const char *sql, int32_t sLen,
 
         for (i = 0; i < columns; i++)
         {
-            qstring s = sqlite3_column_name(stmt, i);
+            exlib::string s = sqlite3_column_name(stmt, i);
             res->setField(i, s);
         }
 
@@ -194,7 +194,7 @@ result_t SQLite::execute(const char *sql, int32_t sLen,
                                 (const char *) sqlite3_column_blob(stmt, i);
                             int32_t size = sqlite3_column_bytes(stmt, i);
 
-                            v = new Buffer(qstring(data, size));
+                            v = new Buffer(exlib::string(data, size));
                         }
                         else if (type
                                  && (!qstricmp(type, "datetime")
@@ -213,7 +213,7 @@ result_t SQLite::execute(const char *sql, int32_t sLen,
                                 (const char *) sqlite3_column_text(stmt, i);
                             int32_t size = sqlite3_column_bytes(stmt, i);
 
-                            v = qstring(data, size);
+                            v = exlib::string(data, size);
                         }
                         break;
 
@@ -267,7 +267,7 @@ result_t SQLite::execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncE
 result_t SQLite::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
                          obj_ptr<DBResult_base> &retVal)
 {
-    qstring str;
+    exlib::string str;
     result_t hr = format(sql, args, str);
     if (hr < 0)
         return hr;
@@ -276,12 +276,12 @@ result_t SQLite::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Val
 }
 
 result_t SQLite::format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
-                        qstring &retVal)
+                        exlib::string &retVal)
 {
     return db_base::format(sql, args, retVal);
 }
 
-result_t SQLite::get_fileName(qstring &retVal)
+result_t SQLite::get_fileName(exlib::string &retVal)
 {
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);

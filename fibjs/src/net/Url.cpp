@@ -90,7 +90,7 @@ void Url::parseProtocol(const char *&url)
     {
         p++;
 
-        qstring str(url, p - url);
+        exlib::string str(url, p - url);
         put_protocol(str);
         url = p;
     }
@@ -128,7 +128,7 @@ void Url::parseAuth(const char *&url)
     }
 }
 
-void Url::parseHost(const char *&url, qstring &hostname, qstring &port)
+void Url::parseHost(const char *&url, exlib::string &hostname, exlib::string &port)
 {
     const char *p1 = url;
     const char *p2 = NULL;
@@ -277,9 +277,9 @@ result_t Url::parse(const char *url)
     return 0;
 }
 
-qstring getValue(Isolate* isolate, v8::Local<v8::Object> &args, const char *key)
+exlib::string getValue(Isolate* isolate, v8::Local<v8::Object> &args, const char *key)
 {
-    qstring s;
+    exlib::string s;
 
     v8::Local<v8::Value> v = args->Get(isolate->NewFromUtf8(key));
 
@@ -407,7 +407,7 @@ result_t Url::normalize()
     if (m_pathname.length() == 0)
         return 0;
 
-    qstring str;
+    exlib::string str;
     const char *p1 = m_pathname.c_str();
     char *pstr;
     int32_t pos = 0;
@@ -483,12 +483,12 @@ result_t Url::normalize()
     return 0;
 }
 
-result_t Url::toString(qstring &retVal)
+result_t Url::toString(exlib::string &retVal)
 {
     return get_href(retVal);
 }
 
-result_t Url::get_href(qstring &retVal)
+result_t Url::get_href(exlib::string &retVal)
 {
     if (m_protocol.length() > 0)
         retVal.append(m_protocol);
@@ -509,7 +509,7 @@ result_t Url::get_href(qstring &retVal)
     return 0;
 }
 
-void Url::put_protocol(qstring str)
+void Url::put_protocol(exlib::string str)
 {
     static const char *s_slashed[] =
     {
@@ -540,7 +540,7 @@ void Url::put_protocol(qstring str)
     m_slashes = m_defslashes;
 }
 
-result_t Url::get_protocol(qstring &retVal)
+result_t Url::get_protocol(exlib::string &retVal)
 {
     retVal = m_protocol;
     return 0;
@@ -552,9 +552,9 @@ result_t Url::get_slashes(int32_t &retVal)
     return 0;
 }
 
-result_t Url::get_auth(qstring &retVal)
+result_t Url::get_auth(exlib::string &retVal)
 {
-    qstring str;
+    exlib::string str;
 
     encoding_base::encodeURIComponent(m_username.c_str(), str);
     retVal.append(str);
@@ -568,37 +568,37 @@ result_t Url::get_auth(qstring &retVal)
     return 0;
 }
 
-result_t Url::get_username(qstring &retVal)
+result_t Url::get_username(exlib::string &retVal)
 {
     retVal = m_username;
     return 0;
 }
 
-result_t Url::get_password(qstring &retVal)
+result_t Url::get_password(exlib::string &retVal)
 {
     retVal = m_password;
     return 0;
 }
 
-result_t Url::get_host(qstring &retVal)
+result_t Url::get_host(exlib::string &retVal)
 {
     retVal.append(m_host);
     return 0;
 }
 
-result_t Url::get_hostname(qstring &retVal)
+result_t Url::get_hostname(exlib::string &retVal)
 {
     retVal = m_hostname;
     return 0;
 }
 
-result_t Url::get_port(qstring &retVal)
+result_t Url::get_port(exlib::string &retVal)
 {
     retVal = m_port;
     return 0;
 }
 
-result_t Url::get_path(qstring &retVal)
+result_t Url::get_path(exlib::string &retVal)
 {
     retVal.append(m_pathname);
     get_search(retVal);
@@ -606,13 +606,13 @@ result_t Url::get_path(qstring &retVal)
     return 0;
 }
 
-result_t Url::get_pathname(qstring &retVal)
+result_t Url::get_pathname(exlib::string &retVal)
 {
     retVal = m_pathname;
     return 0;
 }
 
-result_t Url::get_search(qstring &retVal)
+result_t Url::get_search(exlib::string &retVal)
 {
     if (m_query.length() > 0)
     {
@@ -623,13 +623,13 @@ result_t Url::get_search(qstring &retVal)
     return 0;
 }
 
-result_t Url::get_query(qstring &retVal)
+result_t Url::get_query(exlib::string &retVal)
 {
     retVal = m_query;
     return 0;
 }
 
-result_t Url::get_hash(qstring &retVal)
+result_t Url::get_hash(exlib::string &retVal)
 {
     retVal = m_hash;
     return 0;

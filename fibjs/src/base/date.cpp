@@ -592,7 +592,7 @@ public:
 };
 
 
-void date_t::toGMTString(qstring &retVal)
+void date_t::toGMTString(exlib::string &retVal)
 {
     if (isnan(d))
         return;
@@ -626,7 +626,7 @@ void date_t::toGMTString(qstring &retVal)
     putStr(ptrBuf, " GMT", 4);
 }
 
-void date_t::toX509String(qstring &retVal)
+void date_t::toX509String(exlib::string &retVal)
 {
     if (isnan(d))
         return;
@@ -644,7 +644,7 @@ void date_t::toX509String(qstring &retVal)
     putInt(ptrBuf, ds.wSecond, 2);
 }
 
-void date_t::sqlString(qstring &retVal)
+void date_t::sqlString(exlib::string &retVal)
 {
     if (isnan(d))
         return;
@@ -667,7 +667,7 @@ void date_t::sqlString(qstring &retVal)
     putInt(ptrBuf, ds.wSecond, 2);
 }
 
-void date_t::stamp(qstring &retVal)
+void date_t::stamp(exlib::string &retVal)
 {
     if (isnan(d))
         return;

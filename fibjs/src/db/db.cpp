@@ -33,7 +33,7 @@ result_t db_base::open(const char *connString, obj_ptr<object_base> &retVal, Asy
     return CHECK_ERROR(CALL_E_INVALIDARG);
 }
 
-inline void _escape(const char *str, int32_t sz, bool mysql, qstring &retVal)
+inline void _escape(const char *str, int32_t sz, bool mysql, exlib::string &retVal)
 {
     int32_t len, l;
     const char *src;
@@ -110,7 +110,7 @@ inline void _escape(const char *str, int32_t sz, bool mysql, qstring &retVal)
     }
 }
 
-void _appendValue(qstring &str, v8::Local<v8::Value> &v, bool mysql)
+void _appendValue(exlib::string &str, v8::Local<v8::Value> &v, bool mysql)
 {
     bool bNumber = v->IsNumber() || v->IsNumberObject();
 
@@ -121,7 +121,7 @@ void _appendValue(qstring &str, v8::Local<v8::Value> &v, bool mysql)
     }
     else
     {
-        qstring s;
+        exlib::string s;
         str += '\'';
 
         if (v->IsDate())
@@ -141,9 +141,9 @@ void _appendValue(qstring &str, v8::Local<v8::Value> &v, bool mysql)
 }
 
 result_t _format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args, bool mysql,
-                 qstring &retVal)
+                 exlib::string &retVal)
 {
-    qstring str;
+    exlib::string str;
     const char *p, *p1;
     int32_t cnt = 1;
 
@@ -170,7 +170,7 @@ result_t _format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &arg
 
                 if (bin)
                 {
-                    qstring s;
+                    exlib::string s;
 
                     str.append("x\'", 2);
                     bin->hex(s);
@@ -213,18 +213,18 @@ result_t _format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &arg
 }
 
 result_t db_base::format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
-                         qstring &retVal)
+                         exlib::string &retVal)
 {
     return _format(sql, args, false, retVal);
 }
 
 result_t db_base::formatMySQL(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
-                              qstring &retVal)
+                              exlib::string &retVal)
 {
     return _format(sql, args, true, retVal);
 }
 
-result_t db_base::escape(const char *str, bool mysql, qstring &retVal)
+result_t db_base::escape(const char *str, bool mysql, exlib::string &retVal)
 {
     _escape(str, (int32_t) qstrlen(str), mysql, retVal);
     return 0;

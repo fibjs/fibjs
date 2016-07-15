@@ -10,19 +10,19 @@
 namespace fibjs
 {
 
-result_t HttpUploadData::get_fileName(qstring &retVal)
+result_t HttpUploadData::get_fileName(exlib::string &retVal)
 {
 	retVal = m_name;
 	return 0;
 }
 
-result_t HttpUploadData::get_contentType(qstring &retVal)
+result_t HttpUploadData::get_contentType(exlib::string &retVal)
 {
 	retVal = m_type;
 	return 0;
 }
 
-result_t HttpUploadData::get_contentTransferEncoding(qstring &retVal)
+result_t HttpUploadData::get_contentTransferEncoding(exlib::string &retVal)
 {
 	retVal = m_encoding;
 	return 0;

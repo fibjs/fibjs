@@ -42,7 +42,7 @@ public:
     virtual result_t add(Int64_base *num, obj_ptr<Int64_base> &retVal);
     virtual result_t sub(Int64_base *num, obj_ptr<Int64_base> &retVal);
     virtual result_t toNumber(double &retVal);
-    virtual result_t toString(int32_t base, qstring &retVal);
+    virtual result_t toString(int32_t base, exlib::string &retVal);
 
 public:
     // object_base

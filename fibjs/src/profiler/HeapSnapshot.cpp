@@ -32,7 +32,7 @@ public:
 		return kContinue;
 	}
 
-	qstring result()
+	exlib::string result()
 	{
 		return m_buf.str();
 	}
@@ -127,7 +127,7 @@ inline result_t GetArray(v8::Local<v8::Value> v, QuickArray<T> &n)
 	return 0;
 }
 
-inline bool checkArray(QuickArray<qstring>& a, const char* chks[], int32_t sz)
+inline bool checkArray(QuickArray<exlib::string>& a, const char* chks[], int32_t sz)
 {
 	int32_t i;
 
@@ -156,11 +156,11 @@ result_t HeapSnapshot::load(const char* fname)
 
 	QuickArray<int32_t> nodes;
 	QuickArray<int32_t> edges;
-	QuickArray<qstring> names;
-	QuickArray<qstring> node_fields;
-	QuickArray<qstring> node_types;
-	QuickArray<qstring> edge_fields;
-	QuickArray<qstring> edge_types;
+	QuickArray<exlib::string> names;
+	QuickArray<exlib::string> node_fields;
+	QuickArray<exlib::string> node_types;
+	QuickArray<exlib::string> edge_fields;
+	QuickArray<exlib::string> edge_types;
 	int32_t node_count, edge_count;
 	static const char* node_fields_chk[] = {"type", "name", "id", "self_size", "edge_count"};
 	static const char* node_types_chk[] = {"hidden", "array", "string", "object",
@@ -173,7 +173,7 @@ result_t HeapSnapshot::load(const char* fname)
 	                                       "internal", "hidden", "shortcut", "weak"
 	                                      };
 
-	qstring data;
+	exlib::string data;
 	hr = fs_base::ac_readFile(fname, data);
 	if (hr < 0)
 		return hr;
@@ -262,7 +262,7 @@ result_t HeapSnapshot::load(const char* fname)
 		int32_t _node_name_id = nodes[_base + 1];
 		if (_node_name_id < 0 || _node_name_id >= (int32_t)names.size())
 			return CHECK_ERROR(CALL_E_INVALID_DATA);
-		qstring _node_name = names[_node_name_id];
+		exlib::string _node_name = names[_node_name_id];
 		int32_t _node_id = nodes[_base + 2];
 		int32_t _node_size = nodes[_base + 3];
 		int32_t _node_edge = nodes[_base + 4];
@@ -277,7 +277,7 @@ result_t HeapSnapshot::load(const char* fname)
 			int32_t _edge_type = edges[_base];
 			int32_t _edge_name_id = edges[_base + 1];
 			int32_t _edge_toid = edges[_base + 2];
-			qstring _edge_name;
+			exlib::string _edge_name;
 
 			if (is_num_type(_edge_type))
 			{
@@ -341,7 +341,7 @@ result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 			return file->open(fname, "w");
 		}
 
-		result_t append(qstring& s)
+		result_t append(exlib::string& s)
 		{
 			bufs.append(s);
 			if (bufs.size() > BUF_SIZE)
@@ -367,7 +367,7 @@ result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 
 		result_t flush()
 		{
-			qstring str = bufs.str();
+			exlib::string str = bufs.str();
 			return file->Write(str.c_str(), (int32_t)str.length());
 		}
 
@@ -385,16 +385,16 @@ result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 		}
 
 	public:
-		int32_t id(qstring _name)
+		int32_t id(exlib::string _name)
 		{
-			std::map<qstring, int32_t>::iterator it;
+			std::map<exlib::string, int32_t>::iterator it;
 			int32_t _name_id;
 
 			it = mapNames.find(_name);
 			if (it == mapNames.end())
 			{
 				_name_id = (int32_t)names.size();
-				mapNames.insert(std::pair<qstring, int32_t>(_name, _name_id));
+				mapNames.insert(std::pair<exlib::string, int32_t>(_name, _name_id));
 				names.append(_name);
 			} else
 				_name_id = it->second;
@@ -403,8 +403,8 @@ result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 		}
 
 	public:
-		std::map<qstring, int32_t> mapNames;
-		QuickArray<qstring> names;
+		std::map<exlib::string, int32_t> mapNames;
+		QuickArray<exlib::string> names;
 	};
 
 	static char meta[] = "{\"snapshot\":{\"meta\":{\"node_fields\":"
@@ -461,7 +461,7 @@ result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 		child_count += n;
 	}
 
-	qstring str;
+	exlib::string str;
 	char buf[128];
 
 	n = sprintf(buf, "\"node_count\":%d,\"edge_count\":%d,"
@@ -473,7 +473,7 @@ result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 	for (i = 0; i < count; i ++)
 	{
 		int32_t _id, _type, _name_id, _size, _child;
-		qstring _name;
+		exlib::string _name;
 		HeapGraphNode_base* cur = nodes[i];
 
 		cur->get_id(_id);
@@ -501,7 +501,7 @@ result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 	for (i = 0; i < count; i ++)
 	{
 		int32_t _type, _name_id, _child, _toid, _toindex;
-		qstring _name;
+		exlib::string _name;
 		HeapGraphNode_base* cur = nodes[i];
 
 		cur->get_childs(childs);

@@ -95,11 +95,11 @@ public:
     virtual result_t writeDoubleBE(double value, int32_t offset, bool noAssert) = 0;
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t hex(qstring& retVal) = 0;
-    virtual result_t base64(qstring& retVal) = 0;
+    virtual result_t hex(exlib::string& retVal) = 0;
+    virtual result_t base64(exlib::string& retVal) = 0;
     virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
-    virtual result_t toString(const char* codec, int32_t offset, int32_t end, qstring& retVal) = 0;
-    virtual result_t toString(qstring& retVal) = 0;
+    virtual result_t toString(const char* codec, int32_t offset, int32_t end, exlib::string& retVal) = 0;
+    virtual result_t toString(exlib::string& retVal) = 0;
 
 public:
     template<typename T>
@@ -1141,7 +1141,7 @@ namespace fibjs
 
     inline void Buffer_base::s_hex(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(Buffer_base);
         METHOD_ENTER(0, 0);
@@ -1153,7 +1153,7 @@ namespace fibjs
 
     inline void Buffer_base::s_base64(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(Buffer_base);
         METHOD_ENTER(0, 0);
@@ -1177,7 +1177,7 @@ namespace fibjs
 
     inline void Buffer_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(Buffer_base);
         METHOD_ENTER(3, 1);

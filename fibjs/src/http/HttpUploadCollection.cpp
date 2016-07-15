@@ -15,14 +15,14 @@
 namespace fibjs
 {
 
-void HttpUploadCollection::parse(qstring &str, const char *boundary)
+void HttpUploadCollection::parse(exlib::string &str, const char *boundary)
 {
     const char *pstr = str.c_str();
     int32_t nSize = (int32_t) str.length();
-    qstring strName;
-    qstring strFileName;
-    qstring strContentType;
-    qstring strContentTransferEncoding;
+    exlib::string strName;
+    exlib::string strFileName;
+    exlib::string strContentType;
+    exlib::string strContentTransferEncoding;
     const char *p, *p1, *p2, *szQueryString;
     const char *pstrSplit;
     int32_t uiSplitSize;
@@ -201,7 +201,7 @@ void HttpUploadCollection::parse(qstring &str, const char *boundary)
         if (!strName.empty())
         {
             int32_t uiSize = (int32_t) (p - p1);
-            qstring strTemp;
+            exlib::string strTemp;
             Variant varTemp;
 
             strTemp.assign(p1, uiSize);

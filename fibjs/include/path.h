@@ -29,7 +29,7 @@ inline bool pathcmpchr(char ch1, char ch2)
 
 #endif
 
-inline void pathAdd(qstring& strBuffer, const char* other)
+inline void pathAdd(exlib::string& strBuffer, const char* other)
 {
 	bool bRoot;
 

@@ -79,7 +79,7 @@ protected:
     void **args;
 
 private:
-    qstring m_error;
+    exlib::string m_error;
     int32_t m_v;
 };
 
@@ -116,7 +116,7 @@ protected:
     void **args;
 
 private:
-    qstring m_error;
+    exlib::string m_error;
     int32_t m_v;
 };
 
@@ -265,7 +265,7 @@ public:
     }
 
 private:
-    qstring m_v;
+    exlib::string m_v;
 };
 
 class AsyncCallBack: public AsyncEvent
@@ -301,7 +301,7 @@ protected:
     v8::Persistent<v8::Function> m_cb;
 
 private:
-    qstring m_error;
+    exlib::string m_error;
     int32_t m_v;
 };
 

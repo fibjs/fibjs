@@ -78,7 +78,7 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 	HANDLE cout_pipe[2] = {0};
 	int32_t timeout;
 
-	wstring wstr(L"cmd /C ");
+	exlib::wstring wstr(L"cmd /C ");
 	wstr.append(utf8to16String(command));
 
 	Isolate* isolate = Isolate::current();
@@ -91,7 +91,7 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 
 	for (i = 0; i < len; i ++)
 	{
-		qstring str;
+		exlib::string str;
 
 		hr = GetArgumentValue(isolate->m_isolate, args->Get(i), str);
 		if (hr < 0)
@@ -125,7 +125,7 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 		si.dwFlags |= STARTF_USESTDHANDLES;
 	}
 
-	wstring envstr;
+	exlib::wstring envstr;
 
 	v8::Local<v8::Object> envs;
 
@@ -142,7 +142,7 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 	{
 		v8::Local<v8::Value> k = keys->Get(i);
 		v8::Local<v8::Value> v = envs->Get(k);
-		qstring ks, vs;
+		exlib::string ks, vs;
 
 		hr = GetArgumentValue(k, ks);
 		if (hr < 0)

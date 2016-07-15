@@ -207,7 +207,7 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 
     private:
         int32_t m_bytes;
-        qstring m_buf;
+        exlib::string m_buf;
         obj_ptr<Buffer_base> &m_retVal;
     };
 
@@ -250,7 +250,7 @@ result_t SslSocket::write(Buffer_base *data, AsyncEvent *ac)
         }
 
     private:
-        qstring m_buf;
+        exlib::string m_buf;
         int32_t m_pos;
     };
 

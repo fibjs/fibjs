@@ -22,7 +22,7 @@ void init_logger()
     s_std = new std_logger;
 }
 
-void asyncLog(int32_t priority, qstring msg)
+void asyncLog(int32_t priority, exlib::string msg)
 {
     Isolate* isolate = Isolate::current();
 

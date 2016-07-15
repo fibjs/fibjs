@@ -150,7 +150,7 @@ result_t Socket::get_type(int32_t &retVal)
     return 0;
 }
 
-result_t Socket::get_remoteAddress(qstring &retVal)
+result_t Socket::get_remoteAddress(exlib::string &retVal)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -182,7 +182,7 @@ result_t Socket::get_remotePort(int32_t &retVal)
     return 0;
 }
 
-result_t Socket::get_localAddress(qstring &retVal)
+result_t Socket::get_localAddress(exlib::string &retVal)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);

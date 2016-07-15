@@ -68,7 +68,7 @@ public:
     static result_t _assert(v8::Local<v8::Value> value, const char* msg);
     static result_t print(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t print(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t readLine(const char* msg, qstring& retVal, AsyncEvent* ac);
+    static result_t readLine(const char* msg, exlib::string& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -114,7 +114,7 @@ public:
     static void s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE2(console_base, readLine, const char*, qstring);
+    ASYNC_STATICVALUE2(console_base, readLine, const char*, exlib::string);
 };
 
 }
@@ -494,7 +494,7 @@ namespace fibjs
 
     inline void console_base::s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         ASYNC_METHOD_ENTER(1, 0);
 

@@ -162,7 +162,7 @@ result_t gd_base::load(const char *fname, obj_ptr<Image_base> &retVal,
         }
 
     private:
-        qstring m_fname;
+        exlib::string m_fname;
         obj_ptr<File_base> m_file;
         obj_ptr<Image_base> &m_retVal;
     };
@@ -379,7 +379,7 @@ result_t Image::create(int32_t width, int32_t height, int32_t color)
 
 result_t Image::load(Buffer_base *data)
 {
-    qstring strBuf;
+    exlib::string strBuf;
     data->toString(strBuf);
 
     if (strBuf.length() < 2)
@@ -563,7 +563,7 @@ result_t Image::getData(int32_t format, int32_t quality,
     if (data == NULL)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = new Buffer(qstring((char *) data, size));
+    retVal = new Buffer(exlib::string((char *) data, size));
     gdFree(data);
 
     return 0;
@@ -654,7 +654,7 @@ result_t Image::save(const char *fname, int32_t format, int32_t quality,
 
     private:
         obj_ptr<Image> m_pThis;
-        qstring m_fname;
+        exlib::string m_fname;
         obj_ptr<File_base> m_file;
         int32_t m_format;
         int32_t m_quality;

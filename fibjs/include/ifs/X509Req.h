@@ -33,10 +33,10 @@ public:
     virtual result_t load(Buffer_base* derReq) = 0;
     virtual result_t load(const char* pemReq) = 0;
     virtual result_t loadFile(const char* filename) = 0;
-    virtual result_t exportPem(qstring& retVal) = 0;
+    virtual result_t exportPem(exlib::string& retVal) = 0;
     virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t sign(const char* issuer, PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<X509Cert_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t get_subject(qstring& retVal) = 0;
+    virtual result_t get_subject(exlib::string& retVal) = 0;
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
 
 public:
@@ -96,7 +96,7 @@ namespace fibjs
 
     inline void X509Req_base::s_get_subject(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(X509Req_base);
@@ -175,7 +175,7 @@ namespace fibjs
 
     inline void X509Req_base::s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(X509Req_base);
         METHOD_ENTER(0, 0);

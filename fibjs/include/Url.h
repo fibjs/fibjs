@@ -26,7 +26,7 @@ public:
 
 public:
     // object_base
-    result_t toString(qstring &retVal);
+    result_t toString(exlib::string &retVal);
 
 public:
     // Url_base
@@ -34,29 +34,29 @@ public:
     virtual result_t format(v8::Local<v8::Object> args);
     virtual result_t resolve(const char *to, obj_ptr<Url_base> &retVal);
     virtual result_t normalize();
-    virtual result_t get_href(qstring &retVal);
-    virtual result_t get_protocol(qstring &retVal);
+    virtual result_t get_href(exlib::string &retVal);
+    virtual result_t get_protocol(exlib::string &retVal);
     virtual result_t get_slashes(int32_t &retVal);
-    virtual result_t get_auth(qstring &retVal);
-    virtual result_t get_username(qstring &retVal);
-    virtual result_t get_password(qstring &retVal);
-    virtual result_t get_host(qstring &retVal);
-    virtual result_t get_hostname(qstring &retVal);
-    virtual result_t get_port(qstring &retVal);
-    virtual result_t get_path(qstring &retVal);
-    virtual result_t get_pathname(qstring &retVal);
-    virtual result_t get_search(qstring &retVal);
-    virtual result_t get_query(qstring &retVal);
-    virtual result_t get_hash(qstring &retVal);
+    virtual result_t get_auth(exlib::string &retVal);
+    virtual result_t get_username(exlib::string &retVal);
+    virtual result_t get_password(exlib::string &retVal);
+    virtual result_t get_host(exlib::string &retVal);
+    virtual result_t get_hostname(exlib::string &retVal);
+    virtual result_t get_port(exlib::string &retVal);
+    virtual result_t get_path(exlib::string &retVal);
+    virtual result_t get_pathname(exlib::string &retVal);
+    virtual result_t get_search(exlib::string &retVal);
+    virtual result_t get_query(exlib::string &retVal);
+    virtual result_t get_hash(exlib::string &retVal);
 
 public:
-    static void parseHost(const char *&url, qstring &hostname, qstring &port);
+    static void parseHost(const char *&url, exlib::string &hostname, exlib::string &port);
 
 private:
     void clear();
 
     void parseProtocol(const char *&url);
-    void put_protocol(qstring str);
+    void put_protocol(exlib::string str);
 
     void parseAuth(const char *&url);
     void parseHost(const char *&url);
@@ -65,7 +65,7 @@ private:
     void parseHash(const char *&url);
 
 public:
-    inline static void decodeURI(const char *url, int32_t sz, qstring &retVal, bool space = false)
+    inline static void decodeURI(const char *url, int32_t sz, exlib::string &retVal, bool space = false)
     {
         if (sz < 0)
             sz = (int32_t) qstrlen(url);
@@ -77,7 +77,7 @@ public:
         const char *src;
         unsigned char ch;
         char *bstr;
-        qstring str;
+        exlib::string str;
 
         for (len = 0, src = url, l = sz; l > 0; src++, len++, l--)
         {
@@ -91,8 +91,8 @@ public:
                      && (src[1] == 'u' || src[1] == 'U') && qisxdigit(src[2])
                      && qisxdigit(src[3]) && qisxdigit(src[4]) && qisxdigit(src[5]))
             {
-                wchar wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
-                            + (qhex(src[4]) << 4) + qhex(src[5]);
+                exlib::wchar wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
+                                   + (qhex(src[4]) << 4) + qhex(src[5]);
 
                 len += utf8_strlen(&wch, 1) - 1;
 
@@ -118,8 +118,8 @@ public:
                      && (src[1] == 'u' || src[1] == 'U') && qisxdigit(src[2])
                      && qisxdigit(src[3]) && qisxdigit(src[4]) && qisxdigit(src[5]))
             {
-                wchar wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
-                            + (qhex(src[4]) << 4) + qhex(src[5]);
+                exlib::wchar wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
+                                   + (qhex(src[4]) << 4) + qhex(src[5]);
 
                 bstr += utf8_wcstombs(&wch, 1, bstr, 5);
 
@@ -135,7 +135,7 @@ public:
         retVal = str;
     }
 
-    inline static void encodeURI(const char *url, int32_t sz, qstring &retVal,
+    inline static void encodeURI(const char *url, int32_t sz, exlib::string &retVal,
                                  const char *tab)
     {
         static const char *hex = "0123456789ABCDEF";
@@ -150,7 +150,7 @@ public:
         const char *src;
         unsigned char ch;
         char *bstr;
-        qstring str;
+        exlib::string str;
 
         for (len = 0, src = url, l = sz; l > 0; len++, l--)
         {
@@ -180,17 +180,17 @@ public:
     }
 
 public:
-    qstring m_protocol;
+    exlib::string m_protocol;
     bool m_slashes;
     bool m_defslashes;
-    qstring m_username;
-    qstring m_password;
-    qstring m_host;
-    qstring m_hostname;
-    qstring m_port;
-    qstring m_pathname;
-    qstring m_query;
-    qstring m_hash;
+    exlib::string m_username;
+    exlib::string m_password;
+    exlib::string m_host;
+    exlib::string m_hostname;
+    exlib::string m_port;
+    exlib::string m_pathname;
+    exlib::string m_query;
+    exlib::string m_hash;
     bool m_ipv6;
 };
 

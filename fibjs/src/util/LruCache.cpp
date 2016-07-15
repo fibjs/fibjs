@@ -20,7 +20,7 @@ result_t LruCache_base::_new(int32_t size, int32_t timeout,
 
 void LruCache::cleanup()
 {
-    std::map<qstring, _linkedNode>::iterator it;
+    std::map<exlib::string, _linkedNode>::iterator it;
 
     if (m_timeout > 0)
     {
@@ -79,10 +79,10 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
     static _linkedNode newNode;
     v8::Handle<v8::Object> o = wrap();
     Isolate* isolate = holder();
-    qstring sname(name);
+    exlib::string sname(name);
     v8::Handle<v8::Value> a = isolate->NewFromUtf8(name);
 
-    std::map<qstring, _linkedNode>::iterator find;
+    std::map<exlib::string, _linkedNode>::iterator find;
 
     cleanup();
 
@@ -97,12 +97,12 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
         if (updater.IsEmpty())
             return 0;
 
-        std::map<qstring, obj_ptr<Event_base> >::iterator padding;
+        std::map<exlib::string, obj_ptr<Event_base> >::iterator padding;
         padding = m_paddings.find(sname);
         if (padding == m_paddings.end())
         {
             e = new Event();
-            padding = m_paddings.insert(std::pair<qstring, obj_ptr<Event_base> >(sname, e)).first;
+            padding = m_paddings.insert(std::pair<exlib::string, obj_ptr<Event_base> >(sname, e)).first;
             v8::Local<v8::Value> v = updater->Call(o, 1, &a);
             m_paddings.erase(padding);
             e->set();
@@ -110,7 +110,7 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
-            find = m_datas.insert(std::pair<qstring, _linkedNode>(sname, newNode)).first;
+            find = m_datas.insert(std::pair<exlib::string, _linkedNode>(sname, newNode)).first;
             insert(find);
 
             if (m_timeout > 0)
@@ -133,7 +133,7 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
 
 result_t LruCache::set(const char *name, v8::Local<v8::Value> value)
 {
-    std::map<qstring, _linkedNode>::iterator find = m_datas.find(name);
+    std::map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
 
     if (find != m_datas.end())
     {
@@ -153,11 +153,11 @@ result_t LruCache::set(const char *name, v8::Local<v8::Value> value)
 result_t LruCache::put(const char *name, v8::Local<v8::Value> value)
 {
     static _linkedNode newNode;
-    std::map<qstring, _linkedNode>::iterator find = m_datas.find(name);
+    std::map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
 
     if (find == m_datas.end())
     {
-        find = m_datas.insert(std::pair<qstring, _linkedNode>(name, newNode)).first;
+        find = m_datas.insert(std::pair<exlib::string, _linkedNode>(name, newNode)).first;
         insert(find);
     }
     else
@@ -198,7 +198,7 @@ result_t LruCache::put(v8::Local<v8::Object> map)
 
 result_t LruCache::remove(const char *name)
 {
-    std::map<qstring, _linkedNode>::iterator find = m_datas.find(name);
+    std::map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
 
     if (find == m_datas.end())
         return 0;
@@ -221,7 +221,7 @@ result_t LruCache::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     cleanup();
 
     Isolate* isolate = holder();
-    std::map<qstring, _linkedNode>::iterator it = m_begin_lru;
+    std::map<exlib::string, _linkedNode>::iterator it = m_begin_lru;
     v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
 
     while (it != m_datas.end())

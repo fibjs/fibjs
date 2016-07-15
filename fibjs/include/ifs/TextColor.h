@@ -23,13 +23,13 @@ class TextColor_base : public object_base
 
 public:
     // TextColor_base
-    virtual result_t get_notice(qstring& retVal) = 0;
+    virtual result_t get_notice(exlib::string& retVal) = 0;
     virtual result_t set_notice(const char* newVal) = 0;
-    virtual result_t get_warn(qstring& retVal) = 0;
+    virtual result_t get_warn(exlib::string& retVal) = 0;
     virtual result_t set_warn(const char* newVal) = 0;
-    virtual result_t get_error(qstring& retVal) = 0;
+    virtual result_t get_error(exlib::string& retVal) = 0;
     virtual result_t set_error(const char* newVal) = 0;
-    virtual result_t get_highLight(qstring& retVal) = 0;
+    virtual result_t get_highLight(exlib::string& retVal) = 0;
     virtual result_t set_highLight(const char* newVal) = 0;
 
 public:
@@ -81,7 +81,7 @@ namespace fibjs
 
     inline void TextColor_base::s_get_notice(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(TextColor_base);
@@ -104,7 +104,7 @@ namespace fibjs
 
     inline void TextColor_base::s_get_warn(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(TextColor_base);
@@ -127,7 +127,7 @@ namespace fibjs
 
     inline void TextColor_base::s_get_error(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(TextColor_base);
@@ -150,7 +150,7 @@ namespace fibjs
 
     inline void TextColor_base::s_get_highLight(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(TextColor_base);

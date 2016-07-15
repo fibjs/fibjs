@@ -35,7 +35,7 @@ public:
     virtual result_t rollback(AsyncEvent *ac);
     virtual result_t execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncEvent *ac);
     virtual result_t execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<DBResult_base> &retVal);
-    virtual result_t format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args, qstring &retVal);
+    virtual result_t format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args, exlib::string &retVal);
 
 public:
     // MySQL_base

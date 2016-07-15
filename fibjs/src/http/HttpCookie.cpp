@@ -42,8 +42,8 @@ result_t HttpCookie_base::_new(const char *name, const char *value,
 result_t HttpCookie::parse(const char *header)
 {
     _parser p(header);
-    qstring key, value;
-    qstring tmp;
+    exlib::string key, value;
+    exlib::string tmp;
 
     p.skipSpace();
     p.getWord(tmp, '=');
@@ -178,7 +178,7 @@ result_t HttpCookie::match(const char *url, bool &retVal)
     return 0;
 }
 
-result_t HttpCookie::get_name(qstring &retVal)
+result_t HttpCookie::get_name(exlib::string &retVal)
 {
     retVal = m_name;
     return 0;
@@ -190,7 +190,7 @@ result_t HttpCookie::set_name(const char *newVal)
     return 0;
 }
 
-result_t HttpCookie::get_value(qstring &retVal)
+result_t HttpCookie::get_value(exlib::string &retVal)
 {
     retVal = m_value;
     return 0;
@@ -202,7 +202,7 @@ result_t HttpCookie::set_value(const char *newVal)
     return 0;
 }
 
-result_t HttpCookie::get_domain(qstring &retVal)
+result_t HttpCookie::get_domain(exlib::string &retVal)
 {
     retVal = m_domain;
     return 0;
@@ -214,7 +214,7 @@ result_t HttpCookie::set_domain(const char *newVal)
     return 0;
 }
 
-result_t HttpCookie::get_path(qstring &retVal)
+result_t HttpCookie::get_path(exlib::string &retVal)
 {
     retVal = m_path;
     return 0;
@@ -267,10 +267,10 @@ static const char *CookieNameTable =
 static const char *CookieTable =
     " ! #$%&'()*+ -./0123456789: <=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[ ]^_`abcdefghijklmnopqrstuvwxyz{|}~ ";
 
-result_t HttpCookie::toString(qstring &retVal)
+result_t HttpCookie::toString(exlib::string &retVal)
 {
-    qstring str;
-    qstring tmp;
+    exlib::string str;
+    exlib::string tmp;
 
     Url::encodeURI(m_name.c_str(), (int32_t)m_name.length(), tmp, CookieNameTable);
     str = tmp;

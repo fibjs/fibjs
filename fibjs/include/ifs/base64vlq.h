@@ -23,8 +23,8 @@ class base64vlq_base : public object_base
 
 public:
     // base64vlq_base
-    static result_t encode(int32_t data, qstring& retVal);
-    static result_t encode(v8::Local<v8::Array> data, qstring& retVal);
+    static result_t encode(int32_t data, exlib::string& retVal);
+    static result_t encode(v8::Local<v8::Array> data, exlib::string& retVal);
     static result_t decode(const char* data, v8::Local<v8::Array>& retVal);
 
 public:
@@ -69,7 +69,7 @@ namespace fibjs
 
     inline void base64vlq_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_ENTER(1, 1);
 

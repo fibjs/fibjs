@@ -101,7 +101,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 
             if (streamEnd || bytes == (int32_t) pThis->m_strbuf.size())
             {
-                qstring s = pThis->m_strbuf.str();
+                exlib::string s = pThis->m_strbuf.str();
 
                 if (s.length() == 0)
                     return CALL_RETURN_NULL;
@@ -133,7 +133,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                 retVal = new Buffer(m_buf);
             else
             {
-                qstring s1(&m_buf[m_pos], n);
+                exlib::string s1(&m_buf[m_pos], n);
                 retVal = new Buffer(s1);
             }
             m_pos += n;
@@ -170,20 +170,20 @@ result_t BufferedStream::copyTo(Stream_base *stm, int64_t bytes,
     return copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t BufferedStream::readText(int32_t size, qstring &retVal,
+result_t BufferedStream::readText(int32_t size, exlib::string &retVal,
                                   AsyncEvent *ac)
 {
     class asyncRead: public asyncBuffer
     {
     public:
         asyncRead(BufferedStream *pThis, int32_t size,
-                  qstring &retVal, AsyncEvent *ac) :
+                  exlib::string &retVal, AsyncEvent *ac) :
             asyncBuffer(pThis, ac), m_size(size), m_retVal(retVal)
         {
         }
 
         static result_t process(BufferedStream *pThis, int32_t size,
-                                qstring &retVal, bool streamEnd)
+                                exlib::string &retVal, bool streamEnd)
         {
             int32_t n = size - (int32_t) pThis->m_strbuf.size();
             int32_t n1 = (int32_t) pThis->m_buf.length() - pThis->m_pos;
@@ -215,7 +215,7 @@ result_t BufferedStream::readText(int32_t size, qstring &retVal,
 
     public:
         int32_t m_size;
-        qstring &m_retVal;
+        exlib::string &m_retVal;
     };
 
     result_t hr = asyncRead::process(this, size, retVal, false);
@@ -228,7 +228,7 @@ result_t BufferedStream::readText(int32_t size, qstring &retVal,
     return (new asyncRead(this, size, retVal, ac))->post(0);
 }
 
-result_t BufferedStream::readLine(int32_t maxlen, qstring &retVal,
+result_t BufferedStream::readLine(int32_t maxlen, exlib::string &retVal,
                                   AsyncEvent *ac)
 {
     return readUntil(m_eol.c_str(), maxlen, retVal, ac);
@@ -237,7 +237,7 @@ result_t BufferedStream::readLine(int32_t maxlen, qstring &retVal,
 result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array> &retVal)
 {
     result_t hr = 0;
-    qstring str;
+    exlib::string str;
     int32_t n = 0;
     Isolate* isolate = holder();
     retVal = v8::Array::New(isolate->m_isolate);
@@ -267,20 +267,20 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array> &retVa
 }
 
 result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
-                                   qstring &retVal, AsyncEvent *ac)
+                                   exlib::string &retVal, AsyncEvent *ac)
 {
     class asyncRead: public asyncBuffer
     {
     public:
         asyncRead(BufferedStream *pThis, const char *mk, int32_t maxlen,
-                  qstring &retVal, AsyncEvent *ac) :
+                  exlib::string &retVal, AsyncEvent *ac) :
             asyncBuffer(pThis, ac), m_mk(mk), m_maxlen(maxlen), m_retVal(
                 retVal)
         {
         }
 
         static result_t process(BufferedStream *pThis, const char *mk,
-                                int32_t maxlen, qstring &retVal, bool streamEnd)
+                                int32_t maxlen, exlib::string &retVal, bool streamEnd)
         {
             int32_t pos = pThis->m_pos;
             int32_t mklen = (int32_t) qstrlen(mk);
@@ -357,7 +357,7 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
     public:
         const char *m_mk;
         int32_t m_maxlen;
-        qstring &m_retVal;
+        exlib::string &m_retVal;
     };
 
     result_t hr = asyncRead::process(this, mk, maxlen, retVal, false);
@@ -375,7 +375,7 @@ result_t BufferedStream::writeText(const char *txt, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    qstring strBuf;
+    exlib::string strBuf;
 
     result_t hr = m_iconv.encode(txt, strBuf);
     if (hr < 0)
@@ -390,7 +390,7 @@ result_t BufferedStream::writeLine(const char *txt, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    qstring strBuf;
+    exlib::string strBuf;
 
     result_t hr = m_iconv.encode(txt, strBuf);
     if (hr < 0)
@@ -407,7 +407,7 @@ result_t BufferedStream::get_stream(obj_ptr<Stream_base> &retVal)
     return 0;
 }
 
-result_t BufferedStream::get_charset(qstring &retVal)
+result_t BufferedStream::get_charset(exlib::string &retVal)
 {
     retVal = m_iconv.charset();
     return 0;
@@ -419,7 +419,7 @@ result_t BufferedStream::set_charset(const char *newVal)
     return 0;
 }
 
-result_t BufferedStream::get_EOL(qstring &retVal)
+result_t BufferedStream::get_EOL(exlib::string &retVal)
 {
     retVal = m_eol;
     return 0;

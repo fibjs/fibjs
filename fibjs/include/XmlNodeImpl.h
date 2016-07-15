@@ -68,14 +68,14 @@ public:
         return !retVal ? CALL_RETURN_NULL : 0;
     }
 
-    result_t lookupPrefix(const char *namespaceURI, qstring &retVal)
+    result_t lookupPrefix(const char *namespaceURI, exlib::string &retVal)
     {
         if (!m_parent || m_parent->m_type == xml_base::_DOCUMENT_NODE)
             return CALL_RETURN_NULL;
         return m_parent->m_node->lookupPrefix(namespaceURI, retVal);
     }
 
-    result_t lookupNamespaceURI(const char *prefix, qstring &retVal)
+    result_t lookupNamespaceURI(const char *prefix, exlib::string &retVal)
     {
         if (!m_parent || m_parent->m_type == xml_base::_DOCUMENT_NODE)
             return CALL_RETURN_NULL;
@@ -96,7 +96,7 @@ public:
     }
 
     static const char *s_nss[][2];
-    static bool globalNamespaceURI(const char *prefix, qstring &retVal)
+    static bool globalNamespaceURI(const char *prefix, exlib::string &retVal)
     {
         int32_t i;
 
@@ -110,7 +110,7 @@ public:
         return false;
     }
 
-    static bool globalPrefix(const char *namespaceURI, qstring &retVal)
+    static bool globalPrefix(const char *namespaceURI, exlib::string &retVal)
     {
         int32_t i;
 

@@ -50,7 +50,7 @@ public:
     virtual result_t range(int32_t start, int32_t stop, obj_ptr<List_base> &retVal);
 
 private:
-    qstring m_key;
+    exlib::string m_key;
     obj_ptr<Redis> m_rdb;
 };
 

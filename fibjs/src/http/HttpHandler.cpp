@@ -113,7 +113,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             pThis->m_pThis->m_stats->inc(HTTP_REQUEST);
             pThis->m_pThis->m_stats->inc(HTTP_PENDDING);
 
-            qstring str;
+            exlib::string str;
 
             pThis->m_req->get_protocol(str);
             pThis->m_rep->set_protocol(str.c_str());
@@ -233,7 +233,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 }
             }
 
-            qstring str;
+            exlib::string str;
 
             pThis->m_req->get_method(str);
             bool headOnly = !qstricmp(str.c_str(), "head");
@@ -256,7 +256,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 if (pThis->m_req->firstHeader("Accept-Encoding",
                                               hdr) != CALL_RETURN_NULL)
                 {
-                    qstring str = hdr.string();
+                    exlib::string str = hdr.string();
                     int32_t type = 0;
 
                     if (qstristr(str.c_str(), "gzip"))
@@ -348,7 +348,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             if (is(check_error))
             {
-                qstring err = getResultMessage(v);
+                exlib::string err = getResultMessage(v);
 
                 m_req->set_lastError(err.c_str());
                 asyncLog(console_base::_ERROR, "HttpHandler: " + err);

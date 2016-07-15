@@ -35,7 +35,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     v8::Local<v8::Value> jsval;
     v8::Local<v8::Object> o;
     Variant result;
-    qstring str;
+    exlib::string str;
     int64_t len;
     int32_t sz, i;
     result_t hr;

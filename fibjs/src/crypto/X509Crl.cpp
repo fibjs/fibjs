@@ -33,7 +33,7 @@ result_t X509Crl::load(Buffer_base *derCrl)
 {
     int32_t ret;
 
-    qstring crl;
+    exlib::string crl;
     derCrl->toString(crl);
 
     ret = mbedtls_x509_crl_parse(&m_crl, (const unsigned char *)crl.c_str(),
@@ -59,7 +59,7 @@ result_t X509Crl::load(const char *pemCrl)
 result_t X509Crl::loadFile(const char *filename)
 {
     result_t hr;
-    qstring data;
+    exlib::string data;
     int32_t ret;
 
     hr = fs_base::ac_readFile(filename, data);
@@ -84,7 +84,7 @@ result_t X509Crl::dump(v8::Local<v8::Array> &retVal)
 
     const mbedtls_x509_crl *pCrl = &m_crl;
     int32_t ret, n = 0;
-    qstring buf;
+    exlib::string buf;
     size_t olen;
 
     while (pCrl)

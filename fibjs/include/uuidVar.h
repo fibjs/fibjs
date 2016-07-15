@@ -25,11 +25,11 @@ public:
 
 public:
     // object_base
-    result_t toString(qstring &retVal);
+    result_t toString(exlib::string &retVal);
 
 public:
     // uuidValue_base
-    result_t detail(qstring &retVal);
+    result_t detail(exlib::string &retVal);
     result_t data(obj_ptr<Buffer_base> &retVal);
 
 public:

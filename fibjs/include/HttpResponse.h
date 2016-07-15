@@ -27,7 +27,7 @@ public:
 
 public:
     // Message_base
-    virtual result_t get_value(qstring &retVal);
+    virtual result_t get_value(exlib::string &retVal);
     virtual result_t set_value(const char *newVal);
     virtual result_t get_params(obj_ptr<List_base> &retVal);
     virtual result_t set_params(List_base *newVal);
@@ -44,12 +44,12 @@ public:
     virtual result_t readFrom(Stream_base *stm, AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
     virtual result_t get_response(obj_ptr<Message_base> &retVal);
-    virtual result_t get_lastError(qstring& retVal);
+    virtual result_t get_lastError(exlib::string& retVal);
     virtual result_t set_lastError(const char* newVal);
 
 public:
     // HttpMessage_base
-    virtual result_t get_protocol(qstring &retVal);
+    virtual result_t get_protocol(exlib::string &retVal);
     virtual result_t set_protocol(const char *newVal);
     virtual result_t get_headers(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_keepAlive(bool &retVal);

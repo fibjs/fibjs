@@ -26,7 +26,7 @@ class uuidValue_base : public object_base
 public:
     // uuidValue_base
     virtual result_t data(obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t detail(qstring& retVal) = 0;
+    virtual result_t detail(exlib::string& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -84,7 +84,7 @@ namespace fibjs
 
     inline void uuidValue_base::s_detail(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        qstring vr;
+        exlib::string vr;
 
         METHOD_INSTANCE(uuidValue_base);
         METHOD_ENTER(0, 0);

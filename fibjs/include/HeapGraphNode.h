@@ -19,7 +19,7 @@ class HeapSnapshot;
 class HeapGraphNode : public HeapGraphNode_base
 {
 public:
-    HeapGraphNode(int32_t _type, qstring& _name, int32_t _id,
+    HeapGraphNode(int32_t _type, exlib::string& _name, int32_t _id,
                   int32_t _size, List* _childs) :
         m_type(_type), m_name(_name), m_id(_id),
         m_shallowSize(_size), m_childs(_childs)
@@ -29,14 +29,14 @@ public:
 public:
     // HeapGraphNode_base
     virtual result_t get_type(int32_t& retVal);
-    virtual result_t get_name(qstring& retVal);
-    virtual result_t get_description(qstring& retVal);
+    virtual result_t get_name(exlib::string& retVal);
+    virtual result_t get_description(exlib::string& retVal);
     virtual result_t get_id(int32_t& retVal);
     virtual result_t get_shallowSize(int32_t& retVal);
     virtual result_t get_childs(obj_ptr<List_base>& retVal);
 
 public:
-    static void get_description(HeapGraphNode_base* node, qstring& retVal)
+    static void get_description(HeapGraphNode_base* node, exlib::string& retVal)
     {
         static const char* types[] = {
             "Hidden",
@@ -56,7 +56,7 @@ public:
         };
 
         int32_t type;
-        qstring name;
+        exlib::string name;
 
         node->get_type(type);
         node->get_name(retVal);
@@ -71,7 +71,7 @@ public:
 
 private:
     int32_t m_type;
-    qstring m_name;
+    exlib::string m_name;
     int32_t m_id;
     int32_t m_shallowSize;
     obj_ptr<List> m_childs;

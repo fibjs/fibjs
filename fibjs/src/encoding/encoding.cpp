@@ -19,7 +19,7 @@ DECLARE_MODULE(base64);
 DECLARE_MODULE(base64vlq);
 DECLARE_MODULE(hex);
 
-result_t base32_base::encode(Buffer_base *data, qstring &retVal)
+result_t base32_base::encode(Buffer_base *data, exlib::string &retVal)
 {
     baseEncode("abcdefghijklmnopqrstuvwxyz234567", 5, data, retVal);
     return 0;
@@ -42,7 +42,7 @@ result_t base32_base::decode(const char *data,
     return 0;
 }
 
-result_t base64_base::encode(Buffer_base *data, qstring &retVal)
+result_t base64_base::encode(Buffer_base *data, exlib::string &retVal)
 {
     baseEncode(
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
@@ -67,7 +67,7 @@ result_t base64_base::decode(const char *data,
     return 0;
 }
 
-result_t base64vlq_base::encode(int32_t data, qstring& retVal)
+result_t base64vlq_base::encode(int32_t data, exlib::string& retVal)
 {
     static const char encodeTable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -89,7 +89,7 @@ result_t base64vlq_base::encode(int32_t data, qstring& retVal)
     return 0;
 }
 
-result_t base64vlq_base::encode(v8::Local<v8::Array> data, qstring& retVal)
+result_t base64vlq_base::encode(v8::Local<v8::Array> data, exlib::string& retVal)
 {
     int32_t len = data->Length();
     result_t hr;
@@ -160,9 +160,9 @@ result_t base64vlq_base::decode(const char* data, v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-result_t hex_base::encode(Buffer_base *data, qstring &retVal)
+result_t hex_base::encode(Buffer_base *data, exlib::string &retVal)
 {
-    qstring strData;
+    exlib::string strData;
     static char HexChar[] = "0123456789abcdef";
     int32_t i, pos, len1;
 
@@ -190,7 +190,7 @@ result_t hex_base::decode(const char *data,
 {
     int32_t pos, len = (int32_t) qstrlen(data);
     const char *end = data + len;
-    qstring strBuf;
+    exlib::string strBuf;
     uint32_t ch1, ch2;
 
     strBuf.resize(len / 2);
@@ -228,19 +228,19 @@ static const char *URITable =
 static const char *URIComponentTable =
     " !     '()*  -. 0123456789       ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz   ~ ";
 
-result_t encoding_base::encodeURI(const char *url, qstring &retVal)
+result_t encoding_base::encodeURI(const char *url, exlib::string &retVal)
 {
     Url::encodeURI(url, -1, retVal, URITable);
     return 0;
 }
 
-result_t encoding_base::encodeURIComponent(const char *url, qstring &retVal)
+result_t encoding_base::encodeURIComponent(const char *url, exlib::string &retVal)
 {
     Url::encodeURI(url, -1, retVal, URIComponentTable);
     return 0;
 }
 
-result_t encoding_base::decodeURI(const char *url, qstring &retVal)
+result_t encoding_base::decodeURI(const char *url, exlib::string &retVal)
 {
     Url::decodeURI(url, -1, retVal);
     return 0;

@@ -67,7 +67,7 @@ result_t fs_base::openTextStream(const char *fname, const char *flags,
     return BufferedStream_base::_new(pFile, retVal);
 }
 
-result_t fs_base::readFile(const char *fname, qstring &retVal,
+result_t fs_base::readFile(const char *fname, exlib::string &retVal,
                            AsyncEvent *ac)
 {
     if (!ac)
@@ -224,7 +224,7 @@ result_t fs_base::readdir(const char *path, obj_ptr<List_base> &retVal,
 
     DIR *dp;
     struct dirent *ep;
-    qstring fpath;
+    exlib::string fpath;
     result_t hr;
     obj_ptr<List> oa;
 
@@ -327,7 +327,7 @@ result_t fs_base::readdir(const char *path, obj_ptr<List_base> &retVal, AsyncEve
 
     WIN32_FIND_DATAW fd;
     HANDLE hFind;
-    wstring fpath;
+    exlib::wstring fpath;
     obj_ptr<List> oa;
 
     fpath = utf8to16String(path);

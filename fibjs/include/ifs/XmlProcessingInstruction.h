@@ -26,8 +26,8 @@ class XmlProcessingInstruction_base : public XmlNode_base
 
 public:
     // XmlProcessingInstruction_base
-    virtual result_t get_target(qstring& retVal) = 0;
-    virtual result_t get_data(qstring& retVal) = 0;
+    virtual result_t get_target(exlib::string& retVal) = 0;
+    virtual result_t get_data(exlib::string& retVal) = 0;
     virtual result_t set_data(const char* newVal) = 0;
 
 public:
@@ -73,7 +73,7 @@ namespace fibjs
 
     inline void XmlProcessingInstruction_base::s_get_target(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlProcessingInstruction_base);
@@ -85,7 +85,7 @@ namespace fibjs
 
     inline void XmlProcessingInstruction_base::s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlProcessingInstruction_base);

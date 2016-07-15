@@ -15,7 +15,7 @@ namespace fibjs
 {
 
 inline void baseEncode(const char *pEncodingTable, int32_t dwBits,
-                       const char* data, int32_t sz, qstring &retVal)
+                       const char* data, int32_t sz, exlib::string &retVal)
 {
 	int32_t i, len = 0, bits = 0;
 	int32_t dwData = 0;
@@ -52,22 +52,22 @@ inline void baseEncode(const char *pEncodingTable, int32_t dwBits,
 }
 
 inline void baseEncode(const char *pEncodingTable, int32_t dwBits,
-                       qstring &data, qstring &retVal)
+                       exlib::string &data, exlib::string &retVal)
 {
 	baseEncode(pEncodingTable, dwBits, data.c_str(),
 	           (int32_t)data.length(), retVal);
 }
 
 inline void baseEncode(const char *pEncodingTable, int32_t dwBits,
-                       Buffer_base *data, qstring &retVal)
+                       Buffer_base *data, exlib::string &retVal)
 {
-	qstring strData;
+	exlib::string strData;
 	data->toString(strData);
 	baseEncode(pEncodingTable, dwBits, strData, retVal);
 }
 
 inline void baseDecode(const char *pdecodeTable, int32_t dwBits,
-                       const char *baseString, qstring &retVal)
+                       const char *baseString, exlib::string &retVal)
 {
 	int32_t nWritten = 0, len = (int32_t) qstrlen(baseString);
 	const char *end = baseString + len;
@@ -102,7 +102,7 @@ inline void baseDecode(const char *pdecodeTable, int32_t dwBits,
 inline void baseDecode(const char *pdecodeTable, int32_t dwBits,
                        const char *baseString, obj_ptr<Buffer_base> &retVal)
 {
-	qstring strBuf;
+	exlib::string strBuf;
 	baseDecode(pdecodeTable, dwBits, baseString, strBuf);
 	retVal = new Buffer(strBuf);
 }

@@ -11,13 +11,13 @@
 namespace fibjs
 {
 
-result_t XmlText::get_nodeName(qstring &retVal)
+result_t XmlText::get_nodeName(exlib::string &retVal)
 {
     retVal = "#text";
     return 0;
 }
 
-result_t XmlText::get_nodeValue(qstring &retVal)
+result_t XmlText::get_nodeValue(exlib::string &retVal)
 {
     return m_data.get_data(retVal);
 }
@@ -67,12 +67,12 @@ result_t XmlText::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
-result_t XmlText::lookupPrefix(const char *namespaceURI, qstring &retVal)
+result_t XmlText::lookupPrefix(const char *namespaceURI, exlib::string &retVal)
 {
     return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
 }
 
-result_t XmlText::lookupNamespaceURI(const char *prefix, qstring &retVal)
+result_t XmlText::lookupNamespaceURI(const char *prefix, exlib::string &retVal)
 {
     return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
 }
@@ -121,7 +121,7 @@ result_t XmlText::normalize()
     return m_childs->normalize();
 }
 
-result_t XmlText::get_data(qstring &retVal)
+result_t XmlText::get_data(exlib::string &retVal)
 {
     return m_data.get_data(retVal);
 }
@@ -136,7 +136,7 @@ result_t XmlText::get_length(int32_t &retVal)
     return m_data.get_length(retVal);
 }
 
-result_t XmlText::substringData(int32_t offset, int32_t count, qstring &retVal)
+result_t XmlText::substringData(int32_t offset, int32_t count, exlib::string &retVal)
 {
     return m_data.substringData(offset, count, retVal);
 }
@@ -163,7 +163,7 @@ result_t XmlText::replaceData(int32_t offset, int32_t count, const char *arg)
 
 result_t XmlText::splitText(int32_t offset, obj_ptr<XmlText_base> &retVal)
 {
-    qstring ret;
+    exlib::string ret;
     result_t hr;
 
     hr = m_data.splitText(offset, ret);
@@ -180,7 +180,7 @@ result_t XmlText::splitText(int32_t offset, obj_ptr<XmlText_base> &retVal)
     return 0;
 }
 
-result_t XmlText::toString(qstring &retVal)
+result_t XmlText::toString(exlib::string &retVal)
 {
     retVal = m_data.encodedText();
     return 0;

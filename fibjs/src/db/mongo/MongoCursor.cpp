@@ -63,8 +63,8 @@ result_t MongoCursor::_skipCursor(int32_t num, AsyncEvent *ac)
     return 0;
 }
 
-MongoCursor::MongoCursor(MongoDB *db, const qstring &ns,
-                         const qstring &name, v8::Local<v8::Object> query,
+MongoCursor::MongoCursor(MongoDB *db, const exlib::string &ns,
+                         const exlib::string &name, v8::Local<v8::Object> query,
                          v8::Local<v8::Object> projection)
 {
     Isolate* isolate = holder();

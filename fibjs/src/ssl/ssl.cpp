@@ -69,17 +69,17 @@ public:
         return m_ca->get_version(retVal);
     }
 
-    result_t get_serial(qstring &retVal)
+    result_t get_serial(exlib::string &retVal)
     {
         return m_ca->get_serial(retVal);
     }
 
-    result_t get_issuer(qstring &retVal)
+    result_t get_issuer(exlib::string &retVal)
     {
         return m_ca->get_issuer(retVal);
     }
 
-    result_t get_subject(qstring &retVal)
+    result_t get_subject(exlib::string &retVal)
     {
         return m_ca->get_subject(retVal);
     }
@@ -104,12 +104,12 @@ public:
         return m_ca->get_pathlen(retVal);
     }
 
-    result_t get_usage(qstring &retVal)
+    result_t get_usage(exlib::string &retVal)
     {
         return m_ca->get_usage(retVal);
     }
 
-    result_t get_type(qstring &retVal)
+    result_t get_type(exlib::string &retVal)
     {
         return m_ca->get_type(retVal);
     }
@@ -142,7 +142,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
     class asyncConnect: public AsyncState
     {
     public:
-        asyncConnect(const qstring host, int32_t port, bool ipv6,
+        asyncConnect(const exlib::string host, int32_t port, bool ipv6,
                      obj_ptr<Stream_base> &retVal, AsyncEvent *ac) :
             AsyncState(ac), m_host(host), m_port(port), m_ipv6(ipv6), m_retVal(retVal)
         {
@@ -188,7 +188,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
         }
 
     private:
-        const qstring m_host;
+        const exlib::string m_host;
         int32_t m_port;
         bool m_ipv6;
         obj_ptr<Stream_base> &m_retVal;

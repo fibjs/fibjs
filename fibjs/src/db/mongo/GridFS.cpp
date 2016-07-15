@@ -28,7 +28,7 @@ result_t GridFS::retrieve(const char *name, obj_ptr<MemoryStream_base> &retVal)
         return -2; // file not found.
     }
 
-    qstring strBuf;
+    exlib::string strBuf;
     gridfs_offset len = gridfile_get_contentlength(&f);
 
     if (len > 0)
@@ -72,7 +72,7 @@ result_t GridFS::store(const char *name, Stream_base *src)
         if (hr == CALL_RETURN_NULL)
             break;
 
-        qstring strBuf;
+        exlib::string strBuf;
         data->toString(strBuf);
 
         gridfile_write_buffer(&f, strBuf.c_str(), strBuf.length());
@@ -93,7 +93,7 @@ result_t GridFS::store(const char *name, Buffer_base *data)
 
     gridfile_writer_init(&f, &m_fs, name, "", GRIDFILE_DEFAULT);
 
-    qstring strBuf;
+    exlib::string strBuf;
     data->toString(strBuf);
 
     gridfile_write_buffer(&f, strBuf.c_str(), strBuf.length());
@@ -139,8 +139,8 @@ result_t GridFS::remove(const char *name)
 result_t GridFS::get_list(const char *name,
                           obj_ptr<MongoCollection_base> &retVal)
 {
-    qstring ns(m_db->m_ns);
-    qstring nmStr;
+    exlib::string ns(m_db->m_ns);
+    exlib::string nmStr;
 
     nmStr.append("fs", 2);
     nmStr += '.';

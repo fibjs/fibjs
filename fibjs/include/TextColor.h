@@ -48,20 +48,20 @@ public:
 
 public:
     // TextColor_base
-    virtual result_t get_notice(qstring &retVal);
+    virtual result_t get_notice(exlib::string &retVal);
     virtual result_t set_notice(const char *newVal);
-    virtual result_t get_warn(qstring &retVal);
+    virtual result_t get_warn(exlib::string &retVal);
     virtual result_t set_warn(const char *newVal);
-    virtual result_t get_error(qstring &retVal);
+    virtual result_t get_error(exlib::string &retVal);
     virtual result_t set_error(const char *newVal);
-    virtual result_t get_highLight(qstring &retVal);
+    virtual result_t get_highLight(exlib::string &retVal);
     virtual result_t set_highLight(const char *newVal);
 
 public:
-    qstring m_notice;
-    qstring m_warn;
-    qstring m_error;
-    qstring m_highLight;
+    exlib::string m_notice;
+    exlib::string m_warn;
+    exlib::string m_error;
+    exlib::string m_highLight;
 };
 
 }

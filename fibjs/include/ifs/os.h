@@ -23,12 +23,12 @@ class os_base : public object_base
 
 public:
     // os_base
-    static result_t get_hostname(qstring& retVal);
-    static result_t get_type(qstring& retVal);
-    static result_t get_version(qstring& retVal);
-    static result_t get_arch(qstring& retVal);
+    static result_t get_hostname(exlib::string& retVal);
+    static result_t get_type(exlib::string& retVal);
+    static result_t get_version(exlib::string& retVal);
+    static result_t get_arch(exlib::string& retVal);
     static result_t get_timezone(int32_t& retVal);
-    static result_t get_EOL(qstring& retVal);
+    static result_t get_EOL(exlib::string& retVal);
     static result_t uptime(double& retVal);
     static result_t loadavg(v8::Local<v8::Array>& retVal);
     static result_t totalmem(int64_t& retVal);
@@ -38,7 +38,7 @@ public:
     static result_t networkInfo(v8::Local<v8::Object>& retVal);
     static result_t time(const char* tmString, date_t& retVal);
     static result_t dateAdd(date_t d, int32_t num, const char* part, date_t& retVal);
-    static result_t get_execPath(qstring& retVal);
+    static result_t get_execPath(exlib::string& retVal);
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
 
 public:
@@ -116,7 +116,7 @@ namespace fibjs
 
     inline void os_base::s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
 
@@ -127,7 +127,7 @@ namespace fibjs
 
     inline void os_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
 
@@ -138,7 +138,7 @@ namespace fibjs
 
     inline void os_base::s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
 
@@ -149,7 +149,7 @@ namespace fibjs
 
     inline void os_base::s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
 
@@ -171,7 +171,7 @@ namespace fibjs
 
     inline void os_base::s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
 
@@ -182,7 +182,7 @@ namespace fibjs
 
     inline void os_base::s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
 

@@ -32,7 +32,7 @@ public:
     result_t process(Buffer_base *data, obj_ptr<Buffer_base> &retVal)
     {
         unsigned char out[CHUNK];
-        qstring strBuf;
+        exlib::string strBuf;
         StringBuffer outBuf;
         int32_t err;
 
@@ -100,8 +100,8 @@ public:
                     return CHECK_ERROR(Runtime::setError(zError(err)));
 
                 pThis->m_buffer = new Buffer(
-                    qstring((const char *) pThis->out,
-                            CHUNK - pThis->m_pThis->strm.avail_out));
+                    exlib::string((const char *) pThis->out,
+                                  CHUNK - pThis->m_pThis->strm.avail_out));
 
                 return pThis->m_stm->write(pThis->m_buffer, pThis);
             }
@@ -125,7 +125,7 @@ public:
         if (err != Z_OK)
             return CHECK_ERROR(Runtime::setError(zError(err)));
 
-        qstring strBuf;
+        exlib::string strBuf;
 
         data->toString(strBuf);
 
@@ -192,8 +192,8 @@ public:
                     return CHECK_ERROR(Runtime::setError(zError(err)));
 
                 pThis->m_buffer = new Buffer(
-                    qstring((const char *) pThis->out,
-                            CHUNK - pThis->m_pThis->strm.avail_out));
+                    exlib::string((const char *) pThis->out,
+                                  CHUNK - pThis->m_pThis->strm.avail_out));
 
                 pThis->set(write_ok);
                 return pThis->m_stm->write(pThis->m_buffer, pThis);
@@ -233,7 +233,7 @@ public:
             obj_ptr<Stream_base> m_stm;
             unsigned char out[CHUNK];
             obj_ptr<Buffer_base> m_buffer;
-            qstring m_strBuf;
+            exlib::string m_strBuf;
         };
 
         int32_t err;

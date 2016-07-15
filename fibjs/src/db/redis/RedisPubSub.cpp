@@ -23,20 +23,20 @@ const char *s_cmd[][2] =
     {"PUNSUBSCRIBE", "p_"}
 };
 
-bool Redis::regsub(qstring &key, v8::Local<v8::Function> func)
+bool Redis::regsub(exlib::string &key, v8::Local<v8::Function> func)
 {
     int32_t n = 0;
     on(key.c_str(), func, n);
 
     if (n)
     {
-        std::map<qstring, int32_t>::iterator it = m_funcs.find(key);
+        std::map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
 
         if (it != m_funcs.end())
             it->second ++;
         else
         {
-            m_funcs.insert(std::pair<qstring, int32_t>(key, 1));
+            m_funcs.insert(std::pair<exlib::string, int32_t>(key, 1));
             return true;
         }
     }
@@ -44,14 +44,14 @@ bool Redis::regsub(qstring &key, v8::Local<v8::Function> func)
     return false;
 }
 
-bool Redis::unregsub(qstring &key, v8::Local<v8::Function> func)
+bool Redis::unregsub(exlib::string &key, v8::Local<v8::Function> func)
 {
     int32_t n = 0;
     off(key.c_str(), func, n);
 
     if (n)
     {
-        std::map<qstring, int32_t>::iterator it = m_funcs.find(key);
+        std::map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
 
         if (it != m_funcs.end() && (--(it->second) == 0))
         {
@@ -63,9 +63,9 @@ bool Redis::unregsub(qstring &key, v8::Local<v8::Function> func)
     return false;
 }
 
-result_t Redis::_single(qstring key, v8::Local<v8::Function> func, int32_t cmd)
+result_t Redis::_single(exlib::string key, v8::Local<v8::Function> func, int32_t cmd)
 {
-    qstring key1 = s_cmd[cmd][1] + key;
+    exlib::string key1 = s_cmd[cmd][1] + key;
 
     m_subMode = 1;
     if (!((cmd & 1) ? unregsub(key1, func) : regsub(key1, func)))
@@ -77,14 +77,14 @@ result_t Redis::_single(qstring key, v8::Local<v8::Function> func, int32_t cmd)
 
 result_t Redis::sub(Buffer_base *channel, v8::Local<v8::Function> func)
 {
-    qstring key;
+    exlib::string key;
     channel->toString(key);
     return _single(key, func, SUBSCRIBE);
 }
 
 result_t Redis::unsub(Buffer_base *channel, v8::Local<v8::Function> func)
 {
-    qstring key;
+    exlib::string key;
     channel->toString(key);
     return _single(key, func, UNSUBSCRIBE);
 }
@@ -113,7 +113,7 @@ result_t Redis::_map(v8::Local<v8::Object> &map, int32_t cmd)
     for (i = 0; i < sz; i ++)
     {
         v8::Local<v8::Value> channel = channels->Get(i);
-        qstring s;
+        exlib::string s;
 
         GetArgumentValue(channel, s);
         s = s_cmd[cmd][1] + s;
@@ -156,10 +156,10 @@ result_t Redis::unpsub(v8::Local<v8::Object> map)
     return _map(map, PUNSUBSCRIBE);
 }
 
-result_t Redis::unsub(qstring key, int32_t cmd)
+result_t Redis::unsub(exlib::string key, int32_t cmd)
 {
     int32_t n = 0;
-    qstring key1 = s_cmd[cmd][1] + key;
+    exlib::string key1 = s_cmd[cmd][1] + key;
     off(key1.c_str(), n);
     m_funcs.erase(key1);
 
@@ -169,7 +169,7 @@ result_t Redis::unsub(qstring key, int32_t cmd)
 
 result_t Redis::unsub(Buffer_base *channel)
 {
-    qstring key;
+    exlib::string key;
 
     channel->toString(key);
     return unsub(key, UNSUBSCRIBE);
@@ -188,7 +188,7 @@ result_t Redis::unsub(v8::Local<v8::Array> &channels, int32_t cmd)
     for (i = 0; i < sz; i ++)
     {
         v8::Local<v8::Value> key = channels->Get(i);
-        qstring s;
+        exlib::string s;
 
         GetArgumentValue(key, s);
         s = s_cmd[cmd][1] + s;

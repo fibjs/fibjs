@@ -27,12 +27,12 @@ result_t stream_logger::write(AsyncEvent *ac)
 		static int32_t write(AsyncState *pState, int32_t n)
 		{
 			asyncWrite *pThis = (asyncWrite *) pState;
-			qstring outBuffer;
+			exlib::string outBuffer;
 			item *p1;
 
 			while ((p1 = pThis->m_logs.getHead()) != 0)
 			{
-				qstring txt;
+				exlib::string txt;
 
 				if (p1->m_priority == console_base::_NOTICE)
 					txt = logger::notice() + p1->m_msg + COLOR_RESET + "\n";

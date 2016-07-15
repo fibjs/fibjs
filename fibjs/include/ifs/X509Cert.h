@@ -35,15 +35,15 @@ public:
     virtual result_t dump(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t clear() = 0;
     virtual result_t get_version(int32_t& retVal) = 0;
-    virtual result_t get_serial(qstring& retVal) = 0;
-    virtual result_t get_issuer(qstring& retVal) = 0;
-    virtual result_t get_subject(qstring& retVal) = 0;
+    virtual result_t get_serial(exlib::string& retVal) = 0;
+    virtual result_t get_issuer(exlib::string& retVal) = 0;
+    virtual result_t get_subject(exlib::string& retVal) = 0;
     virtual result_t get_notBefore(date_t& retVal) = 0;
     virtual result_t get_notAfter(date_t& retVal) = 0;
     virtual result_t get_ca(bool& retVal) = 0;
     virtual result_t get_pathlen(int32_t& retVal) = 0;
-    virtual result_t get_usage(qstring& retVal) = 0;
-    virtual result_t get_type(qstring& retVal) = 0;
+    virtual result_t get_usage(exlib::string& retVal) = 0;
+    virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
     virtual result_t get_next(obj_ptr<X509Cert_base>& retVal) = 0;
 
@@ -136,7 +136,7 @@ namespace fibjs
 
     inline void X509Cert_base::s_get_serial(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(X509Cert_base);
@@ -148,7 +148,7 @@ namespace fibjs
 
     inline void X509Cert_base::s_get_issuer(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(X509Cert_base);
@@ -160,7 +160,7 @@ namespace fibjs
 
     inline void X509Cert_base::s_get_subject(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(X509Cert_base);
@@ -220,7 +220,7 @@ namespace fibjs
 
     inline void X509Cert_base::s_get_usage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(X509Cert_base);
@@ -232,7 +232,7 @@ namespace fibjs
 
     inline void X509Cert_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        qstring vr;
+        exlib::string vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(X509Cert_base);

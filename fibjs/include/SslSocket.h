@@ -77,7 +77,7 @@ private:
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
-            qstring &m_send =  pThis->m_pThis->m_send;
+            exlib::string &m_send =  pThis->m_pThis->m_send;
 
             pThis->set(recv);
             if (m_send.empty())
@@ -106,7 +106,7 @@ private:
         {
             asyncSsl *pThis = (asyncSsl *) pState;
 
-            qstring &m_send =  pThis->m_pThis->m_send;
+            exlib::string &m_send =  pThis->m_pThis->m_send;
 
             pThis->m_buf = new Buffer(m_send);
             m_send.resize(0);
@@ -192,9 +192,9 @@ private:
     std::vector<obj_ptr<X509Cert_base> > m_crts;
     std::vector<obj_ptr<PKey_base> > m_keys;
     obj_ptr<Stream_base> m_s;
-    qstring m_recv;
+    exlib::string m_recv;
     int32_t m_recv_pos;
-    qstring m_send;
+    exlib::string m_send;
 };
 
 }

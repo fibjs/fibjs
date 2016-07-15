@@ -21,7 +21,7 @@ result_t WebSocketMessage_base::_new(int32_t type, bool masked, int32_t maxSize,
     return 0;
 }
 
-result_t WebSocketMessage::get_value(qstring &retVal)
+result_t WebSocketMessage::get_value(exlib::string &retVal)
 {
     return m_message->get_value(retVal);
 }
@@ -82,7 +82,7 @@ result_t WebSocketMessage::get_length(int64_t &retVal)
     return m_message->get_length(retVal);
 }
 
-result_t WebSocketMessage::get_lastError(qstring& retVal)
+result_t WebSocketMessage::get_lastError(exlib::string& retVal)
 {
     return m_message->get_lastError(retVal);
 }
@@ -144,7 +144,7 @@ result_t WebSocketMessage::copy(Stream_base *from, Stream_base *to, int64_t byte
 
             if (pThis->m_mask != 0)
             {
-                qstring strBuffer;
+                exlib::string strBuffer;
                 int32_t i, n;
                 uint8_t* mask = (uint8_t*)&pThis->m_mask;
 
@@ -250,7 +250,7 @@ result_t WebSocketMessage::sendTo(Stream_base *stm, AsyncEvent *ac)
                 buf[pos ++] = (uint8_t)((r >> 24) & 0xff);
             }
 
-            qstring strBuffer((const char*)buf, pos);
+            exlib::string strBuffer((const char*)buf, pos);
             pThis->m_buffer = new Buffer(strBuffer);
 
             pThis->set(sendData);
@@ -321,7 +321,7 @@ result_t WebSocketMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
             if (n == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
 
-            qstring strBuffer;
+            exlib::string strBuffer;
             char ch;
             int32_t sz = 0;
 
@@ -377,7 +377,7 @@ result_t WebSocketMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
             if (n == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
 
-            qstring strBuffer;
+            exlib::string strBuffer;
             int32_t pos = 0;
 
             pThis->m_buffer->toString(strBuffer);

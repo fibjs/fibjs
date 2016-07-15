@@ -36,7 +36,7 @@ result_t XmlNodeList::_indexed_getter(uint32_t index, obj_ptr<XmlNode_base> &ret
     return 0;
 }
 
-result_t XmlNodeList::toString(qstring &retVal)
+result_t XmlNodeList::toString(exlib::string &retVal)
 {
     StringBuffer strs;
 
@@ -53,7 +53,7 @@ result_t XmlNodeList::toString(qstring &retVal)
 
     for (i = 0; i < sz; i ++)
     {
-        qstring str;
+        exlib::string str;
 
         m_childs[i]->m_node->toString(str);
         strs.append(str);
@@ -348,7 +348,7 @@ result_t XmlNodeList::normalize()
         if (type == xml_base::_TEXT_NODE)
         {
             XmlText_base *txt = (XmlText_base *)child;
-            qstring val;
+            exlib::string val;
 
             while (i + 1 < (int32_t)m_childs.size())
             {

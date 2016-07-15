@@ -69,7 +69,7 @@ result_t LevelDB::has(Buffer_base *key, bool &retVal, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    qstring key1;
+    exlib::string key1;
     key->toString(key1);
 
     std::string value;
@@ -97,7 +97,7 @@ result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, AsyncEvent
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    qstring key1;
+    exlib::string key1;
     key->toString(key1);
 
     std::string value;
@@ -114,10 +114,10 @@ result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, AsyncEvent
     return 0;
 }
 
-result_t LevelDB::_mget(std::vector<qstring> *keys,
+result_t LevelDB::_mget(std::vector<exlib::string> *keys,
                         obj_ptr<List_base> &retVal, AsyncEvent *ac)
 {
-    std::vector<qstring> &ks = *keys;
+    std::vector<exlib::string> &ks = *keys;
     obj_ptr<List> list = new List();
     int32_t i;
 
@@ -146,7 +146,7 @@ result_t LevelDB::_mget(std::vector<qstring> *keys,
 
 result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<List_base> &retVal)
 {
-    std::vector<qstring> ks;
+    std::vector<exlib::string> ks;
     int32_t len = keys->Length();
     int32_t i;
     result_t hr;
@@ -167,7 +167,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<List_base> &retVal)
         if (hr < 0)
             return CHECK_ERROR(hr);
 
-        qstring s;
+        exlib::string s;
         buf->toString(s);
 
         ks[i] = s;
@@ -196,10 +196,10 @@ result_t LevelDB::set(Buffer_base *key, Buffer_base *value, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    qstring key1;
+    exlib::string key1;
     key->toString(key1);
 
-    qstring value1;
+    exlib::string value1;
     value->toString(value1);
 
     leveldb::Status s = Set(leveldb::Slice(key1.c_str(), key1.length()),
@@ -227,9 +227,9 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
     {
         v8::Local<v8::Value> k = ks->Get(i);
         v8::String::Utf8Value uk(k);
-        qstring key(*uk, uk.length());
+        exlib::string key(*uk, uk.length());
 
-        qstring value1;
+        exlib::string value1;
         hr = getValue(map->Get(k), value1);
         if (hr < 0)
             return hr;
@@ -258,7 +258,7 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
 
     for (i = 0; i < len; i++)
     {
-        qstring key;
+        exlib::string key;
         hr = getValue(keys->Get(i), key);
         if (hr < 0)
             return hr;
@@ -280,10 +280,10 @@ result_t LevelDB::remove(Buffer_base *key, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    qstring key1;
+    exlib::string key1;
     key->toString(key1);
 
-    qstring value;
+    exlib::string value;
     leveldb::Status s = Delete(leveldb::Slice(key1.c_str(), key1.length()));
     if (!s.ok())
         return CHECK_ERROR(Runtime::setError(s.ToString()));

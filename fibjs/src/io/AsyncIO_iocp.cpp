@@ -132,7 +132,7 @@ void init_aio()
     s_acIO.start();
 }
 
-result_t net_base::backend(qstring &retVal)
+result_t net_base::backend(exlib::string &retVal)
 {
     retVal = "IOCP";
     return 0;
@@ -200,7 +200,7 @@ result_t AsyncIO::connect(const char *host, int32_t port, AsyncEvent *ac)
     addr_info.setPort(port);
     if (addr_info.addr(host) < 0)
     {
-        qstring strAddr;
+        exlib::string strAddr;
         result_t hr = net_base::cc_resolve(host, m_family, strAddr);
         if (hr < 0)
             return hr;
@@ -361,7 +361,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         obj_ptr<Buffer_base> &m_retVal;
         int32_t m_pos;
         bool m_bRead;
-        qstring m_buf;
+        exlib::string m_buf;
     };
 
     if (m_fd == INVALID_SOCKET)
@@ -419,7 +419,7 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
         }
 
     public:
-        qstring m_buf;
+        exlib::string m_buf;
         const char *m_p;
         int32_t m_sz;
     };

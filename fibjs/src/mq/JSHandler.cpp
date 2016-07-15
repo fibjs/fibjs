@@ -16,9 +16,9 @@
 namespace fibjs
 {
 
-inline result_t msgMethod(Message_base *msg, qstring &method)
+inline result_t msgMethod(Message_base *msg, exlib::string &method)
 {
-    qstring str;
+    exlib::string str;
     const char *p, *p1;
 
     msg->get_value(str);
@@ -127,7 +127,7 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 return CALL_RETURN_NULL;
             }
 
-            qstring method;
+            exlib::string method;
             hr = msgMethod(msg, method);
             if (hr < 0)
                 return hr;
@@ -190,7 +190,7 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
         obj_ptr<object_base> m_v;
         obj_ptr<Handler_base> &m_retVal;
         result_t m_hr;
-        qstring m_message;
+        exlib::string m_message;
     };
 
     if (!ac)

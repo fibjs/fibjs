@@ -22,7 +22,7 @@ result_t MemoryStream_base::_new(obj_ptr<MemoryStream_base> &retVal, v8::Local<v
 result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                             AsyncEvent *ac)
 {
-    qstring strBuf;
+    exlib::string strBuf;
 
     int64_t sz;
     int64_t p = m_buffer.tellg();
@@ -67,7 +67,7 @@ result_t MemoryStream::readAll(obj_ptr<Buffer_base> &retVal,
 
 result_t MemoryStream::write(Buffer_base *data, AsyncEvent *ac)
 {
-    qstring strBuf;
+    exlib::string strBuf;
     int64_t sz1, sz2;
 
     data->toString(strBuf);

@@ -69,7 +69,7 @@ void init_cipher()
             if (s_sizes[i][j].name)
                 for (k = 1; k < MODE_COUNT; k ++)
                 {
-                    qstring name = s_sizes[i][j].name;
+                    exlib::string name = s_sizes[i][j].name;
 
                     name.append(s_modes[k]);
                     s_sizes[i][j].cis[k] = mbedtls_cipher_info_from_string(name.c_str());
@@ -87,7 +87,7 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
     if (mode < crypto_base::_ECB || mode > crypto_base::_CCM)
         return CHECK_ERROR(Runtime::setError("Cipher: Invalid mode"));
 
-    qstring strKey;
+    exlib::string strKey;
     const mbedtls_cipher_info_t *info = NULL;
 
     key->toString(strKey);
@@ -116,7 +116,7 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base *key,
 
     obj_ptr<Cipher> ci = new Cipher(info);
 
-    qstring striv;
+    exlib::string striv;
 
     if (iv)
         iv->toString(striv);
@@ -170,7 +170,7 @@ void Cipher::reset()
         mbedtls_cipher_set_iv(&m_ctx, (unsigned char *)m_iv.c_str(), m_iv.length());
 }
 
-result_t Cipher::init(qstring &key, qstring &iv)
+result_t Cipher::init(exlib::string &key, exlib::string &iv)
 {
     m_key = key;
     m_iv = iv;
@@ -185,7 +185,7 @@ result_t Cipher::init(qstring &key, qstring &iv)
     return 0;
 }
 
-result_t Cipher::get_name(qstring &retVal)
+result_t Cipher::get_name(exlib::string &retVal)
 {
     retVal = mbedtls_cipher_get_name(&m_ctx);
     return 0;
@@ -232,8 +232,8 @@ result_t Cipher::process(const mbedtls_operation_t operation, Buffer_base *data,
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    qstring input;
-    qstring output;
+    exlib::string input;
+    exlib::string output;
     unsigned char buffer[1024];
     size_t olen, ilen, offset, block_size, data_size;
 
