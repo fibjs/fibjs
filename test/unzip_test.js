@@ -13,6 +13,8 @@ var pathname = 'test_dir' + vmid;
 var ms = new io.MemoryStream();
 var ms1 = new io.MemoryStream();
 
+var win = require("os").type == "Windows";
+
 describe("zip", function() {
 	before(function() {
 		if (!fs.exists(pathname)) {
@@ -207,19 +209,26 @@ describe("zip", function() {
 
 	it("extract all in zip", function() {
 		var zipfile = zip.open('unzip_test.zip' + vmid);
-
+		var efile1,
+			efile2;
 		zipfile.extractAll(pathname);
 
+		if (!win) {
+			efile1 = pathname + '/unzip_test.js.bak';
+			efile2 = pathname + '/http.rq';
+		} else {
+			efile1 = pathname + '\\unzip_test.js.bak';
+			efile1 = pathname + '\\http.rq';
+		}
+		assert.equal(fs.exists(efile1), true);
+		assert.equal(fs.exists(efile2), true);
 
-		assert.equal(fs.exists(pathname + '/unzip_test.js.bak'), true);
-		assert.equal(fs.exists(pathname + '/http.rq'), true);
-
-		assert.equal(fs.readFile(pathname + '/unzip_test.js.bak'), fs.readFile('unzip_test.js'));
-		assert.equal(fs.readFile(pathname + '/http.rq'), 'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
+		assert.equal(fs.readFile(efile1), fs.readFile('unzip_test.js'));
+		assert.equal(fs.readFile(efile2), 'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
 
 		zipfile.close();
-		fs.unlink(pathname + '/unzip_test.js.bak');
-		fs.unlink(pathname + '/http.rq');
+		fs.unlink(efile1);
+		fs.unlink(efile2);
 	});
 });
 
