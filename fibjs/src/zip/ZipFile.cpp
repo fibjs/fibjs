@@ -576,7 +576,7 @@ result_t ZipFile::extractAll(const char* path, AsyncEvent* ac)
     	} while (exists);
 # else
 		fpath1 = utf8to16String(path);
-    	fpath1.append(L"/", 1);
+    	fpath1.append(L"//", 1);
     	fpath1.append(utf8to16String(info->m_name));
 
     	do {
