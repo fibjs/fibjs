@@ -37,8 +37,8 @@ public:
     virtual result_t extract(const char* member, SeekableStream_base* strm, AsyncEvent* ac) = 0;
     virtual result_t extractAll(const char* path, AsyncEvent* ac) = 0;
     virtual result_t write(const char* filename, AsyncEvent* ac) = 0;
-    virtual result_t write(Buffer_base* data, AsyncEvent* ac) = 0;
-    virtual result_t write(SeekableStream_base* strm, AsyncEvent* ac) = 0;
+    virtual result_t write(Buffer_base* data, const char* inZipName, AsyncEvent* ac) = 0;
+    virtual result_t write(SeekableStream_base* strm, const char* inZipName, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
 
 public:
@@ -73,8 +73,8 @@ public:
     ASYNC_MEMBER2(ZipFile_base, extract, const char*, SeekableStream_base*);
     ASYNC_MEMBER1(ZipFile_base, extractAll, const char*);
     ASYNC_MEMBER1(ZipFile_base, write, const char*);
-    ASYNC_MEMBER1(ZipFile_base, write, Buffer_base*);
-    ASYNC_MEMBER1(ZipFile_base, write, SeekableStream_base*);
+    ASYNC_MEMBER2(ZipFile_base, write, Buffer_base*, const char*);
+    ASYNC_MEMBER2(ZipFile_base, write, SeekableStream_base*, const char*);
     ASYNC_MEMBER0(ZipFile_base, close);
 };
 
@@ -255,25 +255,27 @@ namespace fibjs
         } else
             hr = pInst->ac_write(v0);
 
-        METHOD_OVER(1, 1);
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
+        ARG(arg_string, 1);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_write(v0, cb);
+            pInst->acb_write(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = pInst->ac_write(v0);
+            hr = pInst->ac_write(v0, v1);
 
-        METHOD_OVER(1, 1);
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<SeekableStream_base>, 0);
+        ARG(arg_string, 1);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_write(v0, cb);
+            pInst->acb_write(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = pInst->ac_write(v0);
+            hr = pInst->ac_write(v0, v1);
 
         METHOD_VOID();
     }

@@ -22,26 +22,21 @@ module zip
 
 	/*! @brief 打开一个zip文件
 	 @param path 文件路径
+	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
      @return 返回zip文件对象
      */
-	static ZipFile open(String path) async;
+	static ZipFile open(String path, String mod = "r", Integer compress_type = ZIP_DEFLATED) async;
 
 	/*! @brief 打开一个zip文件
 	 @param data zip文件数据
+	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
      @return 返回zip文件对象
      */
-	static ZipFile open(Buffer data) async;
+	static ZipFile open(Buffer data, String mod = "r", Integer compress_type = ZIP_DEFLATED) async;
 
 	/*! @brief 打开一个zip文件
 	 @param data zip文件流
      @return 返回zip文件对象
      */
-	static ZipFile open(SeekableStream strm) async;
-
-	/*! @brief 创建一个zip文件
-	 @param path 创建的文件名
-	 @param compress_type 压缩类型, 默认使用zlib库进行压缩
-     @return 返回zip文件对象
-     */
-	static ZipFile create(String path, Integer compress_type = ZIP_DEFLATED) async;
+	static ZipFile open(SeekableStream strm, String mod = "r", Integer compress_type = ZIP_DEFLATED) async;
 };

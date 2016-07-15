@@ -34,10 +34,9 @@ public:
 public:
     // zip_base
     static result_t isZipFile(const char* filename, bool& retVal, AsyncEvent* ac);
-    static result_t open(const char* path, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
-    static result_t open(Buffer_base* data, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
-    static result_t open(SeekableStream_base* strm, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
-    static result_t create(const char* path, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+    static result_t open(const char* path, const char* mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+    static result_t open(Buffer_base* data, const char* mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+    static result_t open(SeekableStream_base* strm, const char* mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -55,14 +54,12 @@ public:
     static void s_get_ZIP_DEFLATED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_isZipFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_create(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(zip_base, isZipFile, const char*, bool);
-    ASYNC_STATICVALUE2(zip_base, open, const char*, obj_ptr<ZipFile_base>);
-    ASYNC_STATICVALUE2(zip_base, open, Buffer_base*, obj_ptr<ZipFile_base>);
-    ASYNC_STATICVALUE2(zip_base, open, SeekableStream_base*, obj_ptr<ZipFile_base>);
-    ASYNC_STATICVALUE3(zip_base, create, const char*, int32_t, obj_ptr<ZipFile_base>);
+    ASYNC_STATICVALUE4(zip_base, open, const char*, const char*, int32_t, obj_ptr<ZipFile_base>);
+    ASYNC_STATICVALUE4(zip_base, open, Buffer_base*, const char*, int32_t, obj_ptr<ZipFile_base>);
+    ASYNC_STATICVALUE4(zip_base, open, SeekableStream_base*, const char*, int32_t, obj_ptr<ZipFile_base>);
 };
 
 }
@@ -78,8 +75,7 @@ namespace fibjs
         static ClassData::ClassMethod s_method[] = 
         {
             {"isZipFile", s_isZipFile, true},
-            {"open", s_open, true},
-            {"create", s_create, true}
+            {"open", s_open, true}
         };
 
         static ClassData::ClassProperty s_property[] = 
@@ -91,7 +87,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "zip", s__new, NULL, 
-            3, s_method, 0, NULL, 2, s_property, NULL, NULL,
+            2, s_method, 0, NULL, 2, s_property, NULL, NULL,
             NULL
         };
 
@@ -134,53 +130,41 @@ namespace fibjs
     {
         obj_ptr<ZipFile_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(3, 1);
 
         ARG(arg_string, 0);
+        OPT_ARG(arg_string, 1, "r");
+        OPT_ARG(int32_t, 2, _ZIP_DEFLATED);
 
         if(!cb.IsEmpty()) {
-            acb_open(v0, vr, cb);
+            acb_open(v0, v1, v2, vr, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = ac_open(v0, vr);
+            hr = ac_open(v0, v1, v2, vr);
 
-        METHOD_OVER(1, 1);
+        METHOD_OVER(3, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
+        OPT_ARG(arg_string, 1, "r");
+        OPT_ARG(int32_t, 2, _ZIP_DEFLATED);
 
         if(!cb.IsEmpty()) {
-            acb_open(v0, vr, cb);
+            acb_open(v0, v1, v2, vr, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = ac_open(v0, vr);
+            hr = ac_open(v0, v1, v2, vr);
 
-        METHOD_OVER(1, 1);
+        METHOD_OVER(3, 1);
 
         ARG(obj_ptr<SeekableStream_base>, 0);
+        OPT_ARG(arg_string, 1, "r");
+        OPT_ARG(int32_t, 2, _ZIP_DEFLATED);
 
         if(!cb.IsEmpty()) {
-            acb_open(v0, vr, cb);
+            acb_open(v0, v1, v2, vr, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = ac_open(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void zip_base::s_create(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<ZipFile_base> vr;
-
-        ASYNC_METHOD_ENTER(2, 1);
-
-        ARG(arg_string, 0);
-        OPT_ARG(int32_t, 1, _ZIP_DEFLATED);
-
-        if(!cb.IsEmpty()) {
-            acb_create(v0, v1, vr, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_create(v0, v1, vr);
+            hr = ac_open(v0, v1, v2, vr);
 
         METHOD_RETURN();
     }

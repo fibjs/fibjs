@@ -47,13 +47,15 @@ interface ZipFile : object
 
 	/*! @brief 写入指定文件到压缩文件
      @param data 指定要写入的文件数据
+     @param inZipName 压缩在zip文件内的文件名
      */
-	write(Buffer data) async;
+	write(Buffer data, String inZipName) async;
 
 	/*! @brief 写入指定文件到压缩文件
      @param data 指定要写入的文件数据
+     @param inZipName 压缩在zip文件内的文件名
      */
-	write(SeekableStream strm) async;
+	write(SeekableStream strm, String inZipName) async;
 
 	/*! @brief 关闭打开的创建压缩文件 */
 	close() async;

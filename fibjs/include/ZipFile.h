@@ -46,8 +46,7 @@ public:
 	};
 
 public:
-	ZipFile(SeekableStream_base* strm);
-	ZipFile(SeekableStream_base* strm, int32_t compress_type);
+	ZipFile(SeekableStream_base* strm, const char* mod, int32_t compress_type);
 
 public:
 	// ZipFile_base
@@ -60,8 +59,8 @@ public:
     virtual result_t extract(const char* member, SeekableStream_base* strm, AsyncEvent* ac);
     virtual result_t extractAll(const char* path, AsyncEvent* ac);
 	virtual result_t write(const char* filename, AsyncEvent* ac);
-	virtual result_t write(Buffer_base* data, AsyncEvent* ac);
-	virtual result_t write(SeekableStream_base* strm, AsyncEvent* ac);
+	virtual result_t write(Buffer_base* data, const char* inZipName, AsyncEvent* ac);
+    virtual result_t write(SeekableStream_base* strm, const char* inZipName, AsyncEvent* ac);
 	virtual result_t close(AsyncEvent* ac);
 
 private:
@@ -74,6 +73,7 @@ private:
 	unzFile m_unz;
 	zipFile m_zip;
 	int32_t m_compress_type;
+	qstring m_mod;
 	obj_ptr<SeekableStream_base> m_strm;
 };
 
