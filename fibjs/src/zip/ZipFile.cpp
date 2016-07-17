@@ -679,8 +679,10 @@ result_t ZipFile::write(const char* filename, const char* password, SeekableStre
 
 		err = zipWriteInFileInZip(m_zip, strData.c_str(), strData.length());
 		if (err != ZIP_OK)
+		{
+			zipCloseFileInZip(m_zip);
 			return CHECK_ERROR(Runtime::setError(zip_error(err)));
-	
+		}
 	} while (strData.length() > 0);
 
 	err = zipCloseFileInZip(m_zip);
