@@ -8,6 +8,7 @@
 #include "object.h"
 #include "ifs/zip.h"
 #include "ifs/fs.h"
+#include "ifs/path.h"
 #include "ZipFile.h"
 #include "utf8.h"
 #include "Buffer.h"
@@ -172,12 +173,12 @@ result_t zip_base::open(const char* path, const char* mod, int32_t compress_type
 	result_t hr;
 	bool exists;
 
-    if (!qstrcmp(mod, "w" ))
+	if (!qstrcmp(mod, "w" ))
 		hr = fs_base::cc_open(path, "w", file);
-    else if (!qstrcmp(mod, "a" ) || !qstrcmp(mod, "a+" ))
+	else if (!qstrcmp(mod, "a" ) || !qstrcmp(mod, "a+" ))
 	{
 		hr = fs_base::cc_exists(path, exists);
-		if (hr < 0) 
+		if (hr < 0)
 			return hr;
 
 		if (!exists)
@@ -186,7 +187,7 @@ result_t zip_base::open(const char* path, const char* mod, int32_t compress_type
 		hr = fs_base::cc_open(path, "r+", file);
 	}
 
-	else 
+	else
 		hr = fs_base::cc_open(path, "r", file);
 
 	if (hr < 0)
@@ -281,15 +282,15 @@ result_t ZipFile::Info::get_data(obj_ptr<Buffer_base>& retVal)
 	return 0;
 }
 
-ZipFile::ZipFile(SeekableStream_base* strm, const char* mod, int32_t compress_type) : 
+ZipFile::ZipFile(SeekableStream_base* strm, const char* mod, int32_t compress_type) :
 	m_compress_type(compress_type), m_mod(mod), m_strm(strm)
 {
 	StreamIO sio(strm);
 	if (!qstrcmp(mod, "r" ))
 		m_unz = unzOpen2_64("", &sio);
-    else if (!qstrcmp(mod, "w" ))
+	else if (!qstrcmp(mod, "w" ))
 		m_zip = zipOpen2_64("", APPEND_STATUS_CREATE, NULL, &sio);
-    else if (!qstrcmp(mod, "a" ) || !qstrcmp(mod, "a+" ))
+	else if (!qstrcmp(mod, "a" ) || !qstrcmp(mod, "a+" ))
 		m_zip = zipOpen2_64("", APPEND_STATUS_ADDINZIP, NULL, &sio);
 }
 
@@ -447,7 +448,7 @@ result_t ZipFile::extract(SeekableStream_base* strm, const char* password)
 
 		if (err > 0)
 		{
-			if(err < BUF_SIZE) buf->resize(err);
+			if (err < BUF_SIZE) buf->resize(err);
 			hr = strm->cc_write(buf);
 			if (hr < 0)
 				return hr;
@@ -538,13 +539,8 @@ result_t ZipFile::extractAll(const char* path, AsyncEvent* ac)
 	int32_t i;
 	bool exists;
 	obj_ptr<File_base> file;
-# ifndef _WIN32
 	exlib::string fpath;
-    exlib::string fpath1;
-# else
-	exlib::wstring fpath;
-	exlib::wstring fpath1;
-# endif
+	exlib::string fpath1;
 
 	err = unzGetGlobalInfo64(m_unz, &gi);
 	if (err != UNZ_OK)
@@ -562,39 +558,24 @@ result_t ZipFile::extractAll(const char* path, AsyncEvent* ac)
 		if (hr < 0)
 			return hr;
 
-# ifndef _WIN32
-    	fpath1 = path;
-    	fpath1 += "/";
-    	fpath1 += info->m_name;
+		fpath1 = path;
+		fpath1 += PATH_SLASH;
+		path_base::normalize((fpath1 + info->m_name).c_str(), fpath1);
 
-    	do {
-    		fpath = fpath1;
-    		hr = fs_base::cc_exists(fpath.c_str(), exists);
-    		if (hr < 0) 
-    			return hr;
+		do {
+			fpath = fpath1;
+			hr = fs_base::cc_exists(fpath.c_str(), exists);
+			if (hr < 0)
+				return hr;
 
-    		fpath1 += "?";
-    	} while (exists);
-# else
-		fpath1 = utf8to16String(path);
-    	fpath1.append(L"//", 1);
-    	fpath1.append(utf8to16String(info->m_name));
+			fpath1 += "?";
+		} while (exists);
 
-    	do {
-    		fpath = fpath1;
-    		hr = fs_base::cc_exists(fpath.c_str(), exists);
-    		if (hr < 0)
-    			return hr;
+		hr = fs_base::cc_open(fpath.c_str(), "w", file);
+		if (hr < 0)
+			return hr;
 
-    		fpath1.append(L"?", 1);
-    	} while(exists);
-# endif
-
-    	hr = fs_base::cc_open(fpath.c_str(), "w", file);
-    	if(hr < 0) 
-    		return hr;
-
-    	hr = extract(file, NULL);
+		hr = extract(file, NULL);
 
 		if ((i + 1) < gi.number_entry)
 		{
@@ -660,11 +641,11 @@ result_t ZipFile::write(const char* filename, const char* password, SeekableStre
 	obj_ptr<Buffer_base> buf;
 	exlib::string strData;
 
-	err = zipOpenNewFileInZip3_64(m_zip, filename, NULL, NULL, 
-							0, NULL, 0, NULL, m_compress_type == zip_base::_ZIP_STORED ? 0 : Z_DEFLATED, 
-							Z_DEFAULT_COMPRESSION, 0, -MAX_WBITS, 
-							DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY, 
-							NULL, 0, 1);
+	err = zipOpenNewFileInZip3_64(m_zip, filename, NULL, NULL,
+	                              0, NULL, 0, NULL, m_compress_type == zip_base::_ZIP_STORED ? 0 : Z_DEFLATED,
+	                              Z_DEFAULT_COMPRESSION, 0, -MAX_WBITS,
+	                              DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
+	                              NULL, 0, 1);
 	if (err != ZIP_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
@@ -678,7 +659,7 @@ result_t ZipFile::write(const char* filename, const char* password, SeekableStre
 
 		buf->toString(strData);
 
-		err = zipWriteInFileInZip(m_zip, strData.c_str(), strData.length());
+		err = zipWriteInFileInZip(m_zip, strData.c_str(), (uint32_t)strData.length());
 		if (err != ZIP_OK)
 		{
 			zipCloseFileInZip(m_zip);
@@ -747,7 +728,7 @@ result_t ZipFile::close(AsyncEvent* ac)
 		err = unzClose(m_unz);
 	else
 		err = zipClose(m_zip, NULL);
-	
+
 	if (err != ZIP_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
