@@ -3,9 +3,9 @@
 SETLOCAL ENABLEDELAYEDEXPANSION
 
 if defined ProgramFiles(x86) (set HOST_ARCH=amd64) else (set HOST_ARCH=i386)
-set BUILD_TYPE=release
-
 set TARGET_ARCH=!HOST_ARCH!
+
+set BUILD_TYPE=release
 
 set ARG_ERROR=no
 
@@ -53,14 +53,20 @@ if "!BUILD_TYPE!"=="clean" (
 
 if "!TARGET_ARCH!"=="amd64" (set Platform=x64) else (set Platform=Win32)
 
-msbuild fibjs.sln /t:Build /p:Configuration=!BUILD_TYPE!;Platform=!Platform! /m
+set vs_ver="!VisualStudioVersion!"
+
+For /F "tokens=1* delims=." %%A IN (!vs_ver!) DO (
+    set vs_ver=%%A
+)
+
+msbuild fibjs.sln /t:Build /p:Configuration=!BUILD_TYPE!;Platform=!Platform!;PlatformToolset=v!vs_ver!0_xp /m
 
 if "!BUILD_TYPE!"=="release" (
 	cd bin\Windows_!TARGET_ARCH!_!BUILD_TYPE!
     fibjs ../../fibjs/gen_install.js
     cd ..\..
     cd installer
-    msbuild installer.sln /t:Build /p:Configuration=Release;Platform=!Platform! /m
+    msbuild installer.sln /t:Build /p:Configuration=Release;Platform=!Platform!;PlatformToolset=v!vs_ver!0_xp /m
     cd ..
 )
 
