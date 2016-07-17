@@ -54,13 +54,13 @@ public:
 	virtual result_t infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac);
 	virtual result_t getinfo(const char* member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac);
 	virtual result_t read(const char* member, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t readAll(obj_ptr<List_base>& retVal, AsyncEvent* ac);
-    virtual result_t extract(const char* member, const char* path, AsyncEvent* ac);
-    virtual result_t extract(const char* member, SeekableStream_base* strm, AsyncEvent* ac);
-    virtual result_t extractAll(const char* path, AsyncEvent* ac);
+	virtual result_t readAll(obj_ptr<List_base>& retVal, AsyncEvent* ac);
+	virtual result_t extract(const char* member, const char* path, AsyncEvent* ac);
+	virtual result_t extract(const char* member, SeekableStream_base* strm, AsyncEvent* ac);
+	virtual result_t extractAll(const char* path, AsyncEvent* ac);
 	virtual result_t write(const char* filename, AsyncEvent* ac);
 	virtual result_t write(Buffer_base* data, const char* inZipName, AsyncEvent* ac);
-    virtual result_t write(SeekableStream_base* strm, const char* inZipName, AsyncEvent* ac);
+	virtual result_t write(SeekableStream_base* strm, const char* inZipName, AsyncEvent* ac);
 	virtual result_t close(AsyncEvent* ac);
 
 private:
