@@ -25,6 +25,14 @@ namespace fibjs
 
 DECLARE_MODULE(fs);
 
+void init_fs()
+{
+#ifdef _WIN32
+    struct stat64 st;
+    ::stat64(".", &st);
+#endif
+}
+
 result_t fs_base::open(const char *fname, const char *flags,
                        obj_ptr<File_base> &retVal, AsyncEvent *ac)
 {
