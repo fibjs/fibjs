@@ -35,19 +35,19 @@ void std_logger::out(const char *txt)
             m_wLight = m_wAttr & FOREGROUND_INTENSITY;
         }
 
-        void out(const char *s, FILE *stream)
+        void out(const char *s)
         {
             exlib::wstring ws = utf8to16String(s);
             exlib::wchar *ptr = &ws[0];
             exlib::wchar *ptr2;
+            DWORD dwWrite;
 
             while (ptr2 = (exlib::wchar *) qstrchr(ptr, L'\x1b'))
             {
                 if (ptr2[1] == '[')
                 {
                     ptr2[0] = 0;
-                    fputws(ptr, stream);
-                    fflush(stream);
+                    WriteConsoleW(m_handle, ptr, (DWORD)(ptr2 - ptr), &dwWrite, NULL);
 
                     ptr2 += 2;
 
@@ -152,8 +152,7 @@ void std_logger::out(const char *txt)
                 ptr = ptr2;
             }
 
-            fputws(ptr, stream);
-            fflush(stream);
+            WriteConsoleW(m_handle, ptr, (DWORD)qstrlen(ptr), &dwWrite, NULL);
         }
 
     private:
@@ -163,12 +162,14 @@ void std_logger::out(const char *txt)
     };
     static color_out s_out;
 
-    s_out.out(txt, stdout);
-#else
-    fputs(txt, stdout);
+    if (_isatty(_fileno(stdout)))
+        s_out.out(txt);
+    else
 #endif
-
-    fflush(stdout);
+    {
+        fputs(txt, stdout);
+        fflush(stdout);
+    }
 }
 
 result_t std_logger::write(AsyncEvent *ac)
