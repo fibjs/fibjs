@@ -9,6 +9,7 @@
 
 #ifdef FreeBSD
 
+#include "object.h"
 #include "ifs/os.h"
 #include <kvm.h>
 #include <dlfcn.h>

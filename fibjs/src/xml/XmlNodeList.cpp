@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "XmlNodeList.h"
 #include "XmlNodeImpl.h"
 #include "ifs/XmlText.h"

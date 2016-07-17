@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/encoding.h"
 #include "qstring.h"
 #include "Buffer.h"

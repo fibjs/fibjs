@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/xml.h"
 #include "XmlDocument.h"
 #include "XmlElement.h"

@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "encoding_bson.h"
 #include "ifs/encoding.h"
 #include "Buffer.h"

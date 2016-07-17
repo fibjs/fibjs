@@ -9,6 +9,7 @@
 
 #ifdef Darwin
 
+#include "object.h"
 #include "ifs/os.h"
 #include <mach/mach.h>
 #include <mach-o/dyld.h>

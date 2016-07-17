@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "mysql.h"
 #include "Socket_api.h"
 #include "Buffer.h"

@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/crypto.h"
 #include "ifs/ssl.h"
 #include "SslSocket.h"

@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "SQLite.h"
 #include "ifs/db.h"
 #include "DBResult.h"

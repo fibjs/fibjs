@@ -1,3 +1,4 @@
+#include "object.h"
 #include "Buffer.h"
 #include "ifs/encoding.h"
 #include "Int64.h"

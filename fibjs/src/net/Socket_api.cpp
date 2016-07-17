@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "Socket_api.h"
 #include "Socket.h"
 #include "Buffer.h"

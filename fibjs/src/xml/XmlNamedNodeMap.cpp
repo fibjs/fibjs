@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "XmlNamedNodeMap.h"
 #include "XmlNodeImpl.h"
 #include <string.h>

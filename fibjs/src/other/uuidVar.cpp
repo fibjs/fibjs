@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "uuidVar.h"
 #include "Buffer.h"
 #include "ifs/uuid.h"

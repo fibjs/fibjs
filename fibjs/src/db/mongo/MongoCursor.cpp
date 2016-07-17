@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "MongoCursor.h"
 #include "encoding_bson.h"
 #include "ifs/util.h"

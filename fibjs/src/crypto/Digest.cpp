@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/hash.h"
 #include "Digest.h"
 #include "Buffer.h"

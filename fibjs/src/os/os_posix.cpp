@@ -9,6 +9,7 @@
 
 #ifndef _WIN32
 
+#include "object.h"
 #include "ifs/os.h"
 #include "ifs/process.h"
 #include <sys/utsname.h>

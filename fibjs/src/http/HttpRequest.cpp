@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "HttpRequest.h"
 #include "parse.h"
 #include "HttpUploadCollection.h"

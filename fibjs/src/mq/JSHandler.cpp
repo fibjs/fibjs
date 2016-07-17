@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "JSHandler.h"
 #include "Fiber.h"
 #include "SandBox.h"

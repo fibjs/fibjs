@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "RedisHash.h"
 
 namespace fibjs

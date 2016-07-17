@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "HeapSnapshot.h"
 #include "ifs/HeapGraphEdge.h"
 #include "ifs/profiler.h"

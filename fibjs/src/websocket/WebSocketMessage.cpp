@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "WebSocketMessage.h"
 #include "Buffer.h"
 #include "Stream.h"

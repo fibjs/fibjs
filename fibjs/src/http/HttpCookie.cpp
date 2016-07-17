@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "HttpCookie.h"
 #include "parse.h"
 #include "Url.h"

@@ -21,6 +21,7 @@
 
 #endif
 
+#include "object.h"
 #include "encoding_iconv.h"
 #include "ifs/encoding.h"
 

@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "HeapProxy.h"
 #include "HeapSnapshot.h"
 #include "HeapGraphNode.h"

@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "HeapGraphNode.h"
 #include "HeapGraphEdge.h"
 #include "HeapSnapshot.h"

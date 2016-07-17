@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/websocket.h"
 #include "ifs/http.h"
 #include "Map.h"

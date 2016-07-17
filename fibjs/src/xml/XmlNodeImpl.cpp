@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "XmlNodeImpl.h"
 #include "XmlDocument.h"
 #include "XmlDocumentType.h"

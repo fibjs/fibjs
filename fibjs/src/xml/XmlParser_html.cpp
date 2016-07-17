@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "XmlParser.h"
 #include "XmlElement.h"
 #include "XmlComment.h"

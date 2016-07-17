@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include <Stats.h>
 
 namespace fibjs

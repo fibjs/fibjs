@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "HttpCollection.h"
 #include "List.h"
 #include "Map.h"

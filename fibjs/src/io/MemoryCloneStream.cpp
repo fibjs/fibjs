@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "MemoryStream.h"
 #include "Stream.h"
 #include "Stat.h"

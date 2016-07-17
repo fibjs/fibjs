@@ -9,6 +9,7 @@
 
 #ifdef Linux
 
+#include "object.h"
 #include "ifs/os.h"
 #include <dlfcn.h>
 #include <sys/sysinfo.h>

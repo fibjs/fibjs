@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "HttpHandler.h"
 #include "HttpRequest.h"
 #include "BufferedStream.h"

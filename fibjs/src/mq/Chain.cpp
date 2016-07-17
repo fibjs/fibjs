@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "Chain.h"
 #include "JSHandler.h"
 #include "ifs/mq.h"

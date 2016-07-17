@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/test.h"
 #include "ifs/assert.h"
 #include "QuickArray.h"

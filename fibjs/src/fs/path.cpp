@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/process.h"
 #include "utf8.h"
 #include <sstream>

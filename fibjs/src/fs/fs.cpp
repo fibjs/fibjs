@@ -13,6 +13,7 @@
 #endif
 
 
+#include "object.h"
 #include "ifs/fs.h"
 #include "utf8.h"
 #include "Stat.h"

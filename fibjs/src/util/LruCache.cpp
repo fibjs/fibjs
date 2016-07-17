@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include <LruCache.h>
 #include <Event.h>
 

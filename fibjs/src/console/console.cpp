@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/console.h"
 #include "ifs/assert.h"
 #include "ifs/encoding.h"

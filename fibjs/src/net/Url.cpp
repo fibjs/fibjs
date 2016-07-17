@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "Url.h"
 #include "ifs/encoding.h"
 

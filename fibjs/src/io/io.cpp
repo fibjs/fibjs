@@ -7,6 +7,7 @@
 
 #include <string.h>
 
+#include "object.h"
 #include "ifs/io.h"
 #include "File.h"
 

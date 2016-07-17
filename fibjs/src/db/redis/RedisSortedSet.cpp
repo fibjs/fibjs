@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "RedisSortedSet.h"
 
 namespace fibjs

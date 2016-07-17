@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/rpc.h"
 #include "ifs/json.h"
 #include "RpcTask.h"

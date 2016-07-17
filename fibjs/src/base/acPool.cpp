@@ -1,3 +1,11 @@
+/*
+ * date.cpp
+ *
+ *  Created on: Jul 31, 2013
+ *      Author: lion
+ */
+
+#include "object.h"
 #include "ifs/os.h"
 #include "ifs/console.h"
 #include <exlib/include/thread.h>

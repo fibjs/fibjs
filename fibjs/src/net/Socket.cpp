@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "Socket.h"
 #include "Buffer.h"
 #include "Stat.h"
@@ -62,7 +63,7 @@ result_t Socket::create(int32_t family, int32_t type)
 
 #ifdef _WIN32
 
-    m_aio.m_fd = WSASocket(family, type, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
+    m_aio.m_fd = WSASocketW(family, type, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(SocketError());
 

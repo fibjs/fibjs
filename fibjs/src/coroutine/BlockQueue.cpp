@@ -5,7 +5,8 @@
  *      Author: lion
  */
 
-#include <BlockQueue.h>
+#include "object.h"
+#include "BlockQueue.h"
 
 namespace fibjs
 {

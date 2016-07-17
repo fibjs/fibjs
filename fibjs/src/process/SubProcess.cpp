@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "SubProcess.h"
 #include "BufferedStream.h"
 

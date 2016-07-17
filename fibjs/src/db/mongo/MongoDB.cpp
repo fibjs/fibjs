@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/db.h"
 #include "MongoDB.h"
 #include "MongoCollection.h"

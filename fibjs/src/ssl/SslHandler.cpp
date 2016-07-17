@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/mq.h"
 #include "SslHandler.h"
 #include "JSHandler.h"

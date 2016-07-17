@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/ssl.h"
 #include "Socket.h"
 #include "Smtp.h"

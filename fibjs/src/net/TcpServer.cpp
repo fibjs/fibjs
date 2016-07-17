@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "TcpServer.h"
 #include "ifs/mq.h"
 #include "JSHandler.h"

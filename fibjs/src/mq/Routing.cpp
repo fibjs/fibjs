@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "Routing.h"
 #include "JSHandler.h"
 #include "ifs/Message.h"

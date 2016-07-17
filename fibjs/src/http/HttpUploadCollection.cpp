@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "HttpUploadCollection.h"
 #include "HttpUploadData.h"
 #include "MemoryStream.h"

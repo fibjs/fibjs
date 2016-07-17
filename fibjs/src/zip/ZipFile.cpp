@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/zip.h"
 #include "ifs/fs.h"
 #include "ZipFile.h"

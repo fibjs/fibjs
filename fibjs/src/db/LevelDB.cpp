@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "LevelDB.h"
 #include "ifs/db.h"
 #include "Buffer.h"

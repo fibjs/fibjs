@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/zlib.h"
 #include "Buffer.h"
 #include "StringBuffer.h"

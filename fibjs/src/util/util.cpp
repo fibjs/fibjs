@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/util.h"
 #include "ifs/encoding.h"
 #include "ifs/Int64.h"

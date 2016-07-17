@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "HttpMessage.h"
 #include "parse.h"
 #include "Buffer.h"

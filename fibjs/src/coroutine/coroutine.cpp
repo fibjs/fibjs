@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/coroutine.h"
 #include "Event.h"
 #include "ifs/os.h"

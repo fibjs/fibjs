@@ -7,6 +7,7 @@
 
 #ifndef _WIN32
 
+#include "object.h"
 #include "utils.h"
 #include "AsyncIO.h"
 #include "Socket.h"

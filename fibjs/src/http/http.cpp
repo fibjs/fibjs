@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/http.h"
 #include "Buffer.h"
 #include "MemoryStream.h"

@@ -7,6 +7,8 @@ var io = require('io');
 describe('os', function() {
 	it('stat', function() {
 		console.dir({
+			type: os.type,
+			version: os.version,
 			CPUs: os.CPUs(),
 			uptime: os.uptime(),
 			loadavg: os.loadavg(),

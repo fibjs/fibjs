@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "Fiber.h"
 #include "ifs/os.h"
 

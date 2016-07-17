@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/encoding.h"
 #include "encoding.h"
 #include "encoding_iconv.h"

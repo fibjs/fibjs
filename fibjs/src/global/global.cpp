@@ -1,3 +1,4 @@
+#include "object.h"
 #include "ifs/global.h"
 #include "ifs/coroutine.h"
 #include "ifs/vm.h"

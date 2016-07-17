@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "GridFS.h"
 #include "MongoCollection.h"
 #include "MemoryStream.h"

@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "SandBox.h"
 
 #include "ifs/vm.h"

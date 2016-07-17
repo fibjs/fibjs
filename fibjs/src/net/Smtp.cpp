@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "Smtp.h"
 #include "Buffer.h"
 #include "ifs/encoding.h"

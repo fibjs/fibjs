@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "HttpResponse.h"
 #include "HttpCookie.h"
 #include "Buffer.h"

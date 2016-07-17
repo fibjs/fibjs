@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/mq.h"
 #include "WebSocketHandler.h"
 #include "WebSocketMessage.h"

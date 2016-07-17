@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "Stat.h"
 #include "ifs/path.h"
 #include "utf8.h"

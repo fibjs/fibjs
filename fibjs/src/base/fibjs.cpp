@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <time.h>
+#include "object.h"
 #include "ifs/os.h"
 #include "ifs/global.h"
 #include "SandBox.h"

@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "ifs/fs.h"
 #include "ifs/crypto.h"
 #include "PKey.h"

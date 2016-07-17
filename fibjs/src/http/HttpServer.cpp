@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "HttpServer.h"
 #include "ifs/http.h"
 #include "JSHandler.h"

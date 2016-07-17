@@ -7,6 +7,7 @@
 
 #ifdef _WIN32
 
+#include "object.h"
 #include "ifs/process.h"
 #include "SubProcess.h"
 #include <vector>
