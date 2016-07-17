@@ -22,19 +22,19 @@
 
 #ifndef IPV6_V6ONLY
 #define IPV6_V6ONLY 27
-#endif
+#endif // IPV6_V6ONLY
 
 #include <windows.h>
 
 #ifndef EWOULDBLOCK
 #define EINPROGRESS         WSAEWOULDBLOCK
-#endif
+#endif // EWOULDBLOCK
 
 #define SHUT_RD     SD_READ
 #define SHUT_WR     SD_SEND
 #define SHUT_RDWR   SD_BOTH
 
-#else
+#else // _WIN32
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -53,24 +53,27 @@ typedef int32_t SOCKET;
 
 #ifndef ETIME
 #define ETIME   ETIMEDOUT
-#endif
-#else
+#endif // ETIME
+
+#else // FreeBSD
+
 #include <netinet/tcp.h>
 
 #ifndef TCP_KEEPIDLE
 #define TCP_KEEPIDLE TCP_KEEPALIVE
-#endif
-#endif
+#endif // TCP_KEEPIDLE
+
+#endif // FreeBSD
 
 #ifndef SOL_TCP
 #define SOL_TCP IPPROTO_TCP
-#endif
+#endif // SOL_TCP
 
-#endif
+#endif // _WIN32
 
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0
-#endif
+#endif // MSG_NOSIGNAL
 
 #include "qstring.h"
 
@@ -85,16 +88,17 @@ typedef int32_t SOCKET;
 
 #ifndef INFINITY
 #define INFINITY (DBL_MAX+DBL_MAX)
-#endif
+#endif // INFINITY
 
 #ifndef NAN
 #define NAN (INFINITY-INFINITY)
-#endif
+#endif // NAN
 
 #ifndef isnan
 #define isnan !!_isnan
-#endif
-#endif
+#endif // isnan
+
+#endif // _WIN32
 
 #include "date.h"
 #include "Variant.h"
@@ -103,7 +107,7 @@ typedef int32_t SOCKET;
 
 #ifdef _DEBUG
 #undef _DEBUG
-#endif
+#endif // _DEBUG
 
 namespace fibjs
 {
@@ -899,7 +903,7 @@ inline exlib::string niceSize(intptr_t sz)
     int32_t cnt;
 
     if (test < 1024)
-        cnt = sprintf(buf, "%ld bytes", sz);
+        cnt = sprintf(buf, "%d bytes", (int32_t)sz);
     else if (test < 1024 * 1024)
         cnt = sprintf(buf, "%.1f KB", num / 1024);
     else if (test < 1024 * 1024 * 1024)
