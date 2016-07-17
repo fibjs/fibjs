@@ -182,7 +182,7 @@ result_t zip_base::open(const char* path, const char* mod, int32_t compress_type
 		if (!exists)
 			return CHECK_ERROR(Runtime::setError("zip file not exists!"));
 
-		hr = fs_base::cc_open(path, "a+", file);
+		hr = fs_base::cc_open(path, "r+", file);
 	}
 
 	else 
@@ -538,11 +538,11 @@ result_t ZipFile::extractAll(const char* path, AsyncEvent* ac)
 	bool exists;
 	obj_ptr<File_base> file;
 # ifndef _WIN32
-	qstring fpath;
-    qstring fpath1;
+	exlib::string fpath;
+    exlib::string fpath1;
 # else
-	wstring fpath;
-	wstring fpath1;
+	exlib::wstring fpath;
+	exlib::wstring fpath1;
 # endif
 
 	err = unzGetGlobalInfo64(m_unz, &gi);
@@ -652,6 +652,44 @@ result_t ZipFile::readAll(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	return 0;
 }
 
+result_t ZipFile::write(const char* filename, const char* password, SeekableStream_base* strm)
+{
+	int32_t err;
+	result_t hr;
+	obj_ptr<Buffer_base> buf;
+	exlib::string strData;
+
+	err = zipOpenNewFileInZip3_64(m_zip, filename, NULL, NULL, 
+							0, NULL, 0, NULL, m_compress_type == zip_base::_ZIP_STORED ? 0 : Z_DEFLATED, 
+							Z_DEFAULT_COMPRESSION, 0, -MAX_WBITS, 
+							DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY, 
+							NULL, 0, 1);
+	if (err != ZIP_OK)
+		return CHECK_ERROR(Runtime::setError(zip_error(err)));
+
+	do
+	{
+		hr = strm->cc_read(BUF_SIZE, buf);
+		if (hr == CALL_RETURN_NULL)
+			break;
+		else if (hr < 0)
+			return hr;
+
+		buf->toString(strData);
+
+		err = zipWriteInFileInZip(m_zip, strData.c_str(), strData.length());
+		if (err != ZIP_OK)
+			return CHECK_ERROR(Runtime::setError(zip_error(err)));
+	
+	} while (strData.length() > 0);
+
+	err = zipCloseFileInZip(m_zip);
+	if (err != ZIP_OK)
+		return CHECK_ERROR(Runtime::setError(zip_error(err)));
+
+	return 0;
+}
+
 result_t ZipFile::write(const char* filename, AsyncEvent* ac)
 {
 	if (!ac)
@@ -664,7 +702,7 @@ result_t ZipFile::write(const char* filename, AsyncEvent* ac)
 	if (hr < 0)
 		return hr;
 
-	return write(filename, file);
+	return write(filename, NULL, file);
 }
 
 result_t ZipFile::write(Buffer_base* data, const char* inZipName, AsyncEvent* ac)
@@ -683,7 +721,7 @@ result_t ZipFile::write(Buffer_base* data, const char* inZipName, AsyncEvent* ac
 	hr = strm->rewind();
 	if (hr < 0)
 		return hr;
-	return write(inZipName, strm);
+	return write(inZipName, NULL, strm);
 }
 
 result_t ZipFile::write(SeekableStream_base* strm, const char* inZipName, AsyncEvent* ac)
@@ -691,52 +729,9 @@ result_t ZipFile::write(SeekableStream_base* strm, const char* inZipName, AsyncE
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
-	return write(inZipName, strm);
+	return write(inZipName, NULL, strm);
 }
 
-result_t ZipFile::write(const char* filename, SeekableStream_base* strm)
-{
-	int32_t err;
-	result_t hr;
-	int32_t compress_type;
-	qstring strData;
-	obj_ptr<Buffer_base> buf;
-
-	switch(m_compress_type) {
-		case zip_base::_ZIP_STORED:
-			compress_type = 0;
-			break;
-		case zip_base::_ZIP_DEFLATED:
-			compress_type = Z_DEFLATED;
-			break;
-		default:
-			break;
-	}
-
-	hr = strm->cc_readAll(buf);
-	if(hr < 0) 
-		return hr;
-
-	buf->toString(strData);
-
-	err = zipOpenNewFileInZip3_64(m_zip, filename, NULL, NULL, 
-							0, NULL, 0, NULL, compress_type, 
-							Z_DEFAULT_COMPRESSION, 0, -MAX_WBITS, 
-							DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY, 
-							NULL, 0, 1);
-	if (err != ZIP_OK)
-		return CHECK_ERROR(Runtime::setError(zip_error(err)));
-
-	err = zipWriteInFileInZip(m_zip, strData.c_str(), strData.length());
-	if (err != ZIP_OK)
-		return CHECK_ERROR(Runtime::setError(zip_error(err)));
-
-	err = zipCloseFileInZip(m_zip);
-	if (err != ZIP_OK)
-		return CHECK_ERROR(Runtime::setError(zip_error(err)));
-
-	return 0;
-}
 
 result_t ZipFile::close(AsyncEvent* ac)
 {

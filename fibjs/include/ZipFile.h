@@ -67,13 +67,13 @@ private:
 	result_t get_info(obj_ptr<Info>& retVal);
 	result_t extract(SeekableStream_base* strm, const char* password);
 	result_t read(const char* password, obj_ptr<Buffer_base>& retVal);
-	result_t write(const char* filename, SeekableStream_base* strm);
+	result_t write(const char* filename, const char* password, SeekableStream_base* strm);
 
 private:
 	unzFile m_unz;
 	zipFile m_zip;
 	int32_t m_compress_type;
-	qstring m_mod;
+	exlib::string m_mod;
 	obj_ptr<SeekableStream_base> m_strm;
 };
 

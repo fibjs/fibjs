@@ -230,6 +230,16 @@ describe("zip", function() {
 		fs.unlink(efile1);
 		fs.unlink(efile2);
 	});
+
+	it("write file append to zip", function() {
+		var zipfile = zip.open('unzip_test.zip' + vmid, 'a');
+		var buf = new Buffer('hello world');
+		zipfile.write(buf, 'buf.txt');
+		zipfile.close();
+
+		zipfile = zip.open('unzip_test.zip' + vmid);
+		assert.equal(zipfile.read('buf.txt').toString(), 'hello world');
+	});
 });
 
 // test.run(console.DEBUG);
