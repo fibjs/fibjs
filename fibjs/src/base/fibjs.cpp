@@ -8,6 +8,7 @@
 #include "SandBox.h"
 #include "Fiber.h"
 #include "include/libplatform/libplatform.h"
+#include "Stat.h"
 
 namespace fibjs
 {
@@ -21,6 +22,7 @@ void init_cipher();
 void init_acThread();
 void init_logger();
 void init_aio();
+void init_fs();
 void init_fiber();
 void init_sandbox();
 void init_Task(int32_t vms);
@@ -52,6 +54,7 @@ void init(int32_t argc, char *argv[])
     init_acThread();
     init_logger();
     init_aio();
+    init_fs();
     init_fiber();
 
     srand((unsigned int)time(0));
