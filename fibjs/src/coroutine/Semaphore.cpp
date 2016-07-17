@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "Semaph.h"
 
 namespace fibjs
