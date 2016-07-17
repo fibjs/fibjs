@@ -66,6 +66,7 @@ run("rpc_test.js");
 run("uuid_test.js");
 run("gd_test.js");
 run("zlib_test.js");
+run("unzip_test.js");
 run("ws_test.js");
 run("vm_test.js");
 run("db_test.js");

@@ -15,7 +15,7 @@
 #include <dlfcn.h>
 #include <unistd.h>
 #include <vector>
-#include <exlib::string.h>
+#include <exlib/include/qstring.h>
 
 #include <exlib/include/list.h>
 #include <exlib/include/fiber.h>
