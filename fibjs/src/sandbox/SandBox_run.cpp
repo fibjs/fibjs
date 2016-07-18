@@ -376,7 +376,7 @@ result_t SandBox::require(exlib::string base, exlib::string id,
     fullname = s_root;
     pathAdd(fullname, strId.c_str());
 
-    if (qstrcmp(fullname.c_str(), strId.c_str()))
+    if (fullname != strId)
     {
         retVal = _mods->Get(isolate->NewFromUtf8(fullname));
         if (!IsEmpty(retVal))

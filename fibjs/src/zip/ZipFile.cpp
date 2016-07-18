@@ -319,7 +319,7 @@ result_t ZipFile::namelist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	int32_t i;
 	obj_ptr<List> names = new List();
 
-	if (qstrcmp(m_mod.c_str(), "r" ))
+	if (m_mod != "r" )
 		return CHECK_ERROR(Runtime::setError("can not read!"));
 
 	err = unzGetGlobalInfo64(m_unz, &gi);
@@ -363,7 +363,7 @@ result_t ZipFile::infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	int32_t i;
 	obj_ptr<List> names = new List();
 
-	if (qstrcmp(m_mod.c_str(), "r" ))
+	if (m_mod != "r" )
 		return CHECK_ERROR(Runtime::setError("can not read!"));
 
 	err = unzGetGlobalInfo64(m_unz, &gi);
@@ -403,7 +403,7 @@ result_t ZipFile::getinfo(const char* member, obj_ptr<ZipInfo_base>& retVal, Asy
 
 	int32_t err;
 
-	if (qstrcmp(m_mod.c_str(), "r" ))
+	if (m_mod != "r" )
 		return CHECK_ERROR(Runtime::setError("can not read!"));
 
 	err = unzLocateFile(m_unz, member, 0);
@@ -724,7 +724,7 @@ result_t ZipFile::close(AsyncEvent* ac)
 
 	int32_t err;
 
-	if (!qstrcmp(m_mod.c_str(), "r" ))
+	if (m_mod == "r" )
 		err = unzClose(m_unz);
 	else
 		err = zipClose(m_zip, NULL);

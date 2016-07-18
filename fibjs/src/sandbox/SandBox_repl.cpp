@@ -39,7 +39,7 @@ bool repl_command(exlib::string &line, v8::Local<v8::Array> cmds)
     p.skipSpace();
     p.getWord(cmd_word);
 
-    if (!qstrcmp(cmd_word.c_str(), ".help"))
+    if (cmd_word == ".help")
     {
         exlib::string help_str = ".exit     Exit the repl\n"
                                  ".help     Show repl options\n"
@@ -76,10 +76,10 @@ bool repl_command(exlib::string &line, v8::Local<v8::Array> cmds)
         return true;
     }
 
-    if (!qstrcmp(cmd_word.c_str(), ".exit"))
+    if (cmd_word == ".exit")
         return false;
 
-    if (!qstrcmp(cmd_word.c_str(), ".info"))
+    if (cmd_word == ".info")
     {
         v8::Local<v8::Object> o;
 
@@ -111,7 +111,7 @@ bool repl_command(exlib::string &line, v8::Local<v8::Array> cmds)
             return false;
         }
 
-        if (!qstrcmp(cmd_word.c_str(), cmd.c_str()))
+        if (cmd_word == cmd.c_str())
         {
             v8::Local<v8::Array> argv = v8::Array::New(isolate->m_isolate);
             int32_t n = 0;

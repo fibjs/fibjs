@@ -98,7 +98,7 @@ int32_t Stats::find(const char *key)
     int32_t i;
 
     for (i = 0; i < m_size; i++)
-        if (!qstrcmp(key, m_keys[i].c_str()))
+        if (m_keys[i] == key)
             return i;
 
     return -1;

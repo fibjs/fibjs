@@ -392,7 +392,7 @@ void XmlElement::fix_prefix(const char *namespaceURI, exlib::string &prefix)
 
     if (!prefix.empty() && lookupNamespaceURI(prefix.c_str(), _namespaceURI) == CALL_RETURN_NULL)
         setAttributeNS("http://www.w3.org/2000/xmlns/", ("xmlns:" + prefix).c_str(), namespaceURI);
-    else if (qstrcmp(_namespaceURI.c_str(), namespaceURI))
+    else if (_namespaceURI != namespaceURI)
     {
         char buf[64];
 
@@ -434,7 +434,7 @@ result_t XmlElement::toString(exlib::string &retVal)
                     exlib::string def_ns;
                     ((XmlElement *)m_parent->m_node)->get_defaultNamespace(def_ns);
 
-                    if (!qstrcmp(def_ns.c_str(), m_namespaceURI.c_str()))
+                    if (def_ns == m_namespaceURI)
                         skip_def_ns = true;
                 }
             }

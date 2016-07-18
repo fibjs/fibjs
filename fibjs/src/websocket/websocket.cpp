@@ -112,7 +112,7 @@ result_t websocket_base::connect(const char* url, const char* origin,
 			if (hr == CALL_RETURN_NULL)
 				return CHECK_ERROR(Runtime::setError("websocket: missing Sec-WebSocket-Accept header."));
 
-			if (qstrcmp(v.string().c_str(), pThis->m_accept.c_str()))
+			if (v.string() != pThis->m_accept)
 				return CHECK_ERROR(Runtime::setError("websocket: invalid Sec-WebSocket-Accept header."));
 
 			pThis->m_httprep->get_stream(pThis->m_retVal);

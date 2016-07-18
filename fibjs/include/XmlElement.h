@@ -133,7 +133,7 @@ public:
     void getElementsByTagNameFromThis(const char *tagName, obj_ptr<XmlNodeList> &retVal)
     {
         if (*tagName == '*' ||
-                ( m_isXml ? !qstrcmp(m_tagName.c_str(), tagName) :
+                ( m_isXml ? (m_tagName == tagName) :
                   !qstricmp(m_tagName.c_str(), tagName)))
         {
             retVal->appendChild(this);
@@ -159,7 +159,7 @@ public:
 
     result_t getFirstElementsByTagName(const char *tagName, obj_ptr<XmlElement_base> &retVal)
     {
-        if (m_isXml ? !qstrcmp(m_tagName.c_str(), tagName) :
+        if (m_isXml ? (m_tagName == tagName) :
                 !qstricmp(m_tagName.c_str(), tagName))
         {
             retVal = this;
@@ -204,8 +204,8 @@ public:
     void getElementsByTagNameNSFromThis(const char *namespaceURI, const char *localName,
                                         obj_ptr<XmlNodeList> &retVal)
     {
-        if ((*namespaceURI == '*' || !qstrcmp(m_namespaceURI.c_str(), namespaceURI)) &&
-                (*localName == '*' || !qstrcmp(m_localName.c_str(), localName)))
+        if ((*namespaceURI == '*' || (m_namespaceURI == namespaceURI)) &&
+                (*localName == '*' || (m_localName == localName)))
         {
             retVal->appendChild(this);
             Ref();

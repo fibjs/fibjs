@@ -173,7 +173,7 @@ result_t X509Cert::load(const char *txtCert)
                 }
 
                 p1.getWord(cmd);
-                if (!qstrcmp(cmd.c_str(), "END"))
+                if ((cmd == "END"))
                 {
                     if (is_value)
                         cka_value = _value;
@@ -190,13 +190,13 @@ result_t X509Cert::load(const char *txtCert)
 
             p1.skipSpace();
             p1.getWord(type);
-            if (!qstrcmp(type.c_str(), "MULTILINE_OCTAL"))
+            if ((type == "MULTILINE_OCTAL"))
             {
                 in_multiline = true;
                 _value.resize(0);
 
-                is_value = is_cert && !qstrcmp(cmd.c_str(), "CKA_VALUE");
-                is_serial = !qstrcmp(cmd.c_str(), "CKA_SERIAL_NUMBER");
+                is_value = is_cert && (cmd == "CKA_VALUE");
+                is_serial = (cmd == "CKA_SERIAL_NUMBER");
                 continue;
             }
 
@@ -205,21 +205,21 @@ result_t X509Cert::load(const char *txtCert)
 
             if (!in_obj)
             {
-                if (!qstrcmp(cmd.c_str(), "CKA_CLASS"))
+                if ((cmd == "CKA_CLASS"))
                 {
                     in_obj = true;
-                    is_cert = !qstrcmp(value.c_str(), "CKO_CERTIFICATE");
-                    is_trust = !qstrcmp(value.c_str(), "CKO_NSS_TRUST");
+                    is_cert = (value == "CKO_CERTIFICATE");
+                    is_trust = (value == "CKO_NSS_TRUST");
                 }
                 continue;
             }
 
-            if (!qstrcmp(cmd.c_str(), "CKA_LABEL"))
+            if ((cmd == "CKA_LABEL"))
                 cka_label = value;
-            else if (is_trust && !qstrcmp(cmd.c_str(), "CKA_TRUST_SERVER_AUTH"))
+            else if (is_trust && (cmd == "CKA_TRUST_SERVER_AUTH"))
             {
-                is_ca = !qstrcmp(value.c_str(), "CKT_NSS_TRUSTED_DELEGATOR");
-                is_verify = !qstrcmp(value.c_str(), "CKT_NSS_MUST_VERIFY_TRUST");
+                is_ca = (value == "CKT_NSS_TRUSTED_DELEGATOR");
+                is_verify = (value == "CKT_NSS_MUST_VERIFY_TRUST");
             }
 
             if (cmd.empty())

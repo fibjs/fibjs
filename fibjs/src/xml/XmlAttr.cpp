@@ -18,7 +18,7 @@ result_t XmlAttr::get_namespaceURI(exlib::string &retVal)
 {
     if (m_namespaceURI.empty())
     {
-        if (!qstrcmp(m_name.c_str(), "xmlns"))
+        if (m_name == "xmlns")
         {
             retVal = "http://www.w3.org/2000/xmlns/";
             return 0;

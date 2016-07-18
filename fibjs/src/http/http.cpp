@@ -73,10 +73,10 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
 
                 exlib::string str = hdr.string();
 
-                if (!qstrcmp(str.c_str(), "gzip"))
+                if (str == "gzip")
                     return zlib_base::gunzipTo(pThis->m_body,
                                                pThis->m_unzip, pThis);
-                else if (!qstrcmp(str.c_str(), "deflate"))
+                else if (str == "deflate")
                     return zlib_base::inflateRawTo(pThis->m_body,
                                                    pThis->m_unzip, pThis);
             }
@@ -145,12 +145,12 @@ result_t http_base::request(const char* method, const char* url,
             if (hr < 0)
                 return hr;
 
-            if (!qstrcmp(u->m_protocol.c_str(), "https:"))
+            if (u->m_protocol == "https:")
             {
                 ssl = true;
                 pThis->m_connUrl = "ssl://";
             }
-            else if (!qstrcmp(u->m_protocol.c_str(), "http:"))
+            else if (u->m_protocol == "http:")
                 pThis->m_connUrl = "tcp://";
             else
                 return CHECK_ERROR(Runtime::setError("http: unknown protocol"));

@@ -64,13 +64,13 @@ public:
 public:
     bool check(const char *namespaceURI, const char *localName)
     {
-        return !qstrcmp(m_namespaceURI.c_str(), namespaceURI) &&
-               !qstrcmp(m_localName.c_str(), localName);
+        return (m_namespaceURI == namespaceURI) &&
+               (m_localName == localName);
     }
 
     bool check(const char *name)
     {
-        return !qstrcmp(m_name.c_str(), name);
+        return (m_name == name);
     }
 
     bool check(const XmlAttr *from)
@@ -82,16 +82,16 @@ public:
 
     bool check_namespaceURI(const char *namespaceURI)
     {
-        return !qstrcmp(m_namespaceURI.c_str(), "http://www.w3.org/2000/xmlns/") &&
-               !qstrcmp(m_prefix.c_str(), "xmlns") &&
-               !qstrcmp(m_value.c_str(), namespaceURI);
+        return (m_namespaceURI == "http://www.w3.org/2000/xmlns/") &&
+               (m_prefix == "xmlns") &&
+               (m_value == namespaceURI);
     }
 
     bool check_prefix(const char *prefix)
     {
-        return !qstrcmp(m_namespaceURI.c_str(), "http://www.w3.org/2000/xmlns/") &&
-               !qstrcmp(m_prefix.c_str(), "xmlns") &&
-               !qstrcmp(m_localName.c_str(), prefix);
+        return (m_namespaceURI == "http://www.w3.org/2000/xmlns/") &&
+               (m_prefix == "xmlns") &&
+               (m_localName == prefix);
     }
 
     void fix_prefix();

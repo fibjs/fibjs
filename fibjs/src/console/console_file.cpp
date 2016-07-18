@@ -41,12 +41,12 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
     hr = GetConfigValue(isolate->m_isolate, o, "split", split);
     if (hr >= 0)
     {
-        if (!qstrcmp(split.c_str(), "day"))
-            m_split_mode =  date_t::_DAY;
-        else if (!qstrcmp(split.c_str(), "hour"))
-            m_split_mode =  date_t::_HOUR;
-        else if (!qstrcmp(split.c_str(), "minute"))
-            m_split_mode =  date_t::_MINUTE;
+        if ((split == "day"))
+            m_split_mode = date_t::_DAY;
+        else if ((split == "hour"))
+            m_split_mode = date_t::_HOUR;
+        else if ((split == "minute"))
+            m_split_mode = date_t::_MINUTE;
         else
         {
             int32_t l = (int32_t)split.length();
@@ -127,7 +127,7 @@ void file_logger::clearFile()
             fullname = m_folder + name;
 
             if ((fullname.length() == m_path.length() + 14) &&
-                    !qstrcmp(fullname.c_str(), m_path.c_str(), (int32_t)m_path.length()))
+                    (fullname == m_path.c_str(), (int32_t)m_path.length()))
             {
                 int32_t p, l;
 

@@ -215,7 +215,7 @@ result_t X509Req::parseString(v8::Local<v8::Value> v, const X509Cert::_name *pNa
                 const X509Cert::_name *pItem = pNames;
                 while (pItem->id)
                 {
-                    if (!qstrcmp(word.c_str(), pItem->name))
+                    if (word == pItem->name)
                     {
                         num |= pItem->id;
                         break;
