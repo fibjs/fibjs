@@ -89,17 +89,17 @@ if [ "$BUILD_PREFIX" != "" ]; then
 	export CXX=${BUILD_PREFIX}g++
 fi
 
+FIBJS_PATH=`pwd`
+OUT_PATH=${FIBJS_PATH}/../out
+BIN_PATH=${FIBJS_PATH}/../bin/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
+
 if [ ${BUILD_TYPE} = 'clean' ]; then
 	if [ -e "${OUT_PATH}" ]; then
-		rm -rf "${OUT_PATH}/${TARGET_OS}_*"
+		rm -rf ${OUT_PATH}/${TARGET_OS}_*
 	fi
 
 	exit 0
 fi
-
-FIBJS_PATH=`pwd`
-OUT_PATH=${FIBJS_PATH}/../out
-BIN_PATH=${FIBJS_PATH}/../bin/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
 
 if [ ! -e "${OUT_PATH}" ]; then
 	mkdir "${OUT_PATH}"
