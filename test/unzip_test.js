@@ -22,11 +22,11 @@ describe("zip", function() {
 		}
 	});
 	after(function() {
-		if (fs.exists('unzip_test.zip' + vmid))
-			fs.unlink('unzip_test.zip' + vmid);
-
 		if (fs.exists('unzip_test.js.extract'))
 			fs.unlink('unzip_test.js.extract');
+
+		if (fs.exists('unzip_test.zip' + vmid))
+			fs.unlink('unzip_test.zip' + vmid);
 
 		if (fs.exists(pathname))
 			fs.rmdir(pathname);
@@ -152,6 +152,7 @@ describe("zip", function() {
 		assert.equal(buf2.toString(), 'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
 
 		zipfile.close();
+		file.close();
 	});
 
 	it("readall in zip", function() {
@@ -174,6 +175,7 @@ describe("zip", function() {
 		assert.equal(datas[1].filename, "http.rq");
 
 		file.close();
+		zipfile.close();
 	});
 
 	it("extract zip to file", function() {
@@ -205,21 +207,20 @@ describe("zip", function() {
 
 		assert.equal(buf.length, buf1.length);
 		assert.equal(buf.toString(), buf1.toString());
+		zipfile.close();
+		file.close();
 	});
 
 	it("extract all in zip", function() {
 		var zipfile = zip.open('unzip_test.zip' + vmid);
 		var efile1,
 			efile2;
+
 		zipfile.extractAll(pathname);
 
-		if (!win) {
-			efile1 = pathname + '/unzip_test.js.bak';
-			efile2 = pathname + '/http.rq';
-		} else {
-			efile1 = pathname + '\\unzip_test.js.bak';
-			efile1 = pathname + '\\http.rq';
-		}
+		efile1 = pathname + '/unzip_test.js.bak';
+		efile2 = pathname + '/http.rq';
+
 		assert.equal(fs.exists(efile1), true);
 		assert.equal(fs.exists(efile2), true);
 
@@ -239,6 +240,7 @@ describe("zip", function() {
 
 		zipfile = zip.open('unzip_test.zip' + vmid);
 		assert.equal(zipfile.read('buf.txt').toString(), 'hello world');
+		zipfile.close();
 	});
 });
 
