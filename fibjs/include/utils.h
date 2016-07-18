@@ -406,13 +406,15 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, a
 
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string &n, bool bStrict = false)
 {
-    arg_string str;
+    if (v.IsEmpty())
+        return CALL_E_INVALIDARG;
 
-    result_t hr = GetArgumentValue(v, str, bStrict);
-    if (hr < 0)
-        return hr;
+    if (bStrict && !v->IsString() && !v->IsStringObject())
+        return CALL_E_INVALIDARG;
 
-    n = str.toString();
+    v8::String::Utf8Value tmp(v);
+    n.assign(*tmp, tmp.length());
+
     return 0;
 }
 
@@ -805,6 +807,30 @@ inline v8::Local<v8::Value> ThrowTypeError(const char *msg)
 }
 
 inline v8::Local<v8::Value> ThrowRangeError(const char *msg)
+{
+    Isolate* isolate = Isolate::current();
+
+    return isolate->m_isolate->ThrowException(v8::Exception::RangeError(
+                isolate->NewFromUtf8(msg)));
+}
+
+inline v8::Local<v8::Value> ThrowError(exlib::string msg)
+{
+    Isolate* isolate = Isolate::current();
+
+    return isolate->m_isolate->ThrowException(v8::Exception::Error(
+                isolate->NewFromUtf8(msg)));
+}
+
+inline v8::Local<v8::Value> ThrowTypeError(exlib::string msg)
+{
+    Isolate* isolate = Isolate::current();
+
+    return isolate->m_isolate->ThrowException(v8::Exception::TypeError(
+                isolate->NewFromUtf8(msg)));
+}
+
+inline v8::Local<v8::Value> ThrowRangeError(exlib::string msg)
 {
     Isolate* isolate = Isolate::current();
 
