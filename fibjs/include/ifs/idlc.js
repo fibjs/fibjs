@@ -206,6 +206,21 @@ function parserIDL(fname) {
 			"Function": "v8::Local<v8::Function>",
 			"Value": "v8::Local<v8::Value>",
 			"Variant": "Variant"
+		},
+		vTypeMap = {
+			"Integer": "int32_t",
+			"Long": "int64_t",
+			"Number": "double",
+			"Boolean": "bool",
+			"String": "arg_string",
+			"Date": "date_t",
+			"Object": "v8::Local<v8::Object>",
+			"Array": "v8::Local<v8::Array>",
+			"TypedArray": "v8::Local<v8::TypedArray>",
+			"ArrayBuffer": "v8::Local<v8::ArrayBuffer>",
+			"Function": "v8::Local<v8::Function>",
+			"Value": "v8::Local<v8::Value>",
+			"Variant": "Variant"
 		};
 
 	function cxxSafe(fname) {
@@ -688,17 +703,10 @@ function parserIDL(fname) {
 
 				argStra += ", " + arg_type(type);
 
-				if (type === "String") {
-					if (value == "")
-						argVars += "        ARG(arg_string, " + argCount + ");\n";
-					else
-						argVars += "        OPT_ARG(arg_string, " + argCount + ", " + defMap(value) + ");\n";
-				} else {
-					if (value == "")
-						argVars += "        ARG(" + map_type(type) + ", " + argCount + ");\n";
-					else
-						argVars += "        OPT_ARG(" + map_type(type) + ", " + argCount + ", " + defMap(value) + ");\n";
-				}
+				if (value == "")
+					argVars += "        ARG(" + val_type(type) + ", " + argCount + ");\n";
+				else
+					argVars += "        OPT_ARG(" + val_type(type) + ", " + argCount + ", " + defMap(value) + ");\n";
 
 				argCount++;
 				if (value == "")
@@ -896,10 +904,7 @@ function parserIDL(fname) {
 
 					fnStr += "        PROPERTY_ENTER();\n";
 
-					if (ftype === "String")
-						fnStr += "        PROPERTY_VAL(arg_string);\n";
-					else
-						fnStr += "        PROPERTY_VAL(" + map_type(ftype) + ");\n\n";
+					fnStr += "        PROPERTY_VAL(" + val_type(ftype) + ");\n\n";
 					fnStr += "        hr = set_" + fname + "(v0);\n\n        PROPERTY_SET_LEAVE();\n    }\n";
 					ffs.push(fnStr)
 
@@ -944,10 +949,7 @@ function parserIDL(fname) {
 						fnStr += "        PROPERTY_ENTER();\n";
 
 						fnStr += "        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
-						if (ftype === "String")
-							fnStr += "        PROPERTY_VAL(arg_string);\n";
-						else
-							fnStr += "        PROPERTY_VAL(" + map_type(ftype) + ");\n";
+						fnStr += "        PROPERTY_VAL(" + val_type(ftype) + ");\n";
 						fnStr += "        hr = pInst->_indexed_setter(index, v0);\n\n        METHOD_VOID();\n    }\n";
 						ffs.push(fnStr);
 
@@ -1004,10 +1006,7 @@ function parserIDL(fname) {
 						fnStr += "        PROPERTY_ENTER();\n";
 
 						fnStr += "        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
-						if (ftype === "String")
-							fnStr += "        PROPERTY_VAL(arg_string);\n";
-						else
-							fnStr += "        PROPERTY_VAL(" + map_type(ftype) + ");\n";
+						fnStr += "        PROPERTY_VAL(" + val_type(ftype) + ");\n";
 						fnStr += "        v8::String::Utf8Value k(property);\n        if(class_info().has(*k))return;\n\n"
 						fnStr += "        hr = pInst->_named_setter(*k, v0);\n\n        METHOD_VOID();\n    }\n";
 						ffs.push(fnStr);
@@ -1075,10 +1074,7 @@ function parserIDL(fname) {
 					fnStr += "        PROPERTY_ENTER();\n";
 
 					fnStr += "        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
-					if (ftype === "String")
-						fnStr += "        PROPERTY_VAL(arg_string);\n";
-					else
-						fnStr += "        PROPERTY_VAL(" + map_type(ftype) + ");\n";
+					fnStr += "        PROPERTY_VAL(" + val_type(ftype) + ");\n";
 					fnStr += "        hr = pInst->set_" + fname + "(v0);\n\n        PROPERTY_SET_LEAVE();\n    }\n";
 					ffs.push(fnStr)
 
@@ -1103,6 +1099,19 @@ function parserIDL(fname) {
 			return reportErr();
 
 		return true;
+	}
+
+	function val_type(n) {
+		if (vTypeMap[n])
+			return vTypeMap[n];
+
+		if (clsName[n]) {
+			if (n != ns)
+				refCls[n] = true;
+			return "obj_ptr<" + n + "_base>";
+		}
+
+		return reportErr();
 	}
 
 	function arg_type(n) {
