@@ -52,7 +52,7 @@ interface ZipFile : object
 	write(Buffer data, String inZipName) async;
 
 	/*! @brief 写入指定文件到压缩文件
-     @param data 指定要写入的文件数据
+     @param strm 指定要写入文件数据流
      @param inZipName 压缩在zip文件内的文件名
      */
 	write(SeekableStream strm, String inZipName) async;
