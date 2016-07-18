@@ -31,12 +31,12 @@ public:
     virtual result_t get_keySize(int32_t &retVal);
     virtual result_t get_publicKey(obj_ptr<PKey_base> &retVal);
     virtual result_t genRsaKey(int32_t size, AsyncEvent *ac);
-    virtual result_t genEcKey(const char *curve, AsyncEvent *ac);
+    virtual result_t genEcKey(exlib::string curve, AsyncEvent *ac);
     virtual result_t isPrivate(bool &retVal);
     virtual result_t clone(obj_ptr<PKey_base> &retVal);
-    virtual result_t importKey(Buffer_base *DerKey, const char *password);
-    virtual result_t importKey(const char *pemKey, const char *password);
-    virtual result_t importFile(const char* filename, const char* password);
+    virtual result_t importKey(Buffer_base *DerKey, exlib::string password);
+    virtual result_t importKey(exlib::string pemKey, exlib::string password);
+    virtual result_t importFile(exlib::string filename, exlib::string password);
     virtual result_t exportPem(exlib::string &retVal);
     virtual result_t exportDer(obj_ptr<Buffer_base> &retVal);
     virtual result_t encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);

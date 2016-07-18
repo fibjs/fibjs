@@ -90,24 +90,24 @@ module crypto
      @param filename 密钥文件名
      @param password 解密密码
     */
-    static PKey loadPKey(String filename, String password = "");
+    static PKey loadPKey(XString filename, XString password = "");
 
     /*! @brief 加载一个 CRT/PEM/DER/TXT 格式的证书，可多次调用
 
     loadFile 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
      @param filename 证书文件名
     */
-    static X509Cert loadCert(String filename);
+    static X509Cert loadCert(XString filename);
 
     /*! @brief 加载一个 PEM/DER 格式的撤销证书，可多次调用
      @param filename 撤销证书文件名
     */
-    static X509Crl loadCrl(String filename);
+    static X509Crl loadCrl(XString filename);
 
     /*! @brief 加载一个 PEM/DER 格式的证书请求，可多次调用
      @param filename 证书请求文件名
     */
-    static X509Req loadReq(String filename);
+    static X509Req loadReq(XString filename);
 
     /*! @brief 生成指定尺寸的随机数，使用 havege 生成器
      @param size 指定生成的随机数尺寸
@@ -127,7 +127,7 @@ module crypto
      @param size 字符图像尺寸
      @return 返回生成的可视化字符串图像
      */
-    static String randomArt(Buffer data, String title, Integer size = 8);
+    static XString randomArt(Buffer data, XString title, Integer size = 8);
 
     /*! @brief 依据 rfc2898 根据明文 password 生成要求的二进制钥匙
      @param algo 指定要使用的 hash 算法，详见 hash 模块

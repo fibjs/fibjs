@@ -290,8 +290,8 @@ exlib::string json_format(v8::Local<v8::Value> obj)
     return strBuffer.str();
 }
 
-result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args,
-                           exlib::string &retVal)
+result_t _format(const char *fmt, size_t fmt_sz, const v8::FunctionCallbackInfo<v8::Value> &args,
+                 exlib::string &retVal)
 {
     const char *s1;
     char ch;
@@ -310,16 +310,21 @@ result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::V
     }
 
     const char *s = fmt;
+    const char *s_end = fmt + fmt_sz;
 
-    while (1)
+    while (s < s_end)
     {
+        ch = 0;
         s1 = s;
-        while ((ch = *s++) && (ch != '%'));
+        while ((s < s_end) && ((ch = *s) != '%'))
+            s++;
 
-        retVal.append(s1, s - s1 - 1);
+        retVal.append(s1, s - s1);
 
         if (ch == '%')
         {
+            s++;
+
             switch (ch = *s++)
             {
             case 's':
@@ -327,7 +332,7 @@ result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::V
                 {
                     v8::String::Utf8Value s(args[idx++]);
                     if (*s)
-                        retVal.append(*s);
+                        retVal.append(*s, s.length());
                 }
                 else
                     retVal.append("%s", 2);
@@ -337,7 +342,7 @@ result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::V
                 {
                     v8::String::Utf8Value s(args[idx++]->ToNumber());
                     if (*s)
-                        retVal.append(*s);
+                        retVal.append(*s, s.length());
                 }
                 else
                     retVal.append("%d", 2);
@@ -353,9 +358,9 @@ result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::V
                     retVal.append("%j", 2);
                 break;
             default:
-                retVal.append("%", 1);
+                retVal.append(1, '%');
             case '%':
-                retVal.append(&ch, 1);
+                retVal.append(1, ch);
                 break;
             }
         }
@@ -366,16 +371,16 @@ result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::V
     while (idx < argc)
     {
         if (!retVal.empty())
-            retVal.append(" ", 1);
+            retVal.append(1, ' ');
 
         bool v;
 
-        isString(args[idx], v);
+        util_base::isString(args[idx], v);
 
         if (v)
         {
             v8::String::Utf8Value s(args[idx++]);
-            retVal.append(*s);
+            retVal.append(*s, s.length());
         }
         else
         {
@@ -389,9 +394,15 @@ result_t util_base::format(const char *fmt, const v8::FunctionCallbackInfo<v8::V
     return 0;
 }
 
+result_t util_base::format(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args,
+                           exlib::string &retVal)
+{
+    return _format(fmt.c_str(), fmt.length(), args, retVal);
+}
+
 result_t util_base::format(const v8::FunctionCallbackInfo<v8::Value> &args, exlib::string &retVal)
 {
-    return format(NULL, args, retVal);
+    return _format(NULL, 0, args, retVal);
 }
 
 result_t util_base::isEmpty(v8::Local<v8::Value> v, bool &retVal)
@@ -503,7 +514,7 @@ result_t util_base::isBuffer(v8::Local<v8::Value> v, bool &retVal)
     return 0;
 }
 
-result_t util_base::has(v8::Local<v8::Value> v, const char *key, bool &retVal)
+result_t util_base::has(v8::Local<v8::Value> v, exlib::string key, bool &retVal)
 {
     if (v->IsUndefined() || v->IsNull())
     {

@@ -63,13 +63,13 @@ result_t PKey::genRsaKey(int32_t size, AsyncEvent *ac)
     return 0;
 }
 
-result_t PKey::genEcKey(const char *curve, AsyncEvent *ac)
+result_t PKey::genEcKey(exlib::string curve, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     const mbedtls_ecp_curve_info *curve_info;
-    curve_info = mbedtls_ecp_curve_info_from_name(curve);
+    curve_info = mbedtls_ecp_curve_info_from_name(curve.c_str());
     if (curve_info == NULL)
         return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
 
@@ -244,7 +244,7 @@ result_t PKey::clone(obj_ptr<PKey_base> &retVal)
     return 0;
 }
 
-result_t PKey::importKey(Buffer_base *DerKey, const char *password)
+result_t PKey::importKey(Buffer_base *DerKey, exlib::string password)
 {
     int32_t ret;
 
@@ -254,8 +254,8 @@ result_t PKey::importKey(Buffer_base *DerKey, const char *password)
     clear();
 
     ret = mbedtls_pk_parse_key(&m_key, (unsigned char *)key.c_str(), key.length() + 1,
-                               *password ? (unsigned char *)password : NULL,
-                               qstrlen(password));
+                               !password.empty() ? (unsigned char *)password.c_str() : NULL,
+                               password.length());
 
     if (ret == MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
         ret = mbedtls_pk_parse_public_key(&m_key, (unsigned char *)key.c_str(), key.length() + 1);
@@ -266,18 +266,18 @@ result_t PKey::importKey(Buffer_base *DerKey, const char *password)
     return 0;
 }
 
-result_t PKey::importKey(const char *pemKey, const char *password)
+result_t PKey::importKey(exlib::string pemKey, exlib::string password)
 {
     int32_t ret;
 
     clear();
 
-    ret = mbedtls_pk_parse_key(&m_key, (unsigned char *)pemKey, qstrlen(pemKey) + 1,
-                               *password ? (unsigned char *)password : NULL,
-                               qstrlen(password) );
+    ret = mbedtls_pk_parse_key(&m_key, (unsigned char *)pemKey.c_str(), pemKey.length() + 1,
+                               !password.empty() ? (unsigned char *)password.c_str() : NULL,
+                               password.length());
 
     if (ret == MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
-        ret = mbedtls_pk_parse_public_key(&m_key, (unsigned char *)pemKey, qstrlen(pemKey) + 1);
+        ret = mbedtls_pk_parse_public_key(&m_key, (unsigned char *)pemKey.c_str(), pemKey.length() + 1);
 
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -285,21 +285,21 @@ result_t PKey::importKey(const char *pemKey, const char *password)
     return 0;
 }
 
-result_t PKey::importFile(const char* filename, const char* password)
+result_t PKey::importFile(exlib::string filename, exlib::string password)
 {
     result_t hr;
     exlib::string data;
     int32_t ret;
 
-    hr = fs_base::ac_readFile(filename, data);
+    hr = fs_base::ac_readFile(filename.c_str(), data);
     if (hr < 0)
         return hr;
 
     clear();
 
-    ret = mbedtls_pk_parse_key(&m_key, (const unsigned char *)data.c_str(),
-                               data.length() + 1, *password ? (unsigned char *)password : NULL,
-                               qstrlen(password));
+    ret = mbedtls_pk_parse_key(&m_key, (const unsigned char *)data.c_str(), data.length() + 1,
+                               !password.empty() ? (unsigned char *)password.c_str() : NULL,
+                               password.length());
 
     if (ret == MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
         ret = mbedtls_pk_parse_public_key(&m_key, (const unsigned char *)data.c_str(),

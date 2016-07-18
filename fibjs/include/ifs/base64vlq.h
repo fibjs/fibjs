@@ -25,7 +25,7 @@ public:
     // base64vlq_base
     static result_t encode(int32_t data, exlib::string& retVal);
     static result_t encode(v8::Local<v8::Array> data, exlib::string& retVal);
-    static result_t decode(const char* data, v8::Local<v8::Array>& retVal);
+    static result_t decode(exlib::string data, v8::Local<v8::Array>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -92,7 +92,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = decode(v0, vr);
 

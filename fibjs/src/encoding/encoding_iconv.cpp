@@ -114,14 +114,18 @@ inline void init_iconv()
 
 #endif
 
-encoding_iconv::encoding_iconv(const char *charset) :
+encoding_iconv::encoding_iconv() :
     m_iconv_en(NULL), m_iconv_de(NULL)
 {
     init_iconv();
-    if (charset)
-        m_charset = qstricmp(charset, "gb2312") ? charset : "gbk";
-    else
-        m_charset = "utf-8";
+    m_charset = "utf-8";
+}
+
+encoding_iconv::encoding_iconv(exlib::string charset) :
+    m_iconv_en(NULL), m_iconv_de(NULL)
+{
+    init_iconv();
+    m_charset = (charset == "gb2312") ? "gbk" : charset;
 }
 
 encoding_iconv::~encoding_iconv()
@@ -150,9 +154,9 @@ void encoding_iconv::open(const char *charset)
     m_charset = charset;
 }
 
-result_t encoding_iconv::encode(const char *data, exlib::string &retVal)
+result_t encoding_iconv::encode(exlib::string data, exlib::string &retVal)
 {
-    if (!qstricmp(m_charset.c_str(), "utf8") || !qstricmp(m_charset.c_str(), "utf-8"))
+    if ((m_charset == "utf8") || (m_charset == "utf-8"))
         retVal = data;
     else
     {
@@ -166,13 +170,14 @@ result_t encoding_iconv::encode(const char *data, exlib::string &retVal)
             }
         }
 
-        size_t sz = qstrlen(data);
+        const char * _data = data.c_str();
+        size_t sz = data.length();
 
         retVal.resize(sz * 2);
         char *output_buf = &retVal[0];
         size_t output_size = retVal.length();
 
-        size_t n = _iconv((iconv_t)m_iconv_en, &data, &sz, &output_buf, &output_size);
+        size_t n = _iconv((iconv_t)m_iconv_en, &_data, &sz, &output_buf, &output_size);
 
         if (n == (size_t) - 1)
             return CHECK_ERROR(Runtime::setError("encoding: convert error."));
@@ -183,7 +188,7 @@ result_t encoding_iconv::encode(const char *data, exlib::string &retVal)
     return 0;
 }
 
-result_t encoding_iconv::encode(const char *data, obj_ptr<Buffer_base> &retVal)
+result_t encoding_iconv::encode(exlib::string data, obj_ptr<Buffer_base> &retVal)
 {
     exlib::string strBuf;
 
@@ -198,7 +203,7 @@ result_t encoding_iconv::encode(const char *data, obj_ptr<Buffer_base> &retVal)
 
 result_t encoding_iconv::decode(const exlib::string &data, exlib::string &retVal)
 {
-    if (!qstricmp(m_charset.c_str(), "utf8") || !qstricmp(m_charset.c_str(), "utf-8"))
+    if ((m_charset == "utf8") || (m_charset == "utf-8"))
         retVal = data;
     else
     {
@@ -241,13 +246,13 @@ result_t encoding_iconv::decode(Buffer_base *data, exlib::string &retVal)
     return decode(strData, retVal);
 }
 
-result_t iconv_base::encode(const char *charset, const char *data,
+result_t iconv_base::encode(exlib::string charset, exlib::string data,
                             obj_ptr<Buffer_base> &retVal)
 {
     return encoding_iconv(charset).encode(data, retVal);
 }
 
-result_t iconv_base::decode(const char *charset, Buffer_base *data,
+result_t iconv_base::decode(exlib::string charset, Buffer_base *data,
                             exlib::string &retVal)
 {
     return encoding_iconv(charset).decode(data, retVal);

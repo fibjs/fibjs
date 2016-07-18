@@ -116,7 +116,7 @@ module console
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */
-    static log(String fmt, ...);
+    static log(XString fmt, ...);
 
     /*! @brief 记录普通日志信息，与 info 等同
 
@@ -131,7 +131,7 @@ module console
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */
-    static debug(String fmt, ...);
+    static debug(XString fmt, ...);
 
     /*! @brief 记录调试日志信息
 
@@ -146,7 +146,7 @@ module console
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */
-    static info(String fmt, ...);
+    static info(XString fmt, ...);
 
     /*! @brief 记录普通日志信息，与 log 等同
 
@@ -161,7 +161,7 @@ module console
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */
-    static notice(String fmt, ...);
+    static notice(XString fmt, ...);
 
     /*! @brief 记录警告日志信息
 
@@ -176,7 +176,7 @@ module console
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */
-    static warn(String fmt, ...);
+    static warn(XString fmt, ...);
 
     /*! @brief 记录警告日志信息
 
@@ -191,7 +191,7 @@ module console
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */
-    static error(String fmt, ...);
+    static error(XString fmt, ...);
 
     /*! @brief 记录错误日志信息
 
@@ -206,7 +206,7 @@ module console
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */
-    static crit(String fmt, ...);
+    static crit(XString fmt, ...);
 
     /*! @brief 记录关键错误日志信息
 
@@ -221,7 +221,7 @@ module console
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */
-    static alert(String fmt, ...);
+    static alert(XString fmt, ...);
 
     /*! @brief 记录警报错误日志信息
 
@@ -239,32 +239,32 @@ module console
 
      @param label 标题，缺省为空字符串。
      */
-    static time(String label = "time");
+    static time(XString label = "time");
 
     /*! @brief 统计指定计时器的数值
 
      @param label 标题，缺省为空字符串。
      */
-    static timeEnd(String label = "time");
+    static timeEnd(XString label = "time");
 
     /*! @brief 输出当前调用堆栈
 
      通过日志输出当前调用堆栈。
      @param label 标题，缺省为空字符串。
      */
-    static trace(String label = "trace");
+    static trace(XString label = "trace");
 
     /*! @brief 断言测试，如果测试值为假，则报错
      @param value 测试的数值
      @param msg 报错信息
      */
-    static assert(Value value, String msg = "");
+    static assert(Value value, XString msg = "");
 
     /*! @brief 向控制台输出格式化文本，输出内容不会记入日志系统，输出文本后不会自动换行，可连续输出
      @param fmt 格式化字符串
      @param ... 可选参数列表
      */
-    static print(String fmt, ...);
+    static print(XString fmt, ...);
 
     /*! @brief 向控制台输出格式化文本，输出内容不会记入日志系统，输出文本后不会自动换行，可连续输出
      @param ... 可选参数列表
@@ -275,5 +275,5 @@ module console
      @param msg 提示信息
      @return 返回用户输入的信息
      */
-    static String readLine(String msg = "") async;
+    static XString readLine(XString msg = "") async;
 };

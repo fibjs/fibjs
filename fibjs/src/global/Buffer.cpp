@@ -36,7 +36,7 @@ inline result_t validOffset(const int32_t buffer_length, const int32_t offset)
     return 0;
 }
 
-result_t Buffer_base::_new(const char *str, const char *codec,
+result_t Buffer_base::_new(exlib::string str, exlib::string codec,
                            obj_ptr<Buffer_base> &retVal,
                            v8::Local<v8::Object> This)
 {
@@ -144,7 +144,7 @@ result_t Buffer::_indexed_getter(uint32_t index, int32_t &retVal)
     if (index >= m_data.length())
         return CHECK_ERROR(CALL_E_BADINDEX);
 
-    retVal = (unsigned char) m_data[index];
+    retVal = (unsigned char) m_data.c_str()[index];
     return 0;
 }
 
@@ -212,23 +212,21 @@ result_t Buffer::append(Buffer_base *data)
     return 0;
 }
 
-result_t Buffer::append(const char *str, const char *codec)
+result_t Buffer::append(exlib::string str, exlib::string codec)
 {
-    if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8"))
+    if ((codec == "utf8") || (codec == "utf-8"))
     {
-        size_t sz = qstrlen(str);
-
-        extMemory((int32_t) sz);
-        m_data.append(str, sz);
+        extMemory((int32_t) str.length());
+        m_data.append(str);
         return 0;
     }
 
     obj_ptr<Buffer_base> data;
     result_t hr;
 
-    if (!qstrcmp(codec, "hex"))
+    if ((codec == "hex"))
         hr = hex_base::decode(str, data);
-    else if (!qstrcmp(codec, "base64"))
+    else if ((codec == "base64"))
         hr = base64_base::decode(str, data);
     else
         hr = iconv_base::encode(codec, str, data);
@@ -239,7 +237,7 @@ result_t Buffer::append(const char *str, const char *codec)
     return append(data);
 }
 
-result_t Buffer::write(const char* str, int32_t offset, int32_t length, const char* codec, int32_t& retVal)
+result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal)
 {
     int32_t max_length = 0;
     int32_t buffer_length = (int32_t)m_data.length();
@@ -249,7 +247,7 @@ result_t Buffer::write(const char* str, int32_t offset, int32_t length, const ch
     if (buffer_length < offset)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
-    max_length = (int32_t)qstrlen(str);
+    max_length = (int32_t)str.length();
     max_length = MIN(max_length,  buffer_length - offset);
     if (0 == length)
         return 0;
@@ -260,9 +258,9 @@ result_t Buffer::write(const char* str, int32_t offset, int32_t length, const ch
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
     retVal = max_length;
-    if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8"))
+    if ((codec == "utf8") || (codec == "utf-8"))
     {
-        memcpy(&m_data[offset], str, max_length);
+        memcpy(&m_data[offset], str.c_str(), max_length);
         return 0;
     }
 
@@ -270,9 +268,9 @@ result_t Buffer::write(const char* str, int32_t offset, int32_t length, const ch
     obj_ptr<Buffer_base> data;
     exlib::string strBuf;
 
-    if (!qstrcmp(codec, "hex"))
+    if ((codec == "hex"))
         hr = hex_base::decode(str, data);
-    else if (!qstrcmp(codec, "base64"))
+    else if ((codec == "base64"))
         hr = base64_base::decode(str, data);
     else
         hr = iconv_base::encode(codec, str, data);
@@ -285,12 +283,12 @@ result_t Buffer::write(const char* str, int32_t offset, int32_t length, const ch
     return hr;
 }
 
-result_t Buffer::write(const char* str, int32_t offset, const char* codec, int32_t& retVal)
+result_t Buffer::write(exlib::string str, int32_t offset, exlib::string codec, int32_t& retVal)
 {
     return write(str, offset, -1, codec, retVal);
 }
 
-result_t Buffer::write(const char* str, const char* codec, int32_t& retVal)
+result_t Buffer::write(exlib::string str, exlib::string codec, int32_t& retVal)
 {
     return write(str, 0, -1, codec, retVal);
 }
@@ -307,14 +305,14 @@ result_t Buffer::fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_bas
     return 0;
 }
 
-result_t Buffer::fill(const char* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal)
+result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal)
 {
     result_t hr = generateEnd((int32_t)m_data.length(), offset, end);
     if (hr < 0)
         return CHECK_ERROR(hr);
 
     int32_t length = end - offset;
-    int32_t str_length = (int32_t) strlen(v);
+    int32_t str_length = (int32_t) v.length();
 
     if (str_length == 0)
     {
@@ -323,7 +321,7 @@ result_t Buffer::fill(const char* v, int32_t offset, int32_t end, obj_ptr<Buffer
     }
     while (length > 0)
     {
-        memcpy(&m_data[offset], v, MIN(str_length, length));
+        memcpy(&m_data[offset], v.c_str(), MIN(str_length, length));
         length -= str_length;
         offset += str_length;
     }
@@ -347,9 +345,10 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffe
         retVal = this;
         return 0;
     }
+
     while (length > 0)
     {
-        memcpy(&m_data[offset], &v_data->m_data[0], MIN(v_length, length));
+        memcpy(&m_data[offset], v_data->m_data.c_str(), MIN(v_length, length));
         length -= v_length;
         offset += v_length;
     }
@@ -365,9 +364,11 @@ result_t Buffer::indexOf(int32_t v, int32_t offset, int32_t& retVal)
     if (hr < 0)
         return CHECK_ERROR(hr);
 
+    const char* _data = m_data.c_str();
+
     while (offset < buf_length)
     {
-        if (m_data[offset] == (v & 255))
+        if (_data[offset] == (v & 255))
         {
             retVal = offset;
             return 0;
@@ -396,13 +397,14 @@ result_t Buffer::indexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
     return 0;
 }
 
-result_t Buffer::indexOf(const char* v, int32_t offset, int32_t& retVal)
+result_t Buffer::indexOf(exlib::string v, int32_t offset, int32_t& retVal)
 {
     result_t hr = validOffset((int32_t)m_data.length(), offset);
     if (hr < 0)
         return CHECK_ERROR(hr);
 
-    const char* find = exlib::qmemfind(m_data.c_str() + offset, m_data.length() - offset, v, qstrlen(v));
+    const char* find = exlib::qmemfind(m_data.c_str() + offset, m_data.length() - offset,
+                                       v.c_str(), v.length());
 
     retVal = find ? (int32_t)(find - m_data.c_str()) : -1;
     return 0;
@@ -414,7 +416,7 @@ result_t Buffer::compare(Buffer_base * buf, int32_t& retVal)
     int32_t pos_length = (int32_t)m_data.length();
     int32_t neg_length = (int32_t)cmpdata->m_data.length();
 
-    retVal =  memcmp(&m_data[0], &cmpdata->m_data[0], MIN(pos_length, neg_length));
+    retVal =  memcmp(&m_data[0], cmpdata->m_data.c_str(), MIN(pos_length, neg_length));
     if (retVal)
         return 0;
 
@@ -853,36 +855,37 @@ result_t Buffer::equals(object_base* expected, bool& retVal)
     return 0;
 }
 
-result_t Buffer::toString(const char* codec, int32_t offset, int32_t end, exlib::string &retVal)
+result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exlib::string &retVal)
 {
     result_t hr;
     exlib::string str;
     int32_t str_length;
 
-    if (!qstricmp(codec, "utf8") || !qstricmp(codec, "utf-8") ||
-            !qstricmp(codec, "undefined"))
+    if ((codec == "utf8") || (codec == "utf-8") ||
+            (codec == "undefined"))
     {
         str = m_data;
         hr = 0;
     }
     else
     {
-        if (!qstrcmp(codec, "hex"))
+        if ((codec == "hex"))
             hr = hex_base::encode(this, str);
-        else if (!qstrcmp(codec, "base64"))
+        else if ((codec == "base64"))
             hr = base64_base::encode(this, str);
-        else if (!qstrcmp(codec, "ascii"))
+        else if ((codec == "ascii"))
         {
             int32_t len, i;
 
             len = (int32_t)m_data.length();
             str.resize(len);
+            const char* _data = m_data.c_str();
             for (i = 0; i < len; i ++)
-                str[i] = m_data[i] & 0x7f;
+                str[i] = _data[i] & 0x7f;
 
             hr = 0;
-        } else if (!qstrcmp(codec, "ucs2") || !qstrcmp(codec, "ucs-2") ||
-                   !qstrcmp(codec, "utf16le") || !qstrcmp(codec, "utf-16le"))
+        } else if ((codec == "ucs2") || (codec == "ucs-2") ||
+                   (codec == "utf16le") || (codec == "utf-16le"))
         {
             str = utf16to8String((const exlib::wchar *)m_data.c_str(), (int32_t)m_data.length() / 2);
             hr = 0;
@@ -913,9 +916,10 @@ result_t Buffer::toArray(v8::Local<v8::Array>& retVal)
     Isolate* isolate = holder();
     v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t) m_data.length());
     int32_t i;
+    const char* _data = m_data.c_str();
 
     for (i = 0; i < (int32_t) m_data.length(); i++)
-        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char) m_data[i]));
+        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char) _data[i]));
 
     retVal = a;
 
@@ -928,9 +932,10 @@ result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
     v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t) m_data.length());
     int32_t i;
+    const char* _data = m_data.c_str();
 
     for (i = 0; i < (int32_t) m_data.length(); i++)
-        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char) m_data[i]));
+        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char) _data[i]));
 
     o->Set(isolate->NewFromUtf8("type"), isolate->NewFromUtf8("Buffer"));
     o->Set(isolate->NewFromUtf8("data"), a);

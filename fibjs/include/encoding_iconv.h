@@ -17,13 +17,14 @@ namespace fibjs
 class encoding_iconv
 {
 public:
-    encoding_iconv(const char *charset = NULL);
+    encoding_iconv();
+    encoding_iconv(exlib::string charset);
     ~encoding_iconv();
 
     void open(const char *charset);
 
-    result_t encode(const char *data, exlib::string &retVal);
-    result_t encode(const char *data, obj_ptr<Buffer_base> &retVal);
+    result_t encode(exlib::string data, exlib::string &retVal);
+    result_t encode(exlib::string data, obj_ptr<Buffer_base> &retVal);
 
     result_t decode(const exlib::string &data, exlib::string &retVal);
     result_t decode(Buffer_base *data, exlib::string &retVal);

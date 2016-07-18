@@ -23,7 +23,7 @@ namespace fibjs
 
 DECLARE_MODULE(crypto);
 
-result_t crypto_base::loadPKey(const char* filename, const char* password,
+result_t crypto_base::loadPKey(exlib::string filename, exlib::string password,
                                obj_ptr<PKey_base>& retVal)
 {
     obj_ptr<PKey_base> key = new PKey();
@@ -36,10 +36,10 @@ result_t crypto_base::loadPKey(const char* filename, const char* password,
     return 0;
 }
 
-result_t crypto_base::loadCert(const char* filename, obj_ptr<X509Cert_base>& retVal)
+result_t crypto_base::loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal)
 {
     obj_ptr<X509Cert_base> cert = new X509Cert();
-    result_t hr = cert->loadFile(filename);
+    result_t hr = cert->loadFile(filename.c_str());
     if (hr < 0)
         return hr;
 
@@ -48,10 +48,10 @@ result_t crypto_base::loadCert(const char* filename, obj_ptr<X509Cert_base>& ret
     return 0;
 }
 
-result_t crypto_base::loadCrl(const char* filename, obj_ptr<X509Crl_base>& retVal)
+result_t crypto_base::loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal)
 {
     obj_ptr<X509Crl_base> crl = new X509Crl();
-    result_t hr = crl->loadFile(filename);
+    result_t hr = crl->loadFile(filename.c_str());
     if (hr < 0)
         return hr;
 
@@ -60,10 +60,10 @@ result_t crypto_base::loadCrl(const char* filename, obj_ptr<X509Crl_base>& retVa
     return 0;
 }
 
-result_t crypto_base::loadReq(const char* filename, obj_ptr<X509Req_base>& retVal)
+result_t crypto_base::loadReq(exlib::string filename, obj_ptr<X509Req_base>& retVal)
 {
     obj_ptr<X509Req_base> req = new X509Req();
-    result_t hr = req->loadFile(filename);
+    result_t hr = req->loadFile(filename.c_str());
     if (hr < 0)
         return hr;
 
@@ -151,7 +151,7 @@ inline int32_t _min(int32_t a, int32_t b)
 }
 
 char *randomart(const unsigned char *dgst_raw, size_t dgst_raw_len,
-                const char *title, int32_t size)
+                exlib::string title, int32_t size)
 {
     const char augmentation_string[] = " .o+=*BOX@%&#/^SE";
     char *retval, *p;
@@ -201,7 +201,7 @@ char *randomart(const unsigned char *dgst_raw, size_t dgst_raw_len,
     *p++ = '+';
     *p++ = '\n';
 
-    n = (int32_t)qstrlen(title);
+    n = (int32_t)title.length();
     if (n > 0)
     {
         if ( n > fieldX - 2)
@@ -209,7 +209,7 @@ char *randomart(const unsigned char *dgst_raw, size_t dgst_raw_len,
         p = retval + (fieldX - n) / 2;
 
         *p++ = '[';
-        memcpy(p, title, n);
+        memcpy(p, title.c_str(), n);
         p += n;
         *p++ = ']';
         p = retval + fieldX + 3;
@@ -234,7 +234,7 @@ char *randomart(const unsigned char *dgst_raw, size_t dgst_raw_len,
     return retval;
 }
 
-result_t crypto_base::randomArt(Buffer_base *data, const char *title,
+result_t crypto_base::randomArt(Buffer_base *data, exlib::string title,
                                 int32_t size, exlib::string &retVal)
 {
     exlib::string buf;

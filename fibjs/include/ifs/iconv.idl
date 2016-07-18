@@ -16,12 +16,12 @@ module iconv
 	 @param data 要转换的文本
 	 @return 返回解码的二进制数据
 	 */
-	static Buffer encode(String charset, String data);
+	static Buffer encode(XString charset, XString data);
 
 	/*! @brief 用 iconv 将 Buffer 内容转换为文本
 	 @param charset 指定字符集
 	 @param data 要转换的二进制数据
 	 @return 返回编码的字符串
 	 */
-	static String decode(String charset, Buffer data);
+	static XString decode(XString charset, Buffer data);
 };

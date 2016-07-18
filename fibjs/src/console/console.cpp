@@ -53,7 +53,7 @@ namespace fibjs
 
 extern std_logger* s_std;
 
-void _log(int32_t type, const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+void _log(int32_t type, exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     int32_t level;
 
@@ -68,7 +68,22 @@ void _log(int32_t type, const char *fmt, const v8::FunctionCallbackInfo<v8::Valu
     }
 }
 
-result_t console_base::log(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+void _log(int32_t type, const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    int32_t level;
+
+    console_base::get_loglevel(level);
+
+    if (type <= level)
+    {
+        exlib::string str;
+
+        util_base::format(args, str);
+        asyncLog(type, str);
+    }
+}
+
+result_t console_base::log(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     _log(_INFO, fmt, args);
     return 0;
@@ -76,10 +91,11 @@ result_t console_base::log(const char *fmt, const v8::FunctionCallbackInfo<v8::V
 
 result_t console_base::log(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    return log(NULL, args);
+    _log(_INFO, args);
+    return 0;
 }
 
-result_t console_base::debug(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t console_base::debug(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     _log(_DEBUG, fmt, args);
     return 0;
@@ -87,10 +103,11 @@ result_t console_base::debug(const char *fmt, const v8::FunctionCallbackInfo<v8:
 
 result_t console_base::debug(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    return debug(NULL, args);
+    _log(_DEBUG, args);
+    return 0;
 }
 
-result_t console_base::info(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t console_base::info(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     _log(_INFO, fmt, args);
     return 0;
@@ -98,10 +115,11 @@ result_t console_base::info(const char *fmt, const v8::FunctionCallbackInfo<v8::
 
 result_t console_base::info(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    return info(NULL, args);
+    _log(_INFO, args);
+    return 0;
 }
 
-result_t console_base::notice(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t console_base::notice(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     _log(_NOTICE, fmt, args);
     return 0;
@@ -109,10 +127,11 @@ result_t console_base::notice(const char *fmt, const v8::FunctionCallbackInfo<v8
 
 result_t console_base::notice(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    return notice(NULL, args);
+    _log(_NOTICE, args);
+    return 0;
 }
 
-result_t console_base::warn(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t console_base::warn(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     _log(_WARN, fmt, args);
     return 0;
@@ -120,10 +139,11 @@ result_t console_base::warn(const char *fmt, const v8::FunctionCallbackInfo<v8::
 
 result_t console_base::warn(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    return warn(NULL, args);
+    _log(_WARN, args);
+    return 0;
 }
 
-result_t console_base::error(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t console_base::error(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     _log(_ERROR, fmt, args);
     return 0;
@@ -131,10 +151,11 @@ result_t console_base::error(const char *fmt, const v8::FunctionCallbackInfo<v8:
 
 result_t console_base::error(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    return error(NULL, args);
+    _log(_ERROR, args);
+    return 0;
 }
 
-result_t console_base::crit(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t console_base::crit(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     _log(_CRIT, fmt, args);
     return 0;
@@ -142,10 +163,11 @@ result_t console_base::crit(const char *fmt, const v8::FunctionCallbackInfo<v8::
 
 result_t console_base::crit(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    return crit(NULL, args);
+    _log(_CRIT, args);
+    return 0;
 }
 
-result_t console_base::alert(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t console_base::alert(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     _log(_ALERT, fmt, args);
     return 0;
@@ -153,7 +175,8 @@ result_t console_base::alert(const char *fmt, const v8::FunctionCallbackInfo<v8:
 
 result_t console_base::alert(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    return alert(NULL, args);
+    _log(_ALERT, args);
+    return 0;
 }
 
 exlib::string json_format(v8::Local<v8::Value> obj);
@@ -167,14 +190,14 @@ result_t console_base::dir(v8::Local<v8::Value> obj)
 
 static std::map<exlib::string, int64_t> s_timers;
 
-result_t console_base::time(const char *label)
+result_t console_base::time(exlib::string label)
 {
     s_timers[exlib::string(label)] = Ticks();
 
     return 0;
 }
 
-result_t console_base::timeEnd(const char *label)
+result_t console_base::timeEnd(exlib::string label)
 {
     long t = (long) (Ticks() - s_timers[label]);
 
@@ -194,12 +217,7 @@ result_t console_base::timeEnd(const char *label)
     return 0;
 }
 
-inline const char *ToCString(const v8::String::Utf8Value &value)
-{
-    return *value ? *value : "<string conversion failed>";
-}
-
-result_t console_base::trace(const char *label)
+result_t console_base::trace(exlib::string label)
 {
     exlib::string strBuffer;
 
@@ -211,12 +229,12 @@ result_t console_base::trace(const char *label)
     return 0;
 }
 
-result_t console_base::_assert(v8::Local<v8::Value> value, const char *msg)
+result_t console_base::_assert(v8::Local<v8::Value> value, exlib::string msg)
 {
-    return assert_base::ok(value, msg);
+    return assert_base::ok(value, msg.c_str());
 }
 
-result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t console_base::print(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     _log(_PRINT, fmt, args);
     return 0;
@@ -224,7 +242,8 @@ result_t console_base::print(const char *fmt, const v8::FunctionCallbackInfo<v8:
 
 result_t console_base::print(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    return print(NULL, args);
+    _log(_PRINT, args);
+    return 0;
 }
 
 char *read_line()
@@ -252,7 +271,7 @@ extern "C"
 }
 #endif
 
-result_t console_base::readLine(const char *msg, exlib::string &retVal,
+result_t console_base::readLine(exlib::string msg, exlib::string &retVal,
                                 AsyncEvent *ac)
 {
     if (!ac)
@@ -315,17 +334,16 @@ result_t console_base::readLine(const char *msg, exlib::string &retVal,
 
     if (isatty(fileno(stdin)))
     {
-        exlib::string strmsg = msg;
         char *line;
-        const char* lfptr = qstrrchr(strmsg.c_str(), '\n');
+        const char* lfptr = qstrrchr(msg.c_str(), '\n');
 
         if (lfptr != NULL)
         {
-            puts(strmsg.substr(0, lfptr - strmsg.c_str()).c_str());
+            puts(msg.substr(0, lfptr - msg.c_str()).c_str());
             line = _readline(lfptr + 1);
         }
         else
-            line = _readline( msg );
+            line = _readline(msg.c_str());
 
         if (!line)
             return CHECK_ERROR(LastError());
@@ -339,9 +357,7 @@ result_t console_base::readLine(const char *msg, exlib::string &retVal,
     } else
 #endif
     {
-        exlib::string strmsg = msg;
-
-        std_logger::out(strmsg);
+        std_logger::out(msg);
         char *line = read_line();
 
         if (!line)

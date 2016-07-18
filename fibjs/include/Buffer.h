@@ -42,15 +42,15 @@ public:
     virtual result_t append(v8::Local<v8::TypedArray> datas);
     virtual result_t append(v8::Local<v8::ArrayBuffer> datas);
     virtual result_t append(Buffer_base *data);
-    virtual result_t append(const char *str, const char *codec);
-    virtual result_t write(const char* str, int32_t offset, int32_t length, const char* codec, int32_t& retVal);
-    virtual result_t write(const char* str, int32_t offset, const char* codec, int32_t& retVal);
-    virtual result_t write(const char* str, const char* codec, int32_t& retVal);
+    virtual result_t append(exlib::string str, exlib::string codec);
+    virtual result_t write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal);
+    virtual result_t write(exlib::string str, int32_t offset, exlib::string codec, int32_t& retVal);
+    virtual result_t write(exlib::string str, exlib::string codec, int32_t& retVal);
     virtual result_t fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal);
-    virtual result_t fill(const char* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal);
+    virtual result_t fill(exlib::string v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal);
     virtual result_t fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal);
     virtual result_t indexOf(int32_t v, int32_t offset, int32_t& retVal);
-    virtual result_t indexOf(const char* v, int32_t offset, int32_t& retVal);
+    virtual result_t indexOf(exlib::string v, int32_t offset, int32_t& retVal);
     virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal);
     virtual result_t compare(Buffer_base *buf, int32_t& retVal);
     virtual result_t copy(Buffer_base *targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal);
@@ -99,7 +99,7 @@ public:
     virtual result_t hex(exlib::string &retVal);
     virtual result_t base64(exlib::string &retVal);
     virtual result_t toArray(v8::Local<v8::Array>& retVal);
-    virtual result_t toString(const char* codec, int32_t offset, int32_t end, exlib::string &retVal);
+    virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string &retVal);
     virtual result_t toString(exlib::string &retVal);
 
     virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);

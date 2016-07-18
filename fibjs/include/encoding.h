@@ -67,10 +67,12 @@ inline void baseEncode(const char *pEncodingTable, int32_t dwBits,
 }
 
 inline void baseDecode(const char *pdecodeTable, int32_t dwBits,
-                       const char *baseString, exlib::string &retVal)
+                       exlib::string& baseString, exlib::string &retVal)
 {
-	int32_t nWritten = 0, len = (int32_t) qstrlen(baseString);
-	const char *end = baseString + len;
+	const char * _baseString = baseString.c_str();
+	int32_t len = (int32_t) baseString.length();
+	int32_t nWritten = 0;
+	const char *end = _baseString + len;
 
 	retVal.resize(len * dwBits / 8);
 
@@ -78,7 +80,7 @@ inline void baseDecode(const char *pdecodeTable, int32_t dwBits,
 	int32_t nBits = 0;
 	uint32_t ch;
 
-	while ((ch = utf8_getchar(baseString, end)) != 0)
+	while ((ch = utf8_getchar(_baseString, end)) != 0)
 	{
 		int32_t nCh = (ch > 0x20 && ch < 0x80) ? pdecodeTable[ch - 0x20] : -1;
 
@@ -100,7 +102,7 @@ inline void baseDecode(const char *pdecodeTable, int32_t dwBits,
 }
 
 inline void baseDecode(const char *pdecodeTable, int32_t dwBits,
-                       const char *baseString, obj_ptr<Buffer_base> &retVal)
+                       exlib::string& baseString, obj_ptr<Buffer_base> &retVal)
 {
 	exlib::string strBuf;
 	baseDecode(pdecodeTable, dwBits, baseString, strBuf);

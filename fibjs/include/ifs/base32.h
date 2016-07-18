@@ -26,7 +26,7 @@ class base32_base : public object_base
 public:
     // base32_base
     static result_t encode(Buffer_base* data, exlib::string& retVal);
-    static result_t decode(const char* data, obj_ptr<Buffer_base>& retVal);
+    static result_t decode(exlib::string data, obj_ptr<Buffer_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -89,7 +89,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = decode(v0, vr);
 

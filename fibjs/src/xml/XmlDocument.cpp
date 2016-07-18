@@ -337,7 +337,7 @@ result_t XmlDocument::load(Buffer_base *source)
 
         if (!m_encoding.empty())
         {
-            encoding_iconv conv(m_encoding.c_str());
+            encoding_iconv conv(m_encoding);
             conv.decode(strBuf, strBuf);
         }
     }

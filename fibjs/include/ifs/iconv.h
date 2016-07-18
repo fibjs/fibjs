@@ -25,8 +25,8 @@ class iconv_base : public object_base
 
 public:
     // iconv_base
-    static result_t encode(const char* charset, const char* data, obj_ptr<Buffer_base>& retVal);
-    static result_t decode(const char* charset, Buffer_base* data, exlib::string& retVal);
+    static result_t encode(exlib::string charset, exlib::string data, obj_ptr<Buffer_base>& retVal);
+    static result_t decode(exlib::string charset, Buffer_base* data, exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -76,8 +76,8 @@ namespace fibjs
 
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         hr = encode(v0, v1, vr);
 
@@ -90,7 +90,7 @@ namespace fibjs
 
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(obj_ptr<Buffer_base>, 1);
 
         hr = decode(v0, v1, vr);

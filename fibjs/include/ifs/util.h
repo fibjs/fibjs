@@ -26,7 +26,7 @@ class util_base : public object_base
 
 public:
     // util_base
-    static result_t format(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
+    static result_t format(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
     static result_t format(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
     static result_t isEmpty(v8::Local<v8::Value> v, bool& retVal);
     static result_t isArray(v8::Local<v8::Value> v, bool& retVal);
@@ -41,7 +41,7 @@ public:
     static result_t isDate(v8::Local<v8::Value> v, bool& retVal);
     static result_t isFunction(v8::Local<v8::Value> v, bool& retVal);
     static result_t isBuffer(v8::Local<v8::Value> v, bool& retVal);
-    static result_t has(v8::Local<v8::Value> v, const char* key, bool& retVal);
+    static result_t has(v8::Local<v8::Value> v, exlib::string key, bool& retVal);
     static result_t keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal);
     static result_t values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal);
     static result_t clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal);
@@ -180,7 +180,7 @@ namespace fibjs
 
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = format(v0, args, vr);
 
@@ -367,7 +367,7 @@ namespace fibjs
         METHOD_ENTER(2, 2);
 
         ARG(v8::Local<v8::Value>, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 1);
 
         hr = has(v0, v1, vr);
 

@@ -29,7 +29,7 @@ public:
     static result_t _new(v8::Local<v8::ArrayBuffer> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::TypedArray> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Buffer_base* buffer, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(const char* str, const char* codec, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t isBuffer(v8::Local<v8::Value> v, bool& retVal);
     static result_t concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal);
@@ -41,16 +41,16 @@ public:
     virtual result_t append(v8::Local<v8::TypedArray> datas) = 0;
     virtual result_t append(v8::Local<v8::ArrayBuffer> datas) = 0;
     virtual result_t append(Buffer_base* data) = 0;
-    virtual result_t append(const char* str, const char* codec) = 0;
-    virtual result_t write(const char* str, int32_t offset, int32_t length, const char* codec, int32_t& retVal) = 0;
-    virtual result_t write(const char* str, int32_t offset, const char* codec, int32_t& retVal) = 0;
-    virtual result_t write(const char* str, const char* codec, int32_t& retVal) = 0;
+    virtual result_t append(exlib::string str, exlib::string codec) = 0;
+    virtual result_t write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal) = 0;
+    virtual result_t write(exlib::string str, int32_t offset, exlib::string codec, int32_t& retVal) = 0;
+    virtual result_t write(exlib::string str, exlib::string codec, int32_t& retVal) = 0;
     virtual result_t fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t fill(const char* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t fill(exlib::string v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t indexOf(int32_t v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t indexOf(const char* v, int32_t offset, int32_t& retVal) = 0;
+    virtual result_t indexOf(exlib::string v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t compare(Buffer_base* buf, int32_t& retVal) = 0;
     virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal) = 0;
     virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t& retVal) = 0;
@@ -98,7 +98,7 @@ public:
     virtual result_t hex(exlib::string& retVal) = 0;
     virtual result_t base64(exlib::string& retVal) = 0;
     virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
-    virtual result_t toString(const char* codec, int32_t offset, int32_t end, exlib::string& retVal) = 0;
+    virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal) = 0;
     virtual result_t toString(exlib::string& retVal) = 0;
 
 public:
@@ -324,8 +324,8 @@ namespace fibjs
 
         METHOD_OVER(2, 1);
 
-        ARG(arg_string, 0);
-        OPT_ARG(arg_string, 1, "utf8");
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "utf8");
 
         hr = _new(v0, v1, vr, args.This());
 
@@ -406,8 +406,8 @@ namespace fibjs
 
         METHOD_OVER(2, 1);
 
-        ARG(arg_string, 0);
-        OPT_ARG(arg_string, 1, "utf8");
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "utf8");
 
         hr = pInst->append(v0, v1);
 
@@ -421,25 +421,25 @@ namespace fibjs
         METHOD_INSTANCE(Buffer_base);
         METHOD_ENTER(4, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, 0);
         OPT_ARG(int32_t, 2, -1);
-        OPT_ARG(arg_string, 3, "utf8");
+        OPT_ARG(exlib::string, 3, "utf8");
 
         hr = pInst->write(v0, v1, v2, v3, vr);
 
         METHOD_OVER(3, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, 0);
-        OPT_ARG(arg_string, 2, "utf8");
+        OPT_ARG(exlib::string, 2, "utf8");
 
         hr = pInst->write(v0, v1, v2, vr);
 
         METHOD_OVER(2, 1);
 
-        ARG(arg_string, 0);
-        OPT_ARG(arg_string, 1, "utf8");
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "utf8");
 
         hr = pInst->write(v0, v1, vr);
 
@@ -469,7 +469,7 @@ namespace fibjs
 
         METHOD_OVER(3, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, 0);
         OPT_ARG(int32_t, 2, -1);
 
@@ -499,7 +499,7 @@ namespace fibjs
 
         METHOD_OVER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, 0);
 
         hr = pInst->indexOf(v0, v1, vr);
@@ -1182,7 +1182,7 @@ namespace fibjs
         METHOD_INSTANCE(Buffer_base);
         METHOD_ENTER(3, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, 0);
         OPT_ARG(int32_t, 2, -1);
 

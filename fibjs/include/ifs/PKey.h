@@ -30,12 +30,12 @@ public:
     virtual result_t get_keySize(int32_t& retVal) = 0;
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
     virtual result_t genRsaKey(int32_t size, AsyncEvent* ac) = 0;
-    virtual result_t genEcKey(const char* curve, AsyncEvent* ac) = 0;
+    virtual result_t genEcKey(exlib::string curve, AsyncEvent* ac) = 0;
     virtual result_t isPrivate(bool& retVal) = 0;
     virtual result_t clone(obj_ptr<PKey_base>& retVal) = 0;
-    virtual result_t importKey(Buffer_base* DerKey, const char* password) = 0;
-    virtual result_t importKey(const char* pemKey, const char* password) = 0;
-    virtual result_t importFile(const char* filename, const char* password) = 0;
+    virtual result_t importKey(Buffer_base* DerKey, exlib::string password) = 0;
+    virtual result_t importKey(exlib::string pemKey, exlib::string password) = 0;
+    virtual result_t importFile(exlib::string filename, exlib::string password) = 0;
     virtual result_t exportPem(exlib::string& retVal) = 0;
     virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
@@ -67,7 +67,7 @@ public:
 
 public:
     ASYNC_MEMBER1(PKey_base, genRsaKey, int32_t);
-    ASYNC_MEMBER1(PKey_base, genEcKey, const char*);
+    ASYNC_MEMBER1(PKey_base, genEcKey, exlib::string);
     ASYNC_MEMBERVALUE2(PKey_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(PKey_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
@@ -190,7 +190,7 @@ namespace fibjs
         METHOD_INSTANCE(PKey_base);
         ASYNC_METHOD_ENTER(1, 0);
 
-        OPT_ARG(arg_string, 0, "secp521r1");
+        OPT_ARG(exlib::string, 0, "secp521r1");
 
         if(!cb.IsEmpty()) {
             pInst->acb_genEcKey(v0, cb);
@@ -231,14 +231,14 @@ namespace fibjs
         METHOD_ENTER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
-        OPT_ARG(arg_string, 1, "");
+        OPT_ARG(exlib::string, 1, "");
 
         hr = pInst->importKey(v0, v1);
 
         METHOD_OVER(2, 1);
 
-        ARG(arg_string, 0);
-        OPT_ARG(arg_string, 1, "");
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "");
 
         hr = pInst->importKey(v0, v1);
 
@@ -250,8 +250,8 @@ namespace fibjs
         METHOD_INSTANCE(PKey_base);
         METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
-        OPT_ARG(arg_string, 1, "");
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "");
 
         hr = pInst->importFile(v0, v1);
 

@@ -45,30 +45,30 @@ public:
     static result_t add(v8::Local<v8::Array> cfg);
     static result_t add(v8::Local<v8::Value> cfg);
     static result_t reset();
-    static result_t log(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t log(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t log(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t debug(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t debug(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t debug(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t info(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t info(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t info(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t notice(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t notice(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t notice(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t warn(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t warn(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t warn(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t error(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t error(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t error(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t crit(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t crit(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t crit(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t alert(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t alert(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t alert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t dir(v8::Local<v8::Value> obj);
-    static result_t time(const char* label);
-    static result_t timeEnd(const char* label);
-    static result_t trace(const char* label);
-    static result_t _assert(v8::Local<v8::Value> value, const char* msg);
-    static result_t print(const char* fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t time(exlib::string label);
+    static result_t timeEnd(exlib::string label);
+    static result_t trace(exlib::string label);
+    static result_t _assert(v8::Local<v8::Value> value, exlib::string msg);
+    static result_t print(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t print(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t readLine(const char* msg, exlib::string& retVal, AsyncEvent* ac);
+    static result_t readLine(exlib::string msg, exlib::string& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -114,7 +114,7 @@ public:
     static void s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE2(console_base, readLine, const char*, exlib::string);
+    ASYNC_STATICVALUE2(console_base, readLine, exlib::string, exlib::string);
 };
 
 }
@@ -305,7 +305,7 @@ namespace fibjs
     {
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = log(v0, args);
 
@@ -320,7 +320,7 @@ namespace fibjs
     {
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = debug(v0, args);
 
@@ -335,7 +335,7 @@ namespace fibjs
     {
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = info(v0, args);
 
@@ -350,7 +350,7 @@ namespace fibjs
     {
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = notice(v0, args);
 
@@ -365,7 +365,7 @@ namespace fibjs
     {
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = warn(v0, args);
 
@@ -380,7 +380,7 @@ namespace fibjs
     {
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = error(v0, args);
 
@@ -395,7 +395,7 @@ namespace fibjs
     {
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = crit(v0, args);
 
@@ -410,7 +410,7 @@ namespace fibjs
     {
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = alert(v0, args);
 
@@ -436,7 +436,7 @@ namespace fibjs
     {
         METHOD_ENTER(1, 0);
 
-        OPT_ARG(arg_string, 0, "time");
+        OPT_ARG(exlib::string, 0, "time");
 
         hr = time(v0);
 
@@ -447,7 +447,7 @@ namespace fibjs
     {
         METHOD_ENTER(1, 0);
 
-        OPT_ARG(arg_string, 0, "time");
+        OPT_ARG(exlib::string, 0, "time");
 
         hr = timeEnd(v0);
 
@@ -458,7 +458,7 @@ namespace fibjs
     {
         METHOD_ENTER(1, 0);
 
-        OPT_ARG(arg_string, 0, "trace");
+        OPT_ARG(exlib::string, 0, "trace");
 
         hr = trace(v0);
 
@@ -470,7 +470,7 @@ namespace fibjs
         METHOD_ENTER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(arg_string, 1, "");
+        OPT_ARG(exlib::string, 1, "");
 
         hr = _assert(v0, v1);
 
@@ -481,7 +481,7 @@ namespace fibjs
     {
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = print(v0, args);
 
@@ -498,7 +498,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 0);
 
-        OPT_ARG(arg_string, 0, "");
+        OPT_ARG(exlib::string, 0, "");
 
         if(!cb.IsEmpty()) {
             acb_readLine(v0, vr, cb);

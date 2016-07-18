@@ -26,7 +26,7 @@ result_t base32_base::encode(Buffer_base *data, exlib::string &retVal)
     return 0;
 }
 
-result_t base32_base::decode(const char *data,
+result_t base32_base::decode(exlib::string data,
                              obj_ptr<Buffer_base> &retVal)
 {
     static const char decodeTable[] =
@@ -51,7 +51,7 @@ result_t base64_base::encode(Buffer_base *data, exlib::string &retVal)
     return 0;
 }
 
-result_t base64_base::decode(const char *data,
+result_t base64_base::decode(exlib::string data,
                              obj_ptr<Buffer_base> &retVal)
 {
     static const char decodeTable[] =
@@ -110,7 +110,7 @@ result_t base64vlq_base::encode(v8::Local<v8::Array> data, exlib::string& retVal
     return 0;
 }
 
-result_t base64vlq_base::decode(const char* data, v8::Local<v8::Array>& retVal)
+result_t base64vlq_base::decode(exlib::string data, v8::Local<v8::Array>& retVal)
 {
     static const char decodeTable[] =
     {
@@ -122,20 +122,21 @@ result_t base64vlq_base::decode(const char* data, v8::Local<v8::Array>& retVal)
         41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1 /* 7X pqrstuvwxyz{\}~DEL */
     };
 
-    const char *end = data + qstrlen(data);
+    const char* _data = data.c_str();
+    const char *end = _data + data.length();
 
     int32_t cnt = 0;
 
     Isolate* isolate = Isolate::current();
     retVal = v8::Array::New(isolate->m_isolate);
 
-    while (data < end)
+    while (_data < end)
     {
         uint32_t ch;
         int32_t bits = 0;
         int32_t num = 0;
 
-        while ((ch = utf8_getchar(data, end)) != 0)
+        while ((ch = utf8_getchar(_data, end)) != 0)
         {
             int32_t byte = (ch > 0x20 && ch < 0x80) ? decodeTable[ch - 0x20] : -1;
 
@@ -186,25 +187,26 @@ result_t hex_base::encode(Buffer_base *data, exlib::string &retVal)
     return 0;
 }
 
-result_t hex_base::decode(const char *data,
+result_t hex_base::decode(exlib::string data,
                           obj_ptr<Buffer_base> &retVal)
 {
-    int32_t pos, len = (int32_t) qstrlen(data);
-    const char *end = data + len;
+    const char* _data = data.c_str();
+    int32_t pos, len = (int32_t) data.length();
+    const char *end = _data + len;
     exlib::string strBuf;
     uint32_t ch1, ch2;
 
     strBuf.resize(len / 2);
 
     pos = 0;
-    while ((ch1 = utf8_getchar(data, end)) != 0)
+    while ((ch1 = utf8_getchar(_data, end)) != 0)
     {
         if (qisxdigit(ch1))
             ch1 = qhex(ch1);
         else
             continue;
 
-        ch2 = utf8_getchar(data, end);
+        ch2 = utf8_getchar(_data, end);
         if (ch2 == 0)
             break;
 

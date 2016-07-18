@@ -32,7 +32,7 @@ interface Buffer : object
      @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      */
-    Buffer(String str, String codec = "utf8");
+    Buffer(XString str, XString codec = "utf8");
 
     /*! @brief 缓存对象构造函数
      @param size 初始化缓冲区大小
@@ -87,7 +87,7 @@ interface Buffer : object
      @param str 要写入的字符串
      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      */
-    append(String str, String codec = "utf8");
+    append(XString str, XString codec = "utf8");
 
     /*! @brief 向缓存对象写入指定字符串，字符串默认为utf-8，越界时只写入部分数据
      @param str 待写入的字符串
@@ -96,7 +96,7 @@ interface Buffer : object
      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      @return 写入的数据字节长度
      */
-    Integer write(String str, Integer offset = 0, Integer length = -1, String codec = "utf8");
+    Integer write(XString str, Integer offset = 0, Integer length = -1, XString codec = "utf8");
 
     /*! @brief 向缓存对象写入指定字符串，字符串默认为utf-8，越界时只写入部分数据
      @param str 待写入的字符串
@@ -104,14 +104,14 @@ interface Buffer : object
      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      @return 写入的数据字节长度
      */
-    Integer write(String str, Integer offset = 0, String codec = "utf8");
+    Integer write(XString str, Integer offset = 0, XString codec = "utf8");
 
     /*! @brief 向缓存对象写入指定字符串，字符串默认为utf-8，越界时只写入部分数据
      @param str 待写入的字符串
      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      @return 写入的数据字节长度
      */
-    Integer write(String str, String codec = "utf8");
+    Integer write(XString str, XString codec = "utf8");
 
     /*! @brief 为Buffer对象填充指定内容数据
      @param v 需要填充的数据，如果未指定offset和end，将填充满整个buffer
@@ -135,7 +135,7 @@ interface Buffer : object
      @param end 填充终止位置
      @return 返回当前 Buffer 对象
      */
-    Buffer fill(String v, Integer offset = 0, Integer end = -1);
+    Buffer fill(XString v, Integer offset = 0, Integer end = -1);
 
     /*! @brief 返回某个指定数据在Buffer中首次出现的位置
      @param v 待查找数据，如果未指定offset，默认从起始位开始
@@ -153,7 +153,7 @@ interface Buffer : object
      @param v 待查找数据，如果未指定offset，默认从起始位开始
      @param offset 起始查找位置
      */
-    Integer indexOf(String v, Integer offset = 0);
+    Integer indexOf(XString v, Integer offset = 0);
 
     /*! @brief 比较缓存区的内容
      @param buf 待比较缓存对象
@@ -466,12 +466,12 @@ interface Buffer : object
     /*! @brief 使用 16 进制编码缓存对象内容
      @return 返回编码字符串
      */
-    String hex();
+    XString hex();
 
     /*! @brief 使用 base64 编码缓存对象内容
      @return 返回编码字符串
      */
-    String base64();
+    XString base64();
 
     /*! @brief 返回全部二进制数据的数组
      @return 返回包含对象数据的数组
@@ -484,11 +484,11 @@ interface Buffer : object
      @param end 读取终止位置
      @return 返回对象的字符串表示
     */
-    String toString(String codec, Integer offset = 0, Integer end = -1);
+    XString toString(XString codec, Integer offset = 0, Integer end = -1);
 
     /*! @brief 返回二进制数据的 utf8 编码字符串
      @return 返回对象的字符串表示
     */
-    String toString();
+    XString toString();
 };
 
