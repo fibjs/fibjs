@@ -60,7 +60,7 @@ static void dumpFibers()
 
     msg.append(COLOR_RESET "\n");
 
-    std_logger::out(msg.c_str());
+    std_logger::out(msg);
 
 #ifdef DEBUG
     dump_memory();

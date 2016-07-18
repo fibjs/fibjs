@@ -247,7 +247,7 @@ class std_logger : public logger
 {
 public:
     virtual result_t write(AsyncEvent *ac);
-    static void out(const char *txt);
+    static void out(exlib::string& txt);
 };
 
 class sys_logger : public logger

@@ -339,7 +339,9 @@ result_t console_base::readLine(const char *msg, exlib::string &retVal,
     } else
 #endif
     {
-        s_std->out(msg);
+        exlib::string strmsg = msg;
+
+        std_logger::out(strmsg);
         char *line = read_line();
 
         if (!line)

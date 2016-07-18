@@ -21,7 +21,7 @@ TextColor *logger::get_std_color()
     return s_tc;
 }
 
-void std_logger::out(const char *txt)
+void std_logger::out(exlib::string& txt)
 {
 
 #ifdef _WIN32
@@ -35,10 +35,11 @@ void std_logger::out(const char *txt)
             m_wLight = m_wAttr & FOREGROUND_INTENSITY;
         }
 
-        void out(const char *s)
+        void out(exlib::string& s)
         {
             exlib::wstring ws = utf8to16String(s);
             exlib::wchar *ptr = &ws[0];
+            exlib::wchar *pend = ptr + ws.length();
             exlib::wchar *ptr2;
             DWORD dwWrite;
 
@@ -46,7 +47,6 @@ void std_logger::out(const char *txt)
             {
                 if (ptr2[1] == '[')
                 {
-                    ptr2[0] = 0;
                     WriteConsoleW(m_handle, ptr, (DWORD)(ptr2 - ptr), &dwWrite, NULL);
 
                     ptr2 += 2;
@@ -152,7 +152,7 @@ void std_logger::out(const char *txt)
                 ptr = ptr2;
             }
 
-            WriteConsoleW(m_handle, ptr, (DWORD)qstrlen(ptr), &dwWrite, NULL);
+            WriteConsoleW(m_handle, ptr, (DWORD)(pend - ptr), &dwWrite, NULL);
         }
 
     private:
@@ -167,7 +167,7 @@ void std_logger::out(const char *txt)
     else
 #endif
     {
-        fputs(txt, stdout);
+        fwrite(txt.c_str(), 1, txt.length(), stdout);
         fflush(stdout);
     }
 }
@@ -190,7 +190,7 @@ result_t std_logger::write(AsyncEvent *ac)
         else
             txt = p1->m_msg + "\n";
 
-        out(txt.c_str());
+        out(txt);
 
         delete p1;
     }
