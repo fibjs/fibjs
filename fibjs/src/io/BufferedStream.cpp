@@ -267,24 +267,24 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array> &retVa
     return 0;
 }
 
-result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
+result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
                                    exlib::string &retVal, AsyncEvent *ac)
 {
     class asyncRead: public asyncBuffer
     {
     public:
-        asyncRead(BufferedStream *pThis, const char *mk, int32_t maxlen,
+        asyncRead(BufferedStream *pThis, exlib::string mk, int32_t maxlen,
                   exlib::string &retVal, AsyncEvent *ac) :
             asyncBuffer(pThis, ac), m_mk(mk), m_maxlen(maxlen), m_retVal(
                 retVal)
         {
         }
 
-        static result_t process(BufferedStream *pThis, const char *mk,
+        static result_t process(BufferedStream *pThis, exlib::string mk,
                                 int32_t maxlen, exlib::string &retVal, bool streamEnd)
         {
             int32_t pos = pThis->m_pos;
-            int32_t mklen = (int32_t) qstrlen(mk);
+            int32_t mklen = (int32_t) mk.length();
 
             if (mklen == 0)
                 mklen = 1;
@@ -356,7 +356,7 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
         }
 
     public:
-        const char *m_mk;
+        exlib::string m_mk;
         int32_t m_maxlen;
         exlib::string &m_retVal;
     };
@@ -371,7 +371,7 @@ result_t BufferedStream::readUntil(const char *mk, int32_t maxlen,
     return (new asyncRead(this, mk, maxlen, retVal, ac))->post(0);
 }
 
-result_t BufferedStream::writeText(const char *txt, AsyncEvent *ac)
+result_t BufferedStream::writeText(exlib::string txt, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -386,7 +386,7 @@ result_t BufferedStream::writeText(const char *txt, AsyncEvent *ac)
     return write(data, ac);
 }
 
-result_t BufferedStream::writeLine(const char *txt, AsyncEvent *ac)
+result_t BufferedStream::writeLine(exlib::string txt, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -414,9 +414,9 @@ result_t BufferedStream::get_charset(exlib::string &retVal)
     return 0;
 }
 
-result_t BufferedStream::set_charset(const char *newVal)
+result_t BufferedStream::set_charset(exlib::string newVal)
 {
-    m_iconv.open(newVal);
+    m_iconv.open(newVal.c_str());
     return 0;
 }
 
@@ -426,12 +426,12 @@ result_t BufferedStream::get_EOL(exlib::string &retVal)
     return 0;
 }
 
-result_t BufferedStream::set_EOL(const char *newVal)
+result_t BufferedStream::set_EOL(exlib::string newVal)
 {
     if (newVal[0] == '\r' && newVal[1] == '\n')
-        m_eol.assign(newVal, 2);
+        m_eol.assign(newVal.c_str(), 2);
     else if (newVal[1] == '\0' && (newVal[0] == '\r' || newVal[0] == '\n'))
-        m_eol.assign(newVal, 1);
+        m_eol.assign(newVal.c_str(), 1);
     else
         return CHECK_ERROR(CALL_E_INVALIDARG);
 

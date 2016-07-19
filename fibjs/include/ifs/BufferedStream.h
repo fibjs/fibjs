@@ -30,14 +30,14 @@ public:
     virtual result_t readText(int32_t size, exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t readLine(int32_t maxlen, exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array>& retVal) = 0;
-    virtual result_t readUntil(const char* mk, int32_t maxlen, exlib::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t writeText(const char* txt, AsyncEvent* ac) = 0;
-    virtual result_t writeLine(const char* txt, AsyncEvent* ac) = 0;
+    virtual result_t readUntil(exlib::string mk, int32_t maxlen, exlib::string& retVal, AsyncEvent* ac) = 0;
+    virtual result_t writeText(exlib::string txt, AsyncEvent* ac) = 0;
+    virtual result_t writeLine(exlib::string txt, AsyncEvent* ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_charset(exlib::string& retVal) = 0;
-    virtual result_t set_charset(const char* newVal) = 0;
+    virtual result_t set_charset(exlib::string newVal) = 0;
     virtual result_t get_EOL(exlib::string& retVal) = 0;
-    virtual result_t set_EOL(const char* newVal) = 0;
+    virtual result_t set_EOL(exlib::string newVal) = 0;
 
 public:
     template<typename T>
@@ -60,9 +60,9 @@ public:
 public:
     ASYNC_MEMBERVALUE2(BufferedStream_base, readText, int32_t, exlib::string);
     ASYNC_MEMBERVALUE2(BufferedStream_base, readLine, int32_t, exlib::string);
-    ASYNC_MEMBERVALUE3(BufferedStream_base, readUntil, const char*, int32_t, exlib::string);
-    ASYNC_MEMBER1(BufferedStream_base, writeText, const char*);
-    ASYNC_MEMBER1(BufferedStream_base, writeLine, const char*);
+    ASYNC_MEMBERVALUE3(BufferedStream_base, readUntil, exlib::string, int32_t, exlib::string);
+    ASYNC_MEMBER1(BufferedStream_base, writeText, exlib::string);
+    ASYNC_MEMBER1(BufferedStream_base, writeLine, exlib::string);
 };
 
 }
@@ -129,7 +129,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(BufferedStream_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_charset(v0);
 
         PROPERTY_SET_LEAVE();
@@ -152,7 +152,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(BufferedStream_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_EOL(v0);
 
         PROPERTY_SET_LEAVE();
@@ -234,7 +234,7 @@ namespace fibjs
         METHOD_INSTANCE(BufferedStream_base);
         ASYNC_METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, -1);
 
         if(!cb.IsEmpty()) {
@@ -251,7 +251,7 @@ namespace fibjs
         METHOD_INSTANCE(BufferedStream_base);
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_writeText(v0, cb);
@@ -267,7 +267,7 @@ namespace fibjs
         METHOD_INSTANCE(BufferedStream_base);
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_writeLine(v0, cb);

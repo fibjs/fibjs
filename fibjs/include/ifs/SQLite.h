@@ -29,7 +29,7 @@ public:
     virtual result_t get_fileName(exlib::string& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
-    virtual result_t backup(const char* fileName, AsyncEvent* ac) = 0;
+    virtual result_t backup(exlib::string fileName, AsyncEvent* ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -49,7 +49,7 @@ public:
     static void s_backup(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBER1(SQLite_base, backup, const char*);
+    ASYNC_MEMBER1(SQLite_base, backup, exlib::string);
 };
 
 }
@@ -121,7 +121,7 @@ namespace fibjs
         METHOD_INSTANCE(SQLite_base);
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_backup(v0, cb);

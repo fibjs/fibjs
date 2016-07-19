@@ -150,17 +150,19 @@ result_t MongoDB::error()
     return hr;
 }
 
-result_t db_base::openMongoDB(const char *connString,
+result_t db_base::openMongoDB(exlib::string connString,
                               obj_ptr<MongoDB_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (qstrcmp(connString, "mongodb:", 8))
+    const char* c_str = connString.c_str();
+
+    if (qstrcmp(c_str, "mongodb:", 8))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<MongoDB> db = new MongoDB();
-    result_t hr = db->open(connString);
+    result_t hr = db->open(c_str);
     if (hr < 0)
         return hr;
 

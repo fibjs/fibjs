@@ -42,7 +42,7 @@ public:
     virtual result_t close(AsyncEvent *ac);
 
 public:
-    result_t open(const char *connString);
+    result_t open(const char* connString);
 
     static result_t getValue(v8::Local<v8::Value> v, exlib::string &out)
     {

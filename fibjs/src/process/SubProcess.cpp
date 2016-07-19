@@ -128,7 +128,7 @@ result_t SubProcess::readLines(int32_t maxlines, v8::Local<v8::Array> &retVal)
 	return m_stdout->readLines(maxlines, retVal);
 }
 
-result_t SubProcess::readUntil(const char *mk, int32_t maxlen, exlib::string &retVal, AsyncEvent *ac)
+result_t SubProcess::readUntil(exlib::string mk, int32_t maxlen, exlib::string &retVal, AsyncEvent *ac)
 {
 	if (m_stdout == NULL)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -136,7 +136,7 @@ result_t SubProcess::readUntil(const char *mk, int32_t maxlen, exlib::string &re
 	return m_stdout->readUntil(mk, maxlen, retVal, ac);
 }
 
-result_t SubProcess::writeText(const char *txt, AsyncEvent *ac)
+result_t SubProcess::writeText(exlib::string txt, AsyncEvent *ac)
 {
 	if (m_stdin == NULL)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -144,7 +144,7 @@ result_t SubProcess::writeText(const char *txt, AsyncEvent *ac)
 	return m_stdin->writeText(txt, ac);
 }
 
-result_t SubProcess::writeLine(const char *txt, AsyncEvent *ac)
+result_t SubProcess::writeLine(exlib::string txt, AsyncEvent *ac)
 {
 	if (m_stdin == NULL)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -165,7 +165,7 @@ result_t SubProcess::get_charset(exlib::string &retVal)
 	return m_stdin->get_charset(retVal);
 }
 
-result_t SubProcess::set_charset(const char *newVal)
+result_t SubProcess::set_charset(exlib::string newVal)
 {
 	if (m_stdin != NULL)
 		m_stdin->set_charset(newVal);
@@ -184,7 +184,7 @@ result_t SubProcess::get_EOL(exlib::string &retVal)
 	return m_stdin->get_EOL(retVal);
 }
 
-result_t SubProcess::set_EOL(const char *newVal)
+result_t SubProcess::set_EOL(exlib::string newVal)
 {
 	if (m_stdin != NULL)
 		m_stdin->set_EOL(newVal);

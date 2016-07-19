@@ -30,15 +30,15 @@ class db_base : public object_base
 
 public:
     // db_base
-    static result_t open(const char* connString, obj_ptr<object_base>& retVal, AsyncEvent* ac);
-    static result_t openMySQL(const char* connString, obj_ptr<MySQL_base>& retVal, AsyncEvent* ac);
-    static result_t openSQLite(const char* connString, obj_ptr<SQLite_base>& retVal, AsyncEvent* ac);
-    static result_t openMongoDB(const char* connString, obj_ptr<MongoDB_base>& retVal, AsyncEvent* ac);
-    static result_t openLevelDB(const char* connString, obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac);
-    static result_t openRedis(const char* connString, obj_ptr<Redis_base>& retVal, AsyncEvent* ac);
-    static result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
-    static result_t formatMySQL(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
-    static result_t escape(const char* str, bool mysql, exlib::string& retVal);
+    static result_t open(exlib::string connString, obj_ptr<object_base>& retVal, AsyncEvent* ac);
+    static result_t openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVal, AsyncEvent* ac);
+    static result_t openSQLite(exlib::string connString, obj_ptr<SQLite_base>& retVal, AsyncEvent* ac);
+    static result_t openMongoDB(exlib::string connString, obj_ptr<MongoDB_base>& retVal, AsyncEvent* ac);
+    static result_t openLevelDB(exlib::string connString, obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac);
+    static result_t openRedis(exlib::string connString, obj_ptr<Redis_base>& retVal, AsyncEvent* ac);
+    static result_t format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
+    static result_t formatMySQL(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
+    static result_t escape(exlib::string str, bool mysql, exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -63,12 +63,12 @@ public:
     static void s_escape(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE2(db_base, open, const char*, obj_ptr<object_base>);
-    ASYNC_STATICVALUE2(db_base, openMySQL, const char*, obj_ptr<MySQL_base>);
-    ASYNC_STATICVALUE2(db_base, openSQLite, const char*, obj_ptr<SQLite_base>);
-    ASYNC_STATICVALUE2(db_base, openMongoDB, const char*, obj_ptr<MongoDB_base>);
-    ASYNC_STATICVALUE2(db_base, openLevelDB, const char*, obj_ptr<LevelDB_base>);
-    ASYNC_STATICVALUE2(db_base, openRedis, const char*, obj_ptr<Redis_base>);
+    ASYNC_STATICVALUE2(db_base, open, exlib::string, obj_ptr<object_base>);
+    ASYNC_STATICVALUE2(db_base, openMySQL, exlib::string, obj_ptr<MySQL_base>);
+    ASYNC_STATICVALUE2(db_base, openSQLite, exlib::string, obj_ptr<SQLite_base>);
+    ASYNC_STATICVALUE2(db_base, openMongoDB, exlib::string, obj_ptr<MongoDB_base>);
+    ASYNC_STATICVALUE2(db_base, openLevelDB, exlib::string, obj_ptr<LevelDB_base>);
+    ASYNC_STATICVALUE2(db_base, openRedis, exlib::string, obj_ptr<Redis_base>);
 };
 
 }
@@ -114,7 +114,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_open(v0, vr, cb);
@@ -131,7 +131,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_openMySQL(v0, vr, cb);
@@ -148,7 +148,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_openSQLite(v0, vr, cb);
@@ -165,7 +165,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_openMongoDB(v0, vr, cb);
@@ -182,7 +182,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_openLevelDB(v0, vr, cb);
@@ -199,7 +199,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_openRedis(v0, vr, cb);
@@ -216,7 +216,7 @@ namespace fibjs
 
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = format(v0, args, vr);
 
@@ -229,7 +229,7 @@ namespace fibjs
 
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = formatMySQL(v0, args, vr);
 
@@ -242,7 +242,7 @@ namespace fibjs
 
         METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(bool, 1, false);
 
         hr = escape(v0, v1, vr);

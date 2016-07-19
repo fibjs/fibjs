@@ -19,25 +19,27 @@
 namespace fibjs
 {
 
-result_t db_base::openRedis(const char *connString,
+result_t db_base::openRedis(exlib::string connString,
                             obj_ptr<Redis_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    const char* c_str = connString.c_str();
+
     exlib::string host;
     int32_t nPort = 6379;
 
-    if (!qstrcmp(connString, "redis:", 6))
+    if (!qstrcmp(c_str, "redis:", 6))
     {
         obj_ptr<Url> u = new Url();
 
-        result_t hr = u->parse(connString);
+        result_t hr = u->parse(c_str);
         if (hr < 0)
             return hr;
 
         host = u->m_hostname;
-        connString = host.c_str();
+        c_str = host.c_str();
 
         if (u->m_port.length() > 0)
             nPort = atoi(u->m_port.c_str());
@@ -46,7 +48,7 @@ result_t db_base::openRedis(const char *connString,
     obj_ptr<Redis> conn = new Redis();
     retVal = conn;
 
-    return conn->connect(connString, nPort, ac);
+    return conn->connect(c_str, nPort, ac);
 }
 
 result_t Redis::connect(const char *host, int32_t port, AsyncEvent *ac)

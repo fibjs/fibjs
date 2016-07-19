@@ -18,7 +18,7 @@ namespace fibjs
     SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | \
     SQLITE_OPEN_SHAREDCACHE | SQLITE_OPEN_NOMUTEX
 
-result_t db_base::openSQLite(const char *connString,
+result_t db_base::openSQLite(exlib::string connString,
                              obj_ptr<SQLite_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
@@ -26,11 +26,13 @@ result_t db_base::openSQLite(const char *connString,
 
     result_t hr;
 
-    if (!qstrcmp(connString, "sqlite:", 7))
-        connString += 7;
+    const char* c_str = connString.c_str();
+
+    if (!qstrcmp(c_str, "sqlite:", 7))
+        c_str += 7;
 
     obj_ptr<SQLite> db = new SQLite();
-    hr = db->open(connString);
+    hr = db->open(c_str);
     if (hr < 0)
         return hr;
 
@@ -254,7 +256,7 @@ result_t SQLite::execute(const char *sql, int32_t sLen,
     return 0;
 }
 
-result_t SQLite::execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncEvent *ac)
+result_t SQLite::execute(exlib::string sql, obj_ptr<DBResult_base> &retVal, AsyncEvent *ac)
 {
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -262,10 +264,10 @@ result_t SQLite::execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncE
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return execute(sql, (int32_t) qstrlen(sql), retVal);
+    return execute(sql.c_str(), (int32_t) sql.length(), retVal);
 }
 
-result_t SQLite::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
+result_t SQLite::execute(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value> &args,
                          obj_ptr<DBResult_base> &retVal)
 {
     exlib::string str;
@@ -276,7 +278,7 @@ result_t SQLite::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Val
     return ac_execute(str.c_str(), retVal);
 }
 
-result_t SQLite::format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
+result_t SQLite::format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value> &args,
                         exlib::string &retVal)
 {
     return db_base::format(sql, args, retVal);
@@ -310,7 +312,7 @@ result_t SQLite::set_timeout(int32_t newVal)
     return 0;
 }
 
-result_t SQLite::backup(const char *fileName, AsyncEvent *ac)
+result_t SQLite::backup(exlib::string fileName, AsyncEvent *ac)
 {
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -322,7 +324,7 @@ result_t SQLite::backup(const char *fileName, AsyncEvent *ac)
     struct sqlite3 *db2 = NULL;
     sqlite3_backup *pBackup;
 
-    if (sqlite3_open_v2(fileName, &db2, SQLITE_OPEN_FLAGS, 0))
+    if (sqlite3_open_v2(fileName.c_str(), &db2, SQLITE_OPEN_FLAGS, 0))
     {
         result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(db2)));
         sqlite3_close(m_db);

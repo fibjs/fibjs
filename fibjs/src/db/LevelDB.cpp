@@ -14,19 +14,20 @@
 namespace fibjs
 {
 
-result_t db_base::openLevelDB(const char *connString,
+result_t db_base::openLevelDB(exlib::string connString,
                               obj_ptr<LevelDB_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
+    const char* c_str = connString.c_str();
 
-    if (!qstrcmp(connString, "leveldb:", 8))
-        connString += 8;
+    if (!qstrcmp(c_str, "leveldb:", 8))
+        c_str += 8;
 
     obj_ptr<LevelDB> db = new LevelDB();
-    hr = db->open(connString);
+    hr = db->open(c_str);
     if (hr < 0)
         return hr;
 
@@ -35,7 +36,7 @@ result_t db_base::openLevelDB(const char *connString,
     return 0;
 }
 
-result_t LevelDB::open(const char *connString)
+result_t LevelDB::open(const char* connString)
 {
     leveldb::Options options;
     options.create_if_missing = true;

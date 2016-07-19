@@ -29,9 +29,9 @@ public:
     virtual result_t begin(AsyncEvent* ac) = 0;
     virtual result_t commit(AsyncEvent* ac) = 0;
     virtual result_t rollback(AsyncEvent* ac) = 0;
-    virtual result_t execute(const char* sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t execute(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<DBResult_base>& retVal) = 0;
-    virtual result_t format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal) = 0;
+    virtual result_t execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t execute(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<DBResult_base>& retVal) = 0;
+    virtual result_t format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -57,7 +57,7 @@ public:
     ASYNC_MEMBER0(DbConnection_base, begin);
     ASYNC_MEMBER0(DbConnection_base, commit);
     ASYNC_MEMBER0(DbConnection_base, rollback);
-    ASYNC_MEMBERVALUE2(DbConnection_base, execute, const char*, obj_ptr<DBResult_base>);
+    ASYNC_MEMBERVALUE2(DbConnection_base, execute, exlib::string, obj_ptr<DBResult_base>);
 };
 
 }
@@ -153,7 +153,7 @@ namespace fibjs
         METHOD_INSTANCE(DbConnection_base);
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_execute(v0, vr, cb);
@@ -163,7 +163,7 @@ namespace fibjs
 
         METHOD_OVER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->execute(v0, args, vr);
 
@@ -177,7 +177,7 @@ namespace fibjs
         METHOD_INSTANCE(DbConnection_base);
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->format(v0, args, vr);
 

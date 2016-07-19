@@ -150,18 +150,18 @@ UMConnectionCAPI capi =
 
 // ----------------------------------------------------------------------------------
 
-result_t db_base::openMySQL(const char *connString, obj_ptr<MySQL_base> &retVal,
+result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base> &retVal,
                             AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (qstrcmp(connString, "mysql:", 6))
+    if (qstrcmp(connString.c_str(), "mysql:", 6))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<Url> u = new Url();
 
-    result_t hr = u->parse(connString);
+    result_t hr = u->parse(connString.c_str());
     if (hr < 0)
         return hr;
 
@@ -235,7 +235,7 @@ result_t mysql::close(AsyncEvent *ac)
     return 0;
 }
 
-result_t mysql::use(const char *dbName, AsyncEvent *ac)
+result_t mysql::use(exlib::string dbName, AsyncEvent *ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -302,7 +302,7 @@ result_t mysql::execute(const char *sql, int32_t sLen,
     return 0;
 }
 
-result_t mysql::execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncEvent *ac)
+result_t mysql::execute(exlib::string sql, obj_ptr<DBResult_base> &retVal, AsyncEvent *ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -310,10 +310,10 @@ result_t mysql::execute(const char *sql, obj_ptr<DBResult_base> &retVal, AsyncEv
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return execute(sql, (int32_t) qstrlen(sql), retVal);
+    return execute(sql.c_str(), (int32_t) sql.length(), retVal);
 }
 
-result_t mysql::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
+result_t mysql::execute(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value> &args,
                         obj_ptr<DBResult_base> &retVal)
 {
     exlib::string str;
@@ -321,10 +321,10 @@ result_t mysql::execute(const char *sql, const v8::FunctionCallbackInfo<v8::Valu
     if (hr < 0)
         return hr;
 
-    return ac_execute(str.c_str(), retVal);
+    return ac_execute(str, retVal);
 }
 
-result_t mysql::format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
+result_t mysql::format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value> &args,
                        exlib::string &retVal)
 {
     return db_base::formatMySQL(sql, args, retVal);

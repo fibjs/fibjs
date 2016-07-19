@@ -41,14 +41,14 @@ public:
     virtual result_t readText(int32_t size, exlib::string &retVal, AsyncEvent *ac);
     virtual result_t readLine(int32_t maxlen, exlib::string &retVal, AsyncEvent *ac);
     virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array> &retVal);
-    virtual result_t readUntil(const char *mk, int32_t maxlen, exlib::string &retVal, AsyncEvent *ac);
-    virtual result_t writeText(const char *txt, AsyncEvent *ac);
-    virtual result_t writeLine(const char *txt, AsyncEvent *ac);
+    virtual result_t readUntil(exlib::string mk, int32_t maxlen, exlib::string &retVal, AsyncEvent *ac);
+    virtual result_t writeText(exlib::string txt, AsyncEvent *ac);
+    virtual result_t writeLine(exlib::string txt, AsyncEvent *ac);
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
     virtual result_t get_charset(exlib::string &retVal);
-    virtual result_t set_charset(const char *newVal);
+    virtual result_t set_charset(exlib::string newVal);
     virtual result_t get_EOL(exlib::string &retVal);
-    virtual result_t set_EOL(const char *newVal);
+    virtual result_t set_EOL(exlib::string newVal);
 
 public:
     void append(int32_t n)

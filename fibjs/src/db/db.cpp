@@ -14,27 +14,27 @@ namespace fibjs
 
 DECLARE_MODULE(db);
 
-result_t db_base::open(const char *connString, obj_ptr<object_base> &retVal, AsyncEvent *ac)
+result_t db_base::open(exlib::string connString, obj_ptr<object_base> &retVal, AsyncEvent *ac)
 {
-    if (!qstrcmp(connString, "mysql:", 6))
+    if (!qstrcmp(connString.c_str(), "mysql:", 6))
         return openMySQL(connString, (obj_ptr<MySQL_base> &)retVal, ac);
 
-    if (!qstrcmp(connString, "sqlite:", 7))
+    if (!qstrcmp(connString.c_str(), "sqlite:", 7))
         return openSQLite(connString, (obj_ptr<SQLite_base> &)retVal, ac);
 
-    if (!qstrcmp(connString, "redis:", 6))
+    if (!qstrcmp(connString.c_str(), "redis:", 6))
         return openRedis(connString, (obj_ptr<Redis_base> &)retVal, ac);
 
-    if (!qstrcmp(connString, "mongodb:", 8))
+    if (!qstrcmp(connString.c_str(), "mongodb:", 8))
         return openMongoDB(connString, (obj_ptr<MongoDB_base> &)retVal, ac);
 
-    if (!qstrcmp(connString, "leveldb:", 8))
+    if (!qstrcmp(connString.c_str(), "leveldb:", 8))
         return openLevelDB(connString, (obj_ptr<LevelDB_base> &)retVal, ac);
 
     return CHECK_ERROR(CALL_E_INVALIDARG);
 }
 
-inline void _escape(const char *str, int32_t sz, bool mysql, exlib::string &retVal)
+inline void _escape(const char* str, int32_t sz, bool mysql, exlib::string &retVal)
 {
     int32_t len, l;
     const char *src;
@@ -213,21 +213,21 @@ result_t _format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &arg
     return 0;
 }
 
-result_t db_base::format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
+result_t db_base::format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value> &args,
                          exlib::string &retVal)
 {
-    return _format(sql, args, false, retVal);
+    return _format(sql.c_str(), args, false, retVal);
 }
 
-result_t db_base::formatMySQL(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
+result_t db_base::formatMySQL(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value> &args,
                               exlib::string &retVal)
 {
-    return _format(sql, args, true, retVal);
+    return _format(sql.c_str(), args, true, retVal);
 }
 
-result_t db_base::escape(const char *str, bool mysql, exlib::string &retVal)
+result_t db_base::escape(exlib::string str, bool mysql, exlib::string &retVal)
 {
-    _escape(str, (int32_t) qstrlen(str), mysql, retVal);
+    _escape(str.c_str(), (int32_t) str.length(), mysql, retVal);
     return 0;
 }
 
