@@ -21,16 +21,16 @@ public:
 
 public:
     // HttpCookie_base
-    virtual result_t parse(const char *header);
-    virtual result_t match(const char *url, bool &retVal);
+    virtual result_t parse(exlib::string header);
+    virtual result_t match(exlib::string url, bool &retVal);
     virtual result_t get_name(exlib::string &retVal);
-    virtual result_t set_name(const char *newVal);
+    virtual result_t set_name(exlib::string newVal);
     virtual result_t get_value(exlib::string &retVal);
-    virtual result_t set_value(const char *newVal);
+    virtual result_t set_value(exlib::string newVal);
     virtual result_t get_domain(exlib::string &retVal);
-    virtual result_t set_domain(const char *newVal);
+    virtual result_t set_domain(exlib::string newVal);
     virtual result_t get_path(exlib::string &retVal);
-    virtual result_t set_path(const char *newVal);
+    virtual result_t set_path(exlib::string newVal);
     virtual result_t get_expires(date_t &retVal);
     virtual result_t set_expires(date_t newVal);
     virtual result_t get_httpOnly(bool &retVal);

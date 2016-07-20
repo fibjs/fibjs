@@ -87,12 +87,12 @@ interface Expect : object
     /*! @brief 断言给定数值为制定类型，断言失败则抛出错误
      @param type 指定断言的数据类型字符串
      */
-    a(String type);
+    a(XString type);
 
     /*! @brief 断言给定数值为制定类型，断言失败则抛出错误
      @param type 指定断言的数据类型字符串
      */
-    an(String type);
+    an(XString type);
 
     /*! @brief 断言给定数值为真，断言失败则抛出错误*/
     readonly Boolean ok;

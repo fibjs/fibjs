@@ -148,13 +148,13 @@ const char* zip_error(int32_t err)
 	return zError(err);
 }
 
-result_t zip_base::isZipFile(const char* filename, bool& retVal, AsyncEvent* ac)
+result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
 	unzFile unz;
-	if ((unz = unzOpen64(filename)) == NULL)
+	if ((unz = unzOpen64(filename.c_str())) == NULL)
 		retVal = false;
 	else {
 		retVal = true;
@@ -164,7 +164,8 @@ result_t zip_base::isZipFile(const char* filename, bool& retVal, AsyncEvent* ac)
 	return 0;
 }
 
-result_t zip_base::open(const char* path, const char* mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
+result_t zip_base::open(exlib::string path, exlib::string mod, int32_t compress_type,
+                        obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -173,22 +174,22 @@ result_t zip_base::open(const char* path, const char* mod, int32_t compress_type
 	result_t hr;
 	bool exists;
 
-	if (!qstrcmp(mod, "w" ))
-		hr = fs_base::cc_open(path, "w", file);
-	else if (!qstrcmp(mod, "a" ) || !qstrcmp(mod, "a+" ))
+	if ((mod == "w" ))
+		hr = fs_base::cc_open(path.c_str(), "w", file);
+	else if ((mod == "a" ) || (mod == "a+" ))
 	{
-		hr = fs_base::cc_exists(path, exists);
+		hr = fs_base::cc_exists(path.c_str(), exists);
 		if (hr < 0)
 			return hr;
 
 		if (!exists)
 			return CHECK_ERROR(Runtime::setError("zip file not exists!"));
 
-		hr = fs_base::cc_open(path, "r+", file);
+		hr = fs_base::cc_open(path.c_str(), "r+", file);
 	}
 
 	else
-		hr = fs_base::cc_open(path, "r", file);
+		hr = fs_base::cc_open(path.c_str(), "r", file);
 
 	if (hr < 0)
 		return hr;
@@ -196,7 +197,8 @@ result_t zip_base::open(const char* path, const char* mod, int32_t compress_type
 	return open(file, mod, compress_type, retVal, ac);
 }
 
-result_t zip_base::open(Buffer_base* data, const char* mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
+result_t zip_base::open(Buffer_base* data, exlib::string mod, int32_t compress_type,
+                        obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -209,7 +211,8 @@ result_t zip_base::open(Buffer_base* data, const char* mod, int32_t compress_typ
 	return open(strm, mod, compress_type, retVal, ac);
 }
 
-result_t zip_base::open(SeekableStream_base* strm, const char* mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
+result_t zip_base::open(SeekableStream_base* strm, exlib::string mod, int32_t compress_type,
+                        obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -218,7 +221,7 @@ result_t zip_base::open(SeekableStream_base* strm, const char* mod, int32_t comp
 	return 0;
 }
 
-ZipFile::Info::Info(const char* name, unz_file_info64& info)
+ZipFile::Info::Info(exlib::string name, unz_file_info64& info)
 {
 	m_name = name;
 	m_date.fromDosTime(info.dosDate);
@@ -282,15 +285,15 @@ result_t ZipFile::Info::get_data(obj_ptr<Buffer_base>& retVal)
 	return 0;
 }
 
-ZipFile::ZipFile(SeekableStream_base* strm, const char* mod, int32_t compress_type) :
+ZipFile::ZipFile(SeekableStream_base* strm, exlib::string mod, int32_t compress_type) :
 	m_compress_type(compress_type), m_mod(mod), m_strm(strm)
 {
 	StreamIO sio(strm);
-	if (!qstrcmp(mod, "r" ))
+	if ((mod == "r" ))
 		m_unz = unzOpen2_64("", &sio);
-	else if (!qstrcmp(mod, "w" ))
+	else if ((mod == "w" ))
 		m_zip = zipOpen2_64("", APPEND_STATUS_CREATE, NULL, &sio);
-	else if (!qstrcmp(mod, "a" ) || !qstrcmp(mod, "a+" ))
+	else if ((mod == "a" ) || (mod == "a+" ))
 		m_zip = zipOpen2_64("", APPEND_STATUS_ADDINZIP, NULL, &sio);
 }
 
@@ -396,7 +399,7 @@ result_t ZipFile::infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	return 0;
 }
 
-result_t ZipFile::getinfo(const char* member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac)
+result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -406,7 +409,7 @@ result_t ZipFile::getinfo(const char* member, obj_ptr<ZipInfo_base>& retVal, Asy
 	if (m_mod != "r" )
 		return CHECK_ERROR(Runtime::setError("can not read!"));
 
-	err = unzLocateFile(m_unz, member, 0);
+	err = unzLocateFile(m_unz, member.c_str(), 0);
 	if (err != UNZ_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
@@ -423,15 +426,15 @@ result_t ZipFile::getinfo(const char* member, obj_ptr<ZipInfo_base>& retVal, Asy
 
 #define BUF_SIZE	8192
 
-result_t ZipFile::extract(SeekableStream_base* strm, const char* password)
+result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
 {
 	int32_t err;
 	result_t hr;
 	obj_ptr<Buffer> buf = new Buffer();
 
 	buf->resize(BUF_SIZE);
-	if (password)
-		err = unzOpenCurrentFilePassword(m_unz, password);
+	if (!password.empty())
+		err = unzOpenCurrentFilePassword(m_unz, password.c_str());
 	else
 		err = unzOpenCurrentFile(m_unz);
 	if (err != UNZ_OK)
@@ -462,7 +465,7 @@ result_t ZipFile::extract(SeekableStream_base* strm, const char* password)
 	return 0;
 }
 
-result_t ZipFile::read(const char* password, obj_ptr<Buffer_base>& retVal)
+result_t ZipFile::read(exlib::string password, obj_ptr<Buffer_base>& retVal)
 {
 	result_t hr;
 	obj_ptr<MemoryStream> strm;
@@ -480,21 +483,21 @@ result_t ZipFile::read(const char* password, obj_ptr<Buffer_base>& retVal)
 	return strm->cc_readAll(retVal);
 }
 
-result_t ZipFile::read(const char* member, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t ZipFile::read(exlib::string member, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
 	int32_t err;
 
-	err = unzLocateFile(m_unz, member, 0);
+	err = unzLocateFile(m_unz, member.c_str(), 0);
 	if (err != UNZ_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
-	return read(NULL, retVal);
+	return read("", retVal);
 }
 
-result_t ZipFile::extract(const char* member, const char* path, AsyncEvent* ac)
+result_t ZipFile::extract(exlib::string member, exlib::string path, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -503,32 +506,32 @@ result_t ZipFile::extract(const char* member, const char* path, AsyncEvent* ac)
 	result_t hr;
 	obj_ptr<File_base> file;
 
-	err = unzLocateFile(m_unz, member, 0);
+	err = unzLocateFile(m_unz, member.c_str(), 0);
 	if (err != UNZ_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
-	hr = fs_base::cc_open(path, "w", file);
+	hr = fs_base::cc_open(path.c_str(), "w", file);
 	if (hr < 0)
 		return hr;
 
-	return extract(file, NULL);
+	return extract(file, "");
 }
 
-result_t ZipFile::extract(const char* member, SeekableStream_base* strm, AsyncEvent* ac)
+result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
 	int32_t err;
 
-	err = unzLocateFile(m_unz, member, 0);
+	err = unzLocateFile(m_unz, member.c_str(), 0);
 	if (err != UNZ_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
-	return extract(strm, NULL);
+	return extract(strm, "");
 }
 
-result_t ZipFile::extractAll(const char* path, AsyncEvent* ac)
+result_t ZipFile::extractAll(exlib::string path, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -575,7 +578,7 @@ result_t ZipFile::extractAll(const char* path, AsyncEvent* ac)
 		if (hr < 0)
 			return hr;
 
-		hr = extract(file, NULL);
+		hr = extract(file, "");
 
 		if ((i + 1) < gi.number_entry)
 		{
@@ -615,7 +618,7 @@ result_t ZipFile::readAll(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 		if (hr < 0)
 			return hr;
 
-		hr = read(NULL, info->m_data);
+		hr = read("", info->m_data);
 		if (hr < 0)
 			return hr;
 
@@ -634,14 +637,14 @@ result_t ZipFile::readAll(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	return 0;
 }
 
-result_t ZipFile::write(const char* filename, const char* password, SeekableStream_base* strm)
+result_t ZipFile::write(exlib::string filename, exlib::string password, SeekableStream_base* strm)
 {
 	int32_t err;
 	result_t hr;
 	obj_ptr<Buffer_base> buf;
 	exlib::string strData;
 
-	err = zipOpenNewFileInZip3_64(m_zip, filename, NULL, NULL,
+	err = zipOpenNewFileInZip3_64(m_zip, filename.c_str(), NULL, NULL,
 	                              0, NULL, 0, NULL, m_compress_type == zip_base::_ZIP_STORED ? 0 : Z_DEFLATED,
 	                              Z_DEFAULT_COMPRESSION, 0, -MAX_WBITS,
 	                              DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
@@ -674,7 +677,7 @@ result_t ZipFile::write(const char* filename, const char* password, SeekableStre
 	return 0;
 }
 
-result_t ZipFile::write(const char* filename, AsyncEvent* ac)
+result_t ZipFile::write(exlib::string filename, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -682,14 +685,14 @@ result_t ZipFile::write(const char* filename, AsyncEvent* ac)
 	result_t hr;
 	obj_ptr<File_base> file;
 
-	hr = fs_base::cc_open(filename, "r", file);
+	hr = fs_base::cc_open(filename.c_str(), "r", file);
 	if (hr < 0)
 		return hr;
 
-	return write(filename, NULL, file);
+	return write(filename, "", file);
 }
 
-result_t ZipFile::write(Buffer_base* data, const char* inZipName, AsyncEvent* ac)
+result_t ZipFile::write(Buffer_base* data, exlib::string inZipName, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -705,15 +708,15 @@ result_t ZipFile::write(Buffer_base* data, const char* inZipName, AsyncEvent* ac
 	hr = strm->rewind();
 	if (hr < 0)
 		return hr;
-	return write(inZipName, NULL, strm);
+	return write(inZipName, "", strm);
 }
 
-result_t ZipFile::write(SeekableStream_base* strm, const char* inZipName, AsyncEvent* ac)
+result_t ZipFile::write(SeekableStream_base* strm, exlib::string inZipName, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
-	return write(inZipName, NULL, strm);
+	return write(inZipName, "", strm);
 }
 
 

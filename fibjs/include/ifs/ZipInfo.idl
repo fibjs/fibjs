@@ -2,13 +2,13 @@
 interface ZipInfo : object
 {
 	/*! @brief 只读属性成员, 文件名 */
-	readonly String filename;
+	readonly XString filename;
 
 	/*! @brief 只读属性成员, 文件日期 */
 	readonly Date date;
 
 	/*! @brief 只读属性成员, 文件压缩类型 */
-	readonly String compress_type;
+	readonly XString compress_type;
 
 	/*! @brief 只读属性成员, 文件压缩后大小 */
 	readonly Long compress_size;

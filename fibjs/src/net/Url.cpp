@@ -18,7 +18,7 @@ static const char *queryTable =
 static const char *hashTable =
     " ! #$%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
 
-result_t Url_base::_new(const char *url, obj_ptr<Url_base> &retVal, v8::Local<v8::Object> This)
+result_t Url_base::_new(exlib::string url, obj_ptr<Url_base> &retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<Url> u = new Url();
 
@@ -248,17 +248,19 @@ void Url::parseHash(const char *&url)
     Url::encodeURI(url, -1, m_hash, hashTable);
 }
 
-result_t Url::parse(const char *url)
+result_t Url::parse(exlib::string url)
 {
     bool bHost;
     clear();
 
-    parseProtocol(url);
+    const char* c_str = url.c_str();
+
+    parseProtocol(c_str);
 
     bHost = !m_slashes;
-    m_slashes = (isUrlSlash(*url) && isUrlSlash(url[1]));
+    m_slashes = (isUrlSlash(*c_str) && isUrlSlash(c_str[1]));
     if (m_slashes)
-        url += 2;
+        c_str += 2;
 
     if (!m_protocol.compare("javascript:"))
     {
@@ -267,13 +269,13 @@ result_t Url::parse(const char *url)
     }
     else if (m_slashes || bHost)
     {
-        parseAuth(url);
-        parseHost(url);
+        parseAuth(c_str);
+        parseHost(c_str);
     }
 
-    parsePath(url);
-    parseQuery(url);
-    parseHash(url);
+    parsePath(c_str);
+    parseQuery(c_str);
+    parseHash(c_str);
 
     return 0;
 }
@@ -345,7 +347,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     return 0;
 }
 
-result_t Url::resolve(const char *url, obj_ptr<Url_base> &retVal)
+result_t Url::resolve(exlib::string url, obj_ptr<Url_base> &retVal)
 {
     obj_ptr<Url> u = new Url();
 

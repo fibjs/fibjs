@@ -24,17 +24,17 @@ class HttpCookie_base : public object_base
 public:
     // HttpCookie_base
     static result_t _new(v8::Local<v8::Object> opts, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(const char* name, const char* value, v8::Local<v8::Object> opts, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t parse(const char* header) = 0;
-    virtual result_t match(const char* url, bool& retVal) = 0;
+    static result_t _new(exlib::string name, exlib::string value, v8::Local<v8::Object> opts, obj_ptr<HttpCookie_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t parse(exlib::string header) = 0;
+    virtual result_t match(exlib::string url, bool& retVal) = 0;
     virtual result_t get_name(exlib::string& retVal) = 0;
-    virtual result_t set_name(const char* newVal) = 0;
+    virtual result_t set_name(exlib::string newVal) = 0;
     virtual result_t get_value(exlib::string& retVal) = 0;
-    virtual result_t set_value(const char* newVal) = 0;
+    virtual result_t set_value(exlib::string newVal) = 0;
     virtual result_t get_domain(exlib::string& retVal) = 0;
-    virtual result_t set_domain(const char* newVal) = 0;
+    virtual result_t set_domain(exlib::string newVal) = 0;
     virtual result_t get_path(exlib::string& retVal) = 0;
-    virtual result_t set_path(const char* newVal) = 0;
+    virtual result_t set_path(exlib::string newVal) = 0;
     virtual result_t get_expires(date_t& retVal) = 0;
     virtual result_t set_expires(date_t newVal) = 0;
     virtual result_t get_httpOnly(bool& retVal) = 0;
@@ -117,7 +117,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpCookie_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_name(v0);
 
         PROPERTY_SET_LEAVE();
@@ -140,7 +140,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpCookie_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_value(v0);
 
         PROPERTY_SET_LEAVE();
@@ -163,7 +163,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpCookie_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_domain(v0);
 
         PROPERTY_SET_LEAVE();
@@ -186,7 +186,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpCookie_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_path(v0);
 
         PROPERTY_SET_LEAVE();
@@ -279,8 +279,8 @@ namespace fibjs
 
         METHOD_OVER(3, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
         hr = _new(v0, v1, v2, vr, args.This());
@@ -293,7 +293,7 @@ namespace fibjs
         METHOD_INSTANCE(HttpCookie_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->parse(v0);
 
@@ -307,7 +307,7 @@ namespace fibjs
         METHOD_INSTANCE(HttpCookie_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->match(v0, vr);
 

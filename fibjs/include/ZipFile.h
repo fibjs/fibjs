@@ -23,7 +23,7 @@ public:
 	class Info: public ZipInfo_base
 	{
 	public:
-		Info(const char* name, unz_file_info64& info);
+		Info(exlib::string name, unz_file_info64& info);
 
 	public:
 		// ZipInfo_base
@@ -46,28 +46,28 @@ public:
 	};
 
 public:
-	ZipFile(SeekableStream_base* strm, const char* mod, int32_t compress_type);
+	ZipFile(SeekableStream_base* strm, exlib::string mod, int32_t compress_type);
 
 public:
 	// ZipFile_base
 	virtual result_t namelist(obj_ptr<List_base>& retVal, AsyncEvent* ac);
 	virtual result_t infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac);
-	virtual result_t getinfo(const char* member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac);
-	virtual result_t read(const char* member, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+	virtual result_t getinfo(exlib::string member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac);
+	virtual result_t read(exlib::string member, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
 	virtual result_t readAll(obj_ptr<List_base>& retVal, AsyncEvent* ac);
-	virtual result_t extract(const char* member, const char* path, AsyncEvent* ac);
-	virtual result_t extract(const char* member, SeekableStream_base* strm, AsyncEvent* ac);
-	virtual result_t extractAll(const char* path, AsyncEvent* ac);
-	virtual result_t write(const char* filename, AsyncEvent* ac);
-	virtual result_t write(Buffer_base* data, const char* inZipName, AsyncEvent* ac);
-	virtual result_t write(SeekableStream_base* strm, const char* inZipName, AsyncEvent* ac);
+	virtual result_t extract(exlib::string member, exlib::string path, AsyncEvent* ac);
+	virtual result_t extract(exlib::string member, SeekableStream_base* strm, AsyncEvent* ac);
+	virtual result_t extractAll(exlib::string path, AsyncEvent* ac);
+	virtual result_t write(exlib::string filename, AsyncEvent* ac);
+	virtual result_t write(Buffer_base* data, exlib::string inZipName, AsyncEvent* ac);
+	virtual result_t write(SeekableStream_base* strm, exlib::string inZipName, AsyncEvent* ac);
 	virtual result_t close(AsyncEvent* ac);
 
 private:
 	result_t get_info(obj_ptr<Info>& retVal);
-	result_t extract(SeekableStream_base* strm, const char* password);
-	result_t read(const char* password, obj_ptr<Buffer_base>& retVal);
-	result_t write(const char* filename, const char* password, SeekableStream_base* strm);
+	result_t extract(SeekableStream_base* strm, exlib::string password);
+	result_t read(exlib::string password, obj_ptr<Buffer_base>& retVal);
+	result_t write(exlib::string filename, exlib::string password, SeekableStream_base* strm);
 
 private:
 	unzFile m_unz;

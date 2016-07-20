@@ -92,7 +92,7 @@ result_t Expect::get_deep(obj_ptr<Expect_base> &retVal)
   return 0;
 }
 
-result_t Expect::a(const char *type)
+result_t Expect::a(exlib::string type)
 {
   return !m_not ?
          assert_base::typeOf(m_actual, type, m_msg.c_str()) :
@@ -100,7 +100,7 @@ result_t Expect::a(const char *type)
   return 0;
 }
 
-result_t Expect::an(const char *type)
+result_t Expect::an(exlib::string type)
 {
   return a(type);
 }

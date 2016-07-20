@@ -33,10 +33,10 @@ public:
 
 public:
     // zip_base
-    static result_t isZipFile(const char* filename, bool& retVal, AsyncEvent* ac);
-    static result_t open(const char* path, const char* mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
-    static result_t open(Buffer_base* data, const char* mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
-    static result_t open(SeekableStream_base* strm, const char* mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+    static result_t isZipFile(exlib::string filename, bool& retVal, AsyncEvent* ac);
+    static result_t open(exlib::string path, exlib::string mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+    static result_t open(Buffer_base* data, exlib::string mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+    static result_t open(SeekableStream_base* strm, exlib::string mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -56,10 +56,10 @@ public:
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE2(zip_base, isZipFile, const char*, bool);
-    ASYNC_STATICVALUE4(zip_base, open, const char*, const char*, int32_t, obj_ptr<ZipFile_base>);
-    ASYNC_STATICVALUE4(zip_base, open, Buffer_base*, const char*, int32_t, obj_ptr<ZipFile_base>);
-    ASYNC_STATICVALUE4(zip_base, open, SeekableStream_base*, const char*, int32_t, obj_ptr<ZipFile_base>);
+    ASYNC_STATICVALUE2(zip_base, isZipFile, exlib::string, bool);
+    ASYNC_STATICVALUE4(zip_base, open, exlib::string, exlib::string, int32_t, obj_ptr<ZipFile_base>);
+    ASYNC_STATICVALUE4(zip_base, open, Buffer_base*, exlib::string, int32_t, obj_ptr<ZipFile_base>);
+    ASYNC_STATICVALUE4(zip_base, open, SeekableStream_base*, exlib::string, int32_t, obj_ptr<ZipFile_base>);
 };
 
 }
@@ -115,7 +115,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_isZipFile(v0, vr, cb);
@@ -132,8 +132,8 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(3, 1);
 
-        ARG(arg_string, 0);
-        OPT_ARG(arg_string, 1, "r");
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "r");
         OPT_ARG(int32_t, 2, _ZIP_DEFLATED);
 
         if(!cb.IsEmpty()) {
@@ -145,7 +145,7 @@ namespace fibjs
         METHOD_OVER(3, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
-        OPT_ARG(arg_string, 1, "r");
+        OPT_ARG(exlib::string, 1, "r");
         OPT_ARG(int32_t, 2, _ZIP_DEFLATED);
 
         if(!cb.IsEmpty()) {
@@ -157,7 +157,7 @@ namespace fibjs
         METHOD_OVER(3, 1);
 
         ARG(obj_ptr<SeekableStream_base>, 0);
-        OPT_ARG(arg_string, 1, "r");
+        OPT_ARG(exlib::string, 1, "r");
         OPT_ARG(int32_t, 2, _ZIP_DEFLATED);
 
         if(!cb.IsEmpty()) {

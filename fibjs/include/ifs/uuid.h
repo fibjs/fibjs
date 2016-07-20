@@ -34,12 +34,12 @@ public:
 
 public:
     // uuid_base
-    static result_t uuid(const char* s, obj_ptr<uuidValue_base>& retVal);
+    static result_t uuid(exlib::string s, obj_ptr<uuidValue_base>& retVal);
     static result_t uuid(Buffer_base* data, obj_ptr<uuidValue_base>& retVal);
     static result_t node(obj_ptr<uuidValue_base>& retVal);
-    static result_t md5(int32_t ns, const char* name, obj_ptr<uuidValue_base>& retVal);
+    static result_t md5(int32_t ns, exlib::string name, obj_ptr<uuidValue_base>& retVal);
     static result_t random(obj_ptr<uuidValue_base>& retVal);
-    static result_t sha1(int32_t ns, const char* name, obj_ptr<uuidValue_base>& retVal);
+    static result_t sha1(int32_t ns, exlib::string name, obj_ptr<uuidValue_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -135,7 +135,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = uuid(v0, vr);
 
@@ -166,7 +166,7 @@ namespace fibjs
         METHOD_ENTER(2, 2);
 
         ARG(int32_t, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 1);
 
         hr = md5(v0, v1, vr);
 
@@ -191,7 +191,7 @@ namespace fibjs
         METHOD_ENTER(2, 2);
 
         ARG(int32_t, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 1);
 
         hr = sha1(v0, v1, vr);
 

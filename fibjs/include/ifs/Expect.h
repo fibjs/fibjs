@@ -36,8 +36,8 @@ public:
     virtual result_t get_same(obj_ptr<Expect_base>& retVal) = 0;
     virtual result_t get_not(obj_ptr<Expect_base>& retVal) = 0;
     virtual result_t get_deep(obj_ptr<Expect_base>& retVal) = 0;
-    virtual result_t a(const char* type) = 0;
-    virtual result_t an(const char* type) = 0;
+    virtual result_t a(exlib::string type) = 0;
+    virtual result_t an(exlib::string type) = 0;
     virtual result_t get_ok(bool& retVal) = 0;
     virtual result_t get_true(bool& retVal) = 0;
     virtual result_t get_false(bool& retVal) = 0;
@@ -480,7 +480,7 @@ namespace fibjs
         METHOD_INSTANCE(Expect_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->a(v0);
 
@@ -492,7 +492,7 @@ namespace fibjs
         METHOD_INSTANCE(Expect_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->an(v0);
 

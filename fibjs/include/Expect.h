@@ -16,7 +16,7 @@ namespace fibjs
 class Expect: public Expect_base
 {
 public:
-    Expect(v8::Local<v8::Value> actual, const char *msg) :
+    Expect(v8::Local<v8::Value> actual, exlib::string msg) :
         m_msg(msg), m_not(false), m_deep(false)
     {
         m_actual = actual;
@@ -37,8 +37,8 @@ public:
     virtual result_t get_same(obj_ptr<Expect_base> &retVal);
     virtual result_t get_not(obj_ptr<Expect_base> &retVal);
     virtual result_t get_deep(obj_ptr<Expect_base> &retVal);
-    virtual result_t a(const char *type);
-    virtual result_t an(const char *type);
+    virtual result_t a(exlib::string type);
+    virtual result_t an(exlib::string type);
     virtual result_t get_ok(bool &retVal);
     virtual result_t get_true(bool &retVal);
     virtual result_t get_false(bool &retVal);

@@ -24,7 +24,7 @@ result_t HttpCookie_base::_new(v8::Local<v8::Object> opts,
     return 0;
 }
 
-result_t HttpCookie_base::_new(const char *name, const char *value,
+result_t HttpCookie_base::_new(exlib::string name, exlib::string value,
                                v8::Local<v8::Object> opts,
                                obj_ptr<HttpCookie_base> &retVal,
                                v8::Local<v8::Object> This)
@@ -40,7 +40,7 @@ result_t HttpCookie_base::_new(const char *name, const char *value,
     return 0;
 }
 
-result_t HttpCookie::parse(const char *header)
+result_t HttpCookie::parse(exlib::string header)
 {
     _parser p(header);
     exlib::string key, value;
@@ -102,7 +102,7 @@ result_t HttpCookie::fill(v8::Local<v8::Object> opts, bool bBase)
     return 0;
 }
 
-result_t HttpCookie::match(const char *url, bool &retVal)
+result_t HttpCookie::match(exlib::string url, bool &retVal)
 {
     obj_ptr<Url> u = new Url();
 
@@ -185,7 +185,7 @@ result_t HttpCookie::get_name(exlib::string &retVal)
     return 0;
 }
 
-result_t HttpCookie::set_name(const char *newVal)
+result_t HttpCookie::set_name(exlib::string newVal)
 {
     m_name = newVal;
     return 0;
@@ -197,7 +197,7 @@ result_t HttpCookie::get_value(exlib::string &retVal)
     return 0;
 }
 
-result_t HttpCookie::set_value(const char *newVal)
+result_t HttpCookie::set_value(exlib::string newVal)
 {
     m_value = newVal;
     return 0;
@@ -209,7 +209,7 @@ result_t HttpCookie::get_domain(exlib::string &retVal)
     return 0;
 }
 
-result_t HttpCookie::set_domain(const char *newVal)
+result_t HttpCookie::set_domain(exlib::string newVal)
 {
     m_domain = newVal;
     return 0;
@@ -221,7 +221,7 @@ result_t HttpCookie::get_path(exlib::string &retVal)
     return 0;
 }
 
-result_t HttpCookie::set_path(const char *newVal)
+result_t HttpCookie::set_path(exlib::string newVal)
 {
     m_path = newVal;
     return 0;

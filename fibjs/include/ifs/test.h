@@ -33,16 +33,16 @@ public:
 
 public:
     // test_base
-    static result_t describe(const char* name, v8::Local<v8::Function> block);
-    static result_t xdescribe(const char* name, v8::Local<v8::Function> block);
-    static result_t it(const char* name, v8::Local<v8::Function> block);
-    static result_t xit(const char* name, v8::Local<v8::Function> block);
+    static result_t describe(exlib::string name, v8::Local<v8::Function> block);
+    static result_t xdescribe(exlib::string name, v8::Local<v8::Function> block);
+    static result_t it(exlib::string name, v8::Local<v8::Function> block);
+    static result_t xit(exlib::string name, v8::Local<v8::Function> block);
     static result_t before(v8::Local<v8::Function> func);
     static result_t after(v8::Local<v8::Function> func);
     static result_t beforeEach(v8::Local<v8::Function> func);
     static result_t afterEach(v8::Local<v8::Function> func);
     static result_t run(int32_t loglevel, int32_t& retVal);
-    static result_t expect(v8::Local<v8::Value> actual, const char* msg, obj_ptr<Expect_base>& retVal);
+    static result_t expect(v8::Local<v8::Value> actual, exlib::string msg, obj_ptr<Expect_base>& retVal);
     static result_t setup(int32_t mode);
     static result_t get_slow(int32_t& retVal);
     static result_t set_slow(int32_t newVal);
@@ -163,7 +163,7 @@ namespace fibjs
     {
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
         hr = describe(v0, v1);
@@ -175,7 +175,7 @@ namespace fibjs
     {
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
         hr = xdescribe(v0, v1);
@@ -187,7 +187,7 @@ namespace fibjs
     {
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
         hr = it(v0, v1);
@@ -199,7 +199,7 @@ namespace fibjs
     {
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
         hr = xit(v0, v1);
@@ -271,7 +271,7 @@ namespace fibjs
         METHOD_ENTER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(arg_string, 1, "");
+        OPT_ARG(exlib::string, 1, "");
 
         hr = expect(v0, v1, vr);
 

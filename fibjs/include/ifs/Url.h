@@ -24,10 +24,10 @@ class Url_base : public object_base
 public:
     // Url_base
     static result_t _new(v8::Local<v8::Object> args, obj_ptr<Url_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(const char* url, obj_ptr<Url_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t parse(const char* url) = 0;
+    static result_t _new(exlib::string url, obj_ptr<Url_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t parse(exlib::string url) = 0;
     virtual result_t format(v8::Local<v8::Object> args) = 0;
-    virtual result_t resolve(const char* url, obj_ptr<Url_base>& retVal) = 0;
+    virtual result_t resolve(exlib::string url, obj_ptr<Url_base>& retVal) = 0;
     virtual result_t normalize() = 0;
     virtual result_t get_href(exlib::string& retVal) = 0;
     virtual result_t get_protocol(exlib::string& retVal) = 0;
@@ -299,7 +299,7 @@ namespace fibjs
 
         METHOD_OVER(1, 0);
 
-        OPT_ARG(arg_string, 0, "");
+        OPT_ARG(exlib::string, 0, "");
 
         hr = _new(v0, vr, args.This());
 
@@ -311,7 +311,7 @@ namespace fibjs
         METHOD_INSTANCE(Url_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->parse(v0);
 
@@ -337,7 +337,7 @@ namespace fibjs
         METHOD_INSTANCE(Url_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->resolve(v0, vr);
 

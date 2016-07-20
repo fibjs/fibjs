@@ -30,15 +30,15 @@ public:
     // ZipFile_base
     virtual result_t namelist(obj_ptr<List_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t getinfo(const char* member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t read(const char* member, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t getinfo(exlib::string member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t read(exlib::string member, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t readAll(obj_ptr<List_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t extract(const char* member, const char* path, AsyncEvent* ac) = 0;
-    virtual result_t extract(const char* member, SeekableStream_base* strm, AsyncEvent* ac) = 0;
-    virtual result_t extractAll(const char* path, AsyncEvent* ac) = 0;
-    virtual result_t write(const char* filename, AsyncEvent* ac) = 0;
-    virtual result_t write(Buffer_base* data, const char* inZipName, AsyncEvent* ac) = 0;
-    virtual result_t write(SeekableStream_base* strm, const char* inZipName, AsyncEvent* ac) = 0;
+    virtual result_t extract(exlib::string member, exlib::string path, AsyncEvent* ac) = 0;
+    virtual result_t extract(exlib::string member, SeekableStream_base* strm, AsyncEvent* ac) = 0;
+    virtual result_t extractAll(exlib::string path, AsyncEvent* ac) = 0;
+    virtual result_t write(exlib::string filename, AsyncEvent* ac) = 0;
+    virtual result_t write(Buffer_base* data, exlib::string inZipName, AsyncEvent* ac) = 0;
+    virtual result_t write(SeekableStream_base* strm, exlib::string inZipName, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
 
 public:
@@ -66,15 +66,15 @@ public:
 public:
     ASYNC_MEMBERVALUE1(ZipFile_base, namelist, obj_ptr<List_base>);
     ASYNC_MEMBERVALUE1(ZipFile_base, infolist, obj_ptr<List_base>);
-    ASYNC_MEMBERVALUE2(ZipFile_base, getinfo, const char*, obj_ptr<ZipInfo_base>);
-    ASYNC_MEMBERVALUE2(ZipFile_base, read, const char*, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE2(ZipFile_base, getinfo, exlib::string, obj_ptr<ZipInfo_base>);
+    ASYNC_MEMBERVALUE2(ZipFile_base, read, exlib::string, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE1(ZipFile_base, readAll, obj_ptr<List_base>);
-    ASYNC_MEMBER2(ZipFile_base, extract, const char*, const char*);
-    ASYNC_MEMBER2(ZipFile_base, extract, const char*, SeekableStream_base*);
-    ASYNC_MEMBER1(ZipFile_base, extractAll, const char*);
-    ASYNC_MEMBER1(ZipFile_base, write, const char*);
-    ASYNC_MEMBER2(ZipFile_base, write, Buffer_base*, const char*);
-    ASYNC_MEMBER2(ZipFile_base, write, SeekableStream_base*, const char*);
+    ASYNC_MEMBER2(ZipFile_base, extract, exlib::string, exlib::string);
+    ASYNC_MEMBER2(ZipFile_base, extract, exlib::string, SeekableStream_base*);
+    ASYNC_MEMBER1(ZipFile_base, extractAll, exlib::string);
+    ASYNC_MEMBER1(ZipFile_base, write, exlib::string);
+    ASYNC_MEMBER2(ZipFile_base, write, Buffer_base*, exlib::string);
+    ASYNC_MEMBER2(ZipFile_base, write, SeekableStream_base*, exlib::string);
     ASYNC_MEMBER0(ZipFile_base, close);
 };
 
@@ -153,7 +153,7 @@ namespace fibjs
         METHOD_INSTANCE(ZipFile_base);
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_getinfo(v0, vr, cb);
@@ -171,7 +171,7 @@ namespace fibjs
         METHOD_INSTANCE(ZipFile_base);
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_read(v0, vr, cb);
@@ -203,8 +203,8 @@ namespace fibjs
         METHOD_INSTANCE(ZipFile_base);
         ASYNC_METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         if(!cb.IsEmpty()) {
             pInst->acb_extract(v0, v1, cb);
@@ -214,7 +214,7 @@ namespace fibjs
 
         METHOD_OVER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(obj_ptr<SeekableStream_base>, 1);
 
         if(!cb.IsEmpty()) {
@@ -231,7 +231,7 @@ namespace fibjs
         METHOD_INSTANCE(ZipFile_base);
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_extractAll(v0, cb);
@@ -247,7 +247,7 @@ namespace fibjs
         METHOD_INSTANCE(ZipFile_base);
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_write(v0, cb);
@@ -258,7 +258,7 @@ namespace fibjs
         METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 1);
 
         if(!cb.IsEmpty()) {
             pInst->acb_write(v0, v1, cb);
@@ -269,7 +269,7 @@ namespace fibjs
         METHOD_OVER(2, 2);
 
         ARG(obj_ptr<SeekableStream_base>, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 1);
 
         if(!cb.IsEmpty()) {
             pInst->acb_write(v0, v1, cb);

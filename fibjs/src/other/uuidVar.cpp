@@ -16,12 +16,12 @@ namespace fibjs
 
 DECLARE_MODULE(uuid);
 
-result_t uuid_base::uuid(const char *s, obj_ptr<uuidValue_base> &retVal)
+result_t uuid_base::uuid(exlib::string s, obj_ptr<uuidValue_base> &retVal)
 {
     obj_ptr<uuidVar> id = new uuidVar();
 
     uuid_create(&id->m_uid);
-    uuid_import(id->m_uid, UUID_FMT_STR, s, qstrlen(s));
+    uuid_import(id->m_uid, UUID_FMT_STR, s.c_str(), s.length());
     retVal = id;
 
     return 0;
@@ -46,7 +46,7 @@ static uuid_st *s_ns[4];
 static const char *s_ns_str[4] =
 { "ns:DNS", "ns:URL", "ns:OID", "ns:X500" };
 
-result_t makeUUID(int32_t vers, int32_t ns, const char *name,
+result_t makeUUID(int32_t vers, int32_t ns, exlib::string name,
                   obj_ptr<uuidValue_base> &retVal)
 {
     if (ns < uuid_base::_DNS || ns > uuid_base::_X509)
@@ -64,7 +64,7 @@ result_t makeUUID(int32_t vers, int32_t ns, const char *name,
             uuid_load(s_ns[ns], s_ns_str[ns]);
         }
 
-        uuid_make(id->m_uid, vers, s_ns[ns], name);
+        uuid_make(id->m_uid, vers, s_ns[ns], name.c_str());
     }
     else
         uuid_make(id->m_uid, vers);
@@ -76,10 +76,10 @@ result_t makeUUID(int32_t vers, int32_t ns, const char *name,
 
 result_t uuid_base::node(obj_ptr<uuidValue_base> &retVal)
 {
-    return makeUUID(UUID_MAKE_V1, uuid_base::_X509, NULL, retVal);
+    return makeUUID(UUID_MAKE_V1, uuid_base::_X509, "", retVal);
 }
 
-result_t uuid_base::md5(int32_t ns, const char *name,
+result_t uuid_base::md5(int32_t ns, exlib::string name,
                         obj_ptr<uuidValue_base> &retVal)
 {
     return makeUUID(UUID_MAKE_V3, ns, name, retVal);
@@ -87,10 +87,10 @@ result_t uuid_base::md5(int32_t ns, const char *name,
 
 result_t uuid_base::random(obj_ptr<uuidValue_base> &retVal)
 {
-    return makeUUID(UUID_MAKE_V4, uuid_base::_X509, NULL, retVal);
+    return makeUUID(UUID_MAKE_V4, uuid_base::_X509, "", retVal);
 }
 
-result_t uuid_base::sha1(int32_t ns, const char *name,
+result_t uuid_base::sha1(int32_t ns, exlib::string name,
                          obj_ptr<uuidValue_base> &retVal)
 {
     return makeUUID(UUID_MAKE_V5, ns, name, retVal);

@@ -45,11 +45,10 @@ enum
 
 class _case: public obj_base
 {
-    _case(const char *name = NULL) :
+    _case(exlib::string name = "") :
         m_pos(0), m_error(false)
     {
-        if (name)
-            m_name = name;
+        m_name = name;
     }
 
     ~_case()
@@ -71,7 +70,7 @@ public:
             td->m_root = td->m_now = new _case();
     }
 
-    static result_t enter(const char *name)
+    static result_t enter(exlib::string name)
     {
         TestData* td = TestData::current();
 
@@ -84,7 +83,7 @@ public:
         return 0;
     }
 
-    static result_t it(const char *name, v8::Local<v8::Function> block)
+    static result_t it(exlib::string name, v8::Local<v8::Function> block)
     {
         TestData* td = TestData::current();
 
@@ -347,7 +346,7 @@ private:
     bool m_error;
 };
 
-result_t test_base::describe(const char *name, v8::Local<v8::Function> block)
+result_t test_base::describe(exlib::string name, v8::Local<v8::Function> block)
 {
     TestData* td = TestData::current();
 
@@ -365,17 +364,17 @@ result_t test_base::describe(const char *name, v8::Local<v8::Function> block)
     return 0;
 }
 
-result_t test_base::xdescribe(const char *name, v8::Local<v8::Function> block)
+result_t test_base::xdescribe(exlib::string name, v8::Local<v8::Function> block)
 {
     return 0;
 }
 
-result_t test_base::it(const char *name, v8::Local<v8::Function> block)
+result_t test_base::it(exlib::string name, v8::Local<v8::Function> block)
 {
     return _case::it(name, block);
 }
 
-result_t test_base::xit(const char *name, v8::Local<v8::Function> block)
+result_t test_base::xit(exlib::string name, v8::Local<v8::Function> block)
 {
     return 0;
 }
@@ -405,7 +404,7 @@ result_t test_base::run(int32_t loglevel, int32_t& retVal)
     return _case::run(loglevel, retVal);
 }
 
-result_t test_base::expect(v8::Local<v8::Value> actual, const char *msg,
+result_t test_base::expect(v8::Local<v8::Value> actual, exlib::string msg,
                            obj_ptr<Expect_base> &retVal)
 {
     retVal = new Expect(actual, msg);
