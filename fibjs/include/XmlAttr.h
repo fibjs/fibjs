@@ -19,21 +19,22 @@ class XmlElement;
 class XmlAttr: public XmlAttr_base
 {
 public:
-    XmlAttr(XmlElement *owner, const char *name, const char *value):
+    XmlAttr(XmlElement *owner, exlib::string name, exlib::string value):
         m_owner(owner), m_name(name), m_localName(m_name), m_value(value)
     {
     }
 
-    XmlAttr(XmlElement *owner, const char *namespaceURI, const char *qualifiedName,
-            const char *value):
+    XmlAttr(XmlElement *owner, exlib::string namespaceURI, exlib::string qualifiedName,
+            exlib::string value):
         m_owner(owner), m_name(qualifiedName), m_namespaceURI(namespaceURI), m_value(value)
     {
-        const char *p = qstrchr(qualifiedName, ':');
+        const char *c_str = qualifiedName.c_str();
+        const char *p = qstrchr(c_str, ':');
         if (!p)
             m_localName = m_name;
         else
         {
-            m_prefix.assign(qualifiedName, p - qualifiedName);
+            m_prefix.assign(c_str, p - c_str);
             m_localName.assign(p + 1);
         }
     }
@@ -52,23 +53,23 @@ public:
     // XmlAttr_base
     virtual result_t get_localName(exlib::string &retVal);
     virtual result_t get_value(exlib::string &retVal);
-    virtual result_t set_value(const char *newVal);
+    virtual result_t set_value(exlib::string newVal);
     virtual result_t get_name(exlib::string &retVal);
     virtual result_t get_namespaceURI(exlib::string &retVal);
     virtual result_t get_prefix(exlib::string &retVal);
-    virtual result_t set_prefix(const char *newVal);
+    virtual result_t set_prefix(exlib::string newVal);
     virtual result_t get_nodeName(exlib::string &retVal);
     virtual result_t get_nodeValue(exlib::string &retVal);
-    virtual result_t set_nodeValue(const char *newVal);
+    virtual result_t set_nodeValue(exlib::string newVal);
 
 public:
-    bool check(const char *namespaceURI, const char *localName)
+    bool check(exlib::string namespaceURI, exlib::string localName)
     {
         return (m_namespaceURI == namespaceURI) &&
                (m_localName == localName);
     }
 
-    bool check(const char *name)
+    bool check(exlib::string name)
     {
         return (m_name == name);
     }
@@ -80,14 +81,14 @@ public:
         return check(from->m_namespaceURI.c_str(), from->m_localName.c_str());
     }
 
-    bool check_namespaceURI(const char *namespaceURI)
+    bool check_namespaceURI(exlib::string namespaceURI)
     {
         return (m_namespaceURI == "http://www.w3.org/2000/xmlns/") &&
                (m_prefix == "xmlns") &&
                (m_value == namespaceURI);
     }
 
-    bool check_prefix(const char *prefix)
+    bool check_prefix(exlib::string prefix)
     {
         return (m_namespaceURI == "http://www.w3.org/2000/xmlns/") &&
                (m_prefix == "xmlns") &&

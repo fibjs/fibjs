@@ -34,27 +34,27 @@ class XmlDocument_base : public XmlNode_base
 
 public:
     // XmlDocument_base
-    static result_t _new(const char* type, obj_ptr<XmlDocument_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t load(const char* source) = 0;
+    static result_t _new(exlib::string type, obj_ptr<XmlDocument_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t load(exlib::string source) = 0;
     virtual result_t load(Buffer_base* source) = 0;
     virtual result_t get_inputEncoding(exlib::string& retVal) = 0;
     virtual result_t get_xmlStandalone(bool& retVal) = 0;
     virtual result_t set_xmlStandalone(bool newVal) = 0;
     virtual result_t get_xmlVersion(exlib::string& retVal) = 0;
-    virtual result_t set_xmlVersion(const char* newVal) = 0;
+    virtual result_t set_xmlVersion(exlib::string newVal) = 0;
     virtual result_t get_doctype(obj_ptr<XmlDocumentType_base>& retVal) = 0;
     virtual result_t get_documentElement(obj_ptr<XmlElement_base>& retVal) = 0;
     virtual result_t get_head(obj_ptr<XmlElement_base>& retVal) = 0;
     virtual result_t get_title(exlib::string& retVal) = 0;
     virtual result_t get_body(obj_ptr<XmlElement_base>& retVal) = 0;
-    virtual result_t getElementsByTagName(const char* tagName, obj_ptr<XmlNodeList_base>& retVal) = 0;
-    virtual result_t getElementsByTagNameNS(const char* namespaceURI, const char* localName, obj_ptr<XmlNodeList_base>& retVal) = 0;
-    virtual result_t createElement(const char* tagName, obj_ptr<XmlElement_base>& retVal) = 0;
-    virtual result_t createElementNS(const char* namespaceURI, const char* qualifiedName, obj_ptr<XmlElement_base>& retVal) = 0;
-    virtual result_t createTextNode(const char* data, obj_ptr<XmlText_base>& retVal) = 0;
-    virtual result_t createComment(const char* data, obj_ptr<XmlComment_base>& retVal) = 0;
-    virtual result_t createCDATASection(const char* data, obj_ptr<XmlCDATASection_base>& retVal) = 0;
-    virtual result_t createProcessingInstruction(const char* target, const char* data, obj_ptr<XmlProcessingInstruction_base>& retVal) = 0;
+    virtual result_t getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal) = 0;
+    virtual result_t getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlNodeList_base>& retVal) = 0;
+    virtual result_t createElement(exlib::string tagName, obj_ptr<XmlElement_base>& retVal) = 0;
+    virtual result_t createElementNS(exlib::string namespaceURI, exlib::string qualifiedName, obj_ptr<XmlElement_base>& retVal) = 0;
+    virtual result_t createTextNode(exlib::string data, obj_ptr<XmlText_base>& retVal) = 0;
+    virtual result_t createComment(exlib::string data, obj_ptr<XmlComment_base>& retVal) = 0;
+    virtual result_t createCDATASection(exlib::string data, obj_ptr<XmlCDATASection_base>& retVal) = 0;
+    virtual result_t createProcessingInstruction(exlib::string target, exlib::string data, obj_ptr<XmlProcessingInstruction_base>& retVal) = 0;
 
 public:
     template<typename T>
@@ -186,7 +186,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlDocument_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_xmlVersion(v0);
 
         PROPERTY_SET_LEAVE();
@@ -264,7 +264,7 @@ namespace fibjs
 
         CONSTRUCT_ENTER(1, 0);
 
-        OPT_ARG(arg_string, 0, "text/xml");
+        OPT_ARG(exlib::string, 0, "text/xml");
 
         hr = _new(v0, vr, args.This());
 
@@ -276,7 +276,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlDocument_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->load(v0);
 
@@ -296,7 +296,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlDocument_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->getElementsByTagName(v0, vr);
 
@@ -310,8 +310,8 @@ namespace fibjs
         METHOD_INSTANCE(XmlDocument_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         hr = pInst->getElementsByTagNameNS(v0, v1, vr);
 
@@ -325,7 +325,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlDocument_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->createElement(v0, vr);
 
@@ -339,8 +339,8 @@ namespace fibjs
         METHOD_INSTANCE(XmlDocument_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         hr = pInst->createElementNS(v0, v1, vr);
 
@@ -354,7 +354,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlDocument_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->createTextNode(v0, vr);
 
@@ -368,7 +368,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlDocument_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->createComment(v0, vr);
 
@@ -382,7 +382,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlDocument_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->createCDATASection(v0, vr);
 
@@ -396,8 +396,8 @@ namespace fibjs
         METHOD_INSTANCE(XmlDocument_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         hr = pInst->createProcessingInstruction(v0, v1, vr);
 

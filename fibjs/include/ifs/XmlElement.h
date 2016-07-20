@@ -30,28 +30,28 @@ public:
     // XmlElement_base
     virtual result_t get_namespaceURI(exlib::string& retVal) = 0;
     virtual result_t get_prefix(exlib::string& retVal) = 0;
-    virtual result_t set_prefix(const char* newVal) = 0;
+    virtual result_t set_prefix(exlib::string newVal) = 0;
     virtual result_t get_localName(exlib::string& retVal) = 0;
     virtual result_t get_tagName(exlib::string& retVal) = 0;
     virtual result_t get_id(exlib::string& retVal) = 0;
-    virtual result_t set_id(const char* newVal) = 0;
+    virtual result_t set_id(exlib::string newVal) = 0;
     virtual result_t get_textContent(exlib::string& retVal) = 0;
-    virtual result_t set_textContent(const char* newVal) = 0;
+    virtual result_t set_textContent(exlib::string newVal) = 0;
     virtual result_t get_innerHTML(exlib::string& retVal) = 0;
-    virtual result_t set_innerHTML(const char* newVal) = 0;
+    virtual result_t set_innerHTML(exlib::string newVal) = 0;
     virtual result_t get_className(exlib::string& retVal) = 0;
-    virtual result_t set_className(const char* newVal) = 0;
+    virtual result_t set_className(exlib::string newVal) = 0;
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal) = 0;
-    virtual result_t getAttribute(const char* name, exlib::string& retVal) = 0;
-    virtual result_t getAttributeNS(const char* namespaceURI, const char* localName, exlib::string& retVal) = 0;
-    virtual result_t setAttribute(const char* name, const char* value) = 0;
-    virtual result_t setAttributeNS(const char* namespaceURI, const char* qualifiedName, const char* value) = 0;
-    virtual result_t removeAttribute(const char* name) = 0;
-    virtual result_t removeAttributeNS(const char* namespaceURI, const char* localName) = 0;
-    virtual result_t hasAttribute(const char* name, bool& retVal) = 0;
-    virtual result_t hasAttributeNS(const char* namespaceURI, const char* localName, bool& retVal) = 0;
-    virtual result_t getElementsByTagName(const char* tagName, obj_ptr<XmlNodeList_base>& retVal) = 0;
-    virtual result_t getElementsByTagNameNS(const char* namespaceURI, const char* localName, obj_ptr<XmlNodeList_base>& retVal) = 0;
+    virtual result_t getAttribute(exlib::string name, exlib::string& retVal) = 0;
+    virtual result_t getAttributeNS(exlib::string namespaceURI, exlib::string localName, exlib::string& retVal) = 0;
+    virtual result_t setAttribute(exlib::string name, exlib::string value) = 0;
+    virtual result_t setAttributeNS(exlib::string namespaceURI, exlib::string qualifiedName, exlib::string value) = 0;
+    virtual result_t removeAttribute(exlib::string name) = 0;
+    virtual result_t removeAttributeNS(exlib::string namespaceURI, exlib::string localName) = 0;
+    virtual result_t hasAttribute(exlib::string name, bool& retVal) = 0;
+    virtual result_t hasAttributeNS(exlib::string namespaceURI, exlib::string localName, bool& retVal) = 0;
+    virtual result_t getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal) = 0;
+    virtual result_t getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlNodeList_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -167,7 +167,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_prefix(v0);
 
         PROPERTY_SET_LEAVE();
@@ -214,7 +214,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_id(v0);
 
         PROPERTY_SET_LEAVE();
@@ -237,7 +237,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_textContent(v0);
 
         PROPERTY_SET_LEAVE();
@@ -260,7 +260,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_innerHTML(v0);
 
         PROPERTY_SET_LEAVE();
@@ -283,7 +283,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlElement_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_className(v0);
 
         PROPERTY_SET_LEAVE();
@@ -308,7 +308,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlElement_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->getAttribute(v0, vr);
 
@@ -322,8 +322,8 @@ namespace fibjs
         METHOD_INSTANCE(XmlElement_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         hr = pInst->getAttributeNS(v0, v1, vr);
 
@@ -335,8 +335,8 @@ namespace fibjs
         METHOD_INSTANCE(XmlElement_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         hr = pInst->setAttribute(v0, v1);
 
@@ -348,9 +348,9 @@ namespace fibjs
         METHOD_INSTANCE(XmlElement_base);
         METHOD_ENTER(3, 3);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
-        ARG(arg_string, 2);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
+        ARG(exlib::string, 2);
 
         hr = pInst->setAttributeNS(v0, v1, v2);
 
@@ -362,7 +362,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlElement_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->removeAttribute(v0);
 
@@ -374,8 +374,8 @@ namespace fibjs
         METHOD_INSTANCE(XmlElement_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         hr = pInst->removeAttributeNS(v0, v1);
 
@@ -389,7 +389,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlElement_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->hasAttribute(v0, vr);
 
@@ -403,8 +403,8 @@ namespace fibjs
         METHOD_INSTANCE(XmlElement_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         hr = pInst->hasAttributeNS(v0, v1, vr);
 
@@ -418,7 +418,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlElement_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->getElementsByTagName(v0, vr);
 
@@ -432,8 +432,8 @@ namespace fibjs
         METHOD_INSTANCE(XmlElement_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         hr = pInst->getElementsByTagNameNS(v0, v1, vr);
 

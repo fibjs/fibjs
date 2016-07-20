@@ -23,12 +23,12 @@ namespace fibjs
 
 DECLARE_MODULE(xml);
 
-result_t XmlDocument_base::_new(const char *type, obj_ptr<XmlDocument_base> &retVal,
+result_t XmlDocument_base::_new(exlib::string type, obj_ptr<XmlDocument_base> &retVal,
                                 v8::Local<v8::Object> This)
 {
-    bool isXml = !qstrcmp(type, "text/xml");
+    bool isXml = type == "text/xml";
 
-    if (!isXml && qstrcmp(type, "text/html"))
+    if (!isXml && (type != "text/html"))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = new XmlDocument(isXml);
@@ -36,11 +36,11 @@ result_t XmlDocument_base::_new(const char *type, obj_ptr<XmlDocument_base> &ret
     return 0;
 }
 
-result_t xml_base::parse(const char *source, const char *type, obj_ptr<XmlDocument_base> &retVal)
+result_t xml_base::parse(exlib::string source, exlib::string type, obj_ptr<XmlDocument_base> &retVal)
 {
-    bool isXml = !qstrcmp(type, "text/xml");
+    bool isXml = type == "text/xml";
 
-    if (!isXml && qstrcmp(type, "text/html"))
+    if (!isXml && (type != "text/html"))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = new XmlDocument(isXml);
@@ -48,11 +48,11 @@ result_t xml_base::parse(const char *source, const char *type, obj_ptr<XmlDocume
     return retVal->load(source);
 }
 
-result_t xml_base::parse(Buffer_base *source, const char *type, obj_ptr<XmlDocument_base> &retVal)
+result_t xml_base::parse(Buffer_base *source, exlib::string type, obj_ptr<XmlDocument_base> &retVal)
 {
-    bool isXml = !qstrcmp(type, "text/xml");
+    bool isXml = type == "text/xml";
 
-    if (!isXml && qstrcmp(type, "text/html"))
+    if (!isXml && (type != "text/html"))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = new XmlDocument(isXml);
@@ -76,7 +76,7 @@ result_t XmlDocument::get_nodeValue(exlib::string &retVal)
     return CALL_RETURN_NULL;
 }
 
-result_t XmlDocument::set_nodeValue(const char *newVal)
+result_t XmlDocument::set_nodeValue(exlib::string newVal)
 {
     return CALL_RETURN_NULL;
 }
@@ -150,7 +150,7 @@ result_t XmlDocument::checkNode(XmlNode_base *newChild)
     return 0;
 }
 
-result_t XmlDocument::lookupPrefix(const char *namespaceURI, exlib::string &retVal)
+result_t XmlDocument::lookupPrefix(exlib::string namespaceURI, exlib::string &retVal)
 {
     if (globalPrefix(namespaceURI, retVal))
         return 0;
@@ -161,7 +161,7 @@ result_t XmlDocument::lookupPrefix(const char *namespaceURI, exlib::string &retV
     return m_element->lookupPrefix(namespaceURI, retVal);
 }
 
-result_t XmlDocument::lookupNamespaceURI(const char *prefix, exlib::string &retVal)
+result_t XmlDocument::lookupNamespaceURI(exlib::string prefix, exlib::string &retVal)
 {
     if (globalNamespaceURI(prefix, retVal))
         return 0;
@@ -248,7 +248,7 @@ result_t XmlDocument::normalize()
     return m_childs->normalize();
 }
 
-result_t XmlDocument::load(const char *source)
+result_t XmlDocument::load(exlib::string source)
 {
     return m_isXml ? XmlParser::parse(this, source) : XmlParser::parseHtml(this, source);
 }
@@ -367,38 +367,38 @@ result_t XmlDocument::get_documentElement(obj_ptr<XmlElement_base> &retVal)
     return 0;
 }
 
-result_t XmlDocument::createElement(const char *tagName, obj_ptr<XmlElement_base> &retVal)
+result_t XmlDocument::createElement(exlib::string tagName, obj_ptr<XmlElement_base> &retVal)
 {
     retVal = new XmlElement(this, tagName, m_isXml);
     return 0;
 }
 
-result_t XmlDocument::createElementNS(const char *namespaceURI, const char *qualifiedName,
+result_t XmlDocument::createElementNS(exlib::string namespaceURI, exlib::string qualifiedName,
                                       obj_ptr<XmlElement_base> &retVal)
 {
     retVal = new XmlElement(this, namespaceURI, qualifiedName, m_isXml);
     return 0;
 }
 
-result_t XmlDocument::createTextNode(const char *data, obj_ptr<XmlText_base> &retVal)
+result_t XmlDocument::createTextNode(exlib::string data, obj_ptr<XmlText_base> &retVal)
 {
     retVal = new XmlText(this, data);
     return 0;
 }
 
-result_t XmlDocument::createComment(const char *data, obj_ptr<XmlComment_base> &retVal)
+result_t XmlDocument::createComment(exlib::string data, obj_ptr<XmlComment_base> &retVal)
 {
     retVal = new XmlComment(this, data);
     return 0;
 }
 
-result_t XmlDocument::createCDATASection(const char *data, obj_ptr<XmlCDATASection_base> &retVal)
+result_t XmlDocument::createCDATASection(exlib::string data, obj_ptr<XmlCDATASection_base> &retVal)
 {
     retVal = new XmlCDATASection(this, data);
     return 0;
 }
 
-result_t XmlDocument::createProcessingInstruction(const char *target, const char *data,
+result_t XmlDocument::createProcessingInstruction(exlib::string target, exlib::string data,
         obj_ptr<XmlProcessingInstruction_base> &retVal)
 {
     retVal = new XmlProcessingInstruction(this, target, data);
@@ -447,7 +447,7 @@ result_t XmlDocument::get_body(obj_ptr<XmlElement_base> &retVal)
     return CALL_RETURN_NULL;
 }
 
-result_t XmlDocument::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal)
+result_t XmlDocument::getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base> &retVal)
 {
     obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
     XmlElement *pEl = (XmlElement *)(XmlElement_base *)m_element;
@@ -459,7 +459,7 @@ result_t XmlDocument::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeL
     return 0;
 }
 
-result_t XmlDocument::getElementsByTagNameNS(const char *namespaceURI, const char *localName,
+result_t XmlDocument::getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName,
         obj_ptr<XmlNodeList_base> &retVal)
 {
     obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
@@ -505,7 +505,7 @@ result_t XmlDocument::get_xmlVersion(exlib::string &retVal)
     return 0;
 }
 
-result_t XmlDocument::set_xmlVersion(const char *newVal)
+result_t XmlDocument::set_xmlVersion(exlib::string newVal)
 {
     m_version = newVal;
     return 0;

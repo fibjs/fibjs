@@ -191,7 +191,7 @@ void XmlParser::OnEndCdataSection()
     leaveNode();
 }
 
-result_t XmlParser::parse(XmlDocument *doc, const char *source)
+result_t XmlParser::parse(XmlDocument *doc, exlib::string source)
 {
     XmlParser parser(doc, true);
 
@@ -211,7 +211,7 @@ result_t XmlParser::parse(XmlDocument *doc, const char *source)
     XML_SetCdataSectionHandler(xml_parser, StartCdataSectionHandler, EndCdataSectionHandler);
     XML_SetStartDoctypeDeclHandler(xml_parser, StartDoctypeDeclHandler);
 
-    if (XML_Parse(xml_parser, source, (int32_t)qstrlen(source), true) != XML_STATUS_OK)
+    if (XML_Parse(xml_parser, source.c_str(), (int32_t)source.length(), true) != XML_STATUS_OK)
     {
         char msg[128];
         sprintf(msg, "XmlParser: error on line %lu at colum %lu: %s", XML_GetCurrentLineNumber(xml_parser),

@@ -39,8 +39,8 @@ public:
 
 public:
     // xml_base
-    static result_t parse(const char* source, const char* type, obj_ptr<XmlDocument_base>& retVal);
-    static result_t parse(Buffer_base* source, const char* type, obj_ptr<XmlDocument_base>& retVal);
+    static result_t parse(exlib::string source, exlib::string type, obj_ptr<XmlDocument_base>& retVal);
+    static result_t parse(Buffer_base* source, exlib::string type, obj_ptr<XmlDocument_base>& retVal);
     static result_t serialize(XmlNode_base* node, exlib::string& retVal);
 
 public:
@@ -173,15 +173,15 @@ namespace fibjs
 
         METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
-        OPT_ARG(arg_string, 1, "text/xml");
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "text/xml");
 
         hr = parse(v0, v1, vr);
 
         METHOD_OVER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
-        OPT_ARG(arg_string, 1, "text/xml");
+        OPT_ARG(exlib::string, 1, "text/xml");
 
         hr = parse(v0, v1, vr);
 

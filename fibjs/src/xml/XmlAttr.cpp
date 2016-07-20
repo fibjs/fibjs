@@ -40,7 +40,7 @@ result_t XmlAttr::get_prefix(exlib::string &retVal)
     return 0;
 }
 
-result_t XmlAttr::set_prefix(const char *newVal)
+result_t XmlAttr::set_prefix(exlib::string newVal)
 {
     m_prefix = newVal;
     return 0;
@@ -64,7 +64,7 @@ result_t XmlAttr::get_value(exlib::string &retVal)
     return 0;
 }
 
-result_t XmlAttr::set_value(const char *newVal)
+result_t XmlAttr::set_value(exlib::string newVal)
 {
     m_value = newVal;
     return 0;
@@ -86,7 +86,7 @@ result_t XmlAttr::get_nodeValue(exlib::string &retVal)
     return get_value(retVal);
 }
 
-result_t XmlAttr::set_nodeValue(const char *newVal)
+result_t XmlAttr::set_nodeValue(exlib::string newVal)
 {
     return set_value(newVal);
 }

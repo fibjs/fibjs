@@ -7,7 +7,7 @@ interface XmlCharacterData : XmlNode
 {
     /*! @brief 该节点包含的文本
     */
-    String data;
+    XString data;
 
     /*! @brief 该节点包含的字符数
     */
@@ -17,18 +17,18 @@ interface XmlCharacterData : XmlNode
      @param offset 要返回的第一个字符的位置
      @param count 要返回的子串中的字符数
     */
-    String substringData(Integer offset, Integer count);
+    XString substringData(Integer offset, Integer count);
 
     /*! @brief 把字符串附加到节点上
      @param arg 要附加到节点的字符串
     */
-    appendData(String arg);
+    appendData(XString arg);
 
     /*! @brief 把字符串插入节点
      @param offset 要把字符串插入节点的字符位置
      @param arg 要插入的字符串
     */
-    insertData(Integer offset, String arg);
+    insertData(Integer offset, XString arg);
 
     /*! @brief 从节点删除文本
      @param offset 要删除的第一个字符的位置
@@ -41,5 +41,5 @@ interface XmlCharacterData : XmlNode
      @param count 要替换的字符的数量
      @param arg 要插入的字符串
     */
-    replaceData(Integer offset, Integer count, String arg);
+    replaceData(Integer offset, Integer count, XString arg);
 };

@@ -29,7 +29,7 @@ public:
     virtual result_t get_nodeType(int32_t& retVal) = 0;
     virtual result_t get_nodeName(exlib::string& retVal) = 0;
     virtual result_t get_nodeValue(exlib::string& retVal) = 0;
-    virtual result_t set_nodeValue(const char* newVal) = 0;
+    virtual result_t set_nodeValue(exlib::string newVal) = 0;
     virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base>& retVal) = 0;
     virtual result_t get_parentNode(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t hasChildNodes(bool& retVal) = 0;
@@ -40,8 +40,8 @@ public:
     virtual result_t get_nextSibling(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t normalize() = 0;
     virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal) = 0;
-    virtual result_t lookupPrefix(const char* namespaceURI, exlib::string& retVal) = 0;
-    virtual result_t lookupNamespaceURI(const char* prefix, exlib::string& retVal) = 0;
+    virtual result_t lookupPrefix(exlib::string namespaceURI, exlib::string& retVal) = 0;
+    virtual result_t lookupNamespaceURI(exlib::string prefix, exlib::string& retVal) = 0;
     virtual result_t insertBefore(XmlNode_base* newChild, XmlNode_base* refChild, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t insertAfter(XmlNode_base* newChild, XmlNode_base* refChild, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal) = 0;
@@ -172,7 +172,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlNode_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_nodeValue(v0);
 
         PROPERTY_SET_LEAVE();
@@ -305,7 +305,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlNode_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->lookupPrefix(v0, vr);
 
@@ -319,7 +319,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlNode_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->lookupNamespaceURI(v0, vr);
 

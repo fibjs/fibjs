@@ -28,7 +28,7 @@ public:
     // XmlProcessingInstruction_base
     virtual result_t get_target(exlib::string& retVal) = 0;
     virtual result_t get_data(exlib::string& retVal) = 0;
-    virtual result_t set_data(const char* newVal) = 0;
+    virtual result_t set_data(exlib::string newVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -100,7 +100,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlProcessingInstruction_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_data(v0);
 
         PROPERTY_SET_LEAVE();

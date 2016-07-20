@@ -27,7 +27,7 @@ result_t XmlElement::get_nodeValue(exlib::string &retVal)
     return CALL_RETURN_NULL;
 }
 
-result_t XmlElement::set_nodeValue(const char *newVal)
+result_t XmlElement::set_nodeValue(exlib::string newVal)
 {
     return 0;
 }
@@ -55,7 +55,7 @@ result_t XmlElement::get_prefix(exlib::string &retVal)
     return 0;
 }
 
-result_t XmlElement::set_prefix(const char *newVal)
+result_t XmlElement::set_prefix(exlib::string newVal)
 {
     m_prefix = newVal;
     return 0;
@@ -102,7 +102,7 @@ result_t XmlElement::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
-result_t XmlElement::lookupPrefix(const char *namespaceURI, exlib::string &retVal)
+result_t XmlElement::lookupPrefix(exlib::string namespaceURI, exlib::string &retVal)
 {
     if (globalPrefix(namespaceURI, retVal))
         return 0;
@@ -116,7 +116,7 @@ result_t XmlElement::lookupPrefix(const char *namespaceURI, exlib::string &retVa
     return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
 }
 
-result_t XmlElement::lookupNamespaceURI(const char *prefix, exlib::string &retVal)
+result_t XmlElement::lookupNamespaceURI(exlib::string prefix, exlib::string &retVal)
 {
     if (globalNamespaceURI(prefix, retVal))
         return 0;
@@ -190,9 +190,9 @@ result_t XmlElement::get_id(exlib::string &retVal)
     return 0;
 }
 
-result_t XmlElement::set_id(const char *newVal)
+result_t XmlElement::set_id(exlib::string newVal)
 {
-    if (!*newVal)
+    if (newVal.empty())
         return removeAttribute("id");
 
     return setAttribute("id", newVal);
@@ -207,7 +207,7 @@ result_t XmlElement::get_textContent(exlib::string &retVal)
     return 0;
 }
 
-result_t XmlElement::set_textContent(const char *newVal)
+result_t XmlElement::set_textContent(exlib::string newVal)
 {
     m_childs->removeAll();
 
@@ -230,7 +230,7 @@ result_t XmlElement::get_innerHTML(exlib::string &retVal)
     return 0;
 }
 
-result_t XmlElement::set_innerHTML(const char *newVal)
+result_t XmlElement::set_innerHTML(exlib::string newVal)
 {
     if (m_isXml)
         return CALL_E_INVALID_CALL;
@@ -266,12 +266,12 @@ result_t XmlElement::get_className(exlib::string &retVal)
     return 0;
 }
 
-result_t XmlElement::set_className(const char *newVal)
+result_t XmlElement::set_className(exlib::string newVal)
 {
     if (m_isXml)
         return CALL_E_INVALID_CALL;
 
-    if (!*newVal)
+    if (newVal.empty())
         return removeAttribute("class");
 
     return setAttribute("class", newVal);
@@ -283,7 +283,7 @@ result_t XmlElement::get_attributes(obj_ptr<XmlNamedNodeMap_base> &retVal)
     return 0;
 }
 
-result_t XmlElement::getAttribute(const char *name, exlib::string &retVal)
+result_t XmlElement::getAttribute(exlib::string name, exlib::string &retVal)
 {
     result_t hr;
     obj_ptr<XmlAttr_base> node;
@@ -295,7 +295,7 @@ result_t XmlElement::getAttribute(const char *name, exlib::string &retVal)
     return node->get_value(retVal);
 }
 
-result_t XmlElement::getAttributeNS(const char *namespaceURI, const char *localName,
+result_t XmlElement::getAttributeNS(exlib::string namespaceURI, exlib::string localName,
                                     exlib::string &retVal)
 {
     result_t hr;
@@ -308,21 +308,22 @@ result_t XmlElement::getAttributeNS(const char *namespaceURI, const char *localN
     return node->get_value(retVal);
 }
 
-result_t XmlElement::setAttribute(const char *name, const char *value)
+result_t XmlElement::setAttribute(exlib::string name, exlib::string value)
 {
     obj_ptr<XmlAttr> attr = new XmlAttr(this, name, value);
     return m_attrs->setNamedItem(attr);
 }
 
-result_t XmlElement::setAttributeNS(const char *namespaceURI, const char *qualifiedName,
-                                    const char *value)
+result_t XmlElement::setAttributeNS(exlib::string namespaceURI, exlib::string qualifiedName,
+                                    exlib::string value)
 {
-    if (!qstrcmp(qualifiedName, "xmlns:", 6))
+    const char* c_str = qualifiedName.c_str();
+    if (!qstrcmp(c_str, "xmlns:", 6))
     {
         int32_t i;
 
         for (i = 0; s_nss[i][0]; i ++)
-            if (!qstrcmp(qualifiedName + 6, s_nss[i][0]))
+            if (!qstrcmp(c_str + 6, s_nss[i][0]))
                 return 0;
     }
 
@@ -330,17 +331,17 @@ result_t XmlElement::setAttributeNS(const char *namespaceURI, const char *qualif
     return m_attrs->setNamedItem(attr);
 }
 
-result_t XmlElement::removeAttribute(const char *name)
+result_t XmlElement::removeAttribute(exlib::string name)
 {
     return m_attrs->removeNamedItem(name);
 }
 
-result_t XmlElement::removeAttributeNS(const char *namespaceURI, const char *localName)
+result_t XmlElement::removeAttributeNS(exlib::string namespaceURI, exlib::string localName)
 {
     return m_attrs->removeNamedItemNS(namespaceURI, localName);
 }
 
-result_t XmlElement::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal)
+result_t XmlElement::getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base> &retVal)
 {
     obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
     getElementsByTagName(tagName, ret);
@@ -349,7 +350,7 @@ result_t XmlElement::getElementsByTagName(const char *tagName, obj_ptr<XmlNodeLi
     return 0;
 }
 
-result_t XmlElement::getElementsByTagNameNS(const char *namespaceURI, const char *localName,
+result_t XmlElement::getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName,
         obj_ptr<XmlNodeList_base> &retVal)
 {
     obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
@@ -359,7 +360,7 @@ result_t XmlElement::getElementsByTagNameNS(const char *namespaceURI, const char
     return 0;
 }
 
-result_t XmlElement::hasAttribute(const char *name, bool &retVal)
+result_t XmlElement::hasAttribute(exlib::string name, bool &retVal)
 {
     result_t hr;
     obj_ptr<XmlAttr_base> node;
@@ -372,7 +373,7 @@ result_t XmlElement::hasAttribute(const char *name, bool &retVal)
     return 0;
 }
 
-result_t XmlElement::hasAttributeNS(const char *namespaceURI, const char *localName, bool &retVal)
+result_t XmlElement::hasAttributeNS(exlib::string namespaceURI, exlib::string localName, bool &retVal)
 {
     result_t hr;
     obj_ptr<XmlAttr_base> node;
@@ -385,7 +386,7 @@ result_t XmlElement::hasAttributeNS(const char *namespaceURI, const char *localN
     return 0;
 }
 
-void XmlElement::fix_prefix(const char *namespaceURI, exlib::string &prefix)
+void XmlElement::fix_prefix(exlib::string namespaceURI, exlib::string &prefix)
 {
     exlib::string _namespaceURI;
     int32_t i;

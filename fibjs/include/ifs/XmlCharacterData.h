@@ -27,13 +27,13 @@ class XmlCharacterData_base : public XmlNode_base
 public:
     // XmlCharacterData_base
     virtual result_t get_data(exlib::string& retVal) = 0;
-    virtual result_t set_data(const char* newVal) = 0;
+    virtual result_t set_data(exlib::string newVal) = 0;
     virtual result_t get_length(int32_t& retVal) = 0;
     virtual result_t substringData(int32_t offset, int32_t count, exlib::string& retVal) = 0;
-    virtual result_t appendData(const char* arg) = 0;
-    virtual result_t insertData(int32_t offset, const char* arg) = 0;
+    virtual result_t appendData(exlib::string arg) = 0;
+    virtual result_t insertData(int32_t offset, exlib::string arg) = 0;
     virtual result_t deleteData(int32_t offset, int32_t count) = 0;
-    virtual result_t replaceData(int32_t offset, int32_t count, const char* arg) = 0;
+    virtual result_t replaceData(int32_t offset, int32_t count, exlib::string arg) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -107,7 +107,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlCharacterData_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_data(v0);
 
         PROPERTY_SET_LEAVE();
@@ -145,7 +145,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlCharacterData_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->appendData(v0);
 
@@ -158,7 +158,7 @@ namespace fibjs
         METHOD_ENTER(2, 2);
 
         ARG(int32_t, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 1);
 
         hr = pInst->insertData(v0, v1);
 
@@ -185,7 +185,7 @@ namespace fibjs
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
-        ARG(arg_string, 2);
+        ARG(exlib::string, 2);
 
         hr = pInst->replaceData(v0, v1, v2);
 

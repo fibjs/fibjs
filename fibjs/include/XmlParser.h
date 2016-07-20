@@ -24,8 +24,8 @@ public:
     {}
 
 public:
-    static result_t parse(XmlDocument *doc, const char *source);
-    static result_t parseHtml(XmlDocument *doc, const char *source);
+    static result_t parse(XmlDocument *doc, exlib::string source);
+    static result_t parseHtml(XmlDocument *doc, exlib::string source);
 
     void OnXmlDecl(const char *version, const char *encoding, int32_t standalone);
     void OnStartElement(const char *name, const char **atts);

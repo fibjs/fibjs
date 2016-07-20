@@ -24,7 +24,7 @@ result_t XmlProcessingInstruction::get_nodeValue(exlib::string &retVal)
     return 0;
 }
 
-result_t XmlProcessingInstruction::set_nodeValue(const char *newVal)
+result_t XmlProcessingInstruction::set_nodeValue(exlib::string newVal)
 {
     m_data = newVal;
     return 0;
@@ -70,12 +70,12 @@ result_t XmlProcessingInstruction::get_ownerDocument(obj_ptr<XmlDocument_base> &
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
-result_t XmlProcessingInstruction::lookupPrefix(const char *namespaceURI, exlib::string &retVal)
+result_t XmlProcessingInstruction::lookupPrefix(exlib::string namespaceURI, exlib::string &retVal)
 {
     return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
 }
 
-result_t XmlProcessingInstruction::lookupNamespaceURI(const char *prefix, exlib::string &retVal)
+result_t XmlProcessingInstruction::lookupNamespaceURI(exlib::string prefix, exlib::string &retVal)
 {
     return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
 }
@@ -136,7 +136,7 @@ result_t XmlProcessingInstruction::get_data(exlib::string &retVal)
     return 0;
 }
 
-result_t XmlProcessingInstruction::set_data(const char *newVal)
+result_t XmlProcessingInstruction::set_data(exlib::string newVal)
 {
     m_data = newVal;
     return 0;

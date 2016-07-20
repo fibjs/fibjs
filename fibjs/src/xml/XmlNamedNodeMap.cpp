@@ -69,7 +69,7 @@ result_t XmlNamedNodeMap::toString(exlib::string &retVal)
     return 0;
 }
 
-result_t XmlNamedNodeMap::getNamedItem(const char *name, obj_ptr<XmlAttr_base> &retVal)
+result_t XmlNamedNodeMap::getNamedItem(exlib::string name, obj_ptr<XmlAttr_base> &retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
@@ -87,7 +87,7 @@ result_t XmlNamedNodeMap::getNamedItem(const char *name, obj_ptr<XmlAttr_base> &
     return CALL_RETURN_NULL;
 }
 
-result_t XmlNamedNodeMap::getNamedItemNS(const char *namespaceURI, const char *localName,
+result_t XmlNamedNodeMap::getNamedItemNS(exlib::string namespaceURI, exlib::string localName,
         obj_ptr<XmlAttr_base> &retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
@@ -106,7 +106,7 @@ result_t XmlNamedNodeMap::getNamedItemNS(const char *namespaceURI, const char *l
     return CALL_RETURN_NULL;
 }
 
-result_t XmlNamedNodeMap::removeNamedItem(const char *name)
+result_t XmlNamedNodeMap::removeNamedItem(exlib::string name)
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
@@ -132,7 +132,7 @@ result_t XmlNamedNodeMap::removeNamedItem(const char *name)
     return 0;
 }
 
-result_t XmlNamedNodeMap::removeNamedItemNS(const char *namespaceURI, const char *localName)
+result_t XmlNamedNodeMap::removeNamedItemNS(exlib::string namespaceURI, exlib::string localName)
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
@@ -197,7 +197,7 @@ result_t XmlNamedNodeMap::cloneAttrs(XmlNamedNodeMap *to, XmlNodeImpl *el)
     return 0;
 }
 
-result_t XmlNamedNodeMap::lookupPrefix(const char *namespaceURI, exlib::string &retVal)
+result_t XmlNamedNodeMap::lookupPrefix(exlib::string namespaceURI, exlib::string &retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
@@ -212,7 +212,7 @@ result_t XmlNamedNodeMap::lookupPrefix(const char *namespaceURI, exlib::string &
     return CALL_RETURN_NULL;
 }
 
-result_t XmlNamedNodeMap::lookupNamespaceURI(const char *prefix, exlib::string &retVal)
+result_t XmlNamedNodeMap::lookupNamespaceURI(exlib::string prefix, exlib::string &retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;

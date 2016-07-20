@@ -29,7 +29,7 @@ interface XmlNode : object
      - XmlDocument: \#document
      - XmlDocumentType: doctype 名称
     */
-    readonly String nodeName;
+    readonly XString nodeName;
 
     /*! @brief 返回节点的名称，根据其类型
 
@@ -43,7 +43,7 @@ interface XmlNode : object
      - XmlDocument: null
      - XmlDocumentType: null
     */
-    String nodeValue;
+    XString nodeValue;
 
     /*! @brief 返回节点的根元素（XmlDocument 对象）
     */
@@ -96,13 +96,13 @@ interface XmlNode : object
      @param namespaceURI 指定匹配的命名空间 URI
      @return 返回匹配的前缀，未匹配到返回 null
     */
-    String lookupPrefix(String namespaceURI);
+    XString lookupPrefix(XString namespaceURI);
 
     /*! @brief 返回在当前节点上匹配指定的前缀的命名空间 URI
      @param prefix 指定匹配的前缀
      @return 返回匹配的命名空间 URI，未匹配到返回 null
     */
-    String lookupNamespaceURI(String prefix);
+    XString lookupNamespaceURI(XString prefix);
 
     /*! @brief 在已有的子节点前插入一个新的子节点
 

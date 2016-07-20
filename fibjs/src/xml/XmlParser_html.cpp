@@ -116,14 +116,14 @@ inline void buildDocument(XmlParser &parser, GumboDocument &document)
     buildChilds(parser, document.children);
 }
 
-result_t XmlParser::parseHtml(XmlDocument *doc, const char *source)
+result_t XmlParser::parseHtml(XmlDocument *doc, exlib::string source)
 {
     XmlParser parser(doc, false);
 
     parser.m_now = doc;
     parser.m_list.push_back(doc);
 
-    GumboOutput *output = gumbo_parse(source);
+    GumboOutput *output = gumbo_parse(source.c_str());
     buildDocument(parser, output->document->v.document);
     gumbo_destroy_output(&kGumboDefaultOptions, output);
     return 0;

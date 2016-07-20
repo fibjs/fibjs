@@ -21,5 +21,5 @@ interface XmlNamedNodeMap
      @param name 指定要查询的名称
      @return 返回查询出的属性
     */
-    XmlAttr getNamedItem(String name);
+    XmlAttr getNamedItem(XString name);
 };

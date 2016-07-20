@@ -28,7 +28,7 @@ public:
     virtual result_t get_length(int32_t& retVal) = 0;
     virtual result_t item(int32_t index, obj_ptr<XmlAttr_base>& retVal) = 0;
     virtual result_t _indexed_getter(uint32_t index, obj_ptr<XmlAttr_base>& retVal) = 0;
-    virtual result_t getNamedItem(const char* name, obj_ptr<XmlAttr_base>& retVal) = 0;
+    virtual result_t getNamedItem(exlib::string name, obj_ptr<XmlAttr_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -128,7 +128,7 @@ namespace fibjs
         METHOD_INSTANCE(XmlNamedNodeMap_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->getNamedItem(v0, vr);
 

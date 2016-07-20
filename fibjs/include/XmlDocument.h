@@ -38,7 +38,7 @@ public:
     virtual result_t get_nodeType(int32_t &retVal);
     virtual result_t get_nodeName(exlib::string &retVal);
     virtual result_t get_nodeValue(exlib::string &retVal);
-    virtual result_t set_nodeValue(const char *newVal);
+    virtual result_t set_nodeValue(exlib::string newVal);
     virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base> &retVal);
     virtual result_t get_parentNode(obj_ptr<XmlNode_base> &retVal);
     virtual result_t hasChildNodes(bool &retVal);
@@ -49,8 +49,8 @@ public:
     virtual result_t get_nextSibling(obj_ptr<XmlNode_base> &retVal);
     virtual result_t normalize();
     virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t lookupPrefix(const char *namespaceURI, exlib::string &retVal);
-    virtual result_t lookupNamespaceURI(const char *prefix, exlib::string &retVal);
+    virtual result_t lookupPrefix(exlib::string namespaceURI, exlib::string &retVal);
+    virtual result_t lookupNamespaceURI(exlib::string prefix, exlib::string &retVal);
     virtual result_t insertBefore(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t insertAfter(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> &retVal);
@@ -59,26 +59,26 @@ public:
 
 public:
     // XmlDocument_base
-    virtual result_t load(const char *source);
+    virtual result_t load(exlib::string source);
     virtual result_t load(Buffer_base *source);
     virtual result_t get_inputEncoding(exlib::string &retVal);
     virtual result_t get_xmlStandalone(bool &retVal);
     virtual result_t set_xmlStandalone(bool newVal);
     virtual result_t get_xmlVersion(exlib::string &retVal);
-    virtual result_t set_xmlVersion(const char *newVal);
+    virtual result_t set_xmlVersion(exlib::string newVal);
     virtual result_t get_doctype(obj_ptr<XmlDocumentType_base> &retVal);
     virtual result_t get_head(obj_ptr<XmlElement_base> &retVal);
     virtual result_t get_title(exlib::string &retVal);
     virtual result_t get_body(obj_ptr<XmlElement_base> &retVal);
     virtual result_t get_documentElement(obj_ptr<XmlElement_base> &retVal);
-    virtual result_t getElementsByTagName(const char *tagName, obj_ptr<XmlNodeList_base> &retVal);
-    virtual result_t getElementsByTagNameNS(const char *namespaceURI, const char *localName, obj_ptr<XmlNodeList_base> &retVal);
-    virtual result_t createElement(const char *tagName, obj_ptr<XmlElement_base> &retVal);
-    virtual result_t createElementNS(const char *namespaceURI, const char *qualifiedName, obj_ptr<XmlElement_base> &retVal);
-    virtual result_t createTextNode(const char *data, obj_ptr<XmlText_base> &retVal);
-    virtual result_t createComment(const char *data, obj_ptr<XmlComment_base> &retVal);
-    virtual result_t createCDATASection(const char *data, obj_ptr<XmlCDATASection_base> &retVal);
-    virtual result_t createProcessingInstruction(const char *target, const char *data, obj_ptr<XmlProcessingInstruction_base> &retVal);
+    virtual result_t getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base> &retVal);
+    virtual result_t getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlNodeList_base> &retVal);
+    virtual result_t createElement(exlib::string tagName, obj_ptr<XmlElement_base> &retVal);
+    virtual result_t createElementNS(exlib::string namespaceURI, exlib::string qualifiedName, obj_ptr<XmlElement_base> &retVal);
+    virtual result_t createTextNode(exlib::string data, obj_ptr<XmlText_base> &retVal);
+    virtual result_t createComment(exlib::string data, obj_ptr<XmlComment_base> &retVal);
+    virtual result_t createCDATASection(exlib::string data, obj_ptr<XmlCDATASection_base> &retVal);
+    virtual result_t createProcessingInstruction(exlib::string target, exlib::string data, obj_ptr<XmlProcessingInstruction_base> &retVal);
 
 public:
     void setDecl(const char *version, const char *encoding, int32_t standalone)

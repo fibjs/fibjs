@@ -35,7 +35,7 @@ public:
         return 0;
     }
 
-    result_t set_data(const char *newVal)
+    result_t set_data(exlib::string newVal)
     {
         m_data = newVal;
         return 0;
@@ -61,13 +61,13 @@ public:
         return 0;
     }
 
-    result_t appendData(const char *arg)
+    result_t appendData(exlib::string arg)
     {
         m_data.append(arg);
         return 0;
     }
 
-    result_t insertData(int32_t offset, const char *arg)
+    result_t insertData(int32_t offset, exlib::string arg)
     {
         exlib::wstring _data(utf8to16String(m_data));
 
@@ -94,7 +94,7 @@ public:
         return 0;
     }
 
-    result_t replaceData(int32_t offset, int32_t count, const char *arg)
+    result_t replaceData(int32_t offset, int32_t count, exlib::string arg)
     {
         exlib::wstring _data(utf8to16String(m_data));
 

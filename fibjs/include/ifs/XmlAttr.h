@@ -25,14 +25,14 @@ public:
     // XmlAttr_base
     virtual result_t get_localName(exlib::string& retVal) = 0;
     virtual result_t get_value(exlib::string& retVal) = 0;
-    virtual result_t set_value(const char* newVal) = 0;
+    virtual result_t set_value(exlib::string newVal) = 0;
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t get_namespaceURI(exlib::string& retVal) = 0;
     virtual result_t get_prefix(exlib::string& retVal) = 0;
-    virtual result_t set_prefix(const char* newVal) = 0;
+    virtual result_t set_prefix(exlib::string newVal) = 0;
     virtual result_t get_nodeName(exlib::string& retVal) = 0;
     virtual result_t get_nodeValue(exlib::string& retVal) = 0;
-    virtual result_t set_nodeValue(const char* newVal) = 0;
+    virtual result_t set_nodeValue(exlib::string newVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -115,7 +115,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlAttr_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_value(v0);
 
         PROPERTY_SET_LEAVE();
@@ -162,7 +162,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlAttr_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_prefix(v0);
 
         PROPERTY_SET_LEAVE();
@@ -197,7 +197,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(XmlAttr_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_nodeValue(v0);
 
         PROPERTY_SET_LEAVE();

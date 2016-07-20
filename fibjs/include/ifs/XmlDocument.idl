@@ -9,12 +9,12 @@ interface XmlDocument : XmlNode
     /*! @brief 构造一个 XmlDocument 对象
      @param type 指定文档对象的类型，缺省为 "text/xml"，若需要处理 html 则需要指定 "text/html"
     */
-    XmlDocument(String type = "text/xml");
+    XmlDocument(XString type = "text/xml");
 
     /*! @brief 通过解析一个 XML/HTML 字符串来组成该文档，不支持多语种
      @param source 要解析的 XML/HTML 文本，取决于文档创建时的类型
     */
-    load(String source);
+    load(XString source);
 
     /*! @brief 通过解析一个二进制 XML/HTML 字符串来组成该文档，并根据语种自动转换
      @param source 要解析的 XML/HTML 文本，取决于文档创建时的类型
@@ -23,7 +23,7 @@ interface XmlDocument : XmlNode
 
     /*! @brief 返回用于文档的编码（在解析时）
     */
-    readonly String inputEncoding;
+    readonly XString inputEncoding;
 
     /*! @brief 设置或返回文档是否为 standalone
     */
@@ -31,7 +31,7 @@ interface XmlDocument : XmlNode
 
     /*! @brief 设置或返回文档的 XML 版本
     */
-    String xmlVersion;
+    XString xmlVersion;
 
     /*! @brief 返回与文档相关的文档类型声明（Document Type Declaration）
 
@@ -49,7 +49,7 @@ interface XmlDocument : XmlNode
 
     /*! @brief 返回 HTML 文档的 title 节点的内容，仅在 html 模式有效
     */
-    readonly String title;
+    readonly XString title;
 
     /*! @brief 返回 HTML 文档的 body 节点，仅在 html 模式有效
     */
@@ -61,7 +61,7 @@ interface XmlDocument : XmlNode
      @param tagName 需检索的标签名。值 "*" 匹配所有的标签
      @return 文档树中具有指定标记的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
     */
-    XmlNodeList getElementsByTagName(String tagName);
+    XmlNodeList getElementsByTagName(XString tagName);
 
     /*! @brief 返回带有指定命名空间和名称的所有元素的一个节点列表
 
@@ -70,43 +70,43 @@ interface XmlDocument : XmlNode
      @param localName 需检索的标签名。值 "*" 匹配所有的标签
      @return 文档树中具有指定标记的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
     */
-    XmlNodeList getElementsByTagNameNS(String namespaceURI, String localName);
+    XmlNodeList getElementsByTagNameNS(XString namespaceURI, XString localName);
 
     /*! @brief 创建元素节点
      @param tagName 指定元素节点规定名称
      @return 返回新创建的 XmlElement 节点，具有指定的标签名
     */
-    XmlElement createElement(String tagName);
+    XmlElement createElement(XString tagName);
 
     /*! @brief 创建带有指定命名空间的元素节点
      @param namespaceURI 指定元素节点命名空间 URI
      @param qualifiedName 指定元素节点规定名称
      @return 返回新创建的 XmlElement 节点，具有指定的标签名
     */
-    XmlElement createElementNS(String namespaceURI, String qualifiedName);
+    XmlElement createElementNS(XString namespaceURI, XString qualifiedName);
 
     /*! @brief 创建文本节点
      @param data 指定此节点的文本
      @return 返回新创建的 XmlText 节点，表示指定的 data 字符串
     */
-    XmlText createTextNode(String data);
+    XmlText createTextNode(XString data);
 
     /*! @brief 创建注释节点
      @param data 指定此节点的注释文本
      @return 返回新创建的 XmlComment 节点，注释文本为指定的 data
     */
-    XmlComment createComment(String data);
+    XmlComment createComment(XString data);
 
     /*! @brief 创建 XmlCDATASection 节点
      @param data 指定此节点规定 CDATA 数据
      @return 返回新创建的 XmlCDATASection 节点，内容为指定的 data
     */
-    XmlCDATASection createCDATASection(String data);
+    XmlCDATASection createCDATASection(XString data);
 
     /*! @brief 创建 XmlProcessingInstruction 节点
      @param target 指定处理指令的目标
      @param data 指定处理指令的内容文本
      @return 新创建的 ProcessingInstruction 节点
     */
-    XmlProcessingInstruction createProcessingInstruction(String target, String data);
+    XmlProcessingInstruction createProcessingInstruction(XString target, XString data);
 };

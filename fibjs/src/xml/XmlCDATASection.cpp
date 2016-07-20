@@ -23,7 +23,7 @@ result_t XmlCDATASection::get_nodeValue(exlib::string &retVal)
     return m_data.get_data(retVal);
 }
 
-result_t XmlCDATASection::set_nodeValue(const char *newVal)
+result_t XmlCDATASection::set_nodeValue(exlib::string newVal)
 {
     return m_data.set_data(newVal);
 }
@@ -68,12 +68,12 @@ result_t XmlCDATASection::get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
     return XmlNodeImpl::get_ownerDocument(retVal);
 }
 
-result_t XmlCDATASection::lookupPrefix(const char *namespaceURI, exlib::string &retVal)
+result_t XmlCDATASection::lookupPrefix(exlib::string namespaceURI, exlib::string &retVal)
 {
     return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
 }
 
-result_t XmlCDATASection::lookupNamespaceURI(const char *prefix, exlib::string &retVal)
+result_t XmlCDATASection::lookupNamespaceURI(exlib::string prefix, exlib::string &retVal)
 {
     return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
 }
@@ -127,7 +127,7 @@ result_t XmlCDATASection::get_data(exlib::string &retVal)
     return m_data.get_data(retVal);
 }
 
-result_t XmlCDATASection::set_data(const char *newVal)
+result_t XmlCDATASection::set_data(exlib::string newVal)
 {
     return m_data.set_data(newVal);
 }
@@ -142,12 +142,12 @@ result_t XmlCDATASection::substringData(int32_t offset, int32_t count, exlib::st
     return m_data.substringData(offset, count, retVal);
 }
 
-result_t XmlCDATASection::appendData(const char *arg)
+result_t XmlCDATASection::appendData(exlib::string arg)
 {
     return m_data.appendData(arg);
 }
 
-result_t XmlCDATASection::insertData(int32_t offset, const char *arg)
+result_t XmlCDATASection::insertData(int32_t offset, exlib::string arg)
 {
     return m_data.insertData(offset, arg);
 }
@@ -157,7 +157,7 @@ result_t XmlCDATASection::deleteData(int32_t offset, int32_t count)
     return m_data.deleteData(offset, count);
 }
 
-result_t XmlCDATASection::replaceData(int32_t offset, int32_t count, const char *arg)
+result_t XmlCDATASection::replaceData(int32_t offset, int32_t count, exlib::string arg)
 {
     return m_data.replaceData(offset, count, arg);
 }

@@ -18,7 +18,7 @@ namespace fibjs
 class XmlComment: public XmlComment_base, public XmlNodeImpl
 {
 public:
-    XmlComment(XmlDocument_base *document, const char *data):
+    XmlComment(XmlDocument_base *document, exlib::string data):
         XmlNodeImpl(document, this, xml_base::_COMMENT_NODE), m_data(data)
     {
     }
@@ -38,7 +38,7 @@ public:
     virtual result_t get_nodeType(int32_t &retVal);
     virtual result_t get_nodeName(exlib::string &retVal);
     virtual result_t get_nodeValue(exlib::string &retVal);
-    virtual result_t set_nodeValue(const char *newVal);
+    virtual result_t set_nodeValue(exlib::string newVal);
     virtual result_t get_ownerDocument(obj_ptr<XmlDocument_base> &retVal);
     virtual result_t get_parentNode(obj_ptr<XmlNode_base> &retVal);
     virtual result_t hasChildNodes(bool &retVal);
@@ -49,8 +49,8 @@ public:
     virtual result_t get_nextSibling(obj_ptr<XmlNode_base> &retVal);
     virtual result_t normalize();
     virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base> &retVal);
-    virtual result_t lookupPrefix(const char *namespaceURI, exlib::string &retVal);
-    virtual result_t lookupNamespaceURI(const char *prefix, exlib::string &retVal);
+    virtual result_t lookupPrefix(exlib::string namespaceURI, exlib::string &retVal);
+    virtual result_t lookupNamespaceURI(exlib::string prefix, exlib::string &retVal);
     virtual result_t insertBefore(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t insertAfter(XmlNode_base *newChild, XmlNode_base *refChild, obj_ptr<XmlNode_base> &retVal);
     virtual result_t appendChild(XmlNode_base *newChild, obj_ptr<XmlNode_base> &retVal);
@@ -60,13 +60,13 @@ public:
 public:
     // XmlCharacterData_base
     virtual result_t get_data(exlib::string &retVal);
-    virtual result_t set_data(const char *newVal);
+    virtual result_t set_data(exlib::string newVal);
     virtual result_t get_length(int32_t &retVal);
     virtual result_t substringData(int32_t offset, int32_t count, exlib::string &retVal);
-    virtual result_t appendData(const char *arg);
-    virtual result_t insertData(int32_t offset, const char *arg);
+    virtual result_t appendData(exlib::string arg);
+    virtual result_t insertData(int32_t offset, exlib::string arg);
     virtual result_t deleteData(int32_t offset, int32_t count);
-    virtual result_t replaceData(int32_t offset, int32_t count, const char *arg);
+    virtual result_t replaceData(int32_t offset, int32_t count, exlib::string arg);
 
 private:
     XmlDataImpl m_data;
