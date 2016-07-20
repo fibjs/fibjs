@@ -127,7 +127,7 @@ void file_logger::clearFile()
             fullname = m_folder + name;
 
             if ((fullname.length() == m_path.length() + 14) &&
-                    (fullname == m_path.c_str(), (int32_t)m_path.length()))
+                    !qstrcmp(fullname.c_str(), m_path.c_str(), (int32_t)m_path.length()))
             {
                 int32_t p, l;
 

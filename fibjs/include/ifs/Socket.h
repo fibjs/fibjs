@@ -35,15 +35,15 @@ public:
     virtual result_t get_remotePort(int32_t& retVal) = 0;
     virtual result_t get_localAddress(exlib::string& retVal) = 0;
     virtual result_t get_localPort(int32_t& retVal) = 0;
-    virtual result_t connect(const char* host, int32_t port, AsyncEvent* ac) = 0;
+    virtual result_t connect(exlib::string host, int32_t port, AsyncEvent* ac) = 0;
     virtual result_t bind(int32_t port, bool allowIPv4) = 0;
-    virtual result_t bind(const char* addr, int32_t port, bool allowIPv4) = 0;
+    virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4) = 0;
     virtual result_t listen(int32_t backlog, AsyncEvent* ac) = 0;
     virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t send(Buffer_base* data, AsyncEvent* ac) = 0;
-    virtual result_t sendto(Buffer_base* data, const char* host, int32_t port) = 0;
+    virtual result_t sendto(Buffer_base* data, exlib::string host, int32_t port) = 0;
 
 public:
     template<typename T>
@@ -67,7 +67,7 @@ public:
     static void s_sendto(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBER2(Socket_base, connect, const char*, int32_t);
+    ASYNC_MEMBER2(Socket_base, connect, exlib::string, int32_t);
     ASYNC_MEMBER1(Socket_base, listen, int32_t);
     ASYNC_MEMBERVALUE1(Socket_base, accept, obj_ptr<Socket_base>);
     ASYNC_MEMBERVALUE2(Socket_base, recv, int32_t, obj_ptr<Buffer_base>);
@@ -213,7 +213,7 @@ namespace fibjs
         METHOD_INSTANCE(Socket_base);
         ASYNC_METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(int32_t, 1);
 
         if(!cb.IsEmpty()) {
@@ -237,7 +237,7 @@ namespace fibjs
 
         METHOD_OVER(3, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(int32_t, 1);
         OPT_ARG(bool, 2, true);
 
@@ -332,7 +332,7 @@ namespace fibjs
         METHOD_ENTER(3, 3);
 
         ARG(obj_ptr<Buffer_base>, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 1);
         ARG(int32_t, 2);
 
         hr = pInst->sendto(v0, v1, v2);

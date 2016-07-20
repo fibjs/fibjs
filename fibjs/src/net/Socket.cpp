@@ -215,7 +215,7 @@ result_t Socket::get_localPort(int32_t &retVal)
     return 0;
 }
 
-result_t Socket::bind(const char *addr, int32_t port, bool allowIPv4)
+result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -224,7 +224,7 @@ result_t Socket::bind(const char *addr, int32_t port, bool allowIPv4)
 
     addr_info.init(m_aio.m_family);
     addr_info.setPort(port);
-    if (addr_info.addr(addr) < 0)
+    if (addr_info.addr(addr.c_str()) < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int32_t on = 1;
@@ -254,7 +254,7 @@ result_t Socket::bind(const char *addr, int32_t port, bool allowIPv4)
 
 result_t Socket::bind(int32_t port, bool allowIPv4)
 {
-    return bind(NULL, port, allowIPv4);
+    return bind("", port, allowIPv4);
 }
 
 result_t Socket::listen(int32_t backlog, AsyncEvent* ac)
@@ -271,7 +271,7 @@ result_t Socket::listen(int32_t backlog, AsyncEvent* ac)
     return 0;
 }
 
-result_t Socket::connect(const char *host, int32_t port, AsyncEvent *ac)
+result_t Socket::connect(exlib::string host, int32_t port, AsyncEvent *ac)
 {
 #ifdef _WIN32
     if (!m_bBind)
@@ -309,7 +309,7 @@ result_t Socket::recvFrom(int32_t bytes, obj_ptr<Buffer_base> &retVal)
     return 0;
 }
 
-result_t Socket::sendto(Buffer_base *data, const char *host,
+result_t Socket::sendto(Buffer_base *data, exlib::string host,
                         int32_t port)
 {
     if (m_aio.m_fd == INVALID_SOCKET)

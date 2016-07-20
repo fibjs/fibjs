@@ -25,7 +25,7 @@ result_t X509Req_base::_new(obj_ptr<X509Req_base> &retVal, v8::Local<v8::Object>
     return 0;
 }
 
-result_t X509Req_base::_new(const char *subject, PKey_base *key,
+result_t X509Req_base::_new(exlib::string subject, PKey_base *key,
                             int32_t hash, obj_ptr<X509Req_base> &retVal,
                             v8::Local<v8::Object> This)
 {
@@ -57,7 +57,7 @@ void X509Req::clear()
     mbedtls_x509_csr_init(&m_csr);
 }
 
-result_t X509Req::create(const char *subject, PKey_base *key, int32_t hash)
+result_t X509Req::create(exlib::string subject, PKey_base *key, int32_t hash)
 {
     clear();
 
@@ -69,7 +69,7 @@ result_t X509Req::create(const char *subject, PKey_base *key, int32_t hash)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     mbedtls_x509write_csr_set_md_alg(&csr, (mbedtls_md_type_t)hash);
-    mbedtls_x509write_csr_set_subject_name(&csr, subject);
+    mbedtls_x509write_csr_set_subject_name(&csr, subject.c_str());
 
     mbedtls_pk_context *k = &((PKey *)(PKey_base *)key)->m_key;
     mbedtls_x509write_csr_set_key(&csr, k);
@@ -108,21 +108,21 @@ result_t X509Req::load(Buffer_base *derReq)
     return 0;
 }
 
-result_t X509Req::load(const char *pemReq)
+result_t X509Req::load(exlib::string pemReq)
 {
     int32_t ret;
 
     clear();
 
-    ret = mbedtls_x509_csr_parse(&m_csr, (const unsigned char *)pemReq,
-                                 qstrlen(pemReq) + 1);
+    ret = mbedtls_x509_csr_parse(&m_csr, (const unsigned char *)pemReq.c_str(),
+                                 pemReq.length() + 1);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
 
-result_t X509Req::loadFile(const char *filename)
+result_t X509Req::loadFile(exlib::string filename)
 {
     result_t hr;
     exlib::string data;
@@ -130,7 +130,7 @@ result_t X509Req::loadFile(const char *filename)
 
     clear();
 
-    hr = fs_base::ac_readFile(filename, data);
+    hr = fs_base::ac_readFile(filename.c_str(), data);
     if (hr < 0)
         return hr;
 
@@ -232,7 +232,7 @@ result_t X509Req::parseString(v8::Local<v8::Value> v, const X509Cert::_name *pNa
     return num;
 }
 
-result_t X509Req::sign(const char *issuer, PKey_base *key,
+result_t X509Req::sign(exlib::string issuer, PKey_base *key,
                        v8::Local<v8::Object> opts, obj_ptr<X509Cert_base> &retVal,
                        AsyncEvent *ac)
 {
@@ -413,7 +413,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
         goto exit;
     }
 
-    ret = mbedtls_x509write_crt_set_issuer_name(&m_crt, issuer);
+    ret = mbedtls_x509write_crt_set_issuer_name(&m_crt, issuer.c_str());
     if (ret != 0)
     {
         hr = CHECK_ERROR(_ssl::setError(ret));
@@ -445,7 +445,7 @@ result_t X509Req::sign(const char *issuer, PKey_base *key,
     }
 
     cert = new X509Cert();
-    hr = cert->load(buf.c_str());
+    hr = cert->load(buf);
     if (hr < 0)
         goto exit;
 

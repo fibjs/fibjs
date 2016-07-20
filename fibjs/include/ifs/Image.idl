@@ -52,7 +52,7 @@ interface Image : object
      @param format 指定返回数据的格式，允许值为 gd.PNG, gd.JPEG, gd.GIF, gd.BMP, gd.WEBP, 缺省为 gd.PNG
      @param quality 当格式为 gd.JPEG 时用于指定压缩质量，缺省为 85，其他格式忽略此参数
      */
-    save(String fname, Integer format = gd.PNG, Integer quality = 85) async;
+    save(XString fname, Integer format = gd.PNG, Integer quality = 85) async;
 
     /*! @brief 为指定的颜色申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
      @param red 红色分量，范围为 0-255

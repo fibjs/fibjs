@@ -24,7 +24,7 @@ class json_base : public object_base
 public:
     // json_base
     static result_t encode(v8::Local<v8::Value> data, exlib::string& retVal);
-    static result_t decode(const char* data, v8::Local<v8::Value>& retVal);
+    static result_t decode(exlib::string data, v8::Local<v8::Value>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -85,7 +85,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = decode(v0, vr);
 

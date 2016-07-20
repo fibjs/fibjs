@@ -20,7 +20,7 @@ result_t HttpsServer_base::_new(v8::Local<v8::Array> certs, int32_t port,
     return _new(certs, "", port, hdlr, retVal, This);
 }
 
-result_t HttpsServer_base::_new(v8::Local<v8::Array> certs, const char *addr, int32_t port,
+result_t HttpsServer_base::_new(v8::Local<v8::Array> certs, exlib::string addr, int32_t port,
                                 v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal,
                                 v8::Local<v8::Object> This)
 {
@@ -43,7 +43,7 @@ result_t HttpsServer_base::_new(X509Cert_base *crt, PKey_base *key, int32_t port
     return _new(crt, key, "", port, hdlr, retVal, This);
 }
 
-result_t HttpsServer_base::_new(X509Cert_base *crt, PKey_base *key, const char *addr, int32_t port,
+result_t HttpsServer_base::_new(X509Cert_base *crt, PKey_base *key, exlib::string addr, int32_t port,
                                 v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base> &retVal,
                                 v8::Local<v8::Object> This)
 {
@@ -59,7 +59,7 @@ result_t HttpsServer_base::_new(X509Cert_base *crt, PKey_base *key, const char *
     return 0;
 }
 
-result_t HttpsServer::create(X509Cert_base *crt, PKey_base *key, const char *addr, int32_t port,
+result_t HttpsServer::create(X509Cert_base *crt, PKey_base *key, exlib::string addr, int32_t port,
                              v8::Local<v8::Value> hdlr)
 {
     result_t hr;
@@ -85,7 +85,7 @@ result_t HttpsServer::create(X509Cert_base *crt, PKey_base *key, const char *add
     return 0;
 }
 
-result_t HttpsServer::create(v8::Local<v8::Array> certs, const char *addr, int32_t port,
+result_t HttpsServer::create(v8::Local<v8::Array> certs, exlib::string addr, int32_t port,
                              v8::Local<v8::Value> hdlr)
 {
     result_t hr;

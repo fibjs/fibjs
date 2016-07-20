@@ -45,25 +45,25 @@ result_t X509Crl::load(Buffer_base *derCrl)
     return 0;
 }
 
-result_t X509Crl::load(const char *pemCrl)
+result_t X509Crl::load(exlib::string pemCrl)
 {
     int32_t ret;
 
-    ret = mbedtls_x509_crl_parse(&m_crl, (const unsigned char *)pemCrl,
-                                 qstrlen(pemCrl) + 1);
+    ret = mbedtls_x509_crl_parse(&m_crl, (const unsigned char *)pemCrl.c_str(),
+                                 pemCrl.length() + 1);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
 
-result_t X509Crl::loadFile(const char *filename)
+result_t X509Crl::loadFile(exlib::string filename)
 {
     result_t hr;
     exlib::string data;
     int32_t ret;
 
-    hr = fs_base::ac_readFile(filename, data);
+    hr = fs_base::ac_readFile(filename.c_str(), data);
     if (hr < 0)
         return hr;
 

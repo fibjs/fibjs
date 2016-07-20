@@ -101,6 +101,7 @@ public:
             }
         }
 
+
         str.resize(len);
         bstr = &str[0];
 
@@ -133,6 +134,11 @@ public:
         }
 
         retVal = str;
+    }
+
+    inline static void decodeURI(exlib::string url, exlib::string &retVal, bool space = false)
+    {
+        decodeURI(url.c_str(), (int32_t)url.length(), retVal, space);
     }
 
     inline static void encodeURI(const char *url, int32_t sz, exlib::string &retVal,
@@ -177,6 +183,12 @@ public:
         }
 
         retVal = str;
+    }
+
+    inline static void encodeURI(exlib::string url, exlib::string &retVal,
+                                 const char *tab)
+    {
+        encodeURI(url.c_str(), (int32_t)url.length(), retVal, tab);
     }
 
 public:

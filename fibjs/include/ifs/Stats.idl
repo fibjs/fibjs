@@ -24,18 +24,18 @@ interface Stats : object
     /*! @brief 指定的计数器增一
      @param key 指定计数器名称
      */
-    inc(String key);
+    inc(XString key);
 
     /*! @brief 指定的计数器减一
      @param key 指定计数器名称
      */
-    dec(String key);
+    dec(XString key);
 
     /*! @brief 指定的计数器加指定值
      @param key 指定计数器名称
      @param value 指定数值
      */
-    add(String key, Integer value);
+    add(XString key, Integer value);
 
     /*! @brief 初始化计数器，除 staticKeys 指定的计数器全部清零 */
     reset();

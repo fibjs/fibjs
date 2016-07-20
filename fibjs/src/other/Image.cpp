@@ -124,13 +124,13 @@ result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
     return (new asyncLoad(stm, retVal, ac))->post(0);
 }
 
-result_t gd_base::load(const char *fname, obj_ptr<Image_base> &retVal,
+result_t gd_base::load(exlib::string fname, obj_ptr<Image_base> &retVal,
                        AsyncEvent *ac)
 {
     class asyncLoad: public AsyncState
     {
     public:
-        asyncLoad(const char *fname, obj_ptr<Image_base> &retVal,
+        asyncLoad(exlib::string fname, obj_ptr<Image_base> &retVal,
                   AsyncEvent *ac) :
             AsyncState(ac), m_fname(fname), m_retVal(retVal)
         {
@@ -331,27 +331,29 @@ result_t gd_base::hsba(double hue, double saturation, double brightness,
     return 0;
 }
 
-result_t gd_base::color(const char *color, int32_t &retVal)
+result_t gd_base::color(exlib::string color, int32_t &retVal)
 {
-    if (*color == '#')
-        color ++;
+    const char* c_str = color.c_str();
 
-    if (!qisxdigit(color[0]) || !qisxdigit(color[1]) || !qisxdigit(color[2]))
+    if (*c_str == '#')
+        c_str ++;
+
+    if (!qisxdigit(c_str[0]) || !qisxdigit(c_str[1]) || !qisxdigit(c_str[2]))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (!color[3])
-        retVal = gdTrueColor(qhex(color[0]) * 17,
-                             qhex(color[1]) * 17,
-                             qhex(color[2]) * 17);
+    if (!c_str[3])
+        retVal = gdTrueColor(qhex(c_str[0]) * 17,
+                             qhex(c_str[1]) * 17,
+                             qhex(c_str[2]) * 17);
     else
     {
-        if (!qisxdigit(color[3]) || !qisxdigit(color[4]) || !qisxdigit(color[5])
-                || color[6])
+        if (!qisxdigit(c_str[3]) || !qisxdigit(c_str[4]) || !qisxdigit(c_str[5])
+                || c_str[6])
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        retVal = gdTrueColor((qhex(color[0]) << 4) | qhex(color[1]),
-                             (qhex(color[2]) << 4) | qhex(color[3]),
-                             (qhex(color[4]) << 4) | qhex(color[5]));
+        retVal = gdTrueColor((qhex(c_str[0]) << 4) | qhex(c_str[1]),
+                             (qhex(c_str[2]) << 4) | qhex(c_str[3]),
+                             (qhex(c_str[4]) << 4) | qhex(c_str[5]));
     }
 
     return 0;
@@ -615,13 +617,13 @@ result_t Image::save(Stream_base *stm, int32_t format, int32_t quality,
     return (new asyncSave(this, stm, format, quality, ac))->post(0);
 }
 
-result_t Image::save(const char *fname, int32_t format, int32_t quality,
+result_t Image::save(exlib::string fname, int32_t format, int32_t quality,
                      AsyncEvent *ac)
 {
     class asyncSave: public AsyncState
     {
     public:
-        asyncSave(Image *img, const char *fname, int32_t format, int32_t quality,
+        asyncSave(Image *img, exlib::string fname, int32_t format, int32_t quality,
                   AsyncEvent *ac) :
             AsyncState(ac), m_pThis(img), m_fname(fname), m_format(format), m_quality(quality)
         {

@@ -23,8 +23,8 @@ public:
 public:
 	// X509Crl_base
 	virtual result_t load(Buffer_base *derCrl);
-	virtual result_t load(const char *pemCrl);
-	virtual result_t loadFile(const char *filename);
+	virtual result_t load(exlib::string pemCrl);
+	virtual result_t loadFile(exlib::string filename);
 	virtual result_t dump(v8::Local<v8::Array> &retVal);
 	virtual result_t clear();
 

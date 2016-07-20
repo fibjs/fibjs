@@ -39,7 +39,7 @@ result_t crypto_base::loadPKey(exlib::string filename, exlib::string password,
 result_t crypto_base::loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal)
 {
     obj_ptr<X509Cert_base> cert = new X509Cert();
-    result_t hr = cert->loadFile(filename.c_str());
+    result_t hr = cert->loadFile(filename);
     if (hr < 0)
         return hr;
 
@@ -51,7 +51,7 @@ result_t crypto_base::loadCert(exlib::string filename, obj_ptr<X509Cert_base>& r
 result_t crypto_base::loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal)
 {
     obj_ptr<X509Crl_base> crl = new X509Crl();
-    result_t hr = crl->loadFile(filename.c_str());
+    result_t hr = crl->loadFile(filename);
     if (hr < 0)
         return hr;
 
@@ -63,7 +63,7 @@ result_t crypto_base::loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& ret
 result_t crypto_base::loadReq(exlib::string filename, obj_ptr<X509Req_base>& retVal)
 {
     obj_ptr<X509Req_base> req = new X509Req();
-    result_t hr = req->loadFile(filename.c_str());
+    result_t hr = req->loadFile(filename);
     if (hr < 0)
         return hr;
 

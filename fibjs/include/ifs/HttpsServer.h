@@ -29,9 +29,9 @@ class HttpsServer_base : public HttpServer_base
 public:
     // HttpsServer_base
     static result_t _new(v8::Local<v8::Array> certs, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Array> certs, const char* addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Array> certs, exlib::string addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(X509Cert_base* crt, PKey_base* key, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(X509Cert_base* crt, PKey_base* key, const char* addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(X509Cert_base* crt, PKey_base* key, exlib::string addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_verification(int32_t& retVal) = 0;
     virtual result_t set_verification(int32_t newVal) = 0;
     virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal) = 0;
@@ -129,7 +129,7 @@ namespace fibjs
         METHOD_OVER(4, 4);
 
         ARG(v8::Local<v8::Array>, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 1);
         ARG(int32_t, 2);
         ARG(v8::Local<v8::Value>, 3);
 
@@ -148,7 +148,7 @@ namespace fibjs
 
         ARG(obj_ptr<X509Cert_base>, 0);
         ARG(obj_ptr<PKey_base>, 1);
-        ARG(arg_string, 2);
+        ARG(exlib::string, 2);
         ARG(int32_t, 3);
         ARG(v8::Local<v8::Value>, 4);
 

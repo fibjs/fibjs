@@ -8,7 +8,7 @@
 interface File: SeekableStream
 {
     /*! @brief 查询当前文件名 */
-    readonly String name;
+    readonly XString name;
 
     /*! @brief 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
       @param bytes 新的文件尺寸

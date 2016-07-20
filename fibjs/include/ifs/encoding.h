@@ -31,10 +31,10 @@ class encoding_base : public object_base
 
 public:
     // encoding_base
-    static result_t jsstr(const char* str, bool json, exlib::string& retVal);
-    static result_t encodeURI(const char* url, exlib::string& retVal);
-    static result_t encodeURIComponent(const char* url, exlib::string& retVal);
-    static result_t decodeURI(const char* url, exlib::string& retVal);
+    static result_t jsstr(exlib::string str, bool json, exlib::string& retVal);
+    static result_t encodeURI(exlib::string url, exlib::string& retVal);
+    static result_t encodeURIComponent(exlib::string url, exlib::string& retVal);
+    static result_t decodeURI(exlib::string url, exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -105,7 +105,7 @@ namespace fibjs
 
         METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(bool, 1, false);
 
         hr = jsstr(v0, v1, vr);
@@ -119,7 +119,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = encodeURI(v0, vr);
 
@@ -132,7 +132,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = encodeURIComponent(v0, vr);
 
@@ -145,7 +145,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = decodeURI(v0, vr);
 

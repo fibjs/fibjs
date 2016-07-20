@@ -25,9 +25,9 @@ public:
     // Stats_base
     static result_t _new(v8::Local<v8::Array> keys, obj_ptr<Stats_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Array> staticKeys, v8::Local<v8::Array> keys, obj_ptr<Stats_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t inc(const char* key) = 0;
-    virtual result_t dec(const char* key) = 0;
-    virtual result_t add(const char* key, int32_t value) = 0;
+    virtual result_t inc(exlib::string key) = 0;
+    virtual result_t dec(exlib::string key) = 0;
+    virtual result_t add(exlib::string key, int32_t value) = 0;
     virtual result_t reset() = 0;
     virtual result_t uptime(int32_t& retVal) = 0;
     virtual result_t _named_getter(const char* property, int32_t& retVal) = 0;
@@ -138,7 +138,7 @@ namespace fibjs
         METHOD_INSTANCE(Stats_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->inc(v0);
 
@@ -150,7 +150,7 @@ namespace fibjs
         METHOD_INSTANCE(Stats_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->dec(v0);
 
@@ -162,7 +162,7 @@ namespace fibjs
         METHOD_INSTANCE(Stats_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(int32_t, 1);
 
         hr = pInst->add(v0, v1);

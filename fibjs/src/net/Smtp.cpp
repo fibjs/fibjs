@@ -72,7 +72,7 @@ public:
         return pThis->m_stmBuffered->readLine(SMTP_MAX_LINE, strLine, pThis);
     }
 
-    int32_t connect(const char *host, int32_t port)
+    int32_t connect(exlib::string host, int32_t port)
     {
         int32_t r = m_pThis->m_sock->connect(host, port, this);
 
@@ -90,7 +90,7 @@ public:
         return post(r);
     }
 
-    int32_t command(const char *cmd, const char *arg)
+    int32_t command(exlib::string cmd, exlib::string arg)
     {
         exlib::string s(cmd);
 
@@ -114,7 +114,7 @@ protected:
     exlib::string m_strLine;
 };
 
-result_t Smtp::connect(const char *host, int32_t port, int32_t family,
+result_t Smtp::connect(exlib::string host, int32_t port, int32_t family,
                        AsyncEvent *ac)
 {
     if (m_sock)
@@ -138,7 +138,7 @@ result_t Smtp::connect(const char *host, int32_t port, int32_t family,
     return (new asyncSmtp(this, ac))->connect(host, port);
 }
 
-result_t Smtp::command(const char *cmd, const char *arg, exlib::string &retVal,
+result_t Smtp::command(exlib::string cmd, exlib::string arg, exlib::string &retVal,
                        AsyncEvent *ac)
 {
     if (!m_sock)
@@ -150,7 +150,7 @@ result_t Smtp::command(const char *cmd, const char *arg, exlib::string &retVal,
     return (new asyncSmtp(this, retVal, ac))->command(cmd, arg);
 }
 
-result_t Smtp::command(const char *cmd, const char *arg, AsyncEvent *ac)
+result_t Smtp::command(exlib::string cmd, exlib::string arg, AsyncEvent *ac)
 {
     if (!m_sock)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -161,18 +161,18 @@ result_t Smtp::command(const char *cmd, const char *arg, AsyncEvent *ac)
     return (new asyncSmtp(this, ac))->command(cmd, arg);
 }
 
-result_t Smtp::hello(const char *hostname, AsyncEvent *ac)
+result_t Smtp::hello(exlib::string hostname, AsyncEvent *ac)
 {
     return command("HELO", hostname, ac);
 }
 
-result_t Smtp::login(const char *username, const char *password,
+result_t Smtp::login(exlib::string username, exlib::string password,
                      AsyncEvent *ac)
 {
     class asyncLogin: public asyncSmtp
     {
     public:
-        asyncLogin(Smtp *pThis, const char *username, const char *password,
+        asyncLogin(Smtp *pThis, exlib::string username, exlib::string password,
                    AsyncEvent *ac) :
             asyncSmtp(pThis, ac), m_username(username), m_password(
                 password), step(0)
@@ -191,7 +191,7 @@ result_t Smtp::login(const char *username, const char *password,
             return pThis->m_stmBuffered->write(buf, pThis);
         }
 
-        int32_t send_base64(const char *str)
+        int32_t send_base64(exlib::string str)
         {
             obj_ptr<Buffer> buf = new Buffer(str);
             exlib::string s;
@@ -234,8 +234,8 @@ result_t Smtp::login(const char *username, const char *password,
         }
 
     private:
-        const char *m_username;
-        const char *m_password;
+        exlib::string m_username;
+        exlib::string m_password;
         int32_t step;
     };
 
@@ -248,22 +248,22 @@ result_t Smtp::login(const char *username, const char *password,
     return (new asyncLogin(this, username, password, ac))->post(0);
 }
 
-result_t Smtp::from(const char *address, AsyncEvent *ac)
+result_t Smtp::from(exlib::string address, AsyncEvent *ac)
 {
     return command("MAIL FROM", address, ac);
 }
 
-result_t Smtp::to(const char *address, AsyncEvent *ac)
+result_t Smtp::to(exlib::string address, AsyncEvent *ac)
 {
     return command("RCPT TO", address, ac);
 }
 
-result_t Smtp::data(const char *txt, AsyncEvent *ac)
+result_t Smtp::data(exlib::string txt, AsyncEvent *ac)
 {
     class asyncData: public asyncSmtp
     {
     public:
-        asyncData(Smtp *pThis, const char *txt, AsyncEvent *ac) :
+        asyncData(Smtp *pThis, exlib::string txt, AsyncEvent *ac) :
             asyncSmtp(pThis, ac), m_txt(txt), step(0)
         {
             set(begin);
@@ -306,7 +306,7 @@ result_t Smtp::data(const char *txt, AsyncEvent *ac)
         }
 
     private:
-        const char *m_txt;
+        exlib::string m_txt;
         int32_t step;
     };
 

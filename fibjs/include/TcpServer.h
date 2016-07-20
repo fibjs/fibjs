@@ -44,7 +44,7 @@ public:
     virtual result_t get_stats(obj_ptr<Stats_base> &retVal);
 
 public:
-    result_t create(const char *addr, int32_t port, Handler_base *listener);
+    result_t create(exlib::string addr, int32_t port, Handler_base *listener);
 
 private:
     bool m_running;

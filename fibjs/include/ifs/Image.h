@@ -40,7 +40,7 @@ public:
     virtual result_t set_alphaBlending(bool newVal) = 0;
     virtual result_t getData(int32_t format, int32_t quality, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t save(Stream_base* stm, int32_t format, int32_t quality, AsyncEvent* ac) = 0;
-    virtual result_t save(const char* fname, int32_t format, int32_t quality, AsyncEvent* ac) = 0;
+    virtual result_t save(exlib::string fname, int32_t format, int32_t quality, AsyncEvent* ac) = 0;
     virtual result_t colorAllocate(int32_t red, int32_t green, int32_t blue, int32_t& retVal) = 0;
     virtual result_t colorAllocate(int32_t color, int32_t& retVal) = 0;
     virtual result_t colorAllocateAlpha(int32_t red, int32_t green, int32_t blue, double alpha, int32_t& retVal) = 0;
@@ -166,7 +166,7 @@ public:
 public:
     ASYNC_MEMBERVALUE3(Image_base, getData, int32_t, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBER3(Image_base, save, Stream_base*, int32_t, int32_t);
-    ASYNC_MEMBER3(Image_base, save, const char*, int32_t, int32_t);
+    ASYNC_MEMBER3(Image_base, save, exlib::string, int32_t, int32_t);
     ASYNC_MEMBER2(Image_base, colorReplace, int32_t, int32_t);
     ASYNC_MEMBERVALUE1(Image_base, clone, obj_ptr<Image_base>);
     ASYNC_MEMBERVALUE3(Image_base, resample, int32_t, int32_t, obj_ptr<Image_base>);
@@ -431,7 +431,7 @@ namespace fibjs
 
         METHOD_OVER(3, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, gd_base::_PNG);
         OPT_ARG(int32_t, 2, 85);
 

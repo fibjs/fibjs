@@ -374,7 +374,7 @@ result_t SslSocket::handshake(int32_t *retVal, AsyncEvent *ac)
     return (new asyncHandshake(this, retVal, ac))->post(0);
 }
 
-result_t SslSocket::connect(Stream_base *s, const char *server_name,
+result_t SslSocket::connect(Stream_base *s, exlib::string server_name,
                             int32_t &retVal, AsyncEvent *ac)
 {
     if (m_s)
@@ -397,8 +397,8 @@ result_t SslSocket::connect(Stream_base *s, const char *server_name,
 
     mbedtls_ssl_set_bio(&m_ssl, this, my_send, my_recv, NULL);
 
-    if (server_name && *server_name)
-        mbedtls_ssl_set_hostname(&m_ssl, server_name);
+    if (!server_name.empty())
+        mbedtls_ssl_set_hostname(&m_ssl, server_name.c_str());
 
     return handshake(&retVal, ac);
 }

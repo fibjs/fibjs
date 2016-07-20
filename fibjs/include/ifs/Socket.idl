@@ -21,13 +21,13 @@ interface Socket : Stream
     readonly Integer type;
 
     /*! @brief 查询当前连接的对方地址 */
-    readonly String remoteAddress;
+    readonly XString remoteAddress;
 
     /*! @brief 查询当前连接的对方端口 */
     readonly Integer remotePort;
 
     /*! @brief 查询当前连接的本地地址 */
-    readonly String localAddress;
+    readonly XString localAddress;
 
     /*! @brief 查询当前连接的本地端口 */
     readonly Integer localPort;
@@ -36,7 +36,7 @@ interface Socket : Stream
      @param host 指定对方地址或主机名
      @param port 指定对方端口
      */
-    connect(String host, Integer port) async;
+    connect(XString host, Integer port) async;
 
     /*! @brief 将当前 Socket 绑定至本地所有地址的指定端口
      @param port 指定绑定的端口
@@ -49,7 +49,7 @@ interface Socket : Stream
      @param port 指定绑定的端口
      @param allowIPv4 指定是否接受 ipv4 连接，缺省为 true。本参数在 ipv6 时有效，并依赖于操作系统
      */
-    bind(String addr, Integer port, Boolean allowIPv4 = true);
+    bind(XString addr, Integer port, Boolean allowIPv4 = true);
 
     /*! @brief 开始监听连接请求
      @param backlog 指定请求队列长度，超出的请求将被拒绝，缺省为 120
@@ -74,5 +74,5 @@ interface Socket : Stream
      */
     send(Buffer data) async;
 
-    sendto(Buffer data, String host, Integer port);
+    sendto(Buffer data, XString host, Integer port);
 };

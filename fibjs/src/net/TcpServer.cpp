@@ -14,7 +14,7 @@
 namespace fibjs
 {
 
-result_t _new_tcpServer(const char *addr, int32_t port,
+result_t _new_tcpServer(exlib::string addr, int32_t port,
                         Handler_base *listener, obj_ptr<TcpServer_base> &retVal,
                         v8::Local<v8::Object> This)
 {
@@ -37,7 +37,7 @@ result_t TcpServer_base::_new(int32_t port, v8::Local<v8::Value> listener,
     return _new("", port, listener, retVal, This);
 }
 
-result_t TcpServer_base::_new(const char *addr, int32_t port,
+result_t TcpServer_base::_new(exlib::string addr, int32_t port,
                               v8::Local<v8::Value> listener, obj_ptr<TcpServer_base> &retVal,
                               v8::Local<v8::Object> This)
 {
@@ -66,7 +66,7 @@ TcpServer::TcpServer()
     m_running = false;
 }
 
-result_t TcpServer::create(const char *addr, int32_t port,
+result_t TcpServer::create(exlib::string addr, int32_t port,
                            Handler_base *listener)
 {
     result_t hr;

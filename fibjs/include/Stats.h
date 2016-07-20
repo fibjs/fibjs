@@ -18,9 +18,9 @@ class Stats: public Stats_base
 {
 public:
     // Stats_base
-    virtual result_t inc(const char *key);
-    virtual result_t dec(const char *key);
-    virtual result_t add(const char *key, int32_t value);
+    virtual result_t inc(exlib::string key);
+    virtual result_t dec(exlib::string key);
+    virtual result_t add(exlib::string key, int32_t value);
     virtual result_t reset();
     virtual result_t uptime(int32_t &retVal);
     virtual result_t _named_getter(const char *property, int32_t &retVal);
@@ -66,7 +66,7 @@ public:
     }
 
 private:
-    int32_t find(const char *key);
+    int32_t find(exlib::string key);
 
 private:
     int32_t m_static, m_size;

@@ -45,9 +45,9 @@ public:
 
 public:
     // ssl_base
-    static result_t connect(const char* url, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string url, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t setClientCert(X509Cert_base* crt, PKey_base* key);
-    static result_t loadClientCertFile(const char* crtFile, const char* keyFile, const char* password);
+    static result_t loadClientCertFile(exlib::string crtFile, exlib::string keyFile, exlib::string password);
     static result_t get_ca(obj_ptr<X509Cert_base>& retVal);
     static result_t get_verification(int32_t& retVal);
     static result_t set_verification(int32_t newVal);
@@ -91,7 +91,7 @@ public:
     static void s_set_max_version(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 
 public:
-    ASYNC_STATICVALUE2(ssl_base, connect, const char*, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE2(ssl_base, connect, exlib::string, obj_ptr<Stream_base>);
 };
 
 }
@@ -308,7 +308,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_connect(v0, vr, cb);
@@ -335,9 +335,9 @@ namespace fibjs
     {
         METHOD_ENTER(3, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
-        OPT_ARG(arg_string, 2, "");
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
+        OPT_ARG(exlib::string, 2, "");
 
         hr = loadClientCertFile(v0, v1, v2);
 

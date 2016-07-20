@@ -63,14 +63,14 @@ public:
     static result_t create(int32_t width, int32_t height, int32_t color, obj_ptr<Image_base>& retVal, AsyncEvent* ac);
     static result_t load(Buffer_base* data, obj_ptr<Image_base>& retVal, AsyncEvent* ac);
     static result_t load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal, AsyncEvent* ac);
-    static result_t load(const char* fname, obj_ptr<Image_base>& retVal, AsyncEvent* ac);
+    static result_t load(exlib::string fname, obj_ptr<Image_base>& retVal, AsyncEvent* ac);
     static result_t rgb(int32_t red, int32_t green, int32_t blue, int32_t& retVal);
     static result_t rgba(int32_t red, int32_t green, int32_t blue, double alpha, int32_t& retVal);
     static result_t hsl(double hue, double saturation, double lightness, int32_t& retVal);
     static result_t hsla(double hue, double saturation, double lightness, double alpha, int32_t& retVal);
     static result_t hsb(double hue, double saturation, double brightness, int32_t& retVal);
     static result_t hsba(double hue, double saturation, double brightness, double alpha, int32_t& retVal);
-    static result_t color(const char* color, int32_t& retVal);
+    static result_t color(exlib::string color, int32_t& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -127,7 +127,7 @@ public:
     ASYNC_STATICVALUE4(gd_base, create, int32_t, int32_t, int32_t, obj_ptr<Image_base>);
     ASYNC_STATICVALUE2(gd_base, load, Buffer_base*, obj_ptr<Image_base>);
     ASYNC_STATICVALUE2(gd_base, load, SeekableStream_base*, obj_ptr<Image_base>);
-    ASYNC_STATICVALUE2(gd_base, load, const char*, obj_ptr<Image_base>);
+    ASYNC_STATICVALUE2(gd_base, load, exlib::string, obj_ptr<Image_base>);
 };
 
 }
@@ -445,7 +445,7 @@ namespace fibjs
 
         METHOD_OVER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_load(v0, vr, cb);
@@ -555,7 +555,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = color(v0, vr);
 

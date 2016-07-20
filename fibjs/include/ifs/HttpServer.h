@@ -28,7 +28,7 @@ class HttpServer_base : public TcpServer_base
 public:
     // HttpServer_base
     static result_t _new(int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(const char* addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t onerror(v8::Local<v8::Object> hdlrs) = 0;
     virtual result_t get_crossDomain(bool& retVal) = 0;
     virtual result_t set_crossDomain(bool newVal) = 0;
@@ -214,7 +214,7 @@ namespace fibjs
 
         METHOD_OVER(3, 3);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(int32_t, 1);
         ARG(v8::Local<v8::Value>, 2);
 

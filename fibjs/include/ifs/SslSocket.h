@@ -34,7 +34,7 @@ public:
     virtual result_t set_verification(int32_t newVal) = 0;
     virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal) = 0;
     virtual result_t get_peerCert(obj_ptr<X509Cert_base>& retVal) = 0;
-    virtual result_t connect(Stream_base* s, const char* server_name, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t connect(Stream_base* s, exlib::string server_name, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
@@ -51,7 +51,7 @@ public:
     static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBERVALUE3(SslSocket_base, connect, Stream_base*, const char*, int32_t);
+    ASYNC_MEMBERVALUE3(SslSocket_base, connect, Stream_base*, exlib::string, int32_t);
     ASYNC_MEMBERVALUE2(SslSocket_base, accept, Stream_base*, obj_ptr<SslSocket_base>);
 };
 
@@ -169,7 +169,7 @@ namespace fibjs
         ASYNC_METHOD_ENTER(2, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
-        OPT_ARG(arg_string, 1, "");
+        OPT_ARG(exlib::string, 1, "");
 
         if(!cb.IsEmpty()) {
             pInst->acb_connect(v0, v1, vr, cb);

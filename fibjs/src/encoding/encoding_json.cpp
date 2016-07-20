@@ -73,16 +73,16 @@ inline int32_t AsciiAlphaToLower(char c) {
 	return c | 0x20;
 }
 
-inline result_t _jsonDecode(const char *data,
+inline result_t _jsonDecode(exlib::string data,
                             v8::Local<v8::Value> &retVal)
 {
 	class json_parser
 	{
 	public:
-		json_parser(const char* source)
+		json_parser(exlib::string source)
 			: isolate(Isolate::current()),
-			  source_(source),
-			  source_length_((int32_t)qstrlen(source)),
+			  source_(source.c_str()),
+			  source_length_((int32_t)source.length()),
 			  position_(-1)
 		{}
 
@@ -423,13 +423,13 @@ inline result_t _jsonDecode(const char *data,
 	return jp.ParseJson(retVal);
 }
 
-result_t json_base::decode(const char *data,
+result_t json_base::decode(exlib::string data,
                            v8::Local<v8::Value> &retVal)
 {
 	return _jsonDecode(data, retVal);
 }
 
-result_t encoding_base::jsstr(const char *str, bool json, exlib::string & retVal)
+result_t encoding_base::jsstr(exlib::string str, bool json, exlib::string &retVal)
 {
 	const char *p;
 	char *p1;
@@ -437,17 +437,25 @@ result_t encoding_base::jsstr(const char *str, bool json, exlib::string & retVal
 	char ch;
 	exlib::string s;
 
-	if (!*str)
+	if (str.empty())
 		return 0;
 
-	for (len = 0, p = str; (ch = *p) != 0; p++, len++)
+	const char* ptr = str.c_str();
+	const char* ptr_end = ptr + str.length();
+
+	for (len = 0, p = ptr; p < ptr_end; p++, len++)
+	{
+		ch = *p;
 		if (ch == '\\' || ch == '\r' || ch == '\n' || ch == '\t'  || ch == '\"'
 		        || (!json && ch == '\''))
 			len++;
+	}
 
 	s.resize(len);
 
-	for (p1 = &s[0], p = str; (ch = *p) != 0; p++)
+	for (p1 = &s[0], p = ptr; p < ptr_end; p++)
+	{
+		ch = *p;
 		switch (ch)
 		{
 		case '\\':
@@ -481,6 +489,7 @@ result_t encoding_base::jsstr(const char *str, bool json, exlib::string & retVal
 			*p1++ = ch;
 			break;
 		}
+	}
 
 	retVal = s;
 	return 0;

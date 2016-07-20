@@ -60,7 +60,7 @@ result_t HeapSnapshotProxy::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>&
 	return 0;
 }
 
-result_t HeapSnapshotProxy::save(const char* fname, AsyncEvent* ac)
+result_t HeapSnapshotProxy::save(exlib::string fname, AsyncEvent* ac)
 {
 	class BufferStream : public v8::OutputStream {
 	public:
@@ -85,7 +85,7 @@ result_t HeapSnapshotProxy::save(const char* fname, AsyncEvent* ac)
 	BufferStream bs;
 	m_snapshot->Serialize(&bs);
 
-	return fs_base::ac_writeFile(fname, bs.result().c_str());
+	return fs_base::ac_writeFile(fname.c_str(), bs.result().c_str());
 }
 
 result_t HeapSnapshotProxy::get_time(date_t& retVal)

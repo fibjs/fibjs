@@ -21,10 +21,10 @@ interface HeapGraphNode : object
     readonly Integer type;
 
     /*! @brief 节点名称 */
-    readonly String name;
+    readonly XString name;
 
     /*! @brief 节点的描述 */
-    readonly String description;
+    readonly XString description;
 
     /*! @brief 节点ID */
     readonly Integer id;

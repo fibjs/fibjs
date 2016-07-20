@@ -37,12 +37,12 @@ public:
 
 public:
     // net_base
-    static result_t resolve(const char* name, int32_t family, exlib::string& retVal, AsyncEvent* ac);
-    static result_t ip(const char* name, exlib::string& retVal, AsyncEvent* ac);
-    static result_t ipv6(const char* name, exlib::string& retVal, AsyncEvent* ac);
-    static result_t connect(const char* host, int32_t port, int32_t family, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(const char* url, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t openSmtp(const char* host, int32_t port, int32_t family, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
+    static result_t resolve(exlib::string name, int32_t family, exlib::string& retVal, AsyncEvent* ac);
+    static result_t ip(exlib::string name, exlib::string& retVal, AsyncEvent* ac);
+    static result_t ipv6(exlib::string name, exlib::string& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string host, int32_t port, int32_t family, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string url, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t openSmtp(exlib::string host, int32_t port, int32_t family, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
     static result_t backend(exlib::string& retVal);
 
 public:
@@ -69,12 +69,12 @@ public:
     static void s_backend(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE3(net_base, resolve, const char*, int32_t, exlib::string);
-    ASYNC_STATICVALUE2(net_base, ip, const char*, exlib::string);
-    ASYNC_STATICVALUE2(net_base, ipv6, const char*, exlib::string);
-    ASYNC_STATICVALUE4(net_base, connect, const char*, int32_t, int32_t, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE2(net_base, connect, const char*, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE4(net_base, openSmtp, const char*, int32_t, int32_t, obj_ptr<Smtp_base>);
+    ASYNC_STATICVALUE3(net_base, resolve, exlib::string, int32_t, exlib::string);
+    ASYNC_STATICVALUE2(net_base, ip, exlib::string, exlib::string);
+    ASYNC_STATICVALUE2(net_base, ipv6, exlib::string, exlib::string);
+    ASYNC_STATICVALUE4(net_base, connect, exlib::string, int32_t, int32_t, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE2(net_base, connect, exlib::string, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE4(net_base, openSmtp, exlib::string, int32_t, int32_t, obj_ptr<Smtp_base>);
 };
 
 }
@@ -160,7 +160,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, _AF_INET);
 
         if(!cb.IsEmpty()) {
@@ -178,7 +178,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_ip(v0, vr, cb);
@@ -195,7 +195,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_ipv6(v0, vr, cb);
@@ -212,7 +212,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(3, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(int32_t, 1);
         OPT_ARG(int32_t, 2, net_base::_AF_INET);
 
@@ -224,7 +224,7 @@ namespace fibjs
 
         METHOD_OVER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_connect(v0, vr, cb);
@@ -241,7 +241,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(3, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(int32_t, 1);
         OPT_ARG(int32_t, 2, net_base::_AF_INET);
 

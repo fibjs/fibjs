@@ -28,7 +28,7 @@ public:
     // HeapSnapshot_base
     virtual result_t diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retVal) = 0;
-    virtual result_t save(const char* fname, AsyncEvent* ac) = 0;
+    virtual result_t save(exlib::string fname, AsyncEvent* ac) = 0;
     virtual result_t get_time(date_t& retVal) = 0;
     virtual result_t get_root(obj_ptr<HeapGraphNode_base>& retVal) = 0;
     virtual result_t get_nodes(obj_ptr<List_base>& retVal) = 0;
@@ -53,7 +53,7 @@ public:
     static void s_get_nodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 
 public:
-    ASYNC_MEMBER1(HeapSnapshot_base, save, const char*);
+    ASYNC_MEMBER1(HeapSnapshot_base, save, exlib::string);
 };
 
 }
@@ -159,7 +159,7 @@ namespace fibjs
         METHOD_INSTANCE(HeapSnapshot_base);
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_save(v0, cb);

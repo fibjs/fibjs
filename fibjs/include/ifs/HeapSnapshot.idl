@@ -17,7 +17,7 @@ interface HeapSnapshot : object
     /*! @brief 根据指定名称保存HeapSnapshot
      @param fname 快照名称
     */
-    save(String fname) async;
+    save(XString fname) async;
 
     /*! @brief 时间信息 */
     readonly Date time;

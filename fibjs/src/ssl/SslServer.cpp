@@ -19,7 +19,7 @@ result_t SslServer_base::_new(v8::Local<v8::Array> certs, int32_t port,
     return _new(certs, "", port, listener, retVal, This);
 }
 
-result_t SslServer_base::_new(v8::Local<v8::Array> certs, const char *addr, int32_t port,
+result_t SslServer_base::_new(v8::Local<v8::Array> certs, exlib::string addr, int32_t port,
                               v8::Local<v8::Value> listener, obj_ptr<SslServer_base> &retVal,
                               v8::Local<v8::Object> This)
 {
@@ -42,7 +42,7 @@ result_t SslServer_base::_new(X509Cert_base *crt, PKey_base *key, int32_t port,
     return _new(crt, key, "", port, listener, retVal, This);
 }
 
-result_t SslServer_base::_new(X509Cert_base *crt, PKey_base *key, const char *addr, int32_t port,
+result_t SslServer_base::_new(X509Cert_base *crt, PKey_base *key, exlib::string addr, int32_t port,
                               v8::Local<v8::Value> listener, obj_ptr<SslServer_base> &retVal,
                               v8::Local<v8::Object> This)
 {
@@ -58,7 +58,7 @@ result_t SslServer_base::_new(X509Cert_base *crt, PKey_base *key, const char *ad
     return 0;
 }
 
-result_t SslServer::create(X509Cert_base *crt, PKey_base *key, const char *addr, int32_t port,
+result_t SslServer::create(X509Cert_base *crt, PKey_base *key, exlib::string addr, int32_t port,
                            v8::Local<v8::Value> listener)
 {
     result_t hr;
@@ -84,7 +84,7 @@ result_t SslServer::create(X509Cert_base *crt, PKey_base *key, const char *addr,
     return 0;
 }
 
-result_t SslServer::create(v8::Local<v8::Array> certs, const char *addr, int32_t port,
+result_t SslServer::create(v8::Local<v8::Array> certs, exlib::string addr, int32_t port,
                            v8::Local<v8::Value> listener)
 {
     result_t hr;

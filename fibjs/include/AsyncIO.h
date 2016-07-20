@@ -31,7 +31,7 @@ public:
     {}
 
 public:
-    result_t connect(const char *host, int32_t port, AsyncEvent *ac);
+    result_t connect(exlib::string host, int32_t port, AsyncEvent *ac);
     result_t accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac);
     result_t write(Buffer_base *data, AsyncEvent *ac);
     result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal,

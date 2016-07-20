@@ -44,7 +44,7 @@ public:
     virtual result_t set_alphaBlending(bool newVal);
     virtual result_t getData(int32_t format, int32_t quality, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
     virtual result_t save(Stream_base *stm, int32_t format, int32_t quality, AsyncEvent *ac);
-    virtual result_t save(const char *fname, int32_t format, int32_t quality, AsyncEvent *ac);
+    virtual result_t save(exlib::string fname, int32_t format, int32_t quality, AsyncEvent *ac);
     virtual result_t colorAllocate(int32_t red, int32_t green, int32_t blue, int32_t &retVal);
     virtual result_t colorAllocate(int32_t color, int32_t &retVal);
     virtual result_t colorAllocateAlpha(int32_t red, int32_t green, int32_t blue, double alpha, int32_t &retVal);

@@ -258,7 +258,7 @@ result_t AsyncIO::cancel(AsyncEvent *ac)
 	return 0;
 }
 
-result_t AsyncIO::connect(const char *host, int32_t port, AsyncEvent *ac)
+result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac)
 {
 	class asyncConnect: public asyncProc
 	{
@@ -308,7 +308,7 @@ result_t AsyncIO::connect(const char *host, int32_t port, AsyncEvent *ac)
 
 	addr_info.init(m_family);
 	addr_info.setPort(port);
-	if (addr_info.addr(host) < 0)
+	if (addr_info.addr(host.c_str()) < 0)
 	{
 		exlib::string strAddr;
 		result_t hr = net_base::cc_resolve(host, m_family, strAddr);

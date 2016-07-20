@@ -93,7 +93,7 @@ result_t Stats::set_key(int32_t n, v8::Local<v8::Value> key)
     return 0;
 }
 
-int32_t Stats::find(const char *key)
+int32_t Stats::find(exlib::string key)
 {
     int32_t i;
 
@@ -104,7 +104,7 @@ int32_t Stats::find(const char *key)
     return -1;
 }
 
-result_t Stats::inc(const char *key)
+result_t Stats::inc(exlib::string key)
 {
     int32_t i = find(key);
 
@@ -116,7 +116,7 @@ result_t Stats::inc(const char *key)
     return 0;
 }
 
-result_t Stats::dec(const char *key)
+result_t Stats::dec(exlib::string key)
 {
     int32_t i = find(key);
 
@@ -128,7 +128,7 @@ result_t Stats::dec(const char *key)
     return 0;
 }
 
-result_t Stats::add(const char *key, int32_t value)
+result_t Stats::add(exlib::string key, int32_t value)
 {
     int32_t i = find(key);
 

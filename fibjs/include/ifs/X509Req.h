@@ -29,13 +29,13 @@ class X509Req_base : public object_base
 public:
     // X509Req_base
     static result_t _new(obj_ptr<X509Req_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(const char* subject, PKey_base* key, int32_t hash, obj_ptr<X509Req_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string subject, PKey_base* key, int32_t hash, obj_ptr<X509Req_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t load(Buffer_base* derReq) = 0;
-    virtual result_t load(const char* pemReq) = 0;
-    virtual result_t loadFile(const char* filename) = 0;
+    virtual result_t load(exlib::string pemReq) = 0;
+    virtual result_t loadFile(exlib::string filename) = 0;
     virtual result_t exportPem(exlib::string& retVal) = 0;
     virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t sign(const char* issuer, PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<X509Cert_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t sign(exlib::string issuer, PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<X509Cert_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t get_subject(exlib::string& retVal) = 0;
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
 
@@ -54,7 +54,7 @@ public:
     static void s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 
 public:
-    ASYNC_MEMBERVALUE4(X509Req_base, sign, const char*, PKey_base*, v8::Local<v8::Object>, obj_ptr<X509Cert_base>);
+    ASYNC_MEMBERVALUE4(X509Req_base, sign, exlib::string, PKey_base*, v8::Local<v8::Object>, obj_ptr<X509Cert_base>);
 };
 
 }
@@ -134,7 +134,7 @@ namespace fibjs
 
         METHOD_OVER(3, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(obj_ptr<PKey_base>, 1);
         OPT_ARG(int32_t, 2, hash_base::_SHA1);
 
@@ -154,7 +154,7 @@ namespace fibjs
 
         METHOD_OVER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->load(v0);
 
@@ -166,7 +166,7 @@ namespace fibjs
         METHOD_INSTANCE(X509Req_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->loadFile(v0);
 
@@ -204,7 +204,7 @@ namespace fibjs
         METHOD_INSTANCE(X509Req_base);
         ASYNC_METHOD_ENTER(3, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(obj_ptr<PKey_base>, 1);
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 

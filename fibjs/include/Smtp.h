@@ -18,18 +18,18 @@ class Smtp: public Smtp_base
 {
 public:
     // Smtp_base
-    virtual result_t connect(const char *host, int32_t port, int32_t family, AsyncEvent *ac);
-    virtual result_t command(const char *cmd, const char *arg, exlib::string &retVal, AsyncEvent *ac);
-    virtual result_t hello(const char *hostname, AsyncEvent *ac);
-    virtual result_t login(const char *username, const char *password, AsyncEvent *ac);
-    virtual result_t from(const char *address, AsyncEvent *ac);
-    virtual result_t to(const char *address, AsyncEvent *ac);
-    virtual result_t data(const char *txt, AsyncEvent *ac);
+    virtual result_t connect(exlib::string host, int32_t port, int32_t family, AsyncEvent *ac);
+    virtual result_t command(exlib::string cmd, exlib::string arg, exlib::string &retVal, AsyncEvent *ac);
+    virtual result_t hello(exlib::string hostname, AsyncEvent *ac);
+    virtual result_t login(exlib::string username, exlib::string password, AsyncEvent *ac);
+    virtual result_t from(exlib::string address, AsyncEvent *ac);
+    virtual result_t to(exlib::string address, AsyncEvent *ac);
+    virtual result_t data(exlib::string txt, AsyncEvent *ac);
     virtual result_t quit(AsyncEvent *ac);
     virtual result_t get_socket(obj_ptr<Socket_base> &retVal);
 
 private:
-    result_t command(const char *cmd, const char *arg, AsyncEvent *ac);
+    result_t command(exlib::string cmd, exlib::string arg, AsyncEvent *ac);
 
 public:
     obj_ptr<Socket_base> m_sock;

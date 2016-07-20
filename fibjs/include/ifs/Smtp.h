@@ -27,13 +27,13 @@ class Smtp_base : public object_base
 public:
     // Smtp_base
     static result_t _new(obj_ptr<Smtp_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t connect(const char* host, int32_t port, int32_t family, AsyncEvent* ac) = 0;
-    virtual result_t command(const char* cmd, const char* arg, exlib::string& retVal, AsyncEvent* ac) = 0;
-    virtual result_t hello(const char* hostname, AsyncEvent* ac) = 0;
-    virtual result_t login(const char* username, const char* password, AsyncEvent* ac) = 0;
-    virtual result_t from(const char* address, AsyncEvent* ac) = 0;
-    virtual result_t to(const char* address, AsyncEvent* ac) = 0;
-    virtual result_t data(const char* txt, AsyncEvent* ac) = 0;
+    virtual result_t connect(exlib::string host, int32_t port, int32_t family, AsyncEvent* ac) = 0;
+    virtual result_t command(exlib::string cmd, exlib::string arg, exlib::string& retVal, AsyncEvent* ac) = 0;
+    virtual result_t hello(exlib::string hostname, AsyncEvent* ac) = 0;
+    virtual result_t login(exlib::string username, exlib::string password, AsyncEvent* ac) = 0;
+    virtual result_t from(exlib::string address, AsyncEvent* ac) = 0;
+    virtual result_t to(exlib::string address, AsyncEvent* ac) = 0;
+    virtual result_t data(exlib::string txt, AsyncEvent* ac) = 0;
     virtual result_t quit(AsyncEvent* ac) = 0;
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
 
@@ -54,13 +54,13 @@ public:
     static void s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 
 public:
-    ASYNC_MEMBER3(Smtp_base, connect, const char*, int32_t, int32_t);
-    ASYNC_MEMBERVALUE3(Smtp_base, command, const char*, const char*, exlib::string);
-    ASYNC_MEMBER1(Smtp_base, hello, const char*);
-    ASYNC_MEMBER2(Smtp_base, login, const char*, const char*);
-    ASYNC_MEMBER1(Smtp_base, from, const char*);
-    ASYNC_MEMBER1(Smtp_base, to, const char*);
-    ASYNC_MEMBER1(Smtp_base, data, const char*);
+    ASYNC_MEMBER3(Smtp_base, connect, exlib::string, int32_t, int32_t);
+    ASYNC_MEMBERVALUE3(Smtp_base, command, exlib::string, exlib::string, exlib::string);
+    ASYNC_MEMBER1(Smtp_base, hello, exlib::string);
+    ASYNC_MEMBER2(Smtp_base, login, exlib::string, exlib::string);
+    ASYNC_MEMBER1(Smtp_base, from, exlib::string);
+    ASYNC_MEMBER1(Smtp_base, to, exlib::string);
+    ASYNC_MEMBER1(Smtp_base, data, exlib::string);
     ASYNC_MEMBER0(Smtp_base, quit);
 };
 
@@ -135,7 +135,7 @@ namespace fibjs
         METHOD_INSTANCE(Smtp_base);
         ASYNC_METHOD_ENTER(3, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(int32_t, 1);
         OPT_ARG(int32_t, 2, net_base::_AF_INET);
 
@@ -155,8 +155,8 @@ namespace fibjs
         METHOD_INSTANCE(Smtp_base);
         ASYNC_METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         if(!cb.IsEmpty()) {
             pInst->acb_command(v0, v1, vr, cb);
@@ -172,7 +172,7 @@ namespace fibjs
         METHOD_INSTANCE(Smtp_base);
         ASYNC_METHOD_ENTER(1, 0);
 
-        OPT_ARG(arg_string, 0, "localhost");
+        OPT_ARG(exlib::string, 0, "localhost");
 
         if(!cb.IsEmpty()) {
             pInst->acb_hello(v0, cb);
@@ -188,8 +188,8 @@ namespace fibjs
         METHOD_INSTANCE(Smtp_base);
         ASYNC_METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         if(!cb.IsEmpty()) {
             pInst->acb_login(v0, v1, cb);
@@ -205,7 +205,7 @@ namespace fibjs
         METHOD_INSTANCE(Smtp_base);
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_from(v0, cb);
@@ -221,7 +221,7 @@ namespace fibjs
         METHOD_INSTANCE(Smtp_base);
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_to(v0, cb);
@@ -237,7 +237,7 @@ namespace fibjs
         METHOD_INSTANCE(Smtp_base);
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_data(v0, cb);

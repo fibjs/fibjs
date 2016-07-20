@@ -96,24 +96,24 @@ result_t X509Cert::load(const mbedtls_x509_crt *crt)
     return 0;
 }
 
-result_t X509Cert::load(const char *txtCert)
+result_t X509Cert::load(exlib::string txtCert)
 {
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int32_t ret;
 
-    if (qstrstr(txtCert, "BEGIN CERTIFICATE"))
+    if (qstrstr(txtCert.c_str(), "BEGIN CERTIFICATE"))
     {
-        ret = mbedtls_x509_crt_parse(&m_crt, (const unsigned char *)txtCert,
-                                     qstrlen(txtCert) + 1);
+        ret = mbedtls_x509_crt_parse(&m_crt, (const unsigned char *)txtCert.c_str(),
+                                     txtCert.length() + 1);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
         return 0;
     }
 
-    _parser p(txtCert, (int32_t)qstrlen(txtCert));
+    _parser p(txtCert);
     QuickArray<std::pair<exlib::string, exlib::string> > values;
     std::map<exlib::string, bool> verifies;
     std::map<exlib::string, bool> certs;
@@ -285,7 +285,7 @@ result_t X509Cert::load(const char *txtCert)
     return 0;
 }
 
-result_t X509Cert::loadFile(const char *filename)
+result_t X509Cert::loadFile(exlib::string filename)
 {
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -294,7 +294,7 @@ result_t X509Cert::loadFile(const char *filename)
     exlib::string data;
     int32_t ret;
 
-    hr = fs_base::ac_readFile(filename, data);
+    hr = fs_base::ac_readFile(filename.c_str(), data);
     if (hr < 0)
         return hr;
 

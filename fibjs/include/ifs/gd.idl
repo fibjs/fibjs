@@ -120,7 +120,7 @@ module gd
      @param fname 指定文件名
      @return 返回解码成功的图像对象
      */
-    static Image load(String fname) async;
+    static Image load(XString fname) async;
 
     /*! @brief 通过 rgb 颜色分量生成组合颜色
      @param red 红色分量，范围为 0-255
@@ -177,5 +177,5 @@ module gd
      @param color 指定颜色的字符串，如："#ff0000", "ff0000", "#f00", "f00"
      @return 返回组合颜色
      */
-    static Integer color(String color);
+    static Integer color(XString color);
 };

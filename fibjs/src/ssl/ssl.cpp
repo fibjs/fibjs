@@ -35,12 +35,12 @@ public:
         return m_ca->load(derCert);
     }
 
-    result_t load(const char *txtCert)
+    result_t load(exlib::string txtCert)
     {
         return m_ca->load(txtCert);
     }
 
-    result_t loadFile(const char *filename)
+    result_t loadFile(exlib::string filename)
     {
         return m_ca->loadFile(filename);
     }
@@ -137,7 +137,7 @@ result_t _ssl::setError(int32_t ret)
     return Runtime::setError(msg);
 }
 
-result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
+result_t ssl_base::connect(exlib::string url, obj_ptr<Stream_base> &retVal,
                            AsyncEvent *ac)
 {
     class asyncConnect: public AsyncState
@@ -198,7 +198,7 @@ result_t ssl_base::connect(const char *url, obj_ptr<Stream_base> &retVal,
         int32_t m_temp;
     };
 
-    if (qstrcmp(url, "ssl:", 4))
+    if (qstrcmp(url.c_str(), "ssl:", 4))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (!ac)
@@ -226,8 +226,8 @@ result_t ssl_base::setClientCert(X509Cert_base* crt, PKey_base* key)
     return 0;
 }
 
-result_t ssl_base::loadClientCertFile(const char* crtFile, const char* keyFile,
-                                      const char* password)
+result_t ssl_base::loadClientCertFile(exlib::string crtFile, exlib::string keyFile,
+                                      exlib::string password)
 {
     result_t hr;
 

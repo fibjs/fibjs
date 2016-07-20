@@ -47,7 +47,7 @@ module ssl
    @param url 指定连接的协议，可以是：ssl://host:port
    @return 返回连接成功的 SslSocket 对象
    */
-  static Stream connect(String url) async;
+  static Stream connect(XString url) async;
 
   /*! @brief 设定缺省客户端证书
     @param crt X509Cert 证书，用于客户端验证服务器
@@ -60,7 +60,7 @@ module ssl
     @param keyFile PKey 私钥文件，用于与客户端会话
     @param password 解密密码
    */
-  static loadClientCertFile(String crtFile, String keyFile, String password = "");
+  static loadClientCertFile(XString crtFile, XString keyFile, XString password = "");
 
   /*! @brief 全局证书，用于 ssl 客户端模式验证服务器证书 */
   static readonly X509Cert ca;

@@ -28,8 +28,8 @@ public:
     // X509Cert_base
     static result_t _new(obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t load(Buffer_base* derCert) = 0;
-    virtual result_t load(const char* txtCert) = 0;
-    virtual result_t loadFile(const char* filename) = 0;
+    virtual result_t load(exlib::string txtCert) = 0;
+    virtual result_t loadFile(exlib::string filename) = 0;
     virtual result_t loadRootCerts() = 0;
     virtual result_t verify(X509Cert_base* cert, bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t dump(v8::Local<v8::Array>& retVal) = 0;
@@ -294,7 +294,7 @@ namespace fibjs
 
         METHOD_OVER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->load(v0);
 
@@ -306,7 +306,7 @@ namespace fibjs
         METHOD_INSTANCE(X509Cert_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->loadFile(v0);
 

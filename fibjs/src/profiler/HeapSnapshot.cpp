@@ -319,7 +319,7 @@ result_t HeapSnapshot::load(const char* fname)
 }
 
 #define BUF_SIZE	8192
-result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
+result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -337,9 +337,9 @@ result_t HeapSnapshot::save(const char* fname, AsyncEvent* ac)
 		}
 
 	public:
-		result_t open(const char* fname)
+		result_t open(exlib::string fname)
 		{
-			return file->open(fname, "w");
+			return file->open(fname.c_str(), "w");
 		}
 
 		result_t append(exlib::string& s)

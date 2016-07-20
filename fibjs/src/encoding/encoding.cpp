@@ -231,21 +231,21 @@ static const char *URITable =
 static const char *URIComponentTable =
     " !     '()*  -. 0123456789       ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz   ~ ";
 
-result_t encoding_base::encodeURI(const char *url, exlib::string &retVal)
+result_t encoding_base::encodeURI(exlib::string url, exlib::string &retVal)
 {
-    Url::encodeURI(url, -1, retVal, URITable);
+    Url::encodeURI(url, retVal, URITable);
     return 0;
 }
 
-result_t encoding_base::encodeURIComponent(const char *url, exlib::string &retVal)
+result_t encoding_base::encodeURIComponent(exlib::string url, exlib::string &retVal)
 {
-    Url::encodeURI(url, -1, retVal, URIComponentTable);
+    Url::encodeURI(url, retVal, URIComponentTable);
     return 0;
 }
 
-result_t encoding_base::decodeURI(const char *url, exlib::string &retVal)
+result_t encoding_base::decodeURI(exlib::string url, exlib::string &retVal)
 {
-    Url::decodeURI(url, -1, retVal);
+    Url::decodeURI(url, retVal);
     return 0;
 }
 
