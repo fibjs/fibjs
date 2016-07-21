@@ -202,7 +202,7 @@ result_t File::copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal,
     return copyStream(this, stm, bytes, retVal, ac);
 }
 
-result_t File::open(const char *fname, const char *flags)
+result_t File::open(exlib::string fname, exlib::string flags)
 {
 #ifdef _WIN32
     int32_t _flags = _O_BINARY;
@@ -210,17 +210,17 @@ result_t File::open(const char *fname, const char *flags)
     int32_t _flags = 0;
 #endif
 
-    if (!qstrcmp(flags, "r" ))
+    if (flags == "r" )
         _flags |= O_RDONLY;
-    else if (!qstrcmp(flags, "r+" ))
+    else if (flags == "r+" )
         _flags |= O_RDWR;
-    else if (!qstrcmp(flags, "w" ))
+    else if (flags == "w" )
         _flags |= O_TRUNC | O_CREAT | O_WRONLY;
-    else if (!qstrcmp(flags, "w+" ))
+    else if (flags == "w+" )
         _flags |= O_TRUNC | O_CREAT | O_RDWR;
-    else if (!qstrcmp(flags, "a" ))
+    else if (flags == "a" )
         _flags |= O_APPEND | O_CREAT | O_WRONLY;
-    else if (!qstrcmp(flags, "a+" ))
+    else if (flags == "a+" )
         _flags |= O_APPEND | O_CREAT | O_RDWR;
 
     close();
@@ -228,7 +228,7 @@ result_t File::open(const char *fname, const char *flags)
 #ifdef _WIN32
     m_fd = _wopen(UTF8_W(fname), _flags, _S_IREAD | _S_IWRITE);
 #else
-    m_fd = ::open(fname, _flags, 0666);
+    m_fd = ::open(fname.c_str(), _flags, 0666);
 #endif
     if (m_fd < 0)
         return CHECK_ERROR(LastError());

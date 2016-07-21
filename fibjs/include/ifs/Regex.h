@@ -23,8 +23,8 @@ class Regex_base : public object_base
 
 public:
     // Regex_base
-    virtual result_t exec(const char* str, v8::Local<v8::Array>& retVal) = 0;
-    virtual result_t test(const char* str, bool& retVal) = 0;
+    virtual result_t exec(exlib::string str, v8::Local<v8::Array>& retVal) = 0;
+    virtual result_t test(exlib::string str, bool& retVal) = 0;
     virtual result_t get_lastIndex(int32_t& retVal) = 0;
     virtual result_t set_lastIndex(int32_t newVal) = 0;
     virtual result_t get_global(bool& retVal) = 0;
@@ -149,7 +149,7 @@ namespace fibjs
         METHOD_INSTANCE(Regex_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->exec(v0, vr);
 
@@ -163,7 +163,7 @@ namespace fibjs
         METHOD_INSTANCE(Regex_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->test(v0, vr);
 

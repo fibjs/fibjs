@@ -43,17 +43,17 @@ inline exlib::string resolvePath(exlib::string base, exlib::string id)
         {
             exlib::string strPath;
 
-            path_base::dirname(base.c_str(), strPath);
+            path_base::dirname(base, strPath);
             if (strPath.length())
                 strPath += PATH_SLASH;
             strPath += id;
-            path_base::normalize(strPath.c_str(), fname);
+            path_base::normalize(strPath, fname);
 
             return fname;
         }
     }
 
-    path_base::normalize(id.c_str(), fname);
+    path_base::normalize(id, fname);
     return fname;
 }
 
@@ -157,7 +157,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
         id = strPath + id;
     }
 
-    hr = sbox->run(id.c_str(), argv);
+    hr = sbox->run(id, argv);
     if (hr < 0)
     {
         if (hr == CALL_E_JAVASCRIPT)
@@ -199,7 +199,7 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, const char
 
     v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
     exlib::string pname;
-    path_base::dirname(name.c_str(), pname);
+    path_base::dirname(name, pname);
 
     v8::Local<v8::Script> script;
     {
@@ -328,7 +328,7 @@ result_t SandBox::addScript(exlib::string srcname, exlib::string script,
         if (hr < 0)
         {
             // delete from modules
-            remove(id.c_str());
+            remove(id);
             return hr;
         }
 
@@ -374,7 +374,7 @@ result_t SandBox::require(exlib::string base, exlib::string id,
     exlib::string fullname;
 
     fullname = s_root;
-    pathAdd(fullname, strId.c_str());
+    pathAdd(fullname, strId);
 
     if (fullname != strId)
     {
@@ -409,33 +409,33 @@ result_t SandBox::require(exlib::string base, exlib::string id,
         exlib::string fname1;
 
         fname1 = s_root;
-        pathAdd(fname1, fname.c_str());
+        pathAdd(fname1, fname);
 
-        hr = fs_base::cc_readFile(fname1.c_str(), buf);
+        hr = fs_base::cc_readFile(fname1, buf);
         if (hr >= 0)
-            return addScript(fname1.c_str(), buf.c_str(), retVal);
+            return addScript(fname1, buf, retVal);
     }
     else
     {
         fname = fullname + ".js";
-        hr = fs_base::cc_readFile(fname.c_str(), buf);
+        hr = fs_base::cc_readFile(fname, buf);
         if (hr >= 0)
-            return addScript(fname.c_str(), buf.c_str(), retVal);
+            return addScript(fname, buf, retVal);
 
         fname = fullname + ".json";
-        hr = fs_base::cc_readFile(fname.c_str(), buf);
+        hr = fs_base::cc_readFile(fname, buf);
         if (hr >= 0)
-            return addScript(fname.c_str(), buf.c_str(), retVal);
+            return addScript(fname, buf, retVal);
 
         if (mode <= FILE_ONLY)
             return hr;
 
         fname = fullname + PATH_SLASH + "package.json";
-        hr = fs_base::cc_readFile(fname.c_str(), buf);
+        hr = fs_base::cc_readFile(fname, buf);
         if (hr >= 0)
         {
             v8::Local<v8::Value> v;
-            hr = json_base::decode(buf.c_str(), v);
+            hr = json_base::decode(buf, v);
             if (hr < 0)
                 return hr;
 
@@ -490,7 +490,7 @@ result_t SandBox::require(exlib::string base, exlib::string id,
         str = base;
         while (true)
         {
-            path_base::dirname(str.c_str(), str1);
+            path_base::dirname(str, str1);
             if (str.length() == str1.length())
                 break;
 
@@ -501,7 +501,7 @@ result_t SandBox::require(exlib::string base, exlib::string id,
             str1 += ".modules";
             str1 += PATH_SLASH;
             str1 += strId;
-            path_base::normalize(str1.c_str(), fname);
+            path_base::normalize(str1, fname);
 
             hr = require(base, fname, retVal, NO_SEARCH);
             if (hr >= 0)
@@ -521,7 +521,7 @@ result_t SandBox::require(exlib::string base, exlib::string id,
 result_t SandBox::require(exlib::string id, v8::Local<v8::Value> &retVal)
 {
     exlib::string sid;
-    path_base::normalize(id.c_str(), sid);
+    path_base::normalize(id, sid);
     return require("", sid, retVal, FULL_SEARCH);
 }
 
@@ -532,7 +532,7 @@ result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv, bool main)
     exlib::string sfname = s_root;
 
     pathAdd(sfname, fname);
-    path_base::normalize(sfname.c_str(), sfname);
+    path_base::normalize(sfname, sfname);
 
     const char *pname = sfname.c_str();
 

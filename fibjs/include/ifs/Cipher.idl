@@ -30,7 +30,7 @@ interface Cipher : object
     Cipher(Integer provider, Integer mode, Buffer key, Buffer iv);
 
     /*! @brief 返回当前算法名称 */
-    readonly XString name;
+    readonly String name;
 
     /*! @brief 返回当前算法密码长度，以位为单位 */
     readonly Integer keySize;

@@ -24,7 +24,7 @@ module uuid
      @param s 指定描述 uuid 的字符串
      @return 返回一个 uuidValue 类型的对象
      */
-    static uuidValue uuid(XString s);
+    static uuidValue uuid(String s);
 
     /*! @brief 根据给定的二进制数据组建 uuid
      @param data 指定描述 uuid 的二进制数据
@@ -42,7 +42,7 @@ module uuid
      @param name 指定名称
      @return 返回一个 uuidValue 类型的对象
      */
-    static uuidValue md5(Integer ns, XString name);
+    static uuidValue md5(Integer ns, String name);
 
     /*! @brief 使用随机数创建 uuid
      @return 返回一个 uuidValue 类型的对象
@@ -54,5 +54,5 @@ module uuid
      @param name 指定名称
      @return 返回一个 uuidValue 类型的对象
      */
-    static uuidValue sha1(Integer ns, XString name);
+    static uuidValue sha1(Integer ns, String name);
 };

@@ -21,14 +21,14 @@ interface X509Cert : object
     load 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
      @param txtCert PEM 格式的证书
     */
-    load(XString txtCert);
+    load(String txtCert);
 
     /*! @brief 加载一个 CRT/PEM/DER/TXT 格式的证书，可多次调用
 
     loadFile 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
      @param filename 证书文件名
     */
-    loadFile(XString filename);
+    loadFile(String filename);
 
     /*! @brief 加载自带的缺省根证书，此证书内容源自：http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt */
     loadRootCerts();
@@ -51,13 +51,13 @@ interface X509Cert : object
     readonly Integer version;
 
     /*! @brief 获取证书的序列号 */
-    readonly XString serial;
+    readonly String serial;
 
     /*! @brief 获取证书颁发者的可分辨名称 */
-    readonly XString issuer;
+    readonly String issuer;
 
     /*! @brief 获取证书的主题可分辨名称 */
-    readonly XString subject;
+    readonly String subject;
 
     /*! @brief 获取证书的生效时间 */
     readonly Date notBefore;
@@ -75,13 +75,13 @@ interface X509Cert : object
 
     结果为全部或部分以下内容：digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign
     */
-    readonly XString usage;
+    readonly String usage;
 
     /*! @brief 获取证书的 Netscape 证书类型
 
     结果为全部或部分以下内容：client, server, email, objsign, reserved, sslCA, emailCA, objCA
      */
-    readonly XString type;
+    readonly String type;
 
     /*! @brief 获取证书的公钥 */
     readonly PKey publicKey;

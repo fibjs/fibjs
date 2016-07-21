@@ -318,7 +318,7 @@ result_t Redis::_command(exlib::string &req, Variant &retVal, AsyncEvent *ac)
     return (new asyncCommand(this, req, retVal, ac))->post(0);
 }
 
-result_t Redis::command(const char *cmd, const v8::FunctionCallbackInfo<v8::Value> &args,
+result_t Redis::command(exlib::string cmd, const v8::FunctionCallbackInfo<v8::Value> &args,
                         v8::Local<v8::Value> &retVal)
 {
     _arg a(args, 1);
@@ -463,7 +463,7 @@ result_t Redis::type(Buffer_base *key, exlib::string &retVal)
     return doCommand("TYPE", key, retVal);
 }
 
-result_t Redis::keys(const char *pattern, obj_ptr<List_base> &retVal)
+result_t Redis::keys(exlib::string pattern, obj_ptr<List_base> &retVal)
 {
     return doCommand("KEYS", pattern, retVal);
 }

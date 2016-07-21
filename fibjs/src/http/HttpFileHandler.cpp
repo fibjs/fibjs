@@ -175,7 +175,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             if (value.length() > 0 && isPathSlash(value[value.length() - 1]))
                 value.append("index.html", 10);
 
-            path_base::normalize((m_pThis->m_root + value).c_str(), m_url);
+            path_base::normalize(m_pThis->m_root + value, m_url);
 
             set(start);
         }
@@ -203,12 +203,12 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 pThis->m_time.parse(str.c_str(), (int32_t) str.length());
 
                 pThis->set(check);
-                return fs_base::stat(pThis->m_path.c_str(), pThis->m_stat,
+                return fs_base::stat(pThis->m_path, pThis->m_stat,
                                      pThis);
             }
 
             pThis->set(open);
-            return fs_base::open(pThis->m_path.c_str(), "r", pThis->m_file,
+            return fs_base::open(pThis->m_path, "r", pThis->m_file,
                                  pThis);
         }
 
@@ -229,7 +229,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             }
 
             pThis->set(open);
-            return fs_base::open(pThis->m_path.c_str(), "r", pThis->m_file,
+            return fs_base::open(pThis->m_path, "r", pThis->m_file,
                                  pThis);
         }
 
@@ -238,7 +238,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             asyncInvoke *pThis = (asyncInvoke *) pState;
             exlib::string ext;
 
-            path_base::extname(pThis->m_url.c_str(), ext);
+            path_base::extname(pThis->m_url, ext);
 
             if (ext.length() > 0)
             {

@@ -109,7 +109,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     return CHECK_ERROR(Runtime::setError("Routing: unknown routing: " + value));
 }
 
-result_t Routing::append(const char *pattern, Handler_base *hdlr)
+result_t Routing::append(exlib::string pattern, Handler_base *hdlr)
 {
     int32_t opt = PCRE_JAVASCRIPT_COMPAT | PCRE_NEWLINE_ANYCRLF |
                   PCRE_UCP | PCRE_CASELESS;
@@ -117,7 +117,7 @@ result_t Routing::append(const char *pattern, Handler_base *hdlr)
     int32_t erroffset;
     pcre *re;
 
-    re = pcre_compile(pattern, opt, &error, &erroffset, NULL);
+    re = pcre_compile(pattern.c_str(), opt, &error, &erroffset, NULL);
     if (re == NULL)
     {
         char buf[1024];
@@ -140,7 +140,7 @@ result_t Routing::append(const char *pattern, Handler_base *hdlr)
     return 0;
 }
 
-result_t Routing::append(const char *pattern, v8::Local<v8::Value> hdlr)
+result_t Routing::append(exlib::string pattern, v8::Local<v8::Value> hdlr)
 {
     obj_ptr<Handler_base> hdlr1;
     result_t hr = JSHandler::New(hdlr, hdlr1);

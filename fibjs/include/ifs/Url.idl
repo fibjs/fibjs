@@ -16,12 +16,12 @@ interface Url : object
     /*! @brief Url 对象构造函数，使用 url 字符串构造
      @param url 指定构造 url 字符串
      */
-    Url(XString url = "");
+    Url(String url = "");
 
     /*! @brief 解析一个 url 字符串
      @param url 指定需要解析的 url 字符串
      */
-    parse(XString url);
+    parse(String url);
 
     /*! @brief 使用指定的参数构造 Url
      @param args 指定构造参数的字典对象，支持的字段有：protocol, slashes, username, password, hostname, port, pathname, query, hash
@@ -31,7 +31,7 @@ interface Url : object
     /*! @brief 重定位 url 路径，自动识别新路径为相对路径还是绝对路径
      @param url 指定新的路径
      */
-    Url resolve(XString url);
+    Url resolve(String url);
 
     /*! @brief 标准化路径
      */
@@ -39,11 +39,11 @@ interface Url : object
 
     /*! @brief 查询当前 Url 对象中的完整 url 地址描述，此描述由其他所有属性组装而成
      */
-    readonly XString href;
+    readonly String href;
 
     /*! @brief 查询当前 Url 对象中的协议名称
      */
-    readonly XString protocol;
+    readonly String protocol;
 
     /*! @brief 查询当前 Url 对象是否包含双斜杠
      */
@@ -51,45 +51,45 @@ interface Url : object
 
     /*! @brief 查询当前 Url 对象中的完整验证字符串，由 username 和 password 属性组装而成
      */
-    readonly XString auth;
+    readonly String auth;
 
     /*! @brief 查询当前 Url 对象中的验证用户
      */
-    readonly XString username;
+    readonly String username;
 
     /*! @brief 查询当前 Url 对象中的验证密码
      */
-    readonly XString password;
+    readonly String password;
 
     /*! @brief 查询当前 Url 对象中的完整主机描述，由 hastname 和 port 组装而成
      */
-    readonly XString host;
+    readonly String host;
 
     /*! @brief 查询当前 Url 对象中的主机名
      */
-    readonly XString hostname;
+    readonly String hostname;
 
     /*! @brief 查询当前 Url 对象中的端口号
      */
-    readonly XString port;
+    readonly String port;
 
     /*! @brief 查询当前 Url 对象中的请求完整路径（含请求），由 pathname 和 query 组装而成
      */
-    readonly XString path;
+    readonly String path;
 
     /*! @brief 查询当前 Url 对象中的路径
      */
-    readonly XString pathname;
+    readonly String pathname;
 
     /*! @brief 查询当前 Url 对象中的请求字符串（含“?”），等效于“?”+query
      */
-    readonly XString search;
+    readonly String search;
 
     /*! @brief 查询当前 Url 对象中的请求字符串（ 不含“?”）
      */
-    readonly XString query;
+    readonly String query;
 
     /*! @brief 查询当前 Url 对象中的请求锚点（含“\#”）
      */
-    readonly XString hash;
+    readonly String hash;
 };

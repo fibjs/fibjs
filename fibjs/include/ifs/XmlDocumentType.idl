@@ -5,13 +5,13 @@ interface XmlDocumentType : XmlNode
 {
 	/*! @brief 返回 DTD 的名称
 	*/
-	readonly XString name;
+	readonly String name;
 
 	/*! @brief 可返回外部 DTD 的公共识别符
 	*/
-	readonly XString publicId;
+	readonly String publicId;
 
 	/*! @brief 可返回外部 DTD 的系统识别符
 	*/
-	readonly XString systemId;
+	readonly String systemId;
 };

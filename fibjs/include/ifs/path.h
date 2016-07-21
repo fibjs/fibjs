@@ -23,11 +23,11 @@ class path_base : public object_base
 
 public:
     // path_base
-    static result_t normalize(const char* path, exlib::string& retVal);
-    static result_t basename(const char* path, const char* ext, exlib::string& retVal);
-    static result_t extname(const char* path, exlib::string& retVal);
-    static result_t dirname(const char* path, exlib::string& retVal);
-    static result_t fullpath(const char* path, exlib::string& retVal);
+    static result_t normalize(exlib::string path, exlib::string& retVal);
+    static result_t basename(exlib::string path, exlib::string ext, exlib::string& retVal);
+    static result_t extname(exlib::string path, exlib::string& retVal);
+    static result_t dirname(exlib::string path, exlib::string& retVal);
+    static result_t fullpath(exlib::string path, exlib::string& retVal);
     static result_t join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
     static result_t get_sep(exlib::string& retVal);
     static result_t get_delimiter(exlib::string& retVal);
@@ -115,7 +115,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = normalize(v0, vr);
 
@@ -128,8 +128,8 @@ namespace fibjs
 
         METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
-        OPT_ARG(arg_string, 1, "");
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "");
 
         hr = basename(v0, v1, vr);
 
@@ -142,7 +142,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = extname(v0, vr);
 
@@ -155,7 +155,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = dirname(v0, vr);
 
@@ -168,7 +168,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = fullpath(v0, vr);
 

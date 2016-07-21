@@ -345,65 +345,6 @@ typedef int32_t result_t;
     ((sizeof(a) / sizeof(*(a))) / static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 #endif
 
-class arg_string
-{
-public:
-    arg_string(const char *p = NULL) : tmp(NULL), m_v(p)
-    {
-    }
-
-    ~arg_string()
-    {
-        if (tmp)
-            delete tmp;
-    }
-
-    result_t set_value(v8::Local<v8::Value> v)
-    {
-        tmp = new v8::String::Utf8Value(v);
-        m_v = **tmp;
-
-        if (m_v == NULL)
-        {
-            delete tmp;
-            tmp = NULL;
-            return CALL_E_INVALIDARG;
-        }
-        return 0;
-    }
-
-public:
-    operator const char *() const
-    {
-        return m_v;
-    }
-
-    exlib::string toString() const
-    {
-        return exlib::string(m_v, tmp->length());
-    }
-
-private:
-    v8::String::Utf8Value *tmp;
-    const char *m_v;
-};
-
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, arg_string &n, bool bStrict = false)
-{
-    if (v.IsEmpty())
-        return CALL_E_INVALIDARG;
-
-    if (bStrict && !v->IsString() && !v->IsStringObject())
-        return CALL_E_INVALIDARG;
-
-    return n.set_value(v);
-}
-
-inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, arg_string &n, bool bStrict = false)
-{
-    return GetArgumentValue(v, n, bStrict);
-}
-
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string &n, bool bStrict = false)
 {
     if (v.IsEmpty())

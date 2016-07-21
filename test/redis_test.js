@@ -249,7 +249,7 @@ describe("redis", function() {
 		});
 
 		it("restore", function() {
-			rdb.restore("greeting", encoding.hexDecode("001568656c6c6f2c2064756d70696e6720776f726c6421060045a05a82d872c1de"));
+			rdb.restore("greeting", encoding.hex.decode("001568656c6c6f2c2064756d70696e6720776f726c6421060045a05a82d872c1de"));
 			assert.equal(rdb.command("get", "greeting"), "hello, dumping world!");
 		});
 	});

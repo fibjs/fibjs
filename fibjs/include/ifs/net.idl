@@ -25,19 +25,19 @@ module net
      @param family 指定查询返回类型，缺省为 AF_INET
      @return 返回查询的 ip 字符串
      */
-    static XString resolve(XString name, Integer family = AF_INET) async;
+    static String resolve(String name, Integer family = AF_INET) async;
 
     /*! @brief 快速查询的主机地址，等效与 resolve(name)
      @param name 指定主机名
      @return 返回查询的 ip 字符串
      */
-    static XString ip(XString name) async;
+    static String ip(String name) async;
 
     /*! @brief 快速查询的主机 ipv6 地址，等效与 resolve(name, net.AF_INET6)
      @param name 指定主机名
      @return 返回查询的 ipv6 字符串
      */
-    static XString ipv6(XString name) async;
+    static String ipv6(String name) async;
 
     /*! @brief 创建一个 Socket 对象，参见 Socket */
     static Socket;
@@ -48,13 +48,13 @@ module net
      @param family 指定地址集，缺省为 AF_INET，ipv4
      @return 返回连接成功的 Socket 对象
      */
-    static Stream connect(XString host, Integer port, Integer family = net.AF_INET) async;
+    static Stream connect(String host, Integer port, Integer family = net.AF_INET) async;
 
     /*! @brief 创建一个 Socket 或 SslSocket 对象并建立连接
      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
      @return 返回连接成功的 Socket 或者 SslSocket 对象
      */
-    static Stream connect(XString url) async;
+    static Stream connect(String url) async;
 
     /*! @brief 创建一个 Smtp 对象，参见 Smtp */
     static Smtp;
@@ -65,7 +65,7 @@ module net
      @param family 指定地址集，缺省为 AF_INET，ipv4
      @return 返回连接成功的 Smtp 对象
      */
-    static Smtp openSmtp(XString host, Integer port, Integer family = net.AF_INET) async;
+    static Smtp openSmtp(String host, Integer port, Integer family = net.AF_INET) async;
 
     /*! @brief 创建一个 TcpServer 对象，参见 TcpServer */
     static TcpServer;
@@ -76,5 +76,5 @@ module net
     /*! @brief 查询当前系统异步网络引擎
      @return 返回网络引擎名称
     */
-    static XString backend();
+    static String backend();
 };

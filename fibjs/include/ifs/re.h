@@ -25,7 +25,7 @@ class re_base : public object_base
 
 public:
     // re_base
-    static result_t compile(const char* pattern, const char* opt, obj_ptr<Regex_base>& retVal);
+    static result_t compile(exlib::string pattern, exlib::string opt, obj_ptr<Regex_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -73,8 +73,8 @@ namespace fibjs
 
         METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
-        OPT_ARG(arg_string, 1, "");
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "");
 
         hr = compile(v0, v1, vr);
 

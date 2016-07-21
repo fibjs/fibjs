@@ -35,21 +35,21 @@ public:
 
 public:
     // fs_base
-    static result_t exists(const char* path, bool& retVal, AsyncEvent* ac);
-    static result_t unlink(const char* path, AsyncEvent* ac);
+    static result_t exists(exlib::string path, bool& retVal, AsyncEvent* ac);
+    static result_t unlink(exlib::string path, AsyncEvent* ac);
     static result_t umask(int32_t mask, int32_t& retVal, AsyncEvent* ac);
-    static result_t mkdir(const char* path, int32_t mode, AsyncEvent* ac);
-    static result_t rmdir(const char* path, AsyncEvent* ac);
-    static result_t rename(const char* from, const char* to, AsyncEvent* ac);
-    static result_t chmod(const char* path, int32_t mode, AsyncEvent* ac);
-    static result_t stat(const char* path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
-    static result_t readdir(const char* path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
-    static result_t open(const char* fname, const char* flags, obj_ptr<File_base>& retVal, AsyncEvent* ac);
+    static result_t mkdir(exlib::string path, int32_t mode, AsyncEvent* ac);
+    static result_t rmdir(exlib::string path, AsyncEvent* ac);
+    static result_t rename(exlib::string from, exlib::string to, AsyncEvent* ac);
+    static result_t chmod(exlib::string path, int32_t mode, AsyncEvent* ac);
+    static result_t stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
+    static result_t readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
+    static result_t open(exlib::string fname, exlib::string flags, obj_ptr<File_base>& retVal, AsyncEvent* ac);
     static result_t tmpFile(obj_ptr<File_base>& retVal, AsyncEvent* ac);
-    static result_t openTextStream(const char* fname, const char* flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
-    static result_t readFile(const char* fname, exlib::string& retVal, AsyncEvent* ac);
-    static result_t readLines(const char* fname, int32_t maxlines, v8::Local<v8::Array>& retVal);
-    static result_t writeFile(const char* fname, const char* txt, AsyncEvent* ac);
+    static result_t openTextStream(exlib::string fname, exlib::string flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
+    static result_t readFile(exlib::string fname, exlib::string& retVal, AsyncEvent* ac);
+    static result_t readLines(exlib::string fname, int32_t maxlines, v8::Local<v8::Array>& retVal);
+    static result_t writeFile(exlib::string fname, exlib::string txt, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -83,20 +83,20 @@ public:
     static void s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE2(fs_base, exists, const char*, bool);
-    ASYNC_STATIC1(fs_base, unlink, const char*);
+    ASYNC_STATICVALUE2(fs_base, exists, exlib::string, bool);
+    ASYNC_STATIC1(fs_base, unlink, exlib::string);
     ASYNC_STATICVALUE2(fs_base, umask, int32_t, int32_t);
-    ASYNC_STATIC2(fs_base, mkdir, const char*, int32_t);
-    ASYNC_STATIC1(fs_base, rmdir, const char*);
-    ASYNC_STATIC2(fs_base, rename, const char*, const char*);
-    ASYNC_STATIC2(fs_base, chmod, const char*, int32_t);
-    ASYNC_STATICVALUE2(fs_base, stat, const char*, obj_ptr<Stat_base>);
-    ASYNC_STATICVALUE2(fs_base, readdir, const char*, obj_ptr<List_base>);
-    ASYNC_STATICVALUE3(fs_base, open, const char*, const char*, obj_ptr<File_base>);
+    ASYNC_STATIC2(fs_base, mkdir, exlib::string, int32_t);
+    ASYNC_STATIC1(fs_base, rmdir, exlib::string);
+    ASYNC_STATIC2(fs_base, rename, exlib::string, exlib::string);
+    ASYNC_STATIC2(fs_base, chmod, exlib::string, int32_t);
+    ASYNC_STATICVALUE2(fs_base, stat, exlib::string, obj_ptr<Stat_base>);
+    ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<List_base>);
+    ASYNC_STATICVALUE3(fs_base, open, exlib::string, exlib::string, obj_ptr<File_base>);
     ASYNC_STATICVALUE1(fs_base, tmpFile, obj_ptr<File_base>);
-    ASYNC_STATICVALUE3(fs_base, openTextStream, const char*, const char*, obj_ptr<BufferedStream_base>);
-    ASYNC_STATICVALUE2(fs_base, readFile, const char*, exlib::string);
-    ASYNC_STATIC2(fs_base, writeFile, const char*, const char*);
+    ASYNC_STATICVALUE3(fs_base, openTextStream, exlib::string, exlib::string, obj_ptr<BufferedStream_base>);
+    ASYNC_STATICVALUE2(fs_base, readFile, exlib::string, exlib::string);
+    ASYNC_STATIC2(fs_base, writeFile, exlib::string, exlib::string);
 };
 
 }
@@ -174,7 +174,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_exists(v0, vr, cb);
@@ -189,7 +189,7 @@ namespace fibjs
     {
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_unlink(v0, cb);
@@ -221,7 +221,7 @@ namespace fibjs
     {
         ASYNC_METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, 0777);
 
         if(!cb.IsEmpty()) {
@@ -237,7 +237,7 @@ namespace fibjs
     {
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_rmdir(v0, cb);
@@ -252,8 +252,8 @@ namespace fibjs
     {
         ASYNC_METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         if(!cb.IsEmpty()) {
             acb_rename(v0, v1, cb);
@@ -268,7 +268,7 @@ namespace fibjs
     {
         ASYNC_METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(int32_t, 1);
 
         if(!cb.IsEmpty()) {
@@ -286,7 +286,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_stat(v0, vr, cb);
@@ -303,7 +303,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_readdir(v0, vr, cb);
@@ -320,8 +320,8 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
-        OPT_ARG(arg_string, 1, "r");
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "r");
 
         if(!cb.IsEmpty()) {
             acb_open(v0, v1, vr, cb);
@@ -353,8 +353,8 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
-        OPT_ARG(arg_string, 1, "r");
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "r");
 
         if(!cb.IsEmpty()) {
             acb_openTextStream(v0, v1, vr, cb);
@@ -371,7 +371,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_readFile(v0, vr, cb);
@@ -388,7 +388,7 @@ namespace fibjs
 
         METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, -1);
 
         hr = readLines(v0, v1, vr);
@@ -400,8 +400,8 @@ namespace fibjs
     {
         ASYNC_METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         if(!cb.IsEmpty()) {
             acb_writeFile(v0, v1, cb);

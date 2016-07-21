@@ -12,30 +12,30 @@ interface GridFS : object
     @param name 指定获取的文件名
     @return 返回获取的文件
    */
-  MemoryStream retrieve(XString name);
+  MemoryStream retrieve(String name);
 
   /*! @brief 保存一个流到文件系统
     @param name 指定保存的文件名
     @param src 存放源数据的流对象
    */
-  store(XString name, Stream src);
+  store(String name, Stream src);
 
   /*! @brief 保存一个二进制数据块到文件系统
     @param name 指定保存的文件名
     @param data 指定要保存的数据块
    */
-  store(XString name, Buffer data);
+  store(String name, Buffer data);
 
   /*! @brief 检测指定的文件是否存在
     @param name 指定要检测的文件名
     @return 存在则返回 true
    */
-  Boolean exists(XString name);
+  Boolean exists(String name);
 
   /*! @brief 删除指定的文件
     @param name 指定要删除的文件名
    */
-  remove(XString name);
+  remove(String name);
 
   /*! @brief 查询 GridFS 的元数据表     */
   readonly MongoCollection files;

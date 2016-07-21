@@ -29,8 +29,8 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
     if (hr < 0)
         return hr;
 
-    path_base::normalize(path.c_str(), m_path);
-    path_base::dirname(m_path.c_str(), m_folder);
+    path_base::normalize(path, m_path);
+    path_base::dirname(m_path, m_folder);
     if (m_folder.length())
         m_folder += PATH_SLASH;
 
@@ -103,7 +103,7 @@ void file_logger::clearFile()
     if (m_folder.empty())
         hr = fs_base::readdir(".", fd, &ac);
     else
-        hr = fs_base::readdir(m_folder.c_str(), fd, &ac);
+        hr = fs_base::readdir(m_folder, fd, &ac);
     if (hr < 0)
         return;
 
@@ -147,7 +147,7 @@ void file_logger::clearFile()
         int32_t dels = (int32_t)files.size() - m_count + 1;
 
         for (i = 0; i < dels; i ++)
-            fs_base::unlink(files[i].c_str(), &ac);
+            fs_base::unlink(files[i], &ac);
     }
 }
 

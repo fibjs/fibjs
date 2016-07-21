@@ -56,10 +56,10 @@ public:
 public:
     // Routing_base
     virtual result_t append(v8::Local<v8::Object> map);
-    virtual result_t append(const char *pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t append(exlib::string pattern, v8::Local<v8::Value> hdlr);
 
 public:
-    result_t append(const char *pattern, Handler_base *hdlr);
+    result_t append(exlib::string pattern, Handler_base *hdlr);
 
 private:
     std::vector<obj_ptr<rule> > m_array;

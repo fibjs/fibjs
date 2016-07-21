@@ -9,22 +9,22 @@
 module os
 {
     /*! @brief 查询当前运行环境主机名 */
-    static readonly XString hostname;
+    static readonly String hostname;
 
     /*! @brief 查询当前运行环境操作系统名称 */
-    static readonly XString type;
+    static readonly String type;
 
     /*! @brief 查询当前运行环境操作系统版本 */
-    static readonly XString version;
+    static readonly String version;
 
     /*! @brief 查询当前运行环境 */
-    static readonly XString arch;
+    static readonly String arch;
 
     /*! @brief 查询运行环境当前时区 */
     static readonly Integer timezone;
 
     /*! @brief 查询当前运行环境行结尾标识，posix:\"\\n\"；windows:\"\\r\\n\"   */
-    static readonly XString EOL;
+    static readonly String EOL;
 
     /*! @brief 查询运行环境运行时间，以秒为单位
      @return 返回表示时间的数值
@@ -65,7 +65,7 @@ module os
      @param tmString 时间字符串，缺省则查询当前时间
      @return 返回 javascript Date 对象
      */
-    static Date time(XString tmString = "");
+    static Date time(String tmString = "");
 
     /*! @brief 时间计算函数，根据 part 指定计算时间
      @param d 指定用于计算 Date 对象
@@ -73,10 +73,10 @@ module os
      @param part 指定运算的时间部位，接收值为："year", "month", "day", "hour", "minute", "second"
      @return 返回 javascript Date 对象
      */
-    static Date dateAdd(Date d, Integer num, XString part);
+    static Date dateAdd(Date d, Integer num, String part);
 
     /*! @brief 查询当前运行执行文件完整路径 */
-    static readonly XString execPath;
+    static readonly String execPath;
 
     /*! @brief 查询当前进程内存使用报告
      @return 返回包含内存报告

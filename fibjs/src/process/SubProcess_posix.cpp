@@ -46,7 +46,7 @@ __asm__(".symver posix_spawnp,posix_spawnp@GLIBC_2.2");
 
 #endif
 
-result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
+result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
                             bool redirect, obj_ptr<SubProcess_base>& retVal)
 {
 	int32_t err = 0;
@@ -73,7 +73,7 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 	argStr.resize(len);
 	_args.resize(len + 2);
 
-	_args[0] = (char*)command;
+	_args[0] = (char*)command.c_str();
 	for (i = 0; i < len; i ++)
 	{
 		hr = GetArgumentValue(isolate->m_isolate, args->Get(i), argStr[i]);
@@ -156,7 +156,7 @@ result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::
 		envp.push_back(&envstr[i][0]);
 	envp.push_back(NULL);
 
-	err = posix_spawnp(&pid, command, &fops, &attr, _args.data(), &envp[0]);
+	err = posix_spawnp(&pid, command.c_str(), &fops, &attr, _args.data(), &envp[0]);
 
 	if (redirect)
 	{

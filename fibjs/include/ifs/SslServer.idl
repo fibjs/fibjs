@@ -55,7 +55,7 @@ interface SslServer : TcpServer
     @param port 指定 ssl 服务器侦听端口
     @param listener 指定 ssl 接收到的连接的内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
    */
-  SslServer(Array certs, XString addr, Integer port, Value listener);
+  SslServer(Array certs, String addr, Integer port, Value listener);
 
   /*! @brief SslServer 构造函数，在所有本机地址侦听
     @param crt X509Cert 证书，用于客户端验证服务器
@@ -72,7 +72,7 @@ interface SslServer : TcpServer
     @param port 指定 ssl 服务器侦听端口
     @param listener 指定 ssl 接收到的连接的内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
    */
-  SslServer(X509Cert crt, PKey key, XString addr, Integer port, Value listener);
+  SslServer(X509Cert crt, PKey key, String addr, Integer port, Value listener);
 
   /*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
   Integer verification;

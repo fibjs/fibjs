@@ -13,10 +13,10 @@ interface HeapGraphEdge : object
     readonly Integer type;
 
     /*! @brief 链接名称 */
-    readonly XString name;
+    readonly String name;
 
     /*! @brief 链接的描述 */
-    readonly XString description;
+    readonly String description;
 
     /*! @brief 获取HeapGraphEdge的上游HeapGraphNode节点
      @return 返回源HeapGraphNode节点

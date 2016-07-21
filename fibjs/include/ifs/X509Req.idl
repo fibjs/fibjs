@@ -17,7 +17,7 @@ interface X509Req : object
      @param key 证书的公钥
      @param hash 证书摘要算法，缺省为 hash.SHA1
     */
-    X509Req(XString subject, PKey key, Integer hash = hash.SHA1);
+    X509Req(String subject, PKey key, Integer hash = hash.SHA1);
 
     /*! @brief 加载一个 DER 格式的证书请求
      @param derReq DER 格式的证书请求
@@ -27,17 +27,17 @@ interface X509Req : object
     /*! @brief 加载一个 PEM 格式的证书请求
      @param pemReq PEM 格式的证书请求
     */
-    load(XString pemReq);
+    load(String pemReq);
 
     /*! @brief 加载一个 PEM/DER 格式的证书请求，可多次调用
      @param filename 证书请求文件名
     */
-    loadFile(XString filename);
+    loadFile(String filename);
 
     /*! @brief 返回当前证书请求的 PEM 格式编码
      @return 当前证书请求的 PEM 格式编码
     */
-    XString exportPem();
+    String exportPem();
 
     /*! @brief 返回当前证书请求的 DER 格式编码
      @return 当前证书请求的 DER 格式编码
@@ -62,10 +62,10 @@ interface X509Req : object
         @endcode
      @return 返回签名后的正式证书
      */
-    X509Cert sign(XString issuer, PKey key, Object opts = {}) async;
+    X509Cert sign(String issuer, PKey key, Object opts = {}) async;
 
     /*! @brief 获取证书的主题可分辨名称 */
-    readonly XString subject;
+    readonly String subject;
 
     /*! @brief 获取证书的公钥 */
     readonly PKey publicKey;

@@ -34,7 +34,7 @@ void init_fs()
 #endif
 }
 
-result_t fs_base::open(const char *fname, const char *flags,
+result_t fs_base::open(exlib::string fname, exlib::string flags,
                        obj_ptr<File_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
@@ -61,7 +61,7 @@ result_t fs_base::tmpFile(obj_ptr<File_base> &retVal, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::openTextStream(const char *fname, const char *flags,
+result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
                                  obj_ptr<BufferedStream_base> &retVal,
                                  AsyncEvent *ac)
 {
@@ -76,7 +76,7 @@ result_t fs_base::openTextStream(const char *fname, const char *flags,
     return BufferedStream_base::_new(pFile, retVal);
 }
 
-result_t fs_base::readFile(const char *fname, exlib::string &retVal,
+result_t fs_base::readFile(exlib::string fname, exlib::string &retVal,
                            AsyncEvent *ac)
 {
     if (!ac)
@@ -99,7 +99,7 @@ result_t fs_base::readFile(const char *fname, exlib::string &retVal,
     return buf->toString(retVal);
 }
 
-result_t fs_base::readLines(const char *fname, int32_t maxlines,
+result_t fs_base::readLines(exlib::string fname, int32_t maxlines,
                             v8::Local<v8::Array> &retVal)
 {
     obj_ptr<BufferedStream_base> pFile;
@@ -112,7 +112,7 @@ result_t fs_base::readLines(const char *fname, int32_t maxlines,
     return pFile->readLines(maxlines, retVal);
 }
 
-result_t fs_base::writeFile(const char *fname, const char *txt,
+result_t fs_base::writeFile(exlib::string fname, exlib::string txt,
                             AsyncEvent *ac)
 {
     if (!ac)
@@ -125,13 +125,13 @@ result_t fs_base::writeFile(const char *fname, const char *txt,
     if (hr < 0)
         return hr;
 
-    hr = f->Write(txt, (int32_t) qstrlen(txt));
+    hr = f->Write(txt);
     f->close(ac);
 
     return hr;
 }
 
-result_t fs_base::stat(const char *path, obj_ptr<Stat_base> &retVal,
+result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base> &retVal,
                        AsyncEvent *ac)
 {
     if (!ac)
@@ -150,21 +150,21 @@ result_t fs_base::stat(const char *path, obj_ptr<Stat_base> &retVal,
 
 #ifndef _WIN32
 
-result_t fs_base::exists(const char *path, bool &retVal, AsyncEvent *ac)
+result_t fs_base::exists(exlib::string path, bool &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    retVal = access(path, F_OK) == 0;
+    retVal = access(path.c_str(), F_OK) == 0;
     return 0;
 }
 
-result_t fs_base::unlink(const char *path, AsyncEvent *ac)
+result_t fs_base::unlink(exlib::string path, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (::unlink(path))
+    if (::unlink(path.c_str()))
         return CHECK_ERROR(LastError());
 
     return 0;
@@ -180,52 +180,52 @@ result_t fs_base::umask(int32_t mask, int32_t &retVal , AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::mkdir(const char *path, int32_t mode, AsyncEvent *ac)
+result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (::mkdir(path, mode))
+    if (::mkdir(path.c_str(), mode))
         return CHECK_ERROR(LastError());
 
     return 0;
 }
 
-result_t fs_base::rmdir(const char *path, AsyncEvent *ac)
+result_t fs_base::rmdir(exlib::string path, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (::rmdir(path))
+    if (::rmdir(path.c_str()))
         return CHECK_ERROR(LastError());
 
     return 0;
 }
 
-result_t fs_base::chmod(const char *path, int32_t mode, AsyncEvent *ac)
+result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (::chmod(path, mode))
+    if (::chmod(path.c_str(), mode))
         return CHECK_ERROR(LastError());
 
     return 0;
 }
 
-result_t fs_base::rename(const char *from, const char *to,
+result_t fs_base::rename(exlib::string from, exlib::string to,
                          AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (::rename(from, to))
+    if (::rename(from.c_str(), to.c_str()))
         return CHECK_ERROR(LastError());
 
     return 0;
 }
 
-result_t fs_base::readdir(const char *path, obj_ptr<List_base> &retVal,
+result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal,
                           AsyncEvent *ac)
 {
     if (!ac)
@@ -237,7 +237,7 @@ result_t fs_base::readdir(const char *path, obj_ptr<List_base> &retVal,
     result_t hr;
     obj_ptr<List> oa;
 
-    dp = ::opendir(path);
+    dp = ::opendir(path.c_str());
     if (dp == NULL)
         return CHECK_ERROR(LastError());
 
@@ -266,7 +266,7 @@ result_t fs_base::readdir(const char *path, obj_ptr<List_base> &retVal,
 
 #else
 
-result_t fs_base::exists(const char *path, bool &retVal, AsyncEvent *ac)
+result_t fs_base::exists(exlib::string path, bool &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -275,7 +275,7 @@ result_t fs_base::exists(const char *path, bool &retVal, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::unlink(const char *path, AsyncEvent *ac)
+result_t fs_base::unlink(exlib::string path, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -291,7 +291,7 @@ result_t fs_base::umask(int32_t mask, int32_t &retVal , AsyncEvent *ac)
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t fs_base::mkdir(const char *path, int32_t mode, AsyncEvent *ac)
+result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -302,7 +302,7 @@ result_t fs_base::mkdir(const char *path, int32_t mode, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::rmdir(const char *path, AsyncEvent *ac)
+result_t fs_base::rmdir(exlib::string path, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -313,12 +313,12 @@ result_t fs_base::rmdir(const char *path, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::chmod(const char *path, int32_t mode, AsyncEvent *ac)
+result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent *ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t fs_base::rename(const char *from, const char *to, AsyncEvent *ac)
+result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -329,7 +329,7 @@ result_t fs_base::rename(const char *from, const char *to, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::readdir(const char *path, obj_ptr<List_base> &retVal, AsyncEvent *ac)
+result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);

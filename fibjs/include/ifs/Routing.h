@@ -28,7 +28,7 @@ public:
     // Routing_base
     static result_t _new(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t append(v8::Local<v8::Object> map) = 0;
-    virtual result_t append(const char* pattern, v8::Local<v8::Value> hdlr) = 0;
+    virtual result_t append(exlib::string pattern, v8::Local<v8::Value> hdlr) = 0;
 
 public:
     template<typename T>
@@ -93,7 +93,7 @@ namespace fibjs
 
         METHOD_OVER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Value>, 1);
 
         hr = pInst->append(v0, v1);

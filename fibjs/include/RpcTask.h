@@ -23,7 +23,7 @@ public:
 	RpcTask(exlib::string id) : m_id(id)
 	{}
 
-	RpcTask(RpcTask* t, const char* method)
+	RpcTask(RpcTask* t, exlib::string method)
 	{
 		m_id = t->m_id;
 		if (!t->m_method_path.empty())

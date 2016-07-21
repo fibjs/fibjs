@@ -30,7 +30,7 @@ class Redis_base : public object_base
 
 public:
     // Redis_base
-    virtual result_t command(const char* cmd, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t command(exlib::string cmd, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t set(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
     virtual result_t setNX(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
     virtual result_t setXX(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
@@ -53,7 +53,7 @@ public:
     virtual result_t getBit(Buffer_base* key, int32_t offset, int32_t& retVal) = 0;
     virtual result_t exists(Buffer_base* key, bool& retVal) = 0;
     virtual result_t type(Buffer_base* key, exlib::string& retVal) = 0;
-    virtual result_t keys(const char* pattern, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t keys(exlib::string pattern, obj_ptr<List_base>& retVal) = 0;
     virtual result_t del(v8::Local<v8::Array> keys, int32_t& retVal) = 0;
     virtual result_t del(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
     virtual result_t expire(Buffer_base* key, int64_t ttl, bool& retVal) = 0;
@@ -67,10 +67,10 @@ public:
     virtual result_t unsub(Buffer_base* channel, v8::Local<v8::Function> func) = 0;
     virtual result_t unsub(v8::Local<v8::Array> channels) = 0;
     virtual result_t unsub(v8::Local<v8::Object> map) = 0;
-    virtual result_t psub(const char* pattern, v8::Local<v8::Function> func) = 0;
+    virtual result_t psub(exlib::string pattern, v8::Local<v8::Function> func) = 0;
     virtual result_t psub(v8::Local<v8::Object> map) = 0;
-    virtual result_t unpsub(const char* pattern) = 0;
-    virtual result_t unpsub(const char* pattern, v8::Local<v8::Function> func) = 0;
+    virtual result_t unpsub(exlib::string pattern) = 0;
+    virtual result_t unpsub(exlib::string pattern, v8::Local<v8::Function> func) = 0;
     virtual result_t unpsub(v8::Local<v8::Array> patterns) = 0;
     virtual result_t unpsub(v8::Local<v8::Object> map) = 0;
     virtual result_t onsuberror(v8::Local<v8::Function> func) = 0;
@@ -213,7 +213,7 @@ namespace fibjs
         METHOD_INSTANCE(Redis_base);
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->command(v0, args, vr);
 
@@ -514,7 +514,7 @@ namespace fibjs
         METHOD_INSTANCE(Redis_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->keys(v0, vr);
 
@@ -665,7 +665,7 @@ namespace fibjs
         METHOD_INSTANCE(Redis_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
         hr = pInst->psub(v0, v1);
@@ -684,13 +684,13 @@ namespace fibjs
         METHOD_INSTANCE(Redis_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->unpsub(v0);
 
         METHOD_OVER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
         hr = pInst->unpsub(v0, v1);

@@ -16,7 +16,7 @@ interface Trigger : object
     @param func 指定事件处理函数
     @return 返回成功绑定的数量，如果函数已绑定则返回 0
    */
-  Integer on(XString ev, Function func);
+  Integer on(String ev, Function func);
 
   /*! @brief 绑定一个事件处理函数到对象
     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
@@ -29,7 +29,7 @@ interface Trigger : object
     @param func 指定事件处理函数
     @return 返回成功绑定的数量，如果函数已绑定则返回 0
    */
-  Integer once(XString ev, Function func);
+  Integer once(String ev, Function func);
 
   /*! @brief 绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次
     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
@@ -42,13 +42,13 @@ interface Trigger : object
     @param func 指定事件处理函数
     @return 返回成功取消的数量，如果函数未绑定则返回 0
    */
-  Integer off(XString ev, Function func);
+  Integer off(String ev, Function func);
 
   /*! @brief 取消对象处理队列中的全部函数
     @param ev 指定事件的名称
     @return 此操作永远返回 0
    */
-  Integer off(XString ev);
+  Integer off(String ev);
 
   /*! @brief 从对象处理队列中取消指定函数
     @param map 指定事件映射关系，对象属性名称作为事件名称，属性的值作为事件处理函数
@@ -60,6 +60,6 @@ interface Trigger : object
     @param ev 事件名称
     @param ... 事件参数，将会传递给事件处理函数
    */
-  trigger(XString ev, ...);
+  trigger(String ev, ...);
 };
 
