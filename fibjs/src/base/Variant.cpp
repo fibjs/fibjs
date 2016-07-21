@@ -128,7 +128,7 @@ Variant::operator v8::Local<v8::Value>() const
     {
         v8::Local<v8::Value> v;
 
-        json_base::decode(strVal().c_str(), v);
+        json_base::decode(strVal(), v);
         return v;
     }
     case VT_String:

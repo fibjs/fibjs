@@ -136,7 +136,7 @@ inline bool checkArray(QuickArray<exlib::string>& a, const char* chks[], int32_t
 		return false;
 
 	for (i = 0; i < sz; i ++)
-		if (!qstrcmp(a[i].c_str(), chks[i]))
+		if (a[i] == chks[i])
 			return false;
 
 	return true;
@@ -339,7 +339,7 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
 	public:
 		result_t open(exlib::string fname)
 		{
-			return file->open(fname.c_str(), "w");
+			return file->open(fname, "w");
 		}
 
 		result_t append(exlib::string& s)
@@ -369,7 +369,7 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
 		result_t flush()
 		{
 			exlib::string str = bufs.str();
-			return file->Write(str.c_str(), (int32_t)str.length());
+			return file->Write(str);
 		}
 
 	public:
@@ -553,7 +553,7 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
 			return hr;
 
 		str.resize(0);
-		encoding_base::jsstr(_ids.names[i].c_str(), true, str);
+		encoding_base::jsstr(_ids.names[i], true, str);
 		hr = bufs.append(str);
 		if (hr < 0)
 			return hr;

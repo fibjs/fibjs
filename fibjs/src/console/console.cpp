@@ -231,7 +231,7 @@ result_t console_base::trace(exlib::string label)
 
 result_t console_base::_assert(v8::Local<v8::Value> value, exlib::string msg)
 {
-    return assert_base::ok(value, msg.c_str());
+    return assert_base::ok(value, msg);
 }
 
 result_t console_base::print(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args)

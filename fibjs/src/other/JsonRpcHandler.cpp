@@ -68,7 +68,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     buf->toString(str);
     buf.Release();
 
-    hr = json_base::decode(str.c_str(), jsval);
+    hr = json_base::decode(str, jsval);
     if (hr < 0)
         return hr;
 
@@ -84,7 +84,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     msg->get_value(str);
     str += '/';
     str.append(*v8::String::Utf8Value(jsval));
-    msg->set_value(str.c_str());
+    msg->set_value(str);
 
     jsval = o->Get(isolate->NewFromUtf8("params", 6));
     if (!jsval.IsEmpty() && jsval->IsArray())

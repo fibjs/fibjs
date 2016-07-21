@@ -342,7 +342,7 @@ result_t XmlDocument::load(Buffer_base *source)
         }
     }
 
-    hr = load(strBuf.c_str());
+    hr = load(strBuf);
     if (hr < 0)
         return hr;
 

@@ -50,10 +50,10 @@ result_t HttpCookie::parse(exlib::string header)
     p.getWord(tmp, '=');
     if (!p.want('=') || tmp.empty())
         return CHECK_ERROR(Runtime::setError("HttpCookie: bad cookie format."));
-    Url::decodeURI(tmp.c_str(), (int32_t)tmp.length(), m_name);
+    Url::decodeURI(tmp, m_name);
 
     p.getWord(tmp, ';');
-    Url::decodeURI(tmp.c_str(), (int32_t)tmp.length(), m_value);
+    Url::decodeURI(tmp, m_value);
 
     while (p.want(';'))
     {
@@ -65,7 +65,7 @@ result_t HttpCookie::parse(exlib::string header)
             p.getString(value, ';');
 
             if (!qstricmp(key.c_str(), "expires"))
-                m_expires.parse(value.c_str());
+                m_expires.parse(value);
             else if (!qstricmp(key.c_str(), "domain"))
                 m_domain = value;
             else if (!qstricmp(key.c_str(), "path"))
@@ -273,11 +273,11 @@ result_t HttpCookie::toString(exlib::string &retVal)
     exlib::string str;
     exlib::string tmp;
 
-    Url::encodeURI(m_name.c_str(), (int32_t)m_name.length(), tmp, CookieNameTable);
+    Url::encodeURI(m_name, tmp, CookieNameTable);
     str = tmp;
     str += '=';
 
-    Url::encodeURI(m_value.c_str(), (int32_t)m_value.length(), tmp, CookieTable);
+    Url::encodeURI(m_value, tmp, CookieTable);
     str.append(tmp);
 
     if (!m_expires.empty())

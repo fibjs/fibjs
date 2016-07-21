@@ -77,8 +77,8 @@ public:
     bool check(const XmlAttr *from)
     {
         if (m_namespaceURI.empty() && from->m_namespaceURI.empty())
-            return check(from->m_name.c_str());
-        return check(from->m_namespaceURI.c_str(), from->m_localName.c_str());
+            return check(from->m_name);
+        return check(from->m_namespaceURI, from->m_localName);
     }
 
     bool check_namespaceURI(exlib::string namespaceURI)

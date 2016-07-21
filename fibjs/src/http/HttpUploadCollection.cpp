@@ -222,7 +222,7 @@ void HttpUploadCollection::parse(exlib::string &str, const char *boundary)
                 varTemp = objTemp;
             }
 
-            add(strName.c_str(), varTemp);
+            add(strName, varTemp);
         }
     }
 }

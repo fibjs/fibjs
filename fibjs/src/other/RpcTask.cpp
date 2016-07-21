@@ -38,7 +38,7 @@ public:
 	{
 		v8::Local<v8::Value> v;
 
-		json_base::decode(m_result.c_str(), v);
+		json_base::decode(m_result, v);
 		return v;
 	}
 
@@ -52,7 +52,7 @@ public:
 		v8::Local<v8::Value> v;
 		v8::Local<v8::Array> param;
 
-		json_base::decode(m_param.c_str(), v);
+		json_base::decode(m_param, v);
 		param = v8::Local<v8::Array>::Cast(v);
 
 		int32_t len = param->Length();
@@ -206,7 +206,7 @@ static void task_fiber(Isolate* isolate)
 	result_t hr;
 
 	TryCatch try_catch;
-	hr = isolate->m_topSandbox->require(p->m_task->m_id.c_str(), v);
+	hr = isolate->m_topSandbox->require(p->m_task->m_id, v);
 	if (hr < 0)
 	{
 		p->set_error(GetException(try_catch, hr));

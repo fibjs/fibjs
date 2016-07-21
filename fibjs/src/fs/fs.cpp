@@ -251,7 +251,7 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal,
         fpath += '/';
         fpath += ep->d_name;
 
-        hr = stat(fpath.c_str(), fstat, ac);
+        hr = stat(fpath, fstat, ac);
         if (hr < 0)
             return hr;
 

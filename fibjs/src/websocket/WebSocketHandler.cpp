@@ -129,7 +129,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 6, (const char*)output, 20, out);
 
             pThis->m_httprep->set_status(101);
-            pThis->m_httprep->addHeader("Sec-WebSocket-Accept", out.c_str());
+            pThis->m_httprep->addHeader("Sec-WebSocket-Accept", out);
             pThis->m_httprep->addHeader("Upgrade", "websocket");
             pThis->m_httprep->set_upgrade(true);
 
@@ -225,7 +225,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 exlib::string err = getResultMessage(v);
 
                 m_error = v;
-                m_msg->set_lastError(err.c_str());
+                m_msg->set_lastError(err);
                 asyncLog(console_base::_ERROR, "WebSocketHandler: " + err);
 
                 m_pThis->m_stats->dec(PACKET_PENDDING);

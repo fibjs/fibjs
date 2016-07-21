@@ -391,8 +391,8 @@ void XmlElement::fix_prefix(exlib::string namespaceURI, exlib::string &prefix)
     exlib::string _namespaceURI;
     int32_t i;
 
-    if (!prefix.empty() && lookupNamespaceURI(prefix.c_str(), _namespaceURI) == CALL_RETURN_NULL)
-        setAttributeNS("http://www.w3.org/2000/xmlns/", ("xmlns:" + prefix).c_str(), namespaceURI);
+    if (!prefix.empty() && lookupNamespaceURI(prefix, _namespaceURI) == CALL_RETURN_NULL)
+        setAttributeNS("http://www.w3.org/2000/xmlns/", ("xmlns:" + prefix), namespaceURI);
     else if (_namespaceURI != namespaceURI)
     {
         char buf[64];
@@ -403,7 +403,7 @@ void XmlElement::fix_prefix(exlib::string namespaceURI, exlib::string &prefix)
             if (lookupNamespaceURI(buf, _namespaceURI) == CALL_RETURN_NULL)
             {
                 prefix = buf;
-                setAttributeNS("http://www.w3.org/2000/xmlns/", ("xmlns:" + prefix).c_str(), namespaceURI);
+                setAttributeNS("http://www.w3.org/2000/xmlns/", ("xmlns:" + prefix), namespaceURI);
                 return;
             }
         }
@@ -441,13 +441,13 @@ result_t XmlElement::toString(exlib::string &retVal)
             }
 
             if (!skip_def_ns)
-                setAttribute("xmlns", m_namespaceURI.c_str());
+                setAttribute("xmlns", m_namespaceURI);
         }
         retVal.append(tagName);
     }
     else
     {
-        fix_prefix(m_namespaceURI.c_str(), m_prefix);
+        fix_prefix(m_namespaceURI, m_prefix);
 
         retVal.append(m_prefix);
         retVal += ':';

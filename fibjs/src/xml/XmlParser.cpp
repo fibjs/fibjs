@@ -89,7 +89,7 @@ void XmlParser::OnStartElement(const XML_Char *name, const XML_Char **atts)
         if (it != nss.end())
             def_ns = it->second;
         else
-            m_now->lookupNamespaceURI(prefix.c_str(), def_ns);
+            m_now->lookupNamespaceURI(prefix, def_ns);
     }
     else if (!has_def)
     {
@@ -100,7 +100,7 @@ void XmlParser::OnStartElement(const XML_Char *name, const XML_Char **atts)
     }
 
     if (!def_ns.empty())
-        el = new XmlElement(m_document, def_ns.c_str(), name, m_isXml);
+        el = new XmlElement(m_document, def_ns, name, m_isXml);
     else
         el = new XmlElement(m_document, name, m_isXml);
 
@@ -121,13 +121,13 @@ void XmlParser::OnStartElement(const XML_Char *name, const XML_Char **atts)
             if (it != nss.end())
                 def_ns = it->second;
             else
-                m_now->lookupNamespaceURI(ns.c_str(), def_ns);
+                m_now->lookupNamespaceURI(ns, def_ns);
         }
         else
             def_ns.clear();
 
         if (!def_ns.empty())
-            el->setAttributeNS(def_ns.c_str(), name, atts[1]);
+            el->setAttributeNS(def_ns, name, atts[1]);
         else
             el->setAttribute(name, atts[1]);
 
@@ -159,7 +159,7 @@ void XmlParser::OnCharacterData(const XML_Char *s, int32_t len)
 
     m_now->get_nodeType(type);
     if (type == xml_base::_CDATA_SECTION_NODE)
-        ((XmlCDATASection_base *)(XmlNode_base *)m_now)->appendData(data.c_str());
+        ((XmlCDATASection_base *)(XmlNode_base *)m_now)->appendData(data);
     else
     {
         obj_ptr<XmlNode_base> last;
@@ -170,12 +170,12 @@ void XmlParser::OnCharacterData(const XML_Char *s, int32_t len)
             last->get_nodeType(type);
             if (type == xml_base::_TEXT_NODE)
             {
-                ((XmlText_base *)(XmlNode_base *)last)->appendData(data.c_str());
+                ((XmlText_base *)(XmlNode_base *)last)->appendData(data);
                 return;
             }
         }
 
-        obj_ptr<XmlText_base> text = new XmlText(m_document, data.c_str());
+        obj_ptr<XmlText_base> text = new XmlText(m_document, data);
         newNode(text);
     }
 }

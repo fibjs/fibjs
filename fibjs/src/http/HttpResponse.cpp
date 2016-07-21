@@ -266,7 +266,7 @@ result_t HttpResponse::sendTo(Stream_base *stm, AsyncEvent *ac)
             if (cookie)
             {
                 cookie->toString(str);
-                addHeader("Set-Cookie", str.c_str());
+                addHeader("Set-Cookie", str);
             }
         }
 
@@ -320,7 +320,7 @@ result_t HttpResponse::readFrom(Stream_base *stm, AsyncEvent *ac)
             pThis->m_pThis->set_status(atoi(pThis->m_strLine.c_str() + 8));
             pThis->m_strLine.resize(8);
 
-            hr = pThis->m_pThis->set_protocol(pThis->m_strLine.c_str());
+            hr = pThis->m_pThis->set_protocol(pThis->m_strLine);
             if (hr < 0)
                 return hr;
 
@@ -399,7 +399,7 @@ result_t HttpResponse::get_cookies(obj_ptr<List_base> &retVal)
             str = v.string();
 
             cookie = new HttpCookie();
-            if (cookie->parse(str.c_str()) >= 0)
+            if (cookie->parse(str) >= 0)
                 cookies->append(cookie);
         }
 
@@ -454,7 +454,7 @@ result_t HttpResponse::sendHeader(Stream_base* stm, AsyncEvent* ac)
             if (cookie)
             {
                 cookie->toString(str);
-                addHeader("Set-Cookie", str.c_str());
+                addHeader("Set-Cookie", str);
             }
         }
 

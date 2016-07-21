@@ -161,7 +161,7 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base> &retVa
 
     obj_ptr<Url> u = new Url();
 
-    result_t hr = u->parse(connString.c_str());
+    result_t hr = u->parse(connString);
     if (hr < 0)
         return hr;
 

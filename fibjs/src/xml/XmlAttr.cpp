@@ -73,7 +73,7 @@ result_t XmlAttr::set_value(exlib::string newVal)
 void XmlAttr::fix_prefix()
 {
     if (!m_namespaceURI.empty() && m_owner)
-        m_owner->fix_prefix(m_namespaceURI.c_str(), m_prefix);
+        m_owner->fix_prefix(m_namespaceURI, m_prefix);
 }
 
 result_t XmlAttr::get_nodeName(exlib::string &retVal)

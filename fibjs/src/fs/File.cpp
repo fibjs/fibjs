@@ -190,7 +190,7 @@ result_t File::write(Buffer_base *data, AsyncEvent *ac)
     exlib::string strBuf;
     data->toString(strBuf);
 
-    return Write(strBuf.c_str(), (int32_t) strBuf.length());
+    return Write(strBuf);
 }
 
 result_t File::copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal,
@@ -264,7 +264,7 @@ result_t File::stat(obj_ptr<Stat_base> &retVal, AsyncEvent *ac)
     fstat64(m_fd, &st);
 
     obj_ptr<Stat> pStat = new Stat();
-    pStat->fill(name.c_str(), st);
+    pStat->fill(name, st);
     retVal = pStat;
 
     return 0;

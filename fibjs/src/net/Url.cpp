@@ -118,11 +118,11 @@ void Url::parseAuth(const char *&url)
     if (ch == '@')
     {
         m_username.assign(url, p1 - url);
-        encoding_base::decodeURI(m_username.c_str(), m_username);
+        encoding_base::decodeURI(m_username, m_username);
         if (p2)
         {
             m_password.assign(p1 + 1, p2 - p1 - 1);
-            encoding_base::decodeURI(m_password.c_str(), m_password);
+            encoding_base::decodeURI(m_password, m_password);
         }
 
         url = p2 ? p2 + 1 : p1 + 1;
@@ -218,8 +218,7 @@ void Url::parsePath(const char *&url)
     }
 
     if (m_protocol.compare("javascript:"))
-        Url::encodeURI(m_pathname.c_str(), (int32_t) m_pathname.length(),
-                       m_pathname, pathTable);
+        Url::encodeURI(m_pathname, m_pathname, pathTable);
     url = p;
 }
 
@@ -235,8 +234,7 @@ void Url::parseQuery(const char *&url)
         p++;
 
     m_query.assign(url, p - url);
-    Url::encodeURI(m_query.c_str(), (int32_t) m_query.length(), m_query,
-                   queryTable);
+    Url::encodeURI(m_query, m_query, queryTable);
     url = p;
 }
 
@@ -559,12 +557,12 @@ result_t Url::get_auth(exlib::string &retVal)
 {
     exlib::string str;
 
-    encoding_base::encodeURIComponent(m_username.c_str(), str);
+    encoding_base::encodeURIComponent(m_username, str);
     retVal.append(str);
     if (m_password.length() > 0)
     {
         retVal.append(1, ':');
-        encoding_base::encodeURIComponent(m_password.c_str(), str);
+        encoding_base::encodeURIComponent(m_password, str);
         retVal.append(str);
     }
 

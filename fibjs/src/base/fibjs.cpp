@@ -80,7 +80,7 @@ static void main_fiber(Isolate* isolate)
         global_base::get_argv(argv);
 
         hr = s.m_hr = isolate->m_topSandbox->run(
-                          isolate->m_fname.c_str(), argv, true);
+                          isolate->m_fname, argv, true);
     }
     else
     {

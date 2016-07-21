@@ -111,7 +111,7 @@ bool repl_command(exlib::string &line, v8::Local<v8::Array> cmds)
             return false;
         }
 
-        if (cmd_word == cmd.c_str())
+        if (cmd_word == cmd)
         {
             v8::Local<v8::Array> argv = v8::Array::New(isolate->m_isolate);
             int32_t n = 0;

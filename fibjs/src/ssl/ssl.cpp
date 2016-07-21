@@ -159,7 +159,7 @@ result_t ssl_base::connect(exlib::string url, obj_ptr<Stream_base> &retVal,
                                   net_base::_SOCK_STREAM);
 
             pThis->set(handshake);
-            return pThis->m_sock->connect(pThis->m_host.c_str(), pThis->m_port, pThis);
+            return pThis->m_sock->connect(pThis->m_host, pThis->m_port, pThis);
         }
 
         static int32_t handshake(AsyncState *pState, int32_t n)
@@ -177,7 +177,7 @@ result_t ssl_base::connect(exlib::string url, obj_ptr<Stream_base> &retVal,
                     return hr;
             }
 
-            return pThis->m_ssl_sock->connect(pThis->m_sock, pThis->m_host.c_str(), pThis->m_temp, pThis);
+            return pThis->m_ssl_sock->connect(pThis->m_sock, pThis->m_host, pThis->m_temp, pThis);
         }
 
         static int32_t ok(AsyncState *pState, int32_t n)

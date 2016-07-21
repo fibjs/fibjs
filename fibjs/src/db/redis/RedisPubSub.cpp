@@ -27,7 +27,7 @@ const char *s_cmd[][2] =
 bool Redis::regsub(exlib::string &key, v8::Local<v8::Function> func)
 {
     int32_t n = 0;
-    on(key.c_str(), func, n);
+    on(key, func, n);
 
     if (n)
     {
@@ -48,7 +48,7 @@ bool Redis::regsub(exlib::string &key, v8::Local<v8::Function> func)
 bool Redis::unregsub(exlib::string &key, v8::Local<v8::Function> func)
 {
     int32_t n = 0;
-    off(key.c_str(), func, n);
+    off(key, func, n);
 
     if (n)
     {
@@ -161,7 +161,7 @@ result_t Redis::unsub(exlib::string key, int32_t cmd)
 {
     int32_t n = 0;
     exlib::string key1 = s_cmd[cmd][1] + key;
-    off(key1.c_str(), n);
+    off(key1, n);
     m_funcs.erase(key1);
 
     Variant v;
@@ -195,7 +195,7 @@ result_t Redis::unsub(v8::Local<v8::Array> &channels, int32_t cmd)
         s = s_cmd[cmd][1] + s;
 
         int32_t n = 0;
-        off(s.c_str(), n);
+        off(s, n);
         m_funcs.erase(s);
     }
 

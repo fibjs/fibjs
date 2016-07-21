@@ -232,7 +232,7 @@ result_t BufferedStream::readText(int32_t size, exlib::string &retVal,
 result_t BufferedStream::readLine(int32_t maxlen, exlib::string &retVal,
                                   AsyncEvent *ac)
 {
-    return readUntil(m_eol.c_str(), maxlen, retVal, ac);
+    return readUntil(m_eol, maxlen, retVal, ac);
 }
 
 result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array> &retVal)

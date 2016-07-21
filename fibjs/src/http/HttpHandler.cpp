@@ -117,7 +117,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             exlib::string str;
 
             pThis->m_req->get_protocol(str);
-            pThis->m_rep->set_protocol(str.c_str());
+            pThis->m_rep->set_protocol(str);
 
             bool bKeepAlive;
 
@@ -351,7 +351,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             {
                 exlib::string err = getResultMessage(v);
 
-                m_req->set_lastError(err.c_str());
+                m_req->set_lastError(err);
                 asyncLog(console_base::_ERROR, "HttpHandler: " + err);
 
                 m_rep->set_status(500);

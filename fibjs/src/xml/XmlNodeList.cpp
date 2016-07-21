@@ -359,7 +359,7 @@ result_t XmlNodeList::normalize()
                     break;
 
                 next->get_nodeValue(val);
-                txt->appendData(val.c_str());
+                txt->appendData(val);
 
                 obj_ptr<XmlNode_base> out;
                 removeChild(next, out);

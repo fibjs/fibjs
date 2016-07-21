@@ -141,7 +141,7 @@ result_t http_base::request(exlib::string method, exlib::string url,
             obj_ptr<Url> u = new Url();
             exlib::string path;
 
-            hr = u->parse(pThis->m_url.c_str());
+            hr = u->parse(pThis->m_url);
             if (hr < 0)
                 return hr;
 
@@ -170,12 +170,12 @@ result_t http_base::request(exlib::string method, exlib::string url,
 
             pThis->m_req = new HttpRequest();
 
-            pThis->m_req->set_method(pThis->m_method.c_str());
+            pThis->m_req->set_method(pThis->m_method);
 
             u->get_path(path);
-            pThis->m_req->set_address(path.c_str());
+            pThis->m_req->set_address(path);
 
-            pThis->m_req->addHeader("host", u->m_host.c_str());
+            pThis->m_req->addHeader("host", u->m_host);
             pThis->m_req->setHeader("Accept-Encoding", "gzip,deflate");
             pThis->m_req->addHeader(pThis->m_headers);
 
@@ -183,7 +183,7 @@ result_t http_base::request(exlib::string method, exlib::string url,
                 pThis->m_req->set_body(pThis->m_body);
 
             pThis->set(connected);
-            return net_base::connect(pThis->m_connUrl.c_str(), pThis->m_conn, pThis);
+            return net_base::connect(pThis->m_connUrl, pThis->m_conn, pThis);
         }
 
         static int32_t connected(AsyncState *pState, int32_t n)

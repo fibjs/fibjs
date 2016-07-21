@@ -170,7 +170,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             m_req->get_value(value);
 
-            Url::decodeURI(value.c_str(), (int32_t) value.length(), value);
+            Url::decodeURI(value, value);
 
             if (value.length() > 0 && isPathSlash(value[value.length() - 1]))
                 value.append("index.html", 10);
@@ -200,7 +200,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                                           v) != CALL_RETURN_NULL)
             {
                 exlib::string str = v.string();
-                pThis->m_time.parse(str.c_str(), (int32_t) str.length());
+                pThis->m_time.parse(str);
 
                 pThis->set(check);
                 return fs_base::stat(pThis->m_path, pThis->m_stat,

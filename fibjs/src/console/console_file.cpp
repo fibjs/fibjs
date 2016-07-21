@@ -185,7 +185,7 @@ result_t file_logger::initFile()
                 clearFile();
         }
 
-        hr = f->open(name.c_str(), "a+");
+        hr = f->open(name, "a+");
         if (hr < 0)
             return hr;
 
@@ -236,7 +236,7 @@ result_t file_logger::write(AsyncEvent *ac)
 
         if (m_file)
         {
-            hr = m_file->Write(outBuffer.c_str(), (int32_t)outBuffer.length());
+            hr = m_file->Write(outBuffer);
             if (hr < 0)
                 m_file.Release();
 

@@ -49,7 +49,7 @@ result_t websocket_base::connect(exlib::string url, exlib::string origin,
 			pThis->m_headers->put("Sec-WebSocket-Version", "13");
 
 			if (!pThis->m_origin.empty())
-				pThis->m_headers->put("Origin", pThis->m_origin.c_str());
+				pThis->m_headers->put("Origin", pThis->m_origin);
 
 			char keys[16];
 			int32_t i;
@@ -74,7 +74,7 @@ result_t websocket_base::connect(exlib::string url, exlib::string origin,
 			    6, (const char*)output, 20, pThis->m_accept);
 
 			pThis->set(response);
-			return http_base::request("GET", pThis->m_url.c_str(),
+			return http_base::request("GET", pThis->m_url,
 			                          NULL, pThis->m_headers, pThis->m_httprep, pThis);
 		}
 

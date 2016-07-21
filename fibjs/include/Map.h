@@ -40,7 +40,7 @@ public:
 
         for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
         {
-            hr = (o->*fn)(iter->first.c_str(), iter->second);
+            hr = (o->*fn)(iter->first, iter->second);
             if (hr < 0)
                 return hr;
         }

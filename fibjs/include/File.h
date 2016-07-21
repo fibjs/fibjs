@@ -54,7 +54,7 @@ public:
     result_t Write(const char *p, int32_t sz);
     result_t Write(exlib::string data)
     {
-        Write(data.c_str(), (int32_t)data.length());
+        return Write(data.c_str(), (int32_t)data.length());
     }
 
 protected:
