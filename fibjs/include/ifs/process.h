@@ -17,7 +17,6 @@
 namespace fibjs
 {
 
-class BufferedStream_base;
 class SubProcess_base;
 
 class process_base : public object_base
@@ -34,9 +33,6 @@ public:
     static result_t cwd(exlib::string& retVal);
     static result_t chdir(exlib::string directory);
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
-    static result_t system(exlib::string cmd, int32_t& retVal, AsyncEvent* ac);
-    static result_t popen(exlib::string cmd, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
-    static result_t exec(exlib::string cmd);
     static result_t open(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
     static result_t open(exlib::string command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
     static result_t start(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
@@ -64,21 +60,13 @@ public:
     static void s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_system(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_popen(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_exec(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
-
-public:
-    ASYNC_STATICVALUE2(process_base, system, exlib::string, int32_t);
-    ASYNC_STATICVALUE2(process_base, popen, exlib::string, obj_ptr<BufferedStream_base>);
 };
 
 }
 
-#include "BufferedStream.h"
 #include "SubProcess.h"
 
 namespace fibjs
@@ -91,9 +79,6 @@ namespace fibjs
             {"cwd", s_cwd, true},
             {"chdir", s_chdir, true},
             {"memoryUsage", s_memoryUsage, true},
-            {"system", s_system, true},
-            {"popen", s_popen, true},
-            {"exec", s_exec, true},
             {"open", s_open, true},
             {"start", s_start, true},
             {"run", s_run, true}
@@ -110,7 +95,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "process", s__new, NULL, 
-            10, s_method, 0, NULL, 4, s_property, NULL, NULL,
+            7, s_method, 0, NULL, 4, s_property, NULL, NULL,
             NULL
         };
 
@@ -204,57 +189,6 @@ namespace fibjs
         hr = memoryUsage(vr);
 
         METHOD_RETURN();
-    }
-
-    inline void process_base::s_system(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("process.system");
-
-        int32_t vr;
-
-        ASYNC_METHOD_ENTER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        if(!cb.IsEmpty()) {
-            acb_system(v0, vr, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_system(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void process_base::s_popen(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("process.popen");
-
-        obj_ptr<BufferedStream_base> vr;
-
-        ASYNC_METHOD_ENTER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        if(!cb.IsEmpty()) {
-            acb_popen(v0, vr, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_popen(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void process_base::s_exec(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        DEPRECATED_SOON("process.exec");
-
-        METHOD_ENTER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        hr = exec(v0);
-
-        METHOD_VOID();
     }
 
     inline void process_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)

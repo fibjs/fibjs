@@ -148,66 +148,6 @@ result_t process_base::memoryUsage(v8::Local<v8::Object> &retVal)
     return os_base::memoryUsage(retVal);
 }
 
-result_t process_base::system(exlib::string cmd, int32_t &retVal,
-                              AsyncEvent * ac)
-{
-    if (!ac)
-        return CHECK_ERROR(CALL_E_LONGSYNC);
-
-#ifdef _WIN32
-    retVal = ::_wsystem(UTF8_W(cmd));
-#else
-    retVal = ::system(cmd.c_str()) >> 8;
-#endif
-
-    return 0;
-}
-
-result_t process_base::popen(exlib::string cmd, obj_ptr<BufferedStream_base> &retVal, AsyncEvent * ac)
-{
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-#ifdef _WIN32
-    FILE *pPipe = _wpopen(UTF8_W(cmd), L"r");
-#else
-    FILE *pPipe = ::popen(cmd.c_str(), "r");
-#endif
-
-    if (pPipe == NULL)
-        return CHECK_ERROR(LastError());
-
-    retVal = new BufferedStream(new File(pPipe));
-    retVal->set_EOL("\n");
-
-    return 0;
-}
-
-result_t process_base::exec(exlib::string cmd)
-{
-#ifdef _WIN32
-    PROCESS_INFORMATION pi;
-    STARTUPINFOW si;
-
-    ZeroMemory(&si, sizeof(STARTUPINFO));
-    si.cb = sizeof(STARTUPINFO);
-
-    exlib::wstring wstr(L"cmd /C ");
-    wstr.append(utf8to16String(cmd));
-
-    CreateProcessW(NULL, &wstr[0], NULL, NULL, 0, 0, NULL, NULL, &si, &pi);
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-#else
-    if (fork() == 0)
-    {
-        execl("/bin/sh", "sh", "-c", cmd.c_str(), (char *)0);
-        _exit(127);
-    }
-#endif
-    return 0;
-}
-
 result_t process_base::open(exlib::string command, v8::Local<v8::Array> args,
                             v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal)
 {

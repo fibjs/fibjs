@@ -52,23 +52,6 @@ module process
      */
     static Object memoryUsage();
 
-    /*! @brief 运行指定的命令行，并返回运行结果
-     @param cmd 指定运行的命令行
-     @return 返回包含进程运行结果
-     */
-    deprecated static Integer system(String cmd) async;
-
-    /*! @brief 运行指定的命令行，并返回进程的结束代码
-     @param cmd 指定运行的命令行
-     @return 返回包含运行结果的文件对象
-     */
-    deprecated static BufferedStream popen(String cmd) async;
-
-    /*! @brief 运行指定的命令行，并立即返回
-     @param cmd 指定运行的命令行
-     */
-    deprecated static exec(String cmd);
-
     /*! @brief 运行指定的命令行，接管进程输入输出流，并返回进程对象
      @param command 指定运行的命令行
      @param args 指定运行的参数列表
