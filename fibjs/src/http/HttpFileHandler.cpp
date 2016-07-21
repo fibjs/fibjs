@@ -103,7 +103,7 @@ static const char *s_mimeTypes[][2] =
     { "zip", "application/zip" }
 };
 
-result_t http_base::fileHandler(const char *root, v8::Local<v8::Object> mimes,
+result_t http_base::fileHandler(exlib::string root, v8::Local<v8::Object> mimes,
                                 obj_ptr<Handler_base> &retVal)
 {
     obj_ptr<HttpFileHandler> hdlr = new HttpFileHandler(root);

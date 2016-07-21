@@ -64,13 +64,13 @@ result_t HttpCollection::clear()
     return 0;
 }
 
-result_t HttpCollection::has(const char *name, bool &retVal)
+result_t HttpCollection::has(exlib::string name, bool &retVal)
 {
     int32_t i;
 
     retVal = false;
     for (i = 0; i < m_count; i++)
-        if (!qstricmp(m_names[i].c_str(), name))
+        if (!qstricmp(m_names[i].c_str(), name.c_str()))
         {
             retVal = true;
             break;
@@ -79,12 +79,12 @@ result_t HttpCollection::has(const char *name, bool &retVal)
     return 0;
 }
 
-result_t HttpCollection::first(const char *name, Variant &retVal)
+result_t HttpCollection::first(exlib::string name, Variant &retVal)
 {
     int32_t i;
 
     for (i = 0; i < m_count; i++)
-        if (!qstricmp(m_names[i].c_str(), name))
+        if (!qstricmp(m_names[i].c_str(), name.c_str()))
         {
             retVal = m_values[i];
             return 0;
@@ -93,7 +93,7 @@ result_t HttpCollection::first(const char *name, Variant &retVal)
     return CALL_RETURN_NULL;
 }
 
-result_t HttpCollection::all(const char *name, obj_ptr<List_base> &retVal)
+result_t HttpCollection::all(exlib::string name, obj_ptr<List_base> &retVal)
 {
     obj_ptr<List> list;
     int32_t i;
@@ -101,14 +101,14 @@ result_t HttpCollection::all(const char *name, obj_ptr<List_base> &retVal)
     list = new List();
 
     for (i = 0; i < m_count; i++)
-        if (!qstricmp(m_names[i].c_str(), name))
+        if (!qstricmp(m_names[i].c_str(), name.c_str()))
             list->append(m_values[i]);
 
     retVal = list;
     return 0;
 }
 
-result_t HttpCollection::add(const char *name, Variant value)
+result_t HttpCollection::add(exlib::string name, Variant value)
 {
     exlib::string s;
 
@@ -127,13 +127,13 @@ result_t HttpCollection::add(Map_base* map)
     return ((Map*)map)->map(this, &HttpCollection::add);
 }
 
-result_t HttpCollection::set(const char *name, Variant value)
+result_t HttpCollection::set(exlib::string name, Variant value)
 {
     int32_t i;
     bool bFound = false;
 
     for (i = 0; i < m_count; i++)
-        if (!qstricmp(m_names[i].c_str(), name))
+        if (!qstricmp(m_names[i].c_str(), name.c_str()))
         {
             exlib::string s;
 
@@ -150,7 +150,7 @@ result_t HttpCollection::set(const char *name, Variant value)
         int32_t p = ++i;
 
         for (; i < m_count; i++)
-            if (qstricmp(m_names[i].c_str(), name))
+            if (qstricmp(m_names[i].c_str(), name.c_str()))
             {
                 if (i != p)
                 {
@@ -174,13 +174,13 @@ result_t HttpCollection::set(Map_base* map)
     return ((Map*)map)->map(this, &HttpCollection::set);
 }
 
-result_t HttpCollection::remove(const char *name)
+result_t HttpCollection::remove(exlib::string name)
 {
     int32_t i;
     int32_t p = 0;
 
     for (i = 0; i < m_count; i++)
-        if (qstricmp(m_names[i].c_str(), name))
+        if (qstricmp(m_names[i].c_str(), name.c_str()))
         {
             if (i != p)
             {

@@ -27,14 +27,14 @@ class HttpCollection_base : public object_base
 public:
     // HttpCollection_base
     virtual result_t clear() = 0;
-    virtual result_t has(const char* name, bool& retVal) = 0;
-    virtual result_t first(const char* name, Variant& retVal) = 0;
-    virtual result_t all(const char* name, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t has(exlib::string name, bool& retVal) = 0;
+    virtual result_t first(exlib::string name, Variant& retVal) = 0;
+    virtual result_t all(exlib::string name, obj_ptr<List_base>& retVal) = 0;
     virtual result_t add(Map_base* map) = 0;
-    virtual result_t add(const char* name, Variant value) = 0;
+    virtual result_t add(exlib::string name, Variant value) = 0;
     virtual result_t set(Map_base* map) = 0;
-    virtual result_t set(const char* name, Variant value) = 0;
-    virtual result_t remove(const char* name) = 0;
+    virtual result_t set(exlib::string name, Variant value) = 0;
+    virtual result_t remove(exlib::string name) = 0;
     virtual result_t _named_getter(const char* property, Variant& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t _named_setter(const char* property, Variant newVal) = 0;
@@ -174,7 +174,7 @@ namespace fibjs
         METHOD_INSTANCE(HttpCollection_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->has(v0, vr);
 
@@ -188,7 +188,7 @@ namespace fibjs
         METHOD_INSTANCE(HttpCollection_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->first(v0, vr);
 
@@ -202,7 +202,7 @@ namespace fibjs
         METHOD_INSTANCE(HttpCollection_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->all(v0, vr);
 
@@ -220,7 +220,7 @@ namespace fibjs
 
         METHOD_OVER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(Variant, 1);
 
         hr = pInst->add(v0, v1);
@@ -239,7 +239,7 @@ namespace fibjs
 
         METHOD_OVER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(Variant, 1);
 
         hr = pInst->set(v0, v1);
@@ -252,7 +252,7 @@ namespace fibjs
         METHOD_INSTANCE(HttpCollection_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->remove(v0);
 

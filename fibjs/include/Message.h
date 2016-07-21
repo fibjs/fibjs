@@ -20,7 +20,7 @@ class Message: public Message_base
 public:
     // Message_base
     virtual result_t get_value(exlib::string &retVal);
-    virtual result_t set_value(const char *newVal);
+    virtual result_t set_value(exlib::string newVal);
     virtual result_t get_params(obj_ptr<List_base> &retVal);
     virtual result_t set_params(List_base *newVal);
     virtual result_t get_result(Variant &retVal);
@@ -37,7 +37,7 @@ public:
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
     virtual result_t get_response(obj_ptr<Message_base> &retVal);
     virtual result_t get_lastError(exlib::string& retVal);
-    virtual result_t set_lastError(const char* newVal);
+    virtual result_t set_lastError(exlib::string newVal);
 
 public:
     Message(bool bRep = false) : m_bRep(bRep)
@@ -45,12 +45,6 @@ public:
     }
 
 public:
-    result_t set_value(exlib::string &newVal)
-    {
-        m_value = newVal;
-        return 0;
-    }
-
     obj_ptr<SeekableStream_base> &body()
     {
         return m_body;

@@ -25,7 +25,7 @@ result_t HttpResponse::get_protocol(exlib::string &retVal)
     return m_message->get_protocol(retVal);
 }
 
-result_t HttpResponse::set_protocol(const char *newVal)
+result_t HttpResponse::set_protocol(exlib::string newVal)
 {
     return m_message->set_protocol(newVal);
 }
@@ -106,17 +106,17 @@ result_t HttpResponse::set_maxUploadSize(int32_t newVal)
     return m_message->get_maxUploadSize(newVal);
 }
 
-result_t HttpResponse::hasHeader(const char *name, bool &retVal)
+result_t HttpResponse::hasHeader(exlib::string name, bool &retVal)
 {
     return m_message->hasHeader(name, retVal);
 }
 
-result_t HttpResponse::firstHeader(const char *name, Variant &retVal)
+result_t HttpResponse::firstHeader(exlib::string name, Variant &retVal)
 {
     return m_message->firstHeader(name, retVal);
 }
 
-result_t HttpResponse::allHeader(const char *name, obj_ptr<List_base> &retVal)
+result_t HttpResponse::allHeader(exlib::string name, obj_ptr<List_base> &retVal)
 {
     return m_message->allHeader(name, retVal);
 }
@@ -126,7 +126,7 @@ result_t HttpResponse::addHeader(Map_base* map)
     return m_message->addHeader(map);
 }
 
-result_t HttpResponse::addHeader(const char *name, Variant value)
+result_t HttpResponse::addHeader(exlib::string name, Variant value)
 {
     return m_message->addHeader(name, value);
 }
@@ -136,12 +136,12 @@ result_t HttpResponse::setHeader(Map_base* map)
     return m_message->setHeader(map);
 }
 
-result_t HttpResponse::setHeader(const char *name, Variant value)
+result_t HttpResponse::setHeader(exlib::string name, Variant value)
 {
     return m_message->setHeader(name, value);
 }
 
-result_t HttpResponse::removeHeader(const char *name)
+result_t HttpResponse::removeHeader(exlib::string name)
 {
     return m_message->removeHeader(name);
 }
@@ -151,7 +151,7 @@ result_t HttpResponse::get_value(exlib::string &retVal)
     return m_message->get_value(retVal);
 }
 
-result_t HttpResponse::set_value(const char *newVal)
+result_t HttpResponse::set_value(exlib::string newVal)
 {
     return m_message->set_value(newVal);
 }
@@ -181,7 +181,7 @@ result_t HttpResponse::get_lastError(exlib::string& retVal)
     return m_message->get_lastError(retVal);
 }
 
-result_t HttpResponse::set_lastError(const char* newVal)
+result_t HttpResponse::set_lastError(exlib::string newVal)
 {
     return m_message->set_lastError(newVal);
 }
@@ -422,7 +422,7 @@ result_t HttpResponse::addCookie(HttpCookie_base *cookie)
     return 0;
 }
 
-result_t HttpResponse::redirect(const char *url)
+result_t HttpResponse::redirect(exlib::string url)
 {
     clear();
 

@@ -30,7 +30,7 @@ class HttpMessage_base : public Message_base
 public:
     // HttpMessage_base
     virtual result_t get_protocol(exlib::string& retVal) = 0;
-    virtual result_t set_protocol(const char* newVal) = 0;
+    virtual result_t set_protocol(exlib::string newVal) = 0;
     virtual result_t get_headers(obj_ptr<HttpCollection_base>& retVal) = 0;
     virtual result_t get_keepAlive(bool& retVal) = 0;
     virtual result_t set_keepAlive(bool newVal) = 0;
@@ -40,14 +40,14 @@ public:
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
     virtual result_t get_maxUploadSize(int32_t& retVal) = 0;
     virtual result_t set_maxUploadSize(int32_t newVal) = 0;
-    virtual result_t hasHeader(const char* name, bool& retVal) = 0;
-    virtual result_t firstHeader(const char* name, Variant& retVal) = 0;
-    virtual result_t allHeader(const char* name, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t hasHeader(exlib::string name, bool& retVal) = 0;
+    virtual result_t firstHeader(exlib::string name, Variant& retVal) = 0;
+    virtual result_t allHeader(exlib::string name, obj_ptr<List_base>& retVal) = 0;
     virtual result_t addHeader(Map_base* map) = 0;
-    virtual result_t addHeader(const char* name, Variant value) = 0;
+    virtual result_t addHeader(exlib::string name, Variant value) = 0;
     virtual result_t setHeader(Map_base* map) = 0;
-    virtual result_t setHeader(const char* name, Variant value) = 0;
-    virtual result_t removeHeader(const char* name) = 0;
+    virtual result_t setHeader(exlib::string name, Variant value) = 0;
+    virtual result_t removeHeader(exlib::string name) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -138,7 +138,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpMessage_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_protocol(v0);
 
         PROPERTY_SET_LEAVE();
@@ -255,7 +255,7 @@ namespace fibjs
         METHOD_INSTANCE(HttpMessage_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->hasHeader(v0, vr);
 
@@ -269,7 +269,7 @@ namespace fibjs
         METHOD_INSTANCE(HttpMessage_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->firstHeader(v0, vr);
 
@@ -283,7 +283,7 @@ namespace fibjs
         METHOD_INSTANCE(HttpMessage_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->allHeader(v0, vr);
 
@@ -301,7 +301,7 @@ namespace fibjs
 
         METHOD_OVER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(Variant, 1);
 
         hr = pInst->addHeader(v0, v1);
@@ -320,7 +320,7 @@ namespace fibjs
 
         METHOD_OVER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(Variant, 1);
 
         hr = pInst->setHeader(v0, v1);
@@ -333,7 +333,7 @@ namespace fibjs
         METHOD_INSTANCE(HttpMessage_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->removeHeader(v0);
 

@@ -30,7 +30,7 @@ public:
     // Message_base
     static result_t _new(obj_ptr<Message_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_value(exlib::string& retVal) = 0;
-    virtual result_t set_value(const char* newVal) = 0;
+    virtual result_t set_value(exlib::string newVal) = 0;
     virtual result_t get_params(obj_ptr<List_base>& retVal) = 0;
     virtual result_t set_params(List_base* newVal) = 0;
     virtual result_t get_result(Variant& retVal) = 0;
@@ -47,7 +47,7 @@ public:
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_response(obj_ptr<Message_base>& retVal) = 0;
     virtual result_t get_lastError(exlib::string& retVal) = 0;
-    virtual result_t set_lastError(const char* newVal) = 0;
+    virtual result_t set_lastError(exlib::string newVal) = 0;
 
 public:
     template<typename T>
@@ -144,7 +144,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Message_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_value(v0);
 
         PROPERTY_SET_LEAVE();
@@ -272,7 +272,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Message_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_lastError(v0);
 
         PROPERTY_SET_LEAVE();

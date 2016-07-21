@@ -441,13 +441,15 @@ result_t HttpMessage::get_protocol(exlib::string &retVal)
     return 0;
 }
 
-result_t HttpMessage::set_protocol(const char *newVal)
+result_t HttpMessage::set_protocol(exlib::string newVal)
 {
-    if (qstrcmp(newVal, "HTTP/", 5) || !qisdigit(newVal[5]) || newVal[6] != '.'
-            || !qisdigit(newVal[7]) || newVal[8])
+    const char* c_str = newVal.c_str();
+
+    if (qstrcmp(c_str, "HTTP/", 5) || !qisdigit(c_str[5]) || c_str[6] != '.'
+            || !qisdigit(c_str[7]) || c_str[8])
         return CHECK_ERROR(Runtime::setError("HttpRequest: bad protocol version."));
 
-    m_keepAlive = ((newVal[5] - '0') * 10 + newVal[7] - '0') > 10;
+    m_keepAlive = ((c_str[5] - '0') * 10 + c_str[7] - '0') > 10;
 
     m_protocol = newVal;
     return 0;
@@ -513,17 +515,17 @@ result_t HttpMessage::set_maxUploadSize(int32_t newVal)
     return 0;
 }
 
-result_t HttpMessage::hasHeader(const char *name, bool &retVal)
+result_t HttpMessage::hasHeader(exlib::string name, bool &retVal)
 {
     return m_headers->has(name, retVal);
 }
 
-result_t HttpMessage::firstHeader(const char *name, Variant &retVal)
+result_t HttpMessage::firstHeader(exlib::string name, Variant &retVal)
 {
     return m_headers->first(name, retVal);
 }
 
-result_t HttpMessage::allHeader(const char *name, obj_ptr<List_base> &retVal)
+result_t HttpMessage::allHeader(exlib::string name, obj_ptr<List_base> &retVal)
 {
     return m_headers->all(name, retVal);
 }
@@ -533,7 +535,7 @@ result_t HttpMessage::addHeader(Map_base* map)
     return m_headers->add(map);
 }
 
-result_t HttpMessage::addHeader(const char *name, Variant value)
+result_t HttpMessage::addHeader(exlib::string name, Variant value)
 {
     return m_headers->add(name, value);
 }
@@ -543,12 +545,12 @@ result_t HttpMessage::setHeader(Map_base* map)
     return m_headers->set(map);
 }
 
-result_t HttpMessage::setHeader(const char *name, Variant value)
+result_t HttpMessage::setHeader(exlib::string name, Variant value)
 {
     return m_headers->set(name, value);
 }
 
-result_t HttpMessage::removeHeader(const char *name)
+result_t HttpMessage::removeHeader(exlib::string name)
 {
     return m_headers->remove(name);
 }

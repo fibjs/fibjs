@@ -30,7 +30,7 @@ class global_base : public object_base
 public:
     // global_base
     static result_t get_global(obj_ptr<global_base>& retVal);
-    static result_t run(const char* fname, v8::Local<v8::Array> argv);
+    static result_t run(exlib::string fname, v8::Local<v8::Array> argv);
     static result_t get_argv(v8::Local<v8::Array>& retVal);
     static result_t get___filename(exlib::string& retVal);
     static result_t get___dirname(exlib::string& retVal);
@@ -41,7 +41,7 @@ public:
     static result_t setInterval(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal);
     static result_t setTimeout(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal);
     static result_t setImmediate(v8::Local<v8::Function> callback, obj_ptr<Timer_base>& retVal);
-    static result_t require(const char* id, v8::Local<v8::Value>& retVal);
+    static result_t require(exlib::string id, v8::Local<v8::Value>& retVal);
     static result_t GC();
     static result_t sync(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
     static result_t repl(v8::Local<v8::Array> cmds);
@@ -190,7 +190,7 @@ namespace fibjs
     {
         METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(isolate));
 
         hr = run(v0, v1);
@@ -278,7 +278,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = require(v0, vr);
 

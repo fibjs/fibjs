@@ -38,13 +38,13 @@ public:
     // LruCache_base
     virtual result_t get_size(int32_t &retVal);
     virtual result_t clear();
-    virtual result_t has(const char *name, bool &retVal);
-    virtual result_t get(const char *name, v8::Local<v8::Value> &retVal);
-    virtual result_t get(const char *name, v8::Local<v8::Function> updater, v8::Local<v8::Value> &retVal);
-    virtual result_t set(const char *name, v8::Local<v8::Value> value);
-    virtual result_t put(const char *name, v8::Local<v8::Value> value);
+    virtual result_t has(exlib::string name, bool &retVal);
+    virtual result_t get(exlib::string name, v8::Local<v8::Value> &retVal);
+    virtual result_t get(exlib::string name, v8::Local<v8::Function> updater, v8::Local<v8::Value> &retVal);
+    virtual result_t set(exlib::string name, v8::Local<v8::Value> value);
+    virtual result_t put(exlib::string name, v8::Local<v8::Value> value);
     virtual result_t put(v8::Local<v8::Object> map);
-    virtual result_t remove(const char *name);
+    virtual result_t remove(exlib::string name);
     virtual result_t isEmpty(bool &retVal);
 
 private:

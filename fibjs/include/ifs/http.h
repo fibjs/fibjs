@@ -35,15 +35,15 @@ class http_base : public object_base
 
 public:
     // http_base
-    static result_t fileHandler(const char* root, v8::Local<v8::Object> mimes, obj_ptr<Handler_base>& retVal);
+    static result_t fileHandler(exlib::string root, v8::Local<v8::Object> mimes, obj_ptr<Handler_base>& retVal);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
-    static result_t request(const char* method, const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-    static result_t request(const char* method, const char* url, SeekableStream_base* body, Map_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
-    static result_t request(const char* method, const char* url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-    static result_t request(const char* method, const char* url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-    static result_t get(const char* url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-    static result_t post(const char* url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-    static result_t post(const char* url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t request(exlib::string method, exlib::string url, SeekableStream_base* body, Map_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t request(exlib::string method, exlib::string url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t request(exlib::string method, exlib::string url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t get(exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t post(exlib::string url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t post(exlib::string url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -64,7 +64,7 @@ public:
 
 public:
     ASYNC_STATICVALUE3(http_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
-    ASYNC_STATICVALUE5(http_base, request, const char*, const char*, SeekableStream_base*, Map_base*, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE5(http_base, request, exlib::string, exlib::string, SeekableStream_base*, Map_base*, obj_ptr<HttpResponse_base>);
 };
 
 }
@@ -121,7 +121,7 @@ namespace fibjs
 
         METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = fileHandler(v0, v1, vr);
@@ -146,16 +146,16 @@ namespace fibjs
 
         METHOD_OVER(3, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
         hr = request(v0, v1, v2, vr);
 
         METHOD_OVER(4, 4);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
         ARG(obj_ptr<SeekableStream_base>, 2);
         ARG(obj_ptr<Map_base>, 3);
 
@@ -167,8 +167,8 @@ namespace fibjs
 
         METHOD_OVER(4, 3);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
         ARG(obj_ptr<SeekableStream_base>, 2);
         OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
@@ -176,8 +176,8 @@ namespace fibjs
 
         METHOD_OVER(4, 3);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
         ARG(obj_ptr<Buffer_base>, 2);
         OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
@@ -192,7 +192,7 @@ namespace fibjs
 
         METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = get(v0, v1, vr);
@@ -206,7 +206,7 @@ namespace fibjs
 
         METHOD_ENTER(3, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(obj_ptr<SeekableStream_base>, 1);
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
@@ -214,7 +214,7 @@ namespace fibjs
 
         METHOD_OVER(3, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(obj_ptr<Buffer_base>, 1);
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 

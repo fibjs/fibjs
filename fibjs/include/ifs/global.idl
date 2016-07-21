@@ -18,19 +18,19 @@ module global
      @param fname 指定要运行的脚本路径
      @param argv 指定要运行的参数，此参数可在脚本内使用 argv 获取
      */
-    static run(String fname, Array argv = []);
+    static run(XString fname, Array argv = []);
 
     /*! @brief 获取当前脚本的运行参数，启动 js 获取进程启动参数，run 执行的脚本获取传递的参数 */
     static readonly Array argv;
 
     /*! @brief 当前脚本文件名 */
-    static readonly String __filename;
+    static readonly XString __filename;
 
     /*! @brief 当前脚本所在目录 */
-    static readonly String __dirname;
+    static readonly XString __dirname;
 
     /*! @brief 当前沙箱名称 */
-    static readonly String __sbname;
+    static readonly XString __sbname;
 
     /*! @brief 清除指定的定时器
      @param t 指定要清除的定时器
@@ -82,7 +82,7 @@ module global
      @param id 指定要加载的模块名称
      @return 返回加载模块的引出对象
      */
-    static Value require(String id);
+    static Value require(XString id);
 
     /*! @brief 强制要求进行垃圾回收*/
     static GC();

@@ -29,11 +29,11 @@ public:
     // HttpRequest_base
     static result_t _new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_method(exlib::string& retVal) = 0;
-    virtual result_t set_method(const char* newVal) = 0;
+    virtual result_t set_method(exlib::string newVal) = 0;
     virtual result_t get_address(exlib::string& retVal) = 0;
-    virtual result_t set_address(const char* newVal) = 0;
+    virtual result_t set_address(exlib::string newVal) = 0;
     virtual result_t get_queryString(exlib::string& retVal) = 0;
-    virtual result_t set_queryString(const char* newVal) = 0;
+    virtual result_t set_queryString(exlib::string newVal) = 0;
     virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal) = 0;
     virtual result_t get_form(obj_ptr<HttpCollection_base>& retVal) = 0;
     virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal) = 0;
@@ -101,7 +101,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpRequest_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_method(v0);
 
         PROPERTY_SET_LEAVE();
@@ -124,7 +124,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpRequest_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_address(v0);
 
         PROPERTY_SET_LEAVE();
@@ -147,7 +147,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(HttpRequest_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_queryString(v0);
 
         PROPERTY_SET_LEAVE();

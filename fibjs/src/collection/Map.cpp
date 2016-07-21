@@ -36,14 +36,14 @@ result_t Map::clear()
     return 0;
 }
 
-result_t Map::has(const char *name, bool &retVal)
+result_t Map::has(exlib::string name, bool &retVal)
 {
     retVal = m_datas.find(name) != m_datas.end();
     return 0;
 }
 
 inline result_t _map(Map *o, v8::Local<v8::Object> m,
-                     result_t (Map::*fn)(const char *name, Variant value))
+                     result_t (Map::*fn)(exlib::string name, Variant value))
 {
     v8::Local<v8::Array> ks = m->GetPropertyNames();
     int32_t len = ks->Length();
@@ -58,7 +58,7 @@ inline result_t _map(Map *o, v8::Local<v8::Object> m,
     return 0;
 }
 
-result_t Map::get(const char *name, Variant &retVal)
+result_t Map::get(exlib::string name, Variant &retVal)
 {
     std::map<exlib::string, VariantEx>::iterator it = m_datas.find(name);
 
@@ -69,7 +69,7 @@ result_t Map::get(const char *name, Variant &retVal)
     return 0;
 }
 
-result_t Map::put(const char *name, Variant value)
+result_t Map::put(exlib::string name, Variant value)
 {
     if (value.type() == Variant::VT_JSValue)
         setJSObject();
@@ -83,7 +83,7 @@ result_t Map::put(v8::Local<v8::Object> map)
     return _map(this, map, &Map::put);
 }
 
-result_t Map::remove(const char *name)
+result_t Map::remove(exlib::string name)
 {
     m_datas.erase(name);
     return 0;
@@ -95,7 +95,7 @@ result_t Map::isEmpty(bool &retVal)
     return 0;
 }
 
-result_t Map::_named_getter(const char *property, Variant &retVal)
+result_t Map::_named_getter(const char* property, Variant &retVal)
 {
     return get(property, retVal);
 }
@@ -114,12 +114,12 @@ result_t Map::_named_enumerator(v8::Local<v8::Array> &retVal)
     return 0;
 }
 
-result_t Map::_named_setter(const char *property, Variant newVal)
+result_t Map::_named_setter(const char* property, Variant newVal)
 {
     return put(property, newVal);
 }
 
-result_t Map::_named_deleter(const char *property,
+result_t Map::_named_deleter(const char* property,
                              v8::Local<v8::Boolean> &retVal)
 {
     return remove(property);
