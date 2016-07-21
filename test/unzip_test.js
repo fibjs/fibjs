@@ -66,10 +66,10 @@ describe("zip", function() {
 		assert.equal(infolist[0].password, false);
 		assert.equal(infolist[0].compress_type, "Deflate");
 
-		assert.deepEqual(infolist[0].password, info.password);
-		assert.deepEqual(infolist[0].compress_type, info.compress_type);
-		assert.deepEqual(infolist[0].filename, info.filename);
-		assert.deepEqual(infolist[0].file_size, info.file_size);
+		assert.equal(infolist[0].password, info.password);
+		assert.equal(infolist[0].compress_type, info.compress_type);
+		assert.equal(infolist[0].filename, info.filename);
+		assert.equal(infolist[0].file_size, info.file_size);
 
 		zipfile.close();
 	});
@@ -84,8 +84,7 @@ describe("zip", function() {
 		zipfile.close();
 		file.close();
 
-		assert.equal(buf.toString(), buf1.toString());
-		assert.equal(buf.length, buf1.length);
+		assert.deepEqual(buf, buf1);
 	});
 
 	it("open zip buffer & read", function() {
@@ -102,8 +101,7 @@ describe("zip", function() {
 		zipfile.close();
 		file.close();
 
-		assert.equal(buf.toString(), buf1.toString());
-		assert.equal(buf.length, buf1.length);
+		assert.deepEqual(buf, buf1);
 	});
 
 	it("open zip stream & read", function() {
@@ -122,8 +120,7 @@ describe("zip", function() {
 		zipfile.close();
 		file.close();
 
-		assert.equal(buf.toString(), buf1.toString());
-		assert.equal(buf.length, buf1.length);
+		assert.deepEqual(buf, buf1);
 	});
 
 	it("write buffer & stream to zip", function() {
@@ -145,8 +142,7 @@ describe("zip", function() {
 		zipfile = zip.open('unzip_test.zip' + vmid);
 		var buf2 = zipfile.read('unzip_test.js.bak');
 
-		assert.equal(buf.length, buf2.length);
-		assert.equal(buf.toString(), buf2.toString());
+		assert.deepEqual(buf, buf2);
 
 		buf2 = zipfile.read('http.rq');
 		assert.equal(buf2.toString(), 'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
@@ -169,8 +165,7 @@ describe("zip", function() {
 
 		ms1.rewind();
 		buf = ms1.read();
-		assert.equal(datas[1].data.length, buf.length);
-		assert.equal(datas[1].data.toString(), buf.toString());
+		assert.deepEqual(datas[1].data, buf);
 		assert.equal(datas[1].file_size, buf.length);
 		assert.equal(datas[1].filename, "http.rq");
 
@@ -188,8 +183,7 @@ describe("zip", function() {
 		file = fs.open('unzip_test.js');
 		var buf1 = file.readAll();
 
-		assert.equal(buf.length, buf1.length);
-		assert.equal(buf.toString(), buf1.toString());
+		assert.deepEqual(buf, buf1);
 
 		file.close();
 		zipfile.close();
@@ -205,8 +199,7 @@ describe("zip", function() {
 		var buf = file.readAll();
 		var buf1 = stream.read();
 
-		assert.equal(buf.length, buf1.length);
-		assert.equal(buf.toString(), buf1.toString());
+		assert.deepEqual(buf, buf1);
 		zipfile.close();
 		file.close();
 	});
