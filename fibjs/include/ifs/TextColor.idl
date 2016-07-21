@@ -4,14 +4,14 @@
 interface TextColor : object
 {
 	/*! @brief 指定 console.notice 颜色 */
-	XString notice;
+	String notice;
 
 	/*! @brief 指定 console.warn 颜色 */
-	XString warn;
+	String warn;
 
 	/*! @brief 指定 console.error 颜色 */
-	XString error;
+	String error;
 
 	/*! @brief 指定 highLight 颜色 */
-	XString highLight;
+	String highLight;
 };

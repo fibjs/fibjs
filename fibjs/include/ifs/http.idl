@@ -28,7 +28,7 @@ module http
      fileHandler 支持 gzip 预压缩，当请求接受 gzip 编码，且相同路径下 filename.ext.gz 文件存在时，将直接返回此文件，
      从而避免重复压缩带来服务器负载。
      */
-    static Handler fileHandler(XString root, Object mimes = {});
+    static Handler fileHandler(String root, Object mimes = {});
 
     /*! @brief 发送 http 请求到指定的流对象，并返回结果
      @param conn 指定处理请求的流对象
@@ -43,7 +43,7 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse request(XString method, XString url, Object headers = {});
+    static HttpResponse request(String method, String url, Object headers = {});
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
@@ -52,7 +52,7 @@ module http
      @param headers 指定附加的 http 头
      @return 返回服务器响应
      */
-    static HttpResponse request(XString method, XString url, SeekableStream body, Map headers) async;
+    static HttpResponse request(String method, String url, SeekableStream body, Map headers) async;
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
@@ -61,7 +61,7 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse request(XString method, XString url, SeekableStream body, Object headers = {});
+    static HttpResponse request(String method, String url, SeekableStream body, Object headers = {});
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
@@ -70,14 +70,14 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse request(XString method, XString url, Buffer body, Object headers = {});
+    static HttpResponse request(String method, String url, Buffer body, Object headers = {});
 
     /*! @brief 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      @param url 指定 url，必须是包含主机的完整 url
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse get(XString url, Object headers = {});
+    static HttpResponse get(String url, Object headers = {});
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -85,7 +85,7 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse post(XString url, SeekableStream body, Object headers = {});
+    static HttpResponse post(String url, SeekableStream body, Object headers = {});
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -93,5 +93,5 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse post(XString url, Buffer body, Object headers = {});
+    static HttpResponse post(String url, Buffer body, Object headers = {});
 };

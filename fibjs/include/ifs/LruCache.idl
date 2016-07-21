@@ -24,32 +24,32 @@ interface LruCache : object
      @param name 指定要检查的键值
      @return 返回键值是否存在
      */
-    Boolean has(XString name);
+    Boolean has(String name);
 
     /*! @brief 查询指定键值的值
      @param name 指定要查询的键值
      @return 返回键值所对应的值，若不存在，则返回 undefined
      */
-    Value get(XString name);
+    Value get(String name);
 
     /*! @brief 查询指定键值的值，若不存在或过期，则调用回调函数更新数据
      @param name 指定要查询的键值
      @param updater 指定更新函数
      @return 返回键值所对应的值
      */
-    Value get(XString name, Function updater);
+    Value get(String name, Function updater);
 
     /*! @brief 修改一个键值数据，键值不存在则不作任何操作
      @param name 指定要设定的键值
      @param value 指定要设定的数据
      */
-    set(XString name, Value value);
+    set(String name, Value value);
 
     /*! @brief 设定一个键值数据，键值不存在则插入一条新数据
      @param name 指定要设定的键值
      @param value 指定要设定的数据
      */
-    put(XString name, Value value);
+    put(String name, Value value);
 
     /*! @brief 设定一个键值数据，键值不存在则插入新数据
      @param map 指定要设定的键值数据字典
@@ -59,7 +59,7 @@ interface LruCache : object
     /*! @brief 删除指定键值的全部值
      @param name 指定要删除的键值
      */
-    remove(XString name);
+    remove(String name);
 
     /*! @brief 检查容器是否为空
      @return 容器内无数值则返回 true

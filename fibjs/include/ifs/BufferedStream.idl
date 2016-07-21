@@ -17,13 +17,13 @@ interface BufferedStream : Stream
      @param size 指定读取的文本字符个数，以 utf8 或者指定的编码字节数为准
      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
      */
-    XString readText(Integer size) async;
+    String readText(Integer size) async;
 
     /*! @brief 读取一行文本，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
      */
-    XString readLine(Integer maxlen = -1) async;
+    String readLine(Integer maxlen = -1) async;
 
     /*! @brief 以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
      @param maxlines 指定此次读取的最大行数，缺省读取全部文本行
@@ -36,24 +36,24 @@ interface BufferedStream : Stream
      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
      */
-    XString readUntil(XString mk, Integer maxlen = -1) async;
+    String readUntil(String mk, Integer maxlen = -1) async;
 
     /*! @brief 写入一个字符串
      @param txt 指定写入的字符串
      */
-    writeText(XString txt) async;
+    writeText(String txt) async;
 
     /*! @brief 写入一个字符串，并写入换行符
      @param txt 指定写入的字符串
      */
-    writeLine(XString txt) async;
+    writeLine(String txt) async;
 
     /*! @brief 查询创建缓存对象时的流对象 */
     readonly Stream stream;
 
     /*! @brief 查询和设置当前对象处理文本时的字符集，缺省为 utf-8 */
-    XString charset;
+    String charset;
 
     /*! @brief 查询和设置行结尾标识，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"   */
-    XString EOL;
+    String EOL;
 };

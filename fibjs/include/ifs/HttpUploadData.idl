@@ -3,13 +3,13 @@
 interface HttpUploadData : object
 {
 	/*! @brief 包含本条目数据的文件名 */
-	readonly XString fileName;
+	readonly String fileName;
 
 	/*! @brief 包含本条目数据的类型 */
-	readonly XString contentType;
+	readonly String contentType;
 
 	/*! @brief 包含本条目数据的传输编码类型 */
-	readonly XString contentTransferEncoding;
+	readonly String contentTransferEncoding;
 
 	/*! @brief 包含本条目数据部分的流对象 */
 	readonly SeekableStream body;

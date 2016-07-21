@@ -24,18 +24,18 @@ interface Stats : object
     /*! @brief 指定的计数器增一
      @param key 指定计数器名称
      */
-    inc(XString key);
+    inc(String key);
 
     /*! @brief 指定的计数器减一
      @param key 指定计数器名称
      */
-    dec(XString key);
+    dec(String key);
 
     /*! @brief 指定的计数器加指定值
      @param key 指定计数器名称
      @param value 指定数值
      */
-    add(XString key, Integer value);
+    add(String key, Integer value);
 
     /*! @brief 初始化计数器，除 staticKeys 指定的计数器全部清零 */
     reset();
@@ -46,6 +46,6 @@ interface Stats : object
     Integer uptime();
 
     /*! @brief 允许使用键值下标直接访问数值 */
-    readonly Integer operator[XString];
+    readonly Integer operator[String];
 };
 

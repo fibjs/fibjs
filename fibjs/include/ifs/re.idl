@@ -7,5 +7,5 @@ module re
 	 @param opt 规定匹配的类型。"g" 用于全局匹配，"i" 用于区分大小写，"gi" 用于全局区分大小写的匹配
 	 @return 返回正则表达式对象
 	 */
-	static Regex compile(XString pattern, XString opt = "");
+	static Regex compile(String pattern, String opt = "");
 };

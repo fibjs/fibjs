@@ -27,7 +27,7 @@ interface Int64 : object
      @param num 数字字符串
      @param base 数字字符串的编码方式，可以接受 2-16, 32, 64，默认为 10，为 10 时自动识别 0x 编码
     */
-    Int64(XString num, Integer base = 10);
+    Int64(String num, Integer base = 10);
 
     /*! @brief 高 32 位数值 */
     Long hi;
@@ -98,5 +98,5 @@ interface Int64 : object
       @param base 字符串进制数，可以接受 2-16, 32, 64，默认为 10
       @return 返回转换后的字符串
      */
-    XString toString(Integer base = 10);
+    String toString(Integer base = 10);
 };

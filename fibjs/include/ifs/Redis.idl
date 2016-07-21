@@ -13,7 +13,7 @@ interface Redis : object
      @param cmd 指定发送的命令
      @param ... 指定发送的参数
      @return 返回服务器返回的结果 */
-    Value command(XString cmd, ...);
+    Value command(String cmd, ...);
 
     /*! @brief 将字符串值 value 关联到 key，如果 key 已经持有其他值， SET 就覆写旧值，无视类型
      @param key 指定要关联的 key
@@ -135,12 +135,12 @@ interface Redis : object
     /*! @brief 返回 key 所储存的值的类型
      @param key 指定要查询的 key
      @return 返回 key 所储存的值的类型，可能的值为 none(key不存在) string(字符串) list(列表) set(集合) zset(有序集) hash(哈希表) */
-    XString type(Buffer key);
+    String type(Buffer key);
 
     /*! @brief 查找所有符合给定模式 pattern 的 key
      @param pattern 指定查询模式
      @return 符合给定模式的 key 列表 */
-    List keys(XString pattern);
+    List keys(String pattern);
 
     /*! @brief 删除给定的一个或多个 key，不存在的 key 会被忽略
      @param keys 指定要删除的 key 数组
@@ -215,7 +215,7 @@ interface Redis : object
      @param pattern 指定订阅的频道模板
      @param func 指定回调函数
      */
-    psub(XString pattern, Function func);
+    psub(String pattern, Function func);
 
     /*! @brief 订阅给定的一组频道模板的信息，当消息发生时自动调用相应的 func，同一频道同一函数只会回调一次
      @param map 指定频道映射关系，对象属性名称将作为频道模板，属性的值将作为回调函数
@@ -225,13 +225,13 @@ interface Redis : object
     /*! @brief 退订给定模板的频道的全部回调
      @param pattern 指定退订的频道模板
     */
-    unpsub(XString pattern);
+    unpsub(String pattern);
 
     /*! @brief 退订给定模板的频道的指定回调函数
      @param pattern 指定退订的频道模板
      @param func 指定退订的回调函数
     */
-    unpsub(XString pattern, Function func);
+    unpsub(String pattern, Function func);
 
     /*! @brief 退订一组给定模板的频道的全部回调
      @param patterns 指定发布的频道模板数组

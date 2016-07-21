@@ -16,5 +16,5 @@ interface RpcTask : object
 	Value Function(...);
 
 	/*! @brief 返回当前代理的下级代理对象 */
-	readonly RpcTask operator[XString];
+	readonly RpcTask operator[String];
 };

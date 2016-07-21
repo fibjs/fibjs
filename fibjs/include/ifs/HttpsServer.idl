@@ -54,7 +54,7 @@ interface HttpsServer: HttpServer
     @param port 指定 http 服务器侦听端口
     @param hdlr http 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
    */
-  HttpsServer(Array certs, XString addr, Integer port, Value hdlr);
+  HttpsServer(Array certs, String addr, Integer port, Value hdlr);
 
   /*! @brief HttpsServer 构造函数，在所有本机地址侦听
     @param crt X509Cert 证书，用于客户端验证服务器
@@ -71,7 +71,7 @@ interface HttpsServer: HttpServer
     @param port 指定 http 服务器侦听端口
     @param hdlr http 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
    */
-  HttpsServer(X509Cert crt, PKey key, XString addr, Integer port, Value hdlr);
+  HttpsServer(X509Cert crt, PKey key, String addr, Integer port, Value hdlr);
 
   /*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
   Integer verification;

@@ -6,13 +6,13 @@ interface HttpRequest : HttpMessage
     HttpRequest();
 
     /*! @brief 查询和设置请求方法 */
-    XString method;
+    String method;
 
     /*! @brief 查询和设置请求地址 */
-    XString address;
+    String address;
 
     /*! @brief 查询和设置请求查询字符串 */
-    XString queryString;
+    String queryString;
 
     /*! @brief 获取包含消息 cookies 的容器*/
     readonly HttpCollection cookies;

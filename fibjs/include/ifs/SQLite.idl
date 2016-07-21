@@ -9,12 +9,12 @@
 interface SQLite : DbConnection
 {
 	/*! @brief 当前数据库文件名 */
-	readonly XString fileName;
+	readonly String fileName;
 
 	/*! @brief 查询和设置数据库超时时间，以毫秒为单位 */
 	Integer timeout;
 
 	/*! @brief 备份当前数据库到新文件
 	 @param fileName 指定备份的数据库文件名 */
-	backup(XString fileName) async;
+	backup(String fileName) async;
 };

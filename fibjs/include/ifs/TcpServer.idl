@@ -29,7 +29,7 @@ interface TcpServer : object
     @param port 指定 tcp 服务器侦听端口
     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
    */
-  TcpServer(XString addr, Integer port, Value listener);
+  TcpServer(String addr, Integer port, Value listener);
 
   /*! @brief 运行服务器并开始接收和分发连接，此函数不会返回 */
   run() async;

@@ -8,14 +8,14 @@ module util
      @param ... 可选参数列表
      @return 返回格式化后的字符串
      */
-    static XString format(XString fmt, ...);
+    static String format(String fmt, ...);
 
     /*! @brief 格式格式化变量
 
      @param ... 可选参数列表
      @return 返回格式化后的字符串
      */
-    static XString format(...);
+    static String format(...);
 
     /*! @brief 检测给定的变量是否不包含任何值(没有可枚举的属性)
 
@@ -114,7 +114,7 @@ module util
      @param key 指定需要查询的键
      @return 返回对象的全部键数组
      */
-    static Boolean has(Value v, XString key);
+    static Boolean has(Value v, String key);
 
     /*! @brief 查询指定对象的全部键数组
 

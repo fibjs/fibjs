@@ -6,7 +6,7 @@
 interface Stat : object
 {
     /*! @brief 文件名称 */
-    readonly XString name;
+    readonly String name;
 
     /*! @brief 文件尺寸 */
     readonly Long size;

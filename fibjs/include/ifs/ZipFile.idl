@@ -10,13 +10,13 @@ interface ZipFile : object
 	/*! @brief 获取文件信息
 	 @param member 指定要获取信息的文件名
 	*/
-	ZipInfo getinfo(XString member) async;
+	ZipInfo getinfo(String member) async;
 
 	/*! @brief 返回从压缩文件读取的数据
 	 @param member 指定要读取的文件名
 	 @return 返回文件的所有数据
 	 */
-	Buffer read(XString member) async;
+	Buffer read(String member) async;
 
 	/*! @brief 解压所有文件
 	 @return 包含所有文件数据及信息的列表
@@ -27,35 +27,35 @@ interface ZipFile : object
 	 @param member 指定要解压的文件名
 	 @param path 指定要解压到的路径
 	 */
-	extract(XString member, XString path) async;
+	extract(String member, String path) async;
 
 	/*! @brief 解压指定文件到流
 	 @param member 指定要解压的文件名
 	 @param strm 指定要解压到的流
 	 */
-	extract(XString member, SeekableStream strm) async;
+	extract(String member, SeekableStream strm) async;
 
 	/*! @brief 解压所有文件到指定路径
 	 @param path 指定要解压到的路径
 	 */
-	extractAll(XString path) async;
+	extractAll(String path) async;
 
 	/*! @brief 写入指定文件到压缩文件
 	 @param filename 指定要写入的文件
 	 */
-	write(XString filename) async;
+	write(String filename) async;
 
 	/*! @brief 写入指定文件到压缩文件
 	 @param data 指定要写入的文件数据
 	 @param inZipName 压缩在zip文件内的文件名
 	 */
-	write(Buffer data, XString inZipName) async;
+	write(Buffer data, String inZipName) async;
 
 	/*! @brief 写入指定文件到压缩文件
 	 @param strm 指定要写入文件数据流
 	 @param inZipName 压缩在zip文件内的文件名
 	 */
-	write(SeekableStream strm, XString inZipName) async;
+	write(SeekableStream strm, String inZipName) async;
 
 	/*! @brief 关闭打开的创建压缩文件 */
 	close() async;

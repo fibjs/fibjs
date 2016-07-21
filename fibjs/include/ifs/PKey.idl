@@ -12,7 +12,7 @@ interface PKey : object
     PKey();
 
     /*! @brief 返回当前算法名称 */
-    readonly XString name;
+    readonly String name;
 
     /*! @brief 返回当前算法密码长度，以位为单位 */
     readonly Integer keySize;
@@ -30,7 +30,7 @@ interface PKey : object
     /*! @brief 生成一个 EC 私钥
      @param curve 指定预置椭圆曲线，可选值为："secp521r1", "brainpoolP512r1", "secp384r1", "brainpoolP384r1", "secp256r1", "secp256k1", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1"
     */
-    genEcKey(XString curve = "secp521r1") async;
+    genEcKey(String curve = "secp521r1") async;
 
     /*! @brief 查询当前密钥是否为私钥
      @return 为 True 表示为私钥
@@ -46,24 +46,24 @@ interface PKey : object
      @param DerKey DER 格式的密钥
      @param password 解密密码
     */
-    importKey(Buffer DerKey, XString password = "");
+    importKey(Buffer DerKey, String password = "");
 
     /*! @brief 加载一个 PEM 格式的密钥
      @param pemKey PEM 格式的密钥
      @param password 解密密码
     */
-    importKey(XString pemKey, XString password = "");
+    importKey(String pemKey, String password = "");
 
     /*! @brief 加载一个 PEM/DER 格式的密钥文件
      @param filename 密钥文件名
      @param password 解密密码
     */
-    importFile(XString filename, XString password = "");
+    importFile(String filename, String password = "");
 
     /*! @brief 返回当前 key 的 PEM 格式编码
      @return 当前 key 的 PEM 格式编码
     */
-    XString exportPem();
+    String exportPem();
 
     /*! @brief 返回当前 key 的 DER 格式编码
      @return 当前 key 的 DER 格式编码

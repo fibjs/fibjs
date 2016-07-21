@@ -19,12 +19,12 @@ interface X509Crl : object
     /*! @brief 加载一个 PEM 格式的撤销证书，可多次调用
      @param pemCrl PEM 格式的撤销证书
     */
-    load(XString pemCrl);
+    load(String pemCrl);
 
     /*! @brief 加载一个 PEM/DER 格式的撤销证书，可多次调用
      @param filename 撤销证书文件名
     */
-    loadFile(XString filename);
+    loadFile(String filename);
 
     /*! @brief 导出已经加载的撤销证书
      @return 以数组方式导出撤销证书链

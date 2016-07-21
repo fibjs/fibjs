@@ -4,29 +4,29 @@ interface XmlAttr
 {
     /*! @brief 查询元素的本地名称。如果选定的节点无命名空间，则该属性等同于 nodeName
     */
-    readonly XString localName;
+    readonly String localName;
 
     /*! @brief 属性的值
     */
-    XString value;
+    String value;
 
     /*! @brief 属性的名称
     */
-    readonly XString name;
+    readonly String name;
 
     /*! @brief 查询元素的命名空间的 URI。如果选定的节点无命名空间，则该属性返回 NULL
     */
-    readonly XString namespaceURI;
+    readonly String namespaceURI;
 
     /*! @brief 查询和设置元素的命名空间前缀。如果选定的节点无命名空间，则该属性返回 NULL
     */
-    XString prefix;
+    String prefix;
 
     /*! @brief 属性的名称，为兼容的目的
     */
-    readonly XString nodeName;
+    readonly String nodeName;
 
     /*! @brief 属性的值，为兼容的目的
     */
-    XString nodeValue;
+    String nodeValue;
 };

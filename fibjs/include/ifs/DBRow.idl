@@ -6,5 +6,5 @@ interface DBRow : object
 	readonly Value operator[];
 
 	/*! @brief 可使用字段名下标直接访问对象数据*/
-	readonly Value operator[XString];
+	readonly Value operator[String];
 };

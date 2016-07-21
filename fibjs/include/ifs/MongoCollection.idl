@@ -72,7 +72,7 @@ interface MongoCollection : object
     @param cmd 给定命令名称
     @param arg 给定命令参数选项
    */
-  Object runCommand(XString cmd, Object arg = {});
+  Object runCommand(String cmd, Object arg = {});
 
   /*! @brief 删除当前集合 */
   drop();
@@ -92,7 +92,7 @@ interface MongoCollection : object
     @param name 给定要删除的索引名称
     @return 返回命令执行结果
    */
-  Object dropIndex(XString name);
+  Object dropIndex(String name);
 
   /*! @brief 删除当前集合全部索引
     @return 返回命令执行结果
@@ -108,10 +108,10 @@ interface MongoCollection : object
     @param name 子命名空间名称
     @return 返回新集合对象
    */
-  MongoCollection getCollection(XString name);
+  MongoCollection getCollection(String name);
 
   /*! @brief 以属性方式快速获取当前集合子命名空间的集合对象
     @return 返回新集合对象
    */
-  readonly MongoCollection operator[XString];
+  readonly MongoCollection operator[String];
 };

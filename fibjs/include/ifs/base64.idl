@@ -15,11 +15,11 @@ module base64
 	 @param data 要编码的数据
 	 @return 返回编码的字符串
 	 */
-	static XString encode(Buffer data);
+	static String encode(Buffer data);
 
 	/*! @brief 以 base64 方式解码字符串为二进制数据
 	 @param data 要解码的字符串
 	 @return 返回解码的二进制数据
 	 */
-	static Buffer decode(XString data);
+	static Buffer decode(String data);
 };

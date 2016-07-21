@@ -55,5 +55,5 @@ interface Routing: Handler
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
    */
-  append(XString pattern, Value hdlr);
+  append(String pattern, Value hdlr);
 };

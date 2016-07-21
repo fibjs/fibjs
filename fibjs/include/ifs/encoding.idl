@@ -33,24 +33,24 @@ module encoding
      @param json 是否生成json兼容字符串
      @return 返回编码的字符串
      */
-    static XString jsstr(XString str, Boolean json = false);
+    static String jsstr(String str, Boolean json = false);
 
     /*! @brief url 字符串安全编码
      @param url 要编码的 url
      @return 返回编码的字符串
      */
-    static XString encodeURI(XString url);
+    static String encodeURI(String url);
 
     /*! @brief url 部件字符串安全编码
      @param url 要编码的 url
      @return 返回编码的字符串
      */
-    static XString encodeURIComponent(XString url);
+    static String encodeURIComponent(String url);
 
     /*! @brief url 安全字符串解码
      @param url 要解码的 url
      @return 返回解码的字符串
      */
-    static XString decodeURI(XString url);
+    static String decodeURI(String url);
 };
 

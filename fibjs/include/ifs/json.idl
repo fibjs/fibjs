@@ -15,11 +15,11 @@ module json
 	 @param data 要编码的变量
 	 @return 返回编码的字符串
 	 */
-	static XString encode(Value data);
+	static String encode(Value data);
 
 	/*! @brief 以 json 方式解码字符串为一个变量
 	 @param data 要解码的字符串
 	 @return 返回解码的变量
 	 */
-	static Value decode(XString data);
+	static Value decode(String data);
 };

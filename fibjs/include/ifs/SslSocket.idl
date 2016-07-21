@@ -45,7 +45,7 @@ interface SslSocket : Stream
     @param server_name 指定服务器名称，可缺省
     @return 连接成功返回 0，证书可选验证时，验证不成功则返回非 0，详细错误见 ssl 模块
   */
-  Integer connect(Stream s, XString server_name = "") async;
+  Integer connect(Stream s, String server_name = "") async;
 
   /*! @brief 在给定的连接上接收一个 ssl 连接，并生成一个新的 SslSocket
     @param s 给定的底层连接
