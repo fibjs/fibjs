@@ -319,7 +319,7 @@ result_t ZipFile::namelist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	result_t hr;
 	unz_global_info64 gi;
 	int32_t err;
-	int32_t i;
+	uint32_t i;
 	obj_ptr<List> names = new List();
 
 	if (m_mod != "r" )
@@ -363,7 +363,7 @@ result_t ZipFile::infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	result_t hr;
 	unz_global_info64 gi;
 	int32_t err;
-	int32_t i;
+	uint32_t i;
 	obj_ptr<List> names = new List();
 
 	if (m_mod != "r" )
@@ -534,7 +534,6 @@ result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, exlib
 result_t ZipFile::checkGuard(exlib::string path)
 {
 	result_t hr;
-	int32_t i;
 	bool exists;
 	const char* ptr = path.c_str();
 	const char* tmpptr;
@@ -567,7 +566,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncEv
 	result_t hr;
 	unz_global_info64 gi;
 	int32_t err;
-	int32_t i;
+	uint32_t i;
 	bool exists;
 	obj_ptr<File_base> file;
 	exlib::string fpath;
@@ -634,7 +633,7 @@ result_t ZipFile::readAll(exlib::string password, obj_ptr<List_base>& retVal, As
 	result_t hr;
 	unz_global_info64 gi;
 	int32_t err;
-	int32_t i;
+	uint32_t i;
 	obj_ptr<List> datas = new List();
 
 	err = unzGetGlobalInfo64(m_unz, &gi);
@@ -675,7 +674,6 @@ result_t ZipFile::readAll(exlib::string password, obj_ptr<List_base>& retVal, As
 result_t ZipFile::getFileCrc(SeekableStream_base* strm, uint32_t& crc)
 {
 	uint32_t fileCrc = 0;
-	int32_t err;
 	result_t hr;
 	obj_ptr<Buffer_base> buf;
 	exlib::string strData;
