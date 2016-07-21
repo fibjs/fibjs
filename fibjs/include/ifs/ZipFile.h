@@ -31,14 +31,14 @@ public:
     virtual result_t namelist(obj_ptr<List_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t getinfo(exlib::string member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t read(exlib::string member, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t readAll(obj_ptr<List_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t extract(exlib::string member, exlib::string path, AsyncEvent* ac) = 0;
-    virtual result_t extract(exlib::string member, SeekableStream_base* strm, AsyncEvent* ac) = 0;
-    virtual result_t extractAll(exlib::string path, AsyncEvent* ac) = 0;
-    virtual result_t write(exlib::string filename, AsyncEvent* ac) = 0;
-    virtual result_t write(Buffer_base* data, exlib::string inZipName, AsyncEvent* ac) = 0;
-    virtual result_t write(SeekableStream_base* strm, exlib::string inZipName, AsyncEvent* ac) = 0;
+    virtual result_t read(exlib::string member, exlib::string password, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t readAll(exlib::string password, obj_ptr<List_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t extract(exlib::string member, exlib::string path, exlib::string password, AsyncEvent* ac) = 0;
+    virtual result_t extract(exlib::string member, SeekableStream_base* strm, exlib::string password, AsyncEvent* ac) = 0;
+    virtual result_t extractAll(exlib::string path, exlib::string password, AsyncEvent* ac) = 0;
+    virtual result_t write(exlib::string filename, exlib::string password, AsyncEvent* ac) = 0;
+    virtual result_t write(Buffer_base* data, exlib::string inZipName, exlib::string password, AsyncEvent* ac) = 0;
+    virtual result_t write(SeekableStream_base* strm, exlib::string inZipName, exlib::string password, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
 
 public:
@@ -67,14 +67,14 @@ public:
     ASYNC_MEMBERVALUE1(ZipFile_base, namelist, obj_ptr<List_base>);
     ASYNC_MEMBERVALUE1(ZipFile_base, infolist, obj_ptr<List_base>);
     ASYNC_MEMBERVALUE2(ZipFile_base, getinfo, exlib::string, obj_ptr<ZipInfo_base>);
-    ASYNC_MEMBERVALUE2(ZipFile_base, read, exlib::string, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE1(ZipFile_base, readAll, obj_ptr<List_base>);
-    ASYNC_MEMBER2(ZipFile_base, extract, exlib::string, exlib::string);
-    ASYNC_MEMBER2(ZipFile_base, extract, exlib::string, SeekableStream_base*);
-    ASYNC_MEMBER1(ZipFile_base, extractAll, exlib::string);
-    ASYNC_MEMBER1(ZipFile_base, write, exlib::string);
-    ASYNC_MEMBER2(ZipFile_base, write, Buffer_base*, exlib::string);
-    ASYNC_MEMBER2(ZipFile_base, write, SeekableStream_base*, exlib::string);
+    ASYNC_MEMBERVALUE3(ZipFile_base, read, exlib::string, exlib::string, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE2(ZipFile_base, readAll, exlib::string, obj_ptr<List_base>);
+    ASYNC_MEMBER3(ZipFile_base, extract, exlib::string, exlib::string, exlib::string);
+    ASYNC_MEMBER3(ZipFile_base, extract, exlib::string, SeekableStream_base*, exlib::string);
+    ASYNC_MEMBER2(ZipFile_base, extractAll, exlib::string, exlib::string);
+    ASYNC_MEMBER2(ZipFile_base, write, exlib::string, exlib::string);
+    ASYNC_MEMBER3(ZipFile_base, write, Buffer_base*, exlib::string, exlib::string);
+    ASYNC_MEMBER3(ZipFile_base, write, SeekableStream_base*, exlib::string, exlib::string);
     ASYNC_MEMBER0(ZipFile_base, close);
 };
 
@@ -169,15 +169,16 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "");
 
         if(!cb.IsEmpty()) {
-            pInst->acb_read(v0, vr, cb);
+            pInst->acb_read(v0, v1, vr, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = pInst->ac_read(v0, vr);
+            hr = pInst->ac_read(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -187,13 +188,15 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        ASYNC_METHOD_ENTER(1, 0);
+
+        OPT_ARG(exlib::string, 0, "");
 
         if(!cb.IsEmpty()) {
-            pInst->acb_readAll(vr, cb);
+            pInst->acb_readAll(v0, vr, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = pInst->ac_readAll(vr);
+            hr = pInst->ac_readAll(v0, vr);
 
         METHOD_RETURN();
     }
@@ -201,27 +204,29 @@ namespace fibjs
     inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(2, 2);
+        ASYNC_METHOD_ENTER(3, 2);
 
         ARG(exlib::string, 0);
         ARG(exlib::string, 1);
+        OPT_ARG(exlib::string, 2, "");
 
         if(!cb.IsEmpty()) {
-            pInst->acb_extract(v0, v1, cb);
+            pInst->acb_extract(v0, v1, v2, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = pInst->ac_extract(v0, v1);
+            hr = pInst->ac_extract(v0, v1, v2);
 
-        METHOD_OVER(2, 2);
+        METHOD_OVER(3, 2);
 
         ARG(exlib::string, 0);
         ARG(obj_ptr<SeekableStream_base>, 1);
+        OPT_ARG(exlib::string, 2, "");
 
         if(!cb.IsEmpty()) {
-            pInst->acb_extract(v0, v1, cb);
+            pInst->acb_extract(v0, v1, v2, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = pInst->ac_extract(v0, v1);
+            hr = pInst->ac_extract(v0, v1, v2);
 
         METHOD_VOID();
     }
@@ -229,15 +234,16 @@ namespace fibjs
     inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "");
 
         if(!cb.IsEmpty()) {
-            pInst->acb_extractAll(v0, cb);
+            pInst->acb_extractAll(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = pInst->ac_extractAll(v0);
+            hr = pInst->ac_extractAll(v0, v1);
 
         METHOD_VOID();
     }
@@ -245,37 +251,40 @@ namespace fibjs
     inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "");
 
         if(!cb.IsEmpty()) {
-            pInst->acb_write(v0, cb);
+            pInst->acb_write(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = pInst->ac_write(v0);
+            hr = pInst->ac_write(v0, v1);
 
-        METHOD_OVER(2, 2);
+        METHOD_OVER(3, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(exlib::string, 1);
+        OPT_ARG(exlib::string, 2, "");
 
         if(!cb.IsEmpty()) {
-            pInst->acb_write(v0, v1, cb);
+            pInst->acb_write(v0, v1, v2, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = pInst->ac_write(v0, v1);
+            hr = pInst->ac_write(v0, v1, v2);
 
-        METHOD_OVER(2, 2);
+        METHOD_OVER(3, 2);
 
         ARG(obj_ptr<SeekableStream_base>, 0);
         ARG(exlib::string, 1);
+        OPT_ARG(exlib::string, 2, "");
 
         if(!cb.IsEmpty()) {
-            pInst->acb_write(v0, v1, cb);
+            pInst->acb_write(v0, v1, v2, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = pInst->ac_write(v0, v1);
+            hr = pInst->ac_write(v0, v1, v2);
 
         METHOD_VOID();
     }

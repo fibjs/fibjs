@@ -319,7 +319,7 @@ result_t ZipFile::namelist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	result_t hr;
 	unz_global_info64 gi;
 	int32_t err;
-	int32_t i;
+	uint32_t i;
 	obj_ptr<List> names = new List();
 
 	if (m_mod != "r" )
@@ -363,7 +363,7 @@ result_t ZipFile::infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	result_t hr;
 	unz_global_info64 gi;
 	int32_t err;
-	int32_t i;
+	uint32_t i;
 	obj_ptr<List> names = new List();
 
 	if (m_mod != "r" )
@@ -483,7 +483,7 @@ result_t ZipFile::read(exlib::string password, obj_ptr<Buffer_base>& retVal)
 	return strm->cc_readAll(retVal);
 }
 
-result_t ZipFile::read(exlib::string member, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t ZipFile::read(exlib::string member, exlib::string password, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -494,10 +494,10 @@ result_t ZipFile::read(exlib::string member, obj_ptr<Buffer_base>& retVal, Async
 	if (err != UNZ_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
-	return read("", retVal);
+	return read(password, retVal);
 }
 
-result_t ZipFile::extract(exlib::string member, exlib::string path, AsyncEvent* ac)
+result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::string password, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -514,10 +514,10 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, AsyncEvent* 
 	if (hr < 0)
 		return hr;
 
-	return extract(file, "");
+	return extract(file, password);
 }
 
-result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, AsyncEvent* ac)
+result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, exlib::string password, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -528,10 +528,37 @@ result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, Async
 	if (err != UNZ_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
-	return extract(strm, "");
+	return extract(strm, password);
 }
 
-result_t ZipFile::extractAll(exlib::string path, AsyncEvent* ac)
+result_t ZipFile::checkGuard(exlib::string path)
+{
+	result_t hr;
+	bool exists;
+	const char* ptr = path.c_str();
+	const char* tmpptr;
+
+	for (tmpptr = ptr; *tmpptr; tmpptr++)
+	{
+		if (*tmpptr == PATH_SLASH)
+		{
+			exlib::string pathToCheck(ptr, tmpptr - ptr);
+			hr = fs_base::cc_exists(pathToCheck.c_str(), exists);
+			if (hr < 0)
+				return hr;
+			if (!exists)
+			{
+				hr = fs_base::cc_mkdir(pathToCheck.c_str(), 0777);
+				if (hr < 0)
+					return hr;
+			}
+		}
+	}
+
+	return 0;
+}
+
+result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -539,11 +566,17 @@ result_t ZipFile::extractAll(exlib::string path, AsyncEvent* ac)
 	result_t hr;
 	unz_global_info64 gi;
 	int32_t err;
-	int32_t i;
+	uint32_t i;
 	bool exists;
 	obj_ptr<File_base> file;
 	exlib::string fpath;
 	exlib::string fpath1;
+
+	hr = fs_base::cc_exists(path, exists);
+	if (hr < 0)
+		return hr;
+	if (!exists)
+		return CHECK_ERROR(Runtime::setError("no such file or directory"));
 
 	err = unzGetGlobalInfo64(m_unz, &gi);
 	if (err != UNZ_OK)
@@ -552,7 +585,7 @@ result_t ZipFile::extractAll(exlib::string path, AsyncEvent* ac)
 	err = unzGoToFirstFile(m_unz);
 	if (err != UNZ_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
-
+		
 	for (i = 0; i < gi.number_entry; i++)
 	{
 		obj_ptr<Info> info;
@@ -564,6 +597,7 @@ result_t ZipFile::extractAll(exlib::string path, AsyncEvent* ac)
 		fpath1 = path;
 		fpath1 += PATH_SLASH;
 		path_base::normalize(fpath1 + info->m_name, fpath1);
+		checkGuard(fpath1);
 
 		do {
 			fpath = fpath1;
@@ -578,7 +612,7 @@ result_t ZipFile::extractAll(exlib::string path, AsyncEvent* ac)
 		if (hr < 0)
 			return hr;
 
-		hr = extract(file, "");
+		hr = extract(file, password);
 
 		if ((i + 1) < gi.number_entry)
 		{
@@ -591,7 +625,7 @@ result_t ZipFile::extractAll(exlib::string path, AsyncEvent* ac)
 	return 0;
 }
 
-result_t ZipFile::readAll(obj_ptr<List_base>& retVal, AsyncEvent* ac)
+result_t ZipFile::readAll(exlib::string password, obj_ptr<List_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -599,7 +633,7 @@ result_t ZipFile::readAll(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	result_t hr;
 	unz_global_info64 gi;
 	int32_t err;
-	int32_t i;
+	uint32_t i;
 	obj_ptr<List> datas = new List();
 
 	err = unzGetGlobalInfo64(m_unz, &gi);
@@ -618,7 +652,7 @@ result_t ZipFile::readAll(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 		if (hr < 0)
 			return hr;
 
-		hr = read("", info->m_data);
+		hr = read(password, info->m_data);
 		if (hr < 0)
 			return hr;
 
@@ -637,21 +671,54 @@ result_t ZipFile::readAll(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	return 0;
 }
 
-result_t ZipFile::write(exlib::string filename, exlib::string password, SeekableStream_base* strm)
+result_t ZipFile::getFileCrc(SeekableStream_base* strm, uint32_t& crc)
 {
-	int32_t err;
+	uint32_t fileCrc = 0;
 	result_t hr;
 	obj_ptr<Buffer_base> buf;
 	exlib::string strData;
 
+	do
+	{
+		hr = strm->cc_read(BUF_SIZE, buf);
+		if (hr == CALL_RETURN_NULL)
+			break;
+		else if (hr < 0)
+			return hr;
+
+		buf->toString(strData);
+
+		fileCrc = crc32(fileCrc, (const Bytef *)strData.c_str(), (int32_t)strData.length());
+		
+	} while (strData.length() > 0);
+
+	crc = fileCrc;
+	return 0;
+}
+
+result_t ZipFile::write(exlib::string filename, exlib::string password, SeekableStream_base* strm)
+{
+	int32_t err;
+	result_t hr;
+	uint32_t crc = 0;
+	obj_ptr<Buffer_base> buf;
+	exlib::string strData;
+
+	if (!password.empty()) {
+		hr =  getFileCrc(strm, crc);
+		if (hr < 0) 
+			return hr;	
+	}
+	
 	err = zipOpenNewFileInZip3_64(m_zip, filename.c_str(), NULL, NULL,
 	                              0, NULL, 0, NULL, m_compress_type == zip_base::_ZIP_STORED ? 0 : Z_DEFLATED,
 	                              Z_DEFAULT_COMPRESSION, 0, -MAX_WBITS,
 	                              DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
-	                              NULL, 0, 1);
+	                              password.empty() ? NULL: password.c_str(), crc, 1);
 	if (err != ZIP_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
+	strm->rewind();
 	do
 	{
 		hr = strm->cc_read(BUF_SIZE, buf);
@@ -677,7 +744,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
 	return 0;
 }
 
-result_t ZipFile::write(exlib::string filename, AsyncEvent* ac)
+result_t ZipFile::write(exlib::string filename, exlib::string password, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -689,10 +756,10 @@ result_t ZipFile::write(exlib::string filename, AsyncEvent* ac)
 	if (hr < 0)
 		return hr;
 
-	return write(filename, "", file);
+	return write(filename, password, file);
 }
 
-result_t ZipFile::write(Buffer_base* data, exlib::string inZipName, AsyncEvent* ac)
+result_t ZipFile::write(Buffer_base* data, exlib::string inZipName, exlib::string password, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -708,15 +775,16 @@ result_t ZipFile::write(Buffer_base* data, exlib::string inZipName, AsyncEvent* 
 	hr = strm->rewind();
 	if (hr < 0)
 		return hr;
-	return write(inZipName, "", strm);
+
+	return write(inZipName, password, strm);
 }
 
-result_t ZipFile::write(SeekableStream_base* strm, exlib::string inZipName, AsyncEvent* ac)
+result_t ZipFile::write(SeekableStream_base* strm, exlib::string inZipName, exlib::string password, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
-	return write(inZipName, "", strm);
+	return write(inZipName, password, strm);
 }
 
 
