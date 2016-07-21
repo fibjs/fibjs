@@ -242,6 +242,18 @@ describe("zip", function() {
 		assert.equal(zipfile.read('buf.txt').toString(), 'hello world');
 		zipfile.close();
 	});
+
+	it("read and write with password", function() {
+		var password = "1234";
+		var zipfile = zip.open('unzip_test.zip' + vmid, 'a');
+		var buf = new Buffer('password test');
+		zipfile.write(buf, 'password.txt', password);
+		zipfile.close();
+
+		zipfile = zip.open('unzip_test.zip' + vmid);
+		assert.equal(zipfile.read('password.txt', password).toString(), 'password test');
+		zipfile.close();
+	})
 });
 
 // test.run(console.DEBUG);

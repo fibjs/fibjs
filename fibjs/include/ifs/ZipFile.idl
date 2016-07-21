@@ -13,50 +13,58 @@ interface ZipFile : object
 	ZipInfo getinfo(XString member) async;
 
 	/*! @brief 返回从压缩文件读取的数据
-	 @param member 指定要读取的文件名
-	 @return 返回文件的所有数据
-	 */
-	Buffer read(XString member) async;
+     @param member 指定要读取的文件名
+     @param password 解压密码, 默认没有密码
+     @return 返回文件的所有数据
+     */
+	Buffer read(XString member, XString password = "") async;
 
 	/*! @brief 解压所有文件
-	 @return 包含所有文件数据及信息的列表
-	 */
-	List readAll() async;
+	 @param password 解压密码, 默认没有密码
+     @return 包含所有文件数据及信息的列表
+     */
+	List readAll(XString password = "") async;
 
 	/*! @brief 解压指定文件
-	 @param member 指定要解压的文件名
-	 @param path 指定要解压到的路径
-	 */
-	extract(XString member, XString path) async;
+     @param member 指定要解压的文件名
+     @param path 指定要解压到的路径
+	 @param password 解压密码, 默认没有密码
+     */
+	extract(XString member, XString path, XString password = "") async;
 
 	/*! @brief 解压指定文件到流
-	 @param member 指定要解压的文件名
-	 @param strm 指定要解压到的流
-	 */
-	extract(XString member, SeekableStream strm) async;
+     @param member 指定要解压的文件名
+     @param strm 指定要解压到的流
+	 @param password 解压密码, 默认没有密码
+     */
+	extract(XString member, SeekableStream strm, XString password = "") async;
 
 	/*! @brief 解压所有文件到指定路径
-	 @param path 指定要解压到的路径
-	 */
-	extractAll(XString path) async;
+     @param path 指定要解压到的路径
+	 @param password 解压密码, 默认没有密码
+     */
+	extractAll(XString path, XString password = "") async;
 
 	/*! @brief 写入指定文件到压缩文件
-	 @param filename 指定要写入的文件
-	 */
-	write(XString filename) async;
+     @param filename 指定要写入的文件
+	 @param password 解压密码, 默认没有密码
+     */
+	write(XString filename, XString password = "") async;
 
 	/*! @brief 写入指定文件到压缩文件
-	 @param data 指定要写入的文件数据
-	 @param inZipName 压缩在zip文件内的文件名
-	 */
-	write(Buffer data, XString inZipName) async;
+     @param data 指定要写入的文件数据
+     @param inZipName 压缩在zip文件内的文件名
+	 @param password 解压密码, 默认没有密码
+     */
+	write(Buffer data, XString inZipName, XString password = "") async;
 
 	/*! @brief 写入指定文件到压缩文件
-	 @param strm 指定要写入文件数据流
-	 @param inZipName 压缩在zip文件内的文件名
-	 */
-	write(SeekableStream strm, XString inZipName) async;
+     @param strm 指定要写入文件数据流
+     @param inZipName 压缩在zip文件内的文件名
+	 @param password 解压密码, 默认没有密码
+     */
+	write(SeekableStream strm, XString inZipName, XString password = "") async;
 
-	/*! @brief 关闭打开的创建压缩文件 */
+	/*! @brief 关闭打开的zip文件 */
 	close() async;
 };
