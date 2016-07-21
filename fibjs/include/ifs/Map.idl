@@ -58,5 +58,5 @@ interface Map : object
     Boolean isEmpty();
 
     /*! @brief 允许使用键值下标直接访问数值 */
-    Variant operator[String];
+    Variant operator[XString];
 };

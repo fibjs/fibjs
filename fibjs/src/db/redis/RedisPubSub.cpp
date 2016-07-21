@@ -90,12 +90,12 @@ result_t Redis::unsub(Buffer_base *channel, v8::Local<v8::Function> func)
     return _single(key, func, UNSUBSCRIBE);
 }
 
-result_t Redis::psub(const char *pattern, v8::Local<v8::Function> func)
+result_t Redis::psub(exlib::string pattern, v8::Local<v8::Function> func)
 {
     return _single(pattern, func, PSUBSCRIBE);
 }
 
-result_t Redis::unpsub(const char *pattern, v8::Local<v8::Function> func)
+result_t Redis::unpsub(exlib::string pattern, v8::Local<v8::Function> func)
 {
     return _single(pattern, func, PUNSUBSCRIBE);
 }
@@ -176,7 +176,7 @@ result_t Redis::unsub(Buffer_base *channel)
     return unsub(key, UNSUBSCRIBE);
 }
 
-result_t Redis::unpsub(const char *pattern)
+result_t Redis::unpsub(exlib::string pattern)
 {
     return unsub(pattern, PUNSUBSCRIBE);
 }

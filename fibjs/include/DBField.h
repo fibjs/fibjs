@@ -27,12 +27,12 @@ public:
         m_fields[i] = s;
     }
 
-    uint32_t index(const char *name)
+    uint32_t index(exlib::string name)
     {
         uint32_t i;
 
         for (i = 0; i < (uint32_t) m_fields.size(); i++)
-            if (!qstricmp(name, m_fields[i].c_str()))
+            if (!qstricmp(name.c_str(), m_fields[i].c_str()))
                 return i;
 
         return -1;

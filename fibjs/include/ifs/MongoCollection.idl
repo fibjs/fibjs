@@ -113,5 +113,5 @@ interface MongoCollection : object
   /*! @brief 以属性方式快速获取当前集合子命名空间的集合对象
     @return 返回新集合对象
    */
-  readonly MongoCollection operator[String];
+  readonly MongoCollection operator[XString];
 };

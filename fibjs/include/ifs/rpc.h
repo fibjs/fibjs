@@ -27,7 +27,7 @@ class rpc_base : public object_base
 public:
     // rpc_base
     static result_t json(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
-    static result_t open(const char* id, obj_ptr<RpcTask_base>& retVal);
+    static result_t open(exlib::string id, obj_ptr<RpcTask_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -91,7 +91,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = open(v0, vr);
 

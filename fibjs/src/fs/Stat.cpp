@@ -46,10 +46,10 @@ void Stat::fill(WIN32_FIND_DATAW &fd)
 
 #endif
 
-result_t Stat::getStat(const char *path)
+result_t Stat::getStat(exlib::string path)
 {
     struct stat64 st;
-    if (::stat64(path, &st))
+    if (::stat64(path.c_str(), &st))
         return CHECK_ERROR(LastError());
 
     fill(path, st);
@@ -57,7 +57,7 @@ result_t Stat::getStat(const char *path)
     return 0;
 }
 
-void Stat::fill(const char *path, struct stat64 &st)
+void Stat::fill(exlib::string path, struct stat64 &st)
 {
     path_base::basename(path, "", name);
 

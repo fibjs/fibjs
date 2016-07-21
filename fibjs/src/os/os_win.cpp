@@ -500,7 +500,7 @@ result_t process_base::cwd(exlib::string &retVal)
     return 0;
 }
 
-result_t process_base::chdir(const char *directory)
+result_t process_base::chdir(exlib::string directory)
 {
     exlib::wstring str = utf8to16String(directory);
     exlib::wchar utf16_buffer[MAX_PATH];

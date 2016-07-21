@@ -148,7 +148,7 @@ result_t process_base::memoryUsage(v8::Local<v8::Object> &retVal)
     return os_base::memoryUsage(retVal);
 }
 
-result_t process_base::system(const char *cmd, int32_t &retVal,
+result_t process_base::system(exlib::string cmd, int32_t &retVal,
                               AsyncEvent * ac)
 {
     if (!ac)
@@ -157,13 +157,13 @@ result_t process_base::system(const char *cmd, int32_t &retVal,
 #ifdef _WIN32
     retVal = ::_wsystem(UTF8_W(cmd));
 #else
-    retVal = ::system(cmd) >> 8;
+    retVal = ::system(cmd.c_str()) >> 8;
 #endif
 
     return 0;
 }
 
-result_t process_base::popen(const char *cmd, obj_ptr<BufferedStream_base> &retVal, AsyncEvent * ac)
+result_t process_base::popen(exlib::string cmd, obj_ptr<BufferedStream_base> &retVal, AsyncEvent * ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -171,7 +171,7 @@ result_t process_base::popen(const char *cmd, obj_ptr<BufferedStream_base> &retV
 #ifdef _WIN32
     FILE *pPipe = _wpopen(UTF8_W(cmd), L"r");
 #else
-    FILE *pPipe = ::popen(cmd, "r");
+    FILE *pPipe = ::popen(cmd.c_str(), "r");
 #endif
 
     if (pPipe == NULL)
@@ -183,7 +183,7 @@ result_t process_base::popen(const char *cmd, obj_ptr<BufferedStream_base> &retV
     return 0;
 }
 
-result_t process_base::exec(const char *cmd)
+result_t process_base::exec(exlib::string cmd)
 {
 #ifdef _WIN32
     PROCESS_INFORMATION pi;
@@ -201,20 +201,20 @@ result_t process_base::exec(const char *cmd)
 #else
     if (fork() == 0)
     {
-        execl("/bin/sh", "sh", "-c", cmd, (char *)0);
+        execl("/bin/sh", "sh", "-c", cmd.c_str(), (char *)0);
         _exit(127);
     }
 #endif
     return 0;
 }
 
-result_t process_base::open(const char* command, v8::Local<v8::Array> args,
+result_t process_base::open(exlib::string command, v8::Local<v8::Array> args,
                             v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal)
 {
     return SubProcess::create(command, args, opts, true, retVal);
 }
 
-result_t process_base::open(const char* command, v8::Local<v8::Object> opts,
+result_t process_base::open(exlib::string command, v8::Local<v8::Object> opts,
                             obj_ptr<SubProcess_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
@@ -223,13 +223,13 @@ result_t process_base::open(const char* command, v8::Local<v8::Object> opts,
     return open(command, args, opts, retVal);
 }
 
-result_t process_base::start(const char* command, v8::Local<v8::Array> args,
+result_t process_base::start(exlib::string command, v8::Local<v8::Array> args,
                              v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal)
 {
     return SubProcess::create(command, args, opts, false, retVal);
 }
 
-result_t process_base::start(const char* command, v8::Local<v8::Object> opts,
+result_t process_base::start(exlib::string command, v8::Local<v8::Object> opts,
                              obj_ptr<SubProcess_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
@@ -238,7 +238,7 @@ result_t process_base::start(const char* command, v8::Local<v8::Object> opts,
     return start(command, args, opts, retVal);
 }
 
-result_t process_base::run(const char* command, v8::Local<v8::Array> args,
+result_t process_base::run(exlib::string command, v8::Local<v8::Array> args,
                            v8::Local<v8::Object> opts, int32_t& retVal)
 {
     result_t hr;
@@ -251,7 +251,7 @@ result_t process_base::run(const char* command, v8::Local<v8::Array> args,
     return _sub->ac_wait(retVal);
 }
 
-result_t process_base::run(const char* command, v8::Local<v8::Object> opts,
+result_t process_base::run(exlib::string command, v8::Local<v8::Object> opts,
                            int32_t& retVal)
 {
     Isolate* isolate = Isolate::current();

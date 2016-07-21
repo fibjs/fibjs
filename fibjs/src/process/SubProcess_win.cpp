@@ -67,7 +67,7 @@ result_t create_name_pipe(HANDLE* hd1, HANDLE* hd2, bool in)
 	return 0;
 }
 
-result_t SubProcess::create(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
+result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
                             bool redirect, obj_ptr<SubProcess_base>& retVal)
 {
 	result_t hr;

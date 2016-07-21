@@ -50,8 +50,8 @@ public:
 
 public:
     // profiler_base
-    static result_t saveSnapshot(const char* fname);
-    static result_t loadSnapshot(const char* fname, obj_ptr<HeapSnapshot_base>& retVal);
+    static result_t saveSnapshot(exlib::string fname);
+    static result_t loadSnapshot(exlib::string fname, obj_ptr<HeapSnapshot_base>& retVal);
     static result_t takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal);
     static result_t diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal);
 
@@ -297,7 +297,7 @@ namespace fibjs
     {
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = saveSnapshot(v0);
 
@@ -310,7 +310,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = loadSnapshot(v0, vr);
 

@@ -131,9 +131,9 @@ result_t process_base::cwd(exlib::string &retVal)
     return 0;
 }
 
-result_t process_base::chdir(const char *directory)
+result_t process_base::chdir(exlib::string directory)
 {
-    if (::chdir(directory))
+    if (::chdir(directory.c_str()))
         return CHECK_ERROR(LastError());
 
     return 0;

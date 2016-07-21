@@ -23,7 +23,7 @@ class Redis: public Redis_base
 {
 public:
     // Redis_base
-    virtual result_t command(const char *cmd, const v8::FunctionCallbackInfo<v8::Value> &args, v8::Local<v8::Value> &retVal);
+    virtual result_t command(exlib::string cmd, const v8::FunctionCallbackInfo<v8::Value> &args, v8::Local<v8::Value> &retVal);
     virtual result_t set(Buffer_base *key, Buffer_base *value, int64_t ttl);
     virtual result_t setNX(Buffer_base *key, Buffer_base *value, int64_t ttl);
     virtual result_t setXX(Buffer_base *key, Buffer_base *value, int64_t ttl);
@@ -46,7 +46,7 @@ public:
     virtual result_t getBit(Buffer_base *key, int32_t offset, int32_t &retVal);
     virtual result_t exists(Buffer_base *key, bool &retVal);
     virtual result_t type(Buffer_base *key, exlib::string &retVal);
-    virtual result_t keys(const char *pattern, obj_ptr<List_base> &retVal);
+    virtual result_t keys(exlib::string pattern, obj_ptr<List_base> &retVal);
     virtual result_t del(v8::Local<v8::Array> keys, int32_t &retVal);
     virtual result_t del(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t &retVal);
     virtual result_t expire(Buffer_base *key, int64_t ttl, bool &retVal);
@@ -60,10 +60,10 @@ public:
     virtual result_t unsub(Buffer_base *channel, v8::Local<v8::Function> func);
     virtual result_t unsub(v8::Local<v8::Array> channels);
     virtual result_t unsub(v8::Local<v8::Object> map);
-    virtual result_t psub(const char *pattern, v8::Local<v8::Function> func);
+    virtual result_t psub(exlib::string pattern, v8::Local<v8::Function> func);
     virtual result_t psub(v8::Local<v8::Object> map);
-    virtual result_t unpsub(const char *pattern);
-    virtual result_t unpsub(const char *pattern, v8::Local<v8::Function> func);
+    virtual result_t unpsub(exlib::string pattern);
+    virtual result_t unpsub(exlib::string pattern, v8::Local<v8::Function> func);
     virtual result_t unpsub(v8::Local<v8::Array> patterns);
     virtual result_t unpsub(v8::Local<v8::Object> map);
     virtual result_t onsuberror(v8::Local<v8::Function> func);
@@ -271,16 +271,16 @@ public:
         return 0;
     }
 
-    result_t chkCommand(const char *cmd)
+    result_t chkCommand(exlib::string cmd)
     {
         if (!m_sock)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         if (m_subMode)
         {
-            if (qstricmp(cmd, "SUBSCRIBE") && qstricmp(cmd, "UNSUBSCRIBE")
-                    && qstricmp(cmd, "PSUBSCRIBE") && qstricmp(cmd, "PUNSUBSCRIBE")
-                    && qstricmp(cmd, "CLOSE"))
+            if (qstricmp(cmd.c_str(), "SUBSCRIBE") && qstricmp(cmd.c_str(), "UNSUBSCRIBE")
+                    && qstricmp(cmd.c_str(), "PSUBSCRIBE") && qstricmp(cmd.c_str(), "PUNSUBSCRIBE")
+                    && qstricmp(cmd.c_str(), "CLOSE"))
                 return CHECK_ERROR(CALL_E_INVALID_CALL);
         }
 
@@ -288,7 +288,7 @@ public:
     }
 
     template<typename T>
-    result_t doCommand(const char *cmd, T &retVal)
+    result_t doCommand(exlib::string cmd, T &retVal)
     {
         result_t hr;
 
@@ -311,7 +311,7 @@ public:
     }
 
     template<typename T, typename T1>
-    result_t doCommand(const char *cmd, T1 &a1, T &retVal)
+    result_t doCommand(exlib::string cmd, T1 &a1, T &retVal)
     {
         result_t hr;
 
@@ -338,7 +338,7 @@ public:
     }
 
     template<typename T, typename T1, typename T2>
-    result_t doCommand(const char *cmd, T1 &a1, T2 &a2, T &retVal)
+    result_t doCommand(exlib::string cmd, T1 &a1, T2 &a2, T &retVal)
     {
         result_t hr;
 
@@ -369,7 +369,7 @@ public:
     }
 
     template<typename T, typename T1, typename T2, typename T3>
-    result_t doCommand(const char *cmd, T1 &a1, T2 &a2, T3 &a3, T &retVal)
+    result_t doCommand(exlib::string cmd, T1 &a1, T2 &a2, T3 &a3, T &retVal)
     {
         result_t hr;
 
@@ -404,7 +404,7 @@ public:
     }
 
     template<typename T, typename T1, typename T2, typename T3, typename T4>
-    result_t doCommand(const char *cmd, T1 &a1, T2 &a2, T3 &a3, T4 &a4, T &retVal)
+    result_t doCommand(exlib::string cmd, T1 &a1, T2 &a2, T3 &a3, T4 &a4, T &retVal)
     {
         result_t hr;
 
@@ -443,7 +443,7 @@ public:
     }
 
     template<typename T, typename T1, typename T2, typename T3, typename T4, typename T5>
-    result_t doCommand(const char *cmd, T1 &a1, T2 &a2, T3 &a3, T4 &a4, T5 &a5, T &retVal)
+    result_t doCommand(exlib::string cmd, T1 &a1, T2 &a2, T3 &a3, T4 &a4, T5 &a5, T &retVal)
     {
         result_t hr;
 

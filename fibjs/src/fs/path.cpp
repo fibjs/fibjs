@@ -16,96 +16,99 @@ namespace fibjs
 
 DECLARE_MODULE(path);
 
-result_t path_base::basename(const char *path, const char *ext,
+result_t path_base::basename(exlib::string path, exlib::string ext,
                              exlib::string &retVal)
 {
     char ch;
-    const char *p1 = path;
-    int32_t extlen = (int32_t)qstrlen(ext);
+    const char* c_str = path.c_str();
+    const char *p1 = c_str;
+    int32_t extlen = (int32_t)ext.length();
 
-    while (*path)
+    while (*c_str)
     {
-        ch = *path++;
+        ch = *c_str++;
         if (isPathSlash(ch))
-            p1 = path;
+            p1 = c_str;
     }
 
-    if (extlen && ((int32_t) (path - p1) >= extlen)
-            && !pathcmp(ext, path - extlen, extlen))
-        path -= extlen;
+    if (extlen && ((int32_t) (c_str - p1) >= extlen)
+            && !pathcmp(ext.c_str(), c_str - extlen, extlen))
+        c_str -= extlen;
 
-    retVal.assign(p1, (int32_t) (path - p1));
+    retVal.assign(p1, (int32_t) (c_str - p1));
 
     return 0;
 }
 
-result_t path_base::extname(const char *path, exlib::string &retVal)
+result_t path_base::extname(exlib::string path, exlib::string &retVal)
 {
     char ch;
     const char *p1 = NULL;
+    const char* c_str = path.c_str();
 
-    if (*path == '.')
-        path++;
+    if (*c_str == '.')
+        c_str++;
 
-    while (*path)
+    while (*c_str)
     {
-        ch = *path++;
+        ch = *c_str++;
         if (isPathSlash(ch))
         {
-            if (*path == '.')
-                path++;
+            if (*c_str == '.')
+                c_str++;
             p1 = NULL;
         }
         else if (ch == '.')
-            p1 = path - 1;
+            p1 = c_str - 1;
     }
 
     if (p1)
-        retVal.assign(p1, (int32_t) (path - p1));
+        retVal.assign(p1, (int32_t) (c_str - p1));
 
     return 0;
 }
 
-result_t path_base::dirname(const char *path, exlib::string &retVal)
+result_t path_base::dirname(exlib::string path, exlib::string &retVal)
 {
     char ch;
-    const char *p1 = path;
+    const char* c_str = path.c_str();
+    const char *p1 = c_str;
     const char *p2 = NULL;
 
 #ifdef _WIN32
-    if (path[0] != 0 && path[1] == ':')
+    if (c_str[0] != 0 && c_str[1] == ':')
     {
-        path += 2;
-        if (isPathSlash(*path))
-            path++;
-        p2 = path;
+        c_str += 2;
+        if (isPathSlash(*c_str))
+            c_str++;
+        p2 = c_str;
     }
-    else if (isPathSlash(path[0]) && isPathSlash(path[1]))
+    else if (isPathSlash(c_str[0]) && isPathSlash(c_str[1]))
     {
-        path += 2;
-        while (*path && !isPathSlash(*path))
-            path++;
+        c_str += 2;
+        while (*c_str && !isPathSlash(*c_str))
+            c_str++;
 
-        if (*path)
+        if (*c_str)
         {
-            path++;
+            c_str++;
 
-            while (*path && !isPathSlash(*path))
-                path++;
+            while (*c_str && !isPathSlash(*c_str))
+                c_str++;
 
-            if (*path)
-                path++;
+            if (*c_str)
+                c_str++;
         }
 
-        p2 = path;
+        p2 = c_str;
     }
 #endif
 
-    while (*path)
+    while (*c_str)
     {
-        ch = *path++;
-        if (isPathSlash(ch) && *path)
-            p2 = path - 1;
+        ch = *c_str++;
+        if (isPathSlash(ch) && *c_str)
+            p2 = c_str - 1;
     }
 
     if (p2 == NULL)
@@ -124,10 +127,10 @@ inline char fixChar(char ch)
     return isPathSlash(ch) ? PATH_SLASH : ch;
 }
 
-result_t path_base::normalize(const char *path, exlib::string &retVal)
+result_t path_base::normalize(exlib::string path, exlib::string &retVal)
 {
     exlib::string str;
-    const char *p1 = path;
+    const char *p1 = path.c_str();
     char *pstr;
     int32_t pos = 0;
     int32_t root = 0;
@@ -257,10 +260,10 @@ result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, exlib:
         pathAdd(strBuffer, *s);
     }
 
-    return normalize(strBuffer.c_str(), retVal);
+    return normalize(strBuffer, retVal);
 }
 
-result_t path_base::fullpath(const char *path, exlib::string &retVal)
+result_t path_base::fullpath(exlib::string path, exlib::string &retVal)
 {
 #ifdef _WIN32
     exlib::wstring str = utf8to16String(path);
@@ -273,7 +276,7 @@ result_t path_base::fullpath(const char *path, exlib::string &retVal)
     retVal = utf16to8String(utf16_buffer, (int32_t)utf16_len);
     return 0;
 #else
-    if (isPathSlash(path[0]))
+    if (isPathSlash(path.c_str()[0]))
         return normalize(path, retVal);
 
     exlib::string str;
@@ -282,7 +285,7 @@ result_t path_base::fullpath(const char *path, exlib::string &retVal)
     str.append(1, PATH_SLASH);
     str.append(path);
 
-    return normalize(str.c_str(), retVal);
+    return normalize(str, retVal);
 #endif
 }
 

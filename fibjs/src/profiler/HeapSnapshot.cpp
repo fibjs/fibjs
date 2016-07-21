@@ -68,14 +68,14 @@ result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>
 	return s2->diff(s1, retVal);
 }
 
-result_t profiler_base::saveSnapshot(const char* fname)
+result_t profiler_base::saveSnapshot(exlib::string fname)
 {
 	obj_ptr<HeapSnapshot_base> snapshot;
 	takeSnapshot(snapshot);
 	return snapshot->save(fname, NULL);
 }
 
-result_t profiler_base::loadSnapshot(const char* fname, obj_ptr<HeapSnapshot_base>& retVal)
+result_t profiler_base::loadSnapshot(exlib::string fname, obj_ptr<HeapSnapshot_base>& retVal)
 {
 	result_t hr;
 
@@ -148,7 +148,7 @@ inline bool is_num_type(int32_t _type)
 	       _type == profiler_base::_Edge_Hidden;
 }
 
-result_t HeapSnapshot::load(const char* fname)
+result_t HeapSnapshot::load(exlib::string fname)
 {
 	Isolate* isolate = holder();
 	result_t hr;
@@ -179,7 +179,7 @@ result_t HeapSnapshot::load(const char* fname)
 	if (hr < 0)
 		return hr;
 
-	hr = json_base::decode(data.c_str(), v);
+	hr = json_base::decode(data, v);
 	if (hr < 0)
 		return hr;
 	data.resize(0);

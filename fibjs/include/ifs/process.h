@@ -32,17 +32,17 @@ public:
     static result_t get_env(v8::Local<v8::Object>& retVal);
     static result_t exit(int32_t code);
     static result_t cwd(exlib::string& retVal);
-    static result_t chdir(const char* directory);
+    static result_t chdir(exlib::string directory);
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
-    static result_t system(const char* cmd, int32_t& retVal, AsyncEvent* ac);
-    static result_t popen(const char* cmd, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
-    static result_t exec(const char* cmd);
-    static result_t open(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
-    static result_t open(const char* command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
-    static result_t start(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
-    static result_t start(const char* command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
-    static result_t run(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, int32_t& retVal);
-    static result_t run(const char* command, v8::Local<v8::Object> opts, int32_t& retVal);
+    static result_t system(exlib::string cmd, int32_t& retVal, AsyncEvent* ac);
+    static result_t popen(exlib::string cmd, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
+    static result_t exec(exlib::string cmd);
+    static result_t open(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
+    static result_t open(exlib::string command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
+    static result_t start(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
+    static result_t start(exlib::string command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
+    static result_t run(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, int32_t& retVal);
+    static result_t run(exlib::string command, v8::Local<v8::Object> opts, int32_t& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -72,8 +72,8 @@ public:
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE2(process_base, system, const char*, int32_t);
-    ASYNC_STATICVALUE2(process_base, popen, const char*, obj_ptr<BufferedStream_base>);
+    ASYNC_STATICVALUE2(process_base, system, exlib::string, int32_t);
+    ASYNC_STATICVALUE2(process_base, popen, exlib::string, obj_ptr<BufferedStream_base>);
 };
 
 }
@@ -188,7 +188,7 @@ namespace fibjs
     {
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = chdir(v0);
 
@@ -214,7 +214,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_system(v0, vr, cb);
@@ -233,7 +233,7 @@ namespace fibjs
 
         ASYNC_METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
             acb_popen(v0, vr, cb);
@@ -250,7 +250,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = exec(v0);
 
@@ -263,7 +263,7 @@ namespace fibjs
 
         METHOD_ENTER(3, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Array>, 1);
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
@@ -271,7 +271,7 @@ namespace fibjs
 
         METHOD_OVER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = open(v0, v1, vr);
@@ -285,7 +285,7 @@ namespace fibjs
 
         METHOD_ENTER(3, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Array>, 1);
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
@@ -293,7 +293,7 @@ namespace fibjs
 
         METHOD_OVER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = start(v0, v1, vr);
@@ -307,7 +307,7 @@ namespace fibjs
 
         METHOD_ENTER(3, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Array>, 1);
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
@@ -315,7 +315,7 @@ namespace fibjs
 
         METHOD_OVER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = run(v0, v1, vr);

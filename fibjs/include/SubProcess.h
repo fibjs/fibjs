@@ -59,7 +59,7 @@ public:
 	virtual result_t get_stdout(obj_ptr<BufferedStream_base>& retVal);
 
 public:
-	static result_t create(const char* command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
+	static result_t create(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
 	                       bool redirect, obj_ptr<SubProcess_base>& retVal);
 
 public:

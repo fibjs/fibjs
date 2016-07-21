@@ -34,7 +34,7 @@ interface MongoDB : object
    var test = mdb.test;
    @endcode
    */
-  readonly MongoCollection operator[String];
+  readonly MongoCollection operator[XString];
 
   /*! @brief 获取 GridFS 访问对象 */
   readonly GridFS fs;

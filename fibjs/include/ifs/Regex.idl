@@ -7,13 +7,13 @@ interface Regex : object
      @param str 要检索的字符串
      @return 返回一个数组，其中存放匹配的结果。如果未找到匹配，则返回值为 null
      */
-    Array exec(String str);
+    Array exec(XString str);
 
     /*! @brief 检测一个字符串是否匹配某个模式
      @param str     要检索的字符串
      @return 如果字符串 str 中含有匹配的文本，则返回 true，否则返回 false
      */
-    Boolean test(String str);
+    Boolean test(XString str);
 
     /*! @brief 查询和设置下次匹配的起始位置 */
     Integer lastIndex;

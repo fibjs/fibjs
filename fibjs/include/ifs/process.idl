@@ -14,7 +14,7 @@ module process
     static readonly Array execArgv;
 
     /*! @brief 查询当前运行执行文件完整路径 */
-    static readonly String execPath;
+    static readonly XString execPath;
 
     /*! @brief 查询当前进程的环境变量 */
     static readonly Object env;
@@ -27,12 +27,12 @@ module process
     /*! @brief 返回操作系统当前工作路径
      @return 返回当前系统路径
      */
-    static String cwd();
+    static XString cwd();
 
     /*! @brief 修改操作系统当前工作路径
      @param directory 指定设定的新路径
      */
-    static chdir(String directory);
+    static chdir(XString directory);
 
     /*! @brief 查询当前进程内存使用报告
      @return 返回包含内存报告
@@ -56,18 +56,18 @@ module process
      @param cmd 指定运行的命令行
      @return 返回包含进程运行结果
      */
-    deprecated static Integer system(String cmd) async;
+    deprecated static Integer system(XString cmd) async;
 
     /*! @brief 运行指定的命令行，并返回进程的结束代码
      @param cmd 指定运行的命令行
      @return 返回包含运行结果的文件对象
      */
-    deprecated static BufferedStream popen(String cmd) async;
+    deprecated static BufferedStream popen(XString cmd) async;
 
     /*! @brief 运行指定的命令行，并立即返回
      @param cmd 指定运行的命令行
      */
-    deprecated static exec(String cmd);
+    deprecated static exec(XString cmd);
 
     /*! @brief 运行指定的命令行，接管进程输入输出流，并返回进程对象
      @param command 指定运行的命令行
@@ -81,7 +81,7 @@ module process
      @endcode
      @return 返回包含运行结果的进程对象
      */
-    static SubProcess open(String command, Array args, Object opts = {});
+    static SubProcess open(XString command, Array args, Object opts = {});
 
     /*! @brief 运行指定的命令行，接管进程输入输出流，并返回进程对象
      @param command 指定运行的命令行
@@ -94,7 +94,7 @@ module process
      @endcode
      @return 返回包含运行结果的进程对象
      */
-    static SubProcess open(String command, Object opts = {});
+    static SubProcess open(XString command, Object opts = {});
 
     /*! @brief 运行指定的命令行，并返回进程对象
      @param command 指定运行的命令行
@@ -108,7 +108,7 @@ module process
      @endcode
      @return 返回包含运行结果的进程对象
      */
-    static SubProcess start(String command, Array args, Object opts = {});
+    static SubProcess start(XString command, Array args, Object opts = {});
 
     /*! @brief 运行指定的命令行，并返回进程对象
      @param command 指定运行的命令行
@@ -121,7 +121,7 @@ module process
      @endcode
      @return 返回包含运行结果的进程对象
      */
-    static SubProcess start(String command, Object opts = {});
+    static SubProcess start(XString command, Object opts = {});
 
     /*! @brief 运行指定的命令行，并返回进程的结束代码
      @param command 指定运行的命令行
@@ -135,7 +135,7 @@ module process
      @endcode
      @return 返回包含运行结果的进程对象
      */
-    static Integer run(String command, Array args, Object opts = {});
+    static Integer run(XString command, Array args, Object opts = {});
 
     /*! @brief 运行指定的命令行，并返回进程的结束代码
      @param command 指定运行的命令行
@@ -148,5 +148,5 @@ module process
      @endcode
      @return 返回包含运行结果的进程对象
      */
-    static Integer run(String command, Object opts = {});
+    static Integer run(XString command, Object opts = {});
 };

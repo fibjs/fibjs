@@ -182,7 +182,6 @@ function parserIDL(fname) {
 			"Long": "int64_t",
 			"Number": "double",
 			"Boolean": "bool",
-			"String": "exlib::string",
 			"XString": "exlib::string",
 			"Date": "date_t",
 			"Object": "v8::Local<v8::Object>",
@@ -198,7 +197,6 @@ function parserIDL(fname) {
 			"Long": "int64_t",
 			"Number": "double",
 			"Boolean": "bool",
-			"String": "const char*",
 			"XString": "exlib::string",
 			"Date": "date_t",
 			"Object": "v8::Local<v8::Object>",
@@ -214,7 +212,6 @@ function parserIDL(fname) {
 			"Long": "int64_t",
 			"Number": "double",
 			"Boolean": "bool",
-			"String": "arg_string",
 			"XString": "exlib::string",
 			"Date": "date_t",
 			"Object": "v8::Local<v8::Object>",
@@ -959,7 +956,7 @@ function parserIDL(fname) {
 						ifStr = "    virtual result_t _indexed_setter(uint32_t index, " + arg_type(ftype) + " newVal) = 0;";
 						ifs.push(ifStr);
 					}
-				} else if ((st[pos] === "[") && (st[pos + 1] === "String") && (st[pos + 2] === "]") && (st[pos + 3] === ";")) {
+				} else if ((st[pos] === "[") && (st[pos + 1] === "String" || st[pos + 1] === "XString") && (st[pos + 2] === "]") && (st[pos + 3] === ";")) {
 					pos += 3;
 					hasNamed = true;
 

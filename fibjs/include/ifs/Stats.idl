@@ -46,6 +46,6 @@ interface Stats : object
     Integer uptime();
 
     /*! @brief 允许使用键值下标直接访问数值 */
-    readonly Integer operator[String];
+    readonly Integer operator[XString];
 };
 

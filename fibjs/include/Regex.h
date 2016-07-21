@@ -30,8 +30,8 @@ public:
 
 public:
     // Regex_base
-    virtual result_t exec(const char *str, v8::Local<v8::Array> &retVal);
-    virtual result_t test(const char *str, bool &retVal);
+    virtual result_t exec(exlib::string str, v8::Local<v8::Array> &retVal);
+    virtual result_t test(exlib::string str, bool &retVal);
     virtual result_t get_lastIndex(int32_t &retVal);
     virtual result_t set_lastIndex(int32_t newVal);
     virtual result_t get_global(bool &retVal);

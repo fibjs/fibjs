@@ -294,7 +294,7 @@ result_t X509Cert::loadFile(exlib::string filename)
     exlib::string data;
     int32_t ret;
 
-    hr = fs_base::ac_readFile(filename.c_str(), data);
+    hr = fs_base::ac_readFile(filename, data);
     if (hr < 0)
         return hr;
 

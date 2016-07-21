@@ -74,13 +74,13 @@ module profiler
 	/*! @brief 根据指定名称保存一个堆快照
 	 @param fname 堆快照名称
 	 */
-	static saveSnapshot(String fname);
+	static saveSnapshot(XString fname);
 
 	/*! @brief 根据指定名称读取一个堆快照
 	 @param fname 堆快照名称
 	 @return 返回读取到的堆快照
 	 */
-	static HeapSnapshot loadSnapshot(String fname);
+	static HeapSnapshot loadSnapshot(XString fname);
 
 	/*! @brief 获取当前时间节点的堆快照，堆快照记录了当前时刻JS堆的状态
 	 @return 返回获取到的堆信息快照

@@ -175,21 +175,21 @@ result_t zip_base::open(exlib::string path, exlib::string mod, int32_t compress_
 	bool exists;
 
 	if ((mod == "w" ))
-		hr = fs_base::cc_open(path.c_str(), "w", file);
+		hr = fs_base::cc_open(path, "w", file);
 	else if ((mod == "a" ) || (mod == "a+" ))
 	{
-		hr = fs_base::cc_exists(path.c_str(), exists);
+		hr = fs_base::cc_exists(path, exists);
 		if (hr < 0)
 			return hr;
 
 		if (!exists)
 			return CHECK_ERROR(Runtime::setError("zip file not exists!"));
 
-		hr = fs_base::cc_open(path.c_str(), "r+", file);
+		hr = fs_base::cc_open(path, "r+", file);
 	}
 
 	else
-		hr = fs_base::cc_open(path.c_str(), "r", file);
+		hr = fs_base::cc_open(path, "r", file);
 
 	if (hr < 0)
 		return hr;
@@ -510,7 +510,7 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, AsyncEvent* 
 	if (err != UNZ_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
-	hr = fs_base::cc_open(path.c_str(), "w", file);
+	hr = fs_base::cc_open(path, "w", file);
 	if (hr < 0)
 		return hr;
 
@@ -563,18 +563,18 @@ result_t ZipFile::extractAll(exlib::string path, AsyncEvent* ac)
 
 		fpath1 = path;
 		fpath1 += PATH_SLASH;
-		path_base::normalize((fpath1 + info->m_name).c_str(), fpath1);
+		path_base::normalize(fpath1 + info->m_name, fpath1);
 
 		do {
 			fpath = fpath1;
-			hr = fs_base::cc_exists(fpath.c_str(), exists);
+			hr = fs_base::cc_exists(fpath, exists);
 			if (hr < 0)
 				return hr;
 
 			fpath1 += "?";
 		} while (exists);
 
-		hr = fs_base::cc_open(fpath.c_str(), "w", file);
+		hr = fs_base::cc_open(fpath, "w", file);
 		if (hr < 0)
 			return hr;
 
@@ -685,7 +685,7 @@ result_t ZipFile::write(exlib::string filename, AsyncEvent* ac)
 	result_t hr;
 	obj_ptr<File_base> file;
 
-	hr = fs_base::cc_open(filename.c_str(), "r", file);
+	hr = fs_base::cc_open(filename, "r", file);
 	if (hr < 0)
 		return hr;
 

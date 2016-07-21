@@ -78,8 +78,8 @@ public:
     virtual result_t isSocket(bool &retVal);
 
 public:
-    result_t getStat(const char *path);
-    void fill(const char *path, struct stat64 &st);
+    result_t getStat(exlib::string path);
+    void fill(exlib::string path, struct stat64 &st);
 
 #ifdef _WIN32
     void fill(WIN32_FIND_DATAW &fd);

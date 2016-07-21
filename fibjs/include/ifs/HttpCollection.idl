@@ -51,5 +51,5 @@ interface HttpCollection : object
     remove(XString name);
 
     /*! @brief 允许使用键值下标直接访问数值 */
-    Variant operator[String];
+    Variant operator[XString];
 };

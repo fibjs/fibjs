@@ -349,7 +349,7 @@ result_t RpcTask::toString(exlib::string &retVal)
 	return 0;
 }
 
-result_t rpc_base::open(const char* id, obj_ptr<RpcTask_base>& retVal)
+result_t rpc_base::open(exlib::string id, obj_ptr<RpcTask_base>& retVal)
 {
 	Url _url;
 
