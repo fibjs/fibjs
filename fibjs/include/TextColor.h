@@ -49,13 +49,13 @@ public:
 public:
     // TextColor_base
     virtual result_t get_notice(exlib::string &retVal);
-    virtual result_t set_notice(const char *newVal);
+    virtual result_t set_notice(exlib::string newVal);
     virtual result_t get_warn(exlib::string &retVal);
-    virtual result_t set_warn(const char *newVal);
+    virtual result_t set_warn(exlib::string newVal);
     virtual result_t get_error(exlib::string &retVal);
-    virtual result_t set_error(const char *newVal);
+    virtual result_t set_error(exlib::string newVal);
     virtual result_t get_highLight(exlib::string &retVal);
-    virtual result_t set_highLight(const char *newVal);
+    virtual result_t set_highLight(exlib::string newVal);
 
 public:
     exlib::string m_notice;

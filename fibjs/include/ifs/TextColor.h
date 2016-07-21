@@ -24,13 +24,13 @@ class TextColor_base : public object_base
 public:
     // TextColor_base
     virtual result_t get_notice(exlib::string& retVal) = 0;
-    virtual result_t set_notice(const char* newVal) = 0;
+    virtual result_t set_notice(exlib::string newVal) = 0;
     virtual result_t get_warn(exlib::string& retVal) = 0;
-    virtual result_t set_warn(const char* newVal) = 0;
+    virtual result_t set_warn(exlib::string newVal) = 0;
     virtual result_t get_error(exlib::string& retVal) = 0;
-    virtual result_t set_error(const char* newVal) = 0;
+    virtual result_t set_error(exlib::string newVal) = 0;
     virtual result_t get_highLight(exlib::string& retVal) = 0;
-    virtual result_t set_highLight(const char* newVal) = 0;
+    virtual result_t set_highLight(exlib::string newVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -96,7 +96,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(TextColor_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_notice(v0);
 
         PROPERTY_SET_LEAVE();
@@ -119,7 +119,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(TextColor_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_warn(v0);
 
         PROPERTY_SET_LEAVE();
@@ -142,7 +142,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(TextColor_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_error(v0);
 
         PROPERTY_SET_LEAVE();
@@ -165,7 +165,7 @@ namespace fibjs
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(TextColor_base);
 
-        PROPERTY_VAL(arg_string);
+        PROPERTY_VAL(exlib::string);
         hr = pInst->set_highLight(v0);
 
         PROPERTY_SET_LEAVE();

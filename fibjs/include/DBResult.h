@@ -29,7 +29,7 @@ public:
 
 public:
     // object_base
-    virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value> &retVal);
 
 public:
     // ObjectArray_base

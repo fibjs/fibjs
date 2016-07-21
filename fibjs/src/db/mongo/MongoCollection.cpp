@@ -266,7 +266,7 @@ result_t MongoCollection::runCommand(v8::Local<v8::Object> cmd,
     return db->runCommand(cmd, retVal);
 }
 
-result_t MongoCollection::runCommand(const char *cmd,
+result_t MongoCollection::runCommand(exlib::string cmd,
                                      v8::Local<v8::Object> arg, v8::Local<v8::Object> &retVal)
 {
 
@@ -277,7 +277,7 @@ result_t MongoCollection::runCommand(const char *cmd,
     bson bbq;
 
     bson_init(&bbq);
-    bson_append_string(&bbq, cmd, m_name.c_str());
+    bson_append_string(&bbq, cmd.c_str(), m_name.c_str());
     if (!appendObject(holder(), &bbq, arg))
     {
         bson_destroy(&bbq);
@@ -288,8 +288,8 @@ result_t MongoCollection::runCommand(const char *cmd,
     return db->bsonHandler(&bbq, retVal);
 }
 
-result_t MongoCollection::runCommand(const char *cmd, const char *cmd1,
-                                     const char *arg, v8::Local<v8::Object> &retVal)
+result_t MongoCollection::runCommand(exlib::string cmd, exlib::string cmd1,
+                                     exlib::string arg, v8::Local<v8::Object> &retVal)
 {
     obj_ptr<MongoDB> db(m_db);
     if (!db)
@@ -298,10 +298,10 @@ result_t MongoCollection::runCommand(const char *cmd, const char *cmd1,
     bson bbq;
 
     bson_init(&bbq);
-    bson_append_string(&bbq, cmd, m_name.c_str());
+    bson_append_string(&bbq, cmd.c_str(), m_name.c_str());
 
-    if (cmd1)
-        bson_append_string(&bbq, cmd1, arg);
+    if (!cmd1.empty())
+        bson_append_string(&bbq, cmd1.c_str(), arg.c_str());
 
     bson_finish(&bbq);
 
@@ -372,10 +372,10 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
 
 result_t MongoCollection::reIndex(v8::Local<v8::Object> &retVal)
 {
-    return runCommand("reIndex", NULL, NULL, retVal);
+    return runCommand("reIndex", "", "", retVal);
 }
 
-result_t MongoCollection::dropIndex(const char *name,
+result_t MongoCollection::dropIndex(exlib::string name,
                                     v8::Local<v8::Object> &retVal)
 {
     return runCommand("deleteIndexes", "index", name, retVal);
@@ -407,7 +407,7 @@ result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base> &retVal)
     return coll->find(q, f, retVal);
 }
 
-result_t MongoCollection::getCollection(const char *name,
+result_t MongoCollection::getCollection(exlib::string name,
                                         obj_ptr<MongoCollection_base> &retVal)
 {
     obj_ptr<MongoDB> db(m_db);
@@ -423,12 +423,12 @@ result_t MongoCollection::getCollection(const char *name,
     nameStr += '.';
     nameStr.append(name);
 
-    retVal = new MongoCollection(db, nsStr.c_str(), nameStr.c_str());
+    retVal = new MongoCollection(db, nsStr, nameStr);
 
     return 0;
 }
 
-result_t MongoCollection::_named_getter(const char *property,
+result_t MongoCollection::_named_getter(const char* property,
                                         obj_ptr<MongoCollection_base> &retVal)
 {
     return getCollection(property, retVal);

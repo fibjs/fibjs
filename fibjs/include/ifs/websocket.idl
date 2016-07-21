@@ -37,5 +37,5 @@ module websocket
      @param origin 指定连接的授权域名
      @return 返回连接成功的 Stream 对象，可能为 Socket 或者 SslSocket
      */
-    static Stream connect(String url, String origin = "") async;
+    static Stream connect(XString url, XString origin = "") async;
 };

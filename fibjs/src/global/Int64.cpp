@@ -272,7 +272,7 @@ result_t Int64::toNumber(double &retVal)
     return 0;
 }
 
-result_t Int64::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+result_t Int64::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 {
     exlib::string str;
 

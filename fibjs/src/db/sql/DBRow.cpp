@@ -38,7 +38,7 @@ result_t DBRow::_named_enumerator(v8::Local<v8::Array> &retVal)
     return 0;
 }
 
-result_t DBRow::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+result_t DBRow::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);

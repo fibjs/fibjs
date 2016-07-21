@@ -192,16 +192,16 @@ public:
 
 public:
     // Event
-    result_t on(const char *ev, v8::Local<v8::Function> func, int32_t &retVal);
+    result_t on(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal);
     result_t on(v8::Local<v8::Object> map, int32_t &retVal);
-    result_t once(const char *ev, v8::Local<v8::Function> func, int32_t &retVal);
+    result_t once(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal);
     result_t once(v8::Local<v8::Object> map, int32_t &retVal);
-    result_t off(const char *ev, v8::Local<v8::Function> func, int32_t &retVal);
-    result_t off(const char *ev, int32_t &retVal);
+    result_t off(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal);
+    result_t off(exlib::string ev, int32_t &retVal);
     result_t off(v8::Local<v8::Object> map, int32_t &retVal);
-    result_t trigger(const char *ev, const v8::FunctionCallbackInfo<v8::Value> &args);
-    result_t _trigger(const char *ev, v8::Local<v8::Value> *args, int32_t argCount);
-    result_t _trigger(const char *ev, Variant *args, int32_t argCount);
+    result_t trigger(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args);
+    result_t _trigger(exlib::string ev, v8::Local<v8::Value> *args, int32_t argCount);
+    result_t _trigger(exlib::string ev, Variant *args, int32_t argCount);
 
     void extMemory(int32_t ext)
     {
@@ -285,7 +285,7 @@ public:
         return 0;
     }
 
-    virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal)
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
     {
         v8::Local<v8::Object> o = wrap();
         v8::Local<v8::Object> o1 = v8::Object::New(holder()->m_isolate);
@@ -449,29 +449,12 @@ inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value> &a
 
 inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    obj_ptr<object_base> pInst = object_base::getInstance(args.This());
-    if (pInst == NULL)
-    {
-        v8::Isolate* isolate = args.GetIsolate();
-
-        V8_SCOPE(isolate);
-
-        v8::Local<v8::Object> o = args.This();
-        v8::Local<v8::Object> o1 = v8::Object::New(isolate);
-
-        extend(o, o1);
-
-        args.GetReturnValue().Set(V8_RETURN(o1));
-        return;
-    }
-
     v8::Local<v8::Value> vr;
 
-    scope l(pInst);
-
+    METHOD_INSTANCE(object_base);
     METHOD_ENTER(1, 0);
 
-    OPT_ARG(arg_string, 0, "");
+    OPT_ARG(exlib::string, 0, "");
 
     hr = pInst->toJSON(v0, vr);
 

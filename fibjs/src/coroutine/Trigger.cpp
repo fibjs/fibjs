@@ -99,7 +99,7 @@ inline int32_t removeFunction(Isolate* isolate, v8::Local<v8::Object> esa,
 }
 
 inline result_t _map(object_base *o, v8::Local<v8::Object> m,
-                     result_t (object_base::*fn)(const char *, v8::Local<v8::Function>, int32_t &),
+                     result_t (object_base::*fn)(exlib::string , v8::Local<v8::Function>, int32_t &),
                      int32_t &retVal)
 {
     v8::Local<v8::Array> ks = m->GetPropertyNames();
@@ -130,7 +130,7 @@ inline result_t _map(object_base *o, v8::Local<v8::Object> m,
     return 0;
 }
 
-result_t object_base::on(const char *ev, v8::Local<v8::Function> func, int32_t &retVal)
+result_t object_base::on(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal)
 {
     retVal = 0;
     Isolate* isolate = holder();
@@ -151,7 +151,7 @@ result_t object_base::on(v8::Local<v8::Object> map, int32_t &retVal)
     return _map(this, map, &object_base::on, retVal);
 }
 
-result_t object_base::once(const char *ev, v8::Local<v8::Function> func, int32_t &retVal)
+result_t object_base::once(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal)
 {
     retVal = 0;
     Isolate* isolate = holder();
@@ -172,7 +172,7 @@ result_t object_base::once(v8::Local<v8::Object> map, int32_t &retVal)
     return _map(this, map, &object_base::once, retVal);
 }
 
-result_t object_base::off(const char *ev, v8::Local<v8::Function> func, int32_t &retVal)
+result_t object_base::off(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal)
 {
     retVal = 0;
     Isolate* isolate = holder();
@@ -188,7 +188,7 @@ result_t object_base::off(const char *ev, v8::Local<v8::Function> func, int32_t 
     return 0;
 }
 
-result_t object_base::off(const char *ev, int32_t &retVal)
+result_t object_base::off(exlib::string ev, int32_t &retVal)
 {
     retVal = 0;
 
@@ -249,7 +249,7 @@ result_t fireTrigger(v8::Local<v8::Object> esa, T args, int32_t argCount)
     return 0;
 }
 
-result_t object_base::_trigger(const char *ev, v8::Local<v8::Value> *args,
+result_t object_base::_trigger(exlib::string ev, v8::Local<v8::Value> *args,
                                int32_t argCount)
 {
     extMemory(0);
@@ -273,12 +273,12 @@ result_t object_base::_trigger(const char *ev, v8::Local<v8::Value> *args,
     return 0;
 }
 
-result_t object_base::_trigger(const char *ev, Variant *args, int32_t argCount)
+result_t object_base::_trigger(exlib::string ev, Variant *args, int32_t argCount)
 {
     class jsTrigger: public AsyncEvent
     {
     public:
-        jsTrigger(object_base *obj, const char *ev, Variant *args, int32_t argCount) :
+        jsTrigger(object_base *obj, exlib::string ev, Variant *args, int32_t argCount) :
             m_obj(obj), m_ev(ev)
         {
             m_args.append((VariantEx *)args, argCount);
@@ -311,7 +311,7 @@ result_t object_base::_trigger(const char *ev, Variant *args, int32_t argCount)
     return 0;
 }
 
-result_t object_base::trigger(const char *ev, const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t object_base::trigger(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     extMemory(0);
 

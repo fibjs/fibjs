@@ -42,11 +42,11 @@ public:
 
 public:
     // GridFS_base
-    virtual result_t retrieve(const char *name, obj_ptr<MemoryStream_base> &retVal);
-    virtual result_t store(const char *name, Stream_base *src);
-    virtual result_t store(const char *name, Buffer_base *data);
-    virtual result_t exists(const char *name, bool &retVal);
-    virtual result_t remove(const char *name);
+    virtual result_t retrieve(exlib::string name, obj_ptr<MemoryStream_base> &retVal);
+    virtual result_t store(exlib::string name, Stream_base *src);
+    virtual result_t store(exlib::string name, Buffer_base *data);
+    virtual result_t exists(exlib::string name, bool &retVal);
+    virtual result_t remove(exlib::string name);
     virtual result_t get_files(obj_ptr<MongoCollection_base> &retVal);
     virtual result_t get_chunks(obj_ptr<MongoCollection_base> &retVal);
 

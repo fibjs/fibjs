@@ -192,3 +192,5 @@ describe("mongodb", function() {
 
 	//assert.equal(fs.retrieve("test.txt").readAll(), data);
 })
+
+// test.run(console.DEBUG);

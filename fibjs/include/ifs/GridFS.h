@@ -28,11 +28,11 @@ class GridFS_base : public object_base
 
 public:
     // GridFS_base
-    virtual result_t retrieve(const char* name, obj_ptr<MemoryStream_base>& retVal) = 0;
-    virtual result_t store(const char* name, Stream_base* src) = 0;
-    virtual result_t store(const char* name, Buffer_base* data) = 0;
-    virtual result_t exists(const char* name, bool& retVal) = 0;
-    virtual result_t remove(const char* name) = 0;
+    virtual result_t retrieve(exlib::string name, obj_ptr<MemoryStream_base>& retVal) = 0;
+    virtual result_t store(exlib::string name, Stream_base* src) = 0;
+    virtual result_t store(exlib::string name, Buffer_base* data) = 0;
+    virtual result_t exists(exlib::string name, bool& retVal) = 0;
+    virtual result_t remove(exlib::string name) = 0;
     virtual result_t get_files(obj_ptr<MongoCollection_base>& retVal) = 0;
     virtual result_t get_chunks(obj_ptr<MongoCollection_base>& retVal) = 0;
 
@@ -123,7 +123,7 @@ namespace fibjs
         METHOD_INSTANCE(GridFS_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->retrieve(v0, vr);
 
@@ -135,14 +135,14 @@ namespace fibjs
         METHOD_INSTANCE(GridFS_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(obj_ptr<Stream_base>, 1);
 
         hr = pInst->store(v0, v1);
 
         METHOD_OVER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(obj_ptr<Buffer_base>, 1);
 
         hr = pInst->store(v0, v1);
@@ -157,7 +157,7 @@ namespace fibjs
         METHOD_INSTANCE(GridFS_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->exists(v0, vr);
 
@@ -169,7 +169,7 @@ namespace fibjs
         METHOD_INSTANCE(GridFS_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->remove(v0);
 

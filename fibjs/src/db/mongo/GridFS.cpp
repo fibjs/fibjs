@@ -13,14 +13,14 @@
 namespace fibjs
 {
 
-result_t GridFS::retrieve(const char *name, obj_ptr<MemoryStream_base> &retVal)
+result_t GridFS::retrieve(exlib::string name, obj_ptr<MemoryStream_base> &retVal)
 {
     if (check_fs() != MONGO_OK)
         return CHECK_ERROR(m_db->error());
 
     gridfile f;
 
-    if (gridfs_find_filename(&m_fs, name, &f) != MONGO_OK)
+    if (gridfs_find_filename(&m_fs, name.c_str(), &f) != MONGO_OK)
     {
         result_t hr = CHECK_ERROR(m_db->error());
         if (hr < 0)
@@ -49,7 +49,7 @@ result_t GridFS::retrieve(const char *name, obj_ptr<MemoryStream_base> &retVal)
     return 0;
 }
 
-result_t GridFS::store(const char *name, Stream_base *src)
+result_t GridFS::store(exlib::string name, Stream_base *src)
 {
     if (check_fs() != MONGO_OK)
         return CHECK_ERROR(m_db->error());
@@ -57,7 +57,7 @@ result_t GridFS::store(const char *name, Stream_base *src)
     result_t hr;
     gridfile f;
 
-    gridfile_writer_init(&f, &m_fs, name, "", GRIDFILE_DEFAULT);
+    gridfile_writer_init(&f, &m_fs, name.c_str(), "", GRIDFILE_DEFAULT);
 
     while (true)
     {
@@ -85,14 +85,14 @@ result_t GridFS::store(const char *name, Stream_base *src)
     return 0;
 }
 
-result_t GridFS::store(const char *name, Buffer_base *data)
+result_t GridFS::store(exlib::string name, Buffer_base *data)
 {
     if (check_fs() != MONGO_OK)
         return CHECK_ERROR(m_db->error());
 
     gridfile f;
 
-    gridfile_writer_init(&f, &m_fs, name, "", GRIDFILE_DEFAULT);
+    gridfile_writer_init(&f, &m_fs, name.c_str(), "", GRIDFILE_DEFAULT);
 
     exlib::string strBuf;
     data->toString(strBuf);
@@ -105,14 +105,14 @@ result_t GridFS::store(const char *name, Buffer_base *data)
     return 0;
 }
 
-result_t GridFS::exists(const char *name, bool &retVal)
+result_t GridFS::exists(exlib::string name, bool &retVal)
 {
     if (check_fs() != MONGO_OK)
         return CHECK_ERROR(m_db->error());
 
     gridfile f;
 
-    if (gridfs_find_filename(&m_fs, name, &f) != MONGO_OK)
+    if (gridfs_find_filename(&m_fs, name.c_str(), &f) != MONGO_OK)
     {
         result_t hr = CHECK_ERROR(m_db->error());
         if (hr < 0)
@@ -128,16 +128,16 @@ result_t GridFS::exists(const char *name, bool &retVal)
     return 0;
 }
 
-result_t GridFS::remove(const char *name)
+result_t GridFS::remove(exlib::string name)
 {
     if (check_fs() != MONGO_OK)
         return CHECK_ERROR(m_db->error());
 
-    gridfs_remove_filename(&m_fs, name);
+    gridfs_remove_filename(&m_fs, name.c_str());
     return 0;
 }
 
-result_t GridFS::get_list(const char *name,
+result_t GridFS::get_list(const char* name,
                           obj_ptr<MongoCollection_base> &retVal)
 {
     exlib::string ns(m_db->m_ns);
@@ -152,7 +152,7 @@ result_t GridFS::get_list(const char *name,
 
     ns.append(nmStr);
 
-    retVal = new MongoCollection(m_db, ns.c_str(), nmStr.c_str());
+    retVal = new MongoCollection(m_db, ns, nmStr);
 
     return 0;
 }

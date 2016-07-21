@@ -926,7 +926,7 @@ result_t Buffer::toArray(v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-result_t Buffer::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+result_t Buffer::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);

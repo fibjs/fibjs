@@ -327,7 +327,7 @@ result_t List::toArray(v8::Local<v8::Array> &retVal)
     return 0;
 }
 
-result_t List::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+result_t List::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 {
     result_t hr;
     v8::Local<v8::Array> as;

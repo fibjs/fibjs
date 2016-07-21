@@ -217,7 +217,7 @@ result_t LruCache::isEmpty(bool &retVal)
     return 0;
 }
 
-result_t LruCache::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+result_t LruCache::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 {
     cleanup();
 

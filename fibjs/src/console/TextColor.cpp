@@ -17,7 +17,7 @@ result_t TextColor::get_notice(exlib::string &retVal)
     return 0;
 }
 
-result_t TextColor::set_notice(const char *newVal)
+result_t TextColor::set_notice(exlib::string newVal)
 {
     m_notice = newVal;
     return 0;
@@ -29,7 +29,7 @@ result_t TextColor::get_warn(exlib::string &retVal)
     return 0;
 }
 
-result_t TextColor::set_warn(const char *newVal)
+result_t TextColor::set_warn(exlib::string newVal)
 {
     m_warn = newVal;
     return 0;
@@ -41,7 +41,7 @@ result_t TextColor::get_error(exlib::string &retVal)
     return 0;
 }
 
-result_t TextColor::set_error(const char *newVal)
+result_t TextColor::set_error(exlib::string newVal)
 {
     m_error = newVal;
     return 0;
@@ -53,7 +53,7 @@ result_t TextColor::get_highLight(exlib::string &retVal)
     return 0;
 }
 
-result_t TextColor::set_highLight(const char *newVal)
+result_t TextColor::set_highLight(exlib::string newVal)
 {
     m_highLight = newVal;
     return 0;
