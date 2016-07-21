@@ -236,4 +236,4 @@ describe("zip", function() {
 	})
 });
 
-test.run(console.DEBUG);
+// test.run(console.DEBUG);
