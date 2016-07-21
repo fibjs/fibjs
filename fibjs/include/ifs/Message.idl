@@ -13,7 +13,7 @@ interface Message : object
     Message();
 
     /*! @brief 消息的基本内容 */
-    String value;
+    XString value;
 
     /*! @brief 消息的基本参数 */
     List params;
@@ -63,5 +63,5 @@ interface Message : object
     readonly Message response;
 
     /*! @brief 查询和设置消息处理的最后错误 */
-    String lastError;
+    XString lastError;
 };

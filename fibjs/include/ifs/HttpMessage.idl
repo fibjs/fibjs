@@ -3,7 +3,7 @@
 interface HttpMessage: Message
 {
     /*! @brief 协议版本信息，允许的格式为：HTTP/#.# */
-    String protocol;
+    XString protocol;
 
     /*! @brief 包含消息中 http 消息头的容器，只读属性 */
     readonly HttpCollection headers;
@@ -24,19 +24,19 @@ interface HttpMessage: Message
      @param name 指定要检查的键值
      @return 返回键值是否存在
      */
-    Boolean hasHeader(String name);
+    Boolean hasHeader(XString name);
 
     /*! @brief 查询指定键值的第一个消息头
      @param name 指定要查询的键值
      @return 返回键值所对应的值，若不存在，则返回 undefined
      */
-    Variant firstHeader(String name);
+    Variant firstHeader(XString name);
 
     /*! @brief 查询指定键值的全部消息头
      @param name 指定要查询的键值
      @return 返回键值所对应全部值的数组，若数据不存在，则返回 null
      */
-    List allHeader(String name);
+    List allHeader(XString name);
 
     /*! @brief 添加一个消息头，添加数据并不修改已存在的键值的消息头
      @param map 指定要添加的键值数据字典
@@ -47,7 +47,7 @@ interface HttpMessage: Message
      @param name 指定要添加的键值
      @param value 指定要添加的数据
      */
-    addHeader(String name, Variant value);
+    addHeader(XString name, Variant value);
 
     /*! @brief 设定一个消息头，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余消息头
      @param map 指定要设定的键值数据字典
@@ -58,10 +58,10 @@ interface HttpMessage: Message
      @param name 指定要设定的键值
      @param value 指定要设定的数据
      */
-    setHeader(String name, Variant value);
+    setHeader(XString name, Variant value);
 
     /*! @brief 删除指定键值的全部消息头
      @param name 指定要删除的键值
      */
-    removeHeader(String name);
+    removeHeader(XString name);
 };

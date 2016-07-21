@@ -107,7 +107,7 @@ result_t Queue::get_length(int32_t &retVal)
     return 0;
 }
 
-result_t Queue::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+result_t Queue::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 {
     result_t hr;
     v8::Local<v8::Array> as;

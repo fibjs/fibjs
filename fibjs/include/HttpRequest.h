@@ -29,7 +29,7 @@ public:
 public:
     // Message_base
     virtual result_t get_value(exlib::string &retVal);
-    virtual result_t set_value(const char *newVal);
+    virtual result_t set_value(exlib::string newVal);
     virtual result_t get_params(obj_ptr<List_base> &retVal);
     virtual result_t set_params(List_base *newVal);
     virtual result_t get_result(Variant &retVal);
@@ -46,12 +46,12 @@ public:
     virtual result_t get_stream(obj_ptr<Stream_base> &retVal);
     virtual result_t get_response(obj_ptr<Message_base> &retVal);
     virtual result_t get_lastError(exlib::string& retVal);
-    virtual result_t set_lastError(const char* newVal);
+    virtual result_t set_lastError(exlib::string newVal);
 
 public:
     // HttpMessage_base
     virtual result_t get_protocol(exlib::string &retVal);
-    virtual result_t set_protocol(const char *newVal);
+    virtual result_t set_protocol(exlib::string newVal);
     virtual result_t get_headers(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_keepAlive(bool &retVal);
     virtual result_t set_keepAlive(bool newVal);
@@ -61,23 +61,23 @@ public:
     virtual result_t set_maxHeadersCount(int32_t newVal);
     virtual result_t get_maxUploadSize(int32_t &retVal);
     virtual result_t set_maxUploadSize(int32_t newVal);
-    virtual result_t hasHeader(const char *name, bool &retVal);
-    virtual result_t firstHeader(const char *name, Variant &retVal);
-    virtual result_t allHeader(const char *name, obj_ptr<List_base> &retVal);
+    virtual result_t hasHeader(exlib::string name, bool &retVal);
+    virtual result_t firstHeader(exlib::string name, Variant &retVal);
+    virtual result_t allHeader(exlib::string name, obj_ptr<List_base> &retVal);
     virtual result_t addHeader(Map_base* map);
-    virtual result_t addHeader(const char *name, Variant value);
+    virtual result_t addHeader(exlib::string name, Variant value);
     virtual result_t setHeader(Map_base* map);
-    virtual result_t setHeader(const char *name, Variant value);
-    virtual result_t removeHeader(const char *name);
+    virtual result_t setHeader(exlib::string name, Variant value);
+    virtual result_t removeHeader(exlib::string name);
 
 public:
     // HttpRequest_base
     virtual result_t get_method(exlib::string &retVal);
-    virtual result_t set_method(const char *newVal);
+    virtual result_t set_method(exlib::string newVal);
     virtual result_t get_address(exlib::string &retVal);
-    virtual result_t set_address(const char *newVal);
+    virtual result_t set_address(exlib::string newVal);
     virtual result_t get_queryString(exlib::string &retVal);
-    virtual result_t set_queryString(const char *newVal);
+    virtual result_t set_queryString(exlib::string newVal);
     virtual result_t get_cookies(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_form(obj_ptr<HttpCollection_base> &retVal);
     virtual result_t get_query(obj_ptr<HttpCollection_base> &retVal);

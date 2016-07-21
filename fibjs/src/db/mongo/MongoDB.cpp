@@ -45,7 +45,7 @@ int32_t mongo_env_write_socket(mongo *conn, const void *buf, size_t len)
     return MONGO_OK;
 }
 
-int32_t mongo_env_socket_connect(mongo *conn, const char *host, int32_t port)
+int32_t mongo_env_socket_connect(mongo *conn, const char* host, int32_t port)
 {
     if (!(conn->sock = fibjs::socket::c_connect(host, port)))
     {
@@ -69,12 +69,12 @@ int32_t mongo_env_close_socket(void *socket)
     return 0;
 }
 
-MONGO_EXPORT int32_t mongo_run_command(mongo *conn, const char *db,
+MONGO_EXPORT int32_t mongo_run_command(mongo *conn, const char* db,
                                        const bson *command, bson *out)
 {
     bson response[1];
     bson_iterator it[1];
-    size_t sl = strlen(db);
+    size_t sl = fibjs::qstrlen(db);
     char *ns = (char *) bson_malloc(sl + 5 + 1);
     int32_t res = 0;
 
@@ -171,7 +171,7 @@ result_t db_base::openMongoDB(exlib::string connString,
     return 0;
 }
 
-result_t MongoDB::open(const char *connString)
+result_t MongoDB::open(exlib::string connString)
 {
     assert(!Isolate::check());
 
@@ -234,11 +234,11 @@ result_t MongoDB::open(const char *connString)
     return 0;
 }
 
-result_t MongoDB::getCollection(const char *name,
+result_t MongoDB::getCollection(exlib::string name,
                                 obj_ptr<MongoCollection_base> &retVal)
 {
     exlib::string nsStr;
-    const char *ns = name;
+    const char *ns = name.c_str();
 
     if (!m_ns.empty())
     {
@@ -295,19 +295,19 @@ result_t MongoDB::runCommand(v8::Local<v8::Object> cmd,
     return bsonHandler(&bbq, retVal);
 }
 
-result_t MongoDB::runCommand(const char *cmd, v8::Local<v8::Value> arg,
+result_t MongoDB::runCommand(exlib::string cmd, v8::Local<v8::Value> arg,
                              v8::Local<v8::Object> &retVal)
 {
     bson bbq;
 
     bson_init(&bbq);
-    encodeValue(holder(), &bbq, cmd, arg);
+    encodeValue(holder(), &bbq, cmd.c_str(), arg);
     bson_finish(&bbq);
 
     return bsonHandler(&bbq, retVal);
 }
 
-result_t MongoDB::_named_getter(const char *property,
+result_t MongoDB::_named_getter(const char* property,
                                 obj_ptr<MongoCollection_base> &retVal)
 {
     return getCollection(property, retVal);
@@ -324,7 +324,7 @@ result_t MongoDB::get_fs(obj_ptr<GridFS_base> &retVal)
     return 0;
 }
 
-result_t MongoDB::oid(const char *hexStr, obj_ptr<MongoID_base> &retVal)
+result_t MongoDB::oid(exlib::string hexStr, obj_ptr<MongoID_base> &retVal)
 {
     retVal = new MongoID(hexStr);
     return 0;

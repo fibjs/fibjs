@@ -18,13 +18,13 @@ namespace fibjs
 
 DECLARE_MODULE(websocket);
 
-result_t websocket_base::connect(const char* url, const char* origin,
+result_t websocket_base::connect(exlib::string url, exlib::string origin,
                                  obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
 	class asyncConnect: public AsyncState
 	{
 	public:
-		asyncConnect(const char* url, const char* origin,
+		asyncConnect(exlib::string url, exlib::string origin,
 		             obj_ptr<Stream_base>& retVal, AsyncEvent *ac) :
 			AsyncState(ac), m_url(url), m_origin(origin), m_retVal(retVal)
 		{

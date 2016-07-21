@@ -16,7 +16,7 @@ namespace fibjs
 
 DECLARE_MODULE(vm);
 
-result_t SandBox_base::_new(v8::Local<v8::Object> mods, const char *name,
+result_t SandBox_base::_new(v8::Local<v8::Object> mods, exlib::string name,
                             obj_ptr<SandBox_base> &retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<SandBox> sbox = new SandBox(name);
@@ -33,7 +33,7 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods, const char *name,
 
 result_t SandBox_base::_new(v8::Local<v8::Object> mods,
                             v8::Local<v8::Function> require,
-                            const char *name,
+                            exlib::string name,
                             obj_ptr<SandBox_base> &retVal,
                             v8::Local<v8::Object> This)
 {
@@ -74,7 +74,7 @@ void SandBox::initRoot()
     InstallModule("expect", createV8Function("expect", isolate->m_isolate, test_base::s_expect));
 }
 
-result_t SandBox::add(const char *id, v8::Local<v8::Value> mod)
+result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
 {
     util_base::clone(mod, mod);
     InstallModule(id, mod);
@@ -97,7 +97,7 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
     return 0;
 }
 
-result_t SandBox::remove(const char *id)
+result_t SandBox::remove(exlib::string id)
 {
     mods()->Delete(holder()->NewFromUtf8(id));
     return 0;

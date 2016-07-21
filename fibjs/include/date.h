@@ -99,6 +99,11 @@ public:
     void toUTC();
 
     void parse(const char *str, int32_t len = -1);
+    void parse(exlib::string str)
+    {
+        parse(str.c_str(), (int32_t)str.length());
+    }
+
     void toGMTString(exlib::string &retVal);
     void toX509String(exlib::string &retVal);
     void sqlString(exlib::string &retVal);

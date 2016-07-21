@@ -170,7 +170,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value> &args)
     }
 }
 
-SandBox::Context::Context(SandBox *sb, const char *id) : m_sb(sb)
+SandBox::Context::Context(SandBox *sb, exlib::string id) : m_sb(sb)
 {
     Isolate* isolate = m_sb->holder();
     m_id = isolate->NewFromUtf8(id);
@@ -184,22 +184,22 @@ SandBox::Context::Context(SandBox *sb, const char *id) : m_sb(sb)
     m_fnRun = createV8Function("run", isolate->m_isolate, _run, _mod);
 }
 
-result_t SandBox::Context::run(exlib::string src, const char *name, const char **argNames,
+result_t SandBox::Context::run(exlib::string src, exlib::string name, const char** argNames,
                                v8::Local<v8::Value> *args, int32_t argCount)
 {
     Isolate* isolate = m_sb->holder();
-    const char *oname = name;
+    exlib::string oname = name;
 
     exlib::string sname = m_sb->name();
     if (!sname.empty())
     {
         sname.append(oname);
-        oname = sname.c_str();
+        oname = sname;
     }
 
     v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
     exlib::string pname;
-    path_base::dirname(name, pname);
+    path_base::dirname(name.c_str(), pname);
 
     v8::Local<v8::Script> script;
     {
@@ -247,7 +247,7 @@ result_t SandBox::Context::run(exlib::string src, const char *name, const char *
     return 0;
 }
 
-result_t SandBox::Context::run(exlib::string src, const char *name, v8::Local<v8::Array> argv, bool main)
+result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<v8::Array> argv, bool main)
 {
     static const char *names[] = {"require", "run", "argv", "global", "repl"};
 
@@ -267,7 +267,7 @@ result_t SandBox::Context::run(exlib::string src, const char *name, v8::Local<v8
     }
 }
 
-result_t SandBox::Context::run(exlib::string src, const char *name, v8::Local<v8::Object> module,
+result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<v8::Object> module,
                                v8::Local<v8::Object> exports)
 {
     static const char *names[] = {"module", "exports", "require", "run"};
@@ -276,7 +276,7 @@ result_t SandBox::Context::run(exlib::string src, const char *name, v8::Local<v8
     return run(src, name, names, args, ARRAYSIZE(names));
 }
 
-result_t SandBox::addScript(const char *srcname, const char *script,
+result_t SandBox::addScript(exlib::string srcname, exlib::string script,
                             v8::Local<v8::Value> &retVal)
 {
     exlib::string fname(srcname);
@@ -518,14 +518,14 @@ result_t SandBox::require(exlib::string base, exlib::string id,
     return hr;
 }
 
-result_t SandBox::require(const char *id, v8::Local<v8::Value> &retVal)
+result_t SandBox::require(exlib::string id, v8::Local<v8::Value> &retVal)
 {
     exlib::string sid;
-    path_base::normalize(id, sid);
+    path_base::normalize(id.c_str(), sid);
     return require("", sid, retVal, FULL_SEARCH);
 }
 
-result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv, bool main)
+result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv, bool main)
 {
     result_t hr;
 
@@ -551,7 +551,7 @@ result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv, bool main)
     return context.run(buf, pname, argv, main);
 }
 
-result_t SandBox::run(const char *fname, v8::Local<v8::Array> argv)
+result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv)
 {
     return run(fname, argv, false);
 }

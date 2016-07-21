@@ -22,10 +22,10 @@ public:
     {
     }
 
-    MongoID(const char *str)
+    MongoID(exlib::string str)
     {
-        if (*str)
-            bson_oid_from_string(&m_id, str);
+        if (!str.empty())
+            bson_oid_from_string(&m_id, str.c_str());
         else
             bson_oid_gen(&m_id);
     }
@@ -41,7 +41,7 @@ public:
         return 0;
     }
 
-    virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal)
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
     {
         exlib::string str;
 

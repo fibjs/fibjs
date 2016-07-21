@@ -29,7 +29,7 @@ public:
 
 public:
     result_t get_protocol(exlib::string &retVal);
-    result_t set_protocol(const char *newVal);
+    result_t set_protocol(exlib::string newVal);
     result_t get_headers(obj_ptr<HttpCollection_base> &retVal);
     result_t get_keepAlive(bool &retVal);
     result_t set_keepAlive(bool newVal);
@@ -39,14 +39,14 @@ public:
     result_t set_maxHeadersCount(int32_t newVal);
     result_t get_maxUploadSize(int32_t &retVal);
     result_t set_maxUploadSize(int32_t newVal);
-    result_t hasHeader(const char *name, bool &retVal);
-    result_t firstHeader(const char *name, Variant &retVal);
-    result_t allHeader(const char *name, obj_ptr<List_base> &retVal);
+    result_t hasHeader(exlib::string name, bool &retVal);
+    result_t firstHeader(exlib::string name, Variant &retVal);
+    result_t allHeader(exlib::string name, obj_ptr<List_base> &retVal);
     result_t addHeader(Map_base* map);
-    result_t addHeader(const char *name, Variant value);
+    result_t addHeader(exlib::string name, Variant value);
     result_t setHeader(Map_base* map);
-    result_t setHeader(const char *name, Variant value);
-    result_t removeHeader(const char *name);
+    result_t setHeader(exlib::string name, Variant value);
+    result_t removeHeader(exlib::string name);
     result_t get_stream(obj_ptr<Stream_base> &retVal);
 
     result_t clear();

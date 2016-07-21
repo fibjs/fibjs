@@ -25,7 +25,7 @@ result_t HttpRequest::get_protocol(exlib::string &retVal)
     return m_message->get_protocol(retVal);
 }
 
-result_t HttpRequest::set_protocol(const char *newVal)
+result_t HttpRequest::set_protocol(exlib::string newVal)
 {
     return m_message->set_protocol(newVal);
 }
@@ -106,17 +106,17 @@ result_t HttpRequest::set_maxUploadSize(int32_t newVal)
     return m_message->get_maxUploadSize(newVal);
 }
 
-result_t HttpRequest::hasHeader(const char *name, bool &retVal)
+result_t HttpRequest::hasHeader(exlib::string name, bool &retVal)
 {
     return m_message->hasHeader(name, retVal);
 }
 
-result_t HttpRequest::firstHeader(const char *name, Variant &retVal)
+result_t HttpRequest::firstHeader(exlib::string name, Variant &retVal)
 {
     return m_message->firstHeader(name, retVal);
 }
 
-result_t HttpRequest::allHeader(const char *name, obj_ptr<List_base> &retVal)
+result_t HttpRequest::allHeader(exlib::string name, obj_ptr<List_base> &retVal)
 {
     return m_message->allHeader(name, retVal);
 }
@@ -126,7 +126,7 @@ result_t HttpRequest::addHeader(Map_base* map)
     return m_message->addHeader(map);
 }
 
-result_t HttpRequest::addHeader(const char *name, Variant value)
+result_t HttpRequest::addHeader(exlib::string name, Variant value)
 {
     return m_message->addHeader(name, value);
 }
@@ -136,12 +136,12 @@ result_t HttpRequest::setHeader(Map_base* map)
     return m_message->setHeader(map);
 }
 
-result_t HttpRequest::setHeader(const char *name, Variant value)
+result_t HttpRequest::setHeader(exlib::string name, Variant value)
 {
     return m_message->setHeader(name, value);
 }
 
-result_t HttpRequest::removeHeader(const char *name)
+result_t HttpRequest::removeHeader(exlib::string name)
 {
     return m_message->removeHeader(name);
 }
@@ -151,7 +151,7 @@ result_t HttpRequest::get_value(exlib::string &retVal)
     return m_message->get_value(retVal);
 }
 
-result_t HttpRequest::set_value(const char *newVal)
+result_t HttpRequest::set_value(exlib::string newVal)
 {
     return m_message->set_value(newVal);
 }
@@ -181,7 +181,7 @@ result_t HttpRequest::get_lastError(exlib::string& retVal)
     return m_message->get_lastError(retVal);
 }
 
-result_t HttpRequest::set_lastError(const char* newVal)
+result_t HttpRequest::set_lastError(exlib::string newVal)
 {
     return m_message->set_lastError(newVal);
 }
@@ -321,7 +321,7 @@ result_t HttpRequest::get_stream(obj_ptr<Stream_base> &retVal)
     return m_message->get_stream(retVal);
 }
 
-result_t HttpRequest::set_method(const char *newVal)
+result_t HttpRequest::set_method(exlib::string newVal)
 {
     m_method = newVal;
     return 0;
@@ -333,7 +333,7 @@ result_t HttpRequest::get_address(exlib::string &retVal)
     return 0;
 }
 
-result_t HttpRequest::set_address(const char *newVal)
+result_t HttpRequest::set_address(exlib::string newVal)
 {
     m_address = newVal;
     return 0;
@@ -345,7 +345,7 @@ result_t HttpRequest::get_queryString(exlib::string &retVal)
     return 0;
 }
 
-result_t HttpRequest::set_queryString(const char *newVal)
+result_t HttpRequest::set_queryString(exlib::string newVal)
 {
     m_queryString = newVal;
     return 0;

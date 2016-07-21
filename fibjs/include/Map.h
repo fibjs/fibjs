@@ -20,20 +20,20 @@ public:
     // Map_base
     virtual result_t get_size(int32_t &retVal);
     virtual result_t clear();
-    virtual result_t has(const char *name, bool &retVal);
-    virtual result_t get(const char *name, Variant &retVal);
+    virtual result_t has(exlib::string name, bool &retVal);
+    virtual result_t get(exlib::string name, Variant &retVal);
     virtual result_t put(v8::Local<v8::Object> map);
-    virtual result_t put(const char *name, Variant value);
-    virtual result_t remove(const char *name);
+    virtual result_t put(exlib::string name, Variant value);
+    virtual result_t remove(exlib::string name);
     virtual result_t isEmpty(bool &retVal);
-    virtual result_t _named_getter(const char *property, Variant &retVal);
+    virtual result_t _named_getter(const char* property, Variant &retVal);
     virtual result_t _named_enumerator(v8::Local<v8::Array> &retVal);
-    virtual result_t _named_setter(const char *property, Variant newVal);
-    virtual result_t _named_deleter(const char *property, v8::Local<v8::Boolean> &retVal);
+    virtual result_t _named_setter(const char* property, Variant newVal);
+    virtual result_t _named_deleter(const char* property, v8::Local<v8::Boolean> &retVal);
 
 public:
     template<typename T>
-    inline result_t map(T *o, result_t (T::*fn)(const char *name, Variant value))
+    inline result_t map(T *o, result_t (T::*fn)(exlib::string name, Variant value))
     {
         std::map<exlib::string, VariantEx>::iterator iter;
         result_t hr;

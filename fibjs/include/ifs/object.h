@@ -26,7 +26,7 @@ public:
     virtual result_t dispose() = 0;
     virtual result_t equals(object_base* expected, bool& retVal) = 0;
     virtual result_t toString(exlib::string& retVal) = 0;
-    virtual result_t toJSON(const char* key, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t valueOf(v8::Local<v8::Value>& retVal) = 0;
 
 public:
@@ -118,7 +118,7 @@ namespace fibjs
         METHOD_INSTANCE(object_base);
         METHOD_ENTER(1, 0);
 
-        OPT_ARG(arg_string, 0, "");
+        OPT_ARG(exlib::string, 0, "");
 
         hr = pInst->toJSON(v0, vr);
 

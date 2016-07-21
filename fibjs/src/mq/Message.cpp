@@ -19,7 +19,7 @@ result_t Message::get_value(exlib::string &retVal)
     return 0;
 }
 
-result_t Message::set_value(const char *newVal)
+result_t Message::set_value(exlib::string newVal)
 {
     m_value = newVal;
     return 0;
@@ -154,7 +154,7 @@ result_t Message::get_lastError(exlib::string& retVal)
     return 0;
 }
 
-result_t Message::set_lastError(const char* newVal)
+result_t Message::set_lastError(exlib::string newVal)
 {
     m_lastError = newVal;
     return 0;

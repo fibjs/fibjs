@@ -82,7 +82,7 @@ result_t global_base::sync(v8::Local<v8::Function> func, v8::Local<v8::Function>
 	return 0;
 }
 
-result_t global_base::run(const char *fname, v8::Local<v8::Array> argv)
+result_t global_base::run(exlib::string fname, v8::Local<v8::Array> argv)
 {
 	return Isolate::current()->m_topSandbox->run(fname, argv);
 }
@@ -107,7 +107,7 @@ result_t global_base::get___sbname(exlib::string& retVal)
 	return 0;
 }
 
-result_t global_base::require(const char *id, v8::Local<v8::Value> &retVal)
+result_t global_base::require(exlib::string id, v8::Local<v8::Value> &retVal)
 {
 	return Isolate::current()->m_topSandbox->require(id, retVal);
 }

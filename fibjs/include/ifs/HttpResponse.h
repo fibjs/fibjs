@@ -34,7 +34,7 @@ public:
     virtual result_t set_status(int32_t newVal) = 0;
     virtual result_t get_cookies(obj_ptr<List_base>& retVal) = 0;
     virtual result_t addCookie(HttpCookie_base* cookie) = 0;
-    virtual result_t redirect(const char* url) = 0;
+    virtual result_t redirect(exlib::string url) = 0;
     virtual result_t sendHeader(Stream_base* stm, AsyncEvent* ac) = 0;
 
 public:
@@ -157,7 +157,7 @@ namespace fibjs
         METHOD_INSTANCE(HttpResponse_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->redirect(v0);
 

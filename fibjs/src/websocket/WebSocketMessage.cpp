@@ -27,7 +27,7 @@ result_t WebSocketMessage::get_value(exlib::string &retVal)
     return m_message->get_value(retVal);
 }
 
-result_t WebSocketMessage::set_value(const char *newVal)
+result_t WebSocketMessage::set_value(exlib::string newVal)
 {
     return m_message->set_value(newVal);
 }
@@ -88,7 +88,7 @@ result_t WebSocketMessage::get_lastError(exlib::string& retVal)
     return m_message->get_lastError(retVal);
 }
 
-result_t WebSocketMessage::set_lastError(const char* newVal)
+result_t WebSocketMessage::set_lastError(exlib::string newVal)
 {
     return m_message->set_lastError(newVal);
 }

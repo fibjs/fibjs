@@ -61,7 +61,7 @@ result_t LruCache::clear()
     return 0;
 }
 
-result_t LruCache::has(const char *name, bool &retVal)
+result_t LruCache::has(exlib::string name, bool &retVal)
 {
     cleanup();
 
@@ -69,12 +69,12 @@ result_t LruCache::has(const char *name, bool &retVal)
     return 0;
 }
 
-result_t LruCache::get(const char *name, v8::Local<v8::Value> &retVal)
+result_t LruCache::get(exlib::string name, v8::Local<v8::Value> &retVal)
 {
     return get(name, v8::Local<v8::Function>(), retVal);
 }
 
-result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
+result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
                        v8::Local<v8::Value> &retVal)
 {
     static _linkedNode newNode;
@@ -116,7 +116,7 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
 
             if (m_timeout > 0)
                 find->second.insert.now();
-            isolate->SetPrivate(o, name, v);
+            isolate->SetPrivate(o, name.c_str(), v);
 
             retVal = v;
             return 0;
@@ -127,12 +127,12 @@ result_t LruCache::get(const char *name, v8::Local<v8::Function> updater,
     }
 
     update(find);
-    retVal = isolate->GetPrivate(o, name);
+    retVal = isolate->GetPrivate(o, name.c_str());
 
     return 0;
 }
 
-result_t LruCache::set(const char *name, v8::Local<v8::Value> value)
+result_t LruCache::set(exlib::string name, v8::Local<v8::Value> value)
 {
     std::map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
 
@@ -143,7 +143,7 @@ result_t LruCache::set(const char *name, v8::Local<v8::Value> value)
 
         if (m_timeout > 0)
             find->second.insert.now();
-        holder()->SetPrivate(wrap(), name, value);
+        holder()->SetPrivate(wrap(), name.c_str(), value);
     }
 
     cleanup();
@@ -151,7 +151,7 @@ result_t LruCache::set(const char *name, v8::Local<v8::Value> value)
     return 0;
 }
 
-result_t LruCache::put(const char *name, v8::Local<v8::Value> value)
+result_t LruCache::put(exlib::string name, v8::Local<v8::Value> value)
 {
     static _linkedNode newNode;
     std::map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
@@ -169,7 +169,7 @@ result_t LruCache::put(const char *name, v8::Local<v8::Value> value)
 
     if (m_timeout > 0)
         find->second.insert.now();
-    holder()->SetPrivate(wrap(), name, value);
+    holder()->SetPrivate(wrap(), name.c_str(), value);
 
     cleanup();
 
@@ -177,7 +177,7 @@ result_t LruCache::put(const char *name, v8::Local<v8::Value> value)
 }
 
 inline result_t _map(LruCache *o, v8::Local<v8::Object> m,
-                     result_t (LruCache::*fn)(const char *name, v8::Local<v8::Value> value))
+                     result_t (LruCache::*fn)(exlib::string name, v8::Local<v8::Value> value))
 {
     v8::Local<v8::Array> ks = m->GetPropertyNames();
     int32_t len = ks->Length();
@@ -197,7 +197,7 @@ result_t LruCache::put(v8::Local<v8::Object> map)
     return _map(this, map, &LruCache::put);
 }
 
-result_t LruCache::remove(const char *name)
+result_t LruCache::remove(exlib::string name)
 {
     std::map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
 
@@ -217,7 +217,7 @@ result_t LruCache::isEmpty(bool &retVal)
     return 0;
 }
 
-result_t LruCache::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+result_t LruCache::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 {
     cleanup();
 

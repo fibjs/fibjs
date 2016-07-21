@@ -29,33 +29,34 @@ inline bool pathcmpchr(char ch1, char ch2)
 
 #endif
 
-inline void pathAdd(exlib::string& strBuffer, const char* other)
+inline void pathAdd(exlib::string& strBuffer, exlib::string other)
 {
 	bool bRoot;
 
-	if (other && *other)
+	if (!other.empty())
 	{
+		const char* c_str = other.c_str();
 #ifdef _WIN32
 		char diskID = 0;
 
 		if (strBuffer[0] != 0 && strBuffer[1] == ':')
 			diskID = strBuffer[0];
 
-		if (other[0] != 0 && other[1] == ':')
+		if (c_str[0] != 0 && c_str[1] == ':')
 		{
-			if (!pathcmpchr(other[0], diskID) && !isPathSlash(other[2]))
+			if (!pathcmpchr(c_str[0], diskID) && !isPathSlash(c_str[2]))
 			{
-				other += 2;
+				c_str += 2;
 				bRoot = false;
 			}
 			else
 				bRoot = true;
 		}
-		else if (isPathSlash(other[0]) && isPathSlash(other[1]))
+		else if (isPathSlash(c_str[0]) && isPathSlash(c_str[1]))
 			bRoot = true;
 		else
 #endif
-			if (isPathSlash(other[0]))
+			if (isPathSlash(c_str[0]))
 				bRoot = true;
 			else
 				bRoot = false;
@@ -65,7 +66,7 @@ inline void pathAdd(exlib::string& strBuffer, const char* other)
 		else if (!strBuffer.empty() && !isPathSlash(strBuffer[strBuffer.length() - 1]))
 			strBuffer.append(1, PATH_SLASH);
 
-		strBuffer.append(other);
+		strBuffer.append(c_str);
 	}
 }
 

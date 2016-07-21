@@ -27,13 +27,13 @@ class MongoDB_base : public object_base
 
 public:
     // MongoDB_base
-    virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal) = 0;
+    virtual result_t getCollection(exlib::string name, obj_ptr<MongoCollection_base>& retVal) = 0;
     virtual result_t runCommand(v8::Local<v8::Object> cmd, v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t runCommand(const char* cmd, v8::Local<v8::Value> arg, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t runCommand(exlib::string cmd, v8::Local<v8::Value> arg, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t get_fs(obj_ptr<GridFS_base>& retVal) = 0;
-    virtual result_t oid(const char* hexStr, obj_ptr<MongoID_base>& retVal) = 0;
+    virtual result_t oid(exlib::string hexStr, obj_ptr<MongoID_base>& retVal) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
 
 public:
@@ -146,7 +146,7 @@ namespace fibjs
         METHOD_INSTANCE(MongoDB_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->getCollection(v0, vr);
 
@@ -166,7 +166,7 @@ namespace fibjs
 
         METHOD_OVER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Value>, 1);
 
         hr = pInst->runCommand(v0, v1, vr);
@@ -181,7 +181,7 @@ namespace fibjs
         METHOD_INSTANCE(MongoDB_base);
         METHOD_ENTER(1, 0);
 
-        OPT_ARG(arg_string, 0, "");
+        OPT_ARG(exlib::string, 0, "");
 
         hr = pInst->oid(v0, vr);
 

@@ -47,10 +47,10 @@ public:
 public:
     // object_base
     virtual result_t valueOf(v8::Local<v8::Value> &retVal);
-    virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value> &retVal);
 
 public:
-    result_t fromString(const char *numStr, int32_t base);
+    result_t fromString(exlib::string numStr, int32_t base);
 
 public:
     int64_t m_num;

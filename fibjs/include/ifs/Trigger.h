@@ -24,14 +24,14 @@ class Trigger_base : public object_base
 public:
     // Trigger_base
     static result_t _new(obj_ptr<Trigger_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t on(const char* ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
+    virtual result_t on(exlib::string ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
     virtual result_t on(v8::Local<v8::Object> map, int32_t& retVal) = 0;
-    virtual result_t once(const char* ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
+    virtual result_t once(exlib::string ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
     virtual result_t once(v8::Local<v8::Object> map, int32_t& retVal) = 0;
-    virtual result_t off(const char* ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
-    virtual result_t off(const char* ev, int32_t& retVal) = 0;
+    virtual result_t off(exlib::string ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
+    virtual result_t off(exlib::string ev, int32_t& retVal) = 0;
     virtual result_t off(v8::Local<v8::Object> map, int32_t& retVal) = 0;
-    virtual result_t trigger(const char* ev, const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
+    virtual result_t trigger(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
 
 public:
     template<typename T>
@@ -95,7 +95,7 @@ namespace fibjs
         METHOD_INSTANCE(Trigger_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
         hr = pInst->on(v0, v1, vr);
@@ -116,7 +116,7 @@ namespace fibjs
         METHOD_INSTANCE(Trigger_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
         hr = pInst->once(v0, v1, vr);
@@ -137,14 +137,14 @@ namespace fibjs
         METHOD_INSTANCE(Trigger_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
         hr = pInst->off(v0, v1, vr);
 
         METHOD_OVER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->off(v0, vr);
 
@@ -162,7 +162,7 @@ namespace fibjs
         METHOD_INSTANCE(Trigger_base);
         METHOD_ENTER(-1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->trigger(v0, args);
 

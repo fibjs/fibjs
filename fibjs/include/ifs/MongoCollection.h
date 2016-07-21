@@ -35,14 +35,14 @@ public:
     virtual result_t update(v8::Local<v8::Object> query, v8::Local<v8::Object> document, v8::Local<v8::Object> options) = 0;
     virtual result_t remove(v8::Local<v8::Object> query) = 0;
     virtual result_t runCommand(v8::Local<v8::Object> cmd, v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t runCommand(const char* cmd, v8::Local<v8::Object> arg, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t runCommand(exlib::string cmd, v8::Local<v8::Object> arg, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t drop() = 0;
     virtual result_t ensureIndex(v8::Local<v8::Object> keys, v8::Local<v8::Object> options) = 0;
     virtual result_t reIndex(v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t dropIndex(const char* name, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t dropIndex(exlib::string name, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t dropIndexes(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t getIndexes(obj_ptr<MongoCursor_base>& retVal) = 0;
-    virtual result_t getCollection(const char* name, obj_ptr<MongoCollection_base>& retVal) = 0;
+    virtual result_t getCollection(exlib::string name, obj_ptr<MongoCollection_base>& retVal) = 0;
     virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 
@@ -270,7 +270,7 @@ namespace fibjs
 
         METHOD_OVER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = pInst->runCommand(v0, v1, vr);
@@ -320,7 +320,7 @@ namespace fibjs
         METHOD_INSTANCE(MongoCollection_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->dropIndex(v0, vr);
 
@@ -358,7 +358,7 @@ namespace fibjs
         METHOD_INSTANCE(MongoCollection_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->getCollection(v0, vr);
 

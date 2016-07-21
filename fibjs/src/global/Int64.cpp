@@ -33,7 +33,7 @@ result_t Int64_base::_new(int64_t hi, int64_t lo,
     return 0;
 }
 
-result_t Int64_base::_new(const char *num, int32_t base,
+result_t Int64_base::_new(exlib::string num, int32_t base,
                           obj_ptr<Int64_base> &retVal,
                           v8::Local<v8::Object> This)
 {
@@ -130,7 +130,7 @@ result_t Int64::sub(Int64_base *num, obj_ptr<Int64_base> &retVal)
     return 0;
 }
 
-result_t Int64::fromString(const char *numStr, int32_t base)
+result_t Int64::fromString(exlib::string numStr, int32_t base)
 {
     static const char __base32_map[] =
     {
@@ -152,22 +152,24 @@ result_t Int64::fromString(const char *numStr, int32_t base)
         41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1 /* 7X pqrstuvwxyz{\}~DEL */
     };
 
-    while (*numStr && qisspace(*numStr))
-        numStr++;
+    const char* c_str = numStr.c_str();
+
+    while (*c_str && qisspace(*c_str))
+        c_str++;
 
     bool bNeg = false;
 
     if (base == 10)
     {
-        if (numStr[0] == '-')
+        if (c_str[0] == '-')
         {
             bNeg = true;
-            numStr ++;
+            c_str ++;
         }
-        if (numStr[0] == '0' && numStr[1] == 'x')
+        if (c_str[0] == '0' && c_str[1] == 'x')
         {
             base = 16;
-            numStr += 2;
+            c_str += 2;
         }
     }
 
@@ -184,7 +186,7 @@ result_t Int64::fromString(const char *numStr, int32_t base)
     else
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    while (0 != (ch = *numStr ++))
+    while (0 != (ch = *c_str ++))
     {
         if (__base)
             ch = (ch > 0x20 && ch < 0x80) ? __base[ch - 0x20] : -1;
@@ -272,7 +274,7 @@ result_t Int64::toNumber(double &retVal)
     return 0;
 }
 
-result_t Int64::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+result_t Int64::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 {
     exlib::string str;
 

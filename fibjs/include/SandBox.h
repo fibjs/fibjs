@@ -19,9 +19,9 @@ namespace fibjs
 class SandBox: public fibjs::SandBox_base
 {
 public:
-    SandBox(const char *name = NULL)
+    SandBox(exlib::string name = "")
     {
-        if (name && *name)
+        if (!name.empty())
         {
             m_name = name;
             m_name.append(":", 1);
@@ -30,13 +30,13 @@ public:
 
 public:
     // SandBox_base
-    virtual result_t add(const char *id, v8::Local<v8::Value> mod);
+    virtual result_t add(exlib::string id, v8::Local<v8::Value> mod);
     virtual result_t add(v8::Local<v8::Object> mods);
-    virtual result_t addScript(const char *srcname, const char *script, v8::Local<v8::Value> &retVal);
-    virtual result_t remove(const char *id);
+    virtual result_t addScript(exlib::string srcname, exlib::string script, v8::Local<v8::Value> &retVal);
+    virtual result_t remove(exlib::string id);
     virtual result_t clone(obj_ptr<SandBox_base> &retVal);
-    virtual result_t run(const char *fname, v8::Local<v8::Array> argv);
-    virtual result_t require(const char *id, v8::Local<v8::Value> &retVal);
+    virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv);
+    virtual result_t require(exlib::string id, v8::Local<v8::Value> &retVal);
 
 public:
     v8::Local<v8::Object> mods()
@@ -69,7 +69,7 @@ public:
     result_t require(exlib::string base, exlib::string id, v8::Local<v8::Value> &retVal, int32_t mode);
     result_t repl(v8::Local<v8::Array> cmds, Stream_base* out = NULL);
 
-    result_t run(const char *fname, v8::Local<v8::Array> argv, bool main);
+    result_t run(exlib::string fname, v8::Local<v8::Array> argv, bool main);
 
     exlib::string name()
     {
@@ -80,12 +80,12 @@ public:
     class Context
     {
     public:
-        Context(SandBox *sb, const char *id);
+        Context(SandBox *sb, exlib::string id);
 
-        result_t run(exlib::string src, const char *name, const char **argNames,
+        result_t run(exlib::string src, exlib::string name, const char** argNames,
                      v8::Local<v8::Value> *args, int32_t argCount);
-        result_t run(exlib::string src, const char *name, v8::Local<v8::Array> argv, bool main);
-        result_t run(exlib::string src, const char *name, v8::Local<v8::Object> module,
+        result_t run(exlib::string src, exlib::string name, v8::Local<v8::Array> argv, bool main);
+        result_t run(exlib::string src, exlib::string name, v8::Local<v8::Object> module,
                      v8::Local<v8::Object> exports);
 
         static result_t repl(v8::Local<v8::Array> cmds, Stream_base* out);

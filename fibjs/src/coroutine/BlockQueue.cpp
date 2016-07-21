@@ -116,7 +116,7 @@ result_t BlockQueue::get_length(int32_t &retVal)
     return 0;
 }
 
-result_t BlockQueue::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+result_t BlockQueue::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 {
     result_t hr;
     v8::Local<v8::Array> as;

@@ -27,11 +27,11 @@ public:
     static result_t _new(v8::Local<v8::Object> map, obj_ptr<Map_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_size(int32_t& retVal) = 0;
     virtual result_t clear() = 0;
-    virtual result_t has(const char* name, bool& retVal) = 0;
-    virtual result_t get(const char* name, Variant& retVal) = 0;
+    virtual result_t has(exlib::string name, bool& retVal) = 0;
+    virtual result_t get(exlib::string name, Variant& retVal) = 0;
     virtual result_t put(v8::Local<v8::Object> map) = 0;
-    virtual result_t put(const char* name, Variant value) = 0;
-    virtual result_t remove(const char* name) = 0;
+    virtual result_t put(exlib::string name, Variant value) = 0;
+    virtual result_t remove(exlib::string name) = 0;
     virtual result_t isEmpty(bool& retVal) = 0;
     virtual result_t _named_getter(const char* property, Variant& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
@@ -202,7 +202,7 @@ namespace fibjs
         METHOD_INSTANCE(Map_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->has(v0, vr);
 
@@ -216,7 +216,7 @@ namespace fibjs
         METHOD_INSTANCE(Map_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->get(v0, vr);
 
@@ -234,7 +234,7 @@ namespace fibjs
 
         METHOD_OVER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(Variant, 1);
 
         hr = pInst->put(v0, v1);
@@ -247,7 +247,7 @@ namespace fibjs
         METHOD_INSTANCE(Map_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->remove(v0);
 

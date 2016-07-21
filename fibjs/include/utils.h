@@ -315,21 +315,21 @@ typedef int32_t result_t;
 
 #define EVENT_SUPPORT() \
     public: \
-    virtual result_t on(const char* ev, v8::Local<v8::Function> func, int32_t &retVal) \
+    virtual result_t on(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal) \
     {   return object_base::on(ev, func, retVal);} \
     virtual result_t on(v8::Local<v8::Object> map, int32_t &retVal) \
     {   return object_base::on(map, retVal);} \
-    virtual result_t once(const char* ev, v8::Local<v8::Function> func, int32_t &retVal) \
+    virtual result_t once(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal) \
     {   return object_base::once(ev, func, retVal);} \
     virtual result_t once(v8::Local<v8::Object> map, int32_t &retVal) \
     {   return object_base::once(map, retVal);} \
-    virtual result_t off(const char* ev, v8::Local<v8::Function> func, int32_t &retVal) \
+    virtual result_t off(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal) \
     {   return object_base::off(ev, func, retVal);} \
-    virtual result_t off(const char* ev, int32_t &retVal) \
+    virtual result_t off(exlib::string ev, int32_t &retVal) \
     {   return object_base::off(ev, retVal);} \
     virtual result_t off(v8::Local<v8::Object> map, int32_t &retVal) \
     {   return object_base::off(map, retVal);} \
-    virtual result_t trigger(const char* ev, const v8::FunctionCallbackInfo<v8::Value>& args) \
+    virtual result_t trigger(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args) \
     {   return object_base::trigger(ev, args);}
 
 #define FIBER_FREE() \

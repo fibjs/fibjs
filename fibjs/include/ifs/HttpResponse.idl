@@ -19,7 +19,7 @@ interface HttpResponse : HttpMessage
     /*! @brief 发送重定向到客户端
      @param url 重定向的地址
      */
-    redirect(String url);
+    redirect(XString url);
 
     /*! @brief 仅发送格式化 http 头到给定的流对象
      @param stm 指定接收格式化消息的流对象

@@ -146,7 +146,7 @@ result_t DBResult::toArray(v8::Local<v8::Array> &retVal)
     return m_array->toArray(retVal);
 }
 
-result_t DBResult::toJSON(const char *key, v8::Local<v8::Value> &retVal)
+result_t DBResult::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 {
     if (m_size)
         return m_array->toJSON(key, retVal);

@@ -112,7 +112,7 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
     return (new asyncRequest(conn, req, retVal, ac))->post(0);
 }
 
-result_t http_base::request(const char* method, const char* url,
+result_t http_base::request(exlib::string method, exlib::string url,
                             SeekableStream_base* body, Map_base* headers,
                             obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
@@ -120,7 +120,7 @@ result_t http_base::request(const char* method, const char* url,
     class asyncRequest: public AsyncState
     {
     public:
-        asyncRequest(const char* method, const char* url,
+        asyncRequest(exlib::string method, exlib::string url,
                      SeekableStream_base* body, Map_base* headers,
                      obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) :
             AsyncState(ac), m_method(method), m_url(url), m_body(body),
@@ -257,7 +257,7 @@ result_t http_base::request(const char* method, const char* url,
     return (new asyncRequest(method, url, body, headers, retVal, ac))->post(0);
 }
 
-result_t http_base::request(const char *method, const char *url,
+result_t http_base::request(exlib::string method, exlib::string url,
                             SeekableStream_base *body, v8::Local<v8::Object> headers,
                             obj_ptr<HttpResponse_base> &retVal)
 {
@@ -266,13 +266,13 @@ result_t http_base::request(const char *method, const char *url,
     return ac_request(method, url, body, map, retVal);
 }
 
-result_t http_base::request(const char *method, const char *url,
+result_t http_base::request(exlib::string method, exlib::string url,
                             v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
 {
     return request(method, url, (SeekableStream_base *) NULL, headers, retVal);
 }
 
-result_t http_base::request(const char *method, const char *url,
+result_t http_base::request(exlib::string method, exlib::string url,
                             Buffer_base *body, v8::Local<v8::Object> headers,
                             obj_ptr<HttpResponse_base> &retVal)
 {
@@ -281,19 +281,19 @@ result_t http_base::request(const char *method, const char *url,
     return request(method, url, stm, headers, retVal);
 }
 
-result_t http_base::get(const char *url, v8::Local<v8::Object> headers,
+result_t http_base::get(exlib::string url, v8::Local<v8::Object> headers,
                         obj_ptr<HttpResponse_base> &retVal)
 {
     return request("GET", url, headers, retVal);
 }
 
-result_t http_base::post(const char *url, Buffer_base *body,
+result_t http_base::post(exlib::string url, Buffer_base *body,
                          v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
 {
     return request("POST", url, body, headers, retVal);
 }
 
-result_t http_base::post(const char *url, SeekableStream_base *body,
+result_t http_base::post(exlib::string url, SeekableStream_base *body,
                          v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
 {
     return request("POST", url, body, headers, retVal);

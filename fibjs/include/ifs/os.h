@@ -36,8 +36,8 @@ public:
     static result_t CPUInfo(v8::Local<v8::Array>& retVal);
     static result_t CPUs(int32_t& retVal);
     static result_t networkInfo(v8::Local<v8::Object>& retVal);
-    static result_t time(const char* tmString, date_t& retVal);
-    static result_t dateAdd(date_t d, int32_t num, const char* part, date_t& retVal);
+    static result_t time(exlib::string tmString, date_t& retVal);
+    static result_t dateAdd(date_t d, int32_t num, exlib::string part, date_t& retVal);
     static result_t get_execPath(exlib::string& retVal);
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
 
@@ -274,7 +274,7 @@ namespace fibjs
 
         METHOD_ENTER(1, 0);
 
-        OPT_ARG(arg_string, 0, "");
+        OPT_ARG(exlib::string, 0, "");
 
         hr = time(v0, vr);
 
@@ -289,7 +289,7 @@ namespace fibjs
 
         ARG(date_t, 0);
         ARG(int32_t, 1);
-        ARG(arg_string, 2);
+        ARG(exlib::string, 2);
 
         hr = dateAdd(v0, v1, v2, vr);
 

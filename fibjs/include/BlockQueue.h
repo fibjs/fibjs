@@ -44,7 +44,7 @@ public:
 
 public:
     // Object
-    virtual result_t toJSON(const char *key, v8::Local<v8::Value> &retVal);
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value> &retVal);
 
 private:
     std::list<VariantEx> m_list;

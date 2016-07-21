@@ -23,15 +23,15 @@ class SandBox_base : public object_base
 
 public:
     // SandBox_base
-    static result_t _new(v8::Local<v8::Object> mods, const char* name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, const char* name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t add(const char* id, v8::Local<v8::Value> mod) = 0;
+    static result_t _new(v8::Local<v8::Object> mods, exlib::string name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, exlib::string name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t add(exlib::string id, v8::Local<v8::Value> mod) = 0;
     virtual result_t add(v8::Local<v8::Object> mods) = 0;
-    virtual result_t addScript(const char* srcname, const char* script, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t remove(const char* id) = 0;
+    virtual result_t addScript(exlib::string srcname, exlib::string script, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t remove(exlib::string id) = 0;
     virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
-    virtual result_t run(const char* fname, v8::Local<v8::Array> argv) = 0;
-    virtual result_t require(const char* id, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv) = 0;
+    virtual result_t require(exlib::string id, v8::Local<v8::Value>& retVal) = 0;
 
 public:
     template<typename T>
@@ -88,7 +88,7 @@ namespace fibjs
         CONSTRUCT_ENTER(2, 1);
 
         ARG(v8::Local<v8::Object>, 0);
-        OPT_ARG(arg_string, 1, "");
+        OPT_ARG(exlib::string, 1, "");
 
         hr = _new(v0, v1, vr, args.This());
 
@@ -96,7 +96,7 @@ namespace fibjs
 
         ARG(v8::Local<v8::Object>, 0);
         ARG(v8::Local<v8::Function>, 1);
-        OPT_ARG(arg_string, 2, "");
+        OPT_ARG(exlib::string, 2, "");
 
         hr = _new(v0, v1, v2, vr, args.This());
 
@@ -108,7 +108,7 @@ namespace fibjs
         METHOD_INSTANCE(SandBox_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         ARG(v8::Local<v8::Value>, 1);
 
         hr = pInst->add(v0, v1);
@@ -129,8 +129,8 @@ namespace fibjs
         METHOD_INSTANCE(SandBox_base);
         METHOD_ENTER(2, 2);
 
-        ARG(arg_string, 0);
-        ARG(arg_string, 1);
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
 
         hr = pInst->addScript(v0, v1, vr);
 
@@ -142,7 +142,7 @@ namespace fibjs
         METHOD_INSTANCE(SandBox_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->remove(v0);
 
@@ -166,7 +166,7 @@ namespace fibjs
         METHOD_INSTANCE(SandBox_base);
         METHOD_ENTER(2, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
         OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(isolate));
 
         hr = pInst->run(v0, v1);
@@ -181,7 +181,7 @@ namespace fibjs
         METHOD_INSTANCE(SandBox_base);
         METHOD_ENTER(1, 1);
 
-        ARG(arg_string, 0);
+        ARG(exlib::string, 0);
 
         hr = pInst->require(v0, vr);
 

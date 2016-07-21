@@ -19,10 +19,10 @@ class HttpFileHandler: public Handler_base
     FIBER_FREE();
 
 public:
-    HttpFileHandler(const char *root) :
+    HttpFileHandler(exlib::string root) :
         m_root(root)
     {
-        if (m_root.length() > 0 && !isPathSlash(m_root[m_root.length() - 1]))
+        if (!m_root.empty() && !isPathSlash(m_root.c_str()[m_root.length() - 1]))
             m_root += PATH_SLASH;
     }
 
