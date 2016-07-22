@@ -116,7 +116,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
 
             if (m_timeout > 0)
                 find->second.insert.now();
-            isolate->SetPrivate(o, name.c_str(), v);
+            isolate->SetPrivate(o, name, v);
 
             retVal = v;
             return 0;
@@ -127,7 +127,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
     }
 
     update(find);
-    retVal = isolate->GetPrivate(o, name.c_str());
+    retVal = isolate->GetPrivate(o, name);
 
     return 0;
 }
@@ -143,7 +143,7 @@ result_t LruCache::set(exlib::string name, v8::Local<v8::Value> value)
 
         if (m_timeout > 0)
             find->second.insert.now();
-        holder()->SetPrivate(wrap(), name.c_str(), value);
+        holder()->SetPrivate(wrap(), name, value);
     }
 
     cleanup();
@@ -169,7 +169,7 @@ result_t LruCache::put(exlib::string name, v8::Local<v8::Value> value)
 
     if (m_timeout > 0)
         find->second.insert.now();
-    holder()->SetPrivate(wrap(), name.c_str(), value);
+    holder()->SetPrivate(wrap(), name, value);
 
     cleanup();
 
@@ -228,7 +228,7 @@ result_t LruCache::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
     while (it != m_datas.end())
     {
         v8::Local<v8::String> name = isolate->NewFromUtf8(it->first);
-        obj->Set(name, isolate->GetPrivate(wrap(), it->first.c_str()));
+        obj->Set(name, isolate->GetPrivate(wrap(), it->first));
         it = _instantiate(it->second.m_next);
     }
 

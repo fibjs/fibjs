@@ -87,6 +87,13 @@ public:
 		       .ToLocalChecked();
 	}
 
+	v8::Local<v8::Value> GetPrivate(v8::Local<v8::Object> o, exlib::string key)
+	{
+		return o->GetPrivate(o->CreationContext(),
+		                     v8::Private::ForApi(m_isolate, NewFromUtf8(key)))
+		       .ToLocalChecked();
+	}
+
 	void SetPrivate(v8::Local<v8::Object> o, const char* key, v8::Local<v8::Value> value)
 	{
 		o->SetPrivate(o->CreationContext(),
@@ -94,7 +101,20 @@ public:
 		              value);
 	}
 
+	void SetPrivate(v8::Local<v8::Object> o, exlib::string key, v8::Local<v8::Value> value)
+	{
+		o->SetPrivate(o->CreationContext(),
+		              v8::Private::ForApi(m_isolate, NewFromUtf8(key)),
+		              value);
+	}
+
 	void DeletePrivate(v8::Local<v8::Object> o, const char* key)
+	{
+		o->DeletePrivate(o->CreationContext(),
+		                 v8::Private::ForApi(m_isolate, NewFromUtf8(key)));
+	}
+
+	void DeletePrivate(v8::Local<v8::Object> o, exlib::string key)
 	{
 		o->DeletePrivate(o->CreationContext(),
 		                 v8::Private::ForApi(m_isolate, NewFromUtf8(key)));
