@@ -204,7 +204,7 @@ char *randomart(const unsigned char *dgst_raw, size_t dgst_raw_len,
     n = (int32_t)title.length();
     if (n > 0)
     {
-        if ( n > fieldX - 2)
+        if (n > fieldX - 2)
             n = fieldX - 2;
         p = retval + (fieldX - n) / 2;
 
@@ -250,6 +250,96 @@ result_t crypto_base::randomArt(Buffer_base *data, exlib::string title,
     }
 
     return 0;
+}
+
+inline int pkcs5_pbkdf1(mbedtls_md_context_t *ctx, const unsigned char *password,
+                        size_t plen, const unsigned char *salt, size_t slen,
+                        unsigned int iteration_count,
+                        uint32_t key_length, unsigned char *output)
+{
+    int ret, j;
+    unsigned int i;
+    unsigned char md1[MBEDTLS_MD_MAX_SIZE];
+    unsigned char work[MBEDTLS_MD_MAX_SIZE];
+    unsigned char md_size = mbedtls_md_get_size(ctx->md_info);
+    size_t use_len;
+    unsigned char *out_p = output;
+    bool bFirst = true;
+
+    if (iteration_count > 0xFFFFFFFF)
+        return (MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA);
+
+    while (key_length)
+    {
+        if ((ret = mbedtls_md_starts(ctx)) != 0)
+            return (ret);
+
+        if (!bFirst)
+            if ((ret = mbedtls_md_update(ctx, md1, md_size)) != 0)
+                return (ret);
+        bFirst = false;
+
+        if ((ret = mbedtls_md_update(ctx, password, plen)) != 0)
+            return (ret);
+
+        if ((ret = mbedtls_md_update(ctx, salt, slen)) != 0)
+            return (ret);
+
+        if ((ret = mbedtls_md_finish(ctx, work)) != 0)
+            return (ret);
+
+        memcpy(md1, work, md_size);
+
+        for (i = 1; i < iteration_count; i++)
+        {
+            if ((ret = mbedtls_md_starts(ctx)) != 0)
+                return (ret);
+
+            if ((ret = mbedtls_md_update(ctx, md1, md_size)) != 0)
+                return (ret);
+
+            if ((ret = mbedtls_md_finish(ctx, work)) != 0)
+                return (ret);
+
+            memcpy(md1, work, md_size);
+        }
+
+        use_len = (key_length < md_size) ? key_length : md_size;
+        memcpy(out_p, work, use_len);
+
+        key_length -= (uint32_t) use_len;
+        out_p += use_len;
+    }
+
+    return (0);
+}
+
+result_t crypto_base::pbkdf1(int32_t algo, Buffer_base* password,
+                             Buffer_base* salt, int32_t iterations,
+                             int32_t size, obj_ptr<Buffer_base>& retVal)
+{
+    if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    exlib::string str_pass;
+    exlib::string str_salt;
+    exlib::string str_key;
+
+    password->toString(str_pass);
+    salt->toString(str_salt);
+    str_key.resize(size);
+
+    mbedtls_md_context_t ctx;
+    mbedtls_md_setup(&ctx, mbedtls_md_info_from_type((mbedtls_md_type_t)algo), 1);
+    pkcs5_pbkdf1(&ctx, (const unsigned char *)str_pass.c_str(), str_pass.length(),
+                 (const unsigned char *)str_salt.c_str(), str_salt.length(),
+                 iterations, size, (unsigned char *)&str_key[0]);
+    mbedtls_md_free(&ctx);
+
+    retVal = new Buffer(str_key);
+
+    return 0;
+
 }
 
 result_t crypto_base::pbkdf2(int32_t algo, Buffer_base* password,

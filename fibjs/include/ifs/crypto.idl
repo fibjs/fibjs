@@ -129,6 +129,16 @@ module crypto
      */
     static String randomArt(Buffer data, String title, Integer size = 8);
 
+    /*! @brief 依据 pbkdf1 根据明文 password 生成要求的二进制钥匙
+     @param algo 指定要使用的 hash 算法，详见 hash 模块
+     @param password 指定使用的密码
+     @param salt 指定 hmac 使用的 salt
+     @param iterations 指定迭代次数
+     @param size 指定钥匙尺寸
+     @return 返回生成的二进制钥匙
+     */
+    static Buffer pbkdf1(Integer algo, Buffer password, Buffer salt, Integer iterations, Integer size);
+
     /*! @brief 依据 rfc2898 根据明文 password 生成要求的二进制钥匙
      @param algo 指定要使用的 hash 算法，详见 hash 模块
      @param password 指定使用的密码
