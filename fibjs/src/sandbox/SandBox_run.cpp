@@ -383,7 +383,7 @@ result_t SandBox::require(exlib::string base, exlib::string id,
             return 1;
     }
 
-    v8::Local<v8::Value> func = isolate->GetPrivate(_mods, "require");
+    v8::Local<v8::Value> func = GetPrivate("require");
     if (!func->IsUndefined())
     {
         v8::Local<v8::Value> arg = isolate->NewFromUtf8(strId);

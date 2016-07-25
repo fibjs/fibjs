@@ -51,7 +51,7 @@ public:
 private:
     SslHandler_base* handler()
     {
-        return SslHandler_base::getInstance(holder()->GetPrivate(wrap(), "handler"));
+        return SslHandler_base::getInstance(GetPrivate("handler"));
     }
 
     weak_ptr<TcpServer_base> m_server;

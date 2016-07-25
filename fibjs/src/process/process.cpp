@@ -104,10 +104,8 @@ result_t process_base::get_execPath(exlib::string &retVal)
 result_t process_base::get_env(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
-    v8::Local<v8::Value> ev = isolate->GetPrivate(glob, "_env");
 
-    if (ev->IsUndefined())
+    if (isolate->m_env.IsEmpty())
     {
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
         char** env = environ;
@@ -120,10 +118,10 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
                 o->Set(isolate->NewFromUtf8(p, (int32_t)(p1 - p)), isolate->NewFromUtf8(p1 + 1));
         }
 
-        isolate->SetPrivate(glob, "_env", o);
+        isolate->m_env.Reset(isolate->m_isolate, o);
         retVal = o;
     } else
-        retVal = v8::Local<v8::Object>::Cast(ev);
+        retVal = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_env);
 
     return 0;
 }

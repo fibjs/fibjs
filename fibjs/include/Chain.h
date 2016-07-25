@@ -41,13 +41,12 @@ public:
 public:
     result_t append(Handler_base *hdlr)
     {
-        Isolate* isolate = holder();
         int32_t no = (int32_t)m_array.size();
 
         char strBuf[32];
         sprintf(strBuf, "handler_%d", no);
 
-        isolate->SetPrivate(wrap(), strBuf, hdlr->wrap());
+        SetPrivate(strBuf, hdlr->wrap());
         m_array.append(hdlr);
 
         return 0;

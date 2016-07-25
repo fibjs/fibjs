@@ -20,79 +20,68 @@ result_t Trigger_base::_new(obj_ptr<Trigger_base> &retVal, v8::Local<v8::Object>
     return 0;
 }
 
-v8::Local<v8::Object> object_base::GetHiddenList(const char *k, bool create,
+v8::Local<v8::Array> object_base::GetHiddenList(const char *k, bool create,
         bool autoDelete)
 {
     Isolate* isolate = holder();
 
-    v8::Local<v8::Object> o = wrap();
-    v8::Local<v8::Value> es = isolate->GetPrivate(o, k);
-    v8::Local<v8::Object> esa;
+    v8::Local<v8::Value> es = GetPrivate(k);
+    v8::Local<v8::Array> esa;
 
     if (es->IsUndefined())
     {
         if (create)
         {
-            esa = v8::Object::New(isolate->m_isolate);
-            isolate->SetPrivate(o, k, esa);
+            esa = v8::Array::New(isolate->m_isolate);
+            SetPrivate(k, esa);
         }
     }
     else
-        esa = v8::Local<v8::Object>::Cast(es);
+        esa = v8::Local<v8::Array>::Cast(es);
 
     if (autoDelete)
-        isolate->DeletePrivate(o, k);
+        DeletePrivate(k);
 
     return esa;
 }
 
-static uint64_t s_fid = 0;
-
-inline int32_t putFunction(Isolate* isolate, v8::Local<v8::Object> esa, v8::Local<v8::Function> func)
+inline int32_t putFunction(Isolate* isolate, v8::Local<v8::Array> esa, v8::Local<v8::Function> func)
 {
-    v8::Local<v8::Value> fid = isolate->GetPrivate(func, "_fid");
-    char buf[64];
-    const int32_t base = 26;
+    int32_t len = esa->Length();
+    int32_t i;
+    int32_t append = len;
 
-    if (fid->IsUndefined())
+    for (i = 0; i < len; i ++)
     {
-        uint64_t num = s_fid ++;
-        int32_t p = 0;
-
-        buf[p++] = '_';
-        while (num)
-        {
-            buf[p++] = (char)(num % base) + 'a';
-            num /= base;
-        }
-
-        buf[p++] = 0;
-
-        fid = isolate->NewFromUtf8(buf);
-        isolate->SetPrivate(func, "_fid", fid);
+        v8::Local<v8::Value> v = esa->Get(i);
+        if (append == len && v->IsUndefined())
+            append = i;
+        else if (v->Equals(func))
+            return 0;
     }
 
-    if (!esa->Has(fid))
-    {
-        esa->Set(fid, func);
-        return 1;
-    }
+    esa->Set(append, func);
 
-    return 0;
+    return 1;
 }
 
-inline int32_t removeFunction(Isolate* isolate, v8::Local<v8::Object> esa,
+inline int32_t removeFunction(Isolate* isolate, v8::Local<v8::Array> esa,
                               v8::Local<v8::Function> func)
 {
     if (esa.IsEmpty())
         return 0;
 
-    v8::Local<v8::Value> fid = isolate->GetPrivate(func, "_fid");
+    int32_t len = esa->Length();
+    int32_t i;
 
-    if (!IsEmpty(fid) && esa->Has(fid))
+    for (i = 0; i < len; i ++)
     {
-        esa->Delete(fid);
-        return 1;
+        v8::Local<v8::Value> v = esa->Get(i);
+        if (v->Equals(func))
+        {
+            esa->Delete(i);
+            return 1;
+        }
     }
 
     return 0;
@@ -225,19 +214,18 @@ inline result_t _fire(v8::Local<v8::Function> func,
 }
 
 template<typename T>
-result_t fireTrigger(v8::Local<v8::Object> esa, T args, int32_t argCount)
+result_t fireTrigger(v8::Local<v8::Array> esa, T args, int32_t argCount)
 {
     if (esa.IsEmpty())
         return 0;
 
-    v8::Local<v8::Array> ks = esa->GetPropertyNames();
-    int32_t len = ks->Length();
+    int32_t len = esa->Length();
     int32_t i;
     result_t hr;
 
-    for (i = 0; i < len; i++)
+    for (i = 0; i < len; i ++)
     {
-        v8::Local<v8::Value> func = esa->Get(ks->Get(i));
+        v8::Local<v8::Value> func = esa->Get(i);
         if (func->IsFunction())
         {
             hr = _fire(v8::Local<v8::Function>::Cast(func), args, argCount);

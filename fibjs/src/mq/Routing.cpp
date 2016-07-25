@@ -126,13 +126,12 @@ result_t Routing::append(exlib::string pattern, Handler_base *hdlr)
         return CHECK_ERROR(Runtime::setError(buf));
     }
 
-    Isolate* isolate = holder();
     int32_t no = (int32_t)m_array.size();
 
     char strBuf[32];
     sprintf(strBuf, "handler_%d", no);
 
-    isolate->SetPrivate(wrap(), strBuf, hdlr->wrap());
+    SetPrivate(strBuf, hdlr->wrap());
 
     obj_ptr<rule> r = new rule(re, hdlr);
     m_array.push_back(r);

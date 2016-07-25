@@ -168,15 +168,18 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                     break;
                 }
 
-                v8::Local<v8::Value> mk = isolate->GetPrivate(obj, "_util_format_mark");
-                if (!mk->IsUndefined())
+                int32_t i, sz1 = (int32_t)vals.size();
+                for (i = 0; i < sz1; i ++)
+                    if (vals[i]->Equals(obj))
+                        break;
+
+                if (i < sz1)
                 {
                     strBuffer.append("[Circular]");
                     break;
                 }
 
                 vals.append(obj);
-                isolate->SetPrivate(obj, "_util_format_mark", obj);
 
                 v8::Local<v8::Value> toArray = obj->Get(isolate->NewFromUtf8("toArray"));
                 if (!IsEmpty(toArray) && toArray->IsFunction())
@@ -280,12 +283,6 @@ exlib::string json_format(v8::Local<v8::Value> obj)
         else
             break;
     }
-
-    int32_t sz1 = (int32_t)vals.size();
-    int32_t i;
-
-    for (i = 0; i < sz1; i ++)
-        isolate->DeletePrivate(vals[i], "_util_format_mark");
 
     return strBuffer.str();
 }

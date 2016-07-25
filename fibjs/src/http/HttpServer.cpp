@@ -51,11 +51,8 @@ result_t HttpServer::create(exlib::string addr, int32_t port, v8::Local<v8::Valu
 
     m_server = _server;
 
-    v8::Local<v8::Object> o = wrap();
-    Isolate* isolate = holder();
-
-    isolate->SetPrivate(o, "handler", _handler->wrap());
-    isolate->SetPrivate(o, "server", _server->wrap());
+    SetPrivate("handler", _handler->wrap());
+    SetPrivate("server", _server->wrap());
 
     return _server->create(addr, port, _handler);
 }

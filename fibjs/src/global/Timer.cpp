@@ -18,13 +18,13 @@ public:
 	JSTimer(v8::Local<v8::Function> callback, int32_t timeout = 0, bool repeat = false) :
 		Timer(timeout, repeat)
 	{
-		holder()->SetPrivate(wrap(), "callback", callback);
+		SetPrivate("callback", callback);
 	}
 
 public:
 	virtual void on_timer()
 	{
-		v8::Local<v8::Value> v = holder()->GetPrivate(wrap(), "callback");
+		v8::Local<v8::Value> v = GetPrivate("callback");
 
 		if (v->IsFunction())
 			v8::Local<v8::Function>::Cast(v)->Call(wrap(), 0, NULL);

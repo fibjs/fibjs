@@ -29,7 +29,7 @@ public:
 public:
     JsonRpcHandler(Handler_base *hdlr)
     {
-        holder()->SetPrivate(wrap(), "handler", hdlr->wrap());
+        SetPrivate("handler", hdlr->wrap());
         m_handler = hdlr;
     }
 

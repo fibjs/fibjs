@@ -228,8 +228,8 @@ public:
     }
 
 private:
-    v8::Local<v8::Object> GetHiddenList(const char *k, bool create = false,
-                                        bool autoDelete = false);
+    v8::Local<v8::Array> GetHiddenList(const char *k, bool create = false,
+                                       bool autoDelete = false);
 
 private:
     int32_t m_nExtMemory;
@@ -255,6 +255,36 @@ private:
 
             v8_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
         }
+    }
+
+public:
+    v8::Local<v8::Value> GetPrivate(exlib::string key)
+    {
+        v8::Local<v8::Object> o = wrap();
+        Isolate* isolate = holder();
+
+        return o->GetPrivate(o->CreationContext(),
+                             v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)))
+               .ToLocalChecked();
+    }
+
+    void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
+    {
+        v8::Local<v8::Object> o = wrap();
+        Isolate* isolate = holder();
+
+        o->SetPrivate(o->CreationContext(),
+                      v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)),
+                      value);
+    }
+
+    void DeletePrivate(exlib::string key)
+    {
+        v8::Local<v8::Object> o = wrap();
+        Isolate* isolate = holder();
+
+        o->DeletePrivate(o->CreationContext(),
+                         v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)));
     }
 
 public:

@@ -96,7 +96,7 @@ private:
                 m_end = prev1;
         }
 
-        holder()->DeletePrivate(wrap(), it->first);
+        DeletePrivate(it->first);
 
         m_datas.erase(it);
     }

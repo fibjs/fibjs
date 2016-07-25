@@ -43,7 +43,7 @@ public:
     {
         Isolate* isolate = holder();
 
-        v8::Local<v8::Value> v = isolate->GetPrivate(wrap(), "_mods");
+        v8::Local<v8::Value> v = GetPrivate("_mods");
         v8::Local<v8::Object> o;
 
         if (!v->IsUndefined())
@@ -51,7 +51,7 @@ public:
         else
         {
             o = v8::Object::New(isolate->m_isolate);
-            isolate->SetPrivate(wrap(), "_mods", o);
+            SetPrivate("_mods", o);
         }
 
         return o;
@@ -60,8 +60,7 @@ public:
     void initRoot();
     void initRequire(v8::Local<v8::Function> func)
     {
-        Isolate* isolate = holder();
-        isolate->SetPrivate(mods(), "require", func);
+        SetPrivate("require", func);
     }
 
     void InstallModule(exlib::string fname, v8::Local<v8::Value> o);

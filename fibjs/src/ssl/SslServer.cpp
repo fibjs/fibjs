@@ -75,11 +75,8 @@ result_t SslServer::create(X509Cert_base *crt, PKey_base *key, exlib::string add
 
     m_server = _server;
 
-    v8::Local<v8::Object> o = wrap();
-    Isolate* isolate = holder();
-
-    isolate->SetPrivate(o, "handler", _handler->wrap());
-    isolate->SetPrivate(o, "server", _server->wrap());
+    SetPrivate("handler", _handler->wrap());
+    SetPrivate("server", _server->wrap());
 
     return 0;
 }
@@ -101,11 +98,8 @@ result_t SslServer::create(v8::Local<v8::Array> certs, exlib::string addr, int32
 
     m_server = _server;
 
-    v8::Local<v8::Object> o = wrap();
-    Isolate* isolate = holder();
-
-    isolate->SetPrivate(o, "handler", _handler->wrap());
-    isolate->SetPrivate(o, "server", _server->wrap());
+    SetPrivate("handler", _handler->wrap());
+    SetPrivate("server", _server->wrap());
 
     return 0;
 }

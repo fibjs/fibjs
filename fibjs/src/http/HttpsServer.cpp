@@ -76,11 +76,8 @@ result_t HttpsServer::create(X509Cert_base *crt, PKey_base *key, exlib::string a
 
     m_server = _server;
 
-    v8::Local<v8::Object> o = wrap();
-    Isolate* isolate = holder();
-
-    isolate->SetPrivate(o, "handler", _handler->wrap());
-    isolate->SetPrivate(o, "server", _server->wrap());
+    SetPrivate("handler", _handler->wrap());
+    SetPrivate("server", _server->wrap());
 
     return 0;
 }
@@ -102,11 +99,8 @@ result_t HttpsServer::create(v8::Local<v8::Array> certs, exlib::string addr, int
 
     m_server = _server;
 
-    v8::Local<v8::Object> o = wrap();
-    Isolate* isolate = holder();
-
-    isolate->SetPrivate(o, "handler", _handler->wrap());
-    isolate->SetPrivate(o, "server", _server->wrap());
+    SetPrivate("handler", _handler->wrap());
+    SetPrivate("server", _server->wrap());
 
     return 0;
 }

@@ -414,7 +414,6 @@ result_t HttpHandler::onerror(v8::Local<v8::Object> hdlrs)
 {
     static const char* s_err_keys[] = {"400", "404", "500"};
     int32_t i;
-    v8::Local<v8::Object> o = wrap();
     Isolate* isolate = holder();
 
     for (i = 0; i < 3; i ++)
@@ -430,7 +429,7 @@ result_t HttpHandler::onerror(v8::Local<v8::Object> hdlrs)
             if (hr < 0)
                 return hr;
 
-            isolate->SetPrivate(o, s_err_keys[i], hdlr1->wrap());
+            SetPrivate(s_err_keys[i], hdlr1->wrap());
             m_err_hdlrs[i] = hdlr1;
         }
     }
@@ -502,7 +501,7 @@ result_t HttpHandler::set_handler(Handler_base *newVal)
 {
     obj_ptr<Handler_base> hdlr = (Handler_base*)m_hdlr;
 
-    holder()->SetPrivate(wrap(), "handler", newVal->wrap());
+    SetPrivate("handler", newVal->wrap());
     m_hdlr = newVal;
 
     if (hdlr)

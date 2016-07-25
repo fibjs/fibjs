@@ -55,7 +55,7 @@ public:
 private:
     HttpHandler_base* handler()
     {
-        return HttpHandler_base::getInstance(holder()->GetPrivate(wrap(), "handler"));
+        return HttpHandler_base::getInstance(GetPrivate("handler"));
     }
 
     weak_ptr<TcpServer_base> m_server;
