@@ -179,10 +179,13 @@ public:
         }
     }
 
-    void flush()
+    void flush(bool bFiber)
     {
         while (!m_acLog.empty() || m_bWorking)
-            coroutine_base::sleep(1);
+            if (bFiber)
+                coroutine_base::sleep(1);
+            else
+                exlib::OSThread::sleep(1);
     }
 
     void stop()

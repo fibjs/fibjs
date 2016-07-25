@@ -276,7 +276,7 @@ result_t console_base::readLine(exlib::string msg, exlib::string &retVal,
 {
     if (!ac)
     {
-        flushLog();
+        flushLog(true);
         return CHECK_ERROR(CALL_E_LONGSYNC);
     }
 

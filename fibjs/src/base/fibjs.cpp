@@ -89,7 +89,10 @@ static void main_fiber(Isolate* isolate)
         hr = s.m_hr = isolate->m_topSandbox->repl(cmds);
     }
 
-    process_base::exit(hr);
+    {
+        JSFiber::scope s;
+        process_base::exit(hr);
+    }
 }
 
 void main(int32_t argc, char *argv[])
