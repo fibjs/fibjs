@@ -132,7 +132,7 @@ void dump_memory();
 
 result_t process_base::exit(int32_t code)
 {
-    flushLog(false);
+    flushLog();
 
 #ifdef DEBUG
     global_base::GC();
