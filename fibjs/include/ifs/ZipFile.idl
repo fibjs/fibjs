@@ -47,9 +47,10 @@ interface ZipFile : object
 
 	/*! @brief 写入指定文件到压缩文件
 	 @param filename 指定要写入的文件
+	 @param inZipName 压缩在zip文件内的文件名
 	 @param password 解压密码, 默认没有密码
 	 */
-	write(String filename, String password = "") async;
+	write(String filename, String inZipName, String password = "") async;
 
 	/*! @brief 写入指定文件到压缩文件
 	 @param data 指定要写入的文件数据

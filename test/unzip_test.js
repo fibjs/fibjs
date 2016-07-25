@@ -13,15 +13,23 @@ var pathname = 'test_dir' + vmid;
 var ms = new io.MemoryStream();
 var ms1 = new io.MemoryStream();
 
-var win = require("os").type == "Windows";
-
 describe("zip", function() {
+	var zipfile;
+	var file;
+	var efile1,
+		efile2;
 	before(function() {
 		if (!fs.exists(pathname)) {
 			fs.mkdir(pathname);
 		}
 	});
 	after(function() {
+		if (efile1)
+			fs.unlink(efile1);
+
+		if (efile2)
+			fs.unlink(efile2);
+
 		if (fs.exists('unzip_test.js.extract'))
 			fs.unlink('unzip_test.js.extract');
 
@@ -34,17 +42,25 @@ describe("zip", function() {
 		ms.close();
 		ms1.close();
 	});
+	afterEach(function() {
+		if (zipfile) {
+			zipfile.close();
+			zipfile = null;
+		}
+		if (file) {
+			file.close();
+			file = null;
+		}
+	})
 
 	it("write file to zip", function() {
-		var zipfile = zip.open('unzip_test.zip' + vmid, "w");
-		zipfile.write('unzip_test.js');
+		zipfile = zip.open('unzip_test.zip' + vmid, "w");
+		zipfile.write('unzip_test.js', 'unzip_test.js');
 		zipfile.close();
 
 		zipfile = zip.open('unzip_test.zip' + vmid);
 
 		assert.equal('unzip_test.js', zipfile.namelist()[0]);
-
-		zipfile.close();
 	});
 
 	it("is zip file", function() {
@@ -53,7 +69,7 @@ describe("zip", function() {
 	});
 
 	it("namelist & infolist & getinfo", function() {
-		var zipfile = zip.open('unzip_test.zip' + vmid);
+		zipfile = zip.open('unzip_test.zip' + vmid);
 		var namelist = zipfile.namelist();
 		var infolist = zipfile.infolist();
 		var info = zipfile.getinfo("unzip_test.js")
@@ -71,61 +87,51 @@ describe("zip", function() {
 		assert.equal(infolist[0].filename, info.filename);
 		assert.equal(infolist[0].file_size, info.file_size);
 
-		zipfile.close();
 	});
 
 	it("open zip file & read", function() {
-		var zipfile = zip.open('unzip_test.zip' + vmid);
+		zipfile = zip.open('unzip_test.zip' + vmid);
 		var buf = zipfile.read('unzip_test.js');
 
-		var file = fs.open('unzip_test.js');
+		file = fs.open('unzip_test.js');
 		var buf1 = file.readAll();
-
-		zipfile.close();
-		file.close();
 
 		assert.deepEqual(buf, buf1);
 	});
 
 	it("open zip buffer & read", function() {
-		var file = fs.open('unzip_test.zip' + vmid);
+		file = fs.open('unzip_test.zip' + vmid);
 		var buf = file.readAll();
 		file.close();
 
-		var zipfile = zip.open(buf);
+		zipfile = zip.open(buf);
 		buf = zipfile.read('unzip_test.js');
 
-		var file = fs.open('unzip_test.js');
+		file = fs.open('unzip_test.js');
 		var buf1 = file.readAll();
-
-		zipfile.close();
-		file.close();
 
 		assert.deepEqual(buf, buf1);
 	});
 
 	it("open zip stream & read", function() {
-		var file = fs.open('unzip_test.zip' + vmid);
+		file = fs.open('unzip_test.zip' + vmid);
 		var buf = file.readAll();
 		ms.write(buf);
 		ms.rewind();
 		file.close();
 
-		var zipfile = zip.open(ms);
+		zipfile = zip.open(ms);
 		buf = zipfile.read('unzip_test.js');
 
-		var file = fs.open('unzip_test.js');
+		file = fs.open('unzip_test.js');
 		var buf1 = file.readAll();
-
-		zipfile.close();
-		file.close();
 
 		assert.deepEqual(buf, buf1);
 	});
 
 	it("write buffer & stream to zip", function() {
-		var zipfile = zip.open('unzip_test.zip' + vmid, "w");
-		var file = fs.open('unzip_test.js');
+		zipfile = zip.open('unzip_test.zip' + vmid, "w");
+		file = fs.open('unzip_test.js');
 
 		var buf = file.readAll();
 		zipfile.write(buf, 'unzip_test.js.bak');
@@ -146,16 +152,13 @@ describe("zip", function() {
 
 		buf2 = zipfile.read('http.rq');
 		assert.equal(buf2.toString(), 'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
-
-		zipfile.close();
-		file.close();
 	});
 
 	it("readall in zip", function() {
-		var zipfile = zip.open('unzip_test.zip' + vmid);
+		zipfile = zip.open('unzip_test.zip' + vmid);
 		var datas = zipfile.readAll();
 
-		var file = fs.open('unzip_test.js');
+		file = fs.open('unzip_test.js');
 		var buf = file.readAll();
 
 		assert.equal(datas[0].data.length, buf.length);
@@ -168,46 +171,36 @@ describe("zip", function() {
 		assert.deepEqual(datas[1].data, buf);
 		assert.equal(datas[1].file_size, buf.length);
 		assert.equal(datas[1].filename, "http.rq");
-
-		file.close();
-		zipfile.close();
 	});
 
 	it("extract zip to file", function() {
-		var zipfile = zip.open('unzip_test.zip' + vmid);
+		zipfile = zip.open('unzip_test.zip' + vmid);
 		zipfile.extract('unzip_test.js.bak', 'unzip_test.js.extract');
 
-		var file = fs.open('unzip_test.js.extract');
+		file = fs.open('unzip_test.js.extract');
 		var buf = file.readAll();
 		file.close();
 		file = fs.open('unzip_test.js');
 		var buf1 = file.readAll();
 
 		assert.deepEqual(buf, buf1);
-
-		file.close();
-		zipfile.close();
 	});
 
 	it("extract zip to stream", function() {
-		var zipfile = zip.open('unzip_test.zip' + vmid);
+		zipfile = zip.open('unzip_test.zip' + vmid);
 		var stream = new io.MemoryStream();
 		zipfile.extract('unzip_test.js.bak', stream);
 
 		stream.rewind();
-		var file = fs.open('unzip_test.js');
+		file = fs.open('unzip_test.js');
 		var buf = file.readAll();
 		var buf1 = stream.read();
 
 		assert.deepEqual(buf, buf1);
-		zipfile.close();
-		file.close();
 	});
 
 	it("extract all in zip", function() {
-		var zipfile = zip.open('unzip_test.zip' + vmid);
-		var efile1,
-			efile2;
+		zipfile = zip.open('unzip_test.zip' + vmid);
 
 		zipfile.extractAll(pathname);
 
@@ -219,33 +212,27 @@ describe("zip", function() {
 
 		assert.equal(fs.readFile(efile1), fs.readFile('unzip_test.js'));
 		assert.equal(fs.readFile(efile2), 'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
-
-		zipfile.close();
-		fs.unlink(efile1);
-		fs.unlink(efile2);
 	});
 
 	it("write file append to zip", function() {
-		var zipfile = zip.open('unzip_test.zip' + vmid, 'a');
+		zipfile = zip.open('unzip_test.zip' + vmid, 'a');
 		var buf = new Buffer('hello world');
 		zipfile.write(buf, 'buf.txt');
 		zipfile.close();
 
 		zipfile = zip.open('unzip_test.zip' + vmid);
 		assert.equal(zipfile.read('buf.txt').toString(), 'hello world');
-		zipfile.close();
 	});
 
 	it("read and write with password", function() {
 		var password = "1234";
-		var zipfile = zip.open('unzip_test.zip' + vmid, 'a');
+		zipfile = zip.open('unzip_test.zip' + vmid, 'a');
 		var buf = new Buffer('password test');
 		zipfile.write(buf, 'password.txt', password);
 		zipfile.close();
 
 		zipfile = zip.open('unzip_test.zip' + vmid);
 		assert.equal(zipfile.read('password.txt', password).toString(), 'password test');
-		zipfile.close();
 	})
 });
 

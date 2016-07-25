@@ -744,7 +744,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
 	return 0;
 }
 
-result_t ZipFile::write(exlib::string filename, exlib::string password, AsyncEvent* ac)
+result_t ZipFile::write(exlib::string filename, exlib::string inZipName, exlib::string password, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
@@ -756,7 +756,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, AsyncEve
 	if (hr < 0)
 		return hr;
 
-	return write(filename, password, file);
+	return write(inZipName, password, file);
 }
 
 result_t ZipFile::write(Buffer_base* data, exlib::string inZipName, exlib::string password, AsyncEvent* ac)

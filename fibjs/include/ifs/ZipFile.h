@@ -36,7 +36,7 @@ public:
     virtual result_t extract(exlib::string member, exlib::string path, exlib::string password, AsyncEvent* ac) = 0;
     virtual result_t extract(exlib::string member, SeekableStream_base* strm, exlib::string password, AsyncEvent* ac) = 0;
     virtual result_t extractAll(exlib::string path, exlib::string password, AsyncEvent* ac) = 0;
-    virtual result_t write(exlib::string filename, exlib::string password, AsyncEvent* ac) = 0;
+    virtual result_t write(exlib::string filename, exlib::string inZipName, exlib::string password, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, exlib::string inZipName, exlib::string password, AsyncEvent* ac) = 0;
     virtual result_t write(SeekableStream_base* strm, exlib::string inZipName, exlib::string password, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
@@ -72,7 +72,7 @@ public:
     ASYNC_MEMBER3(ZipFile_base, extract, exlib::string, exlib::string, exlib::string);
     ASYNC_MEMBER3(ZipFile_base, extract, exlib::string, SeekableStream_base*, exlib::string);
     ASYNC_MEMBER2(ZipFile_base, extractAll, exlib::string, exlib::string);
-    ASYNC_MEMBER2(ZipFile_base, write, exlib::string, exlib::string);
+    ASYNC_MEMBER3(ZipFile_base, write, exlib::string, exlib::string, exlib::string);
     ASYNC_MEMBER3(ZipFile_base, write, Buffer_base*, exlib::string, exlib::string);
     ASYNC_MEMBER3(ZipFile_base, write, SeekableStream_base*, exlib::string, exlib::string);
     ASYNC_MEMBER0(ZipFile_base, close);
@@ -251,16 +251,17 @@ namespace fibjs
     inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(3, 2);
 
         ARG(exlib::string, 0);
-        OPT_ARG(exlib::string, 1, "");
+        ARG(exlib::string, 1);
+        OPT_ARG(exlib::string, 2, "");
 
         if(!cb.IsEmpty()) {
-            pInst->acb_write(v0, v1, cb);
+            pInst->acb_write(v0, v1, v2, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = pInst->ac_write(v0, v1);
+            hr = pInst->ac_write(v0, v1, v2);
 
         METHOD_OVER(3, 2);
 
