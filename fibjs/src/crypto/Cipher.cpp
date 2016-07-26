@@ -274,7 +274,12 @@ result_t Cipher::encrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                          AsyncEvent *ac)
 {
     if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    {
+        exlib::string input;
+        data->toString(input);
+        if (input.length() > 256)
+            return CHECK_ERROR(CALL_E_NOSYNC);
+    }
 
     return process(MBEDTLS_ENCRYPT, data, retVal);
 }
@@ -283,7 +288,12 @@ result_t Cipher::decrypt(Buffer_base *data, obj_ptr<Buffer_base> &retVal,
                          AsyncEvent *ac)
 {
     if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    {
+        exlib::string input;
+        data->toString(input);
+        if (input.length() > 256)
+            return CHECK_ERROR(CALL_E_NOSYNC);
+    }
 
     return process(MBEDTLS_DECRYPT, data, retVal);
 }
