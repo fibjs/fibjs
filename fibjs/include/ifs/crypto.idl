@@ -115,6 +115,12 @@ module crypto
      */
     static Buffer randomBytes(Integer size) async;
 
+    /*! @brief 生成指定尺寸的低强度随机数，使用快速的算法
+     @param size 指定生成的随机数尺寸
+     @return 返回生成的随机数
+     */
+    static Buffer simpleRandomBytes(Integer size) async;
+
     /*! @brief 生成指定尺寸的伪随机数，使用 entropy 生成器
      @param size 指定生成的随机数尺寸
      @return 返回生成的随机数

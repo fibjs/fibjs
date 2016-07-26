@@ -107,6 +107,26 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
     return 0;
 }
 
+result_t crypto_base::simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
+                                        AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    exlib::string strBuf;
+
+    strBuf.resize(size);
+    char* ptr = &strBuf[0];
+    int32_t i;
+
+    for (i = 0; i < size; i ++)
+        ptr[i] = rand() % 256;
+
+    retVal = new Buffer(strBuf);
+
+    return 0;
+}
+
 result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
                                         AsyncEvent *ac)
 {

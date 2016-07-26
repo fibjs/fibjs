@@ -60,6 +60,7 @@ public:
     static result_t loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal);
     static result_t loadReq(exlib::string filename, obj_ptr<X509Req_base>& retVal);
     static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t randomArt(Buffer_base* data, exlib::string title, int32_t size, exlib::string& retVal);
     static result_t pbkdf1(int32_t algo, Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, obj_ptr<Buffer_base>& retVal);
@@ -103,6 +104,7 @@ public:
     static void s_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_simpleRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pbkdf1(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -110,6 +112,7 @@ public:
 
 public:
     ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE2(crypto_base, simpleRandomBytes, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE2(crypto_base, pseudoRandomBytes, int32_t, obj_ptr<Buffer_base>);
 };
 
@@ -133,6 +136,7 @@ namespace fibjs
             {"loadCrl", s_loadCrl, true},
             {"loadReq", s_loadReq, true},
             {"randomBytes", s_randomBytes, true},
+            {"simpleRandomBytes", s_simpleRandomBytes, true},
             {"pseudoRandomBytes", s_pseudoRandomBytes, true},
             {"randomArt", s_randomArt, true},
             {"pbkdf1", s_pbkdf1, true},
@@ -176,7 +180,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "crypto", s__new, NULL, 
-            9, s_method, 5, s_object, 21, s_property, NULL, NULL,
+            10, s_method, 5, s_object, 21, s_property, NULL, NULL,
             NULL
         };
 
@@ -397,6 +401,23 @@ namespace fibjs
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_randomBytes(v0, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void crypto_base::s_simpleRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<Buffer_base> vr;
+
+        ASYNC_METHOD_ENTER(1, 1);
+
+        ARG(int32_t, 0);
+
+        if(!cb.IsEmpty()) {
+            acb_simpleRandomBytes(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_simpleRandomBytes(v0, vr);
 
         METHOD_RETURN();
     }
