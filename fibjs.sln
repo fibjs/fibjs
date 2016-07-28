@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2013 for Windows Desktop
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fibjs", "fibjs\fibjs.vcxproj", "{05654A7E-DBAF-4211-886A-C23565833D05}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -75,6 +75,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jssdk", "vender\jssdk\jssdk.vcxproj", "{1F77AB58-706B-4BB5-BE73-00110039117E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest", "vender\gtest\gtest.vcxproj", "{1F77AB58-706B-4BB5-BE73-00111039117E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "icu", "vender\icu\icu.vcxproj", "{1F77AB58-706B-4BB5-BE73-0000031CCCCC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -386,6 +388,18 @@ Global
 		{1F77AB58-706B-4BB5-BE73-00111039117E}.Release|Win32.Build.0 = Release|Win32
 		{1F77AB58-706B-4BB5-BE73-00111039117E}.Release|x64.ActiveCfg = Release|x64
 		{1F77AB58-706B-4BB5-BE73-00111039117E}.Release|x64.Build.0 = Release|x64
+		{1F77AB58-706B-4BB5-BE73-0000031CCCCC}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{1F77AB58-706B-4BB5-BE73-0000031CCCCC}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{1F77AB58-706B-4BB5-BE73-0000031CCCCC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1F77AB58-706B-4BB5-BE73-0000031CCCCC}.Debug|Win32.Build.0 = Debug|Win32
+		{1F77AB58-706B-4BB5-BE73-0000031CCCCC}.Debug|x64.ActiveCfg = Debug|x64
+		{1F77AB58-706B-4BB5-BE73-0000031CCCCC}.Debug|x64.Build.0 = Debug|x64
+		{1F77AB58-706B-4BB5-BE73-0000031CCCCC}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{1F77AB58-706B-4BB5-BE73-0000031CCCCC}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{1F77AB58-706B-4BB5-BE73-0000031CCCCC}.Release|Win32.ActiveCfg = Release|Win32
+		{1F77AB58-706B-4BB5-BE73-0000031CCCCC}.Release|Win32.Build.0 = Release|Win32
+		{1F77AB58-706B-4BB5-BE73-0000031CCCCC}.Release|x64.ActiveCfg = Release|x64
+		{1F77AB58-706B-4BB5-BE73-0000031CCCCC}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
