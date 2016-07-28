@@ -243,13 +243,13 @@ describe("redis", function() {
 
 		it("dump", function() {
 			rdb.set("greeting", "hello, dumping world!");
-			assert.equal(rdb.dump("greeting").hex(), "001568656c6c6f2c2064756d70696e6720776f726c6421060045a05a82d872c1de");
+			assert.equal(rdb.dump("greeting").hex(), "001568656c6c6f2c2064756d70696e6720776f726c642107002c7fe7f125ed2857");
 			assert.isNull(rdb.dump("greeting1"));
 			rdb.del("greeting");
 		});
 
 		it("restore", function() {
-			rdb.restore("greeting", encoding.hex.decode("001568656c6c6f2c2064756d70696e6720776f726c6421060045a05a82d872c1de"));
+			rdb.restore("greeting", encoding.hex.decode("001568656c6c6f2c2064756d70696e6720776f726c642107002c7fe7f125ed2857"));
 			assert.equal(rdb.command("get", "greeting"), "hello, dumping world!");
 		});
 	});
