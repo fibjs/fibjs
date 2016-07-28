@@ -277,7 +277,7 @@ inline int pkcs5_pbkdf1(mbedtls_md_context_t *ctx, const unsigned char *password
                         unsigned int iteration_count,
                         uint32_t key_length, unsigned char *output)
 {
-    int ret, j;
+    int ret;
     unsigned int i;
     unsigned char md1[MBEDTLS_MD_MAX_SIZE];
     unsigned char work[MBEDTLS_MD_MAX_SIZE];
