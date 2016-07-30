@@ -1,24 +1,24 @@
-define("jModo.rpc", ["jModo", "jModo.transport", "jModo.json2"], function (g) {
+define("jModo.rpc", ["jModo", "jModo.transport", "jModo.json2"], function(g) {
 	"use strict";
-	
+
 	var slice = Array.prototype.slice;
-	
-	g.rpc = function () {
+
+	g.rpc = function() {
 		var r,
-		t = 10000,
-		id,
-		n = arguments.length,
-		url,
-		jss = [],
-		ht,
-		frame,
-		frmChecker,
-		i;
-		
+			t = 10000,
+			id,
+			n = arguments.length,
+			url,
+			jss = [],
+			ht,
+			frame,
+			frmChecker,
+			i;
+
 		function on_msg(m) {
 			try {
 				clearTimeout(id);
-				
+
 				if (frame) {
 					if (frmChecker)
 						clearInterval(frmChecker);
@@ -26,25 +26,25 @@ define("jModo.rpc", ["jModo", "jModo.transport", "jModo.json2"], function (g) {
 						frame.parentNode.removeChild(frame);
 				}
 			} catch (e) {}
-			
+
 			frame = null;
 			ht = null;
-			
-			if(r)
+
+			if (r)
 				r(m);
 		}
-		
+
 		function on_err(e) {
-			if(!r)
+			if (!r)
 				throw new Error(e);
 			on_msg({
-				error : {
-					code : -1,
-					message : e
+				error: {
+					code: -1,
+					message: e
 				}
 			});
 		}
-		
+
 		url = arguments[0];
 		if (n >= 3) {
 			if (n >= 4 && typeof arguments[n - 2] === "function") {
@@ -56,30 +56,29 @@ define("jModo.rpc", ["jModo", "jModo.transport", "jModo.json2"], function (g) {
 				n--;
 			}
 		}
-		
-		id = setTimeout(function () {
-				on_err("Timeout.");
-			}, t);
-		
+
+		id = setTimeout(function() {
+			on_err("Timeout.");
+		}, t);
+
 		jss.push('{"method":"');
 		jss.push(arguments[1].toString());
 
-		if(n > 2)
-		{
+		if (n > 2) {
 			jss.push('","params":');
 			jss.push(JSON.stringify(slice.call(arguments, 2, n)));
 			jss.push("}");
-		}else jss.push('"}');
-		
+		} else jss.push('"}');
+
 		var ps = jss.join("");
-		
+
 		function on_text_msg(t) {
 			on_msg(JSON.parse(t));
 		}
 
 		var fdoc,
-		state = 0,
-		loadState = 0;
+			state = 0,
+			loadState = 0;
 
 		function onFrameLoad() {
 			if (state === 2) {
@@ -89,14 +88,14 @@ define("jModo.rpc", ["jModo", "jModo.transport", "jModo.json2"], function (g) {
 				} catch (e) {
 					on_err("Server error.");
 				}
-				
+
 				if (r)
 					on_msg(r);
 			} else if (state === 1) {
 				try {
 					state = 2;
 					loadState = 0;
-					
+
 					frame.contentWindow.location = "about:blank";
 				} catch (e) {
 					on_err("Server error.");
@@ -109,35 +108,35 @@ define("jModo.rpc", ["jModo", "jModo.transport", "jModo.json2"], function (g) {
 				frm.submit();
 			}
 		}
-		
+
 		if (g.xdrQuery(url, ps, on_text_msg, on_err))
 			return;
 
 		if (g.flashQuery(url, ps, on_text_msg, on_err))
 			return;
-			
+
 		if (g.enableIFRAME) {
 			if (g.browser.msie) {
 				ht = new ActiveXObject("htmlfile");
-				
+
 				ht.open();
 				ht.write('<html><iframe id="ifrm"></iframe></html>');
 				ht.close();
-				
+
 				frame = ht.getElementById("ifrm");
-				
-				frmChecker = setInterval(function () {
-						if (loadState === 0)
-							try {
-								frame = ht.getElementById("ifrm");
-								if (frame.readyState === 'complete') {
-									loadState = 1;
-									onFrameLoad();
-								}
-							} catch (e) {
-								on_err("Server error.");
+
+				frmChecker = setInterval(function() {
+					if (loadState === 0)
+						try {
+							frame = ht.getElementById("ifrm");
+							if (frame.readyState === 'complete') {
+								loadState = 1;
+								onFrameLoad();
 							}
-					}, 1);
+						} catch (e) {
+							on_err("Server error.");
+						}
+				}, 1);
 			} else {
 				frame = g.create('iframe');
 				frame.style.cssText = "position:absolute;top:0px;left:-1000px;width:0px;height:0px;";
@@ -152,7 +151,7 @@ define("jModo.rpc", ["jModo", "jModo.transport", "jModo.json2"], function (g) {
 			fdoc.close();
 			return;
 		}
-		
+
 		on_err("Server error.");
 	};
 });
