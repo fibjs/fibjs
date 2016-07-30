@@ -81,12 +81,8 @@ private:
 
             p = m_pool.get();
             if (m_idleWorkers.dec() == 0)
-            {
-                if (m_idleWorkers.inc() > MAX_IDLE_WORKERS)
-                    m_idleWorkers.dec();
-                else
+                if (m_idleWorkers.CompareAndSwap(0, 1) == 0)
                     new_worker();
-            }
 
             p->invoke();
         }
