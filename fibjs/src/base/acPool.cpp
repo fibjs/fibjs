@@ -72,7 +72,12 @@ private:
         while (true)
         {
             if (m_idleWorkers.inc() > MAX_IDLE_WORKERS)
-                break;
+            {
+                if (m_idleWorkers.dec() > 0)
+                    break;
+
+                m_idleWorkers.inc();
+            }
 
             p = m_pool.get();
             if (m_idleWorkers.dec() == 0)
@@ -85,8 +90,6 @@ private:
 
             p->invoke();
         }
-
-        m_idleWorkers.dec();
     }
 
     static void *worker_proc(void *ptr)
