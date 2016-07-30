@@ -101,7 +101,7 @@ public:
 class asyncProc: public asyncEv
 {
 public:
-	asyncProc(intptr_t s, int32_t op, AsyncEvent *ac, intptr_t &guard, void *&opt) :
+	asyncProc(intptr_t s, int32_t op, AsyncEvent *ac, exlib::atomic &guard, void *&opt) :
 		m_s(s), m_op(op), m_ac(ac), m_guard(guard), m_opt(opt)
 	{
 	}
@@ -156,7 +156,7 @@ public:
 	intptr_t m_s;
 	int32_t m_op;
 	AsyncEvent *m_ac;
-	intptr_t &m_guard;
+	exlib::atomic &m_guard;
 	void *&m_opt;
 
 private:
@@ -263,7 +263,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac)
 	class asyncConnect: public asyncProc
 	{
 	public:
-		asyncConnect(intptr_t s, inetAddr &ai, AsyncEvent *ac, intptr_t &guard, void *&opt) :
+		asyncConnect(intptr_t s, inetAddr &ai, AsyncEvent *ac, exlib::atomic &guard, void *&opt) :
 			asyncProc(s, EV_WRITE, ac, guard, opt), m_ai(ai)
 		{
 		}
@@ -319,7 +319,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac)
 			return CHECK_ERROR(CALL_E_INVALIDARG);
 	}
 
-	if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
+	if (m_inRecv.CompareAndSwap(0, 1))
 		return CHECK_ERROR(CALL_E_REENTRANT);
 
 	return (new asyncConnect(m_fd, addr_info, ac, m_inRecv, m_RecvOpt))->call();
@@ -331,7 +331,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
 	{
 	public:
 		asyncAccept(intptr_t s, obj_ptr<Socket_base> &retVal,
-		            AsyncEvent *ac, intptr_t &guard, void *&opt) :
+		            AsyncEvent *ac, exlib::atomic &guard, void *&opt) :
 			asyncProc(s, EV_READ, ac, guard, opt), m_retVal(retVal)
 		{
 		}
@@ -375,7 +375,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
-	if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
+	if (m_inRecv.CompareAndSwap(0, 1))
 		return CHECK_ERROR(CALL_E_REENTRANT);
 
 	return (new asyncAccept(m_fd, retVal, ac, m_inRecv, m_RecvOpt))->call();
@@ -388,7 +388,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 	{
 	public:
 		asyncRecv(intptr_t s, int32_t bytes, obj_ptr<Buffer_base> &retVal,
-		          AsyncEvent *ac, int32_t family, bool bRead, intptr_t &guard, void *&opt) :
+		          AsyncEvent *ac, int32_t family, bool bRead, exlib::atomic &guard, void *&opt) :
 			asyncProc(s, EV_READ, ac, guard, opt), m_retVal(retVal), m_pos(0),
 			m_bytes(bytes > 0 ? bytes : SOCKET_BUFF_SIZE), m_family(family), m_bRead(bRead)
 		{
@@ -463,7 +463,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
-	if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
+	if (m_inRecv.CompareAndSwap(0, 1))
 		return CHECK_ERROR(CALL_E_REENTRANT);
 
 	return (new asyncRecv(m_fd, bytes, retVal, ac, m_family, bRead, m_inRecv, m_RecvOpt))->call();
@@ -474,7 +474,7 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
 	class asyncSend: public asyncProc
 	{
 	public:
-		asyncSend(intptr_t s, Buffer_base *data, AsyncEvent *ac, int32_t family, intptr_t &guard, void *&opt) :
+		asyncSend(intptr_t s, Buffer_base *data, AsyncEvent *ac, int32_t family, exlib::atomic &guard, void *&opt) :
 			asyncProc(s, EV_WRITE, ac, guard, opt), m_family(family)
 		{
 			data->toString(m_buf);
@@ -528,7 +528,7 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
-	if (exlib::CompareAndSwap(&m_inSend, 0, 1))
+	if (m_inSend.CompareAndSwap(0, 1))
 		return CHECK_ERROR(CALL_E_REENTRANT);
 
 	return (new asyncSend(m_fd, data, ac, m_family, m_inSend, m_SendOpt))->call();

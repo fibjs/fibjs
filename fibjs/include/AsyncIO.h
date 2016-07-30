@@ -23,8 +23,7 @@ class AsyncIO
 {
 public:
     AsyncIO(intptr_t s, int32_t family, int32_t type) :
-        m_fd(s), m_family(family), m_type(type),
-        m_inRecv(0), m_inSend(0)
+        m_fd(s), m_family(family), m_type(type)
 #ifndef _WIN32
         , m_RecvOpt(NULL), m_SendOpt(NULL)
 #endif
@@ -46,8 +45,8 @@ public:
     int32_t m_type;
 
 private:
-    intptr_t m_inRecv;
-    intptr_t m_inSend;
+    exlib::atomic m_inRecv;
+    exlib::atomic m_inSend;
 
 #ifndef _WIN32
     void *m_RecvOpt;

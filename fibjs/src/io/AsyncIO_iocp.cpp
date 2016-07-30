@@ -44,7 +44,7 @@ HANDLE s_hIocp;
 class asyncProc: public OVERLAPPED
 {
 public:
-    asyncProc(SOCKET s, AsyncEvent *ac, intptr_t &guard) :
+    asyncProc(SOCKET s, AsyncEvent *ac, exlib::atomic &guard) :
         m_s(s), m_ac(ac), m_guard(guard), m_next(NULL)
     {
         memset((OVERLAPPED *) this, 0, sizeof(OVERLAPPED));
@@ -76,7 +76,7 @@ public:
 public:
     SOCKET m_s;
     AsyncEvent *m_ac;
-    intptr_t &m_guard;
+    exlib::atomic &m_guard;
     asyncProc *m_next;
 };
 
@@ -144,7 +144,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac)
     class asyncConnect: public asyncProc
     {
     public:
-        asyncConnect(SOCKET s, inetAddr &ai, AsyncEvent *ac, intptr_t &guard) :
+        asyncConnect(SOCKET s, inetAddr &ai, AsyncEvent *ac, exlib::atomic &guard) :
             asyncProc(s, ac, guard), m_ai(ai)
         {
         }
@@ -210,7 +210,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac)
             return CHECK_ERROR(CALL_E_INVALIDARG);
     }
 
-    if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
+    if (m_inRecv.CompareAndSwap(0, 1))
         return CHECK_ERROR(CALL_E_REENTRANT);
 
     (new asyncConnect(m_fd, addr_info, ac, m_inRecv))->proc();
@@ -223,7 +223,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
     {
     public:
         asyncAccept(SOCKET s, SOCKET sListen, obj_ptr<Socket_base> &retVal,
-                    AsyncEvent *ac, intptr_t &guard) :
+                    AsyncEvent *ac, exlib::atomic &guard) :
             asyncProc(s, ac, guard), m_sListen(sListen), m_retVal(retVal)
         {
         }
@@ -276,7 +276,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
+    if (m_inRecv.CompareAndSwap(0, 1))
         return CHECK_ERROR(CALL_E_REENTRANT);
 
     obj_ptr<Socket> s = new Socket();
@@ -303,7 +303,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     {
     public:
         asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                  AsyncEvent *ac, bool bRead, intptr_t &guard) :
+                  AsyncEvent *ac, bool bRead, exlib::atomic &guard) :
             asyncProc(s, ac, guard), m_retVal(retVal), m_pos(0), m_bRead(bRead)
         {
             m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
@@ -371,7 +371,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (exlib::CompareAndSwap(&m_inRecv, 0, 1))
+    if (m_inRecv.CompareAndSwap(0, 1))
         return CHECK_ERROR(CALL_E_REENTRANT);
 
     (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_inRecv))->proc();
@@ -383,7 +383,7 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
     class asyncSend: public asyncProc
     {
     public:
-        asyncSend(SOCKET s, Buffer_base *data, AsyncEvent *ac, intptr_t &guard) :
+        asyncSend(SOCKET s, Buffer_base *data, AsyncEvent *ac, exlib::atomic &guard) :
             asyncProc(s, ac, guard)
         {
             data->toString(m_buf);
@@ -431,7 +431,7 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (exlib::CompareAndSwap(&m_inSend, 0, 1))
+    if (m_inSend.CompareAndSwap(0, 1))
         return CHECK_ERROR(CALL_E_REENTRANT);
 
     (new asyncSend(m_fd, data, ac, m_inSend))->proc();
