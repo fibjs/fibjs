@@ -9,8 +9,9 @@
 	result_t hr = m(NULL); \
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	_t ac(NULL); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m() { \
 	class _t : public CAsyncCall { public: \
 		_t(void ** a) : CAsyncCall(a) {} \
@@ -21,8 +22,9 @@
 	result_t hr = m(NULL); \
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	_t ac(NULL); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m(v8::Local<v8::Function> cb) { \
 	class _t: public AsyncCallBack { \
 	public: \
@@ -54,8 +56,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m() { \
 	class _t : public CAsyncCall { public: \
 		_t(void ** a) : CAsyncCall(a) {} \
@@ -67,8 +70,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m(v8::Local<v8::Function> cb) { \
 	class _t: public AsyncCallBack { \
 	public: \
@@ -102,8 +106,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0& v0) {\
 	class _t : public CAsyncCall { public: \
@@ -116,8 +121,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -155,8 +161,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0& v0) {\
 	class _t : public CAsyncCall { public: \
@@ -169,8 +176,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -209,8 +217,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0) {\
 	class _t : public CAsyncCall { public: \
@@ -223,8 +232,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -259,8 +269,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0) {\
 	class _t : public CAsyncCall { public: \
@@ -273,8 +284,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -310,8 +322,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1& v1) {\
 	class _t : public CAsyncCall { public: \
@@ -324,8 +337,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -364,8 +378,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1& v1) {\
 	class _t : public CAsyncCall { public: \
@@ -378,8 +393,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -419,8 +435,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1) {\
 	class _t : public CAsyncCall { public: \
@@ -433,8 +450,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -470,8 +488,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1) {\
 	class _t : public CAsyncCall { public: \
@@ -484,8 +503,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -522,8 +542,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2& v2) {\
 	class _t : public CAsyncCall { public: \
@@ -536,8 +557,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -577,8 +599,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2& v2) {\
 	class _t : public CAsyncCall { public: \
@@ -591,8 +614,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -633,8 +657,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2) {\
 	class _t : public CAsyncCall { public: \
@@ -647,8 +672,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -685,8 +711,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2) {\
 	class _t : public CAsyncCall { public: \
@@ -699,8 +726,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -738,8 +766,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3& v3) {\
 	class _t : public CAsyncCall { public: \
@@ -752,8 +781,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -794,8 +824,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3& v3) {\
 	class _t : public CAsyncCall { public: \
@@ -808,8 +839,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -851,8 +883,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3) {\
 	class _t : public CAsyncCall { public: \
@@ -865,8 +898,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -904,8 +938,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3) {\
 	class _t : public CAsyncCall { public: \
@@ -918,8 +953,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -958,8 +994,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4& v4) {\
 	class _t : public CAsyncCall { public: \
@@ -972,8 +1009,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1015,8 +1053,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4& v4) {\
 	class _t : public CAsyncCall { public: \
@@ -1029,8 +1068,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1073,8 +1113,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) {\
 	class _t : public CAsyncCall { public: \
@@ -1087,8 +1128,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1127,8 +1169,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) {\
 	class _t : public CAsyncCall { public: \
@@ -1141,8 +1184,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1182,8 +1226,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5& v5) {\
 	class _t : public CAsyncCall { public: \
@@ -1196,8 +1241,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1240,8 +1286,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5& v5) {\
 	class _t : public CAsyncCall { public: \
@@ -1254,8 +1301,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1299,8 +1347,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {\
 	class _t : public CAsyncCall { public: \
@@ -1313,8 +1362,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1354,8 +1404,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {\
 	class _t : public CAsyncCall { public: \
@@ -1368,8 +1419,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1410,8 +1462,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6& v6) {\
 	class _t : public CAsyncCall { public: \
@@ -1424,8 +1477,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1469,8 +1523,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6& v6) {\
 	class _t : public CAsyncCall { public: \
@@ -1483,8 +1538,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1529,8 +1585,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {\
 	class _t : public CAsyncCall { public: \
@@ -1543,8 +1600,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1585,8 +1643,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {\
 	class _t : public CAsyncCall { public: \
@@ -1599,8 +1658,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1642,8 +1702,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7& v7) {\
 	class _t : public CAsyncCall { public: \
@@ -1656,8 +1717,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1702,8 +1764,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7& v7) {\
 	class _t : public CAsyncCall { public: \
@@ -1716,8 +1779,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1763,8 +1827,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {\
 	class _t : public CAsyncCall { public: \
@@ -1777,8 +1842,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1820,8 +1886,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {\
 	class _t : public CAsyncCall { public: \
@@ -1834,8 +1901,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1878,8 +1946,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8& v8) {\
 	class _t : public CAsyncCall { public: \
@@ -1892,8 +1961,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1939,8 +2009,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8& v8) {\
 	class _t : public CAsyncCall { public: \
@@ -1953,8 +2024,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -2001,8 +2073,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {\
 	class _t : public CAsyncCall { public: \
@@ -2015,8 +2088,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -2059,8 +2133,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {\
 	class _t : public CAsyncCall { public: \
@@ -2073,8 +2148,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -2118,8 +2194,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, T9& v9) {\
 	class _t : public CAsyncCall { public: \
@@ -2132,8 +2209,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, T9 v9, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -2180,8 +2258,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, T9& v9) {\
 	class _t : public CAsyncCall { public: \
@@ -2194,8 +2273,9 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9, this}; \
 	_t ac(args); \
-	ac.async(hr == CALL_E_LONGSYNC); \
-	return ac.wait();} \
+	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	else return ac.async_wait(); \
+	} \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, T9 v9, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \

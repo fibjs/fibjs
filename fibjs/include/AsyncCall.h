@@ -74,6 +74,20 @@ public:
         return m_v;
     }
 
+    int32_t async_wait()
+    {
+        {
+            Isolate::rt _rt;
+            invoke();
+            weak.wait();
+        }
+
+        if (m_v == CALL_E_EXCEPTION)
+            Runtime::setError(m_error);
+
+        return m_v;
+    }
+
 protected:
     exlib::Event weak;
     void **args;
@@ -105,6 +119,17 @@ public:
     int32_t wait()
     {
         weak.wait();
+        if (m_v == CALL_E_EXCEPTION)
+            Runtime::setError(m_error);
+
+        return m_v;
+    }
+
+    int32_t async_wait()
+    {
+        invoke();
+        weak.wait();
+
         if (m_v == CALL_E_EXCEPTION)
             Runtime::setError(m_error);
 

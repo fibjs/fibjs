@@ -110,7 +110,8 @@ describe("db", function() {
 			coroutine.start(function() {
 				a = 1;
 			})
-			conn.execute("select 100;", 100);
+			for (var i = 0; i < 100 && a == 0; i++)
+				conn.execute("select 100;", 100);
 			assert.equal(a, 1);
 		});
 	}
@@ -361,4 +362,4 @@ describe("db", function() {
 	});
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);

@@ -100,7 +100,7 @@ function gen_stub(argn, bInst, bRet) {
 		} else
 			txt.push('	_t ac(NULL); \\');
 
-		txt.push('	ac.async(hr == CALL_E_LONGSYNC); \\\n	return ac.wait();} \\');
+		txt.push('	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \\\n	else return ac.async_wait(); \\\n	} \\');
 	}
 
 	function gen_callback() {
