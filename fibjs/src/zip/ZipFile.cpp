@@ -543,12 +543,12 @@ result_t ZipFile::checkGuard(exlib::string path)
 		if (*tmpptr == PATH_SLASH)
 		{
 			exlib::string pathToCheck(ptr, tmpptr - ptr);
-			hr = fs_base::cc_exists(pathToCheck.c_str(), exists);
+			hr = fs_base::cc_exists(pathToCheck, exists);
 			if (hr < 0)
 				return hr;
 			if (!exists)
 			{
-				hr = fs_base::cc_mkdir(pathToCheck.c_str(), 0777);
+				hr = fs_base::cc_mkdir(pathToCheck, 0777);
 				if (hr < 0)
 					return hr;
 			}
