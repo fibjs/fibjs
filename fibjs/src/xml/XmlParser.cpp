@@ -214,7 +214,7 @@ result_t XmlParser::parse(XmlDocument *doc, exlib::string source)
     if (XML_Parse(xml_parser, source.c_str(), (int32_t)source.length(), true) != XML_STATUS_OK)
     {
         char msg[128];
-        sprintf(msg, "XmlParser: error on line %lu at colum %lu: %s", XML_GetCurrentLineNumber(xml_parser),
+        sprintf(msg, "XmlParser: error on line %lu at column %lu: %s", XML_GetCurrentLineNumber(xml_parser),
                 XML_GetCurrentColumnNumber(xml_parser) + 1,
                 XML_ErrorString(XML_GetErrorCode(xml_parser)));
 
