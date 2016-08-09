@@ -251,13 +251,13 @@ describe("gd", function() {
 		var img = gd.load('test.png');
 		var affines = [2, 1, 1, 2, 1, 1];
 		var img1 = img.affine(affines);
-		assert.equal(img1.width, 1115);
-		assert.equal(img1.height, 1125);
-		sample_test(img1, [0xffffff, 0x7efefefe, 0xfefefe]);
+		assert.equal(img1.width, 1117);
+		assert.equal(img1.height, 1126);
+		sample_test(img1, [0xffffff, 0x7fffffff, 0xfefefe]);
 
 		var img2 = img.affine(affines, 50, 50, 50, 50);
-		assert.equal(img2.width, 149);
-		assert.equal(img2.height, 150);
+		assert.equal(img2.width, 151);
+		assert.equal(img2.height, 151);
 		sample_test(img2, [0xff0000, 0x0, 0x0]);
 	});
 });

@@ -537,17 +537,8 @@ result_t Image::getData(int32_t format, int32_t quality,
         data = gdImagePngPtr(nowImage, &size);
         break;
     case gd_base::_JPEG:
-    {
-        unsigned char *ed_data = NULL;
-        uint32_t  ed_size = 0;
-
-        data = gdImageJpegPtr(nowImage, &size, quality, ed_data, ed_size);
-
-        if (ed_data)
-            free(ed_data);
-
+        data = gdImageJpegPtr(nowImage, &size, quality);
         break;
-    }
     case gd_base::_TIFF:
         data = gdImageTiffPtr(nowImage, &size);
         break;
