@@ -5,6 +5,3 @@
 *.sln binary
 *.html binary
 *.css binary
-*.cmd binary
-*.vcxproj binary
-*.filters binary
