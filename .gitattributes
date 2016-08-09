@@ -5,3 +5,5 @@
 *.sln binary
 *.html binary
 *.css binary
+*.ai binary
+*.svg binary
