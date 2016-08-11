@@ -40,7 +40,7 @@ public:
     virtual result_t connect(exlib::string host, int32_t port, AsyncEvent* ac) = 0;
     virtual result_t bind(int32_t port, bool allowIPv4) = 0;
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4) = 0;
-    virtual result_t listen(int32_t backlog, AsyncEvent* ac) = 0;
+    virtual result_t listen(int32_t backlog) = 0;
     virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base>& retVal) = 0;
@@ -72,7 +72,6 @@ public:
 
 public:
     ASYNC_MEMBER2(Socket_base, connect, exlib::string, int32_t);
-    ASYNC_MEMBER1(Socket_base, listen, int32_t);
     ASYNC_MEMBERVALUE1(Socket_base, accept, obj_ptr<Socket_base>);
     ASYNC_MEMBERVALUE2(Socket_base, recv, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBER1(Socket_base, send, Buffer_base*);
@@ -277,15 +276,11 @@ namespace fibjs
     inline void Socket_base::s_listen(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Socket_base);
-        ASYNC_METHOD_ENTER(1, 0);
+        METHOD_ENTER(1, 0);
 
         OPT_ARG(int32_t, 0, 120);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_listen(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_listen(v0);
+        hr = pInst->listen(v0);
 
         METHOD_VOID();
     }
