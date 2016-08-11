@@ -18,6 +18,13 @@ int32_t stack_size = 512;
 #else
 int32_t stack_size = 256;
 #endif
+
+#ifdef DEBUG
+#define GUARD_SIZE	32
+#else
+#define GUARD_SIZE	16
+#endif
+
 static void printHelp() {
 	printf("Usage: fibjs [options] [script.js] [arguments] \n"
 	       "\n"
@@ -37,7 +44,7 @@ bool options(int32_t* argc, char *argv[])
 
 	v8::V8::SetFlagsFromString(s_sharmony, sizeof(s_sharmony) - 1);
 	v8::V8::SetFlagsFromString(s_opts,
-	                           sprintf(s_opts, "--stack_size=%d", stack_size - 16));
+	                           sprintf(s_opts, "--stack_size=%d", stack_size - GUARD_SIZE));
 
 	int32_t df = 0;
 
