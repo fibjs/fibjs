@@ -9,6 +9,7 @@
 #include "Buffer.h"
 #include "ifs/net.h"
 #include "ifs/Socket.h"
+#include "Timer.h"
 
 #ifndef ASYNCIO_H_
 #define ASYNCIO_H_
@@ -30,11 +31,12 @@ public:
     {}
 
 public:
-    result_t connect(exlib::string host, int32_t port, AsyncEvent *ac);
+    result_t connect(exlib::string host, int32_t port, AsyncEvent *ac, Timer_base* timer);
     result_t accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac);
     result_t write(Buffer_base *data, AsyncEvent *ac);
     result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                  AsyncEvent *ac, bool bRead);
+                  AsyncEvent *ac, bool bRead, Timer_base* timer);
+
 #ifndef _WIN32
     result_t cancel(AsyncEvent *ac);
 #endif
@@ -47,6 +49,7 @@ public:
 private:
     exlib::atomic m_inRecv;
     exlib::atomic m_inSend;
+    obj_ptr<Timer_base> m_timer;
 
 #ifndef _WIN32
     void *m_RecvOpt;

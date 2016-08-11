@@ -32,6 +32,9 @@ interface Socket : Stream
     /*! @brief 查询当前连接的本地端口 */
     readonly Integer localPort;
 
+    /*! @brief 查询和设置超时时间 */
+    Integer timeout;
+
     /*! @brief 建立一个 tcp 连接
      @param host 指定对方地址或主机名
      @param port 指定对方端口

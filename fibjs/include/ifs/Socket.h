@@ -35,6 +35,8 @@ public:
     virtual result_t get_remotePort(int32_t& retVal) = 0;
     virtual result_t get_localAddress(exlib::string& retVal) = 0;
     virtual result_t get_localPort(int32_t& retVal) = 0;
+    virtual result_t get_timeout(int32_t& retVal) = 0;
+    virtual result_t set_timeout(int32_t newVal) = 0;
     virtual result_t connect(exlib::string host, int32_t port, AsyncEvent* ac) = 0;
     virtual result_t bind(int32_t port, bool allowIPv4) = 0;
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4) = 0;
@@ -57,6 +59,8 @@ public:
     static void s_get_remotePort(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_localAddress(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_localPort(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_bind(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -102,13 +106,14 @@ namespace fibjs
             {"remoteAddress", s_get_remoteAddress, block_set, false},
             {"remotePort", s_get_remotePort, block_set, false},
             {"localAddress", s_get_localAddress, block_set, false},
-            {"localPort", s_get_localPort, block_set, false}
+            {"localPort", s_get_localPort, block_set, false},
+            {"timeout", s_get_timeout, s_set_timeout, false}
         };
 
         static ClassData s_cd = 
         { 
             "Socket", s__new, NULL, 
-            8, s_method, 0, NULL, 6, s_property, NULL, NULL,
+            8, s_method, 0, NULL, 7, s_property, NULL, NULL,
             &Stream_base::class_info()
         };
 
@@ -186,6 +191,29 @@ namespace fibjs
         hr = pInst->get_localPort(vr);
 
         METHOD_RETURN();
+    }
+
+    inline void Socket_base::s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(Socket_base);
+
+        hr = pInst->get_timeout(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Socket_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(Socket_base);
+
+        PROPERTY_VAL(int32_t);
+        hr = pInst->set_timeout(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
     inline void Socket_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
