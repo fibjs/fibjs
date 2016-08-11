@@ -201,7 +201,7 @@ describe("net", function() {
 	it("re-entrant", function() {
 		function accept2(s) {
 			while (true) {
-				s.accept();
+				ss.push(s.accept());
 			}
 		}
 
