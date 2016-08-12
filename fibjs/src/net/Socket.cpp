@@ -94,7 +94,11 @@ result_t Socket::create(int32_t family, int32_t type)
 result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                       AsyncEvent *ac)
 {
-    return m_aio.read(bytes, retVal, ac, bytes > 0);
+    obj_ptr<Timer_base> timer;
+    if (ac && m_timeout > 0)
+        timer = new IOTimer(m_timeout, this);
+
+    return m_aio.read(bytes, retVal, ac, bytes > 0, timer);
 }
 
 result_t Socket::write(Buffer_base *data, AsyncEvent *ac)
@@ -215,6 +219,17 @@ result_t Socket::get_localPort(int32_t &retVal)
     return 0;
 }
 
+result_t Socket::get_timeout(int32_t& retVal)
+{
+    retVal = m_timeout;
+    return 0;
+}
+result_t Socket::set_timeout(int32_t newVal)
+{
+    m_timeout = newVal;
+    return 0;
+}
+
 result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
@@ -257,11 +272,8 @@ result_t Socket::bind(int32_t port, bool allowIPv4)
     return bind("", port, allowIPv4);
 }
 
-result_t Socket::listen(int32_t backlog, AsyncEvent* ac)
+result_t Socket::listen(int32_t backlog)
 {
-    if (!ac)
-        return CHECK_ERROR(CALL_E_LONGSYNC);
-
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -282,7 +294,11 @@ result_t Socket::connect(exlib::string host, int32_t port, AsyncEvent *ac)
     }
 #endif
 
-    return m_aio.connect(host, port, ac);
+    obj_ptr<Timer_base> timer;
+    if (ac && m_timeout > 0)
+        timer = new IOTimer(m_timeout, this);
+
+    return m_aio.connect(host, port, ac, timer);
 }
 
 result_t Socket::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
@@ -298,7 +314,11 @@ result_t Socket::send(Buffer_base *data, AsyncEvent *ac)
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                       AsyncEvent *ac)
 {
-    return m_aio.read(bytes, retVal, ac, false);
+    obj_ptr<Timer_base> timer;
+    if (ac && m_timeout > 0)
+        timer = new IOTimer(m_timeout, this);
+
+    return m_aio.read(bytes, retVal, ac, false, timer);
 }
 
 result_t Socket::recvFrom(int32_t bytes, obj_ptr<Buffer_base> &retVal)

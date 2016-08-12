@@ -32,6 +32,9 @@ interface Socket : Stream
     /*! @brief 查询当前连接的本地端口 */
     readonly Integer localPort;
 
+    /*! @brief 查询和设置超时时间 */
+    Integer timeout;
+
     /*! @brief 建立一个 tcp 连接
      @param host 指定对方地址或主机名
      @param port 指定对方端口
@@ -54,7 +57,7 @@ interface Socket : Stream
     /*! @brief 开始监听连接请求
      @param backlog 指定请求队列长度，超出的请求将被拒绝，缺省为 120
      */
-    listen(Integer backlog = 120) async;
+    listen(Integer backlog = 120);
 
     /*! @brief 等待并接受一个连接
      @return 返回接收到得连接对象

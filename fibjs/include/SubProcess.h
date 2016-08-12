@@ -84,7 +84,7 @@ public:
 		virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 		                      AsyncEvent *ac)
 		{
-			return m_aio.read(bytes, retVal, ac, bytes > 0);
+			return m_aio.read(bytes, retVal, ac, bytes > 0, NULL);
 		}
 
 		virtual result_t write(Buffer_base *data, AsyncEvent *ac)

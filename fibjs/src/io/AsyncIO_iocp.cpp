@@ -139,13 +139,13 @@ result_t net_base::backend(exlib::string &retVal)
     return 0;
 }
 
-result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac)
+result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac, Timer_base* timer)
 {
     class asyncConnect: public asyncProc
     {
     public:
-        asyncConnect(SOCKET s, inetAddr &ai, AsyncEvent *ac, exlib::atomic &guard) :
-            asyncProc(s, ac, guard), m_ai(ai)
+        asyncConnect(SOCKET s, inetAddr &ai, AsyncEvent *ac, exlib::atomic &guard, Timer_base* timer) :
+            asyncProc(s, ac, guard), m_ai(ai), m_timer(timer)
         {
         }
 
@@ -164,7 +164,14 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac)
                                     &guidConnectEx, sizeof(guidConnectEx),
                                     &ConnectEx, sizeof(ConnectEx), &dwBytes, NULL,
                                     NULL))
+                {
+                    if (m_timer)
+                    {
+                        m_timer->clear();
+                        m_timer.Release();
+                    }
                     return CHECK_ERROR(SocketError());
+                }
             }
 
             if (ConnectEx(m_s, (sockaddr *) &m_ai, (int32_t) m_ai.size(), NULL, 0,
@@ -172,11 +179,25 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac)
                 return CHECK_ERROR(CALL_E_PENDDING);
 
             nError = WSAGetLastError();
-            return CHECK_ERROR((nError == WSA_IO_PENDING) ? CALL_E_PENDDING : -nError);
+            if (nError == WSA_IO_PENDING)
+                return CHECK_ERROR(CALL_E_PENDDING);
+
+            if (m_timer)
+            {
+                m_timer->clear();
+                m_timer.Release();
+            }
+            return CHECK_ERROR(-nError);
         }
 
         virtual void ready(DWORD dwBytes, int32_t nError)
         {
+            if (m_timer)
+            {
+                m_timer->clear();
+                m_timer.Release();
+            }
+
             if (!nError)
             {
                 setsockopt(m_s, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0);
@@ -187,10 +208,15 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac)
 
     public:
         inetAddr m_ai;
+        obj_ptr<Timer_base> m_timer;
     };
 
     if (m_fd == INVALID_SOCKET)
+    {
+        if (timer)
+            timer->clear();
         return CHECK_ERROR(CALL_E_INVALID_CALL);
+    }
 
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -204,16 +230,28 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac)
         exlib::string strAddr;
         result_t hr = net_base::cc_resolve(host, m_family, strAddr);
         if (hr < 0)
+        {
+            if (timer)
+                timer->clear();
             return hr;
+        }
 
         if (addr_info.addr(strAddr.c_str()) < 0)
+        {
+            if (timer)
+                timer->clear();
             return CHECK_ERROR(CALL_E_INVALIDARG);
+        }
     }
 
     if (m_inRecv.CompareAndSwap(0, 1))
+    {
+        if (timer)
+            timer->clear();
         return CHECK_ERROR(CALL_E_REENTRANT);
+    }
 
-    (new asyncConnect(m_fd, addr_info, ac, m_inRecv))->proc();
+    (new asyncConnect(m_fd, addr_info, ac, m_inRecv, timer))->proc();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
@@ -297,14 +335,14 @@ result_t AsyncIO::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
 }
 
 result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                       AsyncEvent *ac, bool bRead)
+                       AsyncEvent *ac, bool bRead, Timer_base* timer)
 {
     class asyncRecv: public asyncProc
     {
     public:
         asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                  AsyncEvent *ac, bool bRead, exlib::atomic &guard) :
-            asyncProc(s, ac, guard), m_retVal(retVal), m_pos(0), m_bRead(bRead)
+                  AsyncEvent *ac, bool bRead, exlib::atomic &guard, Timer_base* timer) :
+            asyncProc(s, ac, guard), m_retVal(retVal), m_pos(0), m_bRead(bRead), m_timer(timer)
         {
             m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
         }
@@ -320,13 +358,35 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
             nError = GetLastError();
 
             if (nError == ERROR_NETNAME_DELETED || nError == ERROR_BROKEN_PIPE)
-                return CALL_RETURN_NULL;
+            {
+                if (m_timer)
+                {
+                    m_timer->clear();
+                    m_timer.Release();
+                }
 
-            return CHECK_ERROR((nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError);
+                return CALL_RETURN_NULL;
+            }
+
+            if (nError == ERROR_IO_PENDING)
+                return CHECK_ERROR(CALL_E_PENDDING);
+
+            if (m_timer)
+            {
+                m_timer->clear();
+                m_timer.Release();
+            }
+            return CHECK_ERROR(-nError);
         }
 
         virtual void ready(DWORD dwBytes, int32_t nError)
         {
+            if (m_timer)
+            {
+                m_timer->clear();
+                m_timer.Release();
+            }
+
             if (nError == -ERROR_NETNAME_DELETED || nError == -ERROR_BROKEN_PIPE)
             {
                 nError = 0;
@@ -363,18 +423,27 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         int32_t m_pos;
         bool m_bRead;
         exlib::string m_buf;
+        obj_ptr<Timer_base> m_timer;
     };
 
     if (m_fd == INVALID_SOCKET)
+    {
+        if (timer)
+            timer->clear();
         return CHECK_ERROR(CALL_E_INVALID_CALL);
+    }
 
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_inRecv.CompareAndSwap(0, 1))
+    {
+        if (timer)
+            timer->clear();
         return CHECK_ERROR(CALL_E_REENTRANT);
+    }
 
-    (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_inRecv))->proc();
+    (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_inRecv, timer))->proc();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 

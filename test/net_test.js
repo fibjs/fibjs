@@ -201,7 +201,7 @@ describe("net", function() {
 	it("re-entrant", function() {
 		function accept2(s) {
 			while (true) {
-				s.accept();
+				ss.push(s.accept());
 			}
 		}
 
@@ -272,6 +272,46 @@ describe("net", function() {
 		assert.equal(st, 0);
 		assert.equal(c1.recv().toString(), "aaa");
 		assert.equal(st, 1);
+	});
+
+	it("timeout", function() {
+		function accept4(s) {
+			while (true) {
+				ss.push(s.accept());
+			}
+		}
+
+		var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+		ss.push(s2);
+
+		s2.bind(8085 + base_port);
+		s2.listen();
+		coroutine.start(accept4, s2);
+
+		var c1 = new net.Socket();
+		c1.connect('127.0.0.1', 8085 + base_port);
+
+		c1.timeout = 50;
+
+		var t1 = new Date();
+		assert.throws(function() {
+			c1.recv();
+		});
+		var t2 = new Date();
+
+		assert.greaterThan(t2 - t1, 50);
+		assert.lessThan(t2 - t1, 100);
+
+		var c2 = new net.Socket();
+		c2.timeout = 50;
+		var t1 = new Date();
+		assert.throws(function() {
+			c2.connect('1.1.1.1', 8086 + base_port);
+		});
+		var t2 = new Date();
+
+		assert.greaterThan(t2 - t1, 40);
+		assert.lessThan(t2 - t1, 100);
 	});
 
 	it("bind same port", function() {
