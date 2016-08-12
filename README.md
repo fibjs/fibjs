@@ -33,22 +33,38 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 
 ----------------------------------
 ### on ubuntu:
-	apt-get install g++
-	apt-get install make
-	apt-get install cmake
-	apt-get install git
+	apt install g++
+	apt install make
+	apt install cmake
+	apt install git
 
 ### 32bit on ubuntu:
-	apt-get install gcc-multilib
-	apt-get install g++-multilib
+	apt install gcc-multilib
+	apt install g++-multilib
 
 ### arm on ubuntu:
-	apt-get install gcc-arm-linux-gnueabihf
-	apt-get install g++-arm-linux-gnueabihf
+	apt install gcc-arm-linux-gnueabihf
+	apt install g++-arm-linux-gnueabihf
 
 ### arm64 on ubuntu:
-	apt-get install gcc-aarch64-linux-gnu
-	apt-get install g++-aarch64-linux-gnu
+	apt install gcc-aarch64-linux-gnu
+	apt install g++-aarch64-linux-gnu
+
+### mips on ubuntu:
+	apt install gcc-mips-linux-gnu
+	apt install g++-mips-linux-gnu
+
+### mips64 on ubuntu:
+	apt install gcc-mips64-linux-gnuabi64
+	apt install g++-mips64-linux-gnuabi64
+
+### powerpc on ubuntu:
+	apt install gcc-powerpc-linux-gnu
+	apt install g++-powerpc-linux-gnu
+
+### mips64 on ubuntu:
+	apt install gcc-powerpc64-linux-gnu
+	apt install g++-powerpc64-linux-gnu
 
 ### fix
 	rm -f /usr/include/asm
