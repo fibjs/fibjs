@@ -66,15 +66,15 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 
 ----------------------------------
 ### on fedora:
-	yum install gcc-c++
-	yum install libstdc++-static
-	yum install make
-	yum install cmake
-	yum install git
+	dnf install gcc-c++
+	dnf install libstdc++-static
+	dnf install make
+	dnf install cmake
+	dnf install git
 
 ### 32bit on fedora:
-	yum install glibc-devel.i686
-	yum install libstdc++-static.i686
+	dnf install glibc-devel.i686
+	dnf install libstdc++-static.i686
 
 ----------------------------------
 ### on osx:
@@ -82,13 +82,7 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 	brew install git
 
 ----------------------------------
-### on freebsd (8,9):
-	pkg_add -r cmake
-	pkg_add -r libexecinfo
-	pkg_add -r git
-
-----------------------------------
-### on freebsd 10+:
+### on freebsd:
 	pkg install cmake
 	pkg install libexecinfo
 	pkg install git
