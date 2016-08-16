@@ -1,44 +1,25 @@
 
-/*! @brief 超文本传输协议模块，用以支持 http 协议处理 */
-module http
+/*! @brief http客户端对象 */
+interface HttpClient : object
 {
-    /*! @brief 创建一个 http 请求对象，参见 HttpRequest */
-    static HttpRequest new Request();
+    /*! @brief HttpClient 构造函数，创建一个新的HttpClient对象 */
+    HttpClient();
 
-    /*! @brief 创建一个 http 响应对象，参见 HttpResponse */
-    static HttpResponse new Response();
+    /*! @brief 返回http客户端的 HttpCookie 对象列表 */
+    readonly List cookies;
 
-    /*! @brief 创建一个 http cookie 对象，参见 HttpCookie */
-    static HttpCookie new Cookie();
+    /*! @brief 查询和设置超时时间 */
+    Integer timeout;
 
-    /*! @brief 创建一个 http 服务器，参见 HttpServer */
-    static HttpServer new Server();
-
-    /*! @brief 创建一个 http 客户端，参见 HttpClient */
-    static HttpClient new Client();
-
-    /*! @brief 创建一个 https 服务器，参见 HttpsServer */
-    static HttpsServer new HttpsServer();
-
-    /*! @brief 创建一个 http 协议处理器对象，参见 HttpHandler */
-    static HttpHandler new Handler();
-
-    /*! @brief 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息
-     @param root 文件根路径
-     @param mimes 扩展 mime 设置
-     @return 返回一个静态文件处理器用于处理 http 消息
-
-     fileHandler 支持 gzip 预压缩，当请求接受 gzip 编码，且相同路径下 filename.ext.gz 文件存在时，将直接返回此文件，
-     从而避免重复压缩带来服务器负载。
-     */
-    static Handler fileHandler(String root, Object mimes = {});
+    /*! @brief cookie功能开关，默认开启 */
+    Boolean enableCookie;
 
     /*! @brief 发送 http 请求到指定的流对象，并返回结果
      @param conn 指定处理请求的流对象
      @param req 要发送的 HttpRequest 对象
      @return 返回服务器响应
      */
-    static HttpResponse request(Stream conn, HttpRequest req) async;
+    HttpResponse request(Stream conn, HttpRequest req) async;
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
@@ -46,7 +27,7 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse request(String method, String url, Object headers = {});
+    HttpResponse request(String method, String url, Object headers = {});
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
@@ -55,7 +36,7 @@ module http
      @param headers 指定附加的 http 头
      @return 返回服务器响应
      */
-    static HttpResponse request(String method, String url, SeekableStream body, Map headers) async;
+    HttpResponse request(String method, String url, SeekableStream body, Map headers) async;
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
@@ -64,7 +45,7 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse request(String method, String url, SeekableStream body, Object headers = {});
+    HttpResponse request(String method, String url, SeekableStream body, Object headers = {});
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
@@ -73,14 +54,14 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse request(String method, String url, Buffer body, Object headers = {});
+    HttpResponse request(String method, String url, Buffer body, Object headers = {});
 
     /*! @brief 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      @param url 指定 url，必须是包含主机的完整 url
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse get(String url, Object headers = {});
+    HttpResponse get(String url, Object headers = {});
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -88,7 +69,7 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse post(String url, SeekableStream body, Object headers = {});
+    HttpResponse post(String url, SeekableStream body, Object headers = {});
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -96,5 +77,5 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse post(String url, Buffer body, Object headers = {});
+    HttpResponse post(String url, Buffer body, Object headers = {});
 };
