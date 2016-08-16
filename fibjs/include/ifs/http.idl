@@ -23,6 +23,15 @@ module http
     /*! @brief 创建一个 http 协议处理器对象，参见 HttpHandler */
     static HttpHandler new Handler();
 
+    /*! @brief 返回http客户端的 HttpCookie 对象列表 */
+    static readonly List cookies;
+
+    /*! @brief 查询和设置超时时间 */
+    static Integer timeout;
+
+    /*! @brief cookie功能开关，默认开启 */
+    static Boolean enableCookie;
+
     /*! @brief 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息
      @param root 文件根路径
      @param mimes 扩展 mime 设置

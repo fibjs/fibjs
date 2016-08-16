@@ -957,21 +957,38 @@ describe("http", function() {
 		});
 	});
 
-	describe("server/request", function() {
+	describe("server/global request", function() {
 		var svr;
+		var cookie;
 
 		before(function() {
 			svr = new http.Server(8882 + base_port, function(r) {
-				if (r.address == "/redirect") {
+				var port = 8882 + base_port;
+				cookie = r.headers.cookie;
+
+				r.response.addHeader("set-cookie", "root1=value1; domain=127.0.0.2; path=/");
+				r.response.addHeader("set-cookie", "root=value2; path=/");
+				r.response.addHeader("set-cookie", "root=value; path=/");
+				r.response.addHeader("set-cookie", "root=value; domain=127.0.0.1:" + port + "; path=/");
+
+				if (r.address == "/name") {
+					r.response.addHeader("set-cookie", "name=value; path=/name");
+					r.response.body.write(r.address);
+				} else if (r.address == "/redirect") {
 					r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/request");
 				} else if (r.address == "/redirect1") {
 					r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/redirect1");
 				} else if (r.address != "/gzip_test") {
+					r.response.addHeader("set-cookie", "request=value; domain=127.0.0.1:" + port + "; path=/request");
+					r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1:" + port + "; path=/request");
+					r.response.addHeader("set-cookie", "request2=value; domain=127.0.0.1:" + port + "; path=/request; secure");
+					r.response.addHeader("set-cookie", "request3=value; domain=127.0.0.1; path=/request;");
 					r.response.body.write(r.address);
 					r.body.copyTo(r.response.body);
 					if (r.hasHeader("test_header"))
 						r.response.body.write(r.firstHeader("test_header"));
 				} else {
+					r.response.addHeader("set-cookie", "gzip_test=value; domain=127.0.0.1:" + port + "; path=/gzip_test");
 					r.response.addHeader("Content-Type", "text/html");
 					r.response.body.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 				}
@@ -987,6 +1004,9 @@ describe("http", function() {
 			it("simple", function() {
 				assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request").body.read().toString(),
 					"/request");
+				assert.equal(cookie, undefined);
+				http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request");
+				assert.equal(cookie, "root=value2; request=value; request1=value");
 			});
 
 			it("redirect", function() {
@@ -1001,17 +1021,23 @@ describe("http", function() {
 			it("body", function() {
 				assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", "body").body.read().toString(),
 					"/request:body");
+				assert.equal(cookie, "root=value2");
 			});
 
 			it("header", function() {
 				assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
 					"test_header": "header"
 				}).body.read().toString(), "/request:header");
+				assert.equal(cookie, "root=value2");
 			});
 
 			it("gzip", function() {
 				assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test").body.read().toString(),
 					"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+
+				assert.equal(cookie, "root=value2");
+				http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test");
+				assert.equal(cookie, "root=value2; gzip_test=value");
 			});
 		});
 
@@ -1019,6 +1045,7 @@ describe("http", function() {
 			it("simple", function() {
 				assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/request").body.read().toString(),
 					"/request");
+				assert.equal(cookie, "root=value2; request=value; request1=value")
 			});
 
 			it("header", function() {
@@ -1040,17 +1067,33 @@ describe("http", function() {
 				}).body.read().toString(), "/request:header");
 			});
 		});
+
+		describe("disable global cookie", function() {
+			it("disable global cookie", function() {
+				assert.equal(http.enableCookie, true);
+				http.enableCookie = false;
+				assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/name").body.read().toString(),
+					"/name");
+				assert.equal(cookie, "root=value2");
+				http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/name");
+				assert.equal(cookie, "root=value2");
+			})
+		})
 	});
 
-	describe("https server/https request", function() {
+	describe("https server/global https request", function() {
 
 		var svr;
+		var cookie;
 
 		before(function() {
 			ssl.ca.load(ca_pem);
 
 			svr = new http.HttpsServer(crt, pk, 8883 + base_port, function(r) {
+				cookie = r.headers.cookie;
 				if (r.address != "/gzip_test") {
+					r.response.addHeader("set-cookie", "request1=value; path=/");
+					r.response.addHeader("set-cookie", "request2=value; path=/; secure");
 					r.response.body.write(r.address);
 					r.body.copyTo(r.response.body);
 					if (r.hasHeader("test_header"))
@@ -1072,6 +1115,7 @@ describe("http", function() {
 			it("simple", function() {
 				assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request").body.read().toString(),
 					"/request");
+				var a = http.request("GET", "https://localhost:" + (8883 + base_port) + "/request");
 			});
 
 			it("body", function() {
@@ -1118,6 +1162,108 @@ describe("http", function() {
 					}).body.read().toString(), "/request:header");
 			});
 		});
+	});
+
+	describe("server/client", function() {
+		var svr;
+		var cookie;
+
+		before(function() {
+			svr = new http.Server(8882 + base_port, function(r) {
+				var port = 8882 + base_port;
+				cookie = r.headers.cookie;
+
+				r.response.addHeader("set-cookie", "root1=value1; domain=127.0.0.2; path=/");
+				r.response.addHeader("set-cookie", "root=value2; path=/");
+				r.response.addHeader("set-cookie", "root=value; path=/");
+				r.response.addHeader("set-cookie", "root=value; domain=127.0.0.1:" + port + "; path=/");
+
+				if (r.address == "/name") {
+					r.response.addHeader("set-cookie", "name=value; domain=127.0.0.1:" + port + "; path=/name");
+					r.response.body.write(r.address);
+				} else if (r.address == "/redirect") {
+					r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/request");
+				} else if (r.address == "/redirect1") {
+					r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/redirect1");
+				} else if (r.address != "/gzip_test") {
+					r.response.addHeader("set-cookie", "request=value; domain=127.0.0.1:" + port + "; path=/request");
+					r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1:" + port + "; path=/request");
+					r.response.addHeader("set-cookie", "request2=value; domain=127.0.0.1:" + port + "; path=/request; secure");
+					r.response.addHeader("set-cookie", "request3=value; domain=127.0.0.1; path=/request;");
+					r.response.body.write(r.address);
+					r.body.copyTo(r.response.body);
+					if (r.hasHeader("test_header"))
+						r.response.body.write(r.firstHeader("test_header"));
+				} else {
+					r.response.addHeader("Content-Type", "text/html");
+					r.response.addHeader("set-cookie", "gzip_test=value; domain=127.0.0.1:" + port + "; path=/gzip_test");
+					r.response.body.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+				}
+			});
+			svr.asyncRun();
+		});
+
+		after(function() {
+			svr.socket.close();
+		});
+
+		describe("request & cookie", function() {
+			var client = new http.Client();
+
+			it("simple", function() {
+				assert.equal(client.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request").body.read().toString(),
+					"/request");
+
+				assert.equal(cookie, undefined);
+				client.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request");
+				assert.equal(cookie, "root=value2; request=value; request1=value");
+			});
+
+			it("redirect", function() {
+				assert.equal(client.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect").body.read().toString(),
+					"/request");
+
+				assert.equal(cookie, "root=value2; request=value; request1=value");
+				assert.throws(function() {
+					client.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect1")
+				});
+			});
+
+			it("body", function() {
+				assert.equal(client.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", "body").body.read().toString(),
+					"/request:body");
+			});
+
+			it("header", function() {
+				assert.equal(client.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+					"test_header": "header"
+				}).body.read().toString(), "/request:header");
+			});
+
+			it("gzip", function() {
+				assert.equal(client.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test").body.read().toString(),
+					"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+				assert.equal(cookie, "root=value2");
+				client.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test");
+				assert.equal(cookie, "root=value2; gzip_test=value");
+			});
+
+		});
+
+		describe("disable client cookie", function() {
+			var client = new http.Client();
+
+			it("disable cookie", function() {
+				assert.equal(client.enableCookie, true);
+				client.enableCookie = false;
+				assert.equal(client.request('GET', "http://127.0.0.1:" + (8882 + base_port) + "/name").body.read().toString(),
+					"/name");
+				assert.equal(cookie, undefined);
+
+				client.request('GET', "http://127.0.0.1:" + (8882 + base_port) + "/name");
+				assert.equal(cookie, undefined);
+			})
+		})
 	});
 });
 

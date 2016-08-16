@@ -24,6 +24,7 @@ class HttpServer_base;
 class HttpClient_base;
 class HttpsServer_base;
 class HttpHandler_base;
+class List_base;
 class Handler_base;
 class Stream_base;
 class SeekableStream_base;
@@ -36,6 +37,11 @@ class http_base : public object_base
 
 public:
     // http_base
+    static result_t get_cookies(obj_ptr<List_base>& retVal);
+    static result_t get_timeout(int32_t& retVal);
+    static result_t set_timeout(int32_t newVal);
+    static result_t get_enableCookie(bool& retVal);
+    static result_t set_enableCookie(bool newVal);
     static result_t fileHandler(exlib::string root, v8::Local<v8::Object> mimes, obj_ptr<Handler_base>& retVal);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
@@ -58,6 +64,11 @@ public:
     }
 
 public:
+    static void s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_enableCookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_enableCookie(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -77,6 +88,7 @@ public:
 #include "HttpClient.h"
 #include "HttpsServer.h"
 #include "HttpHandler.h"
+#include "List.h"
 #include "Handler.h"
 #include "Stream.h"
 #include "SeekableStream.h"
@@ -106,10 +118,17 @@ namespace fibjs
             {"Handler", HttpHandler_base::class_info}
         };
 
+        static ClassData::ClassProperty s_property[] = 
+        {
+            {"cookies", s_get_cookies, block_set, true},
+            {"timeout", s_get_timeout, s_set_timeout, true},
+            {"enableCookie", s_get_enableCookie, s_set_enableCookie, true}
+        };
+
         static ClassData s_cd = 
         { 
             "http", s__new, NULL, 
-            4, s_method, 7, s_object, 0, NULL, NULL, NULL,
+            4, s_method, 7, s_object, 3, s_property, NULL, NULL,
             NULL
         };
 
@@ -117,6 +136,58 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void http_base::s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<List_base> vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_cookies(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void http_base::s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_timeout(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void http_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = set_timeout(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void http_base::s_get_enableCookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        bool vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_enableCookie(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void http_base::s_set_enableCookie(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_VAL(bool);
+
+        hr = set_enableCookie(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
 
     inline void http_base::s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
