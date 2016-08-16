@@ -58,7 +58,6 @@ result_t HttpClient::get_cookies(obj_ptr<List_base>& retVal)
 
 result_t HttpClient::update(HttpCookie* cookie)
 {
-    result_t hr;
     int32_t length, i;
     exlib::string str, str1;
     bool b = false, b1 = false;

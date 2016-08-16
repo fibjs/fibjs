@@ -173,6 +173,7 @@
     <ClInclude Include="include\ifs\HeapSnapshot.h" />
     <ClInclude Include="include\ifs\hex.h" />
     <ClInclude Include="include\ifs\http.h" />
+    <ClInclude Include="include\ifs\HttpClient.h" />
     <ClInclude Include="include\ifs\HttpCollection.h" />
     <ClInclude Include="include\ifs\HttpCookie.h" />
     <ClInclude Include="include\ifs\HttpHandler.h" />
@@ -416,6 +417,7 @@
     <ClCompile Include="src\global\Int64.cpp" />
     <ClCompile Include="src\global\Timer.cpp" />
     <ClCompile Include="src\http\http.cpp" />
+    <ClCompile Include="src\http\HttpClient.cpp" />
     <ClCompile Include="src\http\HttpCollection.cpp" />
     <ClCompile Include="src\http\HttpCookie.cpp" />
     <ClCompile Include="src\http\HttpFileHandler.cpp" />
