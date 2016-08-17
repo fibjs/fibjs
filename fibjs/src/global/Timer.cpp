@@ -18,7 +18,15 @@ public:
 	JSTimer(v8::Local<v8::Function> callback, int32_t timeout = 0, bool repeat = false) :
 		Timer(timeout, repeat)
 	{
+		holder();
+
 		SetPrivate("callback", callback);
+	}
+
+public:
+	virtual void resume()
+	{
+		syncCall(holder(), _callback, this);
 	}
 
 public:
@@ -53,7 +61,10 @@ result_t global_base::setInterval(v8::Local<v8::Function> callback, int32_t time
 	if (timeout < 1)
 		timeout = 1;
 
-	retVal = new JSTimer(callback, timeout, true);
+	obj_ptr<Timer> timer = new JSTimer(callback, timeout, true);
+	timer->sleep();
+	retVal = timer;
+
 	return 0;
 }
 
@@ -62,13 +73,19 @@ result_t global_base::setTimeout(v8::Local<v8::Function> callback, int32_t timeo
 	if (timeout < 1)
 		timeout = 1;
 
-	retVal = new JSTimer(callback, timeout);
+	obj_ptr<Timer> timer = new JSTimer(callback, timeout);
+	timer->sleep();
+	retVal = timer;
+
 	return 0;
 }
 
 result_t global_base::setImmediate(v8::Local<v8::Function> callback, obj_ptr<Timer_base>& retVal)
 {
-	retVal = new JSTimer(callback);
+	obj_ptr<Timer> timer = new JSTimer(callback);
+	timer->sleep();
+	retVal = timer;
+
 	return 0;
 }
 

@@ -94,9 +94,12 @@ result_t Socket::create(int32_t family, int32_t type)
 result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                       AsyncEvent *ac)
 {
-    obj_ptr<Timer_base> timer;
+    obj_ptr<Timer> timer;
     if (ac && m_timeout > 0)
+    {
         timer = new IOTimer(m_timeout, this);
+        timer->sleep();
+    }
 
     return m_aio.read(bytes, retVal, ac, bytes > 0, timer);
 }
@@ -294,9 +297,12 @@ result_t Socket::connect(exlib::string host, int32_t port, AsyncEvent *ac)
     }
 #endif
 
-    obj_ptr<Timer_base> timer;
+    obj_ptr<Timer> timer;
     if (ac && m_timeout > 0)
+    {
         timer = new IOTimer(m_timeout, this);
+        timer->sleep();
+    }
 
     return m_aio.connect(host, port, ac, timer);
 }
@@ -314,9 +320,12 @@ result_t Socket::send(Buffer_base *data, AsyncEvent *ac)
 result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                       AsyncEvent *ac)
 {
-    obj_ptr<Timer_base> timer;
+    obj_ptr<Timer> timer;
     if (ac && m_timeout > 0)
+    {
         timer = new IOTimer(m_timeout, this);
+        timer->sleep();
+    }
 
     return m_aio.read(bytes, retVal, ac, false, timer);
 }

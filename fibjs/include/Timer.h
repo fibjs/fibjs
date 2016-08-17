@@ -22,13 +22,6 @@ public:
 	Timer(int32_t timeout = 0, bool repeat = false) :
 		m_timeout(timeout), m_repeat(repeat), m_cancel(0)
 	{
-		holder();
-
-		if (timeout > 0)
-			sleep();
-		else
-			resume();
-
 		Ref();
 	}
 
@@ -55,17 +48,15 @@ public:
 
 	virtual void resume()
 	{
-		Isolate* isolate = holder();
-
-		if (isolate)
-			syncCall(holder(), _callback, this);
-		else
-			asyncCall(_callback, this);
+		asyncCall(_callback, this);
 	}
 
 	void sleep()
 	{
-		exlib::Fiber::sleep(m_timeout, this);
+		if (m_timeout > 0)
+			exlib::Fiber::sleep(m_timeout, this);
+		else
+			resume();
 	}
 
 public:
@@ -73,7 +64,7 @@ public:
 	{
 	}
 
-private:
+protected:
 	void callback()
 	{
 		if (!m_cancel)

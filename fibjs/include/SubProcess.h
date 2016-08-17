@@ -140,7 +140,7 @@ public:
 private:
 	obj_ptr<BufferedStream_base> m_stdin;
 	obj_ptr<BufferedStream_base> m_stdout;
-	obj_ptr<Timer_base> m_timer;
+	obj_ptr<Timer> m_timer;
 
 	intptr_t m_pid;
 };
