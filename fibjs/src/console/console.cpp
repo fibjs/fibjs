@@ -35,6 +35,7 @@ inline int64_t Ticks()
 #else
 #include <dlfcn.h>
 #include <sys/time.h>
+#include <sys/ioctl.h>
 
 #include "utils.h" // for ARRAYSIZE()
 
@@ -245,6 +246,70 @@ result_t console_base::print(const v8::FunctionCallbackInfo<v8::Value> &args)
     _log(_PRINT, args);
     return 0;
 }
+
+#ifdef _WIN32
+
+result_t console_base::get_width(int32_t& retVal)
+{
+    CONSOLE_SCREEN_BUFFER_INFO info;
+
+    if (!GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info))
+        return CHECK_ERROR(LastError());
+
+    retVal = info.dwSize.X;
+
+    return 0;
+}
+
+result_t console_base::get_height(int32_t& retVal)
+{
+    CONSOLE_SCREEN_BUFFER_INFO info;
+
+    if (!GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info))
+        return CHECK_ERROR(LastError());
+
+    retVal = info.srWindow.Bottom - info.srWindow.Top + 1;
+
+    return 0;
+}
+
+#else
+
+result_t console_base::get_width(int32_t& retVal)
+{
+    struct winsize ws;
+    int err;
+
+    do
+        err = ioctl(2, TIOCGWINSZ, &ws);
+    while (err == -1 && errno == EINTR);
+
+    if (err == -1)
+        return CHECK_ERROR(LastError());
+
+    retVal = ws.ws_col;
+
+    return 0;
+}
+
+result_t console_base::get_height(int32_t& retVal)
+{
+    struct winsize ws;
+    int err;
+
+    do
+        err = ioctl(2, TIOCGWINSZ, &ws);
+    while (err == -1 && errno == EINTR);
+
+    if (err == -1)
+        return CHECK_ERROR(LastError());
+
+    retVal = ws.ws_row;
+
+    return 0;
+}
+
+#endif
 
 char *read_line()
 {

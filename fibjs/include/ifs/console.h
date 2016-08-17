@@ -42,6 +42,8 @@ public:
     static result_t get_loglevel(int32_t& retVal);
     static result_t set_loglevel(int32_t newVal);
     static result_t get_colors(obj_ptr<TextColor_base>& retVal);
+    static result_t get_width(int32_t& retVal);
+    static result_t get_height(int32_t& retVal);
     static result_t add(v8::Local<v8::Array> cfg);
     static result_t add(v8::Local<v8::Value> cfg);
     static result_t reset();
@@ -95,6 +97,8 @@ public:
     static void s_get_loglevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_colors(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_height(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_reset(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_log(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -159,13 +163,15 @@ namespace fibjs
             {"PRINT", s_get_PRINT, block_set, true},
             {"NOTSET", s_get_NOTSET, block_set, true},
             {"loglevel", s_get_loglevel, s_set_loglevel, true},
-            {"colors", s_get_colors, block_set, true}
+            {"colors", s_get_colors, block_set, true},
+            {"width", s_get_width, block_set, true},
+            {"height", s_get_height, block_set, true}
         };
 
         static ClassData s_cd = 
         { 
             "console", s__new, NULL, 
-            17, s_method, 0, NULL, 12, s_property, NULL, NULL,
+            17, s_method, 0, NULL, 14, s_property, NULL, NULL,
             NULL
         };
 
@@ -271,6 +277,28 @@ namespace fibjs
         PROPERTY_ENTER();
 
         hr = get_colors(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void console_base::s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_width(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void console_base::s_get_height(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_height(vr);
 
         METHOD_RETURN();
     }
