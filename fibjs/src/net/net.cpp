@@ -72,7 +72,7 @@ result_t net_base::ipv6(exlib::string name, exlib::string &retVal,
     return resolve(name, net_base::_AF_INET6, retVal, ac);
 }
 
-result_t net_base::connect(exlib::string host, int32_t port, int32_t family,
+result_t net_base::connect(exlib::string host, int32_t port, int32_t timeout, int32_t family,
                            obj_ptr<Stream_base> &retVal, AsyncEvent *ac)
 {
     if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
@@ -88,11 +88,13 @@ result_t net_base::connect(exlib::string host, int32_t port, int32_t family,
     if (hr < 0)
         return hr;
 
+    socket->set_timeout(timeout);
+
     retVal = socket;
     return socket->connect(host, port, ac);
 }
 
-result_t net_base::connect(exlib::string url, obj_ptr<Stream_base> &retVal,
+result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base> &retVal,
                            AsyncEvent *ac)
 {
     if (!qstrcmp(url.c_str(), "ssl:", 4))
@@ -114,7 +116,7 @@ result_t net_base::connect(exlib::string url, obj_ptr<Stream_base> &retVal,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int32_t nPort = atoi(u->m_port.c_str());
-    return connect(u->m_hostname.c_str(), nPort,
+    return connect(u->m_hostname.c_str(), nPort, timeout,
                    u->m_ipv6 ? net_base::_AF_INET6 : net_base::_AF_INET,
                    retVal, ac);
 }

@@ -99,6 +99,7 @@ public:
 	v8::Persistent<v8::Function> m_stringify;
 
 	obj_ptr<SandBox> m_topSandbox;
+	obj_ptr<obj_base> m_httpclient;
 
 	exlib::List<exlib::linkitem> m_fibers;
 

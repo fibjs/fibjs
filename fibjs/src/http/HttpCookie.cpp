@@ -118,7 +118,7 @@ result_t HttpCookie::match(exlib::string url, bool &retVal)
         size_t sz = m_domain.length();
 
         p1 = m_domain.c_str();
-        p2 = u->m_host.c_str();
+        p2 = u->m_hostname.c_str();
 
         while (*p1 == '.')
         {
@@ -128,20 +128,20 @@ result_t HttpCookie::match(exlib::string url, bool &retVal)
 
         if (*p1)
         {
-            if (!qstrchr(p1, '.'))
+            if (qstricmp(p1, "localhost", 9) && !qstrchr(p1, '.'))
                 return 0;
 
-            if (sz > u->m_host.length())
+            if (sz > u->m_hostname.length())
                 return 0;
 
-            if (sz == u->m_host.length())
+            if (sz == u->m_hostname.length())
             {
                 if (qstrcmp(p1, p2))
                     return 0;
             }
             else
             {
-                p2 += u->m_host.length() - sz - 1;
+                p2 += u->m_hostname.length() - sz - 1;
                 if (*p2 != '.' || qstrcmp(p1, p2 + 1))
                     return 0;
             }

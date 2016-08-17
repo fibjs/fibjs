@@ -45,16 +45,18 @@ module net
     /*! @brief 创建一个 Socket 对象并建立连接，参见 Socket
      @param host 指定对方地址或主机名
      @param port 指定对方端口
+     @param timeout 指定超时时间，单位是毫秒，默认为0
      @param family 指定地址集，缺省为 AF_INET，ipv4
      @return 返回连接成功的 Socket 对象
      */
-    static Stream connect(String host, Integer port, Integer family = net.AF_INET) async;
+    static Stream connect(String host, Integer port, Integer timeout = 0, Integer family = net.AF_INET) async;
 
     /*! @brief 创建一个 Socket 或 SslSocket 对象并建立连接
      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
+     @param timeout 指定超时时间，单位是毫秒，默认为0
      @return 返回连接成功的 Socket 或者 SslSocket 对象
      */
-    static Stream connect(String url) async;
+    static Stream connect(String url, Integer timeout = 0) async;
 
     /*! @brief 创建一个 Smtp 对象，参见 Smtp */
     static Smtp;
