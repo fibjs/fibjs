@@ -15,6 +15,7 @@
 #include "HttpClient.h"
 #include "BufferedStream.h"
 #include "map"
+#include "Isolate.h"
 #include "ifs/zlib.h"
 
 namespace fibjs
@@ -24,14 +25,13 @@ DECLARE_MODULE(http);
 
 class Gclient {
 public:
-    obj_ptr<HttpClient>& get_httpClient()
+    HttpClient *get_httpClient()
     {
-        if (!m_httpclient)
-            m_httpclient = new HttpClient();
-        return m_httpclient;
+        Isolate *isolate = Isolate::current();
+        if (!isolate->m_httpclient)
+            isolate->m_httpclient = new HttpClient();
+        return (HttpClient*)(obj_base*)isolate->m_httpclient;
     }
-private:
-    obj_ptr<HttpClient> m_httpclient;
 } g_httpclient;
 
 result_t http_base::get_cookies(obj_ptr<List_base>& retVal)
