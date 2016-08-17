@@ -27,9 +27,9 @@ void Runtime::reg()
 	exlib::Fiber::tlsPut(s_tls_rt, this);
 }
 
-Runtime &Runtime::current()
+Runtime* Runtime::current()
 {
-	return *(Runtime *)exlib::Fiber::tlsGet(s_tls_rt);
+	return (Runtime *)exlib::Fiber::tlsGet(s_tls_rt);
 }
 
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator
@@ -131,7 +131,11 @@ Isolate::Isolate(const char *fname) :
 
 Isolate * Isolate::current()
 {
-	return Runtime::current().isolate();
+	Runtime *rt = Runtime::current();
+	if (rt == NULL)
+		return NULL;
+
+	return rt->isolate();
 }
 
 void Isolate::init()

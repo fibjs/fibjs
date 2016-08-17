@@ -22,42 +22,42 @@ public:
     }
 
 public:
-    static Runtime &current();
+    static Runtime* current();
 
     static result_t setError(result_t hr)
     {
-        Runtime &rt = Runtime::current();
+        Runtime* rt = Runtime::current();
 
-        rt.m_code = hr;
-        return rt.m_code;
+        rt->m_code = hr;
+        return rt->m_code;
     }
 
     static result_t setError(exlib::string err)
     {
-        Runtime &rt = Runtime::current();
+        Runtime* rt = Runtime::current();
 
-        rt.m_code = CALL_E_EXCEPTION;
-        rt.m_error = err;
-        return rt.m_code;
+        rt->m_code = CALL_E_EXCEPTION;
+        rt->m_error = err;
+        return rt->m_code;
     }
 
     static result_t setError(const char *err = NULL)
     {
-        Runtime &rt = Runtime::current();
+        Runtime* rt = Runtime::current();
 
-        rt.m_code = CALL_E_EXCEPTION;
-        rt.m_error.assign(err ? err : "");
-        return rt.m_code;
+        rt->m_code = CALL_E_EXCEPTION;
+        rt->m_error.assign(err ? err : "");
+        return rt->m_code;
     }
 
     static const exlib::string &errMessage()
     {
-        return Runtime::current().m_error;
+        return Runtime::current()->m_error;
     }
 
     static result_t errNumber()
     {
-        return Runtime::current().m_code;
+        return Runtime::current()->m_code;
     }
 
     Isolate* isolate()
