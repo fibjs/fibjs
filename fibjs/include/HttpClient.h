@@ -1,5 +1,5 @@
 /*
- * HttpServer.h
+ * HttpClient.h
  *
  *  Created on: Aug 12, 2016
  */
