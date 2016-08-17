@@ -165,7 +165,7 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
 
     m_cookies->get_length(length);
     if (length == 0)
-    	return 0;
+        return 0;
 
     obj_ptr<Url> u = new Url();
     hr = u->parse(url);
@@ -210,8 +210,8 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
 
 
 result_t HttpClient::request(Stream_base *conn, HttpRequest_base *req,
-                            obj_ptr<HttpResponse_base> &retVal,
-                            AsyncEvent *ac)
+                             obj_ptr<HttpResponse_base> &retVal,
+                             AsyncEvent *ac)
 {
     class asyncRequest: public AsyncState
     {
@@ -301,8 +301,8 @@ result_t HttpClient::request(Stream_base *conn, HttpRequest_base *req,
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
-                            SeekableStream_base* body, Map_base* headers,
-                            obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+                             SeekableStream_base* body, Map_base* headers,
+                             obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
 
     class asyncRequest: public AsyncState
@@ -460,8 +460,8 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
-                            SeekableStream_base *body, v8::Local<v8::Object> headers,
-                            obj_ptr<HttpResponse_base> &retVal)
+                             SeekableStream_base *body, v8::Local<v8::Object> headers,
+                             obj_ptr<HttpResponse_base> &retVal)
 {
     obj_ptr<Map_base> map = new Map();
     map->put(headers);
@@ -469,14 +469,14 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
-                            v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+                             v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
 {
     return request(method, url, (SeekableStream_base *) NULL, headers, retVal);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
-                            Buffer_base *body, v8::Local<v8::Object> headers,
-                            obj_ptr<HttpResponse_base> &retVal)
+                             Buffer_base *body, v8::Local<v8::Object> headers,
+                             obj_ptr<HttpResponse_base> &retVal)
 {
     obj_ptr<SeekableStream_base> stm = new MemoryStream();
     stm->write(body, NULL);
@@ -484,19 +484,19 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 }
 
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> headers,
-                        obj_ptr<HttpResponse_base> &retVal)
+                         obj_ptr<HttpResponse_base> &retVal)
 {
     return request("GET", url, headers, retVal);
 }
 
 result_t HttpClient::post(exlib::string url, Buffer_base *body,
-                         v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+                          v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
 {
     return request("POST", url, body, headers, retVal);
 }
 
 result_t HttpClient::post(exlib::string url, SeekableStream_base *body,
-                         v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+                          v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
 {
     return request("POST", url, body, headers, retVal);
 }

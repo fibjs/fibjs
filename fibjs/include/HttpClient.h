@@ -17,7 +17,7 @@ namespace fibjs
 class HttpClient: public HttpClient_base
 {
 public:
-    HttpClient():m_timeout(0), m_enableCookie(true)
+    HttpClient(): m_timeout(0), m_enableCookie(true)
     {
         m_cookies = new List();
     }
@@ -40,8 +40,10 @@ public:
 
 public:
     result_t update_cookies(exlib::string url, obj_ptr<List_base> cookies);
-    result_t update(obj_ptr<HttpCookie> cookie);
     result_t get_cookie(exlib::string url, exlib::string& retVal);
+
+private:
+    result_t update(obj_ptr<HttpCookie> cookie);
 
 private:
     obj_ptr<List> m_cookies;
