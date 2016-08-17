@@ -299,7 +299,7 @@ describe("net", function() {
 		});
 		var t2 = new Date();
 
-		assert.greaterThan(t2 - t1, 50);
+		assert.greaterThan(t2 - t1, 49);
 		assert.lessThan(t2 - t1, 100);
 
 		var c2 = new net.Socket();
