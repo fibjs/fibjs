@@ -55,7 +55,12 @@ public:
 
 	virtual void resume()
 	{
-		syncCall(holder(), _callback, this);
+		Isolate* isolate = holder();
+
+		if (isolate)
+			syncCall(holder(), _callback, this);
+		else
+			asyncCall(_callback, this);
 	}
 
 	void sleep()
@@ -73,10 +78,7 @@ private:
 	{
 		if (!m_cancel)
 		{
-			{
-				JSFiber::scope s;
-				on_timer();
-			}
+			on_timer();
 
 			if (m_repeat && !m_cancel)
 				sleep();

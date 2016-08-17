@@ -24,6 +24,8 @@ public:
 public:
 	virtual void on_timer()
 	{
+		JSFiber::scope s;
+
 		v8::Local<v8::Value> v = GetPrivate("callback");
 
 		if (v->IsFunction())
