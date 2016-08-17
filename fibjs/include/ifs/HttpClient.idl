@@ -8,7 +8,7 @@ interface HttpClient : object
     /*! @brief 返回http客户端的 HttpCookie 对象列表 */
     readonly List cookies;
 
-    /*! @brief 查询和设置超时时间 */
+    /*! @brief 查询和设置超时时间 单位毫秒*/
     Integer timeout;
 
     /*! @brief cookie功能开关，默认开启 */

@@ -56,7 +56,7 @@ result_t HttpClient::get_cookies(obj_ptr<List_base>& retVal)
     return 0;
 }
 
-result_t HttpClient::update(HttpCookie* cookie)
+result_t HttpClient::update(obj_ptr<HttpCookie> cookie)
 {
     int32_t length, i;
     exlib::string str, str1;
@@ -103,12 +103,12 @@ result_t HttpClient::update(HttpCookie* cookie)
         hc->get_value(str);
         cookie->get_value(str1);
         if (str != str1)
-            str = str1;
+            hc->set_value(str1);
 
         hc->get_expires(t);
         cookie->get_expires(t1);
         if (!t.empty() && !t1.empty() && t.diff(t1) != 0)
-            t = t1;
+            hc->set_expires(t1);
 
         return -1;
     }
@@ -145,7 +145,7 @@ result_t HttpClient::update_cookies(exlib::string url, obj_ptr<List_base> cookie
 
         hc->get_domain(domain);
         if (domain.empty())
-            hc->set_domain(u->m_host);
+            hc->set_domain(u->m_hostname);
 
         if (update(hc) == 0)
             m_cookies->append(hc);
@@ -367,7 +367,6 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             pThis->m_req->addHeader("host", u->m_host);
             pThis->m_req->setHeader("Accept-Encoding", "gzip,deflate");
             pThis->m_hc->get_cookie(pThis->m_url, cookie);
-            fprintf(stderr, "%s\n", cookie.c_str());
             if (cookie.length() > 0)
                 pThis->m_req->setHeader("Cookie", cookie);
             pThis->m_req->addHeader(pThis->m_headers);
@@ -376,7 +375,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                 pThis->m_req->set_body(pThis->m_body);
 
             pThis->set(connected);
-            return net_base::connect(pThis->m_connUrl, pThis->m_conn, pThis);
+            return net_base::connect(pThis->m_connUrl, pThis->m_hc->m_timeout, pThis->m_conn, pThis);
         }
 
         static int32_t connected(AsyncState *pState, int32_t n)

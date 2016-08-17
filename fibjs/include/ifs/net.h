@@ -40,8 +40,8 @@ public:
     static result_t resolve(exlib::string name, int32_t family, exlib::string& retVal, AsyncEvent* ac);
     static result_t ip(exlib::string name, exlib::string& retVal, AsyncEvent* ac);
     static result_t ipv6(exlib::string name, exlib::string& retVal, AsyncEvent* ac);
-    static result_t connect(exlib::string host, int32_t port, int32_t family, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
-    static result_t connect(exlib::string url, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string host, int32_t port, int32_t timeout, int32_t family, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t openSmtp(exlib::string host, int32_t port, int32_t family, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
     static result_t backend(exlib::string& retVal);
 
@@ -72,8 +72,8 @@ public:
     ASYNC_STATICVALUE3(net_base, resolve, exlib::string, int32_t, exlib::string);
     ASYNC_STATICVALUE2(net_base, ip, exlib::string, exlib::string);
     ASYNC_STATICVALUE2(net_base, ipv6, exlib::string, exlib::string);
-    ASYNC_STATICVALUE4(net_base, connect, exlib::string, int32_t, int32_t, obj_ptr<Stream_base>);
-    ASYNC_STATICVALUE2(net_base, connect, exlib::string, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE5(net_base, connect, exlib::string, int32_t, int32_t, int32_t, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE3(net_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE4(net_base, openSmtp, exlib::string, int32_t, int32_t, obj_ptr<Smtp_base>);
 };
 
@@ -210,27 +210,29 @@ namespace fibjs
     {
         obj_ptr<Stream_base> vr;
 
-        ASYNC_METHOD_ENTER(3, 2);
+        ASYNC_METHOD_ENTER(4, 2);
 
         ARG(exlib::string, 0);
         ARG(int32_t, 1);
-        OPT_ARG(int32_t, 2, net_base::_AF_INET);
+        OPT_ARG(int32_t, 2, 0);
+        OPT_ARG(int32_t, 3, net_base::_AF_INET);
 
         if(!cb.IsEmpty()) {
-            acb_connect(v0, v1, v2, vr, cb);
+            acb_connect(v0, v1, v2, v3, vr, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = ac_connect(v0, v1, v2, vr);
+            hr = ac_connect(v0, v1, v2, v3, vr);
 
-        METHOD_OVER(1, 1);
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
+        OPT_ARG(int32_t, 1, 0);
 
         if(!cb.IsEmpty()) {
-            acb_connect(v0, vr, cb);
+            acb_connect(v0, v1, vr, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = ac_connect(v0, vr);
+            hr = ac_connect(v0, v1, vr);
 
         METHOD_RETURN();
     }

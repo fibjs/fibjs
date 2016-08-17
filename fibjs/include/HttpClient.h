@@ -40,7 +40,7 @@ public:
 
 public:
     result_t update_cookies(exlib::string url, obj_ptr<List_base> cookies);
-    result_t update(HttpCookie* cookie);
+    result_t update(obj_ptr<HttpCookie> cookie);
     result_t get_cookie(exlib::string url, exlib::string& retVal);
 
 private:

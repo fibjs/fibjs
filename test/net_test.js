@@ -88,7 +88,7 @@ describe("net", function() {
 		}
 
 		function conn() {
-			var s1 = net.connect(net_config.address, 8080 + base_port, net_config.family);
+			var s1 = net.connect(net_config.address, 8080 + base_port, 0, net_config.family);
 			console.log(s1.remoteAddress, s1.remotePort, "<-",
 				s1.localAddress, s1.localPort);
 			s1.send(new Buffer("GET / HTTP/1.0"));
