@@ -19,6 +19,14 @@ set(archdetect_c_code "
 #error cmake_ARCH arm
 # endif
 
+# if (defined(__MIPSEB__) || defined(__MIPSEL__))
+#  if defined(__mips64)
+#error cmake_ARCH mips64
+#  else
+#error cmake_ARCH arm
+#  endif
+# endif
+
 #if defined(__ppc__) || defined(__ppc) || defined(__powerpc__) \\
       || defined(_ARCH_COM) || defined(_ARCH_PWR) || defined(_ARCH_PPC)  \\
       || defined(_M_MPPC) || defined(_M_PPC)

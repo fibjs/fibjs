@@ -3,11 +3,11 @@
 usage()
 {
 	echo ""
-	echo "Usage: `basename $0` [release | debug | i386 | amd64 | arm | arm64 | clean] [-jn] [-v] [-h]"
+	echo "Usage: `basename $0` [options] [-jn] [-v] [-h]"
 	echo "Options:"
 	echo "  release, debug: "
 	echo "      Specifies the build type."
-	echo "  i386, amd64, arm, arm64:"
+	echo "  i386, amd64, arm, arm64, mips, mips64, ppc, ppc64:"
 	echo "      Specifies the architecture for code generation."
 	echo "  clean: "
 	echo "      Clean the build folder."
@@ -20,26 +20,25 @@ usage()
 	exit 0
 }
 
-inform()
-{
-	echo ""
-	echo "submodule vender is not existed!"
-	echo "you can execute the given command to init and update it."
-	echo " \$ git submodule init"
-	echo " \$ git submodule update"
-	echo ""
-	exit 0
-}
-
 HOST_OS=`uname`
 HOST_ARCH=`uname -m`
 
 case ${HOST_ARCH} in
-	x86_64) HOST_ARCH="amd64"
+	i386|i686) HOST_ARCH="i386"
+		;;
+	x86_64|amd64) HOST_ARCH="amd64"
 		;;
 	armv6|armv7|armv7s|armv7l) HOST_ARCH="arm"
 		;;
 	aarch64) HOST_ARCH="arm64"
+		;;
+	mips|mipsel) HOST_ARCH="mips"
+		;;
+	mips64) HOST_ARCH="mips64"
+		;;
+	powerpc) HOST_ARCH="ppc"
+		;;
+	ppc64) HOST_ARCH="ppc64"
 		;;
 esac
 
@@ -52,7 +51,7 @@ BUILD_OPTION=""
 for i in "$@"
 do
 	case $i in
-		i386|amd64|arm|arm64) TARGET_ARCH=$i
+		i386|amd64|arm|arm64|mips|mips64|ppc|ppc64) TARGET_ARCH=$i
 			;;
 		release|debug|clean) BUILD_TYPE=$i
 			;;
@@ -99,6 +98,34 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 				usage
 			fi
 			;;
+		mips)
+			if [ $TARGET_OS = "Linux" ]; then
+				BUILD_PREFIX="mips-linux-gnu-"
+			else
+				usage
+			fi
+			;;
+		mips64)
+			if [ $TARGET_OS = "Linux" ]; then
+				BUILD_PREFIX="mips64-linux-gnuabi64-"
+			else
+				usage
+			fi
+			;;
+		ppc)
+			if [ $TARGET_OS = "Linux" ]; then
+				BUILD_PREFIX="powerpc-linux-gnu-"
+			else
+				usage
+			fi
+			;;
+		ppc64)
+			if [ $TARGET_OS = "Linux" ]; then
+				BUILD_PREFIX="powerpc64-linux-gnu-"
+			else
+				usage
+			fi
+			;;
 	esac
 fi
 
@@ -106,6 +133,17 @@ if [ "$BUILD_PREFIX" != "" ]; then
 	export CC=${BUILD_PREFIX}gcc
 	export CXX=${BUILD_PREFIX}g++
 fi
+
+inform()
+{
+	echo ""
+	echo "submodule vender is not existed!"
+	echo "you can execute the given command to init and update it."
+	echo " \$ git submodule init"
+	echo " \$ git submodule update"
+	echo ""
+	exit 0
+}
 
 if [ "$ENABLE_JOBS" = "1" -a "$BUILD_JOBS" = "" ]; then
 	#get cpu core count 

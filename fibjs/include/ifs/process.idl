@@ -116,7 +116,7 @@ module process
             "envs": [] // 进程环境变量
         }
      @endcode
-     @return 返回包含运行结果的进程对象
+     @return 返回命令的运行结果
      */
     static Integer run(String command, Array args, Object opts = {});
 
@@ -129,7 +129,7 @@ module process
             "envs": [] // 进程环境变量
         }
      @endcode
-     @return 返回包含运行结果的进程对象
+     @return 返回命令的运行结果
      */
     static Integer run(String command, Object opts = {});
 };
