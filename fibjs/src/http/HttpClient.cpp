@@ -16,7 +16,6 @@
 #include "map"
 #include "ifs/net.h"
 #include "ifs/zlib.h"
-#include "ifs/path.h"
 
 namespace fibjs
 {
