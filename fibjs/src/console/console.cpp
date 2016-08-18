@@ -200,7 +200,7 @@ result_t console_base::time(exlib::string label)
 
 result_t console_base::timeEnd(exlib::string label)
 {
-    long t = (long) (Ticks() - s_timers[label]);
+    int64_t t = (int64_t) (Ticks() - s_timers[label]);
 
     s_timers.erase(label);
 
