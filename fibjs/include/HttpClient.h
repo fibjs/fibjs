@@ -17,7 +17,7 @@ namespace fibjs
 class HttpClient: public HttpClient_base
 {
 public:
-    HttpClient(): m_timeout(0), m_enableCookie(true)
+    HttpClient(): m_timeout(0), m_enableCookie(true), m_autoRedirect(true)
     {
         m_cookies = new List();
     }
@@ -29,6 +29,8 @@ public:
     virtual result_t set_timeout(int32_t newVal);
     virtual result_t get_enableCookie(bool& retVal);
     virtual result_t set_enableCookie(bool newVal);
+    virtual result_t get_autoRedirect(bool& retVal);
+    virtual result_t set_autoRedirect(bool newVal);
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
     virtual result_t request(exlib::string method, exlib::string url, SeekableStream_base* body, Map_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -49,6 +51,7 @@ private:
     obj_ptr<List> m_cookies;
     int32_t m_timeout;
     bool m_enableCookie;
+    bool m_autoRedirect;
 };
 } /* namespace fibjs */
 

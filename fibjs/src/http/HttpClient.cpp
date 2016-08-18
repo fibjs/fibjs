@@ -56,6 +56,18 @@ result_t HttpClient::get_cookies(obj_ptr<List_base>& retVal)
     return 0;
 }
 
+result_t HttpClient::get_autoRedirect(bool& retVal)
+{
+    retVal = m_autoRedirect;
+    return 0;
+}
+
+result_t HttpClient::set_autoRedirect(bool newVal)
+{
+    m_autoRedirect = newVal;
+    return 0;
+}
+
 result_t HttpClient::update(obj_ptr<HttpCookie> cookie)
 {
     int32_t length, i;
@@ -417,12 +429,14 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             int32_t status;
             exlib::string location;
             Variant v;
+            obj_ptr<Url> u = new Url();
+            obj_ptr<Url_base> u1;
 
             hr = pThis->m_retVal->get_status(status);
             if (hr < 0)
                 return hr;
 
-            if (status != 302 && status != 301)
+            if (!pThis->m_hc->m_autoRedirect || status != 302 && status != 301)
                 return pThis->done(0);
 
             hr = pThis->m_retVal->firstHeader("location", v);
@@ -430,6 +444,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                 return hr;
 
             location = v.string();
+            u->parse(pThis->m_url);
+            u->resolve(location, u1);
+            location.resize(0);
+            u1->toString(location);
 
             if (pThis->m_urls.find(location) != pThis->m_urls.end())
                 return CHECK_ERROR(Runtime::setError("http: redirect cycle"));

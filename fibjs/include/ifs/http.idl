@@ -32,6 +32,9 @@ module http
     /*! @brief cookie功能开关，默认开启 */
     static Boolean enableCookie;
 
+    /*! @brief 自动redirect功能开关，默认开启 */
+    static Boolean autoRedirect;
+
     /*! @brief 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息
      @param root 文件根路径
      @param mimes 扩展 mime 设置
