@@ -1190,7 +1190,13 @@ describe("http", function() {
 					r.response.addHeader("set-cookie", "name=value; domain=127.0.0.1:" + port + "; path=/name");
 					r.response.body.write(r.address);
 				} else if (r.address == "/redirect") {
-					r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/request");
+					r.response.redirect("request");
+				} else if (r.address == "/redirect/a/b/c") {
+					r.response.redirect("/d");
+				} else if (r.address == "/redirect/a/b/d") {
+					r.response.redirect("e");
+				} else if (r.address == "/redirect/a/b/f") {
+					r.response.redirect("../g");
 				} else if (r.address == "/redirect1") {
 					r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/redirect1");
 				} else if (r.address != "/gzip_test") {
@@ -1302,10 +1308,19 @@ describe("http", function() {
 					"/timeout");
 			});
 
+			it("autoredirect", function() {
+				assert.equal(http.get('http://127.0.0.1:' + (8882 + base_port) + '/redirect/a/b/c').body.readAll().toString(),
+					"/d");
+				assert.equal(http.get('http://127.0.0.1:' + (8882 + base_port) + '/redirect/a/b/d').body.readAll().toString(),
+					"/redirect/a/b/e");
+				assert.equal(http.get('http://127.0.0.1:' + (8882 + base_port) + '/redirect/a/b/f').body.readAll().toString(),
+					"/redirect/a/g");
+			});
+
 			it("disable autoredirect", function() {
 				http.autoRedirect = false;
 				var resp = http.get('http://127.0.0.1:' + (8882 + base_port) + '/redirect');
-				assert.equal(resp.headers.location, "http://127.0.0.1:18882/request");
+				assert.equal(resp.headers.location, "request");
 			})
 		});
 	});

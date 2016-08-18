@@ -431,6 +431,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             exlib::string location;
             Variant v;
             obj_ptr<Url> u = new Url();
+            obj_ptr<Url_base> u1;
 
             hr = pThis->m_retVal->get_status(status);
             if (hr < 0)
@@ -444,19 +445,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                 return hr;
 
             location = v.string();
-            if (qstricmp(location.c_str(), "http:", 5) && qstricmp(location.c_str(), "https:", 6))
-            {
-                u->parse(pThis->m_url);
-
-                if (qstricmp(location.c_str(), "/", 1))
-                {
-                    exlib::string path(u->m_pathname.c_str(), qstrrchr(u->m_pathname.c_str(), '/') -
-                                       u->m_pathname.c_str());
-
-                    path_base::normalize(path + "/" + location, location);
-                }
-                location = u->m_protocol + "//" + u->m_host + location;
-            }
+            u->parse(pThis->m_url);
+            u->resolve(location, u1);
+            location.resize(0);
+            u1->toString(location);
 
             if (pThis->m_urls.find(location) != pThis->m_urls.end())
                 return CHECK_ERROR(Runtime::setError("http: redirect cycle"));
