@@ -186,7 +186,10 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
 	}
 
 	if (timeout > 0)
+	{
 		sub->m_timer = new PSTimer(timeout, pi.hProcess);
+		sub->m_timer->sleep();
+	}
 
 	retVal = sub;
 
