@@ -42,6 +42,8 @@ public:
     static result_t set_timeout(int32_t newVal);
     static result_t get_enableCookie(bool& retVal);
     static result_t set_enableCookie(bool newVal);
+    static result_t get_autoRedirect(bool& retVal);
+    static result_t set_autoRedirect(bool newVal);
     static result_t fileHandler(exlib::string root, v8::Local<v8::Object> mimes, obj_ptr<Handler_base>& retVal);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
@@ -69,6 +71,8 @@ public:
     static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_enableCookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_enableCookie(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_autoRedirect(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_autoRedirect(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -122,13 +126,14 @@ namespace fibjs
         {
             {"cookies", s_get_cookies, block_set, true},
             {"timeout", s_get_timeout, s_set_timeout, true},
-            {"enableCookie", s_get_enableCookie, s_set_enableCookie, true}
+            {"enableCookie", s_get_enableCookie, s_set_enableCookie, true},
+            {"autoRedirect", s_get_autoRedirect, s_set_autoRedirect, true}
         };
 
         static ClassData s_cd = 
         { 
             "http", s__new, NULL, 
-            4, s_method, 7, s_object, 3, s_property, NULL, NULL,
+            4, s_method, 7, s_object, 4, s_property, NULL, NULL,
             NULL
         };
 
@@ -185,6 +190,27 @@ namespace fibjs
         PROPERTY_VAL(bool);
 
         hr = set_enableCookie(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void http_base::s_get_autoRedirect(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        bool vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_autoRedirect(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void http_base::s_set_autoRedirect(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_VAL(bool);
+
+        hr = set_autoRedirect(v0);
 
         PROPERTY_SET_LEAVE();
     }

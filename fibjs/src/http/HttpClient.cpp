@@ -16,6 +16,7 @@
 #include "map"
 #include "ifs/net.h"
 #include "ifs/zlib.h"
+#include "ifs/path.h"
 
 namespace fibjs
 {
@@ -53,6 +54,18 @@ result_t HttpClient::set_timeout(int32_t newVal)
 result_t HttpClient::get_cookies(obj_ptr<List_base>& retVal)
 {
     retVal = m_cookies;
+    return 0;
+}
+
+result_t HttpClient::get_autoRedirect(bool& retVal)
+{
+    retVal = m_autoRedirect;
+    return 0;
+}
+
+result_t HttpClient::set_autoRedirect(bool newVal)
+{
+    m_autoRedirect = newVal;
     return 0;
 }
 
@@ -417,12 +430,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             int32_t status;
             exlib::string location;
             Variant v;
+            obj_ptr<Url> u = new Url();
 
             hr = pThis->m_retVal->get_status(status);
             if (hr < 0)
                 return hr;
 
-            if (status != 302 && status != 301)
+            if (!pThis->m_hc->m_autoRedirect || status != 302 && status != 301)
                 return pThis->done(0);
 
             hr = pThis->m_retVal->firstHeader("location", v);
@@ -430,6 +444,19 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                 return hr;
 
             location = v.string();
+            if (qstricmp(location.c_str(), "http:", 5) && qstricmp(location.c_str(), "https:", 6))
+            {
+                u->parse(pThis->m_url);
+
+                if (qstricmp(location.c_str(), "/", 1))
+                {
+                    exlib::string path(u->m_pathname.c_str(), qstrrchr(u->m_pathname.c_str(), '/') -
+                                       u->m_pathname.c_str());
+
+                    path_base::normalize(path + "/" + location, location);
+                }
+                location = u->m_protocol + "//" + u->m_host + location;
+            }
 
             if (pThis->m_urls.find(location) != pThis->m_urls.end())
                 return CHECK_ERROR(Runtime::setError("http: redirect cycle"));

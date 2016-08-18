@@ -56,6 +56,16 @@ result_t http_base::set_enableCookie(bool newVal)
     return get_httpClient()->set_enableCookie(newVal);
 }
 
+result_t http_base::get_autoRedirect(bool& retVal)
+{
+    return get_httpClient()->get_autoRedirect(retVal);
+}
+
+result_t http_base::set_autoRedirect(bool newVal)
+{
+    return get_httpClient()->set_autoRedirect(newVal);
+}
+
 result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
                             obj_ptr<HttpResponse_base> &retVal,
                             AsyncEvent *ac)
