@@ -1301,6 +1301,12 @@ describe("http", function() {
 				assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/timeout").body.readAll().toString(),
 					"/timeout");
 			});
+
+			it("disable autoredirect", function() {
+				http.autoRedirect = false;
+				var resp = http.get('http://127.0.0.1:' + (8882 + base_port) + '/redirect');
+				assert.equal(resp.headers.location, "http://127.0.0.1:18882/request");
+			})
 		});
 	});
 });
