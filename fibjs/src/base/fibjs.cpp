@@ -29,7 +29,7 @@ void init_sandbox();
 void init_Task(int32_t vms);
 bool options(int32_t* argc, char *argv[]);
 
-void init(int32_t argc, char *argv[])
+void init(int32_t& argc, char *argv[])
 {
     ::setlocale(LC_ALL, "");
 
