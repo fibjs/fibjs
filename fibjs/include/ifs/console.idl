@@ -277,6 +277,21 @@ module console
      */
     static print(...);
 
+    /*! @brief 移动控制台光标到指定位置
+     @param row 指定新光标的行坐标
+     @param column 指定新光标的列坐标
+     */
+    static moveTo(Integer row, Integer column);
+
+    /*! @brief 隐藏控制台光标 */
+    static hideCursor();
+
+    /*! @brief 显示控制台光标 */
+    static showCursor();
+
+    /*! @brief 清除控制台 */
+    static clear();
+
     /*! @brief 从控制台读取用户输入
      @param msg 提示信息
      @return 返回用户输入的信息

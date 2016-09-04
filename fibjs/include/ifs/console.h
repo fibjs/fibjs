@@ -70,6 +70,10 @@ public:
     static result_t _assert(v8::Local<v8::Value> value, exlib::string msg);
     static result_t print(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t print(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t moveTo(int32_t row, int32_t column);
+    static result_t hideCursor();
+    static result_t showCursor();
+    static result_t clear();
     static result_t readLine(exlib::string msg, exlib::string& retVal, AsyncEvent* ac);
 
 public:
@@ -115,6 +119,10 @@ public:
     static void s_trace(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_assert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_print(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_moveTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_showCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -147,6 +155,10 @@ namespace fibjs
             {"trace", s_trace, true},
             {"assert", s_assert, true},
             {"print", s_print, true},
+            {"moveTo", s_moveTo, true},
+            {"hideCursor", s_hideCursor, true},
+            {"showCursor", s_showCursor, true},
+            {"clear", s_clear, true},
             {"readLine", s_readLine, true}
         };
 
@@ -171,7 +183,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "console", s__new, NULL, 
-            17, s_method, 0, NULL, 14, s_property, NULL, NULL,
+            21, s_method, 0, NULL, 14, s_property, NULL, NULL,
             NULL
         };
 
@@ -516,6 +528,45 @@ namespace fibjs
         METHOD_OVER(-1, 0);
 
         hr = print(args);
+
+        METHOD_VOID();
+    }
+
+    inline void console_base::s_moveTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(2, 2);
+
+        ARG(int32_t, 0);
+        ARG(int32_t, 1);
+
+        hr = moveTo(v0, v1);
+
+        METHOD_VOID();
+    }
+
+    inline void console_base::s_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(0, 0);
+
+        hr = hideCursor();
+
+        METHOD_VOID();
+    }
+
+    inline void console_base::s_showCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(0, 0);
+
+        hr = showCursor();
+
+        METHOD_VOID();
+    }
+
+    inline void console_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(0, 0);
+
+        hr = clear();
 
         METHOD_VOID();
     }

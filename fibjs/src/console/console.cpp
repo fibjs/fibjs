@@ -273,6 +273,78 @@ result_t console_base::get_height(int32_t& retVal)
     return 0;
 }
 
+result_t console_base::moveTo(int32_t row, int32_t column)
+{
+    if (row < 1 || column < 1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    CONSOLE_SCREEN_BUFFER_INFO info;
+    HANDLE hd = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    flushLog(true);
+    if (!GetConsoleScreenBufferInfo(hd, &info))
+        return CHECK_ERROR(LastError());
+
+    COORD pos = {
+        (short)column - 1,
+        (short)row - 1 + info.srWindow.Top
+    };
+
+    SetConsoleCursorPosition(hd, pos);
+
+    return 0;
+}
+
+result_t console_base::hideCursor()
+{
+    HANDLE hd = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO aCursorInfo;
+
+    GetConsoleCursorInfo(hd, &aCursorInfo);
+    aCursorInfo.bVisible = false;
+    SetConsoleCursorInfo(hd, &aCursorInfo);
+
+    return 0;
+}
+
+result_t console_base::showCursor()
+{
+    HANDLE hd = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO aCursorInfo;
+
+    GetConsoleCursorInfo(hd, &aCursorInfo);
+    aCursorInfo.bVisible = true;
+    SetConsoleCursorInfo(hd, &aCursorInfo);
+
+    return 0;
+}
+
+result_t console_base::clear()
+{
+    HANDLE hd = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD coordScreen = { 0, 0 };
+    DWORD cCharsWritten;
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    DWORD dwConSize;
+
+    if (!GetConsoleScreenBufferInfo(hd, &csbi))
+        return CHECK_ERROR(LastError());
+
+    dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
+
+    FillConsoleOutputCharacter(hd, ' ', dwConSize,
+                               coordScreen, &cCharsWritten);
+
+    if (!GetConsoleScreenBufferInfo(hd, &csbi))
+        return CHECK_ERROR(LastError());
+
+    FillConsoleOutputAttribute(hd, csbi.wAttributes, dwConSize,
+                               coordScreen, &cCharsWritten);
+
+    SetConsoleCursorPosition(hd, coordScreen);
+    return 0;
+}
+
 #else
 
 result_t console_base::get_width(int32_t& retVal)
@@ -306,6 +378,37 @@ result_t console_base::get_height(int32_t& retVal)
 
     retVal = ws.ws_row;
 
+    return 0;
+}
+
+result_t console_base::moveTo(int32_t row, int32_t column)
+{
+    if (row < 1 || column < 1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    char numStr[64];
+
+    sprintf(numStr, "\x1b[%d;%dH", row, column);
+    asyncLog(_PRINT, numStr);
+
+    return 0;
+}
+
+result_t console_base::hideCursor()
+{
+    asyncLog(_PRINT, "\x1b[?25l");
+    return 0;
+}
+
+result_t console_base::showCursor()
+{
+    asyncLog(_PRINT, "\x1b[?25h");
+    return 0;
+}
+
+result_t console_base::clear()
+{
+    asyncLog(_PRINT, "\x1b" "c");
     return 0;
 }
 
