@@ -21,10 +21,10 @@ TextColor *logger::get_std_color()
     return s_tc;
 }
 
+#ifdef _WIN32
+
 void std_logger::out(exlib::string& txt)
 {
-
-#ifdef _WIN32
     class color_out
     {
     public:
@@ -33,10 +33,17 @@ void std_logger::out(exlib::string& txt)
             m_handle = GetStdHandle(STD_OUTPUT_HANDLE);
             m_Now = m_wAttr = 0x7;
             m_wLight = m_wAttr & FOREGROUND_INTENSITY;
+            m_tty = _isatty(_fileno(stdout)) != FALSE;
         }
 
         void out(exlib::string& s)
         {
+            if (!m_tty)
+            {
+                fwrite(s.c_str(), 1, s.length(), stdout);
+                return;
+            }
+
             exlib::wstring ws = utf8to16String(s);
             exlib::wchar *ptr = &ws[0];
             exlib::wchar *pend = ptr + ws.length();
@@ -159,18 +166,21 @@ void std_logger::out(exlib::string& txt)
         HANDLE m_handle;
         WORD m_wAttr, m_Now;
         WORD m_wLight;
+        bool m_tty;
     };
-    static color_out s_out;
 
-    if (_isatty(_fileno(stdout)))
-        s_out.out(txt);
-    else
-#endif
-    {
-        fwrite(txt.c_str(), 1, txt.length(), stdout);
-        fflush(stdout);
-    }
+    static color_out s_out;
+    s_out.out(txt);
 }
+
+#else
+
+void std_logger::out(exlib::string& txt)
+{
+    fwrite(txt.c_str(), 1, txt.length(), stdout);
+}
+
+#endif
 
 result_t std_logger::write(AsyncEvent *ac)
 {
@@ -194,6 +204,7 @@ result_t std_logger::write(AsyncEvent *ac)
 
         delete p1;
     }
+    fflush(stdout);
 
     return 0;
 }
