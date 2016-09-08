@@ -271,8 +271,6 @@ inline int32_t hsb2rgb(double h, double s, double b)
     double q = b * (1 - f * s);
     double t = b * (1 - (1 - f) * s);
 
-    fprintf(stderr, "h: %lf, s: %lf, b: %lf \n", h, s, b);
-    fprintf(stderr, "i: %d, f: %lf, p: %lf, q: %lf, t: %lf \n", i, f, p, q, t);
     switch (i) {
     case 0:
         cr = b;
