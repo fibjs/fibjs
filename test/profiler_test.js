@@ -17,6 +17,7 @@ describe("profiler", function() {
 	after(function() {
 		unlink("test.heapsnapshot" + vmid);
 		unlink("test1.heapsnapshot" + vmid);
+		unlink("test2.heapsnapshot" + vmid);
 	});
 
 	it("take snapshot & dispose", function() {
@@ -47,8 +48,11 @@ describe("profiler", function() {
 		var ss = profiler.loadSnapshot("test.heapsnapshot" + vmid);
 		ss.save("test1.heapsnapshot" + vmid);
 
-		assert.equal(fs.readFile("test.heapsnapshot" + vmid),
-			fs.readFile("test1.heapsnapshot" + vmid));
+		var ss = profiler.loadSnapshot("test1.heapsnapshot" + vmid);
+		ss.save("test2.heapsnapshot" + vmid);
+
+		assert.equal(fs.readFile("test1.heapsnapshot" + vmid),
+			fs.readFile("test2.heapsnapshot" + vmid));
 	});
 
 	it("disable change", function() {

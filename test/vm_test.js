@@ -125,12 +125,10 @@ describe("vm", function() {
 
 	it("block global repl&argv", function() {
 		sbox = new vm.SandBox({});
-		assert.throws(function() {
-			sbox.addScript("t1.js", "repl;");
-		});
+		assert.isUndefined(repl);
 
 		assert.throws(function() {
-			sbox.addScript("t2.js", "argv;");
+			sbox.addScript("t2.js", "argv[0];");
 		});
 	});
 

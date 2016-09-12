@@ -46,12 +46,13 @@ describe("collection", function() {
 			GC();
 			assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
 			a.resize(0);
+			a = undefined;
 			GC();
-			assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+			assert.equal(no1 - 1, os.memoryUsage().nativeObjects.objects);
 			new Buffer();
-			assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
-			GC();
 			assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+			GC();
+			assert.equal(no1 - 1, os.memoryUsage().nativeObjects.objects);
 		});
 
 		it("toArray", function() {

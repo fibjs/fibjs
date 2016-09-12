@@ -40,11 +40,13 @@ static void printHelp() {
 bool options(int32_t* argc, char *argv[])
 {
 	char s_opts[64];
-	char s_sharmony[] = " --harmony --use_strict";
+	char s_sharmony[] = " --harmony --use_strict --always-opt --nolazy";
 
 	v8::V8::SetFlagsFromString(s_sharmony, sizeof(s_sharmony) - 1);
 	v8::V8::SetFlagsFromString(s_opts,
 	                           sprintf(s_opts, "--stack_size=%d", stack_size - GUARD_SIZE));
+
+	v8::V8::SetFlagsFromCommandLine(argc, argv, true);
 
 	int32_t df = 0;
 
@@ -74,7 +76,6 @@ bool options(int32_t* argc, char *argv[])
 	Isolate::rt::g_trace = true;
 #endif
 
-	v8::V8::SetFlagsFromCommandLine(argc, argv, true);
 	return false;
 }
 

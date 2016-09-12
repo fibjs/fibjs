@@ -209,9 +209,10 @@ describe("mq", function() {
 			assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 
 			svr.handler = mq.jsHandler(function(v) {});
+			svr = undefined;
 
 			GC();
-			assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+			assert.equal(no1 - 3, os.memoryUsage().nativeObjects.objects);
 		});
 	});
 
@@ -365,9 +366,10 @@ describe("mq", function() {
 			assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 
 			svr.handler = mq.jsHandler(function(v) {});
+			svr = undefined;
 
 			GC();
-			assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+			assert.equal(no1 - 3, os.memoryUsage().nativeObjects.objects);
 		});
 	});
 

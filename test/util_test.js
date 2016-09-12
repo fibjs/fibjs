@@ -972,9 +972,6 @@ describe('util', function() {
 			assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 
 			lc.remove("test1");
-			GC();
-			assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
-
 			lc = undefined;
 
 			GC();
