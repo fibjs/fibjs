@@ -250,12 +250,6 @@ public:
     static void out(exlib::string& txt);
 };
 
-class sys_logger : public logger
-{
-public:
-    virtual result_t write(AsyncEvent *ac);
-};
-
 class stream_logger : public logger
 {
 public:
@@ -295,6 +289,31 @@ private:
     int64_t m_size;
     date_t m_date;
 };
+
+#ifdef _WIN32
+
+class event_logger : public logger
+{
+public:
+    event_logger();
+    ~event_logger();
+
+public:
+    virtual result_t write(AsyncEvent *ac);
+
+private:
+    HANDLE m_event;
+};
+
+#else
+
+class sys_logger : public logger
+{
+public:
+    virtual result_t write(AsyncEvent *ac);
+};
+
+#endif
 
 }
 

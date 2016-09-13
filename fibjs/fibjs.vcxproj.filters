@@ -904,6 +904,9 @@
     <ClCompile Include="src\console\console_sys.cpp">
       <Filter>Source Files\console</Filter>
     </ClCompile>
+    <ClCompile Include="src\console\console_event.cpp">
+      <Filter>Source Files\console</Filter>
+    </ClCompile>
     <ClCompile Include="src\console\TextColor.cpp">
       <Filter>Source Files\console</Filter>
     </ClCompile>

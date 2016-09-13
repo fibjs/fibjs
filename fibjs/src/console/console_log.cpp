@@ -123,10 +123,15 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
 
     if (!qstrcmp(*s, "console"))
         lgr = new std_logger();
-#ifndef _WIN32
+
+#ifdef _WIN32
+    else if (!qstrcmp(*s, "event"))
+        lgr = new event_logger();
+#else
     else if (!qstrcmp(*s, "syslog"))
         lgr = new sys_logger();
 #endif
+
     else if (!qstrcmp(*s, "file"))
         lgr = new file_logger();
     else
