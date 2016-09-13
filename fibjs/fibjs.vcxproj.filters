@@ -837,6 +837,9 @@
     <ClInclude Include="include\ifs\zip.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\HttpClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl">
@@ -1302,6 +1305,9 @@
     </ClCompile>
     <ClCompile Include="src\base\date_cache.cpp">
       <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\http\HttpClient.cpp">
+      <Filter>Source Files\http</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
