@@ -1307,7 +1307,7 @@
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\http\HttpClient.cpp">
-      <Filter>Source Files\http</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
