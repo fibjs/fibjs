@@ -70,6 +70,16 @@ describe('process', function() {
 		]);
 	});
 
+	it("argv utf8", function() {
+		assert.deepEqual(json.decode(process.open(cmd, [
+			"process/exec2.js",
+			"参数1",
+			"参数2"
+		]).readLine()), [
+			cmd, "process/exec2.js", "参数1", "参数2"
+		]);
+	});
+
 	it("execArgv", function() {
 		assert.deepEqual(json.decode(process.open(cmd, [
 			"process/exec3.js",
