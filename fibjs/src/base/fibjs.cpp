@@ -10,6 +10,7 @@
 #include "Fiber.h"
 #include "include/libplatform/libplatform.h"
 #include "Stat.h"
+#include "utf8.h"
 
 namespace fibjs
 {
@@ -116,6 +117,23 @@ void main(int32_t argc, char *argv[])
 
 int32_t main(int32_t argc, char *argv[])
 {
+#ifdef _WIN32
+    LPWSTR *szArglist = CommandLineToArgvW(GetCommandLineW(), &argc);
+    std::vector<exlib::string> strArgList;
+    std::vector<char*> ptrArgList;
+    int32_t i;
+
+    strArgList.resize(argc);
+    ptrArgList.resize(argc);
+    for (i = 0; i < argc; i ++)
+    {
+        strArgList[i] = fibjs::utf16to8String(szArglist[i]);
+        ptrArgList[i] = strArgList[i].c_buffer();
+    }
+
+    argv = ptrArgList.data();
+#endif
+
     fibjs::main(argc, argv);
     return 0;
 }
