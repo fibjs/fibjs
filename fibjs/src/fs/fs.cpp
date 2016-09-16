@@ -131,6 +131,24 @@ result_t fs_base::writeFile(exlib::string fname, exlib::string txt,
     return hr;
 }
 
+result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<File> f = new File();
+    result_t hr;
+
+    hr = f->open(fname, "w");
+    if (hr < 0)
+        return hr;
+
+    hr = f->Write(data);
+    f->close(ac);
+
+    return hr;
+}
+
 result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base> &retVal,
                        AsyncEvent *ac)
 {

@@ -21,6 +21,7 @@ class Stat_base;
 class List_base;
 class File_base;
 class BufferedStream_base;
+class Buffer_base;
 
 class fs_base : public object_base
 {
@@ -50,6 +51,7 @@ public:
     static result_t readFile(exlib::string fname, exlib::string& retVal, AsyncEvent* ac);
     static result_t readLines(exlib::string fname, int32_t maxlines, v8::Local<v8::Array>& retVal);
     static result_t writeFile(exlib::string fname, exlib::string txt, AsyncEvent* ac);
+    static result_t writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -97,6 +99,7 @@ public:
     ASYNC_STATICVALUE3(fs_base, openTextStream, exlib::string, exlib::string, obj_ptr<BufferedStream_base>);
     ASYNC_STATICVALUE2(fs_base, readFile, exlib::string, exlib::string);
     ASYNC_STATIC2(fs_base, writeFile, exlib::string, exlib::string);
+    ASYNC_STATIC2(fs_base, writeFile, exlib::string, Buffer_base*);
 };
 
 }
@@ -105,6 +108,7 @@ public:
 #include "List.h"
 #include "File.h"
 #include "BufferedStream.h"
+#include "Buffer.h"
 
 namespace fibjs
 {
@@ -402,6 +406,17 @@ namespace fibjs
 
         ARG(exlib::string, 0);
         ARG(exlib::string, 1);
+
+        if(!cb.IsEmpty()) {
+            acb_writeFile(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_writeFile(v0, v1);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(obj_ptr<Buffer_base>, 1);
 
         if(!cb.IsEmpty()) {
             acb_writeFile(v0, v1, cb);

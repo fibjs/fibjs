@@ -114,4 +114,10 @@ module fs
      @param txt 指定要写入的字符串
      */
     static writeFile(String fname, String txt) async;
+
+    /*! @brief 创建文件，并写入内容
+     @param fname 指定文件名
+     @param data 指定要写入的二进制数据
+     */
+    static writeFile(String fname, Buffer data) async;
 };

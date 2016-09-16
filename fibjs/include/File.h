@@ -52,9 +52,17 @@ public:
     result_t open(exlib::string fname, exlib::string flags);
     result_t close();
     result_t Write(const char *p, int32_t sz);
+
     result_t Write(exlib::string data)
     {
         return Write(data.c_str(), (int32_t)data.length());
+    }
+
+    result_t Write(Buffer_base* data)
+    {
+        exlib::string strBuf;
+        data->toString(strBuf);
+        return Write(strBuf);
     }
 
 protected:
