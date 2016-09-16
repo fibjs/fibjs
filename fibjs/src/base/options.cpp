@@ -40,7 +40,8 @@ static void printHelp() {
 bool options(int32_t* argc, char *argv[])
 {
 	char s_opts[64];
-	char s_sharmony[] = " --harmony --use_strict --always-opt --nolazy";
+	char s_sharmony[] = " --harmony --harmony_async_await "
+	                    "--use_strict --always-opt --nolazy";
 
 	v8::V8::SetFlagsFromString(s_sharmony, sizeof(s_sharmony) - 1);
 	v8::V8::SetFlagsFromString(s_opts,
