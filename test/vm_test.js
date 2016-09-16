@@ -3,9 +3,14 @@ test.setup();
 
 var vm = require('vm');
 var os = require('os');
+var fs = require('fs');
 
 describe("vm", function() {
 	var sbox;
+
+	after(function() {
+		fs.unlink("vm_test/jsc_test.jsc");
+	});
 
 	it("add", function() {
 		var b = {
@@ -37,6 +42,25 @@ describe("vm", function() {
 		var b = sbox.addScript("t2.js", "module.exports = {a : require('t1').a};");
 		assert.equal(100, b.a);
 		assert.equal(100, sbox.require("t2").a);
+	});
+
+	it("compile & addScript", function() {
+		var bin = sbox.compile("tc1.js", "module.exports = {a : 100};");
+		var a = sbox.addScript("tc1.jsc", bin);
+		assert.equal(100, a.a);
+		assert.equal(100, sbox.require("tc1").a);
+
+		var bin1 = sbox.compile("tc2.js", "module.exports = {a : require('tc1').a};");
+		var b = sbox.addScript("tc2.jsc", bin1);
+		assert.equal(100, b.a);
+		assert.equal(100, sbox.require("tc2").a);
+	});
+
+	it("require jsc", function() {
+		var bin = sbox.compile("jsc_test.js", "module.exports = {a : 100};");
+		fs.writeFile("vm_test/jsc_test.jsc", bin);
+		var a = sbox.require("vm_test/jsc_test");
+		assert.equal(100, a.a);
 	});
 
 	it("module", function() {

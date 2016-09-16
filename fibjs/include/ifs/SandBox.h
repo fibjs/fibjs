@@ -17,6 +17,8 @@
 namespace fibjs
 {
 
+class Buffer_base;
+
 class SandBox_base : public object_base
 {
     DECLARE_CLASS(SandBox_base);
@@ -27,7 +29,10 @@ public:
     static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, exlib::string name, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t add(exlib::string id, v8::Local<v8::Value> mod) = 0;
     virtual result_t add(v8::Local<v8::Object> mods) = 0;
+    virtual result_t compile(exlib::string srcname, exlib::string script, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t compile(exlib::string script, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t addScript(exlib::string srcname, exlib::string script, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t addScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t remove(exlib::string id) = 0;
     virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv) = 0;
@@ -40,6 +45,7 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_compile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_addScript(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -49,6 +55,8 @@ public:
 
 }
 
+#include "Buffer.h"
+
 namespace fibjs
 {
     inline ClassInfo& SandBox_base::class_info()
@@ -56,6 +64,7 @@ namespace fibjs
         static ClassData::ClassMethod s_method[] = 
         {
             {"add", s_add, false},
+            {"compile", s_compile, false},
             {"addScript", s_addScript, false},
             {"remove", s_remove, false},
             {"clone", s_clone, false},
@@ -66,7 +75,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "SandBox", s__new, NULL, 
-            6, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            7, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -122,6 +131,27 @@ namespace fibjs
         METHOD_VOID();
     }
 
+    inline void SandBox_base::s_compile(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<Buffer_base> vr;
+
+        METHOD_INSTANCE(SandBox_base);
+        METHOD_ENTER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
+
+        hr = pInst->compile(v0, v1, vr);
+
+        METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = pInst->compile(v0, vr);
+
+        METHOD_RETURN();
+    }
+
     inline void SandBox_base::s_addScript(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Local<v8::Value> vr;
@@ -131,6 +161,13 @@ namespace fibjs
 
         ARG(exlib::string, 0);
         ARG(exlib::string, 1);
+
+        hr = pInst->addScript(v0, v1, vr);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(obj_ptr<Buffer_base>, 1);
 
         hr = pInst->addScript(v0, v1, vr);
 

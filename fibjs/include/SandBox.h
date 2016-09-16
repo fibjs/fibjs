@@ -32,7 +32,10 @@ public:
     // SandBox_base
     virtual result_t add(exlib::string id, v8::Local<v8::Value> mod);
     virtual result_t add(v8::Local<v8::Object> mods);
+    virtual result_t compile(exlib::string srcname, exlib::string script, obj_ptr<Buffer_base>& retVal);
+    virtual result_t compile(exlib::string script, obj_ptr<Buffer_base>& retVal);
     virtual result_t addScript(exlib::string srcname, exlib::string script, v8::Local<v8::Value> &retVal);
+    virtual result_t addScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal);
     virtual result_t remove(exlib::string id);
     virtual result_t clone(obj_ptr<SandBox_base> &retVal);
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv);
@@ -81,10 +84,14 @@ public:
     public:
         Context(SandBox *sb, exlib::string id);
 
-        result_t run(exlib::string src, exlib::string name, const char** argNames,
-                     v8::Local<v8::Value> *args, int32_t argCount);
-        result_t run(exlib::string src, exlib::string name, v8::Local<v8::Array> argv, bool main);
-        result_t run(exlib::string src, exlib::string name, v8::Local<v8::Object> module,
+        result_t run(Buffer_base* src, exlib::string name, v8::Local<v8::Value> *args);
+        result_t run(exlib::string src, exlib::string name, v8::Local<v8::Value> *args);
+
+        template<typename T>
+        result_t run(T src, exlib::string name, v8::Local<v8::Array> argv, bool main);
+
+        template<typename T>
+        result_t run(T src, exlib::string name, v8::Local<v8::Object> module,
                      v8::Local<v8::Object> exports);
 
         static result_t repl(v8::Local<v8::Array> cmds, Stream_base* out);
