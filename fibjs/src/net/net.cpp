@@ -98,7 +98,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
                            AsyncEvent *ac)
 {
     if (!qstrcmp(url.c_str(), "ssl:", 4))
-        return ssl_base::connect(url, retVal, ac);
+        return ssl_base::connect(url, timeout, retVal, ac);
 
     if (qstrcmp(url.c_str(), "tcp:", 4))
         return CHECK_ERROR(CALL_E_INVALIDARG);

@@ -137,15 +137,16 @@ result_t _ssl::setError(int32_t ret)
     return Runtime::setError(msg);
 }
 
-result_t ssl_base::connect(exlib::string url, obj_ptr<Stream_base> &retVal,
+result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base> &retVal,
                            AsyncEvent *ac)
 {
     class asyncConnect: public AsyncState
     {
     public:
-        asyncConnect(const exlib::string host, int32_t port, bool ipv6,
+        asyncConnect(const exlib::string host, int32_t port, bool ipv6, int32_t timeout,
                      obj_ptr<Stream_base> &retVal, AsyncEvent *ac) :
-            AsyncState(ac), m_host(host), m_port(port), m_ipv6(ipv6), m_retVal(retVal)
+            AsyncState(ac), m_host(host), m_port(port), m_ipv6(ipv6),
+            m_timeout(timeout), m_retVal(retVal)
         {
             set(connect);
         }
@@ -157,6 +158,8 @@ result_t ssl_base::connect(exlib::string url, obj_ptr<Stream_base> &retVal,
             pThis->m_sock = new Socket();
             pThis->m_sock->create(pThis->m_ipv6 ? net_base::_AF_INET6 : net_base::_AF_INET,
                                   net_base::_SOCK_STREAM);
+
+            pThis->m_sock->set_timeout(pThis->m_timeout);
 
             pThis->set(handshake);
             return pThis->m_sock->connect(pThis->m_host, pThis->m_port, pThis);
@@ -192,6 +195,7 @@ result_t ssl_base::connect(exlib::string url, obj_ptr<Stream_base> &retVal,
         const exlib::string m_host;
         int32_t m_port;
         bool m_ipv6;
+        int32_t m_timeout;
         obj_ptr<Stream_base> &m_retVal;
         obj_ptr<Socket> m_sock;
         obj_ptr<SslSocket> m_ssl_sock;
@@ -215,7 +219,7 @@ result_t ssl_base::connect(exlib::string url, obj_ptr<Stream_base> &retVal,
 
     int32_t nPort = atoi(u->m_port.c_str());
 
-    return (new asyncConnect(u->m_hostname, nPort, u->m_ipv6,
+    return (new asyncConnect(u->m_hostname, nPort, u->m_ipv6, timeout,
                              retVal, ac))->post(0);
 }
 

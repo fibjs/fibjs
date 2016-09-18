@@ -45,7 +45,7 @@ public:
 
 public:
     // ssl_base
-    static result_t connect(exlib::string url, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t setClientCert(X509Cert_base* crt, PKey_base* key);
     static result_t loadClientCertFile(exlib::string crtFile, exlib::string keyFile, exlib::string password);
     static result_t get_ca(obj_ptr<X509Cert_base>& retVal);
@@ -91,7 +91,7 @@ public:
     static void s_set_max_version(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 
 public:
-    ASYNC_STATICVALUE2(ssl_base, connect, exlib::string, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE3(ssl_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
 };
 
 }
@@ -306,15 +306,16 @@ namespace fibjs
     {
         obj_ptr<Stream_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(exlib::string, 0);
+        OPT_ARG(int32_t, 1, 0);
 
         if(!cb.IsEmpty()) {
-            acb_connect(v0, vr, cb);
+            acb_connect(v0, v1, vr, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = ac_connect(v0, vr);
+            hr = ac_connect(v0, v1, vr);
 
         METHOD_RETURN();
     }

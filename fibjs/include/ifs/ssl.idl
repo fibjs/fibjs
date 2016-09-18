@@ -45,9 +45,10 @@ module ssl
 
   /*! @brief 创建一个 SslSocket 对象并建立连接
    @param url 指定连接的协议，可以是：ssl://host:port
+   @param timeout 指定超时时间，单位是毫秒，默认为0
    @return 返回连接成功的 SslSocket 对象
    */
-  static Stream connect(String url) async;
+  static Stream connect(String url, Integer timeout = 0) async;
 
   /*! @brief 设定缺省客户端证书
     @param crt X509Cert 证书，用于客户端验证服务器
