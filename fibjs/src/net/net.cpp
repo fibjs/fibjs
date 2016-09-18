@@ -121,12 +121,9 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
                    retVal, ac);
 }
 
-result_t net_base::openSmtp(exlib::string host, int32_t port, int32_t family,
+result_t net_base::openSmtp(exlib::string url, int32_t timeout,
                             obj_ptr<Smtp_base> &retVal, AsyncEvent *ac)
 {
-    if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -136,7 +133,9 @@ result_t net_base::openSmtp(exlib::string host, int32_t port, int32_t family,
     if (hr < 0)
         return hr;
 
-    return retVal->connect(host, port, family, ac);
+    retVal->set_timeout(timeout);
+
+    return retVal->connect(url, ac);
 }
 
 }

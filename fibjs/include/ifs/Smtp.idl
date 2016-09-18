@@ -8,11 +8,9 @@ interface Smtp : object
     Smtp();
 
     /*! @brief 建立到指定的服务器
-     @param host 指定对方地址或主机名
-     @param port 指定对方端口
-     @param family 指定地址集，缺省为 AF_INET，ipv4
+     @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
      */
-    connect(String host, Integer port, Integer family = net.AF_INET) async;
+    connect(String url) async;
 
     /*! @brief 发送指定命令，并返回响应，服务器报错则抛出错误
      @param cmd 命令名
@@ -50,6 +48,9 @@ interface Smtp : object
     /*! @brief 退出并关闭连接，服务器报错则抛出错误 */
     quit() async;
 
+    /*! @brief 查询和设置超时时间 单位毫秒*/
+    Integer timeout;
+
     /*! @brief 查询 Smtp 对象当前连接的 Socket */
-    readonly Socket socket;
+    readonly Stream socket;
 };

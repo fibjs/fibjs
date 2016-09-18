@@ -451,12 +451,12 @@ describe("net", function() {
 
 		it("new & connect", function() {
 			s = new net.Smtp();
-			s.connect("smtp.ym.163.com", 25);
+			s.connect("tcp://smtp.ym.163.com:25");
 			s.socket.close();
 		});
 
 		it("net.openSmtp", function() {
-			s = net.openSmtp("smtp.exmail.qq.com", 25);
+			s = net.openSmtp("tcp://smtp.exmail.qq.com:25");
 		});
 
 		it("command", function() {

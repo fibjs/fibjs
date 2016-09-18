@@ -9,6 +9,7 @@
 #include "Smtp.h"
 #include "Buffer.h"
 #include "ifs/encoding.h"
+#include "ifs/net.h"
 
 namespace fibjs
 {
@@ -72,9 +73,22 @@ public:
         return pThis->m_stmBuffered->readLine(SMTP_MAX_LINE, strLine, pThis);
     }
 
-    int32_t connect(exlib::string host, int32_t port)
+    static int32_t connected(AsyncState *pState, int32_t n)
     {
-        int32_t r = m_pThis->m_sock->connect(host, port, this);
+        asyncSmtp *pThis = (asyncSmtp *) pState;
+
+        pThis->m_pThis->m_stmBuffered = new BufferedStream(pThis->m_pThis->m_conn);
+        pThis->m_pThis->m_stmBuffered->set_EOL("\r\n");
+
+        pThis->m_stmBuffered = pThis->m_pThis->m_stmBuffered;
+
+        return ok(pState, n);
+    }
+
+    int32_t connect(exlib::string url)
+    {
+        set(connected);
+        int32_t r = net_base::connect(url, m_pThis->m_timeout, m_pThis->m_conn, this);
 
         if (r == CALL_E_PENDDING)
             return r;
@@ -114,34 +128,21 @@ protected:
     exlib::string m_strLine;
 };
 
-result_t Smtp::connect(exlib::string host, int32_t port, int32_t family,
-                       AsyncEvent *ac)
+result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
 {
-    if (m_sock)
+    if (m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    result_t hr;
-
-    hr = Socket_base::_new(family, net_base::_SOCK_STREAM, m_sock);
-    if (hr < 0)
-        return hr;
-
-    m_stmBuffered = new BufferedStream(m_sock);
-    m_stmBuffered->set_EOL("\r\n");
-
-    return (new asyncSmtp(this, ac))->connect(host, port);
+    return (new asyncSmtp(this, ac))->connect(url);
 }
 
 result_t Smtp::command(exlib::string cmd, exlib::string arg, exlib::string &retVal,
                        AsyncEvent *ac)
 {
-    if (!m_sock)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
@@ -152,7 +153,7 @@ result_t Smtp::command(exlib::string cmd, exlib::string arg, exlib::string &retV
 
 result_t Smtp::command(exlib::string cmd, exlib::string arg, AsyncEvent *ac)
 {
-    if (!m_sock)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
@@ -239,7 +240,7 @@ result_t Smtp::login(exlib::string username, exlib::string password,
         int32_t step;
     };
 
-    if (!m_sock)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
@@ -310,7 +311,7 @@ result_t Smtp::data(exlib::string txt, AsyncEvent *ac)
         int32_t step;
     };
 
-    if (!m_sock)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (!ac)
@@ -324,9 +325,21 @@ result_t Smtp::quit(AsyncEvent *ac)
     return command("QUIT", "", ac);
 }
 
-result_t Smtp::get_socket(obj_ptr<Socket_base> &retVal)
+result_t Smtp::get_timeout(int32_t& retVal)
 {
-    retVal = m_sock;
+    retVal = m_timeout;
+    return 0;
+}
+
+result_t Smtp::set_timeout(int32_t newVal)
+{
+    m_timeout = newVal;
+    return 0;
+}
+
+result_t Smtp::get_socket(obj_ptr<Stream_base> &retVal)
+{
+    retVal = m_conn;
     return 0;
 }
 

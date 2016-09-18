@@ -17,8 +17,7 @@
 namespace fibjs
 {
 
-class net_base;
-class Socket_base;
+class Stream_base;
 
 class Smtp_base : public object_base
 {
@@ -27,7 +26,7 @@ class Smtp_base : public object_base
 public:
     // Smtp_base
     static result_t _new(obj_ptr<Smtp_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t connect(exlib::string host, int32_t port, int32_t family, AsyncEvent* ac) = 0;
+    virtual result_t connect(exlib::string url, AsyncEvent* ac) = 0;
     virtual result_t command(exlib::string cmd, exlib::string arg, exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t hello(exlib::string hostname, AsyncEvent* ac) = 0;
     virtual result_t login(exlib::string username, exlib::string password, AsyncEvent* ac) = 0;
@@ -35,7 +34,9 @@ public:
     virtual result_t to(exlib::string address, AsyncEvent* ac) = 0;
     virtual result_t data(exlib::string txt, AsyncEvent* ac) = 0;
     virtual result_t quit(AsyncEvent* ac) = 0;
-    virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
+    virtual result_t get_timeout(int32_t& retVal) = 0;
+    virtual result_t set_timeout(int32_t newVal) = 0;
+    virtual result_t get_socket(obj_ptr<Stream_base>& retVal) = 0;
 
 public:
     template<typename T>
@@ -51,10 +52,12 @@ public:
     static void s_to(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_data(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_quit(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
 
 public:
-    ASYNC_MEMBER3(Smtp_base, connect, exlib::string, int32_t, int32_t);
+    ASYNC_MEMBER1(Smtp_base, connect, exlib::string);
     ASYNC_MEMBERVALUE3(Smtp_base, command, exlib::string, exlib::string, exlib::string);
     ASYNC_MEMBER1(Smtp_base, hello, exlib::string);
     ASYNC_MEMBER2(Smtp_base, login, exlib::string, exlib::string);
@@ -66,8 +69,7 @@ public:
 
 }
 
-#include "net.h"
-#include "Socket.h"
+#include "Stream.h"
 
 namespace fibjs
 {
@@ -87,13 +89,14 @@ namespace fibjs
 
         static ClassData::ClassProperty s_property[] = 
         {
+            {"timeout", s_get_timeout, s_set_timeout, false},
             {"socket", s_get_socket, block_set, false}
         };
 
         static ClassData s_cd = 
         { 
             "Smtp", s__new, NULL, 
-            8, s_method, 0, NULL, 1, s_property, NULL, NULL,
+            8, s_method, 0, NULL, 2, s_property, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -101,9 +104,32 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void Smtp_base::s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(Smtp_base);
+
+        hr = pInst->get_timeout(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Smtp_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(Smtp_base);
+
+        PROPERTY_VAL(int32_t);
+        hr = pInst->set_timeout(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
     inline void Smtp_base::s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        obj_ptr<Socket_base> vr;
+        obj_ptr<Stream_base> vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(Smtp_base);
@@ -133,17 +159,15 @@ namespace fibjs
     inline void Smtp_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        ASYNC_METHOD_ENTER(3, 2);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(exlib::string, 0);
-        ARG(int32_t, 1);
-        OPT_ARG(int32_t, 2, net_base::_AF_INET);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_connect(v0, v1, v2, cb);
+            pInst->acb_connect(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = pInst->ac_connect(v0, v1, v2);
+            hr = pInst->ac_connect(v0);
 
         METHOD_VOID();
     }
