@@ -65,7 +65,7 @@ set(CMAKE_CXX_FLAGS "${flags} ${ccflags}")
 
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../vender" "${PROJECT_SOURCE_DIR}/../vender/v8" "${PROJECT_SOURCE_DIR}/../vender/v8/include" "${PROJECT_SOURCE_DIR}/../vender/zlib/include" "${CMAKE_CURRENT_BINARY_DIR}")
 
-set(libs expat gumbo gd tiff jpeg png webp zlib leveldb snappy ev pcre sqlite mongo umysql uuid exif winiconv mbedtls jssdk v8 SpiderMonkey icu unzip editline exlib)
+set(libs expat gumbo gd tiff jpeg png webp zlib leveldb snappy ev pcre sqlite mongo umysql uuid exif winiconv mbedtls jssdk v8 SpiderMonkey unzip editline exlib)
 
 foreach(lib ${libs})
 	target_link_libraries(fibjs "${BIN_DIR}/lib${lib}.a")
