@@ -52,14 +52,7 @@ interface SandBox : object
     Buffer compile(String script);
 
     /*! @brief 向沙箱中添加一个脚本模块
-     @param srcname 指定要添加的脚本名称，srcname 必须包含扩展名，比如 json 或者 js
-     @param script 指定要添加的脚本代码
-     @return 返回加载的模块对象
-     */
-    Value addScript(String srcname, String script);
-
-    /*! @brief 向沙箱中添加一个脚本模块
-     @param srcname 指定要添加的脚本名称，srcname 必须包含扩展名，比如 jsc
+     @param srcname 指定要添加的脚本名称，srcname 必须包含扩展名，比如 json 或者 js, jsc
      @param script 指定要添加的二进制代码
      @return 返回加载的模块对象
      */

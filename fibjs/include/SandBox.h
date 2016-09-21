@@ -34,7 +34,6 @@ public:
     virtual result_t add(v8::Local<v8::Object> mods);
     virtual result_t compile(exlib::string srcname, exlib::string script, obj_ptr<Buffer_base>& retVal);
     virtual result_t compile(exlib::string script, obj_ptr<Buffer_base>& retVal);
-    virtual result_t addScript(exlib::string srcname, exlib::string script, v8::Local<v8::Value> &retVal);
     virtual result_t addScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal);
     virtual result_t remove(exlib::string id);
     virtual result_t clone(obj_ptr<SandBox_base> &retVal);
@@ -42,6 +41,8 @@ public:
     virtual result_t require(exlib::string id, v8::Local<v8::Value> &retVal);
 
 public:
+    result_t addScript(exlib::string srcname, exlib::string script, v8::Local<v8::Value> &retVal);
+
     v8::Local<v8::Object> mods()
     {
         Isolate* isolate = holder();

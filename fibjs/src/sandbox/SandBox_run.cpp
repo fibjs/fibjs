@@ -520,7 +520,13 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     // add to modules
     exlib::string id(fname);
 
-    if (id.length() > 4 && !qstrcmp(id.c_str() + id.length() - 4, ".jsc"))
+    if ((id.length() > 5 && !qstrcmp(id.c_str() + id.length() - 5, ".json")) ||
+            (id.length() > 3 && !qstrcmp(id.c_str() + id.length() - 3, ".js")))
+    {
+        exlib::string strScript;
+        script->toString(strScript);
+        return addScript(srcname, strScript, retVal);
+    } else if (id.length() > 4 && !qstrcmp(id.c_str() + id.length() - 4, ".jsc"))
     {
         Isolate* isolate = holder();
         Context context(this, srcname);

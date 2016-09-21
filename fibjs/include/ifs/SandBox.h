@@ -31,7 +31,6 @@ public:
     virtual result_t add(v8::Local<v8::Object> mods) = 0;
     virtual result_t compile(exlib::string srcname, exlib::string script, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t compile(exlib::string script, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t addScript(exlib::string srcname, exlib::string script, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t addScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t remove(exlib::string id) = 0;
     virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
@@ -158,13 +157,6 @@ namespace fibjs
 
         METHOD_INSTANCE(SandBox_base);
         METHOD_ENTER(2, 2);
-
-        ARG(exlib::string, 0);
-        ARG(exlib::string, 1);
-
-        hr = pInst->addScript(v0, v1, vr);
-
-        METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(obj_ptr<Buffer_base>, 1);
