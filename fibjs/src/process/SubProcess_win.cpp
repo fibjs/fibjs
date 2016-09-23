@@ -53,8 +53,8 @@ result_t create_name_pipe(HANDLE* hd1, HANDLE* hd2, bool in)
 	sa.bInheritHandle = TRUE;
 	sa.lpSecurityDescriptor = NULL;
 
-	hChild = CreateFile( fname, in ? GENERIC_READ : GENERIC_WRITE, 0, &sa, OPEN_EXISTING,
-	                     FILE_ATTRIBUTE_NORMAL, 0);
+	hChild = CreateFile(fname, in ? GENERIC_READ : GENERIC_WRITE, 0, &sa, OPEN_EXISTING,
+	                    FILE_ATTRIBUTE_NORMAL, 0);
 	if (hChild == INVALID_HANDLE_VALUE)
 	{
 		CloseHandle(hMine);
@@ -79,8 +79,10 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
 	HANDLE cout_pipe[2] = {0};
 	int32_t timeout;
 
-	exlib::wstring wstr(L"cmd /C ");
+	exlib::wstring wstr;
+	wstr.append(1, '\"');
 	wstr.append(utf8to16String(command));
+	wstr.append(1, '\"');
 
 	Isolate* isolate = Isolate::current();
 
