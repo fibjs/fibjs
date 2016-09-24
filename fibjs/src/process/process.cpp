@@ -137,7 +137,12 @@ result_t process_base::exit(int32_t code)
     dump_memory();
 #endif
 
+#ifdef _WIN32
+    TerminateProcess(GetCurrentProcess(), code);
+#else
     ::_exit(code);
+#endif
+
     return 0;
 }
 
