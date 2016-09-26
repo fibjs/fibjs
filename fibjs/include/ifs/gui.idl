@@ -1,0 +1,12 @@
+/*! @brief 输入输出处理模块
+
+ 使用方法：
+ @code
+ var gui = require('gui');
+ @endcode
+ */
+module gui
+{
+    /*! @brief 打开一个窗口并访问指定网址 */
+    static WebView open(String url, String title = "") async;
+};

@@ -97,6 +97,15 @@
     <Filter Include="Source Files\zip">
       <UniqueIdentifier>{232f65a2-2952-4311-bdc2-fd62de813074}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\gui">
+      <UniqueIdentifier>{e8cdf02f-85bb-4df8-a15c-b433f9d81990}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\gui\windows">
+      <UniqueIdentifier>{a476549c-29a8-48c2-90f6-86461ec65ec1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\gui\other">
+      <UniqueIdentifier>{1996840f-1ca2-4357-8246-11bc36270c0e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ifs\console.h">
@@ -840,6 +849,30 @@
     <ClInclude Include="include\ifs\HttpClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\gui.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\SubProcess.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\WebView.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\encoding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HttpClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\path.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SubProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\windows\WebView.h">
+      <Filter>Source Files\gui\windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl">
@@ -1306,8 +1339,14 @@
     <ClCompile Include="src\base\date_cache.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
+    <ClCompile Include="src\gui\windows\WebView.cpp">
+      <Filter>Source Files\gui\windows</Filter>
+    </ClCompile>
     <ClCompile Include="src\http\HttpClient.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\http</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\other\gui.cpp">
+      <Filter>Source Files\gui\other</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

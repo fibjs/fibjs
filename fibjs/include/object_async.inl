@@ -7,9 +7,9 @@
 				this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	_t ac(NULL); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m() { \
@@ -20,9 +20,9 @@
 				this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	_t ac(NULL); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m(v8::Local<v8::Function> cb) { \
@@ -40,8 +40,8 @@
 	}; \
 	_t* ac = new _t(cb); \
 	result_t hr = m(NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBER0(cls, m) \
@@ -53,10 +53,10 @@
 				this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m() { \
@@ -67,10 +67,10 @@
 				this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m(v8::Local<v8::Function> cb) { \
@@ -89,8 +89,8 @@
 	}; \
 	_t* ac = new _t(this, cb); \
 	result_t hr = m(NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATICVALUE1(cls, m, T0) \
@@ -103,10 +103,10 @@
 				*(T0*) args[0], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -118,10 +118,10 @@
 				*(T0*) args[0], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -144,8 +144,8 @@
 	}; \
 	_t* ac = new _t(cb); \
 	result_t hr = m(ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBERVALUE1(cls, m, T0) \
@@ -158,10 +158,10 @@
 				*(T0*) args[0], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -173,10 +173,10 @@
 				*(T0*) args[0], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -200,8 +200,8 @@
 	}; \
 	_t* ac = new _t(this, cb); \
 	result_t hr = m(ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATIC1(cls, m, T0) \
@@ -214,10 +214,10 @@
 				*(T0*) args[0], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -229,10 +229,10 @@
 				*(T0*) args[0], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -252,8 +252,8 @@
 	}; \
 	_t* ac = new _t(v0, cb); \
 	result_t hr = m(v0, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBER1(cls, m, T0) \
@@ -266,10 +266,10 @@
 				*(T0*) args[0], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -281,10 +281,10 @@
 				*(T0*) args[0], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -305,8 +305,8 @@
 	}; \
 	_t* ac = new _t(this, v0, cb); \
 	result_t hr = m(v0, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATICVALUE2(cls, m, T0, T1) \
@@ -319,10 +319,10 @@
 				*(T0*) args[0], *(T1*) args[1], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -334,10 +334,10 @@
 				*(T0*) args[0], *(T1*) args[1], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -361,8 +361,8 @@
 	}; \
 	_t* ac = new _t(v0, cb); \
 	result_t hr = m(v0, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBERVALUE2(cls, m, T0, T1) \
@@ -375,10 +375,10 @@
 				*(T0*) args[0], *(T1*) args[1], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -390,10 +390,10 @@
 				*(T0*) args[0], *(T1*) args[1], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -418,8 +418,8 @@
 	}; \
 	_t* ac = new _t(this, v0, cb); \
 	result_t hr = m(v0, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATIC2(cls, m, T0, T1) \
@@ -432,10 +432,10 @@
 				*(T0*) args[0], *(T1*) args[1], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -447,10 +447,10 @@
 				*(T0*) args[0], *(T1*) args[1], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -471,8 +471,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, cb); \
 	result_t hr = m(v0, v1, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBER2(cls, m, T0, T1) \
@@ -485,10 +485,10 @@
 				*(T0*) args[0], *(T1*) args[1], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -500,10 +500,10 @@
 				*(T0*) args[0], *(T1*) args[1], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -525,8 +525,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, cb); \
 	result_t hr = m(v0, v1, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATICVALUE3(cls, m, T0, T1, T2) \
@@ -539,10 +539,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -554,10 +554,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -582,8 +582,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, cb); \
 	result_t hr = m(v0, v1, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBERVALUE3(cls, m, T0, T1, T2) \
@@ -596,10 +596,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -611,10 +611,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -640,8 +640,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, cb); \
 	result_t hr = m(v0, v1, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATIC3(cls, m, T0, T1, T2) \
@@ -654,10 +654,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -669,10 +669,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -694,8 +694,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, cb); \
 	result_t hr = m(v0, v1, v2, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBER3(cls, m, T0, T1, T2) \
@@ -708,10 +708,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -723,10 +723,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -749,8 +749,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, cb); \
 	result_t hr = m(v0, v1, v2, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATICVALUE4(cls, m, T0, T1, T2, T3) \
@@ -763,10 +763,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -778,10 +778,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -807,8 +807,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, cb); \
 	result_t hr = m(v0, v1, v2, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBERVALUE4(cls, m, T0, T1, T2, T3) \
@@ -821,10 +821,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -836,10 +836,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -866,8 +866,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, cb); \
 	result_t hr = m(v0, v1, v2, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATIC4(cls, m, T0, T1, T2, T3) \
@@ -880,10 +880,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -895,10 +895,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -921,8 +921,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, cb); \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBER4(cls, m, T0, T1, T2, T3) \
@@ -935,10 +935,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -950,10 +950,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -977,8 +977,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, cb); \
 	result_t hr = m(v0, v1, v2, v3, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATICVALUE5(cls, m, T0, T1, T2, T3, T4) \
@@ -991,10 +991,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -1006,10 +1006,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -1036,8 +1036,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, cb); \
 	result_t hr = m(v0, v1, v2, v3, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBERVALUE5(cls, m, T0, T1, T2, T3, T4) \
@@ -1050,10 +1050,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -1065,10 +1065,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -1096,8 +1096,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, cb); \
 	result_t hr = m(v0, v1, v2, v3, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATIC5(cls, m, T0, T1, T2, T3, T4) \
@@ -1110,10 +1110,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -1125,10 +1125,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -1152,8 +1152,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBER5(cls, m, T0, T1, T2, T3, T4) \
@@ -1166,10 +1166,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -1181,10 +1181,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -1209,8 +1209,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATICVALUE6(cls, m, T0, T1, T2, T3, T4, T5) \
@@ -1223,10 +1223,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -1238,10 +1238,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -1269,8 +1269,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBERVALUE6(cls, m, T0, T1, T2, T3, T4, T5) \
@@ -1283,10 +1283,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -1298,10 +1298,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -1330,8 +1330,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATIC6(cls, m, T0, T1, T2, T3, T4, T5) \
@@ -1344,10 +1344,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -1359,10 +1359,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -1387,8 +1387,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBER6(cls, m, T0, T1, T2, T3, T4, T5) \
@@ -1401,10 +1401,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -1416,10 +1416,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -1445,8 +1445,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATICVALUE7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
@@ -1459,10 +1459,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -1474,10 +1474,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -1506,8 +1506,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBERVALUE7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
@@ -1520,10 +1520,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -1535,10 +1535,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -1568,8 +1568,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATIC7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
@@ -1582,10 +1582,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -1597,10 +1597,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -1626,8 +1626,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, v6, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBER7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
@@ -1640,10 +1640,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -1655,10 +1655,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -1685,8 +1685,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, v6, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATICVALUE8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
@@ -1699,10 +1699,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -1714,10 +1714,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -1747,8 +1747,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, v6, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBERVALUE8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
@@ -1761,10 +1761,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -1776,10 +1776,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -1810,8 +1810,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, v6, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATIC8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
@@ -1824,10 +1824,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -1839,10 +1839,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -1869,8 +1869,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, v6, v7, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBER8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
@@ -1883,10 +1883,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -1898,10 +1898,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -1929,8 +1929,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATICVALUE9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
@@ -1943,10 +1943,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -1958,10 +1958,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -1992,8 +1992,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, v6, v7, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBERVALUE9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
@@ -2006,10 +2006,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -2021,10 +2021,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -2056,8 +2056,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATIC9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
@@ -2070,10 +2070,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -2085,10 +2085,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -2116,8 +2116,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBER9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
@@ -2130,10 +2130,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -2145,10 +2145,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -2177,8 +2177,8 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, v8, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_STATICVALUE10(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
@@ -2191,10 +2191,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], *(T9*) args[9], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static result_t cc_##m( \
@@ -2206,10 +2206,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], *(T9*) args[9], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	static void acb_##m( \
@@ -2241,8 +2241,8 @@
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}
 
 #define ASYNC_MEMBERVALUE10(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
@@ -2255,10 +2255,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], *(T9*) args[9], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	result_t cc_##m( \
@@ -2270,10 +2270,10 @@
 				*(T0*) args[0], *(T1*) args[1], *(T2*) args[2], *(T3*) args[3], *(T4*) args[4], *(T5*) args[5], *(T6*) args[6], *(T7*) args[7], *(T8*) args[8], *(T9*) args[9], this); \
 			if(hr != CALL_E_PENDDING)post(hr); } }; \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9, this}; \
 	_t ac(args); \
-	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \
+	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
 	} \
 	void acb_##m( \
@@ -2306,6 +2306,6 @@
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, v8, cb); \
 	result_t hr = m(v0, v1, v2, v3, v4, v5, v6, v7, v8, ac->retVal, NULL); \
-	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \
-	else ac->async(hr == CALL_E_LONGSYNC); \
+	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
+	else ac->async(hr); \
 	}

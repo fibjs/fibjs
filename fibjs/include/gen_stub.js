@@ -81,7 +81,7 @@ function gen_stub(argn, bInst, bRet) {
 		} else
 			s += 'NULL';
 
-		txt.push(s + '); \\\n' + '	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)return hr; \\');
+		txt.push(s + '); \\\n' + '	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \\');
 
 		if (argn > 0 || bInst) {
 			s = '	void* args[] = {';
@@ -100,7 +100,7 @@ function gen_stub(argn, bInst, bRet) {
 		} else
 			txt.push('	_t ac(NULL); \\');
 
-		txt.push('	if(hr == CALL_E_LONGSYNC){ac.async(true); return ac.wait();} \\\n	else return ac.async_wait(); \\\n	} \\');
+		txt.push('	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \\\n	else return ac.async_wait(); \\\n	} \\');
 	}
 
 	function gen_callback() {
@@ -186,8 +186,8 @@ function gen_stub(argn, bInst, bRet) {
 
 		txt.push(s + '); \\');
 
-		txt.push('	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC)ac->post(hr); \\');
-		txt.push('	else ac->async(hr == CALL_E_LONGSYNC); \\');
+		txt.push('	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \\');
+		txt.push('	else ac->async(hr); \\');
 
 		txt.push('	}\n');
 	}

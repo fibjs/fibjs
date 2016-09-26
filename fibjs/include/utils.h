@@ -156,14 +156,16 @@ typedef int32_t result_t;
 #define CALL_E_NOSYNC           (CALL_E_MAX - 17)
 // Operation is long synchronous call.
 #define CALL_E_LONGSYNC         (CALL_E_MAX - 18)
+// Operation is GUI call.
+#define CALL_E_GUICALL          (CALL_E_MAX - 19)
 // Internal error.
-#define CALL_E_INTERNAL         (CALL_E_MAX - 19)
+#define CALL_E_INTERNAL         (CALL_E_MAX - 20)
 // Invalid return type.
-#define CALL_E_RETURN_TYPE      (CALL_E_MAX - 20)
+#define CALL_E_RETURN_TYPE      (CALL_E_MAX - 21)
 // Exception occurred.
-#define CALL_E_EXCEPTION        (CALL_E_MAX - 21)
+#define CALL_E_EXCEPTION        (CALL_E_MAX - 22)
 // Javascript error.
-#define CALL_E_JAVASCRIPT       (CALL_E_MAX - 22)
+#define CALL_E_JAVASCRIPT       (CALL_E_MAX - 23)
 
 #define CALL_E_MIN              -100100
 
@@ -837,7 +839,8 @@ void asyncLog(int32_t priority, exlib::string msg);
 
 inline result_t _error_checker(result_t hr, const char *file, int32_t line)
 {
-    if (hr < 0 && hr != CALL_E_NOSYNC && hr != CALL_E_NOASYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_PENDDING)
+    if (hr < 0 && hr != CALL_E_NOSYNC && hr != CALL_E_NOASYNC &&
+            hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL && hr != CALL_E_PENDDING)
     {
         exlib::string str = file;
         char tmp[64];

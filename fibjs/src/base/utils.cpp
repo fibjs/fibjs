@@ -62,6 +62,8 @@ exlib::string getResultMessage(result_t hr)
         "Operation not support asynchronous call.",
         // CALL_E_LONGSYNC
         "Operation is long synchronous call.",
+        // CALL_E_GUICALL
+        "Operation is GUI call.",
         // CALL_E_INTERNAL
         "Internal error.",
         // CALL_E_RETURN_TYPE

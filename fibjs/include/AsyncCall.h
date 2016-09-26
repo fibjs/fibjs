@@ -25,7 +25,7 @@ public:
     {
     }
 
-    void async(bool bLongSync);
+    void async(int32_t type);
     virtual void invoke()
     {
     }
@@ -207,7 +207,7 @@ public:
     virtual void apost(int32_t v)
     {
         m_v = v;
-        async(false);
+        async(CALL_E_NOSYNC);
     }
 
     virtual int32_t error(int32_t v)
@@ -250,7 +250,7 @@ private:
 template<typename T, typename T1>
 void asyncCall(T func, T1 v)
 {
-    (new AsyncFunc<T, T1>(func, v))->async(false);
+    (new AsyncFunc<T, T1>(func, v))->async(CALL_E_NOSYNC);
 }
 
 template<typename T, typename T1>

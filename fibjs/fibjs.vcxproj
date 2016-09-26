@@ -110,6 +110,7 @@
     <ClInclude Include="include\DBResult.h" />
     <ClInclude Include="include\DBRow.h" />
     <ClInclude Include="include\Digest.h" />
+    <ClInclude Include="include\encoding.h" />
     <ClInclude Include="include\encoding_bson.h" />
     <ClInclude Include="include\encoding_iconv.h" />
     <ClInclude Include="include\Event.h" />
@@ -121,6 +122,7 @@
     <ClInclude Include="include\HeapGraphNode.h" />
     <ClInclude Include="include\HeapProxy.h" />
     <ClInclude Include="include\HeapSnapshot.h" />
+    <ClInclude Include="include\HttpClient.h" />
     <ClInclude Include="include\HttpCollection.h" />
     <ClInclude Include="include\HttpCookie.h" />
     <ClInclude Include="include\HttpFileHandler.h" />
@@ -162,6 +164,7 @@
     <ClInclude Include="include\ifs\gd.h" />
     <ClInclude Include="include\ifs\global.h" />
     <ClInclude Include="include\ifs\GridFS.h" />
+    <ClInclude Include="include\ifs\gui.h" />
     <ClInclude Include="include\ifs\Handler.h" />
     <ClInclude Include="include\ifs\HandlerEx.h" />
     <ClInclude Include="include\ifs\hash.h" />
@@ -229,6 +232,7 @@
     <ClInclude Include="include\ifs\Stat.h" />
     <ClInclude Include="include\ifs\Stats.h" />
     <ClInclude Include="include\ifs\Stream.h" />
+    <ClInclude Include="include\ifs\SubProcess.h" />
     <ClInclude Include="include\ifs\TcpServer.h" />
     <ClInclude Include="include\ifs\test.h" />
     <ClInclude Include="include\ifs\RpcTask.h" />
@@ -243,6 +247,7 @@
     <ClInclude Include="include\ifs\websocket.h" />
     <ClInclude Include="include\ifs\WebSocketHandler.h" />
     <ClInclude Include="include\ifs\WebSocketMessage.h" />
+    <ClInclude Include="include\ifs\WebView.h" />
     <ClInclude Include="include\ifs\X509Cert.h" />
     <ClInclude Include="include\ifs\X509Crl.h" />
     <ClInclude Include="include\ifs\X509Req.h" />
@@ -285,6 +290,7 @@
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\obj_ptr.h" />
     <ClInclude Include="include\parse.h" />
+    <ClInclude Include="include\path.h" />
     <ClInclude Include="include\PKey.h" />
     <ClInclude Include="include\qstring.h" />
     <ClInclude Include="include\Queue.h" />
@@ -312,6 +318,7 @@
     <ClInclude Include="include\Stream.h" />
     <ClInclude Include="include\StringBuffer.h" />
     <ClInclude Include="include\RpcTask.h" />
+    <ClInclude Include="include\SubProcess.h" />
     <ClInclude Include="include\TcpServer.h" />
     <ClInclude Include="include\TextColor.h" />
     <ClInclude Include="include\Timer.h" />
@@ -340,6 +347,7 @@
     <ClInclude Include="include\XmlProcessingInstruction.h" />
     <ClInclude Include="include\XmlText.h" />
     <ClInclude Include="include\ZipFile.h" />
+    <ClInclude Include="src\gui\windows\WebView.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl" />
@@ -414,6 +422,8 @@
     <ClCompile Include="src\global\global.cpp" />
     <ClCompile Include="src\global\Int64.cpp" />
     <ClCompile Include="src\global\Timer.cpp" />
+    <ClCompile Include="src\gui\other\gui.cpp" />
+    <ClCompile Include="src\gui\windows\WebView.cpp" />
     <ClCompile Include="src\http\http.cpp" />
     <ClCompile Include="src\http\HttpClient.cpp" />
     <ClCompile Include="src\http\HttpCollection.cpp" />

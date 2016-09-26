@@ -38,7 +38,7 @@ result_t AsyncWaitHandler::end()
 {
     if (m_stat.xchg(AC_END) == AC_WAIT)
     {
-        m_as->async(false);
+        m_as->async(CALL_E_LONGSYNC);
         m_as = NULL;
     }
 

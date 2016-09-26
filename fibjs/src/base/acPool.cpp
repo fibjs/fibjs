@@ -103,12 +103,16 @@ private:
 static acPool* s_acPool;
 static acPool* s_lsPool;
 
-void AsyncEvent::async(bool bLongSync)
+void putGuiPool(AsyncEvent* ac);
+
+void AsyncEvent::async(int32_t type)
 {
-    if (bLongSync)
-        s_lsPool->put(this);
-    else
+    if (type == CALL_E_NOSYNC)
         s_acPool->put(this);
+    else if (type == CALL_E_LONGSYNC)
+        s_lsPool->put(this);
+    else if (type == CALL_E_GUICALL)
+        putGuiPool(this);
 }
 
 void AsyncCallBack::syncFunc(AsyncCallBack* pThis)

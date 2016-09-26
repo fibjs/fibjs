@@ -22,6 +22,7 @@ void init_start_argv(int32_t argc, char **argv);
 void init_prof();
 void init_cipher();
 void init_acThread();
+void init_gui();
 void init_logger();
 void init_aio();
 void init_fs();
@@ -54,6 +55,7 @@ void init(int32_t& argc, char *argv[])
     init_sandbox();
     init_cipher();
     init_acThread();
+    init_gui();
     init_logger();
     init_aio();
     init_fs();
