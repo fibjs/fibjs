@@ -237,7 +237,7 @@ typedef int32_t result_t;
 
 #define CHECK_ARGUMENT() \
     }while(0); \
-    if(!bStrict||(hr!=CALL_E_BADPARAMCOUNT && hr!=CALL_E_PARAMNOTOPTIONAL && hr!=CALL_E_INVALIDARG))break;\
+    if(!bStrict||(hr!=CALL_E_BADPARAMCOUNT && hr!=CALL_E_PARAMNOTOPTIONAL && hr!=CALL_E_TYPEMISMATCH))break;\
     bStrict = false;\
     }while(true);
 
@@ -350,10 +350,10 @@ typedef int32_t result_t;
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string &n, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     if (bStrict && !v->IsString() && !v->IsStringObject())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     v8::String::Utf8Value tmp(v);
     n.assign(*tmp, tmp.length());
@@ -369,21 +369,21 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, e
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, double &n, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     if (!v->IsNumber() && !v->IsNumberObject())
     {
         if (bStrict)
-            return CALL_E_INVALIDARG;
+            return CALL_E_TYPEMISMATCH;
 
         v = v->ToNumber();
         if (v.IsEmpty())
-            return CALL_E_INVALIDARG;
+            return CALL_E_TYPEMISMATCH;
     }
 
     n = v->NumberValue();
     if (isnan(n))
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     return 0;
 }
@@ -438,10 +438,10 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, bool &n, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     if (bStrict && !v->IsBoolean() && !v->IsBooleanObject())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     n = v->BooleanValue();
     return 0;
@@ -455,10 +455,10 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, b
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, date_t &d, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     if (!v->IsDate())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     d = v;
     return 0;
@@ -530,7 +530,7 @@ result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<
     if (vr == NULL)
     {
         if (bStrict)
-            return CALL_E_INVALIDARG;
+            return CALL_E_TYPEMISMATCH;
 
         TryCatch try_catch;
 
@@ -541,7 +541,7 @@ result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<
         vr = T::getInstance(vr1);
 
         if (vr == NULL)
-            return CALL_E_INVALIDARG;
+            return CALL_E_TYPEMISMATCH;
 
         vr->dispose();
     }
@@ -554,10 +554,10 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &
     Isolate* isolate = Isolate::current();
 
     if (v.IsEmpty())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     if (!v->IsObject())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     v8::Local<v8::Value> proto;
     if (isolate->m_proto.IsEmpty())
@@ -570,7 +570,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object> &
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
     if (!proto->Equals(o->GetPrototype()))
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     vr = o;
     return 0;
@@ -584,10 +584,10 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, v
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Array> &vr, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     if (!v->IsArray())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     vr = v8::Local<v8::Array>::Cast(v);
     return 0;
@@ -601,10 +601,10 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, v
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::TypedArray> &vr, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     if (!v->IsTypedArray())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     vr = v8::Local<v8::TypedArray>::Cast(v);
     return 0;
@@ -618,10 +618,10 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, v
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::ArrayBuffer> &vr, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     if (!v->IsArrayBuffer())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     vr = v8::Local<v8::ArrayBuffer>::Cast(v);
     return 0;
@@ -646,10 +646,10 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, v
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Function> &vr, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     if (!v->IsFunction())
-        return CALL_E_INVALIDARG;
+        return CALL_E_TYPEMISMATCH;
 
     vr = v8::Local<v8::Function>::Cast(v);
     return 0;

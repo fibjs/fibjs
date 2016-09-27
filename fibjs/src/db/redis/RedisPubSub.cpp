@@ -122,7 +122,7 @@ result_t Redis::_map(v8::Local<v8::Object> &map, int32_t cmd)
         v8::Local<v8::Value> value = map->Get(channel);
 
         if (!value->IsFunction())
-            return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+            return CHECK_ERROR(CALL_E_INVALIDARG);
 
         v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(value);
 

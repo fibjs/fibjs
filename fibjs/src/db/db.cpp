@@ -165,7 +165,7 @@ result_t _format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &arg
                 v8::Local<v8::Value> v = args[cnt];
 
                 if (v->IsFunction())
-                    return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+                    return CHECK_ERROR(CALL_E_INVALIDARG);
 
                 obj_ptr<Buffer_base> bin = Buffer_base::getInstance(v);
 

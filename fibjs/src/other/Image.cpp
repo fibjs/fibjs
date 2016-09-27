@@ -1034,12 +1034,12 @@ result_t getPoints(v8::Local<v8::Array> &points, std::vector<gdPoint> &pts)
         v8::Local<v8::Value> v = points->Get(i);
 
         if (!v->IsArray())
-            return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+            return CHECK_ERROR(CALL_E_INVALIDARG);
 
         v8::Local<v8::Array> pt = v8::Local<v8::Array>::Cast(v);
 
         if (pt->Length() != 2)
-            return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+            return CHECK_ERROR(CALL_E_INVALIDARG);
 
         pts[i].x = pt->Get(0)->Int32Value();
         pts[i].y = pt->Get(1)->Int32Value();

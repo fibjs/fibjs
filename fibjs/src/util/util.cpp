@@ -520,7 +520,7 @@ result_t util_base::has(v8::Local<v8::Value> v, exlib::string key, bool &retVal)
     }
 
     if (!v->IsObject())
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> obj = v->ToObject();
     retVal = obj->HasOwnProperty(Isolate::current()->NewFromUtf8(key));
@@ -616,7 +616,7 @@ result_t util_base::extend(v8::Local<v8::Value> v,
     }
 
     if (!v->IsObject())
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> obj = v->ToObject();
     int32_t argc = args.Length();
@@ -630,7 +630,7 @@ result_t util_base::extend(v8::Local<v8::Value> v,
             continue;
 
         if (!val->IsObject())
-            return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+            return CHECK_ERROR(CALL_E_INVALIDARG);
 
         v8::Local<v8::Object> obj1 = val->ToObject();
         v8::Local<v8::Array> keys = obj1->GetPropertyNames();
@@ -660,7 +660,7 @@ result_t util_base::pick(v8::Local<v8::Value> v,
     }
 
     if (!v->IsObject())
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> obj = v->ToObject();
     v8::Local<v8::Object> obj1 = v8::Object::New(isolate->m_isolate);
@@ -708,7 +708,7 @@ result_t util_base::omit(v8::Local<v8::Value> v,
     }
 
     if (!v->IsObject())
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> obj = v->ToObject();
 
@@ -779,7 +779,7 @@ result_t util_base::intersection(const v8::FunctionCallbackInfo<v8::Value> &args
 
         for (j = 0; j < argc; j ++)
             if (!args[j]->IsArray())
-                return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+                return CHECK_ERROR(CALL_E_INVALIDARG);
 
         v8::Local<v8::Array> base = v8::Local<v8::Array>::Cast(args[0]);
         int32_t len = base->Length();
@@ -839,7 +839,7 @@ result_t util_base::first(v8::Local<v8::Value> v, v8::Local<v8::Value> &retVal)
     }
 
     if (!v->IsArray())
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
     int32_t len = arr->Length();
@@ -866,7 +866,7 @@ result_t util_base::first(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value
     }
 
     if (!v->IsArray())
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
     int32_t len = arr->Length();
@@ -896,7 +896,7 @@ result_t util_base::last(v8::Local<v8::Value> v, v8::Local<v8::Value> &retVal)
     }
 
     if (!v->IsArray())
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
     int32_t len = arr->Length();
@@ -921,7 +921,7 @@ result_t util_base::last(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>
     }
 
     if (!v->IsArray())
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
     int32_t len = arr->Length();
@@ -950,7 +950,7 @@ result_t util_base::unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Ar
     }
 
     if (!v->IsArray())
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate);
     v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
@@ -1001,7 +1001,7 @@ result_t util_base::_union(const v8::FunctionCallbackInfo<v8::Value> &args,
         v8::Local<v8::Value> a = args[i];
 
         if (!a->IsArray())
-            return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+            return CHECK_ERROR(CALL_E_INVALIDARG);
 
         v8::Local<v8::Array> arr1 = v8::Local<v8::Array>::Cast(a);
         int32_t len = arr1->Length();
@@ -1028,7 +1028,7 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
                             v8::Local<v8::Array> &retVal)
 {
     if (!list->IsObject())
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     bool bNext = true;
 
@@ -1042,7 +1042,7 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
     v8::Local<v8::Value> v = o->Get(isolate->NewFromUtf8("length"));
     if (IsEmpty(v))
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int32_t len = v->Int32Value();
     int32_t cnt = retVal->Length();
@@ -1075,14 +1075,14 @@ result_t util_base::without(v8::Local<v8::Value> arr,
                             v8::Local<v8::Array> &retVal)
 {
     if (!arr->IsObject())
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     Isolate* isolate = Isolate::current();
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(arr);
     v8::Local<v8::Value> v = o->Get(isolate->NewFromUtf8("length"));
     if (IsEmpty(v))
-        return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int32_t len = v->Int32Value();
 
@@ -1118,7 +1118,7 @@ result_t util_base::difference(v8::Local<v8::Array> arr,
 
     for (j = 0; j < argc; j ++)
         if (!args[j]->IsArray())
-            return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+            return CHECK_ERROR(CALL_E_INVALIDARG);
 
     for (i = 0; i < len; i ++)
     {
