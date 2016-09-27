@@ -234,6 +234,11 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
 	return 0;
 }
 
+result_t SubProcess::hasWindow(exlib::string name, bool& retVal)
+{
+	return 0;
+}
+
 }
 
 #endif

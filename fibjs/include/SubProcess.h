@@ -54,6 +54,7 @@ public:
 	// SubProcess_base
 	virtual result_t kill(int32_t signal);
 	virtual result_t wait(int32_t& retVal, AsyncEvent* ac);
+	virtual result_t hasWindow(exlib::string name, bool& retVal);
 	virtual result_t get_pid(int32_t& retVal);
 	virtual result_t get_stdin(obj_ptr<BufferedStream_base>& retVal);
 	virtual result_t get_stdout(obj_ptr<BufferedStream_base>& retVal);

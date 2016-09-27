@@ -12,6 +12,7 @@
 #include "SubProcess.h"
 #include <vector>
 #include <psapi.h>
+#include <tlhelp32.h>
 #include "utf8.h"
 
 namespace fibjs
@@ -231,6 +232,57 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
 
 	if (m_timer)
 		m_timer->clear();
+
+	return 0;
+}
+
+struct enumdata
+{
+	LPCWSTR name;
+	wchar_t buf[1024];
+	bool found;
+};
+
+static BOOL CALLBACK find_window(HWND hwnd, LPARAM lParam)
+{
+	enumdata& ed = *(enumdata*)lParam;
+
+	GetWindowTextW(hwnd, ed.buf, sizeof(ed.buf));
+	if (!qstrcmp(ed.name, ed.buf))
+	{
+		ed.found = TRUE;
+		return FALSE;
+	}
+
+	EnumChildWindows(hwnd, find_window, lParam);
+
+	return TRUE;
+}
+
+result_t SubProcess::hasWindow(exlib::string name, bool& retVal)
+{
+	DWORD pid = GetProcessId((HANDLE)m_pid);
+	HANDLE h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+	if (h == INVALID_HANDLE_VALUE)
+		return CHECK_ERROR(LastError());
+
+	enumdata ed = {UTF8_W(name), false};
+
+	THREADENTRY32 te;
+	te.dwSize = sizeof(te);
+	if (Thread32First(h, &te)) {
+		do {
+			if (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) +
+			        sizeof(te.th32OwnerProcessID) &&
+			        te.th32OwnerProcessID == pid)
+				EnumThreadWindows(te.th32ThreadID, find_window, (LPARAM)&ed);
+
+			te.dwSize = sizeof(te);
+		} while (Thread32Next(h, &te) && !ed.found);
+	}
+	CloseHandle(h);
+
+	retVal = ed.found;
 
 	return 0;
 }

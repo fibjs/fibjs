@@ -28,6 +28,7 @@ public:
     // SubProcess_base
     virtual result_t kill(int32_t signal) = 0;
     virtual result_t wait(int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t hasWindow(exlib::string name, bool& retVal) = 0;
     virtual result_t get_pid(int32_t& retVal) = 0;
     virtual result_t get_stdin(obj_ptr<BufferedStream_base>& retVal) = 0;
     virtual result_t get_stdout(obj_ptr<BufferedStream_base>& retVal) = 0;
@@ -46,6 +47,7 @@ public:
 public:
     static void s_kill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_hasWindow(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_pid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -64,7 +66,8 @@ namespace fibjs
         static ClassData::ClassMethod s_method[] = 
         {
             {"kill", s_kill, false},
-            {"wait", s_wait, false}
+            {"wait", s_wait, false},
+            {"hasWindow", s_hasWindow, false}
         };
 
         static ClassData::ClassProperty s_property[] = 
@@ -77,7 +80,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "SubProcess", s__new, NULL, 
-            2, s_method, 0, NULL, 3, s_property, NULL, NULL,
+            3, s_method, 0, NULL, 3, s_property, NULL, NULL,
             &BufferedStream_base::class_info()
         };
 
@@ -145,6 +148,20 @@ namespace fibjs
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_wait(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void SubProcess_base::s_hasWindow(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        bool vr;
+
+        METHOD_INSTANCE(SubProcess_base);
+        METHOD_ENTER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = pInst->hasWindow(v0, vr);
 
         METHOD_RETURN();
     }
