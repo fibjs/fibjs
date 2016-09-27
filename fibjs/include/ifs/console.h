@@ -74,6 +74,13 @@ public:
     static result_t hideCursor();
     static result_t showCursor();
     static result_t clear();
+    static result_t keyDown(exlib::string key, exlib::string modifier);
+    static result_t keyDown(exlib::string key, v8::Local<v8::Array> modifier);
+    static result_t keyUp(exlib::string key, exlib::string modifier);
+    static result_t keyUp(exlib::string key, v8::Local<v8::Array> modifier);
+    static result_t keyTap(exlib::string key, exlib::string modifier);
+    static result_t keyTap(exlib::string key, v8::Local<v8::Array> modifier);
+    static result_t typeString(exlib::string text);
     static result_t readLine(exlib::string msg, exlib::string& retVal, AsyncEvent* ac);
 
 public:
@@ -123,6 +130,10 @@ public:
     static void s_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_showCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_keyDown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_keyUp(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_keyTap(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_typeString(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -159,6 +170,10 @@ namespace fibjs
             {"hideCursor", s_hideCursor, true},
             {"showCursor", s_showCursor, true},
             {"clear", s_clear, true},
+            {"keyDown", s_keyDown, true},
+            {"keyUp", s_keyUp, true},
+            {"keyTap", s_keyTap, true},
+            {"typeString", s_typeString, true},
             {"readLine", s_readLine, true}
         };
 
@@ -183,7 +198,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "console", s__new, NULL, 
-            21, s_method, 0, NULL, 14, s_property, NULL, NULL,
+            25, s_method, 0, NULL, 14, s_property, NULL, NULL,
             NULL
         };
 
@@ -567,6 +582,74 @@ namespace fibjs
         METHOD_ENTER(0, 0);
 
         hr = clear();
+
+        METHOD_VOID();
+    }
+
+    inline void console_base::s_keyDown(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(2, 1);
+
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "");
+
+        hr = keyDown(v0, v1);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Array>, 1);
+
+        hr = keyDown(v0, v1);
+
+        METHOD_VOID();
+    }
+
+    inline void console_base::s_keyUp(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(2, 1);
+
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "");
+
+        hr = keyUp(v0, v1);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Array>, 1);
+
+        hr = keyUp(v0, v1);
+
+        METHOD_VOID();
+    }
+
+    inline void console_base::s_keyTap(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(2, 1);
+
+        ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "");
+
+        hr = keyTap(v0, v1);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Array>, 1);
+
+        hr = keyTap(v0, v1);
+
+        METHOD_VOID();
+    }
+
+    inline void console_base::s_typeString(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = typeString(v0);
 
         METHOD_VOID();
     }

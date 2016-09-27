@@ -292,6 +292,71 @@ module console
     /*! @brief 清除控制台 */
     static clear();
 
+    /*! @brief 按下一个按键
+     @param key 指定按键，单字符直接传入，功能键传入名称：
+        - 功能键：f1 - f12
+        - 方向键：up, down,left, right, home, end, pageup, pagedown
+        - 编辑键：backspace, delete, insert, enter, tab, escape, space
+        - 控制键：control, alt, shift, command
+     @param modifier 指定控制键，可以为：control, alt, shift, command
+     */
+    static keyDown(String key, String modifier = "");
+
+    /*! @brief 按下一个按键
+     @param key 指定按键，单字符直接传入，功能键传入名称：
+        - 功能键：f1 - f12
+        - 方向键：up, down,left, right, home, end, pageup, pagedown
+        - 编辑键：backspace, delete, insert, enter, tab, escape, space
+        - 控制键：control, alt, shift, command
+     @param modifier 指定控制键数组，可以为：control, alt, shift, command
+     */
+    static keyDown(String key, Array modifier);
+
+    /*! @brief 松开一个按键
+     @param key 指定按键，单字符直接传入，功能键传入名称：
+        - 功能键：f1 - f12
+        - 方向键：up, down,left, right, home, end, pageup, pagedown
+        - 编辑键：backspace, delete, insert, enter, tab, escape, space
+        - 控制键：control, alt, shift, command
+     @param modifier 指定控制键，可以为：control, alt, shift, command
+     */
+    static keyUp(String key, String modifier = "");
+
+    /*! @brief 松开一个按键
+     @param key 指定按键，单字符直接传入，功能键传入名称：
+        - 功能键：f1 - f12
+        - 方向键：up, down,left, right, home, end, pageup, pagedown
+        - 编辑键：backspace, delete, insert, enter, tab, escape, space
+        - 控制键：control, alt, shift, command
+     @param modifier 指定控制键数组，可以为：control, alt, shift, command
+     */
+    static keyUp(String key, Array modifier);
+
+    /*! @brief 点击并松开一个按键
+     @param key 指定按键，单字符直接传入，功能键传入名称：
+        - 功能键：f1 - f12
+        - 方向键：up, down,left, right, home, end, pageup, pagedown
+        - 编辑键：backspace, delete, insert, enter, tab, escape, space
+        - 控制键：control, alt, shift, command
+     @param modifier 指定控制键，可以为：control, alt, shift, command
+     */
+    static keyTap(String key, String modifier = "");
+
+    /*! @brief 点击并松开一个按键
+     @param key 指定按键，单字符直接传入，功能键传入名称：
+        - 功能键：f1 - f12
+        - 方向键：up, down,left, right, home, end, pageup, pagedown
+        - 编辑键：backspace, delete, insert, enter, tab, escape, space
+        - 控制键：control, alt, shift, command
+     @param modifier 指定控制键数组，可以为：control, alt, shift, command
+     */
+    static keyTap(String key, Array modifier);
+
+    /*! @brief 输入一个字符串
+     @param text 指定输入的字符串
+     */
+    static typeString(String text);
+
     /*! @brief 从控制台读取用户输入
      @param msg 提示信息
      @return 返回用户输入的信息

@@ -103,8 +103,8 @@
     <Filter Include="Source Files\gui\windows">
       <UniqueIdentifier>{a476549c-29a8-48c2-90f6-86461ec65ec1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\gui\other">
-      <UniqueIdentifier>{1996840f-1ca2-4357-8246-11bc36270c0e}</UniqueIdentifier>
+    <Filter Include="Source Files\console\windows">
+      <UniqueIdentifier>{7fb72345-4287-421d-8385-7003e2036426}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1345,8 +1345,8 @@
     <ClCompile Include="src\http\HttpClient.cpp">
       <Filter>Source Files\http</Filter>
     </ClCompile>
-    <ClCompile Include="src\gui\other\gui.cpp">
-      <Filter>Source Files\gui\other</Filter>
+    <ClCompile Include="src\console\windows\console_key.cpp">
+      <Filter>Source Files\console\windows</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
