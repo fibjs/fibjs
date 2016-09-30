@@ -247,14 +247,17 @@ static BOOL CALLBACK find_window(HWND hwnd, LPARAM lParam)
 {
 	enumdata& ed = *(enumdata*)lParam;
 
-	GetWindowTextW(hwnd, ed.buf, sizeof(ed.buf));
-	if (!qstrcmp(ed.name, ed.buf))
+	if (IsWindowVisible(hwnd))
 	{
-		ed.found = TRUE;
-		return FALSE;
-	}
+		GetWindowTextW(hwnd, ed.buf, sizeof(ed.buf));
+		if (!qstrcmp(ed.name, ed.buf))
+		{
+			ed.found = TRUE;
+			return FALSE;
+		}
 
-	EnumChildWindows(hwnd, find_window, lParam);
+		EnumChildWindows(hwnd, find_window, lParam);
+	}
 
 	return TRUE;
 }
