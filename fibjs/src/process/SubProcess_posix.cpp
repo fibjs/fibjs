@@ -234,9 +234,9 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
 	return 0;
 }
 
-result_t SubProcess::hasWindow(exlib::string name, bool& retVal)
+result_t SubProcess::findWindow(exlib::string name, v8::Local<v8::Value>& retVal)
 {
-	return 0;
+	return CALL_E_INVALID_CALL;
 }
 
 }

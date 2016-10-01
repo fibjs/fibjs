@@ -18,11 +18,11 @@ interface SubProcess : BufferedStream
 	 */
 	Integer wait() async;
 
-	/*! @brief 判断当前对象所指向的进程是否存在指定名称的窗口，仅限 windows
+	/*! @brief 查询当前对象所指向的进程是否存在指定名称的窗口，仅限 windows
 	  @param name 窗口名称
-	  @return 窗口存在则返回 true
+	  @return 窗口存在则返回窗口的 rect，否则返回 undefined
 	 */
-	Boolean hasWindow(String name);
+	Value findWindow(String name);
 
 	/*! @brief 读取当前对象指向的进程的 id
 	 */

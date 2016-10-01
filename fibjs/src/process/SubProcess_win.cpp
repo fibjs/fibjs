@@ -241,6 +241,7 @@ struct enumdata
 	LPCWSTR name;
 	wchar_t buf[1024];
 	bool found;
+	RECT rect;
 };
 
 static BOOL CALLBACK find_window(HWND hwnd, LPARAM lParam)
@@ -252,6 +253,7 @@ static BOOL CALLBACK find_window(HWND hwnd, LPARAM lParam)
 		GetWindowTextW(hwnd, ed.buf, sizeof(ed.buf));
 		if (!qstrcmp(ed.name, ed.buf))
 		{
+			GetWindowRect(hwnd, &ed.rect);
 			ed.found = TRUE;
 			return FALSE;
 		}
@@ -262,7 +264,7 @@ static BOOL CALLBACK find_window(HWND hwnd, LPARAM lParam)
 	return TRUE;
 }
 
-result_t SubProcess::hasWindow(exlib::string name, bool& retVal)
+result_t SubProcess::findWindow(exlib::string name, v8::Local<v8::Value>& retVal)
 {
 	DWORD pid = GetProcessId((HANDLE)m_pid);
 	HANDLE h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
@@ -285,7 +287,28 @@ result_t SubProcess::hasWindow(exlib::string name, bool& retVal)
 	}
 	CloseHandle(h);
 
-	retVal = ed.found;
+	Isolate* isolate = holder();
+
+	if (ed.found)
+	{
+		v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+
+		o->Set(isolate->NewFromUtf8("left"),
+		       v8::Number::New(isolate->m_isolate, ed.rect.left));
+		o->Set(isolate->NewFromUtf8("top"),
+		       v8::Number::New(isolate->m_isolate, ed.rect.top));
+		o->Set(isolate->NewFromUtf8("right"),
+		       v8::Number::New(isolate->m_isolate, ed.rect.right));
+		o->Set(isolate->NewFromUtf8("bottom"),
+		       v8::Number::New(isolate->m_isolate, ed.rect.bottom));
+
+		retVal = o;
+	} else
+	{
+		retVal = v8::Undefined(isolate->m_isolate);
+	}
+
+	// retVal = ed.found;
 
 	return 0;
 }
