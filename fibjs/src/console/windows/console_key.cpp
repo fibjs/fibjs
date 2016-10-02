@@ -187,11 +187,16 @@ static KeyNames key_names[] =
 	{ "lights_kbd_down",  K_LIGHTS_KBD_DOWN }
 };
 
-result_t CheckKeyCodes(exlib::string k, int32_t *code)
+result_t CheckKeyCodes(exlib::string k, int32_t *code, int32_t *flags)
 {
 	if (k.length() == 1)
 	{
 		*code = VkKeyScan(k[0]);
+		int modifiers = *code >> 8;
+		if ((modifiers & 1) != 0) *flags |= MOD_SHIFT;
+		if ((modifiers & 2) != 0) *flags |= MOD_CONTROL;
+		if ((modifiers & 4) != 0) *flags |= MOD_ALT;
+		*code = *code & 0xff;
 		return 0;
 	}
 
@@ -274,13 +279,13 @@ void toggleKeyCode(int32_t code, const bool down, int32_t flags)
 result_t CheckKeyFlags(exlib::string f, int32_t* flags)
 {
 	if (f == "alt")
-		*flags = MOD_ALT;
+		*flags |= MOD_ALT;
 	else if (f == "command")
-		*flags = MOD_META;
+		*flags |= MOD_META;
 	else if (f == "control")
-		*flags = MOD_CONTROL;
+		*flags |= MOD_CONTROL;
 	else if (f == "shift")
-		*flags = MOD_SHIFT;
+		*flags |= MOD_SHIFT;
 	else if (f != "")
 		return CALL_E_INVALIDARG;
 
@@ -315,7 +320,7 @@ result_t console_base::keyDown(exlib::string key, exlib::string modifier)
 	int32_t code;
 	int32_t flags = MOD_NONE;
 
-	hr = CheckKeyCodes(key, &code);
+	hr = CheckKeyCodes(key, &code, &flags);
 	if (hr < 0)
 		return CHECK_ERROR(hr);
 
@@ -333,7 +338,7 @@ result_t console_base::keyDown(exlib::string key, v8::Local<v8::Array> modifier)
 	int32_t code;
 	int32_t flags = MOD_NONE;
 
-	hr = CheckKeyCodes(key, &code);
+	hr = CheckKeyCodes(key, &code, &flags);
 	if (hr < 0)
 		return CHECK_ERROR(hr);
 
@@ -351,7 +356,7 @@ result_t console_base::keyUp(exlib::string key, exlib::string modifier)
 	int32_t code;
 	int32_t flags = MOD_NONE;
 
-	hr = CheckKeyCodes(key, &code);
+	hr = CheckKeyCodes(key, &code, &flags);
 	if (hr < 0)
 		return CHECK_ERROR(hr);
 
@@ -369,7 +374,7 @@ result_t console_base::keyUp(exlib::string key, v8::Local<v8::Array> modifier)
 	int32_t code;
 	int32_t flags = MOD_NONE;
 
-	hr = CheckKeyCodes(key, &code);
+	hr = CheckKeyCodes(key, &code, &flags);
 	if (hr < 0)
 		return CHECK_ERROR(hr);
 
