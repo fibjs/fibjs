@@ -42,6 +42,7 @@ public:
     static result_t mkdir(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t rmdir(exlib::string path, AsyncEvent* ac);
     static result_t rename(exlib::string from, exlib::string to, AsyncEvent* ac);
+    static result_t copy(exlib::string from, exlib::string to, AsyncEvent* ac);
     static result_t chmod(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
     static result_t readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
@@ -74,6 +75,7 @@ public:
     static void s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -91,6 +93,7 @@ public:
     ASYNC_STATIC2(fs_base, mkdir, exlib::string, int32_t);
     ASYNC_STATIC1(fs_base, rmdir, exlib::string);
     ASYNC_STATIC2(fs_base, rename, exlib::string, exlib::string);
+    ASYNC_STATIC2(fs_base, copy, exlib::string, exlib::string);
     ASYNC_STATIC2(fs_base, chmod, exlib::string, int32_t);
     ASYNC_STATICVALUE2(fs_base, stat, exlib::string, obj_ptr<Stat_base>);
     ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<List_base>);
@@ -122,6 +125,7 @@ namespace fibjs
             {"mkdir", s_mkdir, true},
             {"rmdir", s_rmdir, true},
             {"rename", s_rename, true},
+            {"copy", s_copy, true},
             {"chmod", s_chmod, true},
             {"stat", s_stat, true},
             {"readdir", s_readdir, true},
@@ -143,7 +147,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "fs", s__new, NULL, 
-            15, s_method, 0, NULL, 3, s_property, NULL, NULL,
+            16, s_method, 0, NULL, 3, s_property, NULL, NULL,
             NULL
         };
 
@@ -264,6 +268,22 @@ namespace fibjs
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_rename(v0, v1);
+
+        METHOD_VOID();
+    }
+
+    inline void fs_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        ASYNC_METHOD_ENTER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
+
+        if(!cb.IsEmpty()) {
+            acb_copy(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_copy(v0, v1);
 
         METHOD_VOID();
     }

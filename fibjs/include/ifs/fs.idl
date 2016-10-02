@@ -51,6 +51,12 @@ module fs
      */
     static rename(String from, String to) async;
 
+    /*! @brief 复制一个文件
+     @param from 指定更名的文件
+     @param to 指定要修改的新文件名
+     */
+    static copy(String from, String to) async;
+
     /*! @brief 设置指定文件的访问权限，Windows 不支持此方法
      @param path 指定操作的文件
      @param mode 指定设定的访问权限

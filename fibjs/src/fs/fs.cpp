@@ -5,14 +5,6 @@
  *      Author: lion
  */
 
-
-#ifndef _WIN32
-#include <dirent.h>
-#else
-#include <stdio.h>
-#endif
-
-
 #include "object.h"
 #include "ifs/fs.h"
 #include "utf8.h"
@@ -20,6 +12,21 @@
 #include "List.h"
 #include "File.h"
 #include "BufferedStream.h"
+
+#ifndef _WIN32
+#include <dirent.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+
+#if defined(Darwin) || defined(FreeBSD)
+#include <copyfile.h>
+#else
+#include <sys/sendfile.h>
+#endif
+
+#else
+#include <stdio.h>
+#endif
 
 namespace fibjs
 {
@@ -243,6 +250,36 @@ result_t fs_base::rename(exlib::string from, exlib::string to,
     return 0;
 }
 
+result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
+{
+    int input, output;
+    if ((input = ::open(from.c_str(), O_RDONLY)) == -1)
+        return CHECK_ERROR(LastError());
+
+    if ((output = ::open(to.c_str(), O_RDWR | O_CREAT, 0666)) == -1)
+    {
+        ::close(input);
+        return CHECK_ERROR(LastError());
+    }
+
+#if defined(Darwin) || defined(FreeBSD)
+    int result = fcopyfile(input, output, 0, COPYFILE_ALL);
+#else
+    off_t bytesCopied = 0;
+    struct stat fileinfo = {0};
+    fstat(input, &fileinfo);
+    int result = sendfile(output, input, &bytesCopied, fileinfo.st_size);
+#endif
+
+    ::close(input);
+    ::close(output);
+
+    if (result < 0)
+        return CHECK_ERROR(LastError());
+
+    return 0;
+}
+
 result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal,
                           AsyncEvent *ac)
 {
@@ -342,6 +379,14 @@ result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent *ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::_wrename(UTF8_W(from), UTF8_W(to)))
+        return CHECK_ERROR(LastError());
+
+    return 0;
+}
+
+result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
+{
+    if (!CopyFileW(UTF8_W(from), UTF8_W(to), TRUE))
         return CHECK_ERROR(LastError());
 
     return 0;
