@@ -81,6 +81,10 @@ public:
     static result_t keyTap(exlib::string key, exlib::string modifier);
     static result_t keyTap(exlib::string key, v8::Local<v8::Array> modifier);
     static result_t typeString(exlib::string text);
+    static result_t moveMouse(int32_t x, int32_t y);
+    static result_t mouseUp(exlib::string button);
+    static result_t mouseDown(exlib::string button);
+    static result_t clickMouse(exlib::string button, bool dbclick);
     static result_t readLine(exlib::string msg, exlib::string& retVal, AsyncEvent* ac);
 
 public:
@@ -134,6 +138,10 @@ public:
     static void s_keyUp(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_keyTap(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_typeString(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_moveMouse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_mouseUp(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_mouseDown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_clickMouse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -174,6 +182,10 @@ namespace fibjs
             {"keyUp", s_keyUp, true},
             {"keyTap", s_keyTap, true},
             {"typeString", s_typeString, true},
+            {"moveMouse", s_moveMouse, true},
+            {"mouseUp", s_mouseUp, true},
+            {"mouseDown", s_mouseDown, true},
+            {"clickMouse", s_clickMouse, true},
             {"readLine", s_readLine, true}
         };
 
@@ -198,7 +210,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "console", s__new, NULL, 
-            25, s_method, 0, NULL, 14, s_property, NULL, NULL,
+            29, s_method, 0, NULL, 14, s_property, NULL, NULL,
             NULL
         };
 
@@ -650,6 +662,52 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         hr = typeString(v0);
+
+        METHOD_VOID();
+    }
+
+    inline void console_base::s_moveMouse(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(2, 2);
+
+        ARG(int32_t, 0);
+        ARG(int32_t, 1);
+
+        hr = moveMouse(v0, v1);
+
+        METHOD_VOID();
+    }
+
+    inline void console_base::s_mouseUp(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = mouseUp(v0);
+
+        METHOD_VOID();
+    }
+
+    inline void console_base::s_mouseDown(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = mouseDown(v0);
+
+        METHOD_VOID();
+    }
+
+    inline void console_base::s_clickMouse(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(2, 1);
+
+        ARG(exlib::string, 0);
+        OPT_ARG(bool, 1, false);
+
+        hr = clickMouse(v0, v1);
 
         METHOD_VOID();
     }

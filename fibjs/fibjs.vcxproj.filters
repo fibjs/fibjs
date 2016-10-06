@@ -1348,5 +1348,8 @@
     <ClCompile Include="src\console\windows\console_key.cpp">
       <Filter>Source Files\console\windows</Filter>
     </ClCompile>
+    <ClCompile Include="src\console\windows\console_mouse.cpp">
+      <Filter>Source Files\console\windows</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

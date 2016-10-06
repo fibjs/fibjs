@@ -378,6 +378,7 @@
     <ClCompile Include="src\console\console_event.cpp" />
     <ClCompile Include="src\console\TextColor.cpp" />
     <ClCompile Include="src\console\windows\console_key.cpp" />
+    <ClCompile Include="src\console\windows\console_mouse.cpp" />
     <ClCompile Include="src\coroutine\BlockQueue.cpp" />
     <ClCompile Include="src\coroutine\Condition.cpp" />
     <ClCompile Include="src\coroutine\coroutine.cpp" />

@@ -357,6 +357,28 @@ module console
      */
     static typeString(String text);
 
+    /*! @brief 移动鼠标到指定的位置
+     @param x 指定 x 坐标
+     @param y 指定 y 坐标
+     */
+    static moveMouse(Integer x, Integer y);
+
+    /*! @brief 按下一个鼠标键
+     @param button 指定鼠标键名称，允许值为: left, right, moddle
+     */
+    static mouseUp(String button);
+
+    /*! @brief 放开一个鼠标键
+     @param button 指定鼠标键名称，允许值为: left, right, moddle
+     */
+    static mouseDown(String button);
+
+    /*! @brief 点击一个鼠标键
+     @param button 指定鼠标键名称，允许值为: left, right, moddle
+     @param dbclick 指定是否双击，缺省为 false
+     */
+    static clickMouse(String button, Boolean dbclick = false);
+
     /*! @brief 从控制台读取用户输入
      @param msg 提示信息
      @return 返回用户输入的信息

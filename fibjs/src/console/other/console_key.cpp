@@ -15,37 +15,37 @@ namespace fibjs
 
 result_t console_base::keyDown(exlib::string key, exlib::string modifier)
 {
-	return 0;
+	return CALL_E_INVALID_CALL;
 }
 
 result_t console_base::keyDown(exlib::string key, v8::Local<v8::Array> modifier)
 {
-	return 0;
+	return CALL_E_INVALID_CALL;
 }
 
 result_t console_base::keyUp(exlib::string key, exlib::string modifier)
 {
-	return 0;
+	return CALL_E_INVALID_CALL;
 }
 
 result_t console_base::keyUp(exlib::string key, v8::Local<v8::Array> modifier)
 {
-	return 0;
+	return CALL_E_INVALID_CALL;
 }
 
 result_t console_base::keyTap(exlib::string key, exlib::string modifier)
 {
-	return 0;
+	return CALL_E_INVALID_CALL;
 }
 
 result_t console_base::keyTap(exlib::string key, v8::Local<v8::Array> modifier)
 {
-	return 0;
+	return CALL_E_INVALID_CALL;
 }
 
 result_t console_base::typeString(exlib::string text)
 {
-	return 0;
+	return CALL_E_INVALID_CALL;
 }
 
 }
