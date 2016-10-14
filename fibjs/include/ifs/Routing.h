@@ -27,8 +27,17 @@ class Routing_base : public Handler_base
 public:
     // Routing_base
     static result_t _new(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string method, v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t append(v8::Local<v8::Object> map) = 0;
     virtual result_t append(exlib::string pattern, v8::Local<v8::Value> hdlr) = 0;
+    virtual result_t append(exlib::string method, v8::Local<v8::Object> map) = 0;
+    virtual result_t append(exlib::string method, exlib::string pattern, v8::Local<v8::Value> hdlr) = 0;
+    virtual result_t all(v8::Local<v8::Object> map) = 0;
+    virtual result_t all(exlib::string pattern, v8::Local<v8::Value> hdlr) = 0;
+    virtual result_t get(v8::Local<v8::Object> map) = 0;
+    virtual result_t get(exlib::string pattern, v8::Local<v8::Value> hdlr) = 0;
+    virtual result_t post(v8::Local<v8::Object> map) = 0;
+    virtual result_t post(exlib::string pattern, v8::Local<v8::Value> hdlr) = 0;
 
 public:
     template<typename T>
@@ -37,6 +46,9 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_all(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_post(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -48,13 +60,16 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
-            {"append", s_append, false}
+            {"append", s_append, false},
+            {"all", s_all, false},
+            {"get", s_get, false},
+            {"post", s_post, false}
         };
 
         static ClassData s_cd = 
         { 
             "Routing", s__new, NULL, 
-            1, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            4, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &Handler_base::class_info()
         };
 
@@ -73,11 +88,18 @@ namespace fibjs
     {
         obj_ptr<Routing_base> vr;
 
-        CONSTRUCT_ENTER(1, 1);
+        CONSTRUCT_ENTER(1, 0);
 
-        ARG(v8::Local<v8::Object>, 0);
+        OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
 
         hr = _new(v0, vr, args.This());
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Object>, 1);
+
+        hr = _new(v0, v1, vr, args.This());
 
         CONSTRUCT_RETURN();
     }
@@ -97,6 +119,78 @@ namespace fibjs
         ARG(v8::Local<v8::Value>, 1);
 
         hr = pInst->append(v0, v1);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Object>, 1);
+
+        hr = pInst->append(v0, v1);
+
+        METHOD_OVER(3, 3);
+
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
+        ARG(v8::Local<v8::Value>, 2);
+
+        hr = pInst->append(v0, v1, v2);
+
+        METHOD_VOID();
+    }
+
+    inline void Routing_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(Routing_base);
+        METHOD_ENTER(1, 1);
+
+        ARG(v8::Local<v8::Object>, 0);
+
+        hr = pInst->all(v0);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Value>, 1);
+
+        hr = pInst->all(v0, v1);
+
+        METHOD_VOID();
+    }
+
+    inline void Routing_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(Routing_base);
+        METHOD_ENTER(1, 1);
+
+        ARG(v8::Local<v8::Object>, 0);
+
+        hr = pInst->get(v0);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Value>, 1);
+
+        hr = pInst->get(v0, v1);
+
+        METHOD_VOID();
+    }
+
+    inline void Routing_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(Routing_base);
+        METHOD_ENTER(1, 1);
+
+        ARG(v8::Local<v8::Object>, 0);
+
+        hr = pInst->post(v0);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Value>, 1);
+
+        hr = pInst->post(v0, v1);
 
         METHOD_VOID();
     }

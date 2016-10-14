@@ -2,12 +2,14 @@ var test = require("test");
 test.setup();
 
 var mq = require('mq');
+var http = require('http');
 var net = require('net');
 var io = require('io');
 var os = require('os');
 var coroutine = require('coroutine');
 
 var m = new mq.Message();
+var htm = new http.Request();
 var v = new Buffer('abcd');
 
 var n;
@@ -348,6 +350,40 @@ describe("mq", function() {
 			m.value = '/api/a/test';
 			mq.invoke(r, m);
 			assert.equal('/test', m.value);
+		});
+
+		it("get/post method", function() {
+			var val = 0;
+			var r = new mq.Routing();
+
+			r.get({
+				"^/a$": function(v) {
+					val = 1
+				}
+			});
+
+			r.post("^/a$", function(v) {
+				val = 2;
+			})
+
+			r.all("^/b$", function(v) {
+				val = 3;
+			})
+
+			htm.method = "GET";
+			htm.value = "/a";
+			mq.invoke(r, htm);
+			assert.equal(val, 1);
+
+			htm.method = "POST";
+			htm.value = "/a";
+			mq.invoke(r, htm);
+			assert.equal(val, 2);
+
+			htm.method = "ANY_METHOD";
+			htm.value = "/b";
+			mq.invoke(r, htm);
+			assert.equal(val, 3);
 		});
 
 		it("memory leak", function() {

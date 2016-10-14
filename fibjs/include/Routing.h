@@ -21,8 +21,8 @@ public:
     class rule: public obj_base
     {
     public:
-        rule(pcre *re, Handler_base *hdlr) :
-            m_re(re), m_hdlr(hdlr)
+        rule(exlib::string method, pcre *re, Handler_base *hdlr) :
+            m_method(method), m_re(re), m_hdlr(hdlr)
         {
         }
 
@@ -32,6 +32,7 @@ public:
         }
 
     public:
+        exlib::string m_method;
         pcre *m_re;
         naked_ptr<Handler_base> m_hdlr;
     };
@@ -57,9 +58,17 @@ public:
     // Routing_base
     virtual result_t append(v8::Local<v8::Object> map);
     virtual result_t append(exlib::string pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t append(exlib::string method, v8::Local<v8::Object> map);
+    virtual result_t append(exlib::string method, exlib::string pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t all(v8::Local<v8::Object> map);
+    virtual result_t all(exlib::string pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t get(v8::Local<v8::Object> map);
+    virtual result_t get(exlib::string pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t post(v8::Local<v8::Object> map);
+    virtual result_t post(exlib::string pattern, v8::Local<v8::Value> hdlr);
 
 public:
-    result_t append(exlib::string pattern, Handler_base *hdlr);
+    result_t append(exlib::string method, exlib::string pattern, Handler_base *hdlr);
 
 private:
     std::vector<obj_ptr<rule> > m_array;

@@ -9,6 +9,7 @@
 #include "Routing.h"
 #include "JSHandler.h"
 #include "ifs/Message.h"
+#include "ifs/HttpRequest.h"
 #include "List.h"
 
 namespace fibjs
@@ -29,6 +30,21 @@ result_t Routing_base::_new(v8::Local<v8::Object> map,
     return 0;
 }
 
+result_t Routing_base::_new(exlib::string method, v8::Local<v8::Object> map,
+                            obj_ptr<Routing_base>& retVal,
+                            v8::Local<v8::Object> This)
+{
+    obj_ptr<Routing_base> r = new Routing();
+    r->wrap(This);
+
+    result_t hr = r->append(method, map);
+    if (hr < 0)
+        return hr;
+
+    retVal = r;
+    return 0;
+}
+
 #define RE_SIZE 64
 result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                          AsyncEvent *ac)
@@ -42,12 +58,21 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         return CHECK_ERROR(CALL_E_BADVARTYPE);
 
     exlib::string value;
+    exlib::string method;
 
     msg->get_value(value);
+
+    obj_ptr<HttpRequest_base> htmsg = HttpRequest_base::getInstance(msg);
+    if (htmsg)
+        htmsg->get_method(method);
 
     for (i = (int32_t) m_array.size() - 1; i >= 0; i--)
     {
         obj_ptr<rule> &r = m_array[i];
+
+        if (htmsg && r->m_method != "*" &&
+                qstricmp(method.c_str(), r->m_method.c_str()))
+            continue;
 
         if ((rc = pcre_exec(r->m_re, NULL, value.c_str(),
                             (int32_t) value.length(), 0, 0, ovector, RE_SIZE)) > 0)
@@ -109,7 +134,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     return CHECK_ERROR(Runtime::setError("Routing: unknown routing: " + value));
 }
 
-result_t Routing::append(exlib::string pattern, Handler_base *hdlr)
+result_t Routing::append(exlib::string method, exlib::string pattern, Handler_base *hdlr)
 {
     int32_t opt = PCRE_JAVASCRIPT_COMPAT | PCRE_NEWLINE_ANYCRLF |
                   PCRE_UCP | PCRE_CASELESS;
@@ -133,22 +158,13 @@ result_t Routing::append(exlib::string pattern, Handler_base *hdlr)
 
     SetPrivate(strBuf, hdlr->wrap());
 
-    obj_ptr<rule> r = new rule(re, hdlr);
+    obj_ptr<rule> r = new rule(method, re, hdlr);
     m_array.push_back(r);
 
     return 0;
 }
 
-result_t Routing::append(exlib::string pattern, v8::Local<v8::Value> hdlr)
-{
-    obj_ptr<Handler_base> hdlr1;
-    result_t hr = JSHandler::New(hdlr, hdlr1);
-    if (hr < 0)
-        return hr;
-    return append(pattern, hdlr1);
-}
-
-result_t Routing::append(v8::Local<v8::Object> map)
+result_t Routing::append(exlib::string method, v8::Local<v8::Object> map)
 {
     v8::Local<v8::Array> ks = map->GetPropertyNames();
     int32_t len = ks->Length();
@@ -164,16 +180,65 @@ result_t Routing::append(v8::Local<v8::Object> map)
 
         if (hdlr)
         {
-            append(*v8::String::Utf8Value(k), hdlr);
+            append(method, *v8::String::Utf8Value(k), hdlr);
             continue;
         }
 
-        hr = append(*v8::String::Utf8Value(k), v);
+        hr = append(method, *v8::String::Utf8Value(k), v);
         if (hr < 0)
             return hr;
     }
 
     return 0;
+}
+
+result_t Routing::append(exlib::string method, exlib::string pattern, v8::Local<v8::Value> hdlr)
+{
+    obj_ptr<Handler_base> hdlr1;
+    result_t hr = JSHandler::New(hdlr, hdlr1);
+    if (hr < 0)
+        return hr;
+    return append(method, pattern, hdlr1);
+}
+
+result_t Routing::append(v8::Local<v8::Object> map)
+{
+    return append("*", map);
+}
+
+result_t Routing::append(exlib::string pattern, v8::Local<v8::Value> hdlr)
+{
+    return append("*", pattern, hdlr);
+}
+
+result_t Routing::all(v8::Local<v8::Object> map)
+{
+    return append("*", map);
+}
+
+result_t Routing::all(exlib::string pattern, v8::Local<v8::Value> hdlr)
+{
+    return append("*", pattern, hdlr);
+}
+
+result_t Routing::get(v8::Local<v8::Object> map)
+{
+    return append("GET", map);
+}
+
+result_t Routing::get(exlib::string pattern, v8::Local<v8::Value> hdlr)
+{
+    return append("GET", pattern, hdlr);
+}
+
+result_t Routing::post(v8::Local<v8::Object> map)
+{
+    return append("POST", map);
+}
+
+result_t Routing::post(exlib::string pattern, v8::Local<v8::Value> hdlr)
+{
+    return append("POST", pattern, hdlr);
 }
 
 } /* namespace fibjs */
