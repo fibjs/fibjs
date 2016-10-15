@@ -259,14 +259,14 @@ result_t HttpMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
             if (!qisxdigit(p.get()))
                 return CHECK_ERROR(Runtime::setError("HttpMessage: bad chunk size."));
 
-            if (p.get() != '0')
+            while (qisxdigit(ch = p.get()))
             {
-                while (qisxdigit(ch = p.get()))
-                {
-                    sz = (sz << 4) + qhex(ch);
-                    p.skip();
-                }
+                sz = (sz << 4) + qhex(ch);
+                p.skip();
+            }
 
+            if (sz)
+            {
                 pThis->set(chunk_body_end);
                 return pThis->m_stm->copyTo(pThis->m_body, sz,
                                             pThis->m_copySize, pThis);
