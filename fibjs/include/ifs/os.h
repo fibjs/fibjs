@@ -17,6 +17,8 @@
 namespace fibjs
 {
 
+class Service_base;
+
 class os_base : public object_base
 {
     DECLARE_CLASS(os_base);
@@ -74,6 +76,8 @@ public:
 
 }
 
+#include "Service.h"
+
 namespace fibjs
 {
     inline ClassInfo& os_base::class_info()
@@ -92,6 +96,11 @@ namespace fibjs
             {"memoryUsage", s_memoryUsage, true}
         };
 
+        static ClassData::ClassObject s_object[] = 
+        {
+            {"Service", Service_base::class_info}
+        };
+
         static ClassData::ClassProperty s_property[] = 
         {
             {"hostname", s_get_hostname, block_set, true},
@@ -106,7 +115,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "os", s__new, NULL, 
-            10, s_method, 0, NULL, 7, s_property, NULL, NULL,
+            10, s_method, 1, s_object, 7, s_property, NULL, NULL,
             NULL
         };
 

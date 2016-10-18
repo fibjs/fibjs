@@ -222,6 +222,7 @@
     <ClInclude Include="include\ifs\SandBox.h" />
     <ClInclude Include="include\ifs\SeekableStream.h" />
     <ClInclude Include="include\ifs\Semaphore.h" />
+    <ClInclude Include="include\ifs\Service.h" />
     <ClInclude Include="include\ifs\Smtp.h" />
     <ClInclude Include="include\ifs\Socket.h" />
     <ClInclude Include="include\ifs\SQLite.h" />
@@ -305,6 +306,7 @@
     <ClInclude Include="include\Runtime.h" />
     <ClInclude Include="include\SandBox.h" />
     <ClInclude Include="include\Semaph.h" />
+    <ClInclude Include="include\Service.h" />
     <ClInclude Include="include\Smtp.h" />
     <ClInclude Include="include\Socket.h" />
     <ClInclude Include="include\Socket_api.h" />
@@ -465,6 +467,8 @@
     <ClCompile Include="src\os\os_osx.cpp" />
     <ClCompile Include="src\os\os_posix.cpp" />
     <ClCompile Include="src\os\os_win.cpp" />
+    <ClCompile Include="src\os\Service_other.cpp" />
+    <ClCompile Include="src\os\Service_win.cpp" />
     <ClCompile Include="src\other\Image.cpp" />
     <ClCompile Include="src\other\JsonRpcHandler.cpp" />
     <ClCompile Include="src\other\Regex.cpp" />

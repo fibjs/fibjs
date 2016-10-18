@@ -8,6 +8,9 @@
  */
 module os
 {
+    /*! @brief Service 构造函数，参见 Service */
+    static Service;
+
     /*! @brief 查询当前运行环境主机名 */
     static readonly String hostname;
 

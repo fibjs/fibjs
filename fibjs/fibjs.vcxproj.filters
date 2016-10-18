@@ -873,6 +873,12 @@
     <ClInclude Include="src\gui\windows\WebView.h">
       <Filter>Source Files\gui\windows</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\Service.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Service.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl">
@@ -1350,6 +1356,12 @@
     </ClCompile>
     <ClCompile Include="src\console\windows\console_mouse.cpp">
       <Filter>Source Files\console\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os\Service_win.cpp">
+      <Filter>Source Files\os</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os\Service_other.cpp">
+      <Filter>Source Files\os</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
