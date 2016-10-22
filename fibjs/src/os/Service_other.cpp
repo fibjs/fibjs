@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
-#include "object.h"
-#include "Service.h"
-#include "utf8.h"
-
 #ifndef _WIN32
+
+#include "object.h"
+#include "ifs/Service.h"
 
 namespace fibjs
 {
