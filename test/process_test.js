@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var process = require('process');
+var coroutine = require("coroutine");
 var json = require('json');
 
 var cmd;
@@ -37,6 +38,12 @@ describe('process', function() {
 
 	it("run", function() {
 		assert.equal(process.run(cmd, ['process/exec.js']), 100);
+	});
+
+	it("multi run", function() {
+		coroutine.parallel([1, 2, 3, 4, 5, 6], function(n) {
+			assert.equal(process.run(cmd, ['process/exec6.js', n]), n);
+		});
 	});
 
 	it("start", function() {
