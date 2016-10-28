@@ -80,7 +80,7 @@ result_t TcpServer::create(exlib::string addr, int32_t port,
     if (hr < 0)
         return hr;
 
-    hr = m_socket->listen(1024);
+    hr = m_socket->ac_listen(1024);
     if (hr < 0)
         return hr;
 

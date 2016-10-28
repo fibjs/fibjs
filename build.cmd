@@ -59,14 +59,14 @@ For /F "tokens=1* delims=." %%A IN (!vs_ver!) DO (
     set vs_ver=%%A
 )
 
-msbuild fibjs.sln /t:Build /p:Configuration=!BUILD_TYPE!;Platform=!Platform!;PlatformToolset=v!vs_ver!0 /m
+msbuild fibjs.sln /t:Build /p:Configuration=!BUILD_TYPE!;Platform=!Platform!;PlatformToolset=v!vs_ver!0_xp /m
 
 if "!BUILD_TYPE!"=="release" (
 	cd bin\Windows_!TARGET_ARCH!_!BUILD_TYPE!
     fibjs ../../fibjs/gen_install.js
     cd ..\..
     cd installer
-    msbuild installer.sln /t:Build /p:Configuration=Release;Platform=!Platform!;PlatformToolset=v!vs_ver!0 /m
+    msbuild installer.sln /t:Build /p:Configuration=Release;Platform=!Platform!;PlatformToolset=v!vs_ver!0_xp /m
     cd ..
 )
 

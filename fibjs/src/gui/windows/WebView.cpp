@@ -55,7 +55,7 @@ public:
 
 void init_gui()
 {
-	s_sem = CreateSemaphoreEx(NULL, 0, LONG_MAX, NULL, 0, EVENT_ALL_ACCESS);
+	s_sem = ::CreateSemaphore(NULL, 0, LONG_MAX, NULL);
 	(new gui_thread())->start();
 }
 
