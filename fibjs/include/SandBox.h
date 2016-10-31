@@ -19,14 +19,8 @@ namespace fibjs
 class SandBox: public fibjs::SandBox_base
 {
 public:
-    SandBox(exlib::string name = "")
-    {
-        if (!name.empty())
-        {
-            m_name = name;
-            m_name.append(":", 1);
-        }
-    }
+    SandBox(exlib::string name = "") : m_name(name)
+    {}
 
 public:
     // SandBox_base
@@ -73,11 +67,6 @@ public:
     result_t repl(v8::Local<v8::Array> cmds, Stream_base* out = NULL);
 
     result_t run(exlib::string fname, v8::Local<v8::Array> argv, bool main);
-
-    exlib::string name()
-    {
-        return m_name;
-    }
 
 public:
     class Context

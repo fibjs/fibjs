@@ -191,13 +191,6 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<
     Isolate* isolate = m_sb->holder();
     exlib::string oname = name;
 
-    exlib::string sname = m_sb->name();
-    if (!sname.empty())
-    {
-        sname.append(oname);
-        oname = sname;
-    }
-
     v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
     exlib::string pname;
     path_base::dirname(name, pname);
@@ -239,7 +232,7 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<
 
     args[ARRAYSIZE(s_names)] = isolate->NewFromUtf8(name);;
     args[ARRAYSIZE(s_names) + 1] = isolate->NewFromUtf8(pname);
-    args[ARRAYSIZE(s_names) + 2] = isolate->NewFromUtf8(m_sb->name());
+    args[ARRAYSIZE(s_names) + 2] = isolate->NewFromUtf8(m_sb->m_name);
     v = v8::Local<v8::Function>::Cast(v)->Call(v8::Object::New(isolate->m_isolate), ARRAYSIZE(s_names) + 3, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
@@ -258,13 +251,6 @@ result_t SandBox::Context::run(Buffer_base* src, exlib::string name, v8::Local<v
 
     Isolate* isolate = m_sb->holder();
     exlib::string oname = name;
-
-    exlib::string sname = m_sb->name();
-    if (!sname.empty())
-    {
-        sname.append(oname);
-        oname = sname;
-    }
 
     v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
     exlib::string pname;
@@ -306,7 +292,7 @@ result_t SandBox::Context::run(Buffer_base* src, exlib::string name, v8::Local<v
 
     args[ARRAYSIZE(s_names)] = isolate->NewFromUtf8(name);;
     args[ARRAYSIZE(s_names) + 1] = isolate->NewFromUtf8(pname);
-    args[ARRAYSIZE(s_names) + 2] = isolate->NewFromUtf8(m_sb->name());
+    args[ARRAYSIZE(s_names) + 2] = isolate->NewFromUtf8(m_sb->m_name);
     v = v8::Local<v8::Function>::Cast(v)->Call(v8::Object::New(isolate->m_isolate), ARRAYSIZE(s_names) + 3, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
@@ -380,13 +366,6 @@ result_t SandBox::compile(exlib::string srcname, exlib::string script,
 {
     Isolate *isolate = holder();
     exlib::string oname = srcname;
-
-    exlib::string sname = name();
-    if (!sname.empty())
-    {
-        sname.append(oname);
-        oname = sname;
-    }
 
     v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
 
