@@ -132,6 +132,15 @@ describe('fs', function() {
 		var f = fs.open('fs_test.js');
 
 		var s = fs.readFile("fs_test.js");
+		assert.deepEqual(s, f.read(f.size()));
+
+		f.close();
+	});
+
+	it("readTextFile", function() {
+		var f = fs.open('fs_test.js');
+
+		var s = fs.readTextFile("fs_test.js");
 		assert.equal(s, f.read(f.size()).toString());
 
 		f.close();
@@ -141,7 +150,7 @@ describe('fs', function() {
 		var f = fs.openTextStream('fs_test.js');
 		f.EOL = '\n';
 
-		var a = fs.readFile("fs_test.js").replace(/\r/g, "").split("\n");
+		var a = fs.readTextFile("fs_test.js").replace(/\r/g, "").split("\n");
 		assert.deepEqual(a, f.readLines());
 
 		f.close();
@@ -209,4 +218,4 @@ describe('fs', function() {
 	});
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);

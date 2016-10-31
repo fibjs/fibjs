@@ -175,7 +175,7 @@ result_t HeapSnapshot::load(exlib::string fname)
 	                                      };
 
 	exlib::string data;
-	hr = fs_base::ac_readFile(fname, data);
+	hr = fs_base::ac_readTextFile(fname, data);
 	if (hr < 0)
 		return hr;
 

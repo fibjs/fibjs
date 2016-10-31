@@ -167,7 +167,7 @@ describe('crypto', function() {
 	describe('Cipher', function() {
 		function test_cipher(provider, file) {
 			it(file, function() {
-				var cases = encoding.json.decode(fs.readFile("crypto_case/" + file + ".json"));
+				var cases = encoding.json.decode(fs.readTextFile("crypto_case/" + file + ".json"));
 
 				cases.forEach(function(item) {
 					var c;
@@ -413,7 +413,7 @@ describe('crypto', function() {
 			var fl = fs.readdir('cert_files/');
 			fl.forEach(function(s) {
 				if (!s.isDirectory() && s.name.match(/\.crt/))
-					cert.load(fs.readFile('cert_files/' + s.name));
+					cert.load(fs.readTextFile('cert_files/' + s.name));
 			});
 		});
 
@@ -452,14 +452,14 @@ describe('crypto', function() {
 			cert.clear();
 			assert.deepEqual(cert.dump(), []);
 
-			cert.load(fs.readFile('cert_files/certdata.txt'));
+			cert.load(fs.readTextFile('cert_files/certdata.txt'));
 			var s = cert.dump();
 			assert.notDeepEqual(s, []);
 
 			cert.clear();
 			assert.deepEqual(cert.dump(), []);
 
-			cert.load(fs.readFile('cert_files/ca-bundle.crt'));
+			cert.load(fs.readTextFile('cert_files/ca-bundle.crt'));
 			var s1 = cert.dump();
 
 			assert.deepEqual(s.slice(s.length - s1.length), s1);
@@ -469,7 +469,7 @@ describe('crypto', function() {
 			cert.clear();
 			assert.deepEqual(cert.dump(), []);
 
-			cert.load(fs.readFile('cert_files/ca-bundle.crt'));
+			cert.load(fs.readTextFile('cert_files/ca-bundle.crt'));
 			var s = cert.dump();
 
 			cert.clear();
@@ -555,7 +555,7 @@ describe('crypto', function() {
 			var fl = fs.readdir('crl_files/');
 			fl.forEach(function(s) {
 				if (!s.isDirectory() && s.name.match(/\.pem/))
-					crl.load(fs.readFile('crl_files/' + s.name));
+					crl.load(fs.readTextFile('crl_files/' + s.name));
 			});
 		});
 
@@ -599,7 +599,7 @@ describe('crypto', function() {
 			var fl = fs.readdir('req_files/');
 			fl.forEach(function(s) {
 				if (!s.isDirectory() && s.name.match(/\.req/))
-					req.load(fs.readFile('req_files/' + s.name));
+					req.load(fs.readTextFile('req_files/' + s.name));
 			});
 		});
 

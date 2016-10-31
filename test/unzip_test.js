@@ -210,8 +210,8 @@ describe("zip", function() {
 		assert.equal(fs.exists(efile1), true);
 		assert.equal(fs.exists(efile2), true);
 
-		assert.equal(fs.readFile(efile1), fs.readFile('unzip_test.js'));
-		assert.equal(fs.readFile(efile2), 'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
+		assert.equal(fs.readTextFile(efile1), fs.readTextFile('unzip_test.js'));
+		assert.equal(fs.readTextFile(efile2), 'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
 	});
 
 	it("write file append to zip", function() {

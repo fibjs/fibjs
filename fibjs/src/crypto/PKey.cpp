@@ -291,7 +291,7 @@ result_t PKey::importFile(exlib::string filename, exlib::string password)
     exlib::string data;
     int32_t ret;
 
-    hr = fs_base::ac_readFile(filename, data);
+    hr = fs_base::ac_readTextFile(filename, data);
     if (hr < 0)
         return hr;
 

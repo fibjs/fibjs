@@ -51,8 +51,8 @@ describe("profiler", function() {
 		var ss = profiler.loadSnapshot("test1.heapsnapshot" + vmid);
 		ss.save("test2.heapsnapshot" + vmid);
 
-		assert.equal(fs.readFile("test1.heapsnapshot" + vmid),
-			fs.readFile("test2.heapsnapshot" + vmid));
+		assert.equal(fs.readTextFile("test1.heapsnapshot" + vmid),
+			fs.readTextFile("test2.heapsnapshot" + vmid));
 	});
 
 	it("disable change", function() {

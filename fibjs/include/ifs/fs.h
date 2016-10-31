@@ -49,9 +49,10 @@ public:
     static result_t open(exlib::string fname, exlib::string flags, obj_ptr<File_base>& retVal, AsyncEvent* ac);
     static result_t tmpFile(obj_ptr<File_base>& retVal, AsyncEvent* ac);
     static result_t openTextStream(exlib::string fname, exlib::string flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
-    static result_t readFile(exlib::string fname, exlib::string& retVal, AsyncEvent* ac);
+    static result_t readTextFile(exlib::string fname, exlib::string& retVal, AsyncEvent* ac);
+    static result_t readFile(exlib::string fname, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t readLines(exlib::string fname, int32_t maxlines, v8::Local<v8::Array>& retVal);
-    static result_t writeFile(exlib::string fname, exlib::string txt, AsyncEvent* ac);
+    static result_t writeTextFile(exlib::string fname, exlib::string txt, AsyncEvent* ac);
     static result_t writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac);
 
 public:
@@ -82,8 +83,10 @@ public:
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_tmpFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readLines(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -100,8 +103,9 @@ public:
     ASYNC_STATICVALUE3(fs_base, open, exlib::string, exlib::string, obj_ptr<File_base>);
     ASYNC_STATICVALUE1(fs_base, tmpFile, obj_ptr<File_base>);
     ASYNC_STATICVALUE3(fs_base, openTextStream, exlib::string, exlib::string, obj_ptr<BufferedStream_base>);
-    ASYNC_STATICVALUE2(fs_base, readFile, exlib::string, exlib::string);
-    ASYNC_STATIC2(fs_base, writeFile, exlib::string, exlib::string);
+    ASYNC_STATICVALUE2(fs_base, readTextFile, exlib::string, exlib::string);
+    ASYNC_STATICVALUE2(fs_base, readFile, exlib::string, obj_ptr<Buffer_base>);
+    ASYNC_STATIC2(fs_base, writeTextFile, exlib::string, exlib::string);
     ASYNC_STATIC2(fs_base, writeFile, exlib::string, Buffer_base*);
 };
 
@@ -132,8 +136,10 @@ namespace fibjs
             {"open", s_open, true},
             {"tmpFile", s_tmpFile, true},
             {"openTextStream", s_openTextStream, true},
+            {"readTextFile", s_readTextFile, true},
             {"readFile", s_readFile, true},
             {"readLines", s_readLines, true},
+            {"writeTextFile", s_writeTextFile, true},
             {"writeFile", s_writeFile, true}
         };
 
@@ -147,7 +153,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "fs", s__new, NULL, 
-            16, s_method, 0, NULL, 3, s_property, NULL, NULL,
+            18, s_method, 0, NULL, 3, s_property, NULL, NULL,
             NULL
         };
 
@@ -389,9 +395,26 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void fs_base::s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void fs_base::s_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         exlib::string vr;
+
+        ASYNC_METHOD_ENTER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        if(!cb.IsEmpty()) {
+            acb_readTextFile(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_readTextFile(v0, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void fs_base::s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<Buffer_base> vr;
 
         ASYNC_METHOD_ENTER(1, 1);
 
@@ -420,7 +443,7 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void fs_base::s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void fs_base::s_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         ASYNC_METHOD_ENTER(2, 2);
 
@@ -428,12 +451,17 @@ namespace fibjs
         ARG(exlib::string, 1);
 
         if(!cb.IsEmpty()) {
-            acb_writeFile(v0, v1, cb);
+            acb_writeTextFile(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
-            hr = ac_writeFile(v0, v1);
+            hr = ac_writeTextFile(v0, v1);
 
-        METHOD_OVER(2, 2);
+        METHOD_VOID();
+    }
+
+    inline void fs_base::s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        ASYNC_METHOD_ENTER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(obj_ptr<Buffer_base>, 1);

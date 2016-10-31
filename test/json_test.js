@@ -47,7 +47,7 @@ describe('json', function() {
 
 		files.forEach(function(f) {
 			if (path.extname(f.name) == ".json") {
-				var txt = fs.readFile("json_files/" + f.name);
+				var txt = fs.readTextFile("json_files/" + f.name);
 				assert.deepEqual(encoding.json.decode(txt), JSON.parse(txt));
 			}
 		});

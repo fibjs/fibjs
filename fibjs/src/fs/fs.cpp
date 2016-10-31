@@ -83,8 +83,8 @@ result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
     return BufferedStream_base::_new(pFile, retVal);
 }
 
-result_t fs_base::readFile(exlib::string fname, exlib::string &retVal,
-                           AsyncEvent *ac)
+result_t fs_base::readTextFile(exlib::string fname, exlib::string &retVal,
+                               AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -106,6 +106,31 @@ result_t fs_base::readFile(exlib::string fname, exlib::string &retVal,
     return buf->toString(retVal);
 }
 
+result_t fs_base::readFile(exlib::string fname, obj_ptr<Buffer_base> &retVal,
+                           AsyncEvent *ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<File> f = new File();
+    obj_ptr<Buffer_base> buf;
+    result_t hr;
+
+    hr = f->open(fname, "r");
+    if (hr < 0)
+        return hr;
+
+    hr = f->readAll(buf, ac);
+    f->close(ac);
+
+    retVal = buf;
+
+    if (hr < 0 || hr == CALL_RETURN_NULL)
+        return hr;
+
+    return 0;
+}
+
 result_t fs_base::readLines(exlib::string fname, int32_t maxlines,
                             v8::Local<v8::Array> &retVal)
 {
@@ -119,8 +144,8 @@ result_t fs_base::readLines(exlib::string fname, int32_t maxlines,
     return pFile->readLines(maxlines, retVal);
 }
 
-result_t fs_base::writeFile(exlib::string fname, exlib::string txt,
-                            AsyncEvent *ac)
+result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt,
+                                AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);

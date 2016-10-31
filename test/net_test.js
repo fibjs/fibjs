@@ -148,7 +148,7 @@ describe("net", function() {
 			c1.close();
 			f1.close();
 
-			assert.equal(str, fs.readFile('net_temp_000002' + base_port));
+			assert.equal(str, fs.readTextFile('net_temp_000002' + base_port));
 		}
 
 		for (var i = 0; i < 100; i++)

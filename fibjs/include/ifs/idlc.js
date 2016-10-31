@@ -52,7 +52,7 @@ function replace_dot(path) {
 				replace_dot(fname);
 
 			} else if (name.substr(name.length - 5) == ".html") {
-				var html = fs.readFile(fname);
+				var html = fs.readTextFile(fname);
 				html = html.replace(/::/g, ".");
 				html = html.replace(/<meta\ name=\"generator\"\ content=\"Doxygen\ [0-9\.]+"\/>/g, "");
 				html = html.replace(/<!--\ 制作者\ Doxygen\ [0-9\.]+\ -->/g, "");
@@ -71,7 +71,7 @@ function preparserIDL(fname) {
 	var f, line = 0,
 		st, isRem;
 
-	f = fs.readFile(fname).replace(/\r/g, "").split("\n");
+	f = fs.readTextFile(fname).replace(/\r/g, "").split("\n");
 	f.reverse();
 
 	while (f.length) {
@@ -245,7 +245,7 @@ function parserIDL(fname) {
 		return defs[value] || value;
 	}
 
-	f = fs.readFile(fname).replace(/\r/g, "").split("\n");
+	f = fs.readTextFile(fname).replace(/\r/g, "").split("\n");
 	f.reverse();
 
 	line = 0;
@@ -502,7 +502,7 @@ function parserIDL(fname) {
 		var sOld = "";
 
 		try {
-			sOld = fs.readFile(ns + ".h");
+			sOld = fs.readTextFile(ns + ".h");
 		} catch (e) {}
 
 		if (sOld != sTxt) {

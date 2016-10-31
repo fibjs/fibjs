@@ -636,6 +636,7 @@ result_t SandBox::require(exlib::string base, exlib::string id,
     }
 
     result_t hr;
+    obj_ptr<Buffer_base> bin;
     exlib::string buf;
 
     if (!fname.empty())
@@ -645,34 +646,32 @@ result_t SandBox::require(exlib::string base, exlib::string id,
         fname1 = s_root;
         pathAdd(fname1, fname);
 
-        hr = fs_base::cc_readFile(fname1, buf);
-        if (hr >= 0)
+        if (is_jsc)
         {
-            if (is_jsc)
-            {
-                obj_ptr<Buffer_base> bin = new Buffer(buf);
+            hr = fs_base::cc_readFile(fname1, bin);
+            if (hr >= 0)
                 return addScript(fname1, bin, retVal);
-            } else
+        } else
+        {
+            hr = fs_base::cc_readTextFile(fname1, buf);
+            if (hr >= 0)
                 return addScript(fname1, buf, retVal);
         }
     }
     else
     {
         fname = fullname + ".js";
-        hr = fs_base::cc_readFile(fname, buf);
+        hr = fs_base::cc_readTextFile(fname, buf);
         if (hr >= 0)
             return addScript(fname, buf, retVal);
 
         fname = fullname + ".jsc";
-        hr = fs_base::cc_readFile(fname, buf);
+        hr = fs_base::cc_readFile(fname, bin);
         if (hr >= 0)
-        {
-            obj_ptr<Buffer_base> bin = new Buffer(buf);
             return addScript(fname, bin, retVal);
-        }
 
         fname = fullname + ".json";
-        hr = fs_base::cc_readFile(fname, buf);
+        hr = fs_base::cc_readTextFile(fname, buf);
         if (hr >= 0)
             return addScript(fname, buf, retVal);
 
@@ -680,7 +679,7 @@ result_t SandBox::require(exlib::string base, exlib::string id,
             return hr;
 
         fname = fullname + PATH_SLASH + "package.json";
-        hr = fs_base::cc_readFile(fname, buf);
+        hr = fs_base::cc_readTextFile(fname, buf);
         if (hr >= 0)
         {
             v8::Local<v8::Value> v;
@@ -794,19 +793,23 @@ result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv, bool main)
 
     const char *pname = sfname.c_str();
 
+    obj_ptr<Buffer_base> bin;
     exlib::string buf;
-    hr = fs_base::cc_readFile(pname, buf);
-    if (hr < 0)
-        return hr;
 
     if (is_jsc)
     {
-        obj_ptr<Buffer_base> bin = new Buffer(buf);
+        hr = fs_base::cc_readFile(pname, bin);
+        if (hr < 0)
+            return hr;
 
         Context context(this, pname);
         return context.run(bin, pname, argv, main);
     } else
     {
+        hr = fs_base::cc_readTextFile(pname, buf);
+        if (hr < 0)
+            return hr;
+
         if (buf[0] == '#' && buf[1] == '!')
         {
             buf[0] = '/';
