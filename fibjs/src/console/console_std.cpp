@@ -36,6 +36,21 @@ void std_logger::out(exlib::string& txt)
             m_tty = _isatty(_fileno(stdout)) != FALSE;
         }
 
+        void WriteConsole(exlib::wchar* ptr, size_t sz)
+        {
+            DWORD dwWrite;
+
+            while (sz)
+            {
+                size_t sz1 = sz;
+                if (sz1 >= 16384)
+                    sz1 = 16384;
+                WriteConsoleW(m_handle, ptr, (DWORD)sz1, &dwWrite, NULL);
+                ptr += sz1;
+                sz -= sz1;
+            }
+        }
+
         void out(exlib::string& s)
         {
             if (!m_tty)
@@ -48,13 +63,12 @@ void std_logger::out(exlib::string& txt)
             exlib::wchar *ptr = &ws[0];
             exlib::wchar *pend = ptr + ws.length();
             exlib::wchar *ptr2;
-            DWORD dwWrite;
 
             while (ptr2 = (exlib::wchar *) qstrchr(ptr, L'\x1b'))
             {
                 if (ptr2[1] == '[')
                 {
-                    WriteConsoleW(m_handle, ptr, (DWORD)(ptr2 - ptr), &dwWrite, NULL);
+                    WriteConsole(ptr, ptr2 - ptr);
 
                     ptr2 += 2;
 
@@ -159,7 +173,7 @@ void std_logger::out(exlib::string& txt)
                 ptr = ptr2;
             }
 
-            WriteConsoleW(m_handle, ptr, (DWORD)(pend - ptr), &dwWrite, NULL);
+            WriteConsole(ptr, pend - ptr);
         }
 
     private:
