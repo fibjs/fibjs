@@ -195,7 +195,7 @@ inline result_t _jsonDecode(exlib::string data,
 
 			Advance();
 			while (c0_ != '"') {
-				if (c0_ >= 0 && c0_ < 0x20)
+				if (c0_ == 0 || c0_ == '\r' || c0_ == '\n')
 					return ReportUnexpectedCharacter();
 
 				if (c0_ != '\\') {
@@ -204,7 +204,7 @@ inline result_t _jsonDecode(exlib::string data,
 					while (c0_ != '"' && c0_ != '\\')
 					{
 						Advance();
-						if (c0_ >= 0 && c0_ < 0x20)
+						if (c0_ == 0 || c0_ == '\r' || c0_ == '\n')
 							return ReportUnexpectedCharacter();
 					}
 					str.append(utf8to16String(source_ + beg_pos, position_ - beg_pos));
