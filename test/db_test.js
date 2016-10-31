@@ -43,10 +43,15 @@ describe("db", function() {
 			})
 		});
 
+		it("escape", function() {
+			var rs = conn.execute("select ? as t;", '123456\r\n\'\"\x1acccds');
+			assert.equal(rs[0].t, '123456\r\n\'\"\x1acccds');
+		});
+
 		it(
 			"create table",
 			function() {
-				conn.execute('create table test(t1 int, t2 varchar(128), t3 blob, t4 datetime);');
+				conn.execute('create table test(t1 int, t2 varchar(128), t3 VARBINARY(100), t4 datetime);');
 			});
 
 		it("insert", function() {
@@ -105,6 +110,31 @@ describe("db", function() {
 			}
 		});
 
+		describe("trans", function() {
+			before(function() {
+				var b = new Buffer();
+				conn.execute("insert into test values(?,?,?,?);", 101, 'test101', b, new Date());
+			});
+
+			it("begin/commit", function() {
+				conn.begin();
+				conn.execute("update test set t2='test101.1' where t1=101");
+				conn.commit();
+
+				var rs = conn.execute("select * from test where t1=101");
+				assert.equal(rs[0].t2, "test101.1");
+			});
+
+			it("begin/rollback", function() {
+				conn.begin();
+				conn.execute("update test set t2='test101.1' where t1=101");
+				conn.rollback();
+
+				var rs = conn.execute("select * from test where t1=101");
+				assert.equal(rs[0].t2, "test101.1");
+			});
+		});
+
 		it("execute bug", function() {
 			var a = 0;
 			coroutine.start(function() {
@@ -117,16 +147,35 @@ describe("db", function() {
 	}
 
 	describe("sqlite", function() {
+		var conn_str = 'sqlite:test.db' + vmid;
 		after(function() {
 			fs.unlink("test.db" + vmid);
 		});
-		_test('sqlite:test.db' + vmid);
+		_test(conn_str);
+
+		it("synchronous mode", function() {
+			var conn = db.open(conn_str);
+			var synchronous = conn.execute("PRAGMA synchronous;")[0].synchronous;
+			conn.close();
+
+			assert.equal(synchronous, 1);
+		});
+
+		it("journal mode", function() {
+			var conn = db.open(conn_str);
+			var journal_mode = conn.execute("PRAGMA journal_mode;")[0].journal_mode;
+			conn.close();
+			assert.equal(journal_mode, "wal");
+		});
 	});
 
 	xdescribe("mysql", function() {
 		_test('mysql://root@localhost/test');
 	});
 
+	xdescribe("mssql", function() {
+		_test('mssql://sa@localhost/test');
+	});
 
 	describe("leveldb", function() {
 		after(clear_db);
@@ -362,4 +411,4 @@ describe("db", function() {
 	});
 });
 
-// test.run(console.DEBUG);
+test.run(console.DEBUG);

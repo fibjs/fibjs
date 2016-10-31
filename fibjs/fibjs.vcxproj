@@ -413,6 +413,7 @@
     <ClCompile Include="src\db\sql\DBResult.cpp" />
     <ClCompile Include="src\db\sql\DBRow.cpp" />
     <ClCompile Include="src\db\sql\mysql.cpp" />
+    <ClCompile Include="src\db\sql\mssql.cpp" />
     <ClCompile Include="src\db\sql\SQLite.cpp" />
     <ClCompile Include="src\encoding\encoding.cpp" />
     <ClCompile Include="src\encoding\encoding_bson.cpp" />

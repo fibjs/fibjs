@@ -20,6 +20,12 @@ module db
      */
     static MySQL openMySQL(String connString) async;
 
+    /*! @brief 打开一个 mysql 数据库
+     @param connString 数据库描述，如：mssql://user:pass\@host/db
+     @return 返回数据库连接对象
+     */
+    static MSSQL openMSSQL(String connString) async;
+
     /*! @brief 打开一个 sqlite 数据库
      @param connString 数据库描述，如：sqlite:test.db 或者 test.db
      @return 返回数据库连接对象
@@ -59,6 +65,14 @@ module db
      @return 返回格式化之后的 sql 命令
      */
     static String formatMySQL(String sql, ...);
+
+    /*! @brief 格式化一个 mssql 命令，并返回格式化结果
+
+     @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
+     @param ... 可选参数列表
+     @return 返回格式化之后的 sql 命令
+     */
+    static String formatMSSQL(String sql, ...);
 
     /*! @brief 将字符串编码为 SQL 安全编码字符串
      @param str 要编码的字符串

@@ -48,7 +48,13 @@ private:
         public:
             virtual void Run()
             {
+#ifdef _WIN32
+                CoInitializeEx(NULL, COINIT_MULTITHREADED);
                 m_proc(m_arg);
+                CoUninitialize();
+#else
+                m_proc(m_arg);
+#endif
             }
 
         private:

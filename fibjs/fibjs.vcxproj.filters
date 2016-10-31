@@ -1045,6 +1045,9 @@
     <ClCompile Include="src\db\sql\mysql.cpp">
       <Filter>Source Files\db\sql</Filter>
     </ClCompile>
+    <ClCompile Include="src\db\sql\mssql.cpp">
+      <Filter>Source Files\db\sql</Filter>
+    </ClCompile>
     <ClCompile Include="src\db\sql\SQLite.cpp">
       <Filter>Source Files\db\sql</Filter>
     </ClCompile>

@@ -19,6 +19,9 @@ result_t db_base::open(exlib::string connString, obj_ptr<object_base> &retVal, A
     if (!qstrcmp(connString.c_str(), "mysql:", 6))
         return openMySQL(connString, (obj_ptr<MySQL_base> &)retVal, ac);
 
+    if (!qstrcmp(connString.c_str(), "mssql:", 6))
+        return openMSSQL(connString, (obj_ptr<MSSQL_base> &)retVal, ac);
+
     if (!qstrcmp(connString.c_str(), "sqlite:", 7))
         return openSQLite(connString, (obj_ptr<SQLite_base> &)retVal, ac);
 
@@ -141,8 +144,8 @@ void _appendValue(exlib::string &str, v8::Local<v8::Value> &v, bool mysql)
     }
 }
 
-result_t _format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args, bool mysql,
-                 exlib::string &retVal)
+result_t _format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &args,
+                 bool mysql, bool mssql, exlib::string &retVal)
 {
     exlib::string str;
     const char *p, *p1;
@@ -173,10 +176,18 @@ result_t _format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &arg
                 {
                     exlib::string s;
 
-                    str.append("x\'", 2);
-                    bin->hex(s);
-                    str.append(s);
-                    str += '\'';
+                    if (mssql)
+                    {
+                        str.append("0x", 2);
+                        bin->hex(s);
+                        str.append(s);
+                    } else
+                    {
+                        str.append("x\'", 2);
+                        bin->hex(s);
+                        str.append(s);
+                        str += '\'';
+                    }
                 }
                 else if (v->IsArray())
                 {
@@ -216,13 +227,19 @@ result_t _format(const char *sql, const v8::FunctionCallbackInfo<v8::Value> &arg
 result_t db_base::format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value> &args,
                          exlib::string &retVal)
 {
-    return _format(sql.c_str(), args, false, retVal);
+    return _format(sql.c_str(), args, false, false, retVal);
 }
 
 result_t db_base::formatMySQL(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value> &args,
                               exlib::string &retVal)
 {
-    return _format(sql.c_str(), args, true, retVal);
+    return _format(sql.c_str(), args, true, false, retVal);
+}
+
+result_t db_base::formatMSSQL(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args,
+                              exlib::string& retVal)
+{
+    return _format(sql.c_str(), args, false, true, retVal);
 }
 
 result_t db_base::escape(exlib::string str, bool mysql, exlib::string &retVal)

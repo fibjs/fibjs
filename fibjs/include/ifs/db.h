@@ -19,6 +19,7 @@ namespace fibjs
 
 class object_base;
 class MySQL_base;
+class MSSQL_base;
 class SQLite_base;
 class MongoDB_base;
 class LevelDB_base;
@@ -32,12 +33,14 @@ public:
     // db_base
     static result_t open(exlib::string connString, obj_ptr<object_base>& retVal, AsyncEvent* ac);
     static result_t openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVal, AsyncEvent* ac);
+    static result_t openMSSQL(exlib::string connString, obj_ptr<MSSQL_base>& retVal, AsyncEvent* ac);
     static result_t openSQLite(exlib::string connString, obj_ptr<SQLite_base>& retVal, AsyncEvent* ac);
     static result_t openMongoDB(exlib::string connString, obj_ptr<MongoDB_base>& retVal, AsyncEvent* ac);
     static result_t openLevelDB(exlib::string connString, obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac);
     static result_t openRedis(exlib::string connString, obj_ptr<Redis_base>& retVal, AsyncEvent* ac);
     static result_t format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
     static result_t formatMySQL(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
+    static result_t formatMSSQL(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
     static result_t escape(exlib::string str, bool mysql, exlib::string& retVal);
 
 public:
@@ -54,17 +57,20 @@ public:
 public:
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openMySQL(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_escape(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(db_base, open, exlib::string, obj_ptr<object_base>);
     ASYNC_STATICVALUE2(db_base, openMySQL, exlib::string, obj_ptr<MySQL_base>);
+    ASYNC_STATICVALUE2(db_base, openMSSQL, exlib::string, obj_ptr<MSSQL_base>);
     ASYNC_STATICVALUE2(db_base, openSQLite, exlib::string, obj_ptr<SQLite_base>);
     ASYNC_STATICVALUE2(db_base, openMongoDB, exlib::string, obj_ptr<MongoDB_base>);
     ASYNC_STATICVALUE2(db_base, openLevelDB, exlib::string, obj_ptr<LevelDB_base>);
@@ -74,6 +80,7 @@ public:
 }
 
 #include "MySQL.h"
+#include "MSSQL.h"
 #include "SQLite.h"
 #include "MongoDB.h"
 #include "LevelDB.h"
@@ -87,19 +94,21 @@ namespace fibjs
         {
             {"open", s_open, true},
             {"openMySQL", s_openMySQL, true},
+            {"openMSSQL", s_openMSSQL, true},
             {"openSQLite", s_openSQLite, true},
             {"openMongoDB", s_openMongoDB, true},
             {"openLevelDB", s_openLevelDB, true},
             {"openRedis", s_openRedis, true},
             {"format", s_format, true},
             {"formatMySQL", s_formatMySQL, true},
+            {"formatMSSQL", s_formatMSSQL, true},
             {"escape", s_escape, true}
         };
 
         static ClassData s_cd = 
         { 
             "db", s__new, NULL, 
-            9, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            11, s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };
 
@@ -138,6 +147,23 @@ namespace fibjs
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_openMySQL(v0, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void db_base::s_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<MSSQL_base> vr;
+
+        ASYNC_METHOD_ENTER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        if(!cb.IsEmpty()) {
+            acb_openMSSQL(v0, vr, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_openMSSQL(v0, vr);
 
         METHOD_RETURN();
     }
@@ -232,6 +258,19 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         hr = formatMySQL(v0, args, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void db_base::s_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        exlib::string vr;
+
+        METHOD_ENTER(-1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = formatMSSQL(v0, args, vr);
 
         METHOD_RETURN();
     }
