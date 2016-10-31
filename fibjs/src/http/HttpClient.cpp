@@ -436,7 +436,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             if (hr < 0)
                 return hr;
 
-            if (!pThis->m_hc->m_autoRedirect || status != 302 && status != 301)
+            if (!pThis->m_hc->m_autoRedirect || (status != 302 && status != 301))
                 return pThis->done(0);
 
             hr = pThis->m_retVal->firstHeader("location", v);
