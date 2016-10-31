@@ -52,6 +52,9 @@ result_t SQLite::open(const char *file)
         return hr;
     }
 
+    obj_ptr<DBResult_base> retVal;
+    execute("PRAGMA journal_mode=WAL;", 24, retVal);
+
     m_file = file;
 
     return 0;
@@ -188,10 +191,13 @@ result_t SQLite::execute(const char *sql, int32_t sLen,
                     default:
                         const char *type = sqlite3_column_decltype(stmt, i);
                         if (type
-                                && (!qstricmp(type, "blob")
-                                    || !qstricmp(type, "tinyblob")
-                                    || !qstricmp(type, "mediumblob")
-                                    || !qstricmp(type, "longblob")))
+                                && (!qstricmp(type, "blob", 4)
+                                    || !qstricmp(type, "tinyblob", 8)
+                                    || !qstricmp(type, "mediumblob", 10)
+                                    || !qstricmp(type, "longblob", 8)
+                                    || !qstricmp(type, "binary", 6)
+                                    || !qstricmp(type, "varbinary", 9)
+                                   ))
                         {
                             const char *data =
                                 (const char *) sqlite3_column_blob(stmt, i);
