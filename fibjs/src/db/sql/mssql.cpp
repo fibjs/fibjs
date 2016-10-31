@@ -252,6 +252,9 @@ result_t mssql::execute(const char *sql, int32_t sLen,
 
                         switch (value.vt)
                         {
+                        case VT_NULL:
+                            v.setNull();
+                            break;
                         case VT_BOOL:
                             v = (value.boolVal != VARIANT_FALSE);
                             break;
@@ -287,6 +290,12 @@ result_t mssql::execute(const char *sql, int32_t sLen,
                             v = d;
                             break;
                         }
+                        case VT_DECIMAL:
+                        {
+                            double myDouble = value;
+                            v = myDouble;
+                            break;
+                        }
                         case VT_UI1 | VT_ARRAY:
                             v = new Buffer(value.parray->pvData, value.parray->rgsabound[0].cElements);
                             break;
@@ -302,8 +311,6 @@ result_t mssql::execute(const char *sql, int32_t sLen,
                 rs->MoveNext();
                 rs->get_adoEOF(&bEof);
             }
-
-
         } else
             res = new DBResult(0);
 
