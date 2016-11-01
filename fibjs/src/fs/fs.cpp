@@ -76,7 +76,7 @@ result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<File_base> pFile;
-    result_t hr = open(fname, flags, pFile, ac);
+    result_t hr = cc_open(fname, flags, pFile);
     if (hr < 0)
         return hr;
 
@@ -89,15 +89,15 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string &retVal,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<File> f = new File();
+    obj_ptr<File_base> f;
     obj_ptr<Buffer_base> buf;
     result_t hr;
 
-    hr = f->open(fname, "r");
+    hr = cc_open(fname, "r", f);
     if (hr < 0)
         return hr;
 
-    hr = f->readAll(buf, ac);
+    hr = f->cc_readAll(buf);
     f->close(ac);
 
     if (hr < 0 || hr == CALL_RETURN_NULL)
@@ -112,15 +112,15 @@ result_t fs_base::readFile(exlib::string fname, obj_ptr<Buffer_base> &retVal,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<File> f = new File();
+    obj_ptr<File_base> f;
     obj_ptr<Buffer_base> buf;
     result_t hr;
 
-    hr = f->open(fname, "r");
+    hr = cc_open(fname, "r", f);
     if (hr < 0)
         return hr;
 
-    hr = f->readAll(buf, ac);
+    hr = f->cc_readAll(buf);
     f->close(ac);
 
     retVal = buf;
@@ -150,14 +150,16 @@ result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<File> f = new File();
+    obj_ptr<File_base> f;
     result_t hr;
 
-    hr = f->open(fname, "w");
+    hr = cc_open(fname, "w", f);
     if (hr < 0)
         return hr;
 
-    hr = f->Write(txt);
+    obj_ptr<Buffer_base> buf = new Buffer(txt);
+
+    hr = f->cc_write(buf);
     f->close(ac);
 
     return hr;
@@ -168,14 +170,14 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* 
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<File> f = new File();
+    obj_ptr<File_base> f;
     result_t hr;
 
-    hr = f->open(fname, "w");
+    hr = cc_open(fname, "w", f);
     if (hr < 0)
         return hr;
 
-    hr = f->Write(data);
+    hr = f->cc_write(data);
     f->close(ac);
 
     return hr;
@@ -331,7 +333,7 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal,
         fpath += '/';
         fpath += ep->d_name;
 
-        hr = stat(fpath, fstat, ac);
+        hr = cc_stat(fpath, fstat);
         if (hr < 0)
             return hr;
 
