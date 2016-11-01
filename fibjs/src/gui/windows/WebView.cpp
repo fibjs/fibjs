@@ -79,14 +79,15 @@ static void RegMainClass()
 	if (!s_init)
 	{
 		s_init = true;
+		HINSTANCE hInstance = GetModuleHandle(NULL);
 
 		WNDCLASSW wc;
 		wc.cbClsExtra = 0;
 		wc.cbWndExtra = sizeof(void*);
 		wc.hbrBackground = (HBRUSH) COLOR_WINDOW;
 		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wc.hIcon = NULL;
-		wc.hInstance = GetModuleHandle(NULL);
+		wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(1));
+		wc.hInstance = hInstance;
 		wc.lpfnWndProc = WebView::WndProc;
 		wc.lpszClassName = szWndClassMain;
 		wc.lpszMenuName = NULL;
