@@ -275,13 +275,18 @@ void WebView::Navigate(exlib::string szUrl)
 }
 
 // IUnknown
-HRESULT STDMETHODCALLTYPE WebView::QueryInterface(REFIID riid,
-        void**ppvObject)
+HRESULT WebView::QueryInterface(REFIID riid, void**ppvObject)
 {
 	if (riid == IID_IUnknown)
 		*ppvObject = static_cast<IOleClientSite*>(this);
 	else if (riid == IID_IOleInPlaceSite)
 		*ppvObject = static_cast<IOleInPlaceSite*>(this);
+	else if (riid == IID_IStorage)
+		*ppvObject = static_cast<IStorage*>(this);
+	else if (riid == IID_IServiceProvider)
+		*ppvObject = static_cast<IServiceProvider*>(this);
+	else if (riid == IID_IInternetSecurityManager)
+		*ppvObject = static_cast<IInternetSecurityManager*>(this);
 	else
 		return E_NOINTERFACE;
 
@@ -289,39 +294,37 @@ HRESULT STDMETHODCALLTYPE WebView::QueryInterface(REFIID riid,
 	return S_OK;
 }
 
-ULONG STDMETHODCALLTYPE WebView::AddRef(void)
+ULONG WebView::AddRef(void)
 {
 	Ref();
 	return 1;
 }
 
-ULONG STDMETHODCALLTYPE WebView::Release(void)
+ULONG WebView::Release(void)
 {
 	Unref();
 	return 1;
 }
 
 // IOleWindow
-HRESULT STDMETHODCALLTYPE WebView::GetWindow(
-    HWND* phwnd)
+HRESULT WebView::GetWindow(HWND* phwnd)
 {
 	(*phwnd) = hWndParent;
 	return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::ContextSensitiveHelp(
-    BOOL fEnterMode)
+HRESULT WebView::ContextSensitiveHelp(BOOL fEnterMode)
 {
 	return E_NOTIMPL;
 }
 
 // IOleInPlaceSite
-HRESULT STDMETHODCALLTYPE WebView::CanInPlaceActivate(void)
+HRESULT WebView::CanInPlaceActivate(void)
 {
 	return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::OnInPlaceActivate(void)
+HRESULT WebView::OnInPlaceActivate(void)
 {
 	OleLockRunning(oleObject, TRUE, FALSE);
 	if (oleInPlaceObject == NULL)
@@ -334,12 +337,12 @@ HRESULT STDMETHODCALLTYPE WebView::OnInPlaceActivate(void)
 
 }
 
-HRESULT STDMETHODCALLTYPE WebView::OnUIActivate(void)
+HRESULT WebView::OnUIActivate(void)
 {
 	return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::GetWindowContext(
+HRESULT WebView::GetWindowContext(
     IOleInPlaceFrame **ppFrame,
     IOleInPlaceUIWindow **ppDoc,
     LPRECT lprcPosRect,
@@ -364,14 +367,12 @@ HRESULT STDMETHODCALLTYPE WebView::GetWindowContext(
 	return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::Scroll(
-    SIZE scrollExtant)
+HRESULT WebView::Scroll(SIZE scrollExtant)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::OnUIDeactivate(
-    BOOL fUndoable)
+HRESULT WebView::OnUIDeactivate(BOOL fUndoable)
 {
 	return S_OK;
 }
@@ -388,7 +389,7 @@ HWND WebView::GetControlWindow()
 	return hWndControl;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::OnInPlaceDeactivate(void)
+HRESULT WebView::OnInPlaceDeactivate(void)
 {
 	hWndControl = 0;
 	oleInPlaceObject = 0;
@@ -396,32 +397,28 @@ HRESULT STDMETHODCALLTYPE WebView::OnInPlaceDeactivate(void)
 	return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::DiscardUndoState(void)
+HRESULT WebView::DiscardUndoState(void)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::DeactivateAndUndo(void)
+HRESULT WebView::DeactivateAndUndo(void)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::OnPosRectChange(
-    LPCRECT lprcPosRect)
+HRESULT WebView::OnPosRectChange(LPCRECT lprcPosRect)
 {
 	return E_NOTIMPL;
 }
 
 // IOleClientSite
-HRESULT STDMETHODCALLTYPE WebView::SaveObject(void)
+HRESULT WebView::SaveObject(void)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::GetMoniker(
-    DWORD dwAssign,
-    DWORD dwWhichMoniker,
-    IMoniker **ppmk)
+HRESULT WebView::GetMoniker(DWORD dwAssign, DWORD dwWhichMoniker, IMoniker **ppmk)
 {
 	if ((dwAssign == OLEGETMONIKER_ONLYIFTHERE) &&
 	        (dwWhichMoniker == OLEWHICHMK_CONTAINER))
@@ -430,145 +427,296 @@ HRESULT STDMETHODCALLTYPE WebView::GetMoniker(
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::GetContainer(
-    IOleContainer **ppContainer)
+HRESULT WebView::GetContainer(IOleContainer **ppContainer)
 {
 	return E_NOINTERFACE;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::ShowObject(void)
+HRESULT WebView::ShowObject(void)
 {
 	return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::OnShowWindow(
-    BOOL fShow)
+HRESULT WebView::OnShowWindow(BOOL fShow)
 {
 	return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::RequestNewObjectLayout(void)
+HRESULT WebView::RequestNewObjectLayout(void)
 {
 	return E_NOTIMPL;
 }
 
 // IStorage
-HRESULT STDMETHODCALLTYPE WebView::CreateStream(
-    const OLECHAR* pwcsName,
-    DWORD grfMode,
-    DWORD reserved1,
-    DWORD reserved2,
-    IStream **ppstm)
+HRESULT WebView::CreateStream(const OLECHAR* pwcsName, DWORD grfMode, DWORD reserved1,
+                              DWORD reserved2, IStream **ppstm)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::OpenStream(
-    const OLECHAR* pwcsName,
-    void *reserved1,
-    DWORD grfMode,
-    DWORD reserved2,
-    IStream **ppstm)
+HRESULT WebView::OpenStream(const OLECHAR* pwcsName, void *reserved1, DWORD grfMode,
+                            DWORD reserved2, IStream **ppstm)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::CreateStorage(
-    const OLECHAR* pwcsName,
-    DWORD grfMode,
-    DWORD reserved1,
-    DWORD reserved2,
-    IStorage **ppstg)
+HRESULT WebView::CreateStorage(const OLECHAR* pwcsName, DWORD grfMode, DWORD reserved1,
+                               DWORD reserved2, IStorage **ppstg)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::OpenStorage(
-    const OLECHAR* pwcsName,
-    IStorage* pstgPriority,
-    DWORD grfMode,
-    SNB snbExclude,
-    DWORD reserved,
-    IStorage **ppstg)
+HRESULT WebView::OpenStorage(const OLECHAR* pwcsName, IStorage* pstgPriority, DWORD grfMode,
+                             SNB snbExclude, DWORD reserved, IStorage **ppstg)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::CopyTo(
-    DWORD ciidExclude,
-    const IID* rgiidExclude,
-    SNB snbExclude,
-    IStorage* pstgDest)
+HRESULT WebView::CopyTo(DWORD ciidExclude, const IID* rgiidExclude, SNB snbExclude,
+                        IStorage* pstgDest)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::MoveElementTo(
-    const OLECHAR* pwcsName,
-    IStorage* pstgDest,
-    const OLECHAR* pwcsNewName,
-    DWORD grfFlags)
+HRESULT WebView::MoveElementTo(const OLECHAR* pwcsName, IStorage* pstgDest,
+                               const OLECHAR* pwcsNewName, DWORD grfFlags)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::Commit(
-    DWORD grfCommitFlags)
+HRESULT WebView::Commit(DWORD grfCommitFlags)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::Revert(void)
+HRESULT WebView::Revert(void)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::EnumElements(
-    DWORD reserved1,
-    void *reserved2,
-    DWORD reserved3,
-    IEnumSTATSTG **ppenum)
+HRESULT WebView::EnumElements(DWORD reserved1, void *reserved2, DWORD reserved3,
+                              IEnumSTATSTG **ppenum)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::DestroyElement(
-    const OLECHAR* pwcsName)
+HRESULT WebView::DestroyElement(const OLECHAR* pwcsName)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::RenameElement(
-    const OLECHAR* pwcsOldName,
-    const OLECHAR* pwcsNewName)
+HRESULT WebView::RenameElement(const OLECHAR* pwcsOldName, const OLECHAR* pwcsNewName)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::SetElementTimes(
-    const OLECHAR* pwcsName,
-    const FILETIME* pctime,
-    const FILETIME* patime,
-    const FILETIME* pmtime)
+HRESULT WebView::SetElementTimes(const OLECHAR* pwcsName, const FILETIME* pctime,
+                                 const FILETIME* patime, const FILETIME* pmtime)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::SetClass(REFCLSID clsid)
+HRESULT WebView::SetClass(REFCLSID clsid)
 {
 	return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::SetStateBits(
-    DWORD grfStateBits,
-    DWORD grfMask)
+HRESULT WebView::SetStateBits(DWORD grfStateBits, DWORD grfMask)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT STDMETHODCALLTYPE WebView::Stat(
-    STATSTG* pstatstg,
-    DWORD grfStatFlag)
+HRESULT WebView::Stat(STATSTG* pstatstg, DWORD grfStatFlag)
+{
+	return E_NOTIMPL;
+}
+
+// IServiceProvider
+HRESULT WebView::QueryService(
+    REFGUID siid,
+    REFIID riid,
+    void **ppvObject) {
+	if (siid == IID_IInternetSecurityManager && riid == IID_IInternetSecurityManager) {
+		*ppvObject = static_cast<IInternetSecurityManager*>(this);
+	} else {
+		*ppvObject = 0;
+		return E_NOINTERFACE;
+	}
+	return S_OK;
+}
+
+// IInternetSecurityManager
+HRESULT WebView::SetSecuritySite(IInternetSecurityMgrSite *pSite)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::GetSecuritySite(IInternetSecurityMgrSite **ppSite)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::MapUrlToZone(LPCWSTR pwszUrl, DWORD *pdwZone, DWORD dwFlags)
+{
+	if (!pdwZone)
+		return E_INVALIDARG;
+
+	return INET_E_DEFAULT_ACTION;
+}
+
+HRESULT WebView::GetSecurityId(LPCWSTR pwszUrl, BYTE *pbSecurityId, DWORD *pcbSecurityId,
+                               DWORD_PTR dwReserved)
+{
+	if (!pbSecurityId)
+		return E_INVALIDARG;
+
+	return INET_E_DEFAULT_ACTION;
+}
+
+#define URLACTION_LOOSE_XAML 0x00002402
+#define URLACTION_MANAGED_SIGNED 0x00002001
+#define URLACTION_MANAGED_UNSIGNED 0x00002004
+#define URLACTION_WINDOWS_BROWSER_APPLICATIONS 0x00002400
+#define URLACTION_WINFX_SETUP 0x00002600
+#define URLACTION_XPS_DOCUMENTS 0x00002401
+#define URLACTION_ALLOW_AUDIO_VIDEO 0x00002701
+#define URLACTION_ALLOW_STRUCTURED_STORAGE_SNIFFING 0x00002703
+#define URLACTION_ALLOW_XDOMAIN_SUBFRAME_RESIZE 0x00001408
+#define URLACTION_FEATURE_CROSSDOMAIN_FOCUS_CHANGE 0x00002107
+#define URLACTION_SHELL_PREVIEW 0x0000180F
+#define URLACTION_SHELL_REMOTEQUERY 0x0000180E
+#define URLACTION_SHELL_SECURE_DRAGSOURCE 0x0000180D
+#define URLACTION_ALLOW_APEVALUATION 0x00002301
+#define URLACTION_LOWRIGHTS 0x00002500
+#define URLACTION_ALLOW_ACTIVEX_FILTERING 0x00002702
+#define URLACTION_DOTNET_USERCONTROLS 0x00002005
+#define URLACTION_FEATURE_DATA_BINDING              0x00002106
+#define URLACTION_FEATURE_CROSSDOMAIN_FOCUS_CHANGE  0x00002107
+#define URLACTION_SCRIPT_XSSFILTER                  0x00001409
+#define URLACTION_INPRIVATE_BLOCKING                0x00002700
+
+HRESULT WebView::ProcessUrlAction(LPCWSTR pwszUrl, DWORD dwAction, BYTE *pPolicy,
+                                  DWORD cbPolicy, BYTE *pContext, DWORD cbContext,
+                                  DWORD dwFlags, DWORD dwReserved)
+{
+	switch (dwAction) {
+	case URLACTION_ACTIVEX_CONFIRM_NOOBJECTSAFETY:
+	case URLACTION_ACTIVEX_OVERRIDE_DATA_SAFETY:
+	case URLACTION_ACTIVEX_OVERRIDE_SCRIPT_SAFETY:
+	case URLACTION_FEATURE_BLOCK_INPUT_PROMPTS:
+	case URLACTION_SCRIPT_OVERRIDE_SAFETY:
+	case URLACTION_SHELL_EXTENSIONSECURITY:
+	case URLACTION_ACTIVEX_NO_WEBOC_SCRIPT:
+	case URLACTION_ACTIVEX_OVERRIDE_OBJECT_SAFETY:
+	case URLACTION_ACTIVEX_OVERRIDE_OPTIN:
+	case URLACTION_ACTIVEX_OVERRIDE_REPURPOSEDETECTION:
+	case URLACTION_ACTIVEX_RUN:
+	case URLACTION_ACTIVEX_SCRIPTLET_RUN:
+	case URLACTION_ACTIVEX_DYNSRC_VIDEO_AND_ANIMATION:
+	case URLACTION_ALLOW_RESTRICTEDPROTOCOLS:
+	case URLACTION_AUTOMATIC_ACTIVEX_UI:
+	case URLACTION_AUTOMATIC_DOWNLOAD_UI:
+	case URLACTION_BEHAVIOR_RUN:
+	case URLACTION_CLIENT_CERT_PROMPT:
+	case URLACTION_COOKIES:
+	case URLACTION_COOKIES_ENABLED:
+	case URLACTION_COOKIES_SESSION:
+	case URLACTION_COOKIES_SESSION_THIRD_PARTY:
+	case URLACTION_COOKIES_THIRD_PARTY:
+	case URLACTION_CROSS_DOMAIN_DATA:
+	case URLACTION_DOWNLOAD_SIGNED_ACTIVEX:
+	case URLACTION_DOWNLOAD_UNSIGNED_ACTIVEX:
+	case URLACTION_FEATURE_DATA_BINDING:
+	case URLACTION_FEATURE_FORCE_ADDR_AND_STATUS:
+	case URLACTION_FEATURE_MIME_SNIFFING:
+	case URLACTION_FEATURE_SCRIPT_STATUS_BAR:
+	case URLACTION_FEATURE_WINDOW_RESTRICTIONS:
+	case URLACTION_FEATURE_ZONE_ELEVATION:
+	case URLACTION_HTML_FONT_DOWNLOAD:
+	case URLACTION_HTML_INCLUDE_FILE_PATH:
+	case URLACTION_HTML_JAVA_RUN:
+	case URLACTION_HTML_META_REFRESH:
+	case URLACTION_HTML_MIXED_CONTENT:
+	case URLACTION_HTML_SUBFRAME_NAVIGATE:
+	case URLACTION_HTML_SUBMIT_FORMS:
+	case URLACTION_HTML_SUBMIT_FORMS_FROM:
+	case URLACTION_HTML_SUBMIT_FORMS_TO:
+	case URLACTION_HTML_USERDATA_SAVE:
+	case URLACTION_LOOSE_XAML:
+	case URLACTION_MANAGED_SIGNED:
+	case URLACTION_MANAGED_UNSIGNED:
+	case URLACTION_SCRIPT_JAVA_USE:
+	case URLACTION_SCRIPT_PASTE:
+	case URLACTION_SCRIPT_RUN:
+	case URLACTION_SCRIPT_SAFE_ACTIVEX:
+	case URLACTION_SHELL_EXECUTE_HIGHRISK:
+	case URLACTION_SHELL_EXECUTE_LOWRISK:
+	case URLACTION_SHELL_EXECUTE_MODRISK:
+	case URLACTION_SHELL_FILE_DOWNLOAD:
+	case URLACTION_SHELL_INSTALL_DTITEMS:
+	case URLACTION_SHELL_MOVE_OR_COPY:
+	case URLACTION_SHELL_VERB:
+	case URLACTION_SHELL_WEBVIEW_VERB:
+	case URLACTION_WINDOWS_BROWSER_APPLICATIONS:
+	case URLACTION_WINFX_SETUP:
+	case URLACTION_XPS_DOCUMENTS:
+	case URLACTION_ALLOW_AUDIO_VIDEO: // ie9
+	case URLACTION_ALLOW_STRUCTURED_STORAGE_SNIFFING: // ie9
+	case URLACTION_ALLOW_XDOMAIN_SUBFRAME_RESIZE: // ie7
+	case URLACTION_FEATURE_CROSSDOMAIN_FOCUS_CHANGE: // ie7
+	case URLACTION_SHELL_ENHANCED_DRAGDROP_SECURITY:
+	case URLACTION_SHELL_PREVIEW: // win7
+	case URLACTION_SHELL_REMOTEQUERY: // win7
+	case URLACTION_SHELL_RTF_OBJECTS_LOAD: // ie6sp2
+	case URLACTION_SHELL_SECURE_DRAGSOURCE: // ie7
+	// ie6sp2, value the same as URLACTION_SHELL_EXECUTE_HIGHRISK
+	// case URLACTION_SHELL_SHELLEXECUTE:
+	// ie8, probably registry only
+	case URLACTION_DOTNET_USERCONTROLS:
+		*pPolicy = URLPOLICY_ALLOW;
+		return S_OK;
+
+	case URLACTION_CHANNEL_SOFTDIST_PERMISSIONS:
+		//*pPolicy = URLPOLICY_CHANNEL_SOFTDIST_AUTOINSTALL;
+		*pPolicy = URLPOLICY_ALLOW;
+		return S_OK;
+
+	case URLACTION_JAVA_PERMISSIONS:
+		//*pPolicy = URLPOLICY_JAVA_LOW;
+		*pPolicy = URLPOLICY_ALLOW;
+		return S_OK;
+
+	case URLACTION_CREDENTIALS_USE:
+		//*pPolicy = URLPOLICY_CREDENTIALS_SILENT_LOGON_OK;
+		*pPolicy = URLPOLICY_ALLOW;
+		return S_OK;
+
+	case URLACTION_ALLOW_APEVALUATION: // Phishing filter.
+	case URLACTION_LOWRIGHTS: // Vista Protected Mode.
+	case URLACTION_SHELL_POPUPMGR:
+	case URLACTION_SCRIPT_XSSFILTER:
+	case URLACTION_ACTIVEX_TREATASUNTRUSTED:
+	case URLACTION_ALLOW_ACTIVEX_FILTERING: // ie9
+		*pPolicy = URLPOLICY_DISALLOW;
+		return S_FALSE;
+	}
+
+	return INET_E_DEFAULT_ACTION;
+}
+
+HRESULT WebView::QueryCustomPolicy(LPCWSTR pwszUrl, REFGUID guidKey, BYTE **ppPolicy,
+                                   DWORD *pcbPolicy, BYTE *pContext, DWORD cbContext,
+                                   DWORD dwReserved)
+{
+	return INET_E_DEFAULT_ACTION;
+}
+
+HRESULT WebView::SetZoneMapping(DWORD dwZone, LPCWSTR lpszPattern, DWORD dwFlags)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::GetZoneMappings(DWORD dwZone, IEnumString **ppenumString, DWORD dwFlags)
 {
 	return E_NOTIMPL;
 }

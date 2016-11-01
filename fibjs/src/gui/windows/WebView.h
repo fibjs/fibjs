@@ -18,7 +18,9 @@ namespace fibjs
 class WebView : public WebView_base,
 	public IOleClientSite,
 	public IOleInPlaceSite,
-	public IStorage
+	public IStorage,
+	public IServiceProvider,
+	public IInternetSecurityManager
 {
 public:
 	WebView(exlib::string url, exlib::string title);
@@ -107,6 +109,30 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE SetClass(REFCLSID clsid);
 	virtual HRESULT STDMETHODCALLTYPE SetStateBits(DWORD grfStateBits, DWORD grfMask);
 	virtual HRESULT STDMETHODCALLTYPE Stat(STATSTG *pstatstg, DWORD grfStatFlag);
+
+public:
+	// IServiceProvider
+	virtual HRESULT STDMETHODCALLTYPE QueryService(REFGUID siid, REFIID riid,
+	        void **ppvObject);
+
+public:
+	// IInternetSecurityManager
+	virtual HRESULT STDMETHODCALLTYPE SetSecuritySite(IInternetSecurityMgrSite *pSite);
+	virtual HRESULT STDMETHODCALLTYPE GetSecuritySite(IInternetSecurityMgrSite **ppSite);
+	virtual HRESULT STDMETHODCALLTYPE MapUrlToZone(LPCWSTR pwszUrl, DWORD *pdwZone,
+	        DWORD dwFlags);
+	virtual HRESULT STDMETHODCALLTYPE GetSecurityId(LPCWSTR pwszUrl, BYTE *pbSecurityId,
+	        DWORD *pcbSecurityId, DWORD_PTR dwReserved);
+	virtual HRESULT STDMETHODCALLTYPE ProcessUrlAction(LPCWSTR pwszUrl, DWORD dwAction,
+	        BYTE *pPolicy, DWORD cbPolicy, BYTE *pContext, DWORD cbContext,
+	        DWORD dwFlags, DWORD dwReserved);
+	virtual HRESULT STDMETHODCALLTYPE QueryCustomPolicy(LPCWSTR pwszUrl, REFGUID guidKey,
+	        BYTE **ppPolicy, DWORD *pcbPolicy, BYTE *pContext, DWORD cbContext,
+	        DWORD dwReserved);
+	virtual HRESULT STDMETHODCALLTYPE SetZoneMapping(DWORD dwZone, LPCWSTR lpszPattern,
+	        DWORD dwFlags);
+	virtual HRESULT STDMETHODCALLTYPE GetZoneMappings(DWORD dwZone, IEnumString **ppenumString,
+	        DWORD dwFlags);
 
 private:
 	void clear();
