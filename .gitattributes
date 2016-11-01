@@ -2,6 +2,7 @@
 *.xml binary
 *.png binary
 *.jpg binary
+*.ico binary
 *.sln binary
 *.html binary
 *.css binary

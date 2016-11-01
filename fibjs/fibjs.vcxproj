@@ -516,6 +516,12 @@
     <ClCompile Include="src\zip\zlib.cpp" />
     <ClCompile Include="src\zip\ZipFile.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="res\fibjs.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\fibjs.ico" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{05654A7E-DBAF-4211-886A-C23565833D05}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
