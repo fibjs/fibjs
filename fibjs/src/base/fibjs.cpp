@@ -117,9 +117,17 @@ void main(int32_t argc, char *argv[])
 
 }
 
-int32_t main(int32_t argc, char *argv[])
-{
 #ifdef _WIN32
+
+#ifdef _CONSOLE
+int32_t main()
+#else
+int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+#endif
+{
+    int32_t argc;
+    char **argv;
+
     LPWSTR *szArglist = CommandLineToArgvW(GetCommandLineW(), &argc);
     std::vector<exlib::string> strArgList;
     std::vector<char*> ptrArgList;
@@ -134,8 +142,16 @@ int32_t main(int32_t argc, char *argv[])
     }
 
     argv = ptrArgList.data();
-#endif
 
     fibjs::main(argc, argv);
     return 0;
 }
+
+#else
+
+int32_t main(int32_t argc, char *argv[])
+{
+    fibjs::main(argc, argv);
+    return 0;
+}
+#endif
