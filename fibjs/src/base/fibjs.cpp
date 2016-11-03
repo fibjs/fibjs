@@ -122,7 +122,7 @@ void main(int32_t argc, char *argv[])
 #ifdef _CONSOLE
 int32_t main()
 #else
-int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 #endif
 {
     int32_t argc;
