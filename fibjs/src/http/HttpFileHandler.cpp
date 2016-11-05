@@ -303,7 +303,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         obj_ptr<HttpFileHandler> m_pThis;
         obj_ptr<HttpRequest_base> m_req;
         obj_ptr<HttpResponse_base> m_rep;
-        obj_ptr<File_base> m_file;
+        obj_ptr<SeekableStream_base> m_file;
         obj_ptr<Stat_base> m_stat;
         exlib::string m_url;
         exlib::string m_path;

@@ -164,7 +164,7 @@ result_t gd_base::load(exlib::string fname, obj_ptr<Image_base> &retVal,
 
     private:
         exlib::string m_fname;
-        obj_ptr<File_base> m_file;
+        obj_ptr<SeekableStream_base> m_file;
         obj_ptr<Image_base> &m_retVal;
     };
 
@@ -649,7 +649,7 @@ result_t Image::save(exlib::string fname, int32_t format, int32_t quality,
     private:
         obj_ptr<Image> m_pThis;
         exlib::string m_fname;
-        obj_ptr<File_base> m_file;
+        obj_ptr<SeekableStream_base> m_file;
         int32_t m_format;
         int32_t m_quality;
         obj_ptr<Buffer_base> m_buf;

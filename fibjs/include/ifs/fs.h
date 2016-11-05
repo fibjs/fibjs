@@ -19,7 +19,7 @@ namespace fibjs
 
 class Stat_base;
 class List_base;
-class File_base;
+class SeekableStream_base;
 class BufferedStream_base;
 class Buffer_base;
 
@@ -46,8 +46,8 @@ public:
     static result_t chmod(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
     static result_t readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
-    static result_t open(exlib::string fname, exlib::string flags, obj_ptr<File_base>& retVal, AsyncEvent* ac);
-    static result_t tmpFile(obj_ptr<File_base>& retVal, AsyncEvent* ac);
+    static result_t open(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
+    static result_t tmpFile(obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t openTextStream(exlib::string fname, exlib::string flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
     static result_t readTextFile(exlib::string fname, exlib::string& retVal, AsyncEvent* ac);
     static result_t readFile(exlib::string fname, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
@@ -100,8 +100,8 @@ public:
     ASYNC_STATIC2(fs_base, chmod, exlib::string, int32_t);
     ASYNC_STATICVALUE2(fs_base, stat, exlib::string, obj_ptr<Stat_base>);
     ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<List_base>);
-    ASYNC_STATICVALUE3(fs_base, open, exlib::string, exlib::string, obj_ptr<File_base>);
-    ASYNC_STATICVALUE1(fs_base, tmpFile, obj_ptr<File_base>);
+    ASYNC_STATICVALUE3(fs_base, open, exlib::string, exlib::string, obj_ptr<SeekableStream_base>);
+    ASYNC_STATICVALUE1(fs_base, tmpFile, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE3(fs_base, openTextStream, exlib::string, exlib::string, obj_ptr<BufferedStream_base>);
     ASYNC_STATICVALUE2(fs_base, readTextFile, exlib::string, exlib::string);
     ASYNC_STATICVALUE2(fs_base, readFile, exlib::string, obj_ptr<Buffer_base>);
@@ -113,7 +113,7 @@ public:
 
 #include "Stat.h"
 #include "List.h"
-#include "File.h"
+#include "SeekableStream.h"
 #include "BufferedStream.h"
 #include "Buffer.h"
 
@@ -346,7 +346,7 @@ namespace fibjs
 
     inline void fs_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        obj_ptr<File_base> vr;
+        obj_ptr<SeekableStream_base> vr;
 
         ASYNC_METHOD_ENTER(2, 1);
 
@@ -364,7 +364,7 @@ namespace fibjs
 
     inline void fs_base::s_tmpFile(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        obj_ptr<File_base> vr;
+        obj_ptr<SeekableStream_base> vr;
 
         ASYNC_METHOD_ENTER(0, 0);
 

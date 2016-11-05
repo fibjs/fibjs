@@ -170,7 +170,7 @@ result_t zip_base::open(exlib::string path, exlib::string mod, int32_t compress_
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
-	obj_ptr<File_base> file;
+	obj_ptr<SeekableStream_base> file;
 	result_t hr;
 	bool exists;
 
@@ -504,7 +504,7 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::strin
 
 	int32_t err;
 	result_t hr;
-	obj_ptr<File_base> file;
+	obj_ptr<SeekableStream_base> file;
 
 	err = unzLocateFile(m_unz, member.c_str(), 0);
 	if (err != UNZ_OK)
@@ -568,7 +568,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncEv
 	int32_t err;
 	uint32_t i;
 	bool exists;
-	obj_ptr<File_base> file;
+	obj_ptr<SeekableStream_base> file;
 	exlib::string fpath;
 	exlib::string fpath1;
 
@@ -585,7 +585,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncEv
 	err = unzGoToFirstFile(m_unz);
 	if (err != UNZ_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
-		
+
 	for (i = 0; i < gi.number_entry; i++)
 	{
 		obj_ptr<Info> info;
@@ -689,7 +689,7 @@ result_t ZipFile::getFileCrc(SeekableStream_base* strm, uint32_t& crc)
 		buf->toString(strData);
 
 		fileCrc = crc32(fileCrc, (const Bytef *)strData.c_str(), (int32_t)strData.length());
-		
+
 	} while (strData.length() > 0);
 
 	crc = fileCrc;
@@ -706,15 +706,15 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
 
 	if (!password.empty()) {
 		hr =  getFileCrc(strm, crc);
-		if (hr < 0) 
-			return hr;	
+		if (hr < 0)
+			return hr;
 	}
-	
+
 	err = zipOpenNewFileInZip3_64(m_zip, filename.c_str(), NULL, NULL,
 	                              0, NULL, 0, NULL, m_compress_type == zip_base::_ZIP_STORED ? 0 : Z_DEFLATED,
 	                              Z_DEFAULT_COMPRESSION, 0, -MAX_WBITS,
 	                              DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
-	                              password.empty() ? NULL: password.c_str(), crc, 1);
+	                              password.empty() ? NULL : password.c_str(), crc, 1);
 	if (err != ZIP_OK)
 		return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
@@ -750,7 +750,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string inZipName, exlib::
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
 	result_t hr;
-	obj_ptr<File_base> file;
+	obj_ptr<SeekableStream_base> file;
 
 	hr = fs_base::cc_open(filename, "r", file);
 	if (hr < 0)

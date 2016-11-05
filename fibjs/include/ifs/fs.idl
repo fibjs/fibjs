@@ -86,8 +86,8 @@ module fs
      - 'a+' 读写添加方式，文件不存在则自动创建。
      @return 返回打开的文件对象
      */
-    static File open(String fname, String flags = "r") async;
-    static File tmpFile() async;
+    static SeekableStream open(String fname, String flags = "r") async;
+    static SeekableStream tmpFile() async;
 
     /*! @brief 打开文本文件，用于读取，写入，或者同时读写
      @param fname 指定文件名

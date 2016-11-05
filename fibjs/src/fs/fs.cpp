@@ -42,7 +42,7 @@ void init_fs()
 }
 
 result_t fs_base::open(exlib::string fname, exlib::string flags,
-                       obj_ptr<File_base> &retVal, AsyncEvent *ac)
+                       obj_ptr<SeekableStream_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -59,7 +59,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
     return 0;
 }
 
-result_t fs_base::tmpFile(obj_ptr<File_base> &retVal, AsyncEvent *ac)
+result_t fs_base::tmpFile(obj_ptr<SeekableStream_base> &retVal, AsyncEvent *ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -75,7 +75,7 @@ result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<File_base> pFile;
+    obj_ptr<SeekableStream_base> pFile;
     result_t hr = cc_open(fname, flags, pFile);
     if (hr < 0)
         return hr;
@@ -89,7 +89,7 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string &retVal,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<File_base> f;
+    obj_ptr<SeekableStream_base> f;
     obj_ptr<Buffer_base> buf;
     result_t hr;
 
@@ -112,7 +112,7 @@ result_t fs_base::readFile(exlib::string fname, obj_ptr<Buffer_base> &retVal,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<File_base> f;
+    obj_ptr<SeekableStream_base> f;
     obj_ptr<Buffer_base> buf;
     result_t hr;
 
@@ -150,7 +150,7 @@ result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<File_base> f;
+    obj_ptr<SeekableStream_base> f;
     result_t hr;
 
     hr = cc_open(fname, "w", f);
@@ -170,7 +170,7 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* 
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<File_base> f;
+    obj_ptr<SeekableStream_base> f;
     result_t hr;
 
     hr = cc_open(fname, "w", f);
