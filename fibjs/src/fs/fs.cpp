@@ -7,11 +7,14 @@
 
 #include "object.h"
 #include "ifs/fs.h"
+#include "ifs/zip.h"
+#include "ifs/path.h"
 #include "utf8.h"
 #include "Stat.h"
 #include "List.h"
 #include "File.h"
 #include "BufferedStream.h"
+#include "MemoryStream.h"
 
 #ifndef _WIN32
 #include <dirent.h>
@@ -47,14 +50,62 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<File> pFile = new File();
-    result_t hr;
+    exlib::string safe_name;
+    path_base::normalize(fname, safe_name);
 
-    hr = pFile->open(fname, flags);
-    if (hr < 0)
-        return hr;
+    size_t pos = safe_name.find('?');
+    if (pos != exlib::string::npos && safe_name[pos + 1] == PATH_SLASH)
+    {
+        exlib::string zip_file = safe_name.substr(0, pos);
+        exlib::string member = safe_name.substr(pos + 2);
+        obj_ptr<ZipFile_base> zfile;
+        obj_ptr<Buffer_base> data;
+        exlib::string strData;
+        result_t hr;
 
-    retVal = pFile;
+        hr = zip_base::cc_open(zip_file, "r", zip_base::_ZIP_DEFLATED, zfile);
+        if (hr < 0)
+            return hr;
+
+        hr = zfile->cc_read(member, "", data);
+        if (hr < 0)
+        {
+#ifdef _WIN32
+            bool bChanged = false;
+            int32_t sz = (int32_t)member.length();
+            char* buf = member.c_buffer();
+            for (int32_t i = 0; i < sz; i ++)
+                if (buf[i] == PATH_SLASH)
+                {
+                    buf[i] = '/';
+                    bChanged = true;
+                }
+
+            if (bChanged)
+            {
+                hr = zfile->cc_read(member, "", data);
+                if (hr < 0)
+                    return hr;
+            }
+#else
+            return hr;
+#endif
+        }
+
+        data->toString(strData);
+
+        retVal = new MemoryStream::CloneStream(strData, 0);
+    } else
+    {
+        obj_ptr<File> pFile = new File();
+        result_t hr;
+
+        hr = pFile->open(safe_name, flags);
+        if (hr < 0)
+            return hr;
+
+        retVal = pFile;
+    }
 
     return 0;
 }
