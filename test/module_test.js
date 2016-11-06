@@ -140,9 +140,17 @@ describe("module", function() {
 		});
 	});
 
+	it("zip virtual path", function() {
+		assert.deepEqual(require('./module/test.src/folder/b.js'),
+			require('./module/test.zip?/folder/b.js'));
+
+		assert.equal(require('./module/p4.zip?').a, 100);
+		assert.equal(require('./module/p4').a, 100);
+	});
+
 	it("strack", function() {
 		assert.ok(require("module/stack").func().match(/module_test/));
 	});
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);
