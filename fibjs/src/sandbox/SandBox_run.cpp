@@ -659,6 +659,14 @@ result_t SandBox::require(exlib::string base, exlib::string id,
 
         fname = fullname + PATH_SLASH + "package.json";
         hr = fs_base::cc_readTextFile(fname, buf);
+        if (hr < 0)
+        {
+            fname = fullname + ".zip?" + PATH_SLASH + "package.json";
+            hr = fs_base::cc_readTextFile(fname, buf);
+            if (hr >= 0)
+                fullname = fullname + ".zip?";
+        }
+
         if (hr >= 0)
         {
             v8::Local<v8::Value> v;
@@ -675,14 +683,14 @@ result_t SandBox::require(exlib::string base, exlib::string id,
             {
                 if (!main->IsString() && !main->IsStringObject())
                     return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
-                fname = strId + PATH_SLASH;
+                fname = fullname + PATH_SLASH;
                 fname += *v8::String::Utf8Value(main);
 
                 if (fname.length() > 3 && !qstrcmp(fname.c_str() + fname.length() - 3, ".js"))
                     fname.resize(fname.length() - 3);
             }
             else
-                fname = strId + PATH_SLASH + "index";
+                fname = fullname + PATH_SLASH + "index";
 
             hr = require(base, fname, retVal, FILE_ONLY);
             if (hr < 0)
@@ -692,7 +700,15 @@ result_t SandBox::require(exlib::string base, exlib::string id,
             return 0;
         }
 
-        fname = strId + PATH_SLASH + "index";
+        fname = fullname + PATH_SLASH + "index";
+        hr = require(base, fname, retVal, FILE_ONLY);
+        if (hr >= 0)
+        {
+            InstallModule(strId, retVal);
+            return 0;
+        }
+
+        fname = fullname + ".zip?" + PATH_SLASH + "index";
         hr = require(base, fname, retVal, FILE_ONLY);
         if (hr >= 0)
         {
