@@ -210,6 +210,15 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 	return 0;
 }
 
+result_t WebView::close(AsyncEvent* ac)
+{
+	if (!ac)
+		return CHECK_ERROR(CALL_E_GUICALL);
+
+	PostMessage(hWndParent, WM_CLOSE, 0, 0);
+	return 0;
+}
+
 result_t WebView::onclose(v8::Local<v8::Function> func, int32_t& retVal)
 {
 	return on("close", func, retVal);

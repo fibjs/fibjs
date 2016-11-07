@@ -37,6 +37,7 @@ public:
 
 public:
 	// WebView_base
+	virtual result_t close(AsyncEvent* ac);
 	virtual result_t onclose(v8::Local<v8::Function> func, int32_t& retVal);
 
 private:

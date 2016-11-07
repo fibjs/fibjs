@@ -1,6 +1,9 @@
 /*! @brief 浏览器窗口对象 */
 interface WebView : Trigger
 {
+	/*! @brief 关闭当前窗口 */
+	close() async;
+
 	/*! @brief 绑定窗口关闭事件，相当于 on("close", func);
 	 @param func 指定事件处理函数
 	 @return 返回成功绑定的数量，如果函数已绑定则返回 0
