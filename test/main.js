@@ -62,6 +62,7 @@ run("ssl_test.js");
 run("url_test.js");
 run("http_test.js");
 run("mq_test.js");
+run("gui_test.js");
 run("rpc_test.js");
 run("uuid_test.js");
 run("gd_test.js");
