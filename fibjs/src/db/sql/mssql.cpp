@@ -189,8 +189,9 @@ result_t mssql::execute(const char *sql, int32_t sLen,
     HRESULT hr;
     ADODB::_Recordset* rs = NULL;
     bstr_t bstrCom(utf8to16String(sql, sLen).c_str());
+    _variant_t affected((long)0);
 
-    hr = m_conn->Execute (bstrCom, NULL, ADODB::adCmdText, &rs);
+    hr = m_conn->Execute(bstrCom, &affected, ADODB::adCmdText, &rs);
     if (FAILED(hr))
         return error(hr);
 
@@ -312,12 +313,12 @@ result_t mssql::execute(const char *sql, int32_t sLen,
                 rs->get_adoEOF(&bEof);
             }
         } else
-            res = new DBResult(0);
+            res = new DBResult(0, affected);
 
         fields->Release();
 
     } else
-        res = new DBResult(0);
+        res = new DBResult(0, affected);
 
     rs->Release();
 

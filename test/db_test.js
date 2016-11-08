@@ -95,6 +95,11 @@ describe("db", function() {
 			]);
 		});
 
+		it("update/affected", function() {
+			var rs = conn.execute("update test set t2='test101.1' where t1=1123");
+			assert.equal(rs.affected, 1);
+		});
+
 		it("binary", function() {
 			var b = new Buffer();
 			b.resize(1);
