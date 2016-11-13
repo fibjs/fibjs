@@ -23,7 +23,7 @@ class WebView : public WebView_base,
 	public IInternetSecurityManager
 {
 public:
-	WebView(exlib::string url, exlib::string title);
+	WebView(exlib::string url, exlib::string title, AsyncEvent* ac = NULL);
 	~WebView();
 
 	static RECT PixelToHiMetric(const RECT& _rc);
@@ -147,6 +147,8 @@ protected:
 
 	HWND hWndParent;
 	HWND hWndControl;
+
+	AsyncEvent* m_ac;
 };
 
 } /* namespace fibjs */

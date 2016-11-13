@@ -59,15 +59,23 @@ void init_gui()
 	(new gui_thread())->start();
 }
 
-result_t gui_base::open(exlib::string url, exlib::string title,
+result_t gui_base::load(exlib::string url, exlib::string title,
                         obj_ptr<WebView_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_GUICALL);
 
 	retVal = new WebView(url, title);
-
 	return 0;
+}
+
+result_t gui_base::open(exlib::string url, exlib::string title, AsyncEvent* ac)
+{
+	if (!ac)
+		return CHECK_ERROR(CALL_E_GUICALL);
+
+	new WebView(url, title, ac);
+	return CALL_E_PENDDING;
 }
 
 const wchar_t* szWndClassMain = L"fibjs_window";
@@ -97,8 +105,10 @@ static void RegMainClass()
 	}
 }
 
-WebView::WebView(exlib::string url, exlib::string title)
+WebView::WebView(exlib::string url, exlib::string title, AsyncEvent* ac)
 {
+	m_ac = ac;
+
 	oleObject = NULL;
 	oleInPlaceObject = NULL;
 	webBrowser2 = NULL;
@@ -176,38 +186,42 @@ void WebView::clear()
 		oleObject->Release();
 		oleObject = NULL;
 	}
+
+	if (m_ac)
+	{
+		m_ac->post(0);
+		m_ac = NULL;
+	}
 }
 
 LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	WebView* webBrowser1;
+	WebView* webView1;
 
 	switch (uMsg)
 	{
 	case WM_SIZE:
-		webBrowser1 = (WebView*)GetWindowLongPtr(hWnd, 0);
-		if (webBrowser1 != 0)
+		webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
+		if (webView1 != 0)
 		{
 			RECT rcClient;
 			GetClientRect(hWnd, &rcClient);
-			webBrowser1->SetRect(rcClient);
+			webView1->SetRect(rcClient);
 		}
 		break;
-	case WM_DESTROY:
-		webBrowser1 = (WebView*)GetWindowLongPtr(hWnd, 0);
-		if (webBrowser1 != 0)
+	case WM_CLOSE:
+		webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
+		if (webView1 != 0)
 		{
 			SetWindowLongPtr(hWnd, 0, 0);
-			webBrowser1->_trigger("close", (Variant*)NULL, 0);
-			webBrowser1->clear();
-			webBrowser1->Release();
+			webView1->_trigger("close", (Variant*)NULL, 0);
+			webView1->clear();
+			webView1->Release();
 		}
 		break;
-	default:
-		return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 	}
 
-	return 0;
+	return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 }
 
 result_t WebView::close(AsyncEvent* ac)
@@ -547,6 +561,7 @@ HRESULT WebView::QueryService(
     void **ppvObject) {
 	if (siid == IID_IInternetSecurityManager && riid == IID_IInternetSecurityManager) {
 		*ppvObject = static_cast<IInternetSecurityManager*>(this);
+		AddRef();
 	} else {
 		*ppvObject = 0;
 		return E_NOINTERFACE;

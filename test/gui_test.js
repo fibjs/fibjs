@@ -21,9 +21,9 @@ if (win) {
 			});
 			svr.asyncRun();
 
-			var win = gui.open("http://127.0.0.1:" + (8899 + base_port) + "/");
+			var win = gui.load("http://127.0.0.1:" + (8899 + base_port) + "/");
 
-			for (var i = 0; i < 100 && !check; i++)
+			for (var i = 0; i < 1000 && !check; i++)
 				coroutine.sleep(10);
 
 			assert.ok(check);
@@ -37,7 +37,7 @@ if (win) {
 			win.close();
 			win = undefined;
 
-			for (var i = 0; i < 100 && !closed; i++)
+			for (var i = 0; i < 1000 && !closed; i++)
 				coroutine.sleep(10);
 
 			coroutine.sleep(100);
