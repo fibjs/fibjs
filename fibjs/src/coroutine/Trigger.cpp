@@ -295,7 +295,10 @@ result_t object_base::_trigger(exlib::string ev, Variant *args, int32_t argCount
         QuickArray<VariantEx> m_args;
     };
 
-    (new jsTrigger(this, ev, args, argCount))->sync(holder());
+    Isolate* isolate = holder();
+    if (isolate)
+        (new jsTrigger(this, ev, args, argCount))->sync(isolate);
+
     return 0;
 }
 
