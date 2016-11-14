@@ -20,7 +20,6 @@ class WebView : public WebView_base,
 	public IOleClientSite,
 	public IOleInPlaceSite,
 	public IDocHostUIHandler,
-	public IStorage,
 	public IServiceProvider,
 	public IInternetSecurityManager
 {
@@ -109,34 +108,6 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE FilterDataObject(IDataObject* pDO, IDataObject** ppDORet);
 
 public:
-	// IStorage
-	virtual HRESULT STDMETHODCALLTYPE CreateStream(const OLECHAR *pwcsName,
-	        DWORD grfMode, DWORD reserved1, DWORD reserved2, IStream **ppstm);
-	virtual HRESULT STDMETHODCALLTYPE OpenStream(const OLECHAR *pwcsName,
-	        void *reserved1, DWORD grfMode, DWORD reserved2, IStream **ppstm);
-	virtual HRESULT STDMETHODCALLTYPE CreateStorage(const OLECHAR *pwcsName,
-	        DWORD grfMode, DWORD reserved1, DWORD reserved2, IStorage **ppstg);
-	virtual HRESULT STDMETHODCALLTYPE OpenStorage(const OLECHAR *pwcsName,
-	        IStorage *pstgPriority, DWORD grfMode, SNB snbExclude,
-	        DWORD reserved, IStorage **ppstg);
-	virtual HRESULT STDMETHODCALLTYPE CopyTo(DWORD ciidExclude,
-	        const IID *rgiidExclude, SNB snbExclude, IStorage *pstgDest);
-	virtual HRESULT STDMETHODCALLTYPE MoveElementTo(const OLECHAR *pwcsName,
-	        IStorage *pstgDest, const OLECHAR *pwcsNewName, DWORD grfFlags);
-	virtual HRESULT STDMETHODCALLTYPE Commit(DWORD grfCommitFlags);
-	virtual HRESULT STDMETHODCALLTYPE Revert(void);
-	virtual HRESULT STDMETHODCALLTYPE EnumElements(DWORD reserved1,
-	        void *reserved2, DWORD reserved3, IEnumSTATSTG **ppenum);
-	virtual HRESULT STDMETHODCALLTYPE DestroyElement(const OLECHAR *pwcsName);
-	virtual HRESULT STDMETHODCALLTYPE RenameElement(const OLECHAR *pwcsOldName,
-	        const OLECHAR *pwcsNewName);
-	virtual HRESULT STDMETHODCALLTYPE SetElementTimes(const OLECHAR *pwcsName,
-	        const FILETIME *pctime, const FILETIME *patime, const FILETIME *pmtime);
-	virtual HRESULT STDMETHODCALLTYPE SetClass(REFCLSID clsid);
-	virtual HRESULT STDMETHODCALLTYPE SetStateBits(DWORD grfStateBits, DWORD grfMask);
-	virtual HRESULT STDMETHODCALLTYPE Stat(STATSTG *pstatstg, DWORD grfStatFlag);
-
-public:
 	// IServiceProvider
 	virtual HRESULT STDMETHODCALLTYPE QueryService(REFGUID siid, REFIID riid,
 	        void **ppvObject);
@@ -164,6 +135,7 @@ private:
 	void clear();
 
 protected:
+	IStorage *storage;
 	IOleObject* oleObject;
 	IOleInPlaceObject* oleInPlaceObject;
 	IWebBrowser2* webBrowser2;

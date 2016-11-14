@@ -129,17 +129,13 @@ WebView::WebView(exlib::string url, exlib::string title, AsyncEvent* ac)
 	SetWindowLongPtr(hWndParent, 0, (LONG_PTR)this);
 	AddRef();
 
-	::OleCreate(CLSID_WebBrowser,
-	            IID_IOleObject, OLERENDER_DRAW, 0, this, this,
+	StgCreateDocfile(NULL, STGM_READWRITE | STGM_SHARE_EXCLUSIVE | STGM_DIRECT | STGM_CREATE, 0, &storage);
+	::OleCreate(CLSID_WebBrowser, IID_IOleObject, OLERENDER_DRAW, 0, this, storage,
 	            (void**)&oleObject);
-
-	oleObject->SetClientSite(this);
-	OleSetContainedObject(oleObject, TRUE);
 
 	RECT posRect;
 	::SetRect(&posRect, -300, -300, 300, 300);
-	oleObject->DoVerb(OLEIVERB_INPLACEACTIVATE,
-	                  NULL, this, -1, hWndParent, &posRect);
+	oleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, this, -1, hWndParent, &posRect);
 	oleObject->QueryInterface(&webBrowser2);
 
 	ShowWindow(GetControlWindow(), SW_SHOW);
@@ -185,6 +181,12 @@ void WebView::clear()
 
 		oleObject->Release();
 		oleObject = NULL;
+	}
+
+	if (storage)
+	{
+		storage->Release();
+		storage = NULL;
 	}
 
 	if (m_ac)
@@ -306,8 +308,6 @@ HRESULT WebView::QueryInterface(REFIID riid, void**ppvObject)
 		*ppvObject = static_cast<IOleInPlaceSite*>(this);
 	else if (riid == IID_IDocHostUIHandler)
 		*ppvObject = static_cast<IDocHostUIHandler*>(this);
-	else if (riid == IID_IStorage)
-		*ppvObject = static_cast<IStorage*>(this);
 	else if (riid == IID_IServiceProvider)
 		*ppvObject = static_cast<IServiceProvider*>(this);
 	else if (riid == IID_IInternetSecurityManager)
@@ -367,12 +367,8 @@ HRESULT WebView::OnUIActivate(void)
 	return S_OK;
 }
 
-HRESULT WebView::GetWindowContext(
-    IOleInPlaceFrame **ppFrame,
-    IOleInPlaceUIWindow **ppDoc,
-    LPRECT lprcPosRect,
-    LPRECT lprcClipRect,
-    LPOLEINPLACEFRAMEINFO lpFrameInfo)
+HRESULT WebView::GetWindowContext(IOleInPlaceFrame **ppFrame, IOleInPlaceUIWindow **ppDoc, LPRECT lprcPosRect,
+                                  LPRECT lprcClipRect, LPOLEINPLACEFRAMEINFO lpFrameInfo)
 {
 	HWND hwnd = hWndParent;
 
@@ -440,7 +436,7 @@ HRESULT WebView::OnPosRectChange(LPCRECT lprcPosRect)
 // IOleClientSite
 HRESULT WebView::SaveObject(void)
 {
-	return E_NOTIMPL;
+	return S_OK;
 }
 
 HRESULT WebView::GetMoniker(DWORD dwAssign, DWORD dwWhichMoniker, IMoniker **ppmk)
@@ -469,14 +465,14 @@ HRESULT WebView::OnShowWindow(BOOL fShow)
 
 HRESULT WebView::RequestNewObjectLayout(void)
 {
-	return E_NOTIMPL;
+	return S_OK;
 }
 
 // IDocHostUIHandler
 HRESULT WebView::ShowContextMenu(DWORD dwID, POINT * ppt, IUnknown * pcmdtReserved,
                                  IDispatch * pdispReserved)
 {
-	return E_NOTIMPL;
+	return TRUE;
 }
 
 HRESULT WebView::GetHostInfo(DOCHOSTUIINFO * pInfo)
@@ -550,90 +546,6 @@ HRESULT WebView::TranslateUrl(DWORD dwTranslate, OLECHAR * pchURLIn, OLECHAR ** 
 }
 
 HRESULT WebView::FilterDataObject(IDataObject * pDO, IDataObject ** ppDORet)
-{
-	return E_NOTIMPL;
-}
-
-// IStorage
-HRESULT WebView::CreateStream(const OLECHAR* pwcsName, DWORD grfMode, DWORD reserved1,
-                              DWORD reserved2, IStream **ppstm)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::OpenStream(const OLECHAR* pwcsName, void *reserved1, DWORD grfMode,
-                            DWORD reserved2, IStream **ppstm)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::CreateStorage(const OLECHAR* pwcsName, DWORD grfMode, DWORD reserved1,
-                               DWORD reserved2, IStorage **ppstg)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::OpenStorage(const OLECHAR* pwcsName, IStorage* pstgPriority, DWORD grfMode,
-                             SNB snbExclude, DWORD reserved, IStorage **ppstg)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::CopyTo(DWORD ciidExclude, const IID* rgiidExclude, SNB snbExclude,
-                        IStorage* pstgDest)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::MoveElementTo(const OLECHAR* pwcsName, IStorage* pstgDest,
-                               const OLECHAR* pwcsNewName, DWORD grfFlags)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::Commit(DWORD grfCommitFlags)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::Revert(void)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::EnumElements(DWORD reserved1, void *reserved2, DWORD reserved3,
-                              IEnumSTATSTG **ppenum)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::DestroyElement(const OLECHAR* pwcsName)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::RenameElement(const OLECHAR* pwcsOldName, const OLECHAR* pwcsNewName)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::SetElementTimes(const OLECHAR* pwcsName, const FILETIME* pctime,
-                                 const FILETIME* patime, const FILETIME* pmtime)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::SetClass(REFCLSID clsid)
-{
-	return S_OK;
-}
-
-HRESULT WebView::SetStateBits(DWORD grfStateBits, DWORD grfMask)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::Stat(STATSTG* pstatstg, DWORD grfStatFlag)
 {
 	return E_NOTIMPL;
 }
