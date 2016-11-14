@@ -304,6 +304,8 @@ HRESULT WebView::QueryInterface(REFIID riid, void**ppvObject)
 		*ppvObject = static_cast<IOleClientSite*>(this);
 	else if (riid == IID_IOleInPlaceSite)
 		*ppvObject = static_cast<IOleInPlaceSite*>(this);
+	else if (riid == IID_IDocHostUIHandler)
+		*ppvObject = static_cast<IDocHostUIHandler*>(this);
 	else if (riid == IID_IStorage)
 		*ppvObject = static_cast<IStorage*>(this);
 	else if (riid == IID_IServiceProvider)
@@ -466,6 +468,88 @@ HRESULT WebView::OnShowWindow(BOOL fShow)
 }
 
 HRESULT WebView::RequestNewObjectLayout(void)
+{
+	return E_NOTIMPL;
+}
+
+// IDocHostUIHandler
+HRESULT WebView::ShowContextMenu(DWORD dwID, POINT * ppt, IUnknown * pcmdtReserved,
+                                 IDispatch * pdispReserved)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::GetHostInfo(DOCHOSTUIINFO * pInfo)
+{
+	if (pInfo != NULL)
+		pInfo->dwFlags |= DOCHOSTUIFLAG_SCROLL_NO | DOCHOSTUIFLAG_NO3DBORDER;
+
+	return S_OK;
+}
+
+HRESULT WebView::ShowUI(DWORD dwID, IOleInPlaceActiveObject * pActiveObject,
+                        IOleCommandTarget * pCommandTarget, IOleInPlaceFrame * pFrame,
+                        IOleInPlaceUIWindow * pDoc)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::HideUI(void)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::UpdateUI(void)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::EnableModeless(BOOL fEnable)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::OnDocWindowActivate(BOOL fActivate)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::OnFrameWindowActivate(BOOL fActivate)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::ResizeBorder(LPCRECT prcBorder, IOleInPlaceUIWindow * pUIWindow, BOOL fRameWindow)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::TranslateAccelerator(LPMSG lpMsg, const GUID * pguidCmdGroup, DWORD nCmdID)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::GetOptionKeyPath(LPOLESTR * pchKey, DWORD dw)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::GetDropTarget(IDropTarget * pDropTarget, IDropTarget ** ppDropTarget)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::GetExternal(IDispatch ** ppDispatch)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::TranslateUrl(DWORD dwTranslate, OLECHAR * pchURLIn, OLECHAR ** ppchURLOut)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::FilterDataObject(IDataObject * pDO, IDataObject ** ppDORet)
 {
 	return E_NOTIMPL;
 }
