@@ -92,6 +92,8 @@ result_t mssql::connect(const char *server, const char *username,
     if (FAILED(hr))
         return error(hr);
 
+    m_conn->put_CommandTimeout(0);
+
     return 0;
 }
 
