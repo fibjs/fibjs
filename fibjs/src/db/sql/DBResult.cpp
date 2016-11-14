@@ -35,7 +35,10 @@ result_t DBResult::freeze()
 result_t DBResult::get_length(int32_t &retVal)
 {
     if (!m_size)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+    {
+        retVal = 0;
+        return 0;
+    }
 
     return m_array->get_length(retVal);
 }
