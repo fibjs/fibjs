@@ -7,6 +7,9 @@
  */
 module gui
 {
-    /*! @brief 打开一个窗口并访问指定网址 */
-    static WebView open(String url, String title = "") async;
+	/*! @brief 打开一个窗口并访问指定网址 */
+	static WebView load(String url, String title = "") async;
+
+	/*! @brief 打开一个窗口并访问指定网址并等待窗口关闭 */
+	static open(String url, String title = "") async;
 };
