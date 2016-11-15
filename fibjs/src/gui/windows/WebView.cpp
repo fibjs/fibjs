@@ -19,12 +19,12 @@ namespace fibjs
 DECLARE_MODULE(gui);
 
 static exlib::LockedList<AsyncEvent> s_uiPool;
-static HANDLE s_sem;
+static uint32_t s_thread;
 
 void putGuiPool(AsyncEvent* ac)
 {
 	s_uiPool.putTail(ac);
-	ReleaseSemaphore(s_sem, 1, NULL);
+	PostThreadMessage(s_thread, WM_USER + 1000, 0, 0);
 }
 
 class gui_thread : public exlib::OSThread
@@ -36,27 +36,23 @@ public:
 
 		while (true)
 		{
-			if (MsgWaitForMultipleObjects(1, &s_sem, FALSE, INFINITE, QS_ALLEVENTS) == WAIT_OBJECT_0)
-			{
-				AsyncEvent *p = s_uiPool.getHead();
+			AsyncEvent *p = s_uiPool.getHead();
+			if (p)
 				p->invoke();
-			} else
-			{
-				MSG msg;
-				if (GetMessage(&msg, NULL, 0, 0))
-				{
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
-				}
-			}
+
+			MSG msg;
+			GetMessage(&msg, NULL, 0, 0);
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
 	}
 };
 
 void init_gui()
 {
-	s_sem = ::CreateSemaphore(NULL, 0, LONG_MAX, NULL);
-	(new gui_thread())->start();
+	gui_thread* _thGUI = new gui_thread();
+	_thGUI->start();
+	s_thread = _thGUI->thread_id;
 }
 
 result_t gui_base::load(exlib::string url, exlib::string title,
