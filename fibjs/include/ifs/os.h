@@ -38,6 +38,7 @@ public:
     static result_t CPUInfo(v8::Local<v8::Array>& retVal);
     static result_t CPUs(int32_t& retVal);
     static result_t networkInfo(v8::Local<v8::Object>& retVal);
+    static result_t printerInfo(v8::Local<v8::Array>& retVal);
     static result_t time(exlib::string tmString, date_t& retVal);
     static result_t dateAdd(date_t d, int32_t num, exlib::string part, date_t& retVal);
     static result_t get_execPath(exlib::string& retVal);
@@ -68,6 +69,7 @@ public:
     static void s_CPUInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_CPUs(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_networkInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_time(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -91,6 +93,7 @@ namespace fibjs
             {"CPUInfo", s_CPUInfo, true},
             {"CPUs", s_CPUs, true},
             {"networkInfo", s_networkInfo, true},
+            {"printerInfo", s_printerInfo, true},
             {"time", s_time, true},
             {"dateAdd", s_dateAdd, true},
             {"memoryUsage", s_memoryUsage, true}
@@ -115,7 +118,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "os", s__new, NULL, 
-            10, s_method, 1, s_object, 7, s_property, NULL, NULL,
+            11, s_method, 1, s_object, 7, s_property, NULL, NULL,
             NULL
         };
 
@@ -273,6 +276,17 @@ namespace fibjs
         METHOD_ENTER(0, 0);
 
         hr = networkInfo(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void os_base::s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Array> vr;
+
+        METHOD_ENTER(0, 0);
+
+        hr = printerInfo(vr);
 
         METHOD_RETURN();
     }

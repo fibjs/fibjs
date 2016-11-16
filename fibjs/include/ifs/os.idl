@@ -64,6 +64,11 @@ module os
     */
     static Object networkInfo();
 
+    /*! @brief 查询当前主机的打印机信息
+     @return 返回打印机信息
+    */
+    static Array printerInfo();
+
     /*! @brief 解析时间字符串或查询运行环境当前时间
      @param tmString 时间字符串，缺省则查询当前时间
      @return 返回 javascript Date 对象

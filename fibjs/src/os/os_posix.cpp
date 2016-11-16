@@ -115,6 +115,11 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
     return 0;
 }
 
+result_t os_base::printerInfo(v8::Local<v8::Array>& retVal)
+{
+    return CALL_E_INVALID_CALL;
+}
+
 result_t process_base::cwd(exlib::string &retVal)
 {
 

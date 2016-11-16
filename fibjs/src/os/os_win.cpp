@@ -434,6 +434,49 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
     return 0;
 }
 
+result_t os_base::printerInfo(v8::Local<v8::Array>& retVal)
+{
+    char pname[256];
+    DWORD dwSize = sizeof(pname);
+    DWORD dwNeeded, dwReturned;
+    PRINTER_INFO_5* pinfo;
+
+    GetDefaultPrinter(pname, &dwSize);
+
+    EnumPrinters(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS,
+                 NULL, 5, NULL, 0, &dwNeeded, &dwReturned);
+
+    pinfo = (PRINTER_INFO_5*)malloc(dwNeeded);
+
+    EnumPrinters(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS,
+                 NULL, 5, (PBYTE)pinfo, dwNeeded, &dwNeeded, &dwReturned);
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Array> ret;
+    ret = v8::Array::New(isolate->m_isolate);
+    retVal = ret;
+
+    for (DWORD i = 0; i < dwReturned; i++)
+    {
+        v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+        PRINTER_INFO_5* pItem = &pinfo[i];
+        o->Set(isolate->NewFromUtf8("name"), isolate->NewFromUtf8(pItem->pPrinterName));
+        o->Set(isolate->NewFromUtf8("port"), isolate->NewFromUtf8(pItem->pPortName));
+        if (PRINTER_ATTRIBUTE_LOCAL & pItem->Attributes)
+            o->Set(isolate->NewFromUtf8("type"), isolate->NewFromUtf8("local"));
+        else if (PRINTER_ATTRIBUTE_NETWORK & pItem->Attributes)
+            o->Set(isolate->NewFromUtf8("type"), isolate->NewFromUtf8("network"));
+
+        if (!qstrcmp(pname, pItem->pPrinterName))
+            o->Set(isolate->NewFromUtf8("default"), v8::True(isolate->m_isolate));
+
+        ret->Set(ret->Length(), o);
+    }
+    free(pinfo);
+
+    return 0;
+}
+
 result_t os_base::get_execPath(exlib::string &retVal)
 {
     exlib::wchar szFileName[MAX_PATH];
