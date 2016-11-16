@@ -70,6 +70,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
         hr = zfile->cc_read(member, "", data);
         if (hr < 0)
         {
+            hr = CALL_E_FILE_NOT_FOUND;
 #ifdef _WIN32
             bool bChanged = false;
             int32_t sz = (int32_t)member.length();
