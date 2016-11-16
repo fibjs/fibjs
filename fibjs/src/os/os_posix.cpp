@@ -120,6 +120,12 @@ result_t os_base::printerInfo(v8::Local<v8::Array>& retVal)
     return CALL_E_INVALID_CALL;
 }
 
+result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& retVal,
+                              AsyncEvent* ac)
+{
+    return CALL_E_INVALID_CALL;
+}
+
 result_t process_base::cwd(exlib::string &retVal)
 {
 

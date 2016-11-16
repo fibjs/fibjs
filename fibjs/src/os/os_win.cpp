@@ -17,6 +17,7 @@
 #include <psapi.h>
 #include "utf8.h"
 #include "inetAddr.h"
+#include "BufferedStream.h"
 
 typedef struct
     _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION
@@ -436,20 +437,20 @@ result_t os_base::networkInfo(v8::Local<v8::Object> &retVal)
 
 result_t os_base::printerInfo(v8::Local<v8::Array>& retVal)
 {
-    char pname[256];
-    DWORD dwSize = sizeof(pname);
+    wchar_t pname[256];
+    DWORD dwSize = 256;
     DWORD dwNeeded, dwReturned;
-    PRINTER_INFO_5* pinfo;
+    PRINTER_INFO_5W* pinfo;
 
-    GetDefaultPrinter(pname, &dwSize);
+    GetDefaultPrinterW(pname, &dwSize);
 
-    EnumPrinters(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS,
-                 NULL, 5, NULL, 0, &dwNeeded, &dwReturned);
+    EnumPrintersW(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS,
+                  NULL, 5, NULL, 0, &dwNeeded, &dwReturned);
 
-    pinfo = (PRINTER_INFO_5*)malloc(dwNeeded);
+    pinfo = (PRINTER_INFO_5W*)malloc(dwNeeded);
 
-    EnumPrinters(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS,
-                 NULL, 5, (PBYTE)pinfo, dwNeeded, &dwNeeded, &dwReturned);
+    EnumPrintersW(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS,
+                  NULL, 5, (PBYTE)pinfo, dwNeeded, &dwNeeded, &dwReturned);
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Array> ret;
@@ -459,9 +460,9 @@ result_t os_base::printerInfo(v8::Local<v8::Array>& retVal)
     for (DWORD i = 0; i < dwReturned; i++)
     {
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-        PRINTER_INFO_5* pItem = &pinfo[i];
-        o->Set(isolate->NewFromUtf8("name"), isolate->NewFromUtf8(pItem->pPrinterName));
-        o->Set(isolate->NewFromUtf8("port"), isolate->NewFromUtf8(pItem->pPortName));
+        PRINTER_INFO_5W* pItem = &pinfo[i];
+        o->Set(isolate->NewFromUtf8("name"), isolate->NewFromUtf8(UTF8_A(pItem->pPrinterName)));
+        o->Set(isolate->NewFromUtf8("port"), isolate->NewFromUtf8(UTF8_A(pItem->pPortName)));
         if (PRINTER_ATTRIBUTE_LOCAL & pItem->Attributes)
             o->Set(isolate->NewFromUtf8("type"), isolate->NewFromUtf8("local"));
         else if (PRINTER_ATTRIBUTE_NETWORK & pItem->Attributes)
@@ -474,6 +475,106 @@ result_t os_base::printerInfo(v8::Local<v8::Array>& retVal)
     }
     free(pinfo);
 
+    return 0;
+}
+
+result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& retVal,
+                              AsyncEvent* ac)
+{
+    class PrinterStream: public Stream_base
+    {
+    public:
+        PrinterStream(HANDLE hPrinter) : m_hPrinter(hPrinter)
+        {
+        }
+
+        ~PrinterStream()
+        {
+            if (m_hPrinter)
+            {
+                EndPagePrinter(m_hPrinter);
+                EndDocPrinter(m_hPrinter);
+                ClosePrinter(m_hPrinter);
+                m_hPrinter = NULL;
+            }
+        }
+
+    public:
+        // Stream_base
+        result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
+        {
+            return CALL_E_INVALID_CALL;
+        }
+
+        result_t write(Buffer_base *data, AsyncEvent *ac)
+        {
+            if (!ac)
+                return CHECK_ERROR(CALL_E_LONGSYNC);
+
+            DWORD dwBytesWritten;
+            exlib::string strData;
+
+            data->toString(strData);
+            if (!WritePrinter(m_hPrinter, (void*)strData.c_str(),
+                              (DWORD)strData.length(), &dwBytesWritten))
+                return CHECK_ERROR(LastError());
+
+            return 0;
+        }
+
+        result_t close(AsyncEvent *ac)
+        {
+            if (!ac)
+                return CHECK_ERROR(CALL_E_LONGSYNC);
+
+            if (m_hPrinter)
+            {
+                EndPagePrinter(m_hPrinter);
+                EndDocPrinter(m_hPrinter);
+                ClosePrinter(m_hPrinter);
+                m_hPrinter = NULL;
+            }
+
+            return 0;
+        }
+
+        result_t copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal, AsyncEvent *ac)
+        {
+            return CALL_E_INVALID_CALL;
+        }
+
+    private:
+        HANDLE m_hPrinter;
+    };
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    HANDLE hPrinter;
+    if (!OpenPrinterW((LPWSTR)UTF8_W(name.c_str()), &hPrinter, NULL))
+        return CHECK_ERROR(LastError());
+
+    DOC_INFO_1 DocInfo;
+
+    DocInfo.pDocName = "My Document";
+    DocInfo.pOutputFile = NULL;
+    DocInfo.pDatatype = "RAW";
+
+    if (!StartDocPrinter(hPrinter, 1, (LPBYTE)&DocInfo ))
+    {
+        ClosePrinter(hPrinter);
+        return CHECK_ERROR(LastError());
+    }
+
+    if (!StartPagePrinter(hPrinter))
+    {
+        EndDocPrinter(hPrinter);
+        ClosePrinter(hPrinter);
+        return CHECK_ERROR(LastError());
+    }
+
+    obj_ptr<Stream_base> stm = new PrinterStream(hPrinter);
+    retVal = new BufferedStream(stm);
     return 0;
 }
 
