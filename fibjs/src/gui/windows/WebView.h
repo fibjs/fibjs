@@ -17,6 +17,7 @@ namespace fibjs
 {
 
 class WebView : public WebView_base,
+	public IDispatch,
 	public IOleClientSite,
 	public IOleInPlaceSite,
 	public IDocHostUIHandler,
@@ -49,90 +50,109 @@ private:
 
 public:
 	// IUnknown
-	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void**ppvObject);
-	virtual ULONG STDMETHODCALLTYPE AddRef(void);
-	virtual ULONG STDMETHODCALLTYPE Release(void);
+	STDMETHODIMP QueryInterface(REFIID riid, void**ppvObject);
+	STDMETHODIMP_(ULONG) STDMETHODCALLTYPE AddRef(void);
+	STDMETHODIMP_(ULONG) STDMETHODCALLTYPE Release(void);
+
+public:
+	// IDispatch
+	STDMETHODIMP GetIDsOfNames(REFIID riid, OLECHAR** rgszNames, unsigned int cNames, LCID lcid, DISPID* rgdispid);
+	STDMETHODIMP GetTypeInfo(unsigned int itinfo, LCID lcid, ITypeInfo** pptinfo);
+	STDMETHODIMP GetTypeInfoCount(unsigned int* pctinfo);
+	STDMETHODIMP Invoke(DISPID dispid, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pdispparams, VARIANT* pvarResult, EXCEPINFO* pexecinfo, unsigned int* puArgErr);
 
 public:
 	// IOleWindow
-	virtual HRESULT STDMETHODCALLTYPE GetWindow(HWND *phwnd);
-	virtual HRESULT STDMETHODCALLTYPE ContextSensitiveHelp(BOOL fEnterMode);
+	STDMETHODIMP GetWindow(HWND *phwnd);
+	STDMETHODIMP ContextSensitiveHelp(BOOL fEnterMode);
 
 public:
 	// IOleInPlaceSite
-	virtual HRESULT STDMETHODCALLTYPE CanInPlaceActivate(void);
-	virtual HRESULT STDMETHODCALLTYPE OnInPlaceActivate(void);
-	virtual HRESULT STDMETHODCALLTYPE OnUIActivate(void);
-	virtual HRESULT STDMETHODCALLTYPE GetWindowContext(IOleInPlaceFrame **ppFrame,
-	        IOleInPlaceUIWindow **ppDoc, LPRECT lprcPosRect, LPRECT lprcClipRect,
-	        LPOLEINPLACEFRAMEINFO lpFrameInfo);
-	virtual HRESULT STDMETHODCALLTYPE Scroll(SIZE scrollExtant);
-	virtual HRESULT STDMETHODCALLTYPE OnUIDeactivate(BOOL fUndoable);
+	STDMETHODIMP CanInPlaceActivate(void);
+	STDMETHODIMP OnInPlaceActivate(void);
+	STDMETHODIMP OnUIActivate(void);
+	STDMETHODIMP GetWindowContext(IOleInPlaceFrame **ppFrame,
+	                              IOleInPlaceUIWindow **ppDoc, LPRECT lprcPosRect, LPRECT lprcClipRect,
+	                              LPOLEINPLACEFRAMEINFO lpFrameInfo);
+	STDMETHODIMP Scroll(SIZE scrollExtant);
+	STDMETHODIMP OnUIDeactivate(BOOL fUndoable);
 	virtual HWND GetControlWindow();
-	virtual HRESULT STDMETHODCALLTYPE OnInPlaceDeactivate(void);
-	virtual HRESULT STDMETHODCALLTYPE DiscardUndoState(void);
-	virtual HRESULT STDMETHODCALLTYPE DeactivateAndUndo(void);
-	virtual HRESULT STDMETHODCALLTYPE OnPosRectChange(LPCRECT lprcPosRect);
+	STDMETHODIMP OnInPlaceDeactivate(void);
+	STDMETHODIMP DiscardUndoState(void);
+	STDMETHODIMP DeactivateAndUndo(void);
+	STDMETHODIMP OnPosRectChange(LPCRECT lprcPosRect);
 
 public:
 	// IOleClientSite
-	virtual HRESULT STDMETHODCALLTYPE SaveObject(void);
-	virtual HRESULT STDMETHODCALLTYPE GetMoniker(DWORD dwAssign, DWORD dwWhichMoniker,
-	        IMoniker **ppmk);
-	virtual HRESULT STDMETHODCALLTYPE GetContainer(IOleContainer **ppContainer);
-	virtual HRESULT STDMETHODCALLTYPE ShowObject(void);
-	virtual HRESULT STDMETHODCALLTYPE OnShowWindow(BOOL fShow);
-	virtual HRESULT STDMETHODCALLTYPE RequestNewObjectLayout(void);
+	STDMETHODIMP SaveObject(void);
+	STDMETHODIMP GetMoniker(DWORD dwAssign, DWORD dwWhichMoniker,
+	                        IMoniker **ppmk);
+	STDMETHODIMP GetContainer(IOleContainer **ppContainer);
+	STDMETHODIMP ShowObject(void);
+	STDMETHODIMP OnShowWindow(BOOL fShow);
+	STDMETHODIMP RequestNewObjectLayout(void);
 
 public:
 	// IDocHostUIHandler
-	virtual HRESULT STDMETHODCALLTYPE ShowContextMenu(DWORD dwID, POINT* ppt, IUnknown* pcmdtReserved,
-	        IDispatch* pdispReserved);
-	virtual HRESULT STDMETHODCALLTYPE GetHostInfo(DOCHOSTUIINFO* pInfo);
-	virtual HRESULT STDMETHODCALLTYPE ShowUI(DWORD dwID, IOleInPlaceActiveObject* pActiveObject,
-	        IOleCommandTarget* pCommandTarget, IOleInPlaceFrame* pFrame,
-	        IOleInPlaceUIWindow* pDoc);
-	virtual HRESULT STDMETHODCALLTYPE HideUI(void);
-	virtual HRESULT STDMETHODCALLTYPE UpdateUI(void);
-	virtual HRESULT STDMETHODCALLTYPE EnableModeless(BOOL fEnable);
-	virtual HRESULT STDMETHODCALLTYPE OnDocWindowActivate(BOOL fActivate);
-	virtual HRESULT STDMETHODCALLTYPE OnFrameWindowActivate(BOOL fActivate);
-	virtual HRESULT STDMETHODCALLTYPE ResizeBorder(LPCRECT prcBorder, IOleInPlaceUIWindow* pUIWindow,
-	        BOOL fRameWindow);
-	virtual HRESULT STDMETHODCALLTYPE TranslateAccelerator(LPMSG lpMsg, const GUID* pguidCmdGroup,
-	        DWORD nCmdID);
-	virtual HRESULT STDMETHODCALLTYPE GetOptionKeyPath(LPOLESTR* pchKey, DWORD dw);
-	virtual HRESULT STDMETHODCALLTYPE GetDropTarget(IDropTarget* pDropTarget, IDropTarget** ppDropTarget);
-	virtual HRESULT STDMETHODCALLTYPE GetExternal(IDispatch** ppDispatch);
-	virtual HRESULT STDMETHODCALLTYPE TranslateUrl(DWORD dwTranslate, OLECHAR* pchURLIn, OLECHAR** ppchURLOut);
-	virtual HRESULT STDMETHODCALLTYPE FilterDataObject(IDataObject* pDO, IDataObject** ppDORet);
+	STDMETHODIMP ShowContextMenu(DWORD dwID, POINT* ppt, IUnknown* pcmdtReserved,
+	                             IDispatch* pdispReserved);
+	STDMETHODIMP GetHostInfo(DOCHOSTUIINFO* pInfo);
+	STDMETHODIMP ShowUI(DWORD dwID, IOleInPlaceActiveObject* pActiveObject,
+	                    IOleCommandTarget* pCommandTarget, IOleInPlaceFrame* pFrame,
+	                    IOleInPlaceUIWindow* pDoc);
+	STDMETHODIMP HideUI(void);
+	STDMETHODIMP UpdateUI(void);
+	STDMETHODIMP EnableModeless(BOOL fEnable);
+	STDMETHODIMP OnDocWindowActivate(BOOL fActivate);
+	STDMETHODIMP OnFrameWindowActivate(BOOL fActivate);
+	STDMETHODIMP ResizeBorder(LPCRECT prcBorder, IOleInPlaceUIWindow* pUIWindow,
+	                          BOOL fRameWindow);
+	STDMETHODIMP TranslateAccelerator(LPMSG lpMsg, const GUID* pguidCmdGroup,
+	                                  DWORD nCmdID);
+	STDMETHODIMP GetOptionKeyPath(LPOLESTR* pchKey, DWORD dw);
+	STDMETHODIMP GetDropTarget(IDropTarget* pDropTarget, IDropTarget** ppDropTarget);
+	STDMETHODIMP GetExternal(IDispatch** ppDispatch);
+	STDMETHODIMP TranslateUrl(DWORD dwTranslate, OLECHAR* pchURLIn, OLECHAR** ppchURLOut);
+	STDMETHODIMP FilterDataObject(IDataObject* pDO, IDataObject** ppDORet);
 
 public:
 	// IServiceProvider
-	virtual HRESULT STDMETHODCALLTYPE QueryService(REFGUID siid, REFIID riid,
-	        void **ppvObject);
+	STDMETHODIMP QueryService(REFGUID siid, REFIID riid,
+	                          void **ppvObject);
 
 public:
 	// IInternetSecurityManager
-	virtual HRESULT STDMETHODCALLTYPE SetSecuritySite(IInternetSecurityMgrSite *pSite);
-	virtual HRESULT STDMETHODCALLTYPE GetSecuritySite(IInternetSecurityMgrSite **ppSite);
-	virtual HRESULT STDMETHODCALLTYPE MapUrlToZone(LPCWSTR pwszUrl, DWORD *pdwZone,
-	        DWORD dwFlags);
-	virtual HRESULT STDMETHODCALLTYPE GetSecurityId(LPCWSTR pwszUrl, BYTE *pbSecurityId,
-	        DWORD *pcbSecurityId, DWORD_PTR dwReserved);
-	virtual HRESULT STDMETHODCALLTYPE ProcessUrlAction(LPCWSTR pwszUrl, DWORD dwAction,
-	        BYTE *pPolicy, DWORD cbPolicy, BYTE *pContext, DWORD cbContext,
-	        DWORD dwFlags, DWORD dwReserved);
-	virtual HRESULT STDMETHODCALLTYPE QueryCustomPolicy(LPCWSTR pwszUrl, REFGUID guidKey,
-	        BYTE **ppPolicy, DWORD *pcbPolicy, BYTE *pContext, DWORD cbContext,
-	        DWORD dwReserved);
-	virtual HRESULT STDMETHODCALLTYPE SetZoneMapping(DWORD dwZone, LPCWSTR lpszPattern,
-	        DWORD dwFlags);
-	virtual HRESULT STDMETHODCALLTYPE GetZoneMappings(DWORD dwZone, IEnumString **ppenumString,
-	        DWORD dwFlags);
+	STDMETHODIMP SetSecuritySite(IInternetSecurityMgrSite *pSite);
+	STDMETHODIMP GetSecuritySite(IInternetSecurityMgrSite **ppSite);
+	STDMETHODIMP MapUrlToZone(LPCWSTR pwszUrl, DWORD *pdwZone,
+	                          DWORD dwFlags);
+	STDMETHODIMP GetSecurityId(LPCWSTR pwszUrl, BYTE *pbSecurityId,
+	                           DWORD *pcbSecurityId, DWORD_PTR dwReserved);
+	STDMETHODIMP ProcessUrlAction(LPCWSTR pwszUrl, DWORD dwAction,
+	                              BYTE *pPolicy, DWORD cbPolicy, BYTE *pContext, DWORD cbContext,
+	                              DWORD dwFlags, DWORD dwReserved);
+	STDMETHODIMP QueryCustomPolicy(LPCWSTR pwszUrl, REFGUID guidKey,
+	                               BYTE **ppPolicy, DWORD *pcbPolicy, BYTE *pContext, DWORD cbContext,
+	                               DWORD dwReserved);
+	STDMETHODIMP SetZoneMapping(DWORD dwZone, LPCWSTR lpszPattern,
+	                            DWORD dwFlags);
+	STDMETHODIMP GetZoneMappings(DWORD dwZone, IEnumString **ppenumString,
+	                             DWORD dwFlags);
 
 private:
 	void clear();
+	void OnBeforeNavigate2(DISPPARAMS* pDispParams);
+	void OnCommandStateChange(DISPPARAMS* pDispParams);
+	void OnDocumentBegin(DISPPARAMS* pDispParams);
+	void OnDocumentComplete(DISPPARAMS* pDispParams);
+	void OnDownloadBegin(DISPPARAMS* pDispParams);
+	void OnDownloadComplete(DISPPARAMS* pDispParams);
+	void OnNavigateComplete2(DISPPARAMS* pDispParams);
+	void OnNewWindow2(DISPPARAMS* pDispParams);
+	void OnProgressChange(DISPPARAMS* pDispParams);
+	void OnPropertyChange(DISPPARAMS* pDispParams);
+	void OnStatusTextChange(DISPPARAMS* pDispParams);
+	void OnTitleChange(DISPPARAMS* pDispParams);
 
 protected:
 	IStorage *storage;

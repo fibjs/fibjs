@@ -12,6 +12,7 @@
 #include "WebView.h"
 #include "utf8.h"
 #include <exlib/include/thread.h>
+#include <exdispid.h>
 
 namespace fibjs
 {
@@ -133,6 +134,16 @@ WebView::WebView(exlib::string url, exlib::string title, AsyncEvent* ac)
 	::SetRect(&posRect, -300, -300, 300, 300);
 	oleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, this, -1, hWndParent, &posRect);
 	oleObject->QueryInterface(&webBrowser2);
+
+	IConnectionPointContainer* cpc;
+	IConnectionPoint* pcp = NULL;
+
+	webBrowser2->QueryInterface(IID_IConnectionPointContainer, (void**)&cpc);
+	cpc->FindConnectionPoint(DIID_DWebBrowserEvents2, &pcp);
+	cpc->Release();
+
+	DWORD eventCookie;
+	pcp->Advise((IDispatch*)this, &eventCookie);
 
 	ShowWindow(GetControlWindow(), SW_SHOW);
 
@@ -299,7 +310,9 @@ void WebView::Navigate(exlib::string szUrl)
 HRESULT WebView::QueryInterface(REFIID riid, void**ppvObject)
 {
 	if (riid == IID_IUnknown)
-		*ppvObject = static_cast<IOleClientSite*>(this);
+		*ppvObject = static_cast<IDispatch*>(this);
+	else if (riid == IID_IDispatch)
+		*ppvObject = static_cast<IDispatch*>(this);
 	else if (riid == IID_IOleInPlaceSite)
 		*ppvObject = static_cast<IOleInPlaceSite*>(this);
 	else if (riid == IID_IDocHostUIHandler)
@@ -325,6 +338,68 @@ ULONG WebView::Release(void)
 {
 	Unref();
 	return 1;
+}
+
+// IDispatch
+HRESULT WebView::GetIDsOfNames(REFIID riid, OLECHAR** rgszNames, unsigned int cNames, LCID lcid, DISPID* rgdispid)
+{
+	*rgdispid = DISPID_UNKNOWN;
+	return DISP_E_UNKNOWNNAME;
+}
+
+HRESULT WebView::GetTypeInfo(unsigned int itinfo, LCID lcid, ITypeInfo** pptinfo)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::GetTypeInfoCount(unsigned int* pctinfo)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT WebView::Invoke(DISPID dispid, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pvarResult, EXCEPINFO* pexecinfo, unsigned int* puArgErr)
+{
+	switch (dispid)
+	{
+	case DISPID_BEFORENAVIGATE2:
+		OnBeforeNavigate2(pDispParams);
+		break;
+	case DISPID_COMMANDSTATECHANGE:
+		OnCommandStateChange(pDispParams);
+		break;
+	case DISPID_DOCUMENTCOMPLETE:
+		OnDocumentComplete(pDispParams);
+		break;
+	case DISPID_DOWNLOADBEGIN:
+		OnDownloadBegin(pDispParams);
+		break;
+	case DISPID_DOWNLOADCOMPLETE:
+		OnDownloadComplete(pDispParams);
+		break;
+	case DISPID_NAVIGATECOMPLETE2:
+		OnNavigateComplete2(pDispParams);
+		break;
+	case DISPID_NEWWINDOW2:
+		OnNewWindow2(pDispParams);
+		break;
+	case DISPID_PROGRESSCHANGE:
+		OnProgressChange(pDispParams);
+		break;
+
+	case DISPID_PROPERTYCHANGE:
+		OnPropertyChange(pDispParams);
+		break;
+
+	case DISPID_STATUSTEXTCHANGE:
+		OnStatusTextChange(pDispParams);
+		break;
+
+	case DISPID_TITLECHANGE:
+		OnTitleChange(pDispParams);
+		break;
+	}
+
+	return S_OK;
 }
 
 // IOleWindow
@@ -426,6 +501,7 @@ HRESULT WebView::DeactivateAndUndo(void)
 
 HRESULT WebView::OnPosRectChange(LPCRECT lprcPosRect)
 {
+	puts("OnPosRectChange");
 	return E_NOTIMPL;
 }
 
@@ -735,6 +811,57 @@ HRESULT WebView::SetZoneMapping(DWORD dwZone, LPCWSTR lpszPattern, DWORD dwFlags
 HRESULT WebView::GetZoneMappings(DWORD dwZone, IEnumString **ppenumString, DWORD dwFlags)
 {
 	return E_NOTIMPL;
+}
+
+// event
+void WebView::OnBeforeNavigate2(DISPPARAMS* pDispParams)
+{
+}
+
+void WebView::OnCommandStateChange(DISPPARAMS* pDispParams)
+{
+}
+
+void WebView::OnDocumentBegin(DISPPARAMS* pDispParams)
+{
+}
+
+void WebView::OnDocumentComplete(DISPPARAMS* pDispParams)
+{
+}
+
+void WebView::OnDownloadBegin(DISPPARAMS* pDispParams)
+{
+}
+
+void WebView::OnDownloadComplete(DISPPARAMS* pDispParams)
+{
+}
+
+void WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
+{
+}
+
+void WebView::OnNewWindow2(DISPPARAMS* pDispParams)
+{
+}
+
+void WebView::OnProgressChange(DISPPARAMS* pDispParams)
+{
+}
+
+void WebView::OnPropertyChange(DISPPARAMS* pDispParams)
+{
+}
+
+void WebView::OnStatusTextChange(DISPPARAMS* pDispParams)
+{
+}
+
+void WebView::OnTitleChange(DISPPARAMS* pDispParams)
+{
+	if (pDispParams->cArgs > 0 && pDispParams->rgvarg[0].vt == VT_BSTR)
+		SetWindowTextW(hWndParent, pDispParams->rgvarg[0].bstrVal);
 }
 
 }
