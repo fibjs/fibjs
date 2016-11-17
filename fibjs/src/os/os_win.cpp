@@ -492,8 +492,6 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
         {
             if (m_hPrinter)
             {
-                EndPagePrinter(m_hPrinter);
-                EndDocPrinter(m_hPrinter);
                 ClosePrinter(m_hPrinter);
                 m_hPrinter = NULL;
             }
@@ -511,13 +509,36 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
             if (!ac)
                 return CHECK_ERROR(CALL_E_LONGSYNC);
 
+            DOC_INFO_1 DocInfo;
+
+            DocInfo.pDocName = "My Document";
+            DocInfo.pOutputFile = NULL;
+            DocInfo.pDatatype = "RAW";
+
+            if (!StartDocPrinter(m_hPrinter, 1, (LPBYTE)&DocInfo ))
+                return CHECK_ERROR(LastError());
+
+            if (!StartPagePrinter(m_hPrinter))
+            {
+                EndDocPrinter(m_hPrinter);
+                return CHECK_ERROR(LastError());
+            }
+
             DWORD dwBytesWritten;
             exlib::string strData;
 
             data->toString(strData);
+
             if (!WritePrinter(m_hPrinter, (void*)strData.c_str(),
                               (DWORD)strData.length(), &dwBytesWritten))
+            {
+                EndPagePrinter(m_hPrinter);
+                EndDocPrinter(m_hPrinter);
                 return CHECK_ERROR(LastError());
+            }
+
+            EndPagePrinter(m_hPrinter);
+            EndDocPrinter(m_hPrinter);
 
             return 0;
         }
@@ -529,8 +550,6 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
 
             if (m_hPrinter)
             {
-                EndPagePrinter(m_hPrinter);
-                EndDocPrinter(m_hPrinter);
                 ClosePrinter(m_hPrinter);
                 m_hPrinter = NULL;
             }
@@ -553,25 +572,6 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
     HANDLE hPrinter;
     if (!OpenPrinterW((LPWSTR)UTF8_W(name.c_str()), &hPrinter, NULL))
         return CHECK_ERROR(LastError());
-
-    DOC_INFO_1 DocInfo;
-
-    DocInfo.pDocName = "My Document";
-    DocInfo.pOutputFile = NULL;
-    DocInfo.pDatatype = "RAW";
-
-    if (!StartDocPrinter(hPrinter, 1, (LPBYTE)&DocInfo ))
-    {
-        ClosePrinter(hPrinter);
-        return CHECK_ERROR(LastError());
-    }
-
-    if (!StartPagePrinter(hPrinter))
-    {
-        EndDocPrinter(hPrinter);
-        ClosePrinter(hPrinter);
-        return CHECK_ERROR(LastError());
-    }
 
     obj_ptr<Stream_base> stm = new PrinterStream(hPrinter);
     retVal = new BufferedStream(stm);
