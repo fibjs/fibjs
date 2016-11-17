@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "ifs/ssl.h"
+#include "ifs/os.h"
 #include "Socket.h"
 #include "Smtp.h"
 #include "Url.h"
@@ -15,6 +16,11 @@ namespace fibjs
 {
 
 DECLARE_MODULE(net);
+
+result_t net_base::info(v8::Local<v8::Object>& retVal)
+{
+    return os_base::networkInfo(retVal);
+}
 
 result_t net_base::resolve(exlib::string name, int32_t family,
                            exlib::string &retVal, AsyncEvent *ac)

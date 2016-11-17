@@ -20,6 +20,11 @@ module net
     /*! @brief 协议族常量，指定 udp*/
     const Integer SOCK_DGRAM = 2;
 
+    /*! @brief 查询当前运行环境网络信息
+     @return 返回网卡信息
+    */
+    static Object info();
+
     /*! @brief 查询给定的主机名的地址
      @param name 指定主机名
      @param family 指定查询返回类型，缺省为 AF_INET

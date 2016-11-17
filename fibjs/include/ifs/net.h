@@ -37,6 +37,7 @@ public:
 
 public:
     // net_base
+    static result_t info(v8::Local<v8::Object>& retVal);
     static result_t resolve(exlib::string name, int32_t family, exlib::string& retVal, AsyncEvent* ac);
     static result_t ip(exlib::string name, exlib::string& retVal, AsyncEvent* ac);
     static result_t ipv6(exlib::string name, exlib::string& retVal, AsyncEvent* ac);
@@ -61,6 +62,7 @@ public:
     static void s_get_AF_INET6(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_info(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_ip(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_ipv6(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -91,6 +93,7 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
+            {"info", s_info, true},
             {"resolve", s_resolve, true},
             {"ip", s_ip, true},
             {"ipv6", s_ipv6, true},
@@ -118,7 +121,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "net", s__new, NULL, 
-            6, s_method, 4, s_object, 4, s_property, NULL, NULL,
+            7, s_method, 4, s_object, 4, s_property, NULL, NULL,
             NULL
         };
 
@@ -151,6 +154,17 @@ namespace fibjs
     {
         int32_t vr = _SOCK_DGRAM;
         PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void net_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Object> vr;
+
+        METHOD_ENTER(0, 0);
+
+        hr = info(vr);
+
         METHOD_RETURN();
     }
 
