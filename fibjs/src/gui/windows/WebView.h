@@ -51,8 +51,8 @@ private:
 public:
 	// IUnknown
 	STDMETHODIMP QueryInterface(REFIID riid, void**ppvObject);
-	STDMETHODIMP_(ULONG) STDMETHODCALLTYPE AddRef(void);
-	STDMETHODIMP_(ULONG) STDMETHODCALLTYPE Release(void);
+	STDMETHODIMP_(ULONG) AddRef(void);
+	STDMETHODIMP_(ULONG) Release(void);
 
 public:
 	// IDispatch

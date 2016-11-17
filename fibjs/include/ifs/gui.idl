@@ -7,9 +7,16 @@
  */
 module gui
 {
-	/*! @brief 打开一个窗口并访问指定网址 */
+	/*! @brief 打开一个窗口并访问指定网址
+	 @param url 指定的网址，，可以使用 fs:path 访问本地文件系统
+	 @param title 初始化窗口标题，页面加载后会被替换
+	 @return 返回打开的窗口对象
+	 */
 	static WebView load(String url, String title = "") async;
 
-	/*! @brief 打开一个窗口并访问指定网址并等待窗口关闭 */
+	/*! @brief 打开一个窗口并访问指定网址并等待窗口关闭
+	 @param url 指定的网址，，可以使用 fs:path 访问本地文件系统
+	 @param title 初始化窗口标题，页面加载后会被替换
+	 */
 	static open(String url, String title = "") async;
 };

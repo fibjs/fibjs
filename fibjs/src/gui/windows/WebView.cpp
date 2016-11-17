@@ -9,6 +9,7 @@
 
 #include "object.h"
 #include "ifs/gui.h"
+#include "ifs/fs.h"
 #include "WebView.h"
 #include "utf8.h"
 #include <exlib/include/thread.h>
@@ -28,12 +29,203 @@ void putGuiPool(AsyncEvent* ac)
 	PostThreadMessage(s_thread, WM_USER + 1000, 0, 0);
 }
 
-class gui_thread : public exlib::OSThread
+class gui_thread :
+	public exlib::OSThread,
+	public IClassFactory
 {
+private:
+	class FSProtocol : public IInternetProtocol
+	{
+	public:
+		FSProtocol(void) : m_cnt(0), m_pProtSink(NULL)
+		{}
+
+		~FSProtocol(void)
+		{
+			Clear();
+		}
+
+	public:
+		// IUnknown
+		STDMETHODIMP_(ULONG) AddRef(void)
+		{
+			return ++m_cnt;
+		}
+
+		STDMETHODIMP_(ULONG) Release(void)
+		{
+			if (--m_cnt == 0)
+			{
+				delete this;
+				return 0;
+			}
+
+			return m_cnt;
+		}
+
+		STDMETHODIMP QueryInterface(REFIID riid, void**ppvObject)
+		{
+			if (riid == IID_IUnknown || riid == IID_IInternetProtocol)
+				*ppvObject = static_cast<IInternetProtocol*>(this);
+			else
+				return E_NOINTERFACE;
+
+			AddRef();
+			return S_OK;
+
+		}
+
+	public:
+		// IInternetProtocol
+		STDMETHODIMP Start(LPCWSTR szUrl, IInternetProtocolSink *pIProtSink,
+		                   IInternetBindInfo *pIBindInfo, DWORD grfSTI,
+		                   HANDLE_PTR dwReserved)
+		{
+			if (!szUrl || pIProtSink < (IInternetProtocolSink*)0x10000)
+				return E_POINTER;
+
+			if (grfSTI & PI_PARSE_URL)
+				return S_OK;
+
+			m_pProtSink = pIProtSink;
+			m_pProtSink->AddRef();
+
+			result_t hr = fs_base::cc_open(UTF8_A(szUrl + 3), "r", m_file);
+			if (hr < 0)
+				return INET_E_OBJECT_NOT_FOUND;
+
+			LPWSTR pwszMimeType = 0;
+			if (SUCCEEDED(FindMimeFromData(NULL, szUrl, NULL, 0, NULL, 0,
+			                               &pwszMimeType, 0)))
+				m_pProtSink->ReportProgress(BINDSTATUS_VERIFIEDMIMETYPEAVAILABLE,
+				                            pwszMimeType);
+			else m_pProtSink->ReportProgress(BINDSTATUS_VERIFIEDMIMETYPEAVAILABLE,
+				                                 L"text/html");
+			if (pwszMimeType)
+				CoTaskMemFree(pwszMimeType);
+
+			return m_pProtSink->ReportData(
+			           BSCF_FIRSTDATANOTIFICATION |
+			           BSCF_LASTDATANOTIFICATION |
+			           BSCF_DATAFULLYAVAILABLE, 1, 0);
+		}
+
+		STDMETHODIMP Continue(PROTOCOLDATA *pStateInfo)
+		{
+			return E_NOTIMPL;
+		}
+
+		STDMETHODIMP Abort(HRESULT hrReason, DWORD dwOptions)
+		{
+			HRESULT hr = E_FAIL;
+
+			if (SUCCEEDED(hrReason))
+				hrReason = E_ABORT;
+
+			if (m_pProtSink)
+				hr = m_pProtSink->ReportResult(hrReason, 0, 0);
+
+			return hr;
+		}
+
+		STDMETHODIMP Terminate(DWORD dwOptions)
+		{
+			Clear();
+			return S_OK;
+		}
+
+		STDMETHODIMP Suspend()
+		{
+			return E_NOTIMPL;
+		}
+
+		STDMETHODIMP Resume()
+		{
+			return E_NOTIMPL;
+		}
+
+		STDMETHODIMP Read(void *pv, ULONG cb, ULONG *pcbRead)
+		{
+			*pcbRead = 0;
+
+			if (m_file)
+			{
+				obj_ptr<Buffer_base> buf;
+
+				result_t hr = m_file->cc_read(cb, buf);
+				if (hr < 0 || hr == CALL_RETURN_NULL)
+					*pcbRead = 0;
+				else
+				{
+					exlib::string strbuf;
+
+					buf->toString(strbuf);
+					memcpy(pv, strbuf.c_str(),
+					       *pcbRead = (ULONG)strbuf.length());
+				}
+			}
+
+			if (!*pcbRead)
+			{
+				if (m_pProtSink)
+					m_pProtSink->ReportResult(S_OK, 0, 0);
+
+				return S_FALSE;
+			}
+
+			return S_OK;
+		}
+
+		STDMETHODIMP Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin,
+		                  ULARGE_INTEGER *plibNewPosition)
+		{
+			return INET_E_DEFAULT_ACTION;
+		}
+
+		STDMETHODIMP LockRequest(DWORD dwOptions)
+		{
+			return INET_E_DEFAULT_ACTION;
+		}
+
+		STDMETHODIMP UnlockRequest()
+		{
+			return INET_E_DEFAULT_ACTION;
+		}
+
+	private:
+		void Clear()
+		{
+			m_file.Release();
+
+			if (m_pProtSink)
+			{
+				m_pProtSink->Release();
+				m_pProtSink = NULL;
+			}
+		}
+
+		ULONG m_cnt;
+		obj_ptr<SeekableStream_base> m_file;
+		IInternetProtocolSink* m_pProtSink;
+	};
+
 public:
 	virtual void Run()
 	{
+		Runtime rt(NULL);
+
 		OleInitialize(NULL);
+
+		IInternetSecurityManager *pSecurityManager = NULL;
+		CoCreateInstance( CLSID_InternetSecurityManager, NULL,
+		                  CLSCTX_INPROC_SERVER, IID_IInternetSecurityManager,
+		                  (void **)&pSecurityManager );
+		pSecurityManager->SetZoneMapping(URLZONE_TRUSTED, L"fs", SZM_CREATE);
+		pSecurityManager->Release();
+
+		IInternetSession* pSession;
+		CoInternetGetSession(0, &pSession, 0);
+		pSession->RegisterNameSpace(this, IID_NULL, L"fs", 0, 0, 0);
 
 		while (true)
 		{
@@ -46,6 +238,51 @@ public:
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+	}
+
+public:
+	// IUnknown
+	STDMETHODIMP QueryInterface(REFIID riid, void**ppvObject)
+	{
+		if (riid == IID_IUnknown || riid == IID_IClassFactory)
+			*ppvObject = static_cast<IClassFactory*>(this);
+		else
+			return E_NOINTERFACE;
+
+		AddRef();
+		return S_OK;
+
+	}
+
+	STDMETHODIMP_(ULONG) AddRef(void)
+	{
+		return 1;
+	}
+
+	STDMETHODIMP_(ULONG) Release(void)
+	{
+		return 1;
+	}
+
+public:
+	STDMETHODIMP CreateInstance(LPUNKNOWN pUnkOuter, REFIID riid, void** ppvObj)
+	{
+		if (ppvObj == NULL)
+			return E_POINTER;
+
+		if (pUnkOuter != NULL)
+			return CLASS_E_NOAGGREGATION;
+
+		FSProtocol* fsp = new FSProtocol;
+		*ppvObj = fsp;
+		fsp->AddRef();
+
+		return S_OK;
+	}
+
+	STDMETHODIMP LockServer(BOOL fLock)
+	{
+		return S_OK;
 	}
 };
 
