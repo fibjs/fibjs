@@ -81,7 +81,7 @@ private:
 		                   IInternetBindInfo *pIBindInfo, DWORD grfSTI,
 		                   HANDLE_PTR dwReserved)
 		{
-			if (!szUrl || pIProtSink < (IInternetProtocolSink*)0x10000)
+			if (!szUrl || !pIProtSink)
 				return E_POINTER;
 
 			if (grfSTI & PI_PARSE_URL)
@@ -273,8 +273,11 @@ public:
 		if (pUnkOuter != NULL)
 			return CLASS_E_NOAGGREGATION;
 
+		if (riid != IID_IUnknown && riid != IID_IInternetProtocol)
+			return E_NOINTERFACE;
+
 		FSProtocol* fsp = new FSProtocol;
-		*ppvObj = fsp;
+		*ppvObj = (IInternetProtocol*)fsp;
 		fsp->AddRef();
 
 		return S_OK;
