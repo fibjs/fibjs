@@ -9,8 +9,14 @@ module gui
 {
 	/*! @brief 打开一个窗口并访问指定网址
 	 @param url 指定的网址，，可以使用 fs:path 访问本地文件系统
-	 @param title 初始化窗口标题，页面加载后会被替换
 	 @return 返回打开的窗口对象
 	 */
-	static WebView open(String url, String title = "") async;
+	static WebView open(String url) async;
+
+	/*! @brief 打开一个窗口并访问指定网址
+	 @param url 指定的网址，，可以使用 fs:path 访问本地文件系统
+	 @param opts 打开窗口参数
+	 @return 返回打开的窗口对象
+	 */
+	static WebView open(String url, Map opt) async;
 };

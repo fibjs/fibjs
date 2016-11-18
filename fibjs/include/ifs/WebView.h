@@ -29,6 +29,8 @@ public:
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t wait(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
+    virtual result_t onmove(v8::Local<v8::Function> func, int32_t& retVal) = 0;
+    virtual result_t onsize(v8::Local<v8::Function> func, int32_t& retVal) = 0;
     virtual result_t onclose(v8::Local<v8::Function> func, int32_t& retVal) = 0;
     virtual result_t onmessage(v8::Local<v8::Function> func, int32_t& retVal) = 0;
 
@@ -47,6 +49,8 @@ public:
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_onmove(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_onsize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -68,6 +72,8 @@ namespace fibjs
             {"close", s_close, false},
             {"wait", s_wait, false},
             {"postMessage", s_postMessage, false},
+            {"onmove", s_onmove, false},
+            {"onsize", s_onsize, false},
             {"onclose", s_onclose, false},
             {"onmessage", s_onmessage, false}
         };
@@ -75,7 +81,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "WebView", s__new, NULL, 
-            5, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            7, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &Trigger_base::class_info()
         };
 
@@ -126,6 +132,34 @@ namespace fibjs
             hr = pInst->ac_postMessage(v0);
 
         METHOD_VOID();
+    }
+
+    inline void WebView_base::s_onmove(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(WebView_base);
+        METHOD_ENTER(1, 1);
+
+        ARG(v8::Local<v8::Function>, 0);
+
+        hr = pInst->onmove(v0, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void WebView_base::s_onsize(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(WebView_base);
+        METHOD_ENTER(1, 1);
+
+        ARG(v8::Local<v8::Function>, 0);
+
+        hr = pInst->onsize(v0, vr);
+
+        METHOD_RETURN();
     }
 
     inline void WebView_base::s_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -361,13 +361,23 @@ void init_gui()
 	s_thread = _thGUI->thread_id;
 }
 
-result_t gui_base::open(exlib::string url, exlib::string title,
+result_t gui_base::open(exlib::string url, obj_ptr<WebView_base>& retVal,
+                        AsyncEvent* ac)
+{
+	if (!ac)
+		return CHECK_ERROR(CALL_E_GUICALL);
+
+	retVal = new WebView(url);
+	return 0;
+}
+
+result_t gui_base::open(exlib::string url, Map_base* opt,
                         obj_ptr<WebView_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
 		return CHECK_ERROR(CALL_E_GUICALL);
 
-	retVal = new WebView(url, title);
+	retVal = new WebView(url, opt);
 	return 0;
 }
 
@@ -398,7 +408,7 @@ static void RegMainClass()
 	}
 }
 
-WebView::WebView(exlib::string url, exlib::string title)
+WebView::WebView(exlib::string url, Map_base* opt)
 {
 	m_ac = NULL;
 	oleObject = NULL;
@@ -408,13 +418,39 @@ WebView::WebView(exlib::string url, exlib::string title)
 
 	RegMainClass();
 
-	hWndParent = CreateWindowExW(0, szWndClassMain,
-	                             (LPCWSTR)UTF8_W(title),
-	                             WS_OVERLAPPEDWINDOW,
-	                             CW_USEDEFAULT, CW_USEDEFAULT,
-	                             CW_USEDEFAULT, CW_USEDEFAULT,
-	                             NULL, NULL, GetModuleHandle(NULL),
-	                             NULL);
+	DWORD dwStyle = WS_OVERLAPPEDWINDOW;
+	int x = CW_USEDEFAULT;
+	int y = CW_USEDEFAULT;
+	int nWidth = CW_USEDEFAULT;
+	int nHeight = CW_USEDEFAULT;
+
+	if (opt)
+	{
+		Variant v;
+
+		if (opt->get("left", v) == 0)
+			x = v;
+		if (opt->get("top", v) == 0)
+			y = v;
+		if (opt->get("width", v) == 0)
+			nWidth = v;
+		if (opt->get("height", v) == 0)
+			nHeight = v;
+
+		if (x == CW_USEDEFAULT || y == CW_USEDEFAULT)
+		{
+			x = CW_USEDEFAULT;
+			y = CW_USEDEFAULT;
+		}
+
+		if (opt->get("resizable", v) == 0 && !v.boolVal())
+			dwStyle ^= WS_THICKFRAME | WS_MAXIMIZEBOX;
+		else  if (opt->get("maximize", v) == 0 && v.boolVal())
+			dwStyle |= WS_MAXIMIZE;
+	}
+
+	hWndParent = CreateWindowExW(0, szWndClassMain, L"", dwStyle, x, y, nWidth, nHeight,
+	                             NULL, NULL, GetModuleHandle(NULL), NULL);
 	ShowWindow(hWndParent, SW_SHOW);
 
 	::SetRect(&rObject, -300, -300, 300, 300);
@@ -502,6 +538,19 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 	switch (uMsg)
 	{
+	case WM_MOVE:
+		webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
+		if (webView1 != 0)
+		{
+			RECT rcWin;
+			GetWindowRect(hWnd, &rcWin);
+			Variant vars[2];
+
+			vars[0] = (int32_t)rcWin.left;
+			vars[1] = (int32_t)rcWin.top;
+			webView1->_trigger("move", vars, 2);
+		}
+		break;
 	case WM_SIZE:
 		webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
 		if (webView1 != 0)
@@ -509,6 +558,14 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 			RECT rcClient;
 			GetClientRect(hWnd, &rcClient);
 			webView1->SetRect(rcClient);
+
+			RECT rcWin;
+			GetWindowRect(hWnd, &rcWin);
+			Variant vars[2];
+
+			vars[0] = (int32_t)(rcWin.right - rcWin.left);
+			vars[1] = (int32_t)(rcWin.bottom - rcWin.top);
+			webView1->_trigger("size", vars, 2);
 		}
 		break;
 	case WM_CLOSE:
@@ -560,6 +617,16 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 	}
 
 	return 0;
+}
+
+result_t WebView::onmove(v8::Local<v8::Function> func, int32_t& retVal)
+{
+	return on("move", func, retVal);
+}
+
+result_t WebView::onsize(v8::Local<v8::Function> func, int32_t& retVal)
+{
+	return on("size", func, retVal);
 }
 
 result_t WebView::onclose(v8::Local<v8::Function> func, int32_t& retVal)

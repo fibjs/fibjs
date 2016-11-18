@@ -12,6 +12,18 @@ interface WebView : Trigger
 	 */
 	postMessage(String msg) async;
 
+	/*! @brief 绑定窗口移动事件，相当于 on("move", func);
+	 @param func 指定事件处理函数
+	 @return 返回成功绑定的数量，如果函数已绑定则返回 0
+	*/
+	Integer onmove(Function func);
+
+	/*! @brief 绑定窗口尺寸改变事件，相当于 on("size", func);
+	 @param func 指定事件处理函数
+	 @return 返回成功绑定的数量，如果函数已绑定则返回 0
+	*/
+	Integer onsize(Function func);
+
 	/*! @brief 绑定窗口关闭事件，相当于 on("close", func);
 	 @param func 指定事件处理函数
 	 @return 返回成功绑定的数量，如果函数已绑定则返回 0

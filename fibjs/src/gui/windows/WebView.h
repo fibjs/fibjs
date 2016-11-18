@@ -27,7 +27,7 @@ class WebView : public WebView_base,
 	FIBER_FREE();
 
 public:
-	WebView(exlib::string url, exlib::string title);
+	WebView(exlib::string url, Map_base* opt = NULL);
 	~WebView();
 
 	static RECT PixelToHiMetric(const RECT& _rc);
@@ -44,6 +44,8 @@ public:
 	virtual result_t close(AsyncEvent* ac);
 	virtual result_t wait(AsyncEvent* ac);
 	virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
+	virtual result_t onmove(v8::Local<v8::Function> func, int32_t& retVal);
+	virtual result_t onsize(v8::Local<v8::Function> func, int32_t& retVal);
 	virtual result_t onclose(v8::Local<v8::Function> func, int32_t& retVal);
 	virtual result_t onmessage(v8::Local<v8::Function> func, int32_t& retVal);
 

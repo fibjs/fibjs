@@ -294,6 +294,13 @@ public:
         return m_Val.intVal;
     }
 
+    bool boolVal() const
+    {
+        if (type() != VT_Boolean)
+            return 0;
+        return m_Val.boolVal;
+    }
+
     void parseNumber(const char *str, int32_t len = -1);
     void parseDate(const char *str, int32_t len = -1)
     {
