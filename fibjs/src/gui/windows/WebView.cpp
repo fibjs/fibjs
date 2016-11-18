@@ -10,6 +10,7 @@
 #include "object.h"
 #include "ifs/gui.h"
 #include "ifs/fs.h"
+#include "path.h"
 #include "WebView.h"
 #include "utf8.h"
 #include <exlib/include/thread.h>
@@ -34,7 +35,9 @@ class gui_thread :
 	public IClassFactory
 {
 private:
-	class FSProtocol : public IInternetProtocol
+	class FSProtocol :
+		public IInternetProtocol,
+		public IInternetProtocolInfo
 	{
 	public:
 		FSProtocol(void) : m_cnt(0), m_pProtSink(NULL)
@@ -67,6 +70,8 @@ private:
 		{
 			if (riid == IID_IUnknown || riid == IID_IInternetProtocol)
 				*ppvObject = static_cast<IInternetProtocol*>(this);
+			else if (riid == IID_IInternetProtocolInfo)
+				*ppvObject = static_cast<IInternetProtocolInfo*>(this);
 			else
 				return E_NOINTERFACE;
 
@@ -192,6 +197,67 @@ private:
 			return INET_E_DEFAULT_ACTION;
 		}
 
+	public:
+		// IInternetProtocolInfo
+		STDMETHOD(ParseUrl)(LPCWSTR pwzUrl, PARSEACTION ParseAction, DWORD dwParseFlags,
+		                    LPWSTR pwzResult, DWORD cchResult, DWORD *pcchResult, DWORD dwReserved)
+		{
+			return INET_E_DEFAULT_ACTION;
+		}
+
+		STDMETHOD(CombineUrl)(LPCWSTR pwzBaseUrl, LPCWSTR pwzRelativeUrl, DWORD dwCombineFlags,
+		                      LPWSTR pwzResult, DWORD cchResult, DWORD *pcchResult, DWORD dwReserved)
+		{
+			if (pwzBaseUrl == NULL || pwzRelativeUrl == NULL || pwzResult == NULL || pcchResult == NULL)
+				return E_POINTER;
+
+			if (qstrcmp(pwzBaseUrl, L"fs:", 3))
+				return INET_E_DEFAULT_ACTION;
+
+			LPCWSTR ptr = pwzRelativeUrl;
+
+			if (qisascii(*ptr))
+			{
+				ptr ++;
+
+				while (qisascii(*ptr) || qisdigit(*ptr))
+					ptr ++;
+
+				if (*ptr == ':')
+					return INET_E_DEFAULT_ACTION;
+			}
+
+			exlib::string base(utf16to8String(pwzBaseUrl + 3));
+			exlib::string path;
+			exlib::string out;
+
+			path_base::dirname(base, path);
+			pathAdd(path, utf16to8String(pwzRelativeUrl));
+			path_base::normalize(path, out);
+
+			exlib::wstring outw = utf8to16String("fs:" + out);
+
+			if (cchResult < outw.length() + 1)
+				return E_POINTER;
+
+			exlib::qmemcpy(pwzResult, outw.c_str(), outw.length() + 1);
+			*pcchResult = outw.length() + 1;
+
+			return S_OK;
+		}
+
+		STDMETHOD(CompareUrl)(LPCWSTR pwzUrl1, LPCWSTR pwzUrl2, DWORD dwCompareFlags)
+		{
+			return INET_E_DEFAULT_ACTION;
+		}
+
+		STDMETHOD(QueryInfo)(LPCWSTR pwzUrl, QUERYOPTION QueryOption, DWORD dwQueryFlags,
+		                     LPVOID pBuffer, DWORD cbBuffer, DWORD *pcbBuf, DWORD dwReserved)
+		{
+			return INET_E_DEFAULT_ACTION;
+		}
+
+
 	private:
 		void Clear()
 		{
@@ -273,14 +339,11 @@ public:
 		if (pUnkOuter != NULL)
 			return CLASS_E_NOAGGREGATION;
 
-		if (riid != IID_IUnknown && riid != IID_IInternetProtocol)
+		if (riid != IID_IUnknown && riid != IID_IInternetProtocol &&
+		        riid != IID_IInternetProtocolInfo)
 			return E_NOINTERFACE;
 
-		FSProtocol* fsp = new FSProtocol;
-		*ppvObj = (IInternetProtocol*)fsp;
-		fsp->AddRef();
-
-		return S_OK;
+		return (new FSProtocol())->QueryInterface(riid, ppvObj);
 	}
 
 	STDMETHODIMP LockServer(BOOL fLock)
