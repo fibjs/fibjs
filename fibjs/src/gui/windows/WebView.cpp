@@ -241,7 +241,7 @@ private:
 				return E_POINTER;
 
 			exlib::qmemcpy(pwzResult, outw.c_str(), outw.length() + 1);
-			*pcchResult = outw.length() + 1;
+			*pcchResult = (ULONG)outw.length() + 1;
 
 			return S_OK;
 		}
