@@ -789,7 +789,9 @@ HRESULT WebView::ShowContextMenu(DWORD dwID, POINT * ppt, IUnknown * pcmdtReserv
 HRESULT WebView::GetHostInfo(DOCHOSTUIINFO * pInfo)
 {
 	if (pInfo != NULL)
-		pInfo->dwFlags |= DOCHOSTUIFLAG_SCROLL_NO | DOCHOSTUIFLAG_NO3DBORDER;
+		pInfo->dwFlags |= DOCHOSTUIFLAG_NO3DBORDER |
+		                  DOCHOSTUIFLAG_FLAT_SCROLLBAR |
+		                  DOCHOSTUIFLAG_THEME;
 
 	return S_OK;
 }
