@@ -428,16 +428,6 @@ WebView::WebView(exlib::string url, exlib::string title)
 	oleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, this, -1, hWndParent, &posRect);
 	oleObject->QueryInterface(&webBrowser2);
 
-	IConnectionPointContainer* cpc;
-	IConnectionPoint* pcp = NULL;
-
-	webBrowser2->QueryInterface(IID_IConnectionPointContainer, (void**)&cpc);
-	cpc->FindConnectionPoint(DIID_DWebBrowserEvents2, &pcp);
-	cpc->Release();
-
-	DWORD eventCookie;
-	pcp->Advise((IDispatch*)this, &eventCookie);
-
 	ShowWindow(GetControlWindow(), SW_SHOW);
 
 	RECT rcClient;
