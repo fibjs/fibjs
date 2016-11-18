@@ -7,9 +7,20 @@ interface WebView : Trigger
 	/*! @brief 等待当前窗口关闭 */
 	wait() async;
 
+	/*! @brief 向 webview 内发送消息
+	 @param msg 要发送的消息
+	 */
+	postMessage(String msg) async;
+
 	/*! @brief 绑定窗口关闭事件，相当于 on("close", func);
 	 @param func 指定事件处理函数
 	 @return 返回成功绑定的数量，如果函数已绑定则返回 0
 	*/
 	Integer onclose(Function func);
+
+	/*! @brief 绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func);
+	 @param func 指定事件处理函数
+	 @return 返回成功绑定的数量，如果函数已绑定则返回 0
+	*/
+	Integer onmessage(Function func);
 };

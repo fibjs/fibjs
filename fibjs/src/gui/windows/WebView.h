@@ -24,6 +24,8 @@ class WebView : public WebView_base,
 	public IServiceProvider,
 	public IInternetSecurityManager
 {
+	FIBER_FREE();
+
 public:
 	WebView(exlib::string url, exlib::string title);
 	~WebView();
@@ -41,7 +43,9 @@ public:
 	// WebView_base
 	virtual result_t close(AsyncEvent* ac);
 	virtual result_t wait(AsyncEvent* ac);
+	virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
 	virtual result_t onclose(v8::Local<v8::Function> func, int32_t& retVal);
+	virtual result_t onmessage(v8::Local<v8::Function> func, int32_t& retVal);
 
 private:
 	void GoBack();
@@ -142,24 +146,28 @@ public:
 
 private:
 	void clear();
-	void OnBeforeNavigate2(DISPPARAMS* pDispParams);
-	void OnCommandStateChange(DISPPARAMS* pDispParams);
-	void OnDocumentBegin(DISPPARAMS* pDispParams);
-	void OnDocumentComplete(DISPPARAMS* pDispParams);
-	void OnDownloadBegin(DISPPARAMS* pDispParams);
-	void OnDownloadComplete(DISPPARAMS* pDispParams);
-	void OnNavigateComplete2(DISPPARAMS* pDispParams);
-	void OnNewWindow2(DISPPARAMS* pDispParams);
-	void OnProgressChange(DISPPARAMS* pDispParams);
-	void OnPropertyChange(DISPPARAMS* pDispParams);
-	void OnStatusTextChange(DISPPARAMS* pDispParams);
-	void OnTitleChange(DISPPARAMS* pDispParams);
+	HRESULT OnBeforeNavigate2(DISPPARAMS* pDispParams);
+	HRESULT OnCommandStateChange(DISPPARAMS* pDispParams);
+	HRESULT OnDocumentBegin(DISPPARAMS* pDispParams);
+	HRESULT OnDocumentComplete(DISPPARAMS* pDispParams);
+	HRESULT OnDownloadBegin(DISPPARAMS* pDispParams);
+	HRESULT OnDownloadComplete(DISPPARAMS* pDispParams);
+	HRESULT OnNavigateComplete2(DISPPARAMS* pDispParams);
+	HRESULT OnNewWindow2(DISPPARAMS* pDispParams);
+	HRESULT OnProgressChange(DISPPARAMS* pDispParams);
+	HRESULT OnPropertyChange(DISPPARAMS* pDispParams);
+	HRESULT OnStatusTextChange(DISPPARAMS* pDispParams);
+	HRESULT OnTitleChange(DISPPARAMS* pDispParams);
+
+	HRESULT OnPostMessage(DISPPARAMS* pDispParams);
+	HRESULT OnOnMessage(DISPPARAMS* pDispParams);
 
 protected:
 	IStorage *storage;
 	IOleObject* oleObject;
 	IOleInPlaceObject* oleInPlaceObject;
 	IWebBrowser2* webBrowser2;
+	IDispatch* _onmessage;
 
 	RECT rObject;
 

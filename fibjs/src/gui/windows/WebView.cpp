@@ -205,10 +205,12 @@ private:
 			return INET_E_DEFAULT_ACTION;
 		}
 
-		STDMETHOD(CombineUrl)(LPCWSTR pwzBaseUrl, LPCWSTR pwzRelativeUrl, DWORD dwCombineFlags,
-		                      LPWSTR pwzResult, DWORD cchResult, DWORD *pcchResult, DWORD dwReserved)
+		STDMETHOD(CombineUrl)(LPCWSTR pwzBaseUrl, LPCWSTR pwzRelativeUrl,
+		                      DWORD dwCombineFlags, LPWSTR pwzResult, DWORD cchResult,
+		                      DWORD *pcchResult, DWORD dwReserved)
 		{
-			if (pwzBaseUrl == NULL || pwzRelativeUrl == NULL || pwzResult == NULL || pcchResult == NULL)
+			if (pwzBaseUrl == NULL || pwzRelativeUrl == NULL ||
+			        pwzResult == NULL || pcchResult == NULL)
 				return E_POINTER;
 
 			if (qstrcmp(pwzBaseUrl, L"fs:", 3))
@@ -402,6 +404,7 @@ WebView::WebView(exlib::string url, exlib::string title)
 	oleObject = NULL;
 	oleInPlaceObject = NULL;
 	webBrowser2 = NULL;
+	_onmessage = NULL;
 
 	RegMainClass();
 
@@ -419,7 +422,8 @@ WebView::WebView(exlib::string url, exlib::string title)
 	SetWindowLongPtr(hWndParent, 0, (LONG_PTR)this);
 	AddRef();
 
-	StgCreateDocfile(NULL, STGM_READWRITE | STGM_SHARE_EXCLUSIVE | STGM_DIRECT | STGM_CREATE, 0, &storage);
+	StgCreateDocfile(NULL, STGM_READWRITE | STGM_SHARE_EXCLUSIVE | STGM_DIRECT | STGM_CREATE,
+	                 0, &storage);
 	::OleCreate(CLSID_WebBrowser, IID_IOleObject, OLERENDER_DRAW, 0, this, storage,
 	            (void**)&oleObject);
 
@@ -445,6 +449,12 @@ WebView::~WebView()
 void WebView::clear()
 {
 	hWndParent = NULL;
+
+	if (_onmessage)
+	{
+		_onmessage->Release();
+		_onmessage = NULL;
+	}
 
 	if (webBrowser2)
 	{
@@ -534,9 +544,32 @@ result_t WebView::wait(AsyncEvent* ac)
 	return CALL_E_PENDDING;
 }
 
+result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
+{
+	if (!ac)
+		return CHECK_ERROR(CALL_E_GUICALL);
+
+	if (_onmessage)
+	{
+		_variant_t msg(UTF8_W(msg));
+		DISPPARAMS params = {&msg, NULL, 1, 0};
+		_variant_t vResult;
+
+		_onmessage->Invoke(DISPID_VALUE, IID_NULL, LOCALE_USER_DEFAULT,
+		                   DISPATCH_METHOD, &params, &vResult, NULL, NULL);
+	}
+
+	return 0;
+}
+
 result_t WebView::onclose(v8::Local<v8::Function> func, int32_t& retVal)
 {
 	return on("close", func, retVal);
+}
+
+result_t WebView::onmessage(v8::Local<v8::Function> func, int32_t& retVal)
+{
+	return on("message", func, retVal);
 }
 
 RECT WebView::PixelToHiMetric(const RECT& _rc)
@@ -632,11 +665,25 @@ ULONG WebView::Release(void)
 	return 1;
 }
 
+#define DISPID_POSTMESSAGE	(1000 + 1)
+#define DISPID_ONMESSAGE	(1000 + 2)
+
 // IDispatch
-HRESULT WebView::GetIDsOfNames(REFIID riid, OLECHAR** rgszNames, unsigned int cNames, LCID lcid, DISPID* rgdispid)
+HRESULT WebView::GetIDsOfNames(REFIID riid, OLECHAR** rgszNames,
+                               unsigned int cNames, LCID lcid, DISPID* rgdispid)
 {
-	*rgdispid = DISPID_UNKNOWN;
-	return DISP_E_UNKNOWNNAME;
+	uint32_t i;
+
+	for (i = 0; i < cNames; i ++)
+	{
+		if (!qstrcmp(rgszNames[i], L"postMessage"))
+			rgdispid[i] = DISPID_POSTMESSAGE;
+		else if (!qstrcmp(rgszNames[i], L"onmessage"))
+			rgdispid[i] = DISPID_ONMESSAGE;
+		else rgdispid[i] = DISPID_UNKNOWN;
+	}
+
+	return S_OK;
 }
 
 HRESULT WebView::GetTypeInfo(unsigned int itinfo, LCID lcid, ITypeInfo** pptinfo)
@@ -649,46 +696,39 @@ HRESULT WebView::GetTypeInfoCount(unsigned int* pctinfo)
 	return E_NOTIMPL;
 }
 
-HRESULT WebView::Invoke(DISPID dispid, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pvarResult, EXCEPINFO* pexecinfo, unsigned int* puArgErr)
+HRESULT WebView::Invoke(DISPID dispid, REFIID riid, LCID lcid, WORD wFlags,
+                        DISPPARAMS* pDispParams, VARIANT* pvarResult,
+                        EXCEPINFO* pexecinfo, unsigned int* puArgErr)
 {
 	switch (dispid)
 	{
 	case DISPID_BEFORENAVIGATE2:
-		OnBeforeNavigate2(pDispParams);
-		break;
+		return OnBeforeNavigate2(pDispParams);
 	case DISPID_COMMANDSTATECHANGE:
-		OnCommandStateChange(pDispParams);
-		break;
+		return OnCommandStateChange(pDispParams);
 	case DISPID_DOCUMENTCOMPLETE:
-		OnDocumentComplete(pDispParams);
-		break;
+		return OnDocumentComplete(pDispParams);
 	case DISPID_DOWNLOADBEGIN:
-		OnDownloadBegin(pDispParams);
-		break;
+		return OnDownloadBegin(pDispParams);
 	case DISPID_DOWNLOADCOMPLETE:
-		OnDownloadComplete(pDispParams);
-		break;
+		return OnDownloadComplete(pDispParams);
 	case DISPID_NAVIGATECOMPLETE2:
-		OnNavigateComplete2(pDispParams);
-		break;
+		return OnNavigateComplete2(pDispParams);
 	case DISPID_NEWWINDOW2:
-		OnNewWindow2(pDispParams);
-		break;
+		return OnNewWindow2(pDispParams);
 	case DISPID_PROGRESSCHANGE:
-		OnProgressChange(pDispParams);
-		break;
-
+		return OnProgressChange(pDispParams);
 	case DISPID_PROPERTYCHANGE:
-		OnPropertyChange(pDispParams);
-		break;
-
+		return OnPropertyChange(pDispParams);
 	case DISPID_STATUSTEXTCHANGE:
-		OnStatusTextChange(pDispParams);
-		break;
-
+		return OnStatusTextChange(pDispParams);
 	case DISPID_TITLECHANGE:
-		OnTitleChange(pDispParams);
-		break;
+		return OnTitleChange(pDispParams);
+
+	case DISPID_POSTMESSAGE:
+		return OnPostMessage(pDispParams);
+	case DISPID_ONMESSAGE:
+		return OnOnMessage(pDispParams);
 	}
 
 	return S_OK;
@@ -730,8 +770,9 @@ HRESULT WebView::OnUIActivate(void)
 	return S_OK;
 }
 
-HRESULT WebView::GetWindowContext(IOleInPlaceFrame **ppFrame, IOleInPlaceUIWindow **ppDoc, LPRECT lprcPosRect,
-                                  LPRECT lprcClipRect, LPOLEINPLACEFRAMEINFO lpFrameInfo)
+HRESULT WebView::GetWindowContext(IOleInPlaceFrame **ppFrame, IOleInPlaceUIWindow **ppDoc,
+                                  LPRECT lprcPosRect, LPRECT lprcClipRect,
+                                  LPOLEINPLACEFRAMEINFO lpFrameInfo)
 {
 	HWND hwnd = hWndParent;
 
@@ -880,12 +921,14 @@ HRESULT WebView::OnFrameWindowActivate(BOOL fActivate)
 	return E_NOTIMPL;
 }
 
-HRESULT WebView::ResizeBorder(LPCRECT prcBorder, IOleInPlaceUIWindow * pUIWindow, BOOL fRameWindow)
+HRESULT WebView::ResizeBorder(LPCRECT prcBorder, IOleInPlaceUIWindow * pUIWindow,
+                              BOOL fRameWindow)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT WebView::TranslateAccelerator(LPMSG lpMsg, const GUID * pguidCmdGroup, DWORD nCmdID)
+HRESULT WebView::TranslateAccelerator(LPMSG lpMsg, const GUID * pguidCmdGroup,
+                                      DWORD nCmdID)
 {
 	return E_NOTIMPL;
 }
@@ -902,7 +945,10 @@ HRESULT WebView::GetDropTarget(IDropTarget * pDropTarget, IDropTarget ** ppDropT
 
 HRESULT WebView::GetExternal(IDispatch ** ppDispatch)
 {
-	return E_NOTIMPL;
+	*ppDispatch = this;
+	AddRef();
+
+	return S_OK;
 }
 
 HRESULT WebView::TranslateUrl(DWORD dwTranslate, OLECHAR * pchURLIn, OLECHAR ** ppchURLOut)
@@ -920,10 +966,12 @@ HRESULT WebView::QueryService(
     REFGUID siid,
     REFIID riid,
     void **ppvObject) {
-	if (siid == IID_IInternetSecurityManager && riid == IID_IInternetSecurityManager) {
+	if (siid == IID_IInternetSecurityManager && riid == IID_IInternetSecurityManager)
+	{
 		*ppvObject = static_cast<IInternetSecurityManager*>(this);
 		AddRef();
-	} else {
+	} else
+	{
 		*ppvObject = 0;
 		return E_NOINTERFACE;
 	}
@@ -1107,54 +1155,104 @@ HRESULT WebView::GetZoneMappings(DWORD dwZone, IEnumString **ppenumString, DWORD
 }
 
 // event
-void WebView::OnBeforeNavigate2(DISPPARAMS* pDispParams)
+HRESULT WebView::OnBeforeNavigate2(DISPPARAMS* pDispParams)
 {
+	return E_NOTIMPL;
 }
 
-void WebView::OnCommandStateChange(DISPPARAMS* pDispParams)
+HRESULT WebView::OnCommandStateChange(DISPPARAMS* pDispParams)
 {
+	return E_NOTIMPL;
 }
 
-void WebView::OnDocumentBegin(DISPPARAMS* pDispParams)
+HRESULT WebView::OnDocumentBegin(DISPPARAMS* pDispParams)
 {
+	return E_NOTIMPL;
 }
 
-void WebView::OnDocumentComplete(DISPPARAMS* pDispParams)
+HRESULT WebView::OnDocumentComplete(DISPPARAMS* pDispParams)
 {
+	return E_NOTIMPL;
 }
 
-void WebView::OnDownloadBegin(DISPPARAMS* pDispParams)
+HRESULT WebView::OnDownloadBegin(DISPPARAMS* pDispParams)
 {
+	return E_NOTIMPL;
 }
 
-void WebView::OnDownloadComplete(DISPPARAMS* pDispParams)
+HRESULT WebView::OnDownloadComplete(DISPPARAMS* pDispParams)
 {
+	return E_NOTIMPL;
 }
 
-void WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
+HRESULT WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
 {
+	return E_NOTIMPL;
 }
 
-void WebView::OnNewWindow2(DISPPARAMS* pDispParams)
+HRESULT WebView::OnNewWindow2(DISPPARAMS* pDispParams)
 {
+	return E_NOTIMPL;
 }
 
-void WebView::OnProgressChange(DISPPARAMS* pDispParams)
+HRESULT WebView::OnProgressChange(DISPPARAMS* pDispParams)
 {
+	return E_NOTIMPL;
 }
 
-void WebView::OnPropertyChange(DISPPARAMS* pDispParams)
+HRESULT WebView::OnPropertyChange(DISPPARAMS* pDispParams)
 {
+	return E_NOTIMPL;
 }
 
-void WebView::OnStatusTextChange(DISPPARAMS* pDispParams)
+HRESULT WebView::OnStatusTextChange(DISPPARAMS* pDispParams)
 {
+	return E_NOTIMPL;
 }
 
-void WebView::OnTitleChange(DISPPARAMS* pDispParams)
+HRESULT WebView::OnTitleChange(DISPPARAMS* pDispParams)
 {
 	if (pDispParams->cArgs > 0 && pDispParams->rgvarg[0].vt == VT_BSTR)
 		SetWindowTextW(hWndParent, pDispParams->rgvarg[0].bstrVal);
+
+	return S_OK;
+}
+
+HRESULT WebView::OnPostMessage(DISPPARAMS* pDispParams)
+{
+	if (pDispParams->cArgs != 1)
+		return DISP_E_BADPARAMCOUNT;
+
+	Variant v;
+	if (pDispParams->rgvarg[0].vt == VT_BSTR)
+	{
+		v = UTF8_A(pDispParams->rgvarg[0].bstrVal);
+		_trigger("message", &v, 1);
+	}
+	else
+	{
+		_variant_t vstr(pDispParams->rgvarg[0]);
+
+		vstr.ChangeType(VT_BSTR);
+		v = UTF8_A(vstr.bstrVal);
+		_trigger("message", &v, 1);
+	}
+
+	return S_OK;
+}
+
+HRESULT WebView::OnOnMessage(DISPPARAMS* pDispParams)
+{
+	if (pDispParams->cArgs != 1)
+		return DISP_E_BADPARAMCOUNT;
+
+	if (pDispParams->rgvarg[0].vt != VT_DISPATCH)
+		return TYPE_E_TYPEMISMATCH;
+
+	_onmessage = pDispParams->rgvarg[0].pdispVal;
+	_onmessage->AddRef();
+
+	return S_OK;
 }
 
 }
