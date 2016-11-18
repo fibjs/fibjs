@@ -288,12 +288,16 @@ public:
 		CoCreateInstance( CLSID_InternetSecurityManager, NULL,
 		                  CLSCTX_INPROC_SERVER, IID_IInternetSecurityManager,
 		                  (void **)&pSecurityManager );
-		pSecurityManager->SetZoneMapping(URLZONE_TRUSTED, L"fs", SZM_CREATE);
-		pSecurityManager->Release();
+		if (pSecurityManager)
+		{
+			pSecurityManager->SetZoneMapping(URLZONE_TRUSTED, L"fs", SZM_CREATE);
+			pSecurityManager->Release();
+		}
 
-		IInternetSession* pSession;
+		IInternetSession* pSession = NULL;
 		CoInternetGetSession(0, &pSession, 0);
-		pSession->RegisterNameSpace(this, IID_NULL, L"fs", 0, 0, 0);
+		if (pSession)
+			pSession->RegisterNameSpace(this, IID_NULL, L"fs", 0, 0, 0);
 
 		while (true)
 		{
