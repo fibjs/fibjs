@@ -21,7 +21,7 @@ if (win) {
 			});
 			svr.asyncRun();
 
-			var win = gui.load("http://127.0.0.1:" + (8899 + base_port) + "/");
+			var win = gui.open("http://127.0.0.1:" + (8899 + base_port) + "/");
 
 			for (var i = 0; i < 1000 && !check; i++)
 				coroutine.sleep(10);
