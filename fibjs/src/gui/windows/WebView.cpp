@@ -359,7 +359,7 @@ void init_gui()
 	s_thread = _thGUI->thread_id;
 }
 
-result_t gui_base::load(exlib::string url, exlib::string title,
+result_t gui_base::open(exlib::string url, exlib::string title,
                         obj_ptr<WebView_base>& retVal, AsyncEvent* ac)
 {
 	if (!ac)
@@ -367,15 +367,6 @@ result_t gui_base::load(exlib::string url, exlib::string title,
 
 	retVal = new WebView(url, title);
 	return 0;
-}
-
-result_t gui_base::open(exlib::string url, exlib::string title, AsyncEvent* ac)
-{
-	if (!ac)
-		return CHECK_ERROR(CALL_E_GUICALL);
-
-	new WebView(url, title, ac);
-	return CALL_E_PENDDING;
 }
 
 const wchar_t* szWndClassMain = L"fibjs_window";
@@ -405,10 +396,9 @@ static void RegMainClass()
 	}
 }
 
-WebView::WebView(exlib::string url, exlib::string title, AsyncEvent* ac)
+WebView::WebView(exlib::string url, exlib::string title)
 {
-	m_ac = ac;
-
+	m_ac = NULL;
 	oleObject = NULL;
 	oleInPlaceObject = NULL;
 	webBrowser2 = NULL;
@@ -543,6 +533,15 @@ result_t WebView::close(AsyncEvent* ac)
 
 	PostMessage(hWndParent, WM_CLOSE, 0, 0);
 	return 0;
+}
+
+result_t WebView::wait(AsyncEvent* ac)
+{
+	if (!ac)
+		return CHECK_ERROR(CALL_E_GUICALL);
+
+	m_ac = ac;
+	return CALL_E_PENDDING;
 }
 
 result_t WebView::onclose(v8::Local<v8::Function> func, int32_t& retVal)

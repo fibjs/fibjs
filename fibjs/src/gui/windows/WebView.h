@@ -25,7 +25,7 @@ class WebView : public WebView_base,
 	public IInternetSecurityManager
 {
 public:
-	WebView(exlib::string url, exlib::string title, AsyncEvent* ac = NULL);
+	WebView(exlib::string url, exlib::string title);
 	~WebView();
 
 	static RECT PixelToHiMetric(const RECT& _rc);
@@ -40,6 +40,7 @@ public:
 public:
 	// WebView_base
 	virtual result_t close(AsyncEvent* ac);
+	virtual result_t wait(AsyncEvent* ac);
 	virtual result_t onclose(v8::Local<v8::Function> func, int32_t& retVal);
 
 private:
