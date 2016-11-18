@@ -741,7 +741,6 @@ HRESULT WebView::DeactivateAndUndo(void)
 
 HRESULT WebView::OnPosRectChange(LPCRECT lprcPosRect)
 {
-	puts("OnPosRectChange");
 	return E_NOTIMPL;
 }
 
