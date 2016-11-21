@@ -472,7 +472,8 @@ WebView::WebView(exlib::string url, Map_base* opt)
 			if (opt->get("maximize", v) == 0 && v.boolVal())
 				dwStyle |= WS_MAXIMIZE;
 		}
-	}
+	} else
+		dwStyle = WS_OVERLAPPEDWINDOW;
 
 	hWndParent = CreateWindowExW(0, szWndClassMain, L"", dwStyle, x, y, nWidth, nHeight,
 	                             NULL, NULL, GetModuleHandle(NULL), NULL);
