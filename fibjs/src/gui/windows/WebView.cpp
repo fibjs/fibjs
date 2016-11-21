@@ -443,8 +443,20 @@ WebView::WebView(exlib::string url, Map_base* opt)
 
 		if (x == CW_USEDEFAULT || y == CW_USEDEFAULT)
 		{
-			x = CW_USEDEFAULT;
-			y = CW_USEDEFAULT;
+			if (nWidth != CW_USEDEFAULT && nHeight != CW_USEDEFAULT)
+			{
+				RECT actualDesktop;
+				GetWindowRect(GetDesktopWindow(), &actualDesktop);
+
+				if (x == CW_USEDEFAULT)
+					x = (actualDesktop.right - nWidth) / 2;
+				if (y == CW_USEDEFAULT)
+					y = (actualDesktop.bottom - nHeight) / 2;
+			} else
+			{
+				x = CW_USEDEFAULT;
+				y = CW_USEDEFAULT;
+			}
 		}
 
 		if (!(opt->get("border", v) == 0 && !v.boolVal()))
