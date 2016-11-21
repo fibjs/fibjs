@@ -15,7 +15,7 @@ module gui
 
 	/*! @brief 打开一个窗口并访问指定网址
 	 @param url 指定的网址，，可以使用 fs:path 访问本地文件系统
-	 @param opts 打开窗口参数，支持以下参数:
+	 @param opt 打开窗口参数，支持以下参数:
 	 @code
 	    {
 	        "left": 100, // 窗口左上角 x，缺省系统自动设定
