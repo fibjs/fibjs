@@ -422,7 +422,7 @@ WebView::WebView(exlib::string url, Map_base* opt)
 
 	RegMainClass();
 
-	DWORD dwStyle = WS_OVERLAPPEDWINDOW;
+	DWORD dwStyle = WS_POPUP;
 	int x = CW_USEDEFAULT;
 	int y = CW_USEDEFAULT;
 	int nWidth = CW_USEDEFAULT;
@@ -447,10 +447,19 @@ WebView::WebView(exlib::string url, Map_base* opt)
 			y = CW_USEDEFAULT;
 		}
 
-		if (opt->get("resizable", v) == 0 && !v.boolVal())
-			dwStyle ^= WS_THICKFRAME | WS_MAXIMIZEBOX;
-		else  if (opt->get("maximize", v) == 0 && v.boolVal())
-			dwStyle |= WS_MAXIMIZE;
+		if (!(opt->get("border", v) == 0 && !v.boolVal()))
+		{
+			dwStyle |= WS_BORDER;
+
+			if (!(opt->get("caption", v) == 0 && !v.boolVal()))
+				dwStyle ^= WS_POPUP | WS_CAPTION | WS_SYSMENU;
+
+			if (!(opt->get("resizable", v) == 0 && !v.boolVal()))
+				dwStyle ^= WS_THICKFRAME | WS_BORDER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
+
+			if (opt->get("maximize", v) == 0 && v.boolVal())
+				dwStyle |= WS_MAXIMIZE;
+		}
 	}
 
 	hWndParent = CreateWindowExW(0, szWndClassMain, L"", dwStyle, x, y, nWidth, nHeight,

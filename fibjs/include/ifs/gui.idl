@@ -15,7 +15,19 @@ module gui
 
 	/*! @brief 打开一个窗口并访问指定网址
 	 @param url 指定的网址，，可以使用 fs:path 访问本地文件系统
-	 @param opts 打开窗口参数
+	 @param opts 打开窗口参数，支持一下参数
+	 @code
+	    {
+	        "left": 100, // 窗口左上角 x，缺省系统自动设定
+	        "right": 100, // 窗口左上角 y，缺省系统自动设定
+	        "width": 100, // 窗口宽度，缺省系统自动设定
+	        "height": 100, // 窗口高度，缺省系统自动设定
+	        "border": true, // 是否有边框，缺省有边框
+	        "caption": true, // 是否有标题栏，缺省有标题栏
+	        "resizable": true, // 是否可改变尺寸，缺省可以改变
+	        "maximize": false // 是否最大化显示，缺省不最大化
+	    }
+	 @endcode
 	 @return 返回打开的窗口对象
 	 */
 	static WebView open(String url, Map opt) async;
