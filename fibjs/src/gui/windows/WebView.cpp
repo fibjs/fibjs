@@ -969,7 +969,11 @@ HRESULT WebView::RequestNewObjectLayout(void)
 HRESULT WebView::ShowContextMenu(DWORD dwID, POINT * ppt, IUnknown * pcmdtReserved,
                                  IDispatch * pdispReserved)
 {
-	return TRUE;
+	if (dwID == CONTEXT_MENU_TEXTSELECT ||
+	        dwID == CONTEXT_MENU_CONTROL)
+		return S_FALSE;
+
+	return S_OK;
 }
 
 HRESULT WebView::GetHostInfo(DOCHOSTUIINFO * pInfo)
