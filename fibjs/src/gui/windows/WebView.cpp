@@ -30,6 +30,8 @@ void putGuiPool(AsyncEvent* ac)
 	PostThreadMessage(s_thread, WM_USER + 1000, 0, 0);
 }
 
+static WebView* s_activeWin = NULL;
+
 class gui_thread :
 	public exlib::OSThread,
 	public IClassFactory
@@ -307,6 +309,10 @@ public:
 
 			MSG msg;
 			GetMessage(&msg, NULL, 0, 0);
+
+			if (s_activeWin)
+				s_activeWin->TranslateAccelerator(&msg);
+
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
@@ -417,6 +423,7 @@ WebView::WebView(exlib::string url, Map_base* opt)
 	m_ac = NULL;
 	oleObject = NULL;
 	oleInPlaceObject = NULL;
+	oleInPlaceActiveObject = NULL;
 	webBrowser2 = NULL;
 	_onmessage = NULL;
 
@@ -493,6 +500,7 @@ WebView::WebView(exlib::string url, Map_base* opt)
 	::SetRect(&posRect, -300, -300, 300, 300);
 	oleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, this, -1, hWndParent, &posRect);
 	oleObject->QueryInterface(&webBrowser2);
+	oleObject->QueryInterface(&oleInPlaceActiveObject);
 
 	ShowWindow(GetControlWindow(), SW_SHOW);
 
@@ -533,6 +541,12 @@ void WebView::clear()
 		oleInPlaceObject = NULL;
 	}
 
+	if (oleInPlaceActiveObject)
+	{
+		oleInPlaceActiveObject->Release();
+		oleInPlaceActiveObject = NULL;
+	}
+
 	if (oleObject)
 	{
 		oleObject->DoVerb(OLEIVERB_HIDE, NULL, this, 0, hWndParent, NULL);
@@ -556,6 +570,9 @@ void WebView::clear()
 		m_ac->post(0);
 		m_ac = NULL;
 	}
+
+	if (s_activeWin == this)
+		s_activeWin = NULL;
 }
 
 LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -564,6 +581,18 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 	switch (uMsg)
 	{
+	case WM_ACTIVATE:
+		webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
+		if (webView1 != 0)
+		{
+			if (WA_INACTIVE == wParam)
+			{
+				if (s_activeWin == webView1)
+					s_activeWin = NULL;
+			} else
+				s_activeWin = webView1;
+		}
+		break;
 	case WM_MOVE:
 		webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
 		if (webView1 != 0)
@@ -663,6 +692,11 @@ result_t WebView::onclose(v8::Local<v8::Function> func, int32_t& retVal)
 result_t WebView::onmessage(v8::Local<v8::Function> func, int32_t& retVal)
 {
 	return on("message", func, retVal);
+}
+
+HRESULT WebView::TranslateAccelerator(MSG* msg)
+{
+	return oleInPlaceActiveObject->TranslateAccelerator(msg);
 }
 
 RECT WebView::PixelToHiMetric(const RECT& _rc)

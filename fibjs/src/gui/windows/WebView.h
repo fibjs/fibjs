@@ -37,6 +37,9 @@ public:
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg,
 	                                WPARAM wParam, LPARAM lParam);
 
+
+	HRESULT TranslateAccelerator(MSG* msg);
+
 	EVENT_SUPPORT();
 
 public:
@@ -168,6 +171,7 @@ protected:
 	IStorage *storage;
 	IOleObject* oleObject;
 	IOleInPlaceObject* oleInPlaceObject;
+	IOleInPlaceActiveObject* oleInPlaceActiveObject;
 	IWebBrowser2* webBrowser2;
 	IDispatch* _onmessage;
 
