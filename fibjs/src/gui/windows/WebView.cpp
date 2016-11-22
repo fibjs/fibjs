@@ -502,6 +502,8 @@ WebView::WebView(exlib::string url, Map_base* opt)
 	oleObject->QueryInterface(&webBrowser2);
 	oleObject->QueryInterface(&oleInPlaceActiveObject);
 
+	webBrowser2->put_Silent(VARIANT_TRUE);
+
 	ShowWindow(GetControlWindow(), SW_SHOW);
 
 	RECT rcClient;
