@@ -8,6 +8,15 @@
 #include "console.h"
 #include "Fiber.h"
 
+namespace v8 {
+namespace internal {
+class FlagList {
+public:
+	static void PrintHelp();
+};
+}
+}
+
 namespace fibjs
 {
 
@@ -65,7 +74,7 @@ bool options(int32_t* argc, char *argv[])
 			printHelp();
 			return true;
 		} else if (!qstrcmp(arg, "--v8-options")) {
-			v8::V8::SetFlagsFromString("--help", 6);
+			v8::internal::FlagList::PrintHelp();
 			return true;
 		}
 	}
