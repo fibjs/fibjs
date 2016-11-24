@@ -27,11 +27,12 @@ namespace fibjs
 #define NO_SEARCH   2
 #define FULL_SEARCH 3
 
-static exlib::string s_root;
+exlib::string s_root;
 
 void init_sandbox()
 {
-    process_base::cwd(s_root);
+    if (s_root.empty())
+        process_base::cwd(s_root);
 }
 
 inline exlib::string resolvePath(exlib::string base, exlib::string id)

@@ -6,6 +6,7 @@
  */
 
 #include "console.h"
+#include "ifs/path.h"
 #include "Fiber.h"
 
 namespace v8 {
@@ -27,6 +28,7 @@ int32_t stack_size = 512;
 #else
 int32_t stack_size = 256;
 #endif
+extern exlib::string s_root;
 
 #ifdef DEBUG
 #define GUARD_SIZE	32
@@ -40,6 +42,7 @@ static void printHelp() {
 	       "Options:\n"
 	       "  --trace_fiber        allow user to query the non-current\n"
 	       "                       fiber's stack infomation\n"
+	       "  --approot path       set application root directory\n"
 	       "  --help               print fibjs command line options\n"
 	       "  --v8-options         print v8 command line options\n"
 	       "\n"
@@ -49,14 +52,8 @@ static void printHelp() {
 bool options(int32_t* argc, char *argv[])
 {
 	char s_opts[64];
-	char s_sharmony[] = " --harmony --harmony_async_await "
+	char s_sharmony[] = "--harmony --harmony_async_await "
 	                    "--use_strict --always-opt --nolazy";
-
-	v8::V8::SetFlagsFromString(s_sharmony, sizeof(s_sharmony) - 1);
-	v8::V8::SetFlagsFromString(s_opts,
-	                           sprintf(s_opts, "--stack_size=%d", stack_size - GUARD_SIZE));
-
-	v8::V8::SetFlagsFromCommandLine(argc, argv, true);
 
 	int32_t df = 0;
 
@@ -70,6 +67,11 @@ bool options(int32_t* argc, char *argv[])
 		if (!qstrcmp(arg, "--trace_fiber")) {
 			df ++;
 			Isolate::rt::g_trace = true;
+		} else if (!qstrcmp(arg, "--approot") && i + 1 < *argc) {
+			i ++;
+			df += 2;
+			s_root.clear();
+			path_base::fullpath(argv[i], s_root);
 		} else if (!qstrcmp(arg, "--help")) {
 			printHelp();
 			return true;
@@ -78,6 +80,11 @@ bool options(int32_t* argc, char *argv[])
 			return true;
 		}
 	}
+
+	v8::V8::SetFlagsFromString(s_sharmony, sizeof(s_sharmony) - 1);
+	v8::V8::SetFlagsFromString(s_opts,
+	                           sprintf(s_opts, "--stack_size=%d", stack_size - GUARD_SIZE));
+	v8::V8::SetFlagsFromCommandLine(argc, argv, true);
 
 	if (df)
 		*argc -= df;
