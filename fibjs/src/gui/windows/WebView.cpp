@@ -613,6 +613,12 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 				s_activeWin = webView1;
 		}
 		break;
+
+	case WM_SETFOCUS:
+		webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
+		if (webView1 != 0)
+			webView1->OnDocumentComplete(NULL);
+		break;
 	case WM_MOVE:
 		webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
 		if (webView1 != 0)
@@ -1318,6 +1324,7 @@ HRESULT WebView::OnCommandStateChange(DISPPARAMS* pDispParams)
 
 HRESULT WebView::OnDocumentComplete(DISPPARAMS* pDispParams)
 {
+	oleObject->DoVerb(OLEIVERB_UIACTIVATE, NULL, this, -1, hWndParent, &rObject);
 	return E_NOTIMPL;
 }
 
