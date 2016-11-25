@@ -153,7 +153,6 @@ private:
 	void clear();
 	HRESULT OnBeforeNavigate2(DISPPARAMS* pDispParams);
 	HRESULT OnCommandStateChange(DISPPARAMS* pDispParams);
-	HRESULT OnDocumentBegin(DISPPARAMS* pDispParams);
 	HRESULT OnDocumentComplete(DISPPARAMS* pDispParams);
 	HRESULT OnDownloadBegin(DISPPARAMS* pDispParams);
 	HRESULT OnDownloadComplete(DISPPARAMS* pDispParams);

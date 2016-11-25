@@ -512,6 +512,16 @@ WebView::WebView(exlib::string url, Map_base* opt)
 
 	webBrowser2->put_Silent(VARIANT_TRUE);
 
+	IConnectionPointContainer* cpc;
+	IConnectionPoint* pcp = NULL;
+
+	webBrowser2->QueryInterface(IID_IConnectionPointContainer, (void**)&cpc);
+	cpc->FindConnectionPoint(DIID_DWebBrowserEvents2, &pcp);
+	cpc->Release();
+
+	DWORD eventCookie;
+	pcp->Advise((IDispatch*)this, &eventCookie);
+
 	ShowWindow(GetControlWindow(), SW_SHOW);
 
 	RECT rcClient;
@@ -1302,11 +1312,6 @@ HRESULT WebView::OnBeforeNavigate2(DISPPARAMS* pDispParams)
 }
 
 HRESULT WebView::OnCommandStateChange(DISPPARAMS* pDispParams)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT WebView::OnDocumentBegin(DISPPARAMS* pDispParams)
 {
 	return E_NOTIMPL;
 }
