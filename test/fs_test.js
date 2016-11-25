@@ -53,6 +53,12 @@ describe('fs', function() {
 		assert.ok(fs.exists('fs_test.js'));
 	});
 
+	it("file.stat", function() {
+		var f = fs.open('fs_test.js');
+
+		assert.deepEqual(f.stat().toJSON(), fs.stat('fs_test.js').toJSON());
+	});
+
 	it("mkdir", function() {
 		fs.mkdir(pathname, 511);
 		assert.equal(fs.exists(pathname), true);

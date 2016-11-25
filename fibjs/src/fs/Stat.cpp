@@ -25,17 +25,20 @@ void Stat::fill(WIN32_FIND_DATAW &fd)
     name = utf16to8String(fd.cFileName);
 
     size = ((int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow);
-    mode = 0666;
+    mode = S_IREAD | S_IEXEC;
 
     mtime = FileTimeToJSTime(fd.ftLastWriteTime);
     atime = FileTimeToJSTime(fd.ftLastAccessTime);
     ctime = FileTimeToJSTime(fd.ftCreationTime);
 
-    m_isDirectory = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) != 0;
-    m_isFile = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) == 0;
+    if ((m_isDirectory = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) != 0) == true)
+        mode |= S_IFDIR;
+    if ((m_isFile = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) == 0) == true)
+        mode |= S_IFREG;
 
     m_isReadable = true;
-    m_isWritable = (FILE_ATTRIBUTE_READONLY & fd.dwFileAttributes) == 0;
+    if ((m_isWritable = (FILE_ATTRIBUTE_READONLY & fd.dwFileAttributes) == 0) == true)
+        mode |= S_IWRITE;
     m_isExecutable = true;
 
     m_isSymbolicLink = false;
@@ -44,7 +47,23 @@ void Stat::fill(WIN32_FIND_DATAW &fd)
     m_isSocket = false;
 }
 
-#endif
+result_t Stat::getStat(exlib::string path)
+{
+
+    WIN32_FIND_DATAW fd;
+    HANDLE hFind;
+
+    hFind = FindFirstFileW(UTF8_W(path), &fd);
+    if (hFind == INVALID_HANDLE_VALUE)
+        return CHECK_ERROR(LastError());
+
+    fill(fd);
+    FindClose(hFind);
+
+    return 0;
+}
+
+#else
 
 result_t Stat::getStat(exlib::string path)
 {
@@ -56,6 +75,8 @@ result_t Stat::getStat(exlib::string path)
 
     return 0;
 }
+
+#endif
 
 void Stat::fill(exlib::string path, struct stat64 &st)
 {
