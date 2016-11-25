@@ -201,15 +201,23 @@ private:
 
 	public:
 		// IInternetProtocolInfo
-		STDMETHOD(ParseUrl)(LPCWSTR pwzUrl, PARSEACTION ParseAction, DWORD dwParseFlags,
-		                    LPWSTR pwzResult, DWORD cchResult, DWORD *pcchResult, DWORD dwReserved)
+		STDMETHODIMP ParseUrl(LPCWSTR pwzUrl, PARSEACTION ParseAction, DWORD dwParseFlags,
+		                      LPWSTR pwzResult, DWORD cchResult, DWORD *pcchResult, DWORD dwReserved)
 		{
+			switch (ParseAction)
+			{
+			case PARSE_SECURITY_DOMAIN:
+				wcscpy(pwzResult, L"fs:");
+				*pcchResult = 6;
+				return S_OK;
+			}
+
 			return INET_E_DEFAULT_ACTION;
 		}
 
-		STDMETHOD(CombineUrl)(LPCWSTR pwzBaseUrl, LPCWSTR pwzRelativeUrl,
-		                      DWORD dwCombineFlags, LPWSTR pwzResult, DWORD cchResult,
-		                      DWORD *pcchResult, DWORD dwReserved)
+		STDMETHODIMP CombineUrl(LPCWSTR pwzBaseUrl, LPCWSTR pwzRelativeUrl,
+		                        DWORD dwCombineFlags, LPWSTR pwzResult, DWORD cchResult,
+		                        DWORD *pcchResult, DWORD dwReserved)
 		{
 			if (pwzBaseUrl == NULL || pwzRelativeUrl == NULL ||
 			        pwzResult == NULL || pcchResult == NULL)
@@ -250,13 +258,13 @@ private:
 			return S_OK;
 		}
 
-		STDMETHOD(CompareUrl)(LPCWSTR pwzUrl1, LPCWSTR pwzUrl2, DWORD dwCompareFlags)
+		STDMETHODIMP CompareUrl(LPCWSTR pwzUrl1, LPCWSTR pwzUrl2, DWORD dwCompareFlags)
 		{
 			return INET_E_DEFAULT_ACTION;
 		}
 
-		STDMETHOD(QueryInfo)(LPCWSTR pwzUrl, QUERYOPTION QueryOption, DWORD dwQueryFlags,
-		                     LPVOID pBuffer, DWORD cbBuffer, DWORD *pcbBuf, DWORD dwReserved)
+		STDMETHODIMP QueryInfo(LPCWSTR pwzUrl, QUERYOPTION QueryOption, DWORD dwQueryFlags,
+		                       LPVOID pBuffer, DWORD cbBuffer, DWORD *pcbBuf, DWORD dwReserved)
 		{
 			return INET_E_DEFAULT_ACTION;
 		}
