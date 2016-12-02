@@ -168,14 +168,15 @@ int32_t utf16_putchar(int32_t ch, exlib::wchar *&dst, const exlib::wchar *end)
 
     if (ch >= 0x10000)
     {
-        if (dst >= end + 1)
+        if (dst >= end - 1)
         {
             *dst = '?';
             return 1;
         }
 
-        *dst++ = (exlib::wchar)((ch >> 10) | 0xd800);
-        *dst++ = (exlib::wchar)((ch & 0x3ff) | 0xdc00);
+        ch -= 0x10000;
+        exlib::wchar ch1 = *dst++ = (exlib::wchar)((ch >> 10) | 0xd800);
+        exlib::wchar ch2 = *dst++ = (exlib::wchar)((ch & 0x3ff) | 0xdc00);
 
         return 2;
     }
