@@ -21,7 +21,7 @@ describe("rpc", function() {
 	m.setHeader("Content-Type", "application/json, charset=utf-8;");
 	m.body.write(encoding.json.encode({
 		method: 'aaaa',
-		params: [100, 200],
+		params: [100,'😀'],
 		id: 1234
 	}));
 
@@ -88,6 +88,17 @@ describe("rpc", function() {
 		m.response.body.rewind();
 		assert.equal(m.response.body.read().toString(),
 			'{"id":1234,"result":300}');
+	});
+	
+	it("emoji", function() {
+		var jr = rpc.json(function(m, p1, p2) {
+			m.value = '';
+			return p1 + ',' + p2;
+		});
+		jr.invoke(m);
+		m.response.body.rewind();
+		assert.equal(m.response.body.read().toString(),
+			'{"id":1234,"result":"100,😀"}');
 	});
 
 	it("Task", function() {
