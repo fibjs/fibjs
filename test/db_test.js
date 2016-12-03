@@ -33,8 +33,10 @@ describe("db", function() {
 		});
 
 		after(function() {
-			conn.execute('drop table test;');
-			conn.close();
+			try {
+				conn.execute('drop table test;');
+				conn.close();
+			} catch (e) {}
 		});
 
 		it("empty sql", function() {
@@ -117,8 +119,10 @@ describe("db", function() {
 
 		describe("trans", function() {
 			before(function() {
-				var b = new Buffer();
-				conn.execute("insert into test values(?,?,?,?);", 101, 'test101', b, new Date());
+				try {
+					var b = new Buffer();
+					conn.execute("insert into test values(?,?,?,?);", 101, 'test101', b, new Date());
+				} catch (e) {}
 			});
 
 			it("begin/commit", function() {
