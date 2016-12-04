@@ -76,6 +76,18 @@ public:
 public:
     result_t create(int32_t family, int32_t type);
 
+#ifdef _WIN32
+public:
+    result_t create(int32_t family, int32_t type, AsyncEvent *ac)
+    {
+        if (!ac)
+            return CHECK_ERROR(CALL_E_LONGSYNC);
+
+        return create(family, type);
+    }
+    ASYNC_MEMBER2(Socket, create, int32_t, int32_t);
+#endif
+
 private:
     class IOTimer : public Timer
     {

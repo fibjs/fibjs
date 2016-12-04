@@ -76,6 +76,10 @@ public:
 
     int32_t async_wait()
     {
+#ifdef _WIN32
+        async(CALL_E_NOSYNC);
+        return wait();
+#else
         {
             Isolate::rt _rt;
             invoke();
@@ -86,6 +90,7 @@ public:
             Runtime::setError(m_error);
 
         return m_v;
+#endif
     }
 
 protected:
@@ -127,6 +132,10 @@ public:
 
     int32_t async_wait()
     {
+#ifdef _WIN32
+        async(CALL_E_NOSYNC);
+        return wait();
+#else
         invoke();
         weak.wait();
 
@@ -134,6 +143,7 @@ public:
             Runtime::setError(m_error);
 
         return m_v;
+#endif
     }
 
 protected:

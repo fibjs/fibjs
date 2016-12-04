@@ -21,7 +21,11 @@ result_t Socket_base::_new(int32_t family, int32_t type,
 {
     obj_ptr<Socket> sock = new Socket();
 
+#ifdef _WIN32
+    result_t hr = sock->cc_create(family, type);
+#else
     result_t hr = sock->create(family, type);
+#endif
     if (hr < 0)
         return hr;
 

@@ -156,8 +156,12 @@ void AsyncCallBack::syncFunc(AsyncCallBack* pThis)
 
 void init_acThread()
 {
-    s_acPool = new acPool();
     s_lsPool = new acPool(true);
+#ifdef _WIN32
+    s_acPool = s_lsPool;
+#else
+    s_acPool = new acPool();
+#endif
 }
 
 }
