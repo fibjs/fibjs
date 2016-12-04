@@ -15,6 +15,7 @@
 #include "File.h"
 #include "BufferedStream.h"
 #include "MemoryStream.h"
+#include "map.h"
 
 #ifndef _WIN32
 #include <dirent.h>
@@ -44,6 +45,9 @@ void init_fs()
 #endif
 }
 
+static exlib::spinlock s_cachelock;
+static std::map<exlib::string, obj_ptr<List_base> > s_cache;
+
 result_t fs_base::open(exlib::string fname, exlib::string flags,
                        obj_ptr<SeekableStream_base> &retVal, AsyncEvent *ac)
 {
@@ -63,28 +67,83 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
         exlib::string strData;
         result_t hr;
 
+#ifdef _WIN32
+        bool bChanged = false;
+        exlib::string member1 = member;
+        {
+            int32_t sz = (int32_t)member.length();
+            const char* buf = member.c_str();
+            for (int32_t i = 0; i < sz; i ++)
+                if (buf[i] == PATH_SLASH)
+                {
+                    member[i] = '/';
+                    bChanged = true;
+                }
+        }
+#endif
+
+        obj_ptr<List_base> list;
+        std::map<exlib::string, obj_ptr<List_base> >::iterator it;
+
+        s_cachelock.lock();
+        it = s_cache.find(zip_file);
+        if (it != s_cache.end())
+            list = it->second;
+        s_cachelock.unlock();
+
+        if (list)
+        {
+            int32_t len, i;
+            bool bFound = false;
+
+            list->get_length(len);
+
+            for (i = 0; i < len; i ++)
+            {
+                Variant v;
+                exlib::string s;
+
+                list->_indexed_getter(i, v);
+                s = v.string();
+
+                if (member == s)
+                {
+                    bFound = true;
+                    break;
+                }
+
+#ifdef _WIN32
+                if (bChanged && member1 == s)
+                {
+                    member = member1;
+                    bFound = true;
+                    break;
+                }
+#endif
+            }
+
+            if (!bFound)
+                return CALL_E_FILE_NOT_FOUND;
+        }
+
         hr = zip_base::cc_open(zip_file, "r", zip_base::_ZIP_DEFLATED, zfile);
         if (hr < 0)
             return hr;
+
+        if (list == NULL)
+        {
+            zfile->cc_namelist(list);
+            s_cache.insert(std::pair<exlib::string, obj_ptr<List_base> >(zip_file, list));
+        }
 
         hr = zfile->cc_read(member, "", data);
         if (hr < 0)
         {
             hr = CALL_E_FILE_NOT_FOUND;
 #ifdef _WIN32
-            bool bChanged = false;
-            int32_t sz = (int32_t)member.length();
-            char* buf = member.c_buffer();
-            for (int32_t i = 0; i < sz; i ++)
-                if (buf[i] == PATH_SLASH)
-                {
-                    buf[i] = '/';
-                    bChanged = true;
-                }
-
             if (bChanged)
             {
-                hr = zfile->cc_read(member, "", data);
+                hr = zfile->cc_read(member1, "", data);
                 if (hr < 0)
                     return hr;
             } else
