@@ -835,7 +835,7 @@ inline bool isUrlSlash(char ch)
     return ch == '/';
 }
 
-void asyncLog(int32_t priority, exlib::string msg);
+void errorLog(exlib::string msg);
 
 inline result_t _error_checker(result_t hr, const char *file, int32_t line)
 {
@@ -848,7 +848,7 @@ inline result_t _error_checker(result_t hr, const char *file, int32_t line)
         sprintf(tmp, ":%d ", line);
         str.append(tmp);
 
-        asyncLog(3, str + getResultMessage(hr));
+        errorLog(str + getResultMessage(hr));
     }
 
     return hr;
@@ -863,7 +863,7 @@ inline result_t _error_checker(result_t hr, const char *file, int32_t line)
 #define DEPRECATED_SOON(name) \
     {static bool once = false; \
         if(!once){once = true; exlib::string str(name); str.append(" is deprecated and will soon be removed."); \
-         asyncLog(4, str + traceInfo(16));}}
+         errorLog(str + traceInfo(16));}}
 
 inline exlib::string niceSize(intptr_t sz)
 {

@@ -226,7 +226,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
                 m_error = v;
                 m_msg->set_lastError(err);
-                asyncLog(console_base::_ERROR, "WebSocketHandler: " + err);
+                errorLog("WebSocketHandler: " + err);
 
                 m_pThis->m_stats->dec(PACKET_PENDDING);
 

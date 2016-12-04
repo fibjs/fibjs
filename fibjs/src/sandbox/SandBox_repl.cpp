@@ -17,6 +17,8 @@
 namespace fibjs
 {
 
+void asyncLog(int32_t priority, exlib::string msg);
+
 void output(int32_t priority, exlib::string msg)
 {
     if (priority == console_base::_ERROR)

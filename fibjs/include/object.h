@@ -216,7 +216,7 @@ public:
             {
                 Isolate* isolate = m_isolate;
 
-                if (isolate && Isolate::current() == isolate)
+                if (isolate && Isolate::is_current(isolate))
                 {
                     isolate->m_isolate->AdjustAmountOfExternalAllocatedMemory(ext);
                     m_nExtMemory += ext;

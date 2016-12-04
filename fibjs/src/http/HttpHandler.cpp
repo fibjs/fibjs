@@ -352,7 +352,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 exlib::string err = getResultMessage(v);
 
                 m_req->set_lastError(err);
-                asyncLog(console_base::_ERROR, "HttpHandler: " + err);
+                errorLog("HttpHandler: " + err);
 
                 m_rep->set_status(500);
                 return 0;
@@ -373,7 +373,7 @@ result_t HttpHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             if (is(send))
             {
-                asyncLog(console_base::_ERROR, "HttpHandler: " + getResultMessage(v));
+                errorLog("HttpHandler: " + getResultMessage(v));
                 return 0;
             }
 

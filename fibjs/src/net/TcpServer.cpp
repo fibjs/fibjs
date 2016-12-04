@@ -121,7 +121,7 @@ result_t TcpServer::run(AsyncEvent *ac)
 
         virtual int32_t error(int32_t v)
         {
-            asyncLog(console_base::_ERROR, "TcpServer: " + getResultMessage(v));
+            errorLog("TcpServer: " + getResultMessage(v));
             set(close);
             return 0;
         }
@@ -175,7 +175,7 @@ result_t TcpServer::run(AsyncEvent *ac)
                 return v;
             }
 
-            asyncLog(console_base::_ERROR, "TcpServer: " + getResultMessage(v));
+            errorLog("TcpServer: " + getResultMessage(v));
             return 0;
         }
 

@@ -226,7 +226,7 @@ result_t throwSyntaxError(TryCatch &try_catch)
 void ReportException(TryCatch &try_catch, result_t hr)
 {
     if (try_catch.HasCaught() ||  hr < 0)
-        asyncLog(console_base::_ERROR, GetException(try_catch, hr));
+        errorLog(GetException(try_catch, hr));
 }
 
 exlib::string traceInfo(int32_t deep)

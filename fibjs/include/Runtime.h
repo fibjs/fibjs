@@ -62,7 +62,13 @@ public:
 
     Isolate* isolate()
     {
+        assert(v8::Locker::IsLocked(m_isolate->m_isolate));
         return m_isolate;
+    }
+
+    bool is_current(Isolate* isolate)
+    {
+        return m_isolate == isolate;
     }
 
 private:

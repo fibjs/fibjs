@@ -22,13 +22,8 @@ void init_logger()
     s_std = new std_logger;
 }
 
-void asyncLog(int32_t priority, exlib::string msg)
+void outLog(int32_t priority, exlib::string msg)
 {
-    Isolate* isolate = Isolate::current();
-
-    if (isolate && priority > isolate->m_loglevel)
-        return;
-
     if (priority > s_loglevel)
         return;
 
@@ -49,6 +44,21 @@ void asyncLog(int32_t priority, exlib::string msg)
 
     if (s_stream)
         s_stream->log(priority, msg);
+}
+
+void errorLog(exlib::string msg)
+{
+    outLog(console_base::_ERROR, msg);
+}
+
+void asyncLog(int32_t priority, exlib::string msg)
+{
+    Isolate* isolate = Isolate::current();
+
+    if (isolate && priority > isolate->m_loglevel)
+        return;
+
+    outLog(priority, msg);
 }
 
 void flushLog(bool bFiber)

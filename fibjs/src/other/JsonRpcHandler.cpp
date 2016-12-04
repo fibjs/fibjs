@@ -112,7 +112,7 @@ result_t JsonRpcHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
     if (hr < 0)
     {
-        asyncLog(console_base::_ERROR, "JsonRpcHandler: " + getResultMessage(hr));
+        errorLog("JsonRpcHandler: " + getResultMessage(hr));
 
         result_t hr1 = json_base::encode(o, str);
         if (hr1 < 0)

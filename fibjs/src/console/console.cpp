@@ -53,6 +53,7 @@ namespace fibjs
 {
 
 extern std_logger* s_std;
+void asyncLog(int32_t priority, exlib::string msg);
 
 void _log(int32_t type, exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
