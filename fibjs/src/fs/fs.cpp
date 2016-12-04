@@ -87,7 +87,8 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
                 hr = zfile->cc_read(member, "", data);
                 if (hr < 0)
                     return hr;
-            }
+            } else
+                return hr;
 #else
             return hr;
 #endif
