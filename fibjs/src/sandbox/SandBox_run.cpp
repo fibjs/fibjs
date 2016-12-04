@@ -709,6 +709,9 @@ result_t SandBox::require(exlib::string base, exlib::string id,
             return 0;
         }
 
+        if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
+            return hr;
+
         fname = fullname + ".zip?" + PATH_SLASH + "index";
         hr = require(base, fname, retVal, FILE_ONLY);
         if (hr >= 0)
