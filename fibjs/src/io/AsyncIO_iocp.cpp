@@ -54,6 +54,11 @@ public:
     {
     }
 
+    void post()
+    {
+        PostQueuedCompletionStatus(s_hIocp, -1, -1, (LPOVERLAPPED)this);
+    }
+
     void proc()
     {
         result_t hr = process();
@@ -120,7 +125,9 @@ public:
             else
                 dwError = 0;
 
-            if (bRet || (dwError != WAIT_TIMEOUT))
+            if (dwBytes == -1 && v == -1 && bRet)
+                ((asyncProc *) pOverlap)->proc();
+            else if (bRet || (dwError != WAIT_TIMEOUT))
                 ((asyncProc *) pOverlap)->ready(dwBytes, -(int32_t) dwError);
         }
     }
@@ -251,7 +258,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac, Time
         return CHECK_ERROR(CALL_E_REENTRANT);
     }
 
-    (new asyncConnect(m_fd, addr_info, ac, m_inRecv, timer))->proc();
+    (new asyncConnect(m_fd, addr_info, ac, m_inRecv, timer))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
@@ -330,7 +337,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
     asyncAccept *pa = new asyncAccept(s->m_aio.m_fd, m_fd, retVal, ac, m_inRecv);
     s.Release();
 
-    pa->proc();
+    pa->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
@@ -357,7 +364,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 
             nError = GetLastError();
 
-            if (nError == ERROR_NETNAME_DELETED || nError == ERROR_BROKEN_PIPE)
+            if (nError == ERROR_BROKEN_PIPE)
             {
                 if (m_timer)
                 {
@@ -387,7 +394,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                 m_timer.Release();
             }
 
-            if (nError == -ERROR_NETNAME_DELETED || nError == -ERROR_BROKEN_PIPE)
+            if (nError == -ERROR_BROKEN_PIPE)
             {
                 nError = 0;
                 dwBytes = 0;
@@ -443,7 +450,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
         return CHECK_ERROR(CALL_E_REENTRANT);
     }
 
-    (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_inRecv, timer))->proc();
+    (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_inRecv, timer))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
@@ -503,7 +510,7 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
     if (m_inSend.CompareAndSwap(0, 1))
         return CHECK_ERROR(CALL_E_REENTRANT);
 
-    (new asyncSend(m_fd, data, ac, m_inSend))->proc();
+    (new asyncSend(m_fd, data, ac, m_inSend))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
