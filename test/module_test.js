@@ -140,6 +140,48 @@ describe("module", function() {
 		});
 	});
 
+	describe("node_modules", function() {
+		it("root folder", function() {
+			var a = require('node_mod1');
+			assert.deepEqual(a, {
+				"a": 100
+			});
+
+			assert.equal(a, require('./node_modules/node_mod1'));
+			assert.equal(a, require('node_modules/node_mod1'));
+		});
+
+		it("current folder", function() {
+			var a = require('./module/mod_test').require("node_mod2");
+			assert.deepEqual(a, {
+				"a": 200
+			});
+
+			assert.equal(a, require('./module/node_modules/node_mod2'));
+			assert.equal(a, require('module/node_modules/node_mod2'));
+		});
+
+		it("parent folder", function() {
+			var a = require('./module/mod_test').require("node_mod4");
+			assert.deepEqual(a, {
+				"a": 400
+			});
+
+			assert.equal(a, require('./node_modules/node_mod4'));
+			assert.equal(a, require('node_modules/node_mod4'));
+		});
+
+		it("priority", function() {
+			var a = require('./module/mod_test').require("node_mod3");
+			assert.deepEqual(a, {
+				"a": 300
+			});
+
+			assert.equal(a, require('./module/node_modules/node_mod3'));
+			assert.equal(a, require('module/node_modules/node_mod3'));
+		});
+	});
+
 	it("zip virtual path", function() {
 		assert.deepEqual(require('./module/test.src/folder/b.js'),
 			require('./module/test.zip?/folder/b.js'));
