@@ -1041,7 +1041,8 @@ HRESULT WebView::GetHostInfo(DOCHOSTUIINFO * pInfo)
 	if (pInfo != NULL)
 		pInfo->dwFlags |= DOCHOSTUIFLAG_NO3DBORDER |
 		                  DOCHOSTUIFLAG_FLAT_SCROLLBAR |
-		                  DOCHOSTUIFLAG_THEME;
+		                  DOCHOSTUIFLAG_THEME |
+		                  DOCHOSTUIFLAG_DPI_AWARE;
 
 	return S_OK;
 }
