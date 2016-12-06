@@ -17,12 +17,12 @@ namespace fibjs
 {
 
 #define WORKER_STACK_SIZE   128
-#define MAX_IDLE_WORKERS    2
 
 class acPool
 {
 public:
-    acPool(bool bThread = false) : m_bThread(bThread), m_idleWorkers(1)
+    acPool(int32_t max_idle, bool bThread = false) :
+        m_bThread(bThread), m_max_idle(max_idle), m_idleWorkers(1)
     {
         new_worker();
     }
@@ -77,7 +77,7 @@ private:
 
         while (true)
         {
-            if (m_idleWorkers.inc() > MAX_IDLE_WORKERS)
+            if (m_idleWorkers.inc() > m_max_idle)
             {
                 if (m_idleWorkers.dec() > 0)
                     break;
@@ -102,6 +102,7 @@ private:
 
 private:
     bool m_bThread;
+    int32_t m_max_idle;
     exlib::Queue<AsyncEvent> m_pool;
     exlib::atomic m_idleWorkers;
 };
@@ -156,11 +157,11 @@ void AsyncCallBack::syncFunc(AsyncCallBack* pThis)
 
 void init_acThread()
 {
-    s_lsPool = new acPool(true);
 #ifdef _WIN32
-    s_acPool = s_lsPool;
+    s_acPool = s_lsPool = new acPool(10, true);
 #else
-    s_acPool = new acPool();
+    s_lsPool = new acPool(2, true);
+    s_acPool = new acPool(2);
 #endif
 }
 
