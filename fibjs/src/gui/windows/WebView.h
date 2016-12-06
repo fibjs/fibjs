@@ -30,7 +30,8 @@ public:
 	WebView(exlib::string url, Map_base* opt = NULL);
 	~WebView();
 
-	static RECT PixelToHiMetric(const RECT& _rc);
+	void GetDPI(int* dpix, int* dpiy);
+	RECT PixelToHiMetric(const RECT& _rc);
 
 	virtual void SetRect(const RECT& _rc);
 

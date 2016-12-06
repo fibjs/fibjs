@@ -434,6 +434,7 @@ WebView::WebView(exlib::string url, Map_base* opt)
 	oleInPlaceActiveObject = NULL;
 	webBrowser2 = NULL;
 	_onmessage = NULL;
+	hWndParent = NULL;
 
 	RegMainClass();
 
@@ -455,6 +456,21 @@ WebView::WebView(exlib::string url, Map_base* opt)
 			nWidth = v;
 		if (opt->get("height", v) == 0)
 			nHeight = v;
+
+		int dpix = 0, dpiy = 0;
+		GetDPI(&dpix, &dpiy);
+
+		if (x != CW_USEDEFAULT)
+			x = x * dpix / 96;
+
+		if (y != CW_USEDEFAULT)
+			y = y * dpix / 96;
+
+		if (nWidth != CW_USEDEFAULT)
+			nWidth = nWidth * dpix / 96;
+
+		if (nHeight != CW_USEDEFAULT)
+			nHeight = nHeight * dpix / 96;
 
 		if (x == CW_USEDEFAULT || y == CW_USEDEFAULT)
 		{
@@ -627,8 +643,11 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 			GetWindowRect(hWnd, &rcWin);
 			Variant vars[2];
 
-			vars[0] = (int32_t)rcWin.left;
-			vars[1] = (int32_t)rcWin.top;
+			int dpix = 0, dpiy = 0;
+			webView1->GetDPI(&dpix, &dpiy);
+
+			vars[0] = (int32_t)rcWin.left * 96 / dpix;
+			vars[1] = (int32_t)rcWin.top * 96 / dpiy;
 			webView1->_trigger("move", vars, 2);
 		}
 		break;
@@ -644,8 +663,11 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 			GetWindowRect(hWnd, &rcWin);
 			Variant vars[2];
 
-			vars[0] = (int32_t)(rcWin.right - rcWin.left);
-			vars[1] = (int32_t)(rcWin.bottom - rcWin.top);
+			int dpix = 0, dpiy = 0;
+			webView1->GetDPI(&dpix, &dpiy);
+
+			vars[0] = (int32_t)(rcWin.right - rcWin.left) * 96 / dpix;
+			vars[1] = (int32_t)(rcWin.bottom - rcWin.top) * 96 / dpiy;
 			webView1->_trigger("size", vars, 2);
 		}
 		break;
@@ -725,24 +747,25 @@ HRESULT WebView::TranslateAccelerator(MSG* msg)
 	return oleInPlaceActiveObject->TranslateAccelerator(msg);
 }
 
+void WebView::GetDPI(int* dpix, int* dpiy)
+{
+	HDC hdc = ::GetDC(hWndParent);
+	*dpix = ::GetDeviceCaps(hdc, LOGPIXELSX);
+	*dpiy = ::GetDeviceCaps(hdc, LOGPIXELSY);
+	::ReleaseDC(hWndParent, hdc);
+}
+
 RECT WebView::PixelToHiMetric(const RECT& _rc)
 {
-	static bool s_initialized = false;
-	static int s_pixelsPerInchX, s_pixelsPerInchY;
-	if (!s_initialized)
-	{
-		HDC hdc = ::GetDC(0);
-		s_pixelsPerInchX = ::GetDeviceCaps(hdc, LOGPIXELSX);
-		s_pixelsPerInchY = ::GetDeviceCaps(hdc, LOGPIXELSY);
-		::ReleaseDC(0, hdc);
-		s_initialized = true;
-	}
+	int dpix, dpiy;
+
+	GetDPI(&dpix, &dpiy);
 
 	RECT rc;
-	rc.left = MulDiv(2540, _rc.left, s_pixelsPerInchX);
-	rc.top = MulDiv(2540, _rc.top, s_pixelsPerInchY);
-	rc.right = MulDiv(2540, _rc.right, s_pixelsPerInchX);
-	rc.bottom = MulDiv(2540, _rc.bottom, s_pixelsPerInchY);
+	rc.left = MulDiv(2540, _rc.left, dpix);
+	rc.top = MulDiv(2540, _rc.top, dpiy);
+	rc.right = MulDiv(2540, _rc.right, dpix);
+	rc.bottom = MulDiv(2540, _rc.bottom, dpiy);
 	return rc;
 }
 
