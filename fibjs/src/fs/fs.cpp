@@ -37,16 +37,14 @@ namespace fibjs
 
 DECLARE_MODULE(fs);
 
-void init_fs()
-{
-#ifdef _WIN32
-    struct stat64 st;
-    ::stat64(".", &st);
-#endif
-}
-
 static exlib::spinlock s_cachelock;
 static std::map<exlib::string, obj_ptr<List_base> > s_cache;
+static date_t s_date;
+
+void init_fs()
+{
+    s_date.now();
+}
 
 result_t fs_base::open(exlib::string fname, exlib::string flags,
                        obj_ptr<SeekableStream_base> &retVal, AsyncEvent *ac)
@@ -155,7 +153,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
 
         data->toString(strData);
 
-        retVal = new MemoryStream::CloneStream(strData, 0);
+        retVal = new MemoryStream::CloneStream(strData, s_date);
     } else
     {
         obj_ptr<File> pFile = new File();

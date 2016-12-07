@@ -194,40 +194,6 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             if (pThis->m_gzip)
                 pThis->m_path.append(".gz", 3);
 
-            Variant v;
-
-            if (pThis->m_req->firstHeader("If-Modified-Since",
-                                          v) != CALL_RETURN_NULL)
-            {
-                exlib::string str = v.string();
-                pThis->m_time.parse(str);
-
-                pThis->set(check);
-                return fs_base::stat(pThis->m_path, pThis->m_stat,
-                                     pThis);
-            }
-
-            pThis->set(open);
-            return fs_base::open(pThis->m_path, "r", pThis->m_file,
-                                 pThis);
-        }
-
-        static int32_t check(AsyncState *pState, int32_t n)
-        {
-            asyncInvoke *pThis = (asyncInvoke *) pState;
-
-            date_t d;
-            double diff;
-
-            pThis->m_stat->get_mtime(d);
-            diff = d.diff(pThis->m_time);
-
-            if (diff > -1000 && diff < 1000)
-            {
-                pThis->m_rep->set_status(304);
-                return pThis->done(CALL_RETURN_NULL);
-            }
-
             pThis->set(open);
             return fs_base::open(pThis->m_path, "r", pThis->m_file,
                                  pThis);
@@ -274,6 +240,24 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             pThis->m_stat->get_mtime(d);
 
+            Variant v;
+            if (pThis->m_req->firstHeader("If-Modified-Since",
+                                          v) != CALL_RETURN_NULL)
+            {
+                date_t d1;
+                double diff;
+                exlib::string str = v.string();
+
+                d1.parse(str);
+                diff = d.diff(d1);
+
+                if (diff > -1000 && diff < 1000)
+                {
+                    pThis->m_rep->set_status(304);
+                    return pThis->done(CALL_RETURN_NULL);
+                }
+            }
+
             d.toGMTString(str);
 
             pThis->m_rep->addHeader("Last-Modified", str);
@@ -307,7 +291,6 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         obj_ptr<Stat_base> m_stat;
         exlib::string m_url;
         exlib::string m_path;
-        date_t m_time;
         bool m_gzip;
     };
 

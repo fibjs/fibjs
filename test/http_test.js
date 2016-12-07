@@ -7,6 +7,7 @@ var http = require('http');
 var net = require('net');
 var encoding = require('encoding');
 var zlib = require('zlib');
+var zip = require('zip');
 var coroutine = require("coroutine");
 
 var ssl = require("ssl");
@@ -882,7 +883,7 @@ describe("http", function() {
 
 		function clean() {
 			try {
-				fs.unlink(base_port + 'test.html');
+				fs.unlink(url);
 			} catch (e) {};
 			try {
 				fs.unlink(base_port + 'test.html.gz');
@@ -899,13 +900,13 @@ describe("http", function() {
 		});
 
 		it("normal", function() {
-			fs.writeFile(base_port + 'test.html', 'test html file');
+			fs.writeFile(url, 'test html file');
 
 			rep = hfh_test(url);
 			assert.equal(200, rep.status);
 			assert.equal(14, rep.length);
 
-			assert.deepEqual(new Date(rep.firstHeader('Last-Modified')), fs.stat(base_port + 'test.html').mtime);
+			assert.deepEqual(new Date(rep.firstHeader('Last-Modified')), fs.stat(url).mtime);
 		});
 
 		it("not modified", function() {
@@ -954,6 +955,49 @@ describe("http", function() {
 			assert.equal(200, rep.status);
 			assert.equal(null, rep.firstHeader('Content-Encoding'));
 			rep.clear();
+		});
+
+		describe("zip virtual file", function() {
+			var zurl = base_port + 'test.html.zip?/test.html';
+
+			before(function() {
+				var zipfile = zip.open(base_port + 'test.html.zip', "w");
+				zipfile.write(url, 'test.html');
+				zipfile.close();
+			});
+
+			after(function() {
+				try {
+					fs.unlink(base_port + 'test.html.zip');
+				} catch (e) {};
+			});
+
+			it("normal", function() {
+				rep = hfh_test(zurl);
+				assert.equal(200, rep.status);
+				assert.equal(14, rep.length);
+
+				assert.deepEqual(rep.readAll().toString(), "test html file");
+			});
+
+			it("not modified", function() {
+				var rep1 = hfh_test(zurl, {
+					'If-Modified-Since': rep.firstHeader('Last-Modified')
+				});
+				assert.equal(304, rep1.status);
+				rep1.clear();
+				rep.clear();
+			});
+
+			it("changed", function() {
+				var rep = hfh_test(zurl, {
+					'If-Modified-Since': new Date('1998-04-14 12:12:12')
+				});
+				assert.equal(200, rep.status);
+				assert.equal(14, rep.length);
+				assert.equal('text/html', rep.firstHeader('Content-Type'));
+				rep.clear();
+			});
 		});
 	});
 
