@@ -63,6 +63,12 @@ describe("vm", function() {
 		assert.equal(100, a.a);
 	});
 
+	it("require jsc arch test", function() {
+		console.log("vm_test/jsc_test_" + os.arch);
+		var a = sbox.require("vm_test/jsc_test_" + os.arch);
+		assert.equal(100, a.a);
+	});
+
 	it("module", function() {
 		sbox = new vm.SandBox({
 			assert: assert
