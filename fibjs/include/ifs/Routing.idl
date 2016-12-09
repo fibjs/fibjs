@@ -52,6 +52,11 @@ interface Routing: Handler
    */
   Routing(String method, Object map);
 
+  /*! @brief 从已有路由对象中添加规则，添加后原路由将被清空
+   @param route 已经初始化的路由对象
+   */
+  append(Routing route);
+
   /*! @brief 添加一组路由规则
    @param map 路由参数
    */
@@ -108,4 +113,15 @@ interface Routing: Handler
    @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
    */
   post(String pattern, Value hdlr);
+
+  /*! @brief 添加一组 PUT 方法路由规则
+   @param map 路由参数
+   */
+  put(Object map);
+
+  /*! @brief 添加一条接受 http PUT 方法路由规则
+   @param pattern 消息匹配格式
+   @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+   */
+  put(String pattern, Value hdlr);
 };

@@ -386,6 +386,47 @@ describe("mq", function() {
 			assert.equal(val, 3);
 		});
 
+		describe("order", function() {
+			it("map append", function() {
+				var r = new mq.Routing({
+					"^/api/a(/.*)$": function(v) {},
+					"^/api/(.*)$": function(v) {}
+				});
+
+				var m = new mq.Message();
+				m.value = '/api/a/';
+				mq.invoke(r, m);
+				assert.equal('/', m.value);
+			});
+
+			it("append", function() {
+				var r = new mq.Routing();
+
+				r.append("^/api/a(/.*)$", function(v) {});
+				r.append("^/api/(.*)$", function(v) {});
+
+				var m = new mq.Message();
+				m.value = '/api/a/';
+				mq.invoke(r, m);
+				assert.equal('/', m.value);
+			});
+
+			it("append route", function() {
+				var r1 = new mq.Routing({
+					"^/api/a(/.*)$": function(v) {},
+					"^/api/(.*)$": function(v) {}
+				});
+
+				var r = new mq.Routing();
+				r.append(r1);
+
+				var m = new mq.Message();
+				m.value = '/api/a/';
+				mq.invoke(r, m);
+				assert.equal('/', m.value);
+			});
+		});
+
 		it("memory leak", function() {
 			var svr = new net.TcpServer(8890, function() {});
 			ss.push(svr.socket);
@@ -440,4 +481,4 @@ describe("mq", function() {
 	});
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);

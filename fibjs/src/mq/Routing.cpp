@@ -159,7 +159,7 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
     SetPrivate(strBuf, hdlr->wrap());
 
     obj_ptr<rule> r = new rule(method, re, hdlr);
-    m_array.push_back(r);
+    m_array.insert(m_array.begin(), r);
 
     return 0;
 }
@@ -171,7 +171,7 @@ result_t Routing::append(exlib::string method, v8::Local<v8::Object> map)
     int32_t i;
     result_t hr;
 
-    for (i = len - 1; i >= 0; i--)
+    for (i = 0; i < len; i++)
     {
         v8::Local<v8::Value> k = ks->Get(i);
         v8::Local<v8::Value> v = map->Get(k);
@@ -199,6 +199,29 @@ result_t Routing::append(exlib::string method, exlib::string pattern, v8::Local<
     if (hr < 0)
         return hr;
     return append(method, pattern, hdlr1);
+}
+
+result_t Routing::append(Routing_base* route)
+{
+    Routing* r_obj = (Routing*)route;
+
+    int32_t i, len = (int32_t)r_obj->m_array.size();
+    int32_t no = (int32_t)m_array.size();
+
+    for (i = len - 1; i >= 0; i --)
+    {
+        char strBuf[32];
+        sprintf(strBuf, "handler_%d", no ++);
+
+        rule *r = r_obj->m_array[i];
+
+        SetPrivate(strBuf, r->m_hdlr->wrap());
+        m_array.insert(m_array.begin(), r);
+    }
+
+    r_obj->m_array.resize(0);
+
+    return 0;
 }
 
 result_t Routing::append(v8::Local<v8::Object> map)
@@ -239,6 +262,16 @@ result_t Routing::post(v8::Local<v8::Object> map)
 result_t Routing::post(exlib::string pattern, v8::Local<v8::Value> hdlr)
 {
     return append("POST", pattern, hdlr);
+}
+
+result_t Routing::put(v8::Local<v8::Object> map)
+{
+    return append("PUT", map);
+}
+
+result_t Routing::put(exlib::string pattern, v8::Local<v8::Value> hdlr)
+{
+    return append("PUT", pattern, hdlr);
 }
 
 } /* namespace fibjs */
