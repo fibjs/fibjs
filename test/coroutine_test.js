@@ -166,6 +166,10 @@ describe('coroutine', function() {
 		assert.deepEqual(coroutine.parallel([1, 2, 3, 4, 5], function(v) {
 			return v + 1;
 		}), [2, 3, 4, 5, 6]);
+
+		assert.deepEqual(coroutine.parallel(function(v) {
+			return v + 1;
+		}, 5), [1, 2, 3, 4, 5]);
 	});
 
 	it('parallel fibers limit', function() {

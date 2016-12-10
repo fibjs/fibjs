@@ -184,6 +184,20 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> datas, v8::Local<v8::Func
     return _p.run(datas, func, retVal, fibers);
 }
 
+result_t coroutine_base::parallel(v8::Local<v8::Function> func, int32_t num,
+                                  int32_t fibers, v8::Local<v8::Array>& retVal)
+{
+    v8::Isolate* isolate = Isolate::current()->m_isolate;
+    v8::Local<v8::Array> datas = v8::Array::New(isolate, num);
+    int32_t i;
+
+    for (i = 0; i < num; i ++)
+        datas->Set(i, v8::Int32::New(isolate, i));
+
+    _parallels _p;
+    return _p.run(datas, func, retVal, fibers);
+}
+
 result_t coroutine_base::current(obj_ptr<Fiber_base> &retVal)
 {
     Fiber_base *fb = JSFiber::current();

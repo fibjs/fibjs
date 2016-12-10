@@ -34,6 +34,7 @@ public:
     static result_t start(v8::Local<v8::Function> func, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<Fiber_base>& retVal);
     static result_t parallel(v8::Local<v8::Array> funcs, int32_t fibers, v8::Local<v8::Array>& retVal);
     static result_t parallel(v8::Local<v8::Array> datas, v8::Local<v8::Function> func, int32_t fibers, v8::Local<v8::Array>& retVal);
+    static result_t parallel(v8::Local<v8::Function> func, int32_t num, int32_t fibers, v8::Local<v8::Array>& retVal);
     static result_t parallel(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
     static result_t current(obj_ptr<Fiber_base>& retVal);
     static result_t sleep(int32_t ms);
@@ -211,6 +212,14 @@ namespace fibjs
 
         ARG(v8::Local<v8::Array>, 0);
         ARG(v8::Local<v8::Function>, 1);
+        OPT_ARG(int32_t, 2, -1);
+
+        hr = parallel(v0, v1, v2, vr);
+
+        METHOD_OVER(3, 2);
+
+        ARG(v8::Local<v8::Function>, 0);
+        ARG(int32_t, 1);
         OPT_ARG(int32_t, 2, -1);
 
         hr = parallel(v0, v1, v2, vr);
