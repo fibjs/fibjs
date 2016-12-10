@@ -129,6 +129,20 @@ int32_t sqlite3_step_sleep(sqlite3_stmt *stmt, int32_t ms)
     }
 }
 
+int32_t sqlite3_prepare_sleep(sqlite3 *db, const char *zSql, int nByte,
+                              sqlite3_stmt **ppStmt, const char **pzTail, int32_t ms)
+{
+    while (true)
+    {
+        int32_t r = sqlite3_prepare_v2(db, zSql, nByte, ppStmt, pzTail);
+        if (r != SQLITE_LOCKED || ms <= 0)
+            return r;
+
+        sqlite3_sleep(1);
+        ms --;
+    }
+}
+
 #define SQLITE_SLEEP_TIME   10000
 
 result_t SQLite::execute(const char *sql, int32_t sLen,
@@ -140,7 +154,7 @@ result_t SQLite::execute(const char *sql, int32_t sLen,
     sqlite3_stmt *stmt = 0;
     const char *pStr1;
 
-    if (sqlite3_prepare_v2(m_db, sql, sLen, &stmt, &pStr1))
+    if (sqlite3_prepare_sleep(m_db, sql, sLen, &stmt, &pStr1, SQLITE_SLEEP_TIME))
     {
         result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
         if (stmt)
