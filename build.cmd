@@ -47,7 +47,15 @@ for %%a in (%*) do (
 )
 
 if "!BUILD_TYPE!"=="clean" (
-    rmdir /S/Q out\Windows_*
+    if "!TARGET_ARCH!"=="amd64" (
+        rmdir /S/Q out\Windows_amd64_Debug
+        rmdir /S/Q out\Windows_amd64_Release
+    )
+
+    if "!TARGET_ARCH!"=="i386" (
+        rmdir /S/Q out\Windows_i386_Debug
+        rmdir /S/Q out\Windows_i386_Release
+    )
     goto out
 )
 
