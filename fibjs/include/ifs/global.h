@@ -29,7 +29,7 @@ class global_base : public object_base
 
 public:
     // global_base
-    static result_t get_global(obj_ptr<global_base>& retVal);
+    static result_t get_global(v8::Local<v8::Object>& retVal);
     static result_t run(exlib::string fname, v8::Local<v8::Array> argv);
     static result_t get_argv(v8::Local<v8::Array>& retVal);
     static result_t get___filename(exlib::string& retVal);
@@ -133,7 +133,7 @@ namespace fibjs
 
     inline void global_base::s_get_global(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        obj_ptr<global_base> vr;
+        v8::Local<v8::Object> vr;
 
         PROPERTY_ENTER();
 

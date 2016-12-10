@@ -185,7 +185,7 @@ SandBox::Context::Context(SandBox *sb, exlib::string id) : m_sb(sb)
     m_fnRun = createV8Function("run", isolate->m_isolate, _run, _mod);
 }
 
-static const char *s_names[] = {"module", "exports", "require", "run", "argv", "global", "repl"};
+static const char *s_names[] = {"module", "exports", "require", "run", "argv", "repl"};
 
 result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<v8::Value> *args)
 {
@@ -234,7 +234,8 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<
     args[ARRAYSIZE(s_names)] = isolate->NewFromUtf8(name);;
     args[ARRAYSIZE(s_names) + 1] = isolate->NewFromUtf8(pname);
     args[ARRAYSIZE(s_names) + 2] = isolate->NewFromUtf8(m_sb->m_name);
-    v = v8::Local<v8::Function>::Cast(v)->Call(v8::Object::New(isolate->m_isolate), ARRAYSIZE(s_names) + 3, args);
+    v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
+    v = v8::Local<v8::Function>::Cast(v)->Call(glob, ARRAYSIZE(s_names) + 3, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -294,7 +295,8 @@ result_t SandBox::Context::run(Buffer_base* src, exlib::string name, v8::Local<v
     args[ARRAYSIZE(s_names)] = isolate->NewFromUtf8(name);;
     args[ARRAYSIZE(s_names) + 1] = isolate->NewFromUtf8(pname);
     args[ARRAYSIZE(s_names) + 2] = isolate->NewFromUtf8(m_sb->m_name);
-    v = v8::Local<v8::Function>::Cast(v)->Call(v8::Object::New(isolate->m_isolate), ARRAYSIZE(s_names) + 3, args);
+    v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
+    v = v8::Local<v8::Function>::Cast(v)->Call(glob, ARRAYSIZE(s_names) + 3, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -308,7 +310,7 @@ result_t SandBox::Context::run(T src, exlib::string name, v8::Local<v8::Array> a
 
     if (!main)
     {
-        // "module", "exports", "require", "run", "argv", "global", "repl"
+        // "module", "exports", "require", "run", "argv", "repl"
         v8::Local<v8::Value> args[10] =
         {
             v8::Undefined(isolate->m_isolate),
@@ -316,18 +318,16 @@ result_t SandBox::Context::run(T src, exlib::string name, v8::Local<v8::Array> a
             m_fnRequest,
             m_fnRun,
             argv,
-            v8::Undefined(isolate->m_isolate),
             v8::Undefined(isolate->m_isolate)
         };
 
         return run(src, name, args);
     } else
     {
-        v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
         v8::Local<v8::Value> replFunc = global_base::class_info().getFunction(isolate)->Get(
                                             isolate->NewFromUtf8("repl"));
 
-        // "module", "exports", "require", "run", "argv", "global", "repl"
+        // "module", "exports", "require", "run", "argv", "repl"
         v8::Local<v8::Value> args[10] =
         {
             v8::Undefined(isolate->m_isolate),
@@ -335,7 +335,6 @@ result_t SandBox::Context::run(T src, exlib::string name, v8::Local<v8::Array> a
             m_fnRequest,
             m_fnRun,
             argv,
-            glob,
             replFunc
         };
         return run(src, name, args);
@@ -347,14 +346,13 @@ result_t SandBox::Context::run(T src, exlib::string name, v8::Local<v8::Object> 
                                v8::Local<v8::Object> exports)
 {
     Isolate *isolate = m_sb->holder();
-    // "module", "exports", "require", "run", "argv", "global", "repl"
+    // "module", "exports", "require", "run", "argv", "repl"
     v8::Local<v8::Value> args[10] =
     {
         module,
         exports,
         m_fnRequest,
         m_fnRun,
-        v8::Undefined(isolate->m_isolate),
         v8::Undefined(isolate->m_isolate),
         v8::Undefined(isolate->m_isolate)
     };

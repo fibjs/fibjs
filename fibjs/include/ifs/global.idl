@@ -11,8 +11,8 @@ module global
     /*! @brief 控制台访问对象 */
     static console;
 
-    /*! @brief 全局对象，仅在启动脚本有效 */
-    static readonly global global;
+    /*! @brief 全局对象 */
+    static readonly Object global;
 
     /*! @brief 运行一个脚本
      @param fname 指定要运行的脚本路径
