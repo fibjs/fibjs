@@ -121,7 +121,7 @@ int32_t sqlite3_step_sleep(sqlite3_stmt *stmt, int32_t ms)
     while (true)
     {
         int32_t r = sqlite3_step(stmt);
-        if (r != SQLITE_LOCKED || ms <= 0)
+        if ((r != SQLITE_LOCKED && r != SQLITE_BUSY) || ms <= 0)
             return r;
 
         sqlite3_sleep(1);
@@ -135,7 +135,7 @@ int32_t sqlite3_prepare_sleep(sqlite3 *db, const char *zSql, int nByte,
     while (true)
     {
         int32_t r = sqlite3_prepare_v2(db, zSql, nByte, ppStmt, pzTail);
-        if (r != SQLITE_LOCKED || ms <= 0)
+        if ((r != SQLITE_LOCKED && r != SQLITE_BUSY) || ms <= 0)
             return r;
 
         sqlite3_sleep(1);
