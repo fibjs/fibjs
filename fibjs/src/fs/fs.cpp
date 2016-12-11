@@ -15,7 +15,7 @@
 #include "File.h"
 #include "BufferedStream.h"
 #include "MemoryStream.h"
-#include "map.h"
+#include "Map.h"
 
 #ifndef _WIN32
 #include <dirent.h>
