@@ -213,7 +213,7 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<
         exlib::string str("(function(");
         int32_t i;
 
-        for (i = 0; i < ARRAYSIZE(s_names); i ++)
+        for (i = 0; i < (int32_t)ARRAYSIZE(s_names); i ++)
         {
             str += s_names[i];
             str += ',';
@@ -384,7 +384,7 @@ result_t SandBox::compile(exlib::string srcname, exlib::string script,
         exlib::string str("(function(");
         int32_t i;
 
-        for (i = 0; i < ARRAYSIZE(s_names); i ++)
+        for (i = 0; i < (int32_t)ARRAYSIZE(s_names); i ++)
         {
             str += s_names[i];
             str += ',';
