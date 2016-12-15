@@ -33,7 +33,7 @@ union inetAddr
 
     int32_t port()
     {
-        return addr4.sin_port;
+        return ntohs(addr4.sin_port);
     }
 
     void init(int32_t family)
