@@ -332,7 +332,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac, Time
 
 	addr_info.init(m_family);
 	addr_info.setPort(port);
-	if (addr_info.addr(host.c_str()) < 0)
+	if (addr_info.addr(host) < 0)
 	{
 		exlib::string strAddr;
 		result_t hr = net_base::cc_resolve(host, m_family, strAddr);
@@ -343,7 +343,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac, Time
 			return hr;
 		}
 
-		if (addr_info.addr(strAddr.c_str()) < 0)
+		if (addr_info.addr(strAddr) < 0)
 		{
 			if (timer)
 				timer->clear();
@@ -452,7 +452,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
 					else
 					{
 						if (m_pos == 0)
-							m_buf = exlib::string();
+							m_buf.resize(0);
 
 						if (nError == EWOULDBLOCK)
 							return CHECK_ERROR(CALL_E_PENDDING);
@@ -596,6 +596,79 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
 		return CHECK_ERROR(CALL_E_REENTRANT);
 
 	return (new asyncSend(m_fd, data, ac, m_family, m_inSend, m_SendOpt))->call();
+}
+
+
+result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<DatagramPacket_base> &retVal,
+                           AsyncEvent *ac)
+{
+	class asyncRecvFrom: public asyncProc
+	{
+	public:
+		asyncRecvFrom(intptr_t s, int32_t bytes, obj_ptr<DatagramPacket_base> &retVal, AsyncEvent *ac,
+		              exlib::atomic &guard, void *&opt) :
+			asyncProc(s, EV_READ, ac, guard, opt), m_retVal(retVal),
+			m_bytes(bytes > 0 ? bytes : SOCKET_BUFF_SIZE)
+		{
+		}
+
+		virtual result_t process()
+		{
+			if (m_buf.empty())
+				m_buf.resize(m_bytes);
+
+			int32_t n;
+			inetAddr addr_info;
+			socklen_t sz = sizeof(addr_info);
+
+			n = (int32_t) ::recvfrom(m_s, &m_buf[0], m_buf.length(), MSG_NOSIGNAL,
+			                         (sockaddr *) &addr_info, &sz);
+			if (n == SOCKET_ERROR)
+			{
+				int32_t nError = errno;
+
+				m_buf.resize(0);
+				if (nError == EWOULDBLOCK)
+					return CHECK_ERROR(CALL_E_PENDDING);
+
+				return CHECK_ERROR(-nError);
+			}
+
+			if (n == 0)
+				return CALL_RETURN_NULL;
+
+			m_buf.resize(n);
+			m_retVal = new DatagramPacket(m_buf, addr_info);
+
+			return 0;
+		}
+
+		virtual void proc()
+		{
+			result_t hr = process();
+
+			if (hr == CALL_E_PENDDING)
+				post();
+			else
+				ready(hr);
+		}
+
+	public:
+		obj_ptr<DatagramPacket_base> &m_retVal;
+		int32_t m_bytes;
+		exlib::string m_buf;
+	};
+
+	if (m_fd == INVALID_SOCKET)
+		return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+	if (!ac)
+		return CHECK_ERROR(CALL_E_NOSYNC);
+
+	if (m_inRecv.CompareAndSwap(0, 1))
+		return CHECK_ERROR(CALL_E_REENTRANT);
+
+	return (new asyncRecvFrom(m_fd, bytes, retVal, ac, m_inRecv, m_RecvOpt))->call();
 }
 
 }

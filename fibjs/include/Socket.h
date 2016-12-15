@@ -68,10 +68,11 @@ public:
                             AsyncEvent *ac);
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
                           AsyncEvent *ac);
-    virtual result_t recvFrom(int32_t bytes, obj_ptr<Buffer_base> &retVal);
+    virtual result_t recvfrom(int32_t bytes, obj_ptr<DatagramPacket_base> &retVal,
+                              AsyncEvent *ac);
     virtual result_t send(Buffer_base *data, AsyncEvent *ac);
     virtual result_t sendto(Buffer_base *data, exlib::string host,
-                            int32_t port);
+                            int32_t port, AsyncEvent *ac);
 
 public:
     result_t create(int32_t family, int32_t type);

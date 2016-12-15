@@ -514,6 +514,82 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
+result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<DatagramPacket_base> &retVal,
+                           AsyncEvent *ac)
+{
+    class asyncRecvFrom: public asyncProc
+    {
+    public:
+        asyncRecvFrom(SOCKET s, int32_t bytes, obj_ptr<DatagramPacket_base> &retVal,
+                      AsyncEvent *ac, exlib::atomic &guard) :
+            asyncProc(s, ac, guard), m_retVal(retVal)
+        {
+            m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
+        }
+
+        virtual result_t process()
+        {
+            int32_t nError;
+
+            m_DataBuf.len = (DWORD)m_buf.length();
+            m_DataBuf.buf = &m_buf[0];
+            m_dwFlags = 0;
+            sz = sizeof(addr_info);
+
+            if (WSARecvFrom(m_s, &m_DataBuf, 1, NULL, &m_dwFlags,
+                            (sockaddr*)&addr_info, &sz, this, NULL) != SOCKET_ERROR)
+                return CHECK_ERROR(CALL_E_PENDDING);
+
+            nError = GetLastError();
+
+            if (nError == ERROR_BROKEN_PIPE)
+                return CALL_RETURN_NULL;
+
+            if (nError == ERROR_IO_PENDING)
+                return CHECK_ERROR(CALL_E_PENDDING);
+
+            return CHECK_ERROR(-nError);
+        }
+
+        virtual void ready(DWORD dwBytes, int32_t nError)
+        {
+            if (nError == -ERROR_BROKEN_PIPE)
+            {
+                nError = 0;
+                dwBytes = 0;
+            }
+
+            if (!nError)
+            {
+                m_buf.resize(dwBytes);
+                m_retVal = new DatagramPacket(m_buf, addr_info);
+            }
+
+            asyncProc::ready(dwBytes, nError);
+        }
+
+    public:
+        obj_ptr<DatagramPacket_base> &m_retVal;
+        exlib::string m_buf;
+        inetAddr addr_info;
+        socklen_t sz;
+        WSABUF m_DataBuf;
+        DWORD m_dwFlags;
+    };
+
+    if (m_fd == INVALID_SOCKET)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_inRecv.CompareAndSwap(0, 1))
+        return CHECK_ERROR(CALL_E_REENTRANT);
+
+    (new asyncRecvFrom(m_fd, bytes, retVal, ac, m_inRecv))->post();
+    return CHECK_ERROR(CALL_E_PENDDING);
+}
+
 }
 
 #endif

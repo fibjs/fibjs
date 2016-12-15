@@ -84,6 +84,13 @@ result_t Socket::create(int32_t family, int32_t type)
 
 #endif
 
+    if (type == SOCK_DGRAM)
+    {
+        int broadcastEnable = 1;
+        setsockopt(m_aio.m_fd, SOL_SOCKET, SO_BROADCAST, (const char*)&broadcastEnable,
+                   sizeof(broadcastEnable));
+    }
+
 #ifdef Darwin
 
     int32_t set_option = 1;
@@ -246,7 +253,7 @@ result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 
     addr_info.init(m_aio.m_family);
     addr_info.setPort(port);
-    if (addr_info.addr(addr.c_str()) < 0)
+    if (addr_info.addr(addr) < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int32_t on = 1;
@@ -337,19 +344,41 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     return m_aio.read(bytes, retVal, ac, false, timer);
 }
 
-result_t Socket::recvFrom(int32_t bytes, obj_ptr<Buffer_base> &retVal)
+result_t Socket::recvfrom(int32_t bytes, obj_ptr<DatagramPacket_base> &retVal, AsyncEvent *ac)
 {
-    if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    return 0;
+    return m_aio.recvfrom(bytes, retVal, ac);
 }
 
-result_t Socket::sendto(Buffer_base *data, exlib::string host,
-                        int32_t port)
+result_t Socket::sendto(Buffer_base *data, exlib::string host, int32_t port,
+                        AsyncEvent *ac)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    inetAddr addr_info;
+
+    addr_info.init(m_aio.m_family);
+    addr_info.setPort(port);
+    if (addr_info.addr(host.c_str()) < 0)
+    {
+        exlib::string strAddr;
+        result_t hr = net_base::cc_resolve(host, m_aio.m_family, strAddr);
+        if (hr < 0)
+            return hr;
+
+        if (addr_info.addr(strAddr.c_str()) < 0)
+            return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+
+    exlib::string strData;
+    data->toString(strData);
+
+    if (::sendto(m_aio.m_fd, strData.c_str(), (int32_t)strData.length(), 0, (sockaddr *) &addr_info,
+                 addr_info.size()) == SOCKET_ERROR)
+        return CHECK_ERROR(SocketError());
 
     return 0;
 }

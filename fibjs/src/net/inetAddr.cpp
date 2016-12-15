@@ -330,14 +330,14 @@ static const char *inet_ntop6(const struct in6_addr *addr, char *dst,
     return dst;
 }
 
-int32_t inetAddr::addr(const char *s)
+int32_t inetAddr::addr(exlib::string s)
 {
-    if (!s || !*s)
+    if (!*s.c_str())
         return 0;
 
     return addr6.sin6_family == PF_INET6 ?
-           inet_pton6(s, &addr6.sin6_addr) :
-           inet_pton4(s, &addr4.sin_addr.s_addr);
+           inet_pton6(s.c_str(), &addr6.sin6_addr) :
+           inet_pton4(s.c_str(), &addr4.sin_addr.s_addr);
 }
 
 exlib::string inetAddr::str()

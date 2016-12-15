@@ -198,6 +198,55 @@ describe("net", function() {
 		assert.equal('d', c1.read(3));
 	});
 
+	describe("udp", function() {
+		it("sendto/recvfrom", function() {
+			coroutine.start(function() {
+				var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
+				c.sendto("aaa", "127.0.0.1", 8888);
+			});
+
+			var s = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
+			s.bind(8888);
+
+			assert.equal(s.recvfrom().data.toString(), "aaa");
+			s.close();
+		});
+
+		it("recvfrom address", function() {
+			var data;
+			coroutine.start(function() {
+				var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
+				c.sendto("aaa", "127.0.0.1", 8890);
+				data = c.recvfrom();
+				console.log(data);
+			});
+
+			var s = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
+			s.bind(8890);
+
+			var d = s.recvfrom();
+			console.log(d);
+			s.sendto("bbb", d.address, d.port);
+
+			coroutine.sleep(100);
+			assert.equal(data.data.toString(), "bbb");
+			s.close();
+		});
+
+		it("broadcast", function() {
+			coroutine.start(function() {
+				var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
+				c.sendto("bbb", "255.255.255.255", 8889);
+			});
+
+			var s = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
+			s.bind(8889);
+
+			assert.equal(s.recvfrom().data.toString(), "bbb");
+			s.close();
+		});
+	});
+
 	it("re-entrant", function() {
 		function accept2(s) {
 			while (true) {
@@ -496,4 +545,4 @@ describe("net", function() {
 	});
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);

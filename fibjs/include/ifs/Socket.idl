@@ -70,12 +70,12 @@ interface Socket : Stream
      */
     Buffer recv(Integer bytes = -1) async;
 
-    Buffer recvFrom(Integer bytes = -1);
+    DatagramPacket recvfrom(Integer bytes = -1) async;
 
     /*! @brief 将给定的数据写入连接，此方法等效于 write 方法
      @param data 给定要写入的数据
      */
     send(Buffer data) async;
 
-    sendto(Buffer data, String host, Integer port);
+    sendto(Buffer data, String host, Integer port) async;
 };

@@ -51,7 +51,7 @@ union inetAddr
         addr4.sin_port = htons(port);
     }
 
-    int32_t addr(const char *s);
+    int32_t addr(exlib::string s);
     exlib::string str();
 };
 
