@@ -21,7 +21,7 @@ class Socket_base;
 class Stream_base;
 class Smtp_base;
 class TcpServer_base;
-class Url_base;
+class UrlObject_base;
 
 class net_base : public object_base
 {
@@ -85,7 +85,7 @@ public:
 #include "Stream.h"
 #include "Smtp.h"
 #include "TcpServer.h"
-#include "Url.h"
+#include "UrlObject.h"
 
 namespace fibjs
 {
@@ -107,7 +107,7 @@ namespace fibjs
             {"Socket", Socket_base::class_info},
             {"Smtp", Smtp_base::class_info},
             {"TcpServer", TcpServer_base::class_info},
-            {"Url", Url_base::class_info}
+            {"UrlObject", UrlObject_base::class_info}
         };
 
         static ClassData::ClassProperty s_property[] = 

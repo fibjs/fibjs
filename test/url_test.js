@@ -666,7 +666,7 @@ describe("url", function() {
 	};
 
 	it("format", function() {
-		var url = new net.Url();
+		var url = new net.UrlObject();
 
 		for (var u in parseTests) {
 			url.format(parseTests[u]);
@@ -675,7 +675,7 @@ describe("url", function() {
 	});
 
 	it("parse", function() {
-		var url = new net.Url();
+		var url = new net.UrlObject();
 
 		for (var u in parseTests) {
 			url.parse(u);
@@ -747,7 +747,7 @@ describe("url", function() {
 				]
 			];
 
-			var url = new net.Url();
+			var url = new net.UrlObject();
 			relativeTests.forEach(function(relativeTest) {
 				url.parse(relativeTest[0]);
 				var url1 = url.resolve(relativeTest[1]);
@@ -756,4 +756,4 @@ describe("url", function() {
 		});
 });
 
-//test.run();
+// test.run(console.DEBUG);

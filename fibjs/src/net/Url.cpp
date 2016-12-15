@@ -18,7 +18,7 @@ static const char *queryTable =
 static const char *hashTable =
     " ! #$%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
 
-result_t Url_base::_new(exlib::string url, obj_ptr<Url_base> &retVal, v8::Local<v8::Object> This)
+result_t UrlObject_base::_new(exlib::string url, obj_ptr<UrlObject_base> &retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<Url> u = new Url();
 
@@ -31,8 +31,8 @@ result_t Url_base::_new(exlib::string url, obj_ptr<Url_base> &retVal, v8::Local<
     return 0;
 }
 
-result_t Url_base::_new(v8::Local<v8::Object> args, obj_ptr<Url_base> &retVal,
-                        v8::Local<v8::Object> This)
+result_t UrlObject_base::_new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base> &retVal,
+                              v8::Local<v8::Object> This)
 {
     obj_ptr<Url> u = new Url();
 
@@ -345,7 +345,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     return 0;
 }
 
-result_t Url::resolve(exlib::string url, obj_ptr<Url_base> &retVal)
+result_t Url::resolve(exlib::string url, obj_ptr<UrlObject_base> &retVal)
 {
     obj_ptr<Url> u = new Url();
 

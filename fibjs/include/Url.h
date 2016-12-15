@@ -5,7 +5,7 @@
  *      Author: lion
  */
 
-#include "ifs/Url.h"
+#include "ifs/UrlObject.h"
 #include "utf8.h"
 
 #ifndef URL_H_
@@ -14,7 +14,7 @@
 namespace fibjs
 {
 
-class Url: public Url_base
+class Url: public UrlObject_base
 {
 public:
     Url()
@@ -29,10 +29,10 @@ public:
     result_t toString(exlib::string &retVal);
 
 public:
-    // Url_base
+    // UrlObject_base
     virtual result_t parse(exlib::string url);
     virtual result_t format(v8::Local<v8::Object> args);
-    virtual result_t resolve(exlib::string to, obj_ptr<Url_base> &retVal);
+    virtual result_t resolve(exlib::string to, obj_ptr<UrlObject_base> &retVal);
     virtual result_t normalize();
     virtual result_t get_href(exlib::string &retVal);
     virtual result_t get_protocol(exlib::string &retVal);

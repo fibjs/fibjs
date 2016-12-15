@@ -430,7 +430,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             exlib::string location;
             Variant v;
             obj_ptr<Url> u = new Url();
-            obj_ptr<Url_base> u1;
+            obj_ptr<UrlObject_base> u1;
 
             hr = pThis->m_retVal->get_status(status);
             if (hr < 0)

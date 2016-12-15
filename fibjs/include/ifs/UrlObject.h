@@ -5,8 +5,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Url_base_H_
-#define _Url_base_H_
+#ifndef _UrlObject_base_H_
+#define _UrlObject_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -17,17 +17,17 @@
 namespace fibjs
 {
 
-class Url_base : public object_base
+class UrlObject_base : public object_base
 {
-    DECLARE_CLASS(Url_base);
+    DECLARE_CLASS(UrlObject_base);
 
 public:
-    // Url_base
-    static result_t _new(v8::Local<v8::Object> args, obj_ptr<Url_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string url, obj_ptr<Url_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    // UrlObject_base
+    static result_t _new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string url, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t parse(exlib::string url) = 0;
     virtual result_t format(v8::Local<v8::Object> args) = 0;
-    virtual result_t resolve(exlib::string url, obj_ptr<Url_base>& retVal) = 0;
+    virtual result_t resolve(exlib::string url, obj_ptr<UrlObject_base>& retVal) = 0;
     virtual result_t normalize() = 0;
     virtual result_t get_href(exlib::string& retVal) = 0;
     virtual result_t get_protocol(exlib::string& retVal) = 0;
@@ -74,7 +74,7 @@ public:
 
 namespace fibjs
 {
-    inline ClassInfo& Url_base::class_info()
+    inline ClassInfo& UrlObject_base::class_info()
     {
         static ClassData::ClassMethod s_method[] = 
         {
@@ -104,7 +104,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Url", s__new, NULL, 
+            "UrlObject", s__new, NULL, 
             4, s_method, 0, NULL, 14, s_property, NULL, NULL,
             &object_base::class_info()
         };
@@ -113,183 +113,183 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void Url_base::s_get_href(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_href(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_href(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_protocol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_protocol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_protocol(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_slashes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_slashes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_slashes(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_auth(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_auth(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_auth(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_username(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_username(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_username(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_password(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_password(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_password(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_host(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_host(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_host(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_hostname(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_port(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_port(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_port(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_path(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_path(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_path(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_pathname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_pathname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_pathname(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_search(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_search(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_search(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_query(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_query(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_query(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_get_hash(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void UrlObject_base::s_get_hash(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Url_base);
+        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_hash(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Url_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void UrlObject_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
         __new(args);
     }
 
-    template<typename T>void Url_base::__new(const T& args)
+    template<typename T>void UrlObject_base::__new(const T& args)
     {
-        obj_ptr<Url_base> vr;
+        obj_ptr<UrlObject_base> vr;
 
         CONSTRUCT_ENTER(1, 1);
 
@@ -306,9 +306,9 @@ namespace fibjs
         CONSTRUCT_RETURN();
     }
 
-    inline void Url_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void UrlObject_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_INSTANCE(Url_base);
+        METHOD_INSTANCE(UrlObject_base);
         METHOD_ENTER(1, 1);
 
         ARG(exlib::string, 0);
@@ -318,9 +318,9 @@ namespace fibjs
         METHOD_VOID();
     }
 
-    inline void Url_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void UrlObject_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_INSTANCE(Url_base);
+        METHOD_INSTANCE(UrlObject_base);
         METHOD_ENTER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
@@ -330,11 +330,11 @@ namespace fibjs
         METHOD_VOID();
     }
 
-    inline void Url_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void UrlObject_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        obj_ptr<Url_base> vr;
+        obj_ptr<UrlObject_base> vr;
 
-        METHOD_INSTANCE(Url_base);
+        METHOD_INSTANCE(UrlObject_base);
         METHOD_ENTER(1, 1);
 
         ARG(exlib::string, 0);
@@ -344,9 +344,9 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void Url_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void UrlObject_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_INSTANCE(Url_base);
+        METHOD_INSTANCE(UrlObject_base);
         METHOD_ENTER(0, 0);
 
         hr = pInst->normalize();
