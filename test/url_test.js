@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var net = require('net');
+var url = require('url');
 
 describe("url", function() {
 	var parseTests = {
@@ -674,12 +675,26 @@ describe("url", function() {
 		}
 	});
 
+	it("url.format", function() {
+		for (var u in parseTests) {
+			var href = url.format(parseTests[u]);
+			assert.equal(href, parseTests[u].href);
+		}
+	});
+
 	it("parse", function() {
 		var url = new net.UrlObject();
 
 		for (var u in parseTests) {
 			url.parse(u);
 			assert.equal(url.href, parseTests[u].href);
+		}
+	});
+
+	it("url.parse", function() {
+		for (var u in parseTests) {
+			var uo = url.parse(u);
+			assert.equal(uo.href, parseTests[u].href);
 		}
 	});
 

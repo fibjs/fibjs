@@ -8,9 +8,37 @@
 #include "object.h"
 #include "Url.h"
 #include "ifs/encoding.h"
+#include "ifs/url.h"
 
 namespace fibjs
 {
+
+DECLARE_MODULE(url);
+
+result_t url_base::format(v8::Local<v8::Object> args, exlib::string& retVal)
+{
+    obj_ptr<Url> u = new Url();
+
+    result_t hr = u->format(args);
+    if (hr < 0)
+        return hr;
+
+    return u->get_href(retVal);
+}
+
+result_t url_base::parse(exlib::string url, obj_ptr<UrlObject_base>& retVal)
+{
+    obj_ptr<Url> u = new Url();
+
+    result_t hr = u->parse(url);
+    if (hr < 0)
+        return hr;
+
+    retVal = u;
+
+    return 0;
+}
+
 static const char *pathTable =
     " !  $%& ()*+,-./0123456789:; =  @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
 static const char *queryTable =
