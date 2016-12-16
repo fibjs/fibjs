@@ -27,6 +27,9 @@ interface HttpClient : object
     /*! @brief 自动redirect功能开关，默认开启 */
     Boolean autoRedirect;
 
+    /*! @brief 查询和设置 http 请求中的浏览器标识 */
+    String userAgent;
+
     /*! @brief 发送 http 请求到指定的流对象，并返回结果
      @param conn 指定处理请求的流对象
      @param req 要发送的 HttpRequest 对象

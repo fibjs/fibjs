@@ -66,6 +66,16 @@ result_t http_base::set_autoRedirect(bool newVal)
     return get_httpClient()->set_autoRedirect(newVal);
 }
 
+result_t http_base::get_userAgent(exlib::string& retVal)
+{
+    return get_httpClient()->get_userAgent(retVal);
+}
+
+result_t http_base::set_userAgent(exlib::string newVal)
+{
+    return get_httpClient()->set_userAgent(newVal);
+}
+
 result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
                             obj_ptr<HttpResponse_base> &retVal,
                             AsyncEvent *ac)

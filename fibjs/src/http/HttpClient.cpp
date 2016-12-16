@@ -68,6 +68,18 @@ result_t HttpClient::set_autoRedirect(bool newVal)
     return 0;
 }
 
+result_t HttpClient::get_userAgent(exlib::string& retVal)
+{
+    retVal = m_userAgent;
+    return 0;
+}
+
+result_t HttpClient::set_userAgent(exlib::string newVal)
+{
+    m_userAgent = newVal;
+    return 0;
+}
+
 result_t HttpClient::update(obj_ptr<HttpCookie> cookie)
 {
     int32_t length, i;
@@ -382,6 +394,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             if (cookie.length() > 0)
                 pThis->m_req->setHeader("Cookie", cookie);
             pThis->m_req->addHeader(pThis->m_headers);
+            pThis->m_hc->setAgent(pThis->m_req);
 
             if (pThis->m_body)
                 pThis->m_req->set_body(pThis->m_body);
