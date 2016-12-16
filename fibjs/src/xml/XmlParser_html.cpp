@@ -43,6 +43,12 @@ inline void buildElement(XmlParser &parser, GumboElement &el)
     attrs[i * 2 + 1] = NULL;
 
     parser.OnStartElement(tag, attrs.data());
+    if (el.tag == GUMBO_TAG_SCRIPT || el.tag == GUMBO_TAG_STYLE)
+    {
+        if (el.children.length > 0)
+            ((GumboNode **)el.children.data)[0]->type = GUMBO_NODE_COMMENT;
+    }
+
     buildChilds(parser, el.children);
     parser.OnEndElement(tag);
 }
