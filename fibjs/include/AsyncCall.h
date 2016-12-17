@@ -39,14 +39,20 @@ public:
     {
         post(v);
     }
+
+    virtual Isolate* isolate()
+    {
+        assert(false);
+        return NULL;
+    }
 };
 
 class AsyncCall: public AsyncEvent
 {
 public:
-    AsyncCall(void **a) :
-        args(a)
+    AsyncCall(void **a) : args(a)
     {
+        m_isolate = Isolate::current();
     }
 
     virtual int32_t post(int32_t v)
@@ -64,7 +70,7 @@ public:
     {
         if (!weak.isSet())
         {
-            Isolate::rt _rt;
+            Isolate::rt _rt(m_isolate);
             weak.wait();
         }
 
@@ -81,7 +87,7 @@ public:
         return wait();
 #else
         {
-            Isolate::rt _rt;
+            Isolate::rt _rt(m_isolate);
             invoke();
             weak.wait();
         }
@@ -93,11 +99,18 @@ public:
 #endif
     }
 
+    virtual Isolate* isolate()
+    {
+        assert(m_isolate);
+        return m_isolate;
+    }
+
 protected:
     exlib::Event weak;
     void **args;
 
 private:
+    Isolate* m_isolate;
     exlib::string m_error;
     int32_t m_v;
 };
@@ -225,6 +238,11 @@ public:
         return v;
     }
 
+    virtual Isolate* isolate()
+    {
+        return m_ac->isolate();
+    }
+
 private:
     AsyncEvent *m_ac;
     bool m_bAsyncState;
@@ -323,6 +341,12 @@ public:
         return 0;
     }
 
+    virtual Isolate* isolate()
+    {
+        assert(m_isolate);
+        return m_isolate;
+    }
+
 protected:
     virtual v8::Local<v8::Value> getValue()
     {
@@ -332,10 +356,10 @@ protected:
     static void syncFunc(AsyncCallBack* pThis);
 
 protected:
-    Isolate* m_isolate;
     v8::Persistent<v8::Function> m_cb;
 
 private:
+    Isolate* m_isolate;
     exlib::string m_error;
     int32_t m_v;
 };

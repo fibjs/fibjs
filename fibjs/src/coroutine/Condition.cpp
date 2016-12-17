@@ -41,7 +41,7 @@ result_t Condition::wait()
     if (!m_lockCond->m_lock.owned())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    Isolate::rt _rt;
+    Isolate::rt _rt(holder());
     m_cond.wait(m_lockCond->m_lock);
 
     return 0;

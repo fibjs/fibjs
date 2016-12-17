@@ -67,7 +67,7 @@ result_t Event::wait()
     if (m_event.isSet())
         return 0;
 
-    Isolate::rt _rt;
+    Isolate::rt _rt(holder());
     m_event.wait();
     return 0;
 }

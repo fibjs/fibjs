@@ -66,8 +66,8 @@ inline JSFiber* saveTrace()
 	return fiber;
 }
 
-Isolate::rt::rt() :
-	m_fiber(g_trace ? saveTrace() : NULL),
+Isolate::rt::rt(Isolate* cur) :
+	rt_base(cur), m_fiber(g_trace ? saveTrace() : NULL),
 	unlocker(m_isolate->m_isolate)
 {
 }

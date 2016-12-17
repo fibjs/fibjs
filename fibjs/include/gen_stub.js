@@ -152,7 +152,7 @@ function gen_stub(argn, bInst, bRet) {
 
 		if (bRet) {
 			txt.push('    virtual v8::Local<v8::Value> getValue() \\');
-			txt.push('    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \\');
+			txt.push('    {   return GetReturnValue(isolate()->m_isolate, retVal); } \\');
 
 			txt.push('	public: \\\n		T' + argn + ' retVal; \\');
 		}

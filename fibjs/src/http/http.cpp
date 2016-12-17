@@ -23,9 +23,11 @@ namespace fibjs
 
 DECLARE_MODULE(http);
 
-static HttpClient *get_httpClient()
+static HttpClient *get_httpClient(Isolate *isolate = NULL)
 {
-    Isolate *isolate = Isolate::current();
+    if (isolate == NULL)
+        isolate = Isolate::current();
+
     if (!isolate->m_httpclient)
         isolate->m_httpclient = new HttpClient();
     return (HttpClient*)(obj_base*)isolate->m_httpclient;
@@ -80,14 +82,20 @@ result_t http_base::request(Stream_base *conn, HttpRequest_base *req,
                             obj_ptr<HttpResponse_base> &retVal,
                             AsyncEvent *ac)
 {
-    return get_httpClient()->request(conn, req, retVal, ac);
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return get_httpClient(ac->isolate())->request(conn, req, retVal, ac);
 }
 
 result_t http_base::request(exlib::string method, exlib::string url,
                             SeekableStream_base* body, Map_base* headers,
                             obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->request(method, url, body, headers, retVal, ac);
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
 }
 
 result_t http_base::request(exlib::string method, exlib::string url,

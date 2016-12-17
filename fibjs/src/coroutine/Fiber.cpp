@@ -113,7 +113,7 @@ result_t FiberBase::join()
 {
     if (!m_quit.isSet())
     {
-        Isolate::rt _rt;
+        Isolate::rt _rt(holder());
         m_quit.wait();
     }
 

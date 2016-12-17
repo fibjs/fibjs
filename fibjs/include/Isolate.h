@@ -45,7 +45,7 @@ public:
 	class rt : public rt_base
 	{
 	public:
-		rt();
+		rt(Isolate* cur = NULL);
 		~rt();
 
 	public:

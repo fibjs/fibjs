@@ -139,7 +139,7 @@ public:
 
         if (!m_lock.trylock())
         {
-            Isolate::rt _rt;
+            Isolate::rt _rt(holder());
             m_lock.lock();
         }
     }

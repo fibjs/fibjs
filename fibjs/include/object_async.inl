@@ -137,7 +137,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T0 retVal; \
 	private: \
@@ -192,7 +192,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T0 retVal; \
 	private: \
@@ -353,7 +353,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T1 retVal; \
 	private: \
@@ -409,7 +409,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T1 retVal; \
 	private: \
@@ -573,7 +573,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T2 retVal; \
 	private: \
@@ -630,7 +630,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T2 retVal; \
 	private: \
@@ -797,7 +797,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T3 retVal; \
 	private: \
@@ -855,7 +855,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T3 retVal; \
 	private: \
@@ -1025,7 +1025,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T4 retVal; \
 	private: \
@@ -1084,7 +1084,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T4 retVal; \
 	private: \
@@ -1257,7 +1257,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T5 retVal; \
 	private: \
@@ -1317,7 +1317,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T5 retVal; \
 	private: \
@@ -1493,7 +1493,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T6 retVal; \
 	private: \
@@ -1554,7 +1554,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T6 retVal; \
 	private: \
@@ -1733,7 +1733,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T7 retVal; \
 	private: \
@@ -1795,7 +1795,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T7 retVal; \
 	private: \
@@ -1977,7 +1977,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T8 retVal; \
 	private: \
@@ -2040,7 +2040,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T8 retVal; \
 	private: \
@@ -2225,7 +2225,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T9 retVal; \
 	private: \
@@ -2289,7 +2289,7 @@
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
     virtual v8::Local<v8::Value> getValue() \
-    {   return GetReturnValue(m_isolate->m_isolate, retVal); } \
+    {   return GetReturnValue(isolate()->m_isolate, retVal); } \
 	public: \
 		T9 retVal; \
 	private: \
