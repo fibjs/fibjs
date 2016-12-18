@@ -28,6 +28,7 @@ class io_base : public object_base
 public:
     // io_base
     static result_t copyStream(Stream_base* from, Stream_base* to, int64_t bytes, int64_t& retVal, AsyncEvent* ac);
+    static result_t bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -42,9 +43,11 @@ public:
 
 public:
     static void s_copyStream(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_bridge(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE4(io_base, copyStream, Stream_base*, Stream_base*, int64_t, int64_t);
+    ASYNC_STATIC2(io_base, bridge, Stream_base*, Stream_base*);
 };
 
 }
@@ -59,7 +62,8 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
-            {"copyStream", s_copyStream, true}
+            {"copyStream", s_copyStream, true},
+            {"bridge", s_bridge, true}
         };
 
         static ClassData::ClassObject s_object[] = 
@@ -71,7 +75,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "io", s__new, NULL, 
-            1, s_method, 2, s_object, 0, NULL, NULL, NULL,
+            2, s_method, 2, s_object, 0, NULL, NULL, NULL,
             NULL
         };
 
@@ -97,6 +101,22 @@ namespace fibjs
             hr = ac_copyStream(v0, v1, v2, vr);
 
         METHOD_RETURN();
+    }
+
+    inline void io_base::s_bridge(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        ASYNC_METHOD_ENTER(2, 2);
+
+        ARG(obj_ptr<Stream_base>, 0);
+        ARG(obj_ptr<Stream_base>, 1);
+
+        if(!cb.IsEmpty()) {
+            acb_bridge(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_bridge(v0, v1);
+
+        METHOD_VOID();
     }
 
 }

@@ -85,4 +85,124 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 	return (new asyncCopy(from, to, bytes, retVal, ac))->post(0);
 }
 
+#define BRIDGE_READ		1
+#define BRIDGE_WRITE	2
+#define BRIDGE_DONE		0
+
+result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
+{
+	class AsyncData
+	{
+	public:
+		class AsyncCopy: public AsyncState
+		{
+		public:
+			AsyncCopy(AsyncData* data, int32_t idx) :
+				AsyncState(NULL), m_data(data), m_from(idx), m_to(1 - idx)
+			{
+				set(read);
+			}
+
+			static int32_t read(AsyncState *pState, int32_t n)
+			{
+				AsyncCopy *pThis = (AsyncCopy *) pState;
+
+				pThis->m_buf.Release();
+
+				if (pThis->m_data->m_states[pThis->m_from].CompareAndSwap(
+				            BRIDGE_WRITE, BRIDGE_READ) != BRIDGE_WRITE)
+					return pThis->error(0);
+
+				pThis->set(write);
+				return pThis->m_data->m_stms[pThis->m_from]->read(-1,
+				        pThis->m_buf, pThis);
+			}
+
+			static int32_t write(AsyncState *pState, int32_t n)
+			{
+				AsyncCopy *pThis = (AsyncCopy *) pState;
+
+				if (n == CALL_RETURN_NULL)
+					return pThis->error(0);
+
+				if (pThis->m_data->m_states[pThis->m_from].CompareAndSwap(
+				            BRIDGE_READ, BRIDGE_WRITE) != BRIDGE_READ)
+					return pThis->error(0);
+
+				pThis->set(read);
+				return pThis->m_data->m_stms[pThis->m_to]->write(pThis->m_buf, pThis);
+			}
+
+			static int32_t cancel(AsyncState *pState, int32_t n)
+			{
+				AsyncCopy *pThis = (AsyncCopy *) pState;
+
+				pThis->set(end);
+				return pThis->m_data->m_stms[pThis->m_to]->close(pThis);
+			}
+
+			static int32_t end(AsyncState *pState, int32_t n)
+			{
+				AsyncCopy *pThis = (AsyncCopy *) pState;
+				return pThis->error(0);
+			}
+
+			virtual int32_t error(int32_t v)
+			{
+				if (m_data->m_states[m_from].xchg(BRIDGE_DONE) == BRIDGE_READ)
+				{
+					m_data->m_states[m_to].xchg(BRIDGE_DONE);
+					set(cancel);
+					return 0;
+				}
+
+				m_data->release();
+				return done();
+			}
+
+		public:
+			AsyncData* m_data;
+			int32_t m_from, m_to;
+			obj_ptr<Buffer_base> m_buf;
+		};
+
+	public:
+		AsyncData(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac) :
+			m_ac(ac)
+		{
+			m_stms[0] = stm1;
+			m_stms[1] = stm2;
+
+			m_states[0] = BRIDGE_WRITE;
+			m_states[1] = BRIDGE_WRITE;
+
+			m_ref = 2;
+
+			(new AsyncCopy(this, 0))->post(0);
+			(new AsyncCopy(this, 1))->post(0);
+		}
+
+		void release()
+		{
+			if (m_ref.dec() == 0)
+			{
+				m_ac->post(0);
+				delete this;
+			}
+		}
+
+	public:
+		obj_ptr<Stream_base> m_stms[2];
+		exlib::atomic m_states[2];
+		exlib::atomic m_ref;
+		AsyncEvent* m_ac;
+	};
+
+	if (!ac)
+		return CHECK_ERROR(CALL_E_NOSYNC);
+
+	new AsyncData(stm1, stm2, ac);
+	return CALL_E_PENDDING;
+}
+
 }
