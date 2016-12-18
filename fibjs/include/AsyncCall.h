@@ -304,23 +304,6 @@ private:
     T m_v;
 };
 
-template<>
-class _at<const char*>
-{
-public:
-    _at(const char* v) : m_v(v)
-    {
-    }
-
-    const char* value()
-    {
-        return m_v.c_str();
-    }
-
-private:
-    exlib::string m_v;
-};
-
 class AsyncCallBack: public AsyncEvent
 {
 public:
