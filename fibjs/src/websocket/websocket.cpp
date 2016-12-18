@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include "ifs/io.h"
 #include "ifs/websocket.h"
 #include "ifs/http.h"
 #include "Map.h"

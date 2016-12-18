@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include "ifs/io.h"
 #include "Socket.h"
 #include "Buffer.h"
 #include "Stat.h"
@@ -126,7 +127,7 @@ result_t Socket::copyTo(Stream_base *stm, int64_t bytes,
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return copyStream(this, stm, bytes, retVal, ac);
+    return io_base::copyStream(this, stm, bytes, retVal, ac);
 }
 
 result_t Socket::close(AsyncEvent *ac)

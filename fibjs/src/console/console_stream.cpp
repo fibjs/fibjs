@@ -6,7 +6,6 @@
  */
 
 #include "console.h"
-#include "Stream.h"
 #include "Buffer.h"
 
 namespace fibjs

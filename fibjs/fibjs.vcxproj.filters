@@ -603,9 +603,6 @@
     <ClInclude Include="include\Stats.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Stream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\StringBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1139,9 +1136,6 @@
       <Filter>Source Files\io</Filter>
     </ClCompile>
     <ClCompile Include="src\io\MemoryStream.cpp">
-      <Filter>Source Files\io</Filter>
-    </ClCompile>
-    <ClCompile Include="src\io\Stream.cpp">
       <Filter>Source Files\io</Filter>
     </ClCompile>
     <ClCompile Include="src\mq\AsyncWaitHandler.cpp">

@@ -6,8 +6,8 @@
  */
 
 #include "object.h"
+#include "ifs/io.h"
 #include "MemoryStream.h"
-#include "Stream.h"
 #include "Stat.h"
 #include "Buffer.h"
 
@@ -94,7 +94,7 @@ result_t MemoryStream::close(AsyncEvent *ac)
 result_t MemoryStream::copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal,
                               AsyncEvent *ac)
 {
-    return copyStream(this, stm, bytes, retVal, ac);
+    return io_base::copyStream(this, stm, bytes, retVal, ac);
 }
 
 result_t MemoryStream::stat(obj_ptr<Stat_base> &retVal, AsyncEvent *ac)

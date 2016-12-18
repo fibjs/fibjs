@@ -6,8 +6,8 @@
  */
 
 #include "object.h"
+#include "ifs/io.h"
 #include "BufferedStream.h"
-#include "Stream.h"
 #include "Buffer.h"
 
 namespace fibjs
@@ -168,7 +168,7 @@ result_t BufferedStream::close(AsyncEvent *ac)
 result_t BufferedStream::copyTo(Stream_base *stm, int64_t bytes,
                                 int64_t &retVal, AsyncEvent *ac)
 {
-    return copyStream(this, stm, bytes, retVal, ac);
+    return io_base::copyStream(this, stm, bytes, retVal, ac);
 }
 
 result_t BufferedStream::readText(int32_t size, exlib::string &retVal,

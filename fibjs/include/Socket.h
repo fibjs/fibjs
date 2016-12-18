@@ -6,7 +6,6 @@
  */
 
 #include "ifs/Socket.h"
-#include "Stream.h"
 #include "inetAddr.h"
 #include "AsyncIO.h"
 #include "Timer.h"

@@ -13,11 +13,11 @@
 
 #include <fcntl.h>
 
+#include "ifs/io.h"
 #include "File.h"
 #include "Buffer.h"
 #include "Stat.h"
 #include "utf8.h"
-#include "Stream.h"
 
 #ifdef _WIN32
 #define pclose _pclose
@@ -199,7 +199,7 @@ result_t File::copyTo(Stream_base *stm, int64_t bytes, int64_t &retVal,
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return copyStream(this, stm, bytes, retVal, ac);
+    return io_base::copyStream(this, stm, bytes, retVal, ac);
 }
 
 result_t File::open(exlib::string fname, exlib::string flags)

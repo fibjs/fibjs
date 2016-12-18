@@ -13,4 +13,12 @@ module io
 
     /*! @brief 创建一个缓存流读取对象，参见 BufferedStream */
     static BufferedStream new BufferedStream();
+
+    /*! @brief 复制流数据到目标流中
+     @param from 源流对象
+     @param to 目标流对象
+     @param bytes 复制的字节数
+     @return 返回复制的字节数
+     */
+    static Long copyStream(Stream from, Stream to, Long bytes = -1) async;
 };

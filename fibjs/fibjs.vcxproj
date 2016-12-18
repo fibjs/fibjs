@@ -317,7 +317,6 @@
     <ClInclude Include="include\SslSocket.h" />
     <ClInclude Include="include\Stat.h" />
     <ClInclude Include="include\Stats.h" />
-    <ClInclude Include="include\Stream.h" />
     <ClInclude Include="include\StringBuffer.h" />
     <ClInclude Include="include\RpcTask.h" />
     <ClInclude Include="include\SubProcess.h" />
@@ -447,7 +446,6 @@
     <ClCompile Include="src\io\io.cpp" />
     <ClCompile Include="src\io\MemoryCloneStream.cpp" />
     <ClCompile Include="src\io\MemoryStream.cpp" />
-    <ClCompile Include="src\io\Stream.cpp" />
     <ClCompile Include="src\mq\AsyncWaitHandler.cpp" />
     <ClCompile Include="src\mq\Chain.cpp" />
     <ClCompile Include="src\mq\JSHandler.cpp" />

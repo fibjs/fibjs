@@ -9,8 +9,8 @@
 #define SUBPROCESS_H_
 
 #include "ifs/SubProcess.h"
+#include "ifs/io.h"
 #include "AsyncIO.h"
-#include "Stream.h"
 #include "Timer.h"
 
 namespace fibjs
@@ -119,7 +119,7 @@ public:
 			if (m_aio.m_fd == INVALID_SOCKET)
 				return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-			return copyStream(this, stm, bytes, retVal, ac);
+			return io_base::copyStream(this, stm, bytes, retVal, ac);
 		}
 
 	private:

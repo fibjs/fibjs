@@ -9,7 +9,6 @@
 #include "File.h"
 #include "ifs/fs.h"
 #include "ifs/path.h"
-#include "Stream.h"
 #include "Buffer.h"
 #include <algorithm>
 

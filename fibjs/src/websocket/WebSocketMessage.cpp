@@ -6,9 +6,9 @@
  */
 
 #include "object.h"
+#include "ifs/io.h"
 #include "WebSocketMessage.h"
 #include "Buffer.h"
-#include "Stream.h"
 #include "MemoryStream.h"
 
 namespace fibjs
@@ -273,7 +273,7 @@ result_t WebSocketMessage::sendTo(Stream_base *stm, AsyncEvent *ac)
             pThis->m_ms->rewind();
 
             pThis->set(NULL);
-            return copyStream(pThis->m_ms, pThis->m_stm, -1, pThis->m_size, pThis);
+            return io_base::copyStream(pThis->m_ms, pThis->m_stm, -1, pThis->m_size, pThis);
         }
 
     public:

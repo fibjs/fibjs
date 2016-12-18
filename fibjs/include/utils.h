@@ -179,6 +179,8 @@ typedef int32_t result_t;
 #define CALL_E_BAD_FILE         (-ERROR_OPERATION_ABORTED)
 #endif
 
+#define STREAM_BUFF_SIZE    65536
+
 #if 0
 #define V8_SCOPE(isolate)  v8::EscapableHandleScope handle_scope(isolate)
 #define V8_RETURN(v)   handle_scope.Escape(v)
