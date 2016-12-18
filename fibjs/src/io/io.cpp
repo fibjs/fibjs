@@ -41,7 +41,9 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 			if (pThis->m_bytes == 0)
 				return pThis->done();
 
-			if (pThis->m_bytes > STREAM_BUFF_SIZE)
+			if (pThis->m_bytes < 0)
+				len = -1;
+			else if (pThis->m_bytes > STREAM_BUFF_SIZE)
 				len = STREAM_BUFF_SIZE;
 			else
 				len = pThis->m_bytes;
