@@ -209,7 +209,7 @@ namespace fibjs
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
         if(!cb.IsEmpty()) {
-            pInst->acb_sign(v0, v1, v2, vr, cb);
+            pInst->acb_sign(v0, v1, v2, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_sign(v0, v1, v2, vr);

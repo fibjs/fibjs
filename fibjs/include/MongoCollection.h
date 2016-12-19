@@ -61,16 +61,16 @@ private:
                         v8::Local<v8::Object> &retVal);
 
     result_t _insert(const bson *data, int32_t &retVal, AsyncEvent *ac);
-    ASYNC_MEMBERVALUE2(MongoCollection, _insert, bson *, int32_t);
+    ASYNC_MEMBERVALUE2_AC(MongoCollection, _insert, bson *, int32_t);
 
     result_t _batchInsert(const std::vector<const bson *> pdata, int num, int32_t &retVal, AsyncEvent *ac);
-    ASYNC_MEMBERVALUE3(MongoCollection, _batchInsert, std::vector<const bson *>, int, int32_t);
+    ASYNC_MEMBERVALUE3_AC(MongoCollection, _batchInsert, std::vector<const bson *>, int, int32_t);
 
     result_t _update(const bson *cond, const bson *op, int flags, int32_t &retVal, AsyncEvent *ac);
-    ASYNC_MEMBERVALUE4(MongoCollection, _update, bson *, bson *, int, int32_t);
+    ASYNC_MEMBERVALUE4_AC(MongoCollection, _update, bson *, bson *, int, int32_t);
 
     result_t _remove(const bson *data, int32_t &retVal, AsyncEvent *ac);
-    ASYNC_MEMBERVALUE2(MongoCollection, _remove, bson *, int32_t);
+    ASYNC_MEMBERVALUE2_AC(MongoCollection, _remove, bson *, int32_t);
 
 private:
     weak_ptr<MongoDB> m_db;

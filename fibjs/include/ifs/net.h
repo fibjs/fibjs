@@ -178,7 +178,7 @@ namespace fibjs
         OPT_ARG(int32_t, 1, _AF_INET);
 
         if(!cb.IsEmpty()) {
-            acb_resolve(v0, v1, vr, cb);
+            acb_resolve(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_resolve(v0, v1, vr);
@@ -195,7 +195,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_ip(v0, vr, cb);
+            acb_ip(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_ip(v0, vr);
@@ -212,7 +212,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_ipv6(v0, vr, cb);
+            acb_ipv6(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_ipv6(v0, vr);
@@ -232,7 +232,7 @@ namespace fibjs
         OPT_ARG(int32_t, 3, net_base::_AF_INET);
 
         if(!cb.IsEmpty()) {
-            acb_connect(v0, v1, v2, v3, vr, cb);
+            acb_connect(v0, v1, v2, v3, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_connect(v0, v1, v2, v3, vr);
@@ -243,7 +243,7 @@ namespace fibjs
         OPT_ARG(int32_t, 1, 0);
 
         if(!cb.IsEmpty()) {
-            acb_connect(v0, v1, vr, cb);
+            acb_connect(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_connect(v0, v1, vr);
@@ -261,7 +261,7 @@ namespace fibjs
         OPT_ARG(int32_t, 1, 0);
 
         if(!cb.IsEmpty()) {
-            acb_openSmtp(v0, v1, vr, cb);
+            acb_openSmtp(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_openSmtp(v0, v1, vr);

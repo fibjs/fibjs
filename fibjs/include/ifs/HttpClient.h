@@ -247,7 +247,7 @@ namespace fibjs
         ARG(obj_ptr<HttpRequest_base>, 1);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_request(v0, v1, vr, cb);
+            pInst->acb_request(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_request(v0, v1, vr);
@@ -268,7 +268,7 @@ namespace fibjs
         ARG(obj_ptr<Map_base>, 3);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_request(v0, v1, v2, v3, vr, cb);
+            pInst->acb_request(v0, v1, v2, v3, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_request(v0, v1, v2, v3, vr);

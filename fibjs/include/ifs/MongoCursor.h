@@ -23,8 +23,8 @@ class MongoCursor_base : public object_base
 
 public:
     // MongoCursor_base
-    virtual result_t skip(int32_t num, obj_ptr<MongoCursor_base>& retVal) = 0;
-    virtual result_t limit(int32_t size, obj_ptr<MongoCursor_base>& retVal) = 0;
+    virtual result_t skip(int32_t num, obj_ptr<MongoCursor_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t limit(int32_t size, obj_ptr<MongoCursor_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t sort(v8::Local<v8::Object> opts, obj_ptr<MongoCursor_base>& retVal) = 0;
     virtual result_t hasNext(bool& retVal) = 0;
     virtual result_t next(v8::Local<v8::Object>& retVal) = 0;
@@ -58,6 +58,10 @@ public:
     static void s_map(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hint(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_MEMBERVALUE2(MongoCursor_base, skip, int32_t, obj_ptr<MongoCursor_base>);
+    ASYNC_MEMBERVALUE2(MongoCursor_base, limit, int32_t, obj_ptr<MongoCursor_base>);
 };
 
 }
@@ -98,11 +102,15 @@ namespace fibjs
         obj_ptr<MongoCursor_base> vr;
 
         METHOD_INSTANCE(MongoCursor_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(int32_t, 0);
 
-        hr = pInst->skip(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_skip(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_skip(v0, vr);
 
         METHOD_RETURN();
     }
@@ -112,11 +120,15 @@ namespace fibjs
         obj_ptr<MongoCursor_base> vr;
 
         METHOD_INSTANCE(MongoCursor_base);
-        METHOD_ENTER(1, 1);
+        ASYNC_METHOD_ENTER(1, 1);
 
         ARG(int32_t, 0);
 
-        hr = pInst->limit(v0, vr);
+        if(!cb.IsEmpty()) {
+            pInst->acb_limit(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_limit(v0, vr);
 
         METHOD_RETURN();
     }

@@ -157,7 +157,7 @@ namespace fibjs
         OPT_ARG(exlib::string, 1, "");
 
         if(!cb.IsEmpty()) {
-            acb_connect(v0, v1, vr, cb);
+            acb_connect(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_connect(v0, v1, vr);

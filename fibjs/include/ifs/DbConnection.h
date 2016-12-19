@@ -156,7 +156,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_execute(v0, vr, cb);
+            pInst->acb_execute(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_execute(v0, vr);

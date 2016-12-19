@@ -83,7 +83,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_open(v0, vr, cb);
+            acb_open(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_open(v0, vr);
@@ -94,7 +94,7 @@ namespace fibjs
         ARG(obj_ptr<Map_base>, 1);
 
         if(!cb.IsEmpty()) {
-            acb_open(v0, v1, vr, cb);
+            acb_open(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_open(v0, v1, vr);

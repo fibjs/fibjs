@@ -304,6 +304,23 @@ private:
     T m_v;
 };
 
+template<typename T>
+class _at<T*>
+{
+public:
+    _at(T* v) : m_v(v)
+    {
+    }
+
+    T* value()
+    {
+        return m_v;
+    }
+
+private:
+    obj_ptr<T> m_v;
+};
+
 class AsyncCallBack: public AsyncEvent
 {
 public:

@@ -122,7 +122,7 @@ namespace fibjs
         ASYNC_METHOD_ENTER(0, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_namelist(vr, cb);
+            pInst->acb_namelist(cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_namelist(vr);
@@ -138,7 +138,7 @@ namespace fibjs
         ASYNC_METHOD_ENTER(0, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_infolist(vr, cb);
+            pInst->acb_infolist(cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_infolist(vr);
@@ -156,7 +156,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_getinfo(v0, vr, cb);
+            pInst->acb_getinfo(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_getinfo(v0, vr);
@@ -175,7 +175,7 @@ namespace fibjs
         OPT_ARG(exlib::string, 1, "");
 
         if(!cb.IsEmpty()) {
-            pInst->acb_read(v0, v1, vr, cb);
+            pInst->acb_read(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_read(v0, v1, vr);
@@ -193,7 +193,7 @@ namespace fibjs
         OPT_ARG(exlib::string, 0, "");
 
         if(!cb.IsEmpty()) {
-            pInst->acb_readAll(v0, vr, cb);
+            pInst->acb_readAll(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_readAll(v0, vr);

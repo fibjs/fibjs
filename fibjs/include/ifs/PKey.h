@@ -292,7 +292,7 @@ namespace fibjs
         ARG(obj_ptr<Buffer_base>, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_encrypt(v0, vr, cb);
+            pInst->acb_encrypt(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_encrypt(v0, vr);
@@ -310,7 +310,7 @@ namespace fibjs
         ARG(obj_ptr<Buffer_base>, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_decrypt(v0, vr, cb);
+            pInst->acb_decrypt(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_decrypt(v0, vr);
@@ -329,7 +329,7 @@ namespace fibjs
         OPT_ARG(int32_t, 1, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_sign(v0, v1, vr, cb);
+            pInst->acb_sign(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_sign(v0, v1, vr);
@@ -348,7 +348,7 @@ namespace fibjs
         ARG(obj_ptr<Buffer_base>, 1);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_verify(v0, v1, vr, cb);
+            pInst->acb_verify(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_verify(v0, v1, vr);

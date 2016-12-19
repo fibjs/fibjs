@@ -85,7 +85,7 @@ public:
 
         return create(family, type);
     }
-    ASYNC_MEMBER2(Socket, create, int32_t, int32_t);
+    ASYNC_MEMBER2_AC(Socket, create, int32_t, int32_t);
 #endif
 
 private:

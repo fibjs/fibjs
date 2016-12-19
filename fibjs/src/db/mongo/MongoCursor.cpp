@@ -37,33 +37,6 @@ result_t MongoCursor::_nextCursor(int32_t &retVal, AsyncEvent *ac)
     return 0;
 }
 
-result_t MongoCursor::_bsonCursor(bson &out, AsyncEvent *ac)
-{
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    out = *(mongo_cursor_bson(m_cursor));
-    return 0;
-}
-
-result_t MongoCursor::_limitCursor(int32_t size, AsyncEvent *ac)
-{
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    mongo_cursor_set_limit(m_cursor, size);
-    return 0;
-}
-
-result_t MongoCursor::_skipCursor(int32_t num, AsyncEvent *ac)
-{
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    mongo_cursor_set_skip(m_cursor, num);
-    return 0;
-}
-
 MongoCursor::MongoCursor(MongoDB *db, const exlib::string &ns,
                          const exlib::string &name, v8::Local<v8::Object> query,
                          v8::Local<v8::Object> projection)
@@ -81,7 +54,7 @@ MongoCursor::MongoCursor(MongoDB *db, const exlib::string &ns,
 
     encodeObject(isolate, &m_bbp, projection);
 
-    cc__initCursor(db);
+    ac__initCursor(db);
 
     m_bInit = false;
     m_bSpecial = false;
@@ -126,12 +99,17 @@ result_t MongoCursor::hint(v8::Local<v8::Object> opts,
     return _addSpecial("$hint", opts, retVal);
 }
 
-result_t MongoCursor::limit(int32_t size, obj_ptr<MongoCursor_base> &retVal)
+result_t MongoCursor::limit(int32_t size, obj_ptr<MongoCursor_base> &retVal,
+                            AsyncEvent* ac)
 {
     if (m_bInit)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    cc__limitCursor(size);
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    mongo_cursor_set_limit(m_cursor, size);
+
     retVal = this;
     return 0;
 }
@@ -231,7 +209,7 @@ result_t MongoCursor::hasNext(bool &retVal)
     if (m_state == CUR_NONE)
     {
         int32_t res;
-        cc__nextCursor(res);
+        ac__nextCursor(res);
         m_state = (res == MONGO_OK) ? CUR_DATA : CUR_NODATA;
     }
 
@@ -262,14 +240,19 @@ result_t MongoCursor::size(int32_t &retVal)
     return count(true, retVal);
 }
 
-result_t MongoCursor::skip(int32_t num, obj_ptr<MongoCursor_base> &retVal)
+result_t MongoCursor::skip(int32_t num, obj_ptr<MongoCursor_base> &retVal,
+                           AsyncEvent* ac)
 {
     if (m_bInit)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    cc__skipCursor(num);
-    retVal = this;
 
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    mongo_cursor_set_skip(m_cursor, num);
+
+    retVal = this;
     return 0;
 }
 

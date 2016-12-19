@@ -144,7 +144,7 @@ namespace fibjs
         ASYNC_METHOD_ENTER(0, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_wait(vr, cb);
+            pInst->acb_wait(cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_wait(vr);

@@ -126,7 +126,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_open(v0, vr, cb);
+            acb_open(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_open(v0, vr);
@@ -143,7 +143,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_openMySQL(v0, vr, cb);
+            acb_openMySQL(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_openMySQL(v0, vr);
@@ -160,7 +160,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_openMSSQL(v0, vr, cb);
+            acb_openMSSQL(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_openMSSQL(v0, vr);
@@ -177,7 +177,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_openSQLite(v0, vr, cb);
+            acb_openSQLite(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_openSQLite(v0, vr);
@@ -194,7 +194,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_openMongoDB(v0, vr, cb);
+            acb_openMongoDB(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_openMongoDB(v0, vr);
@@ -211,7 +211,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_openLevelDB(v0, vr, cb);
+            acb_openLevelDB(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_openLevelDB(v0, vr);
@@ -228,7 +228,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_openRedis(v0, vr, cb);
+            acb_openRedis(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_openRedis(v0, vr);

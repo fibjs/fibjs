@@ -185,7 +185,7 @@ namespace fibjs
         OPT_ARG(int32_t, 1, _DEFAULT_COMPRESSION);
 
         if(!cb.IsEmpty()) {
-            acb_deflate(v0, v1, vr, cb);
+            acb_deflate(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_deflate(v0, v1, vr);
@@ -231,7 +231,7 @@ namespace fibjs
         ARG(obj_ptr<Buffer_base>, 0);
 
         if(!cb.IsEmpty()) {
-            acb_inflate(v0, vr, cb);
+            acb_inflate(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_inflate(v0, vr);
@@ -275,7 +275,7 @@ namespace fibjs
         ARG(obj_ptr<Buffer_base>, 0);
 
         if(!cb.IsEmpty()) {
-            acb_gzip(v0, vr, cb);
+            acb_gzip(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_gzip(v0, vr);
@@ -319,7 +319,7 @@ namespace fibjs
         ARG(obj_ptr<Buffer_base>, 0);
 
         if(!cb.IsEmpty()) {
-            acb_gunzip(v0, vr, cb);
+            acb_gunzip(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_gunzip(v0, vr);
@@ -364,7 +364,7 @@ namespace fibjs
         OPT_ARG(int32_t, 1, _DEFAULT_COMPRESSION);
 
         if(!cb.IsEmpty()) {
-            acb_deflateRaw(v0, v1, vr, cb);
+            acb_deflateRaw(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_deflateRaw(v0, v1, vr);
@@ -410,7 +410,7 @@ namespace fibjs
         ARG(obj_ptr<Buffer_base>, 0);
 
         if(!cb.IsEmpty()) {
-            acb_inflateRaw(v0, vr, cb);
+            acb_inflateRaw(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_inflateRaw(v0, vr);

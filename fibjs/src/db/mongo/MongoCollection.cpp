@@ -88,7 +88,7 @@ result_t MongoCollection::findOne(v8::Local<v8::Object> query,
             projection);
     obj_ptr<MongoCursor_base> cur1;
 
-    cur->limit(1, cur1);
+    cur->ac_limit(1, cur1);
     return cur->next(retVal);
 }
 
@@ -132,7 +132,7 @@ result_t MongoCollection::insert(v8::Local<v8::Array> documents)
         }
 
         int32_t result = MONGO_ERROR;
-        cc__batchInsert(pbbs, n, result);
+        ac__batchInsert(pbbs, n, result);
 
         for (i = 0; i < n; i++)
             bson_destroy (&bbs[i]);
@@ -158,7 +158,7 @@ result_t MongoCollection::insert(v8::Local<v8::Object> document)
         return hr;
 
     int32_t result = MONGO_ERROR;
-    cc__insert(&bb, result);
+    ac__insert(&bb, result);
 
     bson_destroy(&bb);
 
@@ -212,7 +212,7 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
     }
 
     int32_t result = MONGO_ERROR;
-    cc__update(&bbq, &bbd, flags, result);
+    ac__update(&bbq, &bbd, flags, result);
 
     bson_destroy(&bbq);
     bson_destroy(&bbd);
@@ -246,7 +246,7 @@ result_t MongoCollection::remove(v8::Local<v8::Object> query)
         return hr;
 
     int32_t result = MONGO_ERROR;
-    cc__remove(&bbq, result);
+    ac__remove(&bbq, result);
 
     bson_destroy(&bbq);
 

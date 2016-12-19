@@ -406,7 +406,7 @@ namespace fibjs
         OPT_ARG(int32_t, 1, 85);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_getData(v0, v1, vr, cb);
+            pInst->acb_getData(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_getData(v0, v1, vr);
@@ -939,7 +939,7 @@ namespace fibjs
         ASYNC_METHOD_ENTER(0, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_clone(vr, cb);
+            pInst->acb_clone(cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_clone(vr);
@@ -958,7 +958,7 @@ namespace fibjs
         ARG(int32_t, 1);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_resample(v0, v1, vr, cb);
+            pInst->acb_resample(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_resample(v0, v1, vr);
@@ -979,7 +979,7 @@ namespace fibjs
         ARG(int32_t, 3);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_crop(v0, v1, v2, v3, vr, cb);
+            pInst->acb_crop(v0, v1, v2, v3, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_crop(v0, v1, v2, v3, vr);

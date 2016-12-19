@@ -95,7 +95,7 @@ namespace fibjs
         OPT_ARG(int64_t, 2, -1);
 
         if(!cb.IsEmpty()) {
-            acb_copyStream(v0, v1, v2, vr, cb);
+            acb_copyStream(v0, v1, v2, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_copyStream(v0, v1, v2, vr);

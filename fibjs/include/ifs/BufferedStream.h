@@ -187,7 +187,7 @@ namespace fibjs
         ARG(int32_t, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_readText(v0, vr, cb);
+            pInst->acb_readText(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_readText(v0, vr);
@@ -205,7 +205,7 @@ namespace fibjs
         OPT_ARG(int32_t, 0, -1);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_readLine(v0, vr, cb);
+            pInst->acb_readLine(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_readLine(v0, vr);
@@ -238,7 +238,7 @@ namespace fibjs
         OPT_ARG(int32_t, 1, -1);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_readUntil(v0, v1, vr, cb);
+            pInst->acb_readUntil(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_readUntil(v0, v1, vr);

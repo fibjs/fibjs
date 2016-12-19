@@ -271,7 +271,7 @@ result_t MongoDB::bsonHandler(bson *command, v8::Local<v8::Object> &retVal)
 {
     bson out;
 
-    result_t hr = cc__runCommand(command, out);
+    result_t hr = ac__runCommand(command, out);
     if (hr < 0)
         return hr;
 

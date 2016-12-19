@@ -79,7 +79,7 @@ namespace fibjs
         ARG(obj_ptr<object_base>, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_invoke(v0, vr, cb);
+            pInst->acb_invoke(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_invoke(v0, vr);

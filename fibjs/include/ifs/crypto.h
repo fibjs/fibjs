@@ -397,7 +397,7 @@ namespace fibjs
         ARG(int32_t, 0);
 
         if(!cb.IsEmpty()) {
-            acb_randomBytes(v0, vr, cb);
+            acb_randomBytes(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_randomBytes(v0, vr);
@@ -414,7 +414,7 @@ namespace fibjs
         ARG(int32_t, 0);
 
         if(!cb.IsEmpty()) {
-            acb_simpleRandomBytes(v0, vr, cb);
+            acb_simpleRandomBytes(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_simpleRandomBytes(v0, vr);
@@ -431,7 +431,7 @@ namespace fibjs
         ARG(int32_t, 0);
 
         if(!cb.IsEmpty()) {
-            acb_pseudoRandomBytes(v0, vr, cb);
+            acb_pseudoRandomBytes(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_pseudoRandomBytes(v0, vr);

@@ -196,7 +196,7 @@ namespace fibjs
         ARG(obj_ptr<Buffer_base>, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_encrypt(v0, vr, cb);
+            pInst->acb_encrypt(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_encrypt(v0, vr);
@@ -214,7 +214,7 @@ namespace fibjs
         ARG(obj_ptr<Buffer_base>, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_decrypt(v0, vr, cb);
+            pInst->acb_decrypt(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_decrypt(v0, vr);

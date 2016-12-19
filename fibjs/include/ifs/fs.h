@@ -191,7 +191,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_exists(v0, vr, cb);
+            acb_exists(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_exists(v0, vr);
@@ -223,7 +223,7 @@ namespace fibjs
         ARG(int32_t, 0);
 
         if(!cb.IsEmpty()) {
-            acb_umask(v0, vr, cb);
+            acb_umask(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_umask(v0, vr);
@@ -319,7 +319,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_stat(v0, vr, cb);
+            acb_stat(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_stat(v0, vr);
@@ -336,7 +336,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_readdir(v0, vr, cb);
+            acb_readdir(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_readdir(v0, vr);
@@ -354,7 +354,7 @@ namespace fibjs
         OPT_ARG(exlib::string, 1, "r");
 
         if(!cb.IsEmpty()) {
-            acb_open(v0, v1, vr, cb);
+            acb_open(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_open(v0, v1, vr);
@@ -369,7 +369,7 @@ namespace fibjs
         ASYNC_METHOD_ENTER(0, 0);
 
         if(!cb.IsEmpty()) {
-            acb_tmpFile(vr, cb);
+            acb_tmpFile(cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_tmpFile(vr);
@@ -387,7 +387,7 @@ namespace fibjs
         OPT_ARG(exlib::string, 1, "r");
 
         if(!cb.IsEmpty()) {
-            acb_openTextStream(v0, v1, vr, cb);
+            acb_openTextStream(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_openTextStream(v0, v1, vr);
@@ -404,7 +404,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_readTextFile(v0, vr, cb);
+            acb_readTextFile(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_readTextFile(v0, vr);
@@ -421,7 +421,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_readFile(v0, vr, cb);
+            acb_readFile(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_readFile(v0, vr);

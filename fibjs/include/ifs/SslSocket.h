@@ -172,7 +172,7 @@ namespace fibjs
         OPT_ARG(exlib::string, 1, "");
 
         if(!cb.IsEmpty()) {
-            pInst->acb_connect(v0, v1, vr, cb);
+            pInst->acb_connect(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_connect(v0, v1, vr);
@@ -190,7 +190,7 @@ namespace fibjs
         ARG(obj_ptr<Stream_base>, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_accept(v0, vr, cb);
+            pInst->acb_accept(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_accept(v0, vr);

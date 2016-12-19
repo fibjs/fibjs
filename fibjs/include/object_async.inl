@@ -1,4 +1,4 @@
-#define ASYNC_STATIC0(cls, m) \
+#define ASYNC_STATIC0_AC(cls, m) \
 	static result_t ac_##m() { \
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
@@ -11,7 +11,8 @@
 	_t ac(NULL); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC0_CC(cls, m) \
 	static result_t cc_##m() { \
 	class _t : public CAsyncCall { public: \
 		_t(void ** a) : CAsyncCall(a) {} \
@@ -24,7 +25,8 @@
 	_t ac(NULL); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC0_ACB(cls, m) \
 	static void acb_##m(v8::Local<v8::Function> cb) { \
 	class _t: public AsyncCallBack { \
 	public: \
@@ -43,8 +45,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATIC0(cls, m) \
+	ASYNC_STATIC0_AC(cls, m) \
+	ASYNC_STATIC0_CC(cls, m) \
+	ASYNC_STATIC0_ACB(cls, m)
 
-#define ASYNC_MEMBER0(cls, m) \
+#define ASYNC_MEMBER0_AC(cls, m) \
 	result_t ac_##m() { \
 	class _t : public AsyncCall { public: \
 		_t(void ** a) : AsyncCall(a) {} \
@@ -58,7 +64,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER0_CC(cls, m) \
 	result_t cc_##m() { \
 	class _t : public CAsyncCall { public: \
 		_t(void ** a) : CAsyncCall(a) {} \
@@ -72,7 +79,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER0_ACB(cls, m) \
 	void acb_##m(v8::Local<v8::Function> cb) { \
 	class _t: public AsyncCallBack { \
 	public: \
@@ -92,8 +100,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBER0(cls, m) \
+	ASYNC_MEMBER0_AC(cls, m) \
+	ASYNC_MEMBER0_CC(cls, m) \
+	ASYNC_MEMBER0_ACB(cls, m)
 
-#define ASYNC_STATICVALUE1(cls, m, T0) \
+#define ASYNC_STATICVALUE1_AC(cls, m, T0) \
 	static result_t ac_##m( \
 		T0& v0) {\
 	class _t : public AsyncCall { public: \
@@ -108,7 +120,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE1_CC(cls, m, T0) \
 	static result_t cc_##m( \
 		T0& v0) {\
 	class _t : public CAsyncCall { public: \
@@ -123,9 +136,9 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
-	static void acb_##m( \
-		T0 v0, v8::Local<v8::Function> cb) {\
+	}
+#define ASYNC_STATICVALUE1_ACB(cls, m, T0) \
+	static void acb_##m(v8::Local<v8::Function> cb) { \
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(v8::Local<v8::Function> cb) : \
@@ -147,8 +160,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATICVALUE1(cls, m, T0) \
+	ASYNC_STATICVALUE1_AC(cls, m, T0) \
+	ASYNC_STATICVALUE1_CC(cls, m, T0) \
+	ASYNC_STATICVALUE1_ACB(cls, m, T0)
 
-#define ASYNC_MEMBERVALUE1(cls, m, T0) \
+#define ASYNC_MEMBERVALUE1_AC(cls, m, T0) \
 	result_t ac_##m( \
 		T0& v0) {\
 	class _t : public AsyncCall { public: \
@@ -163,7 +180,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE1_CC(cls, m, T0) \
 	result_t cc_##m( \
 		T0& v0) {\
 	class _t : public CAsyncCall { public: \
@@ -178,9 +196,9 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
-	void acb_##m( \
-		T0 v0, v8::Local<v8::Function> cb) {\
+	}
+#define ASYNC_MEMBERVALUE1_ACB(cls, m, T0) \
+	void acb_##m(v8::Local<v8::Function> cb) { \
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, v8::Local<v8::Function> cb) : \
@@ -203,8 +221,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBERVALUE1(cls, m, T0) \
+	ASYNC_MEMBERVALUE1_AC(cls, m, T0) \
+	ASYNC_MEMBERVALUE1_CC(cls, m, T0) \
+	ASYNC_MEMBERVALUE1_ACB(cls, m, T0)
 
-#define ASYNC_STATIC1(cls, m, T0) \
+#define ASYNC_STATIC1_AC(cls, m, T0) \
 	static result_t ac_##m( \
 		T0 v0) {\
 	class _t : public AsyncCall { public: \
@@ -219,7 +241,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC1_CC(cls, m, T0) \
 	static result_t cc_##m( \
 		T0 v0) {\
 	class _t : public CAsyncCall { public: \
@@ -234,7 +257,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC1_ACB(cls, m, T0) \
 	static void acb_##m( \
 		T0 v0, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -255,8 +279,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATIC1(cls, m, T0) \
+	ASYNC_STATIC1_AC(cls, m, T0) \
+	ASYNC_STATIC1_CC(cls, m, T0) \
+	ASYNC_STATIC1_ACB(cls, m, T0)
 
-#define ASYNC_MEMBER1(cls, m, T0) \
+#define ASYNC_MEMBER1_AC(cls, m, T0) \
 	result_t ac_##m( \
 		T0 v0) {\
 	class _t : public AsyncCall { public: \
@@ -271,7 +299,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER1_CC(cls, m, T0) \
 	result_t cc_##m( \
 		T0 v0) {\
 	class _t : public CAsyncCall { public: \
@@ -286,7 +315,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER1_ACB(cls, m, T0) \
 	void acb_##m( \
 		T0 v0, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -308,8 +338,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBER1(cls, m, T0) \
+	ASYNC_MEMBER1_AC(cls, m, T0) \
+	ASYNC_MEMBER1_CC(cls, m, T0) \
+	ASYNC_MEMBER1_ACB(cls, m, T0)
 
-#define ASYNC_STATICVALUE2(cls, m, T0, T1) \
+#define ASYNC_STATICVALUE2_AC(cls, m, T0, T1) \
 	static result_t ac_##m( \
 		T0 v0, T1& v1) {\
 	class _t : public AsyncCall { public: \
@@ -324,7 +358,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE2_CC(cls, m, T0, T1) \
 	static result_t cc_##m( \
 		T0 v0, T1& v1) {\
 	class _t : public CAsyncCall { public: \
@@ -339,9 +374,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE2_ACB(cls, m, T0, T1) \
 	static void acb_##m( \
-		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
+		T0 v0, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, v8::Local<v8::Function> cb) : \
@@ -364,8 +400,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATICVALUE2(cls, m, T0, T1) \
+	ASYNC_STATICVALUE2_AC(cls, m, T0, T1) \
+	ASYNC_STATICVALUE2_CC(cls, m, T0, T1) \
+	ASYNC_STATICVALUE2_ACB(cls, m, T0, T1)
 
-#define ASYNC_MEMBERVALUE2(cls, m, T0, T1) \
+#define ASYNC_MEMBERVALUE2_AC(cls, m, T0, T1) \
 	result_t ac_##m( \
 		T0 v0, T1& v1) {\
 	class _t : public AsyncCall { public: \
@@ -380,7 +420,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE2_CC(cls, m, T0, T1) \
 	result_t cc_##m( \
 		T0 v0, T1& v1) {\
 	class _t : public CAsyncCall { public: \
@@ -395,9 +436,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE2_ACB(cls, m, T0, T1) \
 	void acb_##m( \
-		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
+		T0 v0, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, v8::Local<v8::Function> cb) : \
@@ -421,8 +463,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBERVALUE2(cls, m, T0, T1) \
+	ASYNC_MEMBERVALUE2_AC(cls, m, T0, T1) \
+	ASYNC_MEMBERVALUE2_CC(cls, m, T0, T1) \
+	ASYNC_MEMBERVALUE2_ACB(cls, m, T0, T1)
 
-#define ASYNC_STATIC2(cls, m, T0, T1) \
+#define ASYNC_STATIC2_AC(cls, m, T0, T1) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1) {\
 	class _t : public AsyncCall { public: \
@@ -437,7 +483,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC2_CC(cls, m, T0, T1) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1) {\
 	class _t : public CAsyncCall { public: \
@@ -452,7 +499,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC2_ACB(cls, m, T0, T1) \
 	static void acb_##m( \
 		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -474,8 +522,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATIC2(cls, m, T0, T1) \
+	ASYNC_STATIC2_AC(cls, m, T0, T1) \
+	ASYNC_STATIC2_CC(cls, m, T0, T1) \
+	ASYNC_STATIC2_ACB(cls, m, T0, T1)
 
-#define ASYNC_MEMBER2(cls, m, T0, T1) \
+#define ASYNC_MEMBER2_AC(cls, m, T0, T1) \
 	result_t ac_##m( \
 		T0 v0, T1 v1) {\
 	class _t : public AsyncCall { public: \
@@ -490,7 +542,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER2_CC(cls, m, T0, T1) \
 	result_t cc_##m( \
 		T0 v0, T1 v1) {\
 	class _t : public CAsyncCall { public: \
@@ -505,7 +558,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER2_ACB(cls, m, T0, T1) \
 	void acb_##m( \
 		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -528,8 +582,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBER2(cls, m, T0, T1) \
+	ASYNC_MEMBER2_AC(cls, m, T0, T1) \
+	ASYNC_MEMBER2_CC(cls, m, T0, T1) \
+	ASYNC_MEMBER2_ACB(cls, m, T0, T1)
 
-#define ASYNC_STATICVALUE3(cls, m, T0, T1, T2) \
+#define ASYNC_STATICVALUE3_AC(cls, m, T0, T1, T2) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2& v2) {\
 	class _t : public AsyncCall { public: \
@@ -544,7 +602,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE3_CC(cls, m, T0, T1, T2) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2& v2) {\
 	class _t : public CAsyncCall { public: \
@@ -559,9 +618,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE3_ACB(cls, m, T0, T1, T2) \
 	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, v8::Local<v8::Function> cb) : \
@@ -585,8 +645,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATICVALUE3(cls, m, T0, T1, T2) \
+	ASYNC_STATICVALUE3_AC(cls, m, T0, T1, T2) \
+	ASYNC_STATICVALUE3_CC(cls, m, T0, T1, T2) \
+	ASYNC_STATICVALUE3_ACB(cls, m, T0, T1, T2)
 
-#define ASYNC_MEMBERVALUE3(cls, m, T0, T1, T2) \
+#define ASYNC_MEMBERVALUE3_AC(cls, m, T0, T1, T2) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2& v2) {\
 	class _t : public AsyncCall { public: \
@@ -601,7 +665,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE3_CC(cls, m, T0, T1, T2) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2& v2) {\
 	class _t : public CAsyncCall { public: \
@@ -616,9 +681,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE3_ACB(cls, m, T0, T1, T2) \
 	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, v8::Local<v8::Function> cb) : \
@@ -643,8 +709,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBERVALUE3(cls, m, T0, T1, T2) \
+	ASYNC_MEMBERVALUE3_AC(cls, m, T0, T1, T2) \
+	ASYNC_MEMBERVALUE3_CC(cls, m, T0, T1, T2) \
+	ASYNC_MEMBERVALUE3_ACB(cls, m, T0, T1, T2)
 
-#define ASYNC_STATIC3(cls, m, T0, T1, T2) \
+#define ASYNC_STATIC3_AC(cls, m, T0, T1, T2) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2) {\
 	class _t : public AsyncCall { public: \
@@ -659,7 +729,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC3_CC(cls, m, T0, T1, T2) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2) {\
 	class _t : public CAsyncCall { public: \
@@ -674,7 +745,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC3_ACB(cls, m, T0, T1, T2) \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -697,8 +769,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATIC3(cls, m, T0, T1, T2) \
+	ASYNC_STATIC3_AC(cls, m, T0, T1, T2) \
+	ASYNC_STATIC3_CC(cls, m, T0, T1, T2) \
+	ASYNC_STATIC3_ACB(cls, m, T0, T1, T2)
 
-#define ASYNC_MEMBER3(cls, m, T0, T1, T2) \
+#define ASYNC_MEMBER3_AC(cls, m, T0, T1, T2) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2) {\
 	class _t : public AsyncCall { public: \
@@ -713,7 +789,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER3_CC(cls, m, T0, T1, T2) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2) {\
 	class _t : public CAsyncCall { public: \
@@ -728,7 +805,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER3_ACB(cls, m, T0, T1, T2) \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -752,8 +830,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBER3(cls, m, T0, T1, T2) \
+	ASYNC_MEMBER3_AC(cls, m, T0, T1, T2) \
+	ASYNC_MEMBER3_CC(cls, m, T0, T1, T2) \
+	ASYNC_MEMBER3_ACB(cls, m, T0, T1, T2)
 
-#define ASYNC_STATICVALUE4(cls, m, T0, T1, T2, T3) \
+#define ASYNC_STATICVALUE4_AC(cls, m, T0, T1, T2, T3) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3& v3) {\
 	class _t : public AsyncCall { public: \
@@ -768,7 +850,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE4_CC(cls, m, T0, T1, T2, T3) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3& v3) {\
 	class _t : public CAsyncCall { public: \
@@ -783,9 +866,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE4_ACB(cls, m, T0, T1, T2, T3) \
 	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, v8::Local<v8::Function> cb) : \
@@ -810,8 +894,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATICVALUE4(cls, m, T0, T1, T2, T3) \
+	ASYNC_STATICVALUE4_AC(cls, m, T0, T1, T2, T3) \
+	ASYNC_STATICVALUE4_CC(cls, m, T0, T1, T2, T3) \
+	ASYNC_STATICVALUE4_ACB(cls, m, T0, T1, T2, T3)
 
-#define ASYNC_MEMBERVALUE4(cls, m, T0, T1, T2, T3) \
+#define ASYNC_MEMBERVALUE4_AC(cls, m, T0, T1, T2, T3) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3& v3) {\
 	class _t : public AsyncCall { public: \
@@ -826,7 +914,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE4_CC(cls, m, T0, T1, T2, T3) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3& v3) {\
 	class _t : public CAsyncCall { public: \
@@ -841,9 +930,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE4_ACB(cls, m, T0, T1, T2, T3) \
 	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, v8::Local<v8::Function> cb) : \
@@ -869,8 +959,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBERVALUE4(cls, m, T0, T1, T2, T3) \
+	ASYNC_MEMBERVALUE4_AC(cls, m, T0, T1, T2, T3) \
+	ASYNC_MEMBERVALUE4_CC(cls, m, T0, T1, T2, T3) \
+	ASYNC_MEMBERVALUE4_ACB(cls, m, T0, T1, T2, T3)
 
-#define ASYNC_STATIC4(cls, m, T0, T1, T2, T3) \
+#define ASYNC_STATIC4_AC(cls, m, T0, T1, T2, T3) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3) {\
 	class _t : public AsyncCall { public: \
@@ -885,7 +979,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC4_CC(cls, m, T0, T1, T2, T3) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3) {\
 	class _t : public CAsyncCall { public: \
@@ -900,7 +995,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC4_ACB(cls, m, T0, T1, T2, T3) \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -924,8 +1020,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATIC4(cls, m, T0, T1, T2, T3) \
+	ASYNC_STATIC4_AC(cls, m, T0, T1, T2, T3) \
+	ASYNC_STATIC4_CC(cls, m, T0, T1, T2, T3) \
+	ASYNC_STATIC4_ACB(cls, m, T0, T1, T2, T3)
 
-#define ASYNC_MEMBER4(cls, m, T0, T1, T2, T3) \
+#define ASYNC_MEMBER4_AC(cls, m, T0, T1, T2, T3) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3) {\
 	class _t : public AsyncCall { public: \
@@ -940,7 +1040,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER4_CC(cls, m, T0, T1, T2, T3) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3) {\
 	class _t : public CAsyncCall { public: \
@@ -955,7 +1056,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER4_ACB(cls, m, T0, T1, T2, T3) \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -980,8 +1082,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBER4(cls, m, T0, T1, T2, T3) \
+	ASYNC_MEMBER4_AC(cls, m, T0, T1, T2, T3) \
+	ASYNC_MEMBER4_CC(cls, m, T0, T1, T2, T3) \
+	ASYNC_MEMBER4_ACB(cls, m, T0, T1, T2, T3)
 
-#define ASYNC_STATICVALUE5(cls, m, T0, T1, T2, T3, T4) \
+#define ASYNC_STATICVALUE5_AC(cls, m, T0, T1, T2, T3, T4) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4& v4) {\
 	class _t : public AsyncCall { public: \
@@ -996,7 +1102,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE5_CC(cls, m, T0, T1, T2, T3, T4) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4& v4) {\
 	class _t : public CAsyncCall { public: \
@@ -1011,9 +1118,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE5_ACB(cls, m, T0, T1, T2, T3, T4) \
 	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Function> cb) : \
@@ -1039,8 +1147,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATICVALUE5(cls, m, T0, T1, T2, T3, T4) \
+	ASYNC_STATICVALUE5_AC(cls, m, T0, T1, T2, T3, T4) \
+	ASYNC_STATICVALUE5_CC(cls, m, T0, T1, T2, T3, T4) \
+	ASYNC_STATICVALUE5_ACB(cls, m, T0, T1, T2, T3, T4)
 
-#define ASYNC_MEMBERVALUE5(cls, m, T0, T1, T2, T3, T4) \
+#define ASYNC_MEMBERVALUE5_AC(cls, m, T0, T1, T2, T3, T4) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4& v4) {\
 	class _t : public AsyncCall { public: \
@@ -1055,7 +1167,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE5_CC(cls, m, T0, T1, T2, T3, T4) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4& v4) {\
 	class _t : public CAsyncCall { public: \
@@ -1070,9 +1183,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE5_ACB(cls, m, T0, T1, T2, T3, T4) \
 	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Function> cb) : \
@@ -1099,8 +1213,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBERVALUE5(cls, m, T0, T1, T2, T3, T4) \
+	ASYNC_MEMBERVALUE5_AC(cls, m, T0, T1, T2, T3, T4) \
+	ASYNC_MEMBERVALUE5_CC(cls, m, T0, T1, T2, T3, T4) \
+	ASYNC_MEMBERVALUE5_ACB(cls, m, T0, T1, T2, T3, T4)
 
-#define ASYNC_STATIC5(cls, m, T0, T1, T2, T3, T4) \
+#define ASYNC_STATIC5_AC(cls, m, T0, T1, T2, T3, T4) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) {\
 	class _t : public AsyncCall { public: \
@@ -1115,7 +1233,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC5_CC(cls, m, T0, T1, T2, T3, T4) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) {\
 	class _t : public CAsyncCall { public: \
@@ -1130,7 +1249,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC5_ACB(cls, m, T0, T1, T2, T3, T4) \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1155,8 +1275,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATIC5(cls, m, T0, T1, T2, T3, T4) \
+	ASYNC_STATIC5_AC(cls, m, T0, T1, T2, T3, T4) \
+	ASYNC_STATIC5_CC(cls, m, T0, T1, T2, T3, T4) \
+	ASYNC_STATIC5_ACB(cls, m, T0, T1, T2, T3, T4)
 
-#define ASYNC_MEMBER5(cls, m, T0, T1, T2, T3, T4) \
+#define ASYNC_MEMBER5_AC(cls, m, T0, T1, T2, T3, T4) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) {\
 	class _t : public AsyncCall { public: \
@@ -1171,7 +1295,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER5_CC(cls, m, T0, T1, T2, T3, T4) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4) {\
 	class _t : public CAsyncCall { public: \
@@ -1186,7 +1311,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER5_ACB(cls, m, T0, T1, T2, T3, T4) \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1212,8 +1338,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBER5(cls, m, T0, T1, T2, T3, T4) \
+	ASYNC_MEMBER5_AC(cls, m, T0, T1, T2, T3, T4) \
+	ASYNC_MEMBER5_CC(cls, m, T0, T1, T2, T3, T4) \
+	ASYNC_MEMBER5_ACB(cls, m, T0, T1, T2, T3, T4)
 
-#define ASYNC_STATICVALUE6(cls, m, T0, T1, T2, T3, T4, T5) \
+#define ASYNC_STATICVALUE6_AC(cls, m, T0, T1, T2, T3, T4, T5) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5& v5) {\
 	class _t : public AsyncCall { public: \
@@ -1228,7 +1358,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE6_CC(cls, m, T0, T1, T2, T3, T4, T5) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5& v5) {\
 	class _t : public CAsyncCall { public: \
@@ -1243,9 +1374,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
 	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Function> cb) : \
@@ -1272,8 +1404,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATICVALUE6(cls, m, T0, T1, T2, T3, T4, T5) \
+	ASYNC_STATICVALUE6_AC(cls, m, T0, T1, T2, T3, T4, T5) \
+	ASYNC_STATICVALUE6_CC(cls, m, T0, T1, T2, T3, T4, T5) \
+	ASYNC_STATICVALUE6_ACB(cls, m, T0, T1, T2, T3, T4, T5)
 
-#define ASYNC_MEMBERVALUE6(cls, m, T0, T1, T2, T3, T4, T5) \
+#define ASYNC_MEMBERVALUE6_AC(cls, m, T0, T1, T2, T3, T4, T5) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5& v5) {\
 	class _t : public AsyncCall { public: \
@@ -1288,7 +1424,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE6_CC(cls, m, T0, T1, T2, T3, T4, T5) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5& v5) {\
 	class _t : public CAsyncCall { public: \
@@ -1303,9 +1440,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
 	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Function> cb) : \
@@ -1333,8 +1471,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBERVALUE6(cls, m, T0, T1, T2, T3, T4, T5) \
+	ASYNC_MEMBERVALUE6_AC(cls, m, T0, T1, T2, T3, T4, T5) \
+	ASYNC_MEMBERVALUE6_CC(cls, m, T0, T1, T2, T3, T4, T5) \
+	ASYNC_MEMBERVALUE6_ACB(cls, m, T0, T1, T2, T3, T4, T5)
 
-#define ASYNC_STATIC6(cls, m, T0, T1, T2, T3, T4, T5) \
+#define ASYNC_STATIC6_AC(cls, m, T0, T1, T2, T3, T4, T5) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {\
 	class _t : public AsyncCall { public: \
@@ -1349,7 +1491,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC6_CC(cls, m, T0, T1, T2, T3, T4, T5) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {\
 	class _t : public CAsyncCall { public: \
@@ -1364,7 +1507,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1390,8 +1534,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATIC6(cls, m, T0, T1, T2, T3, T4, T5) \
+	ASYNC_STATIC6_AC(cls, m, T0, T1, T2, T3, T4, T5) \
+	ASYNC_STATIC6_CC(cls, m, T0, T1, T2, T3, T4, T5) \
+	ASYNC_STATIC6_ACB(cls, m, T0, T1, T2, T3, T4, T5)
 
-#define ASYNC_MEMBER6(cls, m, T0, T1, T2, T3, T4, T5) \
+#define ASYNC_MEMBER6_AC(cls, m, T0, T1, T2, T3, T4, T5) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {\
 	class _t : public AsyncCall { public: \
@@ -1406,7 +1554,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER6_CC(cls, m, T0, T1, T2, T3, T4, T5) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {\
 	class _t : public CAsyncCall { public: \
@@ -1421,7 +1570,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1448,8 +1598,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBER6(cls, m, T0, T1, T2, T3, T4, T5) \
+	ASYNC_MEMBER6_AC(cls, m, T0, T1, T2, T3, T4, T5) \
+	ASYNC_MEMBER6_CC(cls, m, T0, T1, T2, T3, T4, T5) \
+	ASYNC_MEMBER6_ACB(cls, m, T0, T1, T2, T3, T4, T5)
 
-#define ASYNC_STATICVALUE7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+#define ASYNC_STATICVALUE7_AC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6& v6) {\
 	class _t : public AsyncCall { public: \
@@ -1464,7 +1618,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE7_CC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6& v6) {\
 	class _t : public CAsyncCall { public: \
@@ -1479,9 +1634,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Function> cb) : \
@@ -1509,8 +1665,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATICVALUE7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+	ASYNC_STATICVALUE7_AC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+	ASYNC_STATICVALUE7_CC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+	ASYNC_STATICVALUE7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6)
 
-#define ASYNC_MEMBERVALUE7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+#define ASYNC_MEMBERVALUE7_AC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6& v6) {\
 	class _t : public AsyncCall { public: \
@@ -1525,7 +1685,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE7_CC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6& v6) {\
 	class _t : public CAsyncCall { public: \
@@ -1540,9 +1701,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Function> cb) : \
@@ -1571,8 +1733,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBERVALUE7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+	ASYNC_MEMBERVALUE7_AC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+	ASYNC_MEMBERVALUE7_CC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+	ASYNC_MEMBERVALUE7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6)
 
-#define ASYNC_STATIC7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+#define ASYNC_STATIC7_AC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {\
 	class _t : public AsyncCall { public: \
@@ -1587,7 +1753,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC7_CC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {\
 	class _t : public CAsyncCall { public: \
@@ -1602,7 +1769,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1629,8 +1797,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATIC7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+	ASYNC_STATIC7_AC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+	ASYNC_STATIC7_CC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+	ASYNC_STATIC7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6)
 
-#define ASYNC_MEMBER7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+#define ASYNC_MEMBER7_AC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {\
 	class _t : public AsyncCall { public: \
@@ -1645,7 +1817,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER7_CC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {\
 	class _t : public CAsyncCall { public: \
@@ -1660,7 +1833,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1688,8 +1862,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBER7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+	ASYNC_MEMBER7_AC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+	ASYNC_MEMBER7_CC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
+	ASYNC_MEMBER7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6)
 
-#define ASYNC_STATICVALUE8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+#define ASYNC_STATICVALUE8_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7& v7) {\
 	class _t : public AsyncCall { public: \
@@ -1704,7 +1882,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE8_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7& v7) {\
 	class _t : public CAsyncCall { public: \
@@ -1719,9 +1898,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Function> cb) : \
@@ -1750,8 +1930,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATICVALUE8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+	ASYNC_STATICVALUE8_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+	ASYNC_STATICVALUE8_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+	ASYNC_STATICVALUE8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7)
 
-#define ASYNC_MEMBERVALUE8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+#define ASYNC_MEMBERVALUE8_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7& v7) {\
 	class _t : public AsyncCall { public: \
@@ -1766,7 +1950,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE8_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7& v7) {\
 	class _t : public CAsyncCall { public: \
@@ -1781,9 +1966,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Function> cb) : \
@@ -1813,8 +1999,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBERVALUE8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+	ASYNC_MEMBERVALUE8_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+	ASYNC_MEMBERVALUE8_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+	ASYNC_MEMBERVALUE8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7)
 
-#define ASYNC_STATIC8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+#define ASYNC_STATIC8_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {\
 	class _t : public AsyncCall { public: \
@@ -1829,7 +2019,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC8_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {\
 	class _t : public CAsyncCall { public: \
@@ -1844,7 +2035,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1872,8 +2064,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATIC8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+	ASYNC_STATIC8_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+	ASYNC_STATIC8_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+	ASYNC_STATIC8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7)
 
-#define ASYNC_MEMBER8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+#define ASYNC_MEMBER8_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {\
 	class _t : public AsyncCall { public: \
@@ -1888,7 +2084,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER8_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {\
 	class _t : public CAsyncCall { public: \
@@ -1903,7 +2100,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -1932,8 +2130,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBER8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+	ASYNC_MEMBER8_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+	ASYNC_MEMBER8_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
+	ASYNC_MEMBER8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7)
 
-#define ASYNC_STATICVALUE9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+#define ASYNC_STATICVALUE9_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8& v8) {\
 	class _t : public AsyncCall { public: \
@@ -1948,7 +2150,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE9_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8& v8) {\
 	class _t : public CAsyncCall { public: \
@@ -1963,9 +2166,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Function> cb) : \
@@ -1995,8 +2199,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATICVALUE9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+	ASYNC_STATICVALUE9_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+	ASYNC_STATICVALUE9_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+	ASYNC_STATICVALUE9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8)
 
-#define ASYNC_MEMBERVALUE9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+#define ASYNC_MEMBERVALUE9_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8& v8) {\
 	class _t : public AsyncCall { public: \
@@ -2011,7 +2219,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE9_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8& v8) {\
 	class _t : public CAsyncCall { public: \
@@ -2026,9 +2235,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Function> cb) : \
@@ -2059,8 +2269,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBERVALUE9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+	ASYNC_MEMBERVALUE9_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+	ASYNC_MEMBERVALUE9_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+	ASYNC_MEMBERVALUE9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8)
 
-#define ASYNC_STATIC9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+#define ASYNC_STATIC9_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {\
 	class _t : public AsyncCall { public: \
@@ -2075,7 +2289,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC9_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {\
 	class _t : public CAsyncCall { public: \
@@ -2090,7 +2305,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATIC9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	static void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -2119,8 +2335,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATIC9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+	ASYNC_STATIC9_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+	ASYNC_STATIC9_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+	ASYNC_STATIC9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8)
 
-#define ASYNC_MEMBER9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+#define ASYNC_MEMBER9_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {\
 	class _t : public AsyncCall { public: \
@@ -2135,7 +2355,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER9_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {\
 	class _t : public CAsyncCall { public: \
@@ -2150,7 +2371,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBER9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	void acb_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
@@ -2180,8 +2402,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBER9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+	ASYNC_MEMBER9_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+	ASYNC_MEMBER9_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
+	ASYNC_MEMBER9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8)
 
-#define ASYNC_STATICVALUE10(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
+#define ASYNC_STATICVALUE10_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
 	static result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, T9& v9) {\
 	class _t : public AsyncCall { public: \
@@ -2196,7 +2422,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE10_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
 	static result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, T9& v9) {\
 	class _t : public CAsyncCall { public: \
@@ -2211,9 +2438,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_STATICVALUE10_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
 	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, T9 v9, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Function> cb) : \
@@ -2244,8 +2472,12 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_STATICVALUE10(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
+	ASYNC_STATICVALUE10_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
+	ASYNC_STATICVALUE10_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
+	ASYNC_STATICVALUE10_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9)
 
-#define ASYNC_MEMBERVALUE10(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
+#define ASYNC_MEMBERVALUE10_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
 	result_t ac_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, T9& v9) {\
 	class _t : public AsyncCall { public: \
@@ -2260,7 +2492,8 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE10_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
 	result_t cc_##m( \
 		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, T9& v9) {\
 	class _t : public CAsyncCall { public: \
@@ -2275,9 +2508,10 @@
 	_t ac(args); \
 	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \
 	else return ac.async_wait(); \
-	} \
+	}
+#define ASYNC_MEMBERVALUE10_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
 	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, T9 v9, v8::Local<v8::Function> cb) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Function> cb) : \
@@ -2309,3 +2543,7 @@
 	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \
 	else ac->async(hr); \
 	}
+#define ASYNC_MEMBERVALUE10(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
+	ASYNC_MEMBERVALUE10_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
+	ASYNC_MEMBERVALUE10_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
+	ASYNC_MEMBERVALUE10_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9)

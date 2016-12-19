@@ -781,6 +781,8 @@ function parserIDL(fname) {
 				else
 					argStr += "args";
 
+			var cb_argStr = argStr;
+
 			if (ftype != "") {
 				if (argCount || argArray)
 					argStr += ", ";
@@ -799,8 +801,8 @@ function parserIDL(fname) {
 					ifStr += "AsyncEvent* ac);";
 					fnStr += "        if(!cb.IsEmpty()) {\n";
 
-					if (argStr)
-						fnStr += "            acb_" + fname + "(" + argStr + ", cb);\n";
+					if (cb_argStr)
+						fnStr += "            acb_" + fname + "(" + cb_argStr + ", cb);\n";
 					else
 						fnStr += "            acb_" + fname + "(cb);\n";
 
@@ -812,8 +814,8 @@ function parserIDL(fname) {
 					ifStr += "AsyncEvent* ac) = 0;";
 					fnStr += "        if(!cb.IsEmpty()) {\n";
 
-					if (argStr)
-						fnStr += "            pInst->acb_" + fname + "(" + argStr + ", cb);\n";
+					if (cb_argStr)
+						fnStr += "            pInst->acb_" + fname + "(" + cb_argStr + ", cb);\n";
 					else
 						fnStr += "            pInst->acb_" + fname + "(cb);\n";
 

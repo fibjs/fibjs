@@ -119,7 +119,7 @@ namespace fibjs
         ARG(obj_ptr<Buffer_base>, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_has(v0, vr, cb);
+            pInst->acb_has(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_has(v0, vr);
@@ -137,7 +137,7 @@ namespace fibjs
         ARG(obj_ptr<Buffer_base>, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_get(v0, vr, cb);
+            pInst->acb_get(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_get(v0, vr);

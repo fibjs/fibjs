@@ -55,10 +55,10 @@ public:
 
 private:
     result_t _commit(leveldb::WriteBatch *batch, AsyncEvent *ac);
-    ASYNC_MEMBER1(LevelDB, _commit, leveldb::WriteBatch *);
+    ASYNC_MEMBER1_AC(LevelDB, _commit, leveldb::WriteBatch *);
 
     result_t _mget(std::vector<exlib::string> *keys, obj_ptr<List_base> &retVal, AsyncEvent *ac);
-    ASYNC_MEMBERVALUE2(LevelDB, _mget, std::vector<exlib::string> *, obj_ptr<List_base>);
+    ASYNC_MEMBERVALUE2_AC(LevelDB, _mget, std::vector<exlib::string> *, obj_ptr<List_base>);
 
     leveldb::DB *db()
     {
@@ -105,7 +105,7 @@ private:
         }
 
         result_t _iter(AsyncEvent *ac);
-        ASYNC_MEMBER0(LevelDB::Iter, _iter);
+        ASYNC_MEMBER0_AC(LevelDB::Iter, _iter);
 
         result_t iter(Isolate* isolate, v8::Local<v8::Function> func);
 

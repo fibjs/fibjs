@@ -302,7 +302,7 @@ namespace fibjs
         ASYNC_METHOD_ENTER(0, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_accept(vr, cb);
+            pInst->acb_accept(cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_accept(vr);
@@ -320,7 +320,7 @@ namespace fibjs
         OPT_ARG(int32_t, 0, -1);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_recv(v0, vr, cb);
+            pInst->acb_recv(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_recv(v0, vr);
@@ -338,7 +338,7 @@ namespace fibjs
         OPT_ARG(int32_t, 0, -1);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_recvfrom(v0, vr, cb);
+            pInst->acb_recvfrom(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_recvfrom(v0, vr);

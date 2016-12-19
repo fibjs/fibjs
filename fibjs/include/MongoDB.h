@@ -53,7 +53,7 @@ public:
     result_t error();
     result_t bsonHandler(bson *command, v8::Local<v8::Object> &retVal);
     result_t _runCommand(bson *command, bson &out, AsyncEvent *ac);
-    ASYNC_MEMBERVALUE2(MongoDB, _runCommand, bson *, bson);
+    ASYNC_MEMBERVALUE2_AC(MongoDB, _runCommand, bson *, bson);
 
 public:
     mongo m_conn;

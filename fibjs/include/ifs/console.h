@@ -721,7 +721,7 @@ namespace fibjs
         OPT_ARG(exlib::string, 0, "");
 
         if(!cb.IsEmpty()) {
-            acb_readLine(v0, vr, cb);
+            acb_readLine(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_readLine(v0, vr);

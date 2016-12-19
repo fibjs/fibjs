@@ -145,7 +145,7 @@ namespace fibjs
         ASYNC_METHOD_ENTER(0, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_readAll(vr, cb);
+            pInst->acb_readAll(cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_readAll(vr);
@@ -161,7 +161,7 @@ namespace fibjs
         ASYNC_METHOD_ENTER(0, 0);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_stat(vr, cb);
+            pInst->acb_stat(cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_stat(vr);

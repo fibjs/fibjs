@@ -411,7 +411,7 @@ namespace fibjs
         OPT_ARG(int32_t, 2, gd_base::_TRUECOLOR);
 
         if(!cb.IsEmpty()) {
-            acb_create(v0, v1, v2, vr, cb);
+            acb_create(v0, v1, v2, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_create(v0, v1, v2, vr);
@@ -428,7 +428,7 @@ namespace fibjs
         ARG(obj_ptr<Buffer_base>, 0);
 
         if(!cb.IsEmpty()) {
-            acb_load(v0, vr, cb);
+            acb_load(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_load(v0, vr);
@@ -438,7 +438,7 @@ namespace fibjs
         ARG(obj_ptr<SeekableStream_base>, 0);
 
         if(!cb.IsEmpty()) {
-            acb_load(v0, vr, cb);
+            acb_load(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_load(v0, vr);
@@ -448,7 +448,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_load(v0, vr, cb);
+            acb_load(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_load(v0, vr);

@@ -15,21 +15,24 @@ for (var i = 0; i < 10; i++) {
 fs.writeFile('object_async.inl', txt.join('\n'));
 
 function gen_stub(argn, bInst, bRet) {
-	function gen_define() {
+	var group = [];
+
+	function gen_define(type) {
 		var s, i, a;
 
 		if (argn > 0) {
-			s = '#define ASYNC_' + (bInst ? 'MEMBER' : 'STATIC') + (bRet ? "VALUE" : "") + argn + '(cls, m, ';
+			s = 'ASYNC_' + (bInst ? 'MEMBER' : 'STATIC') + (bRet ? "VALUE" : "") + argn + type + '(cls, m, ';
 			a = [];
 			for (i = 0; i < argn; i++)
 				a.push('T' + i);
 
 			s += a.join(', ');
-			s += ') \\';
-			txt.push(s);
-		} else {
-			txt.push('#define ASYNC_' + (bInst ? 'MEMBER' : 'STATIC' + (bRet ? "VALUE" : "")) + argn + '(cls, m) \\');
-		}
+			s += ')';
+		} else
+			s = 'ASYNC_' + (bInst ? 'MEMBER' : 'STATIC' + (bRet ? "VALUE" : "")) + argn + type + '(cls, m)';
+
+		txt.push('#define ' + s + ' \\');
+		group.push('	' + s)
 	}
 
 	function gen_code(bCCall) {
@@ -100,37 +103,40 @@ function gen_stub(argn, bInst, bRet) {
 		} else
 			txt.push('	_t ac(NULL); \\');
 
-		txt.push('	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \\\n	else return ac.async_wait(); \\\n	} \\');
+		txt.push('	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \\\n	else return ac.async_wait(); \\\n	}');
 	}
 
 	function gen_callback() {
 		var s, i, a;
 
-		if (argn > 0) {
+		var argn1 = argn;
+
+		if (bRet)
+			argn1--;
+
+		if (argn1 > 0) {
 			txt.push((bInst ? '	' : '	static ') + 'void acb_##m( \\');
 
 			s = '		';
 			a = [];
-			for (i = 0; i < argn; i++)
+			for (i = 0; i < argn1; i++)
 				a.push('T' + i + ' v' + i);
+
 			s += a.join(', ');
 			s += ', v8::Local<v8::Function> cb) {\\';
 			txt.push(s);
 		} else
 			txt.push((bInst ? '	' : '	static ') + 'void acb_##m(v8::Local<v8::Function> cb) { \\');
 
-		if (bRet)
-			argn--;
-
 		txt.push('	class _t: public AsyncCallBack { \\\n	public: \\');
 		s = '		_t(' + (bInst ? 'cls* pThis, ' : '');
-		for (i = 0; i < argn; i++)
+		for (i = 0; i < argn1; i++)
 			s += 'T' + i + '& v' + i + ', ';
 		s += 'v8::Local<v8::Function> cb) : \\';
 		txt.push(s);
 
 		s = '			AsyncCallBack(cb)' + (bInst ? ', m_pThis(pThis)' : '');
-		for (i = 0; i < argn; i++)
+		for (i = 0; i < argn1; i++)
 			s += ', m_v' + i + '(v' + i + ')';
 		s += ' \\';
 		txt.push(s);
@@ -141,7 +147,7 @@ function gen_stub(argn, bInst, bRet) {
 		else
 			s = '			result_t hr = cls::m(';
 
-		for (i = 0; i < argn; i++)
+		for (i = 0; i < argn1; i++)
 			s += 'm_v' + i + '.value(), ';
 		if (bRet)
 			s += 'retVal, ';
@@ -154,20 +160,20 @@ function gen_stub(argn, bInst, bRet) {
 			txt.push('    virtual v8::Local<v8::Value> getValue() \\');
 			txt.push('    {   return GetReturnValue(isolate()->m_isolate, retVal); } \\');
 
-			txt.push('	public: \\\n		T' + argn + ' retVal; \\');
+			txt.push('	public: \\\n		T' + argn1 + ' retVal; \\');
 		}
 
 		txt.push('	private: \\');
 		if (bInst)
 			txt.push('		obj_ptr<cls> m_pThis; \\');
 
-		for (i = 0; i < argn; i++)
+		for (i = 0; i < argn1; i++)
 			txt.push('		_at<T' + i + '> m_v' + i + '; \\');
 
 		txt.push('	}; \\');
 
 		s = '	_t* ac = new _t(' + (bInst ? 'this, ' : '');
-		for (i = 0; i < argn; i++)
+		for (i = 0; i < argn1; i++)
 			s += 'v' + i + ', ';
 		s += 'cb); \\';
 		txt.push(s);
@@ -175,7 +181,7 @@ function gen_stub(argn, bInst, bRet) {
 		s = '	result_t hr = m(';
 
 		a = [];
-		for (i = 0; i < argn; i++)
+		for (i = 0; i < argn1; i++)
 			a.push('v' + i);
 
 		if (bRet)
@@ -189,11 +195,17 @@ function gen_stub(argn, bInst, bRet) {
 		txt.push('	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->post(hr); \\');
 		txt.push('	else ac->async(hr); \\');
 
-		txt.push('	}\n');
+		txt.push('	}');
 	}
 
-	gen_define();
+	gen_define('_AC');
 	gen_code(false);
+	gen_define('_CC');
 	gen_code(true);
+	gen_define('_ACB');
 	gen_callback();
+	var def_group = group.join(' \\\n');
+	gen_define('');
+	txt.push(def_group);
+	txt.push('');
 }

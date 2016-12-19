@@ -92,7 +92,7 @@ namespace fibjs
         OPT_ARG(int32_t, 0, -1);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_read(v0, vr, cb);
+            pInst->acb_read(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_read(v0, vr);
@@ -141,7 +141,7 @@ namespace fibjs
         OPT_ARG(int64_t, 1, -1);
 
         if(!cb.IsEmpty()) {
-            pInst->acb_copyTo(v0, v1, vr, cb);
+            pInst->acb_copyTo(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_copyTo(v0, v1, vr);

@@ -118,7 +118,7 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         if(!cb.IsEmpty()) {
-            acb_isZipFile(v0, vr, cb);
+            acb_isZipFile(v0, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_isZipFile(v0, vr);
@@ -137,7 +137,7 @@ namespace fibjs
         OPT_ARG(int32_t, 2, _ZIP_DEFLATED);
 
         if(!cb.IsEmpty()) {
-            acb_open(v0, v1, v2, vr, cb);
+            acb_open(v0, v1, v2, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_open(v0, v1, v2, vr);
@@ -149,7 +149,7 @@ namespace fibjs
         OPT_ARG(int32_t, 2, _ZIP_DEFLATED);
 
         if(!cb.IsEmpty()) {
-            acb_open(v0, v1, v2, vr, cb);
+            acb_open(v0, v1, v2, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_open(v0, v1, v2, vr);
@@ -161,7 +161,7 @@ namespace fibjs
         OPT_ARG(int32_t, 2, _ZIP_DEFLATED);
 
         if(!cb.IsEmpty()) {
-            acb_open(v0, v1, v2, vr, cb);
+            acb_open(v0, v1, v2, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_open(v0, v1, v2, vr);

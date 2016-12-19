@@ -312,7 +312,7 @@ namespace fibjs
         OPT_ARG(int32_t, 1, 0);
 
         if(!cb.IsEmpty()) {
-            acb_connect(v0, v1, vr, cb);
+            acb_connect(v0, v1, cb);
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_connect(v0, v1, vr);
