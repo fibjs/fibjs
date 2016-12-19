@@ -532,4 +532,52 @@ result_t HttpClient::post(exlib::string url, SeekableStream_base *body,
     return request("POST", url, body, headers, retVal);
 }
 
+result_t HttpClient::post(exlib::string url, v8::Local<v8::Object> headers,
+                          obj_ptr<HttpResponse_base> &retVal)
+{
+    return request("POST", url, headers, retVal);
+}
+
+result_t HttpClient::del(exlib::string url, v8::Local<v8::Object> headers,
+                         obj_ptr<HttpResponse_base> &retVal)
+{
+    return request("DELETE", url, headers, retVal);
+}
+
+result_t HttpClient::put(exlib::string url, Buffer_base *body,
+                         v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+{
+    return request("PUT", url, body, headers, retVal);
+}
+
+result_t HttpClient::put(exlib::string url, SeekableStream_base *body,
+                         v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+{
+    return request("PUT", url, body, headers, retVal);
+}
+
+result_t HttpClient::put(exlib::string url, v8::Local<v8::Object> headers,
+                         obj_ptr<HttpResponse_base> &retVal)
+{
+    return request("PUT", url, headers, retVal);
+}
+
+result_t HttpClient::patch(exlib::string url, Buffer_base *body,
+                           v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+{
+    return request("PATCH", url, body, headers, retVal);
+}
+
+result_t HttpClient::patch(exlib::string url, SeekableStream_base *body,
+                           v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+{
+    return request("PATCH", url, body, headers, retVal);
+}
+
+result_t HttpClient::patch(exlib::string url, v8::Local<v8::Object> headers,
+                           obj_ptr<HttpResponse_base> &retVal)
+{
+    return request("PATCH", url, headers, retVal);
+}
+
 }

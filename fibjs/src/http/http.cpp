@@ -136,4 +136,53 @@ result_t http_base::post(exlib::string url, SeekableStream_base *body,
     return get_httpClient()->post(url, body, headers, retVal);
 }
 
+result_t http_base::post(exlib::string url, v8::Local<v8::Object> headers,
+                         obj_ptr<HttpResponse_base> &retVal)
+{
+    return get_httpClient()->post(url, headers, retVal);
+}
+
+result_t http_base::del(exlib::string url, v8::Local<v8::Object> headers,
+                        obj_ptr<HttpResponse_base> &retVal)
+{
+    return get_httpClient()->del(url, headers, retVal);
+}
+
+result_t http_base::put(exlib::string url, Buffer_base *body,
+                        v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+{
+    return get_httpClient()->put(url, body, headers, retVal);
+}
+
+result_t http_base::put(exlib::string url, SeekableStream_base *body,
+                        v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+{
+    return get_httpClient()->put(url, body, headers, retVal);
+}
+
+result_t http_base::put(exlib::string url, v8::Local<v8::Object> headers,
+                        obj_ptr<HttpResponse_base> &retVal)
+{
+    return get_httpClient()->put(url, headers, retVal);
+}
+
+result_t http_base::patch(exlib::string url, Buffer_base *body,
+                          v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+{
+    return get_httpClient()->patch(url, body, headers, retVal);
+}
+
+result_t http_base::patch(exlib::string url, SeekableStream_base *body,
+                          v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+{
+    return get_httpClient()->patch(url, body, headers, retVal);
+}
+
+result_t http_base::patch(exlib::string url, v8::Local<v8::Object> headers,
+                          obj_ptr<HttpResponse_base> &retVal)
+{
+    return get_httpClient()->patch(url, headers, retVal);
+}
+
+
 }

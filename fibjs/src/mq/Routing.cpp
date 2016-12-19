@@ -264,6 +264,16 @@ result_t Routing::post(exlib::string pattern, v8::Local<v8::Value> hdlr)
     return append("POST", pattern, hdlr);
 }
 
+result_t Routing::del(v8::Local<v8::Object> map)
+{
+    return append("DELETE", map);
+}
+
+result_t Routing::del(exlib::string pattern, v8::Local<v8::Value> hdlr)
+{
+    return append("DELETE", pattern, hdlr);
+}
+
 result_t Routing::put(v8::Local<v8::Object> map)
 {
     return append("PUT", map);
@@ -272,6 +282,16 @@ result_t Routing::put(v8::Local<v8::Object> map)
 result_t Routing::put(exlib::string pattern, v8::Local<v8::Value> hdlr)
 {
     return append("PUT", pattern, hdlr);
+}
+
+result_t Routing::patch(v8::Local<v8::Object> map)
+{
+    return append("PATCH", map);
+}
+
+result_t Routing::patch(exlib::string pattern, v8::Local<v8::Value> hdlr)
+{
+    return append("PATCH", pattern, hdlr);
 }
 
 } /* namespace fibjs */

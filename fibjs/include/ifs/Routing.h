@@ -39,8 +39,12 @@ public:
     virtual result_t get(exlib::string pattern, v8::Local<v8::Value> hdlr) = 0;
     virtual result_t post(v8::Local<v8::Object> map) = 0;
     virtual result_t post(exlib::string pattern, v8::Local<v8::Value> hdlr) = 0;
+    virtual result_t del(v8::Local<v8::Object> map) = 0;
+    virtual result_t del(exlib::string pattern, v8::Local<v8::Value> hdlr) = 0;
     virtual result_t put(v8::Local<v8::Object> map) = 0;
     virtual result_t put(exlib::string pattern, v8::Local<v8::Value> hdlr) = 0;
+    virtual result_t patch(v8::Local<v8::Object> map) = 0;
+    virtual result_t patch(exlib::string pattern, v8::Local<v8::Value> hdlr) = 0;
 
 public:
     template<typename T>
@@ -52,7 +56,9 @@ public:
     static void s_all(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_post(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_del(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_patch(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -68,13 +74,15 @@ namespace fibjs
             {"all", s_all, false},
             {"get", s_get, false},
             {"post", s_post, false},
-            {"put", s_put, false}
+            {"del", s_del, false},
+            {"put", s_put, false},
+            {"patch", s_patch, false}
         };
 
         static ClassData s_cd = 
         { 
             "Routing", s__new, NULL, 
-            5, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            7, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &Handler_base::class_info()
         };
 
@@ -206,6 +214,25 @@ namespace fibjs
         METHOD_VOID();
     }
 
+    inline void Routing_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(Routing_base);
+        METHOD_ENTER(1, 1);
+
+        ARG(v8::Local<v8::Object>, 0);
+
+        hr = pInst->del(v0);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Value>, 1);
+
+        hr = pInst->del(v0, v1);
+
+        METHOD_VOID();
+    }
+
     inline void Routing_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Routing_base);
@@ -221,6 +248,25 @@ namespace fibjs
         ARG(v8::Local<v8::Value>, 1);
 
         hr = pInst->put(v0, v1);
+
+        METHOD_VOID();
+    }
+
+    inline void Routing_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(Routing_base);
+        METHOD_ENTER(1, 1);
+
+        ARG(v8::Local<v8::Object>, 0);
+
+        hr = pInst->patch(v0);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Value>, 1);
+
+        hr = pInst->patch(v0, v1);
 
         METHOD_VOID();
     }

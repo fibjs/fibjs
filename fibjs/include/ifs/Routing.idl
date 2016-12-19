@@ -114,6 +114,17 @@ interface Routing: Handler
    */
   post(String pattern, Value hdlr);
 
+  /*! @brief 添加一组接受 http DELETE 方法路由规则
+   @param map 路由参数
+   */
+  del(Object map);
+
+  /*! @brief 添加一条接受 http DELETE 方法路由规则
+   @param pattern 消息匹配格式
+   @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+   */
+  del(String pattern, Value hdlr);
+
   /*! @brief 添加一组 PUT 方法路由规则
    @param map 路由参数
    */
@@ -124,4 +135,15 @@ interface Routing: Handler
    @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
    */
   put(String pattern, Value hdlr);
+
+  /*! @brief 添加一组 PATCH 方法路由规则
+   @param map 路由参数
+   */
+  patch(Object map);
+
+  /*! @brief 添加一条接受 http PATCH 方法路由规则
+   @param pattern 消息匹配格式
+   @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+   */
+  patch(String pattern, Value hdlr);
 };

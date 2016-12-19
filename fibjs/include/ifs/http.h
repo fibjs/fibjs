@@ -55,6 +55,14 @@ public:
     static result_t get(exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
     static result_t post(exlib::string url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
     static result_t post(exlib::string url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t post(exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t del(exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t put(exlib::string url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t put(exlib::string url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t put(exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t patch(exlib::string url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t patch(exlib::string url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    static result_t patch(exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -81,6 +89,9 @@ public:
     static void s_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_post(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_del(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_patch(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(http_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
@@ -112,7 +123,10 @@ namespace fibjs
             {"fileHandler", s_fileHandler, true},
             {"request", s_request, true},
             {"get", s_get, true},
-            {"post", s_post, true}
+            {"post", s_post, true},
+            {"del", s_del, true},
+            {"put", s_put, true},
+            {"patch", s_patch, true}
         };
 
         static ClassData::ClassObject s_object[] = 
@@ -138,7 +152,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "http", s__new, NULL, 
-            4, s_method, 7, s_object, 5, s_property, NULL, NULL,
+            7, s_method, 7, s_object, 5, s_property, NULL, NULL,
             NULL
         };
 
@@ -345,6 +359,87 @@ namespace fibjs
         OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
         hr = post(v0, v1, v2, vr);
+
+        METHOD_OVER(2, 1);
+
+        ARG(exlib::string, 0);
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+        hr = post(v0, v1, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void http_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<HttpResponse_base> vr;
+
+        METHOD_ENTER(2, 1);
+
+        ARG(exlib::string, 0);
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+        hr = del(v0, v1, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void http_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<HttpResponse_base> vr;
+
+        METHOD_ENTER(3, 2);
+
+        ARG(exlib::string, 0);
+        ARG(obj_ptr<SeekableStream_base>, 1);
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+
+        hr = put(v0, v1, v2, vr);
+
+        METHOD_OVER(3, 2);
+
+        ARG(exlib::string, 0);
+        ARG(obj_ptr<Buffer_base>, 1);
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+
+        hr = put(v0, v1, v2, vr);
+
+        METHOD_OVER(2, 1);
+
+        ARG(exlib::string, 0);
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+        hr = put(v0, v1, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void http_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<HttpResponse_base> vr;
+
+        METHOD_ENTER(3, 2);
+
+        ARG(exlib::string, 0);
+        ARG(obj_ptr<SeekableStream_base>, 1);
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+
+        hr = patch(v0, v1, v2, vr);
+
+        METHOD_OVER(3, 2);
+
+        ARG(exlib::string, 0);
+        ARG(obj_ptr<Buffer_base>, 1);
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+
+        hr = patch(v0, v1, v2, vr);
+
+        METHOD_OVER(2, 1);
+
+        ARG(exlib::string, 0);
+        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+        hr = patch(v0, v1, vr);
 
         METHOD_RETURN();
     }
