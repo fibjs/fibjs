@@ -313,6 +313,11 @@ public:
         m_cb.Reset(m_isolate->m_isolate, cb);
     }
 
+    ~AsyncCallBack()
+    {
+        m_cb.Reset();
+    }
+
     virtual int32_t post(int32_t v)
     {
         if (v == CALL_E_EXCEPTION)
