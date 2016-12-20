@@ -200,6 +200,54 @@ struct XSpecialCharacterMapping XSpecialCharacterTable[] = {
 	{'\n', K_RETURN}
 };
 
+struct XSpecialCharacterMapping XShiftCharacterTable[] = {
+	{'!', '1'},
+	{'\"', '\''},
+	{'#', '3'},
+	{'$', '4'},
+	{'%', '5'},
+	{'&', '7'},
+	{'(', '9'},
+	{')', '0'},
+	{':', ';'},
+	{'<', ','},
+	{'>', '.'},
+	{'?', '/'},
+	{'@', '2'},
+	{'A', 'a'},
+	{'B', 'b'},
+	{'C', 'c'},
+	{'D', 'd'},
+	{'E', 'e'},
+	{'F', 'f'},
+	{'G', 'g'},
+	{'H', 'h'},
+	{'I', 'i'},
+	{'J', 'j'},
+	{'K', 'k'},
+	{'L', 'l'},
+	{'M', 'm'},
+	{'N', 'n'},
+	{'O', 'o'},
+	{'P', 'p'},
+	{'Q', 'q'},
+	{'R', 'r'},
+	{'S', 's'},
+	{'T', 't'},
+	{'U', 'u'},
+	{'V', 'v'},
+	{'W', 'w'},
+	{'X', 'x'},
+	{'Y', 'y'},
+	{'Z', 'z'},
+	{'^', '6'},
+	{'_', '-'},
+	{'{', '['},
+	{'|', '\\'},
+	{'}', ']'},
+	{'~', '`'}
+};
+
 CFStringRef createStringForKey(CGKeyCode keyCode)
 {
 	TISInputSourceRef currentKeyboard = TISCopyCurrentKeyboardInputSource();
@@ -234,11 +282,20 @@ result_t CheckKeyCodes(exlib::string k, int32_t *code, int32_t *flags)
 	if (k.length() == 1)
 	{
 		char c = k[0];
+
 		for (i = 0; i < ARRAYSIZE(XSpecialCharacterTable); i ++)
 			if (c == XSpecialCharacterTable[i].name)
 			{
 				*code = XSpecialCharacterTable[i].key;
 				return 0;
+			}
+
+		for (i = 0; i < ARRAYSIZE(XShiftCharacterTable); i ++)
+			if (c == XShiftCharacterTable[i].name)
+			{
+				c = XShiftCharacterTable[i].key;
+				*flags |= MOD_SHIFT;
+				break;
 			}
 
 		static CFMutableDictionaryRef charToCodeDict = NULL;
@@ -274,14 +331,7 @@ result_t CheckKeyCodes(exlib::string k, int32_t *code, int32_t *flags)
 		}
 
 		CFRelease(charStr);
-		*code = key_code;
-
-		int modifiers = *code >> 8;
-		if ((modifiers & 1) != 0) *flags |= MOD_SHIFT;
-		if ((modifiers & 2) != 0) *flags |= MOD_CONTROL;
-		if ((modifiers & 4) != 0) *flags |= MOD_ALT;
-
-		*code = *code & 0xff;
+		*code = key_code & 0xff;
 		return 0;
 	}
 
