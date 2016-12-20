@@ -22,7 +22,7 @@ set(ccflags "-std=c++11")
 set(link_flags " ")
 
 if(${OS} STREQUAL "Darwin")
-	set(link_flags "${link_flags} -mmacosx-version-min=10.9")
+	set(link_flags "${link_flags} -mmacosx-version-min=10.9 -framework Carbon -framework IOKit")
 	set(flags "${flags} -mmacosx-version-min=10.9")
 	target_link_libraries(fibjs dl iconv stdc++)
 endif()

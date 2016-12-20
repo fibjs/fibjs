@@ -8,98 +8,102 @@
 #include "object.h"
 #include "ifs/console.h"
 
-#ifdef _WIN32
+#ifdef Darwin
+
+#include <Carbon/Carbon.h>
+#import <ApplicationServices/ApplicationServices.h>
+#import <IOKit/hidsystem/IOHIDLib.h>
+#import <IOKit/hidsystem/ev_keymap.h>
 
 namespace fibjs
 {
 
-enum {
+enum _MMKeyCode {
 	K_NOT_A_KEY = 9999,
-	K_BACKSPACE = VK_BACK,
-	K_DELETE = VK_DELETE,
-	K_RETURN = VK_RETURN,
-	K_TAB = VK_TAB,
-	K_ESCAPE = VK_ESCAPE,
-	K_UP = VK_UP,
-	K_DOWN = VK_DOWN,
-	K_RIGHT = VK_RIGHT,
-	K_LEFT = VK_LEFT,
-	K_HOME = VK_HOME,
-	K_END = VK_END,
-	K_PAGEUP = VK_PRIOR,
-	K_PAGEDOWN = VK_NEXT,
-	K_F1 = VK_F1,
-	K_F2 = VK_F2,
-	K_F3 = VK_F3,
-	K_F4 = VK_F4,
-	K_F5 = VK_F5,
-	K_F6 = VK_F6,
-	K_F7 = VK_F7,
-	K_F8 = VK_F8,
-	K_F9 = VK_F9,
-	K_F10 = VK_F10,
-	K_F11 = VK_F11,
-	K_F12 = VK_F12,
-	K_F13 = VK_F13,
-	K_F14 = VK_F14,
-	K_F15 = VK_F15,
-	K_F16 = VK_F16,
-	K_F17 = VK_F17,
-	K_F18 = VK_F18,
-	K_F19 = VK_F19,
-	K_F20 = VK_F20,
-	K_F21 = VK_F21,
-	K_F22 = VK_F22,
-	K_F23 = VK_F23,
-	K_F24 = VK_F24,
-	K_META = VK_LWIN,
-	K_CONTROL = VK_CONTROL,
-	K_SHIFT = VK_SHIFT,
-	K_RIGHTSHIFT = VK_RSHIFT,
-	K_ALT = VK_MENU,
-	K_CAPSLOCK = VK_CAPITAL,
-	K_SPACE = VK_SPACE,
-	K_PRINTSCREEN = VK_SNAPSHOT,
-	K_INSERT = VK_INSERT,
+	K_BACKSPACE = kVK_Delete,
+	K_DELETE = kVK_ForwardDelete,
+	K_RETURN = kVK_Return,
+	K_TAB = kVK_Tab,
+	K_ESCAPE = kVK_Escape,
+	K_UP = kVK_UpArrow,
+	K_DOWN = kVK_DownArrow,
+	K_RIGHT = kVK_RightArrow,
+	K_LEFT = kVK_LeftArrow,
+	K_HOME = kVK_Home,
+	K_END = kVK_End,
+	K_PAGEUP = kVK_PageUp,
+	K_PAGEDOWN = kVK_PageDown,
+	K_F1 = kVK_F1,
+	K_F2 = kVK_F2,
+	K_F3 = kVK_F3,
+	K_F4 = kVK_F4,
+	K_F5 = kVK_F5,
+	K_F6 = kVK_F6,
+	K_F7 = kVK_F7,
+	K_F8 = kVK_F8,
+	K_F9 = kVK_F9,
+	K_F10 = kVK_F10,
+	K_F11 = kVK_F11,
+	K_F12 = kVK_F12,
+	K_F13 = kVK_F13,
+	K_F14 = kVK_F14,
+	K_F15 = kVK_F15,
+	K_F16 = kVK_F16,
+	K_F17 = kVK_F17,
+	K_F18 = kVK_F18,
+	K_F19 = kVK_F19,
+	K_F20 = kVK_F20,
+	K_F21 = K_NOT_A_KEY,
+	K_F22 = K_NOT_A_KEY,
+	K_F23 = K_NOT_A_KEY,
+	K_F24 = K_NOT_A_KEY,
+	K_META = kVK_Command,
+	K_ALT = kVK_Option,
+	K_CONTROL = kVK_Control,
+	K_SHIFT = kVK_Shift,
+	K_RIGHTSHIFT = kVK_RightShift,
+	K_CAPSLOCK = kVK_CapsLock,
+	K_SPACE = kVK_Space,
+	K_INSERT = K_NOT_A_KEY,
+	K_PRINTSCREEN = K_NOT_A_KEY,
 
-	K_NUMPAD_0 = VK_NUMPAD0,
-	K_NUMPAD_1 = VK_NUMPAD1,
-	K_NUMPAD_2 = VK_NUMPAD2,
-	K_NUMPAD_3 = VK_NUMPAD3,
-	K_NUMPAD_4 = VK_NUMPAD4,
-	K_NUMPAD_5 = VK_NUMPAD5,
-	K_NUMPAD_6 = VK_NUMPAD6,
-	K_NUMPAD_7 = VK_NUMPAD7,
-	K_NUMPAD_8 = VK_NUMPAD8,
-	K_NUMPAD_9 = VK_NUMPAD9,
+	K_NUMPAD_0 = kVK_ANSI_Keypad0,
+	K_NUMPAD_1 = kVK_ANSI_Keypad1,
+	K_NUMPAD_2 = kVK_ANSI_Keypad2,
+	K_NUMPAD_3 = kVK_ANSI_Keypad3,
+	K_NUMPAD_4 = kVK_ANSI_Keypad4,
+	K_NUMPAD_5 = kVK_ANSI_Keypad5,
+	K_NUMPAD_6 = kVK_ANSI_Keypad6,
+	K_NUMPAD_7 = kVK_ANSI_Keypad7,
+	K_NUMPAD_8 = kVK_ANSI_Keypad8,
+	K_NUMPAD_9 = kVK_ANSI_Keypad9,
 
-	K_AUDIO_VOLUME_MUTE = VK_VOLUME_MUTE,
-	K_AUDIO_VOLUME_DOWN = VK_VOLUME_DOWN,
-	K_AUDIO_VOLUME_UP = VK_VOLUME_UP,
-	K_AUDIO_PLAY = VK_MEDIA_PLAY_PAUSE,
-	K_AUDIO_STOP = VK_MEDIA_STOP,
-	K_AUDIO_PAUSE = VK_MEDIA_PLAY_PAUSE,
-	K_AUDIO_PREV = VK_MEDIA_PREV_TRACK,
-	K_AUDIO_NEXT = VK_MEDIA_NEXT_TRACK,
+	K_AUDIO_VOLUME_MUTE = 1007,
+	K_AUDIO_VOLUME_DOWN = 1001,
+	K_AUDIO_VOLUME_UP = 1000,
+	K_AUDIO_PLAY = 1016,
+	K_AUDIO_STOP = K_NOT_A_KEY,
+	K_AUDIO_PAUSE = 1016,
+	K_AUDIO_PREV = 1018,
+	K_AUDIO_NEXT = 1017,
 	K_AUDIO_REWIND = K_NOT_A_KEY,
 	K_AUDIO_FORWARD = K_NOT_A_KEY,
 	K_AUDIO_REPEAT = K_NOT_A_KEY,
 	K_AUDIO_RANDOM = K_NOT_A_KEY,
 
-	K_LIGHTS_MON_UP = K_NOT_A_KEY,
-	K_LIGHTS_MON_DOWN = K_NOT_A_KEY,
-	K_LIGHTS_KBD_TOGGLE = K_NOT_A_KEY,
-	K_LIGHTS_KBD_UP = K_NOT_A_KEY,
-	K_LIGHTS_KBD_DOWN = K_NOT_A_KEY
+	K_LIGHTS_MON_UP = 1002,
+	K_LIGHTS_MON_DOWN = 1003,
+	K_LIGHTS_KBD_TOGGLE = 1023,
+	K_LIGHTS_KBD_UP = 1021,
+	K_LIGHTS_KBD_DOWN = 1022
 };
 
-enum {
+typedef enum  {
 	MOD_NONE = 0,
-	/* These are already defined by the Win32 API */
-	/* MOD_ALT = 0,
-	MOD_CONTROL = 0,
-	MOD_SHIFT = 0, */
-	MOD_META = MOD_WIN
+	MOD_META = kCGEventFlagMaskCommand,
+	MOD_ALT = kCGEventFlagMaskAlternate,
+	MOD_CONTROL = kCGEventFlagMaskControl,
+	MOD_SHIFT = kCGEventFlagMaskShift
 };
 
 struct KeyNames
@@ -196,6 +200,33 @@ struct XSpecialCharacterMapping XSpecialCharacterTable[] = {
 	{'\n', K_RETURN}
 };
 
+CFStringRef createStringForKey(CGKeyCode keyCode)
+{
+	TISInputSourceRef currentKeyboard = TISCopyCurrentKeyboardInputSource();
+	CFDataRef layoutData = (CFDataRef)TISGetInputSourceProperty(currentKeyboard,
+	                       kTISPropertyUnicodeKeyLayoutData);
+	const UCKeyboardLayout *keyboardLayout =
+	    (const UCKeyboardLayout *)CFDataGetBytePtr(layoutData);
+
+	UInt32 keysDown = 0;
+	UniChar chars[4];
+	UniCharCount realLength;
+
+	UCKeyTranslate(keyboardLayout,
+	               keyCode,
+	               kUCKeyActionDisplay,
+	               0,
+	               LMGetKbdType(),
+	               kUCKeyTranslateNoDeadKeysBit,
+	               &keysDown,
+	               sizeof(chars) / sizeof(chars[0]),
+	               &realLength,
+	               chars);
+	CFRelease(currentKeyboard);
+
+	return CFStringCreateWithCharacters(kCFAllocatorDefault, chars, 1);
+}
+
 result_t CheckKeyCodes(exlib::string k, int32_t *code, int32_t *flags)
 {
 	size_t i;
@@ -210,11 +241,46 @@ result_t CheckKeyCodes(exlib::string k, int32_t *code, int32_t *flags)
 				return 0;
 			}
 
-		*code = VkKeyScan(c);
+		static CFMutableDictionaryRef charToCodeDict = NULL;
+		CGKeyCode key_code;
+		UniChar character = c;
+		CFStringRef charStr = NULL;
+
+		/* Generate table of keycodes and characters. */
+		if (charToCodeDict == NULL) {
+			size_t i;
+			charToCodeDict = CFDictionaryCreateMutable(kCFAllocatorDefault,
+			                 128,
+			                 &kCFCopyStringDictionaryKeyCallBacks,
+			                 NULL);
+			if (charToCodeDict == NULL) return UINT16_MAX;
+
+			/* Loop through every keycode (0 - 127) to find its current mapping. */
+			for (i = 0; i < 128; ++i) {
+				CFStringRef string = createStringForKey((CGKeyCode)i);
+				if (string != NULL) {
+					CFDictionaryAddValue(charToCodeDict, string, (const void *)i);
+					CFRelease(string);
+				}
+			}
+		}
+
+		charStr = CFStringCreateWithCharacters(kCFAllocatorDefault, &character, 1);
+
+		/* Our values may be NULL (0), so we need to use this function. */
+		if (!CFDictionaryGetValueIfPresent(charToCodeDict, charStr,
+		                                   (const void **)&key_code)) {
+			key_code = UINT16_MAX; /* Error */
+		}
+
+		CFRelease(charStr);
+		*code = key_code;
+
 		int modifiers = *code >> 8;
 		if ((modifiers & 1) != 0) *flags |= MOD_SHIFT;
 		if ((modifiers & 2) != 0) *flags |= MOD_CONTROL;
 		if ((modifiers & 4) != 0) *flags |= MOD_ALT;
+
 		*code = *code & 0xff;
 		return 0;
 	}
@@ -229,70 +295,51 @@ result_t CheckKeyCodes(exlib::string k, int32_t *code, int32_t *flags)
 	return CALL_E_INVALIDARG;
 }
 
-void win32KeyEvent(int key, int32_t flags)
+static io_connect_t _getAuxiliaryKeyDriver(void)
 {
-	int scan = MapVirtualKey(key & 0xff, MAPVK_VK_TO_VSC);
+	static mach_port_t sEventDrvrRef = 0;
+	mach_port_t masterPort, service, iter;
+	kern_return_t kr;
 
-	/* Set the scan code for extended keys */
-	switch (key)
-	{
-	case VK_RCONTROL:
-	case VK_SNAPSHOT: /* Print Screen */
-	case VK_RMENU: /* Right Alt / Alt Gr */
-	case VK_PAUSE: /* Pause / Break */
-	case VK_HOME:
-	case VK_UP:
-	case VK_PRIOR: /* Page up */
-	case VK_LEFT:
-	case VK_RIGHT:
-	case VK_END:
-	case VK_DOWN:
-	case VK_NEXT: /* 'Page Down' */
-	case VK_INSERT:
-	case VK_DELETE:
-	case VK_LWIN:
-	case VK_RWIN:
-	case VK_APPS: /* Application */
-	case VK_VOLUME_MUTE:
-	case VK_VOLUME_DOWN:
-	case VK_VOLUME_UP:
-	case VK_MEDIA_NEXT_TRACK:
-	case VK_MEDIA_PREV_TRACK:
-	case VK_MEDIA_STOP:
-	case VK_MEDIA_PLAY_PAUSE:
-	case VK_BROWSER_BACK:
-	case VK_BROWSER_FORWARD:
-	case VK_BROWSER_REFRESH:
-	case VK_BROWSER_STOP:
-	case VK_BROWSER_SEARCH:
-	case VK_BROWSER_FAVORITES:
-	case VK_BROWSER_HOME:
-	case VK_LAUNCH_MAIL:
-	{
-		flags |= KEYEVENTF_EXTENDEDKEY;
-		break;
+	if (!sEventDrvrRef) {
+		kr = IOMasterPort( bootstrap_port, &masterPort );
+		assert(KERN_SUCCESS == kr);
+		kr = IOServiceGetMatchingServices(masterPort, IOServiceMatching( kIOHIDSystemClass), &iter );
+		assert(KERN_SUCCESS == kr);
+		service = IOIteratorNext( iter );
+		assert(service);
+		kr = IOServiceOpen(service, mach_task_self(), kIOHIDParamConnectType, &sEventDrvrRef );
+		assert(KERN_SUCCESS == kr);
+		IOObjectRelease(service);
+		IOObjectRelease(iter);
 	}
-	}
-
-	/* Set the scan code for keyup */
-	if ( flags & KEYEVENTF_KEYUP ) {
-		scan |= 0x80;
-	}
-
-	keybd_event(key, scan, flags, 0);
+	return sEventDrvrRef;
 }
 
 void toggleKeyCode(int32_t code, const bool down, int32_t flags)
 {
-	const DWORD dwFlags = down ? 0 : KEYEVENTF_KEYUP;
+	/* The media keys all have 1000 added to them to help us detect them. */
+	if (code >= 1000) {
+		code = code - 1000; /* Get the real keycode. */
+		NXEventData   event;
+		kern_return_t kr;
+		IOGPoint loc = { 0, 0 };
+		UInt32 evtInfo = code << 16 | (down ? NX_KEYDOWN : NX_KEYUP) << 8;
+		bzero(&event, sizeof(NXEventData));
+		event.compound.subType = NX_SUBTYPE_AUX_CONTROL_BUTTONS;
+		event.compound.misc.L[0] = evtInfo;
+		kr = IOHIDPostEvent( _getAuxiliaryKeyDriver(), NX_SYSDEFINED, loc, &event, kNXEventDataVersion, 0, FALSE );
+		assert( KERN_SUCCESS == kr );
+	} else {
+		CGEventRef keyEvent = CGEventCreateKeyboardEvent(NULL,
+		                      (CGKeyCode)code, down);
+		assert(keyEvent != NULL);
 
-	/* Parse modifier keys. */
-	if (flags & MOD_META) win32KeyEvent(K_META, dwFlags);
-	if (flags & MOD_ALT) win32KeyEvent(K_ALT, dwFlags);
-	if (flags & MOD_CONTROL) win32KeyEvent(K_CONTROL, dwFlags);
-	if (flags & MOD_SHIFT) win32KeyEvent(K_SHIFT, dwFlags);
-
-	win32KeyEvent(code, dwFlags);
+		CGEventSetType(keyEvent, down ? kCGEventKeyDown : kCGEventKeyUp);
+		CGEventSetFlags(keyEvent, flags);
+		CGEventPost(kCGSessionEventTap, keyEvent);
+		CFRelease(keyEvent);
+	}
 }
 
 result_t CheckKeyFlags(exlib::string f, int32_t* flags)

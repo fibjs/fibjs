@@ -8,7 +8,7 @@
 #include "object.h"
 #include "ifs/console.h"
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(Darwin)
 
 namespace fibjs
 {
