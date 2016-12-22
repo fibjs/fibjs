@@ -691,7 +691,7 @@ result_t SandBox::require(exlib::string base, exlib::string id,
             else
                 fname = fullname + PATH_SLASH + "index";
 
-            hr = require(base, fname, retVal, FILE_ONLY);
+            hr = require(base, fname, retVal, NO_SEARCH);
             if (hr < 0)
                 return hr;
 
