@@ -20,6 +20,7 @@ namespace fibjs
 class Buffer_base;
 class Int64_base;
 class console_base;
+class process_base;
 class Timer_base;
 class Stream_base;
 
@@ -82,6 +83,7 @@ public:
 #include "Buffer.h"
 #include "Int64.h"
 #include "console.h"
+#include "process.h"
 #include "Timer.h"
 #include "Stream.h"
 
@@ -108,7 +110,8 @@ namespace fibjs
         {
             {"Buffer", Buffer_base::class_info},
             {"Int64", Int64_base::class_info},
-            {"console", console_base::class_info}
+            {"console", console_base::class_info},
+            {"process", process_base::class_info}
         };
 
         static ClassData::ClassProperty s_property[] = 
@@ -123,7 +126,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "global", s__new, NULL, 
-            11, s_method, 3, s_object, 5, s_property, NULL, NULL,
+            11, s_method, 4, s_object, 5, s_property, NULL, NULL,
             NULL
         };
 

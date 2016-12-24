@@ -30,6 +30,19 @@ result_t os_base::get_type(exlib::string &retVal)
     return 0;
 }
 
+result_t os_base::platform(exlib::string &retVal)
+{
+#ifdef Linux
+    retVal = "linux";
+#elif defined(Darwin)
+    retVal = "darwin";
+#elif defined(FreeBSD)
+    retVal = "freebsd";
+#endif
+
+    return 0;
+}
+
 result_t os_base::get_version(exlib::string &retVal)
 {
     struct utsname info;

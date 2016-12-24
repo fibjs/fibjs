@@ -19,6 +19,12 @@ module process
     /*! @brief 查询当前进程的环境变量 */
     static readonly Object env;
 
+    /*! @brief 查询当前 cpu 环境，可能的结果为 'amd64', 'arm', 'arm64', 'ia32' */
+    static readonly String arch;
+
+    /*! @brief 查询当前平台名称，可能的结果为 'darwin', 'freebsd', 'linux', 或 'win32' */
+    static readonly String platform;
+
     /*! @brief 退出当前进程，并返回结果
      @param code 返回进程结果
      */

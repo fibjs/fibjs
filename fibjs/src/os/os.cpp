@@ -32,9 +32,9 @@ result_t os_base::get_hostname(exlib::string &retVal)
 result_t os_base::get_arch(exlib::string &retVal)
 {
 #ifdef amd64
-    retVal = "amd64";
+    retVal = "x64";
 #elif defined(i386)
-    retVal = "i686";
+    retVal = "ia32";
 #elif defined(arm)
     retVal = "arm";
 #elif defined(arm64)

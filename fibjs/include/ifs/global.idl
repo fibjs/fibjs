@@ -11,6 +11,9 @@ module global
     /*! @brief 控制台访问对象 */
     static console;
 
+    /*! @brief 控制台访问对象 */
+    static process;
+
     /*! @brief 全局对象 */
     static readonly Object global;
 

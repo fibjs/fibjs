@@ -126,6 +126,16 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
+result_t process_base::get_arch(exlib::string &retVal)
+{
+    return os_base::get_arch(retVal);
+}
+
+result_t process_base::get_platform(exlib::string &retVal)
+{
+    return os_base::platform(retVal);
+}
+
 void dump_memory();
 
 result_t process_base::exit(int32_t code)

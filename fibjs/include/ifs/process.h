@@ -29,6 +29,8 @@ public:
     static result_t get_execArgv(v8::Local<v8::Array>& retVal);
     static result_t get_execPath(exlib::string& retVal);
     static result_t get_env(v8::Local<v8::Object>& retVal);
+    static result_t get_arch(exlib::string& retVal);
+    static result_t get_platform(exlib::string& retVal);
     static result_t exit(int32_t code);
     static result_t cwd(exlib::string& retVal);
     static result_t chdir(exlib::string directory);
@@ -56,6 +58,8 @@ public:
     static void s_get_execArgv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_env(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_platform(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -89,13 +93,15 @@ namespace fibjs
             {"argv", s_get_argv, block_set, true},
             {"execArgv", s_get_execArgv, block_set, true},
             {"execPath", s_get_execPath, block_set, true},
-            {"env", s_get_env, block_set, true}
+            {"env", s_get_env, block_set, true},
+            {"arch", s_get_arch, block_set, true},
+            {"platform", s_get_platform, block_set, true}
         };
 
         static ClassData s_cd = 
         { 
             "process", s__new, NULL, 
-            7, s_method, 0, NULL, 4, s_property, NULL, NULL,
+            7, s_method, 0, NULL, 6, s_property, NULL, NULL,
             NULL
         };
 
@@ -143,6 +149,28 @@ namespace fibjs
         PROPERTY_ENTER();
 
         hr = get_env(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void process_base::s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        exlib::string vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_arch(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void process_base::s_get_platform(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        exlib::string vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_platform(vr);
 
         METHOD_RETURN();
     }

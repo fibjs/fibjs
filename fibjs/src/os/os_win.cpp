@@ -47,6 +47,12 @@ result_t os_base::get_type(exlib::string &retVal)
     return 0;
 }
 
+result_t os_base::platform(exlib::string &retVal)
+{
+    retVal = "win32";
+    return 0;
+}
+
 typedef void (WINAPI *RtlGetVersion_FUNC)(OSVERSIONINFOEXW*);
 
 BOOL GetVersion2(OSVERSIONINFOEX* os) {

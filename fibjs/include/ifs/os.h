@@ -41,6 +41,7 @@ public:
     static result_t networkInfo(v8::Local<v8::Object>& retVal);
     static result_t printerInfo(v8::Local<v8::Array>& retVal);
     static result_t openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
+    static result_t platform(exlib::string& retVal);
     static result_t time(exlib::string tmString, date_t& retVal);
     static result_t dateAdd(date_t d, int32_t num, exlib::string part, date_t& retVal);
     static result_t get_execPath(exlib::string& retVal);
@@ -73,6 +74,7 @@ public:
     static void s_networkInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_platform(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_time(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -102,6 +104,7 @@ namespace fibjs
             {"networkInfo", s_networkInfo, true},
             {"printerInfo", s_printerInfo, true},
             {"openPrinter", s_openPrinter, true},
+            {"platform", s_platform, true},
             {"time", s_time, true},
             {"dateAdd", s_dateAdd, true},
             {"memoryUsage", s_memoryUsage, true}
@@ -126,7 +129,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "os", s__new, NULL, 
-            12, s_method, 1, s_object, 7, s_property, NULL, NULL,
+            13, s_method, 1, s_object, 7, s_property, NULL, NULL,
             NULL
         };
 
@@ -312,6 +315,17 @@ namespace fibjs
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_openPrinter(v0, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void os_base::s_platform(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        exlib::string vr;
+
+        METHOD_ENTER(0, 0);
+
+        hr = platform(vr);
 
         METHOD_RETURN();
     }
