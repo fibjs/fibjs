@@ -184,8 +184,13 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                 v8::Local<v8::Value> toArray = obj->Get(isolate->NewFromUtf8("toArray"));
                 if (!IsEmpty(toArray) && toArray->IsFunction())
                 {
-                    v = v8::Local<v8::Function>::Cast(toArray)->Call(obj, 0, NULL);
-                    obj = v->ToObject();
+                    TryCatch try_catch;
+                    v8::Local<v8::Value> v1 = v8::Local<v8::Function>::Cast(toArray)->Call(obj, 0, NULL);
+                    if (!IsEmpty(v1) && v1->IsObject())
+                    {
+                        v = v1;
+                        obj = v1->ToObject();
+                    }
                 }
 
                 int32_t sz = (int32_t)stk.size();
