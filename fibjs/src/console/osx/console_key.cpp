@@ -386,7 +386,7 @@ void toggleKeyCode(int32_t code, const bool down, int32_t flags)
 		assert(keyEvent != NULL);
 
 		CGEventSetType(keyEvent, down ? kCGEventKeyDown : kCGEventKeyUp);
-		CGEventSetFlags(keyEvent, flags);
+		CGEventSetFlags(keyEvent, CGEventFlags(flags));
 		CGEventPost(kCGSessionEventTap, keyEvent);
 		CFRelease(keyEvent);
 	}
