@@ -39,8 +39,8 @@ public:
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
     virtual result_t connect(exlib::string host, int32_t port, AsyncEvent* ac) = 0;
-    virtual result_t bind(int32_t port, bool allowIPv4) = 0;
-    virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4) = 0;
+    virtual result_t bind(int32_t port, bool allowIPv4, AsyncEvent* ac) = 0;
+    virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4, AsyncEvent* ac) = 0;
     virtual result_t listen(int32_t backlog, AsyncEvent* ac) = 0;
     virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
@@ -73,6 +73,8 @@ public:
 
 public:
     ASYNC_MEMBER2(Socket_base, connect, exlib::string, int32_t);
+    ASYNC_MEMBER2(Socket_base, bind, int32_t, bool);
+    ASYNC_MEMBER3(Socket_base, bind, exlib::string, int32_t, bool);
     ASYNC_MEMBER1(Socket_base, listen, int32_t);
     ASYNC_MEMBERVALUE1(Socket_base, accept, obj_ptr<Socket_base>);
     ASYNC_MEMBERVALUE2(Socket_base, recv, int32_t, obj_ptr<Buffer_base>);
@@ -260,12 +262,16 @@ namespace fibjs
     inline void Socket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Socket_base);
-        METHOD_ENTER(2, 1);
+        ASYNC_METHOD_ENTER(2, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(bool, 1, true);
 
-        hr = pInst->bind(v0, v1);
+        if(!cb.IsEmpty()) {
+            pInst->acb_bind(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_bind(v0, v1);
 
         METHOD_OVER(3, 2);
 
@@ -273,7 +279,11 @@ namespace fibjs
         ARG(int32_t, 1);
         OPT_ARG(bool, 2, true);
 
-        hr = pInst->bind(v0, v1, v2);
+        if(!cb.IsEmpty()) {
+            pInst->acb_bind(v0, v1, v2, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_bind(v0, v1, v2);
 
         METHOD_VOID();
     }

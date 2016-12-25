@@ -60,8 +60,9 @@ public:
     virtual result_t set_timeout(int32_t newVal);
     virtual result_t connect(exlib::string host, int32_t port,
                              AsyncEvent *ac);
-    virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4);
-    virtual result_t bind(int32_t port, bool allowIPv4);
+    virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4,
+                          AsyncEvent* ac);
+    virtual result_t bind(int32_t port, bool allowIPv4, AsyncEvent* ac);
     virtual result_t listen(int32_t backlog, AsyncEvent* ac);
     virtual result_t accept(obj_ptr<Socket_base> &retVal,
                             AsyncEvent *ac);

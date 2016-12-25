@@ -76,7 +76,7 @@ result_t TcpServer::create(exlib::string addr, int32_t port,
     if (hr < 0)
         return hr;
 
-    hr = m_socket->bind(addr, port, false);
+    hr = m_socket->cc_bind(addr, port, false);
     if (hr < 0)
         return hr;
 
