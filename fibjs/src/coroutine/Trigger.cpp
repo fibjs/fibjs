@@ -9,10 +9,13 @@
 #include "Fiber.h"
 #include "Trigger.h"
 #include "ifs/coroutine.h"
+#include "ifs/events.h"
 #include "QuickArray.h"
 
 namespace fibjs
 {
+
+DECLARE_MODULE(events);
 
 result_t Trigger_base::_new(obj_ptr<Trigger_base> &retVal, v8::Local<v8::Object> This)
 {

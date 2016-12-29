@@ -1,0 +1,6 @@
+/*! @brief events 事件处理模块 */
+module events
+{
+	/*! @brief EventEmitter 构造函数，参见 EventEmitter */
+	static EventEmitter;
+};
