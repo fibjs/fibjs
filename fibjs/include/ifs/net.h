@@ -107,7 +107,7 @@ namespace fibjs
             {"Socket", Socket_base::class_info},
             {"Smtp", Smtp_base::class_info},
             {"TcpServer", TcpServer_base::class_info},
-            {"UrlObject", UrlObject_base::class_info}
+            {"Url", UrlObject_base::class_info}
         };
 
         static ClassData::ClassProperty s_property[] = 

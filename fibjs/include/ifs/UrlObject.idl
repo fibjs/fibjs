@@ -2,8 +2,8 @@
 
  基础模块。提供 url 的格式化，解析与拼装
  \code
- var url = new net.UrlObject('http://www.xici.net/');
- var url = new net.UrlObject({protocol: 'http:', hostname:'www.xici.net', pathname:'/'});
+ var url = new net.Url('http://www.xici.net/');
+ var url = new net.Url({protocol: 'http:', hostname:'www.xici.net', pathname:'/'});
  \endcode
  */
 interface UrlObject : object

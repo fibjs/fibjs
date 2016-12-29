@@ -77,7 +77,7 @@ module net
     static TcpServer;
 
     /*! @brief 创建一个 UrlObject 对象，参见 UrlObject */
-    static UrlObject;
+    static UrlObject new Url();
 
     /*! @brief 查询当前系统异步网络引擎
      @return 返回网络引擎名称
