@@ -199,6 +199,8 @@ public:
     result_t off(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal);
     result_t off(exlib::string ev, int32_t &retVal);
     result_t off(v8::Local<v8::Object> map, int32_t &retVal);
+    result_t removeAllListeners(v8::Local<v8::Array> evs, int32_t& retVal);
+    result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal);
     result_t trigger(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args);
     result_t _trigger(exlib::string ev, v8::Local<v8::Value> *args, int32_t argCount);
     result_t _trigger(exlib::string ev, Variant *args, int32_t argCount);

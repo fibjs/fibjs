@@ -184,12 +184,36 @@ result_t object_base::off(exlib::string ev, int32_t &retVal)
     exlib::string strKey = "_e_";
     strKey.append(ev);
 
-    GetHiddenList(strKey.c_str(), false, true);
+    v8::Local<v8::Array> esa = GetHiddenList(strKey.c_str(), false, true);
+    if (!esa.IsEmpty())
+    {
+        int32_t len = esa->Length();
+        int32_t i;
+
+        for (i = 0; i < len; i ++)
+        {
+            v8::Local<v8::Value> v = esa->Get(i);
+            if (!v->IsUndefined())
+                retVal ++;
+        }
+    }
 
     strKey = "_e1_";
     strKey.append(ev);
 
-    GetHiddenList(strKey.c_str(), false, true);
+    esa = GetHiddenList(strKey.c_str(), false, true);
+    if (!esa.IsEmpty())
+    {
+        int32_t len = esa->Length();
+        int32_t i;
+
+        for (i = 0; i < len; i ++)
+        {
+            v8::Local<v8::Value> v = esa->Get(i);
+            if (!v->IsUndefined())
+                retVal ++;
+        }
+    }
 
     return 0;
 }
@@ -197,6 +221,78 @@ result_t object_base::off(exlib::string ev, int32_t &retVal)
 result_t object_base::off(v8::Local<v8::Object> map, int32_t &retVal)
 {
     return _map(this, map, &object_base::off, retVal);
+}
+
+result_t object_base::removeAllListeners(v8::Local<v8::Array> evs, int32_t& retVal)
+{
+    int32_t len = evs->Length();
+    int32_t i;
+    result_t hr;
+
+    retVal = 0;
+
+    for (i = 0; i < len; i ++)
+    {
+        v8::Local<v8::Value> v = evs->Get(i);
+        exlib::string key;
+        int32_t n = 0;
+
+        hr = GetArgumentValue(v, key, true);
+        if (hr < 0)
+            return hr;
+
+        hr = off(key, n);
+        if (hr < 0)
+            return hr;
+
+        retVal += n;
+    }
+
+    return 0;
+}
+
+result_t object_base::listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
+{
+    Isolate* isolate = holder();
+    int32_t n = 0;
+
+    exlib::string strKey = "_e_";
+    strKey.append(ev);
+
+    retVal = v8::Array::New(isolate->m_isolate);
+
+    v8::Local<v8::Array> esa = GetHiddenList(strKey.c_str(), false, false);
+    if (!esa.IsEmpty())
+    {
+        int32_t len = esa->Length();
+        int32_t i;
+
+        for (i = 0; i < len; i ++)
+        {
+            v8::Local<v8::Value> v = esa->Get(i);
+            if (!v->IsUndefined())
+                retVal->Set(n++, v);
+        }
+    }
+
+    strKey = "_e1_";
+    strKey.append(ev);
+
+    esa = GetHiddenList(strKey.c_str(), false, false);
+    if (!esa.IsEmpty())
+    {
+        int32_t len = esa->Length();
+        int32_t i;
+
+        for (i = 0; i < len; i ++)
+        {
+            v8::Local<v8::Value> v = esa->Get(i);
+            if (!v->IsUndefined())
+                retVal->Set(n++, v);
+        }
+    }
+
+    return 0;
 }
 
 inline result_t _fire(v8::Local<v8::Function> func, const v8::FunctionCallbackInfo<v8::Value> &args,
