@@ -10,6 +10,7 @@
 #include "ifs/vm.h"
 #include "ifs/util.h"
 #include "ifs/test.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs
 {
@@ -72,6 +73,7 @@ void SandBox::initRoot()
     }
 
     InstallModule("expect", createV8Function("expect", isolate->m_isolate, test_base::s_expect));
+    InstallModule("buffer", Buffer_base::class_info().getFunction(isolate));
 }
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
