@@ -13,6 +13,9 @@ module process
     /*! @brief 返回当前进程的特殊命令行参数，这些参数被 fibjs 用于设置运行环境 */
     static readonly Array execArgv;
 
+    /*! @brief 返回fibjs版本字符串 */
+    static readonly String version;
+
     /*! @brief 查询当前运行执行文件完整路径 */
     static readonly String execPath;
 
