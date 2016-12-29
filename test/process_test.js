@@ -128,6 +128,10 @@ describe('process', function() {
 
 		assert.lessThan(new Date() - d, 2000);
 	});
+
+	it("version", () => {
+		assert.ok(process.version);
+	});
 });
 
 // test.run(console.DEBUG);
