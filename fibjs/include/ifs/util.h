@@ -28,6 +28,7 @@ public:
     // util_base
     static result_t format(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
     static result_t format(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
+    static result_t inherits(v8::Local<v8::Value> constructor, v8::Local<v8::Value> superConstructor);
     static result_t isEmpty(v8::Local<v8::Value> v, bool& retVal);
     static result_t isArray(v8::Local<v8::Value> v, bool& retVal);
     static result_t isBoolean(v8::Local<v8::Value> v, bool& retVal);
@@ -76,6 +77,7 @@ public:
 
 public:
     static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_inherits(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isArray(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isBoolean(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -122,6 +124,7 @@ namespace fibjs
         static ClassData::ClassMethod s_method[] = 
         {
             {"format", s_format, true},
+            {"inherits", s_inherits, true},
             {"isEmpty", s_isEmpty, true},
             {"isArray", s_isArray, true},
             {"isBoolean", s_isBoolean, true},
@@ -165,7 +168,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "util", s__new, NULL, 
-            33, s_method, 2, s_object, 0, NULL, NULL, NULL,
+            34, s_method, 2, s_object, 0, NULL, NULL, NULL,
             NULL
         };
 
@@ -189,6 +192,18 @@ namespace fibjs
         hr = format(args, vr);
 
         METHOD_RETURN();
+    }
+
+    inline void util_base::s_inherits(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(2, 2);
+
+        ARG(v8::Local<v8::Value>, 0);
+        ARG(v8::Local<v8::Value>, 1);
+
+        hr = inherits(v0, v1);
+
+        METHOD_VOID();
     }
 
     inline void util_base::s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args)

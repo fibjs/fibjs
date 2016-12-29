@@ -407,6 +407,33 @@ result_t util_base::format(const v8::FunctionCallbackInfo<v8::Value> &args, exli
     return _format(NULL, 0, args, retVal);
 }
 
+result_t util_base::inherits(v8::Local<v8::Value> constructor,
+                             v8::Local<v8::Value> superConstructor)
+{
+    if (!constructor->IsObject() || !superConstructor->IsObject())
+        return CALL_E_TYPEMISMATCH;
+
+    v8::Local<v8::Object> _constructor = v8::Local<v8::Object>::Cast(constructor);
+    v8::Local<v8::Object> _superConstructor = v8::Local<v8::Object>::Cast(superConstructor);
+
+
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Function> temp = v8::Function::New(isolate->m_isolate, NULL);
+
+    temp->Set(isolate->NewFromUtf8("prototype"),
+              _superConstructor->Get(isolate->NewFromUtf8("prototype")));
+
+    v8::Local<v8::Object> proto = temp->NewInstance();
+
+    proto->Set(isolate->NewFromUtf8("constructor"), _constructor);
+
+    _constructor->Set(isolate->NewFromUtf8("prototype"), proto);
+    _constructor->Set(isolate->NewFromUtf8("super_"), _superConstructor);
+
+    return 0;
+}
+
 result_t util_base::isEmpty(v8::Local<v8::Value> v, bool &retVal)
 {
     if (v->IsNull())

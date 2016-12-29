@@ -17,6 +17,13 @@ module util
      */
     static String format(...);
 
+    /*! @brief 从一个构造函数 constructor 继承原型方法到另一个。构造函数的原型将被设置为一个新的从超类（superConstructor）创建的对象。
+
+     @param constructor 初始的构造函数
+     @param superConstructor 被继承的超类
+     */
+    static inherits(Value constructor, Value superConstructor);
+
     /*! @brief 检测给定的变量是否不包含任何值(没有可枚举的属性)
 
      @param v 给定需要检测的变量
