@@ -7,5 +7,7 @@
  */
 interface EventEmitter : Trigger
 {
+	/*! @brief 构造函数 */
+	EventEmitter();
 };
 

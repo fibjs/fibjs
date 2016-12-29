@@ -25,18 +25,15 @@ class EventEmitter_base : public Trigger_base
     DECLARE_CLASS(EventEmitter_base);
 
 public:
-    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-
-        Isolate* isolate = Isolate::current();
-
-        isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8("not a constructor"));
-    }
+    // EventEmitter_base
+    static result_t _new(obj_ptr<EventEmitter_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 
 public:
+    template<typename T>
+    static void __new(const T &args);
 
+public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -57,6 +54,23 @@ namespace fibjs
         return s_ci;
     }
 
+
+    inline void EventEmitter_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
+
+    template<typename T>void EventEmitter_base::__new(const T& args)
+    {
+        obj_ptr<EventEmitter_base> vr;
+
+        CONSTRUCT_ENTER(0, 0);
+
+        hr = _new(vr, args.This());
+
+        CONSTRUCT_RETURN();
+    }
 
 }
 
