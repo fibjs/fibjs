@@ -11,6 +11,7 @@
 #include "ifs/coroutine.h"
 #include "ifs/events.h"
 #include "QuickArray.h"
+#include <vector>
 
 namespace fibjs
 {
@@ -304,22 +305,7 @@ result_t object_base::listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-inline result_t _fire(v8::Local<v8::Function> func, const v8::FunctionCallbackInfo<v8::Value> &args,
-                      int32_t argCount)
-{
-    obj_ptr<Fiber_base> retVal;
-    return JSFiber::New(func, args, 1, retVal);
-}
-
-inline result_t _fire(v8::Local<v8::Function> func,
-                      v8::Local<v8::Value> *args, int32_t argCount)
-{
-    obj_ptr<Fiber_base> retVal;
-    return JSFiber::New(func, args, argCount, retVal);
-}
-
-template<typename T>
-result_t fireTrigger(v8::Local<v8::Array> esa, T args, int32_t argCount)
+result_t fireTrigger(v8::Local<v8::Array> esa, v8::Local<v8::Value> *args, int32_t argCount)
 {
     if (esa.IsEmpty())
         return 0;
@@ -327,17 +313,23 @@ result_t fireTrigger(v8::Local<v8::Array> esa, T args, int32_t argCount)
     int32_t len = esa->Length();
     int32_t i;
     result_t hr;
+    QuickArray<obj_ptr<Fiber_base> > evs;
 
     for (i = 0; i < len; i ++)
     {
         v8::Local<v8::Value> func = esa->Get(i);
         if (func->IsFunction())
         {
-            hr = _fire(v8::Local<v8::Function>::Cast(func), args, argCount);
+            obj_ptr<Fiber_base> retVal;
+            hr = JSFiber::New(v8::Local<v8::Function>::Cast(func), args, argCount, retVal);
             if (hr < 0)
                 return hr;
+            evs.append(retVal);
         }
     }
+
+    for (i = 0; i < evs.size(); i ++)
+        evs[i]->join();
 
     return 0;
 }
@@ -345,8 +337,6 @@ result_t fireTrigger(v8::Local<v8::Array> esa, T args, int32_t argCount)
 result_t object_base::_trigger(exlib::string ev, v8::Local<v8::Value> *args,
                                int32_t argCount)
 {
-    extMemory(0);
-
     result_t hr;
     exlib::string strKey = "_e_";
     strKey.append(ev);
@@ -409,24 +399,15 @@ result_t object_base::_trigger(exlib::string ev, Variant *args, int32_t argCount
 
 result_t object_base::trigger(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    extMemory(0);
+    std::vector< v8::Local<v8::Value> > _args;
+    int32_t len = args.Length();
 
-    result_t hr;
-    exlib::string strKey = "_e_";
-    strKey.append(ev);
+    _args.resize(len - 1);
 
-    hr = fireTrigger(GetHiddenList(strKey.c_str()), args, 0);
-    if (hr < 0)
-        return hr;
+    for (int32_t i = 1; i < len; i ++)
+        _args[i - 1] = args[i];
 
-    strKey = "_e1_";
-    strKey.append(ev);
-
-    hr = fireTrigger(GetHiddenList(strKey.c_str(), false, true), args, 0);
-    if (hr < 0)
-        return hr;
-
-    return 0;
+    return _trigger(ev, _args.data(), (int32_t) _args.size());
 }
 
 }

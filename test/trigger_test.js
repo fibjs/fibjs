@@ -25,15 +25,11 @@ function evevt_test(name, ev) {
             v1 = v2 = 0;
             assert.equal(e.on('test', t1), 1);
             e.trigger('test', 200, 100);
-            assert.equal(0, v1);
-            assert.equal(0, v2);
-            coroutine.sleep(1);
             assert.equal(1334, v1);
             assert.equal(0, v2);
 
             assert.equal(e.on('test', t2), 1);
             e.trigger('test', 2000, 1000);
-            coroutine.sleep(1);
             assert.equal(3568, v1);
             assert.equal(5321, v2);
         });
@@ -41,7 +37,6 @@ function evevt_test(name, ev) {
         it("off", function() {
             assert.equal(e.off('test', t1), 1);
             e.trigger('test', 20, 10);
-            coroutine.sleep(1);
             assert.equal(3568, v1);
             assert.equal(9652, v2);
         });
@@ -49,7 +44,6 @@ function evevt_test(name, ev) {
         it("once", function() {
             assert.equal(e.once('test', t1), 1);
             e.trigger('test', 20, 10);
-            coroutine.sleep(1);
             assert.equal(4812, v1);
             assert.equal(13983, v2);
         });
@@ -57,7 +51,6 @@ function evevt_test(name, ev) {
         it("off all", function() {
             assert.equal(e.off('test', t2), 1);
             e.trigger('test', 20, 10);
-            coroutine.sleep(1);
             assert.equal(4812, v1);
             assert.equal(13983, v2);
         });
@@ -68,11 +61,9 @@ function evevt_test(name, ev) {
                 test1: t2
             }), 2);
             e.trigger('test', 20, 10);
-            coroutine.sleep(1);
             assert.equal(6056, v1);
             assert.equal(13983, v2);
             e.trigger('test1', 20, 10);
-            coroutine.sleep(1);
             assert.equal(6056, v1);
             assert.equal(18314, v2);
         });
@@ -84,7 +75,6 @@ function evevt_test(name, ev) {
             }), 2);
             e.trigger('test', 20, 10);
             e.trigger('test1', 20, 10);
-            coroutine.sleep(1);
             assert.equal(6056, v1);
             assert.equal(18314, v2);
         });
@@ -93,14 +83,12 @@ function evevt_test(name, ev) {
             assert.equal(e.on('test', t1), 1);
             assert.equal(e.on('test', t2), 1);
             e.trigger('test', 20, 10);
-            coroutine.sleep(1);
             assert.equal(7300, v1);
             assert.equal(22645, v2);
 
             assert.equal(e.off("test"), 2);
 
             e.trigger('test', 20, 10);
-            coroutine.sleep(1);
             assert.equal(7300, v1);
             assert.equal(22645, v2);
         });
@@ -109,12 +97,10 @@ function evevt_test(name, ev) {
             assert.equal(e.on('test', t1), 1);
             assert.equal(e.once('test', t1), 0);
             e.trigger('test', 20, 10);
-            coroutine.sleep(1);
             assert.equal(8544, v1);
             assert.equal(22645, v2);
 
             e.trigger('test', 20, 10);
-            coroutine.sleep(1);
             assert.equal(8544, v1);
             assert.equal(22645, v2);
         });
