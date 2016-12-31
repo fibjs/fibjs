@@ -3,8 +3,9 @@ test.setup();
 
 var coroutine = require('coroutine');
 var events = require('events');
+var util = require('util');
 
-function evevt_test(name, ev) {
+function evevt_test(name, e) {
     describe(name, function() {
         var v1, v2;
 
@@ -15,11 +16,6 @@ function evevt_test(name, ev) {
         function t2(a1, a2) {
             v2 = v2 + a1 - a2 + 4321;
         }
-
-        var e;
-        before(function() {
-            e = new ev();
-        })
 
         it("on", function() {
             v1 = v2 = 0;
@@ -126,7 +122,14 @@ function evevt_test(name, ev) {
     });
 }
 
-evevt_test("coroutine.Trigger", coroutine.Trigger);
-evevt_test("events.EventEmitter", events.EventEmitter);
+describe("Trigger/EventEmitter", function() {
+    evevt_test("coroutine.Trigger", new coroutine.Trigger());
+    evevt_test("events.EventEmitter", new events.EventEmitter());
+
+    function MyEmitter() {}
+
+    util.inherits(MyEmitter, events.EventEmitter);
+    evevt_test("util.inherits", new MyEmitter());
+});
 
 // test.run(console.DEBUG);
