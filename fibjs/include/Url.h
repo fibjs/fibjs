@@ -7,6 +7,7 @@
 
 #include "ifs/UrlObject.h"
 #include "utf8.h"
+#include "HttpCollection.h"
 
 #ifndef URL_H_
 #define URL_H_
@@ -30,13 +31,13 @@ public:
 
 public:
     // UrlObject_base
-    virtual result_t parse(exlib::string url);
+    virtual result_t parse(exlib::string url, bool parseQueryString);
     virtual result_t format(v8::Local<v8::Object> args);
     virtual result_t resolve(exlib::string to, obj_ptr<UrlObject_base> &retVal);
     virtual result_t normalize();
     virtual result_t get_href(exlib::string &retVal);
     virtual result_t get_protocol(exlib::string &retVal);
-    virtual result_t get_slashes(int32_t &retVal);
+    virtual result_t get_slashes(bool &retVal);
     virtual result_t get_auth(exlib::string &retVal);
     virtual result_t get_username(exlib::string &retVal);
     virtual result_t get_password(exlib::string &retVal);
@@ -46,10 +47,15 @@ public:
     virtual result_t get_path(exlib::string &retVal);
     virtual result_t get_pathname(exlib::string &retVal);
     virtual result_t get_search(exlib::string &retVal);
-    virtual result_t get_query(exlib::string &retVal);
+    virtual result_t get_query(v8::Local<v8::Value> &retVal);
     virtual result_t get_hash(exlib::string &retVal);
 
 public:
+    result_t parse(exlib::string url)
+    {
+        return parse(url, false);
+    }
+
     static void parseHost(const char *&url, exlib::string &hostname, exlib::string &port);
 
 private:
@@ -202,6 +208,7 @@ public:
     exlib::string m_port;
     exlib::string m_pathname;
     exlib::string m_query;
+    obj_ptr<HttpCollection> m_queryParsed;
     exlib::string m_hash;
     bool m_ipv6;
 };

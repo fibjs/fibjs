@@ -26,7 +26,7 @@ class url_base : public object_base
 public:
     // url_base
     static result_t format(v8::Local<v8::Object> args, exlib::string& retVal);
-    static result_t parse(exlib::string url, obj_ptr<UrlObject_base>& retVal);
+    static result_t parse(exlib::string url, bool parseQueryString, obj_ptr<UrlObject_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -87,11 +87,12 @@ namespace fibjs
     {
         obj_ptr<UrlObject_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER(2, 1);
 
         ARG(exlib::string, 0);
+        OPT_ARG(bool, 1, false);
 
-        hr = parse(v0, vr);
+        hr = parse(v0, v1, vr);
 
         METHOD_RETURN();
     }

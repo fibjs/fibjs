@@ -9,7 +9,6 @@
 #include "HttpRequest.h"
 #include "parse.h"
 #include "HttpUploadCollection.h"
-#include "Url.h"
 
 namespace fibjs
 {
@@ -365,62 +364,7 @@ void HttpRequest::parse(exlib::string &str, char split,
 {
     obj_ptr<HttpCollection> c = new HttpCollection();
 
-    const char *pstr = str.c_str();
-    int32_t nSize = (int32_t) str.length();
-    const char *pstrTemp;
-    exlib::string strKey, strValue;
-
-    while (nSize)
-    {
-        while (nSize && *pstr == ' ')
-        {
-            pstr++;
-            nSize--;
-        }
-
-        pstrTemp = pstr;
-        while (nSize && *pstr != '=' && *pstr != split)
-        {
-            pstr++;
-            nSize--;
-        }
-
-        if (pstr > pstrTemp)
-            Url::decodeURI(pstrTemp, (int32_t) (pstr - pstrTemp), strKey, true);
-        else
-            strKey.clear();
-
-        if (nSize && *pstr == '=')
-        {
-            nSize--;
-            pstr++;
-        }
-
-        pstrTemp = pstr;
-        while (nSize && *pstr != split)
-        {
-            pstr++;
-            nSize--;
-        }
-
-        if (!strKey.empty())
-        {
-            if (pstr > pstrTemp)
-                Url::decodeURI(pstrTemp, (int32_t) (pstr - pstrTemp), strValue, true);
-            else
-                strValue.clear();
-        }
-
-        if (nSize)
-        {
-            nSize--;
-            pstr++;
-        }
-
-        if (!strKey.empty())
-            c->add(strKey, strValue);
-    }
-
+    c->parse(str, split);
     retVal = c;
 }
 

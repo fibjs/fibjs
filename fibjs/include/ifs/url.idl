@@ -8,6 +8,7 @@ module url
 
 	 /*! @brief 解析一个 url 字符串
      @param url 指定需要解析的 url 字符串
+     @param parseQueryString 指定是否解析 query
      */
-	static UrlObject parse(String url);
+	static UrlObject parse(String url, Boolean parseQueryString = false);
 };

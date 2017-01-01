@@ -26,11 +26,12 @@ result_t url_base::format(v8::Local<v8::Object> args, exlib::string& retVal)
     return u->get_href(retVal);
 }
 
-result_t url_base::parse(exlib::string url, obj_ptr<UrlObject_base>& retVal)
+result_t url_base::parse(exlib::string url, bool parseQueryString,
+                         obj_ptr<UrlObject_base>& retVal)
 {
     obj_ptr<Url> u = new Url();
 
-    result_t hr = u->parse(url);
+    result_t hr = u->parse(url, parseQueryString);
     if (hr < 0)
         return hr;
 
@@ -46,11 +47,13 @@ static const char *queryTable =
 static const char *hashTable =
     " ! #$%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
 
-result_t UrlObject_base::_new(exlib::string url, obj_ptr<UrlObject_base> &retVal, v8::Local<v8::Object> This)
+result_t UrlObject_base::_new(exlib::string url, bool parseQueryString,
+                              obj_ptr<UrlObject_base> &retVal,
+                              v8::Local<v8::Object> This)
 {
     obj_ptr<Url> u = new Url();
 
-    result_t hr = u->parse(url);
+    result_t hr = u->parse(url, parseQueryString);
     if (hr < 0)
         return hr;
 
@@ -274,7 +277,7 @@ void Url::parseHash(const char *&url)
     Url::encodeURI(url, -1, m_hash, hashTable);
 }
 
-result_t Url::parse(exlib::string url)
+result_t Url::parse(exlib::string url, bool parseQueryString)
 {
     bool bHost;
     clear();
@@ -302,6 +305,12 @@ result_t Url::parse(exlib::string url)
     parsePath(c_str);
     parseQuery(c_str);
     parseHash(c_str);
+
+    if (parseQueryString)
+    {
+        m_queryParsed = new HttpCollection();
+        m_queryParsed->parse(m_query, '&');
+    }
 
     return 0;
 }
@@ -338,6 +347,7 @@ result_t Url::format(v8::Local<v8::Object> args)
         m_pathname = URL_SLASH + m_pathname;
 
     m_query = getValue(isolate, args, "query");
+    m_queryParsed.Release();
 
     m_hash = getValue(isolate, args, "hash");
     if (m_hash.length() > 0 && m_hash[0] != '#')
@@ -575,7 +585,7 @@ result_t Url::get_protocol(exlib::string &retVal)
     return 0;
 }
 
-result_t Url::get_slashes(int32_t &retVal)
+result_t Url::get_slashes(bool &retVal)
 {
     retVal = m_slashes;
     return 0;
@@ -652,9 +662,13 @@ result_t Url::get_search(exlib::string &retVal)
     return 0;
 }
 
-result_t Url::get_query(exlib::string &retVal)
+result_t Url::get_query(v8::Local<v8::Value> &retVal)
 {
-    retVal = m_query;
+    if (m_queryParsed)
+        retVal = m_queryParsed->wrap();
+    else
+        retVal = GetReturnValue(holder()->m_isolate, m_query);
+
     return 0;
 }
 

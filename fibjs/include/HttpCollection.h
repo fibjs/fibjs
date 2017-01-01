@@ -56,6 +56,8 @@ public:
     size_t size();
     size_t getData(char *buf, size_t sz);
 
+    result_t parse(exlib::string &str, char split);
+
 private:
     QuickArray<exlib::string> m_names;
     QuickArray<exlib::string> m_values;

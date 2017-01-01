@@ -15,13 +15,15 @@ interface UrlObject : object
 
     /*! @brief UrlObject 对象构造函数，使用 url 字符串构造
      @param url 指定构造 url 字符串
+     @param parseQueryString 指定是否解析 query
      */
-    UrlObject(String url = "");
+    UrlObject(String url = "", Boolean parseQueryString = false);
 
     /*! @brief 解析一个 url 字符串
      @param url 指定需要解析的 url 字符串
+     @param parseQueryString 指定是否解析 query
      */
-    parse(String url);
+    parse(String url, Boolean parseQueryString = false);
 
     /*! @brief 使用指定的参数构造 UrlObject
      @param args 指定构造参数的字典对象，支持的字段有：protocol, slashes, username, password, hostname, port, pathname, query, hash
@@ -47,7 +49,7 @@ interface UrlObject : object
 
     /*! @brief 查询当前 UrlObject 对象是否包含双斜杠
      */
-    readonly Integer slashes;
+    readonly Boolean slashes;
 
     /*! @brief 查询当前 UrlObject 对象中的完整验证字符串，由 username 和 password 属性组装而成
      */
@@ -87,7 +89,7 @@ interface UrlObject : object
 
     /*! @brief 查询当前 UrlObject 对象中的请求字符串（ 不含“?”）
      */
-    readonly String query;
+    readonly Value query;
 
     /*! @brief 查询当前 UrlObject 对象中的请求锚点（含“\#”）
      */

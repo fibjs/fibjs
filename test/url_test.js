@@ -698,77 +698,82 @@ describe("url", function() {
         }
     });
 
-    it(
-        "resolve",
-        function() {
-            var relativeTests = [
-                ['/foo/bar/baz', 'quux', '/foo/bar/quux'],
-                ['/foo/bar/baz', 'quux/asdf',
-                    '/foo/bar/quux/asdf'
-                ],
-                ['/foo/bar/baz', 'quux/baz',
-                    '/foo/bar/quux/baz'
-                ],
-                ['/foo/bar/baz', '../quux/baz',
-                    '/foo/quux/baz'
-                ],
-                ['/foo/bar/baz', '/bar', '/bar'],
-                ['/foo/bar/baz/', 'quux', '/foo/bar/baz/quux'],
-                ['/foo/bar/baz/', 'quux/baz',
-                    '/foo/bar/baz/quux/baz'
-                ],
-                ['/foo/bar/baz',
-                    '../../../../../../../../quux/baz',
-                    '/quux/baz'
-                ],
-                ['/foo/bar/baz',
-                    '../../../../../../../quux/baz',
-                    '/quux/baz'
-                ],
-                ['foo/bar', '../../../baz', '../../baz'],
-                ['foo/bar/', '../../../baz', '../baz'],
-                ['http://example.com/b//c//d;p?q#blarg',
-                    'https:#hash2', 'https:#hash2'
-                ],
-                ['http://example.com/b//c//d;p?q#blarg',
-                    'https:/p/a/t/h?s#hash2',
-                    'https:/p/a/t/h?s#hash2'
-                ],
-                ['http://example.com/b//c//d;p?q#blarg',
-                    'https://u:p@h.com/p/a/t/h?s#hash2',
-                    'https://u:p@h.com/p/a/t/h?s#hash2'
-                ],
-                ['http://example.com/b//c//d;p?q#blarg',
-                    'https:/a/b/c/d', 'https:/a/b/c/d'
-                ],
-                ['http://example.com/b//c//d;p?q#blarg',
-                    'http:#hash2',
-                    'http://example.com/b//c//d;p?q#hash2'
-                ],
-                ['http://example.com/b//c//d;p?q#blarg',
-                    'http:/p/a/t/h?s#hash2',
-                    'http://example.com/p/a/t/h?s#hash2'
-                ],
-                ['http://example.com/b//c//d;p?q#blarg',
-                    'http://u:p@h.com/p/a/t/h?s#hash2',
-                    'http://u:p@h.com/p/a/t/h?s#hash2'
-                ],
-                ['http://example.com/b//c//d;p?q#blarg',
-                    'http:/a/b/c/d',
-                    'http://example.com/a/b/c/d'
-                ],
-                ['/foo/bar/baz', '/../etc/passwd',
-                    '/etc/passwd'
-                ]
-            ];
-
-            var url = new net.Url();
-            relativeTests.forEach(function(relativeTest) {
-                url.parse(relativeTest[0]);
-                var url1 = url.resolve(relativeTest[1]);
-                assert.equal(relativeTest[2], url1.href);
-            });
+    it("url.parse querystring", function() {
+        assert.deepEqual(url.parse("http://a.com/test?a=100&b=200", true).query.toJSON(), {
+            a: "100",
+            b: "200"
         });
+    });
+
+    it("resolve", function() {
+        var relativeTests = [
+            ['/foo/bar/baz', 'quux', '/foo/bar/quux'],
+            ['/foo/bar/baz', 'quux/asdf',
+                '/foo/bar/quux/asdf'
+            ],
+            ['/foo/bar/baz', 'quux/baz',
+                '/foo/bar/quux/baz'
+            ],
+            ['/foo/bar/baz', '../quux/baz',
+                '/foo/quux/baz'
+            ],
+            ['/foo/bar/baz', '/bar', '/bar'],
+            ['/foo/bar/baz/', 'quux', '/foo/bar/baz/quux'],
+            ['/foo/bar/baz/', 'quux/baz',
+                '/foo/bar/baz/quux/baz'
+            ],
+            ['/foo/bar/baz',
+                '../../../../../../../../quux/baz',
+                '/quux/baz'
+            ],
+            ['/foo/bar/baz',
+                '../../../../../../../quux/baz',
+                '/quux/baz'
+            ],
+            ['foo/bar', '../../../baz', '../../baz'],
+            ['foo/bar/', '../../../baz', '../baz'],
+            ['http://example.com/b//c//d;p?q#blarg',
+                'https:#hash2', 'https:#hash2'
+            ],
+            ['http://example.com/b//c//d;p?q#blarg',
+                'https:/p/a/t/h?s#hash2',
+                'https:/p/a/t/h?s#hash2'
+            ],
+            ['http://example.com/b//c//d;p?q#blarg',
+                'https://u:p@h.com/p/a/t/h?s#hash2',
+                'https://u:p@h.com/p/a/t/h?s#hash2'
+            ],
+            ['http://example.com/b//c//d;p?q#blarg',
+                'https:/a/b/c/d', 'https:/a/b/c/d'
+            ],
+            ['http://example.com/b//c//d;p?q#blarg',
+                'http:#hash2',
+                'http://example.com/b//c//d;p?q#hash2'
+            ],
+            ['http://example.com/b//c//d;p?q#blarg',
+                'http:/p/a/t/h?s#hash2',
+                'http://example.com/p/a/t/h?s#hash2'
+            ],
+            ['http://example.com/b//c//d;p?q#blarg',
+                'http://u:p@h.com/p/a/t/h?s#hash2',
+                'http://u:p@h.com/p/a/t/h?s#hash2'
+            ],
+            ['http://example.com/b//c//d;p?q#blarg',
+                'http:/a/b/c/d',
+                'http://example.com/a/b/c/d'
+            ],
+            ['/foo/bar/baz', '/../etc/passwd',
+                '/etc/passwd'
+            ]
+        ];
+
+        var url = new net.Url();
+        relativeTests.forEach(function(relativeTest) {
+            url.parse(relativeTest[0]);
+            var url1 = url.resolve(relativeTest[1]);
+            assert.equal(relativeTest[2], url1.href);
+        });
+    });
 });
 
 // test.run(console.DEBUG);

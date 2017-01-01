@@ -24,14 +24,14 @@ class UrlObject_base : public object_base
 public:
     // UrlObject_base
     static result_t _new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string url, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t parse(exlib::string url) = 0;
+    static result_t _new(exlib::string url, bool parseQueryString, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t parse(exlib::string url, bool parseQueryString) = 0;
     virtual result_t format(v8::Local<v8::Object> args) = 0;
     virtual result_t resolve(exlib::string url, obj_ptr<UrlObject_base>& retVal) = 0;
     virtual result_t normalize() = 0;
     virtual result_t get_href(exlib::string& retVal) = 0;
     virtual result_t get_protocol(exlib::string& retVal) = 0;
-    virtual result_t get_slashes(int32_t& retVal) = 0;
+    virtual result_t get_slashes(bool& retVal) = 0;
     virtual result_t get_auth(exlib::string& retVal) = 0;
     virtual result_t get_username(exlib::string& retVal) = 0;
     virtual result_t get_password(exlib::string& retVal) = 0;
@@ -41,7 +41,7 @@ public:
     virtual result_t get_path(exlib::string& retVal) = 0;
     virtual result_t get_pathname(exlib::string& retVal) = 0;
     virtual result_t get_search(exlib::string& retVal) = 0;
-    virtual result_t get_query(exlib::string& retVal) = 0;
+    virtual result_t get_query(v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get_hash(exlib::string& retVal) = 0;
 
 public:
@@ -139,7 +139,7 @@ namespace fibjs
 
     inline void UrlObject_base::s_get_slashes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        int32_t vr;
+        bool vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(UrlObject_base);
@@ -259,7 +259,7 @@ namespace fibjs
 
     inline void UrlObject_base::s_get_query(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        exlib::string vr;
+        v8::Local<v8::Value> vr;
 
         PROPERTY_ENTER();
         PROPERTY_INSTANCE(UrlObject_base);
@@ -297,11 +297,12 @@ namespace fibjs
 
         hr = _new(v0, vr, args.This());
 
-        METHOD_OVER(1, 0);
+        METHOD_OVER(2, 0);
 
         OPT_ARG(exlib::string, 0, "");
+        OPT_ARG(bool, 1, false);
 
-        hr = _new(v0, vr, args.This());
+        hr = _new(v0, v1, vr, args.This());
 
         CONSTRUCT_RETURN();
     }
@@ -309,11 +310,12 @@ namespace fibjs
     inline void UrlObject_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(UrlObject_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER(2, 1);
 
         ARG(exlib::string, 0);
+        OPT_ARG(bool, 1, false);
 
-        hr = pInst->parse(v0);
+        hr = pInst->parse(v0, v1);
 
         METHOD_VOID();
     }
