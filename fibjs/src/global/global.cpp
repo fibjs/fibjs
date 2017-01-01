@@ -70,7 +70,7 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value> &args)
 
 	v8::Local<v8::Value> error = _data->Get(v8::String::NewFromUtf8(isolate, "_error"));
 
-	if (!error.IsEmpty() && !error->IsUndefined())
+	if (!error.IsEmpty() && !error->IsUndefined() && !error->IsNull())
 	{
 		args.GetReturnValue().Set(v8::Local<v8::Value>());
 		isolate->ThrowException(error);
