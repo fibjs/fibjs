@@ -735,7 +735,10 @@ result_t SandBox::require(exlib::string base, exlib::string id,
         str = base;
         while (true)
         {
-            path_base::dirname(str, str1);
+            if (isPathSlash(str[str.length() - 1]))
+                str1 = str.substr(0, str.length() - 1);
+            else
+                path_base::dirname(str, str1);
             if (str.length() == str1.length())
                 break;
 
