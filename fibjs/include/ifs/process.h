@@ -27,6 +27,7 @@ public:
     // process_base
     static result_t get_argv(v8::Local<v8::Array>& retVal);
     static result_t get_execArgv(v8::Local<v8::Array>& retVal);
+    static result_t get_version(exlib::string& retVal);
     static result_t get_execPath(exlib::string& retVal);
     static result_t get_env(v8::Local<v8::Object>& retVal);
     static result_t get_arch(exlib::string& retVal);
@@ -56,6 +57,7 @@ public:
 public:
     static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_execArgv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_env(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -92,6 +94,7 @@ namespace fibjs
         {
             {"argv", s_get_argv, block_set, true},
             {"execArgv", s_get_execArgv, block_set, true},
+            {"version", s_get_version, block_set, true},
             {"execPath", s_get_execPath, block_set, true},
             {"env", s_get_env, block_set, true},
             {"arch", s_get_arch, block_set, true},
@@ -101,7 +104,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "process", s__new, NULL, 
-            7, s_method, 0, NULL, 6, s_property, NULL, NULL,
+            7, s_method, 0, NULL, 7, s_property, NULL, NULL,
             NULL
         };
 
@@ -127,6 +130,17 @@ namespace fibjs
         PROPERTY_ENTER();
 
         hr = get_execArgv(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void process_base::s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        exlib::string vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_version(vr);
 
         METHOD_RETURN();
     }
