@@ -25,6 +25,7 @@ class DbConnection_base : public object_base
 
 public:
     // DbConnection_base
+    virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t begin(AsyncEvent* ac) = 0;
     virtual result_t commit(AsyncEvent* ac) = 0;
@@ -45,6 +46,7 @@ public:
     }
 
 public:
+    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_begin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_commit(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -78,10 +80,15 @@ namespace fibjs
             {"format", s_format, false}
         };
 
+        static ClassData::ClassProperty s_property[] = 
+        {
+            {"type", s_get_type, block_set, false}
+        };
+
         static ClassData s_cd = 
         { 
             "DbConnection", s__new, NULL, 
-            6, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            6, s_method, 0, NULL, 1, s_property, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -89,6 +96,17 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void DbConnection_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        exlib::string vr;
+
+        PROPERTY_ENTER();
+        PROPERTY_INSTANCE(DbConnection_base);
+
+        hr = pInst->get_type(vr);
+
+        METHOD_RETURN();
+    }
 
     inline void DbConnection_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     {

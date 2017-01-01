@@ -97,6 +97,12 @@ result_t mssql::connect(const char *server, const char *username,
     return 0;
 }
 
+result_t mssql::get_type(exlib::string& retVal)
+{
+    retVal = "mssql";
+    return 0;
+}
+
 result_t mssql::close(AsyncEvent *ac)
 {
     if (!m_conn)

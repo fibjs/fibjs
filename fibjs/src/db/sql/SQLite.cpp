@@ -66,6 +66,12 @@ SQLite::~SQLite()
         asyncCall(sqlite3_close, m_db);
 }
 
+result_t SQLite::get_type(exlib::string& retVal)
+{
+    retVal = "SQLite";
+    return 0;
+}
+
 result_t SQLite::close(AsyncEvent *ac)
 {
     if (!m_db)

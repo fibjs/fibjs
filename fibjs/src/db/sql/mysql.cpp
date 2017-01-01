@@ -217,6 +217,13 @@ result_t mysql::connect(const char *host, int32_t port, const char *username,
 
     return 0;
 }
+
+result_t mysql::get_type(exlib::string& retVal)
+{
+    retVal = "mysql";
+    return 0;
+}
+
 result_t mysql::close(AsyncEvent *ac)
 {
     if (!m_conn)

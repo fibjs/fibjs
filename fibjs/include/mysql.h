@@ -29,6 +29,7 @@ public:
 
 public:
     // DbConnection_base
+    virtual result_t get_type(exlib::string& retVal);
     virtual result_t close(AsyncEvent *ac);
     virtual result_t begin(AsyncEvent *ac);
     virtual result_t commit(AsyncEvent *ac);
