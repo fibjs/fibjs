@@ -75,8 +75,9 @@ interface SandBox : object
     run(String fname, Array argv = []);
 
     /*! @brief 加载一个模块并返回模块对象，更多信息参阅 @ref module
-     @param id 指定要加载的模块名称，查找路径与当前运行脚本无关，永远从当前工作目录作为起始
+     @param id 指定要加载的模块名称
+     @param base 指定查找路径，不设定则从当前工作路径开始
      @return 返回加载的模块对象
      */
-    Value require(String id);
+    Value require(String id, String base = "");
 };

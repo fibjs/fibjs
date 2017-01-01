@@ -32,7 +32,7 @@ public:
     virtual result_t remove(exlib::string id);
     virtual result_t clone(obj_ptr<SandBox_base> &retVal);
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv);
-    virtual result_t require(exlib::string id, v8::Local<v8::Value> &retVal);
+    virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value> &retVal);
 
 public:
     result_t addScript(exlib::string srcname, exlib::string script, v8::Local<v8::Value> &retVal);

@@ -785,11 +785,13 @@ result_t SandBox::require(exlib::string base, exlib::string id,
     return hr;
 }
 
-result_t SandBox::require(exlib::string id, v8::Local<v8::Value> &retVal)
+result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value> &retVal)
 {
     exlib::string sid;
     path_base::normalize(id, sid);
-    return require("", sid, retVal, FULL_SEARCH);
+    if (base.empty())
+        base = s_root + '/';
+    return require(base, sid, retVal, FULL_SEARCH);
 }
 
 result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv, bool main)

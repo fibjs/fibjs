@@ -35,7 +35,7 @@ public:
     virtual result_t remove(exlib::string id) = 0;
     virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv) = 0;
-    virtual result_t require(exlib::string id, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal) = 0;
 
 public:
     template<typename T>
@@ -208,11 +208,12 @@ namespace fibjs
         v8::Local<v8::Value> vr;
 
         METHOD_INSTANCE(SandBox_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER(2, 1);
 
         ARG(exlib::string, 0);
+        OPT_ARG(exlib::string, 1, "");
 
-        hr = pInst->require(v0, vr);
+        hr = pInst->require(v0, v1, vr);
 
         METHOD_RETURN();
     }

@@ -206,7 +206,7 @@ static void task_fiber(Isolate* isolate)
 	result_t hr;
 
 	TryCatch try_catch;
-	hr = isolate->m_topSandbox->require(p->m_task->m_id, v);
+	hr = isolate->m_topSandbox->require(p->m_task->m_id, "", v);
 	if (hr < 0)
 	{
 		p->set_error(GetException(try_catch, hr));
