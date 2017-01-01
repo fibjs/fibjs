@@ -97,6 +97,14 @@ result_t process_base::get_execArgv(v8::Local<v8::Array>& retVal)
     return 0;
 }
 
+extern char s_version[];
+
+result_t process_base::get_version(exlib::string &retVal)
+{
+    retVal = s_version;
+    return 0;
+}
+
 result_t process_base::get_execPath(exlib::string &retVal)
 {
     return os_base::get_execPath(retVal);
