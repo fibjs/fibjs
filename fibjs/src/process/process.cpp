@@ -9,6 +9,7 @@
 #include "ifs/process.h"
 #include "ifs/os.h"
 #include "ifs/global.h"
+#include "Fiber.h"
 #include "File.h"
 #include "BufferedStream.h"
 #include "SubProcess.h"
@@ -159,6 +160,13 @@ result_t process_base::exit(int32_t code)
 result_t process_base::memoryUsage(v8::Local<v8::Object> &retVal)
 {
     return os_base::memoryUsage(retVal);
+}
+
+result_t process_base::nextTick(v8::Local<v8::Function> func,
+                                const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Fiber_base> retVal;
+    return JSFiber::New(func, args, 1, retVal);
 }
 
 result_t process_base::open(exlib::string command, v8::Local<v8::Array> args,
