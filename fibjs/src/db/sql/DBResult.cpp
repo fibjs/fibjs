@@ -169,18 +169,12 @@ result_t DBResult::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 
 result_t DBResult::get_insertId(int64_t &retVal)
 {
-    if (m_size)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     retVal = m_insertId;
     return 0;
 }
 
 result_t DBResult::get_affected(int64_t &retVal)
 {
-    if (m_size)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     retVal = m_affected;
     return 0;
 }
@@ -188,9 +182,10 @@ result_t DBResult::get_affected(int64_t &retVal)
 result_t DBResult::get_fields(v8::Local<v8::Array> &retVal)
 {
     if (!m_size)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        retVal = v8::Array::New(holder()->m_isolate);
+    else
+        m_fields->names(holder()->m_isolate, retVal);
 
-    m_fields->names(holder()->m_isolate, retVal);
     return 0;
 }
 
