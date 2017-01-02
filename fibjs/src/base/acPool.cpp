@@ -141,6 +141,9 @@ void AsyncCallBack::syncFunc(AsyncCallBack* pThis)
         args[1] = pThis->getValue();
     } else
     {
+        if (pThis->m_v == CALL_E_EXCEPTION)
+            Runtime::setError(pThis->m_error);
+
         v8::Local<v8::Value> e = v8::Exception::Error(
                                      pThis->m_isolate->NewFromUtf8(getResultMessage(pThis->m_v)));
         e->ToObject()->Set(pThis->m_isolate->NewFromUtf8("number"),
