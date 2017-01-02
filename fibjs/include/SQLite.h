@@ -47,6 +47,7 @@ public:
     result_t open(const char *file);
 
 private:
+    exlib::Locker m_lock;
     exlib::string m_file;
     sqlite3 *m_db;
     int32_t m_nCmdTimeout;
