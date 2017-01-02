@@ -34,7 +34,7 @@ describe("db", function() {
 
         after(function() {
             try {
-                // conn.execute('drop table test;');
+                conn.execute('drop table test;');
                 conn.close();
             } catch (e) {}
         });
@@ -179,7 +179,7 @@ describe("db", function() {
         });
     });
 
-    describe("mysql", function() {
+    xdescribe("mysql", function() {
         _test('mysql://root@localhost/test');
     });
 
