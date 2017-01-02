@@ -138,7 +138,11 @@ exlib::string GetException(TryCatch &try_catch, result_t hr)
             if (!IsEmpty(trace_value))
             {
                 v8::String::Utf8Value stack_trace(trace_value);
-                return ToCString(stack_trace);
+                const char* s = ToCString(stack_trace);
+                const char* s1 = qstrchr(s, '\n');
+
+                if (s1)
+                    return exlib::string(ToCString(exception)) + s1;
             }
 
             exlib::string strError;
