@@ -354,7 +354,7 @@ public:
 			}
 		}
 
-		for (i = 0; i < evs.size(); i ++)
+		for (i = 0; i < (int32_t)evs.size(); i ++)
 			evs[i]->join();
 
 		return 0;
