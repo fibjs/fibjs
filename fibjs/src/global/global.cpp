@@ -64,7 +64,12 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value> &args)
 
 	v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
 
-	func->Call(args.This(), (int32_t) argv.size(), argv.data());
+	v8::Local<v8::Value> result = func->Call(args.This(), (int32_t) argv.size(), argv.data());
+	if (result.IsEmpty())
+	{
+		args.GetReturnValue().Set(V8_RETURN(v8::Local<v8::Value>()));
+		return;
+	}
 
 	ev->wait();
 
