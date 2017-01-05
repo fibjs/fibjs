@@ -356,9 +356,11 @@ typedef int32_t result_t;
 
 #define FIBER_FREE() \
     public: \
+    virtual bool enterTask(exlib::Task_base *current) \
+    {   return true;} \
     virtual void enter() \
     {} \
-    virtual void leave() \
+    virtual void leave(exlib::Task_base *current = NULL) \
     {} \
 
 

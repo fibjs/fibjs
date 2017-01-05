@@ -69,6 +69,11 @@ private:
     exlib::linkitem m_weak;
 
 public:
+    virtual bool enterTask(exlib::Task_base *current)
+    {
+        return m_lock.lock(current);
+    }
+
     virtual void enter()
     {
         if (!m_lock.trylock())
@@ -78,9 +83,9 @@ public:
         }
     }
 
-    virtual void leave()
+    virtual void leave(exlib::Task_base *current = NULL)
     {
-        m_lock.unlock();
+        m_lock.unlock(current);
     }
 
     exlib::Locker m_lock;
