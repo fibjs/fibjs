@@ -529,20 +529,29 @@ result_t Url::toString(exlib::string &retVal)
 
 result_t Url::get_href(exlib::string &retVal)
 {
+    retVal.clear();
+
     if (m_protocol.length() > 0)
         retVal.append(m_protocol);
 
     if (m_slashes)
         retVal.append("//", 2);
 
+    exlib::string str;
+
     if (m_username.length() > 0)
     {
-        get_auth(retVal);
+        get_auth(str);
+        retVal.append(str);
         retVal.append(1, '@');
     }
 
-    get_host(retVal);
-    get_path(retVal);
+    get_host(str);
+    retVal.append(str);
+
+    get_path(str);
+    retVal.append(str);
+
     retVal.append(m_hash);
 
     return 0;
@@ -596,7 +605,7 @@ result_t Url::get_auth(exlib::string &retVal)
     exlib::string str;
 
     encoding_base::encodeURIComponent(m_username, str);
-    retVal.append(str);
+    retVal = str;
     if (m_password.length() > 0)
     {
         retVal.append(1, ':');
@@ -621,7 +630,7 @@ result_t Url::get_password(exlib::string &retVal)
 
 result_t Url::get_host(exlib::string &retVal)
 {
-    retVal.append(m_host);
+    retVal = m_host;
     return 0;
 }
 
@@ -639,8 +648,10 @@ result_t Url::get_port(exlib::string &retVal)
 
 result_t Url::get_path(exlib::string &retVal)
 {
-    retVal.append(m_pathname);
-    get_search(retVal);
+    exlib::string str;
+
+    get_search(str);
+    retVal = m_pathname + str;
 
     return 0;
 }
@@ -655,7 +666,7 @@ result_t Url::get_search(exlib::string &retVal)
 {
     if (m_query.length() > 0)
     {
-        retVal.append(1, '?');
+        retVal.assign(1, '?');
         retVal.append(m_query);
     }
 

@@ -291,15 +291,13 @@ result_t path_base::fullpath(exlib::string path, exlib::string &retVal)
 
 result_t path_base::get_sep(exlib::string &retVal)
 {
-    retVal.clear();
-    retVal.append(1, PATH_SLASH);
+    retVal.assign(1, PATH_SLASH);
     return 0;
 }
 
 result_t path_base::get_delimiter(exlib::string &retVal)
 {
-    retVal.clear();
-    retVal.append(1, PATH_DELIMITER);
+    retVal.assign(1, PATH_DELIMITER);
     return 0;
 }
 

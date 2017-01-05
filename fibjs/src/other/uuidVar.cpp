@@ -134,7 +134,7 @@ result_t uuidVar::toString(exlib::string &retVal)
         uuid_export(m_uid, UUID_FMT_STR, &gen, &len);
         if (gen)
         {
-            retVal.append((const char *) gen, len - 1);
+            retVal.assign((const char *) gen, len - 1);
             free(gen);
         }
     }
@@ -152,7 +152,7 @@ result_t uuidVar::detail(exlib::string &retVal)
         uuid_export(m_uid, UUID_FMT_TXT, &gen, &len);
         if (gen)
         {
-            retVal.append((const char *) gen, len - 1);
+            retVal.assign((const char *) gen, len - 1);
             free(gen);
         }
     }
