@@ -122,6 +122,27 @@ void AsyncEvent::async(int32_t type)
         putGuiPool(this);
 }
 
+AsyncCallBack::AsyncCallBack(object_base* pThis, v8::Local<v8::Function> cb)
+{
+    m_pThis = pThis;
+    m_isolate = pThis->holder();
+    m_cb.Reset(m_isolate->m_isolate, cb);
+}
+
+void AsyncCallBack::async_call(int32_t v)
+{
+    m_v = v;
+    if (m_pThis == NULL || m_pThis->enterTask(this))
+        async(v);
+}
+
+int32_t AsyncCallBack::post(int32_t v)
+{
+    if (m_pThis)
+        m_pThis->leave(this);
+    return callback(v);
+}
+
 void AsyncCallBack::syncFunc(AsyncCallBack* pThis)
 {
     JSFiber::scope s;

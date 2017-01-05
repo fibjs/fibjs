@@ -321,7 +321,9 @@ private:
     obj_ptr<T> m_v;
 };
 
-class AsyncCallBack: public AsyncEvent
+class AsyncCallBack:
+    public AsyncEvent,
+    public exlib::Task_base
 {
 public:
     AsyncCallBack(v8::Local<v8::Function> cb)
@@ -330,12 +332,30 @@ public:
         m_cb.Reset(m_isolate->m_isolate, cb);
     }
 
+    AsyncCallBack(object_base* pThis, v8::Local<v8::Function> cb);
+
     ~AsyncCallBack()
     {
         m_cb.Reset();
     }
 
-    virtual int32_t post(int32_t v)
+public:
+    virtual void suspend()
+    {
+    }
+
+    virtual void suspend(exlib::spinlock& lock)
+    {
+        lock.unlock();
+    }
+
+    virtual void resume()
+    {
+        async(m_v);
+    }
+
+public:
+    int32_t callback(int32_t v)
     {
         if (v == CALL_E_EXCEPTION)
             m_error = Runtime::errMessage();
@@ -345,6 +365,9 @@ public:
 
         return 0;
     }
+
+    void async_call(int32_t v);
+    virtual int32_t post(int32_t v);
 
     virtual Isolate* isolate()
     {
@@ -361,6 +384,7 @@ protected:
     static void syncFunc(AsyncCallBack* pThis);
 
 protected:
+    obj_ptr<object_base> m_pThis;
     v8::Persistent<v8::Function> m_cb;
 
 private:
