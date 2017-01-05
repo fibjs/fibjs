@@ -157,8 +157,6 @@ result_t SQLite::execute(const char *sql, int32_t sLen,
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    exlib::autoLocker al(m_lock);
-
     sqlite3_stmt *stmt = 0;
     const char *pStr1;
 
