@@ -35,20 +35,34 @@ public:
     virtual result_t format(v8::Local<v8::Object> args);
     virtual result_t resolve(exlib::string to, obj_ptr<UrlObject_base> &retVal);
     virtual result_t normalize();
-    virtual result_t get_href(exlib::string &retVal);
-    virtual result_t get_protocol(exlib::string &retVal);
-    virtual result_t get_slashes(bool &retVal);
-    virtual result_t get_auth(exlib::string &retVal);
-    virtual result_t get_username(exlib::string &retVal);
-    virtual result_t get_password(exlib::string &retVal);
-    virtual result_t get_host(exlib::string &retVal);
-    virtual result_t get_hostname(exlib::string &retVal);
-    virtual result_t get_port(exlib::string &retVal);
-    virtual result_t get_path(exlib::string &retVal);
-    virtual result_t get_pathname(exlib::string &retVal);
-    virtual result_t get_search(exlib::string &retVal);
-    virtual result_t get_query(v8::Local<v8::Value> &retVal);
-    virtual result_t get_hash(exlib::string &retVal);
+    virtual result_t get_href(exlib::string& retVal);
+    virtual result_t set_href(exlib::string newVal);
+    virtual result_t get_protocol(exlib::string& retVal);
+    virtual result_t set_protocol(exlib::string newVal);
+    virtual result_t get_slashes(bool& retVal);
+    virtual result_t set_slashes(bool newVal);
+    virtual result_t get_auth(exlib::string& retVal);
+    virtual result_t set_auth(exlib::string newVal);
+    virtual result_t get_username(exlib::string& retVal);
+    virtual result_t set_username(exlib::string newVal);
+    virtual result_t get_password(exlib::string& retVal);
+    virtual result_t set_password(exlib::string newVal);
+    virtual result_t get_host(exlib::string& retVal);
+    virtual result_t set_host(exlib::string newVal);
+    virtual result_t get_hostname(exlib::string& retVal);
+    virtual result_t set_hostname(exlib::string newVal);
+    virtual result_t get_port(exlib::string& retVal);
+    virtual result_t set_port(exlib::string newVal);
+    virtual result_t get_path(exlib::string& retVal);
+    virtual result_t set_path(exlib::string newVal);
+    virtual result_t get_pathname(exlib::string& retVal);
+    virtual result_t set_pathname(exlib::string newVal);
+    virtual result_t get_search(exlib::string& retVal);
+    virtual result_t set_search(exlib::string newVal);
+    virtual result_t get_query(v8::Local<v8::Value>& retVal);
+    virtual result_t set_query(v8::Local<v8::Value> newVal);
+    virtual result_t get_hash(exlib::string& retVal);
+    virtual result_t set_hash(exlib::string newVal);
 
 public:
     result_t parse(exlib::string url)
@@ -62,7 +76,6 @@ private:
     void clear();
 
     void parseProtocol(const char *&url);
-    void put_protocol(exlib::string str);
 
     void parseAuth(const char *&url);
     void parseHost(const char *&url);

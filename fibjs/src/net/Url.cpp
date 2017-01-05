@@ -123,7 +123,7 @@ void Url::parseProtocol(const char *&url)
         p++;
 
         exlib::string str(url, p - url);
-        put_protocol(str);
+        set_protocol(str);
         url = p;
     }
 }
@@ -315,16 +315,18 @@ result_t Url::parse(exlib::string url, bool parseQueryString)
     return 0;
 }
 
-exlib::string getValue(Isolate* isolate, v8::Local<v8::Object> &args, const char *key)
+bool getString(Isolate* isolate, v8::Local<v8::Object> &args,
+               const char *key, exlib::string& retVal)
 {
-    exlib::string s;
-
     v8::Local<v8::Value> v = args->Get(isolate->NewFromUtf8(key));
 
-    if (!v.IsEmpty() && v->IsString())
-        s = *v8::String::Utf8Value(v);
+    if (!v.IsEmpty() && (v->IsString() || v->IsStringObject()))
+    {
+        retVal = *v8::String::Utf8Value(v);
+        return true;
+    }
 
-    return s;
+    return false;
 }
 
 result_t Url::format(v8::Local<v8::Object> args)
@@ -333,52 +335,41 @@ result_t Url::format(v8::Local<v8::Object> args)
 
     Isolate* isolate = holder();
 
-    put_protocol(getValue(isolate, args, "protocol"));
-    m_username = getValue(isolate, args, "username");
-    m_password = getValue(isolate, args, "password");
+    exlib::string str;
+    v8::Local<v8::Value> v;
 
-    m_host = getValue(isolate, args, "host");
-    m_hostname = getValue(isolate, args, "hostname");
-    m_port = getValue(isolate, args, "port");
+    if (getString(isolate, args, "protocol", str))
+        set_protocol(str);
 
-    m_pathname = getValue(isolate, args, "pathname");
-    if (m_pathname.length() > 0 && !isUrlSlash(m_pathname[0])
-            && m_hostname.length() > 0)
-        m_pathname = URL_SLASH + m_pathname;
+    if (getString(isolate, args, "username", str))
+        set_username(str);
+    if (getString(isolate, args, "password", str))
+        set_password(str);
 
-    m_query = getValue(isolate, args, "query");
-    m_queryParsed.Release();
+    if (getString(isolate, args, "host", str))
+        set_host(str);
+    if (getString(isolate, args, "port", str))
+        set_port(str);
 
-    m_hash = getValue(isolate, args, "hash");
-    if (m_hash.length() > 0 && m_hash[0] != '#')
-        m_hash = '#' + m_hash;
+    if (getString(isolate, args, "hostname", str))
+        set_hostname(str);
+
+    if (getString(isolate, args, "pathname", str))
+        set_pathname(str);
+
+    v = args->Get(holder()->NewFromUtf8("query"));
+    if (!IsEmpty(v))
+        set_query(v);
+
+    if (getString(isolate, args, "hash", str))
+        set_hash(str);
 
     if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
         m_slashes = false;
 
-    v8::Local<v8::Value> v = args->Get(holder()->NewFromUtf8("slashes"));
-
+    v = args->Get(holder()->NewFromUtf8("slashes"));
     if (!IsEmpty(v))
-        m_slashes = v->BooleanValue();
-
-    m_ipv6 = qstrchr(m_hostname.c_str(), ':') != NULL;
-
-    if (!m_hostname.empty() && m_host.empty())
-    {
-        if (m_ipv6)
-            m_host.append(1, '[');
-
-        m_host.append(m_hostname);
-
-        if (m_ipv6)
-            m_host.append(1, ']');
-
-        if (m_port.length() > 0)
-        {
-            m_host.append(1, ':');
-            m_host.append(m_port);
-        }
-    }
+        set_slashes(v->BooleanValue());
 
     return 0;
 }
@@ -557,7 +548,18 @@ result_t Url::get_href(exlib::string &retVal)
     return 0;
 }
 
-void Url::put_protocol(exlib::string str)
+result_t Url::set_href(exlib::string newVal)
+{
+    return parse(newVal, m_queryParsed != NULL);
+}
+
+result_t Url::get_protocol(exlib::string &retVal)
+{
+    retVal = m_protocol;
+    return 0;
+}
+
+result_t Url::set_protocol(exlib::string newVal)
 {
     static const char *s_slashed[] =
     {
@@ -566,7 +568,7 @@ void Url::put_protocol(exlib::string str)
     };
     int32_t i;
 
-    m_protocol = str;
+    m_protocol = newVal;
     m_defslashes = false;
     if (m_protocol.length() > 0)
     {
@@ -586,17 +588,18 @@ void Url::put_protocol(exlib::string str)
         m_defslashes = true;
 
     m_slashes = m_defslashes;
-}
-
-result_t Url::get_protocol(exlib::string &retVal)
-{
-    retVal = m_protocol;
     return 0;
 }
 
 result_t Url::get_slashes(bool &retVal)
 {
     retVal = m_slashes;
+    return 0;
+}
+
+result_t Url::set_slashes(bool newVal)
+{
+    m_slashes = newVal;
     return 0;
 }
 
@@ -616,9 +619,21 @@ result_t Url::get_auth(exlib::string &retVal)
     return 0;
 }
 
+result_t Url::set_auth(exlib::string newVal)
+{
+    // m_auth = newVal;
+    return 0;
+}
+
 result_t Url::get_username(exlib::string &retVal)
 {
     retVal = m_username;
+    return 0;
+}
+
+result_t Url::set_username(exlib::string newVal)
+{
+    m_username = newVal;
     return 0;
 }
 
@@ -628,9 +643,21 @@ result_t Url::get_password(exlib::string &retVal)
     return 0;
 }
 
+result_t Url::set_password(exlib::string newVal)
+{
+    m_password = newVal;
+    return 0;
+}
+
 result_t Url::get_host(exlib::string &retVal)
 {
     retVal = m_host;
+    return 0;
+}
+
+result_t Url::set_host(exlib::string newVal)
+{
+    m_host = newVal;
     return 0;
 }
 
@@ -640,9 +667,41 @@ result_t Url::get_hostname(exlib::string &retVal)
     return 0;
 }
 
+result_t Url::set_hostname(exlib::string newVal)
+{
+    m_hostname = newVal;
+
+    m_ipv6 = qstrchr(m_hostname.c_str(), ':') != NULL;
+
+    if (!m_hostname.empty() && m_host.empty())
+    {
+        if (m_ipv6)
+            m_host.append(1, '[');
+
+        m_host.append(m_hostname);
+
+        if (m_ipv6)
+            m_host.append(1, ']');
+
+        if (m_port.length() > 0)
+        {
+            m_host.append(1, ':');
+            m_host.append(m_port);
+        }
+    }
+
+    return 0;
+}
+
 result_t Url::get_port(exlib::string &retVal)
 {
     retVal = m_port;
+    return 0;
+}
+
+result_t Url::set_port(exlib::string newVal)
+{
+    m_port = newVal;
     return 0;
 }
 
@@ -656,9 +715,24 @@ result_t Url::get_path(exlib::string &retVal)
     return 0;
 }
 
+result_t Url::set_path(exlib::string newVal)
+{
+    return 0;
+}
+
 result_t Url::get_pathname(exlib::string &retVal)
 {
     retVal = m_pathname;
+    return 0;
+}
+
+result_t Url::set_pathname(exlib::string newVal)
+{
+    m_pathname = newVal;
+    if (m_pathname.length() > 0 && !isUrlSlash(m_pathname[0])
+            && m_hostname.length() > 0)
+        m_pathname = URL_SLASH + m_pathname;
+
     return 0;
 }
 
@@ -673,6 +747,11 @@ result_t Url::get_search(exlib::string &retVal)
     return 0;
 }
 
+result_t Url::set_search(exlib::string newVal)
+{
+    return 0;
+}
+
 result_t Url::get_query(v8::Local<v8::Value> &retVal)
 {
     if (m_queryParsed)
@@ -683,9 +762,42 @@ result_t Url::get_query(v8::Local<v8::Value> &retVal)
     return 0;
 }
 
+result_t Url::set_query(v8::Local<v8::Value> newVal)
+{
+    if (!newVal.IsEmpty()) {
+        if (newVal->IsString() || newVal->IsStringObject())
+        {
+            m_query = *v8::String::Utf8Value(newVal);
+
+            if (m_queryParsed)
+            {
+                m_queryParsed = new HttpCollection();
+                m_queryParsed->parse(m_query, '&');
+            }
+        } else
+        {
+            obj_ptr<HttpCollection> queryParsed = (HttpCollection*)HttpCollection_base::getInstance(newVal);
+            if (!queryParsed)
+                return CHECK_ERROR(CALL_E_INVALIDARG);
+            m_queryParsed = queryParsed;
+        }
+    }
+
+    return 0;
+}
+
 result_t Url::get_hash(exlib::string &retVal)
 {
     retVal = m_hash;
+    return 0;
+}
+
+result_t Url::set_hash(exlib::string newVal)
+{
+    m_hash = newVal;
+    if (m_hash.length() > 0 && m_hash[0] != '#')
+        m_hash = '#' + m_hash;
+
     return 0;
 }
 
