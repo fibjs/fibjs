@@ -19,16 +19,9 @@ var win = require("os").type == "Windows";
 
 describe('fs', function() {
     before(function() {
-        if (!win) fs.umask(0);
         unlink(pathname);
         unlink(pathname1);
     });
-
-    if (!win)
-        it("umask", function() {
-            assert.equal(fs.umask(18), 0);
-            assert.equal(fs.umask(0), 18);
-        });
 
     it("stat", function() {
         var st = fs.stat('.');
