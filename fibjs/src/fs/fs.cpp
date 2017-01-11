@@ -169,15 +169,6 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
     return 0;
 }
 
-result_t fs_base::tmpFile(obj_ptr<SeekableStream_base> &retVal, AsyncEvent *ac)
-{
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    retVal = new File();
-    return 0;
-}
-
 result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
                                  obj_ptr<BufferedStream_base> &retVal,
                                  AsyncEvent *ac)
@@ -332,16 +323,6 @@ result_t fs_base::unlink(exlib::string path, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::umask(int32_t mask, int32_t &retVal , AsyncEvent *ac)
-{
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    retVal = ::umask(mask);
-
-    return 0;
-}
-
 result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent *ac)
 {
     if (!ac)
@@ -468,11 +449,6 @@ result_t fs_base::unlink(exlib::string path, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::umask(int32_t mask, int32_t &retVal , AsyncEvent *ac)
-{
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
-}
-
 result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent *ac)
 {
     if (!ac)
@@ -557,9 +533,59 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal, AsyncE
 
 #endif
 
+result_t fs_base::existsSync(exlib::string path, bool& retVal)
+{
+    return ac_exists(path, retVal);
+}
+
+result_t fs_base::unlinkSync(exlib::string path)
+{
+    return ac_unlink(path);
+}
+
+result_t fs_base::mkdirSync(exlib::string path, int32_t mode)
+{
+    return ac_mkdir(path, mode);
+}
+
+result_t fs_base::rmdirSync(exlib::string path)
+{
+    return ac_rmdir(path);
+}
+
+result_t fs_base::renameSync(exlib::string from, exlib::string to)
+{
+    return ac_rename(from, to);
+}
+
+result_t fs_base::chmodSync(exlib::string path, int32_t mode)
+{
+    return ac_chmod(path, mode);
+}
+
+result_t fs_base::statSync(exlib::string path, obj_ptr<Stat_base>& retVal)
+{
+    return ac_stat(path, retVal);
+}
+
 result_t fs_base::readdirSync(exlib::string path, obj_ptr<List_base>& retVal)
 {
     return ac_readdir(path, retVal);
+}
+
+result_t fs_base::openSync(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal)
+{
+    return ac_open(fname, flags, retVal);
+}
+
+result_t fs_base::readFileSync(exlib::string fname, obj_ptr<Buffer_base>& retVal)
+{
+    return ac_readFile(fname, retVal);
+}
+
+result_t fs_base::writeFileSync(exlib::string fname, Buffer_base* data)
+{
+    return ac_writeFile(fname, data);
 }
 
 }

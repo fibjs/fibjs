@@ -23,16 +23,21 @@ module fs
      */
     static Boolean exists(String path) async;
 
+    /*! @brief 查询指定的文件或目录是否存在，是 exists 的同步版兼容接口
+     @param path 指定要查询的路径
+     @return 返回 True 表示文件或目录存在
+     */
+    static Boolean existsSync(String path);
+
     /*! @brief 删除指定的文件
      @param path 指定要删除的路径
      */
     static unlink(String path) async;
 
-    /*! @brief 改变当前的 umask，Windows 不支持此方法
-     @param mask 指定新的掩码
-     @return 返回之前的 mask
+    /*! @brief 删除指定的文件，是 unlink 的同步版兼容接口
+     @param path 指定要删除的路径
      */
-    static Integer umask(Integer mask) async;
+    static unlinkSync(String path);
 
     /*! @brief 创建一个目录
      @param path 指定要创建的目录名
@@ -40,16 +45,33 @@ module fs
      */
     static mkdir(String path, Integer mode = 0777) async;
 
+    /*! @brief 创建一个目录，是 mkdir 的同步版兼容接口
+     @param path 指定要创建的目录名
+     @param mode 指定文件权限，Windows 忽略此参数
+     */
+    static mkdirSync(String path, Integer mode = 0777);
+
     /*! @brief 删除一个目录
      @param path 指定要删除的目录名
      */
     static rmdir(String path) async;
+
+    /*! @brief 删除一个目录，是 rmdir 的同步版兼容接口
+     @param path 指定要删除的目录名
+     */
+    static rmdirSync(String path);
 
     /*! @brief 重新命名一个文件
      @param from 指定更名的文件
      @param to 指定要修改的新文件名
      */
     static rename(String from, String to) async;
+
+    /*! @brief 重新命名一个文件，是 rename 的同步版兼容接口
+     @param from 指定更名的文件
+     @param to 指定要修改的新文件名
+     */
+    static renameSync(String from, String to);
 
     /*! @brief 复制一个文件
      @param from 指定更名的文件
@@ -63,11 +85,23 @@ module fs
      */
     static chmod(String path, Integer mode) async;
 
+    /*! @brief 设置指定文件的访问权限，是 chmod 的同步版兼容接口
+     @param path 指定操作的文件
+     @param mode 指定设定的访问权限
+     */
+    static chmodSync(String path, Integer mode);
+
     /*! @brief 查询指定文件的基础信息
      @param path 指定查询的文件
      @return 返回文件的基础信息
      */
     static Stat stat(String path) async;
+
+    /*! @brief 查询指定文件的基础信息，是 stat 的同步版兼容接口
+     @param path 指定查询的文件
+     @return 返回文件的基础信息
+     */
+    static Stat statSync(String path);
 
     /*! @brief 读取指定目录的文件信息
      @param path 指定查询的目录
@@ -75,7 +109,7 @@ module fs
      */
     static List readdir(String path) async;
 
-    /*! @brief 读取指定目录的文件信息，是 readdir 的完全同步版
+    /*! @brief 读取指定目录的文件信息，是 readdir 的同步版兼容接口
      @param path 指定查询的目录
      @return 返回目录的文件信息数组
      */
@@ -93,7 +127,19 @@ module fs
      @return 返回打开的文件对象
      */
     static SeekableStream open(String fname, String flags = "r") async;
-    static SeekableStream tmpFile() async;
+
+    /*! @brief 打开文件，用于读取，写入，或者同时读写，是 open 的同步版兼容接口
+     @param fname 指定文件名
+     @param flags 指定文件打开方式，缺省为 "r"，只读方式。支持的方式如下：
+     - 'r' 只读方式，文件不存在则抛出错误。
+     - 'r+' 读写方式，文件不存在则抛出错误。
+     - 'w' 只写方式，文件不存在则自动创建，存在则将被清空。
+     - 'w+' 读写方式，文件不存在则自动创建。
+     - 'a' 只写添加方式，文件不存在则自动创建。
+     - 'a+' 读写添加方式，文件不存在则自动创建。
+     @return 返回打开的文件对象
+     */
+    static SeekableStream openSync(String fname, String flags = "r");
 
     /*! @brief 打开文本文件，用于读取，写入，或者同时读写
      @param fname 指定文件名
@@ -120,6 +166,12 @@ module fs
      */
     static Buffer readFile(String fname) async;
 
+    /*! @brief 打开二进制文件，并读取内容，是 readFile 的同步版兼容接口
+     @param fname 指定文件名
+     @return 返回文件文本内容
+     */
+    static Buffer readFileSync(String fname);
+
     /*! @brief 打开文件，以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:"\n"；windows:"\r\n"
      @param fname 指定文件名
      @param maxlines 指定此次读取的最大行数，缺省读取全部文本行
@@ -138,4 +190,10 @@ module fs
      @param data 指定要写入的二进制数据
      */
     static writeFile(String fname, Buffer data) async;
+
+    /*! @brief 创建二进制文件，并写入内容，是 writeFile 的同步版兼容接口
+     @param fname 指定文件名
+     @param data 指定要写入的二进制数据
+     */
+    static writeFileSync(String fname, Buffer data);
 };
