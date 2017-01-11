@@ -308,7 +308,7 @@ public:
         dateVal().parse(str, len);
     }
 
-    bool toString(exlib::string &retVal);
+    void toString(exlib::string &retVal) const;
 
     void toJSON();
 

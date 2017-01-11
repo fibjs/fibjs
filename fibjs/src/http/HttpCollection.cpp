@@ -174,8 +174,7 @@ result_t HttpCollection::add(exlib::string name, Variant value)
 {
     exlib::string s;
 
-    if (!value.toString(s))
-        return CHECK_ERROR(CALL_E_BADVARTYPE);
+    value.toString(s);
 
     m_names[m_count] = name;
     m_values[m_count] = s;
@@ -199,8 +198,7 @@ result_t HttpCollection::set(exlib::string name, Variant value)
         {
             exlib::string s;
 
-            if (!value.toString(s))
-                return CHECK_ERROR(CALL_E_BADVARTYPE);
+            value.toString(s);
 
             m_values[i] = s;
             bFound = true;

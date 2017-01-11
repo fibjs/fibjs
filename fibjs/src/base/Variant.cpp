@@ -245,21 +245,21 @@ void Variant::parseNumber(const char *str, int32_t len)
 
 #define STRING_BUF_SIZE 1024
 
-bool Variant::toString(exlib::string &retVal)
+void Variant::toString(exlib::string &retVal) const
 {
     switch (type())
     {
     case VT_Undefined:
         retVal = "undefined";
-        return false;
+        break;
     case VT_Null:
     case VT_Type:
     case VT_Persistent:
         retVal = "null";
-        return false;
+        break;
     case VT_Boolean:
         retVal = m_Val.boolVal ? "true" : "false";
-        return true;
+        break;
     case VT_Integer:
     {
         char str[STRING_BUF_SIZE];
@@ -267,7 +267,7 @@ bool Variant::toString(exlib::string &retVal)
         sprintf(str, "%d", m_Val.intVal);
         retVal = str;
 
-        return true;
+        break;
     }
     case VT_Long:
     {
@@ -281,7 +281,7 @@ bool Variant::toString(exlib::string &retVal)
 
         retVal = str;
 
-        return true;
+        break;
     }
     case VT_Number:
     {
@@ -290,23 +290,32 @@ bool Variant::toString(exlib::string &retVal)
         sprintf(str, "%.16g", m_Val.dblVal);
         retVal = str;
 
-        return true;
+        break;
     }
     case VT_Date:
         dateVal().toGMTString(retVal);
-        return true;
+        break;
     case VT_Object:
-        return false;
+    {
+        object_base *obj = (object_base *) m_Val.objVal;
+
+        if (obj == NULL)
+            break;
+
+        obj->toString(retVal);
+
+        break;
+    }
     case VT_String:
         retVal = strVal();
-        return true;
+        break;
     case VT_JSValue:
-        return false;
+        retVal = "[Object]";
+        break;
     case VT_JSON:
-        return false;
+        retVal = strVal();
+        break;
     }
-
-    return false;
 }
 
 void Variant::toJSON()
