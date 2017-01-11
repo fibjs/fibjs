@@ -193,8 +193,7 @@ describe("db", function() {
         function clear_db() {
             try {
                 fs.readdir("testdb" + vmid).forEach(function(s) {
-                    if (s.name != "." && s.name != "..")
-                        fs.unlink("testdb" + vmid + "/" + s.name);
+                    fs.unlink("testdb" + vmid + "/" + s);
                 });
 
                 fs.rmdir("testdb" + vmid);

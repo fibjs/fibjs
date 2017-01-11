@@ -114,28 +114,22 @@ void file_logger::clearFile()
     for (i = 0; i < sz; i ++)
     {
         Variant v;
-        obj_ptr<Stat_base> st;
 
         fd->_indexed_getter(i, v);
-        st = (Stat_base *)v.object();
+        name = v.string();
 
-        if (st)
+        fullname = m_folder + name;
+
+        if ((fullname.length() == m_path.length() + 14) &&
+                !qstrcmp(fullname.c_str(), m_path.c_str(), (int32_t)m_path.length()))
         {
-            st->get_name(name);
+            int32_t p, l;
 
-            fullname = m_folder + name;
+            l = (int32_t)fullname.length();
+            for (p = (int32_t)m_path.length(); p < l && qisdigit(fullname[p]); p++);
 
-            if ((fullname.length() == m_path.length() + 14) &&
-                    !qstrcmp(fullname.c_str(), m_path.c_str(), (int32_t)m_path.length()))
-            {
-                int32_t p, l;
-
-                l = (int32_t)fullname.length();
-                for (p = (int32_t)m_path.length(); p < l && qisdigit(fullname[p]); p++);
-
-                if (p == l)
-                    files.push_back(fullname);
-            }
+            if (p == l)
+                files.push_back(fullname);
         }
     }
 

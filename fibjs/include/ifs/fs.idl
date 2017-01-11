@@ -75,6 +75,12 @@ module fs
      */
     static List readdir(String path) async;
 
+    /*! @brief 读取指定目录的文件信息，是 readdir 的完全同步版
+     @param path 指定查询的目录
+     @return 返回目录的文件信息数组
+     */
+    static List readdirSync(String path);
+
     /*! @brief 打开文件，用于读取，写入，或者同时读写
      @param fname 指定文件名
      @param flags 指定文件打开方式，缺省为 "r"，只读方式。支持的方式如下：

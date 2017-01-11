@@ -436,19 +436,9 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal,
     oa = new List();
 
     while ((ep = ::readdir(dp)))
-    {
-        obj_ptr<Stat_base> fstat;
+        if (qstrcmp(ep->d_name, ".") && qstrcmp(ep->d_name, ".."))
+            oa->append(ep->d_name);
 
-        fpath = path;
-        fpath += '/';
-        fpath += ep->d_name;
-
-        hr = cc_stat(fpath, fstat);
-        if (hr < 0)
-            return hr;
-
-        oa->append(fstat);
-    }
     ::closedir(dp);
 
     retVal = oa;
@@ -564,6 +554,11 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal, AsyncE
 }
 
 #endif
+
+result_t fs_base::readdirSync(exlib::string path, obj_ptr<List_base>& retVal)
+{
+    return ac_readdir(path, retVal);
+}
 
 }
 

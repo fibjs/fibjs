@@ -46,6 +46,7 @@ public:
     static result_t chmod(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
     static result_t readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
+    static result_t readdirSync(exlib::string path, obj_ptr<List_base>& retVal);
     static result_t open(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t tmpFile(obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t openTextStream(exlib::string fname, exlib::string flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
@@ -80,6 +81,7 @@ public:
     static void s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_tmpFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -133,6 +135,7 @@ namespace fibjs
             {"chmod", s_chmod, true},
             {"stat", s_stat, true},
             {"readdir", s_readdir, true},
+            {"readdirSync", s_readdirSync, true},
             {"open", s_open, true},
             {"tmpFile", s_tmpFile, true},
             {"openTextStream", s_openTextStream, true},
@@ -153,7 +156,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "fs", s__new, NULL, 
-            18, s_method, 0, NULL, 3, s_property, NULL, NULL,
+            19, s_method, 0, NULL, 3, s_property, NULL, NULL,
             NULL
         };
 
@@ -340,6 +343,19 @@ namespace fibjs
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_readdir(v0, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void fs_base::s_readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<List_base> vr;
+
+        METHOD_ENTER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = readdirSync(v0, vr);
 
         METHOD_RETURN();
     }
