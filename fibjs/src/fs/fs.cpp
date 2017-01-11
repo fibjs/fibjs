@@ -540,9 +540,11 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal, AsyncE
 
     do
     {
-        obj_ptr<Stat> pStat = new Stat();
-        pStat->fill(fd);
-        oa->append(pStat);
+        if (qstrcmp(fd.cFileName, L".") && qstrcmp(fd.cFileName, L".."))
+        {
+            exlib::string name = UTF8_A(fd.cFileName);
+            oa->append(name);
+        }
     }
     while (FindNextFileW(hFind, &fd));
 
