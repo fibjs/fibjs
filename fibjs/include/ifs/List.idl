@@ -98,6 +98,17 @@ interface List : object
      */
     List map(Function func, Object thisp = {});
 
+    /*! @brief 排序全部数据并返回列表本身
+     @param func 比较处理函数
+     @return 列表本身
+     */
+    List sort(Function func);
+
+    /*! @brief 排序全部数据并返回列表本身
+     @return 列表本身
+     */
+    List sort();
+
     /*! @brief 返回列表的 js 数组
       @return 包含数据的 js 数组
      */

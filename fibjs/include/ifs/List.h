@@ -41,6 +41,8 @@ public:
     virtual result_t filter(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, obj_ptr<List_base>& retVal) = 0;
     virtual result_t forEach(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp) = 0;
     virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t sort(v8::Local<v8::Function> func, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t sort(obj_ptr<List_base>& retVal) = 0;
     virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
 
 public:
@@ -64,6 +66,7 @@ public:
     static void s_filter(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_map(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_sort(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
@@ -87,6 +90,7 @@ namespace fibjs
             {"filter", s_filter, false},
             {"forEach", s_forEach, false},
             {"map", s_map, false},
+            {"sort", s_sort, false},
             {"toArray", s_toArray, false}
         };
 
@@ -103,7 +107,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "List", s__new, NULL, 
-            13, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+            14, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
             &object_base::class_info()
         };
 
@@ -327,6 +331,24 @@ namespace fibjs
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
         hr = pInst->map(v0, v1, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void List_base::s_sort(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<List_base> vr;
+
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER(1, 1);
+
+        ARG(v8::Local<v8::Function>, 0);
+
+        hr = pInst->sort(v0, vr);
+
+        METHOD_OVER(0, 0);
+
+        hr = pInst->sort(vr);
 
         METHOD_RETURN();
     }

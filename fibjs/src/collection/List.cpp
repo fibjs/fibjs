@@ -82,7 +82,7 @@ result_t List::push(Variant v)
     if (v.type() == Variant::VT_JSValue)
         setJSObject();
 
-    m_array.append(v);
+    m_array.push_back(v);
     return 0;
 }
 
@@ -121,7 +121,7 @@ result_t List::pop(Variant &retVal)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = m_array[m_array.size() - 1];
-    m_array.pop();
+    m_array.pop_back();
 
     return 0;
 }
@@ -311,6 +311,61 @@ result_t List::map(v8::Local<v8::Function> func,
 
     retVal = a;
 
+    return 0;
+}
+
+result_t List::sort(v8::Local<v8::Function> func, obj_ptr<List_base>& retVal)
+{
+    struct MyCompare {
+    public:
+        MyCompare(v8::Local<v8::Function> func) :
+            m_func(func)
+        {
+        }
+
+        bool operator()(const VariantEx& v1, const VariantEx& v2)
+        {
+            v8::Local<v8::Value> args[] = { v1, v2 };
+
+            v8::Local<v8::Value> r = m_func->Call(m_func, 2, args);
+            if (r.IsEmpty())
+                return false;
+
+            return r->NumberValue() < 0;
+        }
+
+    private:
+        v8::Local<v8::Function> m_func;
+    };
+
+    if (m_freeze)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    MyCompare cmp(func);
+
+    std::sort(m_array.begin(), m_array.end(), cmp);
+
+    retVal = this;
+    return 0;
+}
+
+inline bool compare1(const VariantEx& v1, const VariantEx& v2) {
+    exlib::string s1, s2;
+
+    v1.toString(s1);
+    v2.toString(s2);
+
+    return s1.compare(s2) < 0;
+}
+
+result_t List::sort(obj_ptr<List_base>& retVal)
+{
+    if (m_freeze)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    std::sort(m_array.begin(), m_array.end(), compare1);
+
+    retVal = this;
     return 0;
 }
 
