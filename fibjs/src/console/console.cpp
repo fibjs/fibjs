@@ -282,7 +282,7 @@ result_t console_base::moveTo(int32_t row, int32_t column)
     CONSOLE_SCREEN_BUFFER_INFO info;
     HANDLE hd = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    flushLog(true);
+    flushLog();
     if (!GetConsoleScreenBufferInfo(hd, &info))
         return CHECK_ERROR(LastError());
 
@@ -444,10 +444,9 @@ result_t console_base::readLine(exlib::string msg, exlib::string &retVal,
                                 AsyncEvent *ac)
 {
     if (!ac)
-    {
-        flushLog(true);
         return CHECK_ERROR(CALL_E_LONGSYNC);
-    }
+
+    flushLog();
 
 #ifndef _WIN32
     static bool _init = false;

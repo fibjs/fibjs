@@ -922,7 +922,7 @@ inline exlib::string dump_str(exlib::string str)
     return strHex;
 }
 
-void flushLog(bool bFiber);
+void flushLog();
 
 }
 
