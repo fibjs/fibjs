@@ -8,6 +8,7 @@
 #include "object.h"
 #include "ifs/collection.h"
 #include "List.h"
+#include <algorithm>
 
 namespace fibjs
 {
