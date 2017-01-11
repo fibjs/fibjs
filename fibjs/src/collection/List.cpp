@@ -195,9 +195,9 @@ v8::Local<v8::Value> List::_call(v8::Local<v8::Function> func,
                                  v8::Local<v8::Object> thisp, int32_t i)
 {
     v8::Local<v8::Value> args[] =
-    { m_array[i], v8::Number::New(holder()->m_isolate, i) };
+    { m_array[i], v8::Number::New(holder()->m_isolate, i), wrap() };
 
-    return func->Call(thisp, 2, args);
+    return func->Call(thisp, 3, args);
 }
 
 result_t List::every(v8::Local<v8::Function> func,
