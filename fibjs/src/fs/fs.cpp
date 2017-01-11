@@ -43,6 +43,10 @@ static date_t s_date;
 
 void init_fs()
 {
+#ifndef _WIN32
+    ::umask(0);
+#endif
+
     s_date.now();
 }
 
