@@ -14,12 +14,12 @@ var clsName = {};
 var dir = fs.readdir('.');
 
 for (var idx = 0; idx < dir.length; idx++)
-    if (path.extname(dir[idx].name) === '.idl')
-        preparserIDL(dir[idx].name);
+    if (path.extname(dir[idx]) === '.idl')
+        preparserIDL(dir[idx]);
 
 for (var idx = 0; idx < dir.length; idx++)
-    if (path.extname(dir[idx].name) === '.idl')
-        parserIDL(dir[idx].name);
+    if (path.extname(dir[idx]) === '.idl')
+        parserIDL(dir[idx]);
 
 function clean_folder(path) {
     var dir = fs.readdir(path);
