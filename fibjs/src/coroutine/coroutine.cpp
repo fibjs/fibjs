@@ -212,11 +212,40 @@ result_t coroutine_base::current(obj_ptr<Fiber_base> &retVal)
     return 0;
 }
 
-result_t coroutine_base::sleep(int32_t ms)
+result_t coroutine_base::sleep(int32_t ms, AsyncEvent* ac)
 {
-    Isolate::rt _rt;
-    exlib::Fiber::sleep(ms);
-    return 0;
+    class AcyncSleep : public exlib::Task_base
+    {
+    public:
+        AcyncSleep(AsyncEvent* ac) : m_ac(ac)
+        {}
+
+    public:
+        // exlib::Task_base
+        virtual void suspend()
+        {
+        }
+
+        virtual void suspend(exlib::spinlock& lock)
+        {
+            lock.unlock();
+        }
+
+        virtual void resume()
+        {
+            m_ac->post(0);
+            delete this;
+        }
+
+    private:
+        AsyncEvent* m_ac;
+    };
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    exlib::Fiber::sleep(ms, new AcyncSleep(ac));
+    return CALL_E_PENDDING;
 }
 
 result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)
