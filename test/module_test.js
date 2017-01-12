@@ -6,193 +6,199 @@ var coroutine = require('coroutine');
 var a, b;
 
 describe("module", function() {
-	it("native module toJSON", function() {
-		JSON.stringify(require("os"));
-	});
+    it("native module toJSON", function() {
+        JSON.stringify(require("os"));
+    });
 
-	it("absolute identifiers", function() {
-		a = require('module/a');
-		b = require('b.js');
-		assert.strictEqual(a.foo().foo, b.foo,
-			'require works with absolute identifiers');
-	});
+    it("absolute identifiers", function() {
+        a = require('module/a');
+        b = require('b.js');
+        assert.strictEqual(a.foo().foo, b.foo,
+            'require works with absolute identifiers');
+    });
 
-	it("circular dependency", function() {
-		a = require('module/a1');
-		b = require('module/b1');
+    it("circular dependency", function() {
+        a = require('module/a1');
+        b = require('module/b1');
 
-		assert.property(a, "a", 'a exists');
-		assert.property(b, "b", 'b exists')
-		assert.strictEqual(a.a().b, b.b, 'a gets b');
-		assert.strictEqual(b.b().a, a.a, 'b gets a');
-	});
+        assert.property(a, "a", 'a exists');
+        assert.property(b, "b", 'b exists')
+        assert.strictEqual(a.a().b, b.b, 'a gets b');
+        assert.strictEqual(b.b().a, a.a, 'b gets a');
+    });
 
-	it("exports", function() {
-		var a = require('module/a2');
-		var foo = a.foo;
-		assert.strictEqual(a.foo(), a, 'calling a module member');
-		a.set(10);
-		assert.strictEqual(a.get(), 10, 'get and set')
-	});
+    it("exports", function() {
+        var a = require('module/a2');
+        var foo = a.foo;
+        assert.strictEqual(a.foo(), a, 'calling a module member');
+        a.set(10);
+        assert.strictEqual(a.get(), 10, 'get and set')
+    });
 
-	it("require error", function() {
-		assert.throws(function() {
-			require('bogus');
-		});
-	});
+    it("require error", function() {
+        assert.throws(function() {
+            require('bogus');
+        });
+    });
 
-	it("share require", function() {
-		a = require('module/a3');
-		b = require('b');
-		assert.strictEqual(a.foo, b.foo,
-			'a and b share foo through a relative require');
-	});
+    it("share require", function() {
+        a = require('module/a3');
+        b = require('b');
+        assert.strictEqual(a.foo, b.foo,
+            'a and b share foo through a relative require');
+    });
 
-	it("transitive", function() {
-		assert.strictEqual(require('module/a4').foo(), 1, 'transitive');
-	});
+    it("transitive", function() {
+        assert.strictEqual(require('module/a4').foo(), 1, 'transitive');
+    });
 
-	it("require json", function() {
-		assert.deepEqual(require('module/data'), {
-			"a": 100,
-			"b": 200
-		});
-	});
+    it("require json", function() {
+        assert.deepEqual(require('module/data'), {
+            "a": 100,
+            "b": 200
+        });
+    });
 
-	describe("package.json", function() {
-		it("main", function() {
-			var a = require('module/p1');
-			assert.deepEqual(a, {
-				"a": 100
-			});
+    it("require .js module folder", function() {
+        assert.deepEqual(require('module/p4.js'), {
+            "v": 100
+        });
+    });
 
-			assert.equal(a, require('module/p1'));
-			assert.equal(a, require('module/p1/main'));
-		});
+    describe("package.json", function() {
+        it("main", function() {
+            var a = require('module/p1');
+            assert.deepEqual(a, {
+                "a": 100
+            });
 
-		it("default entry", function() {
-			var a = require('module/p2');
-			assert.deepEqual(a, {
-				"a": 200
-			});
+            assert.equal(a, require('module/p1'));
+            assert.equal(a, require('module/p1/main'));
+        });
 
-			assert.equal(a, require('module/p2'));
-			assert.equal(a, require('module/p2/index'));
-		});
+        it("default entry", function() {
+            var a = require('module/p2');
+            assert.deepEqual(a, {
+                "a": 200
+            });
 
-		it("no json", function() {
-			var a = require('module/p3');
-			assert.deepEqual(a, {
-				"a": 300
-			});
+            assert.equal(a, require('module/p2'));
+            assert.equal(a, require('module/p2/index'));
+        });
 
-			assert.equal(a, require('module/p3'));
-			assert.equal(a, require('module/p3/index'));
-		});
-	});
+        it("no json", function() {
+            var a = require('module/p3');
+            assert.deepEqual(a, {
+                "a": 300
+            });
 
-	describe(".modules", function() {
-		it("root folder", function() {
-			var a = require('mod1');
-			assert.deepEqual(a, {
-				"a": 100
-			});
+            assert.equal(a, require('module/p3'));
+            assert.equal(a, require('module/p3/index'));
+        });
+    });
 
-			assert.equal(a, require('./.modules/mod1'));
-			assert.equal(a, require('.modules/mod1'));
-		});
+    describe(".modules", function() {
+        it("root folder", function() {
+            var a = require('mod1');
+            assert.deepEqual(a, {
+                "a": 100
+            });
 
-		it("current folder", function() {
-			var a = require('./module/mod_test').require("mod2");
-			assert.deepEqual(a, {
-				"a": 200
-			});
+            assert.equal(a, require('./.modules/mod1'));
+            assert.equal(a, require('.modules/mod1'));
+        });
 
-			assert.equal(a, require('./module/.modules/mod2'));
-			assert.equal(a, require('module/.modules/mod2'));
-		});
+        it("current folder", function() {
+            var a = require('./module/mod_test').require("mod2");
+            assert.deepEqual(a, {
+                "a": 200
+            });
 
-		it("parent folder", function() {
-			var a = require('./module/mod_test').require("mod4");
-			assert.deepEqual(a, {
-				"a": 400
-			});
+            assert.equal(a, require('./module/.modules/mod2'));
+            assert.equal(a, require('module/.modules/mod2'));
+        });
 
-			assert.equal(a, require('./.modules/mod4'));
-			assert.equal(a, require('.modules/mod4'));
-		});
+        it("parent folder", function() {
+            var a = require('./module/mod_test').require("mod4");
+            assert.deepEqual(a, {
+                "a": 400
+            });
 
-		it("priority", function() {
-			var a = require('./module/mod_test').require("mod3");
-			assert.deepEqual(a, {
-				"a": 300
-			});
+            assert.equal(a, require('./.modules/mod4'));
+            assert.equal(a, require('.modules/mod4'));
+        });
 
-			assert.equal(a, require('./module/.modules/mod3'));
-			assert.equal(a, require('module/.modules/mod3'));
-		});
+        it("priority", function() {
+            var a = require('./module/mod_test').require("mod3");
+            assert.deepEqual(a, {
+                "a": 300
+            });
 
-		it("no .modules folder", function() {
-			var a = require('./module/no.modules/mod_test').require("mod5");
-			assert.deepEqual(a, {
-				"a": 500
-			});
-		});
-	});
+            assert.equal(a, require('./module/.modules/mod3'));
+            assert.equal(a, require('module/.modules/mod3'));
+        });
 
-	describe("node_modules", function() {
-		it("root folder", function() {
-			var a = require('node_mod1');
-			assert.deepEqual(a, {
-				"a": 100
-			});
+        it("no .modules folder", function() {
+            var a = require('./module/no.modules/mod_test').require("mod5");
+            assert.deepEqual(a, {
+                "a": 500
+            });
+        });
+    });
 
-			assert.equal(a, require('./node_modules/node_mod1'));
-			assert.equal(a, require('node_modules/node_mod1'));
-		});
+    describe("node_modules", function() {
+        it("root folder", function() {
+            var a = require('node_mod1');
+            assert.deepEqual(a, {
+                "a": 100
+            });
 
-		it("current folder", function() {
-			var a = require('./module/mod_test').require("node_mod2");
-			assert.deepEqual(a, {
-				"a": 200
-			});
+            assert.equal(a, require('./node_modules/node_mod1'));
+            assert.equal(a, require('node_modules/node_mod1'));
+        });
 
-			assert.equal(a, require('./module/node_modules/node_mod2'));
-			assert.equal(a, require('module/node_modules/node_mod2'));
-		});
+        it("current folder", function() {
+            var a = require('./module/mod_test').require("node_mod2");
+            assert.deepEqual(a, {
+                "a": 200
+            });
 
-		it("parent folder", function() {
-			var a = require('./module/mod_test').require("node_mod4");
-			assert.deepEqual(a, {
-				"a": 400
-			});
+            assert.equal(a, require('./module/node_modules/node_mod2'));
+            assert.equal(a, require('module/node_modules/node_mod2'));
+        });
 
-			assert.equal(a, require('./node_modules/node_mod4'));
-			assert.equal(a, require('node_modules/node_mod4'));
-		});
+        it("parent folder", function() {
+            var a = require('./module/mod_test').require("node_mod4");
+            assert.deepEqual(a, {
+                "a": 400
+            });
 
-		it("priority", function() {
-			var a = require('./module/mod_test').require("node_mod3");
-			assert.deepEqual(a, {
-				"a": 300
-			});
+            assert.equal(a, require('./node_modules/node_mod4'));
+            assert.equal(a, require('node_modules/node_mod4'));
+        });
 
-			assert.equal(a, require('./module/node_modules/node_mod3'));
-			assert.equal(a, require('module/node_modules/node_mod3'));
-		});
-	});
+        it("priority", function() {
+            var a = require('./module/mod_test').require("node_mod3");
+            assert.deepEqual(a, {
+                "a": 300
+            });
 
-	it("zip virtual path", function() {
-		assert.deepEqual(require('./module/test.src/folder/b.js'),
-			require('./module/test.zip?/folder/b.js'));
+            assert.equal(a, require('./module/node_modules/node_mod3'));
+            assert.equal(a, require('module/node_modules/node_mod3'));
+        });
+    });
 
-		assert.equal(require('./module/p4.zip?').a, 100);
-		assert.equal(require('./module/p4').a, 100);
-	});
+    it("zip virtual path", function() {
+        assert.deepEqual(require('./module/test.src/folder/b.js'),
+            require('./module/test.zip?/folder/b.js'));
 
-	it("strack", function() {
-		assert.ok(require("module/stack").func().match(/module_test/));
-	});
+        assert.equal(require('./module/p4.zip?').a, 100);
+        assert.equal(require('./module/p4').a, 100);
+    });
+
+    it("strack", function() {
+        assert.ok(require("module/stack").func().match(/module_test/));
+    });
 });
 
 // test.run(console.DEBUG);
