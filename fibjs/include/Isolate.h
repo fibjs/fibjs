@@ -110,6 +110,7 @@ public:
 	exlib::Queue<exlib::linkitem> m_jobs;
 	int32_t m_currentFibers;
 	int32_t m_idleFibers;
+	exlib::atomic m_pendding;
 
 	int32_t m_loglevel;
 

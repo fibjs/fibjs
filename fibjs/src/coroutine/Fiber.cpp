@@ -43,6 +43,9 @@ void *FiberBase::fiber_proc(void *p)
     while (1)
     {
         AsyncEvent *ae;
+        bool last_fiber = (isolate->m_id == 1) &&
+                          (isolate->m_pendding == 0) &&
+                          (isolate->m_currentFibers == isolate->m_idleFibers + 1);
 
         if ((ae = (AsyncEvent*)isolate->m_jobs.tryget()) == NULL)
         {
@@ -52,7 +55,7 @@ void *FiberBase::fiber_proc(void *p)
                 break;
             }
 
-            if (isolate->m_id == 1 && (isolate->m_currentFibers - isolate->m_idleFibers) == 0)
+            if (last_fiber)
             {
                 JSFiber::scope s;
                 process_base::exit(hr);

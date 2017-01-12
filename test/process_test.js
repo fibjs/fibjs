@@ -47,7 +47,33 @@ describe('process', function() {
     });
 
     it("multi fiber", function() {
-        assert.equal(process.run(cmd, ['process/exec7.js']), 100);
+        var p = process.open(cmd, ['process/exec7.js']);
+        assert.equal(p.readLine(), "100");
+        p.wait();
+    });
+
+    it("pendding async", function() {
+        var p = process.open(cmd, ['process/exec8.js']);
+        assert.equal(p.readLine(), "200");
+        p.wait();
+    });
+
+    it("setTimeout", function() {
+        var p = process.open(cmd, ['process/exec9.js']);
+        assert.equal(p.readLine(), "300");
+        p.wait();
+    });
+
+    it("setInterval", function() {
+        var p = process.open(cmd, ['process/exec10.js']);
+        assert.equal(p.readLine(), "400");
+        p.wait();
+    });
+
+    it("setImmediate", function() {
+        var p = process.open(cmd, ['process/exec11.js']);
+        assert.equal(p.readLine(), "500");
+        p.wait();
     });
 
     it("start", function() {

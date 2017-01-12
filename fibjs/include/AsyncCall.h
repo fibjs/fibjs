@@ -332,6 +332,7 @@ public:
     AsyncCallBack(v8::Local<v8::Function> cb)
     {
         m_isolate = Isolate::current();
+        m_isolate->m_pendding.inc();
         m_cb.Reset(m_isolate->m_isolate, cb);
     }
 
@@ -339,6 +340,7 @@ public:
 
     ~AsyncCallBack()
     {
+        m_isolate->m_pendding.dec();
         m_cb.Reset();
     }
 

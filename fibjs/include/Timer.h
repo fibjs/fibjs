@@ -81,6 +81,11 @@ protected:
 		return 0;
 	}
 
+	bool hasNext()
+	{
+		return m_repeat && !m_cancel;
+	}
+
 	static result_t _callback(Timer* pThis)
 	{
 		return pThis->callback();

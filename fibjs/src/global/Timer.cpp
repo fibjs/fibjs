@@ -16,11 +16,17 @@ class JSTimer : public Timer
 {
 public:
 	JSTimer(v8::Local<v8::Function> callback, int32_t timeout = 0, bool repeat = false) :
-		Timer(timeout, repeat)
+		Timer(timeout, repeat), m_clear_pendding(false)
 	{
-		holder();
-
+		holder()->m_pendding.inc();
 		SetPrivate("callback", callback);
+	}
+
+public:
+	virtual result_t clear()
+	{
+		_clear();
+		return Timer::clear();
 	}
 
 public:
@@ -38,7 +44,23 @@ public:
 
 		if (v->IsFunction())
 			v8::Local<v8::Function>::Cast(v)->Call(wrap(), 0, NULL);
+
+		if (!hasNext())
+			_clear();
 	}
+
+private:
+	void _clear()
+	{
+		if (!m_clear_pendding)
+		{
+			m_clear_pendding = true;
+			holder()->m_pendding.dec();
+		}
+	}
+
+private:
+	bool m_clear_pendding;
 };
 
 result_t global_base::clearInterval(Timer_base* t)
