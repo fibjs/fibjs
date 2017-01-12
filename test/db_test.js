@@ -150,7 +150,7 @@ describe("db", function() {
             coroutine.start(function() {
                 a = 1;
             })
-            for (var i = 0; i < 100 && a == 0; i++)
+            for (var i = 0; i < 1000 && a == 0; i++)
                 conn.execute("select 100;", 100);
             assert.equal(a, 1);
         });
