@@ -25,9 +25,10 @@ public:
     {
     }
 
-    static void del_(const v8::HeapSnapshot* snapshot)
+    static result_t del_(const v8::HeapSnapshot* snapshot)
     {
         ((v8::HeapSnapshot*)snapshot)->Delete();
+        return 0;
     }
 
     ~HeapSnapshotProxy()

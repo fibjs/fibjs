@@ -60,10 +60,11 @@ MongoCursor::MongoCursor(MongoDB *db, const exlib::string &ns,
     m_bSpecial = false;
 }
 
-static void _close(MongoCursor::cursor *cur)
+static result_t _close(MongoCursor::cursor *cur)
 {
     mongo_cursor_destroy(cur);
     delete cur;
+    return 0;
 }
 
 MongoCursor::~MongoCursor()

@@ -65,7 +65,7 @@ public:
 	}
 
 protected:
-	void callback()
+	result_t callback()
 	{
 		if (!m_cancel)
 		{
@@ -77,11 +77,13 @@ protected:
 				Unref();
 		} else
 			Unref();
+
+		return 0;
 	}
 
-	static void _callback(Timer* pThis)
+	static result_t _callback(Timer* pThis)
 	{
-		pThis->callback();
+		return pThis->callback();
 	}
 
 private:

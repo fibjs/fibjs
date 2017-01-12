@@ -8,13 +8,13 @@
 #include "object.h"
 #include "Fiber.h"
 #include "ifs/os.h"
+#include "ifs/process.h"
 
 namespace fibjs
 {
 
 extern int32_t stack_size;
 
-#define MAX_FIBER   10000
 #define MAX_IDLE   256
 
 int32_t g_spareFibers;
@@ -28,6 +28,7 @@ void init_fiber()
 
 void *FiberBase::fiber_proc(void *p)
 {
+    result_t hr = 0;
     Isolate* isolate = (Isolate*)p;
 
     Runtime rt(isolate);
@@ -51,6 +52,12 @@ void *FiberBase::fiber_proc(void *p)
                 break;
             }
 
+            if (isolate->m_id == 1 && (isolate->m_currentFibers - isolate->m_idleFibers) == 0)
+            {
+                JSFiber::scope s;
+                process_base::exit(hr);
+            }
+
             {
                 v8::Unlocker unlocker(isolate->m_isolate);
                 ae = (AsyncEvent*)isolate->m_jobs.get();
@@ -69,7 +76,7 @@ void *FiberBase::fiber_proc(void *p)
 
         {
             v8::HandleScope handle_scope(isolate->m_isolate);
-            ae->js_invoke();
+            hr = ae->js_invoke();
         }
     }
 
@@ -144,7 +151,7 @@ JSFiber *JSFiber::current()
     return (JSFiber *)exlib::Fiber::tlsGet(g_tlsCurrent);
 }
 
-void JSFiber::js_invoke()
+result_t JSFiber::js_invoke()
 {
     scope s(this);
     v8::Local<v8::Value> retVal;
@@ -166,6 +173,8 @@ void JSFiber::js_invoke()
         m_result.Reset(isolate->m_isolate, retVal);
 
     Unref();
+
+    return 0;
 }
 
 JSFiber::scope::scope(JSFiber *fb) :

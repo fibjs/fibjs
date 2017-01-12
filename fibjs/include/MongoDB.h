@@ -55,6 +55,13 @@ public:
     result_t _runCommand(bson *command, bson &out, AsyncEvent *ac);
     ASYNC_MEMBERVALUE2_AC(MongoDB, _runCommand, bson *, bson);
 
+private:
+    static result_t mongo_destroy(mongo* conn)
+    {
+        ::mongo_destroy(conn);
+        return 0;
+    }
+
 public:
     mongo m_conn;
     exlib::string m_ns;

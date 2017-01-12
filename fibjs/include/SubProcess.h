@@ -123,13 +123,14 @@ public:
 		}
 
 	private:
-		static void close_pipe(intptr_t fd)
+		static result_t close_pipe(intptr_t fd)
 		{
 #ifdef _WIN32
 			::CloseHandle((HANDLE)fd);
 #else
 			::close(fd);
 #endif
+			return 0;
 		}
 
 	private:

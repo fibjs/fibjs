@@ -27,7 +27,7 @@ result_t coroutine_base::start(v8::Local<v8::Function> func,
 
 class _parallels {
 private:
-    void _worker()
+    result_t _worker()
     {
         v8::Local<v8::Array> datas = v8::Local<v8::Array>::New(m_isolate->m_isolate, m_datas);
         v8::Local<v8::Function> func = v8::Local<v8::Function>::New(m_isolate->m_isolate, m_func);
@@ -60,11 +60,13 @@ private:
         m_fibers --;
         if (m_fibers == 0)
             m_event->set();
+
+        return 0;
     }
 
-    static void worker(_parallels* pThis)
+    static result_t worker(_parallels* pThis)
     {
-        pThis->_worker();
+        return pThis->_worker();
     }
 
     result_t run(v8::Local<v8::Array> &retVal)

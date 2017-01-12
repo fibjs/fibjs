@@ -165,7 +165,7 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
         }
 
     public:
-        virtual void js_invoke()
+        virtual result_t js_invoke()
         {
             {
                 JSFiber::scope s;
@@ -175,6 +175,8 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
             }
 
             async(CALL_E_NOSYNC);
+
+            return m_hr;
         }
 
         virtual void invoke()

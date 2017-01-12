@@ -94,7 +94,7 @@ result_t object_base::_trigger(exlib::string ev, Variant *args, int32_t argCount
         }
 
     public:
-        virtual void js_invoke()
+        virtual result_t js_invoke()
         {
             JSFiber::scope s;
             size_t i;
@@ -108,6 +108,8 @@ result_t object_base::_trigger(exlib::string ev, Variant *args, int32_t argCount
             JSTrigger(m_obj)._trigger(m_ev, argv.data(), (int32_t) argv.size());
 
             delete this;
+
+            return 0;
         }
 
     private:

@@ -47,9 +47,10 @@ result_t LevelDB::open(const char* connString)
     return 0;
 }
 
-void close_ldb(leveldb::DB *db)
+result_t close_ldb(leveldb::DB *db)
 {
     delete db;
+    return 0;
 }
 
 LevelDB::~LevelDB()

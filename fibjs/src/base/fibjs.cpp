@@ -71,31 +71,25 @@ void init(int32_t& argc, char *argv[])
     init_Task(cpus);
 }
 
-static void main_fiber(Isolate* isolate)
+static result_t main_fiber(Isolate* isolate)
 {
-    result_t hr;
+    JSFiber::scope s;
 
     if (!isolate->m_fname.empty())
     {
-        JSFiber::scope s;
         v8::Local<v8::Array> argv;
 
         global_base::get_argv(argv);
-
-        hr = s.m_hr = isolate->m_topSandbox->run(
-                          isolate->m_fname, argv, true);
+        s.m_hr = isolate->m_topSandbox->run(
+                     isolate->m_fname, argv, true);
     }
     else
     {
-        JSFiber::scope s;
         v8::Local<v8::Array> cmds = v8::Array::New(isolate->m_isolate);
-        hr = s.m_hr = isolate->m_topSandbox->repl(cmds);
+        s.m_hr = isolate->m_topSandbox->repl(cmds);
     }
 
-    {
-        JSFiber::scope s;
-        process_base::exit(hr);
-    }
+    return s.m_hr;
 }
 
 void main(int32_t argc, char *argv[])

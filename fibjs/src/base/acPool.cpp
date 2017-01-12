@@ -143,7 +143,7 @@ int32_t AsyncCallBack::post(int32_t v)
     return callback(v);
 }
 
-void AsyncCallBack::syncFunc(AsyncCallBack* pThis)
+result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
 {
     JSFiber::scope s;
 
@@ -177,6 +177,8 @@ void AsyncCallBack::syncFunc(AsyncCallBack* pThis)
     func->Call(v8::Undefined(pThis->m_isolate->m_isolate), 2, args);
 
     delete pThis;
+
+    return 0;
 }
 
 void init_acThread()

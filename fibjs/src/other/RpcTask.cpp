@@ -24,7 +24,7 @@ static exlib::atomic s_vms;
 static exlib::atomic s_idles;
 static exlib::Queue<RpcTask::AsyncTask> s_acTask;
 
-static void init_task_fiber(Isolate* isolate);
+static result_t init_task_fiber(Isolate* isolate);
 
 class AsyncJsonTask : public RpcTask::AsyncTask
 {
@@ -174,7 +174,7 @@ void nextMethod(exlib::string &method_path, exlib::string &method)
 	method_path = *p ? p + 1 : "";
 }
 
-static void task_fiber(Isolate* isolate)
+static result_t task_fiber(Isolate* isolate)
 {
 	RpcTask::AsyncTask *p;
 	JSFiber::scope s;
@@ -211,7 +211,7 @@ static void task_fiber(Isolate* isolate)
 	{
 		p->set_error(GetException(try_catch, hr));
 		p->post(hr);
-		return;
+		return hr;
 	}
 
 	exlib::string method_path = p->m_task->m_method_path;
@@ -245,7 +245,7 @@ static void task_fiber(Isolate* isolate)
 	{
 		p->set_error(GetException(try_catch, hr));
 		p->post(hr);
-		return;
+		return hr;
 	}
 
 	if (v->IsFunction())
@@ -260,19 +260,21 @@ static void task_fiber(Isolate* isolate)
 		{
 			p->set_error(GetException(try_catch, CALL_E_JAVASCRIPT));
 			p->post(CALL_E_JAVASCRIPT);
-			return;
+			return CALL_E_JAVASCRIPT;
 		}
 
 		p->set_result(v);
 	}
 
 	p->post(0);
+
+	return 0;
 }
 
-static void init_task_fiber(Isolate* isolate)
+static result_t init_task_fiber(Isolate* isolate)
 {
 	s_idles.dec();
-	task_fiber(isolate);
+	return task_fiber(isolate);
 }
 
 void init_Task(int32_t vms)

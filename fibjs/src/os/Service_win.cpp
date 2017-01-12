@@ -211,7 +211,7 @@ static void WINAPI service_ctrl(DWORD dwCtrlCode)
 	}
 }
 
-static void service_worker(Service* srv)
+static result_t service_worker(Service* srv)
 {
 	JSFiber::scope s;
 	v8::Local<v8::Value> v;
@@ -225,6 +225,8 @@ static void service_worker(Service* srv)
 	}
 
 	ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 0);
+
+	return 0;
 }
 
 static void WINAPI service_main(DWORD dwArgc, LPWSTR *lpszArgv)

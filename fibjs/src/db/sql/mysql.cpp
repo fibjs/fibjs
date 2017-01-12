@@ -182,10 +182,11 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base> &retVa
     return 0;
 }
 
-static void close_conn(UMConnection conn)
+static result_t close_conn(UMConnection conn)
 {
     UMConnection_Close(conn);
     UMConnection_Destroy(conn);
+    return 0;
 }
 
 mysql::~mysql()

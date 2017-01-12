@@ -46,10 +46,11 @@ result_t db_base::openMSSQL(exlib::string connString, obj_ptr<MSSQL_base> &retVa
     return 0;
 }
 
-static void close_conn(ADODB::_Connection* conn)
+static result_t close_conn(ADODB::_Connection* conn)
 {
     conn->Close();
     conn->Release();
+    return 0;
 }
 
 mssql::~mssql()

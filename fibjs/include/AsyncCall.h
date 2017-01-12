@@ -21,8 +21,9 @@ public:
         isolate->m_jobs.put(this);
     }
 
-    virtual void js_invoke()
+    virtual result_t js_invoke()
     {
+        return 0;
     }
 
     void async(int32_t type);
@@ -265,9 +266,11 @@ public:
         delete this;
     }
 
-    virtual void js_invoke()
+    virtual result_t js_invoke()
     {
-        invoke();
+        result_t hr = m_func(m_v);
+        delete this;
+        return hr;
     }
 
 private:
@@ -381,7 +384,7 @@ protected:
         return v8::Undefined(m_isolate->m_isolate);
     }
 
-    static void syncFunc(AsyncCallBack* pThis);
+    static result_t syncFunc(AsyncCallBack* pThis);
 
 protected:
     obj_ptr<object_base> m_pThis;
