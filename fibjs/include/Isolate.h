@@ -111,7 +111,6 @@ public:
 	int32_t m_currentFibers;
 	int32_t m_idleFibers;
 
-	exlib::atomic m_runningJobs;
 	exlib::atomic m_pendding;
 
 	int32_t m_loglevel;

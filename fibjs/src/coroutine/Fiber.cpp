@@ -74,8 +74,8 @@ void *FiberBase::fiber_proc(void *p)
             hr = ae->js_invoke();
         }
 
-        if (isolate->m_runningJobs.dec() == 0)
-            if ((isolate->m_id == 1) && (isolate->m_pendding == 0))
+        if (isolate->m_pendding.dec() == 0)
+            if (isolate->m_id == 1)
             {
                 JSFiber::scope s;
                 process_base::exit(hr);
@@ -115,7 +115,7 @@ void FiberBase::start()
 
     set_caller(JSFiber::current());
 
-    isolate->m_runningJobs.inc();
+    isolate->m_pendding.inc();
     isolate->m_jobs.put(this);
     Ref();
 }
