@@ -30,6 +30,7 @@ void *FiberBase::fiber_proc(void *p)
 {
     result_t hr = 0;
     Isolate* isolate = (Isolate*)p;
+    exlib::Service *srv = exlib::Service::current();
 
     Runtime rt(isolate);
     v8::Locker locker(isolate->m_isolate);
@@ -43,9 +44,6 @@ void *FiberBase::fiber_proc(void *p)
     while (1)
     {
         AsyncEvent *ae;
-        bool last_fiber = (isolate->m_id == 1) &&
-                          (isolate->m_pendding == 0) &&
-                          (isolate->m_currentFibers == isolate->m_idleFibers + 1);
 
         if ((ae = (AsyncEvent*)isolate->m_jobs.tryget()) == NULL)
         {
@@ -53,12 +51,6 @@ void *FiberBase::fiber_proc(void *p)
             if (isolate->m_idleFibers > g_spareFibers) {
                 isolate->m_idleFibers --;
                 break;
-            }
-
-            if (last_fiber)
-            {
-                JSFiber::scope s;
-                process_base::exit(hr);
             }
 
             {
@@ -81,6 +73,13 @@ void *FiberBase::fiber_proc(void *p)
             v8::HandleScope handle_scope(isolate->m_isolate);
             hr = ae->js_invoke();
         }
+
+        if (isolate->m_runningJobs.dec() == 0)
+            if ((isolate->m_id == 1) && (isolate->m_pendding == 0))
+            {
+                JSFiber::scope s;
+                process_base::exit(hr);
+            }
     }
 
     isolate->m_currentFibers --;
@@ -115,6 +114,8 @@ void FiberBase::start()
     Isolate* isolate = holder();
 
     set_caller(JSFiber::current());
+
+    isolate->m_runningJobs.inc();
     isolate->m_jobs.put(this);
     Ref();
 }

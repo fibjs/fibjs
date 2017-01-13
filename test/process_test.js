@@ -49,31 +49,37 @@ describe('process', function() {
     it("multi fiber", function() {
         var p = process.open(cmd, ['process/exec7.js']);
         assert.equal(p.readLine(), "100");
-        p.wait();
+        assert.equal(p.wait(), 0);
     });
 
     it("pendding async", function() {
         var p = process.open(cmd, ['process/exec8.js']);
         assert.equal(p.readLine(), "200");
-        p.wait();
+        assert.equal(p.wait(), 0);
     });
 
     it("setTimeout", function() {
         var p = process.open(cmd, ['process/exec9.js']);
         assert.equal(p.readLine(), "300");
-        p.wait();
+        assert.equal(p.wait(), 0);
     });
 
     it("setInterval", function() {
         var p = process.open(cmd, ['process/exec10.js']);
         assert.equal(p.readLine(), "400");
-        p.wait();
+        assert.equal(p.wait(), 0);
     });
 
     it("setImmediate", function() {
         var p = process.open(cmd, ['process/exec11.js']);
         assert.equal(p.readLine(), "500");
-        p.wait();
+        assert.equal(p.wait(), 0);
+    });
+
+    it("bugfix: multi fiber async", function() {
+        var p = process.open(cmd, ['process/exec12.js']);
+        assert.equal(p.readLine(), "600");
+        assert.equal(p.wait(), 0);
     });
 
     it("start", function() {
