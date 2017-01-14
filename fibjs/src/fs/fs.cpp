@@ -411,7 +411,6 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal,
     DIR *dp;
     struct dirent *ep;
     exlib::string fpath;
-    result_t hr;
     obj_ptr<List> oa;
 
     dp = ::opendir(path.c_str());
