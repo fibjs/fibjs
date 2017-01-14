@@ -928,7 +928,7 @@ function parserIDL(fname) {
                         fnStr += "        DEPRECATED_SOON(\"" + ns + "." + fname + "\");\n\n";
 
                     fnStr += "        " + map_type(ftype) + " vr;\n\n";
-                    fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+                    fnStr += "        METHOD_INSTANCE(" + ns + "_base);\n        PROPERTY_ENTER();\n\n";
 
                     fnStr += "        hr = pInst->_indexed_getter(index, vr);\n\n        METHOD_RETURN();\n    }\n";
                     ffs.push(fnStr)
@@ -944,9 +944,8 @@ function parserIDL(fname) {
                         if (deprecated)
                             fnStr += "        DEPRECATED_SOON(\"" + ns + "." + fname + "\");\n\n";
 
-                        fnStr += "        PROPERTY_ENTER();\n";
+                        fnStr += "        METHOD_INSTANCE(" + ns + "_base);\n        PROPERTY_ENTER();\n\n";
 
-                        fnStr += "        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
                         fnStr += "        PROPERTY_VAL(" + val_type(ftype) + ");\n";
                         fnStr += "        hr = pInst->_indexed_setter(index, v0);\n\n        METHOD_VOID();\n    }\n";
                         ffs.push(fnStr);
@@ -966,7 +965,7 @@ function parserIDL(fname) {
                         fnStr += "        DEPRECATED_SOON(\"" + ns + "." + fname + "\");\n\n";
 
                     fnStr += "        " + map_type(ftype) + " vr;\n\n";
-                    fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+                    fnStr += "        METHOD_INSTANCE(" + ns + "_base);\n        PROPERTY_ENTER();\n\n";
 
                     fnStr += "        v8::String::Utf8Value k(property);\n        if(class_info().has(*k))return;\n\n"
                     fnStr += "        hr = pInst->_named_getter(*k, vr);\n        if(hr == CALL_RETURN_NULL)return;\n\n        METHOD_RETURN();\n    }\n";
@@ -984,7 +983,7 @@ function parserIDL(fname) {
                         fnStr += "        DEPRECATED_SOON(\"" + ns + "." + fname + "\");\n\n";
 
                     fnStr += "        v8::Local<v8::Array> vr;\n\n";
-                    fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+                    fnStr += "        METHOD_INSTANCE(" + ns + "_base);\n        PROPERTY_ENTER();\n\n";
 
                     fnStr += "        hr = pInst->_named_enumerator(vr);\n\n        METHOD_RETURN1();\n    }\n";
 
@@ -1001,9 +1000,8 @@ function parserIDL(fname) {
                         if (deprecated)
                             fnStr += "        DEPRECATED_SOON(\"" + ns + "." + fname + "\");\n\n";
 
-                        fnStr += "        PROPERTY_ENTER();\n";
+                        fnStr += "        METHOD_INSTANCE(" + ns + "_base);\n        PROPERTY_ENTER();\n\n";
 
-                        fnStr += "        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
                         fnStr += "        PROPERTY_VAL(" + val_type(ftype) + ");\n";
                         fnStr += "        v8::String::Utf8Value k(property);\n        if(class_info().has(*k))return;\n\n"
                         fnStr += "        hr = pInst->_named_setter(*k, v0);\n\n        METHOD_VOID();\n    }\n";
@@ -1020,7 +1018,7 @@ function parserIDL(fname) {
                             fnStr += "        DEPRECATED_SOON(\"" + ns + "." + fname + "\");\n\n";
 
                         fnStr += "        v8::Local<v8::Boolean> vr;\n\n";
-                        fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+                        fnStr += "        METHOD_INSTANCE(" + ns + "_base);\n        PROPERTY_ENTER();\n\n";
 
                         fnStr += "        v8::String::Utf8Value k(property);\n        if(class_info().has(*k)){args.GetReturnValue().Set(v8::False(isolate));return;}\n\n"
                         fnStr += "        hr = pInst->_named_deleter(*k, vr);\n        METHOD_RETURN1();\n    }\n";
@@ -1051,7 +1049,7 @@ function parserIDL(fname) {
                     fnStr += "        DEPRECATED_SOON(\"" + ns + "." + fname + "\");\n\n";
 
                 fnStr += "        " + map_type(ftype) + " vr;\n\n";
-                fnStr += "        PROPERTY_ENTER();\n        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
+                fnStr += "        METHOD_INSTANCE(" + ns + "_base);\n        PROPERTY_ENTER();\n\n";
 
                 fnStr += "        hr = pInst->get_" + fname + "(";
                 fnStr += "vr";
@@ -1069,9 +1067,8 @@ function parserIDL(fname) {
                     if (deprecated)
                         fnStr += "        DEPRECATED_SOON(\"" + ns + "." + fname + "\");\n\n";
 
-                    fnStr += "        PROPERTY_ENTER();\n";
+                    fnStr += "        METHOD_INSTANCE(" + ns + "_base);\n        PROPERTY_ENTER();\n\n";
 
-                    fnStr += "        PROPERTY_INSTANCE(" + ns + "_base);\n\n";
                     fnStr += "        PROPERTY_VAL(" + val_type(ftype) + ");\n";
                     fnStr += "        hr = pInst->set_" + fname + "(v0);\n\n        PROPERTY_SET_LEAVE();\n    }\n";
                     ffs.push(fnStr)

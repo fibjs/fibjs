@@ -120,8 +120,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(PKey_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(PKey_base);
 
         hr = pInst->get_name(vr);
 
@@ -132,8 +132,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(PKey_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(PKey_base);
 
         hr = pInst->get_keySize(vr);
 
@@ -144,8 +144,8 @@ namespace fibjs
     {
         obj_ptr<PKey_base> vr;
 
+        METHOD_INSTANCE(PKey_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(PKey_base);
 
         hr = pInst->get_publicKey(vr);
 

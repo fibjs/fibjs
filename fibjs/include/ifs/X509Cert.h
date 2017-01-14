@@ -126,8 +126,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(X509Cert_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Cert_base);
 
         hr = pInst->get_version(vr);
 
@@ -138,8 +138,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(X509Cert_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Cert_base);
 
         hr = pInst->get_serial(vr);
 
@@ -150,8 +150,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(X509Cert_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Cert_base);
 
         hr = pInst->get_issuer(vr);
 
@@ -162,8 +162,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(X509Cert_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Cert_base);
 
         hr = pInst->get_subject(vr);
 
@@ -174,8 +174,8 @@ namespace fibjs
     {
         date_t vr;
 
+        METHOD_INSTANCE(X509Cert_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Cert_base);
 
         hr = pInst->get_notBefore(vr);
 
@@ -186,8 +186,8 @@ namespace fibjs
     {
         date_t vr;
 
+        METHOD_INSTANCE(X509Cert_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Cert_base);
 
         hr = pInst->get_notAfter(vr);
 
@@ -198,8 +198,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(X509Cert_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Cert_base);
 
         hr = pInst->get_ca(vr);
 
@@ -210,8 +210,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(X509Cert_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Cert_base);
 
         hr = pInst->get_pathlen(vr);
 
@@ -222,8 +222,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(X509Cert_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Cert_base);
 
         hr = pInst->get_usage(vr);
 
@@ -234,8 +234,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(X509Cert_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Cert_base);
 
         hr = pInst->get_type(vr);
 
@@ -246,8 +246,8 @@ namespace fibjs
     {
         obj_ptr<PKey_base> vr;
 
+        METHOD_INSTANCE(X509Cert_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Cert_base);
 
         hr = pInst->get_publicKey(vr);
 
@@ -258,8 +258,8 @@ namespace fibjs
     {
         obj_ptr<X509Cert_base> vr;
 
+        METHOD_INSTANCE(X509Cert_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Cert_base);
 
         hr = pInst->get_next(vr);
 

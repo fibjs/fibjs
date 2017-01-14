@@ -75,8 +75,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlProcessingInstruction_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlProcessingInstruction_base);
 
         hr = pInst->get_target(vr);
 
@@ -87,8 +87,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlProcessingInstruction_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlProcessingInstruction_base);
 
         hr = pInst->get_data(vr);
 
@@ -97,8 +97,8 @@ namespace fibjs
 
     inline void XmlProcessingInstruction_base::s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlProcessingInstruction_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlProcessingInstruction_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_data(v0);

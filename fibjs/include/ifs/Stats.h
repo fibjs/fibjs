@@ -83,8 +83,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Stats_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Stats_base);
 
         v8::String::Utf8Value k(property);
         if(class_info().has(*k))return;
@@ -99,8 +99,8 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
+        METHOD_INSTANCE(Stats_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Stats_base);
 
         hr = pInst->_named_enumerator(vr);
 

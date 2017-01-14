@@ -94,8 +94,8 @@ namespace fibjs
     {
         date_t vr;
 
+        METHOD_INSTANCE(HeapSnapshot_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapSnapshot_base);
 
         hr = pInst->get_time(vr);
 
@@ -106,8 +106,8 @@ namespace fibjs
     {
         obj_ptr<HeapGraphNode_base> vr;
 
+        METHOD_INSTANCE(HeapSnapshot_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapSnapshot_base);
 
         hr = pInst->get_root(vr);
 
@@ -118,8 +118,8 @@ namespace fibjs
     {
         obj_ptr<List_base> vr;
 
+        METHOD_INSTANCE(HeapSnapshot_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapSnapshot_base);
 
         hr = pInst->get_nodes(vr);
 

@@ -112,8 +112,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(Stat_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Stat_base);
 
         hr = pInst->get_name(vr);
 
@@ -124,8 +124,8 @@ namespace fibjs
     {
         int64_t vr;
 
+        METHOD_INSTANCE(Stat_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Stat_base);
 
         hr = pInst->get_size(vr);
 
@@ -136,8 +136,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Stat_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Stat_base);
 
         hr = pInst->get_mode(vr);
 
@@ -148,8 +148,8 @@ namespace fibjs
     {
         date_t vr;
 
+        METHOD_INSTANCE(Stat_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Stat_base);
 
         hr = pInst->get_mtime(vr);
 
@@ -160,8 +160,8 @@ namespace fibjs
     {
         date_t vr;
 
+        METHOD_INSTANCE(Stat_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Stat_base);
 
         hr = pInst->get_atime(vr);
 
@@ -172,8 +172,8 @@ namespace fibjs
     {
         date_t vr;
 
+        METHOD_INSTANCE(Stat_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Stat_base);
 
         hr = pInst->get_ctime(vr);
 

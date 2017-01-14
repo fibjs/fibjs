@@ -145,8 +145,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_href(vr);
 
@@ -155,8 +155,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_href(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_href(v0);
@@ -168,8 +168,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_protocol(vr);
 
@@ -178,8 +178,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_protocol(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_protocol(v0);
@@ -191,8 +191,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_slashes(vr);
 
@@ -201,8 +201,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_slashes(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(bool);
         hr = pInst->set_slashes(v0);
@@ -214,8 +214,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_auth(vr);
 
@@ -224,8 +224,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_auth(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_auth(v0);
@@ -237,8 +237,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_username(vr);
 
@@ -247,8 +247,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_username(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_username(v0);
@@ -260,8 +260,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_password(vr);
 
@@ -270,8 +270,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_password(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_password(v0);
@@ -283,8 +283,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_host(vr);
 
@@ -293,8 +293,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_host(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_host(v0);
@@ -306,8 +306,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_hostname(vr);
 
@@ -316,8 +316,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_hostname(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_hostname(v0);
@@ -329,8 +329,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_port(vr);
 
@@ -339,8 +339,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_port(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_port(v0);
@@ -352,8 +352,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_path(vr);
 
@@ -362,8 +362,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_path(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_path(v0);
@@ -375,8 +375,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_pathname(vr);
 
@@ -385,8 +385,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_pathname(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_pathname(v0);
@@ -398,8 +398,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_search(vr);
 
@@ -408,8 +408,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_search(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_search(v0);
@@ -421,8 +421,8 @@ namespace fibjs
     {
         v8::Local<v8::Value> vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_query(vr);
 
@@ -431,8 +431,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_query(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(v8::Local<v8::Value>);
         hr = pInst->set_query(v0);
@@ -444,8 +444,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         hr = pInst->get_hash(vr);
 
@@ -454,8 +454,8 @@ namespace fibjs
 
     inline void UrlObject_base::s_set_hash(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(UrlObject_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(UrlObject_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_hash(v0);

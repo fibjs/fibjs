@@ -108,8 +108,8 @@ namespace fibjs
     {
         int64_t vr;
 
+        METHOD_INSTANCE(Int64_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Int64_base);
 
         hr = pInst->get_hi(vr);
 
@@ -118,8 +118,8 @@ namespace fibjs
 
     inline void Int64_base::s_set_hi(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Int64_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Int64_base);
 
         PROPERTY_VAL(int64_t);
         hr = pInst->set_hi(v0);
@@ -131,8 +131,8 @@ namespace fibjs
     {
         int64_t vr;
 
+        METHOD_INSTANCE(Int64_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Int64_base);
 
         hr = pInst->get_lo(vr);
 
@@ -141,8 +141,8 @@ namespace fibjs
 
     inline void Int64_base::s_set_lo(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Int64_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Int64_base);
 
         PROPERTY_VAL(int64_t);
         hr = pInst->set_lo(v0);

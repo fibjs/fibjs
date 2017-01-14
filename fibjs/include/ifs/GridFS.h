@@ -96,8 +96,8 @@ namespace fibjs
     {
         obj_ptr<MongoCollection_base> vr;
 
+        METHOD_INSTANCE(GridFS_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(GridFS_base);
 
         hr = pInst->get_files(vr);
 
@@ -108,8 +108,8 @@ namespace fibjs
     {
         obj_ptr<MongoCollection_base> vr;
 
+        METHOD_INSTANCE(GridFS_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(GridFS_base);
 
         hr = pInst->get_chunks(vr);
 

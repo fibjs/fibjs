@@ -87,8 +87,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(XmlNamedNodeMap_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNamedNodeMap_base);
 
         hr = pInst->get_length(vr);
 
@@ -99,8 +99,8 @@ namespace fibjs
     {
         obj_ptr<XmlAttr_base> vr;
 
+        METHOD_INSTANCE(XmlNamedNodeMap_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNamedNodeMap_base);
 
         hr = pInst->_indexed_getter(index, vr);
 

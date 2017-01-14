@@ -135,8 +135,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(XmlNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNode_base);
 
         hr = pInst->get_nodeType(vr);
 
@@ -147,8 +147,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNode_base);
 
         hr = pInst->get_nodeName(vr);
 
@@ -159,8 +159,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNode_base);
 
         hr = pInst->get_nodeValue(vr);
 
@@ -169,8 +169,8 @@ namespace fibjs
 
     inline void XmlNode_base::s_set_nodeValue(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNode_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_nodeValue(v0);
@@ -182,8 +182,8 @@ namespace fibjs
     {
         obj_ptr<XmlDocument_base> vr;
 
+        METHOD_INSTANCE(XmlNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNode_base);
 
         hr = pInst->get_ownerDocument(vr);
 
@@ -194,8 +194,8 @@ namespace fibjs
     {
         obj_ptr<XmlNode_base> vr;
 
+        METHOD_INSTANCE(XmlNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNode_base);
 
         hr = pInst->get_parentNode(vr);
 
@@ -206,8 +206,8 @@ namespace fibjs
     {
         obj_ptr<XmlNodeList_base> vr;
 
+        METHOD_INSTANCE(XmlNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNode_base);
 
         hr = pInst->get_childNodes(vr);
 
@@ -218,8 +218,8 @@ namespace fibjs
     {
         obj_ptr<XmlNode_base> vr;
 
+        METHOD_INSTANCE(XmlNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNode_base);
 
         hr = pInst->get_firstChild(vr);
 
@@ -230,8 +230,8 @@ namespace fibjs
     {
         obj_ptr<XmlNode_base> vr;
 
+        METHOD_INSTANCE(XmlNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNode_base);
 
         hr = pInst->get_lastChild(vr);
 
@@ -242,8 +242,8 @@ namespace fibjs
     {
         obj_ptr<XmlNode_base> vr;
 
+        METHOD_INSTANCE(XmlNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNode_base);
 
         hr = pInst->get_previousSibling(vr);
 
@@ -254,8 +254,8 @@ namespace fibjs
     {
         obj_ptr<XmlNode_base> vr;
 
+        METHOD_INSTANCE(XmlNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNode_base);
 
         hr = pInst->get_nextSibling(vr);
 

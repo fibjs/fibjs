@@ -92,8 +92,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(SubProcess_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(SubProcess_base);
 
         hr = pInst->get_pid(vr);
 
@@ -104,8 +104,8 @@ namespace fibjs
     {
         obj_ptr<BufferedStream_base> vr;
 
+        METHOD_INSTANCE(SubProcess_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(SubProcess_base);
 
         hr = pInst->get_stdin(vr);
 
@@ -116,8 +116,8 @@ namespace fibjs
     {
         obj_ptr<BufferedStream_base> vr;
 
+        METHOD_INSTANCE(SubProcess_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(SubProcess_base);
 
         hr = pInst->get_stdout(vr);
 

@@ -142,8 +142,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         hr = pInst->get_namespaceURI(vr);
 
@@ -154,8 +154,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         hr = pInst->get_prefix(vr);
 
@@ -164,8 +164,8 @@ namespace fibjs
 
     inline void XmlElement_base::s_set_prefix(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_prefix(v0);
@@ -177,8 +177,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         hr = pInst->get_localName(vr);
 
@@ -189,8 +189,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         hr = pInst->get_tagName(vr);
 
@@ -201,8 +201,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         hr = pInst->get_id(vr);
 
@@ -211,8 +211,8 @@ namespace fibjs
 
     inline void XmlElement_base::s_set_id(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_id(v0);
@@ -224,8 +224,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         hr = pInst->get_textContent(vr);
 
@@ -234,8 +234,8 @@ namespace fibjs
 
     inline void XmlElement_base::s_set_textContent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_textContent(v0);
@@ -247,8 +247,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         hr = pInst->get_innerHTML(vr);
 
@@ -257,8 +257,8 @@ namespace fibjs
 
     inline void XmlElement_base::s_set_innerHTML(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_innerHTML(v0);
@@ -270,8 +270,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         hr = pInst->get_className(vr);
 
@@ -280,8 +280,8 @@ namespace fibjs
 
     inline void XmlElement_base::s_set_className(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_className(v0);
@@ -293,8 +293,8 @@ namespace fibjs
     {
         obj_ptr<XmlNamedNodeMap_base> vr;
 
+        METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlElement_base);
 
         hr = pInst->get_attributes(vr);
 

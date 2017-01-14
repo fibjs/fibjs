@@ -103,8 +103,8 @@ namespace fibjs
     {
         obj_ptr<MongoCollection_base> vr;
 
+        METHOD_INSTANCE(MongoDB_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(MongoDB_base);
 
         v8::String::Utf8Value k(property);
         if(class_info().has(*k))return;
@@ -119,8 +119,8 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
+        METHOD_INSTANCE(MongoDB_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(MongoDB_base);
 
         hr = pInst->_named_enumerator(vr);
 
@@ -131,8 +131,8 @@ namespace fibjs
     {
         obj_ptr<GridFS_base> vr;
 
+        METHOD_INSTANCE(MongoDB_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(MongoDB_base);
 
         hr = pInst->get_fs(vr);
 

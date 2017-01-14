@@ -131,8 +131,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Socket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Socket_base);
 
         hr = pInst->get_family(vr);
 
@@ -143,8 +143,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Socket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Socket_base);
 
         hr = pInst->get_type(vr);
 
@@ -155,8 +155,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(Socket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Socket_base);
 
         hr = pInst->get_remoteAddress(vr);
 
@@ -167,8 +167,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Socket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Socket_base);
 
         hr = pInst->get_remotePort(vr);
 
@@ -179,8 +179,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(Socket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Socket_base);
 
         hr = pInst->get_localAddress(vr);
 
@@ -191,8 +191,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Socket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Socket_base);
 
         hr = pInst->get_localPort(vr);
 
@@ -203,8 +203,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Socket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Socket_base);
 
         hr = pInst->get_timeout(vr);
 
@@ -213,8 +213,8 @@ namespace fibjs
 
     inline void Socket_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Socket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Socket_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->set_timeout(v0);

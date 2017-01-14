@@ -76,8 +76,8 @@ namespace fibjs
     {
         int64_t vr;
 
+        METHOD_INSTANCE(DBResult_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(DBResult_base);
 
         hr = pInst->get_insertId(vr);
 
@@ -88,8 +88,8 @@ namespace fibjs
     {
         int64_t vr;
 
+        METHOD_INSTANCE(DBResult_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(DBResult_base);
 
         hr = pInst->get_affected(vr);
 
@@ -100,8 +100,8 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
+        METHOD_INSTANCE(DBResult_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(DBResult_base);
 
         hr = pInst->get_fields(vr);
 

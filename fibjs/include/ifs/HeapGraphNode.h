@@ -85,8 +85,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(HeapGraphNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapGraphNode_base);
 
         hr = pInst->get_type(vr);
 
@@ -97,8 +97,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HeapGraphNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapGraphNode_base);
 
         hr = pInst->get_name(vr);
 
@@ -109,8 +109,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HeapGraphNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapGraphNode_base);
 
         hr = pInst->get_description(vr);
 
@@ -121,8 +121,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(HeapGraphNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapGraphNode_base);
 
         hr = pInst->get_id(vr);
 
@@ -133,8 +133,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(HeapGraphNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapGraphNode_base);
 
         hr = pInst->get_shallowSize(vr);
 
@@ -145,8 +145,8 @@ namespace fibjs
     {
         obj_ptr<List_base> vr;
 
+        METHOD_INSTANCE(HeapGraphNode_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapGraphNode_base);
 
         hr = pInst->get_childs(vr);
 

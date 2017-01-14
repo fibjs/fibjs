@@ -104,8 +104,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         hr = pInst->get_name(vr);
 
@@ -114,8 +114,8 @@ namespace fibjs
 
     inline void HttpCookie_base::s_set_name(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_name(v0);
@@ -127,8 +127,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         hr = pInst->get_value(vr);
 
@@ -137,8 +137,8 @@ namespace fibjs
 
     inline void HttpCookie_base::s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_value(v0);
@@ -150,8 +150,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         hr = pInst->get_domain(vr);
 
@@ -160,8 +160,8 @@ namespace fibjs
 
     inline void HttpCookie_base::s_set_domain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_domain(v0);
@@ -173,8 +173,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         hr = pInst->get_path(vr);
 
@@ -183,8 +183,8 @@ namespace fibjs
 
     inline void HttpCookie_base::s_set_path(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_path(v0);
@@ -196,8 +196,8 @@ namespace fibjs
     {
         date_t vr;
 
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         hr = pInst->get_expires(vr);
 
@@ -206,8 +206,8 @@ namespace fibjs
 
     inline void HttpCookie_base::s_set_expires(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         PROPERTY_VAL(date_t);
         hr = pInst->set_expires(v0);
@@ -219,8 +219,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         hr = pInst->get_httpOnly(vr);
 
@@ -229,8 +229,8 @@ namespace fibjs
 
     inline void HttpCookie_base::s_set_httpOnly(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         PROPERTY_VAL(bool);
         hr = pInst->set_httpOnly(v0);
@@ -242,8 +242,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         hr = pInst->get_secure(vr);
 
@@ -252,8 +252,8 @@ namespace fibjs
 
     inline void HttpCookie_base::s_set_secure(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpCookie_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCookie_base);
 
         PROPERTY_VAL(bool);
         hr = pInst->set_secure(v0);

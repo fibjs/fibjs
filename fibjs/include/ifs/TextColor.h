@@ -83,8 +83,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(TextColor_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(TextColor_base);
 
         hr = pInst->get_notice(vr);
 
@@ -93,8 +93,8 @@ namespace fibjs
 
     inline void TextColor_base::s_set_notice(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(TextColor_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(TextColor_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_notice(v0);
@@ -106,8 +106,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(TextColor_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(TextColor_base);
 
         hr = pInst->get_warn(vr);
 
@@ -116,8 +116,8 @@ namespace fibjs
 
     inline void TextColor_base::s_set_warn(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(TextColor_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(TextColor_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_warn(v0);
@@ -129,8 +129,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(TextColor_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(TextColor_base);
 
         hr = pInst->get_error(vr);
 
@@ -139,8 +139,8 @@ namespace fibjs
 
     inline void TextColor_base::s_set_error(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(TextColor_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(TextColor_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_error(v0);
@@ -152,8 +152,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(TextColor_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(TextColor_base);
 
         hr = pInst->get_highLight(vr);
 
@@ -162,8 +162,8 @@ namespace fibjs
 
     inline void TextColor_base::s_set_highLight(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(TextColor_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(TextColor_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_highLight(v0);

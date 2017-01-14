@@ -125,8 +125,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpMessage_base);
 
         hr = pInst->get_protocol(vr);
 
@@ -135,8 +135,8 @@ namespace fibjs
 
     inline void HttpMessage_base::s_set_protocol(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpMessage_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_protocol(v0);
@@ -148,8 +148,8 @@ namespace fibjs
     {
         obj_ptr<HttpCollection_base> vr;
 
+        METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpMessage_base);
 
         hr = pInst->get_headers(vr);
 
@@ -160,8 +160,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpMessage_base);
 
         hr = pInst->get_keepAlive(vr);
 
@@ -170,8 +170,8 @@ namespace fibjs
 
     inline void HttpMessage_base::s_set_keepAlive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpMessage_base);
 
         PROPERTY_VAL(bool);
         hr = pInst->set_keepAlive(v0);
@@ -183,8 +183,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpMessage_base);
 
         hr = pInst->get_upgrade(vr);
 
@@ -193,8 +193,8 @@ namespace fibjs
 
     inline void HttpMessage_base::s_set_upgrade(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpMessage_base);
 
         PROPERTY_VAL(bool);
         hr = pInst->set_upgrade(v0);
@@ -206,8 +206,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpMessage_base);
 
         hr = pInst->get_maxHeadersCount(vr);
 
@@ -216,8 +216,8 @@ namespace fibjs
 
     inline void HttpMessage_base::s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpMessage_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->set_maxHeadersCount(v0);
@@ -229,8 +229,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpMessage_base);
 
         hr = pInst->get_maxUploadSize(vr);
 
@@ -239,8 +239,8 @@ namespace fibjs
 
     inline void HttpMessage_base::s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpMessage_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->set_maxUploadSize(v0);

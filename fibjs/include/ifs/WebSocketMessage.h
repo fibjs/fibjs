@@ -79,8 +79,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(WebSocketMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(WebSocketMessage_base);
 
         hr = pInst->get_type(vr);
 
@@ -89,8 +89,8 @@ namespace fibjs
 
     inline void WebSocketMessage_base::s_set_type(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(WebSocketMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(WebSocketMessage_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->set_type(v0);
@@ -102,8 +102,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(WebSocketMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(WebSocketMessage_base);
 
         hr = pInst->get_masked(vr);
 
@@ -112,8 +112,8 @@ namespace fibjs
 
     inline void WebSocketMessage_base::s_set_masked(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(WebSocketMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(WebSocketMessage_base);
 
         PROPERTY_VAL(bool);
         hr = pInst->set_masked(v0);
@@ -125,8 +125,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(WebSocketMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(WebSocketMessage_base);
 
         hr = pInst->get_maxSize(vr);
 
@@ -135,8 +135,8 @@ namespace fibjs
 
     inline void WebSocketMessage_base::s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(WebSocketMessage_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(WebSocketMessage_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->set_maxSize(v0);

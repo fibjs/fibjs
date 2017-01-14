@@ -76,8 +76,8 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
+        METHOD_INSTANCE(DatagramPacket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(DatagramPacket_base);
 
         hr = pInst->get_data(vr);
 
@@ -88,8 +88,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(DatagramPacket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(DatagramPacket_base);
 
         hr = pInst->get_address(vr);
 
@@ -100,8 +100,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(DatagramPacket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(DatagramPacket_base);
 
         hr = pInst->get_port(vr);
 

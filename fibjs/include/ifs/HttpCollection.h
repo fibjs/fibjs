@@ -105,8 +105,8 @@ namespace fibjs
     {
         Variant vr;
 
+        METHOD_INSTANCE(HttpCollection_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCollection_base);
 
         v8::String::Utf8Value k(property);
         if(class_info().has(*k))return;
@@ -121,8 +121,8 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
+        METHOD_INSTANCE(HttpCollection_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCollection_base);
 
         hr = pInst->_named_enumerator(vr);
 
@@ -131,8 +131,8 @@ namespace fibjs
 
     inline void HttpCollection_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
+        METHOD_INSTANCE(HttpCollection_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCollection_base);
 
         PROPERTY_VAL(Variant);
         v8::String::Utf8Value k(property);
@@ -147,8 +147,8 @@ namespace fibjs
     {
         v8::Local<v8::Boolean> vr;
 
+        METHOD_INSTANCE(HttpCollection_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpCollection_base);
 
         v8::String::Utf8Value k(property);
         if(class_info().has(*k)){args.GetReturnValue().Set(v8::False(isolate));return;}

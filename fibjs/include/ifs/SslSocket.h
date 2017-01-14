@@ -92,8 +92,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(SslSocket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(SslSocket_base);
 
         hr = pInst->get_verification(vr);
 
@@ -102,8 +102,8 @@ namespace fibjs
 
     inline void SslSocket_base::s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(SslSocket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(SslSocket_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->set_verification(v0);
@@ -115,8 +115,8 @@ namespace fibjs
     {
         obj_ptr<X509Cert_base> vr;
 
+        METHOD_INSTANCE(SslSocket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(SslSocket_base);
 
         hr = pInst->get_ca(vr);
 
@@ -127,8 +127,8 @@ namespace fibjs
     {
         obj_ptr<X509Cert_base> vr;
 
+        METHOD_INSTANCE(SslSocket_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(SslSocket_base);
 
         hr = pInst->get_peerCert(vr);
 

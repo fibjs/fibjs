@@ -270,8 +270,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Image_base);
 
         hr = pInst->get_width(vr);
 
@@ -282,8 +282,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Image_base);
 
         hr = pInst->get_height(vr);
 
@@ -294,8 +294,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Image_base);
 
         hr = pInst->get_format(vr);
 
@@ -306,8 +306,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Image_base);
 
         hr = pInst->get_type(vr);
 
@@ -318,8 +318,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Image_base);
 
         hr = pInst->get_colorsTotal(vr);
 
@@ -330,8 +330,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Image_base);
 
         hr = pInst->get_transparent(vr);
 
@@ -340,8 +340,8 @@ namespace fibjs
 
     inline void Image_base::s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Image_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->set_transparent(v0);
@@ -353,8 +353,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Image_base);
 
         hr = pInst->get_progressive(vr);
 
@@ -363,8 +363,8 @@ namespace fibjs
 
     inline void Image_base::s_set_progressive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Image_base);
 
         PROPERTY_VAL(bool);
         hr = pInst->set_progressive(v0);
@@ -376,8 +376,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Image_base);
 
         hr = pInst->get_alphaBlending(vr);
 
@@ -386,8 +386,8 @@ namespace fibjs
 
     inline void Image_base::s_set_alphaBlending(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Image_base);
 
         PROPERTY_VAL(bool);
         hr = pInst->set_alphaBlending(v0);

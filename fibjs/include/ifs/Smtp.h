@@ -108,8 +108,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Smtp_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Smtp_base);
 
         hr = pInst->get_timeout(vr);
 
@@ -118,8 +118,8 @@ namespace fibjs
 
     inline void Smtp_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Smtp_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Smtp_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->set_timeout(v0);
@@ -131,8 +131,8 @@ namespace fibjs
     {
         obj_ptr<Stream_base> vr;
 
+        METHOD_INSTANCE(Smtp_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Smtp_base);
 
         hr = pInst->get_socket(vr);
 

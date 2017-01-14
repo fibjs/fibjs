@@ -133,8 +133,8 @@ namespace fibjs
     {
         obj_ptr<List_base> vr;
 
+        METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpClient_base);
 
         hr = pInst->get_cookies(vr);
 
@@ -145,8 +145,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpClient_base);
 
         hr = pInst->get_timeout(vr);
 
@@ -155,8 +155,8 @@ namespace fibjs
 
     inline void HttpClient_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpClient_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->set_timeout(v0);
@@ -168,8 +168,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpClient_base);
 
         hr = pInst->get_enableCookie(vr);
 
@@ -178,8 +178,8 @@ namespace fibjs
 
     inline void HttpClient_base::s_set_enableCookie(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpClient_base);
 
         PROPERTY_VAL(bool);
         hr = pInst->set_enableCookie(v0);
@@ -191,8 +191,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpClient_base);
 
         hr = pInst->get_autoRedirect(vr);
 
@@ -201,8 +201,8 @@ namespace fibjs
 
     inline void HttpClient_base::s_set_autoRedirect(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpClient_base);
 
         PROPERTY_VAL(bool);
         hr = pInst->set_autoRedirect(v0);
@@ -214,8 +214,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpClient_base);
 
         hr = pInst->get_userAgent(vr);
 
@@ -224,8 +224,8 @@ namespace fibjs
 
     inline void HttpClient_base::s_set_userAgent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpClient_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_userAgent(v0);

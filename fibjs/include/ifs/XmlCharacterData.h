@@ -94,8 +94,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlCharacterData_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlCharacterData_base);
 
         hr = pInst->get_data(vr);
 
@@ -104,8 +104,8 @@ namespace fibjs
 
     inline void XmlCharacterData_base::s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlCharacterData_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlCharacterData_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_data(v0);
@@ -117,8 +117,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(XmlCharacterData_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlCharacterData_base);
 
         hr = pInst->get_length(vr);
 

@@ -76,8 +76,8 @@ namespace fibjs
     {
         obj_ptr<Fiber_base> vr;
 
+        METHOD_INSTANCE(Fiber_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Fiber_base);
 
         hr = pInst->get_caller(vr);
 
@@ -88,8 +88,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(Fiber_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Fiber_base);
 
         hr = pInst->get_traceInfo(vr);
 

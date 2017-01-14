@@ -86,8 +86,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(HeapGraphEdge_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapGraphEdge_base);
 
         hr = pInst->get_type(vr);
 
@@ -98,8 +98,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HeapGraphEdge_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapGraphEdge_base);
 
         hr = pInst->get_name(vr);
 
@@ -110,8 +110,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HeapGraphEdge_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HeapGraphEdge_base);
 
         hr = pInst->get_description(vr);
 

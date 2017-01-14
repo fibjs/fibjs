@@ -88,8 +88,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HttpRequest_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpRequest_base);
 
         hr = pInst->get_method(vr);
 
@@ -98,8 +98,8 @@ namespace fibjs
 
     inline void HttpRequest_base::s_set_method(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpRequest_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpRequest_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_method(v0);
@@ -111,8 +111,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HttpRequest_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpRequest_base);
 
         hr = pInst->get_address(vr);
 
@@ -121,8 +121,8 @@ namespace fibjs
 
     inline void HttpRequest_base::s_set_address(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpRequest_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpRequest_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_address(v0);
@@ -134,8 +134,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HttpRequest_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpRequest_base);
 
         hr = pInst->get_queryString(vr);
 
@@ -144,8 +144,8 @@ namespace fibjs
 
     inline void HttpRequest_base::s_set_queryString(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpRequest_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpRequest_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_queryString(v0);
@@ -157,8 +157,8 @@ namespace fibjs
     {
         obj_ptr<HttpCollection_base> vr;
 
+        METHOD_INSTANCE(HttpRequest_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpRequest_base);
 
         hr = pInst->get_cookies(vr);
 
@@ -169,8 +169,8 @@ namespace fibjs
     {
         obj_ptr<HttpCollection_base> vr;
 
+        METHOD_INSTANCE(HttpRequest_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpRequest_base);
 
         hr = pInst->get_form(vr);
 
@@ -181,8 +181,8 @@ namespace fibjs
     {
         obj_ptr<HttpCollection_base> vr;
 
+        METHOD_INSTANCE(HttpRequest_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpRequest_base);
 
         hr = pInst->get_query(vr);
 

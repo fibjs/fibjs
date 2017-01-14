@@ -107,8 +107,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(Service_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Service_base);
 
         hr = pInst->get_name(vr);
 
@@ -117,8 +117,8 @@ namespace fibjs
 
     inline void Service_base::s_set_name(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Service_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Service_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_name(v0);

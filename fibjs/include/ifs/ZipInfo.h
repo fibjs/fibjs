@@ -88,8 +88,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(ZipInfo_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(ZipInfo_base);
 
         hr = pInst->get_filename(vr);
 
@@ -100,8 +100,8 @@ namespace fibjs
     {
         date_t vr;
 
+        METHOD_INSTANCE(ZipInfo_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(ZipInfo_base);
 
         hr = pInst->get_date(vr);
 
@@ -112,8 +112,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(ZipInfo_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(ZipInfo_base);
 
         hr = pInst->get_compress_type(vr);
 
@@ -124,8 +124,8 @@ namespace fibjs
     {
         int64_t vr;
 
+        METHOD_INSTANCE(ZipInfo_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(ZipInfo_base);
 
         hr = pInst->get_compress_size(vr);
 
@@ -136,8 +136,8 @@ namespace fibjs
     {
         int64_t vr;
 
+        METHOD_INSTANCE(ZipInfo_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(ZipInfo_base);
 
         hr = pInst->get_file_size(vr);
 
@@ -148,8 +148,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(ZipInfo_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(ZipInfo_base);
 
         hr = pInst->get_password(vr);
 
@@ -160,8 +160,8 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
+        METHOD_INSTANCE(ZipInfo_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(ZipInfo_base);
 
         hr = pInst->get_data(vr);
 

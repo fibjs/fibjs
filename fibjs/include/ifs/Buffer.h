@@ -257,8 +257,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Buffer_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Buffer_base);
 
         hr = pInst->_indexed_getter(index, vr);
 
@@ -267,8 +267,8 @@ namespace fibjs
 
     inline void Buffer_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
+        METHOD_INSTANCE(Buffer_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Buffer_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->_indexed_setter(index, v0);
@@ -280,8 +280,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Buffer_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Buffer_base);
 
         hr = pInst->get_length(vr);
 

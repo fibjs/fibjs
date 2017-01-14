@@ -75,8 +75,8 @@ namespace fibjs
     {
         v8::Local<v8::Value> vr;
 
+        METHOD_INSTANCE(DBRow_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(DBRow_base);
 
         hr = pInst->_indexed_getter(index, vr);
 
@@ -87,8 +87,8 @@ namespace fibjs
     {
         v8::Local<v8::Value> vr;
 
+        METHOD_INSTANCE(DBRow_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(DBRow_base);
 
         v8::String::Utf8Value k(property);
         if(class_info().has(*k))return;
@@ -103,8 +103,8 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
+        METHOD_INSTANCE(DBRow_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(DBRow_base);
 
         hr = pInst->_named_enumerator(vr);
 

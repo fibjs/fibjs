@@ -179,8 +179,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_to(vr);
 
@@ -191,8 +191,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_be(vr);
 
@@ -203,8 +203,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_been(vr);
 
@@ -215,8 +215,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_is(vr);
 
@@ -227,8 +227,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_that(vr);
 
@@ -239,8 +239,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_and(vr);
 
@@ -251,8 +251,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_have(vr);
 
@@ -263,8 +263,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_with(vr);
 
@@ -275,8 +275,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_at(vr);
 
@@ -287,8 +287,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_of(vr);
 
@@ -299,8 +299,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_same(vr);
 
@@ -311,8 +311,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_not(vr);
 
@@ -323,8 +323,8 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_deep(vr);
 
@@ -335,8 +335,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_ok(vr);
 
@@ -347,8 +347,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_true(vr);
 
@@ -359,8 +359,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_false(vr);
 
@@ -371,8 +371,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_null(vr);
 
@@ -383,8 +383,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_undefined(vr);
 
@@ -395,8 +395,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_function(vr);
 
@@ -407,8 +407,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_object(vr);
 
@@ -419,8 +419,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_array(vr);
 
@@ -431,8 +431,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_string(vr);
 
@@ -443,8 +443,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_number(vr);
 
@@ -455,8 +455,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_boolean(vr);
 
@@ -467,8 +467,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(Expect_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Expect_base);
 
         hr = pInst->get_exist(vr);
 

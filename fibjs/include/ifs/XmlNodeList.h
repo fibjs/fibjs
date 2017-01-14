@@ -84,8 +84,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(XmlNodeList_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNodeList_base);
 
         hr = pInst->get_length(vr);
 
@@ -96,8 +96,8 @@ namespace fibjs
     {
         obj_ptr<XmlNode_base> vr;
 
+        METHOD_INSTANCE(XmlNodeList_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlNodeList_base);
 
         hr = pInst->_indexed_getter(index, vr);
 

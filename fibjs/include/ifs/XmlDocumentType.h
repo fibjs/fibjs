@@ -76,8 +76,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlDocumentType_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocumentType_base);
 
         hr = pInst->get_name(vr);
 
@@ -88,8 +88,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlDocumentType_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocumentType_base);
 
         hr = pInst->get_publicId(vr);
 
@@ -100,8 +100,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlDocumentType_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocumentType_base);
 
         hr = pInst->get_systemId(vr);
 

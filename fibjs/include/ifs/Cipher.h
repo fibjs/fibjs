@@ -93,8 +93,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(Cipher_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Cipher_base);
 
         hr = pInst->get_name(vr);
 
@@ -105,8 +105,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Cipher_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Cipher_base);
 
         hr = pInst->get_keySize(vr);
 
@@ -117,8 +117,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Cipher_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Cipher_base);
 
         hr = pInst->get_ivSize(vr);
 
@@ -129,8 +129,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Cipher_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Cipher_base);
 
         hr = pInst->get_blockSize(vr);
 

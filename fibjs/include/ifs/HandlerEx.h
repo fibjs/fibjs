@@ -84,8 +84,8 @@ namespace fibjs
     {
         obj_ptr<Handler_base> vr;
 
+        METHOD_INSTANCE(HandlerEx_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HandlerEx_base);
 
         hr = pInst->get_handler(vr);
 
@@ -94,8 +94,8 @@ namespace fibjs
 
     inline void HandlerEx_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HandlerEx_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HandlerEx_base);
 
         PROPERTY_VAL(obj_ptr<Handler_base>);
         hr = pInst->set_handler(v0);
@@ -107,8 +107,8 @@ namespace fibjs
     {
         obj_ptr<Stats_base> vr;
 
+        METHOD_INSTANCE(HandlerEx_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HandlerEx_base);
 
         hr = pInst->get_stats(vr);
 

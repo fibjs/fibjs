@@ -95,8 +95,8 @@ namespace fibjs
     {
         obj_ptr<Socket_base> vr;
 
+        METHOD_INSTANCE(TcpServer_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(TcpServer_base);
 
         hr = pInst->get_socket(vr);
 
@@ -107,8 +107,8 @@ namespace fibjs
     {
         obj_ptr<Handler_base> vr;
 
+        METHOD_INSTANCE(TcpServer_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(TcpServer_base);
 
         hr = pInst->get_handler(vr);
 
@@ -117,8 +117,8 @@ namespace fibjs
 
     inline void TcpServer_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(TcpServer_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(TcpServer_base);
 
         PROPERTY_VAL(obj_ptr<Handler_base>);
         hr = pInst->set_handler(v0);
@@ -130,8 +130,8 @@ namespace fibjs
     {
         obj_ptr<Stats_base> vr;
 
+        METHOD_INSTANCE(TcpServer_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(TcpServer_base);
 
         hr = pInst->get_stats(vr);
 

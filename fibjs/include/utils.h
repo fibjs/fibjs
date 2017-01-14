@@ -232,11 +232,6 @@ typedef int32_t result_t;
     if(pInst == NULL){ ThrowResult(CALL_E_NOTINSTANCE); return;} \
     scope l(pInst);
 
-#define PROPERTY_INSTANCE(cls) \
-    obj_ptr<cls> pInst = cls::getInstance(args.This()); \
-    if(pInst == NULL){hr = CALL_E_NOTINSTANCE;break;} \
-    scope l(pInst);
-
 #define CHECK_ARGUMENT() \
     }while(0); \
     if(!bStrict||(hr!=CALL_E_BADPARAMCOUNT && hr!=CALL_E_PARAMNOTOPTIONAL && hr!=CALL_E_TYPEMISMATCH))break;\

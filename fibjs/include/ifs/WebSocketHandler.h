@@ -67,8 +67,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(WebSocketHandler_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(WebSocketHandler_base);
 
         hr = pInst->get_maxSize(vr);
 
@@ -77,8 +77,8 @@ namespace fibjs
 
     inline void WebSocketHandler_base::s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(WebSocketHandler_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(WebSocketHandler_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->set_maxSize(v0);

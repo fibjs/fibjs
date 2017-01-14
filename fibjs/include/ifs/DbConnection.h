@@ -100,8 +100,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(DbConnection_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(DbConnection_base);
 
         hr = pInst->get_type(vr);
 

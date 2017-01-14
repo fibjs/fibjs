@@ -138,8 +138,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlDocument_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocument_base);
 
         hr = pInst->get_inputEncoding(vr);
 
@@ -150,8 +150,8 @@ namespace fibjs
     {
         bool vr;
 
+        METHOD_INSTANCE(XmlDocument_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocument_base);
 
         hr = pInst->get_xmlStandalone(vr);
 
@@ -160,8 +160,8 @@ namespace fibjs
 
     inline void XmlDocument_base::s_set_xmlStandalone(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlDocument_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocument_base);
 
         PROPERTY_VAL(bool);
         hr = pInst->set_xmlStandalone(v0);
@@ -173,8 +173,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlDocument_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocument_base);
 
         hr = pInst->get_xmlVersion(vr);
 
@@ -183,8 +183,8 @@ namespace fibjs
 
     inline void XmlDocument_base::s_set_xmlVersion(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlDocument_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocument_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_xmlVersion(v0);
@@ -196,8 +196,8 @@ namespace fibjs
     {
         obj_ptr<XmlDocumentType_base> vr;
 
+        METHOD_INSTANCE(XmlDocument_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocument_base);
 
         hr = pInst->get_doctype(vr);
 
@@ -208,8 +208,8 @@ namespace fibjs
     {
         obj_ptr<XmlElement_base> vr;
 
+        METHOD_INSTANCE(XmlDocument_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocument_base);
 
         hr = pInst->get_documentElement(vr);
 
@@ -220,8 +220,8 @@ namespace fibjs
     {
         obj_ptr<XmlElement_base> vr;
 
+        METHOD_INSTANCE(XmlDocument_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocument_base);
 
         hr = pInst->get_head(vr);
 
@@ -232,8 +232,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlDocument_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocument_base);
 
         hr = pInst->get_title(vr);
 
@@ -244,8 +244,8 @@ namespace fibjs
     {
         obj_ptr<XmlElement_base> vr;
 
+        METHOD_INSTANCE(XmlDocument_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlDocument_base);
 
         hr = pInst->get_body(vr);
 

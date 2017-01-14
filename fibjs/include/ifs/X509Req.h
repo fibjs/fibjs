@@ -98,8 +98,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(X509Req_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Req_base);
 
         hr = pInst->get_subject(vr);
 
@@ -110,8 +110,8 @@ namespace fibjs
     {
         obj_ptr<PKey_base> vr;
 
+        METHOD_INSTANCE(X509Req_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(X509Req_base);
 
         hr = pInst->get_publicKey(vr);
 

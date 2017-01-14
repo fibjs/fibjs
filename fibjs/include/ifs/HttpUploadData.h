@@ -79,8 +79,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HttpUploadData_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpUploadData_base);
 
         hr = pInst->get_fileName(vr);
 
@@ -91,8 +91,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HttpUploadData_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpUploadData_base);
 
         hr = pInst->get_contentType(vr);
 
@@ -103,8 +103,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(HttpUploadData_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpUploadData_base);
 
         hr = pInst->get_contentTransferEncoding(vr);
 
@@ -115,8 +115,8 @@ namespace fibjs
     {
         obj_ptr<SeekableStream_base> vr;
 
+        METHOD_INSTANCE(HttpUploadData_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpUploadData_base);
 
         hr = pInst->get_body(vr);
 

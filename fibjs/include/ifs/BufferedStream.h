@@ -104,8 +104,8 @@ namespace fibjs
     {
         obj_ptr<Stream_base> vr;
 
+        METHOD_INSTANCE(BufferedStream_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(BufferedStream_base);
 
         hr = pInst->get_stream(vr);
 
@@ -116,8 +116,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(BufferedStream_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(BufferedStream_base);
 
         hr = pInst->get_charset(vr);
 
@@ -126,8 +126,8 @@ namespace fibjs
 
     inline void BufferedStream_base::s_set_charset(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(BufferedStream_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(BufferedStream_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_charset(v0);
@@ -139,8 +139,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(BufferedStream_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(BufferedStream_base);
 
         hr = pInst->get_EOL(vr);
 
@@ -149,8 +149,8 @@ namespace fibjs
 
     inline void BufferedStream_base::s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(BufferedStream_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(BufferedStream_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_EOL(v0);

@@ -91,8 +91,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(File_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(File_base);
 
         hr = pInst->get_name(vr);
 

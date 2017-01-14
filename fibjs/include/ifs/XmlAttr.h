@@ -90,8 +90,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlAttr_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlAttr_base);
 
         hr = pInst->get_localName(vr);
 
@@ -102,8 +102,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlAttr_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlAttr_base);
 
         hr = pInst->get_value(vr);
 
@@ -112,8 +112,8 @@ namespace fibjs
 
     inline void XmlAttr_base::s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlAttr_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlAttr_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_value(v0);
@@ -125,8 +125,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlAttr_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlAttr_base);
 
         hr = pInst->get_name(vr);
 
@@ -137,8 +137,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlAttr_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlAttr_base);
 
         hr = pInst->get_namespaceURI(vr);
 
@@ -149,8 +149,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlAttr_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlAttr_base);
 
         hr = pInst->get_prefix(vr);
 
@@ -159,8 +159,8 @@ namespace fibjs
 
     inline void XmlAttr_base::s_set_prefix(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlAttr_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlAttr_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_prefix(v0);
@@ -172,8 +172,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlAttr_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlAttr_base);
 
         hr = pInst->get_nodeName(vr);
 
@@ -184,8 +184,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(XmlAttr_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlAttr_base);
 
         hr = pInst->get_nodeValue(vr);
 
@@ -194,8 +194,8 @@ namespace fibjs
 
     inline void XmlAttr_base::s_set_nodeValue(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(XmlAttr_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(XmlAttr_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_nodeValue(v0);

@@ -124,8 +124,8 @@ namespace fibjs
     {
         obj_ptr<MongoCollection_base> vr;
 
+        METHOD_INSTANCE(MongoCollection_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(MongoCollection_base);
 
         v8::String::Utf8Value k(property);
         if(class_info().has(*k))return;
@@ -140,8 +140,8 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
+        METHOD_INSTANCE(MongoCollection_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(MongoCollection_base);
 
         hr = pInst->_named_enumerator(vr);
 

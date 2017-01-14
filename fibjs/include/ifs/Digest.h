@@ -81,8 +81,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(Digest_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Digest_base);
 
         hr = pInst->get_size(vr);
 

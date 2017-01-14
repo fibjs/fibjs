@@ -131,8 +131,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         hr = pInst->get_value(vr);
 
@@ -141,8 +141,8 @@ namespace fibjs
 
     inline void Message_base::s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_value(v0);
@@ -154,8 +154,8 @@ namespace fibjs
     {
         obj_ptr<List_base> vr;
 
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         hr = pInst->get_params(vr);
 
@@ -164,8 +164,8 @@ namespace fibjs
 
     inline void Message_base::s_set_params(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         PROPERTY_VAL(obj_ptr<List_base>);
         hr = pInst->set_params(v0);
@@ -177,8 +177,8 @@ namespace fibjs
     {
         Variant vr;
 
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         hr = pInst->get_result(vr);
 
@@ -187,8 +187,8 @@ namespace fibjs
 
     inline void Message_base::s_set_result(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         PROPERTY_VAL(Variant);
         hr = pInst->set_result(v0);
@@ -200,8 +200,8 @@ namespace fibjs
     {
         obj_ptr<SeekableStream_base> vr;
 
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         hr = pInst->get_body(vr);
 
@@ -210,8 +210,8 @@ namespace fibjs
 
     inline void Message_base::s_set_body(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         PROPERTY_VAL(obj_ptr<SeekableStream_base>);
         hr = pInst->set_body(v0);
@@ -223,8 +223,8 @@ namespace fibjs
     {
         int64_t vr;
 
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         hr = pInst->get_length(vr);
 
@@ -235,8 +235,8 @@ namespace fibjs
     {
         obj_ptr<Stream_base> vr;
 
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         hr = pInst->get_stream(vr);
 
@@ -247,8 +247,8 @@ namespace fibjs
     {
         obj_ptr<Message_base> vr;
 
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         hr = pInst->get_response(vr);
 
@@ -259,8 +259,8 @@ namespace fibjs
     {
         exlib::string vr;
 
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         hr = pInst->get_lastError(vr);
 
@@ -269,8 +269,8 @@ namespace fibjs
 
     inline void Message_base::s_set_lastError(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(Message_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(Message_base);
 
         PROPERTY_VAL(exlib::string);
         hr = pInst->set_lastError(v0);

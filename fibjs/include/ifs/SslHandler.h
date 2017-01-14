@@ -80,8 +80,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(SslHandler_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(SslHandler_base);
 
         hr = pInst->get_verification(vr);
 
@@ -90,8 +90,8 @@ namespace fibjs
 
     inline void SslHandler_base::s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(SslHandler_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(SslHandler_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->set_verification(v0);
@@ -103,8 +103,8 @@ namespace fibjs
     {
         obj_ptr<X509Cert_base> vr;
 
+        METHOD_INSTANCE(SslHandler_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(SslHandler_base);
 
         hr = pInst->get_ca(vr);
 
@@ -115,8 +115,8 @@ namespace fibjs
     {
         obj_ptr<Handler_base> vr;
 
+        METHOD_INSTANCE(SslHandler_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(SslHandler_base);
 
         hr = pInst->get_handler(vr);
 
@@ -125,8 +125,8 @@ namespace fibjs
 
     inline void SslHandler_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(SslHandler_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(SslHandler_base);
 
         PROPERTY_VAL(obj_ptr<Handler_base>);
         hr = pInst->set_handler(v0);

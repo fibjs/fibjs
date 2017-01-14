@@ -92,8 +92,8 @@ namespace fibjs
     {
         int32_t vr;
 
+        METHOD_INSTANCE(HttpResponse_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpResponse_base);
 
         hr = pInst->get_status(vr);
 
@@ -102,8 +102,8 @@ namespace fibjs
 
     inline void HttpResponse_base::s_set_status(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
+        METHOD_INSTANCE(HttpResponse_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpResponse_base);
 
         PROPERTY_VAL(int32_t);
         hr = pInst->set_status(v0);
@@ -115,8 +115,8 @@ namespace fibjs
     {
         obj_ptr<List_base> vr;
 
+        METHOD_INSTANCE(HttpResponse_base);
         PROPERTY_ENTER();
-        PROPERTY_INSTANCE(HttpResponse_base);
 
         hr = pInst->get_cookies(vr);
 
