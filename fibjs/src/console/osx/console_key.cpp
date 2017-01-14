@@ -98,7 +98,7 @@ enum _MMKeyCode {
 	K_LIGHTS_KBD_DOWN = 1022
 };
 
-typedef enum  {
+enum  {
 	MOD_NONE = 0,
 	MOD_META = kCGEventFlagMaskCommand,
 	MOD_ALT = kCGEventFlagMaskAlternate,
