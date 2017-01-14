@@ -22,14 +22,19 @@ public:
     }
 
 public:
+    virtual bool enterTask(exlib::Task_base *current)
+    {
+        return m_rdb->enterTask(current);
+    }
+
     virtual void enter()
     {
         m_rdb->enter();
     }
 
-    virtual void leave()
+    virtual void leave(exlib::Task_base *current = NULL)
     {
-        m_rdb->leave();
+        m_rdb->leave(current);
     }
 
 public:

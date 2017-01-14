@@ -22,14 +22,19 @@ public:
     ~MongoCursor();
 
 public:
+    virtual bool enterTask(exlib::Task_base *current)
+    {
+        return m_cursor->m_db->enterTask(current);
+    }
+
     virtual void enter()
     {
         m_cursor->m_db->enter();
     }
 
-    virtual void leave()
+    virtual void leave(exlib::Task_base *current = NULL)
     {
-        m_cursor->m_db->leave();
+        m_cursor->m_db->leave(current);
     }
 
 public:

@@ -132,25 +132,29 @@ public:
     ~SslSocket();
 
 public:
+    virtual bool enterTask(exlib::Task_base *current)
+    {
+        if (!m_s)
+            return true;
+
+        return object_base::enterTask(current);
+    }
+
     virtual void enter()
     {
         if (!m_s)
             return;
 
-        if (!m_lock.trylock())
-        {
-            Isolate::rt _rt(holder());
-            m_lock.lock();
-        }
+        object_base::enter();
     }
 
-    virtual void leave()
+    virtual void leave(exlib::Task_base *current = NULL)
     {
         if (!m_s)
             return;
 
-        if (m_lock.owned())
-            m_lock.unlock();
+        if (m_lock.owned(current))
+            m_lock.unlock(current);
     }
 
 public:
