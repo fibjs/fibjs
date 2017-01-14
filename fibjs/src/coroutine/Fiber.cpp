@@ -30,7 +30,6 @@ void *FiberBase::fiber_proc(void *p)
 {
     result_t hr = 0;
     Isolate* isolate = (Isolate*)p;
-    exlib::Service *srv = exlib::Service::current();
 
     Runtime rt(isolate);
     v8::Locker locker(isolate->m_isolate);
