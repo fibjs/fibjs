@@ -68,7 +68,11 @@ public:
 
     bool is_current(Isolate* isolate)
     {
-        return m_isolate == isolate;
+        Isolate* isolate1 = m_isolate;
+
+        if (!v8::Locker::IsLocked(m_isolate->m_isolate))
+            isolate1 = NULL;
+        return isolate1 == isolate;
     }
 
 private:
