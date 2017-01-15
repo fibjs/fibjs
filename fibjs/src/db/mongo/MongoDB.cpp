@@ -139,14 +139,14 @@ result_t MongoDB::error()
 
     result_t hr = 0;
 
-    if (m_conn.err == MONGO_IO_ERROR)
-        hr = m_conn.errcode;
-    else if (m_conn.err > 0 && m_conn.err <= MONGO_WRITE_CONCERN_INVALID)
-        hr = Runtime::setError(s_msgs[m_conn.err]);
-    else if (m_conn.lasterrcode != 0)
-        hr = Runtime::setError(m_conn.lasterrstr);
+    if (m_conn->err == MONGO_IO_ERROR)
+        hr = m_conn->errcode;
+    else if (m_conn->err > 0 && m_conn->err <= MONGO_WRITE_CONCERN_INVALID)
+        hr = Runtime::setError(s_msgs[m_conn->err]);
+    else if (m_conn->lasterrcode != 0)
+        hr = Runtime::setError(m_conn->lasterrstr);
 
-    mongo_clear_errors(&m_conn);
+    mongo_clear_errors(m_conn);
     return hr;
 }
 
@@ -187,7 +187,7 @@ result_t MongoDB::open(exlib::string connString)
     {
         const char *host = u->m_host.c_str();
 
-        mongo_replset_init(&m_conn, "");
+        mongo_replset_init(m_conn, "");
 
         while (true)
         {
@@ -200,7 +200,7 @@ result_t MongoDB::open(exlib::string connString)
             if (!port.empty())
                 nPort = atoi(port.c_str());
 
-            mongo_replset_add_seed(&m_conn, hostname.c_str(), nPort);
+            mongo_replset_add_seed(m_conn, hostname.c_str(), nPort);
 
             if (*host != ',')
                 break;
@@ -208,7 +208,7 @@ result_t MongoDB::open(exlib::string connString)
             host++;
         }
 
-        result = mongo_replset_connect(&m_conn);
+        result = mongo_replset_connect(m_conn);
     }
     else
     {
@@ -216,8 +216,8 @@ result_t MongoDB::open(exlib::string connString)
         if (!u->m_port.empty())
             nPort = atoi(u->m_port.c_str());
 
-        mongo_init(&m_conn);
-        result = mongo_client(&m_conn, u->m_hostname.c_str(), nPort);
+        mongo_init(m_conn);
+        result = mongo_client(m_conn, u->m_hostname.c_str(), nPort);
     }
 
     if (result != MONGO_OK)
@@ -227,7 +227,7 @@ result_t MongoDB::open(exlib::string connString)
         m_ns = u->m_pathname.substr(1);
 
     if (!u->m_username.empty())
-        if (mongo_cmd_authenticate(&m_conn, m_ns.c_str(), u->m_username.c_str(),
+        if (mongo_cmd_authenticate(m_conn, m_ns.c_str(), u->m_username.c_str(),
                                    u->m_password.c_str()) != MONGO_OK)
             return CHECK_ERROR(error());
 
@@ -258,7 +258,7 @@ result_t MongoDB::_runCommand(bson *command, bson &out, AsyncEvent* ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (mongo_run_command(&m_conn, m_ns.c_str(), command, &out) != MONGO_OK)
+    if (mongo_run_command(m_conn, m_ns.c_str(), command, &out) != MONGO_OK)
     {
         bson_destroy(&out);
         bson_destroy(command);
@@ -335,8 +335,11 @@ result_t MongoDB::close(AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (mongo_is_connected(&m_conn))
-        mongo_destroy(&m_conn);
+    if (m_conn)
+    {
+        mongo_destroy(m_conn);
+        m_conn = NULL;
+    }
 
     return 0;
 }

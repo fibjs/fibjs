@@ -28,13 +28,14 @@ class MongoDB: public MongoDB_base
 public:
     MongoDB()
     {
-        mongo_init(&m_conn);
+        m_conn = new mongo();
+        mongo_init(m_conn);
     }
 
     ~MongoDB()
     {
-        if (mongo_is_connected(&m_conn))
-            asyncCall(mongo_destroy, &m_conn);
+        if (m_conn)
+            asyncCall(mongo_destroy, m_conn);
     }
 
 public:
@@ -58,12 +59,16 @@ public:
 private:
     static result_t mongo_destroy(mongo* conn)
     {
-        ::mongo_destroy(conn);
+        if (mongo_is_connected(conn))
+        {
+            ::mongo_destroy(conn);
+            delete conn;
+        }
         return 0;
     }
 
 public:
-    mongo m_conn;
+    mongo* m_conn;
     exlib::string m_ns;
 };
 

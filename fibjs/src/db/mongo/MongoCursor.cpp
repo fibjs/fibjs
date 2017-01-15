@@ -22,7 +22,7 @@ result_t MongoCursor::_initCursor(MongoDB *db, AsyncEvent *ac)
     m_cursor = new cursor;
     m_cursor->m_db = db;
 
-    mongo_cursor_init(m_cursor, &(m_cursor->m_db)->m_conn, m_ns.c_str());
+    mongo_cursor_init(m_cursor, (m_cursor->m_db)->m_conn, m_ns.c_str());
     mongo_cursor_set_query(m_cursor, &m_bbq);
     mongo_cursor_set_fields(m_cursor, &m_bbp);
     return 0;

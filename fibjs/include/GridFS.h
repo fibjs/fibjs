@@ -60,7 +60,7 @@ private:
     {
         if (!m_bgridfs)
         {
-            if (gridfs_init(&m_db->m_conn, m_db->m_ns.c_str(), NULL, &m_fs) != MONGO_OK)
+            if (gridfs_init(m_db->m_conn, m_db->m_ns.c_str(), NULL, &m_fs) != MONGO_OK)
                 return MONGO_ERROR;
             m_bgridfs = true;
         }

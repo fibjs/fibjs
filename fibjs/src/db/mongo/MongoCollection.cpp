@@ -23,7 +23,7 @@ result_t MongoCollection::_batchInsert(std::vector<const bson *> pdata, int num,
     if (!db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    retVal = mongo_insert_batch(&db->m_conn, m_ns.c_str(), pdata.data(), num, NULL, 0);
+    retVal = mongo_insert_batch(db->m_conn, m_ns.c_str(), pdata.data(), num, NULL, 0);
     return 0;
 }
 
@@ -36,7 +36,7 @@ result_t MongoCollection::_insert(const bson *data, int32_t &retVal, AsyncEvent 
     if (!db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    retVal = mongo_insert(&db->m_conn, m_ns.c_str(), data, NULL);
+    retVal = mongo_insert(db->m_conn, m_ns.c_str(), data, NULL);
     return 0;
 }
 
@@ -49,7 +49,7 @@ result_t MongoCollection::_update(const bson *cond, const bson *op, int flags, i
     if (!db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    retVal = mongo_update(&db->m_conn, m_ns.c_str(), cond, op, flags, NULL);
+    retVal = mongo_update(db->m_conn, m_ns.c_str(), cond, op, flags, NULL);
     return 0;
 }
 
@@ -62,7 +62,7 @@ result_t MongoCollection::_remove(const bson *data, int32_t &retVal, AsyncEvent 
     if (!db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    retVal = mongo_remove(&db->m_conn, m_ns.c_str(), data, NULL);
+    retVal = mongo_remove(db->m_conn, m_ns.c_str(), data, NULL);
     return 0;
 }
 
