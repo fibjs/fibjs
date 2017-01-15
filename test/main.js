@@ -4,7 +4,8 @@ var test = require("test");
 test.setup();
 
 var coroutine = require('coroutine');
-var process = require('process');
+
+global.full_test = process.argv.indexOf('full') >= 0;
 
 run("assert_test.js");
 run("expect_test.js");
@@ -18,6 +19,10 @@ run("buffer_test.js");
 run("path_test.js");
 run("util_test.js");
 run("xml_test.js");
+
+if (global.full_test)
+    run("xml_suite.js");
+
 run("coroutine_test.js");
 run("fibmod_test.js");
 run("trigger_test.js");
@@ -46,9 +51,14 @@ run("unzip_test.js");
 run("ws_test.js");
 run("vm_test.js");
 run("db_test.js");
+
+if (global.full_test) {
+    run("mongo_test.js");
+    run("redis_test.js");
+}
+
 run("profiler_test.js");
 
 run('BUG_simple_api_call.js');
-// run("mongo_test.js");
 
 process.exit(-test.run());

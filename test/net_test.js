@@ -495,54 +495,55 @@ describe("net", function() {
         assert.equal(no1, os.memoryUsage().nativeObjects.objects);
     });
 
-    xdescribe("Smtp", function() {
-        var s;
+    if (global.full_test)
+        describe("Smtp", function() {
+            var s;
 
-        it("new & connect", function() {
-            s = new net.Smtp();
-            s.connect("tcp://smtp.ym.163.com:25");
-            s.socket.close();
-        });
-
-        it("net.openSmtp", function() {
-            s = net.openSmtp("tcp://smtp.exmail.qq.com:25");
-        });
-
-        it("command", function() {
-            assert.equal(s.command("HELO", "baoz.me").substr(0, 4),
-                "250 ");
-
-            assert.throws(function() {
-                s.command("FUCK", "baoz.me");
-            });
-        });
-
-        it("hello", function() {
-            s.hello();
-        });
-
-        xdescribe("Auth", function() {
-            it("login", function() {
-                s.login("lion@baoz.cn", "");
+            it("new & connect", function() {
+                s = new net.Smtp();
+                s.connect("tcp://smtp.ym.163.com:25");
+                s.socket.close();
             });
 
-            it("from", function() {
-                s.from("lion@baoz.cn");
+            it("net.openSmtp", function() {
+                s = net.openSmtp("tcp://smtp.exmail.qq.com:25");
             });
 
-            it("to", function() {
-                s.to("lion@baoz.cn");
+            it("command", function() {
+                assert.equal(s.command("HELO", "baoz.me").substr(0, 4),
+                    "250 ");
+
+                assert.throws(function() {
+                    s.command("FUCK", "baoz.me");
+                });
             });
 
-            it("data", function() {
-                s.data("from:lion@baoz.cn\r\n" + "to:lion@baoz.cn\r\n" + "subject:test title\r\n\r\n" + "test text");
+            it("hello", function() {
+                s.hello();
+            });
+
+            xdescribe("Auth", function() {
+                it("login", function() {
+                    s.login("lion@baoz.cn", "");
+                });
+
+                it("from", function() {
+                    s.from("lion@baoz.cn");
+                });
+
+                it("to", function() {
+                    s.to("lion@baoz.cn");
+                });
+
+                it("data", function() {
+                    s.data("from:lion@baoz.cn\r\n" + "to:lion@baoz.cn\r\n" + "subject:test title\r\n\r\n" + "test text");
+                });
+            });
+
+            it("quit", function() {
+                s.quit();
             });
         });
-
-        it("quit", function() {
-            s.quit();
-        });
-    });
 });
 
 // test.run(console.DEBUG);

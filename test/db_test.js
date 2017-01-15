@@ -179,13 +179,16 @@ describe("db", function() {
         });
     });
 
-    xdescribe("mysql", function() {
-        _test('mysql://root@localhost/test');
-    });
+    if (global.full_test) {
+        describe("mysql", function() {
+            _test('mysql://root@localhost/test');
+        });
 
-    xdescribe("mssql", function() {
-        _test('mssql://sa@localhost/test');
-    });
+        if (process.platform == 'win32')
+            describe("mssql", function() {
+                _test('mssql://sa@localhost/test');
+            });
+    }
 
     describe("leveldb", function() {
         after(clear_db);
