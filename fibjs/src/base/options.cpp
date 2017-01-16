@@ -52,8 +52,7 @@ static void printHelp() {
 bool options(int32_t* argc, char *argv[])
 {
 	char s_opts[64];
-	char s_sharmony[] = "--harmony --harmony_async_await "
-	                    "--use_strict --always-opt --nolazy";
+	char s_sharmony[] = "--harmony --use_strict --always-opt --nolazy";
 
 	int32_t df = 0;
 
