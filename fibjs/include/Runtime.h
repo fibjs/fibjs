@@ -66,13 +66,22 @@ public:
         return m_isolate;
     }
 
-    bool is_current(Isolate* isolate)
+    static bool is_current(Isolate* isolate)
     {
-        Isolate* isolate1 = m_isolate;
+        Runtime *rt = current();
+        if (rt == NULL)
+            return false;
 
-        if (!v8::Locker::IsLocked(m_isolate->m_isolate))
+        Isolate* isolate1 = rt->m_isolate;
+
+        if (isolate1 && !v8::Locker::IsLocked(isolate1->m_isolate))
             isolate1 = NULL;
         return isolate1 == isolate;
+    }
+
+    static bool check()
+    {
+        return !is_current(NULL);
     }
 
 private:

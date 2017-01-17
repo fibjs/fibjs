@@ -45,7 +45,7 @@ int32_t c_connect(void *sock, const char *host, int32_t port)
         return 0;
     }
 
-    assert(!Isolate::check());
+    assert(!Runtime::check());
 
     result_t hr = ((Socket *) sock)->cc_connect(host, port);
     if (hr < 0)
@@ -79,7 +79,7 @@ int32_t c_recv(void *sock, void *buffer, int32_t cbBuffer)
         return -1;
     }
 
-    assert(!Isolate::check());
+    assert(!Runtime::check());
 
     obj_ptr<Buffer_base> retVal;
 
@@ -112,7 +112,7 @@ int32_t c_read(void *sock, void *buffer, int32_t cbBuffer)
     if (cbBuffer <= 0)
         return 0;
 
-    assert(!Isolate::check());
+    assert(!Runtime::check());
 
     obj_ptr<Buffer_base> retVal;
 
@@ -147,7 +147,7 @@ int32_t c_send(void *sock, const void *buffer, int32_t cbBuffer)
     if (cbBuffer <= 0)
         return 0;
 
-    assert(!Isolate::check());
+    assert(!Runtime::check());
 
     exlib::string strBuf((const char *) buffer, cbBuffer);
     obj_ptr<Buffer_base> buf;

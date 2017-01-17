@@ -173,7 +173,7 @@ result_t db_base::openMongoDB(exlib::string connString,
 
 result_t MongoDB::open(exlib::string connString)
 {
-    assert(!Isolate::check());
+    assert(!Runtime::check());
 
     obj_ptr<Url> u = new Url();
     int32_t result;

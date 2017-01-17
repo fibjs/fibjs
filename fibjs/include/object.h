@@ -223,7 +223,7 @@ public:
             {
                 Isolate* isolate = m_isolate;
 
-                if (isolate && Isolate::is_current(isolate))
+                if (isolate && Runtime::is_current(isolate))
                 {
                     isolate->m_isolate->AdjustAmountOfExternalAllocatedMemory(ext);
                     m_nExtMemory += ext;

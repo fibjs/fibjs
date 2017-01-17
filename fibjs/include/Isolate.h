@@ -61,12 +61,6 @@ public:
 
 public:
 	static Isolate *current();
-	static bool is_current(Isolate * isolate);
-
-	static bool check()
-	{
-		return !is_current(NULL);
-	}
 
 	void init();
 	void InterruptCallback();

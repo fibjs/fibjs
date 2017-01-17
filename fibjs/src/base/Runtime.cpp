@@ -138,15 +138,6 @@ Isolate * Isolate::current()
 	return rt->isolate();
 }
 
-bool Isolate::is_current(Isolate * isolate)
-{
-	Runtime *rt = Runtime::current();
-	if (rt == NULL)
-		return false;
-
-	return rt->is_current(isolate);
-}
-
 void Isolate::init()
 {
 	s_isolates.putTail(this);
