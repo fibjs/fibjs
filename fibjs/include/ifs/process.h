@@ -35,6 +35,7 @@ public:
     static result_t exit(int32_t code);
     static result_t cwd(exlib::string& retVal);
     static result_t chdir(exlib::string directory);
+    static result_t uptime(double& retVal);
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
     static result_t nextTick(v8::Local<v8::Function> func, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t open(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
@@ -66,6 +67,7 @@ public:
     static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -86,6 +88,7 @@ namespace fibjs
             {"exit", s_exit, true},
             {"cwd", s_cwd, true},
             {"chdir", s_chdir, true},
+            {"uptime", s_uptime, true},
             {"memoryUsage", s_memoryUsage, true},
             {"nextTick", s_nextTick, true},
             {"open", s_open, true},
@@ -107,7 +110,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "process", s__new, NULL, 
-            8, s_method, 0, NULL, 7, s_property, NULL, NULL,
+            9, s_method, 0, NULL, 7, s_property, NULL, NULL,
             NULL
         };
 
@@ -223,6 +226,17 @@ namespace fibjs
         hr = chdir(v0);
 
         METHOD_VOID();
+    }
+
+    inline void process_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        double vr;
+
+        METHOD_ENTER(0, 0);
+
+        hr = uptime(vr);
+
+        METHOD_RETURN();
     }
 
     inline void process_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
