@@ -263,6 +263,15 @@ result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, exlib:
     return normalize(strBuffer, retVal);
 }
 
+result_t path_base::resolve(const v8::FunctionCallbackInfo<v8::Value> &args, exlib::string &retVal)
+{
+    join(args, retVal);
+    exlib::string str;
+    process_base::cwd(str);
+    pathAdd(str, retVal);
+    return normalize(str, retVal);
+}
+
 result_t path_base::fullpath(exlib::string path, exlib::string &retVal)
 {
 #ifdef _WIN32
