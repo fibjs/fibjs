@@ -5,7 +5,7 @@
  */
 interface Event : Lock
 {
-    /*! @brief 事件对象构造函数 
+    /*! @brief 事件对象构造函数
      @param value 指定是否等待，为 true 时等待，缺省为 false
      */
     Event(Boolean value = false);

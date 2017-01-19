@@ -36,6 +36,12 @@ result_t Condition::release()
     return m_lockCond->release();
 }
 
+result_t Condition::count(int32_t& retVal)
+{
+    retVal = m_cond.count();
+    return 0;
+}
+
 result_t Condition::wait()
 {
     if (!m_lockCond->m_lock.owned())

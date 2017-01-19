@@ -38,6 +38,12 @@ result_t Event::release()
     return 0;
 }
 
+result_t Event::count(int32_t& retVal)
+{
+    retVal = m_event.count();
+    return 0;
+}
+
 result_t Event::isSet(bool &retVal)
 {
     retVal = m_event.isSet();

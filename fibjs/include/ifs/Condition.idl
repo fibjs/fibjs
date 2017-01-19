@@ -1,4 +1,4 @@
-/*! @brief 条件变量对象 
+/*! @brief 条件变量对象
 
  条件变量是利用纤程间共享的全局变量来进行同步的一种机制，主要包括两个动作：
  1）一个线程等待某个条件成立，而将自己挂起；
@@ -16,11 +16,11 @@
  var state = "ready";
 
  function funcwait() {
-	cond.acquire();
-	while (!ready)
-		cond.wait();
-	state = "go"
-	cond.release();
+    cond.acquire();
+    while (!ready)
+        cond.wait();
+    state = "go"
+    cond.release();
  }
 
  coroutine.start(funcwait);
@@ -43,7 +43,7 @@ interface Condition : Lock
     /*! @brief 条件变量构造函数（条件变量所需的锁由fibjs内部构造） */
     Condition();
 
-    /*! @brief 条件变量构造函数 
+    /*! @brief 条件变量构造函数
      @param lock 使用自行构造的锁
      */
     Condition(Lock lock);

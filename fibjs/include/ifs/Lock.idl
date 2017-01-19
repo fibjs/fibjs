@@ -31,4 +31,9 @@ interface Lock : object
      此方法将释放对锁的拥有权，如果当前纤程未拥有锁，此方法将抛出错误。
      */
     release();
+
+    /*! @brief 查询当前等待任务数
+     @return 返回任务数
+     */
+    Integer count();
 };
