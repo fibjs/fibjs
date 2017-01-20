@@ -32,18 +32,18 @@ module process
      @param mask 指定新的掩码
      @return 返回之前的 mask
     */
-    static Integer umask(Integer mask) async;
+    static Integer umask(Integer mask);
 
     /*! @brief 改变当前的 umask，Windows 不支持此方法
      @param mask 指定新的掩码， 字符串类型八进制(e.g: "0664")
      @return 返回之前的 mask
     */
-    static Integer umask(String mask) async;
+    static Integer umask(String mask);
 
     /*! @brief 返回当前的 umask，Windows 不支持此方法
      @return 返回当前的 mask 值
     */
-    static Integer umask() async;
+    static Integer umask();
 
     /*! @brief 退出当前进程，并返回结果
      @param code 返回进程结果

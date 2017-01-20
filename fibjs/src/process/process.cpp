@@ -105,20 +105,14 @@ result_t process_base::get_version(exlib::string &retVal)
     return 0;
 }
 
-result_t process_base::umask(int32_t mask, int32_t& retVal, AsyncEvent* ac)
+result_t process_base::umask(int32_t mask, int32_t& retVal)
 {
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
     retVal = ::umask(mask);
     return 0;
 }
 
-result_t process_base::umask(exlib::string mask, int32_t& retVal, AsyncEvent* ac)
+result_t process_base::umask(exlib::string mask, int32_t& retVal)
 {
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
     int oct = 0;
     // Parse the octal string.
     for (size_t i = 0; i < mask.length(); i++) {
@@ -134,11 +128,8 @@ result_t process_base::umask(exlib::string mask, int32_t& retVal, AsyncEvent* ac
     return 0;
 }
 
-result_t process_base::umask(int32_t& retVal, AsyncEvent* ac)
+result_t process_base::umask(int32_t& retVal)
 {
-    if (!ac)
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    
     int32_t old = ::umask(0);
     retVal = old;
     ::umask(old);
