@@ -270,9 +270,50 @@ describe('path', () => {
         }
     });
 
-    it("fullpath", () => {
-        assert.equal(path.join(process.cwd(), "not_exists"), path.fullpath("not_exists"));
-    });
+	it("resolve", function() {
+		const isWindows = process.platform === 'win32';
+		if (isWindows) {
+			var resolveTests =
+				// arguments                                    result
+				[[['c:/blah\\blah', 'd:/games', 'c:../a'], 'c:\\blah\\a'],
+				[['c:/ignore', 'd:\\a/b\\c/d', '\\e.exe'], 'd:\\e.exe'],
+				[['c:/ignore', 'c:/some/file'], 'c:\\some\\file'],
+				[['d:/ignore', 'd:some/dir//'], 'd:\\ignore\\some\\dir'],
+				[['.'], process.cwd()],
+				[['//server/share', '..', 'relative\\'], '\\\\server\\share\\relative'],
+				[['c:/', '//'], 'c:\\'],
+				[['c:/', '//dir'], 'c:\\dir'],
+				[['c:/', '//server/share'], '\\\\server\\share\\'],
+				[['c:/', '//server//share'], '\\\\server\\share\\'],
+				[['c:/', '///some//dir'], 'c:\\some\\dir']
+				];
+		} else {
+			// Posix
+			var resolveTests =
+				// arguments                                    result
+				[[['/var/lib', '../', 'file/'], '/var/file'],
+				[['/var/lib', '/../', 'file/'], '/file'],
+				[['a/b/c/', '../../..'], process.cwd()],
+				[['.'], process.cwd()],
+				[['/some/dir', '.', '/absolute/'], '/absolute']];
+		}
+		var failures = [];
+
+		resolveTests.forEach(function(test) {
+			var actual = path.resolve.apply(path, test[0]);
+			var expected = test[1];
+			var message = 'path.resolve(' + test[0].map(JSON.stringify).join(',') + ')' +
+				'\n  expect=' + JSON.stringify(expected) +
+				'\n  actual=' + JSON.stringify(actual);
+			if (actual !== expected) failures.push('\n' + message);
+			assert.equal(actual, expected, message);
+		});
+		assert.equal(failures.length, 0, failures.join(''));
+	});
+
+	it("fullpath", () => {
+		assert.equal(path.join(process.cwd(), "not_exists"), path.fullpath("not_exists"));
+	});
 });
 
 //test.run(console.DEBUG);
