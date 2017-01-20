@@ -1,7 +1,7 @@
 var coroutine = require('coroutine')
 
-setTimeout(function() {
-    coroutine.start(function() {
+setTimeout(() => {
+    coroutine.start(() => {
         console.log(600);
     });
 }, 10);

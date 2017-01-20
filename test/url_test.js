@@ -4,7 +4,7 @@ test.setup();
 var net = require('net');
 var url = require('url');
 
-describe("url", function() {
+describe("url", () => {
     var parseTests = {
         '//some_path': {
             'href': '//some_path/',
@@ -666,7 +666,7 @@ describe("url", function() {
         }
     };
 
-    it("format", function() {
+    it("format", () => {
         var url = new net.Url();
 
         for (var u in parseTests) {
@@ -675,14 +675,14 @@ describe("url", function() {
         }
     });
 
-    it("url.format", function() {
+    it("url.format", () => {
         for (var u in parseTests) {
             var href = url.format(parseTests[u]);
             assert.equal(href, parseTests[u].href);
         }
     });
 
-    it("parse", function() {
+    it("parse", () => {
         var url = new net.Url();
 
         for (var u in parseTests) {
@@ -691,21 +691,21 @@ describe("url", function() {
         }
     });
 
-    it("url.parse", function() {
+    it("url.parse", () => {
         for (var u in parseTests) {
             var uo = url.parse(u);
             assert.equal(uo.href, parseTests[u].href);
         }
     });
 
-    it("url.parse querystring", function() {
+    it("url.parse querystring", () => {
         assert.deepEqual(url.parse("http://a.com/test?a=100&b=200", true).query.toJSON(), {
             a: "100",
             b: "200"
         });
     });
 
-    it("resolve", function() {
+    it("resolve", () => {
         var relativeTests = [
             ['/foo/bar/baz', 'quux', '/foo/bar/quux'],
             ['/foo/bar/baz', 'quux/asdf',
@@ -768,7 +768,7 @@ describe("url", function() {
         ];
 
         var url = new net.Url();
-        relativeTests.forEach(function(relativeTest) {
+        relativeTests.forEach((relativeTest) => {
             url.parse(relativeTest[0]);
             var url1 = url.resolve(relativeTest[1]);
             assert.equal(relativeTest[2], url1.href);

@@ -1,5 +1,5 @@
 var assert = require("assert");
 
-exports.func = function() {
-	assert.equal(__sbname, "test");
+exports.func = () => {
+    assert.equal(__sbname, "test");
 }

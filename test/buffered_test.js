@@ -9,126 +9,126 @@ var coroutine = require('coroutine');
 
 var base_port = coroutine.vmid * 10000;
 
-describe("buffered stream", function() {
-	var s;
-	var f;
-	var ss;
+describe("buffered stream", () => {
+    var s;
+    var f;
+    var ss;
 
-	before(function() {
-		s = '0123456789\r\n';
+    before(() => {
+        s = '0123456789\r\n';
 
-		for (var i = 0; i < 13; i++)
-			s = s + s;
+        for (var i = 0; i < 13; i++)
+            s = s + s;
 
-		var f = fs.open("test0000" + base_port, 'w');
-		f.write(s);
-		f.close();
-	});
+        var f = fs.open("test0000" + base_port, 'w');
+        f.write(s);
+        f.close();
+    });
 
-	after(function() {
-		fs.unlink("test0000" + base_port);
-		ss.close();
-	});
+    after(() => {
+        fs.unlink("test0000" + base_port);
+        ss.close();
+    });
 
-	function t_read(f, sz) {
-		var r = new io.BufferedStream(f);
-		var p = 0;
-		var d;
+    function t_read(f, sz) {
+        var r = new io.BufferedStream(f);
+        var p = 0;
+        var d;
 
-		while (p < s.length) {
-			d = r.read(sz);
-			if (!d)
-				break;
-			assert.equal(d.toString(), s.substring(p, p + sz));
-			p += sz;
-			d.dispose();
-		}
-		f.close();
-	}
+        while (p < s.length) {
+            d = r.read(sz);
+            if (!d)
+                break;
+            assert.equal(d.toString(), s.substring(p, p + sz));
+            p += sz;
+            d.dispose();
+        }
+        f.close();
+    }
 
-	it("block size", function() {
-		for (var i = 3; i < 100000; i *= 3)
-			t_read(fs.open("test0000" + base_port), i);
-	});
+    it("block size", () => {
+        for (var i = 3; i < 100000; i *= 3)
+            t_read(fs.open("test0000" + base_port), i);
+    });
 
-	it("buffered tcp stream", function() {
-		function accept1(s) {
-			while (true) {
-				var c = s.accept();
-				var f = fs.open('test0000' + base_port);
-				f.copyTo(c);
-				f.close();
-				c.close();
-			}
-		}
+    it("buffered tcp stream", () => {
+        function accept1(s) {
+            while (true) {
+                var c = s.accept();
+                var f = fs.open('test0000' + base_port);
+                f.copyTo(c);
+                f.close();
+                c.close();
+            }
+        }
 
-		ss = new net.Socket();
-		ss.bind(8182 + base_port);
-		ss.listen();
-		coroutine.start(accept1, ss);
+        ss = new net.Socket();
+        ss.bind(8182 + base_port);
+        ss.listen();
+        coroutine.start(accept1, ss);
 
-		for (var i = 3; i < 100000; i *= 3) {
-			var conn = new net.Socket();
-			conn.connect('127.0.0.1', 8182 + base_port);
-			t_read(conn, i);
-		}
-	});
+        for (var i = 3; i < 100000; i *= 3) {
+            var conn = new net.Socket();
+            conn.connect('127.0.0.1', 8182 + base_port);
+            t_read(conn, i);
+        }
+    });
 
-	it("readline", function() {
-		f = fs.open("test0000" + base_port);
-		var r = new io.BufferedStream(f);
-		r.EOL = '\r\n';
+    it("readline", () => {
+        f = fs.open("test0000" + base_port);
+        var r = new io.BufferedStream(f);
+        r.EOL = '\r\n';
 
-		var n = 0;
-		var s1;
+        var n = 0;
+        var s1;
 
-		while ((s1 = r.readLine()) !== null) {
-			assert.equal('0123456789', s1);
-			n++;
-		}
-		assert.equal(8192, n);
-		f.close();
+        while ((s1 = r.readLine()) !== null) {
+            assert.equal('0123456789', s1);
+            n++;
+        }
+        assert.equal(8192, n);
+        f.close();
 
-		f = fs.open("test0000" + base_port);
-		var r = new io.BufferedStream(f);
-		r.EOL = '\r\n';
+        f = fs.open("test0000" + base_port);
+        var r = new io.BufferedStream(f);
+        r.EOL = '\r\n';
 
-		assert.equal(r.readLine(10), '0123456789');
-		assert.throws(function() {
-			r.readLine(9);
-		});
+        assert.equal(r.readLine(10), '0123456789');
+        assert.throws(() => {
+            r.readLine(9);
+        });
 
-		f.close();
-	});
+        f.close();
+    });
 
-	it("charset", function() {
-		fs.unlink("test0000" + base_port);
+    it("charset", () => {
+        fs.unlink("test0000" + base_port);
 
-		f = fs.open("test0000" + base_port, "w+");
-		var r = new io.BufferedStream(f);
-		r.EOL = '\r\n';
+        f = fs.open("test0000" + base_port, "w+");
+        var r = new io.BufferedStream(f);
+        r.EOL = '\r\n';
 
-		assert.equal(r.charset, "utf-8");
+        assert.equal(r.charset, "utf-8");
 
-		f.write("哈哈哈\r\n");
-		f.rewind();
-		assert.equal(r.readLine(), "哈哈哈");
+        f.write("哈哈哈\r\n");
+        f.rewind();
+        assert.equal(r.readLine(), "哈哈哈");
 
-		r.charset = "gbk";
+        r.charset = "gbk";
 
-		f.rewind();
-		f.truncate(0);
-		r.writeText("嘿嘿嘿");
-		r.writeLine("哈哈哈");
-		f.rewind();
-		assert.equal(f.readAll().toString("gbk"), "嘿嘿嘿哈哈哈\r\n");
+        f.rewind();
+        f.truncate(0);
+        r.writeText("嘿嘿嘿");
+        r.writeLine("哈哈哈");
+        f.rewind();
+        assert.equal(f.readAll().toString("gbk"), "嘿嘿嘿哈哈哈\r\n");
 
-		f.rewind();
-		assert.equal(r.readText(6), "嘿嘿嘿");
-		assert.equal(r.readLine(), "哈哈哈");
+        f.rewind();
+        assert.equal(r.readText(6), "嘿嘿嘿");
+        assert.equal(r.readLine(), "哈哈哈");
 
-		f.close();
-	});
+        f.close();
+    });
 });
 
 //test.run(console.DEBUG);

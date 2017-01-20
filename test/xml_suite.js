@@ -28,7 +28,7 @@ function dump_dom(dom) {
         'childNodes': []
     };
 
-    props[type].forEach(function(n) {
+    props[type].forEach((n) => {
         o[n] = dom[n];
     });
 
@@ -40,7 +40,7 @@ function dump_dom(dom) {
             var o1 = {};
             var attr = attrs[i];
 
-            attr_props.forEach(function(n) {
+            attr_props.forEach((n) => {
                 o1[n] = attr[n];
             });
             o.attributes.push(o1);
@@ -58,10 +58,10 @@ function dump_dom(dom) {
     return o;
 }
 
-describe('xml', function() {
+describe('xml', () => {
     function _test(i) {
         var id = ("000" + i).slice(-4);
-        it("xml_files/xml/" + id + ".xml", function() {
+        it("xml_files/xml/" + id + ".xml", () => {
             var txt = fs.readTextFile("xml_files/xml/" + id + ".xml");
             var json = fs.readTextFile("xml_files/json/" + id + ".json");
             var out = fs.readTextFile("xml_files/out/" + id + ".xml");

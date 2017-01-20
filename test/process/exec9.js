@@ -1,3 +1,3 @@
-setTimeout(function() {
+setTimeout(() => {
     console.log(300);
 }, 100);

@@ -149,27 +149,27 @@ var art3 = "+01234567890123456+\n" +
     "|        .o+...   |\n" +
     "+-----------------+\n";
 
-describe('crypto', function() {
-    it("random", function() {
+describe('crypto', () => {
+    it("random", () => {
         assert.notEqual(crypto.randomBytes(8).hex(), crypto.randomBytes(8).hex());
     });
 
-    it("pseudoRandomBytes", function() {
+    it("pseudoRandomBytes", () => {
         assert.notEqual(crypto.pseudoRandomBytes(8).hex(), crypto.pseudoRandomBytes(8).hex());
     });
 
-    it("randomArt", function() {
+    it("randomArt", () => {
         assert.notEqual(crypto.randomArt(data, "lion"), art1);
         assert.notEqual(crypto.randomArt(data, ""), art2);
         assert.notEqual(crypto.randomArt(data, "01234567890123456789"), art3);
     });
 
-    describe('Cipher', function() {
+    describe('Cipher', () => {
         function test_cipher(provider, file) {
-            it(file, function() {
+            it(file, () => {
                 var cases = encoding.json.decode(fs.readTextFile("crypto_case/" + file + ".json"));
 
-                cases.forEach(function(item) {
+                cases.forEach((item) => {
                     var c;
                     var mode = crypto[item[2]];
 
@@ -194,28 +194,28 @@ describe('crypto', function() {
         test_cipher(crypto.BLOWFISH, "blowfish");
         test_cipher(crypto.ARC4, "arc4");
 
-        describe('AES', function() {
+        describe('AES', () => {
             test_cipher(crypto.AES, "aes.cbc");
             test_cipher(crypto.AES, "aes.cfb");
             test_cipher(crypto.AES, "aes.ecb");
         });
     });
 
-    describe("PKey", function() {
-        describe("RSA", function() {
-            it("PEM import/export", function() {
+    describe("PKey", () => {
+        describe("RSA", () => {
+            it("PEM import/export", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(rsa1024_pem);
                 assert.equal(pk.exportPem(), rsa1024_pem);
             });
 
-            it("toString", function() {
+            it("toString", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(rsa1024_pem);
                 assert.equal(pk, rsa1024_pem);
             });
 
-            it("Der import/export", function() {
+            it("Der import/export", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(rsa1024_pem);
                 var der = pk.exportDer();
@@ -223,7 +223,7 @@ describe('crypto', function() {
                 assert.equal(pk.exportPem(), rsa1024_pem);
             });
 
-            it("import publicKey", function() {
+            it("import publicKey", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(pub_rsa1024_pem);
                 assert.isFalse(pk.isPrivate());
@@ -237,7 +237,7 @@ describe('crypto', function() {
                 assert.equal(pk1.exportPem(), pub_rsa1024_pem);
             });
 
-            it("publicKey", function() {
+            it("publicKey", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(rsa1024_pem);
                 assert.isTrue(pk.isPrivate());
@@ -248,7 +248,7 @@ describe('crypto', function() {
                 assert.equal(pk1, pub_rsa1024_pem);
             });
 
-            it("clone", function() {
+            it("clone", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(rsa1024_pem);
 
@@ -257,7 +257,7 @@ describe('crypto', function() {
                 assert.equal(pk1.exportPem(), pk.exportPem());
             });
 
-            it("gen_key", function() {
+            it("gen_key", () => {
                 var pk = new crypto.PKey();
                 var pk1 = new crypto.PKey();
                 pk.genRsaKey(512);
@@ -266,7 +266,7 @@ describe('crypto', function() {
                 assert.notEqual(pk.exportPem(), pk1.exportPem());
             });
 
-            it("encrypt/decrypt", function() {
+            it("encrypt/decrypt", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(rsa1024_pem);
 
@@ -275,12 +275,12 @@ describe('crypto', function() {
                 var d = pk1.encrypt("abcdefg");
                 assert.equal(pk.decrypt(d).toString(), "abcdefg");
 
-                assert.throws(function() {
+                assert.throws(() => {
                     pk1.decrypt(d);
                 });
             });
 
-            it("sign/verify", function() {
+            it("sign/verify", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(rsa1024_pem);
 
@@ -292,26 +292,26 @@ describe('crypto', function() {
                 assert.isTrue(pk1.verify(d, md));
                 assert.isFalse(pk1.verify(d, md1));
 
-                assert.throws(function() {
+                assert.throws(() => {
                     pk1.sign(md);
                 });
             });
         });
 
-        describe("EC", function() {
-            it("PEM import/export", function() {
+        describe("EC", () => {
+            it("PEM import/export", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(ec_pem);
                 assert.equal(pk.exportPem(), ec_pem);
             });
 
-            it("toString", function() {
+            it("toString", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(ec_pem);
                 assert.equal(pk, ec_pem);
             });
 
-            it("Der import/export", function() {
+            it("Der import/export", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(ec_pem);
                 var der = pk.exportDer();
@@ -319,7 +319,7 @@ describe('crypto', function() {
                 assert.equal(pk.exportPem(), ec_pem);
             });
 
-            it("import publicKey", function() {
+            it("import publicKey", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(pub_ec_pem);
                 assert.isFalse(pk.isPrivate());
@@ -333,7 +333,7 @@ describe('crypto', function() {
                 assert.equal(pk1.exportPem(), pub_ec_pem);
             });
 
-            it("publicKey", function() {
+            it("publicKey", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(ec_pem);
                 assert.isTrue(pk.isPrivate());
@@ -344,7 +344,7 @@ describe('crypto', function() {
                 assert.equal(pk1, pub_ec_pem);
             });
 
-            it("clone", function() {
+            it("clone", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(ec_pem);
 
@@ -353,7 +353,7 @@ describe('crypto', function() {
                 assert.equal(pk1.exportPem(), pk.exportPem());
             });
 
-            it("gen_key", function() {
+            it("gen_key", () => {
                 var pk = new crypto.PKey();
                 var pk1 = new crypto.PKey();
                 pk.genEcKey();
@@ -362,7 +362,7 @@ describe('crypto', function() {
                 assert.notEqual(pk.exportPem(), pk1.exportPem());
             });
 
-            it("sign/verify", function() {
+            it("sign/verify", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(ec_pem);
 
@@ -374,13 +374,13 @@ describe('crypto', function() {
                 assert.isTrue(pk1.verify(d, md));
                 assert.isFalse(pk1.verify(d, md1));
 
-                assert.throws(function() {
+                assert.throws(() => {
                     pk1.sign(md);
                 });
             });
         });
 
-        it("name", function() {
+        it("name", () => {
             var pk = new crypto.PKey();
 
             assert.equal(pk.name, "invalid PK");
@@ -392,7 +392,7 @@ describe('crypto', function() {
             assert.equal(pk.name, "EC");
         });
 
-        it("keySize", function() {
+        it("keySize", () => {
             var pk = new crypto.PKey();
 
             assert.equal(pk.keySize, 0);
@@ -406,23 +406,23 @@ describe('crypto', function() {
 
     });
 
-    describe("X509 Cert", function() {
+    describe("X509 Cert", () => {
         var cert = new crypto.X509Cert();
 
-        it("load", function() {
+        it("load", () => {
             var fl = fs.readdir('cert_files/');
-            fl.forEach(function(s) {
+            fl.forEach((s) => {
                 if (s.match(/\.crt/))
                     cert.load(fs.readTextFile('cert_files/' + s));
             });
         });
 
-        it("clear/export", function() {
+        it("clear/export", () => {
             var s = cert.dump();
             cert.clear();
             assert.deepEqual(cert.dump(), []);
 
-            s.forEach(function(c) {
+            s.forEach((c) => {
                 cert.load(c);
             });
 
@@ -434,13 +434,13 @@ describe('crypto', function() {
             assert.deepEqual(cert.dump(), s);
         });
 
-        it("load file", function() {
+        it("load file", () => {
             var s = cert.dump();
             cert.clear();
             assert.deepEqual(cert.dump(), []);
 
             var fl = fs.readdir('cert_files/');
-            fl.forEach(function(s) {
+            fl.forEach((s) => {
                 if (s.match(/\.crt/))
                     cert.loadFile('cert_files/' + s);
             });
@@ -448,7 +448,7 @@ describe('crypto', function() {
             assert.deepEqual(cert.dump(), s);
         });
 
-        it("certdata.txt", function() {
+        it("certdata.txt", () => {
             cert.clear();
             assert.deepEqual(cert.dump(), []);
 
@@ -465,7 +465,7 @@ describe('crypto', function() {
             assert.deepEqual(s.slice(s.length - s1.length), s1);
         });
 
-        it("root ca", function() {
+        it("root ca", () => {
             cert.clear();
             assert.deepEqual(cert.dump(), []);
 
@@ -481,7 +481,7 @@ describe('crypto', function() {
             assert.deepEqual(s, s1.slice(s1.length - s.length));
         });
 
-        it("load root ca times", function() {
+        it("load root ca times", () => {
             function count(ca) {
                 var cnt = 1;
                 var ca1;
@@ -510,13 +510,13 @@ describe('crypto', function() {
             assert.equal(cnt1, count(cert));
         });
 
-        it("unknown format", function() {
-            assert.throws(function() {
+        it("unknown format", () => {
+            assert.throws(() => {
                 cert.load('cert_files/certdata.txt');
             });
         });
 
-        it("info", function() {
+        it("info", () => {
             cert.clear();
             assert.deepEqual(cert.dump(), []);
 
@@ -548,24 +548,24 @@ describe('crypto', function() {
         });
     });
 
-    describe("X509 Crl", function() {
+    describe("X509 Crl", () => {
         var crl = new crypto.X509Crl();
 
-        it("load", function() {
+        it("load", () => {
             var fl = fs.readdir('crl_files/');
-            fl.forEach(function(s) {
+            fl.forEach((s) => {
                 if (s.match(/\.pem/))
                     crl.load(fs.readTextFile('crl_files/' + s));
             });
         });
 
-        it("clear/export", function() {
+        it("clear/export", () => {
             var s = crl.dump();
 
             crl.clear();
             assert.deepEqual(crl.dump(), []);
 
-            s.forEach(function(c) {
+            s.forEach((c) => {
                 crl.load(c);
             });
 
@@ -577,12 +577,12 @@ describe('crypto', function() {
             assert.deepEqual(crl.dump(), s);
         });
 
-        it("load x509 crl file", function() {
+        it("load x509 crl file", () => {
             var s = crl.dump();
             crl.clear();
 
             var fl = fs.readdir('crl_files/');
-            fl.forEach(function(s) {
+            fl.forEach((s) => {
                 if (s.match(/\.pem/))
                     crl.loadFile('crl_files/' + s);
             });
@@ -592,22 +592,22 @@ describe('crypto', function() {
 
     });
 
-    describe("X509 Req", function() {
+    describe("X509 Req", () => {
         var req = new crypto.X509Req();
 
-        it("load", function() {
+        it("load", () => {
             var fl = fs.readdir('req_files/');
-            fl.forEach(function(s) {
+            fl.forEach((s) => {
                 if (s.match(/\.req/))
                     req.load(fs.readTextFile('req_files/' + s));
             });
         });
 
-        it("toString", function() {
+        it("toString", () => {
             assert.equal(req.exportPem(), req);
         });
 
-        it("import/export pem", function() {
+        it("import/export pem", () => {
             var s = req.exportPem();
 
             var req1 = new crypto.X509Req();
@@ -616,7 +616,7 @@ describe('crypto', function() {
             assert.equal(req1.exportPem(), s);
         });
 
-        it("import/export der", function() {
+        it("import/export der", () => {
             var s = req.exportDer();
 
             var req1 = new crypto.X509Req();
@@ -625,7 +625,7 @@ describe('crypto', function() {
             assert.deepEqual(req1.exportDer().toJSON(), s.toJSON());
         });
 
-        it("create", function() {
+        it("create", () => {
             var pk = new crypto.PKey();
             pk.importKey(rsa1024_pem);
 
@@ -634,25 +634,25 @@ describe('crypto', function() {
             assert.deepEqual(req.exportPem(), req1);
         })
 
-        it("info", function() {
+        it("info", () => {
             req.load(req1);
             assert.equal(req.subject, "C=CN, O=baoz.cn, CN=baoz.me");
             assert.equal(req.publicKey, pub_rsa1024_pem);
         });
     });
 
-    describe("CA sign/verify", function() {
+    describe("CA sign/verify", () => {
         var req;
         var ca;
         var pk;
 
-        before(function() {
+        before(() => {
             pk = new crypto.PKey();
             pk.importKey(rsa1024_pem);
             req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk);
         });
 
-        it("sign", function() {
+        it("sign", () => {
             var cert = req.sign("C=CN, O=baoz.cn", pk);
             assert.equal(cert.issuer, "C=CN, O=baoz.cn");
             assert.equal(cert.subject, "C=CN, O=baoz.cn, CN=baoz.me");
@@ -660,7 +660,7 @@ describe('crypto', function() {
             assert.equal(cert.serial, "1");
         });
 
-        it("ca/pathlen", function() {
+        it("ca/pathlen", () => {
             var cert = req.sign("C=CN, O=baoz.cn", pk);
             assert.isFalse(cert.ca);
             assert.equal(cert.pathlen, 0);
@@ -673,7 +673,7 @@ describe('crypto', function() {
             assert.equal(cert.pathlen, 11);
         });
 
-        it("before/after", function() {
+        it("before/after", () => {
             var cert = req.sign("C=CN, O=baoz.cn", pk);
             assert.deepEqual(os.dateAdd(cert.notBefore, 1, "year"), cert.notAfter);
 
@@ -691,7 +691,7 @@ describe('crypto', function() {
             assert.deepEqual(cert.notAfter, new Date("2018-12-20 20:20:20"));
         });
 
-        it("usage/type", function() {
+        it("usage/type", () => {
             var cert = req.sign("C=CN, O=baoz.cn", pk);
             assert.equal(cert.usage, "");
             assert.equal(cert.type, "");
@@ -711,20 +711,20 @@ describe('crypto', function() {
             assert.equal(cert.type, "client, server, email, objsign, reserved, sslCA, emailCA, objCA");
         });
 
-        it("self-sign", function() {
+        it("self-sign", () => {
             req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk);
             ca = req.sign("C=CN, O=baoz.cn, CN=baoz.me", pk, {
                 ca: true
             });
         });
 
-        it("verify", function() {
+        it("verify", () => {
             assert.isTrue(ca.verify(ca));
             assert.isFalse(ca.verify(req.sign("C=CN, O=baoz.cn", pk)));
         });
     });
 
-    it('pbkdf2', function() {
+    it('pbkdf2', () => {
         var tests = [
             [hash.SHA1, 'password', 'salt', 1, 20,
                 encoding.hex.decode('c88e9c67041a74e0357befdff93f87dde0904214')
@@ -747,12 +747,12 @@ describe('crypto', function() {
             ]
         ];
 
-        tests.forEach(function(t) {
+        tests.forEach((t) => {
             assert.deepEqual(crypto.pbkdf1(t[0], t[1], t[2], t[3], t[4]), t[5]);
         });
     });
 
-    it('pbkdf2', function() {
+    it('pbkdf2', () => {
         var tests = [
             ["password", "salt", 1, 20,
                 new Buffer([
@@ -785,7 +785,7 @@ describe('crypto', function() {
             ]
         ];
 
-        tests.forEach(function(t) {
+        tests.forEach((t) => {
             assert.deepEqual(crypto.pbkdf2(hash.SHA1, t[0], t[1], t[2], t[3]), t[4]);
         });
     });

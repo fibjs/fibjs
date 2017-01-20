@@ -1,13 +1,11 @@
-exports.foo = function () {
+exports.foo = () => {
     return 1;
 };
 
-exports.arg_count = function()
-{
-	return arguments.length;
+exports.arg_count = function() {
+    return arguments.length;
 }
 
-exports.arg_obj = function(o)
-{
-	return o;
+exports.arg_obj = (o) => {
+    return o;
 }

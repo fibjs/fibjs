@@ -1,3 +1,3 @@
-exports.func = function() {
-	return new Error().stack;
+exports.func = () => {
+    return new Error().stack;
 };

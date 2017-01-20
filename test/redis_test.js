@@ -24,15 +24,15 @@ function listEquals(list, arr) {
     assert.deepEqual(arr1, arr);
 }
 
-describe("redis", function() {
-    before(function() {
+describe("redis", () => {
+    before(() => {
         var keys = rdb.command("keys", "*").toArray();
         if (keys.length)
             rdb.del(keys);
     });
 
-    describe("base", function() {
-        it("command", function() {
+    describe("base", () => {
+        it("command", () => {
             rdb.command("set", "test", "aaa");
             rdb.command("set", "test1", "aaa");
             assert.equal(rdb.command("get", "test"), "aaa");
@@ -44,28 +44,28 @@ describe("redis", function() {
             listEquals(rdb.command("scan", "0")[1].toArray().sort(), ["test", "test1"]);
         });
 
-        it("exists", function() {
+        it("exists", () => {
             assert.isTrue(rdb.exists("test"));
             assert.isFalse(rdb.exists("test2"));
         });
 
-        it("type", function() {
+        it("type", () => {
             assert.equal(rdb.type("test"), "string");
             assert.equal(rdb.type("test2"), "none");
         });
 
-        it("get", function() {
+        it("get", () => {
             assert.equal(rdb.get("test"), "aaa");
             assert.isNull(rdb.get("test2"));
         });
 
-        it("mget", function() {
+        it("mget", () => {
             listEquals(rdb.mget("test", "test1").toArray(), ["aaa", "aaa"]);
             listEquals(rdb.mget(["test", "test1"]).toArray(), ["aaa", "aaa"]);
             listEquals(rdb.mget("test", "test2").toArray(), ["aaa", null]);
         });
 
-        it("set", function() {
+        it("set", () => {
             rdb.set("test", "aaa1")
             assert.equal(rdb.get("test"), "aaa1");
 
@@ -75,7 +75,7 @@ describe("redis", function() {
             assert.isFalse(rdb.exists("test2"));
         });
 
-        it("mset", function() {
+        it("mset", () => {
             rdb.mset("test", "bbb", "test1", "bbb1");
             listEquals(rdb.mget("test", "test1").toArray(), ["bbb", "bbb1"]);
 
@@ -86,49 +86,49 @@ describe("redis", function() {
             listEquals(rdb.mget("test", "test1").toArray(), ["bbb1", "bbb2"]);
         });
 
-        it("msetNX", function() {
+        it("msetNX", () => {
             rdb.msetNX("test", "bbb", "test2", "bbb1");
             listEquals(rdb.mget("test", "test1", "test2").toArray(), ["bbb1", "bbb2", null]);
         });
 
-        it("setNX", function() {
+        it("setNX", () => {
             rdb.set("test", "aaa1")
             rdb.setNX("test", "aaa3")
             assert.equal(rdb.get("test"), "aaa1");
         });
 
-        it("setXX", function() {
+        it("setXX", () => {
             rdb.set("test", "aaa1")
             rdb.setXX("test", "aaa3")
             assert.equal(rdb.get("test"), "aaa3");
         });
 
-        it("decr", function() {
+        it("decr", () => {
             rdb.set("test", "100");
             assert.equal(rdb.decr("test"), 99);
             assert.equal(rdb.decr("test", 9), 90);
         });
 
-        it("incr", function() {
+        it("incr", () => {
             rdb.set("test", "100");
             assert.equal(rdb.incr("test"), 101);
             assert.equal(rdb.incr("test", 9), 110);
         });
 
-        it("setBit/getBit", function() {
+        it("setBit/getBit", () => {
             rdb.set("test", "aaa");
             assert.equal(rdb.getBit("test", 5), 0);
             assert.equal(rdb.setBit("test", 5, 1), 0);
             assert.equal(rdb.getBit("test", 5), 1);
         });
 
-        it("getset", function() {
+        it("getset", () => {
             rdb.set("test", "aaa");
             assert.equal(rdb.getset("test", "bbb"), "aaa");
             assert.equal(rdb.get("test"), "bbb");
         });
 
-        it("append", function() {
+        it("append", () => {
             rdb.set("test", "aaa1")
             assert.equal(rdb.append("test", "aaa2"), 8);
             assert.equal(rdb.get("test"), "aaa1aaa2");
@@ -137,19 +137,19 @@ describe("redis", function() {
             assert.equal(rdb.get("test2"), "aaa2");
         });
 
-        it("strlen", function() {
+        it("strlen", () => {
             rdb.set("test", "aaa1");
             assert.equal(rdb.strlen("test"), 4);
             assert.equal(rdb.strlen("test3"), 0);
         });
 
-        it("setRange", function() {
+        it("setRange", () => {
             rdb.set("test", "hello world");
             rdb.setRange("test", 6, "Redis");
             assert.equal(rdb.get("test"), "hello Redis");
         });
 
-        it("getRange", function() {
+        it("getRange", () => {
             rdb.set("test", "hello, my friend");
             assert.equal(rdb.getRange("test", 0, 4), "hello");
             assert.equal(rdb.getRange("test", -1, -5), "");
@@ -157,7 +157,7 @@ describe("redis", function() {
             assert.equal(rdb.getRange("test", 0, -1), "hello, my friend");
         });
 
-        it("bitcount", function() {
+        it("bitcount", () => {
             rdb.set("test2", "foobar");
             assert.equal(rdb.bitcount("test2"), 26);
             assert.equal(rdb.bitcount("test2", 0, 0), 4);
@@ -165,7 +165,7 @@ describe("redis", function() {
             assert.equal(rdb.bitcount("test3"), 0);
         });
 
-        it("expire/ttl", function() {
+        it("expire/ttl", () => {
             rdb.set("test2", "aaa2")
             assert.equal(rdb.ttl("test2"), -1);
             assert.equal(rdb.ttl("test3"), -2);
@@ -179,7 +179,7 @@ describe("redis", function() {
             assert.isFalse(rdb.exists("test2"));
         });
 
-        it("persist", function() {
+        it("persist", () => {
             rdb.set("test", "aaa2", 100);
             assert.greaterThan(rdb.ttl("test"), 0);
             assert.isTrue(rdb.persist("test"));
@@ -188,7 +188,7 @@ describe("redis", function() {
             assert.isFalse(rdb.persist("test3"));
         });
 
-        it("rename", function() {
+        it("rename", () => {
             rdb.set("test", "aaa222");
 
             assert.isTrue(rdb.exists("test"));
@@ -205,7 +205,7 @@ describe("redis", function() {
             rdb.set("test", "aaa");
         });
 
-        it("renameNX", function() {
+        it("renameNX", () => {
             assert.isTrue(rdb.exists("test"));
             assert.isFalse(rdb.exists("test2"));
 
@@ -222,11 +222,11 @@ describe("redis", function() {
             rdb.renameNX("test2", "test");
         });
 
-        it("keys", function() {
+        it("keys", () => {
             listEquals(rdb.keys("*").toArray().sort(), ["test", "test1"]);
         });
 
-        it("del", function() {
+        it("del", () => {
             listEquals(rdb.command("keys", "*").toArray().sort(), ["test", "test1"]);
             assert.equal(rdb.del("test", "test1"), 2);
             listEquals(rdb.command("keys", "*").toArray(), []);
@@ -241,21 +241,21 @@ describe("redis", function() {
             assert.equal(rdb.del(["test", "test1"]), 0);
         });
 
-        it("dump", function() {
+        it("dump", () => {
             rdb.set("greeting", "hello, dumping world!");
             assert.equal(rdb.dump("greeting").hex(), "001568656c6c6f2c2064756d70696e6720776f726c642107002c7fe7f125ed2857");
             assert.isNull(rdb.dump("greeting1"));
             rdb.del("greeting");
         });
 
-        it("restore", function() {
+        it("restore", () => {
             rdb.restore("greeting", encoding.hex.decode("001568656c6c6f2c2064756d70696e6720776f726c642107002c7fe7f125ed2857"));
             assert.equal(rdb.command("get", "greeting"), "hello, dumping world!");
         });
     });
 
-    describe("Hash", function() {
-        it("set/get", function() {
+    describe("Hash", () => {
+        it("set/get", () => {
             var hash = rdb.getHash("testHash");
 
             hash.set("test", "hash aaaa");
@@ -263,32 +263,32 @@ describe("redis", function() {
             assert.isNull(hash.get("test1"));
         });
 
-        it("exists", function() {
+        it("exists", () => {
             var hash = rdb.getHash("testHash");
 
             assert.isTrue(hash.exists("test"));
             assert.isFalse(hash.exists("test1"));
         });
 
-        it("len", function() {
+        it("len", () => {
             var hash = rdb.getHash("testHash");
 
             assert.equal(hash.len(), 1);
         });
 
-        it("keys", function() {
+        it("keys", () => {
             var hash = rdb.getHash("testHash");
 
             listEquals(hash.keys().toArray(), ["test"]);
         });
 
-        it("getAll", function() {
+        it("getAll", () => {
             var hash = rdb.getHash("testHash");
 
             listEquals(hash.getAll().toArray(), ["test", "hash aaaa"]);
         });
 
-        it("setNX", function() {
+        it("setNX", () => {
             var hash = rdb.getHash("testHash");
 
             hash.setNX("test", "hash1");
@@ -297,7 +297,7 @@ describe("redis", function() {
             assert.equal(hash.get("test new"), "hash1");
         });
 
-        it("mset/mget", function() {
+        it("mset/mget", () => {
             var hash = rdb.getHash("testHash");
 
             hash.mset("test1", "bbb1", "test2", "bbb2");
@@ -310,7 +310,7 @@ describe("redis", function() {
             listEquals(hash.mget(["test1", "test2"]).toArray(), ["bbb1", "bbb2"]);
         });
 
-        it("incr", function() {
+        it("incr", () => {
             var hash = rdb.getHash("testHash");
 
             assert.equal(hash.incr("pv"), 1);
@@ -318,7 +318,7 @@ describe("redis", function() {
             assert.equal(hash.incr("pv"), 102);
         });
 
-        it("del", function() {
+        it("del", () => {
             var hash = rdb.getHash("testHash");
 
             assert.equal(hash.del("test1", "test2", "test001"), 2);
@@ -330,19 +330,19 @@ describe("redis", function() {
         });
     });
 
-    describe("List", function() {
-        it("push", function() {
+    describe("List", () => {
+        it("push", () => {
             var list = rdb.getList("testList");
             assert.equal(list.push("a0", "a1", "a2"), 3);
             assert.equal(list.push(["a4", "a5", "a6"]), 6);
         });
 
-        it("pop", function() {
+        it("pop", () => {
             var list = rdb.getList("testList");
             assert.equal(list.pop(), "a6");
         });
 
-        it("set/get", function() {
+        it("set/get", () => {
             var list = rdb.getList("testList");
 
             list.set(0, "hash aaaa");
@@ -350,17 +350,17 @@ describe("redis", function() {
             assert.isNull(list.get(9));
         });
 
-        it("len", function() {
+        it("len", () => {
             var list = rdb.getList("testList");
             assert.equal(list.len(), 5);
         });
 
-        it("range", function() {
+        it("range", () => {
             var list = rdb.getList("testList");
             listEquals(list.range(0, 4).toArray(), ["hash aaaa", "a4", "a2", "a1", "a0"]);
         });
 
-        it("insert", function() {
+        it("insert", () => {
             var list = rdb.getList("testList");
 
             assert.equal(list.insertBefore("a4", "a3"), 6);
@@ -370,48 +370,48 @@ describe("redis", function() {
             listEquals(list.range(0, 4).toArray(), ["hash aaaa", "a3", "a4", "a9", "a2"]);
         });
 
-        it("remove", function() {
+        it("remove", () => {
             var list = rdb.getList("testList");
 
             assert.equal(list.remove(1, "a4"), 1);
             listEquals(list.range(0, 4).toArray(), ["hash aaaa", "a3", "a9", "a2", "a1"]);
         });
 
-        it("trim", function() {
+        it("trim", () => {
             var list = rdb.getList("testList");
 
             list.trim(1, 3);
             listEquals(list.range(0, 2).toArray(), ["a3", "a9", "a2"]);
         });
 
-        it("rpush", function() {
+        it("rpush", () => {
             var list = rdb.getList("testList");
             assert.equal(list.rpush("a0", "a1", "a2"), 6);
             assert.equal(list.rpush("a4", "a5", "a6"), 9);
         });
 
-        it("rpop", function() {
+        it("rpop", () => {
             var list = rdb.getList("testList");
             assert.equal(list.rpop(), "a6");
         });
     });
 
-    describe("Set", function() {
-        it("add", function() {
+    describe("Set", () => {
+        it("add", () => {
             var set = rdb.getSet("testSet");
 
             assert.equal(set.add("a0", "a1", "a2"), 3);
             assert.equal(set.add(["a4", "a5", "a6"]), 3);
         });
 
-        it("exists", function() {
+        it("exists", () => {
             var set = rdb.getSet("testSet");
 
             assert.isTrue(set.exists("a1"));
             assert.isFalse(set.exists("a10"));
         });
 
-        it("remove", function() {
+        it("remove", () => {
             var set = rdb.getSet("testSet");
 
             assert.isTrue(set.exists("a1"));
@@ -424,26 +424,26 @@ describe("redis", function() {
             assert.isFalse(set.exists("a1"));
         });
 
-        it("len", function() {
+        it("len", () => {
             var set = rdb.getSet("testSet");
 
             assert.equal(set.len(), 2);
         });
 
-        it("members", function() {
+        it("members", () => {
             var set = rdb.getSet("testSet");
 
             listEquals(set.members().toArray().sort(), ["a0", "a6"]);
         });
 
-        it("pop", function() {
+        it("pop", () => {
             var set = rdb.getSet("testSet");
 
             var m = set.pop();
             assert.ok(m.toString() === "a6" || m.toString() === "a0");
         });
 
-        it("randMember", function() {
+        it("randMember", () => {
             var set = rdb.getSet("testSet");
 
             var m = set.randMember();
@@ -455,8 +455,8 @@ describe("redis", function() {
         });
     });
 
-    describe("SortedSet", function() {
-        it("add", function() {
+    describe("SortedSet", () => {
+        it("add", () => {
             var zset = rdb.getSortedSet("testSortedSet");
 
             assert.equal(zset.add("a0", 1, "a1", 2, "a2", 3), 3);
@@ -467,39 +467,39 @@ describe("redis", function() {
             }), 3);
         });
 
-        it("len", function() {
+        it("len", () => {
             var zset = rdb.getSortedSet("testSortedSet");
             assert.equal(zset.len(), 6);
         });
 
-        it("count", function() {
+        it("count", () => {
             var zset = rdb.getSortedSet("testSortedSet");
             assert.equal(zset.count(2, 5), 4);
         });
 
-        it("range", function() {
+        it("range", () => {
             var zset = rdb.getSortedSet("testSortedSet");
             listEquals(zset.range(2, 5).toArray(), ["a2", "a4", "a5", "a6"]);
             listEquals(zset.range(2, 5, true).toArray(), ["a2", "3", "a4", "4", "a5", "5", "a6", "6"]);
         });
 
-        it("rangeRev", function() {
+        it("rangeRev", () => {
             var zset = rdb.getSortedSet("testSortedSet");
             listEquals(zset.rangeRev(2, 5).toArray(), ["a4", "a2", "a1", "a0"]);
             listEquals(zset.rangeRev(2, 5, true).toArray(), ["a4", "4", "a2", "3", "a1", "2", "a0", "1"]);
         });
 
-        it("rank", function() {
+        it("rank", () => {
             var zset = rdb.getSortedSet("testSortedSet");
             assert.equal(zset.rank("a4"), 3);
         });
 
-        it("rankRev", function() {
+        it("rankRev", () => {
             var zset = rdb.getSortedSet("testSortedSet");
             assert.equal(zset.rankRev("a4"), 2);
         });
 
-        it("remove", function() {
+        it("remove", () => {
             var zset = rdb.getSortedSet("testSortedSet");
 
             assert.equal(zset.remove("a1", "a2"), 2);
@@ -509,18 +509,18 @@ describe("redis", function() {
             assert.equal(zset.len(), 3);
         });
 
-        it("incr", function() {
+        it("incr", () => {
             var zset = rdb.getSortedSet("testSortedSet");
             assert.equal(zset.incr("a5", 2), "7");
         });
 
-        it("score", function() {
+        it("score", () => {
             var zset = rdb.getSortedSet("testSortedSet");
             assert.equal(zset.score("a5"), "7");
         });
     });
 
-    describe("PubSub", function() {
+    describe("PubSub", () => {
         var c, m, p,
             n1 = 0,
             n2 = 0;
@@ -541,18 +541,18 @@ describe("redis", function() {
 
         var rdb1;
 
-        before(function() {
+        before(() => {
             rdb1 = db.open(dbs);
         });
 
-        it("pub", function() {
+        it("pub", () => {
             rdb.pub("test.channel", "test value");
         });
 
-        it("sub", function() {
+        it("sub", () => {
             rdb.sub("test.ch1", subf1);
 
-            assert.throws(function() {
+            assert.throws(() => {
                 rdb.pub("test.ch1", "test value");
             });
 
@@ -571,7 +571,7 @@ describe("redis", function() {
             assert.equal(n1, 2);
         });
 
-        it("sub multi", function() {
+        it("sub multi", () => {
             n1 = 0;
             rdb.sub({
                 "test.ch1": subf1,
@@ -599,7 +599,7 @@ describe("redis", function() {
             assert.equal(n1, 2);
         });
 
-        it("unsub", function() {
+        it("unsub", () => {
             n1 = 0;
             rdb.unsub("test.ch1");
             rdb1.pub("test.ch1", "test value 4");
@@ -618,7 +618,7 @@ describe("redis", function() {
             assert.equal(n1, 0);
         });
 
-        it("psub", function() {
+        it("psub", () => {
             n1 = 0;
             rdb.psub("test.*", subf1);
 
@@ -631,7 +631,7 @@ describe("redis", function() {
             assert.equal(n1, 1);
         });
 
-        it("unpsub", function() {
+        it("unpsub", () => {
             n1 = 0;
             rdb.unpsub("test.*");
             rdb1.pub("test.ch200", "test value 200");
@@ -643,7 +643,7 @@ describe("redis", function() {
             assert.equal(n1, 0);
         });
 
-        it("onsuberror", function() {
+        it("onsuberror", () => {
             var err_num = 0;
 
             function my_err() {
@@ -651,7 +651,7 @@ describe("redis", function() {
             }
 
             rdb1.onsuberror(my_err);
-            assert.throws(function() {
+            assert.throws(() => {
                 rdb1.command("xxxxx");
             });
             coroutine.sleep(100);
@@ -663,7 +663,7 @@ describe("redis", function() {
             assert.equal(err_num, 1);
         });
 
-        it("Memory Leak detect", function() {
+        it("Memory Leak detect", () => {
             rdb = undefined;
             GC();
             var no1 = os.memoryUsage().nativeObjects.objects;

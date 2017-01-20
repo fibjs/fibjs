@@ -7,13 +7,13 @@ var coroutine = require('coroutine');
 
 var vmid = coroutine.vmid;
 
-describe("db", function() {
-    it("escape", function() {
+describe("db", () => {
+    it("escape", () => {
         assert.equal('123456\\r\\n\'\'\\\"\\\x1acccds', db.escape(
             '123456\r\n\'\"\x1acccds', true));
     });
 
-    it("formatMySQL", function() {
+    it("formatMySQL", () => {
         assert.equal(db.formatMySQL("test?, ?, ?, ?", 123, 'ds\r\na',
                 new Date('1998-4-14 12:12:12')),
             "test123, 'ds\\r\\na', '1998-04-14 12:12:12', ''");
@@ -25,45 +25,45 @@ describe("db", function() {
     function _test(conn_str) {
         var conn;
 
-        before(function() {
+        before(() => {
             conn = db.open(conn_str);
             try {
                 conn.execute('drop table test;');
             } catch (e) {}
         });
 
-        after(function() {
+        after(() => {
             try {
                 conn.execute('drop table test;');
                 conn.close();
             } catch (e) {}
         });
 
-        it("empty sql", function() {
-            assert.throws(function() {
+        it("empty sql", () => {
+            assert.throws(() => {
                 conn.execute("  ");
             })
         });
 
-        it("escape", function() {
+        it("escape", () => {
             var rs = conn.execute("select ? as t;", '123456\r\n\'\"\x1acccds');
             assert.equal(rs[0].t, '123456\r\n\'\"\x1acccds');
         });
 
-        it("create table", function() {
+        it("create table", () => {
             if (conn.type == 'mssql')
                 conn.execute('create table test(t1 int, t2 varchar(128), t3 VARBINARY(100), t4 datetime);');
             else
                 conn.execute('create table test(t1 int, t2 varchar(128), t3 BLOB, t4 datetime);');
         });
 
-        it("insert", function() {
+        it("insert", () => {
             conn.execute("insert into test values(?,?,?,?);", 1123,
                 'aaaaa', new Buffer('DDDDDDDDDD'), new Date(
                     '1998-04-14 12:12:12'));
         });
 
-        it("select", function() {
+        it("select", () => {
             var rs = conn.execute('select * from test;');
             var r = rs[0];
 
@@ -98,12 +98,12 @@ describe("db", function() {
             ]);
         });
 
-        it("update/affected", function() {
+        it("update/affected", () => {
             var rs = conn.execute("update test set t2='test101.1' where t1=1123");
             assert.equal(rs.affected, 1);
         });
 
-        it("binary", function() {
+        it("binary", () => {
             var b = new Buffer();
             b.resize(1);
 
@@ -118,15 +118,15 @@ describe("db", function() {
             }
         });
 
-        describe("trans", function() {
-            before(function() {
+        describe("trans", () => {
+            before(() => {
                 try {
                     var b = new Buffer();
                     conn.execute("insert into test values(?,?,?,?);", 101, 'test101', b, new Date());
                 } catch (e) {}
             });
 
-            it("begin/commit", function() {
+            it("begin/commit", () => {
                 conn.begin();
                 conn.execute("update test set t2='test101.1' where t1=101");
                 conn.commit();
@@ -135,7 +135,7 @@ describe("db", function() {
                 assert.equal(rs[0].t2, "test101.1");
             });
 
-            it("begin/rollback", function() {
+            it("begin/rollback", () => {
                 conn.begin();
                 conn.execute("update test set t2='test101.1' where t1=101");
                 conn.rollback();
@@ -145,9 +145,9 @@ describe("db", function() {
             });
         });
 
-        it("execute bug", function() {
+        it("execute bug", () => {
             var a = 0;
-            coroutine.start(function() {
+            coroutine.start(() => {
                 a = 1;
             })
             for (var i = 0; i < 1000 && a == 0; i++)
@@ -156,14 +156,14 @@ describe("db", function() {
         });
     }
 
-    describe("sqlite", function() {
+    describe("sqlite", () => {
         var conn_str = 'sqlite:test.db' + vmid;
-        after(function() {
+        after(() => {
             fs.unlink("test.db" + vmid);
         });
         _test(conn_str);
 
-        it("check synchronous mode", function() {
+        it("check synchronous mode", () => {
             var conn = db.open(conn_str);
             var synchronous = conn.execute("PRAGMA synchronous;")[0].synchronous;
             conn.close();
@@ -171,7 +171,7 @@ describe("db", function() {
             assert.equal(synchronous, 1);
         });
 
-        it("check journal mode", function() {
+        it("check journal mode", () => {
             var conn = db.open(conn_str);
             var journal_mode = conn.execute("PRAGMA journal_mode;")[0].journal_mode;
             conn.close();
@@ -180,22 +180,22 @@ describe("db", function() {
     });
 
     if (global.full_test) {
-        describe("mysql", function() {
+        describe("mysql", () => {
             _test('mysql://root@localhost/test');
         });
 
         if (process.platform == 'win32')
-            describe("mssql", function() {
+            describe("mssql", () => {
                 _test('mssql://sa@localhost/test');
             });
     }
 
-    describe("leveldb", function() {
+    describe("leveldb", () => {
         after(clear_db);
 
         function clear_db() {
             try {
-                fs.readdir("testdb" + vmid).forEach(function(s) {
+                fs.readdir("testdb" + vmid).forEach((s) => {
                     fs.unlink("testdb" + vmid + "/" + s);
                 });
 
@@ -203,13 +203,13 @@ describe("db", function() {
             } catch (e) {};
         }
 
-        it('open/close', function() {
+        it('open/close', () => {
             var ldb = db.openLevelDB("testdb" + vmid);
             ldb.close();
             clear_db();
         });
 
-        it('set/get', function() {
+        it('set/get', () => {
             var b = "bbbbb";
             var ldb = db.openLevelDB("testdb" + vmid);
             ldb.set("test", b);
@@ -218,7 +218,7 @@ describe("db", function() {
             clear_db();
         });
 
-        it('binary Key', function() {
+        it('binary Key', () => {
             var b = "bbbbb1";
             var ldb = db.openLevelDB("testdb" + vmid);
             ldb.set("test1", b);
@@ -227,7 +227,7 @@ describe("db", function() {
             clear_db();
         });
 
-        it('multi set/get', function() {
+        it('multi set/get', () => {
             var data = {
                 "aaa": "aaa value",
                 "bbb": "bbb value",
@@ -250,7 +250,7 @@ describe("db", function() {
             clear_db();
         });
 
-        it('remove/has', function() {
+        it('remove/has', () => {
             var b = "bbbbb";
             var ldb = db.openLevelDB("testdb" + vmid);
             assert.isNull(ldb.get("not_exists"));
@@ -268,7 +268,7 @@ describe("db", function() {
             clear_db();
         });
 
-        it('batch remove', function() {
+        it('batch remove', () => {
             var data = {
                 "aaa": "aaa value",
                 "bbb": "bbb value",
@@ -290,7 +290,7 @@ describe("db", function() {
             clear_db();
         });
 
-        it('begin/commit', function() {
+        it('begin/commit', () => {
             var b = "bbbbb";
             var c = "ccccc";
             var ldb = db.openLevelDB("testdb" + vmid);
@@ -311,7 +311,7 @@ describe("db", function() {
             clear_db();
         });
 
-        it('begin/close', function() {
+        it('begin/close', () => {
             var b = "bbbbb";
             var c = "ccccc";
             var ldb = db.openLevelDB("testdb" + vmid);
@@ -332,7 +332,7 @@ describe("db", function() {
             clear_db();
         });
 
-        it('forEach', function() {
+        it('forEach', () => {
             var data = {
                 "ccc": "ccc value",
                 "aaa": "aaa value",
@@ -343,7 +343,7 @@ describe("db", function() {
             var ldb = db.openLevelDB("testdb" + vmid);
 
             var count = 0;
-            ldb.forEach(function(v, k) {
+            ldb.forEach((v, k) => {
                 count++;
             });
             assert.equal(count, 0);
@@ -351,7 +351,7 @@ describe("db", function() {
             ldb.mset(data);
 
             count = 0;
-            ldb.forEach(function(v, k) {
+            ldb.forEach((v, k) => {
                 assert.equal(data[k], v.toString());
                 delete data[k];
                 count++;
@@ -362,7 +362,7 @@ describe("db", function() {
             clear_db();
         });
 
-        it('between', function() {
+        it('between', () => {
             var data = {
                 "ccc": "ccc value",
                 "aaa": "aaa value",
@@ -379,7 +379,7 @@ describe("db", function() {
             ldb.mset(data);
 
             var count = 0;
-            ldb.between("bbb", "ddd", function(v, k) {
+            ldb.between("bbb", "ddd", (v, k) => {
                 assert.equal(data1[k], v.toString());
                 delete data1[k];
                 count++;
@@ -390,7 +390,7 @@ describe("db", function() {
             clear_db();
         });
 
-        it('break', function() {
+        it('break', () => {
             var data = {
                 "ccc": "ccc value",
                 "aaa": "aaa value",
@@ -407,7 +407,7 @@ describe("db", function() {
             ldb.mset(data);
 
             var count = 0;
-            ldb.forEach(function(v, k) {
+            ldb.forEach((v, k) => {
                 assert.equal(data1[k], v.toString());
                 delete data1[k];
                 count++;

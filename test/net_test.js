@@ -35,20 +35,20 @@ function del(f) {
     } catch (e) {}
 }
 
-describe("net", function() {
-    it("backend", function() {
+describe("net", () => {
+    it("backend", () => {
         assert.equal(net.backend(), backend);
     });
 
     var ss = [];
 
-    after(function() {
-        ss.forEach(function(s) {
+    after(() => {
+        ss.forEach((s) => {
             s.close();
         });
     });
 
-    it("echo", function() {
+    it("echo", () => {
         function connect(c) {
             console.log(c.remoteAddress, c.remotePort, "->",
                 c.localAddress, c.localPort);
@@ -112,7 +112,7 @@ describe("net", function() {
         conn_url();
     });
 
-    it("copyTo", function() {
+    it("copyTo", () => {
         var str = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
 
         for (var i = 0; i < 8; i++)
@@ -163,7 +163,7 @@ describe("net", function() {
         del('net_temp_000002' + base_port);
     });
 
-    it("read & recv", function() {
+    it("read & recv", () => {
         function accept2(s) {
             while (true) {
                 var c = s.accept();
@@ -198,9 +198,9 @@ describe("net", function() {
         assert.equal('d', c1.read(3));
     });
 
-    describe("udp", function() {
-        it("sendto/recvfrom", function() {
-            setTimeout(function() {
+    describe("udp", () => {
+        it("sendto/recvfrom", () => {
+            setTimeout(() => {
                 var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
                 c.sendto("aaa", "127.0.0.1", 8888);
             }, 100);
@@ -212,9 +212,9 @@ describe("net", function() {
             s.close();
         });
 
-        it("recvfrom address", function() {
+        it("recvfrom address", () => {
             var data;
-            setTimeout(function() {
+            setTimeout(() => {
                 var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
                 c.sendto("aaa", "127.0.0.1", 8890);
                 data = c.recvfrom();
@@ -233,8 +233,8 @@ describe("net", function() {
             s.close();
         });
 
-        it("broadcast", function() {
-            setTimeout(function() {
+        it("broadcast", () => {
+            setTimeout(() => {
                 var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
                 c.sendto("bbb", "255.255.255.255", 8889);
             }, 100);
@@ -247,7 +247,7 @@ describe("net", function() {
         });
     });
 
-    it("re-entrant", function() {
+    it("re-entrant", () => {
         function accept2(s) {
             while (true) {
                 ss.push(s.accept());
@@ -262,7 +262,7 @@ describe("net", function() {
         coroutine.start(accept2, s2);
 
         coroutine.sleep(10);
-        assert.throws(function() {
+        assert.throws(() => {
             s2.accept();
         });
 
@@ -275,7 +275,7 @@ describe("net", function() {
         coroutine.start(recv2, c1);
 
         coroutine.sleep(10);
-        assert.throws(function() {
+        assert.throws(() => {
             c1.recv();
         });
 
@@ -291,7 +291,7 @@ describe("net", function() {
         coroutine.start(send2, c1);
 
         coroutine.sleep(100);
-        assert.throws(function() {
+        assert.throws(() => {
             var b = new Buffer("aaaaaaaa");
             c1.send(b);
         });
@@ -323,7 +323,7 @@ describe("net", function() {
         assert.equal(st, 1);
     });
 
-    it("timeout", function() {
+    it("timeout", () => {
         function accept4(s) {
             while (true) {
                 ss.push(s.accept());
@@ -343,7 +343,7 @@ describe("net", function() {
         c1.timeout = 50;
 
         var t1 = new Date();
-        assert.throws(function() {
+        assert.throws(() => {
             c1.recv();
         });
         var t2 = new Date();
@@ -354,7 +354,7 @@ describe("net", function() {
         var c2 = new net.Socket();
         c2.timeout = 50;
         var t1 = new Date();
-        assert.throws(function() {
+        assert.throws(() => {
             c2.connect('1.1.1.1', 8086 + base_port);
         });
         var t2 = new Date();
@@ -363,15 +363,15 @@ describe("net", function() {
         assert.lessThan(t2 - t1, 100);
     });
 
-    it("bind same port", function() {
-        new net.TcpServer(8811 + base_port, function(c) {});
-        assert.throws(function() {
-            new net.TcpServer(8811 + base_port, function(c) {});
+    it("bind same port", () => {
+        new net.TcpServer(8811 + base_port, (c) => {});
+        assert.throws(() => {
+            new net.TcpServer(8811 + base_port, (c) => {});
         });
     });
 
-    it("stats", function() {
-        var svr = new net.TcpServer(8812 + base_port, function(c) {
+    it("stats", () => {
+        var svr = new net.TcpServer(8812 + base_port, (c) => {
             var d;
             while (d = c.read(100))
                 c.write(d);
@@ -418,51 +418,51 @@ describe("net", function() {
         }, svr.stats.toJSON());
     });
 
-    describe("abort Pending I/O", function() {
+    describe("abort Pending I/O", () => {
         function close_it(s) {
             coroutine.sleep(50);
             s.close();
         }
 
-        it("abort connect", function() {
+        it("abort connect", () => {
             var c1 = new net.Socket();
             coroutine.start(close_it, c1);
-            assert.throws(function() {
+            assert.throws(() => {
                 c1.connect('12.0.0.1', 8083 + base_port);
             });
         });
 
-        it("abort accept", function() {
+        it("abort accept", () => {
             var c1 = new net.Socket();
             c1.bind(8180 + base_port);
             c1.listen();
 
             coroutine.start(close_it, c1);
 
-            assert.throws(function() {
+            assert.throws(() => {
                 c1.accept();
             });
         });
 
-        it("abort read", function() {
+        it("abort read", () => {
             var c1 = new net.Socket();
             c1.connect('127.0.0.1', 8080 + base_port);
             coroutine.start(close_it, c1);
-            assert.throws(function() {
+            assert.throws(() => {
                 c1.read();
             });
         });
     });
 
-    it("Memory Leak detect", function() {
+    it("Memory Leak detect", () => {
         var ss, no1;
         GC();
         coroutine.sleep(100);
         GC();
         no1 = os.memoryUsage().nativeObjects.objects;
 
-        ss = new net.TcpServer(9812, function(c) {});
-        coroutine.start(function() {
+        ss = new net.TcpServer(9812, (c) => {});
+        coroutine.start(() => {
             ss.run();
         });
 
@@ -474,7 +474,7 @@ describe("net", function() {
         GC();
         assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 
-        ss = new net.TcpServer(9813, function(c) {});
+        ss = new net.TcpServer(9813, (c) => {});
         ss.asyncRun();
 
         coroutine.sleep(50);
@@ -485,8 +485,8 @@ describe("net", function() {
         GC();
         assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 
-        (function() {
-            var s = new net.TcpServer(9884, function() {});
+        (() => {
+            var s = new net.TcpServer(9884, () => {});
         })();
 
         coroutine.sleep(50);
@@ -496,51 +496,51 @@ describe("net", function() {
     });
 
     if (global.full_test)
-        describe("Smtp", function() {
+        describe("Smtp", () => {
             var s;
 
-            it("new & connect", function() {
+            it("new & connect", () => {
                 s = new net.Smtp();
                 s.connect("tcp://smtp.ym.163.com:25");
                 s.socket.close();
             });
 
-            it("net.openSmtp", function() {
+            it("net.openSmtp", () => {
                 s = net.openSmtp("tcp://smtp.exmail.qq.com:25");
             });
 
-            it("command", function() {
+            it("command", () => {
                 assert.equal(s.command("HELO", "baoz.me").substr(0, 4),
                     "250 ");
 
-                assert.throws(function() {
+                assert.throws(() => {
                     s.command("FUCK", "baoz.me");
                 });
             });
 
-            it("hello", function() {
+            it("hello", () => {
                 s.hello();
             });
 
-            xdescribe("Auth", function() {
-                it("login", function() {
+            xdescribe("Auth", () => {
+                it("login", () => {
                     s.login("lion@baoz.cn", "");
                 });
 
-                it("from", function() {
+                it("from", () => {
                     s.from("lion@baoz.cn");
                 });
 
-                it("to", function() {
+                it("to", () => {
                     s.to("lion@baoz.cn");
                 });
 
-                it("data", function() {
+                it("data", () => {
                     s.data("from:lion@baoz.cn\r\n" + "to:lion@baoz.cn\r\n" + "subject:test title\r\n\r\n" + "test text");
                 });
             });
 
-            it("quit", function() {
+            it("quit", () => {
                 s.quit();
             });
         });

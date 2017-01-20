@@ -15,470 +15,470 @@ var v = new Buffer('abcd');
 var n;
 
 function hdlr1(v) {
-	n = n | 1;
+    n = n | 1;
 }
 
 function hdlr2(v) {
-	n = n | 2;
+    n = n | 2;
 }
 
 function hdlr3(v) {
-	n = n | 4;
+    n = n | 4;
 }
 
-describe("mq", function() {
-	it("create Message", function() {
-		var m = new mq.Message();
-	});
-
-	var ss = [];
-
-	after(function() {
-		ss.forEach(function(s) {
-			s.close();
-		});
-	});
-
-	describe("function handler", function() {
-		var n = 0;
-
-		function fun3(v) {
-			n = n | 4;
-		}
-
-		function fun2(v) {
-			n = n | 2;
-			return mq.jsHandler(fun3);
-		}
-
-		function fun1(v) {
-			n = n | 1;
-			return fun2;
-		}
-
-		var jv = mq.jsHandler(fun1);
-
-		it("direct invoke", function() {
-			n = 0;
-			jv.invoke(v);
-			assert.equal(3, n);
-		});
-
-		it("recursion invoke", function() {
-			n = 0;
-			mq.invoke(jv, v);
-			assert.equal(7, n);
-		});
-
-		it("JSHandler return error result", function() {
-			assert.throws(function() {
-				new mq.JSHandler(function(v) {
-					return 100;
-				}).invoke(v);
-			});
-
-			assert.throws(function() {
-				mq.invoke(function(v) {
-					return 100;
-				}, v);
-			});
-		});
-	});
-
-	describe("object handler", function() {
-		var o = mq.jsHandler({
-			a: hdlr1,
-			b: hdlr2,
-			c: hdlr3,
-			d: {
-				d1: hdlr1,
-				d2: {
-					d3: hdlr2,
-					d4: hdlr3,
-					d5: 1123
-				}
-			}
-		});
-
-		var ot = {
-			'a': 1,
-			'/b': 2,
-			'.c': 4,
-			'a.a': 1,
-			'a/a': 1,
-			'd.d1': 1,
-			'd\\d1': 1,
-			'd.d2.d3': 2,
-			'd.d2.d4': 4
-		};
-
-		it("invoke path", function() {
-			for (var t in ot) {
-				n = 0;
-				m.value = t;
-				o.invoke(m);
-				assert.equal(ot[t], n);
-			}
-		});
-
-		it("error path", function() {
-			assert.throws(function() {
-				m.value = 'asd';
-				o.invoke(m);
-			});
-
-			assert.throws(function() {
-				m.value = 'd.d2.d5';
-				o.invoke(m);
-			});
-		});
-	})
-
-	describe("chain handler", function() {
-		it("chain invoke",
-			function() {
-				var chain = new mq.Chain([hdlr1, hdlr2,
-					mq.jsHandler(hdlr3)
-				]);
-
-				n = 0;
-				chain.invoke(v);
-				assert.equal(7, n);
-			});
-
-		it("params", function() {
-			function chain_params(v, p1, p2) {
-				assert.equal(v.value, '');
-				assert.equal(v.params.length, 2);
-				assert.equal(v.params[0], "123");
-				assert.equal(v.params[1], "b1234");
-				assert.equal(p1, "123");
-				assert.equal(p2, "b1234");
-			}
-
-			var chain1 = new mq.Chain([chain_params, chain_params,
-				mq.jsHandler(chain_params)
-			]);
-
-			m.value = '';
-			m.params.resize(2);
-			m.params[0] = '123';
-			m.params[1] = 'b1234';
-			mq.invoke(chain1, m);
-		});
-
-		it("Message", function() {
-			var handler = new mq.Chain([
-
-				function(v) {
-					return {};
-				},
-				function(v) {
-					assert.isObject(v.result);
-					return "aaa" + v.result;
-				}
-			]);
-
-			var req = new mq.Message();
-			mq.invoke(handler, req);
-			assert.equal("aaa[object Object]", req.result);
-
-			var handler = new mq.Chain([
-
-				function(v) {
-					v.params[0] = {};
-				},
-				function(v) {
-					assert.isObject(v.params[0]);
-				}
-			]);
-
-			var req = new mq.Message();
-			req.params.push("aaasssssssssssssss");
-			mq.invoke(handler, req);
-		});
-
-		it("memory leak", function() {
-			var svr = new net.TcpServer(8888, function() {});
-			ss.push(svr.socket);
-
-			GC();
-			var no1 = os.memoryUsage().nativeObjects.objects;
-
-			svr.handler = new mq.Chain([function(v) {}, function(v) {}]);
-
-			GC();
-			assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
-
-			svr.handler = mq.jsHandler(function(v) {});
-			svr = undefined;
-
-			GC();
-			assert.equal(no1 - 3, os.memoryUsage().nativeObjects.objects);
-		});
-	});
-
-	describe("routing handler", function() {
-		function params(v, p1, p2) {
-			assert.equal(v.value, '123.a456.html');
-			assert.equal(v.params.length, 2);
-			assert.equal(v.params[0], "123");
-			assert.equal(v.params[1], "a456");
-			assert.equal(p1, "123");
-			assert.equal(p2, "a456");
-			n = 'param: ' + p1 + ',' + p2;
-		}
-
-		function params0(v) {
-			assert.equal(v.value, '');
-			assert.equal(v.params.length, 0);
-			n = 'param0';
-		}
-
-		function params1(v, p1) {
-			assert.equal(v.value, '789');
-			assert.equal(v.params.length, 1);
-			assert.equal(v.params[0], "789");
-			assert.equal(p1, "789");
-			n = 'param1: ' + p1;
-		}
-
-		function params2(v, p1, p2) {
-			assert.equal(v.value, '');
-			assert.equal(v.params.length, 2);
-			assert.equal(v.params[0], "123");
-			assert.equal(v.params[1], "b456");
-			assert.equal(p1, "123");
-			assert.equal(p2, "b456");
-			n = 'param2: ' + p1 + ',' + p2;
-		}
-
-		function params3(v, p1, p2) {
-			assert.equal(v.value, '123.b456c789.html');
-			assert.equal(v.params.length, 2);
-			assert.equal(v.params[0], "123");
-			assert.equal(v.params[1], "b456c789");
-			assert.equal(p1, "123");
-			assert.equal(p2, "b456c789");
-			n = 'param3: ' + p1 + ',' + p2;
-		}
-
-		var r = new mq.Routing({
-			'^a$': hdlr1,
-			'^c$': hdlr3,
-			'^b$': mq.jsHandler(hdlr2),
-			'^params/(([0-9]+)\.(([a-z])?[0-9]+)\.html)$': params,
-			'^params0/[0-9]+\.html$': params0,
-			'^params1/([0-9]+)\.html$': params1,
-			'^params2/([0-9]+)\.(([a-z])?[0-9]+)\.html$': params2,
-			'^params3/(([0-9]+)\.(([a-z])?[0-9]+([a-z]([0-9]+)))\.html)$': params3
-		});
-
-		after(function() {
-			r.dispose();
-		})
-
-		it("simple path", function() {
-			n = 0;
-			m.value = 'a';
-			mq.invoke(r, m);
-			assert.equal(1, n);
-
-			n = 0;
-			m.value = 'b';
-			mq.invoke(r, m);
-			assert.equal(2, n);
-
-			n = 0;
-			m.value = 'c';
-			mq.invoke(r, m);
-			assert.equal(4, n);
-		});
-
-		it("regex path", function() {
-			m.value = 'params/123.a456.html';
-			mq.invoke(r, m);
-			assert.equal("param: 123,a456", n);
-
-			m.value = 'params0/999.html';
-			mq.invoke(r, m);
-			assert.equal("param0", n);
-
-			m.value = 'params1/789.html';
-			mq.invoke(r, m);
-			assert.equal("param1: 789", n);
-
-			m.value = 'params2/123.b456.html';
-			mq.invoke(r, m);
-			assert.equal("param2: 123,b456", n);
-
-			m.value = 'params3/123.b456c789.html';
-			mq.invoke(r, m);
-			assert.equal("param3: 123,b456c789", n);
-		});
-
-		it("error path", function() {
-			n = 0;
-			m.value = 'd';
-			assert.throws(function() {
-				mq.invoke(r, m);
-			});
-		});
-
-		it("object param", function() {
-			var req = new mq.Message();
-			req.params.resize(1);
-			req.params[0] = [];
-
-			mq.jsHandler(function t(request, d) {
-				assert.isArray(d);
-				return "ok";
-			}).invoke(req);
-		});
-
-		it("path to value", function() {
-			var r = new mq.Routing({
-				"^/api/a$": function(v) {},
-				"^/api/a(/.*)$": function(v) {}
-			});
-
-			var m = new mq.Message();
-			m.value = '/api/a';
-			mq.invoke(r, m);
-			assert.equal('', m.value);
-
-			m.value = '/api/a/test';
-			mq.invoke(r, m);
-			assert.equal('/test', m.value);
-		});
-
-		it("get/post method", function() {
-			var val = 0;
-			var r = new mq.Routing();
-
-			r.get({
-				"^/a$": function(v) {
-					val = 1
-				}
-			});
-
-			r.post("^/a$", function(v) {
-				val = 2;
-			})
-
-			r.all("^/b$", function(v) {
-				val = 3;
-			})
-
-			htm.method = "GET";
-			htm.value = "/a";
-			mq.invoke(r, htm);
-			assert.equal(val, 1);
-
-			htm.method = "POST";
-			htm.value = "/a";
-			mq.invoke(r, htm);
-			assert.equal(val, 2);
-
-			htm.method = "ANY_METHOD";
-			htm.value = "/b";
-			mq.invoke(r, htm);
-			assert.equal(val, 3);
-		});
-
-		describe("order", function() {
-			it("map append", function() {
-				var r = new mq.Routing({
-					"^/api/a(/.*)$": function(v) {},
-					"^/api/(.*)$": function(v) {}
-				});
-
-				var m = new mq.Message();
-				m.value = '/api/a/';
-				mq.invoke(r, m);
-				assert.equal('/', m.value);
-			});
-
-			it("append", function() {
-				var r = new mq.Routing();
-
-				r.append("^/api/a(/.*)$", function(v) {});
-				r.append("^/api/(.*)$", function(v) {});
-
-				var m = new mq.Message();
-				m.value = '/api/a/';
-				mq.invoke(r, m);
-				assert.equal('/', m.value);
-			});
-
-			it("append route", function() {
-				var r1 = new mq.Routing({
-					"^/api/a(/.*)$": function(v) {},
-					"^/api/(.*)$": function(v) {}
-				});
-
-				var r = new mq.Routing();
-				r.append(r1);
-
-				var m = new mq.Message();
-				m.value = '/api/a/';
-				mq.invoke(r, m);
-				assert.equal('/', m.value);
-			});
-		});
-
-		it("memory leak", function() {
-			var svr = new net.TcpServer(8890, function() {});
-			ss.push(svr.socket);
-
-			GC();
-			var no1 = os.memoryUsage().nativeObjects.objects;
-
-			svr.handler = new mq.Routing({
-				"^/api/a$": function(v) {},
-				"^/api/a(/.*)$": function(v) {}
-			});
-
-			GC();
-			assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
-
-			svr.handler = mq.jsHandler(function(v) {});
-			svr = undefined;
-
-			GC();
-			assert.equal(no1 - 3, os.memoryUsage().nativeObjects.objects);
-		});
-	});
-
-	it("await", function() {
-		var n = 100;
-
-		mq.invoke(mq.jsHandler(function(r) {
-			var aw = mq.await();
-
-			function delayend() {
-				assert.equal(n, 100);
-				n = 200;
-				aw.end();
-			}
-			coroutine.start(delayend);
-
-			return aw;
-		}), m);
-		assert.equal(n, 200);
-
-		n = 300;
-		mq.invoke(mq.jsHandler(function(r) {
-			var aw = mq.await();
-
-			assert.equal(n, 300);
-			n = 400;
-			aw.end();
-
-			return aw;
-		}), m);
-		assert.equal(n, 400);
-	});
+describe("mq", () => {
+    it("create Message", () => {
+        var m = new mq.Message();
+    });
+
+    var ss = [];
+
+    after(() => {
+        ss.forEach((s) => {
+            s.close();
+        });
+    });
+
+    describe("function handler", () => {
+        var n = 0;
+
+        function fun3(v) {
+            n = n | 4;
+        }
+
+        function fun2(v) {
+            n = n | 2;
+            return mq.jsHandler(fun3);
+        }
+
+        function fun1(v) {
+            n = n | 1;
+            return fun2;
+        }
+
+        var jv = mq.jsHandler(fun1);
+
+        it("direct invoke", () => {
+            n = 0;
+            jv.invoke(v);
+            assert.equal(3, n);
+        });
+
+        it("recursion invoke", () => {
+            n = 0;
+            mq.invoke(jv, v);
+            assert.equal(7, n);
+        });
+
+        it("JSHandler return error result", () => {
+            assert.throws(() => {
+                new mq.JSHandler((v) => {
+                    return 100;
+                }).invoke(v);
+            });
+
+            assert.throws(() => {
+                mq.invoke((v) => {
+                    return 100;
+                }, v);
+            });
+        });
+    });
+
+    describe("object handler", () => {
+        var o = mq.jsHandler({
+            a: hdlr1,
+            b: hdlr2,
+            c: hdlr3,
+            d: {
+                d1: hdlr1,
+                d2: {
+                    d3: hdlr2,
+                    d4: hdlr3,
+                    d5: 1123
+                }
+            }
+        });
+
+        var ot = {
+            'a': 1,
+            '/b': 2,
+            '.c': 4,
+            'a.a': 1,
+            'a/a': 1,
+            'd.d1': 1,
+            'd\\d1': 1,
+            'd.d2.d3': 2,
+            'd.d2.d4': 4
+        };
+
+        it("invoke path", () => {
+            for (var t in ot) {
+                n = 0;
+                m.value = t;
+                o.invoke(m);
+                assert.equal(ot[t], n);
+            }
+        });
+
+        it("error path", () => {
+            assert.throws(() => {
+                m.value = 'asd';
+                o.invoke(m);
+            });
+
+            assert.throws(() => {
+                m.value = 'd.d2.d5';
+                o.invoke(m);
+            });
+        });
+    })
+
+    describe("chain handler", () => {
+        it("chain invoke",
+            () => {
+                var chain = new mq.Chain([hdlr1, hdlr2,
+                    mq.jsHandler(hdlr3)
+                ]);
+
+                n = 0;
+                chain.invoke(v);
+                assert.equal(7, n);
+            });
+
+        it("params", () => {
+            function chain_params(v, p1, p2) {
+                assert.equal(v.value, '');
+                assert.equal(v.params.length, 2);
+                assert.equal(v.params[0], "123");
+                assert.equal(v.params[1], "b1234");
+                assert.equal(p1, "123");
+                assert.equal(p2, "b1234");
+            }
+
+            var chain1 = new mq.Chain([chain_params, chain_params,
+                mq.jsHandler(chain_params)
+            ]);
+
+            m.value = '';
+            m.params.resize(2);
+            m.params[0] = '123';
+            m.params[1] = 'b1234';
+            mq.invoke(chain1, m);
+        });
+
+        it("Message", () => {
+            var handler = new mq.Chain([
+
+                (v) => {
+                    return {};
+                },
+                (v) => {
+                    assert.isObject(v.result);
+                    return "aaa" + v.result;
+                }
+            ]);
+
+            var req = new mq.Message();
+            mq.invoke(handler, req);
+            assert.equal("aaa[object Object]", req.result);
+
+            var handler = new mq.Chain([
+
+                (v) => {
+                    v.params[0] = {};
+                },
+                (v) => {
+                    assert.isObject(v.params[0]);
+                }
+            ]);
+
+            var req = new mq.Message();
+            req.params.push("aaasssssssssssssss");
+            mq.invoke(handler, req);
+        });
+
+        it("memory leak", () => {
+            var svr = new net.TcpServer(8888, () => {});
+            ss.push(svr.socket);
+
+            GC();
+            var no1 = os.memoryUsage().nativeObjects.objects;
+
+            svr.handler = new mq.Chain([(v) => {}, (v) => {}]);
+
+            GC();
+            assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
+
+            svr.handler = mq.jsHandler((v) => {});
+            svr = undefined;
+
+            GC();
+            assert.equal(no1 - 3, os.memoryUsage().nativeObjects.objects);
+        });
+    });
+
+    describe("routing handler", () => {
+        function params(v, p1, p2) {
+            assert.equal(v.value, '123.a456.html');
+            assert.equal(v.params.length, 2);
+            assert.equal(v.params[0], "123");
+            assert.equal(v.params[1], "a456");
+            assert.equal(p1, "123");
+            assert.equal(p2, "a456");
+            n = 'param: ' + p1 + ',' + p2;
+        }
+
+        function params0(v) {
+            assert.equal(v.value, '');
+            assert.equal(v.params.length, 0);
+            n = 'param0';
+        }
+
+        function params1(v, p1) {
+            assert.equal(v.value, '789');
+            assert.equal(v.params.length, 1);
+            assert.equal(v.params[0], "789");
+            assert.equal(p1, "789");
+            n = 'param1: ' + p1;
+        }
+
+        function params2(v, p1, p2) {
+            assert.equal(v.value, '');
+            assert.equal(v.params.length, 2);
+            assert.equal(v.params[0], "123");
+            assert.equal(v.params[1], "b456");
+            assert.equal(p1, "123");
+            assert.equal(p2, "b456");
+            n = 'param2: ' + p1 + ',' + p2;
+        }
+
+        function params3(v, p1, p2) {
+            assert.equal(v.value, '123.b456c789.html');
+            assert.equal(v.params.length, 2);
+            assert.equal(v.params[0], "123");
+            assert.equal(v.params[1], "b456c789");
+            assert.equal(p1, "123");
+            assert.equal(p2, "b456c789");
+            n = 'param3: ' + p1 + ',' + p2;
+        }
+
+        var r = new mq.Routing({
+            '^a$': hdlr1,
+            '^c$': hdlr3,
+            '^b$': mq.jsHandler(hdlr2),
+            '^params/(([0-9]+)\.(([a-z])?[0-9]+)\.html)$': params,
+            '^params0/[0-9]+\.html$': params0,
+            '^params1/([0-9]+)\.html$': params1,
+            '^params2/([0-9]+)\.(([a-z])?[0-9]+)\.html$': params2,
+            '^params3/(([0-9]+)\.(([a-z])?[0-9]+([a-z]([0-9]+)))\.html)$': params3
+        });
+
+        after(() => {
+            r.dispose();
+        })
+
+        it("simple path", () => {
+            n = 0;
+            m.value = 'a';
+            mq.invoke(r, m);
+            assert.equal(1, n);
+
+            n = 0;
+            m.value = 'b';
+            mq.invoke(r, m);
+            assert.equal(2, n);
+
+            n = 0;
+            m.value = 'c';
+            mq.invoke(r, m);
+            assert.equal(4, n);
+        });
+
+        it("regex path", () => {
+            m.value = 'params/123.a456.html';
+            mq.invoke(r, m);
+            assert.equal("param: 123,a456", n);
+
+            m.value = 'params0/999.html';
+            mq.invoke(r, m);
+            assert.equal("param0", n);
+
+            m.value = 'params1/789.html';
+            mq.invoke(r, m);
+            assert.equal("param1: 789", n);
+
+            m.value = 'params2/123.b456.html';
+            mq.invoke(r, m);
+            assert.equal("param2: 123,b456", n);
+
+            m.value = 'params3/123.b456c789.html';
+            mq.invoke(r, m);
+            assert.equal("param3: 123,b456c789", n);
+        });
+
+        it("error path", () => {
+            n = 0;
+            m.value = 'd';
+            assert.throws(() => {
+                mq.invoke(r, m);
+            });
+        });
+
+        it("object param", () => {
+            var req = new mq.Message();
+            req.params.resize(1);
+            req.params[0] = [];
+
+            mq.jsHandler(function t(request, d) {
+                assert.isArray(d);
+                return "ok";
+            }).invoke(req);
+        });
+
+        it("path to value", () => {
+            var r = new mq.Routing({
+                "^/api/a$": (v) => {},
+                "^/api/a(/.*)$": (v) => {}
+            });
+
+            var m = new mq.Message();
+            m.value = '/api/a';
+            mq.invoke(r, m);
+            assert.equal('', m.value);
+
+            m.value = '/api/a/test';
+            mq.invoke(r, m);
+            assert.equal('/test', m.value);
+        });
+
+        it("get/post method", () => {
+            var val = 0;
+            var r = new mq.Routing();
+
+            r.get({
+                "^/a$": (v) => {
+                    val = 1
+                }
+            });
+
+            r.post("^/a$", (v) => {
+                val = 2;
+            })
+
+            r.all("^/b$", (v) => {
+                val = 3;
+            })
+
+            htm.method = "GET";
+            htm.value = "/a";
+            mq.invoke(r, htm);
+            assert.equal(val, 1);
+
+            htm.method = "POST";
+            htm.value = "/a";
+            mq.invoke(r, htm);
+            assert.equal(val, 2);
+
+            htm.method = "ANY_METHOD";
+            htm.value = "/b";
+            mq.invoke(r, htm);
+            assert.equal(val, 3);
+        });
+
+        describe("order", () => {
+            it("map append", () => {
+                var r = new mq.Routing({
+                    "^/api/a(/.*)$": (v) => {},
+                    "^/api/(.*)$": (v) => {}
+                });
+
+                var m = new mq.Message();
+                m.value = '/api/a/';
+                mq.invoke(r, m);
+                assert.equal('/', m.value);
+            });
+
+            it("append", () => {
+                var r = new mq.Routing();
+
+                r.append("^/api/a(/.*)$", (v) => {});
+                r.append("^/api/(.*)$", (v) => {});
+
+                var m = new mq.Message();
+                m.value = '/api/a/';
+                mq.invoke(r, m);
+                assert.equal('/', m.value);
+            });
+
+            it("append route", () => {
+                var r1 = new mq.Routing({
+                    "^/api/a(/.*)$": (v) => {},
+                    "^/api/(.*)$": (v) => {}
+                });
+
+                var r = new mq.Routing();
+                r.append(r1);
+
+                var m = new mq.Message();
+                m.value = '/api/a/';
+                mq.invoke(r, m);
+                assert.equal('/', m.value);
+            });
+        });
+
+        it("memory leak", () => {
+            var svr = new net.TcpServer(8890, () => {});
+            ss.push(svr.socket);
+
+            GC();
+            var no1 = os.memoryUsage().nativeObjects.objects;
+
+            svr.handler = new mq.Routing({
+                "^/api/a$": (v) => {},
+                "^/api/a(/.*)$": (v) => {}
+            });
+
+            GC();
+            assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
+
+            svr.handler = mq.jsHandler((v) => {});
+            svr = undefined;
+
+            GC();
+            assert.equal(no1 - 3, os.memoryUsage().nativeObjects.objects);
+        });
+    });
+
+    it("await", () => {
+        var n = 100;
+
+        mq.invoke(mq.jsHandler((r) => {
+            var aw = mq.await();
+
+            function delayend() {
+                assert.equal(n, 100);
+                n = 200;
+                aw.end();
+            }
+            coroutine.start(delayend);
+
+            return aw;
+        }), m);
+        assert.equal(n, 200);
+
+        n = 300;
+        mq.invoke(mq.jsHandler((r) => {
+            var aw = mq.await();
+
+            assert.equal(n, 300);
+            n = 400;
+            aw.end();
+
+            return aw;
+        }), m);
+        assert.equal(n, 400);
+    });
 });
 
 // test.run(console.DEBUG);
