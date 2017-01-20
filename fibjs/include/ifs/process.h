@@ -32,9 +32,13 @@ public:
     static result_t get_env(v8::Local<v8::Object>& retVal);
     static result_t get_arch(exlib::string& retVal);
     static result_t get_platform(exlib::string& retVal);
+    static result_t umask(int32_t mask, int32_t& retVal, AsyncEvent* ac);
+    static result_t umask(exlib::string mask, int32_t& retVal, AsyncEvent* ac);
+    static result_t umask(int32_t& retVal, AsyncEvent* ac);
     static result_t exit(int32_t code);
     static result_t cwd(exlib::string& retVal);
     static result_t chdir(exlib::string directory);
+    static result_t uptime(double& retVal);
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
     static result_t nextTick(v8::Local<v8::Function> func, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t open(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
@@ -63,14 +67,21 @@ public:
     static void s_get_env(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_platform(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_umask(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_STATICVALUE2(process_base, umask, int32_t, int32_t);
+    ASYNC_STATICVALUE2(process_base, umask, exlib::string, int32_t);
+    ASYNC_STATICVALUE1(process_base, umask, int32_t);
 };
 
 }
@@ -83,9 +94,11 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
+            {"umask", s_umask, true},
             {"exit", s_exit, true},
             {"cwd", s_cwd, true},
             {"chdir", s_chdir, true},
+            {"uptime", s_uptime, true},
             {"memoryUsage", s_memoryUsage, true},
             {"nextTick", s_nextTick, true},
             {"open", s_open, true},
@@ -107,7 +120,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "process", s__new, NULL, 
-            8, s_method, 0, NULL, 7, s_property, NULL, NULL,
+            9, s_method, 0, NULL, 7, s_property, NULL, NULL,
             NULL
         };
 
@@ -192,6 +205,41 @@ namespace fibjs
         METHOD_RETURN();
     }
 
+    inline void process_base::s_umask(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
+
+        ASYNC_METHOD_ENTER(1, 1);
+
+        ARG(int32_t, 0);
+
+        if(!cb.IsEmpty()) {
+            acb_umask(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_umask(v0, vr);
+
+        METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        if(!cb.IsEmpty()) {
+            acb_umask(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_umask(v0, vr);
+
+        METHOD_OVER(0, 0);
+
+        if(!cb.IsEmpty()) {
+            acb_umask(cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_umask(vr);
+
+        METHOD_RETURN();
+    }
+
     inline void process_base::s_exit(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_ENTER(1, 1);
@@ -223,6 +271,17 @@ namespace fibjs
         hr = chdir(v0);
 
         METHOD_VOID();
+    }
+
+    inline void process_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        double vr;
+
+        METHOD_ENTER(0, 0);
+
+        hr = uptime(vr);
+
+        METHOD_RETURN();
     }
 
     inline void process_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)

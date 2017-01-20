@@ -5,14 +5,14 @@ var db = require('db');
 var os = require('os');
 var assert = require('assert');
 
-describe("mongodb", function() {
+describe("mongodb", () => {
     function clear(mdb) {
         try {
             mdb.test.drop();
         } catch (e) {}
     }
 
-    it("open/close", function() {
+    it("open/close", () => {
         var mdb = db.open("mongodb://127.0.0.1/test");
         mdb.close();
         // var no1 = os.memoryUsage().nativeObjects.objects;
@@ -20,7 +20,7 @@ describe("mongodb", function() {
         // assert.equal(no1 - 2, os.memoryUsage().nativeObjects.objects);
     })
 
-    it("runCommand", function() {
+    it("runCommand", () => {
         var mdb = db.open("mongodb://127.0.0.1/test");
         clear(mdb);
 
@@ -48,7 +48,7 @@ describe("mongodb", function() {
         }).toArray()[0]["data"], "new data1");
     })
 
-    it("collection & cursor", function() {
+    it("collection & cursor", () => {
         var mdb = db.open("mongodb://127.0.0.1/test");
         clear(mdb);
 
@@ -100,7 +100,7 @@ describe("mongodb", function() {
         }).toJSON(), datas);
     })
 
-    it("callback", function() {
+    it("callback", () => {
         var mdb = db.open("mongodb://127.0.0.1/test");
         clear(mdb);
 
@@ -131,7 +131,7 @@ describe("mongodb", function() {
         })
     })
 
-    it("index", function() {
+    it("index", () => {
         var mdb = db.open("mongodb://127.0.0.1/test");
         clear(mdb);
 
@@ -161,7 +161,7 @@ describe("mongodb", function() {
         assert.equal(mdb.test.getIndexes().toArray()[1], null)
     })
 
-    xit("GridFS", function() {
+    xit("GridFS", () => {
         var mdb = db.open("mongodb://127.0.0.1/test");
         mdb.fs.chunks.ensureIndex({
             files_id: 1,

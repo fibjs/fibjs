@@ -1,3 +1,3 @@
-setImmediate(function() {
+setImmediate(() => {
     console.log(500);
 });

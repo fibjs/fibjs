@@ -28,6 +28,23 @@ module process
     /*! @brief 查询当前平台名称，可能的结果为 'darwin', 'freebsd', 'linux', 或 'win32' */
     static readonly String platform;
 
+    /*! @brief 改变当前的 umask，Windows 不支持此方法
+     @param mask 指定新的掩码
+     @return 返回之前的 mask
+    */
+    static Integer umask(Integer mask) async;
+
+    /*! @brief 改变当前的 umask，Windows 不支持此方法
+     @param mask 指定新的掩码， 字符串类型八进制(e.g: "0664")
+     @return 返回之前的 mask
+    */
+    static Integer umask(String mask) async;
+
+    /*! @brief 返回当前的 umask，Windows 不支持此方法
+     @return 返回当前的 mask 值
+    */
+    static Integer umask() async;
+
     /*! @brief 退出当前进程，并返回结果
      @param code 返回进程结果
      */
@@ -42,6 +59,11 @@ module process
      @param directory 指定设定的新路径
      */
     static chdir(String directory);
+
+    /*! @brief 查询运行环境运行时间，以秒为单位
+     @return 返回表示时间的数值
+    */
+    static Number uptime();
 
     /*! @brief 查询当前进程内存使用报告
      @return 返回包含内存报告

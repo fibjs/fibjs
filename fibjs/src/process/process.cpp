@@ -105,6 +105,46 @@ result_t process_base::get_version(exlib::string &retVal)
     return 0;
 }
 
+result_t process_base::umask(int32_t mask, int32_t& retVal, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    retVal = ::umask(mask);
+    return 0;
+}
+
+result_t process_base::umask(exlib::string mask, int32_t& retVal, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int oct = 0;
+    // Parse the octal string.
+    for (size_t i = 0; i < mask.length(); i++) {
+        char c = mask[i];
+        if (c > '7' || c < '0') {
+           ThrowError("invalid octal string");
+        }
+        oct *= 8;
+        oct += c - '0';
+    }
+
+    retVal = ::umask(oct);
+    return 0;
+}
+
+result_t process_base::umask(int32_t& retVal, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    
+    int32_t old = ::umask(0);
+    retVal = old;
+    ::umask(old);
+    return 0;
+}
+
 result_t process_base::get_execPath(exlib::string &retVal)
 {
     return os_base::get_execPath(retVal);
@@ -168,6 +208,11 @@ result_t process_base::exit(int32_t code)
 result_t process_base::memoryUsage(v8::Local<v8::Object> &retVal)
 {
     return os_base::memoryUsage(retVal);
+}
+
+result_t process_base::uptime(double &retVal)
+{
+     return os_base::uptime(retVal);
 }
 
 result_t process_base::nextTick(v8::Local<v8::Function> func,

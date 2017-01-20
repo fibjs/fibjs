@@ -26,6 +26,7 @@ public:
     static result_t _new(obj_ptr<Lock_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t acquire(bool blocking, bool& retVal) = 0;
     virtual result_t release() = 0;
+    virtual result_t count(int32_t& retVal) = 0;
 
 public:
     template<typename T>
@@ -35,6 +36,7 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_release(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_count(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
@@ -46,13 +48,14 @@ namespace fibjs
         static ClassData::ClassMethod s_method[] = 
         {
             {"acquire", s_acquire, false},
-            {"release", s_release, false}
+            {"release", s_release, false},
+            {"count", s_count, false}
         };
 
         static ClassData s_cd = 
         { 
             "Lock", s__new, NULL, 
-            2, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            3, s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -100,6 +103,18 @@ namespace fibjs
         hr = pInst->release();
 
         METHOD_VOID();
+    }
+
+    inline void Lock_base::s_count(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(Lock_base);
+        METHOD_ENTER(0, 0);
+
+        hr = pInst->count(vr);
+
+        METHOD_RETURN();
     }
 
 }

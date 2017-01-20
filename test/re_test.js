@@ -3,7 +3,7 @@ test.setup();
 
 var re = require("re");
 
-describe("re", function() {
+describe("re", () => {
 
     function re_create() {
         var regex = re.compile("fibjs/([^/]*)/fibjs/([a-z]+)"),
@@ -14,7 +14,7 @@ describe("re", function() {
         return [regex, regexg, regexi, regexm, regexgim];
     }
 
-    it("re compile", function() {
+    it("re compile", () => {
         var r = re_create();
         assert.isFalse(r[0].ignoreCase);
         assert.isFalse(r[0].global);
@@ -32,7 +32,7 @@ describe("re", function() {
         assert.isTrue(r[4].multiline);
     });
 
-    it("regex exec", function() {
+    it("regex exec", () => {
         var r = re_create();
         var str = "fibjs/ab/fibjs/cd/fibjs/ef/fibjs/gh";
 
@@ -52,7 +52,7 @@ describe("re", function() {
 
     });
 
-    it("regex test", function() {
+    it("regex test", () => {
         var r = re_create();
         var str = "fibjs/ab/fibjs/cd/fibjs/ef/fibjs/gh";
         assert.isTrue(r[0].test(str));

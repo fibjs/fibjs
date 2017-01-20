@@ -12,163 +12,163 @@ var coroutine = require('coroutine');
 
 var base_port = coroutine.vmid * 10000;
 
-describe("rpc", function() {
-	var ss = [];
+describe("rpc", () => {
+    var ss = [];
 
-	var m = new http.Request();
+    var m = new http.Request();
 
-	m.value = 'test/tttt/tttt/';
-	m.setHeader("Content-Type", "application/json, charset=utf-8;");
-	m.body.write(encoding.json.encode({
-		method: 'aaaa',
-		params: [100, 200],
-		id: 1234
-	}));
+    m.value = 'test/tttt/tttt/';
+    m.setHeader("Content-Type", "application/json, charset=utf-8;");
+    m.body.write(encoding.json.encode({
+        method: 'aaaa',
+        params: [100, 200],
+        id: 1234
+    }));
 
-	after(function() {
-		ss.forEach(function(s) {
-			s.close();
-		});
-	});
+    after(() => {
+        ss.forEach((s) => {
+            s.close();
+        });
+    });
 
-	it("function", function() {
-		var jr = rpc.json(function(m, p1, p2) {
-			m.value = '';
-			return p1 + ',' + p2;
-		});
+    it("function", () => {
+        var jr = rpc.json((m, p1, p2) => {
+            m.value = '';
+            return p1 + ',' + p2;
+        });
 
-		jr.invoke(m);
+        jr.invoke(m);
 
-		m.response.body.rewind();
-		assert.equal(m.response.body.read().toString(),
-			'{"id":1234,"result":"100,200"}');
-	});
+        m.response.body.rewind();
+        assert.equal(m.response.body.read().toString(),
+            '{"id":1234,"result":"100,200"}');
+    });
 
-	it("map", function() {
-		m.value = 'test';
-		var jr = rpc.json({
-			test: {
-				aaaa: function(m, p1, p2) {
-					m.value = '';
-					return p1 + ',' + p2;
-				}
-			}
-		});
+    it("map", () => {
+        m.value = 'test';
+        var jr = rpc.json({
+            test: {
+                aaaa: (m, p1, p2) => {
+                    m.value = '';
+                    return p1 + ',' + p2;
+                }
+            }
+        });
 
-		jr.invoke(m);
+        jr.invoke(m);
 
-		m.response.body.rewind();
-		assert.equal(m.response.body.read().toString(),
-			'{"id":1234,"result":"100,200"}');
-	});
+        m.response.body.rewind();
+        assert.equal(m.response.body.read().toString(),
+            '{"id":1234,"result":"100,200"}');
+    });
 
-	it("params", function() {
-		var jr = rpc.json({
-			'xhr': {
-				test: {
-					fun: function(v, a, b) {
-						return a + b;
-					}
-				}
-			}
-		});
+    it("params", () => {
+        var jr = rpc.json({
+            'xhr': {
+                test: {
+                    fun: (v, a, b) => {
+                        return a + b;
+                    }
+                }
+            }
+        });
 
-		m = new http.Request();
+        m = new http.Request();
 
-		m.value = '/xhr/test';
-		m.setHeader("Content-Type", "application/json");
-		m.body.write(encoding.json.encode({
-			method: 'fun',
-			params: [100, 200],
-			id: 1234
-		}));
+        m.value = '/xhr/test';
+        m.setHeader("Content-Type", "application/json");
+        m.body.write(encoding.json.encode({
+            method: 'fun',
+            params: [100, 200],
+            id: 1234
+        }));
 
-		jr.invoke(m);
+        jr.invoke(m);
 
-		m.response.body.rewind();
-		assert.equal(m.response.body.read().toString(),
-			'{"id":1234,"result":300}');
-	});
+        m.response.body.rewind();
+        assert.equal(m.response.body.read().toString(),
+            '{"id":1234,"result":300}');
+    });
 
-	it("Task", function() {
-		assert.throws(function() {
-			var task = rpc.open("./not_exists.js");
-		});
+    it("Task", () => {
+        assert.throws(() => {
+            var task = rpc.open("./not_exists.js");
+        });
 
-		assert.throws(function() {
-			var task = rpc.open("../not_exists.js");
-		});
+        assert.throws(() => {
+            var task = rpc.open("../not_exists.js");
+        });
 
-		assert.throws(function() {
-			var task = rpc.open("http://127.0.0.1/not_exists.js");
-		});
+        assert.throws(() => {
+            var task = rpc.open("http://127.0.0.1/not_exists.js");
+        });
 
-		var task = rpc.open("/not_exists.js");
-		var task1 = task.func;
-		var task2 = task['1234'];
+        var task = rpc.open("/not_exists.js");
+        var task1 = task.func;
+        var task2 = task['1234'];
 
-		assert.throws(function() {
-			task();
-		});
+        assert.throws(() => {
+            task();
+        });
 
-		var task = rpc.open("module/c4.js");
-		assert.equal(task.foo(), 1);
-		assert.equal(task.arg_count(100, 200), 2);
-		assert.deepEqual(task.arg_obj({
-			a: 100,
-			b: 200
-		}), {
-			a: 100,
-			b: 200
-		});
+        var task = rpc.open("module/c4.js");
+        assert.equal(task.foo(), 1);
+        assert.equal(task.arg_count(100, 200), 2);
+        assert.deepEqual(task.arg_obj({
+            a: 100,
+            b: 200
+        }), {
+            a: 100,
+            b: 200
+        });
 
-		assert.deepEqual(task.arg_obj(new Buffer("1234567")), new Buffer("1234567"));
+        assert.deepEqual(task.arg_obj(new Buffer("1234567")), new Buffer("1234567"));
 
-		var n = 0;
-		coroutine.start(function() {
-			n = 1;
-		});
+        var n = 0;
+        coroutine.start(() => {
+            n = 1;
+        });
 
-		task.foo();
-		assert.equal(n, 1);
-	});
+        task.foo();
+        assert.equal(n, 1);
+    });
 
-	it("over tcp", function() {
-		var hdlr = new http.Handler(rpc.json({
-			update: function(v) {
-				return 1;
-			}
-		}));
-		hdlr.crossDomain = true;
-		var svr = new net.TcpServer(8090 + base_port, hdlr);
-		ss.push(svr.socket);
-		svr.asyncRun();
+    it("over tcp", () => {
+        var hdlr = new http.Handler(rpc.json({
+            update: (v) => {
+                return 1;
+            }
+        }));
+        hdlr.crossDomain = true;
+        var svr = new net.TcpServer(8090 + base_port, hdlr);
+        ss.push(svr.socket);
+        svr.asyncRun();
 
-		var s = new net.Socket();
-		s.connect('127.0.0.1', 8090 + base_port);
+        var s = new net.Socket();
+        s.connect('127.0.0.1', 8090 + base_port);
 
-		var bs = new io.BufferedStream(s);
-		bs.EOL = '\r\n';
+        var bs = new io.BufferedStream(s);
+        bs.EOL = '\r\n';
 
-		for (var i = 0; i < 50; i++) {
-			var req = new http.Request();
-			req.addHeader("content-type", "application/json");
-			req.body.write('{"method":"update","params":[{}]}');
-			req.sendTo(s);
-			req.response.readFrom(bs);
-		}
-	});
+        for (var i = 0; i < 50; i++) {
+            var req = new http.Request();
+            req.addHeader("content-type", "application/json");
+            req.body.write('{"method":"update","params":[{}]}');
+            req.sendTo(s);
+            req.response.readFrom(bs);
+        }
+    });
 
-	xit("Garbage Collection", function() {
-		GC();
+    xit("Garbage Collection", () => {
+        GC();
 
-		var no1 = os.memoryUsage().nativeObjects.objects;
+        var no1 = os.memoryUsage().nativeObjects.objects;
 
-		rpc.json({});
+        rpc.json({});
 
-		GC();
-		assert.equal(no1, os.memoryUsage().nativeObjects.objects);
-	});
+        GC();
+        assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+    });
 });
 
 // test.run(console.DEBUG);

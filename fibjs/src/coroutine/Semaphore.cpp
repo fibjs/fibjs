@@ -41,6 +41,12 @@ result_t Semaphore::release()
     return 0;
 }
 
+result_t Semaphore::count(int32_t& retVal)
+{
+    retVal = m_sem.count();
+    return 0;
+}
+
 result_t Semaphore::wait()
 {
     if (m_sem.trywait())

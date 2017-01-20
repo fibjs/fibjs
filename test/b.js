@@ -1,1 +1,1 @@
-exports.foo = function() {};
+exports.foo = () => {};

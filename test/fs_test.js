@@ -17,13 +17,13 @@ var pathname1 = 'test1_dir' + vmid;
 
 var win = require("os").type == "Windows";
 
-describe('fs', function() {
-    before(function() {
+describe('fs', () => {
+    before(() => {
         unlink(pathname);
         unlink(pathname1);
     });
 
-    it("stat", function() {
+    it("stat", () => {
         var st = fs.stat('.');
 
         assert.equal(st.isDirectory(), true);
@@ -33,26 +33,26 @@ describe('fs', function() {
         assert.equal(st.isWritable(), true);
     });
 
-    it("file open & close", function() {
+    it("file open & close", () => {
         var f = fs.open('fs_test.js');
-        assert.doesNotThrow(function() {
+        assert.doesNotThrow(() => {
             f.read(100);
         });
         f.close();
-        assert.throws(function() {
+        assert.throws(() => {
             f.read(100);
         });
 
         assert.ok(fs.exists('fs_test.js'));
     });
 
-    it("file.stat", function() {
+    it("file.stat", () => {
         var f = fs.open('fs_test.js');
 
         assert.deepEqual(f.stat().toJSON(), fs.stat('fs_test.js').toJSON());
     });
 
-    it("mkdir", function() {
+    it("mkdir", () => {
         fs.mkdir(pathname, 511);
         assert.equal(fs.exists(pathname), true);
 
@@ -62,18 +62,18 @@ describe('fs', function() {
         }
     });
 
-    it("rename", function() {
+    it("rename", () => {
         fs.rename(pathname, pathname1);
         assert.equal(fs.exists(pathname), false);
         assert.equal(fs.exists(pathname1), true);
     });
 
-    it("rmdir", function() {
+    it("rmdir", () => {
         fs.rmdir(pathname1);
         assert.equal(fs.exists(pathname1), false);
     });
 
-    it("file.size", function() {
+    it("file.size", () => {
         var f = fs.open('fs_test.js');
         var st = fs.stat('fs_test.js');
         assert.equal(st.size, f.size());
@@ -81,7 +81,7 @@ describe('fs', function() {
     });
 
     if (!win) {
-        it("fs.chmod", function() {
+        it("fs.chmod", () => {
             var st = fs.stat('fs_test.js');
             var oldm = st.mode;
 
@@ -94,7 +94,7 @@ describe('fs', function() {
             assert.equal(st.mode & 511, oldm & 511);
         });
 
-        it("file.chmod", function() {
+        it("file.chmod", () => {
             var f = fs.open('fs_test.js');
             var st = fs.stat('fs_test.js');
             var oldm = st.mode;
@@ -111,7 +111,7 @@ describe('fs', function() {
         });
     }
 
-    it("file read & write", function() {
+    it("file read & write", () => {
         var f = fs.open('fs_test.js');
 
         var f1 = fs.open('fs_test.js.bak' + vmid, 'w+');
@@ -127,7 +127,7 @@ describe('fs', function() {
         fs.unlink('fs_test.js.bak' + vmid);
     });
 
-    it("readFile", function() {
+    it("readFile", () => {
         var f = fs.open('fs_test.js');
 
         var s = fs.readFile("fs_test.js");
@@ -136,7 +136,7 @@ describe('fs', function() {
         f.close();
     });
 
-    it("readTextFile", function() {
+    it("readTextFile", () => {
         var f = fs.open('fs_test.js');
 
         var s = fs.readTextFile("fs_test.js");
@@ -145,17 +145,19 @@ describe('fs', function() {
         f.close();
     });
 
-    it("openTextStream", function() {
+    it("openTextStream", () => {
         var f = fs.openTextStream('fs_test.js');
         f.EOL = '\n';
 
         var a = fs.readTextFile("fs_test.js").replace(/\r/g, "").split("\n");
-        assert.deepEqual(a, f.readLines());
+        var b = f.readLines();
+        b.push("");
+        assert.deepEqual(a, b);
 
         f.close();
     });
 
-    it("tell", function() {
+    it("tell", () => {
         var f = fs.open('fs_test.js');
         var st = fs.stat('fs_test.js');
 
@@ -168,7 +170,7 @@ describe('fs', function() {
         f.close();
     });
 
-    it("seek", function() {
+    it("seek", () => {
         var f = fs.open('fs_test.js');
         f.seek(f.size() + 10, fs.SEEK_SET);
         assert.equal(f.tell(), f.size() + 10);
@@ -178,14 +180,14 @@ describe('fs', function() {
         f.close();
     });
 
-    it("seek 64 bits", function() {
+    it("seek 64 bits", () => {
         var f = fs.open('fs_test.js');
         f.seek(f.size() + 8589934592, fs.SEEK_SET);
         assert.equal(f.tell(), f.size() + 8589934592);
         f.close();
     });
 
-    it("copyTo", function() {
+    it("copyTo", () => {
         var f = fs.open('fs_test.js');
         var f1 = fs.open('fs_test.js.bak' + vmid, 'w');
 
@@ -201,9 +203,9 @@ describe('fs', function() {
         fs.unlink('fs_test.js.bak' + vmid);
     });
 
-    it("readdir", function() {
+    it("readdir", () => {
         var fl = fs.readdir('vm_test').toJSON();
-        fl.sort(function(a, b) {
+        fl.sort((a, b) => {
             if (a > b)
                 return 1;
             if (a < b)

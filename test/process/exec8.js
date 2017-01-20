@@ -1,5 +1,5 @@
 var coroutine = require('coroutine');
 
-coroutine.sleep(100, function() {
+coroutine.sleep(100, () => {
     console.log(200);
 });

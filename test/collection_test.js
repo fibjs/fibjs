@@ -4,31 +4,31 @@ test.setup();
 var collection = require('collection');
 var os = require('os');
 
-describe("collection", function() {
-    describe('List', function() {
+describe("collection", () => {
+    describe('List', () => {
         function isBigEnough(element, index) {
             return (element >= 10);
         }
 
-        it("create by array", function() {
+        it("create by array", () => {
             var a = new collection.List([1, 2, 3]);
             assert.deepEqual(a.toArray(), [1, 2, 3]);
         });
 
 
-        it("pop empty list", function() {
+        it("pop empty list", () => {
             var a = new collection.List();
             assert.equal(a.pop(), null);
         });
 
-        it("resize", function() {
+        it("resize", () => {
             var a = new collection.List();
             a.resize(256);
             assert.equal(a.length, 256);
             assert.isUndefined(a[0]);
         });
 
-        it("index", function() {
+        it("index", () => {
             var a = new collection.List();
             a.resize(256);
             for (var i = 0; i < 256; i++) {
@@ -38,7 +38,7 @@ describe("collection", function() {
             a.resize(0);
         });
 
-        it("Memory Leak detect", function() {
+        it("Memory Leak detect", () => {
             var a = new collection.List();
             GC();
             var no1 = os.memoryUsage().nativeObjects.objects;
@@ -55,38 +55,38 @@ describe("collection", function() {
             assert.equal(no1 - 1, os.memoryUsage().nativeObjects.objects);
         });
 
-        it("toArray", function() {
+        it("toArray", () => {
             var a = new collection.List();
             a.push(1);
             assert.deepEqual(a.toArray(), [1]);
         });
 
-        it("push", function() {
+        it("push", () => {
             var a = new collection.List([1]);
             a.push(2, 3, 4);
             assert.deepEqual(a.toArray(), [1, 2, 3, 4]);
         });
 
-        it("pushArray", function() {
+        it("pushArray", () => {
             var a = new collection.List([1]);
             a.pushArray([2, 3, 4]);
             assert.deepEqual(a.toArray(), [1, 2, 3, 4]);
         });
 
-        it("pop", function() {
+        it("pop", () => {
             var a = new collection.List([1, 2, 3, 4]);
             assert.equal(a.pop(), 4);
             assert.equal(a.length, 3);
         });
 
-        it("slice", function() {
+        it("slice", () => {
             var a = new collection.List([1, 2, 3]);
             assert.deepEqual(a.slice(1).toArray(), [2, 3]);
             assert.deepEqual(a.slice(1, 2).toArray(), [2]);
             assert.deepEqual(a.slice(1, 0).toArray(), []);
         });
 
-        it("concat", function() {
+        it("concat", () => {
             var a = new collection.List([1, 2, 3]);
             assert.deepEqual(a.concat(a).toArray(), [1, 2, 3, 1, 2, 3]);
             assert.deepEqual(a.concat(new collection.List()).toArray(), [1, 2,
@@ -100,7 +100,7 @@ describe("collection", function() {
             ]);
         });
 
-        it("every", function() {
+        it("every", () => {
             var passed = new collection.List();
             passed.push(12, 5, 8, 130, 44);
             assert.equal(passed.every(isBigEnough), false);
@@ -110,7 +110,7 @@ describe("collection", function() {
             assert.equal(passed.every(isBigEnough), true);
         });
 
-        it("some", function() {
+        it("some", () => {
             var passed = new collection.List();
             passed.push(12, 5, 8, 130, 44);
             assert.ok(passed.some(isBigEnough));
@@ -120,7 +120,7 @@ describe("collection", function() {
             assert.notOk(passed.some(isBigEnough));
         });
 
-        it("filter", function() {
+        it("filter", () => {
             var passed = new collection.List();
             passed.push(12, 5, 8, 130, 44);
             assert.deepEqual(passed.filter(isBigEnough).toArray(), [12, 130,
@@ -128,63 +128,63 @@ describe("collection", function() {
             ]);
         });
 
-        it("map", function() {
+        it("map", () => {
             var passed = new collection.List();
             passed.push(1, 4, 9);
             assert.deepEqual(passed.map(Math.sqrt).toArray(), [1, 2, 3]);
         });
 
-        it("forEach", function() {
+        it("forEach", () => {
             var passed = new collection.List();
             passed.push(1, 4, 9);
-            passed.forEach(function(v, i) {
+            passed.forEach((v, i) => {
                 assert.equal(passed[i], v);
             });
         });
 
-        it("sort", function() {
+        it("sort", () => {
             var passed = new collection.List();
             passed.push(1, 4, 9, 100);
 
             passed.sort();
             assert.deepEqual(passed.toArray(), [1, 100, 4, 9]);
 
-            passed.sort(function(a, b) {
+            passed.sort((a, b) => {
                 return a - b;
             });
             assert.deepEqual(passed.toArray(), [1, 4, 9, 100]);
         });
 
-        it("freeze", function() {
+        it("freeze", () => {
             var passed = new collection.List();
             passed.push(1, 4, 9);
             passed.freeze();
 
-            assert.throws(function() {
+            assert.throws(() => {
                 passed[0] = 100;
             });
 
-            assert.throws(function() {
+            assert.throws(() => {
                 passed.resize(10);
             });
 
-            assert.throws(function() {
+            assert.throws(() => {
                 passed.push(10);
             });
 
-            assert.throws(function() {
+            assert.throws(() => {
                 passed.pop();
             });
 
-            assert.throws(function() {
+            assert.throws(() => {
                 passed.concat([4, 5, 6]);
             });
         });
 
     });
 
-    describe("Queue", function() {
-        it("add", function() {
+    describe("Queue", () => {
+        it("add", () => {
             var q = new collection.Queue(3);
 
             assert.equal(q.add(100), true);
@@ -192,13 +192,13 @@ describe("collection", function() {
             assert.equal(q.add(300), true);
             assert.deepEqual(q.toArray(), [100, 200, 300]);
 
-            assert.throws(function() {
+            assert.throws(() => {
                 q.add(400);
             });
             assert.deepEqual(q.toArray(), [100, 200, 300]);
         });
 
-        it("offer", function() {
+        it("offer", () => {
             var q = new collection.Queue(3);
 
             assert.equal(q.offer(100), true);
@@ -210,7 +210,7 @@ describe("collection", function() {
             assert.deepEqual(q.toArray(), [100, 200, 300]);
         });
 
-        it("remove", function() {
+        it("remove", () => {
             var q = new collection.Queue(3);
 
             q.add(100);
@@ -221,13 +221,13 @@ describe("collection", function() {
             assert.equal(q.remove(), 200);
             assert.deepEqual(q.toArray(), []);
 
-            assert.throws(function() {
+            assert.throws(() => {
                 q.remove();
             });
             assert.deepEqual(q.toArray(), []);
         });
 
-        it("poll", function() {
+        it("poll", () => {
             var q = new collection.Queue(3);
 
             q.add(100);
@@ -242,7 +242,7 @@ describe("collection", function() {
             assert.deepEqual(q.toArray(), []);
         });
 
-        it("clear/length", function() {
+        it("clear/length", () => {
             var q = new collection.Queue(3);
 
             q.add(100);
@@ -254,7 +254,7 @@ describe("collection", function() {
             assert.equal(q.length, 0);
         });
 
-        it("element", function() {
+        it("element", () => {
             var q = new collection.Queue(3);
 
             q.add(100);
@@ -263,12 +263,12 @@ describe("collection", function() {
             assert.deepEqual(q.toArray(), [100, 200]);
 
             q.clear();
-            assert.throws(function() {
+            assert.throws(() => {
                 q.element();
             });
         });
 
-        it("peek", function() {
+        it("peek", () => {
             var q = new collection.Queue(3);
 
             q.add(100);

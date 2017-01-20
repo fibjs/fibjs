@@ -1,17 +1,17 @@
 var test = require("test");
 test.setup();
 
-describe('Buffer', function() {
-    it("buffer module", function() {
+describe('Buffer', () => {
+    it("buffer module", () => {
         assert.equal(require('buffer'), Buffer);
     });
 
-    it('new Buffer(Integr)', function() {
+    it('new Buffer(Integr)', () => {
         var buf = new Buffer(100);
         assert.equal(buf.length, 100);
     });
 
-    it('new Buffer(String)', function() {
+    it('new Buffer(String)', () => {
         var buf = new Buffer("abcd");
         assert.equal(buf.length, 4);
         assert.equal(buf.toString(), "abcd");
@@ -21,13 +21,13 @@ describe('Buffer', function() {
         assert.equal(buf.toString(), "100");
     });
 
-    it('new Buffer(Array)', function() {
+    it('new Buffer(Array)', () => {
         var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
         assert.equal(buf.length, 4);
         assert.equal(buf.toString(), "1234");
     });
 
-    it('new Buffer(TypedArray)', function() {
+    it('new Buffer(TypedArray)', () => {
         var arr = new Uint16Array(2);
         arr[0] = 5000;
         arr[1] = 4000;
@@ -38,7 +38,7 @@ describe('Buffer', function() {
         assert.equal(buf.hex(), "88a0");
     });
 
-    it('new Buffer(ArrayBuffer)', function() {
+    it('new Buffer(ArrayBuffer)', () => {
         var arr = new Uint16Array(2);
         arr[0] = 5000;
         arr[1] = 4000;
@@ -49,21 +49,21 @@ describe('Buffer', function() {
         assert.equal(buf.hex(), "8813a00f");
     });
 
-    it('new Buffer(Buffer)', function() {
+    it('new Buffer(Buffer)', () => {
         var buf = new Buffer(new Buffer("abcd"));
         assert.equal(buf.length, 4);
         assert.equal(buf.toString(), "abcd");
         var buf = new Buffer({});
     });
 
-    it('isBuffer', function() {
+    it('isBuffer', () => {
         var buf = new Buffer("abcd");
         var str = "abcd"
         assert.equal(Buffer.isBuffer(buf), true);
         assert.equal(Buffer.isBuffer(str), false);
     });
 
-    it('concat', function() {
+    it('concat', () => {
         var buf1 = new Buffer("abcd");
         var buf2 = new Buffer("efg");
         var buf3 = new Buffer();
@@ -100,17 +100,17 @@ describe('Buffer', function() {
         assert.equal(bufRes[9], 136);
         buf1 = new Buffer('');
         bufArray = [buf1];
-        assert.doesNotThrow(function() {
-            bufRes = Buffer.concat([function() {}, {}, undefined, '']);
+        assert.doesNotThrow(() => {
+            bufRes = Buffer.concat([() => {}, {}, undefined, '']);
         });
     });
 
-    it('toArray', function() {
+    it('toArray', () => {
         var buf = new Buffer([1, 2, 3, 4]);
         assert.deepEqual(buf.toArray(), [1, 2, 3, 4]);
     });
 
-    it('toJSON', function() {
+    it('toJSON', () => {
         var buf = new Buffer([1, 2, 3, 4]);
         assert.deepEqual(buf.toJSON(), {
             type: 'Buffer',
@@ -118,7 +118,7 @@ describe('Buffer', function() {
         });
     });
 
-    it('toString', function() {
+    it('toString', () => {
         var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
         assert.equal(buf.toString("utf8"), "1234");
         assert.equal(buf.toString(undefined), "1234");
@@ -140,7 +140,7 @@ describe('Buffer', function() {
         assert.equal(buf1.toString('ucs2'), '桴獩椠⁳⁡썴玩');
     });
 
-    it('append', function() {
+    it('append', () => {
         var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
         assert.equal(buf.toString(), "1234");
 
@@ -157,7 +157,7 @@ describe('Buffer', function() {
         assert.equal(buf.toString(), "1234abcd1234121234");
     });
 
-    it('write', function() {
+    it('write', () => {
         var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
         assert.equal(buf.toString(), "1234");
 
@@ -189,7 +189,7 @@ describe('Buffer', function() {
         assert.equal(buf.toString('utf8', 0, 3), "abc");
     });
 
-    it('fill', function() {
+    it('fill', () => {
         var buf = new Buffer(5);
         buf.fill(10);
         for (var i = 0; i < 5; i++)
@@ -202,10 +202,10 @@ describe('Buffer', function() {
         buf.fill("abcabcabcabc");
         assert.equal(buf.toString(), "abcabcabca");
 
-        assert.throws(function() {
+        assert.throws(() => {
             buf.fill("abcabcabcabc", 1, 12);
         })
-        assert.throws(function() {
+        assert.throws(() => {
             buf.fill("abcabcabcabc", 6, 5);
         })
 
@@ -217,13 +217,13 @@ describe('Buffer', function() {
             assert.equal(buf[i + 6], i);
         }
         assert.equal(buf[9], 0);
-        assert.throws(function() {
+        assert.throws(() => {
             buf[10];
         })
         assert.equal(buf, buf1);
     });
 
-    it('slice', function() {
+    it('slice', () => {
         var buf = new Buffer(5);
         buf.fill(10);
         var sli = buf.slice(1, 4);
@@ -241,7 +241,7 @@ describe('Buffer', function() {
         assert.equal(buf.slice(-6, -1), 'buffe');
     });
 
-    it('equals & compare', function() {
+    it('equals & compare', () => {
         var buf = new Buffer("abcd");
         assert.equal(buf.equals(new Buffer("abcd")), true);
         assert.equal(buf.equals(new Buffer("abc")), false);
@@ -254,7 +254,7 @@ describe('Buffer', function() {
         assert.equal(buf.equals(new Buffer([1, 0, 2])), false);
     });
 
-    it('copy', function() {
+    it('copy', () => {
 
         var buf1 = new Buffer([0x31, 0x32, 0x33]);
         var arr = [0x34, 0x35, 0x36];
@@ -286,7 +286,7 @@ describe('Buffer', function() {
 
     });
 
-    it("readNumber", function() {
+    it("readNumber", () => {
         var buf = new Buffer([0x23, 0x42]);
 
         assert.equal(buf.readUInt8(), 35);
@@ -297,11 +297,11 @@ describe('Buffer', function() {
         assert.equal(buf.readUInt16BE(1, true), 16896);
         assert.equal(buf.readUInt16LE(1, true), 66);
 
-        assert.throws(function() {
+        assert.throws(() => {
             buf.readUInt16BE(1);
         });
 
-        assert.throws(function() {
+        assert.throws(() => {
             buf.readUInt16LE(1);
         });
 
@@ -363,7 +363,7 @@ describe('Buffer', function() {
         assert.equal(buf.readDoubleLE(), 0.3333333333333333);
     });
 
-    it("writeNumber", function() {
+    it("writeNumber", () => {
         var buf = new Buffer(2);
 
         buf.writeUInt16BE(9026, 0);
@@ -382,11 +382,11 @@ describe('Buffer', function() {
 
         assert.equal(buf.length, 2);
 
-        assert.throws(function() {
+        assert.throws(() => {
             buf.writeUInt16BE(0, 1);
         });
 
-        assert.throws(function() {
+        assert.throws(() => {
             buf.writeUInt16LE(0, 1);
         });
 
@@ -489,7 +489,7 @@ describe('Buffer', function() {
         assert.equal(buf.hex(), "555555555555d53f");
     });
 
-    it('charset', function() {
+    it('charset', () => {
         assert.equal(new Buffer("哈哈哈").toString(), "哈哈哈");
         assert.deepEqual(new Buffer("哈哈哈哈", "gbk").toArray(), [
             185, 254, 185, 254, 185, 254, 185, 254
@@ -497,28 +497,28 @@ describe('Buffer', function() {
         assert.equal(new Buffer("哈哈哈", "gbk").toString("gbk"), "哈哈哈");
     });
 
-    it('resize', function() {
+    it('resize', () => {
         var buf = new Buffer();
         buf.resize(100);
         assert.equal(buf.length, 100);
 
-        assert.doesNotThrow(function() {
+        assert.doesNotThrow(() => {
             buf.resize("12")
         });
-        assert.throws(function() {
+        assert.throws(() => {
             buf.resize("a12")
         });
 
-        assert.throws(function() {
+        assert.throws(() => {
             buf.resize("12a")
         });
 
-        assert.throws(function() {
+        assert.throws(() => {
             buf.resize("12.a")
         });
     });
 
-    it('indexOf', function() {
+    it('indexOf', () => {
         var buf = new Buffer([0x31, 0x32, 0x33, 0x34, 0x00]);
         assert.equal(buf.indexOf(0x33), 2);
         assert.equal(buf.indexOf(0x00), 4);
@@ -528,11 +528,11 @@ describe('Buffer', function() {
         assert.equal(buf.indexOf("cd"), 2);
         assert.equal(buf.indexOf(new Buffer("de")), 7);
 
-        assert.throws(function() {
+        assert.throws(() => {
             buf.indexOf("cd", 10);
         });
 
-        assert.throws(function() {
+        assert.throws(() => {
             buf.indexOf(new Buffer("de"), 10);
         });
 

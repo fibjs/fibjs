@@ -47,4 +47,10 @@ result_t Lock::release()
     return 0;
 }
 
+result_t Lock::count(int32_t& retVal)
+{
+    retVal = m_lock.count();
+    return 0;
+}
+
 }

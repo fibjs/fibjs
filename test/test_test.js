@@ -1,36 +1,36 @@
 var test = require("test");
 test.setup();
 
-describe("test", function() {
-	it("it throw when not in describe", function() {
-		assert.throws(function() {
-			it("x", function() {});
-		});
-	});
+describe("test", () => {
+    it("it throw when not in describe", () => {
+        assert.throws(() => {
+            it("x", () => {});
+        });
+    });
 
-	it("before throw when not in describe", function() {
-		assert.throws(function() {
-			before(function() {});
-		});
-	});
+    it("before throw when not in describe", () => {
+        assert.throws(() => {
+            before(() => {});
+        });
+    });
 
-	it("after throw when not in describe", function() {
-		assert.throws(function() {
-			after(function() {});
-		});
-	});
+    it("after throw when not in describe", () => {
+        assert.throws(() => {
+            after(() => {});
+        });
+    });
 
-	it("beforeEach throw when not in describe", function() {
-		assert.throws(function() {
-			beforeEach(function() {});
-		});
-	});
+    it("beforeEach throw when not in describe", () => {
+        assert.throws(() => {
+            beforeEach(() => {});
+        });
+    });
 
-	it("afterEach throw when not in describe", function() {
-		assert.throws(function() {
-			afterEach(function() {});
-		});
-	});
+    it("afterEach throw when not in describe", () => {
+        assert.throws(() => {
+            afterEach(() => {});
+        });
+    });
 });
 
 //test.run(console.DEBUG);

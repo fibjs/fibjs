@@ -7,9 +7,9 @@ var coroutine = require('coroutine');
 var collection = require("collection");
 var os = require('os');
 
-describe('util', function() {
+describe('util', () => {
 
-    it("inherits", function() {
+    it("inherits", () => {
         function Child() {
             console.log("in child");
         }
@@ -30,7 +30,7 @@ describe('util', function() {
         assert.ok(c instanceof Parent)
     });
 
-    it("isEmpty", function() {
+    it("isEmpty", () => {
         assert.isTrue(util.isEmpty(null));
         assert.isTrue(util.isEmpty(undefined));
 
@@ -46,7 +46,7 @@ describe('util', function() {
         }));
     });
 
-    it("isArray", function() {
+    it("isArray", () => {
         assert.isTrue(util.isArray([]));
         assert.isTrue(util.isArray(Array()));
         assert.isTrue(util.isArray(new Array()));
@@ -54,14 +54,14 @@ describe('util', function() {
         assert.isTrue(util.isArray(new Array('with', 'some', 'entries')));
         assert.isFalse(util.isArray({}));
         assert.isFalse(util.isArray({
-            push: function() {}
+            push: () => {}
         }));
         assert.isFalse(util.isArray(/regexp/));
         assert.isFalse(util.isArray(new Error));
         assert.isFalse(util.isArray(Object.create(Array.prototype)));
     });
 
-    it("isRegExp", function() {
+    it("isRegExp", () => {
         assert.isTrue(util.isRegExp(/regexp/));
         assert.isTrue(util.isRegExp(RegExp()));
         assert.isTrue(util.isRegExp(new RegExp()));
@@ -71,29 +71,29 @@ describe('util', function() {
         assert.isFalse(util.isRegExp(Object.create(RegExp.prototype)));
     });
 
-    it("isObject", function() {
+    it("isObject", () => {
         assert.isTrue(util.isObject({}));
     });
 
-    it('isNull', function() {
+    it('isNull', () => {
         assert.isTrue(util.isNull(null));
         assert.isFalse(util.isNull(undefined));
         assert.isFalse(util.isNull(100));
     });
 
-    it('isUndefined', function() {
+    it('isUndefined', () => {
         assert.isFalse(util.isUndefined(null));
         assert.isTrue(util.isUndefined(undefined));
         assert.isFalse(util.isUndefined(100));
     });
 
-    it('isNullOrUndefined', function() {
+    it('isNullOrUndefined', () => {
         assert.isTrue(util.isNullOrUndefined(null));
         assert.isTrue(util.isNullOrUndefined(undefined));
         assert.isFalse(util.isNullOrUndefined(100));
     });
 
-    it('isNumber', function() {
+    it('isNumber', () => {
         assert.isTrue(util.isNumber(1));
         assert.isTrue(util.isNumber(Number('3')));
 
@@ -103,7 +103,7 @@ describe('util', function() {
         assert.isFalse(util.isNumber([5]));
     });
 
-    it('isString', function() {
+    it('isString', () => {
         assert.isTrue(util.isString('Foo'));
         assert.isTrue(util.isString(new String('foo')));
 
@@ -113,28 +113,28 @@ describe('util', function() {
         assert.isFalse(util.isString(['hello']));
     });
 
-    it('isRegExp', function() {
+    it('isRegExp', () => {
         assert.isTrue(util.isRegExp(/a/));
         assert.isTrue(util.isRegExp(new RegExp("a")));
         assert.isFalse(util.isRegExp("a"));
     });
 
-    it('isFunction', function() {
-        assert.isTrue(util.isFunction(function() {}));
+    it('isFunction', () => {
+        assert.isTrue(util.isFunction(() => {}));
         assert.isFalse(util.isFunction({}));
         assert.isFalse(util.isFunction(5));
     });
 
-    it('isBuffer', function() {
+    it('isBuffer', () => {
         assert.isTrue(util.isBuffer(new Buffer(10)));
         assert.isFalse(util.isBuffer({}));
         assert.isFalse(util.isBuffer(5));
     });
 
-    it('has', function() {
+    it('has', () => {
         var obj = {
             foo: 'bar',
-            func: function() {}
+            func: () => {}
         };
         assert.ok(util.has(obj, 'foo'));
         assert.ok(!util.has(obj, 'baz'));
@@ -148,7 +148,7 @@ describe('util', function() {
         assert.strictEqual(util.has(undefined, 'foo'), false);
     });
 
-    it('keys', function() {
+    it('keys', () => {
         assert.deepEqual(util.keys({
             one: 1,
             two: 2
@@ -164,7 +164,7 @@ describe('util', function() {
         assert.deepEqual(util.keys(true), []);
     });
 
-    it('values', function() {
+    it('values', () => {
         assert.deepEqual(util.values({
             one: 1,
             two: 2
@@ -176,7 +176,7 @@ describe('util', function() {
         }), [1, 2, 3], '... even when one of them is "length"');
     });
 
-    it('clone', function() {
+    it('clone', () => {
         assert.equal(util.clone(100), 100);
 
         var a = [100, 200];
@@ -197,7 +197,7 @@ describe('util', function() {
         assert.notDeepEqual(o, o1);
     });
 
-    it('extend', function() {
+    it('extend', () => {
         var result;
         assert.equal(util.extend({}, {
             a: 'b'
@@ -259,7 +259,7 @@ describe('util', function() {
         }), undefined, 'extending undefined results in undefined');
     });
 
-    it("first", function() {
+    it("first", () => {
         assert.equal(util.first([1, 2, 3]), 1);
         assert.deepEqual(util.first([1, 2, 3], 0), []);
         assert.deepEqual(util.first([1, 2, 3], 2), [1, 2]);
@@ -274,7 +274,7 @@ describe('util', function() {
         assert.strictEqual(util.first([1, 2, 3], -1).length, 0);
     });
 
-    it("last", function() {
+    it("last", () => {
         assert.equal(util.last([1, 2, 3]), 3);
         assert.deepEqual(util.last([1, 2, 3], 0), []);
         assert.deepEqual(util.last([1, 2, 3], 2), [2, 3]);
@@ -284,7 +284,7 @@ describe('util', function() {
         assert.strictEqual(util.last([1, 2, 3], -1).length, 0);
     });
 
-    it('unique', function() {
+    it('unique', () => {
         var list = [1, 2, 1, 3, 1, 4];
         assert.deepEqual(util.unique(list), [1, 2, 3, 4]);
 
@@ -300,7 +300,7 @@ describe('util', function() {
         }, {
             name: 'curly'
         }];
-        var iterator = function(value) {
+        var iterator = (value) => {
             return value.name;
         };
 
@@ -311,7 +311,7 @@ describe('util', function() {
         assert.deepEqual(util.unique(null), []);
     });
 
-    it('union', function() {
+    it('union', () => {
         var result = util.union([1, 2, 3], [2, 30, 1], [1, 40]);
         assert.deepEqual(result, [1, 2, 3, 30, 40]);
 
@@ -319,7 +319,7 @@ describe('util', function() {
         assert.deepEqual(result, [1, 2, 3, 30, 40, [1]]);
     });
 
-    it('flatten', function() {
+    it('flatten', () => {
         var list = [1, [2],
             [3, [
                 [
@@ -352,7 +352,7 @@ describe('util', function() {
         assert.deepEqual(util.flatten(list, true), [1, 2, 3, [4]]);
     });
 
-    it('without', function() {
+    it('without', () => {
         var list = [1, 2, 1, 0, 3, 1, 4];
         assert.deepEqual(util.without(list, 0, 1), [2, 3, 4]);
 
@@ -372,7 +372,7 @@ describe('util', function() {
         assert.equal(util.without(list, list[0]).length, 1);
     });
 
-    it('difference', function() {
+    it('difference', () => {
         var result = util.difference([1, 2, 3], [2, 30, 40]);
         assert.deepEqual(result, [1, 3]);
 
@@ -380,7 +380,7 @@ describe('util', function() {
         assert.deepEqual(result, [3, 4]);
     });
 
-    it("intersection", function() {
+    it("intersection", () => {
         var stooges = ['moe', 'curly', 'larry'],
             leaders = ['moe', 'groucho'];
         var result;
@@ -394,7 +394,7 @@ describe('util', function() {
         assert.equal(result.length, 0);
     });
 
-    it("pick", function() {
+    it("pick", () => {
         var result;
         result = util.pick({
             a: 1,
@@ -444,7 +444,7 @@ describe('util', function() {
         });
     });
 
-    it("omit", function() {
+    it("omit", () => {
         var result;
         result = util.omit({
             a: 1,
@@ -492,8 +492,8 @@ describe('util', function() {
         });
     });
 
-    it('each', function() {
-        util.each([1, 2, 3], function(num, i) {
+    it('each', () => {
+        util.each([1, 2, 3], (num, i) => {
             assert.equal(num, i + 1);
         });
 
@@ -506,40 +506,40 @@ describe('util', function() {
         assert.deepEqual(answers, [5, 10, 15]);
 
         answers = [];
-        util.each([1, 2, 3], function(num) {
+        util.each([1, 2, 3], (num) => {
             answers.push(num);
         });
         assert.deepEqual(answers, [1, 2, 3]);
 
         var answer = null;
-        util.each([1, 2, 3], function(num, index, arr) {
+        util.each([1, 2, 3], (num, index, arr) => {
             assert.equal(arr[index], num);
         });
 
         answers = 0;
-        util.each(null, function() {
+        util.each(null, () => {
             ++answers;
         });
         assert.equal(answers, 0);
 
-        util.each(false, function() {});
+        util.each(false, () => {});
 
         var a = [1, 2, 3];
-        assert.strictEqual(util.each(a, function() {}), a);
-        assert.strictEqual(util.each(null, function() {}), null);
+        assert.strictEqual(util.each(a, () => {}), a);
+        assert.strictEqual(util.each(null, () => {}), null);
 
         var b = [1, 2, 3];
         b.length = 100;
         answers = 0;
-        util.each(b, function() {
+        util.each(b, () => {
             ++answers;
         });
         assert.equal(answers, 100);
     });
 
 
-    it('map', function() {
-        var doubled = util.map([1, 2, 3], function(num) {
+    it('map', () => {
+        var doubled = util.map([1, 2, 3], (num) => {
             return num * 2;
         });
         assert.deepEqual(doubled, [2, 4, 6]);
@@ -551,7 +551,7 @@ describe('util', function() {
         });
         assert.deepEqual(tripled, [3, 6, 9]);
 
-        doubled = util.map([1, 2, 3], function(num) {
+        doubled = util.map([1, 2, 3], (num) => {
             return num * 2;
         });
         assert.deepEqual(doubled, [2, 4, 6]);
@@ -564,12 +564,12 @@ describe('util', function() {
             1: {
                 id: '2'
             }
-        }, function(n) {
+        }, (n) => {
             return n.id;
         });
         assert.deepEqual(ids, ['1', '2']);
 
-        assert.deepEqual(util.map(null, function() {}), []);
+        assert.deepEqual(util.map(null, () => {}), []);
 
         assert.deepEqual(util.map([1], function() {
             return this.length;
@@ -577,8 +577,8 @@ describe('util', function() {
     });
 
 
-    it('reduce', function() {
-        var sum = util.reduce([1, 2, 3], function(sum, num) {
+    it('reduce', () => {
+        var sum = util.reduce([1, 2, 3], (sum, num) => {
             return sum + num;
         }, 0);
         assert.equal(sum, 6);
@@ -591,20 +591,20 @@ describe('util', function() {
         }, 0, context);
         assert.equal(sum, 18);
 
-        assert.equal(util.reduce(null, function() {}, 138), 138);
-        assert.equal(util.reduce([], function() {}, undefined), undefined);
+        assert.equal(util.reduce(null, () => {}, 138), 138);
+        assert.equal(util.reduce([], () => {}, undefined), undefined);
 
-        assert.throws(function() {
-            util.reduce([], function() {});
+        assert.throws(() => {
+            util.reduce([], () => {});
         });
 
-        assert.throws(function() {
-            util.reduce(null, function() {});
+        assert.throws(() => {
+            util.reduce(null, () => {});
         });
     });
 
-    describe('format', function() {
-        it("basic", function() {
+    describe('format', () => {
+        it("basic", () => {
             assert.equal(util.format(), '');
             assert.equal(util.format(''), '');
             assert.equal(util.format(null), 'null');
@@ -618,13 +618,13 @@ describe('util', function() {
             assert.equal(util.format('foo', 'bar', 'baz'), 'foo bar baz');
         });
 
-        it("array", function() {
+        it("array", () => {
             assert.equal(util.format([]), '[]');
             assert.equal(util.format(["1"]), '[\n  "1"\n]');
             assert.equal(util.format([100, 200]), '[\n  100,\n  200\n]');
         });
 
-        it("object", function() {
+        it("object", () => {
             assert.equal(util.format({}), '{}');
             assert.equal(util.format({
                 a: 100,
@@ -632,21 +632,21 @@ describe('util', function() {
             }), '{\n  "a": 100,\n  "b": 200\n}');
         });
 
-        it("Buffer", function() {
+        it("Buffer", () => {
             assert.equal(util.format(new Buffer('fibjs')), '<Buffer 66 69 62 6a 73>');
         });
 
-        it("Int64", function() {
+        it("Int64", () => {
             assert.equal(util.format(new Int64(12345678)), '12345678');
         });
 
-        it("List", function() {
+        it("List", () => {
             var a = new collection.List();
             a.push(100, 200);
             assert.equal(util.format(a), '[\n  100,\n  200\n]');
         });
 
-        it("levels", function() {
+        it("levels", () => {
             assert.equal(util.format({}), '{}');
             assert.equal(util.format([
                 [
@@ -660,7 +660,7 @@ describe('util', function() {
             }), '{\n  "a": {\n    "b": {}\n  }\n}');
         });
 
-        it("regexp", function() {
+        it("regexp", () => {
             assert.equal(util.format(/aaa/), '/aaa/');
             assert.equal(util.format(/aaa/igm), '/aaa/igm');
             assert.equal(util.format(/a\\aa/igm), '/a\\\\aa/igm');
@@ -670,7 +670,7 @@ describe('util', function() {
             }), '{\n  "a": /aaa/\n}');
         });
 
-        it("Circular", function() {
+        it("Circular", () => {
             var a = [];
             a[0] = a;
             assert.equal(util.format(a), '[Circular]');
@@ -691,20 +691,20 @@ describe('util', function() {
             assert.equal(util.format(o1), '{\n  "a": 100,\n  "b": 200,\n  "c": [Circular]\n}');
         });
 
-        it("Function", function() {
-            assert.equal(util.format(function() {}), '[Function]');
+        it("Function", () => {
+            assert.equal(util.format(() => {}), '[Function]');
 
             assert.equal(util.format([
 
-                function() {}
+                () => {}
             ]), '[\n  [Function]\n]');
 
             assert.equal(util.format({
-                a: function() {}
+                a: () => {}
             }), '{\n  "a": [Function]\n}');
         });
 
-        it("%d", function() {
+        it("%d", () => {
             assert.equal(util.format('%d', 42.0), '42');
             assert.equal(util.format('%d', 42), '42');
             assert.equal(util.format('%s', 42), '42');
@@ -715,11 +715,11 @@ describe('util', function() {
             assert.equal(util.format('%s', '42'), '42');
         });
 
-        it("%j", function() {
+        it("%j", () => {
             assert.equal(util.format('%j', '42'), '"42"');
         });
 
-        it("%s", function() {
+        it("%s", () => {
             assert.equal(util.format('%%s%s', 'foo'), '%sfoo');
 
             assert.equal(util.format('%s'), '%s');
@@ -734,15 +734,15 @@ describe('util', function() {
             assert.equal(util.format('%%%s%%%%', 'hi'), '%hi%%');
         });
 
-        it("fix: crash on error.", function() {
+        it("fix: crash on error.", () => {
             util.format(new mq.Message());
         });
     });
 
-    describe('Stats', function() {
+    describe('Stats', () => {
         var s;
 
-        it("new", function() {
+        it("new", () => {
             s = new util.Stats(['a'], ['b', 'c']);
             assert.deepEqual(s.toJSON(), {
                 "a": 0,
@@ -757,12 +757,12 @@ describe('util', function() {
                 "c": 0
             });
 
-            assert.throws(function() {
+            assert.throws(() => {
                 var s = new util.Stats();
             });
         });
 
-        it("inc", function() {
+        it("inc", () => {
             s.inc('a');
             assert.deepEqual(s.toJSON(), {
                 "a": 1,
@@ -778,7 +778,7 @@ describe('util', function() {
             });
         });
 
-        it("dec", function() {
+        it("dec", () => {
             s.dec('a');
             assert.deepEqual(s.toJSON(), {
                 "a": 0,
@@ -787,7 +787,7 @@ describe('util', function() {
             });
         });
 
-        it("add", function() {
+        it("add", () => {
             s.add('a', 100);
             assert.deepEqual(s.toJSON(), {
                 "a": 100,
@@ -796,7 +796,7 @@ describe('util', function() {
             });
         });
 
-        it("reset", function() {
+        it("reset", () => {
             s.reset();
             assert.deepEqual(s.toJSON(), {
                 "a": 100,
@@ -805,18 +805,18 @@ describe('util', function() {
             });
         });
 
-        it("named", function() {
+        it("named", () => {
             assert.equal(s.a, 100);
             assert.equal(s["a"], 100);
         });
 
-        it("uptime", function() {
+        it("uptime", () => {
             coroutine.sleep(100);
             assert.closeTo(100, s.uptime(), 40);
         });
     });
 
-    describe('LruCache', function() {
+    describe('LruCache', () => {
         var c;
 
         function deepEqual(o1, o2) {
@@ -824,12 +824,12 @@ describe('util', function() {
             assert.deepEqual(o1, o2);
         }
 
-        it("new", function() {
+        it("new", () => {
             c = new util.LruCache(3);
             deepEqual(c.toJSON(), {});
         });
 
-        it("put", function() {
+        it("put", () => {
             c.put("b", 100);
             deepEqual(c.toJSON(), {
                 "b": 100
@@ -845,7 +845,7 @@ describe('util', function() {
             });
         });
 
-        it("set", function() {
+        it("set", () => {
             c.set("c", 100);
             deepEqual(c.toJSON(), {
                 "a": 100,
@@ -853,12 +853,12 @@ describe('util', function() {
             });
         });
 
-        it("has", function() {
+        it("has", () => {
             assert.isTrue(c.has('a'));
             assert.isFalse(c.has('c'));
         });
 
-        it("get", function() {
+        it("get", () => {
             assert.equal(c.get('a'), 100);
             assert.isUndefined(c.get('c'));
 
@@ -874,7 +874,7 @@ describe('util', function() {
             });
         });
 
-        it("remove", function() {
+        it("remove", () => {
             c.remove("b");
             deepEqual(c.toJSON(), {
                 "a": 100
@@ -884,7 +884,7 @@ describe('util', function() {
             deepEqual(c.toJSON(), {});
         });
 
-        it("size", function() {
+        it("size", () => {
             assert.equal(c.size, 0);
 
             c.put('a', 100);
@@ -904,7 +904,7 @@ describe('util', function() {
             });
         });
 
-        it("timeout", function() {
+        it("timeout", () => {
             c = new util.LruCache(3, 200);
 
             c.put('f', 100);
@@ -942,7 +942,7 @@ describe('util', function() {
             });
         });
 
-        it("updater", function() {
+        it("updater", () => {
             var call_num = 0;
 
             function updater(name) {
@@ -955,7 +955,7 @@ describe('util', function() {
             assert.equal(c.get("a", updater), "a_value");
             assert.equal(call_num, 1);
 
-            coroutine.start(function() {
+            coroutine.start(() => {
                 c.get("b", updater);
             });
             coroutine.sleep(1);
@@ -973,15 +973,15 @@ describe('util', function() {
             assert.equal(c.get("c"), "c_value");
             assert.equal(call_num, 3);
 
-            assert.throws(function() {
-                c.get("d", function() {
+            assert.throws(() => {
+                c.get("d", () => {
                     throw "some error";
                 })
             });
 
         });
 
-        it("Garbage Collection", function() {
+        it("Garbage Collection", () => {
             GC();
             var no1 = os.memoryUsage().nativeObjects.objects;
 
