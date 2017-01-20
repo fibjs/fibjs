@@ -170,6 +170,11 @@ result_t process_base::memoryUsage(v8::Local<v8::Object> &retVal)
     return os_base::memoryUsage(retVal);
 }
 
+result_t process_base::uptime(double &retVal)
+{
+     return os_base::uptime(retVal);
+}
+
 result_t process_base::nextTick(v8::Local<v8::Function> func,
                                 const v8::FunctionCallbackInfo<v8::Value>& args)
 {
