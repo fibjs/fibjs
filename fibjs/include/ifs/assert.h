@@ -23,6 +23,7 @@ class assert_base : public object_base
 
 public:
     // assert_base
+    static result_t _function(v8::Local<v8::Value> actual, exlib::string msg);
     static result_t ok(v8::Local<v8::Value> actual, exlib::string msg);
     static result_t notOk(v8::Local<v8::Value> actual, exlib::string msg);
     static result_t equal(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string msg);
@@ -76,14 +77,11 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
-
-        Isolate* isolate = Isolate::current();
-
-        isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8("not a constructor"));
+        s__function(args);
     }
 
 public:
+    static void s__function(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_ok(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_notOk(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_equal(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -142,6 +140,7 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
+            {"_function", s__function, true},
             {"ok", s_ok, true},
             {"notOk", s_notOk, true},
             {"equal", s_equal, true},
@@ -194,8 +193,8 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "assert", s__new, NULL, 
-            48, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            "assert", s__new, s__function, 
+            49, s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };
 
@@ -203,6 +202,18 @@ namespace fibjs
         return s_ci;
     }
 
+
+    inline void assert_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER(2, 1);
+
+        ARG(v8::Local<v8::Value>, 0);
+        OPT_ARG(exlib::string, 1, "");
+
+        hr = _function(v0, v1);
+
+        METHOD_VOID();
+    }
 
     inline void assert_base::s_ok(const v8::FunctionCallbackInfo<v8::Value>& args)
     {

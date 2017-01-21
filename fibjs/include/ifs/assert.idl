@@ -22,6 +22,12 @@ module assert
      @param actual 要测试的数值
      @param msg 断言失败时的提示信息
      */
+    static Function(Value actual, String msg = "");
+
+    /*! @brief 测试数值为真，为假则断言失败
+     @param actual 要测试的数值
+     @param msg 断言失败时的提示信息
+     */
     static ok(Value actual, String msg = "");
 
     /*! @brief 测试数值为假，为真则断言失败

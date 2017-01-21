@@ -4,7 +4,7 @@ test.setup();
 describe('assert', () => {
     it('assert', () => {
         var foo = 'bar';
-        assert.ok(foo == 'bar', "expected foo to equal `bar`");
+        assert(foo == 'bar', "expected foo to equal `bar`");
     });
 
     it('isTrue', () => {

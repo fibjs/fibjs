@@ -171,6 +171,7 @@ function parserIDL(fname) {
     var modType, st, f, line, cvs, ifs, afs, svs, ffs, iffs, tjfs, difms, difos, difps, dsvs, refCls, ids, ns, baseClass, isRem = false,
         hasNew = false,
         callAsFunc = false,
+        staticCallAsFunc = false,
         hasIndexed = false,
         hasNamed = false,
         typeMap = {
@@ -376,6 +377,9 @@ function parserIDL(fname) {
 
         if (hasNew)
             txt.push("public:\n    template<typename T>\n    static void __new(const T &args);\n");
+        else if (staticCallAsFunc)
+            txt.push("public:\n    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)\n    {\n" +
+                "        CONSTRUCT_INIT();\n        s__function(args);\n    }\n");
         else
             txt.push("public:\n    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)\n    {\n" +
                 "        CONSTRUCT_INIT();\n\n" +
@@ -562,8 +566,8 @@ function parserIDL(fname) {
         }
 
         if (fname === "Function") {
-            if (attr != "")
-                return reportErr();
+            if (attr == "static")
+                staticCallAsFunc = true;
 
             fname = "_function";
             callAsFunc = true;

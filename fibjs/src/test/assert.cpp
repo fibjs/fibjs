@@ -163,6 +163,11 @@ inline void _test(bool value, _msg msg)
         ThrowError(msg.str());
 }
 
+result_t assert_base::_function(v8::Local<v8::Value> actual, exlib::string msg)
+{
+    return ok(actual, msg);
+}
+
 result_t assert_base::ok(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(actual->BooleanValue(),
