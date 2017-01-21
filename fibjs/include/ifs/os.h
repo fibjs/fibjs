@@ -38,6 +38,7 @@ public:
     static result_t freemem(int64_t& retVal);
     static result_t CPUInfo(v8::Local<v8::Array>& retVal);
     static result_t CPUs(int32_t& retVal);
+    static result_t tmpdir(exlib::string& retVal);
     static result_t networkInfo(v8::Local<v8::Object>& retVal);
     static result_t printerInfo(v8::Local<v8::Array>& retVal);
     static result_t openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
@@ -71,6 +72,7 @@ public:
     static void s_freemem(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_CPUInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_CPUs(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_networkInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -101,6 +103,7 @@ namespace fibjs
             {"freemem", s_freemem, true},
             {"CPUInfo", s_CPUInfo, true},
             {"CPUs", s_CPUs, true},
+            {"tmpdir", s_tmpdir, true},
             {"networkInfo", s_networkInfo, true},
             {"printerInfo", s_printerInfo, true},
             {"openPrinter", s_openPrinter, true},
@@ -129,7 +132,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "os", s__new, NULL, 
-            13, s_method, 1, s_object, 7, s_property, NULL, NULL,
+            14, s_method, 1, s_object, 7, s_property, NULL, NULL,
             NULL
         };
 
@@ -276,6 +279,17 @@ namespace fibjs
         METHOD_ENTER(0, 0);
 
         hr = CPUs(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void os_base::s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        exlib::string vr;
+
+        METHOD_ENTER(0, 0);
+
+        hr = tmpdir(vr);
 
         METHOD_RETURN();
     }

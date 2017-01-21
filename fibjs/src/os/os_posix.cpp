@@ -139,6 +139,12 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
     return CALL_E_INVALID_CALL;
 }
 
+result_t os_base::tmpdir(exlib::string& retVal)
+{
+    retVal = "/tmp";
+    return 0;
+}
+
 result_t process_base::cwd(exlib::string &retVal)
 {
 

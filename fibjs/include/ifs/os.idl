@@ -59,6 +59,11 @@ module os
     */
     static Integer CPUs();
 
+    /*! @brief 查询当前运行环境临时文件目录
+     @return 返回临时文件目录
+    */
+    static String tmpdir();
+
     /*! @brief 查询当前运行环境网络信息
      @return 返回网卡信息
     */

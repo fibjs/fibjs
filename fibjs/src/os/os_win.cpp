@@ -627,6 +627,17 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
     return 0;
 }
 
+result_t os_base::tmpdir(exlib::string& retVal)
+{
+    WCHAR buf[MAX_PATH + 1];
+
+    if (!GetTempPathW(MAX_PATH + 1, buf))
+        return CHECK_ERROR(LastError());
+
+    retVal = UTF8_A(buf);
+    return 0;
+}
+
 result_t process_base::cwd(exlib::string &retVal)
 {
     DWORD utf16_len;
