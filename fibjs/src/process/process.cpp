@@ -20,6 +20,14 @@
 #include "utf8.h"
 
 #define pclose _pclose
+
+#else
+
+inline int32_t _umask(int32_t m)
+{
+    return ::umask(m);
+}
+
 #endif
 
 extern "C" char** environ;
@@ -107,7 +115,7 @@ result_t process_base::get_version(exlib::string &retVal)
 
 result_t process_base::umask(int32_t mask, int32_t& retVal)
 {
-    retVal = ::umask(mask);
+    retVal = _umask(mask);
     return 0;
 }
 
@@ -117,22 +125,23 @@ result_t process_base::umask(exlib::string mask, int32_t& retVal)
     // Parse the octal string.
     for (size_t i = 0; i < mask.length(); i++) {
         char c = mask[i];
-        if (c > '7' || c < '0') {
-           ThrowError("invalid octal string");
-        }
+
+        if (c > '7' || c < '0')
+            return CHECK_ERROR(Runtime::setError("invalid octal string"));
+
         oct *= 8;
         oct += c - '0';
     }
 
-    retVal = ::umask(oct);
+    retVal = _umask(oct);
     return 0;
 }
 
 result_t process_base::umask(int32_t& retVal)
 {
-    int32_t old = ::umask(0);
+    int32_t old = _umask(0);
     retVal = old;
-    ::umask(old);
+    _umask(old);
     return 0;
 }
 
@@ -203,7 +212,7 @@ result_t process_base::memoryUsage(v8::Local<v8::Object> &retVal)
 
 result_t process_base::uptime(double &retVal)
 {
-     return os_base::uptime(retVal);
+    return os_base::uptime(retVal);
 }
 
 result_t process_base::nextTick(v8::Local<v8::Function> func,
