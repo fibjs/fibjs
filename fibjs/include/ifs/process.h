@@ -32,9 +32,9 @@ public:
     static result_t get_env(v8::Local<v8::Object>& retVal);
     static result_t get_arch(exlib::string& retVal);
     static result_t get_platform(exlib::string& retVal);
-    static result_t umask(int32_t mask, int32_t& retVal, AsyncEvent* ac);
-    static result_t umask(exlib::string mask, int32_t& retVal, AsyncEvent* ac);
-    static result_t umask(int32_t& retVal, AsyncEvent* ac);
+    static result_t umask(int32_t mask, int32_t& retVal);
+    static result_t umask(exlib::string mask, int32_t& retVal);
+    static result_t umask(int32_t& retVal);
     static result_t exit(int32_t code);
     static result_t cwd(exlib::string& retVal);
     static result_t chdir(exlib::string directory);
@@ -77,11 +77,6 @@ public:
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
-
-public:
-    ASYNC_STATICVALUE2(process_base, umask, int32_t, int32_t);
-    ASYNC_STATICVALUE2(process_base, umask, exlib::string, int32_t);
-    ASYNC_STATICVALUE1(process_base, umask, int32_t);
 };
 
 }
@@ -209,33 +204,21 @@ namespace fibjs
     {
         int32_t vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER(1, 1);
 
         ARG(int32_t, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_umask(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_umask(v0, vr);
+        hr = umask(v0, vr);
 
         METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_umask(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_umask(v0, vr);
+        hr = umask(v0, vr);
 
         METHOD_OVER(0, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_umask(cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_umask(vr);
+        hr = umask(vr);
 
         METHOD_RETURN();
     }
