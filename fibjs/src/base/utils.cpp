@@ -141,6 +141,9 @@ exlib::string GetException(TryCatch &try_catch, result_t hr)
                 const char* s = ToCString(stack_trace);
                 const char* s1 = qstrchr(s, '\n');
 
+                while (s1 && qstrcmp(s1 + 1, "    at ", 7))
+                    s1 = qstrchr(s1 + 1, '\n');
+
                 if (s1)
                     return exlib::string(ToCString(exception)) + s1;
             }
