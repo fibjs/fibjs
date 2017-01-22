@@ -253,26 +253,35 @@ result_t path_base::normalize(exlib::string path, exlib::string &retVal)
 
 result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value> &args, exlib::string &retVal)
 {
-    exlib::string strBuffer;
+    Path p;
     int32_t argc = args.Length();
     int32_t i;
 
     for (i = 0; i < argc; i++)
     {
         v8::String::Utf8Value s(args[i]);
-        pathAdd(strBuffer, *s);
+        p.append(*s);
     }
 
-    return normalize(strBuffer, retVal);
+    return normalize(p.str(), retVal);
 }
 
 result_t path_base::resolve(const v8::FunctionCallbackInfo<v8::Value> &args, exlib::string &retVal)
 {
-    join(args, retVal);
     exlib::string str;
     process_base::cwd(str);
-    pathAdd(str, retVal);
-    return normalize(str, retVal);
+
+    Path p(str);
+    int32_t argc = args.Length();
+    int32_t i;
+
+    for (i = 0; i < argc; i++)
+    {
+        v8::String::Utf8Value s(args[i]);
+        p.append(*s);
+    }
+
+    return normalize(p.str(), retVal);
 }
 
 result_t path_base::fullpath(exlib::string path, exlib::string &retVal)
