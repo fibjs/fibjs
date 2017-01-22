@@ -167,6 +167,9 @@ result_t path_base::normalize(exlib::string path, exlib::string &retVal)
             pstr[pos++] = PATH_SLASH;
             p1++;
 
+            while (isPathSlash(*p1))
+                p1++;
+
             while (*p1 && !isPathSlash(*p1))
                 pstr[pos++] = *p1++;
 
