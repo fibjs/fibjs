@@ -64,6 +64,7 @@ public:
 			c_str += 2;
 		}
 
+		bool is_root = isPathSlash(c_str[0]);
 		exlib::string base;
 		const char* c_strBuf = m_buf.c_str();
 		if (*c_strBuf)
@@ -71,29 +72,32 @@ public:
 			if (qisascii(c_strBuf[0]) && c_strBuf[1] == ':')
 			{
 				diskId = c_strBuf[0];
-				base = m_buf.substr(2);
-			} else
+
+				if (!is_root)
+					base = m_buf.substr(2);
+			} else if (!is_root)
 				base = m_buf;
 		}
 
-		if (!base.empty() && !isPathSlash(base[base.length() - 1]))
-			base.append(1, PATH_SLASH);
-
-		if (isPathSlash(c_str[0]))
+		if (is_root || base.empty())
 			base = c_str;
 		else
+		{
+			if (!isPathSlash(base.c_str()[base.length() - 1]))
+				base.append(1, PATH_SLASH);
+
 			base.append(c_str);
+		}
 
 		if (diskId)
 		{
 			m_buf.assign(1, diskId);
 			m_buf.append(1, ':');
 			m_buf.append(base);
+
+			m_disks[diskId & 0x1f] = m_buf;
 		} else
 			m_buf = base;
-
-		if (diskId)
-			m_disks[diskId & 0x1f] = m_buf;
 	}
 
 private:
@@ -107,11 +111,11 @@ private:
 
 		const char* c_str = other.c_str();
 
-		if (isPathSlash(c_str[0]))
+		if (isPathSlash(c_str[0]) || m_buf.empty())
 			m_buf = other;
 		else
 		{
-			if (!m_buf.empty() && !isPathSlash(m_buf[m_buf.length() - 1]))
+			if (!isPathSlash(m_buf.c_str()[m_buf.length() - 1]))
 				m_buf.append(1, PATH_SLASH);
 
 			m_buf.append(other);
