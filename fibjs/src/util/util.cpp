@@ -416,8 +416,6 @@ result_t util_base::inherits(v8::Local<v8::Value> constructor,
     v8::Local<v8::Object> _constructor = v8::Local<v8::Object>::Cast(constructor);
     v8::Local<v8::Object> _superConstructor = v8::Local<v8::Object>::Cast(superConstructor);
 
-
-
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Function> temp = v8::Function::New(isolate->m_isolate, NULL);
 
