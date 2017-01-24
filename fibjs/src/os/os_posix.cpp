@@ -141,6 +141,14 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
 
 result_t os_base::tmpdir(exlib::string& retVal)
 {
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Object> env;
+    process_base::get_env(env);
+
+    if((retVal = *v8::String::Utf8Value(env->Get(isolate->NewFromUtf8("TMPDIR")))) != "") return 0;
+    if((retVal = *v8::String::Utf8Value(env->Get(isolate->NewFromUtf8("TMP")))) != "") return 0;
+    if((retVal = *v8::String::Utf8Value(env->Get(isolate->NewFromUtf8("TEMP")))) != "") return 0;
+
     retVal = "/tmp";
     return 0;
 }

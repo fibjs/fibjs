@@ -81,6 +81,29 @@ describe('os', () => {
         });
     });
 
+     it('tmpdir', () => {
+        process.env.TMPDIR = '/tmpdir';
+        process.env.TMP = '/tmp';
+        process.env.TEMP = '/temp';
+
+        if (process.platform === 'win32') {
+            assert.equal(os.tmpdir(), '/temp');
+            process.env.TEMP = '';
+            assert.equal(os.tmpdir(), '/tmp');
+            process.env.TMP = '';
+            process.env.USERPROFILE = '';
+            var expected = (process.env.SystemRoot || process.env.windir) + '\\temp';
+            assert.equal(os.tmpdir(), expected);
+        } else {
+            assert.equal(os.tmpdir(), '/tmpdir');
+            process.env.TMPDIR = '';
+            assert.equal(os.tmpdir(), '/tmp');
+            process.env.TMP = '';
+            assert.equal(os.tmpdir(), '/temp');
+            process.env.TEMP = '';
+            assert.equal(os.tmpdir(), '/tmp');
+        }
+    });
 });
 
 //test.run(console.DEBUG);
