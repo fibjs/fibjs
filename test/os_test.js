@@ -81,29 +81,56 @@ describe('os', () => {
         });
     });
 
-     it('tmpdir', () => {
+    it('tmpdir', () => {
         process.env.TMPDIR = '/tmpdir';
         process.env.TMP = '/tmp';
         process.env.TEMP = '/temp';
 
         if (process.platform === 'win32') {
-            assert.equal(os.tmpdir(), '/temp');
+            process.env.SystemRoot = "\\SystemRoot";
+            process.env.windir = "\\windir";
+
+            assert.equal(os.tmpdir(), '\\temp');
             process.env.TEMP = '';
-            assert.equal(os.tmpdir(), '/tmp');
+            assert.equal(os.tmpdir(), '\\tmp');
+            delete process.env.TEMP;
+            assert.equal(os.tmpdir(), '\\tmp');
             process.env.TMP = '';
-            process.env.USERPROFILE = '';
-            var expected = (process.env.SystemRoot || process.env.windir) + '\\temp';
-            assert.equal(os.tmpdir(), expected);
+            assert.equal(os.tmpdir(), "\\SystemRoot\\temp");
+            delete process.env.TMP;
+            assert.equal(os.tmpdir(), "\\SystemRoot\\temp");
+            process.env.SystemRoot = '';
+            assert.equal(os.tmpdir(), "\\windir\\temp");
+            delete process.env.SystemRoot;
+            assert.equal(os.tmpdir(), "\\windir\\temp");
+
+            process.env.TEMP = '/temp/';
+            assert.equal(os.tmpdir(), '\\temp');
+            process.env.TEMP = '/temp/////';
+            assert.equal(os.tmpdir(), '\\temp');
+            process.env.TEMP = 'c:\\';
+            assert.equal(os.tmpdir(), 'c:\\');
         } else {
             assert.equal(os.tmpdir(), '/tmpdir');
             process.env.TMPDIR = '';
             assert.equal(os.tmpdir(), '/tmp');
+            delete process.env.TMPDIR;
+            assert.equal(os.tmpdir(), '/tmp');
             process.env.TMP = '';
+            assert.equal(os.tmpdir(), '/temp');
+            delete process.env.TMP;
             assert.equal(os.tmpdir(), '/temp');
             process.env.TEMP = '';
             assert.equal(os.tmpdir(), '/tmp');
+            delete process.env.TEMP;
+            assert.equal(os.tmpdir(), '/tmp');
+
+            process.env.TEMP = '/temp/';
+            assert.equal(os.tmpdir(), '/temp');
+            process.env.TEMP = '/temp/////';
+            assert.equal(os.tmpdir(), '/temp');
         }
     });
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);
