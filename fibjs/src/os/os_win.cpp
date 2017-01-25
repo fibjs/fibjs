@@ -12,6 +12,7 @@
 
 #include "object.h"
 #include "ifs/os.h"
+#include "ifs/path.h"
 #include "ifs/process.h"
 #include <iphlpapi.h>
 #include <psapi.h>
@@ -629,12 +630,51 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
 
 result_t os_base::tmpdir(exlib::string& retVal)
 {
-    WCHAR buf[MAX_PATH + 1];
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Object> env;
+    process_base::get_env(env);
 
-    if (!GetTempPathW(MAX_PATH + 1, buf))
-        return CHECK_ERROR(LastError());
+    do
+    {
+        GetConfigValue(isolate->m_isolate, env, "TEMP", retVal, true);
+        if (!retVal.empty())
+            break;
 
-    retVal = UTF8_A(buf);
+        GetConfigValue(isolate->m_isolate, env, "TMP", retVal, true);
+        if (!retVal.empty())
+            break;
+
+        GetConfigValue(isolate->m_isolate, env, "SystemRoot", retVal, true);
+        if (!retVal.empty())
+        {
+            retVal.append("\\temp", 5);
+            break;
+        }
+
+        GetConfigValue(isolate->m_isolate, env, "windir", retVal, true);
+        if (!retVal.empty())
+        {
+            retVal.append("\\temp", 5);
+            break;
+        }
+
+        WCHAR buf[MAX_PATH + 1];
+        DWORD sz;
+
+        sz = GetTempPathW(MAX_PATH + 1, buf);
+        if (sz == 0)
+            return CHECK_ERROR(LastError());
+
+        retVal = UTF8_A(buf);
+    } while (false);
+
+    path_base::normalize(retVal, retVal);
+
+    if (retVal.length() > 1 &&
+            isPathSlash(retVal[retVal.length() - 1]) &&
+            retVal[retVal.length() - 2] != ':')
+        retVal.resize(retVal.length() - 1);
+
     return 0;
 }
 
