@@ -11,6 +11,7 @@
 
 #include "object.h"
 #include "ifs/os.h"
+#include "ifs/path.h"
 #include "ifs/process.h"
 #include <sys/utsname.h>
 #include <ifaddrs.h>
@@ -145,11 +146,28 @@ result_t os_base::tmpdir(exlib::string& retVal)
     v8::Local<v8::Object> env;
     process_base::get_env(env);
 
-    if((retVal = *v8::String::Utf8Value(env->Get(isolate->NewFromUtf8("TMPDIR")))) != "") return 0;
-    if((retVal = *v8::String::Utf8Value(env->Get(isolate->NewFromUtf8("TMP")))) != "") return 0;
-    if((retVal = *v8::String::Utf8Value(env->Get(isolate->NewFromUtf8("TEMP")))) != "") return 0;
+    do
+    {
+        GetConfigValue(isolate->m_isolate, env, "TMPDIR", retVal, true);
+        if (!retVal.empty())
+            break;
 
-    retVal = "/tmp";
+        GetConfigValue(isolate->m_isolate, env, "TMP", retVal, true);
+        if (!retVal.empty())
+            break;
+
+        GetConfigValue(isolate->m_isolate, env, "TEMP", retVal, true);
+        if (!retVal.empty())
+            break;
+
+        retVal = "/tmp";
+    } while (false);
+
+    path_base::normalize(retVal, retVal);
+
+    if (retVal.length() > 1 && isPathSlash(retVal[retVal.length() - 1]))
+        retVal.resize(retVal.length() - 1);
+
     return 0;
 }
 
