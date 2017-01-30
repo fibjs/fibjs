@@ -87,9 +87,14 @@ public:
         return isnan(d);
     }
 
-    double diff(date_t d1)
+    double diff(date_t d1) const
     {
         return d - d1.d;
+    }
+
+    double date() const
+    {
+        return d;
     }
 
     void add(int32_t num, int32_t part = _SECOND);
