@@ -112,7 +112,7 @@ public:
         return &m_data[0];
     }
 
-private:
+public:
     result_t readNumber(int32_t offset, char *buf, int32_t size, bool noAssert, bool le);
     result_t writeNumber(int32_t offset, const char *buf, int32_t size, bool noAssert, bool le);
 
@@ -122,6 +122,7 @@ private:
     result_t writeInt64LE(int64_t value, int32_t offset, bool noAssert);
     result_t writeInt64BE(int64_t value, int32_t offset, bool noAssert);
 
+private:
     template<typename T>
     result_t _append(T datas)
     {
