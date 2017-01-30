@@ -111,7 +111,8 @@ Isolate::Isolate(const char *fname) :
 	m_id((int32_t)s_iso_id.inc()),
 	m_test_setup_bbd(false), m_test_setup_tdd(false), m_test(NULL),
 	m_currentFibers(0), m_idleFibers(0),
-	m_loglevel(console_base::_NOTSET), m_interrupt(false)
+	m_loglevel(console_base::_NOTSET), m_interrupt(false),
+	m_flake_tm(0), m_flake_host(0), m_flake_count(0)
 {
 	if (fname)
 		m_fname = fname;

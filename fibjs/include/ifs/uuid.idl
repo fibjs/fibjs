@@ -43,4 +43,12 @@ module uuid
      @return 返回一个生成的二进制 id
      */
     static Buffer sha1(Integer ns, String name);
+
+    /*! @brief 使用 Snowflake 算法创建 uuid
+     @return 返回一个生成的二进制 id
+     */
+     static Buffer snowflake();
+
+    /*! @brief 查询和修改 Snowflake 算法的主机 id */
+     static Integer hostID;
 };

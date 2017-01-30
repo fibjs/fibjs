@@ -107,6 +107,10 @@ public:
 
 	exlib::atomic m_pendding;
 
+	int64_t m_flake_tm;
+	int32_t m_flake_host;
+	int32_t m_flake_count;
+
 	int32_t m_loglevel;
 
 	bool m_interrupt;

@@ -8,6 +8,7 @@
 #include "object.h"
 #include "Buffer.h"
 #include "ifs/uuid.h"
+#include "ifs/coroutine.h"
 #include <stdlib.h>
 #include <uuid/include/uuid.h>
 
@@ -89,6 +90,66 @@ result_t uuid_base::sha1(int32_t ns, exlib::string name,
                          obj_ptr<Buffer_base> &retVal)
 {
     return makeUUID(UUID_MAKE_V5, ns, name, retVal);
+}
+
+inline int64_t generateStamp()
+{
+    date_t d;
+    d.now();
+    return (int64_t)d.date();
+}
+
+result_t uuid_base::snowflake(obj_ptr<Buffer_base>& retVal)
+{
+    Isolate *isolate = Isolate::current();
+    int64_t tm = generateStamp();
+
+    if (isolate->m_flake_tm != tm)
+    {
+        isolate->m_flake_tm = tm;
+        isolate->m_flake_count = 0;
+    } else if (isolate->m_flake_count == 0xfff)
+    {
+        int64_t tm1 = tm;
+
+        while (tm1 == tm)
+        {
+            coroutine_base::ac_sleep(0);
+            tm = generateStamp();
+        }
+
+        if (isolate->m_flake_tm != tm)
+        {
+            isolate->m_flake_tm = tm;
+            isolate->m_flake_count = 0;
+        }
+    }
+
+    tm <<= 22;
+    tm |= isolate->m_flake_host << 12;
+    tm |= isolate->m_flake_count ++;
+
+    obj_ptr<Buffer> data = new Buffer();
+    data->resize(8);
+    data->writeInt64BE(tm, 0, true);
+
+    retVal = data;
+
+    return 0;
+}
+
+result_t uuid_base::get_hostID(int32_t& retVal)
+{
+    Isolate *isolate = Isolate::current();
+    retVal = isolate->m_flake_host;
+    return 0;
+}
+
+result_t uuid_base::set_hostID(int32_t newVal)
+{
+    Isolate *isolate = Isolate::current();
+    isolate->m_flake_host = newVal & 0x3ff;
+    return 0;
 }
 
 } /* namespace fibjs */
