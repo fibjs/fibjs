@@ -7,12 +7,10 @@ var encoding = require('encoding');
 describe("uuid", () => {
     it("test", () => {
         var id = uuid.node();
-        var id1 = uuid.uuid(id);
-        var id2 = uuid.uuid(id.data());
+        var id1 = uuid.random();
 
-        assert.equal(id.toString(), id1.toString());
-        assert.equal(id.toString(), id2.toString());
+        assert.notEqual(id.toString(), id1.toString());
     });
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);

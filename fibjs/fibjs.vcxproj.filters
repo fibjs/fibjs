@@ -186,9 +186,6 @@
     <ClInclude Include="include\ifs\uuid.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\uuidValue.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\Url.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -625,9 +622,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\uuidVar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Variant.h">
@@ -1231,7 +1225,7 @@
     <ClCompile Include="src\other\Regex.cpp">
       <Filter>Source Files\other</Filter>
     </ClCompile>
-    <ClCompile Include="src\other\uuidVar.cpp">
+    <ClCompile Include="src\other\uuid.cpp">
       <Filter>Source Files\other</Filter>
     </ClCompile>
     <ClCompile Include="src\os\os.cpp">

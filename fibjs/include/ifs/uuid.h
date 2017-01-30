@@ -17,7 +17,6 @@
 namespace fibjs
 {
 
-class uuidValue_base;
 class Buffer_base;
 
 class uuid_base : public object_base
@@ -34,12 +33,10 @@ public:
 
 public:
     // uuid_base
-    static result_t uuid(exlib::string s, obj_ptr<uuidValue_base>& retVal);
-    static result_t uuid(Buffer_base* data, obj_ptr<uuidValue_base>& retVal);
-    static result_t node(obj_ptr<uuidValue_base>& retVal);
-    static result_t md5(int32_t ns, exlib::string name, obj_ptr<uuidValue_base>& retVal);
-    static result_t random(obj_ptr<uuidValue_base>& retVal);
-    static result_t sha1(int32_t ns, exlib::string name, obj_ptr<uuidValue_base>& retVal);
+    static result_t node(obj_ptr<Buffer_base>& retVal);
+    static result_t md5(int32_t ns, exlib::string name, obj_ptr<Buffer_base>& retVal);
+    static result_t random(obj_ptr<Buffer_base>& retVal);
+    static result_t sha1(int32_t ns, exlib::string name, obj_ptr<Buffer_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -57,7 +54,6 @@ public:
     static void s_get_URL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_OID(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_X509(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_uuid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_node(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_md5(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_random(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -66,7 +62,6 @@ public:
 
 }
 
-#include "uuidValue.h"
 #include "Buffer.h"
 
 namespace fibjs
@@ -75,7 +70,6 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
-            {"uuid", s_uuid, true},
             {"node", s_node, true},
             {"md5", s_md5, true},
             {"random", s_random, true},
@@ -93,7 +87,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "uuid", s__new, NULL, 
-            5, s_method, 0, NULL, 4, s_property, NULL, NULL,
+            4, s_method, 0, NULL, 4, s_property, NULL, NULL,
             NULL
         };
 
@@ -129,28 +123,9 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void uuid_base::s_uuid(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<uuidValue_base> vr;
-
-        METHOD_ENTER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        hr = uuid(v0, vr);
-
-        METHOD_OVER(1, 1);
-
-        ARG(obj_ptr<Buffer_base>, 0);
-
-        hr = uuid(v0, vr);
-
-        METHOD_RETURN();
-    }
-
     inline void uuid_base::s_node(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        obj_ptr<uuidValue_base> vr;
+        obj_ptr<Buffer_base> vr;
 
         METHOD_ENTER(0, 0);
 
@@ -161,7 +136,7 @@ namespace fibjs
 
     inline void uuid_base::s_md5(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        obj_ptr<uuidValue_base> vr;
+        obj_ptr<Buffer_base> vr;
 
         METHOD_ENTER(2, 2);
 
@@ -175,7 +150,7 @@ namespace fibjs
 
     inline void uuid_base::s_random(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        obj_ptr<uuidValue_base> vr;
+        obj_ptr<Buffer_base> vr;
 
         METHOD_ENTER(0, 0);
 
@@ -186,7 +161,7 @@ namespace fibjs
 
     inline void uuid_base::s_sha1(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        obj_ptr<uuidValue_base> vr;
+        obj_ptr<Buffer_base> vr;
 
         METHOD_ENTER(2, 2);
 

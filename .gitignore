@@ -3,3 +3,4 @@
 /temp
 *.sdf
 *.suo
+node_modules

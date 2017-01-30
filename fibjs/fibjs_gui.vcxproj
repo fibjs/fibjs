@@ -246,7 +246,6 @@
     <ClInclude Include="include\ifs\Url.h" />
     <ClInclude Include="include\ifs\util.h" />
     <ClInclude Include="include\ifs\uuid.h" />
-    <ClInclude Include="include\ifs\uuidValue.h" />
     <ClInclude Include="include\ifs\vm.h" />
     <ClInclude Include="include\ifs\websocket.h" />
     <ClInclude Include="include\ifs\WebSocketHandler.h" />
@@ -330,7 +329,6 @@
     <ClInclude Include="include\Url.h" />
     <ClInclude Include="include\utf8.h" />
     <ClInclude Include="include\utils.h" />
-    <ClInclude Include="include\uuidVar.h" />
     <ClInclude Include="include\Variant.h" />
     <ClInclude Include="include\WebSocketHandler.h" />
     <ClInclude Include="include\WebSocketMessage.h" />
@@ -475,7 +473,7 @@
     <ClCompile Include="src\other\JsonRpcHandler.cpp" />
     <ClCompile Include="src\other\Regex.cpp" />
     <ClCompile Include="src\other\RpcTask.cpp" />
-    <ClCompile Include="src\other\uuidVar.cpp" />
+    <ClCompile Include="src\other\uuid.cpp" />
     <ClCompile Include="src\process\process.cpp" />
     <ClCompile Include="src\process\SubProcess.cpp" />
     <ClCompile Include="src\process\SubProcess_posix.cpp" />
