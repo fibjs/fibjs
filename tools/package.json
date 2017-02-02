@@ -1,0 +1,7 @@
+{
+  "name": "tools",
+  "version": "1.0.0",
+  "dependencies": {
+    "pegjs": "^0.10.0"
+  }
+}
