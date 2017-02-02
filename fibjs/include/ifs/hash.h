@@ -228,7 +228,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -248,7 +250,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -261,7 +265,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -274,7 +280,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -287,7 +295,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -300,7 +310,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -313,7 +325,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -326,7 +340,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -339,7 +355,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -352,7 +370,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -365,7 +385,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -379,7 +401,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -392,7 +416,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -405,7 +431,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -418,7 +446,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -431,7 +461,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -444,7 +476,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -457,7 +491,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -470,7 +506,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -483,7 +521,9 @@ namespace fibjs
     {
         obj_ptr<Digest_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 

@@ -118,7 +118,9 @@ namespace fibjs
     inline void HandlerEx_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HandlerEx_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 

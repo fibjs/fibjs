@@ -74,7 +74,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -87,7 +89,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 

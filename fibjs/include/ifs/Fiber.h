@@ -99,7 +99,9 @@ namespace fibjs
     inline void Fiber_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Fiber_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->join();
 

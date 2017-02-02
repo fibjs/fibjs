@@ -451,7 +451,9 @@ inline ClassInfo &object_base::class_info()
 inline void object_base::s_dispose(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     METHOD_INSTANCE(object_base);
-    METHOD_ENTER(0, 0);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->dispose();
 
@@ -463,7 +465,9 @@ inline void object_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& arg
     bool vr;
 
     METHOD_INSTANCE(object_base);
-    METHOD_ENTER(1, 1);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
 
     ARG(obj_ptr<object_base>, 0);
 
@@ -477,7 +481,9 @@ inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value> &a
     exlib::string vr;
 
     METHOD_INSTANCE(object_base);
-    METHOD_ENTER(0, 0);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->toString(vr);
 
@@ -489,7 +495,9 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &arg
     v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(object_base);
-    METHOD_ENTER(1, 0);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
 
     OPT_ARG(exlib::string, 0, "");
 
@@ -503,7 +511,9 @@ inline void object_base::s_valueOf(const v8::FunctionCallbackInfo<v8::Value> &ar
     v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(object_base);
-    METHOD_ENTER(0, 0);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->valueOf(vr);
 

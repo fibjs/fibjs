@@ -160,7 +160,9 @@ namespace fibjs
     inline void HttpCollection_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpCollection_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->clear();
 
@@ -172,7 +174,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(HttpCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -186,7 +190,9 @@ namespace fibjs
         Variant vr;
 
         METHOD_INSTANCE(HttpCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -200,7 +206,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(HttpCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -212,7 +220,9 @@ namespace fibjs
     inline void HttpCollection_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Map_base>, 0);
 
@@ -231,7 +241,9 @@ namespace fibjs
     inline void HttpCollection_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Map_base>, 0);
 
@@ -250,7 +262,9 @@ namespace fibjs
     inline void HttpCollection_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 

@@ -130,7 +130,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(XmlCharacterData_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -143,7 +145,9 @@ namespace fibjs
     inline void XmlCharacterData_base::s_appendData(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(XmlCharacterData_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -155,7 +159,9 @@ namespace fibjs
     inline void XmlCharacterData_base::s_insertData(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(XmlCharacterData_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(exlib::string, 1);
@@ -168,7 +174,9 @@ namespace fibjs
     inline void XmlCharacterData_base::s_deleteData(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(XmlCharacterData_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -181,7 +189,9 @@ namespace fibjs
     inline void XmlCharacterData_base::s_replaceData(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(XmlCharacterData_base);
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);

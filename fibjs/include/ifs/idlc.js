@@ -720,7 +720,12 @@ function parserIDL(fname) {
                 pos++;
 
             if (ids.hasOwnProperty(fname)) {
-                fnStr = ids[fname][1] + "\n        METHOD_OVER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+                fnStr = ids[fname][1];
+
+                if (async)
+                    fnStr += "\n        ASYNC_METHOD_OVER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+                else
+                    fnStr += "\n        METHOD_OVER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
 
                 if (deprecated)
                     fnStr += "        DEPRECATED_SOON(\"" + ns + "." + fname + "\");\n\n";
@@ -743,13 +748,14 @@ function parserIDL(fname) {
                 if (attr == "")
                     fnStr += "        METHOD_INSTANCE(" + ns + "_base);\n";
 
-                if (fname !== "_new")
+                if (fname !== "_new") {
+                    fnStr += "        METHOD_ENTER();\n\n";
                     if (async)
-                        fnStr += "        ASYNC_METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+                        fnStr += "        ASYNC_METHOD_OVER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
                     else
-                        fnStr += "        METHOD_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
-                else
-                    fnStr += "        CONSTRUCT_ENTER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+                        fnStr += "        METHOD_OVER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
+                } else
+                    fnStr += "        CONSTRUCT_ENTER();\n\n        METHOD_OVER(" + (argArray ? -1 : argCount) + ", " + argOpt + ");\n\n";
             }
 
             if (argCount == 1 && fname === "_new")

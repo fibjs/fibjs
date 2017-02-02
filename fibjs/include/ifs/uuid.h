@@ -156,7 +156,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = node(vr);
 
@@ -167,7 +169,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(exlib::string, 1);
@@ -181,7 +185,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = random(vr);
 
@@ -192,7 +198,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(exlib::string, 1);
@@ -206,7 +214,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = snowflake(vr);
 

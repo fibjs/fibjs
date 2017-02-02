@@ -144,7 +144,9 @@ namespace fibjs
     {
         obj_ptr<SslHandler_base> vr;
 
-        CONSTRUCT_ENTER(2, 2);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(v8::Local<v8::Array>, 0);
         ARG(v8::Local<v8::Value>, 1);

@@ -478,7 +478,9 @@ namespace fibjs
     inline void Expect_base::s_a(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -490,7 +492,9 @@ namespace fibjs
     inline void Expect_base::s_an(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -502,7 +506,9 @@ namespace fibjs
     inline void Expect_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -514,7 +520,9 @@ namespace fibjs
     inline void Expect_base::s_eql(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -526,7 +534,9 @@ namespace fibjs
     inline void Expect_base::s_above(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -538,7 +548,9 @@ namespace fibjs
     inline void Expect_base::s_greaterThan(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -550,7 +562,9 @@ namespace fibjs
     inline void Expect_base::s_least(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -562,7 +576,9 @@ namespace fibjs
     inline void Expect_base::s_below(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -574,7 +590,9 @@ namespace fibjs
     inline void Expect_base::s_lessThan(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -586,7 +604,9 @@ namespace fibjs
     inline void Expect_base::s_most(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -598,7 +618,9 @@ namespace fibjs
     inline void Expect_base::s_property(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -617,7 +639,9 @@ namespace fibjs
     inline void Expect_base::s_closeTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);

@@ -87,7 +87,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Stream_base);
-        ASYNC_METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 0);
 
         OPT_ARG(int32_t, 0, -1);
 
@@ -103,7 +105,9 @@ namespace fibjs
     inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Stream_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -119,7 +123,9 @@ namespace fibjs
     inline void Stream_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Stream_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_close(cb);
@@ -135,7 +141,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(Stream_base);
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
         OPT_ARG(int64_t, 1, -1);

@@ -288,7 +288,9 @@ namespace fibjs
     {
         obj_ptr<Message_base> vr;
 
-        CONSTRUCT_ENTER(0, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = _new(vr, args.This());
 
@@ -300,7 +302,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Message_base);
-        ASYNC_METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 0);
 
         OPT_ARG(int32_t, 0, -1);
 
@@ -318,7 +322,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Message_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_readAll(cb);
@@ -332,7 +338,9 @@ namespace fibjs
     inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Message_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -348,7 +356,9 @@ namespace fibjs
     inline void Message_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Message_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->clear();
 
@@ -358,7 +368,9 @@ namespace fibjs
     inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Message_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
 
@@ -374,7 +386,9 @@ namespace fibjs
     inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Message_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
 

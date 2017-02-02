@@ -72,7 +72,9 @@ namespace fibjs
         obj_ptr<XmlText_base> vr;
 
         METHOD_INSTANCE(XmlText_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 

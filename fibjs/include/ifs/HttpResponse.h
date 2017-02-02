@@ -133,7 +133,9 @@ namespace fibjs
     {
         obj_ptr<HttpResponse_base> vr;
 
-        CONSTRUCT_ENTER(0, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = _new(vr, args.This());
 
@@ -143,7 +145,9 @@ namespace fibjs
     inline void HttpResponse_base::s_addCookie(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpResponse_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<HttpCookie_base>, 0);
 
@@ -155,7 +159,9 @@ namespace fibjs
     inline void HttpResponse_base::s_redirect(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpResponse_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -167,7 +173,9 @@ namespace fibjs
     inline void HttpResponse_base::s_sendHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpResponse_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
 

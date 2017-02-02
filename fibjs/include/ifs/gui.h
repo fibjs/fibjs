@@ -78,7 +78,9 @@ namespace fibjs
     {
         obj_ptr<WebView_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -88,7 +90,7 @@ namespace fibjs
         } else
             hr = ac_open(v0, vr);
 
-        METHOD_OVER(2, 2);
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(obj_ptr<Map_base>, 1);

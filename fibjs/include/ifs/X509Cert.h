@@ -276,7 +276,9 @@ namespace fibjs
     {
         obj_ptr<X509Cert_base> vr;
 
-        CONSTRUCT_ENTER(0, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = _new(vr, args.This());
 
@@ -286,7 +288,9 @@ namespace fibjs
     inline void X509Cert_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(X509Cert_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -304,7 +308,9 @@ namespace fibjs
     inline void X509Cert_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(X509Cert_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -316,7 +322,9 @@ namespace fibjs
     inline void X509Cert_base::s_loadRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(X509Cert_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->loadRootCerts();
 
@@ -328,7 +336,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(X509Cert_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<X509Cert_base>, 0);
 
@@ -346,7 +356,9 @@ namespace fibjs
         v8::Local<v8::Array> vr;
 
         METHOD_INSTANCE(X509Cert_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->dump(vr);
 
@@ -356,7 +368,9 @@ namespace fibjs
     inline void X509Cert_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(X509Cert_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->clear();
 

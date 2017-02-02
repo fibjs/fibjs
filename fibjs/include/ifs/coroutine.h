@@ -191,7 +191,9 @@ namespace fibjs
     {
         obj_ptr<Fiber_base> vr;
 
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -204,7 +206,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Array>, 0);
         OPT_ARG(int32_t, 1, -1);
@@ -238,7 +242,9 @@ namespace fibjs
     {
         obj_ptr<Fiber_base> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = current(vr);
 
@@ -247,7 +253,9 @@ namespace fibjs
 
     inline void coroutine_base::s_sleep(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 0);
 
         OPT_ARG(int32_t, 0, 0);
 

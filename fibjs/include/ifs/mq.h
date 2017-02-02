@@ -102,7 +102,9 @@ namespace fibjs
     {
         obj_ptr<Handler_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -115,7 +117,9 @@ namespace fibjs
     {
         obj_ptr<AsyncWait_base> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = await(vr);
 
@@ -126,7 +130,9 @@ namespace fibjs
     {
         obj_ptr<Handler_base> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = nullHandler(vr);
 
@@ -135,7 +141,9 @@ namespace fibjs
 
     inline void mq_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Handler_base>, 0);
         ARG(obj_ptr<object_base>, 1);

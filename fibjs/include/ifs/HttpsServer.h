@@ -118,7 +118,9 @@ namespace fibjs
     {
         obj_ptr<HttpsServer_base> vr;
 
-        CONSTRUCT_ENTER(3, 3);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(v8::Local<v8::Array>, 0);
         ARG(int32_t, 1);

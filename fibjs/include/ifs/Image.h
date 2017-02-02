@@ -400,7 +400,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, gd_base::_PNG);
         OPT_ARG(int32_t, 1, 85);
@@ -417,7 +419,9 @@ namespace fibjs
     inline void Image_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(3, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
         OPT_ARG(int32_t, 1, gd_base::_PNG);
@@ -429,7 +433,7 @@ namespace fibjs
         } else
             hr = pInst->ac_save(v0, v1, v2);
 
-        METHOD_OVER(3, 1);
+        ASYNC_METHOD_OVER(3, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, gd_base::_PNG);
@@ -449,7 +453,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -471,7 +477,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(4, 4);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 4);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -494,7 +502,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -516,7 +526,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -538,7 +550,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(4, 4);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 4);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -561,7 +575,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -583,7 +599,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(4, 4);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 4);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -606,7 +624,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -628,7 +648,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(4, 4);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 4);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -649,7 +671,9 @@ namespace fibjs
     inline void Image_base::s_colorDeallocate(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -661,7 +685,9 @@ namespace fibjs
     inline void Image_base::s_clip(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(4, 4);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 4);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -678,7 +704,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -693,7 +721,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -706,7 +736,9 @@ namespace fibjs
     inline void Image_base::s_setPixel(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -720,7 +752,9 @@ namespace fibjs
     inline void Image_base::s_setThickness(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -732,7 +766,9 @@ namespace fibjs
     inline void Image_base::s_line(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(5, 5);
+        METHOD_ENTER();
+
+        METHOD_OVER(5, 5);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -748,7 +784,9 @@ namespace fibjs
     inline void Image_base::s_rectangle(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(5, 5);
+        METHOD_ENTER();
+
+        METHOD_OVER(5, 5);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -764,7 +802,9 @@ namespace fibjs
     inline void Image_base::s_filledRectangle(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(5, 5);
+        METHOD_ENTER();
+
+        METHOD_OVER(5, 5);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -780,7 +820,9 @@ namespace fibjs
     inline void Image_base::s_polygon(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(v8::Local<v8::Array>, 0);
         ARG(int32_t, 1);
@@ -793,7 +835,9 @@ namespace fibjs
     inline void Image_base::s_openPolygon(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(v8::Local<v8::Array>, 0);
         ARG(int32_t, 1);
@@ -806,7 +850,9 @@ namespace fibjs
     inline void Image_base::s_filledPolygon(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(v8::Local<v8::Array>, 0);
         ARG(int32_t, 1);
@@ -819,7 +865,9 @@ namespace fibjs
     inline void Image_base::s_ellipse(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(5, 5);
+        METHOD_ENTER();
+
+        METHOD_OVER(5, 5);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -835,7 +883,9 @@ namespace fibjs
     inline void Image_base::s_filledEllipse(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(5, 5);
+        METHOD_ENTER();
+
+        METHOD_OVER(5, 5);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -851,7 +901,9 @@ namespace fibjs
     inline void Image_base::s_arc(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(7, 7);
+        METHOD_ENTER();
+
+        METHOD_OVER(7, 7);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -869,7 +921,9 @@ namespace fibjs
     inline void Image_base::s_filledArc(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(8, 7);
+        METHOD_ENTER();
+
+        METHOD_OVER(8, 7);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -888,7 +942,9 @@ namespace fibjs
     inline void Image_base::s_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -902,7 +958,9 @@ namespace fibjs
     inline void Image_base::s_fillToBorder(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(4, 4);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 4);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -917,7 +975,9 @@ namespace fibjs
     inline void Image_base::s_colorReplace(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -936,7 +996,9 @@ namespace fibjs
         obj_ptr<Image_base> vr;
 
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_clone(cb);
@@ -952,7 +1014,9 @@ namespace fibjs
         obj_ptr<Image_base> vr;
 
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -971,7 +1035,9 @@ namespace fibjs
         obj_ptr<Image_base> vr;
 
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(4, 4);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(4, 4);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -990,7 +1056,9 @@ namespace fibjs
     inline void Image_base::s_flip(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 0);
 
         OPT_ARG(int32_t, 0, gd_base::_HORIZONTAL);
 
@@ -1006,7 +1074,9 @@ namespace fibjs
     inline void Image_base::s_rotate(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -1022,7 +1092,9 @@ namespace fibjs
     inline void Image_base::s_convert(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 0);
 
         OPT_ARG(int32_t, 0, gd_base::_TRUECOLOR);
 
@@ -1038,7 +1110,9 @@ namespace fibjs
     inline void Image_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(7, 7);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(7, 7);
 
         ARG(obj_ptr<Image_base>, 0);
         ARG(int32_t, 1);
@@ -1060,7 +1134,9 @@ namespace fibjs
     inline void Image_base::s_copyMerge(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(8, 8);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(8, 8);
 
         ARG(obj_ptr<Image_base>, 0);
         ARG(int32_t, 1);
@@ -1083,7 +1159,9 @@ namespace fibjs
     inline void Image_base::s_copyMergeGray(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(8, 8);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(8, 8);
 
         ARG(obj_ptr<Image_base>, 0);
         ARG(int32_t, 1);
@@ -1106,7 +1184,9 @@ namespace fibjs
     inline void Image_base::s_copyResized(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(9, 9);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(9, 9);
 
         ARG(obj_ptr<Image_base>, 0);
         ARG(int32_t, 1);
@@ -1130,7 +1210,9 @@ namespace fibjs
     inline void Image_base::s_copyResampled(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(9, 9);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(9, 9);
 
         ARG(obj_ptr<Image_base>, 0);
         ARG(int32_t, 1);
@@ -1154,7 +1236,9 @@ namespace fibjs
     inline void Image_base::s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(8, 8);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(8, 8);
 
         ARG(obj_ptr<Image_base>, 0);
         ARG(double, 1);
@@ -1177,7 +1261,9 @@ namespace fibjs
     inline void Image_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(5, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(5, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(double, 1, 0);
@@ -1199,7 +1285,9 @@ namespace fibjs
         obj_ptr<Image_base> vr;
 
         METHOD_INSTANCE(Image_base);
-        METHOD_ENTER(5, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(5, 1);
 
         ARG(v8::Local<v8::Array>, 0);
         OPT_ARG(int32_t, 1, -1);
@@ -1215,7 +1303,9 @@ namespace fibjs
     inline void Image_base::s_gaussianBlur(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Image_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 

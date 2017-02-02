@@ -160,7 +160,9 @@ namespace fibjs
     {
         obj_ptr<List_base> vr;
 
-        CONSTRUCT_ENTER(0, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = _new(vr, args.This());
 
@@ -176,7 +178,9 @@ namespace fibjs
     inline void List_base::s_freeze(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->freeze();
 
@@ -186,7 +190,9 @@ namespace fibjs
     inline void List_base::s_resize(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -198,7 +204,9 @@ namespace fibjs
     inline void List_base::s_push(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(Variant, 0);
 
@@ -214,7 +222,9 @@ namespace fibjs
     inline void List_base::s_pushArray(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
@@ -228,7 +238,9 @@ namespace fibjs
         Variant vr;
 
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->pop(vr);
 
@@ -240,7 +252,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(int32_t, 1, -1);
@@ -255,7 +269,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(-1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 0);
 
         hr = pInst->concat(args, vr);
 
@@ -267,7 +283,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Function>, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
@@ -282,7 +300,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Function>, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
@@ -297,7 +317,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Function>, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
@@ -310,7 +332,9 @@ namespace fibjs
     inline void List_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Function>, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
@@ -325,7 +349,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Function>, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
@@ -340,7 +366,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -358,7 +386,9 @@ namespace fibjs
         v8::Local<v8::Array> vr;
 
         METHOD_INSTANCE(List_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->toArray(vr);
 

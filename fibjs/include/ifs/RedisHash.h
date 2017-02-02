@@ -105,7 +105,9 @@ namespace fibjs
     inline void RedisHash_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(RedisHash_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -118,7 +120,9 @@ namespace fibjs
     inline void RedisHash_base::s_setNX(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(RedisHash_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -131,7 +135,9 @@ namespace fibjs
     inline void RedisHash_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(RedisHash_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
@@ -149,7 +155,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(RedisHash_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -163,7 +171,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(RedisHash_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
@@ -181,7 +191,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(RedisHash_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(int64_t, 1, 1);
@@ -196,7 +208,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(RedisHash_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->getAll(vr);
 
@@ -208,7 +222,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(RedisHash_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->keys(vr);
 
@@ -220,7 +236,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(RedisHash_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->len(vr);
 
@@ -232,7 +250,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(RedisHash_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -246,7 +266,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(RedisHash_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 

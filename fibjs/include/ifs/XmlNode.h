@@ -267,7 +267,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(XmlNode_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->hasChildNodes(vr);
 
@@ -277,7 +279,9 @@ namespace fibjs
     inline void XmlNode_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(XmlNode_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->normalize();
 
@@ -289,7 +293,9 @@ namespace fibjs
         obj_ptr<XmlNode_base> vr;
 
         METHOD_INSTANCE(XmlNode_base);
-        METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(bool, 0, true);
 
@@ -303,7 +309,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(XmlNode_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -317,7 +325,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(XmlNode_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -331,7 +341,9 @@ namespace fibjs
         obj_ptr<XmlNode_base> vr;
 
         METHOD_INSTANCE(XmlNode_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<XmlNode_base>, 0);
         ARG(obj_ptr<XmlNode_base>, 1);
@@ -346,7 +358,9 @@ namespace fibjs
         obj_ptr<XmlNode_base> vr;
 
         METHOD_INSTANCE(XmlNode_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<XmlNode_base>, 0);
         ARG(obj_ptr<XmlNode_base>, 1);
@@ -361,7 +375,9 @@ namespace fibjs
         obj_ptr<XmlNode_base> vr;
 
         METHOD_INSTANCE(XmlNode_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<XmlNode_base>, 0);
 
@@ -375,7 +391,9 @@ namespace fibjs
         obj_ptr<XmlNode_base> vr;
 
         METHOD_INSTANCE(XmlNode_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<XmlNode_base>, 0);
         ARG(obj_ptr<XmlNode_base>, 1);
@@ -390,7 +408,9 @@ namespace fibjs
         obj_ptr<XmlNode_base> vr;
 
         METHOD_INSTANCE(XmlNode_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<XmlNode_base>, 0);
 

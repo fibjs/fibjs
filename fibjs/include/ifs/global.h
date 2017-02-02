@@ -191,7 +191,9 @@ namespace fibjs
 
     inline void global_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(isolate));
@@ -203,7 +205,9 @@ namespace fibjs
 
     inline void global_base::s_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Timer_base>, 0);
 
@@ -214,7 +218,9 @@ namespace fibjs
 
     inline void global_base::s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Timer_base>, 0);
 
@@ -225,7 +231,9 @@ namespace fibjs
 
     inline void global_base::s_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Timer_base>, 0);
 
@@ -238,7 +246,9 @@ namespace fibjs
     {
         obj_ptr<Timer_base> vr;
 
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(v8::Local<v8::Function>, 0);
         ARG(int32_t, 1);
@@ -252,7 +262,9 @@ namespace fibjs
     {
         obj_ptr<Timer_base> vr;
 
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(v8::Local<v8::Function>, 0);
         ARG(int32_t, 1);
@@ -266,7 +278,9 @@ namespace fibjs
     {
         obj_ptr<Timer_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -279,7 +293,9 @@ namespace fibjs
     {
         v8::Local<v8::Value> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -290,7 +306,9 @@ namespace fibjs
 
     inline void global_base::s_GC(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = GC();
 
@@ -301,7 +319,9 @@ namespace fibjs
     {
         v8::Local<v8::Function> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -312,7 +332,9 @@ namespace fibjs
 
     inline void global_base::s_repl(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
 

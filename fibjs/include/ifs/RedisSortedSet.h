@@ -103,7 +103,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
@@ -121,7 +123,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -135,7 +139,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(int64_t, 1, 1);
@@ -150,7 +156,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
@@ -168,7 +176,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->len(vr);
 
@@ -180,7 +190,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -195,7 +207,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -211,7 +225,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -227,7 +243,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -241,7 +259,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 

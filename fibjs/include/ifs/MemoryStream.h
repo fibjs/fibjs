@@ -78,7 +78,9 @@ namespace fibjs
     {
         obj_ptr<MemoryStream_base> vr;
 
-        CONSTRUCT_ENTER(0, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = _new(vr, args.This());
 
@@ -88,7 +90,9 @@ namespace fibjs
     inline void MemoryStream_base::s_setTime(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(MemoryStream_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(date_t, 0);
 
@@ -102,7 +106,9 @@ namespace fibjs
         obj_ptr<MemoryStream_base> vr;
 
         METHOD_INSTANCE(MemoryStream_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->clone(vr);
 
@@ -112,7 +118,9 @@ namespace fibjs
     inline void MemoryStream_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(MemoryStream_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->clear();
 

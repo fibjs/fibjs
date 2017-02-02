@@ -197,35 +197,31 @@ typedef int32_t result_t;
 
 #define METHOD_OVER(c, o) \
     }while(0); \
-    if(hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)do{hr = 0;\
+    if(hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)do{hr = 0; int32_t argc = args.Length();\
             if((c) >= 0 && argc > (c)){hr = CALL_E_BADPARAMCOUNT;break;} \
             if((o) > 0 && argc < (o)){hr = CALL_E_PARAMNOTOPTIONAL;break;}
 
-#define METHOD_ENTER(c, o) \
-    v8::Isolate* isolate = args.GetIsolate(); \
-    V8_SCOPE(isolate); \
-    result_t hr = CALL_E_BADPARAMCOUNT; \
-    int32_t argc = args.Length(); \
-    bool bStrict=true;do{do{\
-            METHOD_OVER(c, o)
+#define ASYNC_METHOD_OVER(c, o) \
+    }while(0); \
+    if(hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)do{hr = 0; int32_t argc = args.Length();\
+            v8::Local<v8::Function> cb; \
+            if(argc > 0 && args[argc - 1]->IsFunction()) \
+                cb = v8::Local<v8::Function>::Cast(args[--argc]); \
+            if((c) >= 0 && argc > (c)){hr = CALL_E_BADPARAMCOUNT;break;} \
+            if((o) > 0 && argc < (o)){hr = CALL_E_PARAMNOTOPTIONAL;break;}
 
-#define ASYNC_METHOD_ENTER(c, o) \
+#define METHOD_ENTER() \
     v8::Isolate* isolate = args.GetIsolate(); \
     V8_SCOPE(isolate); \
     result_t hr = CALL_E_BADPARAMCOUNT; \
-    int32_t argc = args.Length(); \
-    v8::Local<v8::Function> cb; \
-    if(argc > 0 && args[argc - 1]->IsFunction()) \
-        cb = v8::Local<v8::Function>::Cast(args[--argc]); \
-    bool bStrict=true;do{do{\
-            METHOD_OVER(c, o)
+    bool bStrict=true;do{do{
 
 #define CONSTRUCT_INIT() \
     if(class_info().init_isolate())return;
 
-#define CONSTRUCT_ENTER(c, o) \
+#define CONSTRUCT_ENTER() \
     if (!args.IsConstructCall()){ThrowResult(CALL_E_CONSTRUCTOR); return;} \
-    METHOD_ENTER(c, o)
+    METHOD_ENTER()
 
 #define METHOD_INSTANCE(cls) \
     obj_ptr<cls> pInst = cls::getInstance(args.This()); \

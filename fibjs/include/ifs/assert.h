@@ -205,7 +205,9 @@ namespace fibjs
 
     inline void assert_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -217,7 +219,9 @@ namespace fibjs
 
     inline void assert_base::s_ok(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -229,7 +233,9 @@ namespace fibjs
 
     inline void assert_base::s_notOk(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -241,7 +247,9 @@ namespace fibjs
 
     inline void assert_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -254,7 +262,9 @@ namespace fibjs
 
     inline void assert_base::s_notEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -267,7 +277,9 @@ namespace fibjs
 
     inline void assert_base::s_strictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -280,7 +292,9 @@ namespace fibjs
 
     inline void assert_base::s_notStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -293,7 +307,9 @@ namespace fibjs
 
     inline void assert_base::s_deepEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -306,7 +322,9 @@ namespace fibjs
 
     inline void assert_base::s_notDeepEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -319,7 +337,9 @@ namespace fibjs
 
     inline void assert_base::s_closeTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(4, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 3);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -333,7 +353,9 @@ namespace fibjs
 
     inline void assert_base::s_notCloseTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(4, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 3);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -347,7 +369,9 @@ namespace fibjs
 
     inline void assert_base::s_lessThan(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -360,7 +384,9 @@ namespace fibjs
 
     inline void assert_base::s_notLessThan(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -373,7 +399,9 @@ namespace fibjs
 
     inline void assert_base::s_greaterThan(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -386,7 +414,9 @@ namespace fibjs
 
     inline void assert_base::s_notGreaterThan(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -399,7 +429,9 @@ namespace fibjs
 
     inline void assert_base::s_exist(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -411,7 +443,9 @@ namespace fibjs
 
     inline void assert_base::s_notExist(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -423,7 +457,9 @@ namespace fibjs
 
     inline void assert_base::s_isTrue(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -435,7 +471,9 @@ namespace fibjs
 
     inline void assert_base::s_isNotTrue(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -447,7 +485,9 @@ namespace fibjs
 
     inline void assert_base::s_isFalse(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -459,7 +499,9 @@ namespace fibjs
 
     inline void assert_base::s_isNotFalse(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -471,7 +513,9 @@ namespace fibjs
 
     inline void assert_base::s_isNull(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -483,7 +527,9 @@ namespace fibjs
 
     inline void assert_base::s_isNotNull(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -495,7 +541,9 @@ namespace fibjs
 
     inline void assert_base::s_isUndefined(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -507,7 +555,9 @@ namespace fibjs
 
     inline void assert_base::s_isDefined(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -519,7 +569,9 @@ namespace fibjs
 
     inline void assert_base::s_isFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -531,7 +583,9 @@ namespace fibjs
 
     inline void assert_base::s_isNotFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -543,7 +597,9 @@ namespace fibjs
 
     inline void assert_base::s_isObject(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -555,7 +611,9 @@ namespace fibjs
 
     inline void assert_base::s_isNotObject(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -567,7 +625,9 @@ namespace fibjs
 
     inline void assert_base::s_isArray(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -579,7 +639,9 @@ namespace fibjs
 
     inline void assert_base::s_isNotArray(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -591,7 +653,9 @@ namespace fibjs
 
     inline void assert_base::s_isString(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -603,7 +667,9 @@ namespace fibjs
 
     inline void assert_base::s_isNotString(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -615,7 +681,9 @@ namespace fibjs
 
     inline void assert_base::s_isNumber(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -627,7 +695,9 @@ namespace fibjs
 
     inline void assert_base::s_isNotNumber(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -639,7 +709,9 @@ namespace fibjs
 
     inline void assert_base::s_isBoolean(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -651,7 +723,9 @@ namespace fibjs
 
     inline void assert_base::s_isNotBoolean(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -663,7 +737,9 @@ namespace fibjs
 
     inline void assert_base::s_typeOf(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(exlib::string, 1);
@@ -676,7 +752,9 @@ namespace fibjs
 
     inline void assert_base::s_notTypeOf(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(exlib::string, 1);
@@ -689,7 +767,9 @@ namespace fibjs
 
     inline void assert_base::s_property(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -702,7 +782,9 @@ namespace fibjs
 
     inline void assert_base::s_notProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -715,7 +797,9 @@ namespace fibjs
 
     inline void assert_base::s_deepProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -728,7 +812,9 @@ namespace fibjs
 
     inline void assert_base::s_notDeepProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -741,7 +827,9 @@ namespace fibjs
 
     inline void assert_base::s_propertyVal(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(4, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 3);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -755,7 +843,9 @@ namespace fibjs
 
     inline void assert_base::s_propertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(4, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 3);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -769,7 +859,9 @@ namespace fibjs
 
     inline void assert_base::s_deepPropertyVal(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(4, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 3);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -783,7 +875,9 @@ namespace fibjs
 
     inline void assert_base::s_deepPropertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(4, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 3);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -797,7 +891,9 @@ namespace fibjs
 
     inline void assert_base::s_throws(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Function>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -809,7 +905,9 @@ namespace fibjs
 
     inline void assert_base::s_doesNotThrow(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Function>, 0);
         OPT_ARG(exlib::string, 1, "");

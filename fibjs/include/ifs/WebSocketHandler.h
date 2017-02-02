@@ -96,7 +96,9 @@ namespace fibjs
     {
         obj_ptr<WebSocketHandler_base> vr;
 
-        CONSTRUCT_ENTER(1, 1);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 

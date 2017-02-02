@@ -298,7 +298,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        CONSTRUCT_ENTER(1, 1);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
@@ -342,7 +344,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -355,7 +359,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Array>, 0);
         OPT_ARG(int32_t, 1, -1);
@@ -368,7 +374,9 @@ namespace fibjs
     inline void Buffer_base::s_resize(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -380,7 +388,9 @@ namespace fibjs
     inline void Buffer_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
@@ -419,7 +429,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(4, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -451,7 +463,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -483,7 +497,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -512,7 +528,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -526,7 +544,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(4, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -543,7 +563,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -558,7 +580,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -573,7 +597,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -588,7 +614,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -603,7 +631,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -618,7 +648,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -633,7 +665,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -648,7 +682,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -663,7 +699,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -678,7 +716,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -693,7 +733,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -708,7 +750,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -723,7 +767,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -738,7 +784,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -753,7 +801,9 @@ namespace fibjs
         obj_ptr<Int64_base> vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -768,7 +818,9 @@ namespace fibjs
         obj_ptr<Int64_base> vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -783,7 +835,9 @@ namespace fibjs
         double vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -798,7 +852,9 @@ namespace fibjs
         double vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -813,7 +869,9 @@ namespace fibjs
         double vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -828,7 +886,9 @@ namespace fibjs
         double vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(int32_t, 0, 0);
         OPT_ARG(bool, 1, false);
@@ -841,7 +901,9 @@ namespace fibjs
     inline void Buffer_base::s_writeUInt8(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -855,7 +917,9 @@ namespace fibjs
     inline void Buffer_base::s_writeUInt16LE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -869,7 +933,9 @@ namespace fibjs
     inline void Buffer_base::s_writeUInt16BE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -883,7 +949,9 @@ namespace fibjs
     inline void Buffer_base::s_writeUInt32LE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int64_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -897,7 +965,9 @@ namespace fibjs
     inline void Buffer_base::s_writeUInt32BE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int64_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -911,7 +981,9 @@ namespace fibjs
     inline void Buffer_base::s_writeUIntLE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int64_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -925,7 +997,9 @@ namespace fibjs
     inline void Buffer_base::s_writeUIntBE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int64_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -939,7 +1013,9 @@ namespace fibjs
     inline void Buffer_base::s_writeInt8(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -953,7 +1029,9 @@ namespace fibjs
     inline void Buffer_base::s_writeInt16LE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -967,7 +1045,9 @@ namespace fibjs
     inline void Buffer_base::s_writeInt16BE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -981,7 +1061,9 @@ namespace fibjs
     inline void Buffer_base::s_writeInt32LE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -995,7 +1077,9 @@ namespace fibjs
     inline void Buffer_base::s_writeInt32BE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -1009,7 +1093,9 @@ namespace fibjs
     inline void Buffer_base::s_writeIntLE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int64_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -1023,7 +1109,9 @@ namespace fibjs
     inline void Buffer_base::s_writeIntBE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(int64_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -1037,7 +1125,9 @@ namespace fibjs
     inline void Buffer_base::s_writeInt64LE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(obj_ptr<Int64_base>, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -1051,7 +1141,9 @@ namespace fibjs
     inline void Buffer_base::s_writeInt64BE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(obj_ptr<Int64_base>, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -1065,7 +1157,9 @@ namespace fibjs
     inline void Buffer_base::s_writeFloatLE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(double, 0);
         ARG(int32_t, 1);
@@ -1079,7 +1173,9 @@ namespace fibjs
     inline void Buffer_base::s_writeFloatBE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(double, 0);
         ARG(int32_t, 1);
@@ -1093,7 +1189,9 @@ namespace fibjs
     inline void Buffer_base::s_writeDoubleLE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(double, 0);
         ARG(int32_t, 1);
@@ -1107,7 +1205,9 @@ namespace fibjs
     inline void Buffer_base::s_writeDoubleBE(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(double, 0);
         ARG(int32_t, 1);
@@ -1123,7 +1223,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(int32_t, 0, 0);
 
@@ -1144,7 +1246,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->hex(vr);
 
@@ -1156,7 +1260,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->base64(vr);
 
@@ -1168,7 +1274,9 @@ namespace fibjs
         v8::Local<v8::Array> vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->toArray(vr);
 
@@ -1180,7 +1288,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(Buffer_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, 0);

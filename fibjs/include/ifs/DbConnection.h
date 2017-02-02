@@ -111,7 +111,9 @@ namespace fibjs
     inline void DbConnection_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(DbConnection_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_close(cb);
@@ -125,7 +127,9 @@ namespace fibjs
     inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(DbConnection_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_begin(cb);
@@ -139,7 +143,9 @@ namespace fibjs
     inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(DbConnection_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_commit(cb);
@@ -153,7 +159,9 @@ namespace fibjs
     inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(DbConnection_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_rollback(cb);
@@ -169,7 +177,9 @@ namespace fibjs
         obj_ptr<DBResult_base> vr;
 
         METHOD_INSTANCE(DbConnection_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -193,7 +203,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(DbConnection_base);
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(exlib::string, 0);
 

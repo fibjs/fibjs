@@ -211,7 +211,9 @@ namespace fibjs
     {
         bool vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -228,7 +230,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -239,7 +243,9 @@ namespace fibjs
 
     inline void fs_base::s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -254,7 +260,9 @@ namespace fibjs
 
     inline void fs_base::s_unlinkSync(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -265,7 +273,9 @@ namespace fibjs
 
     inline void fs_base::s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, 0777);
@@ -281,7 +291,9 @@ namespace fibjs
 
     inline void fs_base::s_mkdirSync(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, 0777);
@@ -293,7 +305,9 @@ namespace fibjs
 
     inline void fs_base::s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -308,7 +322,9 @@ namespace fibjs
 
     inline void fs_base::s_rmdirSync(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -319,7 +335,9 @@ namespace fibjs
 
     inline void fs_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(exlib::string, 1);
@@ -335,7 +353,9 @@ namespace fibjs
 
     inline void fs_base::s_renameSync(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(exlib::string, 1);
@@ -347,7 +367,9 @@ namespace fibjs
 
     inline void fs_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(exlib::string, 1);
@@ -363,7 +385,9 @@ namespace fibjs
 
     inline void fs_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(int32_t, 1);
@@ -379,7 +403,9 @@ namespace fibjs
 
     inline void fs_base::s_chmodSync(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(int32_t, 1);
@@ -393,7 +419,9 @@ namespace fibjs
     {
         obj_ptr<Stat_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -410,7 +438,9 @@ namespace fibjs
     {
         obj_ptr<Stat_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -423,7 +453,9 @@ namespace fibjs
     {
         obj_ptr<List_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -440,7 +472,9 @@ namespace fibjs
     {
         obj_ptr<List_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -453,7 +487,9 @@ namespace fibjs
     {
         obj_ptr<SeekableStream_base> vr;
 
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(exlib::string, 1, "r");
@@ -471,7 +507,9 @@ namespace fibjs
     {
         obj_ptr<SeekableStream_base> vr;
 
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(exlib::string, 1, "r");
@@ -485,7 +523,9 @@ namespace fibjs
     {
         obj_ptr<BufferedStream_base> vr;
 
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(exlib::string, 1, "r");
@@ -503,7 +543,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -520,7 +562,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -537,7 +581,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -550,7 +596,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, -1);
@@ -562,7 +610,9 @@ namespace fibjs
 
     inline void fs_base::s_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(exlib::string, 1);
@@ -578,7 +628,9 @@ namespace fibjs
 
     inline void fs_base::s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -594,7 +646,9 @@ namespace fibjs
 
     inline void fs_base::s_writeFileSync(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(obj_ptr<Buffer_base>, 1);

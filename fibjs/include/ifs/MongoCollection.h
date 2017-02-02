@@ -153,7 +153,9 @@ namespace fibjs
         obj_ptr<MongoCursor_base> vr;
 
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
@@ -168,7 +170,9 @@ namespace fibjs
         v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(2, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 0);
 
         OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
@@ -183,7 +187,9 @@ namespace fibjs
         v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
@@ -195,7 +201,9 @@ namespace fibjs
     inline void MongoCollection_base::s_insert(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
@@ -213,7 +221,9 @@ namespace fibjs
     inline void MongoCollection_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
@@ -225,7 +235,9 @@ namespace fibjs
     inline void MongoCollection_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(4, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 2);
 
         ARG(v8::Local<v8::Object>, 0);
         ARG(v8::Local<v8::Object>, 1);
@@ -248,7 +260,9 @@ namespace fibjs
     inline void MongoCollection_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
@@ -262,7 +276,9 @@ namespace fibjs
         v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
@@ -281,7 +297,9 @@ namespace fibjs
     inline void MongoCollection_base::s_drop(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->drop();
 
@@ -291,7 +309,9 @@ namespace fibjs
     inline void MongoCollection_base::s_ensureIndex(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Object>, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
@@ -306,7 +326,9 @@ namespace fibjs
         v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->reIndex(vr);
 
@@ -318,7 +340,9 @@ namespace fibjs
         v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -332,7 +356,9 @@ namespace fibjs
         v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->dropIndexes(vr);
 
@@ -344,7 +370,9 @@ namespace fibjs
         obj_ptr<MongoCursor_base> vr;
 
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->getIndexes(vr);
 
@@ -356,7 +384,9 @@ namespace fibjs
         obj_ptr<MongoCollection_base> vr;
 
         METHOD_INSTANCE(MongoCollection_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 

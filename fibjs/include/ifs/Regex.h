@@ -147,7 +147,9 @@ namespace fibjs
         v8::Local<v8::Array> vr;
 
         METHOD_INSTANCE(Regex_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -161,7 +163,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Regex_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 

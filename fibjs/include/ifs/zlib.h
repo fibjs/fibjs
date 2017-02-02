@@ -179,7 +179,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(int32_t, 1, _DEFAULT_COMPRESSION);
@@ -195,7 +197,9 @@ namespace fibjs
 
     inline void zlib_base::s_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(3, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
@@ -207,7 +211,7 @@ namespace fibjs
         } else
             hr = ac_deflateTo(v0, v1, v2);
 
-        METHOD_OVER(3, 2);
+        ASYNC_METHOD_OVER(3, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
@@ -226,7 +230,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -241,7 +247,9 @@ namespace fibjs
 
     inline void zlib_base::s_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
@@ -252,7 +260,7 @@ namespace fibjs
         } else
             hr = ac_inflateTo(v0, v1);
 
-        METHOD_OVER(2, 2);
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
@@ -270,7 +278,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -285,7 +295,9 @@ namespace fibjs
 
     inline void zlib_base::s_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
@@ -296,7 +308,7 @@ namespace fibjs
         } else
             hr = ac_gzipTo(v0, v1);
 
-        METHOD_OVER(2, 2);
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
@@ -314,7 +326,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -329,7 +343,9 @@ namespace fibjs
 
     inline void zlib_base::s_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
@@ -340,7 +356,7 @@ namespace fibjs
         } else
             hr = ac_gunzipTo(v0, v1);
 
-        METHOD_OVER(2, 2);
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
@@ -358,7 +374,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(int32_t, 1, _DEFAULT_COMPRESSION);
@@ -374,7 +392,9 @@ namespace fibjs
 
     inline void zlib_base::s_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(3, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
@@ -386,7 +406,7 @@ namespace fibjs
         } else
             hr = ac_deflateRawTo(v0, v1, v2);
 
-        METHOD_OVER(3, 2);
+        ASYNC_METHOD_OVER(3, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
@@ -405,7 +425,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -420,7 +442,9 @@ namespace fibjs
 
     inline void zlib_base::s_inflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
@@ -431,7 +455,7 @@ namespace fibjs
         } else
             hr = ac_inflateRawTo(v0, v1);
 
-        METHOD_OVER(2, 2);
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);

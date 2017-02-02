@@ -171,7 +171,9 @@ namespace fibjs
     {
         obj_ptr<XmlDocument_base> vr;
 
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(exlib::string, 1, "text/xml");
@@ -192,7 +194,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<XmlNode_base>, 0);
 

@@ -339,7 +339,9 @@ namespace fibjs
     {
         obj_ptr<PKey_base> vr;
 
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -353,7 +355,9 @@ namespace fibjs
     {
         obj_ptr<X509Cert_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -366,7 +370,9 @@ namespace fibjs
     {
         obj_ptr<X509Crl_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -379,7 +385,9 @@ namespace fibjs
     {
         obj_ptr<X509Req_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -392,7 +400,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -409,7 +419,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -426,7 +438,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -443,7 +457,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(exlib::string, 1);
@@ -458,7 +474,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(5, 5);
+        METHOD_ENTER();
+
+        METHOD_OVER(5, 5);
 
         ARG(int32_t, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -475,7 +493,9 @@ namespace fibjs
     {
         obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER(5, 5);
+        METHOD_ENTER();
+
+        METHOD_OVER(5, 5);
 
         ARG(int32_t, 0);
         ARG(obj_ptr<Buffer_base>, 1);

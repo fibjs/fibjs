@@ -88,7 +88,9 @@ namespace fibjs
     {
         int64_t vr;
 
-        ASYNC_METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(3, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);
@@ -105,7 +107,9 @@ namespace fibjs
 
     inline void io_base::s_bridge(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<Stream_base>, 1);

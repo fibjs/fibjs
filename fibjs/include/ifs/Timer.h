@@ -66,7 +66,9 @@ namespace fibjs
     inline void Timer_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Timer_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->clear();
 

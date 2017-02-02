@@ -168,7 +168,9 @@ namespace fibjs
     {
         obj_ptr<BufferedStream_base> vr;
 
-        CONSTRUCT_ENTER(1, 1);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
 
@@ -182,7 +184,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(BufferedStream_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -200,7 +204,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(BufferedStream_base);
-        ASYNC_METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 0);
 
         OPT_ARG(int32_t, 0, -1);
 
@@ -218,7 +224,9 @@ namespace fibjs
         v8::Local<v8::Array> vr;
 
         METHOD_INSTANCE(BufferedStream_base);
-        METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(int32_t, 0, -1);
 
@@ -232,7 +240,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(BufferedStream_base);
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, -1);
@@ -249,7 +259,9 @@ namespace fibjs
     inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(BufferedStream_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -265,7 +277,9 @@ namespace fibjs
     inline void BufferedStream_base::s_writeLine(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(BufferedStream_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 

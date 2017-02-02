@@ -149,7 +149,9 @@ namespace fibjs
     {
         obj_ptr<Smtp_base> vr;
 
-        CONSTRUCT_ENTER(0, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = _new(vr, args.This());
 
@@ -159,7 +161,9 @@ namespace fibjs
     inline void Smtp_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -177,7 +181,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(Smtp_base);
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(exlib::string, 1);
@@ -194,7 +200,9 @@ namespace fibjs
     inline void Smtp_base::s_hello(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        ASYNC_METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 0);
 
         OPT_ARG(exlib::string, 0, "localhost");
 
@@ -210,7 +218,9 @@ namespace fibjs
     inline void Smtp_base::s_login(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(exlib::string, 1);
@@ -227,7 +237,9 @@ namespace fibjs
     inline void Smtp_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -243,7 +255,9 @@ namespace fibjs
     inline void Smtp_base::s_to(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -259,7 +273,9 @@ namespace fibjs
     inline void Smtp_base::s_data(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -275,7 +291,9 @@ namespace fibjs
     inline void Smtp_base::s_quit(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Smtp_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_quit(cb);

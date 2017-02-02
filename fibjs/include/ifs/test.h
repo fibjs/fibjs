@@ -161,7 +161,9 @@ namespace fibjs
 
     inline void test_base::s_describe(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
@@ -173,7 +175,9 @@ namespace fibjs
 
     inline void test_base::s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
@@ -185,7 +189,9 @@ namespace fibjs
 
     inline void test_base::s_it(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
@@ -197,7 +203,9 @@ namespace fibjs
 
     inline void test_base::s_xit(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
@@ -209,7 +217,9 @@ namespace fibjs
 
     inline void test_base::s_before(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -220,7 +230,9 @@ namespace fibjs
 
     inline void test_base::s_after(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -231,7 +243,9 @@ namespace fibjs
 
     inline void test_base::s_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -242,7 +256,9 @@ namespace fibjs
 
     inline void test_base::s_afterEach(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -255,7 +271,9 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(int32_t, 0, console_base::_ERROR);
 
@@ -268,7 +286,9 @@ namespace fibjs
     {
         obj_ptr<Expect_base> vr;
 
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -280,7 +300,9 @@ namespace fibjs
 
     inline void test_base::s_setup(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(int32_t, 0, _BDD);
 

@@ -116,7 +116,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -129,7 +131,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -143,7 +147,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -156,7 +162,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -169,7 +177,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -182,7 +192,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(-1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 0);
 
         hr = join(args, vr);
 
@@ -193,7 +205,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(-1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 0);
 
         hr = resolve(args, vr);
 

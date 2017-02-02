@@ -106,7 +106,9 @@ namespace fibjs
     {
         obj_ptr<LruCache_base> vr;
 
-        CONSTRUCT_ENTER(2, 1);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(int32_t, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -119,7 +121,9 @@ namespace fibjs
     inline void LruCache_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(LruCache_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->clear();
 
@@ -131,7 +135,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(LruCache_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -145,7 +151,9 @@ namespace fibjs
         v8::Local<v8::Value> vr;
 
         METHOD_INSTANCE(LruCache_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -164,7 +172,9 @@ namespace fibjs
     inline void LruCache_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(LruCache_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -177,7 +187,9 @@ namespace fibjs
     inline void LruCache_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(LruCache_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -196,7 +208,9 @@ namespace fibjs
     inline void LruCache_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(LruCache_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -210,7 +224,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(LruCache_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isEmpty(vr);
 

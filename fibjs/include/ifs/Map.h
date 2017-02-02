@@ -172,7 +172,9 @@ namespace fibjs
     {
         obj_ptr<Map_base> vr;
 
-        CONSTRUCT_ENTER(0, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = _new(vr, args.This());
 
@@ -188,7 +190,9 @@ namespace fibjs
     inline void Map_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Map_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->clear();
 
@@ -200,7 +204,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Map_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -214,7 +220,9 @@ namespace fibjs
         Variant vr;
 
         METHOD_INSTANCE(Map_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -226,7 +234,9 @@ namespace fibjs
     inline void Map_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Map_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
@@ -245,7 +255,9 @@ namespace fibjs
     inline void Map_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Map_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -259,7 +271,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Map_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isEmpty(vr);
 

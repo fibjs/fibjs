@@ -119,7 +119,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_namelist(cb);
@@ -135,7 +137,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_infolist(cb);
@@ -151,7 +155,9 @@ namespace fibjs
         obj_ptr<ZipInfo_base> vr;
 
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -169,7 +175,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -188,7 +196,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 0);
 
         OPT_ARG(exlib::string, 0, "");
 
@@ -204,7 +214,9 @@ namespace fibjs
     inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(3, 2);
 
         ARG(exlib::string, 0);
         ARG(exlib::string, 1);
@@ -216,7 +228,7 @@ namespace fibjs
         } else
             hr = pInst->ac_extract(v0, v1, v2);
 
-        METHOD_OVER(3, 2);
+        ASYNC_METHOD_OVER(3, 2);
 
         ARG(exlib::string, 0);
         ARG(obj_ptr<SeekableStream_base>, 1);
@@ -234,7 +246,9 @@ namespace fibjs
     inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -251,7 +265,9 @@ namespace fibjs
     inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(3, 2);
 
         ARG(exlib::string, 0);
         ARG(exlib::string, 1);
@@ -263,7 +279,7 @@ namespace fibjs
         } else
             hr = pInst->ac_write(v0, v1, v2);
 
-        METHOD_OVER(3, 2);
+        ASYNC_METHOD_OVER(3, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(exlib::string, 1);
@@ -275,7 +291,7 @@ namespace fibjs
         } else
             hr = pInst->ac_write(v0, v1, v2);
 
-        METHOD_OVER(3, 2);
+        ASYNC_METHOD_OVER(3, 2);
 
         ARG(obj_ptr<SeekableStream_base>, 0);
         ARG(exlib::string, 1);
@@ -293,7 +309,9 @@ namespace fibjs
     inline void ZipFile_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(ZipFile_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_close(cb);

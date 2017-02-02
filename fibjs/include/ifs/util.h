@@ -181,7 +181,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(exlib::string, 0);
 
@@ -196,7 +198,9 @@ namespace fibjs
 
     inline void util_base::s_inherits(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -210,7 +214,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -223,7 +229,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -236,7 +244,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -249,7 +259,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -262,7 +274,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -275,7 +289,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -288,7 +304,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -301,7 +319,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -314,7 +334,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -327,7 +349,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -340,7 +364,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -353,7 +379,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -366,7 +394,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -379,7 +409,9 @@ namespace fibjs
     {
         bool vr;
 
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(exlib::string, 1);
@@ -393,7 +425,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -406,7 +440,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -419,7 +455,9 @@ namespace fibjs
     {
         v8::Local<v8::Value> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -432,7 +470,9 @@ namespace fibjs
     {
         v8::Local<v8::Value> vr;
 
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -445,7 +485,9 @@ namespace fibjs
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -458,7 +500,9 @@ namespace fibjs
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -471,7 +515,9 @@ namespace fibjs
     {
         v8::Local<v8::Value> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -491,7 +537,9 @@ namespace fibjs
     {
         v8::Local<v8::Value> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -511,7 +559,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(bool, 1, false);
@@ -525,7 +575,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(-1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 0);
 
         hr = _union(args, vr);
 
@@ -536,7 +588,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(-1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 0);
 
         hr = intersection(args, vr);
 
@@ -547,7 +601,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(v8::Local<v8::Value>, 0);
         OPT_ARG(bool, 1, false);
@@ -561,7 +617,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -574,7 +632,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
@@ -587,7 +647,9 @@ namespace fibjs
     {
         v8::Local<v8::Value> vr;
 
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Function>, 1);
@@ -602,7 +664,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Function>, 1);
@@ -617,7 +681,9 @@ namespace fibjs
     {
         v8::Local<v8::Value> vr;
 
-        METHOD_ENTER(4, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 3);
 
         ARG(v8::Local<v8::Value>, 0);
         ARG(v8::Local<v8::Function>, 1);
@@ -633,7 +699,9 @@ namespace fibjs
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = buildInfo(vr);
 

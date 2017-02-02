@@ -74,7 +74,9 @@ namespace fibjs
         obj_ptr<Handler_base> vr;
 
         METHOD_INSTANCE(Handler_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<object_base>, 0);
 

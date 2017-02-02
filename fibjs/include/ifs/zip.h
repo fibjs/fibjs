@@ -113,7 +113,9 @@ namespace fibjs
     {
         bool vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -130,7 +132,9 @@ namespace fibjs
     {
         obj_ptr<ZipFile_base> vr;
 
-        ASYNC_METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(3, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(exlib::string, 1, "r");
@@ -142,7 +146,7 @@ namespace fibjs
         } else
             hr = ac_open(v0, v1, v2, vr);
 
-        METHOD_OVER(3, 1);
+        ASYNC_METHOD_OVER(3, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(exlib::string, 1, "r");
@@ -154,7 +158,7 @@ namespace fibjs
         } else
             hr = ac_open(v0, v1, v2, vr);
 
-        METHOD_OVER(3, 1);
+        ASYNC_METHOD_OVER(3, 1);
 
         ARG(obj_ptr<SeekableStream_base>, 0);
         OPT_ARG(exlib::string, 1, "r");

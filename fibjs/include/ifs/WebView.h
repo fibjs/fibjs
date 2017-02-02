@@ -93,7 +93,9 @@ namespace fibjs
     inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(WebView_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_close(cb);
@@ -107,7 +109,9 @@ namespace fibjs
     inline void WebView_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(WebView_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_wait(cb);
@@ -121,7 +125,9 @@ namespace fibjs
     inline void WebView_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(WebView_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -139,7 +145,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(WebView_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -153,7 +161,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(WebView_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -167,7 +177,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(WebView_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -181,7 +193,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(WebView_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 

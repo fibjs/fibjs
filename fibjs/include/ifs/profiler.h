@@ -295,7 +295,9 @@ namespace fibjs
 
     inline void profiler_base::s_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -308,7 +310,9 @@ namespace fibjs
     {
         obj_ptr<HeapSnapshot_base> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -321,7 +325,9 @@ namespace fibjs
     {
         obj_ptr<HeapSnapshot_base> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = takeSnapshot(vr);
 
@@ -332,7 +338,9 @@ namespace fibjs
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 

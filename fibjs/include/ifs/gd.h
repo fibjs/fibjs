@@ -404,7 +404,9 @@ namespace fibjs
     {
         obj_ptr<Image_base> vr;
 
-        ASYNC_METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(3, 2);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -423,7 +425,9 @@ namespace fibjs
     {
         obj_ptr<Image_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -433,7 +437,7 @@ namespace fibjs
         } else
             hr = ac_load(v0, vr);
 
-        METHOD_OVER(1, 1);
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<SeekableStream_base>, 0);
 
@@ -443,7 +447,7 @@ namespace fibjs
         } else
             hr = ac_load(v0, vr);
 
-        METHOD_OVER(1, 1);
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -460,7 +464,9 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -475,7 +481,9 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(4, 4);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 4);
 
         ARG(int32_t, 0);
         ARG(int32_t, 1);
@@ -491,7 +499,9 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(double, 0);
         ARG(double, 1);
@@ -506,7 +516,9 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(4, 4);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 4);
 
         ARG(double, 0);
         ARG(double, 1);
@@ -522,7 +534,9 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(double, 0);
         ARG(double, 1);
@@ -537,7 +551,9 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(4, 4);
+        METHOD_ENTER();
+
+        METHOD_OVER(4, 4);
 
         ARG(double, 0);
         ARG(double, 1);
@@ -553,7 +569,9 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 

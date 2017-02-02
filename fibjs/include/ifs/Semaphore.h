@@ -78,7 +78,9 @@ namespace fibjs
     {
         obj_ptr<Semaphore_base> vr;
 
-        CONSTRUCT_ENTER(1, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(int32_t, 0, 1);
 
@@ -90,7 +92,9 @@ namespace fibjs
     inline void Semaphore_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Semaphore_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->wait();
 
@@ -100,7 +104,9 @@ namespace fibjs
     inline void Semaphore_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Semaphore_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->post();
 
@@ -112,7 +118,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Semaphore_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->trywait(vr);
 

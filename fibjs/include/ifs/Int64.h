@@ -160,7 +160,9 @@ namespace fibjs
     {
         obj_ptr<Int64_base> vr;
 
-        CONSTRUCT_ENTER(1, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(int64_t, 0, 0);
 
@@ -194,7 +196,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Int64_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Int64_base>, 0);
 
@@ -208,7 +212,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Int64_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Int64_base>, 0);
 
@@ -222,7 +228,9 @@ namespace fibjs
         obj_ptr<Int64_base> vr;
 
         METHOD_INSTANCE(Int64_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -236,7 +244,9 @@ namespace fibjs
         obj_ptr<Int64_base> vr;
 
         METHOD_INSTANCE(Int64_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -250,7 +260,9 @@ namespace fibjs
         obj_ptr<Int64_base> vr;
 
         METHOD_INSTANCE(Int64_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Int64_base>, 0);
 
@@ -264,7 +276,9 @@ namespace fibjs
         obj_ptr<Int64_base> vr;
 
         METHOD_INSTANCE(Int64_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Int64_base>, 0);
 
@@ -278,7 +292,9 @@ namespace fibjs
         obj_ptr<Int64_base> vr;
 
         METHOD_INSTANCE(Int64_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Int64_base>, 0);
 
@@ -292,7 +308,9 @@ namespace fibjs
         obj_ptr<Int64_base> vr;
 
         METHOD_INSTANCE(Int64_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Int64_base>, 0);
 
@@ -306,7 +324,9 @@ namespace fibjs
         obj_ptr<Int64_base> vr;
 
         METHOD_INSTANCE(Int64_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Int64_base>, 0);
 
@@ -320,7 +340,9 @@ namespace fibjs
         double vr;
 
         METHOD_INSTANCE(Int64_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->toNumber(vr);
 
@@ -332,7 +354,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(Int64_base);
-        METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(int32_t, 0, 10);
 

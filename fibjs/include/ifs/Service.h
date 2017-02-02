@@ -136,7 +136,9 @@ namespace fibjs
     {
         obj_ptr<Service_base> vr;
 
-        CONSTRUCT_ENTER(3, 2);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
@@ -150,7 +152,9 @@ namespace fibjs
     inline void Service_base::s_install(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -164,7 +168,9 @@ namespace fibjs
     inline void Service_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->remove();
 
@@ -174,7 +180,9 @@ namespace fibjs
     inline void Service_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->start();
 
@@ -184,7 +192,9 @@ namespace fibjs
     inline void Service_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->stop();
 
@@ -194,7 +204,9 @@ namespace fibjs
     inline void Service_base::s_restart(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->restart();
 
@@ -204,7 +216,9 @@ namespace fibjs
     inline void Service_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Service_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_run(cb);
@@ -220,7 +234,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isInstalled(vr);
 
@@ -232,7 +248,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isRunning(vr);
 
@@ -244,7 +262,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -258,7 +278,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -272,7 +294,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 

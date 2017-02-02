@@ -473,7 +473,9 @@ namespace fibjs
     {
         obj_ptr<UrlObject_base> vr;
 
-        CONSTRUCT_ENTER(1, 1);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
@@ -492,7 +494,9 @@ namespace fibjs
     inline void UrlObject_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(UrlObject_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(bool, 1, false);
@@ -505,7 +509,9 @@ namespace fibjs
     inline void UrlObject_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(UrlObject_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
@@ -519,7 +525,9 @@ namespace fibjs
         obj_ptr<UrlObject_base> vr;
 
         METHOD_INSTANCE(UrlObject_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -531,7 +539,9 @@ namespace fibjs
     inline void UrlObject_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(UrlObject_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->normalize();
 

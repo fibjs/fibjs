@@ -119,7 +119,9 @@ namespace fibjs
     inline void SQLite_base::s_backup(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(SQLite_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 

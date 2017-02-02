@@ -204,7 +204,9 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -225,7 +227,9 @@ namespace fibjs
 
     inline void process_base::s_exit(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -238,7 +242,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = cwd(vr);
 
@@ -247,7 +253,9 @@ namespace fibjs
 
     inline void process_base::s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -260,7 +268,9 @@ namespace fibjs
     {
         double vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = uptime(vr);
 
@@ -271,7 +281,9 @@ namespace fibjs
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = memoryUsage(vr);
 
@@ -280,7 +292,9 @@ namespace fibjs
 
     inline void process_base::s_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -293,7 +307,9 @@ namespace fibjs
     {
         obj_ptr<SubProcess_base> vr;
 
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Array>, 1);
@@ -315,7 +331,9 @@ namespace fibjs
     {
         obj_ptr<SubProcess_base> vr;
 
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Array>, 1);
@@ -337,7 +355,9 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Array>, 1);

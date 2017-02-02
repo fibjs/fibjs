@@ -93,7 +93,9 @@ namespace fibjs
     inline void SeekableStream_base::s_seek(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(SeekableStream_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int64_t, 0);
         ARG(int32_t, 1);
@@ -108,7 +110,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(SeekableStream_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->tell(vr);
 
@@ -118,7 +122,9 @@ namespace fibjs
     inline void SeekableStream_base::s_rewind(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(SeekableStream_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->rewind();
 
@@ -130,7 +136,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(SeekableStream_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->size(vr);
 
@@ -142,7 +150,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(SeekableStream_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_readAll(cb);
@@ -158,7 +168,9 @@ namespace fibjs
         obj_ptr<Stat_base> vr;
 
         METHOD_INSTANCE(SeekableStream_base);
-        ASYNC_METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(0, 0);
 
         if(!cb.IsEmpty()) {
             pInst->acb_stat(cb);

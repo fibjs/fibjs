@@ -131,7 +131,9 @@ namespace fibjs
         v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(HeapSnapshot_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<HeapSnapshot_base>, 0);
 
@@ -145,7 +147,9 @@ namespace fibjs
         obj_ptr<HeapGraphNode_base> vr;
 
         METHOD_INSTANCE(HeapSnapshot_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -157,7 +161,9 @@ namespace fibjs
     inline void HeapSnapshot_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HeapSnapshot_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 

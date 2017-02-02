@@ -253,7 +253,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(HttpMessage_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -267,7 +269,9 @@ namespace fibjs
         Variant vr;
 
         METHOD_INSTANCE(HttpMessage_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -281,7 +285,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(HttpMessage_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -293,7 +299,9 @@ namespace fibjs
     inline void HttpMessage_base::s_addHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpMessage_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Map_base>, 0);
 
@@ -312,7 +320,9 @@ namespace fibjs
     inline void HttpMessage_base::s_setHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpMessage_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Map_base>, 0);
 
@@ -331,7 +341,9 @@ namespace fibjs
     inline void HttpMessage_base::s_removeHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpMessage_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 

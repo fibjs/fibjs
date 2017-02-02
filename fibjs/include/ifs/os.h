@@ -221,7 +221,9 @@ namespace fibjs
     {
         double vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = uptime(vr);
 
@@ -232,7 +234,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = loadavg(vr);
 
@@ -243,7 +247,9 @@ namespace fibjs
     {
         int64_t vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = totalmem(vr);
 
@@ -254,7 +260,9 @@ namespace fibjs
     {
         int64_t vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = freemem(vr);
 
@@ -265,7 +273,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = CPUInfo(vr);
 
@@ -276,7 +286,9 @@ namespace fibjs
     {
         int32_t vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = CPUs(vr);
 
@@ -287,7 +299,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = tmpdir(vr);
 
@@ -298,7 +312,9 @@ namespace fibjs
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = networkInfo(vr);
 
@@ -309,7 +325,9 @@ namespace fibjs
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = printerInfo(vr);
 
@@ -320,7 +338,9 @@ namespace fibjs
     {
         obj_ptr<BufferedStream_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -337,7 +357,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = platform(vr);
 
@@ -348,7 +370,9 @@ namespace fibjs
     {
         date_t vr;
 
-        METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(exlib::string, 0, "");
 
@@ -361,7 +385,9 @@ namespace fibjs
     {
         date_t vr;
 
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(date_t, 0);
         ARG(int32_t, 1);
@@ -376,7 +402,9 @@ namespace fibjs
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = memoryUsage(vr);
 

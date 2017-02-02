@@ -154,7 +154,9 @@ namespace fibjs
     {
         obj_ptr<WebSocketMessage_base> vr;
 
-        CONSTRUCT_ENTER(3, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(3, 0);
 
         OPT_ARG(int32_t, 0, websocket_base::_BINARY);
         OPT_ARG(bool, 1, true);

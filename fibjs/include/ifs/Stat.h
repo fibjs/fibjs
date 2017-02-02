@@ -185,7 +185,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isWritable(vr);
 
@@ -197,7 +199,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isReadable(vr);
 
@@ -209,7 +213,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isExecutable(vr);
 
@@ -221,7 +227,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isHidden(vr);
 
@@ -233,7 +241,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isDirectory(vr);
 
@@ -245,7 +255,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isFile(vr);
 
@@ -257,7 +269,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isSymbolicLink(vr);
 
@@ -269,7 +283,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isMemory(vr);
 
@@ -281,7 +297,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isSocket(vr);
 

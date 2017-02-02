@@ -211,7 +211,9 @@ namespace fibjs
         v8::Local<v8::Value> vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(exlib::string, 0);
 
@@ -223,7 +225,9 @@ namespace fibjs
     inline void Redis_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -237,7 +241,9 @@ namespace fibjs
     inline void Redis_base::s_setNX(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -251,7 +257,9 @@ namespace fibjs
     inline void Redis_base::s_setXX(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -265,7 +273,9 @@ namespace fibjs
     inline void Redis_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
@@ -281,7 +291,9 @@ namespace fibjs
     inline void Redis_base::s_msetNX(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
@@ -299,7 +311,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -314,7 +328,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(int32_t, 1);
@@ -330,7 +346,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(int32_t, 1);
@@ -346,7 +364,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -360,7 +380,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(3, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -376,7 +398,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -390,7 +414,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
@@ -408,7 +434,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -423,7 +451,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(int64_t, 1, 1);
@@ -438,7 +468,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(int64_t, 1, 1);
@@ -453,7 +485,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(3, 3);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 3);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(int32_t, 1);
@@ -469,7 +503,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(int32_t, 1);
@@ -484,7 +520,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -498,7 +536,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -512,7 +552,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -526,7 +568,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
@@ -544,7 +588,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(int64_t, 1);
@@ -559,7 +605,9 @@ namespace fibjs
         int64_t vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -573,7 +621,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -585,7 +635,9 @@ namespace fibjs
     inline void Redis_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -600,7 +652,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -613,7 +667,9 @@ namespace fibjs
     inline void Redis_base::s_sub(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(v8::Local<v8::Function>, 1);
@@ -632,7 +688,9 @@ namespace fibjs
     inline void Redis_base::s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -663,7 +721,9 @@ namespace fibjs
     inline void Redis_base::s_psub(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
@@ -682,7 +742,9 @@ namespace fibjs
     inline void Redis_base::s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -713,7 +775,9 @@ namespace fibjs
     inline void Redis_base::s_onsuberror(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Function>, 0);
 
@@ -727,7 +791,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -742,7 +808,9 @@ namespace fibjs
         obj_ptr<RedisHash_base> vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -756,7 +824,9 @@ namespace fibjs
         obj_ptr<RedisList_base> vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -770,7 +840,9 @@ namespace fibjs
         obj_ptr<RedisSet_base> vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -784,7 +856,9 @@ namespace fibjs
         obj_ptr<RedisSortedSet_base> vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -798,7 +872,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -810,7 +886,9 @@ namespace fibjs
     inline void Redis_base::s_restore(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -824,7 +902,9 @@ namespace fibjs
     inline void Redis_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->close();
 

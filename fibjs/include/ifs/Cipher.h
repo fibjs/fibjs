@@ -147,7 +147,9 @@ namespace fibjs
     {
         obj_ptr<Cipher_base> vr;
 
-        CONSTRUCT_ENTER(2, 2);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(obj_ptr<Buffer_base>, 1);
@@ -177,7 +179,9 @@ namespace fibjs
     inline void Cipher_base::s_paddingMode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Cipher_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -191,7 +195,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Cipher_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -209,7 +215,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(Cipher_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 

@@ -243,7 +243,9 @@ namespace fibjs
     {
         obj_ptr<HttpClient_base> vr;
 
-        CONSTRUCT_ENTER(0, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = _new(vr, args.This());
 
@@ -255,7 +257,9 @@ namespace fibjs
         obj_ptr<HttpResponse_base> vr;
 
         METHOD_INSTANCE(HttpClient_base);
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Stream_base>, 0);
         ARG(obj_ptr<HttpRequest_base>, 1);
@@ -274,7 +278,7 @@ namespace fibjs
 
         hr = pInst->request(v0, v1, v2, vr);
 
-        METHOD_OVER(4, 4);
+        ASYNC_METHOD_OVER(4, 4);
 
         ARG(exlib::string, 0);
         ARG(exlib::string, 1);
@@ -313,7 +317,9 @@ namespace fibjs
         obj_ptr<HttpResponse_base> vr;
 
         METHOD_INSTANCE(HttpClient_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
@@ -328,7 +334,9 @@ namespace fibjs
         obj_ptr<HttpResponse_base> vr;
 
         METHOD_INSTANCE(HttpClient_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(exlib::string, 0);
         ARG(obj_ptr<SeekableStream_base>, 1);
@@ -359,7 +367,9 @@ namespace fibjs
         obj_ptr<HttpResponse_base> vr;
 
         METHOD_INSTANCE(HttpClient_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
@@ -374,7 +384,9 @@ namespace fibjs
         obj_ptr<HttpResponse_base> vr;
 
         METHOD_INSTANCE(HttpClient_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(exlib::string, 0);
         ARG(obj_ptr<SeekableStream_base>, 1);
@@ -405,7 +417,9 @@ namespace fibjs
         obj_ptr<HttpResponse_base> vr;
 
         METHOD_INSTANCE(HttpClient_base);
-        METHOD_ENTER(3, 2);
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
 
         ARG(exlib::string, 0);
         ARG(obj_ptr<SeekableStream_base>, 1);

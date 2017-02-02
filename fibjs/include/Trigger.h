@@ -401,7 +401,9 @@ public:
 		int32_t vr;
 		JSTrigger t(args);
 
-		METHOD_ENTER(2, 2);
+		METHOD_ENTER();
+
+		METHOD_OVER(2, 2);
 
 		ARG(exlib::string, 0);
 		ARG(v8::Local<v8::Function>, 1);
@@ -422,7 +424,9 @@ public:
 		int32_t vr;
 		JSTrigger t(args);
 
-		METHOD_ENTER(2, 2);
+		METHOD_ENTER();
+
+		METHOD_OVER(2, 2);
 
 		ARG(exlib::string, 0);
 		ARG(v8::Local<v8::Function>, 1);
@@ -443,7 +447,9 @@ public:
 		int32_t vr;
 		JSTrigger t(args);
 
-		METHOD_ENTER(2, 2);
+		METHOD_ENTER();
+
+		METHOD_OVER(2, 2);
 
 		ARG(exlib::string, 0);
 		ARG(v8::Local<v8::Function>, 1);
@@ -470,7 +476,9 @@ public:
 		int32_t vr;
 		JSTrigger t(args);
 
-		METHOD_ENTER(1, 0);
+		METHOD_ENTER();
+
+		METHOD_OVER(1, 0);
 
 		OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
 
@@ -488,7 +496,9 @@ public:
 		v8::Local<v8::Array> vr;
 		JSTrigger t(args);
 
-		METHOD_ENTER(1, 1);
+		METHOD_ENTER();
+
+		METHOD_OVER(1, 1);
 
 		ARG(exlib::string, 0);
 
@@ -501,7 +511,9 @@ public:
 	{
 		JSTrigger t(args);
 
-		METHOD_ENTER(-1, 1);
+		METHOD_ENTER();
+
+		METHOD_OVER(-1, 1);
 
 		ARG(exlib::string, 0);
 

@@ -95,7 +95,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(RedisSet_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
@@ -113,7 +115,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(RedisSet_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
@@ -131,7 +135,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(RedisSet_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->len(vr);
 
@@ -143,7 +149,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(RedisSet_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -157,7 +165,9 @@ namespace fibjs
         obj_ptr<List_base> vr;
 
         METHOD_INSTANCE(RedisSet_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->members(vr);
 
@@ -169,7 +179,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(RedisSet_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->pop(vr);
 
@@ -181,7 +193,9 @@ namespace fibjs
         v8::Local<v8::Value> vr;
 
         METHOD_INSTANCE(RedisSet_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->randMember(vr);
 

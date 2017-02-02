@@ -107,7 +107,9 @@ namespace fibjs
     {
         obj_ptr<Queue_base> vr;
 
-        CONSTRUCT_ENTER(1, 1);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -121,7 +123,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Queue_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -135,7 +139,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Queue_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Value>, 0);
 
@@ -149,7 +155,9 @@ namespace fibjs
         v8::Local<v8::Value> vr;
 
         METHOD_INSTANCE(Queue_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->remove(vr);
 
@@ -161,7 +169,9 @@ namespace fibjs
         v8::Local<v8::Value> vr;
 
         METHOD_INSTANCE(Queue_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->poll(vr);
 
@@ -173,7 +183,9 @@ namespace fibjs
         v8::Local<v8::Value> vr;
 
         METHOD_INSTANCE(Queue_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->element(vr);
 
@@ -185,7 +197,9 @@ namespace fibjs
         v8::Local<v8::Value> vr;
 
         METHOD_INSTANCE(Queue_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->peek(vr);
 
@@ -195,7 +209,9 @@ namespace fibjs
     inline void Queue_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Queue_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->clear();
 
@@ -207,7 +223,9 @@ namespace fibjs
         v8::Local<v8::Array> vr;
 
         METHOD_INSTANCE(Queue_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->toArray(vr);
 

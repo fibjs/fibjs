@@ -205,7 +205,9 @@ namespace fibjs
     {
         obj_ptr<HttpServer_base> vr;
 
-        CONSTRUCT_ENTER(2, 2);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(2, 2);
 
         ARG(int32_t, 0);
         ARG(v8::Local<v8::Value>, 1);
@@ -226,7 +228,9 @@ namespace fibjs
     inline void HttpServer_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpServer_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 

@@ -199,7 +199,9 @@ namespace fibjs
     {
         obj_ptr<HttpRequest_base> vr;
 
-        CONSTRUCT_ENTER(0, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = _new(vr, args.This());
 

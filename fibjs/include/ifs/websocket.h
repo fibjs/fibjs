@@ -151,7 +151,9 @@ namespace fibjs
     {
         obj_ptr<Stream_base> vr;
 
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(exlib::string, 1, "");

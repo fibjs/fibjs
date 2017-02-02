@@ -79,7 +79,9 @@ namespace fibjs
     {
         obj_ptr<Condition_base> vr;
 
-        CONSTRUCT_ENTER(0, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = _new(vr, args.This());
 
@@ -95,7 +97,9 @@ namespace fibjs
     inline void Condition_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Condition_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->wait();
 
@@ -105,7 +109,9 @@ namespace fibjs
     inline void Condition_base::s_notify(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Condition_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->notify();
 
@@ -115,7 +121,9 @@ namespace fibjs
     inline void Condition_base::s_notifyAll(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Condition_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->notifyAll();
 

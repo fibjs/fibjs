@@ -73,7 +73,9 @@ namespace fibjs
     {
         obj_ptr<Chain_base> vr;
 
-        CONSTRUCT_ENTER(1, 1);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 
@@ -85,7 +87,9 @@ namespace fibjs
     inline void Chain_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Chain_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Array>, 0);
 

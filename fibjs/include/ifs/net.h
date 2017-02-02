@@ -161,7 +161,9 @@ namespace fibjs
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = info(vr);
 
@@ -172,7 +174,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, _AF_INET);
@@ -190,7 +194,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -207,7 +213,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -224,7 +232,9 @@ namespace fibjs
     {
         obj_ptr<Stream_base> vr;
 
-        ASYNC_METHOD_ENTER(4, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(4, 2);
 
         ARG(exlib::string, 0);
         ARG(int32_t, 1);
@@ -237,7 +247,7 @@ namespace fibjs
         } else
             hr = ac_connect(v0, v1, v2, v3, vr);
 
-        METHOD_OVER(2, 1);
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -255,7 +265,9 @@ namespace fibjs
     {
         obj_ptr<Smtp_base> vr;
 
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -273,7 +285,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = backend(vr);
 

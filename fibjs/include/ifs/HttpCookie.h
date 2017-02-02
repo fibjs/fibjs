@@ -271,7 +271,9 @@ namespace fibjs
     {
         obj_ptr<HttpCookie_base> vr;
 
-        CONSTRUCT_ENTER(1, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
 
@@ -291,7 +293,9 @@ namespace fibjs
     inline void HttpCookie_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(HttpCookie_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -305,7 +309,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(HttpCookie_base);
-        METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 

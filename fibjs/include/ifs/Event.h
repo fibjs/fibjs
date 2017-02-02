@@ -84,7 +84,9 @@ namespace fibjs
     {
         obj_ptr<Event_base> vr;
 
-        CONSTRUCT_ENTER(1, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(bool, 0, false);
 
@@ -98,7 +100,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(Event_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isSet(vr);
 
@@ -108,7 +112,9 @@ namespace fibjs
     inline void Event_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Event_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->set();
 
@@ -118,7 +124,9 @@ namespace fibjs
     inline void Event_base::s_pulse(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Event_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->pulse();
 
@@ -128,7 +136,9 @@ namespace fibjs
     inline void Event_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Event_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->clear();
 
@@ -138,7 +148,9 @@ namespace fibjs
     inline void Event_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Event_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->wait();
 

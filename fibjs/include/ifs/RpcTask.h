@@ -99,7 +99,9 @@ namespace fibjs
         v8::Local<v8::Value> vr;
 
         METHOD_INSTANCE(RpcTask_base);
-        METHOD_ENTER(-1, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 0);
 
         hr = pInst->_function(args, vr);
 

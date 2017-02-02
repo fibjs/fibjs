@@ -123,7 +123,9 @@ namespace fibjs
         obj_ptr<HeapGraphNode_base> vr;
 
         METHOD_INSTANCE(HeapGraphEdge_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->getFromNode(vr);
 
@@ -135,7 +137,9 @@ namespace fibjs
         obj_ptr<HeapGraphNode_base> vr;
 
         METHOD_INSTANCE(HeapGraphEdge_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->getToNode(vr);
 

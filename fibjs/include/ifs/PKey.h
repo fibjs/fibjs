@@ -162,7 +162,9 @@ namespace fibjs
     {
         obj_ptr<PKey_base> vr;
 
-        CONSTRUCT_ENTER(0, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = _new(vr, args.This());
 
@@ -172,7 +174,9 @@ namespace fibjs
     inline void PKey_base::s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(PKey_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(int32_t, 0);
 
@@ -188,7 +192,9 @@ namespace fibjs
     inline void PKey_base::s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(PKey_base);
-        ASYNC_METHOD_ENTER(1, 0);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 0);
 
         OPT_ARG(exlib::string, 0, "secp521r1");
 
@@ -206,7 +212,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->isPrivate(vr);
 
@@ -218,7 +226,9 @@ namespace fibjs
         obj_ptr<PKey_base> vr;
 
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->clone(vr);
 
@@ -228,7 +238,9 @@ namespace fibjs
     inline void PKey_base::s_importKey(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -248,7 +260,9 @@ namespace fibjs
     inline void PKey_base::s_importFile(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -263,7 +277,9 @@ namespace fibjs
         exlib::string vr;
 
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->exportPem(vr);
 
@@ -275,7 +291,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER(0, 0);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = pInst->exportDer(vr);
 
@@ -287,7 +305,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(PKey_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -305,7 +325,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(PKey_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
 
@@ -323,7 +345,9 @@ namespace fibjs
         obj_ptr<Buffer_base> vr;
 
         METHOD_INSTANCE(PKey_base);
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(obj_ptr<Buffer_base>, 0);
         OPT_ARG(int32_t, 1, 0);
@@ -342,7 +366,9 @@ namespace fibjs
         bool vr;
 
         METHOD_INSTANCE(PKey_base);
-        ASYNC_METHOD_ENTER(2, 2);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 2);
 
         ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);

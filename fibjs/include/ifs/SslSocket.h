@@ -145,7 +145,9 @@ namespace fibjs
     {
         obj_ptr<SslSocket_base> vr;
 
-        CONSTRUCT_ENTER(1, 0);
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 0);
 
         OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
 
@@ -166,7 +168,9 @@ namespace fibjs
         int32_t vr;
 
         METHOD_INSTANCE(SslSocket_base);
-        ASYNC_METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
         OPT_ARG(exlib::string, 1, "");
@@ -185,7 +189,9 @@ namespace fibjs
         obj_ptr<SslSocket_base> vr;
 
         METHOD_INSTANCE(SslSocket_base);
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(obj_ptr<Stream_base>, 0);
 

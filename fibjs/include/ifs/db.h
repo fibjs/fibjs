@@ -121,7 +121,9 @@ namespace fibjs
     {
         obj_ptr<object_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -138,7 +140,9 @@ namespace fibjs
     {
         obj_ptr<MySQL_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -155,7 +159,9 @@ namespace fibjs
     {
         obj_ptr<MSSQL_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -172,7 +178,9 @@ namespace fibjs
     {
         obj_ptr<SQLite_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -189,7 +197,9 @@ namespace fibjs
     {
         obj_ptr<MongoDB_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -206,7 +216,9 @@ namespace fibjs
     {
         obj_ptr<LevelDB_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -223,7 +235,9 @@ namespace fibjs
     {
         obj_ptr<Redis_base> vr;
 
-        ASYNC_METHOD_ENTER(1, 1);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
@@ -240,7 +254,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(exlib::string, 0);
 
@@ -253,7 +269,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(exlib::string, 0);
 
@@ -266,7 +284,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(-1, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 1);
 
         ARG(exlib::string, 0);
 
@@ -279,7 +299,9 @@ namespace fibjs
     {
         exlib::string vr;
 
-        METHOD_ENTER(2, 1);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
 
         ARG(exlib::string, 0);
         OPT_ARG(bool, 1, false);
