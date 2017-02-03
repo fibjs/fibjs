@@ -115,41 +115,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void List_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        Variant vr;
-
-        METHOD_INSTANCE(List_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->_indexed_getter(index, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void List_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        METHOD_INSTANCE(List_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(Variant);
-        hr = pInst->_indexed_setter(index, v0);
-
-        METHOD_VOID();
-    }
-
-    inline void List_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(List_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_length(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void List_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -175,6 +140,29 @@ namespace fibjs
         CONSTRUCT_RETURN();
     }
 
+    inline void List_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        Variant vr;
+
+        METHOD_INSTANCE(List_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->_indexed_getter(index, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void List_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        METHOD_INSTANCE(List_base);
+        PROPERTY_ENTER();
+
+        PROPERTY_VAL(Variant);
+        hr = pInst->_indexed_setter(index, v0);
+
+        METHOD_VOID();
+    }
+
     inline void List_base::s_freeze(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(List_base);
@@ -185,6 +173,18 @@ namespace fibjs
         hr = pInst->freeze();
 
         METHOD_VOID();
+    }
+
+    inline void List_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(List_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_length(vr);
+
+        METHOD_RETURN();
     }
 
     inline void List_base::s_resize(const v8::FunctionCallbackInfo<v8::Value>& args)

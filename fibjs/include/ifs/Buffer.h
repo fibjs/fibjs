@@ -253,41 +253,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void Buffer_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(Buffer_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->_indexed_getter(index, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void Buffer_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        METHOD_INSTANCE(Buffer_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(int32_t);
-        hr = pInst->_indexed_setter(index, v0);
-
-        METHOD_VOID();
-    }
-
-    inline void Buffer_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(Buffer_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_length(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void Buffer_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -367,6 +332,41 @@ namespace fibjs
         OPT_ARG(int32_t, 1, -1);
 
         hr = concat(v0, v1, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Buffer_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(Buffer_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->_indexed_getter(index, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Buffer_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        METHOD_INSTANCE(Buffer_base);
+        PROPERTY_ENTER();
+
+        PROPERTY_VAL(int32_t);
+        hr = pInst->_indexed_setter(index, v0);
+
+        METHOD_VOID();
+    }
+
+    inline void Buffer_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(Buffer_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_length(vr);
 
         METHOD_RETURN();
     }

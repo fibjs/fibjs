@@ -17,8 +17,8 @@
 namespace fibjs
 {
 
-class gd_base;
 class Buffer_base;
+class gd_base;
 class Stream_base;
 
 class Image_base : public object_base
@@ -186,8 +186,8 @@ public:
 
 }
 
-#include "gd.h"
 #include "Buffer.h"
+#include "gd.h"
 #include "Stream.h"
 
 namespace fibjs
@@ -342,8 +342,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_transparent(v0);
 
         PROPERTY_SET_LEAVE();
@@ -365,8 +365,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(bool);
+
         hr = pInst->set_progressive(v0);
 
         PROPERTY_SET_LEAVE();
@@ -388,8 +388,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(Image_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(bool);
+
         hr = pInst->set_alphaBlending(v0);
 
         PROPERTY_SET_LEAVE();

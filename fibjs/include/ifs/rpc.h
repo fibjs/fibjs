@@ -71,7 +71,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void rpc_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<Handler_base> vr;

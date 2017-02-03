@@ -48,7 +48,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& MSSQL_base::class_info()
@@ -68,7 +67,6 @@ namespace fibjs
         static ClassInfo s_ci(s_cd);
         return s_ci;
     }
-
 
     inline void MSSQL_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& args)
     {

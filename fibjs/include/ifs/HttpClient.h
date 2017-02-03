@@ -18,9 +18,9 @@ namespace fibjs
 {
 
 class List_base;
+class HttpResponse_base;
 class Stream_base;
 class HttpRequest_base;
-class HttpResponse_base;
 class SeekableStream_base;
 class Map_base;
 class Buffer_base;
@@ -88,9 +88,9 @@ public:
 }
 
 #include "List.h"
+#include "HttpResponse.h"
 #include "Stream.h"
 #include "HttpRequest.h"
-#include "HttpResponse.h"
 #include "SeekableStream.h"
 #include "Map.h"
 #include "Buffer.h"
@@ -129,6 +129,25 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void HttpClient_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
+
+    template<typename T>void HttpClient_base::__new(const T& args)
+    {
+        obj_ptr<HttpClient_base> vr;
+
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = _new(vr, args.This());
+
+        CONSTRUCT_RETURN();
+    }
+
     inline void HttpClient_base::s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         obj_ptr<List_base> vr;
@@ -157,8 +176,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_timeout(v0);
 
         PROPERTY_SET_LEAVE();
@@ -180,8 +199,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(bool);
+
         hr = pInst->set_enableCookie(v0);
 
         PROPERTY_SET_LEAVE();
@@ -203,8 +222,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(bool);
+
         hr = pInst->set_autoRedirect(v0);
 
         PROPERTY_SET_LEAVE();
@@ -226,30 +245,11 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpClient_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_userAgent(v0);
 
         PROPERTY_SET_LEAVE();
-    }
-
-    inline void HttpClient_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
-
-    template<typename T>void HttpClient_base::__new(const T& args)
-    {
-        obj_ptr<HttpClient_base> vr;
-
-        CONSTRUCT_ENTER();
-
-        METHOD_OVER(0, 0);
-
-        hr = _new(vr, args.This());
-
-        CONSTRUCT_RETURN();
     }
 
     inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args)

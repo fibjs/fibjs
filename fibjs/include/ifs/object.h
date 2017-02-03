@@ -67,13 +67,12 @@ namespace fibjs
         { 
             "object", s__new, NULL, 
             5, s_method, 0, NULL, 0, NULL, NULL, NULL,
-            NULL
+            &object_base::class_info()
         };
 
         static ClassInfo s_ci(s_cd);
         return s_ci;
     }
-
 
     inline void object_base::s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args)
     {

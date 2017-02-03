@@ -113,7 +113,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void ZipFile_base::s_namelist(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<List_base> vr;

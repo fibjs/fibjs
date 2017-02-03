@@ -69,7 +69,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void iconv_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<Buffer_base> vr;

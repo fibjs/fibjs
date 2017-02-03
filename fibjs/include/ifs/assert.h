@@ -140,7 +140,6 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
-            {"_function", s__function, true},
             {"ok", s_ok, true},
             {"notOk", s_notOk, true},
             {"equal", s_equal, true},
@@ -194,14 +193,13 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "assert", s__new, s__function, 
-            49, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            48, s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };
 
         static ClassInfo s_ci(s_cd);
         return s_ci;
     }
-
 
     inline void assert_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)
     {

@@ -84,6 +84,25 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void HttpRequest_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
+
+    template<typename T>void HttpRequest_base::__new(const T& args)
+    {
+        obj_ptr<HttpRequest_base> vr;
+
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = _new(vr, args.This());
+
+        CONSTRUCT_RETURN();
+    }
+
     inline void HttpRequest_base::s_get_method(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
@@ -100,8 +119,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpRequest_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_method(v0);
 
         PROPERTY_SET_LEAVE();
@@ -123,8 +142,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpRequest_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_address(v0);
 
         PROPERTY_SET_LEAVE();
@@ -146,8 +165,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpRequest_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_queryString(v0);
 
         PROPERTY_SET_LEAVE();
@@ -187,25 +206,6 @@ namespace fibjs
         hr = pInst->get_query(vr);
 
         METHOD_RETURN();
-    }
-
-    inline void HttpRequest_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
-
-    template<typename T>void HttpRequest_base::__new(const T& args)
-    {
-        obj_ptr<HttpRequest_base> vr;
-
-        CONSTRUCT_ENTER();
-
-        METHOD_OVER(0, 0);
-
-        hr = _new(vr, args.This());
-
-        CONSTRUCT_RETURN();
     }
 
 }

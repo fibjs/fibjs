@@ -123,70 +123,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void coroutine_base::s_get_fibers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        v8::Local<v8::Array> vr;
-
-        PROPERTY_ENTER();
-
-        hr = get_fibers(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void coroutine_base::s_get_spareFibers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        PROPERTY_ENTER();
-
-        hr = get_spareFibers(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void coroutine_base::s_set_spareFibers(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        PROPERTY_ENTER();
-        PROPERTY_VAL(int32_t);
-
-        hr = set_spareFibers(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void coroutine_base::s_get_vmid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        PROPERTY_ENTER();
-
-        hr = get_vmid(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void coroutine_base::s_get_loglevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        PROPERTY_ENTER();
-
-        hr = get_loglevel(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void coroutine_base::s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        PROPERTY_ENTER();
-        PROPERTY_VAL(int32_t);
-
-        hr = set_loglevel(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
     inline void coroutine_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<Fiber_base> vr;
@@ -266,6 +202,70 @@ namespace fibjs
             hr = ac_sleep(v0);
 
         METHOD_VOID();
+    }
+
+    inline void coroutine_base::s_get_fibers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        v8::Local<v8::Array> vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_fibers(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void coroutine_base::s_get_spareFibers(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_spareFibers(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void coroutine_base::s_set_spareFibers(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = set_spareFibers(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void coroutine_base::s_get_vmid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_vmid(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void coroutine_base::s_get_loglevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_loglevel(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void coroutine_base::s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = set_loglevel(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
 }

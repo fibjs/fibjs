@@ -104,41 +104,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void Smtp_base::s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(Smtp_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_timeout(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void Smtp_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(Smtp_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(int32_t);
-        hr = pInst->set_timeout(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void Smtp_base::s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Stream_base> vr;
-
-        METHOD_INSTANCE(Smtp_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_socket(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void Smtp_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -302,6 +267,41 @@ namespace fibjs
             hr = pInst->ac_quit();
 
         METHOD_VOID();
+    }
+
+    inline void Smtp_base::s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(Smtp_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_timeout(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Smtp_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(Smtp_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = pInst->set_timeout(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void Smtp_base::s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<Stream_base> vr;
+
+        METHOD_INSTANCE(Smtp_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_socket(vr);
+
+        METHOD_RETURN();
     }
 
 }

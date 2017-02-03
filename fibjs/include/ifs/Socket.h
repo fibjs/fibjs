@@ -127,6 +127,28 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void Socket_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
+
+    template<typename T>void Socket_base::__new(const T& args)
+    {
+        obj_ptr<Socket_base> vr;
+
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(2, 0);
+
+        OPT_ARG(int32_t, 0, net_base::_AF_INET);
+        OPT_ARG(int32_t, 1, net_base::_SOCK_STREAM);
+
+        hr = _new(v0, v1, vr, args.This());
+
+        CONSTRUCT_RETURN();
+    }
+
     inline void Socket_base::s_get_family(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr;
@@ -215,33 +237,11 @@ namespace fibjs
     {
         METHOD_INSTANCE(Socket_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_timeout(v0);
 
         PROPERTY_SET_LEAVE();
-    }
-
-    inline void Socket_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
-
-    template<typename T>void Socket_base::__new(const T& args)
-    {
-        obj_ptr<Socket_base> vr;
-
-        CONSTRUCT_ENTER();
-
-        METHOD_OVER(2, 0);
-
-        OPT_ARG(int32_t, 0, net_base::_AF_INET);
-        OPT_ARG(int32_t, 1, net_base::_SOCK_STREAM);
-
-        hr = _new(v0, v1, vr, args.This());
-
-        CONSTRUCT_RETURN();
     }
 
     inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)

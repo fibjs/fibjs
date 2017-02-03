@@ -91,53 +91,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void TcpServer_base::s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Socket_base> vr;
-
-        METHOD_INSTANCE(TcpServer_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_socket(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void TcpServer_base::s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Handler_base> vr;
-
-        METHOD_INSTANCE(TcpServer_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_handler(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void TcpServer_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(TcpServer_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(obj_ptr<Handler_base>);
-        hr = pInst->set_handler(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void TcpServer_base::s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Stats_base> vr;
-
-        METHOD_INSTANCE(TcpServer_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_stats(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void TcpServer_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -210,6 +163,53 @@ namespace fibjs
             hr = pInst->ac_stop();
 
         METHOD_VOID();
+    }
+
+    inline void TcpServer_base::s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<Socket_base> vr;
+
+        METHOD_INSTANCE(TcpServer_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_socket(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void TcpServer_base::s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<Handler_base> vr;
+
+        METHOD_INSTANCE(TcpServer_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_handler(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void TcpServer_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(TcpServer_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(obj_ptr<Handler_base>);
+
+        hr = pInst->set_handler(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void TcpServer_base::s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<Stats_base> vr;
+
+        METHOD_INSTANCE(TcpServer_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_stats(vr);
+
+        METHOD_RETURN();
     }
 
 }

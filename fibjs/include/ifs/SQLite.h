@@ -54,7 +54,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& SQLite_base::class_info()
@@ -109,8 +108,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(SQLite_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_timeout(v0);
 
         PROPERTY_SET_LEAVE();

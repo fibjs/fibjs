@@ -122,6 +122,117 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void X509Cert_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
+
+    template<typename T>void X509Cert_base::__new(const T& args)
+    {
+        obj_ptr<X509Cert_base> vr;
+
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = _new(vr, args.This());
+
+        CONSTRUCT_RETURN();
+    }
+
+    inline void X509Cert_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(X509Cert_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(obj_ptr<Buffer_base>, 0);
+
+        hr = pInst->load(v0);
+
+        METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = pInst->load(v0);
+
+        METHOD_VOID();
+    }
+
+    inline void X509Cert_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(X509Cert_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = pInst->loadFile(v0);
+
+        METHOD_VOID();
+    }
+
+    inline void X509Cert_base::s_loadRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(X509Cert_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = pInst->loadRootCerts();
+
+        METHOD_VOID();
+    }
+
+    inline void X509Cert_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        bool vr;
+
+        METHOD_INSTANCE(X509Cert_base);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
+
+        ARG(obj_ptr<X509Cert_base>, 0);
+
+        if(!cb.IsEmpty()) {
+            pInst->acb_verify(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_verify(v0, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void X509Cert_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Array> vr;
+
+        METHOD_INSTANCE(X509Cert_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = pInst->dump(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void X509Cert_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(X509Cert_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = pInst->clear();
+
+        METHOD_VOID();
+    }
+
     inline void X509Cert_base::s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr;
@@ -264,117 +375,6 @@ namespace fibjs
         hr = pInst->get_next(vr);
 
         METHOD_RETURN();
-    }
-
-    inline void X509Cert_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
-
-    template<typename T>void X509Cert_base::__new(const T& args)
-    {
-        obj_ptr<X509Cert_base> vr;
-
-        CONSTRUCT_ENTER();
-
-        METHOD_OVER(0, 0);
-
-        hr = _new(vr, args.This());
-
-        CONSTRUCT_RETURN();
-    }
-
-    inline void X509Cert_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(X509Cert_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(1, 1);
-
-        ARG(obj_ptr<Buffer_base>, 0);
-
-        hr = pInst->load(v0);
-
-        METHOD_OVER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        hr = pInst->load(v0);
-
-        METHOD_VOID();
-    }
-
-    inline void X509Cert_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(X509Cert_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        hr = pInst->loadFile(v0);
-
-        METHOD_VOID();
-    }
-
-    inline void X509Cert_base::s_loadRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(X509Cert_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(0, 0);
-
-        hr = pInst->loadRootCerts();
-
-        METHOD_VOID();
-    }
-
-    inline void X509Cert_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
-
-        METHOD_INSTANCE(X509Cert_base);
-        METHOD_ENTER();
-
-        ASYNC_METHOD_OVER(1, 1);
-
-        ARG(obj_ptr<X509Cert_base>, 0);
-
-        if(!cb.IsEmpty()) {
-            pInst->acb_verify(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_verify(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void X509Cert_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Array> vr;
-
-        METHOD_INSTANCE(X509Cert_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(0, 0);
-
-        hr = pInst->dump(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void X509Cert_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(X509Cert_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(0, 0);
-
-        hr = pInst->clear();
-
-        METHOD_VOID();
     }
 
 }

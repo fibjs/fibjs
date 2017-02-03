@@ -94,30 +94,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void X509Req_base::s_get_subject(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
-
-        METHOD_INSTANCE(X509Req_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_subject(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void X509Req_base::s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<PKey_base> vr;
-
-        METHOD_INSTANCE(X509Req_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_publicKey(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void X509Req_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -225,6 +201,30 @@ namespace fibjs
             hr = CALL_RETURN_NULL;
         } else
             hr = pInst->ac_sign(v0, v1, v2, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void X509Req_base::s_get_subject(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        exlib::string vr;
+
+        METHOD_INSTANCE(X509Req_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_subject(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void X509Req_base::s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<PKey_base> vr;
+
+        METHOD_INSTANCE(X509Req_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_publicKey(vr);
 
         METHOD_RETURN();
     }

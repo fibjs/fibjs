@@ -92,18 +92,6 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void XmlNodeList_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<XmlNode_base> vr;
-
-        METHOD_INSTANCE(XmlNodeList_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->_indexed_getter(index, vr);
-
-        METHOD_RETURN();
-    }
-
     inline void XmlNodeList_base::s_item(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<XmlNode_base> vr;
@@ -116,6 +104,18 @@ namespace fibjs
         ARG(int32_t, 0);
 
         hr = pInst->item(v0, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void XmlNodeList_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<XmlNode_base> vr;
+
+        METHOD_INSTANCE(XmlNodeList_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->_indexed_getter(index, vr);
 
         METHOD_RETURN();
     }

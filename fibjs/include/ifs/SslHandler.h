@@ -76,6 +76,36 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void SslHandler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
+
+    template<typename T>void SslHandler_base::__new(const T& args)
+    {
+        obj_ptr<SslHandler_base> vr;
+
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(2, 2);
+
+        ARG(v8::Local<v8::Array>, 0);
+        ARG(v8::Local<v8::Value>, 1);
+
+        hr = _new(v0, v1, vr, args.This());
+
+        METHOD_OVER(3, 3);
+
+        ARG(obj_ptr<X509Cert_base>, 0);
+        ARG(obj_ptr<PKey_base>, 1);
+        ARG(v8::Local<v8::Value>, 2);
+
+        hr = _new(v0, v1, v2, vr, args.This());
+
+        CONSTRUCT_RETURN();
+    }
+
     inline void SslHandler_base::s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr;
@@ -92,8 +122,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(SslHandler_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_verification(v0);
 
         PROPERTY_SET_LEAVE();
@@ -127,41 +157,11 @@ namespace fibjs
     {
         METHOD_INSTANCE(SslHandler_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(obj_ptr<Handler_base>);
+
         hr = pInst->set_handler(v0);
 
         PROPERTY_SET_LEAVE();
-    }
-
-    inline void SslHandler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
-
-    template<typename T>void SslHandler_base::__new(const T& args)
-    {
-        obj_ptr<SslHandler_base> vr;
-
-        CONSTRUCT_ENTER();
-
-        METHOD_OVER(2, 2);
-
-        ARG(v8::Local<v8::Array>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-
-        hr = _new(v0, v1, vr, args.This());
-
-        METHOD_OVER(3, 3);
-
-        ARG(obj_ptr<X509Cert_base>, 0);
-        ARG(obj_ptr<PKey_base>, 1);
-        ARG(v8::Local<v8::Value>, 2);
-
-        hr = _new(v0, v1, v2, vr, args.This());
-
-        CONSTRUCT_RETURN();
     }
 
 }

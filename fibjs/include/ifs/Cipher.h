@@ -89,6 +89,45 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void Cipher_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
+
+    template<typename T>void Cipher_base::__new(const T& args)
+    {
+        obj_ptr<Cipher_base> vr;
+
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(2, 2);
+
+        ARG(int32_t, 0);
+        ARG(obj_ptr<Buffer_base>, 1);
+
+        hr = _new(v0, v1, vr, args.This());
+
+        METHOD_OVER(3, 3);
+
+        ARG(int32_t, 0);
+        ARG(int32_t, 1);
+        ARG(obj_ptr<Buffer_base>, 2);
+
+        hr = _new(v0, v1, v2, vr, args.This());
+
+        METHOD_OVER(4, 4);
+
+        ARG(int32_t, 0);
+        ARG(int32_t, 1);
+        ARG(obj_ptr<Buffer_base>, 2);
+        ARG(obj_ptr<Buffer_base>, 3);
+
+        hr = _new(v0, v1, v2, v3, vr, args.This());
+
+        CONSTRUCT_RETURN();
+    }
+
     inline void Cipher_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
@@ -135,45 +174,6 @@ namespace fibjs
         hr = pInst->get_blockSize(vr);
 
         METHOD_RETURN();
-    }
-
-    inline void Cipher_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
-
-    template<typename T>void Cipher_base::__new(const T& args)
-    {
-        obj_ptr<Cipher_base> vr;
-
-        CONSTRUCT_ENTER();
-
-        METHOD_OVER(2, 2);
-
-        ARG(int32_t, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
-
-        hr = _new(v0, v1, vr, args.This());
-
-        METHOD_OVER(3, 3);
-
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(obj_ptr<Buffer_base>, 2);
-
-        hr = _new(v0, v1, v2, vr, args.This());
-
-        METHOD_OVER(4, 4);
-
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(obj_ptr<Buffer_base>, 2);
-        ARG(obj_ptr<Buffer_base>, 3);
-
-        hr = _new(v0, v1, v2, v3, vr, args.This());
-
-        CONSTRUCT_RETURN();
     }
 
     inline void Cipher_base::s_paddingMode(const v8::FunctionCallbackInfo<v8::Value>& args)

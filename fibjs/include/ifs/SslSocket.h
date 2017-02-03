@@ -88,6 +88,34 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void SslSocket_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
+
+    template<typename T>void SslSocket_base::__new(const T& args)
+    {
+        obj_ptr<SslSocket_base> vr;
+
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 0);
+
+        OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
+
+        hr = _new(v0, vr, args.This());
+
+        METHOD_OVER(2, 2);
+
+        ARG(obj_ptr<X509Cert_base>, 0);
+        ARG(obj_ptr<PKey_base>, 1);
+
+        hr = _new(v0, v1, vr, args.This());
+
+        CONSTRUCT_RETURN();
+    }
+
     inline void SslSocket_base::s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr;
@@ -104,8 +132,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(SslSocket_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_verification(v0);
 
         PROPERTY_SET_LEAVE();
@@ -133,34 +161,6 @@ namespace fibjs
         hr = pInst->get_peerCert(vr);
 
         METHOD_RETURN();
-    }
-
-    inline void SslSocket_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
-
-    template<typename T>void SslSocket_base::__new(const T& args)
-    {
-        obj_ptr<SslSocket_base> vr;
-
-        CONSTRUCT_ENTER();
-
-        METHOD_OVER(1, 0);
-
-        OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
-
-        hr = _new(v0, vr, args.This());
-
-        METHOD_OVER(2, 2);
-
-        ARG(obj_ptr<X509Cert_base>, 0);
-        ARG(obj_ptr<PKey_base>, 1);
-
-        hr = _new(v0, v1, vr, args.This());
-
-        CONSTRUCT_RETURN();
     }
 
     inline void SslSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)

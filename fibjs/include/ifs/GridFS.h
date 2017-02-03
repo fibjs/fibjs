@@ -92,30 +92,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void GridFS_base::s_get_files(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<MongoCollection_base> vr;
-
-        METHOD_INSTANCE(GridFS_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_files(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void GridFS_base::s_get_chunks(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<MongoCollection_base> vr;
-
-        METHOD_INSTANCE(GridFS_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_chunks(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void GridFS_base::s_retrieve(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<MemoryStream_base> vr;
@@ -182,6 +158,30 @@ namespace fibjs
         hr = pInst->remove(v0);
 
         METHOD_VOID();
+    }
+
+    inline void GridFS_base::s_get_files(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<MongoCollection_base> vr;
+
+        METHOD_INSTANCE(GridFS_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_files(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void GridFS_base::s_get_chunks(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<MongoCollection_base> vr;
+
+        METHOD_INSTANCE(GridFS_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_chunks(vr);
+
+        METHOD_RETURN();
     }
 
 }

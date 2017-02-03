@@ -54,7 +54,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& HttpHandler_base::class_info()
@@ -78,6 +77,27 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void HttpHandler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
+
+    template<typename T>void HttpHandler_base::__new(const T& args)
+    {
+        obj_ptr<HttpHandler_base> vr;
+
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(v8::Local<v8::Value>, 0);
+
+        hr = _new(v0, vr, args.This());
+
+        CONSTRUCT_RETURN();
+    }
+
     inline void HttpHandler_base::s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         bool vr;
@@ -94,8 +114,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpHandler_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(bool);
+
         hr = pInst->set_crossDomain(v0);
 
         PROPERTY_SET_LEAVE();
@@ -117,8 +137,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpHandler_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(bool);
+
         hr = pInst->set_forceGZIP(v0);
 
         PROPERTY_SET_LEAVE();
@@ -140,8 +160,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpHandler_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_maxHeadersCount(v0);
 
         PROPERTY_SET_LEAVE();
@@ -163,32 +183,11 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpHandler_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_maxUploadSize(v0);
 
         PROPERTY_SET_LEAVE();
-    }
-
-    inline void HttpHandler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
-
-    template<typename T>void HttpHandler_base::__new(const T& args)
-    {
-        obj_ptr<HttpHandler_base> vr;
-
-        CONSTRUCT_ENTER();
-
-        METHOD_OVER(1, 1);
-
-        ARG(v8::Local<v8::Value>, 0);
-
-        hr = _new(v0, vr, args.This());
-
-        CONSTRUCT_RETURN();
     }
 
 }

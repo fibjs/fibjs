@@ -66,6 +66,20 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void RpcTask_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Value> vr;
+
+        METHOD_INSTANCE(RpcTask_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(-1, 0);
+
+        hr = pInst->_function(args, vr);
+
+        METHOD_RETURN();
+    }
+
     inline void RpcTask_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         obj_ptr<RpcTask_base> vr;
@@ -92,20 +106,6 @@ namespace fibjs
         hr = pInst->_named_enumerator(vr);
 
         METHOD_RETURN1();
-    }
-
-    inline void RpcTask_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Value> vr;
-
-        METHOD_INSTANCE(RpcTask_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(-1, 0);
-
-        hr = pInst->_function(args, vr);
-
-        METHOD_RETURN();
     }
 
 }

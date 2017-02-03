@@ -82,7 +82,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void SandBox_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();

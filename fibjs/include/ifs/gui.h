@@ -73,7 +73,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void gui_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<WebView_base> vr;

@@ -77,18 +77,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void Digest_base::s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(Digest_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_size(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void Digest_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(Digest_base);
@@ -119,6 +107,18 @@ namespace fibjs
         METHOD_OVER(0, 0);
 
         hr = pInst->digest(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Digest_base::s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(Digest_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_size(vr);
 
         METHOD_RETURN();
     }

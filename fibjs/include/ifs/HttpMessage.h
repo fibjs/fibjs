@@ -137,8 +137,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_protocol(v0);
 
         PROPERTY_SET_LEAVE();
@@ -172,8 +172,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(bool);
+
         hr = pInst->set_keepAlive(v0);
 
         PROPERTY_SET_LEAVE();
@@ -195,8 +195,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(bool);
+
         hr = pInst->set_upgrade(v0);
 
         PROPERTY_SET_LEAVE();
@@ -218,8 +218,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_maxHeadersCount(v0);
 
         PROPERTY_SET_LEAVE();
@@ -241,8 +241,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HttpMessage_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_maxUploadSize(v0);
 
         PROPERTY_SET_LEAVE();

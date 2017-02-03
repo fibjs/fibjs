@@ -80,6 +80,20 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void HandlerEx_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(HandlerEx_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(v8::Local<v8::Object>, 0);
+
+        hr = pInst->onerror(v0);
+
+        METHOD_VOID();
+    }
+
     inline void HandlerEx_base::s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         obj_ptr<Handler_base> vr;
@@ -96,8 +110,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(HandlerEx_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(obj_ptr<Handler_base>);
+
         hr = pInst->set_handler(v0);
 
         PROPERTY_SET_LEAVE();
@@ -113,20 +127,6 @@ namespace fibjs
         hr = pInst->get_stats(vr);
 
         METHOD_RETURN();
-    }
-
-    inline void HandlerEx_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(HandlerEx_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(1, 1);
-
-        ARG(v8::Local<v8::Object>, 0);
-
-        hr = pInst->onerror(v0);
-
-        METHOD_VOID();
     }
 
 }

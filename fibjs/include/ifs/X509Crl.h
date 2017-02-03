@@ -71,7 +71,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void X509Crl_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();

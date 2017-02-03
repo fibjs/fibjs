@@ -49,7 +49,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& XmlProcessingInstruction_base::class_info()
@@ -99,8 +98,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(XmlProcessingInstruction_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_data(v0);
 
         PROPERTY_SET_LEAVE();

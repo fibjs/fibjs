@@ -44,7 +44,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& MemoryStream_base::class_info()
@@ -66,7 +65,6 @@ namespace fibjs
         static ClassInfo s_ci(s_cd);
         return s_ci;
     }
-
 
     inline void MemoryStream_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {

@@ -67,7 +67,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& BufferedStream_base::class_info()
@@ -98,64 +97,6 @@ namespace fibjs
 
         static ClassInfo s_ci(s_cd);
         return s_ci;
-    }
-
-    inline void BufferedStream_base::s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Stream_base> vr;
-
-        METHOD_INSTANCE(BufferedStream_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_stream(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void BufferedStream_base::s_get_charset(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
-
-        METHOD_INSTANCE(BufferedStream_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_charset(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void BufferedStream_base::s_set_charset(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(BufferedStream_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(exlib::string);
-        hr = pInst->set_charset(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void BufferedStream_base::s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
-
-        METHOD_INSTANCE(BufferedStream_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_EOL(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void BufferedStream_base::s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(BufferedStream_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(exlib::string);
-        hr = pInst->set_EOL(v0);
-
-        PROPERTY_SET_LEAVE();
     }
 
     inline void BufferedStream_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -290,6 +231,64 @@ namespace fibjs
             hr = pInst->ac_writeLine(v0);
 
         METHOD_VOID();
+    }
+
+    inline void BufferedStream_base::s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<Stream_base> vr;
+
+        METHOD_INSTANCE(BufferedStream_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_stream(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void BufferedStream_base::s_get_charset(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        exlib::string vr;
+
+        METHOD_INSTANCE(BufferedStream_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_charset(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void BufferedStream_base::s_set_charset(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(BufferedStream_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(exlib::string);
+
+        hr = pInst->set_charset(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void BufferedStream_base::s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        exlib::string vr;
+
+        METHOD_INSTANCE(BufferedStream_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_EOL(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void BufferedStream_base::s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(BufferedStream_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(exlib::string);
+
+        hr = pInst->set_EOL(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
 }

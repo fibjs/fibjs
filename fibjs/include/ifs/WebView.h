@@ -62,7 +62,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& WebView_base::class_info()
@@ -88,7 +87,6 @@ namespace fibjs
         static ClassInfo s_ci(s_cd);
         return s_ci;
     }
-
 
     inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     {

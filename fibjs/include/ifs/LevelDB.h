@@ -108,7 +108,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void LevelDB_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         bool vr;

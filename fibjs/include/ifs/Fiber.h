@@ -72,6 +72,18 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void Fiber_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(Fiber_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = pInst->join();
+
+        METHOD_VOID();
+    }
+
     inline void Fiber_base::s_get_caller(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         obj_ptr<Fiber_base> vr;
@@ -94,18 +106,6 @@ namespace fibjs
         hr = pInst->get_traceInfo(vr);
 
         METHOD_RETURN();
-    }
-
-    inline void Fiber_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Fiber_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(0, 0);
-
-        hr = pInst->join();
-
-        METHOD_VOID();
     }
 
 }

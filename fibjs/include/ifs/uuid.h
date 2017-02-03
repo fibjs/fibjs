@@ -131,27 +131,6 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void uuid_base::s_get_hostID(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        PROPERTY_ENTER();
-
-        hr = get_hostID(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void uuid_base::s_set_hostID(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        PROPERTY_ENTER();
-        PROPERTY_VAL(int32_t);
-
-        hr = set_hostID(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
     inline void uuid_base::s_node(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<Buffer_base> vr;
@@ -221,6 +200,27 @@ namespace fibjs
         hr = snowflake(vr);
 
         METHOD_RETURN();
+    }
+
+    inline void uuid_base::s_get_hostID(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_hostID(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void uuid_base::s_set_hostID(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = set_hostID(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
 }

@@ -228,6 +228,55 @@ namespace fibjs
         METHOD_RETURN();
     }
 
+    inline void ssl_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<Stream_base> vr;
+
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(2, 1);
+
+        ARG(exlib::string, 0);
+        OPT_ARG(int32_t, 1, 0);
+
+        if(!cb.IsEmpty()) {
+            acb_connect(v0, v1, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_connect(v0, v1, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void ssl_base::s_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 2);
+
+        ARG(obj_ptr<X509Cert_base>, 0);
+        ARG(obj_ptr<PKey_base>, 1);
+
+        hr = setClientCert(v0, v1);
+
+        METHOD_VOID();
+    }
+
+    inline void ssl_base::s_loadClientCertFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
+
+        ARG(exlib::string, 0);
+        ARG(exlib::string, 1);
+        OPT_ARG(exlib::string, 2, "");
+
+        hr = loadClientCertFile(v0, v1, v2);
+
+        METHOD_VOID();
+    }
+
     inline void ssl_base::s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         obj_ptr<X509Cert_base> vr;
@@ -300,55 +349,6 @@ namespace fibjs
         hr = set_max_version(v0);
 
         PROPERTY_SET_LEAVE();
-    }
-
-    inline void ssl_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Stream_base> vr;
-
-        METHOD_ENTER();
-
-        ASYNC_METHOD_OVER(2, 1);
-
-        ARG(exlib::string, 0);
-        OPT_ARG(int32_t, 1, 0);
-
-        if(!cb.IsEmpty()) {
-            acb_connect(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_connect(v0, v1, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void ssl_base::s_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
-
-        METHOD_OVER(2, 2);
-
-        ARG(obj_ptr<X509Cert_base>, 0);
-        ARG(obj_ptr<PKey_base>, 1);
-
-        hr = setClientCert(v0, v1);
-
-        METHOD_VOID();
-    }
-
-    inline void ssl_base::s_loadClientCertFile(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
-
-        METHOD_OVER(3, 2);
-
-        ARG(exlib::string, 0);
-        ARG(exlib::string, 1);
-        OPT_ARG(exlib::string, 2, "");
-
-        hr = loadClientCertFile(v0, v1, v2);
-
-        METHOD_VOID();
     }
 
 }

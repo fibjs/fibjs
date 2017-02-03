@@ -104,52 +104,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void Int64_base::s_get_hi(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int64_t vr;
-
-        METHOD_INSTANCE(Int64_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_hi(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void Int64_base::s_set_hi(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(Int64_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(int64_t);
-        hr = pInst->set_hi(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void Int64_base::s_get_lo(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int64_t vr;
-
-        METHOD_INSTANCE(Int64_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_lo(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void Int64_base::s_set_lo(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(Int64_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(int64_t);
-        hr = pInst->set_lo(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
     inline void Int64_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -189,6 +143,52 @@ namespace fibjs
         hr = _new(v0, v1, vr, args.This());
 
         CONSTRUCT_RETURN();
+    }
+
+    inline void Int64_base::s_get_hi(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int64_t vr;
+
+        METHOD_INSTANCE(Int64_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_hi(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Int64_base::s_set_hi(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(Int64_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int64_t);
+
+        hr = pInst->set_hi(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void Int64_base::s_get_lo(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int64_t vr;
+
+        METHOD_INSTANCE(Int64_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_lo(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Int64_base::s_set_lo(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(Int64_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int64_t);
+
+        hr = pInst->set_lo(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
     inline void Int64_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)

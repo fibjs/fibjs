@@ -134,6 +134,47 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void XmlDocument_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
+
+    template<typename T>void XmlDocument_base::__new(const T& args)
+    {
+        obj_ptr<XmlDocument_base> vr;
+
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(1, 0);
+
+        OPT_ARG(exlib::string, 0, "text/xml");
+
+        hr = _new(v0, vr, args.This());
+
+        CONSTRUCT_RETURN();
+    }
+
+    inline void XmlDocument_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(XmlDocument_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = pInst->load(v0);
+
+        METHOD_OVER(1, 1);
+
+        ARG(obj_ptr<Buffer_base>, 0);
+
+        hr = pInst->load(v0);
+
+        METHOD_VOID();
+    }
+
     inline void XmlDocument_base::s_get_inputEncoding(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
@@ -162,8 +203,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(XmlDocument_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(bool);
+
         hr = pInst->set_xmlStandalone(v0);
 
         PROPERTY_SET_LEAVE();
@@ -185,8 +226,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(XmlDocument_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_xmlVersion(v0);
 
         PROPERTY_SET_LEAVE();
@@ -250,47 +291,6 @@ namespace fibjs
         hr = pInst->get_body(vr);
 
         METHOD_RETURN();
-    }
-
-    inline void XmlDocument_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
-
-    template<typename T>void XmlDocument_base::__new(const T& args)
-    {
-        obj_ptr<XmlDocument_base> vr;
-
-        CONSTRUCT_ENTER();
-
-        METHOD_OVER(1, 0);
-
-        OPT_ARG(exlib::string, 0, "text/xml");
-
-        hr = _new(v0, vr, args.This());
-
-        CONSTRUCT_RETURN();
-    }
-
-    inline void XmlDocument_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(XmlDocument_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        hr = pInst->load(v0);
-
-        METHOD_OVER(1, 1);
-
-        ARG(obj_ptr<Buffer_base>, 0);
-
-        hr = pInst->load(v0);
-
-        METHOD_VOID();
     }
 
     inline void XmlDocument_base::s_getElementsByTagName(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -56,7 +56,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& MySQL_base::class_info()
@@ -83,6 +82,24 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void MySQL_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(MySQL_base);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        if(!cb.IsEmpty()) {
+            pInst->acb_use(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_use(v0);
+
+        METHOD_VOID();
+    }
+
     inline void MySQL_base::s_get_rxBufferSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr;
@@ -99,8 +116,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(MySQL_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_rxBufferSize(v0);
 
         PROPERTY_SET_LEAVE();
@@ -122,29 +139,11 @@ namespace fibjs
     {
         METHOD_INSTANCE(MySQL_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_txBufferSize(v0);
 
         PROPERTY_SET_LEAVE();
-    }
-
-    inline void MySQL_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(MySQL_base);
-        METHOD_ENTER();
-
-        ASYNC_METHOD_OVER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        if(!cb.IsEmpty()) {
-            pInst->acb_use(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_use(v0);
-
-        METHOD_VOID();
     }
 
 }

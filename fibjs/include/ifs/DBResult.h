@@ -49,7 +49,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& DBResult_base::class_info()

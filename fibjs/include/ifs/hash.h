@@ -17,8 +17,8 @@
 namespace fibjs
 {
 
-class Buffer_base;
 class Digest_base;
+class Buffer_base;
 
 class hash_base : public object_base
 {
@@ -106,8 +106,8 @@ public:
 
 }
 
-#include "Buffer.h"
 #include "Digest.h"
+#include "Buffer.h"
 
 namespace fibjs
 {

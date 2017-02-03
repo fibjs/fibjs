@@ -206,17 +206,6 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void os_base::s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
-
-        PROPERTY_ENTER();
-
-        hr = get_execPath(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void os_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         double vr;
@@ -394,6 +383,17 @@ namespace fibjs
         ARG(exlib::string, 2);
 
         hr = dateAdd(v0, v1, v2, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void os_base::s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        exlib::string vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_execPath(vr);
 
         METHOD_RETURN();
     }

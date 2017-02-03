@@ -49,7 +49,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& XmlDocumentType_base::class_info()

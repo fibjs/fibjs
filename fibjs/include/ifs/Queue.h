@@ -85,18 +85,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void Queue_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(Queue_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_length(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void Queue_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -228,6 +216,18 @@ namespace fibjs
         METHOD_OVER(0, 0);
 
         hr = pInst->toArray(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Queue_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(Queue_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_length(vr);
 
         METHOD_RETURN();
     }

@@ -66,7 +66,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void re_base::s_compile(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<Regex_base> vr;

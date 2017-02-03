@@ -166,8 +166,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_prefix(v0);
 
         PROPERTY_SET_LEAVE();
@@ -213,8 +213,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_id(v0);
 
         PROPERTY_SET_LEAVE();
@@ -236,8 +236,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_textContent(v0);
 
         PROPERTY_SET_LEAVE();
@@ -259,8 +259,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_innerHTML(v0);
 
         PROPERTY_SET_LEAVE();
@@ -282,8 +282,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(XmlElement_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_className(v0);
 
         PROPERTY_SET_LEAVE();

@@ -89,7 +89,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void SeekableStream_base::s_seek(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(SeekableStream_base);

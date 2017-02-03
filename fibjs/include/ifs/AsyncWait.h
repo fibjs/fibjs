@@ -45,7 +45,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& AsyncWait_base::class_info()
@@ -65,7 +64,6 @@ namespace fibjs
         static ClassInfo s_ci(s_cd);
         return s_ci;
     }
-
 
     inline void AsyncWait_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)
     {

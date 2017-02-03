@@ -138,27 +138,6 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void test_base::s_get_slow(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        PROPERTY_ENTER();
-
-        hr = get_slow(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void test_base::s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        PROPERTY_ENTER();
-        PROPERTY_VAL(int32_t);
-
-        hr = set_slow(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
     inline void test_base::s_describe(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_ENTER();
@@ -309,6 +288,27 @@ namespace fibjs
         hr = setup(v0);
 
         METHOD_VOID();
+    }
+
+    inline void test_base::s_get_slow(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_slow(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void test_base::s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = set_slow(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
 }

@@ -96,7 +96,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void MongoCursor_base::s_skip(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<MongoCursor_base> vr;

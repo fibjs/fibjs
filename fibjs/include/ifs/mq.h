@@ -23,7 +23,6 @@ class Chain_base;
 class Routing_base;
 class Handler_base;
 class AsyncWait_base;
-class object_base;
 
 class mq_base : public object_base
 {
@@ -96,7 +95,6 @@ namespace fibjs
         static ClassInfo s_ci(s_cd);
         return s_ci;
     }
-
 
     inline void mq_base::s_jsHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
     {

@@ -83,6 +83,38 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void Regex_base::s_exec(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Array> vr;
+
+        METHOD_INSTANCE(Regex_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = pInst->exec(v0, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Regex_base::s_test(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        bool vr;
+
+        METHOD_INSTANCE(Regex_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = pInst->test(v0, vr);
+
+        METHOD_RETURN();
+    }
+
     inline void Regex_base::s_get_lastIndex(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr;
@@ -99,8 +131,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(Regex_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(int32_t);
+
         hr = pInst->set_lastIndex(v0);
 
         PROPERTY_SET_LEAVE();
@@ -138,38 +170,6 @@ namespace fibjs
         PROPERTY_ENTER();
 
         hr = pInst->get_multiline(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void Regex_base::s_exec(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Array> vr;
-
-        METHOD_INSTANCE(Regex_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        hr = pInst->exec(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void Regex_base::s_test(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
-
-        METHOD_INSTANCE(Regex_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        hr = pInst->test(v0, vr);
 
         METHOD_RETURN();
     }

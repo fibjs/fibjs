@@ -103,7 +103,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void RedisList_base::s_push(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         int32_t vr;

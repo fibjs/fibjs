@@ -90,42 +90,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void HeapSnapshot_base::s_get_time(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        date_t vr;
-
-        METHOD_INSTANCE(HeapSnapshot_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_time(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void HeapSnapshot_base::s_get_root(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<HeapGraphNode_base> vr;
-
-        METHOD_INSTANCE(HeapSnapshot_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_root(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void HeapSnapshot_base::s_get_nodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<List_base> vr;
-
-        METHOD_INSTANCE(HeapSnapshot_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_nodes(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void HeapSnapshot_base::s_diff(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Local<v8::Object> vr;
@@ -174,6 +138,42 @@ namespace fibjs
             hr = pInst->ac_save(v0);
 
         METHOD_VOID();
+    }
+
+    inline void HeapSnapshot_base::s_get_time(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        date_t vr;
+
+        METHOD_INSTANCE(HeapSnapshot_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_time(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void HeapSnapshot_base::s_get_root(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<HeapGraphNode_base> vr;
+
+        METHOD_INSTANCE(HeapSnapshot_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_root(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void HeapSnapshot_base::s_get_nodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<List_base> vr;
+
+        METHOD_INSTANCE(HeapSnapshot_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_nodes(vr);
+
+        METHOD_RETURN();
     }
 
 }

@@ -67,7 +67,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& Service_base::class_info()
@@ -103,29 +102,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void Service_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
-
-        METHOD_INSTANCE(Service_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_name(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void Service_base::s_set_name(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(Service_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(exlib::string);
-        hr = pInst->set_name(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
     inline void Service_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -147,6 +123,29 @@ namespace fibjs
         hr = _new(v0, v1, v2, vr, args.This());
 
         CONSTRUCT_RETURN();
+    }
+
+    inline void Service_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        exlib::string vr;
+
+        METHOD_INSTANCE(Service_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_name(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Service_base::s_set_name(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(Service_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(exlib::string);
+
+        hr = pInst->set_name(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
     inline void Service_base::s_install(const v8::FunctionCallbackInfo<v8::Value>& args)

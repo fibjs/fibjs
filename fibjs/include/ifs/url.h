@@ -69,7 +69,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void url_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         exlib::string vr;

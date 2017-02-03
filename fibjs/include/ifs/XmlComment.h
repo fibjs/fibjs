@@ -35,12 +35,9 @@ public:
             isolate->NewFromUtf8("not a constructor"));
     }
 
-public:
-
 };
 
 }
-
 
 namespace fibjs
 {
@@ -56,7 +53,6 @@ namespace fibjs
         static ClassInfo s_ci(s_cd);
         return s_ci;
     }
-
 
 }
 

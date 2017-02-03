@@ -101,7 +101,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void RedisHash_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         METHOD_INSTANCE(RedisHash_base);

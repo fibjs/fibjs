@@ -17,8 +17,6 @@
 namespace fibjs
 {
 
-class object_base;
-
 class Handler_base : public object_base
 {
     DECLARE_CLASS(Handler_base);
@@ -47,7 +45,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& Handler_base::class_info()
@@ -67,7 +64,6 @@ namespace fibjs
         static ClassInfo s_ci(s_cd);
         return s_ci;
     }
-
 
     inline void Handler_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)
     {

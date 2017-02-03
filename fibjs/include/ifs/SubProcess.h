@@ -58,7 +58,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& SubProcess_base::class_info()
@@ -86,42 +85,6 @@ namespace fibjs
 
         static ClassInfo s_ci(s_cd);
         return s_ci;
-    }
-
-    inline void SubProcess_base::s_get_pid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(SubProcess_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_pid(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void SubProcess_base::s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<BufferedStream_base> vr;
-
-        METHOD_INSTANCE(SubProcess_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_stdin(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void SubProcess_base::s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<BufferedStream_base> vr;
-
-        METHOD_INSTANCE(SubProcess_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_stdout(vr);
-
-        METHOD_RETURN();
     }
 
     inline void SubProcess_base::s_kill(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -168,6 +131,42 @@ namespace fibjs
         ARG(exlib::string, 0);
 
         hr = pInst->findWindow(v0, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void SubProcess_base::s_get_pid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(SubProcess_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_pid(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void SubProcess_base::s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<BufferedStream_base> vr;
+
+        METHOD_INSTANCE(SubProcess_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_stdin(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void SubProcess_base::s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<BufferedStream_base> vr;
+
+        METHOD_INSTANCE(SubProcess_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_stdout(vr);
 
         METHOD_RETURN();
     }

@@ -17,7 +17,6 @@
 namespace fibjs
 {
 
-class object_base;
 class MySQL_base;
 class MSSQL_base;
 class SQLite_base;
@@ -115,7 +114,6 @@ namespace fibjs
         static ClassInfo s_ci(s_cd);
         return s_ci;
     }
-
 
     inline void db_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
     {

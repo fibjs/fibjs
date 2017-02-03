@@ -91,110 +91,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void HttpServer_base::s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        bool vr;
-
-        METHOD_INSTANCE(HttpServer_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_crossDomain(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void HttpServer_base::s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(HttpServer_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(bool);
-        hr = pInst->set_crossDomain(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void HttpServer_base::s_get_forceGZIP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        bool vr;
-
-        METHOD_INSTANCE(HttpServer_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_forceGZIP(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void HttpServer_base::s_set_forceGZIP(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(HttpServer_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(bool);
-        hr = pInst->set_forceGZIP(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void HttpServer_base::s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(HttpServer_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_maxHeadersCount(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void HttpServer_base::s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(HttpServer_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(int32_t);
-        hr = pInst->set_maxHeadersCount(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void HttpServer_base::s_get_maxUploadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(HttpServer_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_maxUploadSize(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void HttpServer_base::s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(HttpServer_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(int32_t);
-        hr = pInst->set_maxUploadSize(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void HttpServer_base::s_get_httpStats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Stats_base> vr;
-
-        METHOD_INSTANCE(HttpServer_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_httpStats(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void HttpServer_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -237,6 +133,110 @@ namespace fibjs
         hr = pInst->onerror(v0);
 
         METHOD_VOID();
+    }
+
+    inline void HttpServer_base::s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        bool vr;
+
+        METHOD_INSTANCE(HttpServer_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_crossDomain(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void HttpServer_base::s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(HttpServer_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(bool);
+
+        hr = pInst->set_crossDomain(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void HttpServer_base::s_get_forceGZIP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        bool vr;
+
+        METHOD_INSTANCE(HttpServer_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_forceGZIP(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void HttpServer_base::s_set_forceGZIP(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(HttpServer_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(bool);
+
+        hr = pInst->set_forceGZIP(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void HttpServer_base::s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(HttpServer_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_maxHeadersCount(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void HttpServer_base::s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(HttpServer_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = pInst->set_maxHeadersCount(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void HttpServer_base::s_get_maxUploadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(HttpServer_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_maxUploadSize(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void HttpServer_base::s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(HttpServer_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = pInst->set_maxUploadSize(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void HttpServer_base::s_get_httpStats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<Stats_base> vr;
+
+        METHOD_INSTANCE(HttpServer_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_httpStats(vr);
+
+        METHOD_RETURN();
     }
 
 }

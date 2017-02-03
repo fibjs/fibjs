@@ -42,7 +42,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& WebSocketHandler_base::class_info()
@@ -61,29 +60,6 @@ namespace fibjs
 
         static ClassInfo s_ci(s_cd);
         return s_ci;
-    }
-
-    inline void WebSocketHandler_base::s_get_maxSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(WebSocketHandler_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_maxSize(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void WebSocketHandler_base::s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(WebSocketHandler_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(int32_t);
-        hr = pInst->set_maxSize(v0);
-
-        PROPERTY_SET_LEAVE();
     }
 
     inline void WebSocketHandler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -105,6 +81,29 @@ namespace fibjs
         hr = _new(v0, vr, args.This());
 
         CONSTRUCT_RETURN();
+    }
+
+    inline void WebSocketHandler_base::s_get_maxSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(WebSocketHandler_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_maxSize(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void WebSocketHandler_base::s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(WebSocketHandler_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = pInst->set_maxSize(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
 }

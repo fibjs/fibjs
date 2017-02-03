@@ -97,7 +97,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void RedisSortedSet_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         int32_t vr;

@@ -84,18 +84,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void LruCache_base::s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(LruCache_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_size(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void LruCache_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -116,6 +104,18 @@ namespace fibjs
         hr = _new(v0, v1, vr, args.This());
 
         CONSTRUCT_RETURN();
+    }
+
+    inline void LruCache_base::s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(LruCache_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_size(vr);
+
+        METHOD_RETURN();
     }
 
     inline void LruCache_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)

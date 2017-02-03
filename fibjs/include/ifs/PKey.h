@@ -116,6 +116,25 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void PKey_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+        __new(args);
+    }
+
+    template<typename T>void PKey_base::__new(const T& args)
+    {
+        obj_ptr<PKey_base> vr;
+
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = _new(vr, args.This());
+
+        CONSTRUCT_RETURN();
+    }
+
     inline void PKey_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
@@ -150,25 +169,6 @@ namespace fibjs
         hr = pInst->get_publicKey(vr);
 
         METHOD_RETURN();
-    }
-
-    inline void PKey_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
-
-    template<typename T>void PKey_base::__new(const T& args)
-    {
-        obj_ptr<PKey_base> vr;
-
-        CONSTRUCT_ENTER();
-
-        METHOD_OVER(0, 0);
-
-        hr = _new(vr, args.This());
-
-        CONSTRUCT_RETURN();
     }
 
     inline void PKey_base::s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args)

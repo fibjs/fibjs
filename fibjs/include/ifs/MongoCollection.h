@@ -120,34 +120,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void MongoCollection_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<MongoCollection_base> vr;
-
-        METHOD_INSTANCE(MongoCollection_base);
-        PROPERTY_ENTER();
-
-        v8::String::Utf8Value k(property);
-        if(class_info().has(*k))return;
-
-        hr = pInst->_named_getter(*k, vr);
-        if(hr == CALL_RETURN_NULL)return;
-
-        METHOD_RETURN();
-    }
-
-    inline void MongoCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
-    {
-        v8::Local<v8::Array> vr;
-
-        METHOD_INSTANCE(MongoCollection_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->_named_enumerator(vr);
-
-        METHOD_RETURN1();
-    }
-
     inline void MongoCollection_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<MongoCursor_base> vr;
@@ -393,6 +365,34 @@ namespace fibjs
         hr = pInst->getCollection(v0, vr);
 
         METHOD_RETURN();
+    }
+
+    inline void MongoCollection_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<MongoCollection_base> vr;
+
+        METHOD_INSTANCE(MongoCollection_base);
+        PROPERTY_ENTER();
+
+        v8::String::Utf8Value k(property);
+        if(class_info().has(*k))return;
+
+        hr = pInst->_named_getter(*k, vr);
+        if(hr == CALL_RETURN_NULL)return;
+
+        METHOD_RETURN();
+    }
+
+    inline void MongoCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
+    {
+        v8::Local<v8::Array> vr;
+
+        METHOD_INSTANCE(MongoCollection_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->_named_enumerator(vr);
+
+        METHOD_RETURN1();
     }
 
 }

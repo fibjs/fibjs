@@ -81,7 +81,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<Buffer_base> vr;

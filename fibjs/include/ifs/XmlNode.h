@@ -171,8 +171,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(XmlNode_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_nodeValue(v0);
 
         PROPERTY_SET_LEAVE();
@@ -198,6 +198,20 @@ namespace fibjs
         PROPERTY_ENTER();
 
         hr = pInst->get_parentNode(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void XmlNode_base::s_hasChildNodes(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        bool vr;
+
+        METHOD_INSTANCE(XmlNode_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = pInst->hasChildNodes(vr);
 
         METHOD_RETURN();
     }
@@ -258,20 +272,6 @@ namespace fibjs
         PROPERTY_ENTER();
 
         hr = pInst->get_nextSibling(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void XmlNode_base::s_hasChildNodes(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
-
-        METHOD_INSTANCE(XmlNode_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(0, 0);
-
-        hr = pInst->hasChildNodes(vr);
 
         METHOD_RETURN();
     }

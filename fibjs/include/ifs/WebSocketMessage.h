@@ -75,75 +75,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void WebSocketMessage_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(WebSocketMessage_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_type(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void WebSocketMessage_base::s_set_type(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(WebSocketMessage_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(int32_t);
-        hr = pInst->set_type(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void WebSocketMessage_base::s_get_masked(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        bool vr;
-
-        METHOD_INSTANCE(WebSocketMessage_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_masked(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void WebSocketMessage_base::s_set_masked(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(WebSocketMessage_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(bool);
-        hr = pInst->set_masked(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void WebSocketMessage_base::s_get_maxSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(WebSocketMessage_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_maxSize(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void WebSocketMessage_base::s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(WebSocketMessage_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(int32_t);
-        hr = pInst->set_maxSize(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
     inline void WebSocketMessage_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -165,6 +96,75 @@ namespace fibjs
         hr = _new(v0, v1, v2, vr, args.This());
 
         CONSTRUCT_RETURN();
+    }
+
+    inline void WebSocketMessage_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(WebSocketMessage_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_type(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void WebSocketMessage_base::s_set_type(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(WebSocketMessage_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = pInst->set_type(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void WebSocketMessage_base::s_get_masked(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        bool vr;
+
+        METHOD_INSTANCE(WebSocketMessage_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_masked(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void WebSocketMessage_base::s_set_masked(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(WebSocketMessage_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(bool);
+
+        hr = pInst->set_masked(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void WebSocketMessage_base::s_get_maxSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(WebSocketMessage_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_maxSize(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void WebSocketMessage_base::s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(WebSocketMessage_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = pInst->set_maxSize(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
 }

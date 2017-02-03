@@ -73,41 +73,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void SslServer_base::s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(SslServer_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_verification(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void SslServer_base::s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(SslServer_base);
-        PROPERTY_ENTER();
-
-        PROPERTY_VAL(int32_t);
-        hr = pInst->set_verification(v0);
-
-        PROPERTY_SET_LEAVE();
-    }
-
-    inline void SslServer_base::s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<X509Cert_base> vr;
-
-        METHOD_INSTANCE(SslServer_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_ca(vr);
-
-        METHOD_RETURN();
-    }
-
     inline void SslServer_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -157,6 +122,41 @@ namespace fibjs
         hr = _new(v0, v1, v2, v3, v4, vr, args.This());
 
         CONSTRUCT_RETURN();
+    }
+
+    inline void SslServer_base::s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(SslServer_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_verification(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void SslServer_base::s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(SslServer_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = pInst->set_verification(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void SslServer_base::s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        obj_ptr<X509Cert_base> vr;
+
+        METHOD_INSTANCE(SslServer_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_ca(vr);
+
+        METHOD_RETURN();
     }
 
 }

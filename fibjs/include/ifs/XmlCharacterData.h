@@ -59,7 +59,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& XmlCharacterData_base::class_info()
@@ -106,8 +105,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(XmlCharacterData_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_data(v0);
 
         PROPERTY_SET_LEAVE();

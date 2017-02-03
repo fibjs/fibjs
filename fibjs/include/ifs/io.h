@@ -83,7 +83,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void io_base::s_copyStream(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         int64_t vr;

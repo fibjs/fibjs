@@ -99,6 +99,45 @@ namespace fibjs
         return s_ci;
     }
 
+    inline void MongoDB_base::s_getCollection(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<MongoCollection_base> vr;
+
+        METHOD_INSTANCE(MongoDB_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = pInst->getCollection(v0, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void MongoDB_base::s_runCommand(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Object> vr;
+
+        METHOD_INSTANCE(MongoDB_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(v8::Local<v8::Object>, 0);
+
+        hr = pInst->runCommand(v0, vr);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Value>, 1);
+
+        hr = pInst->runCommand(v0, v1, vr);
+
+        METHOD_RETURN();
+    }
+
     inline void MongoDB_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         obj_ptr<MongoCollection_base> vr;
@@ -135,45 +174,6 @@ namespace fibjs
         PROPERTY_ENTER();
 
         hr = pInst->get_fs(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void MongoDB_base::s_getCollection(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<MongoCollection_base> vr;
-
-        METHOD_INSTANCE(MongoDB_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        hr = pInst->getCollection(v0, vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void MongoDB_base::s_runCommand(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Object> vr;
-
-        METHOD_INSTANCE(MongoDB_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(1, 1);
-
-        ARG(v8::Local<v8::Object>, 0);
-
-        hr = pInst->runCommand(v0, vr);
-
-        METHOD_OVER(2, 2);
-
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Value>, 1);
-
-        hr = pInst->runCommand(v0, v1, vr);
 
         METHOD_RETURN();
     }

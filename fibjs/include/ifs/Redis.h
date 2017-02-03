@@ -205,7 +205,6 @@ namespace fibjs
         return s_ci;
     }
 
-
     inline void Redis_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Local<v8::Value> vr;

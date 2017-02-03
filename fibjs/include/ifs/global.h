@@ -145,6 +145,20 @@ namespace fibjs
         METHOD_RETURN();
     }
 
+    inline void global_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
+
+        ARG(exlib::string, 0);
+        OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(isolate));
+
+        hr = run(v0, v1);
+
+        METHOD_VOID();
+    }
+
     inline void global_base::s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         v8::Local<v8::Array> vr;
@@ -187,20 +201,6 @@ namespace fibjs
         hr = get___sbname(vr);
 
         METHOD_RETURN();
-    }
-
-    inline void global_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
-
-        METHOD_OVER(2, 1);
-
-        ARG(exlib::string, 0);
-        OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(isolate));
-
-        hr = run(v0, v1);
-
-        METHOD_VOID();
     }
 
     inline void global_base::s_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args)

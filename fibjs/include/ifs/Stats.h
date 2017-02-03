@@ -79,34 +79,6 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void Stats_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(Stats_base);
-        PROPERTY_ENTER();
-
-        v8::String::Utf8Value k(property);
-        if(class_info().has(*k))return;
-
-        hr = pInst->_named_getter(*k, vr);
-        if(hr == CALL_RETURN_NULL)return;
-
-        METHOD_RETURN();
-    }
-
-    inline void Stats_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
-    {
-        v8::Local<v8::Array> vr;
-
-        METHOD_INSTANCE(Stats_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->_named_enumerator(vr);
-
-        METHOD_RETURN1();
-    }
-
     inline void Stats_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         CONSTRUCT_INIT();
@@ -202,6 +174,34 @@ namespace fibjs
         hr = pInst->uptime(vr);
 
         METHOD_RETURN();
+    }
+
+    inline void Stats_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(Stats_base);
+        PROPERTY_ENTER();
+
+        v8::String::Utf8Value k(property);
+        if(class_info().has(*k))return;
+
+        hr = pInst->_named_getter(*k, vr);
+        if(hr == CALL_RETURN_NULL)return;
+
+        METHOD_RETURN();
+    }
+
+    inline void Stats_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
+    {
+        v8::Local<v8::Array> vr;
+
+        METHOD_INSTANCE(Stats_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->_named_enumerator(vr);
+
+        METHOD_RETURN1();
     }
 
 }

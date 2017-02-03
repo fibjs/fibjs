@@ -331,6 +331,34 @@ namespace fibjs
         METHOD_RETURN();
     }
 
+    inline void Expect_base::s_a(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(Expect_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = pInst->a(v0);
+
+        METHOD_VOID();
+    }
+
+    inline void Expect_base::s_an(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(Expect_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = pInst->an(v0);
+
+        METHOD_VOID();
+    }
+
     inline void Expect_base::s_get_ok(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         bool vr;
@@ -473,34 +501,6 @@ namespace fibjs
         hr = pInst->get_exist(vr);
 
         METHOD_RETURN();
-    }
-
-    inline void Expect_base::s_a(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        hr = pInst->a(v0);
-
-        METHOD_VOID();
-    }
-
-    inline void Expect_base::s_an(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Expect_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(1, 1);
-
-        ARG(exlib::string, 0);
-
-        hr = pInst->an(v0);
-
-        METHOD_VOID();
     }
 
     inline void Expect_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)

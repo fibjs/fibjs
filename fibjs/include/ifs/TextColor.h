@@ -95,8 +95,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(TextColor_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_notice(v0);
 
         PROPERTY_SET_LEAVE();
@@ -118,8 +118,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(TextColor_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_warn(v0);
 
         PROPERTY_SET_LEAVE();
@@ -141,8 +141,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(TextColor_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_error(v0);
 
         PROPERTY_SET_LEAVE();
@@ -164,8 +164,8 @@ namespace fibjs
     {
         METHOD_INSTANCE(TextColor_base);
         PROPERTY_ENTER();
-
         PROPERTY_VAL(exlib::string);
+
         hr = pInst->set_highLight(v0);
 
         PROPERTY_SET_LEAVE();

@@ -48,7 +48,6 @@ public:
 
 }
 
-
 namespace fibjs
 {
     inline ClassInfo& Event_base::class_info()
@@ -72,7 +71,6 @@ namespace fibjs
         static ClassInfo s_ci(s_cd);
         return s_ci;
     }
-
 
     inline void Event_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
