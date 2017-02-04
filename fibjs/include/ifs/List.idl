@@ -98,6 +98,13 @@ interface List : object
      */
     List map(Function func, Value thisArg = undefined);
 
+    /*! @brief 遍历处理全部数据并返回累积结果
+     @param func 处理函数
+     @param initVal 初始值，可省略
+     @return 处理结果数组
+     */
+    Value reduce(Function func, Value initVal = undefined);
+
     /*! @brief 排序全部数据并返回列表本身
      @param func 比较处理函数
      @return 列表本身

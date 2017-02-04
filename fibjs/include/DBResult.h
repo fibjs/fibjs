@@ -49,6 +49,7 @@ public:
     virtual result_t filter(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, obj_ptr<List_base> &retVal);
     virtual result_t forEach(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg);
     virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, obj_ptr<List_base> &retVal);
+    virtual result_t reduce(v8::Local<v8::Function> func, v8::Local<v8::Value> initVal, v8::Local<v8::Value>& retVal);
     virtual result_t sort(v8::Local<v8::Function> func, obj_ptr<List_base>& retVal);
     virtual result_t sort(obj_ptr<List_base>& retVal);
     virtual result_t toArray(v8::Local<v8::Array> &retVal);

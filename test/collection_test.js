@@ -134,6 +134,12 @@ describe("collection", () => {
             assert.deepEqual(passed.map(Math.sqrt).toArray(), [1, 2, 3]);
         });
 
+        it("reduce", () => {
+            var passed = new collection.List();
+            passed.push(1, 4, 9);
+            assert.deepEqual(passed.reduce((sum, n) => sum + n, 0), 14);
+        });
+
         it("forEach", () => {
             var passed = new collection.List();
             passed.push(1, 4, 9);

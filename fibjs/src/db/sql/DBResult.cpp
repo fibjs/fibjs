@@ -144,6 +144,15 @@ result_t DBResult::map(v8::Local<v8::Function> func,
     return m_array->map(func, thisArg, retVal);
 }
 
+result_t DBResult::reduce(v8::Local<v8::Function> func, v8::Local<v8::Value> initVal,
+                          v8::Local<v8::Value>& retVal)
+{
+    if (!m_size)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    return m_array->reduce(func, initVal, retVal);
+}
+
 result_t DBResult::sort(v8::Local<v8::Function> func, obj_ptr<List_base>& retVal)
 {
     if (!m_size)

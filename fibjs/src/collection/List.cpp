@@ -315,6 +315,27 @@ result_t List::map(v8::Local<v8::Function> func,
     return 0;
 }
 
+result_t List::reduce(v8::Local<v8::Function> func, v8::Local<v8::Value> initVal,
+                      v8::Local<v8::Value>& retVal)
+{
+    Isolate* isolate = holder();
+    int32_t i, len;
+
+    len = (int32_t)m_array.size();
+    for (i = 0; i < len; i++)
+    {
+        v8::Local<v8::Value> args[] =
+        { initVal, m_array[i], v8::Number::New(isolate->m_isolate, i), wrap() };
+
+        initVal = func->Call(wrap(), 4, args);
+        if (initVal.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+    }
+
+    retVal = initVal;
+    return 0;
+}
+
 result_t List::sort(v8::Local<v8::Function> func, obj_ptr<List_base>& retVal)
 {
     struct MyCompare {
