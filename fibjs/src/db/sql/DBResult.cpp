@@ -100,48 +100,48 @@ result_t DBResult::concat(const v8::FunctionCallbackInfo<v8::Value> &args, obj_p
 }
 
 result_t DBResult::every(v8::Local<v8::Function> func,
-                         v8::Local<v8::Object> thisp, bool &retVal)
+                         v8::Local<v8::Value> thisArg, bool &retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return m_array->every(func, thisp, retVal);
+    return m_array->every(func, thisArg, retVal);
 }
 
 result_t DBResult::some(v8::Local<v8::Function> func,
-                        v8::Local<v8::Object> thisp, bool &retVal)
+                        v8::Local<v8::Value> thisArg, bool &retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return m_array->some(func, thisp, retVal);
+    return m_array->some(func, thisArg, retVal);
 }
 
 result_t DBResult::filter(v8::Local<v8::Function> func,
-                          v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
+                          v8::Local<v8::Value> thisArg, obj_ptr<List_base> &retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return m_array->filter(func, thisp, retVal);
+    return m_array->filter(func, thisArg, retVal);
 }
 
 result_t DBResult::forEach(v8::Local<v8::Function> func,
-                           v8::Local<v8::Object> thisp)
+                           v8::Local<v8::Value> thisArg)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return m_array->forEach(func, thisp);
+    return m_array->forEach(func, thisArg);
 }
 
 result_t DBResult::map(v8::Local<v8::Function> func,
-                       v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
+                       v8::Local<v8::Value> thisArg, obj_ptr<List_base> &retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return m_array->map(func, thisp, retVal);
+    return m_array->map(func, thisArg, retVal);
 }
 
 result_t DBResult::sort(v8::Local<v8::Function> func, obj_ptr<List_base>& retVal)

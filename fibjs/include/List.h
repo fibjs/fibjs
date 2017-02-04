@@ -37,11 +37,11 @@ public:
     virtual result_t pop(Variant &retVal);
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base> &retVal);
     virtual result_t concat(const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<List_base> &retVal);
-    virtual result_t every(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, bool &retVal);
-    virtual result_t some(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, bool &retVal);
-    virtual result_t filter(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal);
-    virtual result_t forEach(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp);
-    virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal);
+    virtual result_t every(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, bool &retVal);
+    virtual result_t some(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, bool &retVal);
+    virtual result_t filter(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, obj_ptr<List_base> &retVal);
+    virtual result_t forEach(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg);
+    virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, obj_ptr<List_base> &retVal);
     virtual result_t sort(v8::Local<v8::Function> func, obj_ptr<List_base>& retVal);
     virtual result_t sort(obj_ptr<List_base>& retVal);
     virtual result_t toArray(v8::Local<v8::Array> &retVal);
@@ -62,7 +62,7 @@ public:
 
 private:
     v8::Local<v8::Value> _call(v8::Local<v8::Function> func,
-                               v8::Local<v8::Object> thisp, int32_t i);
+                               v8::Local<v8::Value> thisArg, int32_t i);
 
 private:
     std::vector<VariantEx> m_array;

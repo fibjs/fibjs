@@ -193,23 +193,23 @@ result_t List::concat(const v8::FunctionCallbackInfo<v8::Value> &args,
 }
 
 v8::Local<v8::Value> List::_call(v8::Local<v8::Function> func,
-                                 v8::Local<v8::Object> thisp, int32_t i)
+                                 v8::Local<v8::Value> thisArg, int32_t i)
 {
     v8::Local<v8::Value> args[] =
     { m_array[i], v8::Number::New(holder()->m_isolate, i), wrap() };
 
-    return func->Call(thisp, 3, args);
+    return func->Call(thisArg, 3, args);
 }
 
 result_t List::every(v8::Local<v8::Function> func,
-                     v8::Local<v8::Object> thisp, bool &retVal)
+                     v8::Local<v8::Value> thisArg, bool &retVal)
 {
     int32_t i, len;
 
     len = (int32_t)m_array.size();
     for (i = 0; i < len; i++)
     {
-        v8::Local<v8::Value> r = _call(func, thisp, i);
+        v8::Local<v8::Value> r = _call(func, thisArg, i);
 
         if (r.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -226,14 +226,14 @@ result_t List::every(v8::Local<v8::Function> func,
 }
 
 result_t List::some(v8::Local<v8::Function> func,
-                    v8::Local<v8::Object> thisp, bool &retVal)
+                    v8::Local<v8::Value> thisArg, bool &retVal)
 {
     int32_t i, len;
 
     len = (int32_t)m_array.size();
     for (i = 0; i < len; i++)
     {
-        v8::Local<v8::Value> r = _call(func, thisp, i);
+        v8::Local<v8::Value> r = _call(func, thisArg, i);
 
         if (r.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -250,7 +250,7 @@ result_t List::some(v8::Local<v8::Function> func,
 }
 
 result_t List::filter(v8::Local<v8::Function> func,
-                      v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
+                      v8::Local<v8::Value> thisArg, obj_ptr<List_base> &retVal)
 {
     obj_ptr<List> a;
     int32_t i, len;
@@ -260,7 +260,7 @@ result_t List::filter(v8::Local<v8::Function> func,
     len = (int32_t)m_array.size();
     for (i = 0; i < len; i++)
     {
-        v8::Local<v8::Value> r = _call(func, thisp, i);
+        v8::Local<v8::Value> r = _call(func, thisArg, i);
 
         if (r.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -275,14 +275,14 @@ result_t List::filter(v8::Local<v8::Function> func,
 }
 
 result_t List::forEach(v8::Local<v8::Function> func,
-                       v8::Local<v8::Object> thisp)
+                       v8::Local<v8::Value> thisArg)
 {
     int32_t i, len;
 
     len = (int32_t)m_array.size();
     for (i = 0; i < len; i++)
     {
-        v8::Local<v8::Value> r = _call(func, thisp, i);
+        v8::Local<v8::Value> r = _call(func, thisArg, i);
 
         if (r.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -292,7 +292,7 @@ result_t List::forEach(v8::Local<v8::Function> func,
 }
 
 result_t List::map(v8::Local<v8::Function> func,
-                   v8::Local<v8::Object> thisp, obj_ptr<List_base> &retVal)
+                   v8::Local<v8::Value> thisArg, obj_ptr<List_base> &retVal)
 {
     obj_ptr<List> a;
     int32_t i, len;
@@ -302,7 +302,7 @@ result_t List::map(v8::Local<v8::Function> func,
     len = (int32_t)m_array.size();
     for (i = 0; i < len; i++)
     {
-        v8::Local<v8::Value> r = _call(func, thisp, i);
+        v8::Local<v8::Value> r = _call(func, thisArg, i);
 
         if (r.IsEmpty())
             return CALL_E_JAVASCRIPT;

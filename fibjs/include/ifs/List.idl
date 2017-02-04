@@ -66,37 +66,37 @@ interface List : object
 
     /*! @brief 检测全部数据是否通过测试函数
      @param func 测试函数
-     @param thisp 调用测试函数的 this 对象，可省略
+     @param thisArg 调用测试函数的参数，可省略
      @return 全部通过测试则返回 true
      */
-    Boolean every(Function func, Object thisp = {});
+    Boolean every(Function func, Value thisArg = undefined);
 
     /*! @brief 检测一些数据是否通过测试函数
      @param func 测试函数
-     @param thisp 调用测试函数的 this 对象，可省略
+     @param thisArg 调用测试函数的参数，可省略
      @return 全部不通过测试则返回 false，否则返回true
      */
-    Boolean some(Function func, Object thisp = {});
+    Boolean some(Function func, Value thisArg = undefined);
 
     /*! @brief 过滤通过测试的数据成为一个新的数组
      @param func 测试函数
-     @param thisp 调用测试函数的 this 对象，可省略
+     @param thisArg 调用过滤函数的参数，可省略
      @return 经过过滤的新数组
      */
-    List filter(Function func, Object thisp = {});
+    List filter(Function func, Value thisArg = undefined);
 
     /*! @brief 遍历处理全部数据
      @param func 处理函数
-     @param thisp 调用测试函数的 this 对象，可省略
+     @param thisArg 调用处理函数的参数，可省略
      */
-    forEach(Function func, Object thisp = {});
+    forEach(Function func, Value thisArg = undefined);
 
     /*! @brief 遍历处理全部数据并返回结果
      @param func 处理函数
-     @param thisp 调用测试函数的 this 对象，可省略
+     @param thisArg 调用处理函数的参数，可省略
      @return 处理结果数组
      */
-    List map(Function func, Object thisp = {});
+    List map(Function func, Value thisArg = undefined);
 
     /*! @brief 排序全部数据并返回列表本身
      @param func 比较处理函数
