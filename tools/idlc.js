@@ -248,23 +248,17 @@ Comment "comment"
 
 MultiLineComment
   = "/*" comments:(!"*/" SourceCharacter)* "*/" {
-    return comments.map((i) => {
-      return i[1];
-    }).join("");
+    return comments.map(i => i[1]).join("");
   }
 
 MultiLineCommentNoLineTerminator
   = "/*" comments:(!("*/" / LineTerminator) SourceCharacter)* "*/" {
-    return comments.map((i) => {
-      return i[1];
-    }).join("");
+    return comments.map(i => i[1]).join("");
   }
 
 SingleLineComment
   = "//" comments:(!LineTerminator SourceCharacter)* {
-    return comments.map((i) => {
-      return i[1];
-    }).join("");
+    return comments.map(i => i[1]).join("");
   }
 
 WhiteSpace
@@ -352,8 +346,8 @@ function gen_code(cls, def) {
 
     var member_gens = {
         "method": {
-            "declare": (fns) => {
-                fns.overs.forEach((ov) => {
+            "declare": fns => {
+                fns.overs.forEach(ov => {
                     var fns = "    ";
                     var fname = get_name(ov.name);
                     var fstatic = ov.static;
@@ -378,7 +372,7 @@ function gen_code(cls, def) {
                     var ps = [];
 
                     if (ov.params)
-                        ov.params.forEach((p) => {
+                        ov.params.forEach(p => {
                             if (p.name == "...")
                                 ps.push("const v8::FunctionCallbackInfo<v8::Value>& args");
                             else ps.push(get_type(p.type) + " " + p.name);
@@ -402,7 +396,7 @@ function gen_code(cls, def) {
                     txts.push(fns);
                 });
             },
-            "stub": (fn) => {
+            "stub": fn => {
                 var fname = fn.name;
 
                 if (fname == def.declare.name && !fn.static && !fn.type)
@@ -412,7 +406,7 @@ function gen_code(cls, def) {
 
                 txts.push("    static void s_" + fname + "(const v8::FunctionCallbackInfo<v8::Value>& args);");
             },
-            "stub_func": (fn) => {
+            "stub_func": fn => {
                 var fname = fn.name;
                 var fstatic = fn.static;
                 var ftype = fn.type;
@@ -443,7 +437,7 @@ function gen_code(cls, def) {
                 else
                     txts.push('        METHOD_ENTER();\n');
 
-                fn.overs.forEach((ov) => {
+                fn.overs.forEach(ov => {
                     var argc = 0;
                     var opts = 0;
                     var params = [];
@@ -452,7 +446,7 @@ function gen_code(cls, def) {
 
                     if (ov.params) {
                         argc = opts = ov.params.length;
-                        ov.params.forEach((p) => {
+                        ov.params.forEach(p => {
                             args.push('v' + params.length);
                             if (p.name == '...') {
                                 opts--;
@@ -508,7 +502,7 @@ function gen_code(cls, def) {
             }
         },
         "prop": {
-            "declare": (fn) => {
+            "declare": fn => {
                 var fname = fn.name;
                 var fstatic = fn.static;
 
@@ -543,7 +537,7 @@ function gen_code(cls, def) {
                     }
                 }
             },
-            "stub": (fn) => {
+            "stub": fn => {
                 var fname = fn.name;
                 var fstatic = fn.static;
 
@@ -553,7 +547,7 @@ function gen_code(cls, def) {
                         txts.push("    static void s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);");
                 }
             },
-            "stub_func": (fn) => {
+            "stub_func": fn => {
                 var fname = fn.name;
                 var fstatic = fn.static;
 
@@ -582,24 +576,24 @@ function gen_code(cls, def) {
             }
         },
         "object": {
-            "declare": (fn) => {},
-            "stub": (fn) => {},
-            "stub_func": (fn) => {}
+            "declare": () => {},
+            "stub": () => {},
+            "stub_func": () => {}
         },
         "const": {
-            "declare": (fn) => {},
-            "stub": (fn) => {
+            "declare": () => {},
+            "stub": fn => {
                 var fname = fn.name;
                 txts.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
             },
-            "stub_func": (fn) => {
+            "stub_func": fn => {
                 var fname = fn.name;
                 txts.push('    inline void ' + cls + '_base::s_get_' + fname + '(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {');
                 txts.push('        int32_t vr = _' + fname + ';\n        PROPERTY_ENTER();\n        METHOD_RETURN();\n    }\n');
             }
         },
         "operator": {
-            "declare": (fn) => {
+            "declare": fn => {
                 if (fn.index) {
                     fnNamed = fn;
                     txts.push("    virtual result_t _named_getter(const char* property, " + get_rtype(fn.type) + "& retVal) = 0;");
@@ -616,7 +610,7 @@ function gen_code(cls, def) {
                     }
                 }
             },
-            "stub": (fn) => {
+            "stub": fn => {
                 if (fn.index) {
                     txts.push("    static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
                     txts.push("    static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);");
@@ -630,7 +624,7 @@ function gen_code(cls, def) {
                         txts.push("    static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);");
                 }
             },
-            "stub_func": (fn) => {
+            "stub_func": fn => {
                 if (fn.index) {
                     txts.push('    inline void ' + cls + '_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n        ' + get_rtype(fn.type) + ' vr;\n');
                     txts.push('        METHOD_INSTANCE(' + cls + '_base);\n        PROPERTY_ENTER();\n');
@@ -703,7 +697,7 @@ function gen_code(cls, def) {
             has_refer = true;
         }
 
-        refers.forEach((c) => {
+        refers.forEach(c => {
             txts.push('class ' + c + '_base;');
             has_refer = true;
         });
@@ -721,7 +715,7 @@ function gen_code(cls, def) {
         function gen_cls_consts() {
             var consts = [];
 
-            def.members.forEach((fn) => {
+            def.members.forEach(fn => {
                 if (fn.memType === "const")
                     consts.push("        _" + fn.name + " = " + fn.default.value);
             });
@@ -737,9 +731,7 @@ function gen_code(cls, def) {
             txts.push("\npublic:\n    // " + cls + "_base");
             var l = txts.length;
 
-            def.members.forEach((fn) => {
-                member_gens[fn.memType].declare(fn);
-            });
+            def.members.forEach(fn => member_gens[fn.memType].declare(fn));
 
             if (l == txts.length)
                 txts.pop();
@@ -764,9 +756,7 @@ function gen_code(cls, def) {
             txts.push("public:");
             var l = txts.length;
 
-            def.members.forEach((fn) => {
-                member_gens[fn.memType].stub(fn);
-            });
+            def.members.forEach(fn => member_gens[fn.memType].stub(fn));
 
             if (l == txts.length)
                 txts.pop();
@@ -776,9 +766,9 @@ function gen_code(cls, def) {
             txts.push("\npublic:");
             var l = txts.length;
 
-            def.members.forEach((fn) => {
+            def.members.forEach(fn => {
                 if (fn.memType == "method") {
-                    fn.overs.forEach((ov) => {
+                    fn.overs.forEach(ov => {
                         if (ov.memType == "method" && ov.async) {
                             var fns = "    ASYNC_";
                             var pn = 0;
@@ -786,9 +776,7 @@ function gen_code(cls, def) {
 
                             if (ov.params) {
                                 pn = ov.params.length;
-                                ov.params.forEach((p) => {
-                                    ps.push(get_type(p.type));
-                                });
+                                ov.params.forEach(p => ps.push(get_type(p.type)));
                             }
 
                             fns += (ov.static ? "STATIC" : "MEMBER");
@@ -828,9 +816,7 @@ function gen_code(cls, def) {
 
         if (refers.length) {
             txts.push('');
-            refers.forEach((c) => {
-                txts.push('#include "' + c + '.h"');
-            });
+            refers.forEach(c => txts.push('#include "' + c + '.h"'));
         }
         txts.push('\nnamespace fibjs\n{');
     }
@@ -843,7 +829,7 @@ function gen_code(cls, def) {
         function gen_method_info() {
             var deflist = [];
 
-            def.members.forEach((fn) => {
+            def.members.forEach(fn => {
                 var fname = fn.name;
                 var fstatic = fn.static;
 
@@ -868,7 +854,7 @@ function gen_code(cls, def) {
         function gen_object_info() {
             var deflist = [];
 
-            def.members.forEach((fn) => {
+            def.members.forEach(fn => {
                 if (fn.memType == 'object')
                     deflist.push('            {"' + fn.name + '", ' + fn.type + '_base::class_info}');
             });
@@ -884,7 +870,7 @@ function gen_code(cls, def) {
         function gen_prop_info() {
             var deflist = [];
 
-            def.members.forEach((fn) => {
+            def.members.forEach(fn => {
                 if (fn.memType == 'prop') {
                     var fname = fn.name;
                     deflist.push('            {"' + fname + '", s_get_' + fname + ', ' +
@@ -944,9 +930,7 @@ function gen_code(cls, def) {
     }
 
     function gen_stub() {
-        def.members.forEach((fn) => {
-            member_gens[fn.memType].stub_func(fn);
-        });
+        def.members.forEach(fn => member_gens[fn.memType].stub_func(fn));
     }
 
     function build_refer() {
@@ -959,14 +943,14 @@ function gen_code(cls, def) {
                 types[type] = true;
         }
 
-        def.members.forEach((m) => {
+        def.members.forEach(m => {
             add_type(m.type);
             if (!m.overs)
                 return;
-            m.overs.forEach((ov) => {
+            m.overs.forEach(ov => {
                 if (!ov.params)
                     return;
-                ov.params.forEach((p) => {
+                ov.params.forEach(p => {
                     add_type(p.type);
                     if (p.default && util.isArray(p.default.const) && p.default.const.length > 1)
                         add_type(p.default.const[0]);
@@ -981,7 +965,7 @@ function gen_code(cls, def) {
         var defs = {};
         var deflist = [];
 
-        def.members.forEach((fn) => {
+        def.members.forEach(fn => {
             var fname = fn.name;
             var fstatic = fn.static;
             var fn1;
@@ -1032,7 +1016,7 @@ function gen_code(cls, def) {
     fs.writeTextFile(baseFolder + cls + ".h", txts.join("\n"));
 }
 
-fs.readdir(baseFolder).forEach((f) => {
+fs.readdir(baseFolder).forEach(f => {
     if (path.extname(f) == '.idl') {
         console.log(f);
         var def = parser.parse(fs.readTextFile(baseFolder + f));
