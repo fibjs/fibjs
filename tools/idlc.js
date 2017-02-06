@@ -1013,12 +1013,17 @@ function gen_code(cls, def) {
 
     gen_end();
 
-    fs.writeTextFile(baseFolder + cls + ".h", txts.join("\n"));
+    var txt = txts.join("\n");
+    var fname = baseFolder + cls + ".h";
+
+    if (!fs.exists(fname) || txt !== fs.readTextFile(fname)) {
+        console.log(cls + ".h");
+        fs.writeTextFile(fname, txts.join("\n"));
+    }
 }
 
 fs.readdir(baseFolder).forEach(f => {
     if (path.extname(f) == '.idl') {
-        console.log(f);
         var def = parser.parse(fs.readTextFile(baseFolder + f));
         defs[def.declare.name] = def;
     }
