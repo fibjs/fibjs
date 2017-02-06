@@ -870,6 +870,15 @@
     <ClInclude Include="include\Service.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\zmq.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\ZmqSocket.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ZmqSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl">
@@ -1353,6 +1362,9 @@
     </ClCompile>
     <ClCompile Include="src\os\Service_other.cpp">
       <Filter>Source Files\os</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mq\ZmqSocket.cpp">
+      <Filter>Source Files\other</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

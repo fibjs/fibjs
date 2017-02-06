@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 14 for Windows Desktop
+# Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fibjs", "fibjs\fibjs.vcxproj", "{05654A7E-DBAF-4211-886A-C23565833D05}"
@@ -80,6 +80,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "icu", "vender\icu\icu.vcxproj", "{1F77AB58-706B-4BB5-BE73-0000031CCCCC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fibjs_gui", "fibjs\fibjs_gui.vcxproj", "{E86C788B-0810-4E08-A184-421054A3FD03}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmq", "vender\zmq\zmq.vcxproj", "{1F77AB58-706B-4BB5-BE73-00000000239B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -415,6 +417,18 @@ Global
 		{E86C788B-0810-4E08-A184-421054A3FD03}.Release|Win32.Build.0 = Release|Win32
 		{E86C788B-0810-4E08-A184-421054A3FD03}.Release|x64.ActiveCfg = Release|x64
 		{E86C788B-0810-4E08-A184-421054A3FD03}.Release|x64.Build.0 = Release|x64
+		{1F77AB58-706B-4BB5-BE73-00000000239B}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{1F77AB58-706B-4BB5-BE73-00000000239B}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{1F77AB58-706B-4BB5-BE73-00000000239B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1F77AB58-706B-4BB5-BE73-00000000239B}.Debug|Win32.Build.0 = Debug|Win32
+		{1F77AB58-706B-4BB5-BE73-00000000239B}.Debug|x64.ActiveCfg = Debug|x64
+		{1F77AB58-706B-4BB5-BE73-00000000239B}.Debug|x64.Build.0 = Debug|x64
+		{1F77AB58-706B-4BB5-BE73-00000000239B}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{1F77AB58-706B-4BB5-BE73-00000000239B}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{1F77AB58-706B-4BB5-BE73-00000000239B}.Release|Win32.ActiveCfg = Release|Win32
+		{1F77AB58-706B-4BB5-BE73-00000000239B}.Release|Win32.Build.0 = Release|Win32
+		{1F77AB58-706B-4BB5-BE73-00000000239B}.Release|x64.ActiveCfg = Release|x64
+		{1F77AB58-706B-4BB5-BE73-00000000239B}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

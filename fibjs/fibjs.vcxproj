@@ -79,6 +79,9 @@
     <ProjectReference Include="$(SolutionDir)vender\zlib\zlib.vcxproj">
       <Project>{1F77AB58-706B-4BB5-BE73-00000000211B}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\zmq\zmq.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-00000000239b}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\v8\v8.vcxproj">
       <Project>{1F77AB58-706B-4BB5-BE73-0000000000C8}</Project>
     </ProjectReference>
@@ -271,6 +274,8 @@
     <ClInclude Include="include\ifs\ZipFile.h" />
     <ClInclude Include="include\ifs\ZipInfo.h" />
     <ClInclude Include="include\ifs\zlib.h" />
+    <ClInclude Include="include\ifs\zmq.h" />
+    <ClInclude Include="include\ifs\ZmqSocket.h" />
     <ClInclude Include="include\Image.h" />
     <ClInclude Include="include\inetAddr.h" />
     <ClInclude Include="include\Int64.h" />
@@ -349,6 +354,7 @@
     <ClInclude Include="include\XmlProcessingInstruction.h" />
     <ClInclude Include="include\XmlText.h" />
     <ClInclude Include="include\ZipFile.h" />
+    <ClInclude Include="include\ZmqSocket.h" />
     <ClInclude Include="src\gui\windows\WebView.h" />
   </ItemGroup>
   <ItemGroup>
@@ -454,6 +460,7 @@
     <ClCompile Include="src\mq\mq.cpp" />
     <ClCompile Include="src\mq\NullHandler.cpp" />
     <ClCompile Include="src\mq\Routing.cpp" />
+    <ClCompile Include="src\mq\ZmqSocket.cpp" />
     <ClCompile Include="src\net\inetAddr.cpp" />
     <ClCompile Include="src\net\net.cpp" />
     <ClCompile Include="src\net\Smtp.cpp" />

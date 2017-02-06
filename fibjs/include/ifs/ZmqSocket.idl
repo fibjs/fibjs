@@ -1,0 +1,12 @@
+/*! @brief 网络套接口对象
+ */
+interface ZmqSocket : object
+{
+	ZmqSocket(Integer type = zmq.PAIR);
+	bind(String addr);
+	connect(String addr);
+	Buffer recv() async;
+	send(Buffer data);
+	close();
+	readonly Integer type;
+};
