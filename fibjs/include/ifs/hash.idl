@@ -2,31 +2,31 @@
 module hash
 {
     /*! @brief MD2 信息摘要算法标识常量 */
-    const Integer MD2 = 1;
+    const MD2 = 1;
 
     /*! @brief MD4 信息摘要算法标识常量 */
-    const Integer MD4 = 2;
+    const MD4 = 2;
 
     /*! @brief MD5 信息摘要算法标识常量 */
-    const Integer MD5 = 3;
+    const MD5 = 3;
 
     /*! @brief SHA1 信息摘要算法标识常量 */
-    const Integer SHA1 = 4;
+    const SHA1 = 4;
 
     /*! @brief SHA224 信息摘要算法标识常量 */
-    const Integer SHA224 = 5;
+    const SHA224 = 5;
 
     /*! @brief SHA256 信息摘要算法标识常量 */
-    const Integer SHA256 = 6;
+    const SHA256 = 6;
 
     /*! @brief SHA384 信息摘要算法标识常量 */
-    const Integer SHA384 = 7;
+    const SHA384 = 7;
 
     /*! @brief SHA512 信息摘要算法标识常量 */
-    const Integer SHA512 = 8;
+    const SHA512 = 8;
 
     /*! @brief RIPEMD160 信息摘要算法标识常量 */
-    const Integer RIPEMD160 = 9;
+    const RIPEMD160 = 9;
 
     /*! @brief 根据指定的算法标识创建一个信息摘要运算对象
      @param algo 指定摘要运算算法

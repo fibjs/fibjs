@@ -9,13 +9,13 @@
 module fs
 {
     /*! @brief seek 方式常量，移动到绝对位置 */
-    const Integer SEEK_SET = 0;
+    const SEEK_SET = 0;
 
     /*! @brief seek 方式常量，移动到当前位置的相对位置 */
-    const Integer SEEK_CUR = 1;
+    const SEEK_CUR = 1;
 
     /*! @brief seek 方式常量，移动到文件结尾的相对位置 */
-    const Integer SEEK_END = 2;
+    const SEEK_END = 2;
 
     /*! @brief 查询指定的文件或目录是否存在
      @param path 指定要查询的路径

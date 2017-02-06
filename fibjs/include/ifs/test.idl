@@ -10,11 +10,11 @@ module test
 {
     /*! @brief 定义 BDD(Behavior Drive Development) 测试环境，支持 describe, xdescribe, it, xit, before, after, beforeEach 和 afterEach，同时初始化 assert 和expect
      */
-    const Integer BDD = 0;
+    const BDD = 0;
 
     /*! @brief 定义 TDD(Test Drive Development) 测试环境，支持 suite, xsuite, test, xtest, setup, teardown, suiteSetup 和 suiteTeardown，同时初始化 assert 和expect
      */
-    const Integer TDD = 1;
+    const TDD = 1;
 
     /*! @brief 定义一个测试模块，可嵌套定义
      @param name 定义模块名称

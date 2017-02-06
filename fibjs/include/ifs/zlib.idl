@@ -9,16 +9,16 @@
 module zlib
 {
     /*! @brief deflate 压缩级别，设定不压缩 */
-    const Integer NO_COMPRESSION = 0;
+    const NO_COMPRESSION = 0;
 
     /*! @brief deflate 压缩级别，设定最快压缩 */
-    const Integer BEST_SPEED = 1;
+    const BEST_SPEED = 1;
 
     /*! @brief deflate 压缩级别，设定最高压缩 */
-    const Integer BEST_COMPRESSION = 9;
+    const BEST_COMPRESSION = 9;
 
     /*! @brief deflate 压缩级别，设定缺省设置 */
-    const Integer DEFAULT_COMPRESSION = -1;
+    const DEFAULT_COMPRESSION = -1;
 
     /*! @brief 使用 deflate 算法压缩数据(zlib格式)
      @param data 给定要压缩的数据

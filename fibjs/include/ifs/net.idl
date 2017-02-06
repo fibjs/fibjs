@@ -9,16 +9,16 @@
 module net
 {
     /*! @brief 地址集常量，指定 ipv4*/
-    const Integer AF_INET = 2;
+    const AF_INET = 2;
 
     /*! @brief 地址集常量，指定 ipv6*/
-    const Integer AF_INET6 = 10;
+    const AF_INET6 = 10;
 
     /*! @brief 协议族常量，指定 tcp*/
-    const Integer SOCK_STREAM = 1;
+    const SOCK_STREAM = 1;
 
     /*! @brief 协议族常量，指定 udp*/
-    const Integer SOCK_DGRAM = 2;
+    const SOCK_DGRAM = 2;
 
     /*! @brief 查询当前运行环境网络信息
      @return 返回网卡信息

@@ -2,37 +2,37 @@
 module ssl
 {
   /*! @brief 证书验证模式，不验证 */
-  const Integer VERIFY_NONE = 0;
+  const VERIFY_NONE = 0;
 
   /*! @brief 证书验证模式，可选验证，允许验证不通过 */
-  const Integer VERIFY_OPTIONAL = 1;
+  const VERIFY_OPTIONAL = 1;
 
   /*! @brief 证书验证模式，要求验证，验证不通过则中断 */
-  const Integer VERIFY_REQUIRED = 2;
+  const VERIFY_REQUIRED = 2;
 
   /*! @brief 证书验证结果，证书超时 */
-  const Integer BADCERT_EXPIRED = 1;
+  const BADCERT_EXPIRED = 1;
 
   /*! @brief 证书验证结果，证书被撤销 */
-  const Integer BADCERT_REVOKED = 2;
+  const BADCERT_REVOKED = 2;
 
   /*! @brief 证书验证结果，证书名错误 */
-  const Integer BADCERT_CN_MISMATCH = 4;
+  const BADCERT_CN_MISMATCH = 4;
 
   /*! @brief 证书验证结果，证书不可信 */
-  const Integer BADCERT_NOT_TRUSTED = 8;
+  const BADCERT_NOT_TRUSTED = 8;
 
   /*! @brief ssl 协议版本 ssl 3.0 */
-  const Integer ssl3 = 0;
+  const ssl3 = 0;
 
   /*! @brief ssl 协议版本 tls 1.0 */
-  const Integer tls1 = 1;
+  const tls1 = 1;
 
   /*! @brief ssl 协议版本 tls 1.1 */
-  const Integer tls1_1 = 2;
+  const tls1_1 = 2;
 
   /*! @brief ssl 协议版本 tls 1.2 */
-  const Integer tls1_2 = 3;
+  const tls1_2 = 3;
 
   /*! @brief 创建一个 SslSocket 对象，参见 SslSocket */
   static SslSocket new Socket();

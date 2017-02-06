@@ -9,16 +9,16 @@
 module uuid
 {
     /*! @brief md5 与 sha1 创建 uuid 时指定 name 命名为域名 */
-    const Integer DNS = 0;
+    const DNS = 0;
 
     /*! @brief md5 与 sha1 创建 uuid 时指定 name 命名为 url 地址 */
-    const Integer URL = 1;
+    const URL = 1;
 
     /*! @brief md5 与 sha1 创建 uuid 时指定 name 命名为 ISO OID */
-    const Integer OID = 2;
+    const OID = 2;
 
     /*! @brief md5 与 sha1 创建 uuid 时指定 name 命名为 X.500 DN */
-    const Integer X509 = 3;
+    const X509 = 3;
 
     /*! @brief 使用时间和主机名创建 uuid
      @return 返回一个生成的二进制 id
@@ -47,8 +47,8 @@ module uuid
     /*! @brief 使用 Snowflake 算法创建 uuid
      @return 返回一个生成的二进制 id
      */
-     static Buffer snowflake();
+    static Buffer snowflake();
 
     /*! @brief 查询和修改 Snowflake 算法的主机 id */
-     static Integer hostID;
+    static Integer hostID;
 };

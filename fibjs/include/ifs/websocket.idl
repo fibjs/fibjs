@@ -9,22 +9,22 @@
 module websocket
 {
     /*! @brief 指定 websocket 消息类型 0，代表一个继续帧 */
-    const Integer CONTINUE = 0;
+    const CONTINUE = 0;
 
     /*! @brief 指定 websocket 消息类型 1，代表一个文本帧 */
-    const Integer TEXT = 1;
+    const TEXT = 1;
 
     /*! @brief 指定 websocket 消息类型 2，代表一个二进制帧 */
-    const Integer BINARY = 2;
+    const BINARY = 2;
 
     /*! @brief 指定 websocket 消息类型 8，连接关闭 */
-    const Integer CLOSE = 8;
+    const CLOSE = 8;
 
     /*! @brief 指定 websocket 消息类型 9，代表一个 ping 帧 */
-    const Integer PING = 9;
+    const PING = 9;
 
     /*! @brief 指定 websocket 消息类型 10，代表一个 pong 帧 */
-    const Integer PONG = 10;
+    const PONG = 10;
 
     /*! @brief 创建一个 websocket 消息对象，参见 WebSocketMessage */
     static WebSocketMessage new Message();

@@ -9,10 +9,10 @@
 module zip
 {
 	/*! @brief 压缩类型常量, 不压缩, 仅存储 */
-	const Integer ZIP_STORED = 0;
+	const ZIP_STORED = 0;
 
 	/*! @brief 压缩类型常量, 需要依赖zlib库进行压缩 */
-	const Integer ZIP_DEFLATED = 1;
+	const ZIP_DEFLATED = 1;
 
 	/*! @brief  判断文件是否是zip格式
 	 @param filename 文件名

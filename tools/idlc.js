@@ -52,7 +52,7 @@ interfaceBody
   }
 
 constMember
-  = comments:_* constMode:constToken _* IntegerToken _* name:Identifier? def:defValue? _* ";" {
+  = comments:_* constMode:constToken _* name:Identifier? def:defValue? _* ";" {
     return {
       memType: "const",
       comments: comments.join(""),

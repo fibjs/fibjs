@@ -15,34 +15,34 @@
 module console
 {
     /*! @brief loglevel 级别常量 */
-    const Integer FATAL = 0;
+    const FATAL = 0;
 
     /*! @brief loglevel 级别常量 */
-    const Integer ALERT = 1;
+    const ALERT = 1;
 
     /*! @brief loglevel 级别常量 */
-    const Integer CRIT = 2;
+    const CRIT = 2;
 
     /*! @brief loglevel 级别常量 */
-    const Integer ERROR = 3;
+    const ERROR = 3;
 
     /*! @brief loglevel 级别常量 */
-    const Integer WARN = 4;
+    const WARN = 4;
 
     /*! @brief loglevel 级别常量 */
-    const Integer NOTICE = 5;
+    const NOTICE = 5;
 
     /*! @brief loglevel 级别常量 */
-    const Integer INFO = 6;
+    const INFO = 6;
 
     /*! @brief loglevel 级别常量 */
-    const Integer DEBUG = 7;
+    const DEBUG = 7;
 
     /*! @brief loglevel 仅用于输出，信息输出后不换行，file 和 syslog 不保存此级别信息 */
-    const Integer PRINT = 9;
+    const PRINT = 9;
 
     /*! @brief loglevel 级别常量 */
-    const Integer NOTSET = 10;
+    const NOTSET = 10;
 
     /*! @brief 输出级别，用以过滤输出信息，缺省为 NOTSET，全部输出。信息过滤之后才会输出给 add 设定的各个设备。
      */

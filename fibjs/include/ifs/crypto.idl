@@ -9,67 +9,67 @@
 module crypto
 {
     /*! @brief 指定对称加密算法 AES，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM */
-    const Integer AES = 1;
+    const AES = 1;
 
     /*! @brief 指定对称加密算法 CAMELLIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM */
-    const Integer CAMELLIA = 2;
+    const CAMELLIA = 2;
 
     /*! @brief 指定对称加密算法 DES，支持 64 位 key，分组密码工作模式支持 ECB, CBC */
-    const Integer DES = 3;
+    const DES = 3;
 
     /*! @brief 指定对称加密算法 DES-EDE，支持 128 位 key，分组密码工作模式支持 ECB, CBC */
-    const Integer DES_EDE = 4;
+    const DES_EDE = 4;
 
     /*! @brief 指定对称加密算法 DES-EDE3，支持 192 位 key，分组密码工作模式支持 ECB, CBC */
-    const Integer DES_EDE3 = 5;
+    const DES_EDE3 = 5;
 
     /*! @brief 指定对称加密算法 BLOWFISH，支持 192 位 key，分组密码工作模式支持 ECB, CBC, CFB64, CTR */
-    const Integer BLOWFISH = 6;
+    const BLOWFISH = 6;
 
     /*! @brief 指定对称加密算法 ARC4，支持 40, 56, 64, 128 位 key */
-    const Integer ARC4 = 7;
+    const ARC4 = 7;
 
     /*! @brief 指定分组密码工作模式支持 ECB */
-    const Integer ECB = 1;
+    const ECB = 1;
 
     /*! @brief 指定分组密码工作模式支持 CBC */
-    const Integer CBC = 2;
+    const CBC = 2;
 
     /*! @brief 指定分组密码工作模式支持 CFB64 */
-    const Integer CFB64 = 3;
+    const CFB64 = 3;
 
     /*! @brief 指定分组密码工作模式支持 CFB128 */
-    const Integer CFB128 = 4;
+    const CFB128 = 4;
 
     /*! @brief 指定分组密码工作模式支持 OFB */
-    const Integer OFB = 5;
+    const OFB = 5;
 
     /*! @brief 指定分组密码工作模式支持 CTR */
-    const Integer CTR = 6;
+    const CTR = 6;
 
     /*! @brief 指定分组密码工作模式支持 GCM */
-    const Integer GCM = 7;
+    const GCM = 7;
 
     /*! @brief 指定流密码模式 */
-    const Integer STREAM = 8;
+    const STREAM = 8;
 
     /*! @brief 指定分组密码工作模式支持 CCM */
-    const Integer CCM = 9;
+    const CCM = 9;
 
     /*! @brief 指定填充模式为 PKCS7 */
-    const Integer PKCS7 = 0;
+    const PKCS7 = 0;
 
     /*! @brief 指定填充模式为 ONE_AND_ZEROS */
-    const Integer ONE_AND_ZEROS = 1;
+    const ONE_AND_ZEROS = 1;
 
     /*! @brief 指定填充模式为 ZEROS_AND_LEN */
-    const Integer ZEROS_AND_LEN = 2;
+    const ZEROS_AND_LEN = 2;
 
     /*! @brief 指定填充模式为 ZEROS */
-    const Integer ZEROS = 3;
+    const ZEROS = 3;
 
     /*! @brief 指定填充模式为 NOPADDING */
-    const Integer NOPADDING = 4;
+    const NOPADDING = 4;
 
     /*! @brief Cipher 构造函数，参见 Cipher */
     static Cipher;

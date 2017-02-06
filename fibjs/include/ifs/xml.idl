@@ -5,35 +5,35 @@ module xml
 {
     /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 XmlElement 对象
     */
-    const Integer ELEMENT_NODE = 1;
+    const ELEMENT_NODE = 1;
 
     /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 XmlAttr 对象
     */
-    const Integer ATTRIBUTE_NODE = 2;
+    const ATTRIBUTE_NODE = 2;
 
     /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 XmlText 对象
     */
-    const Integer TEXT_NODE = 3;
+    const TEXT_NODE = 3;
 
     /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 XmlCDATASection 对象
     */
-    const Integer CDATA_SECTION_NODE = 4;
+    const CDATA_SECTION_NODE = 4;
 
     /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 XmlProcessingInstruction 对象
     */
-    const Integer PROCESSING_INSTRUCTION_NODE = 7;
+    const PROCESSING_INSTRUCTION_NODE = 7;
 
     /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 XmlComment 对象
     */
-    const Integer COMMENT_NODE = 8;
+    const COMMENT_NODE = 8;
 
     /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 XmlDocument 对象
     */
-    const Integer DOCUMENT_NODE = 9;
+    const DOCUMENT_NODE = 9;
 
     /*! @brief XmlNode 的 nodeType 属性常量，表示节点为 XmlDocumentType 对象
     */
-    const Integer DOCUMENT_TYPE_NODE = 10;
+    const DOCUMENT_TYPE_NODE = 10;
 
     /*! @brief xml 文档对象，参见 XmlDocument 对象*/
     static XmlDocument new Document();
