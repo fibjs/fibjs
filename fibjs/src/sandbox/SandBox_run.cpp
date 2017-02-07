@@ -219,7 +219,7 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<
             str += ',';
         }
 
-        src = str + "__filename,__dirname,__sbname){" + src + "\n});";
+        src = str + "__filename,__dirname){" + src + "\n});";
 
         script = v8::Script::Compile(
                      isolate->NewFromUtf8(src), soname);
@@ -233,9 +233,8 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<
 
     args[ARRAYSIZE(s_names)] = isolate->NewFromUtf8(name);;
     args[ARRAYSIZE(s_names) + 1] = isolate->NewFromUtf8(pname);
-    args[ARRAYSIZE(s_names) + 2] = isolate->NewFromUtf8(m_sb->m_name);
     v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
-    v = v8::Local<v8::Function>::Cast(v)->Call(glob, ARRAYSIZE(s_names) + 3, args);
+    v = v8::Local<v8::Function>::Cast(v)->Call(glob, ARRAYSIZE(s_names) + 2, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -294,9 +293,8 @@ result_t SandBox::Context::run(Buffer_base* src, exlib::string name, v8::Local<v
 
     args[ARRAYSIZE(s_names)] = isolate->NewFromUtf8(name);;
     args[ARRAYSIZE(s_names) + 1] = isolate->NewFromUtf8(pname);
-    args[ARRAYSIZE(s_names) + 2] = isolate->NewFromUtf8(m_sb->m_name);
     v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
-    v = v8::Local<v8::Function>::Cast(v)->Call(glob, ARRAYSIZE(s_names) + 3, args);
+    v = v8::Local<v8::Function>::Cast(v)->Call(glob, ARRAYSIZE(s_names) + 2, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -390,7 +388,7 @@ result_t SandBox::compile(exlib::string srcname, exlib::string script,
             str += ',';
         }
 
-        script = str + "__filename,__dirname,__sbname){" + script + "\n});";
+        script = str + "__filename,__dirname){" + script + "\n});";
 
         v8::ScriptCompiler::Source script_source(
             isolate->NewFromUtf8(script), v8::ScriptOrigin(soname));

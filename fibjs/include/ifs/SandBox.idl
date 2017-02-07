@@ -16,16 +16,14 @@ interface SandBox : object
 {
     /*! @brief 构造一个新的安全沙箱对象，并初始化基础模块
      @param mods 指定要添加的模块对象字典
-     @param name 沙箱名称，命名沙箱会在抛出错误时回报所在沙箱
      */
-    SandBox(Object mods, String name = "");
+    SandBox(Object mods);
 
     /*! @brief 构造一个新的安全沙箱对象，并初始化基础模块
      @param mods 指定要添加的模块对象字典
      @param require 自定义 require 函数，当模块不存在时，先调用自定义函数，无返回再从文件中加载
-     @param name 沙箱名称，命名沙箱会在抛出错误时回报所在沙箱
      */
-    SandBox(Object mods, Function require, String name = "");
+    SandBox(Object mods, Function require);
 
     /*! @brief 向沙箱中添加一个基础模块
      @param id 指定要添加的模块名称

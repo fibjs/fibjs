@@ -32,9 +32,6 @@ module global
     /*! @brief 当前脚本所在目录 */
     static readonly String __dirname;
 
-    /*! @brief 当前沙箱名称 */
-    static readonly String __sbname;
-
     /*! @brief 清除指定的定时器
      @param t 指定要清除的定时器
     */

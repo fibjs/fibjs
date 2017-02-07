@@ -169,16 +169,6 @@ describe("vm", () => {
         });
     });
 
-    it("name", () => {
-        sbox = new vm.SandBox({
-            assert: assert
-        }, "test");
-
-        sbox.run("./vm_test/name_test1.js");
-        var t1 = sbox.require("./vm_test/name_test2");
-        t1.func();
-    });
-
     it("Garbage Collection", () => {
         sbox = undefined;
         GC();

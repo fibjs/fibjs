@@ -17,10 +17,10 @@ namespace fibjs
 
 DECLARE_MODULE(vm);
 
-result_t SandBox_base::_new(v8::Local<v8::Object> mods, exlib::string name,
-                            obj_ptr<SandBox_base> &retVal, v8::Local<v8::Object> This)
+result_t SandBox_base::_new(v8::Local<v8::Object> mods, obj_ptr<SandBox_base> &retVal,
+                            v8::Local<v8::Object> This)
 {
-    obj_ptr<SandBox> sbox = new SandBox(name);
+    obj_ptr<SandBox> sbox = new SandBox();
     sbox->wrap(This);
 
     result_t hr = sbox->add(mods);
@@ -34,11 +34,10 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods, exlib::string name,
 
 result_t SandBox_base::_new(v8::Local<v8::Object> mods,
                             v8::Local<v8::Function> require,
-                            exlib::string name,
                             obj_ptr<SandBox_base> &retVal,
                             v8::Local<v8::Object> This)
 {
-    obj_ptr<SandBox> sbox = new SandBox(name);
+    obj_ptr<SandBox> sbox = new SandBox();
     sbox->wrap(This);
 
     sbox->initRequire(require);
@@ -108,7 +107,6 @@ result_t SandBox::remove(exlib::string id)
 result_t SandBox::clone(obj_ptr<SandBox_base> &retVal)
 {
     obj_ptr<SandBox> sbox = new SandBox();
-    sbox->m_name = m_name;
     sbox->SetPrivate("_mods", mods()->Clone());
 
     retVal = sbox;

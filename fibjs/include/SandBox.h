@@ -19,10 +19,6 @@ namespace fibjs
 class SandBox: public fibjs::SandBox_base
 {
 public:
-    SandBox(exlib::string name = "") : m_name(name)
-    {}
-
-public:
     // SandBox_base
     virtual result_t add(exlib::string id, v8::Local<v8::Value> mod);
     virtual result_t add(v8::Local<v8::Object> mods);
@@ -92,8 +88,6 @@ public:
         v8::Local<v8::Function> m_fnRequest;
         v8::Local<v8::Function> m_fnRun;
     };
-
-    exlib::string m_name;
 };
 
 } /* namespace fibjs */
