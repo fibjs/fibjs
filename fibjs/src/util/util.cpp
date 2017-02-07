@@ -22,6 +22,7 @@
 #include <snappy/include/snappy.h>
 #include <leveldb/db.h>
 #include <expat/include/expat.h>
+#include <zmq/include/zmq.h>
 #include "QuickArray.h"
 #include "StringBuffer.h"
 #include <map>
@@ -1414,6 +1415,8 @@ result_t util_base::buildInfo(v8::Local<v8::Object> &retVal)
         vender->Set(isolate->NewFromUtf8("uuid"), isolate->NewFromUtf8("1.6.2"));
         vender->Set(isolate->NewFromUtf8("v8"), isolate->NewFromUtf8(v8::V8::GetVersion()));
         vender->Set(isolate->NewFromUtf8("zlib"), isolate->NewFromUtf8(ZLIB_VERSION));
+        vender->Set(isolate->NewFromUtf8("zmq"), isolate->NewFromUtf8(
+                        STR(ZMQ_VERSION_MAJOR) "." STR(ZMQ_VERSION_MINOR)));
     }
 
     return 0;
