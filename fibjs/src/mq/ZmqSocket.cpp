@@ -34,19 +34,16 @@ ZmqSocket::ZmqSocket(int32_t type)
 
 ZmqSocket::~ZmqSocket()
 {
+	close();
 }
 
 inline result_t zmq_LastError()
 {
 	int rc = zmq_errno();
 
-#ifdef _WIN32
 	if (rc > ZMQ_HAUSNUMERO)
-		return -rc;
-	return - (int)GetLastError();
-#else
-	return -rc;
-#endif
+		return CHECK_ERROR(Runtime::setError(zmq_strerror(rc)));
+	return CHECK_ERROR(LastError());
 }
 
 result_t ZmqSocket::bind(exlib::string addr)
@@ -77,6 +74,9 @@ result_t ZmqSocket::recv(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
 	if (!m_sock)
 		return CALL_E_INVALID_CALL;
+
+	if (!ac)
+		return CHECK_ERROR(CALL_E_LONGSYNC);
 
 	zmq_msg_t msg;
 	int rc = zmq_msg_init(&msg);
