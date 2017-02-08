@@ -57,7 +57,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "json", s__new, NULL, 
-            2, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };
 

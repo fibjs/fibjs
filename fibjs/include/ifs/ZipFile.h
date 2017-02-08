@@ -105,7 +105,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "ZipFile", s__new, NULL, 
-            9, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };
 

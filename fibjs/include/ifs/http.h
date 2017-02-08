@@ -152,7 +152,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "http", s__new, NULL, 
-            7, s_method, 7, s_object, 5, s_property, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
             NULL
         };
 

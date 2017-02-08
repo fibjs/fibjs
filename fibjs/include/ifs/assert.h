@@ -193,7 +193,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "assert", s__new, s__function, 
-            48, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };
 

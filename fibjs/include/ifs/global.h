@@ -35,7 +35,6 @@ public:
     static result_t get_argv(v8::Local<v8::Array>& retVal);
     static result_t get___filename(exlib::string& retVal);
     static result_t get___dirname(exlib::string& retVal);
-    static result_t get___sbname(exlib::string& retVal);
     static result_t clearInterval(Timer_base* t);
     static result_t clearTimeout(Timer_base* t);
     static result_t clearImmediate(Timer_base* t);
@@ -65,7 +64,6 @@ public:
     static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get___filename(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get___dirname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get___sbname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -119,14 +117,13 @@ namespace fibjs
             {"global", s_get_global, block_set, true},
             {"argv", s_get_argv, block_set, true},
             {"__filename", s_get___filename, block_set, true},
-            {"__dirname", s_get___dirname, block_set, true},
-            {"__sbname", s_get___sbname, block_set, true}
+            {"__dirname", s_get___dirname, block_set, true}
         };
 
         static ClassData s_cd = 
         { 
             "global", s__new, NULL, 
-            11, s_method, 4, s_object, 5, s_property, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
             NULL
         };
 
@@ -188,17 +185,6 @@ namespace fibjs
         PROPERTY_ENTER();
 
         hr = get___dirname(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void global_base::s_get___sbname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
-
-        PROPERTY_ENTER();
-
-        hr = get___sbname(vr);
 
         METHOD_RETURN();
     }

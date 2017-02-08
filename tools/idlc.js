@@ -905,9 +905,9 @@ function gen_code(cls, def) {
                 (callAsFunc ? 's__function' : 'NULL') + ', ');
 
             ds = '            ';
-            ds += method_count ? (method_count + ', s_method, ') : '0, NULL, ';
-            ds += object_count ? (object_count + ', s_object, ') : '0, NULL, ';
-            ds += prop_count ? (prop_count + ', s_property, ') : '0, NULL, ';
+            ds += method_count ? ('ARRAYSIZE(s_method), s_method, ') : '0, NULL, ';
+            ds += object_count ? ('ARRAYSIZE(s_object), s_object, ') : '0, NULL, ';
+            ds += prop_count ? ('ARRAYSIZE(s_property), s_property, ') : '0, NULL, ';
             ds += fnIndexed ? '&s_indexed, ' : 'NULL, ';
             ds += fnNamed ? '&s_named,' : 'NULL,';
             txts.push(ds);

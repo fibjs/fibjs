@@ -103,7 +103,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "xml", s__new, NULL, 
-            2, s_method, 1, s_object, 8, s_property, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
             NULL
         };
 

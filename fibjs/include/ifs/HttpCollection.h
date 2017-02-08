@@ -93,7 +93,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "HttpCollection", s__new, NULL, 
-            7, s_method, 0, NULL, 0, NULL, NULL, &s_named,
+            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, &s_named,
             &object_base::class_info()
         };
 

@@ -36,7 +36,7 @@ public:
         };
 
         ClassData& cd = EventEmitter_base::class_info().date();
-        cd.mc = 10;
+        cd.mc = ARRAYSIZE(s_method);
         cd.cms = s_method;
     }
 

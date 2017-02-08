@@ -153,7 +153,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "hash", s__new, NULL, 
-            20, s_method, 0, NULL, 9, s_property, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             NULL
         };
 

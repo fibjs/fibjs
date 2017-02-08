@@ -83,7 +83,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "HttpServer", s__new, NULL, 
-            1, s_method, 0, NULL, 5, s_property, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &TcpServer_base::class_info()
         };
 

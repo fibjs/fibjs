@@ -86,7 +86,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "Map", s__new, NULL, 
-            6, s_method, 0, NULL, 1, s_property, NULL, &s_named,
+            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, &s_named,
             &object_base::class_info()
         };
 

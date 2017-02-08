@@ -55,7 +55,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "Lock", s__new, NULL, 
-            3, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };
 

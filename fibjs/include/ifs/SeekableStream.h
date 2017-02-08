@@ -81,7 +81,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "SeekableStream", s__new, NULL, 
-            6, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             &Stream_base::class_info()
         };
 

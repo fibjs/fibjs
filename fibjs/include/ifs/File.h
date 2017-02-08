@@ -78,7 +78,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "File", s__new, NULL, 
-            4, s_method, 0, NULL, 1, s_property, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &SeekableStream_base::class_info()
         };
 

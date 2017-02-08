@@ -58,7 +58,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "Semaphore", s__new, NULL, 
-            3, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             &Lock_base::class_info()
         };
 

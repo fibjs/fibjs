@@ -91,7 +91,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "BufferedStream", s__new, NULL, 
-            6, s_method, 0, NULL, 3, s_property, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &Stream_base::class_info()
         };
 

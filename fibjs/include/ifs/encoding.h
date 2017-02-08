@@ -90,7 +90,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "encoding", s__new, NULL, 
-            4, s_method, 7, s_object, 0, NULL, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, NULL, NULL,
             NULL
         };
 

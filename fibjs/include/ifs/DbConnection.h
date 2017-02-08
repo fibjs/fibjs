@@ -88,7 +88,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "DbConnection", s__new, NULL, 
-            6, s_method, 0, NULL, 1, s_property, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &object_base::class_info()
         };
 

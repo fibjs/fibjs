@@ -72,7 +72,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "XmlNodeList", s__new, NULL, 
-            1, s_method, 0, NULL, 1, s_property, &s_indexed, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, &s_indexed, NULL,
             &object_base::class_info()
         };
 

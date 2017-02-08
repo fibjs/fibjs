@@ -53,7 +53,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "Chain", s__new, NULL, 
-            1, s_method, 0, NULL, 0, NULL, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             &Handler_base::class_info()
         };
 

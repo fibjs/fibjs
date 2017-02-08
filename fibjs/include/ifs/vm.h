@@ -52,7 +52,7 @@ namespace fibjs
         static ClassData s_cd = 
         { 
             "vm", s__new, NULL, 
-            0, NULL, 1, s_object, 0, NULL, NULL, NULL,
+            0, NULL, ARRAYSIZE(s_object), s_object, 0, NULL, NULL, NULL,
             NULL
         };
 
