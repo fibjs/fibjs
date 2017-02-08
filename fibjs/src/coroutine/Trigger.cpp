@@ -120,7 +120,8 @@ result_t object_base::_emit(exlib::string ev, Variant *args, int32_t argCount)
             for (i = 0; i < m_args.size(); i++)
                 argv[i] = v8::Local<v8::Value>::New(m_obj->holder()->m_isolate, m_args[i]);
 
-            JSTrigger(m_obj)._emit(m_ev, argv.data(), (int32_t) argv.size());
+            bool r;
+            JSTrigger(m_obj)._emit(m_ev, argv.data(), (int32_t) argv.size(), r);
 
             delete this;
 
@@ -140,9 +141,10 @@ result_t object_base::_emit(exlib::string ev, Variant *args, int32_t argCount)
     return 0;
 }
 
-result_t object_base::emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t object_base::emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args,
+                           bool& retVal)
 {
-    return JSTrigger(this).emit(ev, args);
+    return JSTrigger(this).emit(ev, args, retVal);
 }
 
 }

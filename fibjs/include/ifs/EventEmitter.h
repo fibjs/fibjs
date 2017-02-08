@@ -39,7 +39,7 @@ public:
     virtual result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t setMaxListeners(int32_t n) = 0;
     virtual result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal) = 0;
-    virtual result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
+    virtual result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args, bool& retVal) = 0;
 
 public:
     template<typename T>
@@ -282,6 +282,8 @@ namespace fibjs
 
     inline void EventEmitter_base::s_emit(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        bool vr;
+
         METHOD_INSTANCE(EventEmitter_base);
         METHOD_ENTER();
 
@@ -289,9 +291,9 @@ namespace fibjs
 
         ARG(exlib::string, 0);
 
-        hr = pInst->emit(v0, args);
+        hr = pInst->emit(v0, args, vr);
 
-        METHOD_VOID();
+        METHOD_RETURN();
     }
 
 }

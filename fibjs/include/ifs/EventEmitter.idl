@@ -107,7 +107,8 @@ interface EventEmitter : object
   /*! @brief 主动触发一个事件
     @param ev 事件名称
     @param ... 事件参数，将会传递给事件处理函数
+    @return 返回事件触发状态，有响应事件返回 true，否则返回 false
    */
-  emit(String ev, ...);
+  Boolean emit(String ev, ...);
 };
 

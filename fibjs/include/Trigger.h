@@ -287,7 +287,8 @@ public:
 		return 0;
 	}
 
-	result_t fireTrigger(v8::Local<v8::Array> esa, v8::Local<v8::Value> *args, int32_t argCount)
+	result_t fireTrigger(v8::Local<v8::Array> esa, v8::Local<v8::Value> *args, int32_t argCount,
+	                     QuickArray<obj_ptr<Fiber_base> >& evs)
 	{
 		if (esa.IsEmpty())
 			return 0;
@@ -295,50 +296,59 @@ public:
 		int32_t len = esa->Length();
 		int32_t i;
 		result_t hr;
-		QuickArray<obj_ptr<Fiber_base> > evs;
 
 		for (i = 0; i < len; i ++)
 		{
 			v8::Local<v8::Value> func = esa->Get(i);
 			if (func->IsFunction())
 			{
-				obj_ptr<Fiber_base> retVal;
-				hr = JSFiber::New(o, v8::Local<v8::Function>::Cast(func), args, argCount, retVal);
+				obj_ptr<Fiber_base> f;
+				hr = JSFiber::New(o, v8::Local<v8::Function>::Cast(func), args, argCount, f);
 				if (hr < 0)
 					return hr;
-				evs.append(retVal);
+				evs.append(f);
 			}
 		}
-
-		for (i = 0; i < (int32_t)evs.size(); i ++)
-			evs[i]->join();
 
 		return 0;
 	}
 
 	result_t _emit(exlib::string ev, v8::Local<v8::Value> *args,
-	               int32_t argCount)
+	               int32_t argCount, bool& retVal)
 	{
 		result_t hr;
+		retVal = false;
+		QuickArray<obj_ptr<Fiber_base> > evs;
+
 		exlib::string strKey = "_e_";
 		strKey.append(ev);
 
-		hr = fireTrigger(GetHiddenList(strKey), args, argCount);
+		hr = fireTrigger(GetHiddenList(strKey), args, argCount, evs);
 		if (hr < 0)
 			return hr;
 
 		strKey = "_e1_";
 		strKey.append(ev);
 
-		hr = fireTrigger(GetHiddenList(strKey, false, true), args,
-		                 argCount);
+		hr = fireTrigger(GetHiddenList(strKey, false, true),
+		                 args, argCount, evs);
 		if (hr < 0)
 			return hr;
+
+		if (evs.size() > 0)
+		{
+			int32_t i;
+			for (i = 0; i < (int32_t)evs.size(); i ++)
+				evs[i]->join();
+
+			retVal = true;
+		}
 
 		return 0;
 	}
 
-	result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args)
+	result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args,
+	              bool& retVal)
 	{
 		std::vector< v8::Local<v8::Value> > _args;
 		int32_t len = args.Length();
@@ -348,7 +358,7 @@ public:
 		for (int32_t i = 1; i < len; i ++)
 			_args[i - 1] = args[i];
 
-		return _emit(ev, _args.data(), (int32_t) _args.size());
+		return _emit(ev, _args.data(), (int32_t) _args.size(), retVal);
 	}
 
 public:
@@ -465,6 +475,7 @@ public:
 
 	static void s_emit(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
+		bool vr;
 		JSTrigger t(args);
 
 		METHOD_ENTER();
@@ -473,9 +484,9 @@ public:
 
 		ARG(exlib::string, 0);
 
-		hr = t.emit(v0, args);
+		hr = t.emit(v0, args, vr);
 
-		METHOD_VOID();
+		METHOD_RETURN();
 	}
 
 private:

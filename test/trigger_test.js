@@ -22,33 +22,33 @@ function evevt_test(name, e) {
         it("on", () => {
             v1 = v2 = 0;
             assert.equal(e.on('test', t1), e);
-            e.emit('test', 200, 100);
+            assert.isTrue(e.emit('test', 200, 100));
             assert.equal(1334, v1);
             assert.equal(0, v2);
 
             assert.equal(e.on('test', t2), e);
-            e.emit('test', 2000, 1000);
+            assert.isTrue(e.emit('test', 2000, 1000));
             assert.equal(3568, v1);
             assert.equal(5321, v2);
         });
 
         it("off", () => {
             assert.equal(e.off('test', t1), e);
-            e.emit('test', 20, 10);
+            assert.isTrue(e.emit('test', 20, 10));
             assert.equal(3568, v1);
             assert.equal(9652, v2);
         });
 
         it("once", () => {
             assert.equal(e.once('test', t1), e);
-            e.emit('test', 20, 10);
+            assert.isTrue(e.emit('test', 20, 10));
             assert.equal(4812, v1);
             assert.equal(13983, v2);
         });
 
         it("off all", () => {
             assert.equal(e.off('test', t2), e);
-            e.emit('test', 20, 10);
+            assert.isFalse(e.emit('test', 20, 10));
             assert.equal(4812, v1);
             assert.equal(13983, v2);
         });
@@ -58,10 +58,10 @@ function evevt_test(name, e) {
                 test: t1,
                 test1: t2
             }), e);
-            e.emit('test', 20, 10);
+            assert.isTrue(e.emit('test', 20, 10));
             assert.equal(6056, v1);
             assert.equal(13983, v2);
-            e.emit('test1', 20, 10);
+            assert.isTrue(e.emit('test1', 20, 10));
             assert.equal(6056, v1);
             assert.equal(18314, v2);
         });
@@ -71,8 +71,8 @@ function evevt_test(name, e) {
                 test: t1,
                 test1: t2
             }), e);
-            e.emit('test', 20, 10);
-            e.emit('test1', 20, 10);
+            assert.isFalse(e.emit('test', 20, 10));
+            assert.isFalse(e.emit('test1', 20, 10));
             assert.equal(6056, v1);
             assert.equal(18314, v2);
         });
