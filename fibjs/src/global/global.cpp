@@ -109,11 +109,6 @@ result_t global_base::get___dirname(exlib::string& retVal)
 	return 0;
 }
 
-result_t global_base::get___sbname(exlib::string& retVal)
-{
-	return 0;
-}
-
 result_t global_base::require(exlib::string id, v8::Local<v8::Value> &retVal)
 {
 	return Isolate::current()->m_topSandbox->require(id, "", retVal);
