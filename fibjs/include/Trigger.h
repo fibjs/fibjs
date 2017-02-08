@@ -341,7 +341,7 @@ public:
 			if (func->IsFunction())
 			{
 				obj_ptr<Fiber_base> retVal;
-				hr = JSFiber::New(v8::Local<v8::Function>::Cast(func), args, argCount, retVal);
+				hr = JSFiber::New(o, v8::Local<v8::Function>::Cast(func), args, argCount, retVal);
 				if (hr < 0)
 					return hr;
 				evs.append(retVal);

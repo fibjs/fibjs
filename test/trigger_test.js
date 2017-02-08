@@ -10,10 +10,12 @@ function evevt_test(name, e) {
         var v1, v2;
 
         function t1(a1, a2) {
+            assert.equal(this, e);
             v1 = v1 + a1 - a2 + 1234;
         }
 
         function t2(a1, a2) {
+            assert.equal(this, e);
             v2 = v2 + a1 - a2 + 4321;
         }
 
