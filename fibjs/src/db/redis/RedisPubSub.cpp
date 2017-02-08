@@ -26,20 +26,17 @@ const char *s_cmd[][2] =
 
 bool Redis::regsub(exlib::string &key, v8::Local<v8::Function> func)
 {
-    int32_t n = 0;
-    on(key, func, n);
+    v8::Local<v8::Object> r;
+    on(key, func, r);
 
-    if (n)
+    std::map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
+
+    if (it != m_funcs.end())
+        it->second ++;
+    else
     {
-        std::map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
-
-        if (it != m_funcs.end())
-            it->second ++;
-        else
-        {
-            m_funcs.insert(std::pair<exlib::string, int32_t>(key, 1));
-            return true;
-        }
+        m_funcs.insert(std::pair<exlib::string, int32_t>(key, 1));
+        return true;
     }
 
     return false;
@@ -47,18 +44,15 @@ bool Redis::regsub(exlib::string &key, v8::Local<v8::Function> func)
 
 bool Redis::unregsub(exlib::string &key, v8::Local<v8::Function> func)
 {
-    int32_t n = 0;
-    off(key, func, n);
+    v8::Local<v8::Object> r;
+    off(key, func, r);
 
-    if (n)
+    std::map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
+
+    if (it != m_funcs.end() && (--(it->second) == 0))
     {
-        std::map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
-
-        if (it != m_funcs.end() && (--(it->second) == 0))
-        {
-            m_funcs.erase(it);
-            return true;
-        }
+        m_funcs.erase(it);
+        return true;
     }
 
     return false;
@@ -159,9 +153,9 @@ result_t Redis::unpsub(v8::Local<v8::Object> map)
 
 result_t Redis::unsub(exlib::string key, int32_t cmd)
 {
-    int32_t n = 0;
+    v8::Local<v8::Object> r;
     exlib::string key1 = s_cmd[cmd][1] + key;
-    off(key1, n);
+    off(key1, r);
     m_funcs.erase(key1);
 
     Variant v;
@@ -194,8 +188,8 @@ result_t Redis::unsub(v8::Local<v8::Array> &channels, int32_t cmd)
         GetArgumentValue(key, s);
         s = s_cmd[cmd][1] + s;
 
-        int32_t n = 0;
-        off(s, n);
+        v8::Local<v8::Object> r;
+        off(s, r);
         m_funcs.erase(s);
     }
 
@@ -215,8 +209,8 @@ result_t Redis::unpsub(v8::Local<v8::Array> patterns)
 
 result_t Redis::onsuberror(v8::Local<v8::Function> func)
 {
-    int32_t n = 0;
-    return on("suberror", func, n);
+    v8::Local<v8::Object> r;
+    return on("suberror", func, r);
 }
 
 result_t Redis::pub(Buffer_base *channel, Buffer_base *message, int32_t &retVal)

@@ -120,14 +120,13 @@ public:
 	}
 
 	inline result_t _map(v8::Local<v8::Object> m,
-	                     result_t (JSTrigger::*fn)(exlib::string , v8::Local<v8::Function>, int32_t &),
-	                     int32_t &retVal)
+	                     result_t (JSTrigger::*fn)(exlib::string , v8::Local<v8::Function>, v8::Local<v8::Object>&),
+	                     v8::Local<v8::Object>& retVal)
 	{
 		v8::Local<v8::Array> ks = m->GetPropertyNames();
 		int32_t len = ks->Length();
 		int32_t i;
 
-		retVal = 0;
 		for (i = 0; i < len; i++)
 		{
 			v8::Local<v8::Value> k = ks->Get(i);
@@ -137,147 +136,111 @@ public:
 				v8::Local<v8::Value> v = m->Get(k);
 
 				if (v->IsFunction())
-				{
-					int32_t n = 0;
 					(this->*fn)(*v8::String::Utf8Value(k),
-					            v8::Local<v8::Function>::Cast(v), n);
-					retVal += n;
-				}
+					            v8::Local<v8::Function>::Cast(v), retVal);
 				else
 					return CHECK_ERROR(CALL_E_BADVARTYPE);
 			}
 		}
 
+		retVal = o;
 		return 0;
 	}
 
-	result_t on(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal)
+	result_t on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 	{
-		retVal = 0;
-
 		exlib::string strKey = "_e_";
 		strKey.append(ev);
-		retVal += putFunction(GetHiddenList(strKey, true), func);
+		putFunction(GetHiddenList(strKey, true), func);
 
 		strKey = "_e1_";
 		strKey.append(ev);
-		retVal -= removeFunction(GetHiddenList(strKey), func);
+		removeFunction(GetHiddenList(strKey), func);
 
+		retVal = o;
 		return 0;
 	}
 
-	result_t on(v8::Local<v8::Object> map, int32_t &retVal)
+	result_t on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
 	{
 		return _map(map, &JSTrigger::on, retVal);
 	}
 
-	result_t once(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal)
+	result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 	{
-		retVal = 0;
-
 		exlib::string strKey = "_e1_";
 		strKey.append(ev);
-		retVal += putFunction(GetHiddenList(strKey, true), func);
+		putFunction(GetHiddenList(strKey, true), func);
 
 		strKey = "_e_";
 		strKey.append(ev);
-		retVal -= removeFunction(GetHiddenList(strKey), func);
+		removeFunction(GetHiddenList(strKey), func);
 
+		retVal = o;
 		return 0;
 	}
 
-	result_t once(v8::Local<v8::Object> map, int32_t &retVal)
+	result_t once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
 	{
 		return _map(map, &JSTrigger::once, retVal);
 	}
 
-	result_t off(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal)
+	result_t off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 	{
-		retVal = 0;
-
 		exlib::string strKey = "_e_";
 		strKey.append(ev);
-		retVal += removeFunction(GetHiddenList(strKey), func);
+		removeFunction(GetHiddenList(strKey), func);
 
 		strKey = "_e1_";
 		strKey.append(ev);
-		retVal += removeFunction(GetHiddenList(strKey), func);
+		removeFunction(GetHiddenList(strKey), func);
 
+		retVal = o;
 		return 0;
 	}
 
-	result_t off(exlib::string ev, int32_t &retVal)
+	result_t off(exlib::string ev, v8::Local<v8::Object>& retVal)
 	{
-		retVal = 0;
-
 		exlib::string strKey = "_e_";
 		strKey.append(ev);
 
-		v8::Local<v8::Array> esa = GetHiddenList(strKey, false, true);
-		if (!esa.IsEmpty())
-		{
-			int32_t len = esa->Length();
-			int32_t i;
-
-			for (i = 0; i < len; i ++)
-			{
-				v8::Local<v8::Value> v = esa->Get(i);
-				if (!v->IsUndefined())
-					retVal ++;
-			}
-		}
+		GetHiddenList(strKey, false, true);
 
 		strKey = "_e1_";
 		strKey.append(ev);
 
-		esa = GetHiddenList(strKey, false, true);
-		if (!esa.IsEmpty())
-		{
-			int32_t len = esa->Length();
-			int32_t i;
+		GetHiddenList(strKey, false, true);
 
-			for (i = 0; i < len; i ++)
-			{
-				v8::Local<v8::Value> v = esa->Get(i);
-				if (!v->IsUndefined())
-					retVal ++;
-			}
-		}
-
+		retVal = o;
 		return 0;
 	}
 
-	result_t off(v8::Local<v8::Object> map, int32_t &retVal)
+	result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
 	{
 		return _map(map, &JSTrigger::off, retVal);
 	}
 
-
-	result_t removeAllListeners(v8::Local<v8::Array> evs, int32_t& retVal)
+	result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal)
 	{
 		int32_t len = evs->Length();
 		int32_t i;
 		result_t hr;
 
-		retVal = 0;
-
 		for (i = 0; i < len; i ++)
 		{
 			v8::Local<v8::Value> v = evs->Get(i);
 			exlib::string key;
-			int32_t n = 0;
 
 			hr = GetArgumentValue(v, key, true);
 			if (hr < 0)
 				return hr;
 
-			hr = off(key, n);
+			hr = off(key, retVal);
 			if (hr < 0)
 				return hr;
-
-			retVal += n;
 		}
 
+		retVal = o;
 		return 0;
 	}
 
@@ -391,7 +354,7 @@ public:
 public:
 	static void s_on(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		int32_t vr;
+		v8::Local<v8::Object> vr;
 		JSTrigger t(args);
 
 		METHOD_ENTER();
@@ -414,7 +377,7 @@ public:
 
 	static void s_once(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		int32_t vr;
+		v8::Local<v8::Object> vr;
 		JSTrigger t(args);
 
 		METHOD_ENTER();
@@ -437,7 +400,7 @@ public:
 
 	static void s_off(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		int32_t vr;
+		v8::Local<v8::Object> vr;
 		JSTrigger t(args);
 
 		METHOD_ENTER();
@@ -466,7 +429,7 @@ public:
 
 	static void s_removeAllListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
-		int32_t vr;
+		v8::Local<v8::Object> vr;
 		JSTrigger t(args);
 
 		METHOD_ENTER();

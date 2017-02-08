@@ -24,19 +24,19 @@ class EventEmitter_base : public object_base
 public:
     // EventEmitter_base
     static result_t _new(obj_ptr<EventEmitter_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t on(exlib::string ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
-    virtual result_t on(v8::Local<v8::Object> map, int32_t& retVal) = 0;
-    virtual result_t addListener(exlib::string ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
-    virtual result_t addListener(v8::Local<v8::Object> map, int32_t& retVal) = 0;
-    virtual result_t once(exlib::string ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
-    virtual result_t once(v8::Local<v8::Object> map, int32_t& retVal) = 0;
-    virtual result_t off(exlib::string ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
-    virtual result_t off(exlib::string ev, int32_t& retVal) = 0;
-    virtual result_t off(v8::Local<v8::Object> map, int32_t& retVal) = 0;
-    virtual result_t removeListener(exlib::string ev, v8::Local<v8::Function> func, int32_t& retVal) = 0;
-    virtual result_t removeListener(exlib::string ev, int32_t& retVal) = 0;
-    virtual result_t removeListener(v8::Local<v8::Object> map, int32_t& retVal) = 0;
-    virtual result_t removeAllListeners(v8::Local<v8::Array> evs, int32_t& retVal) = 0;
+    virtual result_t on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t addListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t addListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t off(exlib::string ev, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t removeListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t removeListener(exlib::string ev, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t removeListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t setMaxListeners(int32_t n) = 0;
     virtual result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal) = 0;
     virtual result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
@@ -109,7 +109,7 @@ namespace fibjs
 
     inline void EventEmitter_base::s_on(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        int32_t vr;
+        v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(EventEmitter_base);
         METHOD_ENTER();
@@ -132,7 +132,7 @@ namespace fibjs
 
     inline void EventEmitter_base::s_addListener(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        int32_t vr;
+        v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(EventEmitter_base);
         METHOD_ENTER();
@@ -155,7 +155,7 @@ namespace fibjs
 
     inline void EventEmitter_base::s_once(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        int32_t vr;
+        v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(EventEmitter_base);
         METHOD_ENTER();
@@ -178,7 +178,7 @@ namespace fibjs
 
     inline void EventEmitter_base::s_off(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        int32_t vr;
+        v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(EventEmitter_base);
         METHOD_ENTER();
@@ -207,7 +207,7 @@ namespace fibjs
 
     inline void EventEmitter_base::s_removeListener(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        int32_t vr;
+        v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(EventEmitter_base);
         METHOD_ENTER();
@@ -236,7 +236,7 @@ namespace fibjs
 
     inline void EventEmitter_base::s_removeAllListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        int32_t vr;
+        v8::Local<v8::Object> vr;
 
         METHOD_INSTANCE(EventEmitter_base);
         METHOD_ENTER();

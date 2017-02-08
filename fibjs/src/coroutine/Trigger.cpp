@@ -52,42 +52,42 @@ result_t EventEmitter_base::_new(obj_ptr<EventEmitter_base> &retVal, v8::Local<v
     return 0;
 }
 
-result_t object_base::on(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal)
+result_t object_base::on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> &retVal)
 {
     return JSTrigger(this).on(ev, func, retVal);
 }
 
-result_t object_base::on(v8::Local<v8::Object> map, int32_t &retVal)
+result_t object_base::on(v8::Local<v8::Object> map, v8::Local<v8::Object> &retVal)
 {
     return JSTrigger(this).on(map, retVal);
 }
 
-result_t object_base::once(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal)
+result_t object_base::once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> &retVal)
 {
     return JSTrigger(this).once(ev, func, retVal);
 }
 
-result_t object_base::once(v8::Local<v8::Object> map, int32_t &retVal)
+result_t object_base::once(v8::Local<v8::Object> map, v8::Local<v8::Object> &retVal)
 {
     return JSTrigger(this).once(map, retVal);
 }
 
-result_t object_base::off(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal)
+result_t object_base::off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> &retVal)
 {
     return JSTrigger(this).off(ev, func, retVal);
 }
 
-result_t object_base::off(exlib::string ev, int32_t &retVal)
+result_t object_base::off(exlib::string ev, v8::Local<v8::Object> &retVal)
 {
     return JSTrigger(this).off(ev, retVal);
 }
 
-result_t object_base::off(v8::Local<v8::Object> map, int32_t &retVal)
+result_t object_base::off(v8::Local<v8::Object> map, v8::Local<v8::Object> &retVal)
 {
     return JSTrigger(this).off(map, retVal);
 }
 
-result_t object_base::removeAllListeners(v8::Local<v8::Array> evs, int32_t& retVal)
+result_t object_base::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).removeAllListeners(evs, retVal);
 }
