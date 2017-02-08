@@ -245,7 +245,6 @@
     <ClInclude Include="include\ifs\RpcTask.h" />
     <ClInclude Include="include\ifs\TextColor.h" />
     <ClInclude Include="include\ifs\Timer.h" />
-    <ClInclude Include="include\ifs\Trigger.h" />
     <ClInclude Include="include\ifs\Url.h" />
     <ClInclude Include="include\ifs\util.h" />
     <ClInclude Include="include\ifs\uuid.h" />

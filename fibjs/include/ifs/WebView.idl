@@ -1,5 +1,5 @@
 /*! @brief 浏览器窗口对象 */
-interface WebView : Trigger
+interface WebView : EventEmitter
 {
 	/*! @brief 关闭当前窗口 */
 	close() async;

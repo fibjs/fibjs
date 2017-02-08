@@ -171,9 +171,6 @@
     <ClInclude Include="include\ifs\RpcTask.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\Trigger.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\io.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>

@@ -13,14 +13,14 @@
  */
 
 #include "../object.h"
-#include "Trigger.h"
+#include "EventEmitter.h"
 
 namespace fibjs
 {
 
-class Trigger_base;
+class EventEmitter_base;
 
-class Service_base : public Trigger_base
+class Service_base : public EventEmitter_base
 {
     DECLARE_CLASS(Service_base);
 
@@ -95,7 +95,7 @@ namespace fibjs
         { 
             "Service", s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &Trigger_base::class_info()
+            &EventEmitter_base::class_info()
         };
 
         static ClassInfo s_ci(s_cd);

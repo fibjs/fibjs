@@ -8,7 +8,6 @@
 #ifndef EVENT_H_
 #define EVENT_H_
 
-#include "ifs/Trigger.h"
 #include "ifs/EventEmitter.h"
 
 namespace fibjs
@@ -519,11 +518,6 @@ public:
 private:
 	v8::Isolate* isolate;
 	v8::Local<v8::Object> o;
-};
-
-class Trigger: public Trigger_base
-{
-	EVENT_SUPPORT();
 };
 
 class EventEmitter: public EventEmitter_base

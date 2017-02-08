@@ -13,14 +13,14 @@
  */
 
 #include "../object.h"
-#include "Trigger.h"
+#include "EventEmitter.h"
 
 namespace fibjs
 {
 
-class Trigger_base;
+class EventEmitter_base;
 
-class WebView_base : public Trigger_base
+class WebView_base : public EventEmitter_base
 {
     DECLARE_CLASS(WebView_base);
 
@@ -81,7 +81,7 @@ namespace fibjs
         { 
             "WebView", s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &Trigger_base::class_info()
+            &EventEmitter_base::class_info()
         };
 
         static ClassInfo s_ci(s_cd);

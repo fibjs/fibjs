@@ -53,12 +53,6 @@ result_t EventEmitter_base::_new(obj_ptr<EventEmitter_base> &retVal, v8::Local<v
     return 0;
 }
 
-result_t Trigger_base::_new(obj_ptr<Trigger_base> &retVal, v8::Local<v8::Object> This)
-{
-    retVal = new Trigger();
-    return 0;
-}
-
 result_t object_base::on(exlib::string ev, v8::Local<v8::Function> func, int32_t &retVal)
 {
     return JSTrigger(this).on(ev, func, retVal);

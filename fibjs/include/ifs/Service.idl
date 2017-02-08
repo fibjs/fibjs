@@ -1,5 +1,5 @@
 /*! @brief 系统服务管理对象 */
-interface Service : Trigger
+interface Service : EventEmitter
 {
     /*! @brief 系统服务管理对象构造函数
      @param name 服务名称
