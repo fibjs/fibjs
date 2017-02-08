@@ -163,6 +163,7 @@ result_t JSFiber::js_invoke()
     Isolate* isolate = holder();
     std::vector<v8::Local<v8::Value> > argv;
     v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, m_func);
+    v8::Local<v8::Object> pThis = v8::Local<v8::Object>::New(isolate->m_isolate, m_this);
 
     argv.resize(m_argv.size());
     for (i = 0; i < m_argv.size(); i++)
@@ -170,7 +171,7 @@ result_t JSFiber::js_invoke()
 
     clear();
 
-    retVal = func->Call(wrap(), (int32_t) argv.size(), argv.data());
+    retVal = func->Call(pThis, (int32_t) argv.size(), argv.data());
 
     if (!IsEmpty(retVal))
         m_result.Reset(isolate->m_isolate, retVal);

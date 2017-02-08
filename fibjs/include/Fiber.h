@@ -71,7 +71,7 @@ public:
 
     template<typename T>
     void New(v8::Local<v8::Function> func, T &args, int32_t nArgStart,
-             int32_t nArgCount)
+             int32_t nArgCount, v8::Local<v8::Object> pThis)
     {
         Isolate* isolate = holder();
         int32_t i;
@@ -80,6 +80,7 @@ public:
         for (i = nArgStart; i < nArgCount; i++)
             m_argv[i - nArgStart].Reset(isolate->m_isolate, args[i]);
         m_func.Reset(isolate->m_isolate, func);
+        m_this.Reset(isolate->m_isolate, pThis);
 
         start();
     }
@@ -90,7 +91,18 @@ public:
                         obj_ptr<T> &retVal)
     {
         obj_ptr<JSFiber> fb = new JSFiber();
-        fb->New(func, args, nArgStart, args.Length());
+        fb->New(func, args, nArgStart, args.Length(), fb->wrap());
+        retVal = fb;
+
+        return 0;
+    }
+
+    template<typename T>
+    static result_t New(v8::Local<v8::Object> pThis, v8::Local<v8::Function> func,
+                        v8::Local<v8::Value> *args, int32_t argCount, obj_ptr<T> &retVal)
+    {
+        obj_ptr<JSFiber> fb = new JSFiber();
+        fb->New(func, args, 0, argCount, pThis);
         retVal = fb;
 
         return 0;
@@ -101,7 +113,7 @@ public:
                         v8::Local<v8::Value> *args, int32_t argCount, obj_ptr<T> &retVal)
     {
         obj_ptr<JSFiber> fb = new JSFiber();
-        fb->New(func, args, 0, argCount);
+        fb->New(func, args, 0, argCount, fb->wrap());
         retVal = fb;
 
         return 0;
@@ -126,12 +138,14 @@ public:
 
         m_func.Reset();
         m_result.Reset();
+        m_this.Reset();
     }
 
 private:
     v8::Persistent<v8::Function> m_func;
     QuickArray<v8::Persistent<v8::Value> > m_argv;
     v8::Persistent<v8::Value> m_result;
+    v8::Persistent<v8::Object> m_this;
 };
 
 } /* namespace fibjs */
