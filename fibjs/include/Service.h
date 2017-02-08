@@ -34,9 +34,12 @@ public:
     virtual result_t run(AsyncEvent* ac);
     virtual result_t isInstalled(bool& retVal);
     virtual result_t isRunning(bool& retVal);
-    virtual result_t onstop(v8::Local<v8::Function> func, int32_t& retVal);
-    virtual result_t onpause(v8::Local<v8::Function> func, int32_t& retVal);
-    virtual result_t oncontinue(v8::Local<v8::Function> func, int32_t& retVal);
+    virtual result_t get_onstop(v8::Local<v8::Function>& retVal);
+    virtual result_t set_onstop(v8::Local<v8::Function> newVal);
+    virtual result_t get_onpause(v8::Local<v8::Function>& retVal);
+    virtual result_t set_onpause(v8::Local<v8::Function> newVal);
+    virtual result_t get_oncontinue(v8::Local<v8::Function>& retVal);
+    virtual result_t set_oncontinue(v8::Local<v8::Function> newVal);
 
 private:
     exlib::string m_name;
@@ -54,20 +57,36 @@ inline result_t Service::set_name(exlib::string newVal)
     return 0;
 }
 
-inline result_t Service::onstop(v8::Local<v8::Function> func, int32_t& retVal)
+inline result_t Service::get_onstop(v8::Local<v8::Function>& retVal)
 {
-    return on("stop", func, retVal);
+    return object_base::get("stop", retVal);
 }
 
-inline result_t Service::onpause(v8::Local<v8::Function> func, int32_t& retVal)
+inline result_t Service::set_onstop(v8::Local<v8::Function> newVal)
 {
-    return on("pause", func, retVal);
+    return object_base::set("stop", newVal);
 }
 
-inline result_t Service::oncontinue(v8::Local<v8::Function> func, int32_t& retVal)
+inline result_t Service::get_onpause(v8::Local<v8::Function>& retVal)
 {
-    return on("continue", func, retVal);
+    return object_base::get("pause", retVal);
 }
+
+inline result_t Service::set_onpause(v8::Local<v8::Function> newVal)
+{
+    return object_base::set("pause", newVal);
+}
+
+inline result_t Service::get_oncontinue(v8::Local<v8::Function>& retVal)
+{
+    return object_base::get("continue", retVal);
+}
+
+inline result_t Service::set_oncontinue(v8::Local<v8::Function> newVal)
+{
+    return object_base::set("continue", newVal);
+}
+
 
 
 

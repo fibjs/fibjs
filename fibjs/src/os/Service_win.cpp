@@ -19,12 +19,12 @@ result_t Service_base::_new(exlib::string name, v8::Local<v8::Function> worker,
                             v8::Local<v8::Object> event, obj_ptr<Service_base>& retVal,
                             v8::Local<v8::Object> This)
 {
-	int32_t n;
+	v8::Local<v8::Object> r;
 	obj_ptr<Service> srv = new Service(name);
 	srv->wrap(This);
 
 	srv->SetPrivate("worker", worker);
-	srv->on(event, n);
+	srv->on(event, r);
 
 	retVal = srv;
 

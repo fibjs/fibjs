@@ -37,9 +37,12 @@ public:
     virtual result_t run(AsyncEvent* ac) = 0;
     virtual result_t isInstalled(bool& retVal) = 0;
     virtual result_t isRunning(bool& retVal) = 0;
-    virtual result_t onstop(v8::Local<v8::Function> func, int32_t& retVal) = 0;
-    virtual result_t onpause(v8::Local<v8::Function> func, int32_t& retVal) = 0;
-    virtual result_t oncontinue(v8::Local<v8::Function> func, int32_t& retVal) = 0;
+    virtual result_t get_onstop(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_onstop(v8::Local<v8::Function> newVal) = 0;
+    virtual result_t get_onpause(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_onpause(v8::Local<v8::Function> newVal) = 0;
+    virtual result_t get_oncontinue(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_oncontinue(v8::Local<v8::Function> newVal) = 0;
 
 public:
     template<typename T>
@@ -57,9 +60,12 @@ public:
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isInstalled(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isRunning(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_onstop(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_onpause(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_oncontinue(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onstop(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_onstop(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_onpause(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_onpause(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_oncontinue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_oncontinue(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 
 public:
     ASYNC_MEMBER0(Service_base, run);
@@ -80,15 +86,15 @@ namespace fibjs
             {"restart", s_restart, false},
             {"run", s_run, false},
             {"isInstalled", s_isInstalled, false},
-            {"isRunning", s_isRunning, false},
-            {"onstop", s_onstop, false},
-            {"onpause", s_onpause, false},
-            {"oncontinue", s_oncontinue, false}
+            {"isRunning", s_isRunning, false}
         };
 
         static ClassData::ClassProperty s_property[] = 
         {
-            {"name", s_get_name, s_set_name, false}
+            {"name", s_get_name, s_set_name, false},
+            {"onstop", s_get_onstop, s_set_onstop, false},
+            {"onpause", s_get_onpause, s_set_onpause, false},
+            {"oncontinue", s_get_oncontinue, s_set_oncontinue, false}
         };
 
         static ClassData s_cd = 
@@ -256,52 +262,73 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void Service_base::s_onstop(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void Service_base::s_get_onstop(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        int32_t vr;
+        v8::Local<v8::Function> vr;
 
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER();
+        PROPERTY_ENTER();
 
-        METHOD_OVER(1, 1);
-
-        ARG(v8::Local<v8::Function>, 0);
-
-        hr = pInst->onstop(v0, vr);
+        hr = pInst->get_onstop(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Service_base::s_onpause(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void Service_base::s_set_onstop(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
-        int32_t vr;
+        METHOD_INSTANCE(Service_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(v8::Local<v8::Function>);
+
+        hr = pInst->set_onstop(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void Service_base::s_get_onpause(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        v8::Local<v8::Function> vr;
 
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER();
+        PROPERTY_ENTER();
 
-        METHOD_OVER(1, 1);
-
-        ARG(v8::Local<v8::Function>, 0);
-
-        hr = pInst->onpause(v0, vr);
+        hr = pInst->get_onpause(vr);
 
         METHOD_RETURN();
     }
 
-    inline void Service_base::s_oncontinue(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void Service_base::s_set_onpause(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
-        int32_t vr;
+        METHOD_INSTANCE(Service_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(v8::Local<v8::Function>);
+
+        hr = pInst->set_onpause(v0);
+
+        PROPERTY_SET_LEAVE();
+    }
+
+    inline void Service_base::s_get_oncontinue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        v8::Local<v8::Function> vr;
 
         METHOD_INSTANCE(Service_base);
-        METHOD_ENTER();
+        PROPERTY_ENTER();
 
-        METHOD_OVER(1, 1);
-
-        ARG(v8::Local<v8::Function>, 0);
-
-        hr = pInst->oncontinue(v0, vr);
+        hr = pInst->get_oncontinue(vr);
 
         METHOD_RETURN();
+    }
+
+    inline void Service_base::s_set_oncontinue(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(Service_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(v8::Local<v8::Function>);
+
+        hr = pInst->set_oncontinue(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
 }

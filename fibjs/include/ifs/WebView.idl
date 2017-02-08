@@ -12,27 +12,15 @@ interface WebView : EventEmitter
 	 */
 	postMessage(String msg) async;
 
-	/*! @brief 绑定窗口移动事件，相当于 on("move", func);
-	 @param func 指定事件处理函数
-	 @return 返回成功绑定的数量，如果函数已绑定则返回 0
-	*/
-	Integer onmove(Function func);
+	/*! @brief 查询和绑定窗口移动事件，相当于 on("move", func); */
+	Function onmove;
 
-	/*! @brief 绑定窗口尺寸改变事件，相当于 on("size", func);
-	 @param func 指定事件处理函数
-	 @return 返回成功绑定的数量，如果函数已绑定则返回 0
-	*/
-	Integer onsize(Function func);
+	/*! @brief 查询和绑定窗口尺寸改变事件，相当于 on("size", func); */
+	Function onsize;
 
-	/*! @brief 绑定窗口关闭事件，相当于 on("close", func);
-	 @param func 指定事件处理函数
-	 @return 返回成功绑定的数量，如果函数已绑定则返回 0
-	*/
-	Integer onclose(Function func);
+	/*! @brief 查询和绑定窗口关闭事件，相当于 on("close", func); */
+	Function onclose;
 
-	/*! @brief 绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func);
-	 @param func 指定事件处理函数
-	 @return 返回成功绑定的数量，如果函数已绑定则返回 0
-	*/
-	Integer onmessage(Function func);
+	/*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func); */
+	Function onmessage;
 };

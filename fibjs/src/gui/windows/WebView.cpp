@@ -648,7 +648,7 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			vars[0] = (int32_t)rcWin.left * 96 / dpix;
 			vars[1] = (int32_t)rcWin.top * 96 / dpiy;
-			wemit("move", vars, 2);
+			webView1->_emit("move", vars, 2);
 		}
 		break;
 	case WM_SIZE:
@@ -668,7 +668,7 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			vars[0] = (int32_t)(rcWin.right - rcWin.left) * 96 / dpix;
 			vars[1] = (int32_t)(rcWin.bottom - rcWin.top) * 96 / dpiy;
-			wemit("size", vars, 2);
+			webView1->_emit("size", vars, 2);
 		}
 		break;
 	case WM_CLOSE:
@@ -676,7 +676,7 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		if (webView1 != 0)
 		{
 			SetWindowLongPtr(hWnd, 0, 0);
-			wemit("close", (Variant*)NULL, 0);
+			webView1->_emit("close", (Variant*)NULL, 0);
 			webView1->clear();
 			webView1->Release();
 		}
@@ -722,24 +722,44 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 	return 0;
 }
 
-result_t WebView::onmove(v8::Local<v8::Function> func, int32_t& retVal)
+result_t WebView::get_onmove(v8::Local<v8::Function>& retVal)
 {
-	return on("move", func, retVal);
+	return object_base::get("move", retVal);
 }
 
-result_t WebView::onsize(v8::Local<v8::Function> func, int32_t& retVal)
+result_t WebView::set_onmove(v8::Local<v8::Function> newVal)
 {
-	return on("size", func, retVal);
+	return object_base::set("move", newVal);
 }
 
-result_t WebView::onclose(v8::Local<v8::Function> func, int32_t& retVal)
+result_t WebView::get_onsize(v8::Local<v8::Function>& retVal)
 {
-	return on("close", func, retVal);
+	return object_base::get("size", retVal);
 }
 
-result_t WebView::onmessage(v8::Local<v8::Function> func, int32_t& retVal)
+result_t WebView::set_onsize(v8::Local<v8::Function> newVal)
 {
-	return on("message", func, retVal);
+	return object_base::set("size", newVal);
+}
+
+result_t WebView::get_onclose(v8::Local<v8::Function>& retVal)
+{
+	return object_base::get("close", retVal);
+}
+
+result_t WebView::set_onclose(v8::Local<v8::Function> newVal)
+{
+	return object_base::set("close", newVal);
+}
+
+result_t WebView::get_onmessage(v8::Local<v8::Function>& retVal)
+{
+	return object_base::get("message", retVal);
+}
+
+result_t WebView::set_onmessage(v8::Local<v8::Function> newVal)
+{
+	return object_base::set("message", newVal);
 }
 
 HRESULT WebView::TranslateAccelerator(MSG* msg)

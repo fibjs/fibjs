@@ -66,7 +66,8 @@ public:
     virtual result_t unpsub(exlib::string pattern, v8::Local<v8::Function> func);
     virtual result_t unpsub(v8::Local<v8::Array> patterns);
     virtual result_t unpsub(v8::Local<v8::Object> map);
-    virtual result_t onsuberror(v8::Local<v8::Function> func);
+    virtual result_t get_onsuberror(v8::Local<v8::Function>& retVal);
+    virtual result_t set_onsuberror(v8::Local<v8::Function> newVal);
     virtual result_t pub(Buffer_base *channel, Buffer_base *message, int32_t &retVal);
     virtual result_t getHash(Buffer_base *key, obj_ptr<RedisHash_base> &retVal);
     virtual result_t getList(Buffer_base *key, obj_ptr<RedisList_base> &retVal);

@@ -43,22 +43,13 @@ interface Service : EventEmitter
      */
     Boolean isRunning();
 
-    /*! @brief 绑定服务停止事件，相当于 on("stop", func);
-     @param func 指定事件处理函数
-     @return 返回成功绑定的数量，如果函数已绑定则返回 0
-    */
-    Integer onstop(Function func);
+    /*! @brief 查询和绑定服务停止事件，相当于 on("stop", func); */
+    Function onstop;
 
-    /*! @brief 绑定服务暂停事件，相当于 on("pause", func);
-     @param func 指定事件处理函数
-     @return 返回成功绑定的数量，如果函数已绑定则返回 0
-    */
-    Integer onpause(Function func);
+    /*! @brief 查询和绑定服务暂停事件，相当于 on("pause", func); */
+    Function onpause;
 
-    /*! @brief 绑定服务恢复事件，相当于 on("continue", func);
-     @param func 指定事件处理函数
-     @return 返回成功绑定的数量，如果函数已绑定则返回 0
-    */
-    Integer oncontinue(Function func);
+    /*! @brief 查询和绑定服务恢复事件，相当于 on("continue", func); */
+    Function oncontinue;
 
 };

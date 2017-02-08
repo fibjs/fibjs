@@ -650,14 +650,16 @@ describe("redis", () => {
                 err_num++;
             }
 
-            rdb1.onsuberror(my_err);
+            assert.equal(rdb1.onsuberror, null);
+
+            rdb1.onsuberror = my_err;
             assert.throws(() => {
                 rdb1.command("xxxxx");
             });
             coroutine.sleep(100);
             assert.equal(err_num, 0);
 
-            rdb.onsuberror(my_err);
+            rdb.onsuberror = my_err;
             rdb.close();
             coroutine.sleep(100);
             assert.equal(err_num, 1);

@@ -28,9 +28,9 @@ if (win) {
 
             assert.ok(check);
 
-            win.onclose(() => {
+            win.onclose = () => {
                 closed = true;
-            });
+            };
 
             GC();
             var no1 = os.memoryUsage().nativeObjects.objects;

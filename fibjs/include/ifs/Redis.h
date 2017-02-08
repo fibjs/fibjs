@@ -73,7 +73,8 @@ public:
     virtual result_t unpsub(exlib::string pattern, v8::Local<v8::Function> func) = 0;
     virtual result_t unpsub(v8::Local<v8::Array> patterns) = 0;
     virtual result_t unpsub(v8::Local<v8::Object> map) = 0;
-    virtual result_t onsuberror(v8::Local<v8::Function> func) = 0;
+    virtual result_t get_onsuberror(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_onsuberror(v8::Local<v8::Function> newVal) = 0;
     virtual result_t pub(Buffer_base* channel, Buffer_base* message, int32_t& retVal) = 0;
     virtual result_t getHash(Buffer_base* key, obj_ptr<RedisHash_base>& retVal) = 0;
     virtual result_t getList(Buffer_base* key, obj_ptr<RedisList_base>& retVal) = 0;
@@ -126,7 +127,8 @@ public:
     static void s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_psub(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_onsuberror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onsuberror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_onsuberror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_pub(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getHash(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getList(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -183,7 +185,6 @@ namespace fibjs
             {"unsub", s_unsub, false},
             {"psub", s_psub, false},
             {"unpsub", s_unpsub, false},
-            {"onsuberror", s_onsuberror, false},
             {"pub", s_pub, false},
             {"getHash", s_getHash, false},
             {"getList", s_getList, false},
@@ -194,10 +195,15 @@ namespace fibjs
             {"close", s_close, false}
         };
 
+        static ClassData::ClassProperty s_property[] = 
+        {
+            {"onsuberror", s_get_onsuberror, s_set_onsuberror, false}
+        };
+
         static ClassData s_cd = 
         { 
             "Redis", s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &object_base::class_info()
         };
 
@@ -771,18 +777,27 @@ namespace fibjs
         METHOD_VOID();
     }
 
-    inline void Redis_base::s_onsuberror(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void Redis_base::s_get_onsuberror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        v8::Local<v8::Function> vr;
+
+        METHOD_INSTANCE(Redis_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_onsuberror(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Redis_base::s_set_onsuberror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
         METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+        PROPERTY_ENTER();
+        PROPERTY_VAL(v8::Local<v8::Function>);
 
-        METHOD_OVER(1, 1);
+        hr = pInst->set_onsuberror(v0);
 
-        ARG(v8::Local<v8::Function>, 0);
-
-        hr = pInst->onsuberror(v0);
-
-        METHOD_VOID();
+        PROPERTY_SET_LEAVE();
     }
 
     inline void Redis_base::s_pub(const v8::FunctionCallbackInfo<v8::Value>& args)
