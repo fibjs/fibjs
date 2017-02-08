@@ -648,7 +648,7 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			vars[0] = (int32_t)rcWin.left * 96 / dpix;
 			vars[1] = (int32_t)rcWin.top * 96 / dpiy;
-			webView1->_trigger("move", vars, 2);
+			wemit("move", vars, 2);
 		}
 		break;
 	case WM_SIZE:
@@ -668,7 +668,7 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 			vars[0] = (int32_t)(rcWin.right - rcWin.left) * 96 / dpix;
 			vars[1] = (int32_t)(rcWin.bottom - rcWin.top) * 96 / dpiy;
-			webView1->_trigger("size", vars, 2);
+			wemit("size", vars, 2);
 		}
 		break;
 	case WM_CLOSE:
@@ -676,7 +676,7 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		if (webView1 != 0)
 		{
 			SetWindowLongPtr(hWnd, 0, 0);
-			webView1->_trigger("close", (Variant*)NULL, 0);
+			wemit("close", (Variant*)NULL, 0);
 			webView1->clear();
 			webView1->Release();
 		}
@@ -1404,7 +1404,7 @@ HRESULT WebView::OnPostMessage(DISPPARAMS* pDispParams)
 	if (pDispParams->rgvarg[0].vt == VT_BSTR)
 	{
 		v = UTF8_A(pDispParams->rgvarg[0].bstrVal);
-		_trigger("message", &v, 1);
+		_emit("message", &v, 1);
 	}
 	else
 	{
@@ -1412,7 +1412,7 @@ HRESULT WebView::OnPostMessage(DISPPARAMS* pDispParams)
 
 		vstr.ChangeType(VT_BSTR);
 		v = UTF8_A(vstr.bstrVal);
-		_trigger("message", &v, 1);
+		_emit("message", &v, 1);
 	}
 
 	return S_OK;

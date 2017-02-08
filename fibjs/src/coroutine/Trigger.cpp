@@ -31,8 +31,7 @@ public:
             {"removeAllListeners", JSTrigger::s_removeAllListeners, false},
             {"setMaxListeners", JSTrigger::s_setMaxListeners, false},
             {"listeners", JSTrigger::s_listeners, false},
-            {"trigger", JSTrigger::s_trigger, false},
-            {"emit", JSTrigger::s_trigger, false}
+            {"emit", JSTrigger::s_emit, false}
         };
 
         ClassData& cd = EventEmitter_base::class_info().date();
@@ -98,7 +97,7 @@ result_t object_base::listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
     return JSTrigger(this).listeners(ev, retVal);
 }
 
-result_t object_base::_trigger(exlib::string ev, Variant *args, int32_t argCount)
+result_t object_base::_emit(exlib::string ev, Variant *args, int32_t argCount)
 {
     class jsTrigger: public AsyncEvent
     {
@@ -121,7 +120,7 @@ result_t object_base::_trigger(exlib::string ev, Variant *args, int32_t argCount
             for (i = 0; i < m_args.size(); i++)
                 argv[i] = v8::Local<v8::Value>::New(m_obj->holder()->m_isolate, m_args[i]);
 
-            JSTrigger(m_obj)._trigger(m_ev, argv.data(), (int32_t) argv.size());
+            JSTrigger(m_obj)._emit(m_ev, argv.data(), (int32_t) argv.size());
 
             delete this;
 
@@ -141,9 +140,9 @@ result_t object_base::_trigger(exlib::string ev, Variant *args, int32_t argCount
     return 0;
 }
 
-result_t object_base::trigger(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t object_base::emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-    return JSTrigger(this).trigger(ev, args);
+    return JSTrigger(this).emit(ev, args);
 }
 
 }

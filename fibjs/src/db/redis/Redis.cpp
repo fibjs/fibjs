@@ -111,7 +111,7 @@ result_t Redis::_command(exlib::string &req, Variant &retVal, AsyncEvent *ac)
             return pThis->m_stmBuffered->readLine(REDIS_MAX_LINE, pThis->m_strLine, pThis);
         }
 
-        void _trigger()
+        void _emit()
         {
             obj_ptr<List_base> list = List_base::getInstance(m_val.object());
 
@@ -163,7 +163,7 @@ result_t Redis::_command(exlib::string &req, Variant &retVal, AsyncEvent *ac)
                 else
                     list->_indexed_getter(2, vs[1]);
 
-                m_pThis->_trigger(s.c_str(), vs, sz);
+                m_pThis->_emit(s.c_str(), vs, sz);
             }
         }
 
@@ -198,7 +198,7 @@ result_t Redis::_command(exlib::string &req, Variant &retVal, AsyncEvent *ac)
                 return done(hr);
             }
 
-            _trigger();
+            _emit();
 
             m_val.clear();
             set(read);
@@ -288,7 +288,7 @@ result_t Redis::_command(exlib::string &req, Variant &retVal, AsyncEvent *ac)
         virtual int32_t error(int32_t v)
         {
             if (m_subMode == 1)
-                m_pThis->_trigger("suberror", (Variant *)NULL, 0);
+                m_pThis->_emit("suberror", (Variant *)NULL, 0);
 
             return v;
         }

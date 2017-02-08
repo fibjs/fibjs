@@ -353,8 +353,8 @@ public:
 		return 0;
 	}
 
-	result_t _trigger(exlib::string ev, v8::Local<v8::Value> *args,
-	                  int32_t argCount)
+	result_t _emit(exlib::string ev, v8::Local<v8::Value> *args,
+	               int32_t argCount)
 	{
 		result_t hr;
 		exlib::string strKey = "_e_";
@@ -375,7 +375,7 @@ public:
 		return 0;
 	}
 
-	result_t trigger(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args)
+	result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args)
 	{
 		std::vector< v8::Local<v8::Value> > _args;
 		int32_t len = args.Length();
@@ -385,7 +385,7 @@ public:
 		for (int32_t i = 1; i < len; i ++)
 			_args[i - 1] = args[i];
 
-		return _trigger(ev, _args.data(), (int32_t) _args.size());
+		return _emit(ev, _args.data(), (int32_t) _args.size());
 	}
 
 public:
@@ -500,7 +500,7 @@ public:
 		METHOD_RETURN();
 	}
 
-	static void s_trigger(const v8::FunctionCallbackInfo<v8::Value>& args)
+	static void s_emit(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		JSTrigger t(args);
 
@@ -510,7 +510,7 @@ public:
 
 		ARG(exlib::string, 0);
 
-		hr = t.trigger(v0, args);
+		hr = t.emit(v0, args);
 
 		METHOD_VOID();
 	}

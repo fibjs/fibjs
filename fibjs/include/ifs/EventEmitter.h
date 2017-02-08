@@ -39,7 +39,6 @@ public:
     virtual result_t removeAllListeners(v8::Local<v8::Array> evs, int32_t& retVal) = 0;
     virtual result_t setMaxListeners(int32_t n) = 0;
     virtual result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal) = 0;
-    virtual result_t trigger(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
     virtual result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
 
 public:
@@ -56,7 +55,6 @@ public:
     static void s_removeAllListeners(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_listeners(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_trigger(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_emit(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
@@ -76,7 +74,6 @@ namespace fibjs
             {"removeAllListeners", s_removeAllListeners, false},
             {"setMaxListeners", s_setMaxListeners, false},
             {"listeners", s_listeners, false},
-            {"trigger", s_trigger, false},
             {"emit", s_emit, false}
         };
 
@@ -281,20 +278,6 @@ namespace fibjs
         hr = pInst->listeners(v0, vr);
 
         METHOD_RETURN();
-    }
-
-    inline void EventEmitter_base::s_trigger(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(EventEmitter_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(-1, 1);
-
-        ARG(exlib::string, 0);
-
-        hr = pInst->trigger(v0, args);
-
-        METHOD_VOID();
     }
 
     inline void EventEmitter_base::s_emit(const v8::FunctionCallbackInfo<v8::Value>& args)

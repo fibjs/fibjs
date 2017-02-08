@@ -340,10 +340,8 @@ typedef int32_t result_t;
     {   return 0;} \
     virtual result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal) \
     {   return object_base::listeners(ev, retVal);} \
-    virtual result_t trigger(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args) \
-    {   return object_base::trigger(ev, args);} \
     virtual result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args) \
-    {   return object_base::trigger(ev, args);}
+    {   return object_base::emit(ev, args);}
 
 #define FIBER_FREE() \
     public: \
