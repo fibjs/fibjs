@@ -228,6 +228,11 @@ public:
         refs_.dec();
     }
 
+    ClassData& date()
+    {
+        return m_cd;
+    }
+
     intptr_t dump(v8::Local<v8::Object> &o)
     {
         Isolate* isolate = Isolate::current();

@@ -19,9 +19,31 @@ namespace fibjs
 class RootModule_events : public RootModule
 {
 public:
+    RootModule_events()
+    {
+        static ClassData::ClassMethod s_method[] =
+        {
+            {"on", JSTrigger::s_on, false},
+            {"addListener", JSTrigger::s_on, false},
+            {"once", JSTrigger::s_once, false},
+            {"off", JSTrigger::s_off, false},
+            {"removeListener", JSTrigger::s_off, false},
+            {"removeAllListeners", JSTrigger::s_removeAllListeners, false},
+            {"setMaxListeners", JSTrigger::s_setMaxListeners, false},
+            {"listeners", JSTrigger::s_listeners, false},
+            {"trigger", JSTrigger::s_trigger, false},
+            {"emit", JSTrigger::s_trigger, false}
+        };
+
+        ClassData& cd = EventEmitter_base::class_info().date();
+        cd.mc = 10;
+        cd.cms = s_method;
+    }
+
+public:
     virtual ClassInfo &class_info()
     {
-        return events::class_info();
+        return events_base::class_info();
     }
 } s_RootModule_events;
 

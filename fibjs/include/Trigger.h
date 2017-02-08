@@ -10,15 +10,9 @@
 
 #include "ifs/Trigger.h"
 #include "ifs/EventEmitter.h"
-#include "ifs/events.h"
 
 namespace fibjs
 {
-
-class Trigger: public Trigger_base
-{
-	EVENT_SUPPORT();
-};
 
 class JSTrigger
 {
@@ -527,61 +521,15 @@ private:
 	v8::Local<v8::Object> o;
 };
 
-class EventEmitter: public EventEmitter_base
+class Trigger: public Trigger_base
 {
-	DECLARE_CLASS(EventEmitter);
 	EVENT_SUPPORT();
 };
 
-inline ClassInfo& EventEmitter::class_info()
+class EventEmitter: public EventEmitter_base
 {
-	static ClassData::ClassMethod s_method[] =
-	{
-		{"on", JSTrigger::s_on, false},
-		{"addListener", JSTrigger::s_on, false},
-		{"once", JSTrigger::s_once, false},
-		{"off", JSTrigger::s_off, false},
-		{"removeListener", JSTrigger::s_off, false},
-		{"removeAllListeners", JSTrigger::s_removeAllListeners, false},
-		{"setMaxListeners", JSTrigger::s_setMaxListeners, false},
-		{"listeners", JSTrigger::s_listeners, false},
-		{"trigger", JSTrigger::s_trigger, false},
-		{"emit", JSTrigger::s_trigger, false}
-	};
-
-	static ClassData s_cd =
-	{
-		"EventEmitterEx", NULL, NULL,
-		10, s_method, 0, NULL, 0, NULL, NULL, NULL,
-		&EventEmitter_base::class_info()
-	};
-
-	static ClassInfo s_ci(s_cd);
-	return s_ci;
-}
-
-class events : public events_base
-{
-	DECLARE_CLASS(events);
+	EVENT_SUPPORT();
 };
-
-inline ClassInfo& events::class_info()
-{
-	static ClassData::ClassObject s_object[] =
-	{
-		{"EventEmitter", EventEmitter::class_info}
-	};
-
-	static ClassData s_cd =
-	{
-		"events", NULL, NULL,
-		0, NULL, 1, s_object, 0, NULL, NULL, NULL,
-		&events_base::class_info()
-	};
-
-	static ClassInfo s_ci(s_cd);
-	return s_ci;
-}
 
 }
 
