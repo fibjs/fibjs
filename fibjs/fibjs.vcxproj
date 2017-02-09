@@ -504,7 +504,7 @@
     <ClCompile Include="src\util\util.cpp" />
     <ClCompile Include="src\websocket\WebSocketHandler.cpp" />
     <ClCompile Include="src\websocket\WebSocketMessage.cpp" />
-    <ClCompile Include="src\websocket\websocket.cpp" />
+    <ClCompile Include="src\websocket\ws.cpp" />
     <ClCompile Include="src\xml\XmlAttr.cpp" />
     <ClCompile Include="src\xml\XmlCDATASection.cpp" />
     <ClCompile Include="src\xml\XmlComment.cpp" />
