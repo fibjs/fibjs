@@ -85,7 +85,7 @@ result_t List::push(Variant v, int32_t& retVal)
 
     m_array.push_back(v);
 
-    retVal = m_array.size();
+    retVal = (int32_t)m_array.size();
     return 0;
 }
 
@@ -100,7 +100,7 @@ result_t List::push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& re
     for (i = 0; i < len; i++)
         push(args[i], r);
 
-    retVal = m_array.size();
+    retVal = (int32_t)m_array.size();
     return 0;
 }
 
