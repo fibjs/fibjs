@@ -414,10 +414,11 @@ result_t HttpResponse::addCookie(HttpCookie_base *cookie)
 {
     obj_ptr<List_base> cookies;
     Variant v;
+    int32_t r;
 
     v = cookie;
     get_cookies(cookies);
-    cookies->push(v);
+    cookies->push(v, r);
 
     return 0;
 }

@@ -63,7 +63,8 @@ describe("collection", () => {
 
         it("push", () => {
             var a = new collection.List([1]);
-            a.push(2, 3, 4);
+            assert.equal(a.length, 1);
+            assert.equal(a.push(2, 3, 4), 4);
             assert.deepEqual(a.toArray(), [1, 2, 3, 4]);
         });
 

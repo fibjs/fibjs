@@ -33,13 +33,15 @@ interface List : object
 
     /*! @brief 在数组结尾添加一个元素
       @param v 指定添加的元素
+      @return 添加元素之后数组的长度
      */
-    push(Variant v);
+    Integer push(Variant v);
 
     /*! @brief 在数组结尾添加一个元素
       @param ... 指定添加的多个元素
+      @return 添加元素之后数组的长度
      */
-    push(...);
+    Integer push(...);
 
     /*! @brief 在数组结尾添加一组元素
       @param data 添加的一组元素
