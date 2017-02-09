@@ -103,12 +103,12 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 ### on unix:
 	sh build -j
 
-### on Windows (Visual Studio 2013 Express):
+### on Windows (Visual Studio 2015 Express):
 	Start
 	  All Programs
-	    Visual Studio 2013
+	    Visual Studio 2015
 	      Visual Studio Tools
-	        Developer Command Prompt for VS2013
+	        Developer Command Prompt for VS2015
 	        
 	build
 

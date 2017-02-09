@@ -30,8 +30,8 @@ public:
     virtual result_t freeze() = 0;
     virtual result_t get_length(int32_t& retVal) = 0;
     virtual result_t resize(int32_t sz) = 0;
-    virtual result_t push(Variant v) = 0;
-    virtual result_t push(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
+    virtual result_t push(Variant v, int32_t& retVal) = 0;
+    virtual result_t push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
     virtual result_t pushArray(v8::Local<v8::Array> data) = 0;
     virtual result_t pop(Variant& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal) = 0;
@@ -206,6 +206,8 @@ namespace fibjs
 
     inline void List_base::s_push(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        int32_t vr;
+
         METHOD_INSTANCE(List_base);
         METHOD_ENTER();
 
@@ -213,13 +215,13 @@ namespace fibjs
 
         ARG(Variant, 0);
 
-        hr = pInst->push(v0);
+        hr = pInst->push(v0, vr);
 
         METHOD_OVER(-1, 0);
 
-        hr = pInst->push(args);
+        hr = pInst->push(args, vr);
 
-        METHOD_VOID();
+        METHOD_RETURN();
     }
 
     inline void List_base::s_pushArray(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -112,7 +112,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 }
                 else
                     msg->set_value("");
-
+                int32_t toDrop;
                 if (levelCount[p])
                 {
                     for (i = 0; i < rc; i++)
@@ -120,7 +120,7 @@ result_t Routing::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                             list->push(
                                 value.substr(ovector[i * 2],
                                              ovector[i * 2 + 1]
-                                             - ovector[i * 2]));
+                                             - ovector[i * 2]), toDrop);
                 }
             }
 

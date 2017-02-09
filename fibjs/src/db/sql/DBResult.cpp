@@ -51,20 +51,20 @@ result_t DBResult::resize(int32_t sz)
     return m_array->resize(sz);
 }
 
-result_t DBResult::push(Variant v)
+result_t DBResult::push(Variant v, int32_t& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return m_array->push(v);
+    return m_array->push(v, retVal);
 }
 
-result_t DBResult::push(const v8::FunctionCallbackInfo<v8::Value> &args)
+result_t DBResult::push(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return m_array->push(args);
+    return m_array->push(args, retVal);
 }
 
 result_t DBResult::pushArray(v8::Local<v8::Array> data)

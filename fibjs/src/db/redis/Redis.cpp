@@ -169,10 +169,11 @@ result_t Redis::_command(exlib::string &req, Variant &retVal, AsyncEvent *ac)
 
         int32_t setResult(int32_t hr = 0)
         {
+            int32_t r;
             while (m_lists.size())
             {
                 int32_t idx = (int32_t)m_lists.size() - 1;
-                m_lists[idx]->push(m_val);
+                m_lists[idx]->push(m_val, r);
                 m_counts[idx] --;
 
                 if (m_counts[idx])
