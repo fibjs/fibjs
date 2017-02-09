@@ -5,8 +5,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _websocket_base_H_
-#define _websocket_base_H_
+#ifndef _ws_base_H_
+#define _ws_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -21,9 +21,9 @@ class WebSocketMessage_base;
 class WebSocketHandler_base;
 class Stream_base;
 
-class websocket_base : public object_base
+class ws_base : public object_base
 {
-    DECLARE_CLASS(websocket_base);
+    DECLARE_CLASS(ws_base);
 
 public:
     enum{
@@ -36,7 +36,7 @@ public:
     };
 
 public:
-    // websocket_base
+    // ws_base
     static result_t connect(exlib::string url, exlib::string origin, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
 
 public:
@@ -60,7 +60,7 @@ public:
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE3(websocket_base, connect, exlib::string, exlib::string, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE3(ws_base, connect, exlib::string, exlib::string, obj_ptr<Stream_base>);
 };
 
 }
@@ -71,7 +71,7 @@ public:
 
 namespace fibjs
 {
-    inline ClassInfo& websocket_base::class_info()
+    inline ClassInfo& ws_base::class_info()
     {
         static ClassData::ClassMethod s_method[] = 
         {
@@ -96,7 +96,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "websocket", s__new, NULL, 
+            "ws", s__new, NULL, 
             ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
             NULL
         };
@@ -105,49 +105,49 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void websocket_base::s_get_CONTINUE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void ws_base::s_get_CONTINUE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr = _CONTINUE;
         PROPERTY_ENTER();
         METHOD_RETURN();
     }
 
-    inline void websocket_base::s_get_TEXT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void ws_base::s_get_TEXT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr = _TEXT;
         PROPERTY_ENTER();
         METHOD_RETURN();
     }
 
-    inline void websocket_base::s_get_BINARY(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void ws_base::s_get_BINARY(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr = _BINARY;
         PROPERTY_ENTER();
         METHOD_RETURN();
     }
 
-    inline void websocket_base::s_get_CLOSE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void ws_base::s_get_CLOSE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr = _CLOSE;
         PROPERTY_ENTER();
         METHOD_RETURN();
     }
 
-    inline void websocket_base::s_get_PING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void ws_base::s_get_PING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr = _PING;
         PROPERTY_ENTER();
         METHOD_RETURN();
     }
 
-    inline void websocket_base::s_get_PONG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void ws_base::s_get_PONG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr = _PONG;
         PROPERTY_ENTER();
         METHOD_RETURN();
     }
 
-    inline void websocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
+    inline void ws_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         obj_ptr<Stream_base> vr;
 

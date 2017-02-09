@@ -7,7 +7,7 @@
 
 #include "object.h"
 #include "ifs/io.h"
-#include "ifs/websocket.h"
+#include "ifs/ws.h"
 #include "ifs/http.h"
 #include "Map.h"
 #include <mbedtls/mbedtls/sha1.h>
@@ -17,10 +17,10 @@
 namespace fibjs
 {
 
-DECLARE_MODULE(websocket);
+DECLARE_MODULE(ws);
 
-result_t websocket_base::connect(exlib::string url, exlib::string origin,
-                                 obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+result_t ws_base::connect(exlib::string url, exlib::string origin,
+                          obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
 	class asyncConnect: public AsyncState
 	{

@@ -3,9 +3,9 @@
 
   用以将 Http 协议转换为 WebSocket 包协议消息。创建方式：
   @code
-  var websocket = require("websocket");
+  var ws = require("ws");
 
-  var pkghdlr = new websocket.WebSocketHandler(...);
+  var pkghdlr = new ws.WebSocketHandler(...);
   @endcode
  */
 interface WebSocketHandler: HandlerEx

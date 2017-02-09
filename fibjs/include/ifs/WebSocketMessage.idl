@@ -3,9 +3,9 @@
 
  创建方法：
  @code
- var websocket = require("websocket");
+ var ws = require("ws");
 
- var msg = new websocket.Message();
+ var msg = new ws.Message();
  @endcode */
 interface WebSocketMessage: Message
 {
@@ -14,7 +14,7 @@ interface WebSocketMessage: Message
 	@param masked websocket 消息掩码，缺省为 true
 	@param maxSize 最大包尺寸，以 MB 为单位，缺省为 67108864(64M)
 	 */
-	WebSocketMessage(Integer type = websocket.BINARY, Boolean masked = true, Integer maxSize = 67108864);
+	WebSocketMessage(Integer type = ws.BINARY, Boolean masked = true, Integer maxSize = 67108864);
 
 	/*! @brief websocket 消息类型 */
 	Integer type;

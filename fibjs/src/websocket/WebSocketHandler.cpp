@@ -141,7 +141,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
-            pThis->m_msg = new WebSocketMessage(websocket_base::_TEXT, false, pThis->m_pThis->m_maxSize);
+            pThis->m_msg = new WebSocketMessage(ws_base::_TEXT, false, pThis->m_pThis->m_maxSize);
 
             pThis->set(invoke);
             return pThis->m_msg->readFrom(pThis->m_stm, pThis);
@@ -159,9 +159,9 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             int32_t type;
             pThis->m_msg->get_type(type);
 
-            if (type != websocket_base::_TEXT &&
-                    type != websocket_base::_BINARY &&
-                    type != websocket_base::_PING)
+            if (type != ws_base::_TEXT &&
+                    type != ws_base::_BINARY &&
+                    type != ws_base::_PING)
                 return pThis->done(CALL_RETURN_NULL);
 
             pThis->m_pThis->m_stats->inc(PACKET_TOTAL);
@@ -170,7 +170,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             pThis->m_msg->get_response(pThis->m_rep);
             pThis->set(send);
-            if (type == websocket_base::_PING)
+            if (type == ws_base::_PING)
             {
                 obj_ptr<SeekableStream_base> body;
                 pThis->m_msg->get_body(body);

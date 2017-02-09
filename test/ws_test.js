@@ -1,7 +1,7 @@
 var test = require("test");
 test.setup();
 
-var websocket = require('websocket');
+var ws = require('ws');
 var io = require('io');
 var http = require('http');
 var coroutine = require('coroutine');
@@ -22,7 +22,7 @@ describe('websocket', () => {
         ms.write(data);
         ms.rewind();
 
-        var msg = new websocket.Message();
+        var msg = new ws.Message();
         msg.readFrom(ms);
 
         return {
@@ -35,31 +35,31 @@ describe('websocket', () => {
     it("readFrom", () => {
         assert.deepEqual(load_msg([0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]), {
             "masked": false,
-            "type": websocket.TEXT,
+            "type": ws.TEXT,
             "data": "Hello"
         });
 
         assert.deepEqual(load_msg([0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58]), {
             "masked": true,
-            "type": websocket.TEXT,
+            "type": ws.TEXT,
             "data": "Hello"
         });
 
         assert.deepEqual(load_msg([0x89, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]), {
             "masked": false,
-            "type": websocket.PING,
+            "type": ws.PING,
             "data": "Hello"
         });
 
         assert.deepEqual(load_msg([0x8a, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58]), {
             "masked": true,
-            "type": websocket.PONG,
+            "type": ws.PONG,
             "data": "Hello"
         });
 
         assert.deepEqual(load_msg([0x01, 0x03, 0x48, 0x65, 0x6c, 0x80, 0x02, 0x6c, 0x6f]), {
             "masked": false,
-            "type": websocket.TEXT,
+            "type": ws.TEXT,
             "data": "Hello"
         });
 
@@ -73,7 +73,7 @@ describe('websocket', () => {
 
         assert.deepEqual(load_msg(buf), {
             "masked": false,
-            "type": websocket.BINARY,
+            "type": ws.BINARY,
             "data": s
         });
 
@@ -87,7 +87,7 @@ describe('websocket', () => {
 
         assert.deepEqual(load_msg(buf), {
             "masked": false,
-            "type": websocket.BINARY,
+            "type": ws.BINARY,
             "data": s
         });
 
@@ -102,8 +102,8 @@ describe('websocket', () => {
 
     it("sendTo", () => {
         function test_msg(n, masked) {
-            var msg = new websocket.Message();
-            msg.type = websocket.TEXT;
+            var msg = new ws.Message();
+            msg.type = ws.TEXT;
             msg.masked = masked;
 
             var buf = new Buffer(n);
@@ -117,7 +117,7 @@ describe('websocket', () => {
             msg.sendTo(ms);
             ms.rewind();
 
-            var msg = new websocket.Message();
+            var msg = new ws.Message();
             msg.readFrom(ms);
 
             assert.equal(msg.body.readAll().toString(), buf.toString());
@@ -139,8 +139,8 @@ describe('websocket', () => {
 
     it("handshake", () => {
         function test_msg(n, masked) {
-            var msg = new websocket.Message();
-            msg.type = websocket.TEXT;
+            var msg = new ws.Message();
+            msg.type = ws.TEXT;
             msg.masked = masked;
 
             var buf = new Buffer(n);
@@ -152,13 +152,13 @@ describe('websocket', () => {
 
             msg.sendTo(rep.stream);
 
-            var msg = new websocket.Message();
+            var msg = new ws.Message();
             msg.readFrom(rep.stream);
 
             assert.equal(msg.body.readAll().toString(), buf.toString());
         }
 
-        var httpd = new http.Server(8810 + base_port, new websocket.Handler((v) => {
+        var httpd = new http.Server(8810 + base_port, new ws.Handler((v) => {
             v.response.body = v.body;
         }));
         ss.push(httpd.socket);
@@ -222,8 +222,8 @@ describe('websocket', () => {
 
     it("connect", () => {
         function test_msg(n, masked) {
-            var msg = new websocket.Message();
-            msg.type = websocket.TEXT;
+            var msg = new ws.Message();
+            msg.type = ws.TEXT;
             msg.masked = masked;
 
             var buf = new Buffer(n);
@@ -235,13 +235,13 @@ describe('websocket', () => {
 
             msg.sendTo(s);
 
-            var msg = new websocket.Message();
+            var msg = new ws.Message();
             msg.readFrom(s);
 
             assert.equal(msg.body.readAll().toString(), buf.toString());
         }
 
-        var s = websocket.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
+        var s = ws.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
 
         test_msg(10, true);
         test_msg(100, true);
@@ -253,30 +253,30 @@ describe('websocket', () => {
     });
 
     it("ping", () => {
-        var s = websocket.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
+        var s = ws.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
 
         var body = "hello";
-        var msg = new websocket.Message();
-        msg.type = websocket.PING;
+        var msg = new ws.Message();
+        msg.type = ws.PING;
         msg.body.write(body);
         msg.sendTo(s);
 
-        var msg = new websocket.Message();
+        var msg = new ws.Message();
         msg.readFrom(s);
 
-        assert.equal(msg.type, websocket.PONG);
+        assert.equal(msg.type, ws.PONG);
         assert.equal(msg.body.readAll().toString(), body);
     });
 
     it("close", () => {
-        var s = websocket.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
+        var s = ws.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
 
-        var msg = new websocket.Message();
-        msg.type = websocket.CLOSE;
+        var msg = new ws.Message();
+        msg.type = ws.CLOSE;
 
         msg.sendTo(s);
 
-        var msg = new websocket.Message();
+        var msg = new ws.Message();
 
         assert.throws(() => {
             msg.readFrom(s);
@@ -284,46 +284,46 @@ describe('websocket', () => {
     });
 
     it("non-control opcode", () => {
-        var s = websocket.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
+        var s = ws.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
 
-        var msg = new websocket.Message();
+        var msg = new ws.Message();
         msg.type = 5;
         msg.sendTo(s);
 
-        var msg = new websocket.Message();
+        var msg = new ws.Message();
         assert.throws(() => {
             msg.readFrom(s);
         });
     });
 
     it("drop other type message", () => {
-        var s = websocket.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
+        var s = ws.connect("ws://127.0.0.1:" + (8810 + base_port) + "/");
 
-        var msg = new websocket.Message();
-        msg.type = websocket.PONG;
+        var msg = new ws.Message();
+        msg.type = ws.PONG;
         msg.sendTo(s);
 
-        var msg = new websocket.Message();
+        var msg = new ws.Message();
         assert.throws(() => {
             msg.readFrom(s);
         });
     });
 
     it("remote close", () => {
-        var httpd = new http.Server(8811 + base_port, new websocket.Handler((v) => {
+        var httpd = new http.Server(8811 + base_port, new ws.Handler((v) => {
             v.stream.close();
         }));
         ss.push(httpd.socket);
         httpd.asyncRun();
 
-        var s = websocket.connect("ws://127.0.0.1:" + (8811 + base_port) + "/");
+        var s = ws.connect("ws://127.0.0.1:" + (8811 + base_port) + "/");
 
-        var msg = new websocket.Message();
-        msg.type = websocket.TEXT;
+        var msg = new ws.Message();
+        msg.type = ws.TEXT;
 
         msg.sendTo(s);
 
-        var msg = new websocket.Message();
+        var msg = new ws.Message();
         assert.throws(() => {
             msg.readFrom(s);
         });
@@ -332,7 +332,7 @@ describe('websocket', () => {
     it("onerror", () => {
         var err_500 = 0;
 
-        var hdlr = new websocket.Handler((v) => {
+        var hdlr = new ws.Handler((v) => {
             throw new Error("test error");
         });
 
@@ -347,10 +347,10 @@ describe('websocket', () => {
         ss.push(httpd.socket);
         httpd.asyncRun();
 
-        var s = websocket.connect("ws://127.0.0.1:" + (8812 + base_port) + "/");
+        var s = ws.connect("ws://127.0.0.1:" + (8812 + base_port) + "/");
 
-        var msg = new websocket.Message();
-        msg.type = websocket.TEXT;
+        var msg = new ws.Message();
+        msg.type = ws.TEXT;
 
         msg.sendTo(s);
 

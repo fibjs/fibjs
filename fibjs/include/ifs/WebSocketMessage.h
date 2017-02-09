@@ -19,7 +19,7 @@ namespace fibjs
 {
 
 class Message_base;
-class websocket_base;
+class ws_base;
 
 class WebSocketMessage_base : public Message_base
 {
@@ -51,7 +51,7 @@ public:
 
 }
 
-#include "websocket.h"
+#include "ws.h"
 
 namespace fibjs
 {
@@ -89,7 +89,7 @@ namespace fibjs
 
         METHOD_OVER(3, 0);
 
-        OPT_ARG(int32_t, 0, websocket_base::_BINARY);
+        OPT_ARG(int32_t, 0, ws_base::_BINARY);
         OPT_ARG(bool, 1, true);
         OPT_ARG(int32_t, 2, 67108864);
 

@@ -337,7 +337,7 @@ result_t WebSocketMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
 
             if (pThis->m_fragmented)
             {
-                if ((ch & 0x0f) != websocket_base::_CONTINUE)
+                if ((ch & 0x0f) != ws_base::_CONTINUE)
                     return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
             }
             else
@@ -475,8 +475,8 @@ result_t WebSocketMessage::get_response(obj_ptr<Message_base> &retVal)
     if (!m_response)
     {
         int32_t type = m_type;
-        if (type == websocket_base::_PING)
-            type = websocket_base::_PONG;
+        if (type == ws_base::_PING)
+            type = ws_base::_PONG;
         m_response = new WebSocketMessage(type, false, m_maxSize, true);
     }
 

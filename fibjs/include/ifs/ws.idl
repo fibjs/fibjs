@@ -3,10 +3,10 @@
 
  使用方法：
  @code
- var websocket = require('websocket');
+ var ws = require('ws');
  @endcode
  */
-module websocket
+module ws
 {
     /*! @brief 指定 websocket 消息类型 0，代表一个继续帧 */
     const CONTINUE = 0;
