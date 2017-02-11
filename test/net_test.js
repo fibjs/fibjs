@@ -355,7 +355,7 @@ describe("net", () => {
         c2.timeout = 50;
         var t1 = new Date();
         assert.throws(() => {
-            c2.connect('1.1.1.1', 8086 + base_port);
+            c2.connect('192.166.166.166', 8086 + base_port);
         });
         var t2 = new Date();
 
