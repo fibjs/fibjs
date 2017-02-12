@@ -41,11 +41,12 @@ void setOption(SOCKET s)
 
 HANDLE s_hIocp;
 
-class asyncProc: public OVERLAPPED
+class asyncProc: public OVERLAPPED,
+    public exlib::Task_base
 {
 public:
-    asyncProc(SOCKET s, AsyncEvent *ac, exlib::atomic &guard) :
-        m_s(s), m_ac(ac), m_guard(guard), m_next(NULL)
+    asyncProc(SOCKET s, AsyncEvent *ac, exlib::Locker& locker) :
+        m_s(s), m_ac(ac), m_locker(locker), m_next(NULL)
     {
         memset((OVERLAPPED *) this, 0, sizeof(OVERLAPPED));
     }
@@ -54,9 +55,26 @@ public:
     {
     }
 
-    void post()
+public:
+    virtual void suspend()
+    {
+    }
+
+    virtual void suspend(exlib::spinlock& lock)
+    {
+        lock.unlock();
+    }
+
+    virtual void resume()
     {
         PostQueuedCompletionStatus(s_hIocp, -1, -1, (LPOVERLAPPED)this);
+    }
+
+public:
+    void post()
+    {
+        if (m_locker.lock(this))
+            PostQueuedCompletionStatus(s_hIocp, -1, -1, (LPOVERLAPPED)this);
     }
 
     void proc()
@@ -73,7 +91,7 @@ public:
 
     virtual void ready(DWORD dwBytes, int32_t nError)
     {
-        m_guard = 0;
+        m_locker.unlock();
         m_ac->apost(nError);
         delete this;
     }
@@ -81,7 +99,7 @@ public:
 public:
     SOCKET m_s;
     AsyncEvent *m_ac;
-    exlib::atomic &m_guard;
+    exlib::Locker& m_locker;
     asyncProc *m_next;
 };
 
@@ -151,8 +169,8 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac, Time
     class asyncConnect: public asyncProc
     {
     public:
-        asyncConnect(SOCKET s, inetAddr &ai, AsyncEvent *ac, exlib::atomic &guard, Timer_base* timer) :
-            asyncProc(s, ac, guard), m_ai(ai), m_timer(timer)
+        asyncConnect(SOCKET s, inetAddr &ai, AsyncEvent *ac, exlib::Locker& locker, Timer_base* timer) :
+            asyncProc(s, ac, locker), m_ai(ai), m_timer(timer)
         {
         }
 
@@ -251,14 +269,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent *ac, Time
         }
     }
 
-    if (m_inRecv.CompareAndSwap(0, 1))
-    {
-        if (timer)
-            timer->clear();
-        return CHECK_ERROR(CALL_E_REENTRANT);
-    }
-
-    (new asyncConnect(m_fd, addr_info, ac, m_inRecv, timer))->post();
+    (new asyncConnect(m_fd, addr_info, ac, m_lockRecv, timer))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
@@ -268,8 +279,8 @@ result_t AsyncIO::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
     {
     public:
         asyncAccept(SOCKET s, SOCKET sListen, obj_ptr<Socket_base> &retVal,
-                    AsyncEvent *ac, exlib::atomic &guard) :
-            asyncProc(s, ac, guard), m_sListen(sListen), m_retVal(retVal)
+                    AsyncEvent *ac, exlib::Locker& locker) :
+            asyncProc(s, ac, locker), m_sListen(sListen), m_retVal(retVal)
         {
         }
 
@@ -321,20 +332,14 @@ result_t AsyncIO::accept(obj_ptr<Socket_base> &retVal, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (m_inRecv.CompareAndSwap(0, 1))
-        return CHECK_ERROR(CALL_E_REENTRANT);
-
     obj_ptr<Socket> s = new Socket();
     result_t hr = s->create(m_family, m_type);
     if (hr < 0)
-    {
-        m_inRecv = 0;
         return hr;
-    }
 
     retVal = s;
 
-    asyncAccept *pa = new asyncAccept(s->m_aio.m_fd, m_fd, retVal, ac, m_inRecv);
+    asyncAccept *pa = new asyncAccept(s->m_aio.m_fd, m_fd, retVal, ac, m_lockRecv);
     s.Release();
 
     pa->post();
@@ -348,8 +353,8 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     {
     public:
         asyncRecv(SOCKET s, int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                  AsyncEvent *ac, bool bRead, exlib::atomic &guard, Timer_base* timer) :
-            asyncProc(s, ac, guard), m_retVal(retVal), m_pos(0), m_bRead(bRead), m_timer(timer)
+                  AsyncEvent *ac, bool bRead, exlib::Locker& locker, Timer_base* timer) :
+            asyncProc(s, ac, locker), m_retVal(retVal), m_pos(0), m_bRead(bRead), m_timer(timer)
         {
             m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
         }
@@ -443,14 +448,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (m_inRecv.CompareAndSwap(0, 1))
-    {
-        if (timer)
-            timer->clear();
-        return CHECK_ERROR(CALL_E_REENTRANT);
-    }
-
-    (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_inRecv, timer))->post();
+    (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_lockRecv, timer))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
@@ -459,8 +457,8 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
     class asyncSend: public asyncProc
     {
     public:
-        asyncSend(SOCKET s, Buffer_base *data, AsyncEvent *ac, exlib::atomic &guard) :
-            asyncProc(s, ac, guard)
+        asyncSend(SOCKET s, Buffer_base *data, AsyncEvent *ac, exlib::Locker& locker) :
+            asyncProc(s, ac, locker)
         {
             data->toString(m_buf);
             m_p = m_buf.c_str();
@@ -507,10 +505,7 @@ result_t AsyncIO::write(Buffer_base *data, AsyncEvent *ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (m_inSend.CompareAndSwap(0, 1))
-        return CHECK_ERROR(CALL_E_REENTRANT);
-
-    (new asyncSend(m_fd, data, ac, m_inSend))->post();
+    (new asyncSend(m_fd, data, ac, m_lockSend))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
@@ -521,8 +516,8 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<DatagramPacket_base> &retVal,
     {
     public:
         asyncRecvFrom(SOCKET s, int32_t bytes, obj_ptr<DatagramPacket_base> &retVal,
-                      AsyncEvent *ac, exlib::atomic &guard) :
-            asyncProc(s, ac, guard), m_retVal(retVal)
+                      AsyncEvent *ac, exlib::Locker& locker) :
+            asyncProc(s, ac, locker), m_retVal(retVal)
         {
             m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
         }
@@ -583,10 +578,7 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<DatagramPacket_base> &retVal,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (m_inRecv.CompareAndSwap(0, 1))
-        return CHECK_ERROR(CALL_E_REENTRANT);
-
-    (new asyncRecvFrom(m_fd, bytes, retVal, ac, m_inRecv))->post();
+    (new asyncRecvFrom(m_fd, bytes, retVal, ac, m_lockRecv))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 

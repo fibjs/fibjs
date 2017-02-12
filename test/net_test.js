@@ -247,80 +247,81 @@ describe("net", () => {
         });
     });
 
-    it("re-entrant", () => {
-        function accept2(s) {
-            while (true) {
+    describe("re-entrant", () => {
+
+        it("accept", () => {
+            var t = 0;
+
+            function accept2(s, n) {
                 ss.push(s.accept());
+                t = n;
             }
-        }
 
-        var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
-        ss.push(s2);
+            var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+            ss.push(s2);
 
-        s2.bind(8083 + base_port);
-        s2.listen();
-        coroutine.start(accept2, s2);
+            s2.bind(8083 + base_port);
+            s2.listen();
 
-        coroutine.sleep(10);
-        assert.throws(() => {
-            s2.accept();
+            coroutine.start(accept2, s2, 1);
+            coroutine.sleep(10);
+            coroutine.start(accept2, s2, 2);
+            coroutine.sleep(10);
+
+            assert.equal(t, 0);
+
+            var c1 = new net.Socket();
+            c1.connect('127.0.0.1', 8083 + base_port);
+            c1.close();
+            coroutine.sleep(10);
+            assert.equal(t, 1);
+
+            var c1 = new net.Socket();
+            c1.connect('127.0.0.1', 8083 + base_port);
+            c1.close();
+            coroutine.sleep(10);
+            assert.equal(t, 2);
+
         });
 
-        function recv2(s) {
-            s.recv();
-        }
+        it("recv", () => {
+            var t = 0;
 
-        var c1 = new net.Socket();
-        c1.connect('127.0.0.1', 8083 + base_port);
-        coroutine.start(recv2, c1);
+            function recv2(s, d, n) {
+                var d = s.recv();
+                if (d.toString() == d)
+                    t = n;
+            }
 
-        coroutine.sleep(10);
-        assert.throws(() => {
-            c1.recv();
+            function accept2(s) {
+                var c = s.accept();
+                coroutine.start(recv2, c, "1234", 1);
+                coroutine.start(recv2, c, "4567", 2);
+            }
+
+            var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+            ss.push(s2);
+
+            s2.bind(8084 + base_port);
+            s2.listen();
+
+            coroutine.start(accept2, s2);
+
+            var c1 = new net.Socket();
+            c1.connect('127.0.0.1', 8084 + base_port);
+
+            c1.send('1234');
+            coroutine.sleep(10);
+            assert.equal(t, 1);
+
+            c1.send('4567');
+            coroutine.sleep(10);
+            assert.equal(t, 2);
         });
 
-        function send2(s) {
-            var b = new Buffer("aaaaaaaa");
-            b.resize(10240);
-            while (true)
-                s.send(b);
-        }
+        it("send", () => {
 
-        var c1 = new net.Socket();
-        c1.connect('127.0.0.1', 8083 + base_port);
-        coroutine.start(send2, c1);
-
-        coroutine.sleep(100);
-        assert.throws(() => {
-            var b = new Buffer("aaaaaaaa");
-            c1.send(b);
         });
-
-        function accept3(s) {
-            var c = s.accept();
-            c.send(c.recv());
-        }
-
-        var s3 = new net.Socket(net_config.family, net.SOCK_STREAM);
-        s3.bind(8084 + base_port);
-        s3.listen();
-        coroutine.start(accept3, s3);
-
-        var st = 0;
-
-        function send3(s) {
-            st = 1;
-            coroutine.sleep(100);
-            s.send(new Buffer("aaa"));
-        }
-
-        var c1 = new net.Socket();
-        c1.connect('127.0.0.1', 8084 + base_port);
-        coroutine.start(send3, c1);
-
-        assert.equal(st, 0);
-        assert.equal(c1.recv().toString(), "aaa");
-        assert.equal(st, 1);
     });
 
     it("timeout", () => {

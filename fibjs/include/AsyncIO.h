@@ -87,8 +87,9 @@ public:
     int32_t m_type;
 
 private:
-    exlib::atomic m_inRecv;
-    exlib::atomic m_inSend;
+    exlib::Locker m_lockRecv;
+    exlib::Locker m_lockSend;
+
     obj_ptr<Timer_base> m_timer;
 
 #ifndef _WIN32
