@@ -5,6 +5,20 @@ var os = require('os');
 
 var win = os.type == "Windows";
 
+function has_class(o, cls) {
+    if (o.class == cls)
+        return true;
+
+    var inherits = o.inherits;
+
+    if (inherits)
+        for (var i = 0; i < inherits.length; i++)
+            if (has_class(inherits[i], cls))
+                return true;
+
+    return false;
+}
+
 if (win) {
     var http = require("http");
     var gui = require("gui");
@@ -32,8 +46,6 @@ if (win) {
                 closed = true;
             };
 
-            GC();
-            var no1 = os.memoryUsage().nativeObjects.objects;
             win.close();
             win = undefined;
 
@@ -43,7 +55,7 @@ if (win) {
             coroutine.sleep(100);
 
             GC();
-            assert.equal(no1 - 1, os.memoryUsage().nativeObjects.objects);
+            assert.notOk(has_class(os.memoryUsage().nativeObjects, 'WebView'));
         });
     });
 }

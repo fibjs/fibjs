@@ -176,10 +176,12 @@ protected:
 	IOleObject* oleObject;
 	IOleInPlaceObject* oleInPlaceObject;
 	IOleInPlaceActiveObject* oleInPlaceActiveObject;
+	IConnectionPoint* connectionPoint;
 	IWebBrowser2* webBrowser2;
 	IDispatch* _onmessage;
 
 	RECT rObject;
+	DWORD eventCookie;
 
 	HWND hWndParent;
 	HWND hWndControl;

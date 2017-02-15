@@ -432,6 +432,7 @@ WebView::WebView(exlib::string url, Map_base* opt)
 	oleObject = NULL;
 	oleInPlaceObject = NULL;
 	oleInPlaceActiveObject = NULL;
+	connectionPoint = NULL;
 	webBrowser2 = NULL;
 	_onmessage = NULL;
 	hWndParent = NULL;
@@ -529,14 +530,12 @@ WebView::WebView(exlib::string url, Map_base* opt)
 	webBrowser2->put_Silent(VARIANT_TRUE);
 
 	IConnectionPointContainer* cpc;
-	IConnectionPoint* pcp = NULL;
 
 	webBrowser2->QueryInterface(IID_IConnectionPointContainer, (void**)&cpc);
-	cpc->FindConnectionPoint(DIID_DWebBrowserEvents2, &pcp);
+	cpc->FindConnectionPoint(DIID_DWebBrowserEvents2, &connectionPoint);
 	cpc->Release();
 
-	DWORD eventCookie;
-	pcp->Advise((IDispatch*)this, &eventCookie);
+	connectionPoint->Advise((IDispatch*)this, &eventCookie);
 
 	ShowWindow(GetControlWindow(), SW_SHOW);
 
@@ -564,11 +563,18 @@ void WebView::clear()
 
 	if (webBrowser2)
 	{
-		// webBrowser2->stop();
+		webBrowser2->Stop();
 		webBrowser2->put_Visible(VARIANT_FALSE);
 
 		webBrowser2->Release();
 		webBrowser2 = NULL;
+	}
+
+	if (connectionPoint)
+	{
+		connectionPoint->Unadvise(eventCookie);
+		connectionPoint->Release();
+		connectionPoint = NULL;
 	}
 
 	if (oleInPlaceObject)
