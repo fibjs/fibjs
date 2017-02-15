@@ -25,7 +25,8 @@ module gui
 	        "border": true, // 是否有边框，缺省有边框
 	        "caption": true, // 是否有标题栏，缺省有标题栏
 	        "resizable": true, // 是否可改变尺寸，缺省可以改变
-	        "maximize": false // 是否最大化显示，缺省不最大化
+	        "maximize": false, // 是否最大化显示，缺省不最大化
+	        "debug": false // 是否提示页面错误，缺省不提示
 	    }
 	 @endcode
 	 当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中

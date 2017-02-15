@@ -444,6 +444,7 @@ WebView::WebView(exlib::string url, Map_base* opt)
 	int y = CW_USEDEFAULT;
 	int nWidth = CW_USEDEFAULT;
 	int nHeight = CW_USEDEFAULT;
+	bool bSilent = true;
 
 	if (opt)
 	{
@@ -504,6 +505,9 @@ WebView::WebView(exlib::string url, Map_base* opt)
 			if (opt->get("maximize", v) == 0 && v.boolVal())
 				dwStyle |= WS_MAXIMIZE;
 		}
+
+		if (opt->get("debug", v) == 0 && v.boolVal())
+			bSilent = false;
 	} else
 		dwStyle = WS_OVERLAPPEDWINDOW;
 
@@ -527,7 +531,8 @@ WebView::WebView(exlib::string url, Map_base* opt)
 	oleObject->QueryInterface(&webBrowser2);
 	oleObject->QueryInterface(&oleInPlaceActiveObject);
 
-	webBrowser2->put_Silent(VARIANT_TRUE);
+	if (bSilent)
+		webBrowser2->put_Silent(VARIANT_TRUE);
 
 	IConnectionPointContainer* cpc;
 
