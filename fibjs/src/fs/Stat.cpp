@@ -88,9 +88,9 @@ void Stat::fill(exlib::string path, struct stat64 &st)
     atime = (double)st.st_atime * 1000ll;
     ctime = (double)st.st_ctime * 1000ll;
 
-    m_isReadable = (st.st_mode | S_IRUSR) != 0;
-    m_isWritable = (st.st_mode | S_IWUSR) != 0;
-    m_isExecutable = (st.st_mode | S_IXUSR) != 0;
+    m_isReadable = (S_IRUSR & st.st_mode) != 0;
+    m_isWritable = (S_IWUSR & st.st_mode) != 0;
+    m_isExecutable = (S_IXUSR & st.st_mode) != 0;
 
     m_isDirectory = (S_IFDIR & st.st_mode) != 0;
     m_isFile = (S_IFREG & st.st_mode) != 0;
