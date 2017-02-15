@@ -234,6 +234,16 @@ result_t File::open(exlib::string fname, exlib::string flags)
         return CHECK_ERROR(LastError());
 
 #ifndef _WIN32
+    struct stat64 st;
+    fstat64(m_fd, &st);
+
+    if (S_IFDIR & st.st_mode)
+    {
+        ::_close(m_fd);
+        m_fd = -1;
+        return CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
+    }
+
     if (::fcntl(m_fd, F_SETFD, FD_CLOEXEC))
         return CHECK_ERROR(LastError());
 #endif
