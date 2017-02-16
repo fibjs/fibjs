@@ -48,14 +48,12 @@ public:
 	virtual result_t close(AsyncEvent* ac);
 	virtual result_t wait(AsyncEvent* ac);
 	virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
-	virtual result_t get_onmove(v8::Local<v8::Function>& retVal);
-	virtual result_t set_onmove(v8::Local<v8::Function> newVal);
-	virtual result_t get_onsize(v8::Local<v8::Function>& retVal);
-	virtual result_t set_onsize(v8::Local<v8::Function> newVal);
-	virtual result_t get_onclose(v8::Local<v8::Function>& retVal);
-	virtual result_t set_onclose(v8::Local<v8::Function> newVal);
-	virtual result_t get_onmessage(v8::Local<v8::Function>& retVal);
-	virtual result_t set_onmessage(v8::Local<v8::Function> newVal);
+
+public:
+	EVENT_FUNC(move);
+	EVENT_FUNC(size);
+	EVENT_FUNC(close);
+	EVENT_FUNC(message);
 
 private:
 	void GoBack();

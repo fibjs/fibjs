@@ -207,16 +207,6 @@ result_t Redis::unpsub(v8::Local<v8::Array> patterns)
     return unsub(patterns, PUNSUBSCRIBE);
 }
 
-result_t Redis::get_onsuberror(v8::Local<v8::Function>& retVal)
-{
-    return object_base::get("suberror", retVal);
-}
-
-result_t Redis::set_onsuberror(v8::Local<v8::Function> newVal)
-{
-    return object_base::set("suberror", newVal);
-}
-
 result_t Redis::pub(Buffer_base *channel, Buffer_base *message, int32_t &retVal)
 {
     return doCommand("PUBLISH", channel, message, retVal);
