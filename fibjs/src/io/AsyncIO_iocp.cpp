@@ -91,7 +91,7 @@ public:
 
     virtual void ready(DWORD dwBytes, int32_t nError)
     {
-        m_locker.unlock();
+        m_locker.unlock(this);
         m_ac->apost(nError);
         delete this;
     }

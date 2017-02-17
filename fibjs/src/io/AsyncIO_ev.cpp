@@ -138,7 +138,7 @@ public:
 			result_t hr = process();
 			if (hr != CALL_E_PENDDING)
 			{
-				m_locker.unlock();
+				m_locker.unlock(this);
 				delete this;
 
 				return hr;
@@ -163,7 +163,7 @@ public:
 	void ready(int32_t v)
 	{
 		m_opt = NULL;
-		m_locker.unlock();
+		m_locker.unlock(this);
 		m_ac->apost(v);
 		delete this;
 	}
