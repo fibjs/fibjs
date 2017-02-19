@@ -8,7 +8,7 @@ var coroutine = require('coroutine');
 
 var base_port = coroutine.vmid * 10000;
 
-describe('websocket', () => {
+describe('ws', () => {
     var ss = [];
 
     after(() => {
@@ -358,6 +358,56 @@ describe('websocket', () => {
             coroutine.sleep(1);
 
         assert.equal(err_500, 1);
+    });
+
+    describe('WebSocket', () => {
+        it('init property', () => {
+            var s = new ws.Socket("ws://127.0.0.1:" + (8810 + base_port) + "/", "test");
+            assert.equal(s.url, "ws://127.0.0.1:" + (8810 + base_port) + "/");
+            assert.equal(s.protocol, "test");
+            assert.equal(s.readyState, ws.CONNECTING);
+        });
+
+        it('onopen', () => {
+            var t = false;
+            var s = new ws.Socket("ws://127.0.0.1:" + (8810 + base_port) + "/", "test");
+            s.onopen = () => {
+                t = true;
+            };
+
+            assert.isFalse(t);
+            assert.equal(s.readyState, ws.CONNECTING);
+
+            for (var i = 0; i < 100 && !t; i++)
+                coroutine.sleep(1);
+
+            assert.isTrue(t);
+            assert.equal(s.readyState, ws.OPEN);
+        });
+
+        it('onerror', () => {
+            var t = false;
+            var te = false;
+            var s = new ws.Socket("ws://127.0.0.1:" + (18810 + base_port) + "/", "test");
+
+            assert.equal(s.readyState, ws.CONNECTING);
+            assert.isFalse(t);
+
+            s.onopen = () => {
+                t = true;
+            };
+
+            s.onerror = (e) => {
+                te = true;
+            };
+
+            for (var i = 0; i < 100 && !t && !te; i++)
+                coroutine.sleep(1);
+
+            assert.isFalse(t);
+            assert.isTrue(te);
+            assert.equal(s.readyState, ws.CLOSED);
+        });
     });
 });
 

@@ -26,11 +26,18 @@ module ws
     /*! @brief 指定 websocket 消息类型 10，代表一个 pong 帧 */
     const PONG = 10;
 
+    const CONNECTING = 0;
+    const OPEN = 1;
+    const CLOSING = 2;
+    const CLOSED = 3;
+
     /*! @brief 创建一个 websocket 消息对象，参见 WebSocketMessage */
     static WebSocketMessage new Message();
 
     /*! @brief 创建一个 websocket 包协议转换处理器，参见 WebSocketHandler */
     static WebSocketHandler new Handler();
+
+    static WebSocket new Socket();
 
     /*! @brief 创建一个 websocket 连接，并返回握手成功的 Stream 对象
      @param url 指定连接的 url，支持 ws:// 和 wss:// 协议

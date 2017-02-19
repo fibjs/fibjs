@@ -1,0 +1,28 @@
+/*! @brief WebSocket 包协议转换处理器
+
+  用以将 Http 协议转换为 WebSocket 包协议消息。创建方式：
+  @code
+  var ws = require("ws");
+
+  var sock = new ws.WebSocket(...);
+  @endcode
+ */
+interface WebSocket : EventEmitter
+{
+  WebSocket(String url, String protocol = "", String origin = "");
+
+  readonly String url;
+  readonly String protocol;
+  readonly String origin;
+
+  readonly Integer readyState;
+
+  close(Integer code = 100, String reason = "");
+  send(String data);
+  send(Buffer data);
+
+  Function onopen;
+  Function onmessage;
+  Function onclose;
+  Function onerror;
+};

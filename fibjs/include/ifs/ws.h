@@ -19,6 +19,7 @@ namespace fibjs
 
 class WebSocketMessage_base;
 class WebSocketHandler_base;
+class WebSocket_base;
 class Stream_base;
 
 class ws_base : public object_base
@@ -32,7 +33,11 @@ public:
         _BINARY = 2,
         _CLOSE = 8,
         _PING = 9,
-        _PONG = 10
+        _PONG = 10,
+        _CONNECTING = 0,
+        _OPEN = 1,
+        _CLOSING = 2,
+        _CLOSED = 3
     };
 
 public:
@@ -57,6 +62,10 @@ public:
     static void s_get_CLOSE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_PING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_PONG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_CONNECTING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_OPEN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_CLOSING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_CLOSED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -67,6 +76,7 @@ public:
 
 #include "WebSocketMessage.h"
 #include "WebSocketHandler.h"
+#include "WebSocket.h"
 #include "Stream.h"
 
 namespace fibjs
@@ -81,7 +91,8 @@ namespace fibjs
         static ClassData::ClassObject s_object[] = 
         {
             {"Message", WebSocketMessage_base::class_info},
-            {"Handler", WebSocketHandler_base::class_info}
+            {"Handler", WebSocketHandler_base::class_info},
+            {"Socket", WebSocket_base::class_info}
         };
 
         static ClassData::ClassProperty s_property[] = 
@@ -91,7 +102,11 @@ namespace fibjs
             {"BINARY", s_get_BINARY, block_set, true},
             {"CLOSE", s_get_CLOSE, block_set, true},
             {"PING", s_get_PING, block_set, true},
-            {"PONG", s_get_PONG, block_set, true}
+            {"PONG", s_get_PONG, block_set, true},
+            {"CONNECTING", s_get_CONNECTING, block_set, true},
+            {"OPEN", s_get_OPEN, block_set, true},
+            {"CLOSING", s_get_CLOSING, block_set, true},
+            {"CLOSED", s_get_CLOSED, block_set, true}
         };
 
         static ClassData s_cd = 
@@ -143,6 +158,34 @@ namespace fibjs
     inline void ws_base::s_get_PONG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr = _PONG;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void ws_base::s_get_CONNECTING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _CONNECTING;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void ws_base::s_get_OPEN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _OPEN;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void ws_base::s_get_CLOSING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _CLOSING;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void ws_base::s_get_CLOSED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _CLOSED;
         PROPERTY_ENTER();
         METHOD_RETURN();
     }

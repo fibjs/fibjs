@@ -876,6 +876,12 @@
     <ClInclude Include="include\ZmqSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\WebSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\WebSocket.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl">
@@ -1362,6 +1368,9 @@
     </ClCompile>
     <ClCompile Include="src\mq\ZmqSocket.cpp">
       <Filter>Source Files\other</Filter>
+    </ClCompile>
+    <ClCompile Include="src\websocket\WebSocket.cpp">
+      <Filter>Source Files\websocket</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
