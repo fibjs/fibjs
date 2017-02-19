@@ -362,6 +362,22 @@ public:
 	}
 
 public:
+	static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+	{
+		if (args.IsConstructCall())
+		{
+			if (EventEmitter_base::class_info().init_isolate())
+				return;
+			EventEmitter_base::__new(args);
+		} else
+		{
+			v8::Local<v8::Object> o = args.This();
+
+			if (!o.IsEmpty())
+				EventEmitter_base::class_info().Attach(Isolate::current(), o);
+		}
+	}
+
 	static void s_on(const v8::FunctionCallbackInfo<v8::Value>& args)
 	{
 		v8::Local<v8::Object> vr;

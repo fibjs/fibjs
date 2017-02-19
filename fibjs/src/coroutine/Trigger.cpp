@@ -23,18 +23,20 @@ public:
     {
         static ClassData::ClassMethod s_method[] =
         {
-            {"on", JSTrigger::s_on, false},
-            {"addListener", JSTrigger::s_on, false},
-            {"once", JSTrigger::s_once, false},
-            {"off", JSTrigger::s_off, false},
-            {"removeListener", JSTrigger::s_off, false},
-            {"removeAllListeners", JSTrigger::s_removeAllListeners, false},
-            {"setMaxListeners", JSTrigger::s_setMaxListeners, false},
-            {"listeners", JSTrigger::s_listeners, false},
-            {"emit", JSTrigger::s_emit, false}
+            {"on", JSTrigger::s_on, true},
+            {"addListener", JSTrigger::s_on, true},
+            {"once", JSTrigger::s_once, true},
+            {"off", JSTrigger::s_off, true},
+            {"removeListener", JSTrigger::s_off, true},
+            {"removeAllListeners", JSTrigger::s_removeAllListeners, true},
+            {"setMaxListeners", JSTrigger::s_setMaxListeners, true},
+            {"listeners", JSTrigger::s_listeners, true},
+            {"emit", JSTrigger::s_emit, true}
         };
 
         ClassData& cd = EventEmitter_base::class_info().date();
+
+        cd.cor = JSTrigger::s__new;
         cd.mc = ARRAYSIZE(s_method);
         cd.cms = s_method;
     }

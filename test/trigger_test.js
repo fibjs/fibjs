@@ -131,6 +131,12 @@ describe("Trigger/EventEmitter", () => {
 
     util.inherits(MyEmitter, events.EventEmitter);
     evevt_test("util.inherits", new MyEmitter());
+
+    function MyEmitter1() {
+        events.EventEmitter.call(this);
+    }
+
+    evevt_test("events.EventEmitter.call", new MyEmitter1());
 });
 
 // test.run(console.DEBUG);
