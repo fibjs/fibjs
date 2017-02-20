@@ -223,7 +223,7 @@ result_t SQLite::execute(const char *sql, int32_t sLen,
                                 (const char *) sqlite3_column_blob(stmt, i);
                             int32_t size = sqlite3_column_bytes(stmt, i);
 
-                            v = new Buffer(exlib::string(data, size));
+                            v = new Buffer(data, size);
                         }
                         else if (type
                                  && (!qstricmp(type, "datetime")

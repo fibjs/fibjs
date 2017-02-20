@@ -288,8 +288,7 @@ void decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator *it)
     case BSON_BINDATA:
     {
         obj_ptr<Buffer_base> buf = new Buffer(
-            exlib::string(bson_iterator_bin_data(it),
-                          bson_iterator_bin_len(it)));
+            bson_iterator_bin_data(it), bson_iterator_bin_len(it));
 
         obj->Set(isolate->NewFromUtf8(key), buf->wrap());
         break;

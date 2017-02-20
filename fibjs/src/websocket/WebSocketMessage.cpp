@@ -251,8 +251,7 @@ result_t WebSocketMessage::sendTo(Stream_base *stm, AsyncEvent *ac)
                 buf[pos ++] = (uint8_t)((r >> 24) & 0xff);
             }
 
-            exlib::string strBuffer((const char*)buf, pos);
-            pThis->m_buffer = new Buffer(strBuffer);
+            pThis->m_buffer = new Buffer((const char*)buf, pos);
 
             pThis->set(sendData);
             return pThis->m_ms->write(pThis->m_buffer, pThis);

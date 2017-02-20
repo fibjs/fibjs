@@ -557,7 +557,7 @@ result_t Image::getData(int32_t format, int32_t quality,
     if (data == NULL)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = new Buffer(exlib::string((char *) data, size));
+    retVal = new Buffer((char *) data, size);
     gdFree(data);
 
     return 0;

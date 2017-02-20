@@ -245,10 +245,7 @@ public:
 	asyncSend(WebSocket* pThis, Buffer_base* data):
 		AsyncState(NULL), m_this(pThis)
 	{
-		exlib::string s;
-
-		data->toString(s);
-		m_data = new Buffer(s);
+		m_data = new Buffer(data);
 		m_msg = new WebSocketMessage(ws_base::_TEXT, false, 0);
 
 		set(fill);

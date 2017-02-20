@@ -22,6 +22,15 @@ public:
         extMemory((int32_t)m_data.length());
     }
 
+    Buffer(Buffer_base* data)
+    {
+        exlib::string str;
+
+        data->toString(str);
+        m_data = str;
+        extMemory((int32_t)m_data.length());
+    }
+
     Buffer(const void *pData, size_t n) :
         m_data((const char *)pData, n)
     {

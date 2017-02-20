@@ -101,8 +101,8 @@ public:
                     return CHECK_ERROR(Runtime::setError(zError(err)));
 
                 pThis->m_buffer = new Buffer(
-                    exlib::string((const char *) pThis->out,
-                                  CHUNK - pThis->m_pThis->strm.avail_out));
+                    (const char *) pThis->out,
+                    CHUNK - pThis->m_pThis->strm.avail_out);
 
                 return pThis->m_stm->write(pThis->m_buffer, pThis);
             }
@@ -193,8 +193,8 @@ public:
                     return CHECK_ERROR(Runtime::setError(zError(err)));
 
                 pThis->m_buffer = new Buffer(
-                    exlib::string((const char *) pThis->out,
-                                  CHUNK - pThis->m_pThis->strm.avail_out));
+                    (const char *) pThis->out,
+                    CHUNK - pThis->m_pThis->strm.avail_out);
 
                 pThis->set(write_ok);
                 return pThis->m_stm->write(pThis->m_buffer, pThis);

@@ -110,7 +110,7 @@ int32_t API_resultRowValue(void *result, int32_t icolumn, UMTypeInfo *ti, void *
         case MFTYPE_MEDIUM_BLOB:
         case MFTYPE_LONG_BLOB:
         case MFTYPE_BLOB:
-            v = new Buffer(exlib::string((const char *) value, cbValue));
+            v = new Buffer((const char *) value, cbValue);
             break;
 
         default:
