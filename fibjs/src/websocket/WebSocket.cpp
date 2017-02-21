@@ -296,7 +296,7 @@ result_t WebSocket::get_origin(exlib::string& retVal)
 
 result_t WebSocket::get_readyState(int32_t& retVal)
 {
-	retVal = m_readyState;
+	retVal = (int32_t)m_readyState;
 	return 0;
 }
 
