@@ -21,8 +21,8 @@ class WebSocket: public WebSocket_base
 
 public:
     WebSocket(exlib::string url, exlib::string protocol, exlib::string origin):
-        m_url(url), m_protocol(protocol), m_origin(origin), m_maxSize(67108864),
-        m_readyState(ws_base::_CONNECTING)
+        m_url(url), m_protocol(protocol), m_origin(origin), m_masked(true),
+        m_maxSize(67108864), m_readyState(ws_base::_CONNECTING)
     {}
 
 public:
@@ -49,6 +49,7 @@ public:
     exlib::string m_url;
     exlib::string m_protocol;
     exlib::string m_origin;
+    bool m_masked;
     int32_t m_maxSize;
     exlib::atomic m_readyState;
 };

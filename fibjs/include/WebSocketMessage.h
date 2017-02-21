@@ -49,6 +49,7 @@ public:
     // WebSocketMessage_base
     virtual result_t get_type(int32_t& retVal);
     virtual result_t set_type(int32_t newVal);
+    virtual result_t get_data(v8::Local<v8::Value>& retVal);
     virtual result_t get_masked(bool& retVal);
     virtual result_t set_masked(bool newVal);
     virtual result_t get_maxSize(int32_t& retVal);

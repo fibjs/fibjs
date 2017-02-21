@@ -495,6 +495,41 @@ result_t WebSocketMessage::set_type(int32_t newVal)
     return 0;
 }
 
+result_t WebSocketMessage::get_data(v8::Local<v8::Value>& retVal)
+{
+    result_t hr;
+
+    if (m_type == ws_base::_TEXT || m_type == ws_base::_BINARY)
+    {
+        obj_ptr<SeekableStream_base> body;
+        obj_ptr<Buffer_base> data;
+
+        hr = m_message->get_body(body);
+        if (hr < 0)
+            return hr;
+
+        body->rewind();
+        hr = body->cc_readAll(data);
+        if (hr < 0)
+            return hr;
+
+        if (hr == CALL_RETURN_NULL)
+            return CALL_RETURN_NULL;
+
+        if (m_type == ws_base::_BINARY)
+            retVal = data->wrap();
+        else
+        {
+            exlib::string txt;
+
+            data->toString(txt);
+            retVal = holder()->NewFromUtf8(txt);
+        }
+    }
+
+    return 0;
+}
+
 result_t WebSocketMessage::get_masked(bool &retVal)
 {
     retVal = m_masked;

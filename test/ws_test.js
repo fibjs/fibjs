@@ -408,6 +408,34 @@ describe('ws', () => {
             assert.isTrue(te);
             assert.equal(s.readyState, ws.CLOSED);
         });
+
+        it('send/onmessage', () => {
+            var t = false;
+            var msg;
+            var s = new ws.Socket("ws://127.0.0.1:" + (8810 + base_port) + "/", "test");
+            s.onopen = () => {
+                s.send('123');
+            };
+
+            s.onmessage = (m) => {
+                msg = m;
+                t = true;
+            };
+
+            for (var i = 0; i < 100 && !t; i++)
+                coroutine.sleep(1);
+
+            assert.equal(msg.data, '123');
+
+            t = false;
+            s.send(new Buffer('456'));
+
+            for (var i = 0; i < 100 && !t; i++)
+                coroutine.sleep(1);
+
+            assert.isTrue(Buffer.isBuffer(msg.data));
+            assert.equal(msg.data.toString(), '456');
+        });
     });
 });
 

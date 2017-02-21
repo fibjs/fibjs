@@ -30,6 +30,7 @@ public:
     static result_t _new(int32_t type, bool masked, int32_t maxSize, obj_ptr<WebSocketMessage_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_type(int32_t& retVal) = 0;
     virtual result_t set_type(int32_t newVal) = 0;
+    virtual result_t get_data(v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get_masked(bool& retVal) = 0;
     virtual result_t set_masked(bool newVal) = 0;
     virtual result_t get_maxSize(int32_t& retVal) = 0;
@@ -43,6 +44,7 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_type(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_masked(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_masked(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_maxSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -60,6 +62,7 @@ namespace fibjs
         static ClassData::ClassProperty s_property[] = 
         {
             {"type", s_get_type, s_set_type, false},
+            {"data", s_get_data, block_set, false},
             {"masked", s_get_masked, s_set_masked, false},
             {"maxSize", s_get_maxSize, s_set_maxSize, false}
         };
@@ -119,6 +122,18 @@ namespace fibjs
         hr = pInst->set_type(v0);
 
         PROPERTY_SET_LEAVE();
+    }
+
+    inline void WebSocketMessage_base::s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        v8::Local<v8::Value> vr;
+
+        METHOD_INSTANCE(WebSocketMessage_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_data(vr);
+
+        METHOD_RETURN();
     }
 
     inline void WebSocketMessage_base::s_get_masked(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
