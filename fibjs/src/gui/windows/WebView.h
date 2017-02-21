@@ -50,6 +50,7 @@ public:
 	virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
 
 public:
+	EVENT_FUNC(load);
 	EVENT_FUNC(move);
 	EVENT_FUNC(size);
 	EVENT_FUNC(close);

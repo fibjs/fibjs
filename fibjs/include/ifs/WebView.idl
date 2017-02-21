@@ -12,6 +12,9 @@ interface WebView : EventEmitter
 	 */
 	postMessage(String msg) async;
 
+	/*! @brief 查询和绑定加载成功事件，相当于 on("load", func); */
+	Function onload;
+
 	/*! @brief 查询和绑定窗口移动事件，相当于 on("move", func); */
 	Function onmove;
 

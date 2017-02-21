@@ -1355,6 +1355,7 @@ HRESULT WebView::OnDownloadComplete(DISPPARAMS* pDispParams)
 
 HRESULT WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
 {
+	_emit("load", NULL, 0);
 	return E_NOTIMPL;
 }
 

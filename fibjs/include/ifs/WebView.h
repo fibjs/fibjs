@@ -29,6 +29,8 @@ public:
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t wait(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
+    virtual result_t get_onload(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_onload(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onmove(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onmove(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onsize(v8::Local<v8::Function>& retVal) = 0;
@@ -53,6 +55,8 @@ public:
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onload(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_onload(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_onmove(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_onmove(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_onsize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -83,6 +87,7 @@ namespace fibjs
 
         static ClassData::ClassProperty s_property[] = 
         {
+            {"onload", s_get_onload, s_set_onload, false},
             {"onmove", s_get_onmove, s_set_onmove, false},
             {"onsize", s_get_onsize, s_set_onsize, false},
             {"onclose", s_get_onclose, s_set_onclose, false},
@@ -148,6 +153,29 @@ namespace fibjs
             hr = pInst->ac_postMessage(v0);
 
         METHOD_VOID();
+    }
+
+    inline void WebView_base::s_get_onload(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        v8::Local<v8::Function> vr;
+
+        METHOD_INSTANCE(WebView_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->get_onload(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void WebView_base::s_set_onload(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    {
+        METHOD_INSTANCE(WebView_base);
+        PROPERTY_ENTER();
+        PROPERTY_VAL(v8::Local<v8::Function>);
+
+        hr = pInst->set_onload(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
     inline void WebView_base::s_get_onmove(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
