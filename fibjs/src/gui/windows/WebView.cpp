@@ -295,9 +295,9 @@ public:
 		OleInitialize(NULL);
 
 		IInternetSecurityManager *pSecurityManager = NULL;
-		CoCreateInstance( CLSID_InternetSecurityManager, NULL,
-		                  CLSCTX_INPROC_SERVER, IID_IInternetSecurityManager,
-		                  (void **)&pSecurityManager );
+		CoCreateInstance(CLSID_InternetSecurityManager, NULL,
+		                 CLSCTX_INPROC_SERVER, IID_IInternetSecurityManager,
+		                 (void **)&pSecurityManager);
 		if (pSecurityManager)
 		{
 			pSecurityManager->SetZoneMapping(URLZONE_TRUSTED, L"fs", SZM_CREATE);
@@ -432,6 +432,7 @@ WebView::WebView(exlib::string url, Map_base* opt)
 	oleObject = NULL;
 	oleInPlaceObject = NULL;
 	oleInPlaceActiveObject = NULL;
+	oleCommandTarget = NULL;
 	connectionPoint = NULL;
 	webBrowser2 = NULL;
 	_onmessage = NULL;
@@ -530,6 +531,8 @@ WebView::WebView(exlib::string url, Map_base* opt)
 	oleObject->QueryInterface(&webBrowser2);
 	oleObject->QueryInterface(&oleInPlaceActiveObject);
 
+	oleObject->QueryInterface(&oleCommandTarget);
+
 	if (bSilent)
 		webBrowser2->put_Silent(VARIANT_TRUE);
 
@@ -591,6 +594,12 @@ void WebView::clear()
 	{
 		oleInPlaceActiveObject->Release();
 		oleInPlaceActiveObject = NULL;
+	}
+
+	if (oleCommandTarget)
+	{
+		oleCommandTarget->Release();
+		oleCommandTarget = NULL;
 	}
 
 	if (oleObject)
@@ -694,6 +703,84 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 	}
 
 	return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+}
+
+result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
+{
+	if (!ac)
+		return CHECK_ERROR(CALL_E_GUICALL);
+
+	HGLOBAL hTextHandle =::GlobalAlloc(GPTR, html.length() + 1);
+	if (0 == hTextHandle)
+		return CHECK_ERROR(LastError());
+
+	memcpy((char *)hTextHandle, html.c_str(), html.length() + 1);
+
+	IStream* pStream = 0;
+
+	HRESULT hr = CreateStreamOnHGlobal(hTextHandle, TRUE, &pStream);
+
+	if (FAILED(hr))
+	{
+		GlobalFree(hTextHandle);
+		return CHECK_ERROR(LastError());
+	}
+
+	IDispatch* pHtmlDoc = NULL;
+	IPersistStreamInit* pPersistStreamInit = NULL;
+
+	hr = webBrowser2->get_Document(&pHtmlDoc);
+	if (SUCCEEDED(hr))
+	{
+		hr = pHtmlDoc->QueryInterface(IID_IPersistStreamInit,  (void**)&pPersistStreamInit);
+		if (SUCCEEDED(hr))
+		{
+			pPersistStreamInit->InitNew();
+			pPersistStreamInit->Load(pStream);
+			pPersistStreamInit->Release();
+		}
+		pHtmlDoc->Release();
+	}
+
+
+	pStream->Release ();
+
+	return 0;
+}
+
+result_t WebView::print(int32_t mode, AsyncEvent* ac)
+{
+	if (!ac)
+		return CHECK_ERROR(CALL_E_GUICALL);
+
+	switch (mode)
+	{
+	case 0:
+		oleCommandTarget->Exec(NULL,
+		                       OLECMDID_PRINT,
+		                       OLECMDEXECOPT_DONTPROMPTUSER,
+		                       NULL,
+		                       NULL);
+		break;
+	case 1:
+		oleCommandTarget->Exec(NULL,
+		                       OLECMDID_PRINT,
+		                       OLECMDEXECOPT_PROMPTUSER,
+		                       NULL,
+		                       NULL);
+		break;
+	case 2:
+		oleCommandTarget->Exec(NULL,
+		                       OLECMDID_PRINTPREVIEW,
+		                       OLECMDEXECOPT_PROMPTUSER,
+		                       NULL,
+		                       NULL);
+		break;
+	default:
+		return CHECK_ERROR(CALL_E_INVALIDARG);
+	}
+
+	return 0;
 }
 
 result_t WebView::close(AsyncEvent* ac)
@@ -1295,19 +1382,10 @@ HRESULT WebView::ProcessUrlAction(LPCWSTR pwszUrl, DWORD dwAction, BYTE *pPolicy
 	// case URLACTION_SHELL_SHELLEXECUTE:
 	// ie8, probably registry only
 	case URLACTION_DOTNET_USERCONTROLS:
-		*pPolicy = URLPOLICY_ALLOW;
-		return S_OK;
-
 	case URLACTION_CHANNEL_SOFTDIST_PERMISSIONS:
-		//*pPolicy = URLPOLICY_CHANNEL_SOFTDIST_AUTOINSTALL;
-		*pPolicy = URLPOLICY_ALLOW;
-		return S_OK;
-
+	//*pPolicy = URLPOLICY_CHANNEL_SOFTDIST_AUTOINSTALL;
 	case URLACTION_JAVA_PERMISSIONS:
-		//*pPolicy = URLPOLICY_JAVA_LOW;
-		*pPolicy = URLPOLICY_ALLOW;
-		return S_OK;
-
+	//*pPolicy = URLPOLICY_JAVA_LOW;
 	case URLACTION_CREDENTIALS_USE:
 		//*pPolicy = URLPOLICY_CREDENTIALS_SILENT_LOGON_OK;
 		*pPolicy = URLPOLICY_ALLOW;

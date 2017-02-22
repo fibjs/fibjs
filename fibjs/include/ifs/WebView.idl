@@ -1,6 +1,16 @@
 /*! @brief 浏览器窗口对象 */
 interface WebView : EventEmitter
 {
+	/*! @brief 设置 webview 的页面 html
+	 @param html 设置的 html
+	 */
+	setHtml(String html) async;
+
+	/*! @brief 打印当前窗口文档
+	 @param mode 打印参数，0: 快速打印; 1: 标准打印; 2: 打印预览。缺省为 1
+	 */
+	print(Integer mode = 1) async;
+
 	/*! @brief 关闭当前窗口 */
 	close() async;
 

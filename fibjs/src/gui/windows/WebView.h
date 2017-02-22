@@ -45,6 +45,8 @@ public:
 
 public:
 	// WebView_base
+	virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
+	virtual result_t print(int32_t mode, AsyncEvent* ac);
 	virtual result_t close(AsyncEvent* ac);
 	virtual result_t wait(AsyncEvent* ac);
 	virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
@@ -177,6 +179,7 @@ protected:
 	IOleObject* oleObject;
 	IOleInPlaceObject* oleInPlaceObject;
 	IOleInPlaceActiveObject* oleInPlaceActiveObject;
+	IOleCommandTarget* oleCommandTarget;
 	IConnectionPoint* connectionPoint;
 	IWebBrowser2* webBrowser2;
 	IDispatch* _onmessage;

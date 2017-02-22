@@ -26,6 +26,8 @@ class WebView_base : public EventEmitter_base
 
 public:
     // WebView_base
+    virtual result_t setHtml(exlib::string html, AsyncEvent* ac) = 0;
+    virtual result_t print(int32_t mode, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t wait(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
@@ -54,6 +56,8 @@ public:
     }
 
 public:
+    static void s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_print(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -71,6 +75,8 @@ public:
     static void s_set_onmessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
 
 public:
+    ASYNC_MEMBER1(WebView_base, setHtml, exlib::string);
+    ASYNC_MEMBER1(WebView_base, print, int32_t);
     ASYNC_MEMBER0(WebView_base, close);
     ASYNC_MEMBER0(WebView_base, wait);
     ASYNC_MEMBER1(WebView_base, postMessage, exlib::string);
@@ -84,6 +90,8 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
+            {"setHtml", s_setHtml, false},
+            {"print", s_print, false},
             {"close", s_close, false},
             {"wait", s_wait, false},
             {"postMessage", s_postMessage, false}
@@ -108,6 +116,42 @@ namespace fibjs
 
         static ClassInfo s_ci(s_cd);
         return s_ci;
+    }
+
+    inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(WebView_base);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        if(!cb.IsEmpty()) {
+            pInst->acb_setHtml(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_setHtml(v0);
+
+        METHOD_VOID();
+    }
+
+    inline void WebView_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(WebView_base);
+        METHOD_ENTER();
+
+        ASYNC_METHOD_OVER(1, 0);
+
+        OPT_ARG(int32_t, 0, 1);
+
+        if(!cb.IsEmpty()) {
+            pInst->acb_print(v0, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = pInst->ac_print(v0);
+
+        METHOD_VOID();
     }
 
     inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
