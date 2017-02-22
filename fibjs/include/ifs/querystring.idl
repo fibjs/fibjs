@@ -1,0 +1,15 @@
+/*! @brief http query 处理模块
+
+ 引用方法：
+ @code
+ var querystring = require('querystring');
+ @endcode
+ */
+module querystring
+{
+	static String escape(String str);
+	static String unescape(String str);
+
+	static HttpCollection parse(String str, String sep = "&", String eq = "=", Object opt = {});
+	static String stringify(Object obj, String sep = "&", String eq = "=", Object opt = {});
+};

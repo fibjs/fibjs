@@ -237,6 +237,11 @@ public:
         return operator=(v8::Local<v8::Value>::Cast(v));
     }
 
+    Variant &operator=(v8::Local<v8::Array> v)
+    {
+        return operator=(v8::Local<v8::Value>::Cast(v));
+    }
+
     Variant &setNull()
     {
         clear();

@@ -68,7 +68,7 @@ describe("http", () => {
             d.add('c', '600');
             d.add('d', '700');
 
-            assert.equal(d['a'], '100');
+            assert.deepEqual(d['a'], ['100', '300']);
 
             assert.equal(d.has('a'), true);
             assert.equal(d.first('a'), '100');

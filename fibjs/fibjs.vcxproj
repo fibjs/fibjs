@@ -216,6 +216,7 @@
     <ClInclude Include="include\ifs\process.h" />
     <ClInclude Include="include\ifs\profiler.h" />
     <ClInclude Include="include\ifs\Queue.h" />
+    <ClInclude Include="include\ifs\querystring.h" />
     <ClInclude Include="include\ifs\re.h" />
     <ClInclude Include="include\ifs\Redis.h" />
     <ClInclude Include="include\ifs\RedisHash.h" />
@@ -448,6 +449,7 @@
     <ClCompile Include="src\http\HttpsServer.cpp" />
     <ClCompile Include="src\http\HttpUploadCollection.cpp" />
     <ClCompile Include="src\http\HttpUploadData.cpp" />
+    <ClCompile Include="src\http\querystring.cpp" />
     <ClCompile Include="src\io\AsyncIO_ev.cpp" />
     <ClCompile Include="src\io\AsyncIO_iocp.cpp" />
     <ClCompile Include="src\io\BufferedStream.cpp" />

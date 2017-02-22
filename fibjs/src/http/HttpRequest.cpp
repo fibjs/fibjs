@@ -359,23 +359,17 @@ result_t HttpRequest::get_response(obj_ptr<Message_base> &retVal)
     return 0;
 }
 
-void HttpRequest::parse(exlib::string &str, char split,
-                        obj_ptr<HttpCollection_base> &retVal)
-{
-    obj_ptr<HttpCollection> c = new HttpCollection();
-
-    c->parse(str, split);
-    retVal = c;
-}
-
 result_t HttpRequest::get_cookies(obj_ptr<HttpCollection_base> &retVal)
 {
     if (!m_cookies)
     {
         exlib::string strCookie;
+        obj_ptr<HttpCollection> c = new HttpCollection();
 
         header("cookie", strCookie);
-        parse(strCookie, ';', m_cookies);
+
+        c->parseCookie(strCookie);
+        m_cookies = c;
     }
 
     retVal = m_cookies;
@@ -428,7 +422,11 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base> &retVal)
                 m_form = col;
             }
             else
-                parse(strForm, '&', m_form);
+            {
+                obj_ptr<HttpCollection> c = new HttpCollection();
+                c->parse(strForm);
+                m_form = c;
+            }
         }
     }
 
@@ -440,7 +438,11 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base> &retVal)
 result_t HttpRequest::get_query(obj_ptr<HttpCollection_base> &retVal)
 {
     if (m_query == NULL)
-        parse(m_queryString, '&', m_query);
+    {
+        obj_ptr<HttpCollection> c = new HttpCollection();
+        c->parse(m_queryString);
+        m_query = c;
+    }
 
     retVal = m_query;
     return 0;

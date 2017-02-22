@@ -309,7 +309,7 @@ result_t Url::parse(exlib::string url, bool parseQueryString)
     if (parseQueryString)
     {
         m_queryParsed = new HttpCollection();
-        m_queryParsed->parse(m_query, '&');
+        m_queryParsed->parse(m_query);
     }
 
     return 0;
@@ -772,7 +772,7 @@ result_t Url::set_query(v8::Local<v8::Value> newVal)
             if (m_queryParsed)
             {
                 m_queryParsed = new HttpCollection();
-                m_queryParsed->parse(m_query, '&');
+                m_queryParsed->parse(m_query);
             }
         } else
         {

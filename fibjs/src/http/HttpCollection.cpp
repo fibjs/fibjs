@@ -11,6 +11,7 @@
 #include "Map.h"
 #include "Url.h"
 #include <string.h>
+#include <set>
 
 namespace fibjs
 {
@@ -65,7 +66,76 @@ result_t HttpCollection::clear()
     return 0;
 }
 
-result_t HttpCollection::parse(exlib::string &str, char split)
+result_t HttpCollection::parse(exlib::string &str, const char* sep, const char* eq)
+{
+    const char *pstr = str.c_str();
+    int32_t nSize = (int32_t) str.length();
+    const char *pstrTemp;
+    exlib::string strKey, strValue;
+    int32_t sep_len = (int32_t)qstrlen(sep);
+    int32_t eq_len = (int32_t)qstrlen(eq);
+    bool found_eq;
+
+    while (nSize)
+    {
+        pstrTemp = pstr;
+        found_eq = false;
+
+        while (nSize)
+        {
+            if (!qstrcmp(pstr, sep, sep_len))
+                break;
+
+            if (!qstrcmp(pstr, eq, eq_len))
+            {
+                found_eq = true;
+                break;
+            }
+
+            pstr++;
+            nSize--;
+        }
+
+        if (pstr > pstrTemp)
+            Url::decodeURI(pstrTemp, (int32_t) (pstr - pstrTemp), strKey, true);
+        else
+            strKey.clear();
+
+        if (nSize && found_eq)
+        {
+            nSize -= eq_len;
+            pstr += eq_len;
+        }
+
+        pstrTemp = pstr;
+        while (nSize && qstrcmp(pstr, sep, sep_len))
+        {
+            pstr++;
+            nSize--;
+        }
+
+        if (!strKey.empty())
+        {
+            if (pstr > pstrTemp)
+                Url::decodeURI(pstrTemp, (int32_t) (pstr - pstrTemp), strValue, true);
+            else
+                strValue.clear();
+        }
+
+        if (nSize)
+        {
+            nSize -= sep_len;
+            pstr += sep_len;
+        }
+
+        if (!strKey.empty())
+            add(strKey, strValue);
+    }
+
+    return 0;
+}
+
+result_t HttpCollection::parseCookie(exlib::string &str)
 {
     const char *pstr = str.c_str();
     int32_t nSize = (int32_t) str.length();
@@ -81,7 +151,7 @@ result_t HttpCollection::parse(exlib::string &str, char split)
         }
 
         pstrTemp = pstr;
-        while (nSize && *pstr != '=' && *pstr != split)
+        while (nSize && *pstr != '=' && *pstr != ';')
         {
             pstr++;
             nSize--;
@@ -99,7 +169,7 @@ result_t HttpCollection::parse(exlib::string &str, char split)
         }
 
         pstrTemp = pstr;
-        while (nSize && *pstr != split)
+        while (nSize && *pstr != ';')
         {
             pstr++;
             nSize--;
@@ -258,17 +328,54 @@ result_t HttpCollection::remove(exlib::string name)
 
 result_t HttpCollection::_named_getter(const char *property, Variant &retVal)
 {
-    return first(property, retVal);
+    int32_t i;
+    int32_t n = 0;
+    Variant v;
+    v8::Local<v8::Array> a;
+
+    for (i = 0; i < m_count; i++)
+        if (!qstricmp(m_names[i].c_str(), property))
+        {
+            if (n == 0)
+            {
+                v = m_values[i];
+                n = 1;
+            } else {
+                if (n == 1)
+                {
+                    Isolate* isolate = holder();
+                    a = v8::Array::New(isolate->m_isolate);
+                    a->Set(0, v);
+                    v = a;
+                }
+
+                Variant t = m_values[i];
+                a->Set(n ++, t);
+            }
+        }
+
+    if (n > 0)
+    {
+        retVal = v;
+        return 0;
+    }
+
+    return CALL_RETURN_NULL;
 }
 
 result_t HttpCollection::_named_enumerator(v8::Local<v8::Array> &retVal)
 {
-    int32_t i;
+    int32_t i, n;
+    std::set<exlib::string> name_set;
     Isolate* isolate = holder();
 
     retVal = v8::Array::New(isolate->m_isolate);
-    for (i = 0; i < m_count; i++)
-        retVal->Set(i, isolate->NewFromUtf8(m_names[i]));
+    for (i = 0, n = 0; i < m_count; i++)
+    {
+        exlib::string& name = m_names[i];
+        if (name_set.insert(name).second)
+            retVal->Set(n ++, isolate->NewFromUtf8(name));
+    }
 
     return 0;
 }

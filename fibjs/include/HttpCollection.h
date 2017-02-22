@@ -56,7 +56,8 @@ public:
     size_t size();
     size_t getData(char *buf, size_t sz);
 
-    result_t parse(exlib::string &str, char split);
+    result_t parse(exlib::string &str, const char* sep = "&", const char* eq = "=");
+    result_t parseCookie(exlib::string &str);
 
 private:
     QuickArray<exlib::string> m_names;

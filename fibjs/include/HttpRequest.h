@@ -89,12 +89,9 @@ public:
         obj_ptr<HttpCollection_base> hdrs;
 
         m_message->get_headers(hdrs);
-        hdrs->first("cookie", varCookie);
+        hdrs->first(name, varCookie);
         retVal = varCookie.string();
     }
-
-    void parse(exlib::string &str, char split,
-               obj_ptr<HttpCollection_base> &retVal);
 
 private:
     obj_ptr<HttpMessage> m_message;

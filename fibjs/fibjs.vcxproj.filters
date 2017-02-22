@@ -330,6 +330,9 @@
     <ClInclude Include="include\ifs\Queue.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\querystring.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\BlockQueue.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -1124,6 +1127,9 @@
       <Filter>Source Files\http</Filter>
     </ClCompile>
     <ClCompile Include="src\http\HttpUploadData.cpp">
+      <Filter>Source Files\http</Filter>
+    </ClCompile>
+    <ClCompile Include="src\http\querystring.cpp">
       <Filter>Source Files\http</Filter>
     </ClCompile>
     <ClCompile Include="src\io\AsyncIO_ev.cpp">
