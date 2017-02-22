@@ -1032,3 +1032,23 @@ fs.readdir(baseFolder).forEach(f => {
 for (var cls in defs) {
     gen_code(cls, defs[cls]);
 }
+
+function clean_folder(path) {
+    var dir = fs.readdir(path);
+    dir.forEach(function(name) {
+        var fname = path + '/' + name;
+        var f = fs.stat(fname);
+        if (f.isDirectory()) {
+            clean_folder(fname);
+            fs.rmdir(fname);
+        } else
+            fs.unlink(fname);
+    });
+}
+
+process.chdir("../fibjs/include/ifs");
+clean_folder("../../../docs/html");
+process.run('doxygen');
+
+process.chdir("../../../docs/src");
+process.run('doxygen');
