@@ -1052,3 +1052,26 @@ process.run('doxygen');
 
 process.chdir("../../../docs/src");
 process.run('doxygen');
+
+function replace_dot(path) {
+    var dir = fs.readdir(path);
+    dir.forEach(function(name) {
+        var fname = path + '/' + name;
+        var f = fs.stat(fname);
+        if (f.isDirectory()) {
+            replace_dot(fname);
+
+        } else if (name.substr(name.length - 5) == ".html") {
+            var html = fs.readTextFile(fname);
+            html = html.replace(/::/g, ".");
+            html = html.replace(/<meta\ name=\"generator\"\ content=\"Doxygen\ [0-9\.]+"\/>/g, "");
+            html = html.replace(/<!--\ 制作者\ Doxygen\ [0-9\.]+\ -->/g, "");
+            html = html.replace(/<!--\ Generated\ by\ Doxygen\ [0-9\.]+\ -->/g, "");
+
+            fs.writeFile(fname, html);
+        }
+    });
+}
+
+process.chdir("../html");
+replace_dot(".");
