@@ -7,9 +7,31 @@
  */
 module querystring
 {
+    /*! @brief url 部件字符串安全编码
+     @param url 要编码的 url
+     @return 返回编码的字符串
+     */
 	static String escape(String str);
+
+    /*! @brief url 安全字符串解码
+     @param url 要解码的 url
+     @return 返回解码的字符串
+     */
 	static String unescape(String str);
 
+    /*! @brief 解析 query 字符串
+     @param str 要解析的字符串
+     @param sep 解析时使用的分割字符串，缺省为 &
+     @param eq 解析时使用的赋值字符串，缺省为 =
+     @return 返回解码的对象
+     */
 	static HttpCollection parse(String str, String sep = "&", String eq = "=", Object opt = {});
+
+    /*! @brief 序列化一个对象为 query 字符串
+     @param obj 要序列化的对象
+     @param sep 序列化时使用的分割字符串，缺省为 &
+     @param eq 序列化时使用的赋值字符串，缺省为 =
+     @return 返回序列化后的字符串
+     */
 	static String stringify(Object obj, String sep = "&", String eq = "=", Object opt = {});
 };
