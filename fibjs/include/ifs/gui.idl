@@ -26,6 +26,7 @@ module gui
 	        "caption": true, // 是否有标题栏，缺省有标题栏
 	        "resizable": true, // 是否可改变尺寸，缺省可以改变
 	        "maximize": false, // 是否最大化显示，缺省不最大化
+	        "visible": true, // 是否显示，缺省显示
 	        "debug": false // 是否提示页面错误，缺省不提示
 	    }
 	 @endcode

@@ -437,6 +437,8 @@ WebView::WebView(exlib::string url, Map_base* opt)
 	_onmessage = NULL;
 	hWndParent = NULL;
 
+	m_visible = true;
+
 	RegMainClass();
 
 	DWORD dwStyle = WS_POPUP;
@@ -462,35 +464,28 @@ WebView::WebView(exlib::string url, Map_base* opt)
 		int dpix = 0, dpiy = 0;
 		GetDPI(&dpix, &dpiy);
 
-		if (x != CW_USEDEFAULT)
-			x = x * dpix / 96;
-
-		if (y != CW_USEDEFAULT)
-			y = y * dpix / 96;
+		RECT actualDesktop;
+		GetWindowRect(GetDesktopWindow(), &actualDesktop);
 
 		if (nWidth != CW_USEDEFAULT)
 			nWidth = nWidth * dpix / 96;
+		else
+			nWidth = actualDesktop.right * 3 / 4;
 
 		if (nHeight != CW_USEDEFAULT)
 			nHeight = nHeight * dpix / 96;
+		else
+			nHeight = actualDesktop.bottom * 3 / 4;
 
-		if (x == CW_USEDEFAULT || y == CW_USEDEFAULT)
-		{
-			if (nWidth != CW_USEDEFAULT && nHeight != CW_USEDEFAULT)
-			{
-				RECT actualDesktop;
-				GetWindowRect(GetDesktopWindow(), &actualDesktop);
+		if (x != CW_USEDEFAULT)
+			x = x * dpix / 96;
+		else
+			x = (actualDesktop.right - nWidth) / 2;
 
-				if (x == CW_USEDEFAULT)
-					x = (actualDesktop.right - nWidth) / 2;
-				if (y == CW_USEDEFAULT)
-					y = (actualDesktop.bottom - nHeight) / 2;
-			} else
-			{
-				x = CW_USEDEFAULT;
-				y = CW_USEDEFAULT;
-			}
-		}
+		if (y != CW_USEDEFAULT)
+			y = y * dpix / 96;
+		else
+			y = (actualDesktop.bottom - nHeight) / 2;
 
 		if (!(opt->get("border", v) == 0 && !v.boolVal()))
 		{
@@ -504,6 +499,9 @@ WebView::WebView(exlib::string url, Map_base* opt)
 
 			if (opt->get("maximize", v) == 0 && v.boolVal())
 				dwStyle |= WS_MAXIMIZE;
+
+			if (opt->get("visible", v) == 0 && !v.boolVal())
+				m_visible = false;
 		}
 
 		if (opt->get("debug", v) == 0 && v.boolVal())
@@ -513,7 +511,8 @@ WebView::WebView(exlib::string url, Map_base* opt)
 
 	hWndParent = CreateWindowExW(0, szWndClassMain, L"", dwStyle, x, y, nWidth, nHeight,
 	                             NULL, NULL, GetModuleHandle(NULL), NULL);
-	ShowWindow(hWndParent, SW_SHOW);
+	if (m_visible)
+		ShowWindow(hWndParent, SW_SHOW);
 
 	::SetRect(&rObject, -300, -300, 300, 300);
 
@@ -729,6 +728,24 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 		_onmessage->Invoke(DISPID_VALUE, IID_NULL, LOCALE_USER_DEFAULT,
 		                   DISPATCH_METHOD, &params, &vResult, NULL, NULL);
 	}
+
+	return 0;
+}
+
+result_t WebView::get_visible(bool& retVal)
+{
+	retVal = m_visible;
+	return 0;
+}
+
+result_t WebView::set_visible(bool newVal)
+{
+	m_visible = newVal;
+
+	if (m_visible)
+		ShowWindow(hWndParent, SW_SHOW);
+	else
+		ShowWindow(hWndParent, SW_HIDE);
 
 	return 0;
 }

@@ -48,6 +48,8 @@ public:
 	virtual result_t close(AsyncEvent* ac);
 	virtual result_t wait(AsyncEvent* ac);
 	virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
+	virtual result_t get_visible(bool& retVal);
+	virtual result_t set_visible(bool newVal);
 
 public:
 	EVENT_FUNC(load);
@@ -184,6 +186,8 @@ protected:
 
 	HWND hWndParent;
 	HWND hWndControl;
+
+	bool m_visible;
 
 	AsyncEvent* m_ac;
 };
