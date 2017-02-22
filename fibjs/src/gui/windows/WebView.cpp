@@ -461,32 +461,6 @@ WebView::WebView(exlib::string url, Map_base* opt)
 		if (opt->get("height", v) == 0)
 			nHeight = v;
 
-		int dpix = 0, dpiy = 0;
-		GetDPI(&dpix, &dpiy);
-
-		RECT actualDesktop;
-		GetWindowRect(GetDesktopWindow(), &actualDesktop);
-
-		if (nWidth != CW_USEDEFAULT)
-			nWidth = nWidth * dpix / 96;
-		else
-			nWidth = actualDesktop.right * 3 / 4;
-
-		if (nHeight != CW_USEDEFAULT)
-			nHeight = nHeight * dpix / 96;
-		else
-			nHeight = actualDesktop.bottom * 3 / 4;
-
-		if (x != CW_USEDEFAULT)
-			x = x * dpix / 96;
-		else
-			x = (actualDesktop.right - nWidth) / 2;
-
-		if (y != CW_USEDEFAULT)
-			y = y * dpix / 96;
-		else
-			y = (actualDesktop.bottom - nHeight) / 2;
-
 		if (!(opt->get("border", v) == 0 && !v.boolVal()))
 		{
 			dwStyle |= WS_BORDER;
@@ -508,6 +482,32 @@ WebView::WebView(exlib::string url, Map_base* opt)
 			bSilent = false;
 	} else
 		dwStyle = WS_OVERLAPPEDWINDOW;
+
+	int dpix = 0, dpiy = 0;
+	GetDPI(&dpix, &dpiy);
+
+	RECT actualDesktop;
+	GetWindowRect(GetDesktopWindow(), &actualDesktop);
+
+	if (nWidth != CW_USEDEFAULT)
+		nWidth = nWidth * dpix / 96;
+	else
+		nWidth = actualDesktop.right * 3 / 4;
+
+	if (nHeight != CW_USEDEFAULT)
+		nHeight = nHeight * dpix / 96;
+	else
+		nHeight = actualDesktop.bottom * 3 / 4;
+
+	if (x != CW_USEDEFAULT)
+		x = x * dpix / 96;
+	else
+		x = (actualDesktop.right - nWidth) / 2;
+
+	if (y != CW_USEDEFAULT)
+		y = y * dpix / 96;
+	else
+		y = (actualDesktop.bottom - nHeight) / 2;
 
 	hWndParent = CreateWindowExW(0, szWndClassMain, L"", dwStyle, x, y, nWidth, nHeight,
 	                             NULL, NULL, GetModuleHandle(NULL), NULL);
