@@ -9,6 +9,7 @@
 #include "ifs/mq.h"
 #include "WebSocketHandler.h"
 #include "WebSocketMessage.h"
+#include "WebSocket.h"
 #include "ifs/HttpRequest.h"
 #include "ifs/HttpResponse.h"
 #include "JSHandler.h"
@@ -33,6 +34,12 @@ enum
     PACKET_ERROR
 };
 
+result_t ws_base::upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal)
+{
+    retVal = new WebSocketHandler(accept);
+    return 0;
+}
+
 result_t WebSocketHandler_base::_new(v8::Local<v8::Value> hdlr,
                                      obj_ptr<WebSocketHandler_base> &retVal,
                                      v8::Local<v8::Object> This)
@@ -51,7 +58,18 @@ result_t WebSocketHandler_base::_new(v8::Local<v8::Value> hdlr,
     return 0;
 }
 
-WebSocketHandler::WebSocketHandler() : m_maxSize(67108864)
+WebSocketHandler::WebSocketHandler(v8::Local<v8::Function> accept) :
+    m_maxSize(67108864), m_event(true)
+{
+    m_stats = new Stats();
+    m_stats->init(s_staticCounter, 2, s_Counter, 3);
+
+    v8::Local<v8::Object> r;
+    on("accept", accept, r);
+}
+
+WebSocketHandler::WebSocketHandler() :
+    m_maxSize(67108864), m_event(false)
 {
     m_stats = new Stats();
     m_stats->init(s_staticCounter, 2, s_Counter, 3);
@@ -63,8 +81,8 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     class asyncInvoke: public AsyncState
     {
     public:
-        asyncInvoke(WebSocketHandler *pThis, HttpRequest_base *req, AsyncEvent *ac) :
-            AsyncState(ac), m_pThis(pThis), m_httpreq(req), m_error(0)
+        asyncInvoke(WebSocketHandler *pThis, HttpRequest_base *req, bool event, AsyncEvent *ac) :
+            AsyncState(ac), m_pThis(pThis), m_httpreq(req), m_event(event), m_error(0)
         {
             obj_ptr<Message_base> rep;
 
@@ -133,8 +151,26 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             pThis->m_httprep->addHeader("Upgrade", "websocket");
             pThis->m_httprep->set_upgrade(true);
 
-            pThis->set(read);
+            pThis->set(pThis->m_event ? accept : read);
             return pThis->m_httprep->sendTo(pThis->m_stm, pThis);
+        }
+
+        static int32_t accept(AsyncState *pState, int32_t n)
+        {
+            asyncInvoke *pThis = (asyncInvoke *) pState;
+
+            pThis->done(CALL_RETURN_NULL);
+
+            obj_ptr<WebSocketHandler> pHandler = pThis->m_pThis;
+            obj_ptr<WebSocket> sock = new WebSocket(pThis->m_stm, "", pThis);
+
+            Variant v;
+            v = sock;
+            pHandler->_emit("accept", &v, 1);
+
+            sock->startRecv();
+
+            return CALL_E_PENDDING;
         }
 
         static int32_t read(AsyncState *pState, int32_t n)
@@ -254,6 +290,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         obj_ptr<Stream_base> m_stm;
         obj_ptr<WebSocketMessage_base> m_msg;
         obj_ptr<Message_base> m_rep;
+        bool m_event;
         int32_t m_error;
     };
 
@@ -264,7 +301,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     if (req == NULL)
         return CHECK_ERROR(CALL_E_BADVARTYPE);
 
-    return (new asyncInvoke(this, req, ac))->post(0);
+    return (new asyncInvoke(this, req, m_event, ac))->post(0);
 }
 
 result_t WebSocketHandler::get_maxSize(int32_t &retVal)

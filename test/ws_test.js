@@ -437,6 +437,152 @@ describe('ws', () => {
             assert.equal(msg.data.toString(), '456');
         });
     });
+
+    describe('WebSocketHandler', () => {
+        it("handshake", () => {
+            function test_msg(n, masked) {
+                var msg = new ws.Message();
+                msg.type = ws.TEXT;
+                msg.masked = masked;
+
+                var buf = new Buffer(n);
+                for (var i = 0; i < n; i++) {
+                    buf[i] = (i % 10) + 0x30;
+                }
+
+                msg.body.write(buf);
+
+                msg.sendTo(rep.stream);
+
+                var msg = new ws.Message();
+                msg.readFrom(rep.stream);
+
+                assert.equal(msg.body.readAll().toString(), buf.toString());
+            }
+
+            var httpd = new http.Server(8813 + base_port, ws.upgrade((s) => {
+                s.onmessage = function(msg) {
+                    this.send(msg.data);
+                };
+            }));
+            ss.push(httpd.socket);
+            httpd.asyncRun();
+
+            var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                "Upgrade": "websocket",
+                "Connection": "Upgrade",
+                "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                "Sec-WebSocket-Version": "13"
+            });
+
+            assert.equal(rep.firstHeader("Sec-WebSocket-Accept"), "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=");
+            assert.equal(rep.firstHeader("Upgrade"), "websocket");
+            assert.equal(rep.status, 101);
+            assert.equal(rep.upgrade, true);
+
+            test_msg(10, true);
+            test_msg(100, true);
+            test_msg(125, true);
+            test_msg(126, true);
+            test_msg(65535, true);
+            test_msg(65536, true);
+
+            var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                "Connection": "Upgrade",
+                "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                "Sec-WebSocket-Version": "13"
+            });
+
+            assert.equal(rep.status, 500);
+
+            var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                "Upgrade": "websocket",
+                "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                "Sec-WebSocket-Version": "13"
+            });
+
+            assert.equal(rep.status, 500);
+
+            var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                "Upgrade": "websocket",
+                "Connection": "Upgrade",
+                "Sec-WebSocket-Version": "13"
+            });
+
+            assert.equal(rep.status, 500);
+
+            var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                "Upgrade": "websocket",
+                "Connection": "Upgrade",
+                "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ=="
+            });
+
+            assert.equal(rep.status, 500);
+
+            assert.throws(() => {
+                test_msg(10);
+            });
+        });
+
+        it("ping", () => {
+            var s = ws.connect("ws://127.0.0.1:" + (8813 + base_port) + "/");
+
+            var body = "hello";
+            var msg = new ws.Message();
+            msg.type = ws.PING;
+            msg.body.write(body);
+            msg.sendTo(s);
+
+            var msg = new ws.Message();
+            msg.readFrom(s);
+
+            assert.equal(msg.type, ws.PONG);
+            assert.equal(msg.body.readAll().toString(), body);
+        });
+
+
+        it("close", () => {
+            var s = ws.connect("ws://127.0.0.1:" + (8813 + base_port) + "/");
+
+            var msg = new ws.Message();
+            msg.type = ws.CLOSE;
+
+            msg.sendTo(s);
+
+            var msg = new ws.Message();
+
+            assert.throws(() => {
+                msg.readFrom(s);
+            });
+        });
+
+        it("non-control opcode", () => {
+            var s = ws.connect("ws://127.0.0.1:" + (8813 + base_port) + "/");
+
+            var msg = new ws.Message();
+            msg.type = 5;
+            msg.sendTo(s);
+
+            var msg = new ws.Message();
+            assert.throws(() => {
+                msg.readFrom(s);
+            });
+        });
+
+        it("drop other type message", () => {
+            var s = ws.connect("ws://127.0.0.1:" + (8813 + base_port) + "/");
+
+            var msg = new ws.Message();
+            msg.type = ws.PONG;
+            msg.sendTo(s);
+
+            var msg = new ws.Message();
+            assert.throws(() => {
+                msg.readFrom(s);
+            });
+        });
+
+    });
 });
 
 // test.run(console.DEBUG);

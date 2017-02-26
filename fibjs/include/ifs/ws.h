@@ -21,6 +21,7 @@ class WebSocketMessage_base;
 class WebSocketHandler_base;
 class WebSocket_base;
 class Stream_base;
+class Handler_base;
 
 class ws_base : public object_base
 {
@@ -43,6 +44,7 @@ public:
 public:
     // ws_base
     static result_t connect(exlib::string url, exlib::string origin, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -67,6 +69,7 @@ public:
     static void s_get_CLOSING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_CLOSED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(ws_base, connect, exlib::string, exlib::string, obj_ptr<Stream_base>);
@@ -78,6 +81,7 @@ public:
 #include "WebSocketHandler.h"
 #include "WebSocket.h"
 #include "Stream.h"
+#include "Handler.h"
 
 namespace fibjs
 {
@@ -85,7 +89,8 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
-            {"connect", s_connect, true}
+            {"connect", s_connect, true},
+            {"upgrade", s_upgrade, true}
         };
 
         static ClassData::ClassObject s_object[] = 
@@ -206,6 +211,21 @@ namespace fibjs
             hr = CALL_RETURN_NULL;
         } else
             hr = ac_connect(v0, v1, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void ws_base::s_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<Handler_base> vr;
+
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(v8::Local<v8::Function>, 0);
+
+        hr = upgrade(v0, vr);
 
         METHOD_RETURN();
     }

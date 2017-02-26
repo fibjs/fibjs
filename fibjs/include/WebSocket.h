@@ -21,8 +21,13 @@ class WebSocket: public WebSocket_base
 
 public:
     WebSocket(exlib::string url, exlib::string protocol, exlib::string origin):
-        m_url(url), m_protocol(protocol), m_origin(origin), m_masked(true),
+        m_ac(NULL), m_url(url), m_protocol(protocol), m_origin(origin), m_masked(true),
         m_maxSize(67108864), m_readyState(ws_base::_CONNECTING)
+    {}
+
+    WebSocket(Stream_base* stream, exlib::string protocol, AsyncEvent *ac):
+        m_stream(stream), m_ac(ac), m_protocol(protocol), m_masked(false),
+        m_maxSize(67108864), m_readyState(ws_base::_OPEN)
     {}
 
 public:
@@ -46,6 +51,7 @@ public:
 
 public:
     obj_ptr<Stream_base> m_stream;
+    AsyncEvent *m_ac;
     exlib::string m_url;
     exlib::string m_protocol;
     exlib::string m_origin;

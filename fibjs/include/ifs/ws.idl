@@ -45,4 +45,10 @@ module ws
      @return 返回连接成功的 Stream 对象，可能为 Socket 或者 SslSocket
      */
     static Stream connect(String url, String origin = "") async;
+
+    /*! @brief 创建一个 websocket 协议处理器，从 http 接收 upgrade 请求并握手，生成 WebSocket 对象
+     @param accept 连接成功处理函数，参数为 WebSocket 对象
+     @return 返回协议处理器，可与 HttpServer, Chain, Routing 等对接
+     */
+    static Handler upgrade(Function accept);
 };

@@ -20,6 +20,7 @@ class WebSocketHandler: public WebSocketHandler_base
 
 public:
     WebSocketHandler();
+    WebSocketHandler(v8::Local<v8::Function> accept);
 
 public:
     // object_base
@@ -56,6 +57,7 @@ private:
     naked_ptr<Handler_base> m_hdlr;
     naked_ptr<Handler_base> m_err_hdlr;
     int32_t m_maxSize;
+    bool m_event;
 };
 
 } /* namespace fibjs */

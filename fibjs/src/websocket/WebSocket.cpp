@@ -38,10 +38,13 @@ public:
 		set(fill);
 	}
 
-	asyncSend(WebSocket* pThis, int32_t type):
+	asyncSend(WebSocket* pThis, int32_t type, SeekableStream_base* body = NULL):
 		AsyncState(NULL), m_this(pThis)
 	{
 		m_msg = new WebSocketMessage(type, m_this->m_masked, 0);
+		if (body)
+			m_msg->set_body(body);
+
 		set(send);
 	}
 
@@ -246,9 +249,14 @@ void WebSocket::startRecv()
 			switch (type)
 			{
 			case ws_base::_PING:
-				(new asyncSend(pThis->m_this, ws_base::_PING))->post(0);
+			{
+				obj_ptr<SeekableStream_base> body;
+				pThis->m_msg->get_body(body);
+				(new asyncSend(pThis->m_this, ws_base::_PONG, body))->post(0);
 				break;
+			}
 			case ws_base::_CLOSE:
+				(new asyncSend(pThis->m_this, ws_base::_CLOSE))->post(0);
 				break;
 			default:
 				Variant v;
@@ -305,7 +313,7 @@ result_t WebSocket::close(int32_t code, exlib::string reason)
 	if (m_readyState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING) == ws_base::_OPEN)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-	(new asyncSend(this, ws_base::_CLOSE))->post(0);
+	(new asyncSend(this, ws_base::_CLOSE, NULL))->post(0);
 	return 0;
 }
 
