@@ -178,8 +178,8 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
 
 			m_ref = 2;
 
-			(new AsyncCopy(this, 0))->post(0);
-			(new AsyncCopy(this, 1))->post(0);
+			(new AsyncCopy(this, 0))->apost(0);
+			(new AsyncCopy(this, 1))->apost(0);
 		}
 
 		void release()
