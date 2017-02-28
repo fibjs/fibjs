@@ -551,6 +551,9 @@ describe('ws', () => {
 
             var msg = new ws.Message();
 
+            msg.readFrom(s);
+            assert.equal(msg.type, ws.CLOSE);
+
             assert.throws(() => {
                 msg.readFrom(s);
             });
@@ -559,27 +562,39 @@ describe('ws', () => {
         it("non-control opcode", () => {
             var s = ws.connect("ws://127.0.0.1:" + (8813 + base_port) + "/");
 
+            var body = "hello";
             var msg = new ws.Message();
             msg.type = 5;
             msg.sendTo(s);
 
+            msg.type = ws.PING;
+            msg.body.write(body);
+            msg.sendTo(s);
+
             var msg = new ws.Message();
-            assert.throws(() => {
-                msg.readFrom(s);
-            });
+            msg.readFrom(s);
+
+            assert.equal(msg.type, ws.PONG);
+            assert.equal(msg.body.readAll().toString(), body);
         });
 
         it("drop other type message", () => {
             var s = ws.connect("ws://127.0.0.1:" + (8813 + base_port) + "/");
 
+            var body = "hello";
             var msg = new ws.Message();
             msg.type = ws.PONG;
             msg.sendTo(s);
 
+            msg.type = ws.PING;
+            msg.body.write(body);
+            msg.sendTo(s);
+
             var msg = new ws.Message();
-            assert.throws(() => {
-                msg.readFrom(s);
-            });
+            msg.readFrom(s);
+
+            assert.equal(msg.type, ws.PONG);
+            assert.equal(msg.body.readAll().toString(), body);
         });
 
     });

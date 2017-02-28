@@ -51,6 +51,8 @@ public:
     void endConnect(int32_t code, exlib::string reason);
     void endConnect(SeekableStream_base* body);
 
+    static result_t on_close(WebSocket* pThis);
+
 public:
     obj_ptr<Stream_base> m_stream;
     AsyncEvent *m_ac;

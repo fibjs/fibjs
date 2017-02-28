@@ -22,7 +22,7 @@ class asyncSend: public AsyncState
 {
 public:
 	asyncSend(WebSocket* pThis, exlib::string data, int32_t type = ws_base::_TEXT):
-		AsyncState(NULL), m_this(pThis)
+		AsyncState(NULL), m_this(pThis), m_end(false)
 	{
 		m_data = new Buffer(data);
 		m_msg = new WebSocketMessage(type, m_this->m_masked, 0);
@@ -30,7 +30,7 @@ public:
 	}
 
 	asyncSend(WebSocket* pThis, Buffer_base* data, int32_t type = ws_base::_BINARY):
-		AsyncState(NULL), m_this(pThis)
+		AsyncState(NULL), m_this(pThis), m_end(false)
 	{
 		m_data = new Buffer(data);
 		m_msg = new WebSocketMessage(type, m_this->m_masked, 0);
@@ -38,8 +38,8 @@ public:
 		set(fill);
 	}
 
-	asyncSend(WebSocket* pThis, SeekableStream_base* body, int32_t type):
-		AsyncState(NULL), m_this(pThis)
+	asyncSend(WebSocket* pThis, SeekableStream_base* body, int32_t type, bool end = false):
+		AsyncState(NULL), m_this(pThis), m_end(end)
 	{
 		m_msg = new WebSocketMessage(type, m_this->m_masked, 0);
 		if (body)
@@ -60,14 +60,28 @@ public:
 	{
 		asyncSend *pThis = (asyncSend *) pState;
 
-		pThis->done();
+		pThis->set(ok);
 		return pThis->m_msg->sendTo(pThis->m_this->m_stream, pThis);
+	}
+
+	static int32_t ok(AsyncState *pState, int32_t n)
+	{
+		asyncSend *pThis = (asyncSend *) pState;
+
+		if (pThis->m_end)
+		{
+			obj_ptr<SeekableStream_base> body;
+			pThis->m_msg->get_body(body);
+
+			pThis->m_this->endConnect(body);
+		}
+		return pThis->done();
 	}
 
 	virtual int32_t error(int32_t v)
 	{
 		m_this->_emit("error", NULL, 0);
-		m_this->endConnect(1, "");
+		m_this->endConnect(1006, "");
 		return v;
 	}
 
@@ -75,6 +89,7 @@ private:
 	obj_ptr<WebSocketMessage> m_msg;
 	obj_ptr<Buffer_base> m_data;
 	obj_ptr<WebSocket> m_this;
+	bool m_end;
 };
 
 result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::string origin,
@@ -262,17 +277,20 @@ void WebSocket::startRecv()
 
 				if (pThis->m_this->m_readyState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING)
 				        == ws_base::_OPEN)
-					(new asyncSend(pThis->m_this, body, ws_base::_CLOSE))->post(0);
+					(new asyncSend(pThis->m_this, body, ws_base::_CLOSE, true))->post(0);
 				else
 					pThis->m_this->endConnect(body);
 
 				break;
 			}
-			default:
+			case ws_base::_TEXT:
+			case ws_base::_BINARY:
+			{
 				Variant v;
 
 				v = pThis->m_msg;
 				pThis->m_this->_emit("message", &v, 1);
+			}
 			}
 
 			pThis->set(recv);
@@ -294,6 +312,23 @@ void WebSocket::startRecv()
 	(new asyncReac(this))->post(0);
 }
 
+result_t WebSocket::on_close(WebSocket* pThis)
+{
+	if (pThis->m_stream)
+		pThis->m_stream->cc_close();
+
+	if (pThis->m_ac)
+		pThis->m_ac->post(CALL_RETURN_NULL);
+
+	Variant vs[2];
+	vs[0] = pThis->m_code;
+	vs[1] = pThis->m_reason;
+
+	pThis->_emit("close", vs, 2);
+
+	return 0;
+}
+
 void WebSocket::endConnect(int32_t code, exlib::string reason)
 {
 	if (m_closed.CompareAndSwap(0, 1) == 0)
@@ -306,7 +341,7 @@ void WebSocket::endConnect(int32_t code, exlib::string reason)
 			m_code = code;
 			m_reason = reason;
 
-			// syncCall(isolate, main_fiber, isolate);
+			syncCall(isolate, on_close, this);
 		}
 	}
 }
@@ -326,7 +361,7 @@ void WebSocket::endConnect(SeekableStream_base* body)
 		if (str.length() >= 2)
 		{
 			const unsigned char* data = (const unsigned char*)str.c_str();
-			code = data[0] << 8 + data[1];
+			code = ((int32_t)data[0] << 8) + data[1];
 			reason = str.substr(2);
 		}
 	}
