@@ -231,6 +231,7 @@ public:
 
     virtual void apost(int32_t v)
     {
+        m_bAsyncState = true;
         m_v = v;
         async(CALL_E_NOSYNC);
     }
