@@ -21,24 +21,24 @@ namespace fibjs
 class asyncSend: public AsyncState
 {
 public:
-	asyncSend(WebSocket* pThis, exlib::string data):
+	asyncSend(WebSocket* pThis, exlib::string data, int32_t type = ws_base::_TEXT):
 		AsyncState(NULL), m_this(pThis)
 	{
 		m_data = new Buffer(data);
-		m_msg = new WebSocketMessage(ws_base::_TEXT, m_this->m_masked, 0);
+		m_msg = new WebSocketMessage(type, m_this->m_masked, 0);
 		set(fill);
 	}
 
-	asyncSend(WebSocket* pThis, Buffer_base* data):
+	asyncSend(WebSocket* pThis, Buffer_base* data, int32_t type = ws_base::_BINARY):
 		AsyncState(NULL), m_this(pThis)
 	{
 		m_data = new Buffer(data);
-		m_msg = new WebSocketMessage(ws_base::_BINARY, m_this->m_masked, 0);
+		m_msg = new WebSocketMessage(type, m_this->m_masked, 0);
 
 		set(fill);
 	}
 
-	asyncSend(WebSocket* pThis, int32_t type, SeekableStream_base* body = NULL):
+	asyncSend(WebSocket* pThis, SeekableStream_base* body, int32_t type):
 		AsyncState(NULL), m_this(pThis)
 	{
 		m_msg = new WebSocketMessage(type, m_this->m_masked, 0);
@@ -66,8 +66,8 @@ public:
 
 	virtual int32_t error(int32_t v)
 	{
-		m_this->m_readyState = ws_base::_CLOSED;
 		m_this->_emit("error", NULL, 0);
+		m_this->endConnect(1, "");
 		return v;
 	}
 
@@ -193,8 +193,8 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 
 		virtual int32_t error(int32_t v)
 		{
-			m_this->m_readyState = ws_base::_CLOSED;
 			m_this->_emit("error", NULL, 0);
+			m_this->endConnect(1, "");
 			return v;
 		}
 
@@ -252,12 +252,22 @@ void WebSocket::startRecv()
 			{
 				obj_ptr<SeekableStream_base> body;
 				pThis->m_msg->get_body(body);
-				(new asyncSend(pThis->m_this, ws_base::_PONG, body))->post(0);
+				(new asyncSend(pThis->m_this, body, ws_base::_PONG))->post(0);
 				break;
 			}
 			case ws_base::_CLOSE:
-				(new asyncSend(pThis->m_this, ws_base::_CLOSE))->post(0);
+			{
+				obj_ptr<SeekableStream_base> body;
+				pThis->m_msg->get_body(body);
+
+				if (pThis->m_this->m_readyState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING)
+				        == ws_base::_OPEN)
+					(new asyncSend(pThis->m_this, body, ws_base::_CLOSE))->post(0);
+				else
+					pThis->m_this->endConnect(body);
+
 				break;
+			}
 			default:
 				Variant v;
 
@@ -271,8 +281,8 @@ void WebSocket::startRecv()
 
 		virtual int32_t error(int32_t v)
 		{
-			m_this->m_readyState = ws_base::_CLOSED;
 			m_this->_emit("error", NULL, 0);
+			m_this->endConnect(1, "");
 			return v;
 		}
 
@@ -282,6 +292,46 @@ void WebSocket::startRecv()
 	};
 
 	(new asyncReac(this))->post(0);
+}
+
+void WebSocket::endConnect(int32_t code, exlib::string reason)
+{
+	if (m_closed.CompareAndSwap(0, 1) == 0)
+	{
+		m_readyState = ws_base::_CLOSED;
+
+		Isolate* isolate = holder();
+		if (isolate)
+		{
+			m_code = code;
+			m_reason = reason;
+
+			// syncCall(isolate, main_fiber, isolate);
+		}
+	}
+}
+
+void WebSocket::endConnect(SeekableStream_base* body)
+{
+	obj_ptr<Buffer_base> buf;
+	int32_t code = 0;
+	exlib::string reason;
+
+	body->cc_readAll(buf);
+	if (buf)
+	{
+		exlib::string str;
+
+		buf->toString(str);
+		if (str.length() >= 2)
+		{
+			const unsigned char* data = (const unsigned char*)str.c_str();
+			code = data[0] << 8 + data[1];
+			reason = str.substr(2);
+		}
+	}
+
+	endConnect(code, reason);
 }
 
 result_t WebSocket::get_url(exlib::string& retVal)
@@ -310,10 +360,18 @@ result_t WebSocket::get_readyState(int32_t& retVal)
 
 result_t WebSocket::close(int32_t code, exlib::string reason)
 {
-	if (m_readyState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING) == ws_base::_OPEN)
+	if (m_readyState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING) != ws_base::_OPEN)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-	(new asyncSend(this, ws_base::_CLOSE, NULL))->post(0);
+	if (code != 1000 && (code < 3000 || code > 4999))
+		return CHECK_ERROR(Runtime::setError("websocket: The code must be either 1000, or between 3000 and 4999."));
+
+	exlib::string buf = "  " + reason;
+
+	buf[0] = (code >> 8) & 255;
+	buf[1] = code & 255;
+
+	(new asyncSend(this, buf, ws_base::_CLOSE))->post(0);
 	return 0;
 }
 

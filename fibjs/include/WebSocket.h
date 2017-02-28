@@ -48,6 +48,8 @@ public:
 
 public:
     void startRecv();
+    void endConnect(int32_t code, exlib::string reason);
+    void endConnect(SeekableStream_base* body);
 
 public:
     obj_ptr<Stream_base> m_stream;
@@ -58,6 +60,9 @@ public:
     bool m_masked;
     int32_t m_maxSize;
     exlib::atomic m_readyState;
+    exlib::atomic m_closed;
+    int32_t m_code;
+    exlib::string m_reason;
 };
 
 } /* namespace fibjs */
