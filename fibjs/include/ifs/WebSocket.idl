@@ -17,7 +17,7 @@ interface WebSocket : EventEmitter
 
   readonly Integer readyState;
 
-  close(Integer code = 100, String reason = "");
+  close(Integer code = 1000, String reason = "");
   send(String data);
   send(Buffer data);
 

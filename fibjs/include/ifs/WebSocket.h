@@ -181,7 +181,7 @@ namespace fibjs
 
         METHOD_OVER(2, 0);
 
-        OPT_ARG(int32_t, 0, 100);
+        OPT_ARG(int32_t, 0, 1000);
         OPT_ARG(exlib::string, 1, "");
 
         hr = pInst->close(v0, v1);
