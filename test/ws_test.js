@@ -396,7 +396,7 @@ describe('ws', () => {
             assert.equal(msg.body.readAll().toString(), buf.toString());
         }
 
-        it("handshake", () => {
+        it("server", () => {
             var httpd = new http.Server(8813 + base_port, ws.upgrade((s) => {
                 s.onmessage = function(msg) {
                     this.send(msg.data);
@@ -404,50 +404,58 @@ describe('ws', () => {
             }));
             ss.push(httpd.socket);
             httpd.asyncRun();
+        });
 
-            var s = connect();
+        describe("handshake", () => {
+            it("echo", () => {
+                var s = connect();
 
-            test_msg(s, 10, true);
-            test_msg(s, 100, true);
-            test_msg(s, 125, true);
-            test_msg(s, 126, true);
-            test_msg(s, 65535, true);
-            test_msg(s, 65536, true);
-
-            var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
-                "Connection": "Upgrade",
-                "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
-                "Sec-WebSocket-Version": "13"
+                test_msg(s, 10, true);
+                test_msg(s, 100, true);
+                test_msg(s, 125, true);
+                test_msg(s, 126, true);
+                test_msg(s, 65535, true);
+                test_msg(s, 65536, true);
             });
 
-            assert.equal(rep.status, 500);
+            it("missing Upgrade header.", () => {
+                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                    "Connection": "Upgrade",
+                    "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                    "Sec-WebSocket-Version": "13"
+                });
 
-            var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
-                "Upgrade": "websocket",
-                "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
-                "Sec-WebSocket-Version": "13"
+                assert.equal(rep.status, 500);
             });
 
-            assert.equal(rep.status, 500);
+            it("invalid connection header.", () => {
+                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                    "Upgrade": "websocket",
+                    "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                    "Sec-WebSocket-Version": "13"
+                });
 
-            var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
-                "Upgrade": "websocket",
-                "Connection": "Upgrade",
-                "Sec-WebSocket-Version": "13"
+                assert.equal(rep.status, 500);
             });
 
-            assert.equal(rep.status, 500);
+            it("missing Sec-WebSocket-Key header.", () => {
+                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                    "Upgrade": "websocket",
+                    "Connection": "Upgrade",
+                    "Sec-WebSocket-Version": "13"
+                });
 
-            var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
-                "Upgrade": "websocket",
-                "Connection": "Upgrade",
-                "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ=="
+                assert.equal(rep.status, 500);
             });
 
-            assert.equal(rep.status, 500);
+            it("missing Sec-WebSocket-Version header.", () => {
+                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                    "Upgrade": "websocket",
+                    "Connection": "Upgrade",
+                    "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ=="
+                });
 
-            assert.throws(() => {
-                test_msg(10);
+                assert.equal(rep.status, 500);
             });
         });
 
