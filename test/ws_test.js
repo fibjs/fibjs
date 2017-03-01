@@ -360,114 +360,8 @@ describe('ws', () => {
         assert.equal(err_500, 1);
     });
 
-    describe('WebSocket', () => {
-        it('init property', () => {
-            var s = new ws.Socket("ws://127.0.0.1:" + (8810 + base_port) + "/", "test");
-            assert.equal(s.url, "ws://127.0.0.1:" + (8810 + base_port) + "/");
-            assert.equal(s.protocol, "test");
-            assert.equal(s.readyState, ws.CONNECTING);
-        });
-
-        it('onopen', () => {
-            var t = false;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8810 + base_port) + "/", "test");
-            s.onopen = () => {
-                t = true;
-            };
-
-            assert.isFalse(t);
-            assert.equal(s.readyState, ws.CONNECTING);
-
-            for (var i = 0; i < 100 && !t; i++)
-                coroutine.sleep(1);
-
-            assert.isTrue(t);
-            assert.equal(s.readyState, ws.OPEN);
-        });
-
-        it('onerror', () => {
-            var t = false;
-            var te = false;
-            var s = new ws.Socket("ws://127.0.0.1:" + (18810 + base_port) + "/", "test");
-
-            assert.equal(s.readyState, ws.CONNECTING);
-            assert.isFalse(t);
-
-            s.onopen = () => {
-                t = true;
-            };
-
-            s.onerror = (e) => {
-                te = true;
-            };
-
-            for (var i = 0; i < 100 && !t && !te; i++)
-                coroutine.sleep(1);
-
-            assert.isFalse(t);
-            assert.isTrue(te);
-            assert.equal(s.readyState, ws.CLOSED);
-        });
-
-        it('send/onmessage', () => {
-            var t = false;
-            var msg;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8810 + base_port) + "/", "test");
-            s.onopen = () => {
-                s.send('123');
-            };
-
-            s.onmessage = (m) => {
-                msg = m;
-                t = true;
-            };
-
-            for (var i = 0; i < 100 && !t; i++)
-                coroutine.sleep(1);
-
-            assert.equal(msg.data, '123');
-
-            t = false;
-            s.send(new Buffer('456'));
-
-            for (var i = 0; i < 100 && !t; i++)
-                coroutine.sleep(1);
-
-            assert.isTrue(Buffer.isBuffer(msg.data));
-            assert.equal(msg.data.toString(), '456');
-        });
-    });
-
     describe('WebSocketHandler', () => {
-        it("handshake", () => {
-            function test_msg(n, masked) {
-                var msg = new ws.Message();
-                msg.type = ws.TEXT;
-                msg.masked = masked;
-
-                var buf = new Buffer(n);
-                for (var i = 0; i < n; i++) {
-                    buf[i] = (i % 10) + 0x30;
-                }
-
-                msg.body.write(buf);
-
-                msg.sendTo(rep.stream);
-
-                var msg = new ws.Message();
-                msg.readFrom(rep.stream);
-
-                assert.equal(msg.body.readAll().toString(), buf.toString());
-            }
-
-            var httpd = new http.Server(8813 + base_port, ws.upgrade((s) => {
-                s.onmessage = function(msg) {
-                    this.send(msg.data);
-                };
-            }));
-            ss.push(httpd.socket);
-            httpd.asyncRun();
-
+        function connect() {
             var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
                 "Upgrade": "websocket",
                 "Connection": "Upgrade",
@@ -479,13 +373,46 @@ describe('ws', () => {
             assert.equal(rep.firstHeader("Upgrade"), "websocket");
             assert.equal(rep.status, 101);
             assert.equal(rep.upgrade, true);
+            return rep.stream;
+        }
 
-            test_msg(10, true);
-            test_msg(100, true);
-            test_msg(125, true);
-            test_msg(126, true);
-            test_msg(65535, true);
-            test_msg(65536, true);
+        function test_msg(s, n, masked) {
+            var msg = new ws.Message();
+            msg.type = ws.TEXT;
+            msg.masked = masked;
+
+            var buf = new Buffer(n);
+            for (var i = 0; i < n; i++) {
+                buf[i] = (i % 10) + 0x30;
+            }
+
+            msg.body.write(buf);
+
+            msg.sendTo(s);
+
+            var msg = new ws.Message();
+            msg.readFrom(s);
+
+            assert.equal(msg.body.readAll().toString(), buf.toString());
+        }
+
+        it("handshake", () => {
+            var httpd = new http.Server(8813 + base_port, ws.upgrade((s) => {
+                s.onmessage = function(msg) {
+                    this.send(msg.data);
+                };
+            }));
+            ss.push(httpd.socket);
+            httpd.asyncRun();
+
+            var s = connect();
+
+            test_msg(s, 10, true);
+            test_msg(s, 100, true);
+            test_msg(s, 125, true);
+            test_msg(s, 126, true);
+            test_msg(s, 65535, true);
+            test_msg(s, 65536, true);
 
             var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
                 "Connection": "Upgrade",
@@ -525,7 +452,7 @@ describe('ws', () => {
         });
 
         it("ping", () => {
-            var s = ws.connect("ws://127.0.0.1:" + (8813 + base_port) + "/");
+            var s = connect();
 
             var body = "hello";
             var msg = new ws.Message();
@@ -542,7 +469,7 @@ describe('ws', () => {
 
 
         it("close", () => {
-            var s = ws.connect("ws://127.0.0.1:" + (8813 + base_port) + "/");
+            var s = connect();
 
             var msg = new ws.Message();
             msg.type = ws.CLOSE;
@@ -560,7 +487,7 @@ describe('ws', () => {
         });
 
         it("non-control opcode", () => {
-            var s = ws.connect("ws://127.0.0.1:" + (8813 + base_port) + "/");
+            var s = connect();
 
             var body = "hello";
             var msg = new ws.Message();
@@ -579,7 +506,7 @@ describe('ws', () => {
         });
 
         it("drop other type message", () => {
-            var s = ws.connect("ws://127.0.0.1:" + (8813 + base_port) + "/");
+            var s = connect();
 
             var body = "hello";
             var msg = new ws.Message();
@@ -597,6 +524,84 @@ describe('ws', () => {
             assert.equal(msg.body.readAll().toString(), body);
         });
 
+    });
+
+    describe('WebSocket', () => {
+        it('init property', () => {
+            var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/", "test");
+            assert.equal(s.url, "ws://127.0.0.1:" + (8813 + base_port) + "/");
+            assert.equal(s.protocol, "test");
+            assert.equal(s.readyState, ws.CONNECTING);
+        });
+
+        it('onopen', () => {
+            var t = false;
+            var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/", "test");
+            s.onopen = () => {
+                t = true;
+            };
+
+            assert.isFalse(t);
+            assert.equal(s.readyState, ws.CONNECTING);
+
+            for (var i = 0; i < 100 && !t; i++)
+                coroutine.sleep(1);
+
+            assert.isTrue(t);
+            assert.equal(s.readyState, ws.OPEN);
+        });
+
+        it('onerror', () => {
+            var t = false;
+            var te = false;
+            var s = new ws.Socket("ws://127.0.0.1:" + (18813 + base_port) + "/", "test");
+
+            assert.equal(s.readyState, ws.CONNECTING);
+            assert.isFalse(t);
+
+            s.onopen = () => {
+                t = true;
+            };
+
+            s.onerror = (e) => {
+                te = true;
+            };
+
+            for (var i = 0; i < 100 && !t && !te; i++)
+                coroutine.sleep(1);
+
+            assert.isFalse(t);
+            assert.isTrue(te);
+            assert.equal(s.readyState, ws.CLOSED);
+        });
+
+        it('send/onmessage', () => {
+            var t = false;
+            var msg;
+            var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/", "test");
+            s.onopen = () => {
+                s.send('123');
+            };
+
+            s.onmessage = (m) => {
+                msg = m;
+                t = true;
+            };
+
+            for (var i = 0; i < 100 && !t; i++)
+                coroutine.sleep(1);
+
+            assert.equal(msg.data, '123');
+
+            t = false;
+            s.send(new Buffer('456'));
+
+            for (var i = 0; i < 100 && !t; i++)
+                coroutine.sleep(1);
+
+            assert.isTrue(Buffer.isBuffer(msg.data));
+            assert.equal(msg.data.toString(), '456');
+        });
     });
 });
 
