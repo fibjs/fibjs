@@ -286,9 +286,7 @@ void WebSocket::startRecv()
 			case ws_base::_TEXT:
 			case ws_base::_BINARY:
 			{
-				Variant v;
-
-				v = pThis->m_msg;
+				Variant v = pThis->m_msg;
 				pThis->m_this->_emit("message", &v, 1);
 			}
 			}

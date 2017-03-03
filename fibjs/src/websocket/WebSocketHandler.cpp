@@ -164,8 +164,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             obj_ptr<WebSocketHandler> pHandler = pThis->m_pThis;
             obj_ptr<WebSocket> sock = new WebSocket(pThis->m_stm, "", pThis);
 
-            Variant v;
-            v = sock;
+            Variant v = sock;
             pHandler->_emit("accept", &v, 1);
 
             sock->startRecv();

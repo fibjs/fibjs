@@ -93,6 +93,19 @@ public:
         operator=(v);
     }
 
+    Variant(obj_base* v) :
+        m_type(VT_Undefined)
+    {
+        operator=(v);
+    }
+
+    template<typename T>
+    Variant(obj_ptr<T> &v) :
+        m_type(VT_Undefined)
+    {
+        operator=((T*)v);
+    }
+
     Variant(v8::Local<v8::Value> v) :
         m_type(VT_Undefined)
     {
@@ -223,6 +236,12 @@ public:
     Variant &operator=(object_base *v)
     {
         return operator=((obj_base *) v);
+    }
+
+    template<typename T>
+    Variant &operator=(obj_ptr<T> &v)
+    {
+        return operator=((T*) v);
     }
 
     Variant &operator=(v8::Local<v8::Value> v);

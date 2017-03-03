@@ -52,10 +52,14 @@ public:
     void append(object_base *newVal)
     {
         int32_t r;
-        Variant v;
-        v = newVal;
+        push(newVal, r);
+    }
 
-        push(v, r);
+    template<typename T>
+    void append(obj_ptr<T> &newVal)
+    {
+        int32_t r;
+        push((T*)newVal, r);
     }
 
     void append(Variant newVal)
