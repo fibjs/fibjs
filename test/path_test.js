@@ -11,6 +11,8 @@ describe('path', () => {
         assert.equal(path.basename('./test.js', '.js'), 'test');
         assert.equal(path.basename('./test.js', 't.js'), 'tes');
         assert.equal(path.basename('./.js', '.js'), '');
+        assert.equal(path.basename('./test/'), 'test');
+        assert.equal(path.basename('./test.js/', '.js'), 'test');
     });
 
     it('extname', () => {

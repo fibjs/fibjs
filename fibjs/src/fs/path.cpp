@@ -16,26 +16,76 @@ namespace fibjs
 
 DECLARE_MODULE(path);
 
+const char* split_path(const char* p)
+{
+    char ch;
+    const char *p1 = p;
+    const char *p2 = NULL;
+
+#ifdef _WIN32
+    if (p[0] != 0 && p[1] == ':')
+    {
+        p += 2;
+        if (isPathSlash(*p))
+            p++;
+        p2 = p;
+    }
+    else if (isPathSlash(p[0]) && isPathSlash(p[1]))
+    {
+        p += 2;
+        while (*p && !isPathSlash(*p))
+            p++;
+
+        if (*p)
+        {
+            p++;
+
+            while (*p && !isPathSlash(*p))
+                p++;
+
+            if (*p)
+                p++;
+        }
+
+        p2 = p;
+    }
+#endif
+
+    while (*p)
+    {
+        ch = *p++;
+        if (isPathSlash(ch) && *p)
+            p2 = p - 1;
+    }
+
+    if (p2 == NULL)
+        p2 = p1;
+
+    if (isPathSlash(*p2) && p2 == p1)
+        p2++;
+
+    return p2;
+}
+
 result_t path_base::basename(exlib::string path, exlib::string ext,
                              exlib::string &retVal)
 {
-    char ch;
-    const char* c_str = path.c_str();
-    const char *p1 = c_str;
+    const char* p1 = path.c_str();
+    const char* p2 = split_path(p1);
+    const char* p3 = p1 + path.length();
     int32_t extlen = (int32_t)ext.length();
 
-    while (*c_str)
-    {
-        ch = *c_str++;
-        if (isPathSlash(ch))
-            p1 = c_str;
-    }
+    while (isPathSlash(*p2))
+        p2 ++;
 
-    if (extlen && ((int32_t) (c_str - p1) >= extlen)
-            && !pathcmp(ext.c_str(), c_str - extlen, extlen))
-        c_str -= extlen;
+    while (p3 > p2 && isPathSlash(*(p3 - 1)))
+        p3 --;
 
-    retVal.assign(p1, (int32_t) (c_str - p1));
+    if (extlen && ((int32_t) (p3 - p2) >= extlen)
+            && !pathcmp(ext.c_str(), p3 - extlen, extlen))
+        p3 -= extlen;
+
+    retVal.assign(p2, (int32_t) (p3 - p2));
 
     return 0;
 }
@@ -70,52 +120,8 @@ result_t path_base::extname(exlib::string path, exlib::string &retVal)
 
 result_t path_base::dirname(exlib::string path, exlib::string &retVal)
 {
-    char ch;
-    const char* c_str = path.c_str();
-    const char *p1 = c_str;
-    const char *p2 = NULL;
-
-#ifdef _WIN32
-    if (c_str[0] != 0 && c_str[1] == ':')
-    {
-        c_str += 2;
-        if (isPathSlash(*c_str))
-            c_str++;
-        p2 = c_str;
-    }
-    else if (isPathSlash(c_str[0]) && isPathSlash(c_str[1]))
-    {
-        c_str += 2;
-        while (*c_str && !isPathSlash(*c_str))
-            c_str++;
-
-        if (*c_str)
-        {
-            c_str++;
-
-            while (*c_str && !isPathSlash(*c_str))
-                c_str++;
-
-            if (*c_str)
-                c_str++;
-        }
-
-        p2 = c_str;
-    }
-#endif
-
-    while (*c_str)
-    {
-        ch = *c_str++;
-        if (isPathSlash(ch) && *c_str)
-            p2 = c_str - 1;
-    }
-
-    if (p2 == NULL)
-        p2 = p1;
-
-    if (isPathSlash(*p2) && p2 == p1)
-        p2++;
+    const char* p1 = path.c_str();
+    const char* p2 = split_path(p1);
 
     retVal.assign(p1, (int32_t) (p2 - p1));
 
