@@ -218,6 +218,7 @@
     <ClInclude Include="include\ifs\Queue.h" />
     <ClInclude Include="include\ifs\querystring.h" />
     <ClInclude Include="include\ifs\re.h" />
+    <ClInclude Include="include\ifs\registry.h" />
     <ClInclude Include="include\ifs\Redis.h" />
     <ClInclude Include="include\ifs\RedisHash.h" />
     <ClInclude Include="include\ifs\RedisList.h" />
@@ -477,6 +478,7 @@
     <ClCompile Include="src\os\os_osx.cpp" />
     <ClCompile Include="src\os\os_posix.cpp" />
     <ClCompile Include="src\os\os_win.cpp" />
+    <ClCompile Include="src\os\registry.cpp" />
     <ClCompile Include="src\os\Service_other.cpp" />
     <ClCompile Include="src\os\Service_win.cpp" />
     <ClCompile Include="src\other\Image.cpp" />

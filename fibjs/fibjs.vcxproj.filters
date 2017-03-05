@@ -231,6 +231,9 @@
     <ClInclude Include="include\ifs\re.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\registry.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\Regex.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -1262,6 +1265,9 @@
       <Filter>Source Files\os</Filter>
     </ClCompile>
     <ClCompile Include="src\os\os_win.cpp">
+      <Filter>Source Files\os</Filter>
+    </ClCompile>
+    <ClCompile Include="src\os\registry.cpp">
       <Filter>Source Files\os</Filter>
     </ClCompile>
     <ClCompile Include="src\process\process.cpp">
