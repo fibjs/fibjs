@@ -6,6 +6,7 @@
  */
 
 #include "ifs/WebSocket.h"
+#include "ifs/WebSocketEvent.h"
 #include "ifs/ws.h"
 #include "ifs/Stream.h"
 
@@ -56,15 +57,59 @@ public:
 public:
     obj_ptr<Stream_base> m_stream;
     AsyncEvent *m_ac;
+
     exlib::string m_url;
     exlib::string m_protocol;
     exlib::string m_origin;
+
     bool m_masked;
     int32_t m_maxSize;
+
     exlib::atomic m_readyState;
-    exlib::atomic m_closed;
+
     int32_t m_code;
     exlib::string m_reason;
+};
+
+class WebSocketEvent: public WebSocketEvent_base
+{
+public:
+    WebSocketEvent(int32_t code, exlib::string reason,
+                   exlib::string type, obj_ptr<object_base> target) :
+        m_code(code), m_reason(reason), m_type(type), m_target(target)
+    {}
+
+public:
+    // WebSocketEvent_base
+    virtual result_t get_code(int32_t& retVal)
+    {
+        retVal = m_code;
+        return 0;
+    }
+
+    virtual result_t get_reason(exlib::string& retVal)
+    {
+        retVal = m_reason;
+        return 0;
+    }
+
+    virtual result_t get_type(exlib::string& retVal)
+    {
+        retVal = m_type;
+        return 0;
+    }
+
+    virtual result_t get_target(v8::Local<v8::Object>& retVal)
+    {
+        retVal = m_target->wrap();
+        return 0;
+    }
+
+private:
+    int32_t m_code;
+    exlib::string m_reason;
+    exlib::string m_type;
+    obj_ptr<object_base> m_target;
 };
 
 } /* namespace fibjs */

@@ -1,0 +1,15 @@
+/*! @brief WebSocket 事件对象，用于在 WebSocket 事件中传递信息 */
+interface WebSocketEvent : object
+{
+  /* 查询事件错误编码 */
+  readonly Integer code;
+
+  /* 查询事件错误信息 */
+  readonly String reason;
+
+  /* 查询事件类型 */
+  readonly String type;
+
+  /* 查询触发事件的对象 */
+  readonly Object target;
+};

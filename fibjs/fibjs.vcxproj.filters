@@ -297,6 +297,9 @@
     <ClInclude Include="include\ifs\ws.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\WebSocketEvent.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\WebSocketHandler.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>

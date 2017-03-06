@@ -253,6 +253,7 @@
     <ClInclude Include="include\ifs\vm.h" />
     <ClInclude Include="include\ifs\WebSocket.h" />
     <ClInclude Include="include\ifs\ws.h" />
+    <ClInclude Include="include\ifs\WebSocketEvent.h" />
     <ClInclude Include="include\ifs\WebSocketHandler.h" />
     <ClInclude Include="include\ifs\WebSocketMessage.h" />
     <ClInclude Include="include\ifs\WebView.h" />

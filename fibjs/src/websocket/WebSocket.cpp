@@ -80,8 +80,7 @@ public:
 
 	virtual int32_t error(int32_t v)
 	{
-		m_this->_emit("error", NULL, 0);
-		m_this->endConnect(1006, "");
+		m_this->endConnect(1001, "Going Away");
 		return v;
 	}
 
@@ -121,7 +120,10 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 			else if (!qstrcmp(pThis->m_this->m_url.c_str(), "ws://", 5))
 				url = "http://" + pThis->m_this->m_url.substr(5);
 			else
+			{
+				pThis->m_this->endConnect(1002, "Protocol error");
 				return CHECK_ERROR(Runtime::setError("websocket: unknown protocol"));
+			}
 
 			pThis->m_headers = new Map();
 
@@ -169,32 +171,50 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 
 			pThis->m_httprep->get_status(status);
 			if (status != 101)
+			{
+				pThis->m_this->endConnect(1002, "Protocol error");
 				return CHECK_ERROR(Runtime::setError("websocket: server error."));
+			}
 
 			hr = pThis->m_httprep->firstHeader("Upgrade", v);
 			if (hr < 0)
 				return hr;
 
 			if (hr == CALL_RETURN_NULL)
+			{
+				pThis->m_this->endConnect(1002, "Protocol error");
 				return CHECK_ERROR(Runtime::setError("websocket: missing Upgrade header."));
+			}
 
 			if (qstricmp(v.string().c_str(), "websocket"))
+			{
+				pThis->m_this->endConnect(1002, "Protocol error");
 				return CHECK_ERROR(Runtime::setError("websocket: invalid Upgrade header."));
+			}
 
 			bool bUpgrade;
 			pThis->m_httprep->get_upgrade(bUpgrade);
 			if (!bUpgrade)
+			{
+				pThis->m_this->endConnect(1002, "Protocol error");
 				return CHECK_ERROR(Runtime::setError("websocket: invalid connection header."));
+			}
 
 			hr = pThis->m_httprep->firstHeader("Sec-WebSocket-Accept", v);
 			if (hr < 0)
 				return hr;
 
 			if (hr == CALL_RETURN_NULL)
+			{
+				pThis->m_this->endConnect(1002, "Protocol error");
 				return CHECK_ERROR(Runtime::setError("websocket: missing Sec-WebSocket-Accept header."));
+			}
 
 			if (v.string() != pThis->m_accept)
+			{
+				pThis->m_this->endConnect(1002, "Protocol error");
 				return CHECK_ERROR(Runtime::setError("websocket: invalid Sec-WebSocket-Accept header."));
+			}
 
 			pThis->m_httprep->get_stream(pThis->m_this->m_stream);
 
@@ -208,8 +228,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 
 		virtual int32_t error(int32_t v)
 		{
-			m_this->_emit("error", NULL, 0);
-			m_this->endConnect(1, "");
+			m_this->endConnect(1002, "Protocol error");
 			return v;
 		}
 
@@ -256,7 +275,10 @@ void WebSocket::startRecv()
 			bool masked;
 			pThis->m_msg->get_masked(masked);
 			if (masked == pThis->m_this->m_masked)
+			{
+				pThis->m_this->endConnect(1007, "Invalid frame payload data");
 				return CHECK_ERROR(Runtime::setError("WebSocketHandler: Payload data is not masked."));
+			}
 
 			int32_t type;
 			pThis->m_msg->get_type(type);
@@ -297,8 +319,7 @@ void WebSocket::startRecv()
 
 		virtual int32_t error(int32_t v)
 		{
-			m_this->_emit("error", NULL, 0);
-			m_this->endConnect(1, "");
+			m_this->endConnect(1007, "Invalid frame payload data");
 			return v;
 		}
 
@@ -318,26 +339,31 @@ result_t WebSocket::on_close(WebSocket* pThis)
 	if (pThis->m_ac)
 		pThis->m_ac->post(CALL_RETURN_NULL);
 
-	Variant vs[2];
-	vs[0] = pThis->m_code;
-	vs[1] = pThis->m_reason;
-
-	pThis->_emit("close", vs, 2);
+	Variant v = new WebSocketEvent(pThis->m_code, pThis->m_reason, "close", pThis);
+	pThis->_emit("close", &v, 1);
 
 	return 0;
 }
 
 void WebSocket::endConnect(int32_t code, exlib::string reason)
 {
-	if (m_closed.CompareAndSwap(0, 1) == 0)
+	if (m_readyState.xchg(ws_base::_CLOSED) != ws_base::_CLOSED)
 	{
-		m_readyState = ws_base::_CLOSED;
-
 		Isolate* isolate = holder();
 		if (isolate)
 		{
-			m_code = code;
-			m_reason = reason;
+			if (code > 1000 && code < 3000)
+			{
+				m_code = 1006;
+				m_reason = "Abnormal Closure";
+
+				Variant v = new WebSocketEvent(code, reason, "error", this);
+				_emit("error", &v, 1);
+			} else
+			{
+				m_code = code;
+				m_reason = reason;
+			}
 
 			syncCall(isolate, on_close, this);
 		}
@@ -361,6 +387,12 @@ void WebSocket::endConnect(SeekableStream_base* body)
 			const unsigned char* data = (const unsigned char*)str.c_str();
 			code = ((int32_t)data[0] << 8) + data[1];
 			reason = str.substr(2);
+
+			if (code != 1000 && (code < 3000 || code > 4999))
+			{
+				code = 1002;
+				reason = "Protocol error";
+			}
 		}
 	}
 
