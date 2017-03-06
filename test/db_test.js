@@ -160,6 +160,7 @@ describe("db", () => {
         var conn_str = 'sqlite:test.db' + vmid;
         after(() => {
             fs.unlink("test.db" + vmid);
+            fs.unlink("test.db" + vmid + ".backup");
         });
         _test(conn_str);
 
@@ -176,6 +177,20 @@ describe("db", () => {
             var journal_mode = conn.execute("PRAGMA journal_mode;")[0].journal_mode;
             conn.close();
             assert.equal(journal_mode, "wal");
+        });
+
+        it("backup", () => {
+            var conn = db.open(conn_str);
+            conn.backup(conn_str + ".backup");
+
+            var conn1 = db.open(conn_str + ".backup");
+            var rs1 = conn1.execute("select * from test");
+            var rs = conn.execute("select * from test");
+
+            assert.equal(rs[0].t1, rs1[0].t1);
+
+            conn.close();
+            conn1.close();
         });
     });
 

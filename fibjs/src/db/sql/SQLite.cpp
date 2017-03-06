@@ -350,10 +350,14 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent *ac)
     struct sqlite3 *db2 = NULL;
     sqlite3_backup *pBackup;
 
-    if (sqlite3_open_v2(fileName.c_str(), &db2, SQLITE_OPEN_FLAGS, 0))
+    const char* c_str = fileName.c_str();
+
+    if (!qstrcmp(c_str, "sqlite:", 7))
+        c_str += 7;
+
+    if (sqlite3_open_v2(c_str, &db2, SQLITE_OPEN_FLAGS, 0))
     {
         result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(db2)));
-        sqlite3_close(m_db);
         return hr;
     }
 
@@ -372,12 +376,12 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent *ac)
     }
     else
     {
-        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(db2)));
-        sqlite3_close(m_db);
+        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
+        sqlite3_close(db2);
         return hr;
     }
 
-    sqlite3_close(m_db);
+    sqlite3_close(db2);
 
     return 0;
 }
