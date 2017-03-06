@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+var os = require("os");
+
 var win = process.platform == 'win32';
 
 function has_class(o, cls) {
