@@ -502,11 +502,12 @@ describe('ws', () => {
             msg.type = 5;
             msg.sendTo(s);
 
+            msg = new ws.Message();
             msg.type = ws.PING;
             msg.body.write(body);
             msg.sendTo(s);
 
-            var msg = new ws.Message();
+            msg = new ws.Message();
             msg.readFrom(s);
 
             assert.equal(msg.type, ws.PONG);
@@ -521,11 +522,12 @@ describe('ws', () => {
             msg.type = ws.PONG;
             msg.sendTo(s);
 
+            msg = new ws.Message();
             msg.type = ws.PING;
             msg.body.write(body);
             msg.sendTo(s);
 
-            var msg = new ws.Message();
+            msg = new ws.Message();
             msg.readFrom(s);
 
             assert.equal(msg.type, ws.PONG);
