@@ -80,7 +80,7 @@ public:
 
 	virtual int32_t error(int32_t v)
 	{
-		m_this->endConnect(1001, "Going Away");
+		m_this->endConnect(1001, "");
 		return v;
 	}
 
@@ -121,7 +121,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 				url = "http://" + pThis->m_this->m_url.substr(5);
 			else
 			{
-				pThis->m_this->endConnect(1002, "Protocol error");
+				pThis->m_this->endConnect(1002, "");
 				return CHECK_ERROR(Runtime::setError("websocket: unknown protocol"));
 			}
 
@@ -172,7 +172,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 			pThis->m_httprep->get_status(status);
 			if (status != 101)
 			{
-				pThis->m_this->endConnect(1002, "Protocol error");
+				pThis->m_this->endConnect(1002, "");
 				return CHECK_ERROR(Runtime::setError("websocket: server error."));
 			}
 
@@ -182,13 +182,13 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 
 			if (hr == CALL_RETURN_NULL)
 			{
-				pThis->m_this->endConnect(1002, "Protocol error");
+				pThis->m_this->endConnect(1002, "");
 				return CHECK_ERROR(Runtime::setError("websocket: missing Upgrade header."));
 			}
 
 			if (qstricmp(v.string().c_str(), "websocket"))
 			{
-				pThis->m_this->endConnect(1002, "Protocol error");
+				pThis->m_this->endConnect(1002, "");
 				return CHECK_ERROR(Runtime::setError("websocket: invalid Upgrade header."));
 			}
 
@@ -196,7 +196,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 			pThis->m_httprep->get_upgrade(bUpgrade);
 			if (!bUpgrade)
 			{
-				pThis->m_this->endConnect(1002, "Protocol error");
+				pThis->m_this->endConnect(1002, "");
 				return CHECK_ERROR(Runtime::setError("websocket: invalid connection header."));
 			}
 
@@ -206,13 +206,13 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 
 			if (hr == CALL_RETURN_NULL)
 			{
-				pThis->m_this->endConnect(1002, "Protocol error");
+				pThis->m_this->endConnect(1002, "");
 				return CHECK_ERROR(Runtime::setError("websocket: missing Sec-WebSocket-Accept header."));
 			}
 
 			if (v.string() != pThis->m_accept)
 			{
-				pThis->m_this->endConnect(1002, "Protocol error");
+				pThis->m_this->endConnect(1002, "");
 				return CHECK_ERROR(Runtime::setError("websocket: invalid Sec-WebSocket-Accept header."));
 			}
 
@@ -228,7 +228,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 
 		virtual int32_t error(int32_t v)
 		{
-			m_this->endConnect(1002, "Protocol error");
+			m_this->endConnect(1002, "");
 			return v;
 		}
 
@@ -276,7 +276,7 @@ void WebSocket::startRecv()
 			pThis->m_msg->get_masked(masked);
 			if (masked == pThis->m_this->m_masked)
 			{
-				pThis->m_this->endConnect(1007, "Invalid frame payload data");
+				pThis->m_msg->m_error = 1007;
 				return CHECK_ERROR(Runtime::setError("WebSocketHandler: Payload data is not masked."));
 			}
 
@@ -319,13 +319,17 @@ void WebSocket::startRecv()
 
 		virtual int32_t error(int32_t v)
 		{
-			m_this->endConnect(1007, "Invalid frame payload data");
+			if (m_msg->m_error)
+				m_this->endConnect(m_msg->m_error, "");
+			else
+				m_this->endConnect(1001, "Going Away");
+
 			return v;
 		}
 
 	private:
 		obj_ptr<WebSocket> m_this;
-		obj_ptr<WebSocketMessage_base> m_msg;
+		obj_ptr<WebSocketMessage> m_msg;
 	};
 
 	(new asyncReac(this))->post(0);
@@ -376,6 +380,7 @@ void WebSocket::endConnect(SeekableStream_base* body)
 	int32_t code = 0;
 	exlib::string reason;
 
+	body->rewind();
 	body->cc_readAll(buf);
 	if (buf)
 	{

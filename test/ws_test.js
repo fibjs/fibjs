@@ -4,6 +4,7 @@ test.setup();
 var ws = require('ws');
 var io = require('io');
 var http = require('http');
+var mq = require('mq');
 var coroutine = require('coroutine');
 
 var base_port = coroutine.vmid * 10000;
@@ -362,7 +363,7 @@ describe('ws', () => {
 
     describe('WebSocketHandler', () => {
         function connect() {
-            var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+            var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                 "Upgrade": "websocket",
                 "Connection": "Upgrade",
                 "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
@@ -397,10 +398,17 @@ describe('ws', () => {
         }
 
         it("server", () => {
-            var httpd = new http.Server(8813 + base_port, ws.upgrade((s) => {
-                s.onmessage = function(msg) {
-                    this.send(msg.data);
-                };
+            var httpd = new http.Server(8813 + base_port, new mq.Routing({
+                "^/ws$": ws.upgrade((s) => {
+                    s.onmessage = function(msg) {
+                        if (msg.data === "Going Away")
+                            msg.stream.close();
+                        else if (msg.data === "close")
+                            this.close(3000, "remote");
+                        else
+                            this.send(msg.data);
+                    };
+                })
             }));
             ss.push(httpd.socket);
             httpd.asyncRun();
@@ -419,7 +427,7 @@ describe('ws', () => {
             });
 
             it("missing Upgrade header.", () => {
-                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                     "Connection": "Upgrade",
                     "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
                     "Sec-WebSocket-Version": "13"
@@ -429,7 +437,7 @@ describe('ws', () => {
             });
 
             it("invalid connection header.", () => {
-                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                     "Upgrade": "websocket",
                     "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
                     "Sec-WebSocket-Version": "13"
@@ -439,7 +447,7 @@ describe('ws', () => {
             });
 
             it("missing Sec-WebSocket-Key header.", () => {
-                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                     "Upgrade": "websocket",
                     "Connection": "Upgrade",
                     "Sec-WebSocket-Version": "13"
@@ -449,7 +457,7 @@ describe('ws', () => {
             });
 
             it("missing Sec-WebSocket-Version header.", () => {
-                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/", {
+                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                     "Upgrade": "websocket",
                     "Connection": "Upgrade",
                     "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ=="
@@ -538,57 +546,33 @@ describe('ws', () => {
 
     describe('WebSocket', () => {
         it('init property', () => {
-            var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/", "test");
-            assert.equal(s.url, "ws://127.0.0.1:" + (8813 + base_port) + "/");
+            var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/ws", "test");
+            assert.equal(s.url, "ws://127.0.0.1:" + (8813 + base_port) + "/ws");
             assert.equal(s.protocol, "test");
             assert.equal(s.readyState, ws.CONNECTING);
         });
 
         it('onopen', () => {
             var t = false;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/", "test");
+            var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/ws", "test");
             s.onopen = () => {
                 t = true;
             };
 
-            assert.isFalse(t);
             assert.equal(s.readyState, ws.CONNECTING);
+            assert.isFalse(t);
 
-            for (var i = 0; i < 100 && !t; i++)
+            for (var i = 0; i < 1000 && !t; i++)
                 coroutine.sleep(1);
 
             assert.isTrue(t);
             assert.equal(s.readyState, ws.OPEN);
         });
 
-        it('onerror', () => {
-            var t = false;
-            var te = false;
-            var s = new ws.Socket("ws://127.0.0.1:" + (18813 + base_port) + "/", "test");
-
-            assert.equal(s.readyState, ws.CONNECTING);
-            assert.isFalse(t);
-
-            s.onopen = () => {
-                t = true;
-            };
-
-            s.onerror = (e) => {
-                te = true;
-            };
-
-            for (var i = 0; i < 100 && !t && !te; i++)
-                coroutine.sleep(1);
-
-            assert.isFalse(t);
-            assert.isTrue(te);
-            assert.equal(s.readyState, ws.CLOSED);
-        });
-
         it('send/onmessage', () => {
             var t = false;
             var msg;
-            var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/", "test");
+            var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/ws", "test");
             s.onopen = () => {
                 s.send('123');
             };
@@ -598,7 +582,7 @@ describe('ws', () => {
                 t = true;
             };
 
-            for (var i = 0; i < 100 && !t; i++)
+            for (var i = 0; i < 1000 && !t; i++)
                 coroutine.sleep(1);
 
             assert.equal(msg.data, '123');
@@ -606,12 +590,148 @@ describe('ws', () => {
             t = false;
             s.send(new Buffer('456'));
 
-            for (var i = 0; i < 100 && !t; i++)
+            for (var i = 0; i < 1000 && !t; i++)
                 coroutine.sleep(1);
 
             assert.isTrue(Buffer.isBuffer(msg.data));
             assert.equal(msg.data.toString(), '456');
         });
+
+        it('close/onclose', () => {
+            var tc = false;
+            var msg;
+            var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/ws", "test");
+            s.onopen = () => {
+                s.close(1000, '123');
+            };
+
+            s.onclose = (e) => {
+                assert.equal(e.code, 1000);
+                assert.equal(e.reason, "123");
+                tc = true;
+            };
+
+            for (var i = 0; i < 1000 && !tc; i++)
+                coroutine.sleep(1);
+
+            assert.isTrue(tc);
+            assert.equal(s.readyState, ws.CLOSED);
+        });
+
+        it('remote close', () => {
+            var tc = false;
+            var msg;
+            var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/ws", "test");
+            s.onopen = () => {
+                s.send('close');
+            };
+
+            s.onclose = (e) => {
+                assert.equal(e.code, 3000);
+                assert.equal(e.reason, "remote");
+                tc = true;
+            };
+
+            for (var i = 0; i < 1000 && !tc; i++)
+                coroutine.sleep(1);
+
+            assert.isTrue(tc);
+            assert.equal(s.readyState, ws.CLOSED);
+        });
+
+        it('Going Away', () => {
+            var te = false;
+            var tc = false;
+            var msg;
+            var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/ws", "test");
+            s.onopen = () => {
+                s.send('Going Away');
+            };
+
+            s.onerror = (e) => {
+                assert.equal(e.code, 1001);
+                te = true;
+            };
+
+            s.onclose = (e) => {
+                assert.equal(e.code, 1006);
+                tc = true;
+            };
+
+            for (var i = 0; i < 1000 && !tc; i++)
+                coroutine.sleep(1);
+
+            assert.isTrue(te);
+            assert.isTrue(tc);
+            assert.equal(s.readyState, ws.CLOSED);
+        });
+
+        describe('onerror', () => {
+            it("open", () => {
+                var t = false;
+                var te = false;
+                var tc = false;
+                var s = new ws.Socket("ws://127.0.0.1:" + (18813 + base_port) + "/ws", "test");
+
+                assert.equal(s.readyState, ws.CONNECTING);
+                assert.isFalse(t);
+
+                s.onopen = () => {
+                    t = true;
+                };
+
+                s.onerror = (e) => {
+                    assert.equal(e.code, 1002);
+                    te = true;
+                };
+
+                s.onclose = (e) => {
+                    assert.equal(e.code, 1006);
+                    tc = true;
+                };
+
+                for (var i = 0; i < 1000 && !tc; i++)
+                    coroutine.sleep(1);
+
+                assert.isFalse(t);
+                assert.isTrue(te);
+                assert.isTrue(tc);
+                assert.equal(s.readyState, ws.CLOSED);
+            });
+
+            it("entry/handshake", () => {
+                var t = false;
+                var te = false;
+                var tc = false;
+                var s = new ws.Socket("ws://127.0.0.1:" + (8813 + base_port) + "/ws1", "test");
+
+                assert.equal(s.readyState, ws.CONNECTING);
+                assert.isFalse(t);
+
+                s.onopen = () => {
+                    t = true;
+                };
+
+                s.onerror = (e) => {
+                    assert.equal(e.code, 1002);
+                    te = true;
+                };
+
+                s.onclose = (e) => {
+                    assert.equal(e.code, 1006);
+                    tc = true;
+                };
+
+                for (var i = 0; i < 1000 && !tc; i++)
+                    coroutine.sleep(1);
+
+                assert.isFalse(t);
+                assert.isTrue(te);
+                assert.isTrue(tc);
+                assert.equal(s.readyState, ws.CLOSED);
+            });
+        });
+
     });
 });
 

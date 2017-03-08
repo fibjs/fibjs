@@ -18,7 +18,7 @@ class WebSocketMessage: public WebSocketMessage_base
 {
 public:
     WebSocketMessage(int32_t type, bool masked, int32_t maxSize, bool bRep = false)
-        : m_type(type), m_masked(masked), m_maxSize(maxSize), m_bRep(bRep)
+        : m_type(type), m_masked(masked), m_maxSize(maxSize), m_error(0), m_bRep(bRep)
     {
         m_message = new Message();
     }
@@ -63,6 +63,7 @@ public:
     int32_t m_type;
     bool m_masked;
     int32_t m_maxSize;
+    int32_t m_error;
 
 private:
     obj_ptr<Message> m_message;

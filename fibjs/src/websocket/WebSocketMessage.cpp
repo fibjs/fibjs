@@ -319,7 +319,10 @@ result_t WebSocketMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
             if (n == CALL_RETURN_NULL)
+            {
+                pThis->m_pThis->m_error = 1001;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
+            }
 
             exlib::string strBuffer;
             char ch;
@@ -330,14 +333,20 @@ result_t WebSocketMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
 
             ch = strBuffer[0];
             if (ch & 0x70)
+            {
+                pThis->m_pThis->m_error = 1007;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: non-zero RSV values."));
+            }
 
             pThis->m_fin = (ch & 0x80) != 0;
 
             if (pThis->m_fragmented)
             {
                 if ((ch & 0x0f) != ws_base::_CONTINUE)
+                {
+                    pThis->m_pThis->m_error = 1007;
                     return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
+                }
             }
             else
                 pThis->m_pThis->m_type = ch & 0x0f;
@@ -347,7 +356,10 @@ result_t WebSocketMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
             if (pThis->m_fragmented)
             {
                 if (pThis->m_masked != (pThis->m_pThis->m_masked = (ch & 0x80) != 0))
+                {
+                    pThis->m_pThis->m_error = 1007;
                     return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
+                }
             } else
                 pThis->m_masked = pThis->m_pThis->m_masked = (ch & 0x80) != 0;
 
@@ -375,7 +387,10 @@ result_t WebSocketMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
             if (n == CALL_RETURN_NULL)
+            {
+                pThis->m_pThis->m_error = 1007;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
+            }
 
             exlib::string strBuffer;
             int32_t pos = 0;
@@ -413,7 +428,10 @@ result_t WebSocketMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
             asyncReadFrom *pThis = (asyncReadFrom *) pState;
 
             if (pThis->m_fullsize +  pThis->m_size > pThis->m_pThis->m_maxSize)
+            {
+                pThis->m_pThis->m_error = 1009;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: Message Too Big."));
+            }
 
             pThis->set(body_end);
             return copy(pThis->m_stm, pThis->m_body, pThis->m_size, pThis->m_mask, pThis);
