@@ -62,6 +62,7 @@ if "!BUILD_TYPE!"=="clean" (
 if "!TARGET_ARCH!"=="amd64" (set Platform=x64) else (set Platform=Win32)
 
 set vs_ver=%VisualStudioVersion:.=%
+if "!vs_ver!"=="150" (set vs_ver=141)
 
 msbuild fibjs.sln /t:Build /p:Configuration=!BUILD_TYPE!;Platform=!Platform!;PlatformToolset=v!vs_ver!_xp /m
 
