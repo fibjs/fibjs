@@ -244,7 +244,7 @@ public:
         refs_.dec();
     }
 
-    ClassData& date()
+    ClassData& data()
     {
         return m_cd;
     }

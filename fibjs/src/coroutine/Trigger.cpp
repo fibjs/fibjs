@@ -34,7 +34,7 @@ public:
             {"emit", JSTrigger::s_emit, true}
         };
 
-        ClassData& cd = EventEmitter_base::class_info().date();
+        ClassData& cd = EventEmitter_base::class_info().data();
 
         cd.cor = JSTrigger::s__new;
         cd.mc = ARRAYSIZE(s_method);
