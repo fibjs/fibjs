@@ -231,6 +231,9 @@ public:
                     o->SetAccessor(isolate->NewFromUtf8(m_cd.cps[i].name),
                                    m_cd.cps[i].getter, m_cd.cps[i].setter);
             }
+
+        if (m_cd.base)
+            m_cd.base->Attach(isolate, o, skips);
     }
 
 public:
