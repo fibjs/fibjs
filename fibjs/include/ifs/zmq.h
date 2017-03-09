@@ -95,7 +95,7 @@ namespace fibjs
         { 
             "zmq", true, s__new, NULL, 
             0, NULL, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            NULL
+            &object_base::class_info()
         };
 
         static ClassInfo s_ci(s_cd);

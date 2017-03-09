@@ -59,7 +59,7 @@ namespace fibjs
         { 
             "collection", true, s__new, NULL, 
             0, NULL, ARRAYSIZE(s_object), s_object, 0, NULL, NULL, NULL,
-            NULL
+            &object_base::class_info()
         };
 
         static ClassInfo s_ci(s_cd);

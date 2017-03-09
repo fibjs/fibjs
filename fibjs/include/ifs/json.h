@@ -58,7 +58,7 @@ namespace fibjs
         { 
             "json", true, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            NULL
+            &object_base::class_info()
         };
 
         static ClassInfo s_ci(s_cd);

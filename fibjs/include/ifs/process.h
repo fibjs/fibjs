@@ -13,13 +13,15 @@
  */
 
 #include "../object.h"
+#include "EventEmitter.h"
 
 namespace fibjs
 {
 
+class EventEmitter_base;
 class SubProcess_base;
 
-class process_base : public object_base
+class process_base : public EventEmitter_base
 {
     DECLARE_CLASS(process_base);
 
@@ -116,7 +118,7 @@ namespace fibjs
         { 
             "process", true, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            NULL
+            &EventEmitter_base::class_info()
         };
 
         static ClassInfo s_ci(s_cd);

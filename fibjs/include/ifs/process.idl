@@ -5,7 +5,7 @@
  var process = require('process');
  @endcode
  */
-module process
+module process : EventEmitter
 {
     /*! @brief 返回当前进程的命令行参数 */
     static readonly Array argv;

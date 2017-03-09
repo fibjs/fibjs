@@ -113,7 +113,7 @@ namespace fibjs
         { 
             "coroutine", true, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            NULL
+            &object_base::class_info()
         };
 
         static ClassInfo s_ci(s_cd);
