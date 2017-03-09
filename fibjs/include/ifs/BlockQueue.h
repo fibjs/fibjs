@@ -54,7 +54,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "BlockQueue", s__new, NULL, 
+            "BlockQueue", false, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             &Queue_base::class_info()
         };

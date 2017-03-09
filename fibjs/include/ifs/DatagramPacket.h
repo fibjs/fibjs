@@ -63,7 +63,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "DatagramPacket", s__new, NULL, 
+            "DatagramPacket", false, s__new, NULL, 
             0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &object_base::class_info()
         };

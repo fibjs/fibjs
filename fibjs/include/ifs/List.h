@@ -109,7 +109,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "List", s__new, NULL, 
+            "List", false, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, &s_indexed, NULL,
             &object_base::class_info()
         };

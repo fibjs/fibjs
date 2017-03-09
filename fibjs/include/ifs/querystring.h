@@ -66,7 +66,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "querystring", s__new, NULL, 
+            "querystring", true, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };

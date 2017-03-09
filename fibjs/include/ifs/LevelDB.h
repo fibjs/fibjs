@@ -99,7 +99,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "LevelDB", s__new, NULL, 
+            "LevelDB", false, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

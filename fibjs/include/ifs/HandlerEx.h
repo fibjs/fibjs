@@ -71,7 +71,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "HandlerEx", s__new, NULL, 
+            "HandlerEx", false, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &Handler_base::class_info()
         };

@@ -901,7 +901,7 @@ function gen_code(cls, def) {
         function gen_def_info() {
             var ds;
             txts.push('        static ClassData s_cd = \n        { ');
-            txts.push('            "' + cls + '", s__new, ' +
+            txts.push('            "' + cls + '", ' + !!def.declare.module + ', ' + 's__new, ' +
                 (callAsFunc ? 's__function' : 'NULL') + ', ');
 
             ds = '            ';
@@ -911,9 +911,9 @@ function gen_code(cls, def) {
             ds += fnIndexed ? '&s_indexed, ' : 'NULL, ';
             ds += fnNamed ? '&s_named,' : 'NULL,';
             txts.push(ds);
-            txts.push((def.declare.extend && !def.declare.module) ?
+            txts.push(((def.declare.extend && !def.declare.module) ?
                 ('            &' + def.declare.extend + '_base::class_info()') :
-                '            NULL');
+                '            NULL'));
             txts.push('        };\n');
         }
 

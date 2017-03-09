@@ -78,7 +78,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "SubProcess", s__new, NULL, 
+            "SubProcess", false, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &BufferedStream_base::class_info()
         };

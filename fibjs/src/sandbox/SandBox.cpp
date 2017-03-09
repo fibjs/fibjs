@@ -66,7 +66,7 @@ void SandBox::initRoot()
     while (pModule)
     {
         ClassInfo& ci = pModule->class_info();
-        InstallModule(ci.name(), ci.getFunction(isolate));
+        InstallModule(ci.name(), ci.getModule(isolate));
 
         pModule = pModule->m_next;
     }

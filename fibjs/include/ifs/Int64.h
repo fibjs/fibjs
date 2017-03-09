@@ -95,7 +95,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "Int64", s__new, NULL, 
+            "Int64", false, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &object_base::class_info()
         };

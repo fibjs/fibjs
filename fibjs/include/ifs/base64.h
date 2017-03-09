@@ -60,7 +60,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "base64", s__new, NULL, 
+            "base64", true, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };

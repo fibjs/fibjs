@@ -62,7 +62,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "X509Crl", s__new, NULL, 
+            "X509Crl", false, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

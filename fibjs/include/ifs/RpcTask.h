@@ -57,7 +57,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "RpcTask", s__new, s__function, 
+            "RpcTask", false, s__new, s__function, 
             0, NULL, 0, NULL, 0, NULL, NULL, &s_named,
             &object_base::class_info()
         };

@@ -85,7 +85,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "X509Req", s__new, NULL, 
+            "X509Req", false, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &object_base::class_info()
         };

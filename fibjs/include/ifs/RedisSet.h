@@ -80,7 +80,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "RedisSet", s__new, NULL, 
+            "RedisSet", false, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             &object_base::class_info()
         };

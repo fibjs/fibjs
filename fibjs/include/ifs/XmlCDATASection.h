@@ -45,7 +45,7 @@ namespace fibjs
     {
         static ClassData s_cd = 
         { 
-            "XmlCDATASection", s__new, NULL, 
+            "XmlCDATASection", false, s__new, NULL, 
             0, NULL, 0, NULL, 0, NULL, NULL, NULL,
             &XmlText_base::class_info()
         };

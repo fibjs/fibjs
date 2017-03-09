@@ -93,7 +93,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "zmq", s__new, NULL, 
+            "zmq", true, s__new, NULL, 
             0, NULL, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
             NULL
         };

@@ -53,7 +53,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "WebSocketHandler", s__new, NULL, 
+            "WebSocketHandler", false, s__new, NULL, 
             0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &HandlerEx_base::class_info()
         };

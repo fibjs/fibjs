@@ -64,7 +64,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "SslServer", s__new, NULL, 
+            "SslServer", false, s__new, NULL, 
             0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &TcpServer_base::class_info()
         };

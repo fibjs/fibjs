@@ -322,7 +322,7 @@ result_t SandBox::Context::run(T src, exlib::string name, v8::Local<v8::Array> a
         return run(src, name, args);
     } else
     {
-        v8::Local<v8::Value> replFunc = global_base::class_info().getFunction(isolate)->Get(
+        v8::Local<v8::Value> replFunc = global_base::class_info().getModule(isolate)->Get(
                                             isolate->NewFromUtf8("repl"));
 
         // "module", "exports", "require", "run", "argv", "repl"

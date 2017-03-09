@@ -59,7 +59,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "MSSQL", s__new, NULL, 
+            "MSSQL", false, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             &DbConnection_base::class_info()
         };

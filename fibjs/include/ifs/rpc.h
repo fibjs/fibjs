@@ -62,7 +62,7 @@ namespace fibjs
 
         static ClassData s_cd = 
         { 
-            "rpc", s__new, NULL, 
+            "rpc", true, s__new, NULL, 
             ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
             NULL
         };
