@@ -31,12 +31,13 @@ interfaceHead
 moduleHead
   = comments:_* type:ModuleToken _* 
     name:Identifier _*
+    extend:(interfaceEntend)?
     {
     return {
       comments: comments.join(""),
       type: type,
       name: name,
-      extend: "object",
+      extend: extend || "object",
       module: true
     }
   }
@@ -911,7 +912,7 @@ function gen_code(cls, def) {
             ds += fnIndexed ? '&s_indexed, ' : 'NULL, ';
             ds += fnNamed ? '&s_named,' : 'NULL,';
             txts.push(ds);
-            txts.push(((def.declare.extend && !def.declare.module) ?
+            txts.push((def.declare.extend ?
                 ('            &' + def.declare.extend + '_base::class_info()') :
                 '            NULL'));
             txts.push('        };\n');
