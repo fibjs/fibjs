@@ -200,16 +200,6 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<
     {
         TryCatch try_catch;
 
-        {
-            v8::ScriptCompiler::Source script_source(
-                isolate->NewFromUtf8(src),
-                v8::ScriptOrigin(soname));
-
-            if (v8::ScriptCompiler::CompileUnbound(
-                        isolate->m_isolate, &script_source).IsEmpty())
-                return throwSyntaxError(try_catch);
-        }
-
         exlib::string str("(function(");
         int32_t i;
 
@@ -219,12 +209,27 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<
             str += ',';
         }
 
-        src = str + "__filename,__dirname){" + src + "\n});";
+        exlib::string src1 = str + "__filename,__dirname){" + src + "\n});";
 
         script = v8::Script::Compile(
-                     isolate->NewFromUtf8(src), soname);
+                     isolate->NewFromUtf8(src1), soname);
         if (script.IsEmpty())
-            return throwSyntaxError(try_catch);
+        {
+            TryCatch try_catch1;
+
+            v8::ScriptCompiler::Source script_source(
+                isolate->NewFromUtf8(src),
+                v8::ScriptOrigin(soname));
+
+            if (v8::ScriptCompiler::CompileUnbound(
+                        isolate->m_isolate, &script_source).IsEmpty())
+            {
+                try_catch.Reset();
+                return throwSyntaxError(try_catch1);
+            }
+
+            throwSyntaxError(try_catch);
+        }
     }
 
     v8::Local<v8::Value> v = script->Run();
