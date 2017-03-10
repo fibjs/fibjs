@@ -162,7 +162,7 @@ describe("vm", () => {
         });
     });
 
-    it("block function return", () => {
+    xit("block function return", () => {
         sbox = new vm.SandBox({});
         assert.throws(() => {
             sbox.addScript("t1.js", "return 100;");
