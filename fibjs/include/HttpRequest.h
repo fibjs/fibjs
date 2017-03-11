@@ -40,6 +40,8 @@ public:
     virtual result_t readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
     virtual result_t write(Buffer_base *data, AsyncEvent *ac);
     virtual result_t get_length(int64_t &retVal);
+    virtual result_t end();
+    virtual result_t isEnded(bool& retVal);
     virtual result_t clear();
     virtual result_t sendTo(Stream_base *stm, AsyncEvent *ac);
     virtual result_t readFrom(Stream_base *stm, AsyncEvent *ac);

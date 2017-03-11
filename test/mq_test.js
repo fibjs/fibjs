@@ -135,16 +135,15 @@ describe("mq", () => {
     })
 
     describe("chain handler", () => {
-        it("chain invoke",
-            () => {
-                var chain = new mq.Chain([hdlr1, hdlr2,
-                    mq.jsHandler(hdlr3)
-                ]);
+        it("chain invoke", () => {
+            var chain = new mq.Chain([hdlr1, hdlr2,
+                mq.jsHandler(hdlr3)
+            ]);
 
-                n = 0;
-                chain.invoke(v);
-                assert.equal(7, n);
-            });
+            n = 0;
+            chain.invoke(v);
+            assert.equal(7, n);
+        });
 
         it("params", () => {
             function chain_params(v, p1, p2) {
@@ -169,7 +168,6 @@ describe("mq", () => {
 
         it("Message", () => {
             var handler = new mq.Chain([
-
                 (v) => {
                     return {};
                 },
@@ -196,6 +194,24 @@ describe("mq", () => {
             var req = new mq.Message();
             req.params.push("aaasssssssssssssss");
             mq.invoke(handler, req);
+        });
+
+        it("end chain", () => {
+            var handler = new mq.Chain([
+                (v) => {
+                    return 1;
+                },
+                (v) => {
+                    v.end();
+                },
+                (v) => {
+                    return 3;
+                }
+            ]);
+
+            var req = new mq.Message();
+            mq.invoke(handler, req);
+            assert.equal(1, req.result);
         });
 
         it("memory leak", () => {

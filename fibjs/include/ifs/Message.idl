@@ -43,6 +43,14 @@ interface Message : object
     /*! @brief 消息数据部分的长度 */
     readonly Long length;
 
+    /*! @brief 设置当前消息处理结束，Chain 处理器不再继续后面的事务 */
+    end();
+
+    /*! @brief 查询当前消息是否结束
+     @return 结束则返回 true
+    */
+    Boolean isEnded();
+
     /*! @brief 清除消息的内容 */
     clear();
 

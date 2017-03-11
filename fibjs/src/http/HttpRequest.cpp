@@ -185,6 +185,16 @@ result_t HttpRequest::set_lastError(exlib::string newVal)
     return m_message->set_lastError(newVal);
 }
 
+result_t HttpRequest::end()
+{
+    return m_message->end();
+}
+
+result_t HttpRequest::isEnded(bool& retVal)
+{
+    return m_message->isEnded(retVal);
+}
+
 result_t HttpRequest::clear()
 {
     m_message = new HttpMessage();

@@ -93,6 +93,16 @@ result_t WebSocketMessage::set_lastError(exlib::string newVal)
     return m_message->set_lastError(newVal);
 }
 
+result_t WebSocketMessage::end()
+{
+    return m_message->end();
+}
+
+result_t WebSocketMessage::isEnded(bool& retVal)
+{
+    return m_message->isEnded(retVal);
+}
+
 result_t WebSocketMessage::clear()
 {
     m_message = new Message(m_bRep);

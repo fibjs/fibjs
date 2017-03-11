@@ -40,6 +40,8 @@ result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             int32_t i;
 
+            m_msg = Message_base::getInstance(m_v);
+
             m_array.resize(pThis->m_array.size());
             for (i = 0; i < (int32_t) pThis->m_array.size(); i ++)
                 m_array[i] = pThis->m_array[i];
@@ -51,8 +53,11 @@ result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         static int32_t invoke(AsyncState *pState, int32_t n)
         {
             asyncInvoke *pThis = (asyncInvoke *) pState;
+            bool end = false;
 
-            if (pThis->m_pos == (int32_t) pThis->m_array.size())
+            if (pThis->m_msg)
+                pThis->m_msg->isEnded(end);
+            if (end || (pThis->m_pos == (int32_t) pThis->m_array.size()))
                 return pThis->done(CALL_RETURN_NULL);
 
             pThis->m_pos++;
@@ -63,6 +68,7 @@ result_t Chain::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     private:
         std::vector<obj_ptr<Handler_base> > m_array;
         obj_ptr<object_base> m_v;
+        obj_ptr<Message_base> m_msg;
         int32_t m_pos;
     };
 

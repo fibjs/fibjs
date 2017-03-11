@@ -41,6 +41,8 @@ public:
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, AsyncEvent* ac) = 0;
     virtual result_t get_length(int64_t& retVal) = 0;
+    virtual result_t end() = 0;
+    virtual result_t isEnded(bool& retVal) = 0;
     virtual result_t clear() = 0;
     virtual result_t sendTo(Stream_base* stm, AsyncEvent* ac) = 0;
     virtual result_t readFrom(Stream_base* stm, AsyncEvent* ac) = 0;
@@ -67,6 +69,8 @@ public:
     static void s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_end(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isEnded(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -99,6 +103,8 @@ namespace fibjs
             {"read", s_read, false},
             {"readAll", s_readAll, false},
             {"write", s_write, false},
+            {"end", s_end, false},
+            {"isEnded", s_isEnded, false},
             {"clear", s_clear, false},
             {"sendTo", s_sendTo, false},
             {"readFrom", s_readFrom, false}
@@ -302,6 +308,32 @@ namespace fibjs
         PROPERTY_ENTER();
 
         hr = pInst->get_length(vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void Message_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(Message_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = pInst->end();
+
+        METHOD_VOID();
+    }
+
+    inline void Message_base::s_isEnded(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        bool vr;
+
+        METHOD_INSTANCE(Message_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = pInst->isEnded(vr);
 
         METHOD_RETURN();
     }

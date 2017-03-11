@@ -111,8 +111,24 @@ result_t Message_base::_new(obj_ptr<Message_base> &retVal, v8::Local<v8::Object>
     return 0;
 }
 
+result_t Message::end()
+{
+    m_end = true;
+    return 0;
+}
+
+result_t Message::isEnded(bool& retVal)
+{
+    retVal = m_end;
+    if (!m_end && m_response)
+        m_response->isEnded(retVal);
+
+    return 0;
+}
+
 result_t Message::clear()
 {
+    m_end = false;
     m_params.Release();
     m_result.clear();
     m_value.clear();
