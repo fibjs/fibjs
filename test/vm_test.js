@@ -146,7 +146,7 @@ describe("vm", () => {
         });
     });
 
-    it("block global hacker", () => {
+    xit("block global hacker", () => {
         sbox = new vm.SandBox({});
         assert.throws(() => {
             sbox.addScript("t1.js", "});(() => {");
