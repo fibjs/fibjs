@@ -50,12 +50,14 @@ public:
         return m_body;
     }
 
+public:
+    obj_ptr<Message_base> m_response;
+
 private:
     obj_ptr<List_base> m_params;
     VariantEx m_result;
     exlib::string m_value;
     obj_ptr<SeekableStream_base> m_body;
-    obj_ptr<Message_base> m_response;
     exlib::string m_lastError;
     bool m_bRep;
 };

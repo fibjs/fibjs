@@ -98,7 +98,6 @@ private:
     exlib::string m_method;
     exlib::string m_address;
     exlib::string m_queryString;
-    obj_ptr<HttpResponse_base> m_response;
     obj_ptr<HttpCollection_base> m_cookies;
     obj_ptr<HttpCollection_base> m_query;
     obj_ptr<HttpCollection_base> m_form;

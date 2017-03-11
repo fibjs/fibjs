@@ -117,6 +117,7 @@ result_t Message::clear()
     m_result.clear();
     m_value.clear();
     m_body.Release();
+    m_response.Release();
 
     return 0;
 }

@@ -95,11 +95,7 @@ result_t WebSocketMessage::set_lastError(exlib::string newVal)
 
 result_t WebSocketMessage::clear()
 {
-    m_message = new Message();
-
-    if (m_response)
-        m_response->clear();
-
+    m_message = new Message(m_bRep);
     return 0;
 }
 
@@ -489,16 +485,15 @@ result_t WebSocketMessage::get_response(obj_ptr<Message_base> &retVal)
     if (m_bRep)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!m_response)
+    if (!m_message->m_response)
     {
         int32_t type = m_type;
         if (type == ws_base::_PING)
             type = ws_base::_PONG;
-        m_response = new WebSocketMessage(type, false, m_maxSize, true);
+        m_message->m_response = new WebSocketMessage(type, false, m_maxSize, true);
     }
 
-    retVal = m_response;
-    return 0;
+    return m_message->get_response(retVal);
 }
 
 result_t WebSocketMessage::get_type(int32_t &retVal)
