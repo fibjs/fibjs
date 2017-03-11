@@ -212,6 +212,22 @@ describe("mq", () => {
             var req = new mq.Message();
             mq.invoke(handler, req);
             assert.equal(1, req.result);
+
+            var handler1 = new mq.Chain([
+                (v) => {
+                    return 2;
+                },
+                (v) => {
+                    v.response.end();
+                },
+                (v) => {
+                    return 4;
+                }
+            ]);
+
+            var req = new mq.Message();
+            mq.invoke(handler1, req);
+            assert.equal(2, req.result);
         });
 
         it("memory leak", () => {
