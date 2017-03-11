@@ -294,9 +294,7 @@ newToken        = "new"
 
 var baseFolder = "../fibjs/include/ifs/";
 var defs = {};
-var parser = peg.generate(grammar, {
-    trace: true
-});
+var parser = peg.generate(grammar);
 
 function gen_code(cls, def) {
     var typeMap = {
