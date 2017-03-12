@@ -83,6 +83,26 @@ result_t Map::put(v8::Local<v8::Object> map)
     return _map(this, map, &Map::put);
 }
 
+result_t Map::set(exlib::string name, Variant value)
+{
+    if (value.type() == Variant::VT_JSValue)
+        setJSObject();
+
+    std::map<exlib::string, VariantEx>::iterator it = m_datas.find(name);
+
+    if (it == m_datas.end())
+        m_datas.insert(std::pair<exlib::string, VariantEx>(name, value));
+    else
+        it->second = value;
+
+    return 0;
+}
+
+result_t Map::set(v8::Local<v8::Object> map)
+{
+    return _map(this, map, &Map::set);
+}
+
 result_t Map::remove(exlib::string name)
 {
     m_datas.erase(name);

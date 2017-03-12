@@ -31,6 +31,8 @@ public:
     virtual result_t get(exlib::string name, Variant& retVal) = 0;
     virtual result_t put(v8::Local<v8::Object> map) = 0;
     virtual result_t put(exlib::string name, Variant value) = 0;
+    virtual result_t set(v8::Local<v8::Object> map) = 0;
+    virtual result_t set(exlib::string name, Variant value) = 0;
     virtual result_t remove(exlib::string name) = 0;
     virtual result_t isEmpty(bool& retVal) = 0;
     virtual result_t _named_getter(const char* property, Variant& retVal) = 0;
@@ -49,6 +51,7 @@ public:
     static void s_has(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -69,6 +72,7 @@ namespace fibjs
             {"has", s_has, false},
             {"get", s_get, false},
             {"put", s_put, false},
+            {"set", s_set, false},
             {"remove", s_remove, false},
             {"isEmpty", s_isEmpty, false}
         };
@@ -192,6 +196,27 @@ namespace fibjs
         ARG(Variant, 1);
 
         hr = pInst->put(v0, v1);
+
+        METHOD_VOID();
+    }
+
+    inline void Map_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(Map_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(v8::Local<v8::Object>, 0);
+
+        hr = pInst->set(v0);
+
+        METHOD_OVER(2, 2);
+
+        ARG(exlib::string, 0);
+        ARG(Variant, 1);
+
+        hr = pInst->set(v0, v1);
 
         METHOD_VOID();
     }
