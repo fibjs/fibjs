@@ -63,8 +63,11 @@ public:
     static result_t simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t randomArt(Buffer_base* data, exlib::string title, int32_t size, exlib::string& retVal);
-    static result_t pbkdf1(int32_t algo, Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, obj_ptr<Buffer_base>& retVal);
-    static result_t pbkdf2(int32_t algo, Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, obj_ptr<Buffer_base>& retVal);
+    static result_t pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t pbkdf2Sync(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -109,11 +112,16 @@ public:
     static void s_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pbkdf1(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_pbkdf2Sync(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE2(crypto_base, simpleRandomBytes, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE2(crypto_base, pseudoRandomBytes, int32_t, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE6(crypto_base, pbkdf1, Buffer_base*, Buffer_base*, int32_t, int32_t, int32_t, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE6(crypto_base, pbkdf1, Buffer_base*, Buffer_base*, int32_t, int32_t, exlib::string, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE6(crypto_base, pbkdf2, Buffer_base*, Buffer_base*, int32_t, int32_t, int32_t, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE6(crypto_base, pbkdf2, Buffer_base*, Buffer_base*, int32_t, int32_t, exlib::string, obj_ptr<Buffer_base>);
 };
 
 }
@@ -140,7 +148,8 @@ namespace fibjs
             {"pseudoRandomBytes", s_pseudoRandomBytes, true},
             {"randomArt", s_randomArt, true},
             {"pbkdf1", s_pbkdf1, true},
-            {"pbkdf2", s_pbkdf2, true}
+            {"pbkdf2", s_pbkdf2, true},
+            {"pbkdf2Sync", s_pbkdf2Sync, true}
         };
 
         static ClassData::ClassObject s_object[] = 
@@ -476,15 +485,33 @@ namespace fibjs
 
         METHOD_ENTER();
 
-        METHOD_OVER(5, 5);
+        ASYNC_METHOD_OVER(5, 5);
 
-        ARG(int32_t, 0);
+        ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
-        ARG(obj_ptr<Buffer_base>, 2);
+        ARG(int32_t, 2);
         ARG(int32_t, 3);
         ARG(int32_t, 4);
 
-        hr = pbkdf1(v0, v1, v2, v3, v4, vr);
+        if(!cb.IsEmpty()) {
+            acb_pbkdf1(v0, v1, v2, v3, v4, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_pbkdf1(v0, v1, v2, v3, v4, vr);
+
+        ASYNC_METHOD_OVER(5, 5);
+
+        ARG(obj_ptr<Buffer_base>, 0);
+        ARG(obj_ptr<Buffer_base>, 1);
+        ARG(int32_t, 2);
+        ARG(int32_t, 3);
+        ARG(exlib::string, 4);
+
+        if(!cb.IsEmpty()) {
+            acb_pbkdf1(v0, v1, v2, v3, v4, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_pbkdf1(v0, v1, v2, v3, v4, vr);
 
         METHOD_RETURN();
     }
@@ -495,15 +522,52 @@ namespace fibjs
 
         METHOD_ENTER();
 
-        METHOD_OVER(5, 5);
+        ASYNC_METHOD_OVER(5, 5);
 
-        ARG(int32_t, 0);
+        ARG(obj_ptr<Buffer_base>, 0);
         ARG(obj_ptr<Buffer_base>, 1);
-        ARG(obj_ptr<Buffer_base>, 2);
+        ARG(int32_t, 2);
         ARG(int32_t, 3);
         ARG(int32_t, 4);
 
-        hr = pbkdf2(v0, v1, v2, v3, v4, vr);
+        if(!cb.IsEmpty()) {
+            acb_pbkdf2(v0, v1, v2, v3, v4, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_pbkdf2(v0, v1, v2, v3, v4, vr);
+
+        ASYNC_METHOD_OVER(5, 5);
+
+        ARG(obj_ptr<Buffer_base>, 0);
+        ARG(obj_ptr<Buffer_base>, 1);
+        ARG(int32_t, 2);
+        ARG(int32_t, 3);
+        ARG(exlib::string, 4);
+
+        if(!cb.IsEmpty()) {
+            acb_pbkdf2(v0, v1, v2, v3, v4, cb);
+            hr = CALL_RETURN_NULL;
+        } else
+            hr = ac_pbkdf2(v0, v1, v2, v3, v4, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void crypto_base::s_pbkdf2Sync(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<Buffer_base> vr;
+
+        METHOD_ENTER();
+
+        METHOD_OVER(5, 5);
+
+        ARG(obj_ptr<Buffer_base>, 0);
+        ARG(obj_ptr<Buffer_base>, 1);
+        ARG(int32_t, 2);
+        ARG(int32_t, 3);
+        ARG(exlib::string, 4);
+
+        hr = pbkdf2Sync(v0, v1, v2, v3, v4, vr);
 
         METHOD_RETURN();
     }

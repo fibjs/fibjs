@@ -334,12 +334,14 @@ inline int pkcs5_pbkdf1(mbedtls_md_context_t *ctx, const unsigned char *password
     return (0);
 }
 
-result_t crypto_base::pbkdf1(int32_t algo, Buffer_base* password,
-                             Buffer_base* salt, int32_t iterations,
-                             int32_t size, obj_ptr<Buffer_base>& retVal)
+result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t iterations,
+                             int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string str_pass;
     exlib::string str_salt;
@@ -362,12 +364,29 @@ result_t crypto_base::pbkdf1(int32_t algo, Buffer_base* password,
 
 }
 
-result_t crypto_base::pbkdf2(int32_t algo, Buffer_base* password,
-                             Buffer_base* salt, int32_t iterations,
-                             int32_t size, obj_ptr<Buffer_base>& retVal)
+result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t iterations,
+                             int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
+                             AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    algoName.toupper();
+    const mbedtls_md_info_t* mi = mbedtls_md_info_from_string(algoName.c_str());
+    if (!mi)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    return pbkdf1(password, salt, iterations, size, mbedtls_md_get_type(mi), retVal, ac);
+}
+
+result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations,
+                             int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string str_pass;
     exlib::string str_salt;
@@ -387,6 +406,27 @@ result_t crypto_base::pbkdf2(int32_t algo, Buffer_base* password,
     retVal = new Buffer(str_key);
 
     return 0;
+}
+
+result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations,
+                             int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
+                             AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    algoName.toupper();
+    const mbedtls_md_info_t* mi = mbedtls_md_info_from_string(algoName.c_str());
+    if (!mi)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    return pbkdf2(password, salt, iterations, size, mbedtls_md_get_type(mi), retVal, ac);
+}
+
+result_t crypto_base::pbkdf2Sync(Buffer_base* password, Buffer_base* salt, int32_t iterations,
+                                 int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal)
+{
+    return ac_pbkdf2(password, salt, iterations, size, algoName, retVal);
 }
 
 }

@@ -724,31 +724,41 @@ describe('crypto', () => {
         });
     });
 
-    it('pbkdf2', () => {
+    it('pbkdf1', () => {
         var tests = [
             [hash.SHA1, 'password', 'salt', 1, 20,
-                encoding.hex.decode('c88e9c67041a74e0357befdff93f87dde0904214')
+                encoding.hex.decode('c88e9c67041a74e0357befdff93f87dde0904214'),
+                'sha1'
             ],
             [hash.SHA256, 'password', 'salt', 2, 20,
-                encoding.hex.decode('a6b9d96cc74d52749372886896349c07e2137fe8')
+                encoding.hex.decode('a6b9d96cc74d52749372886896349c07e2137fe8'),
+                'sha256'
             ],
             [hash.MD5, 'password', '', 1, 32,
-                encoding.hex.decode('5F4DCC3B5AA765D61D8327DEB882CF992B95990A9151374ABD8FF8C5A7A0FE08')
+                encoding.hex.decode('5F4DCC3B5AA765D61D8327DEB882CF992B95990A9151374ABD8FF8C5A7A0FE08'),
+                'md5'
             ],
             [hash.MD5, '', '', 1, 32,
-                encoding.hex.decode('D41D8CD98F00B204E9800998ECF8427E59ADB24EF3CDBE0297F05B395827453F')
+                encoding.hex.decode('D41D8CD98F00B204E9800998ECF8427E59ADB24EF3CDBE0297F05B395827453F'),
+                'md5'
             ],
             [hash.MD5, '', encoding.hex.decode('E3936A9A8ACFE9BE'), 1, 32,
-                encoding.hex.decode('E9FAB75961E5DE62D6982C3F569114A5652D875150F652F75154666E1FD0E8AC')
+                encoding.hex.decode('E9FAB75961E5DE62D6982C3F569114A5652D875150F652F75154666E1FD0E8AC'),
+                'md5'
             ],
             [hash.MD5, '012345678910111231415161717',
                 encoding.hex.decode('F7560045C70A96DB'), 1, 32,
-                encoding.hex.decode('2E14B2EC7E2F8CDC18F15BB773CCD6F25C8AADA268F9B86F960DF0464AE5E981')
+                encoding.hex.decode('2E14B2EC7E2F8CDC18F15BB773CCD6F25C8AADA268F9B86F960DF0464AE5E981'),
+                'md5'
             ]
         ];
 
         tests.forEach((t) => {
-            assert.deepEqual(crypto.pbkdf1(t[0], t[1], t[2], t[3], t[4]), t[5]);
+            assert.deepEqual(crypto.pbkdf1(t[1], t[2], t[3], t[4], t[0]), t[5]);
+        });
+
+        tests.forEach((t) => {
+            assert.deepEqual(crypto.pbkdf1(t[1], t[2], t[3], t[4], t[6]), t[5]);
         });
     });
 
@@ -786,7 +796,15 @@ describe('crypto', () => {
         ];
 
         tests.forEach((t) => {
-            assert.deepEqual(crypto.pbkdf2(hash.SHA1, t[0], t[1], t[2], t[3]), t[4]);
+            assert.deepEqual(crypto.pbkdf2(t[0], t[1], t[2], t[3], hash.SHA1), t[4]);
+        });
+
+        tests.forEach((t) => {
+            assert.deepEqual(crypto.pbkdf2(t[0], t[1], t[2], t[3], 'sha1'), t[4]);
+        });
+
+        tests.forEach((t) => {
+            assert.deepEqual(crypto.pbkdf2Sync(t[0], t[1], t[2], t[3], 'sha1'), t[4]);
         });
     });
 
