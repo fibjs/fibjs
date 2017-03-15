@@ -229,7 +229,7 @@ result_t Socket::get_localPort(int32_t &retVal)
     if (::getsockname(m_aio.m_fd, (sockaddr *) &addr_info, &sz) == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
 
-    retVal = ntohs(addr_info.port());
+    retVal = addr_info.port();
 
     return 0;
 }
