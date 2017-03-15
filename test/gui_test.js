@@ -49,10 +49,10 @@ if (win) {
             win.close();
             win = undefined;
 
-            for (var i = 0; i < 1000 && !closed; i++)
-                coroutine.sleep(10);
-
-            coroutine.sleep(100);
+            for (var i = 0; i < 1000 && has_class(os.memoryUsage().nativeObjects, 'WebView'); i++) {
+                coroutine.sleep(100);
+                GC();
+            }
 
             GC();
             assert.notOk(has_class(os.memoryUsage().nativeObjects, 'WebView'));
