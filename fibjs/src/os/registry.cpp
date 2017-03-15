@@ -208,7 +208,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
 	case REG_DWORD:
 	{
 		Isolate* isolate = Isolate::current();
-		int64_t value;
+		int32_t value = 0;
 		dwSize = sizeof(value);
 
 		RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)&value, &dwSize);
@@ -218,11 +218,11 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
 	case REG_QWORD:
 	{
 		Isolate* isolate = Isolate::current();
-		DWORD value;
+		int64_t value = 0;
 		dwSize = sizeof(value);
 
 		RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)&value, &dwSize);
-		retVal = GetReturnValue(isolate->m_isolate, (int64_t)value);
+		retVal = GetReturnValue(isolate->m_isolate, value);
 		break;
 	}
 	case REG_SZ:
@@ -309,7 +309,8 @@ result_t registry_base::set(int32_t root, exlib::string key, double value, int32
 		return CHECK_ERROR(CALL_E_INVALIDARG);
 
 	int64_t v = (int64_t)value;
-	return set_reg(root, key, type, &v, REG_DWORD ? sizeof(int32_t) : sizeof(int64_t));
+	return set_reg(root, key, type, &v,
+	               type == REG_DWORD ? sizeof(int32_t) : sizeof(int64_t));
 }
 
 result_t registry_base::set(int32_t root, exlib::string key, exlib::string value, int32_t type)
