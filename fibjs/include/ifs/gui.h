@@ -25,7 +25,17 @@ class gui_base : public object_base
     DECLARE_CLASS(gui_base);
 
 public:
+    enum{
+        _IE7 = 7000,
+        _IE8 = 8000,
+        _IE9 = 9000,
+        _IE10 = 10000,
+        _IE11 = 11000
+    };
+
+public:
     // gui_base
+    static result_t setVersion(int32_t ver);
     static result_t open(exlib::string url, obj_ptr<WebView_base>& retVal, AsyncEvent* ac);
     static result_t open(exlib::string url, Map_base* opt, obj_ptr<WebView_base>& retVal, AsyncEvent* ac);
 
@@ -41,6 +51,12 @@ public:
     }
 
 public:
+    static void s_get_IE7(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_IE8(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_IE9(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_IE10(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_IE11(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -59,18 +75,76 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
+            {"setVersion", s_setVersion, true},
             {"open", s_open, true}
+        };
+
+        static ClassData::ClassProperty s_property[] = 
+        {
+            {"IE7", s_get_IE7, block_set, true},
+            {"IE8", s_get_IE8, block_set, true},
+            {"IE9", s_get_IE9, block_set, true},
+            {"IE10", s_get_IE10, block_set, true},
+            {"IE11", s_get_IE11, block_set, true}
         };
 
         static ClassData s_cd = 
         { 
             "gui", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
             &object_base::class_info()
         };
 
         static ClassInfo s_ci(s_cd);
         return s_ci;
+    }
+
+    inline void gui_base::s_get_IE7(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _IE7;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gui_base::s_get_IE8(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _IE8;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gui_base::s_get_IE9(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _IE9;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gui_base::s_get_IE10(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _IE10;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gui_base::s_get_IE11(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _IE11;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gui_base::s_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(int32_t, 0);
+
+        hr = setVersion(v0);
+
+        METHOD_VOID();
     }
 
     inline void gui_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)

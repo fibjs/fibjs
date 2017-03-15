@@ -10,6 +10,8 @@
 #include "object.h"
 #include "ifs/gui.h"
 #include "ifs/fs.h"
+#include "ifs/registry.h"
+#include "ifs/os.h"
 #include "path.h"
 #include "WebView.h"
 #include "utf8.h"
@@ -377,6 +379,20 @@ void init_gui()
 	gui_thread* _thGUI = new gui_thread();
 	_thGUI->start();
 	s_thread = _thGUI->thread_id;
+}
+
+result_t gui_base::setVersion(int32_t ver)
+{
+	exlib::string p, exe;
+
+	os_base::get_execPath(p);
+	path_base::basename(p, "", exe);
+
+	registry_base::set(registry_base::_CURRENT_USER,
+	                   "SOFTWARE\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION\\" + exe,
+	                   ver, registry_base::_DWORD);
+
+	return 0;
 }
 
 result_t gui_base::open(exlib::string url, obj_ptr<WebView_base>& retVal,
