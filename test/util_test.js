@@ -955,6 +955,9 @@ describe('util', () => {
             assert.equal(c.get("a", updater), "a_value");
             assert.equal(call_num, 1);
 
+            assert.isUndefined(c.get("a1", function() {}));
+            assert.isFalse(c.has("a1"));
+
             coroutine.start(() => {
                 c.get("b", updater);
             });
