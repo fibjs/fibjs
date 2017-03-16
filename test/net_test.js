@@ -74,6 +74,7 @@ describe("net", () => {
 
         s.bind(8080 + base_port);
         s.listen();
+        assert.equal(s.localPort, 8080 + base_port);
         coroutine.start(accept, s);
 
         function conn_socket() {
