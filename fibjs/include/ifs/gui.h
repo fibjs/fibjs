@@ -30,7 +30,8 @@ public:
         _IE8 = 8000,
         _IE9 = 9000,
         _IE10 = 10000,
-        _IE11 = 11000
+        _IE11 = 11000,
+        _EDGE = 11001
     };
 
 public:
@@ -56,6 +57,7 @@ public:
     static void s_get_IE9(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_IE10(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_IE11(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_EDGE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -85,7 +87,8 @@ namespace fibjs
             {"IE8", s_get_IE8, block_set, true},
             {"IE9", s_get_IE9, block_set, true},
             {"IE10", s_get_IE10, block_set, true},
-            {"IE11", s_get_IE11, block_set, true}
+            {"IE11", s_get_IE11, block_set, true},
+            {"EDGE", s_get_EDGE, block_set, true}
         };
 
         static ClassData s_cd = 
@@ -130,6 +133,13 @@ namespace fibjs
     inline void gui_base::s_get_IE11(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr = _IE11;
+        PROPERTY_ENTER();
+        METHOD_RETURN();
+    }
+
+    inline void gui_base::s_get_EDGE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr = _EDGE;
         PROPERTY_ENTER();
         METHOD_RETURN();
     }
