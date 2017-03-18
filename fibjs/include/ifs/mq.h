@@ -22,7 +22,6 @@ class HttpHandler_base;
 class Chain_base;
 class Routing_base;
 class Handler_base;
-class AsyncWait_base;
 
 class mq_base : public object_base
 {
@@ -31,7 +30,8 @@ class mq_base : public object_base
 public:
     // mq_base
     static result_t jsHandler(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
-    static result_t await(obj_ptr<AsyncWait_base>& retVal);
+    static result_t await(obj_ptr<Handler_base>& retVal);
+    static result_t await(v8::Local<v8::Function> proc, obj_ptr<Handler_base>& retVal);
     static result_t nullHandler(obj_ptr<Handler_base>& retVal);
     static result_t invoke(Handler_base* hdlr, object_base* v, AsyncEvent* ac);
 
@@ -63,7 +63,6 @@ public:
 #include "Chain.h"
 #include "Routing.h"
 #include "Handler.h"
-#include "AsyncWait.h"
 
 namespace fibjs
 {
@@ -113,13 +112,19 @@ namespace fibjs
 
     inline void mq_base::s_await(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        obj_ptr<AsyncWait_base> vr;
+        obj_ptr<Handler_base> vr;
 
         METHOD_ENTER();
 
         METHOD_OVER(0, 0);
 
         hr = await(vr);
+
+        METHOD_OVER(1, 1);
+
+        ARG(v8::Local<v8::Function>, 0);
+
+        hr = await(v0, vr);
 
         METHOD_RETURN();
     }

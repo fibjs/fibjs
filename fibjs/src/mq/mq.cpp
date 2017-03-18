@@ -9,7 +9,6 @@
 #include "JSHandler.h"
 #include "ifs/mq.h"
 #include "NullHandler.h"
-#include "AsyncWaitHandler.h"
 #include "HttpHandler.h"
 #include "Chain.h"
 #include "Routing.h"
@@ -71,12 +70,6 @@ result_t mq_base::jsHandler(v8::Local<v8::Value> hdlr,
         return 0;
 
     return JSHandler::New(hdlr, retVal);
-}
-
-result_t mq_base::await(obj_ptr<AsyncWait_base> &retVal)
-{
-    retVal = new AsyncWaitHandler();
-    return 0;
 }
 
 result_t mq_base::nullHandler(obj_ptr<Handler_base> &retVal)
