@@ -57,96 +57,66 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     v8::Local<v8::Value> hdlr = GetPrivate("handler");
 
     result_t hr;
-    bool bResult = false;
 
     while (true)
     {
-        if (hdlr->IsFunction())
+        v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(hdlr);
+        obj_ptr<List_base> params;
+        std::vector<v8::Local<v8::Value> > argv;
+        v8::Local<v8::Value> *pargv;
+        int32_t len = 0, i;
+
+        if (msg != NULL)
         {
-            v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(hdlr);
-            obj_ptr<List_base> params;
-            std::vector<v8::Local<v8::Value> > argv;
-            v8::Local<v8::Value> *pargv;
-            int32_t len = 0, i;
-
-            if (msg != NULL)
-            {
-                msg->get_params(params);
-                params->get_length(len);
-            }
-
-            if (len > 0)
-            {
-                argv.resize(len + 1);
-                argv[0] = a;
-
-                for (i = 0; i < len; i++)
-                {
-                    Variant v;
-                    params->_indexed_getter(i, v);
-                    argv[i + 1] = v;
-                }
-
-                pargv = argv.data();
-            }
-            else
-                pargv = &a;
-
-            {
-                TryCatch try_catch;
-                hdlr = func->Call(v8::Undefined(isolate->m_isolate), len + 1, pargv);
-                if (try_catch.HasCaught())
-                {
-                    v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-                            isolate->m_isolate, 1, v8::StackTrace::kScriptId);
-                    if (stackTrace->GetFrameCount() > 0)
-                    {
-                        try_catch.ReThrow();
-                        return CALL_E_JAVASCRIPT;
-                    }
-                    else
-                        return CHECK_ERROR(Runtime::setError(GetException(try_catch, 0)));
-                }
-            }
-
-            if (IsEmpty (hdlr))
-                return CALL_RETURN_NULL;
-
-            bResult = true;
+            msg->get_params(params);
+            params->get_length(len);
         }
-        else if (hdlr->IsObject())
+
+        if (len > 0)
         {
-            if ((retVal = Handler_base::getInstance(hdlr)) != NULL)
-                return 0;
+            argv.resize(len + 1);
+            argv[0] = a;
 
-            if (msg == NULL)
-                return CHECK_ERROR(CALL_E_BADVARTYPE);
-
-            if (bResult)
+            for (i = 0; i < len; i++)
             {
-                msg->set_result(hdlr);
-                return CALL_RETURN_NULL;
+                Variant v;
+                params->_indexed_getter(i, v);
+                argv[i + 1] = v;
             }
 
-            exlib::string method;
-            hr = msgMethod(msg, method);
-            if (hr < 0)
-                return hr;
-
-            hdlr = v8::Local<v8::Object>::Cast(hdlr)->Get(
-                       isolate->NewFromUtf8(method));
-            if (IsEmpty (hdlr))
-                return CHECK_ERROR(Runtime::setError("JSHandler: method \"" + method + "\" not found."));
-
-            bResult = false;
+            pargv = argv.data();
         }
-        else if (bResult && msg)
+        else
+            pargv = &a;
+
         {
+            TryCatch try_catch;
+            hdlr = func->Call(v8::Undefined(isolate->m_isolate), len + 1, pargv);
+            if (try_catch.HasCaught())
+            {
+                v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
+                        isolate->m_isolate, 1, v8::StackTrace::kScriptId);
+                if (stackTrace->GetFrameCount() > 0)
+                {
+                    try_catch.ReThrow();
+                    return CALL_E_JAVASCRIPT;
+                }
+                else
+                    return CHECK_ERROR(Runtime::setError(GetException(try_catch, 0)));
+            }
+        }
+
+        if (IsEmpty (hdlr))
+            return CALL_RETURN_NULL;
+
+        if (!hdlr->IsFunction())
+        {
+            if (hdlr->IsObject())
+                return JSHandler::New(hdlr, retVal);
+
             msg->set_result(hdlr);
             return CALL_RETURN_NULL;
         }
-        else
-            return CHECK_ERROR(CALL_E_INTERNAL);
     }
 
     return 0;

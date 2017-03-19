@@ -11,7 +11,7 @@
 interface WebSocketHandler: HandlerEx
 {
     /*! @brief WebSocket 包处理器构造函数
-     @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+     @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
      */
     WebSocketHandler(Value hdlr);
 

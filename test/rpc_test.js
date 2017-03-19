@@ -44,52 +44,6 @@ describe("rpc", () => {
             '{"id":1234,"result":"100,200"}');
     });
 
-    it("map", () => {
-        m.value = 'test';
-        var jr = rpc.json({
-            test: {
-                aaaa: (m, p1, p2) => {
-                    m.value = '';
-                    return p1 + ',' + p2;
-                }
-            }
-        });
-
-        jr.invoke(m);
-
-        m.response.body.rewind();
-        assert.equal(m.response.body.read().toString(),
-            '{"id":1234,"result":"100,200"}');
-    });
-
-    it("params", () => {
-        var jr = rpc.json({
-            'xhr': {
-                test: {
-                    fun: (v, a, b) => {
-                        return a + b;
-                    }
-                }
-            }
-        });
-
-        m = new http.Request();
-
-        m.value = '/xhr/test';
-        m.setHeader("Content-Type", "application/json");
-        m.body.write(encoding.json.encode({
-            method: 'fun',
-            params: [100, 200],
-            id: 1234
-        }));
-
-        jr.invoke(m);
-
-        m.response.body.rewind();
-        assert.equal(m.response.body.read().toString(),
-            '{"id":1234,"result":300}');
-    });
-
     it("Task", () => {
         assert.throws(() => {
             var task = rpc.open("./not_exists.js");

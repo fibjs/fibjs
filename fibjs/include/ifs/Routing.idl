@@ -64,7 +64,7 @@ interface Routing: Handler
 
   /*! @brief 添加一条路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
   append(String pattern, Value hdlr);
 
@@ -77,7 +77,7 @@ interface Routing: Handler
   /*! @brief 添加一条路由规则
    @param method 指定 http 请求方法，"*" 接受所有方法
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
   append(String method, String pattern, Value hdlr);
 
@@ -88,7 +88,7 @@ interface Routing: Handler
 
   /*! @brief 添加一条接受所有 http 方法路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
   all(String pattern, Value hdlr);
 
@@ -99,7 +99,7 @@ interface Routing: Handler
 
   /*! @brief 添加一条接受 http GET 方法路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
   get(String pattern, Value hdlr);
 
@@ -110,7 +110,7 @@ interface Routing: Handler
 
   /*! @brief 添加一条接受 http POST 方法路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
   post(String pattern, Value hdlr);
 
@@ -121,7 +121,7 @@ interface Routing: Handler
 
   /*! @brief 添加一条接受 http DELETE 方法路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
   del(String pattern, Value hdlr);
 
@@ -132,7 +132,7 @@ interface Routing: Handler
 
   /*! @brief 添加一条接受 http PUT 方法路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
   put(String pattern, Value hdlr);
 
@@ -143,7 +143,7 @@ interface Routing: Handler
 
   /*! @brief 添加一条接受 http PATCH 方法路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
   patch(String pattern, Value hdlr);
 };

@@ -28,14 +28,14 @@ interface SslHandler: Handler
             }
         ]
         @endcode
-      @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+      @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
      */
     SslHandler(Array certs, Value hdlr);
 
     /*! @brief SslHandler 构造函数，创建一个新的 SslHandler 对象
       @param crt X509Cert 证书，用于客户端验证服务器
       @param key PKey 私钥，用于与客户端会话
-      @param hdlr 内置消息处理器，处理函数，或 javascript 消息映射对象，详见 mq.jsHandler
+      @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
      */
     SslHandler(X509Cert crt, PKey key, Value hdlr);
 

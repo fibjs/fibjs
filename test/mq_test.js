@@ -85,58 +85,19 @@ describe("mq", () => {
         });
     });
 
-    describe("object handler", () => {
-        var o = mq.jsHandler({
-            a: hdlr1,
-            b: hdlr2,
-            c: hdlr3,
-            d: {
-                d1: hdlr1,
-                d2: {
-                    d3: hdlr2,
-                    d4: hdlr3,
-                    d5: 1123
-                }
-            }
-        });
-
-        var ot = {
-            'a': 1,
-            '/b': 2,
-            '.c': 4,
-            'a.a': 1,
-            'a/a': 1,
-            'd.d1': 1,
-            'd\\d1': 1,
-            'd.d2.d3': 2,
-            'd.d2.d4': 4
-        };
-
-        it("invoke path", () => {
-            for (var t in ot) {
-                n = 0;
-                m.value = t;
-                o.invoke(m);
-                assert.equal(ot[t], n);
-            }
-        });
-
-        it("error path", () => {
-            assert.throws(() => {
-                m.value = 'asd';
-                o.invoke(m);
-            });
-
-            assert.throws(() => {
-                m.value = 'd.d2.d5';
-                o.invoke(m);
-            });
-        });
-    })
-
     describe("chain handler", () => {
         it("chain invoke", () => {
             var chain = new mq.Chain([hdlr1, hdlr2,
+                mq.jsHandler(hdlr3)
+            ]);
+
+            n = 0;
+            chain.invoke(v);
+            assert.equal(7, n);
+        });
+
+        it("create by jsHandler", () => {
+            var chain = mq.jsHandler([hdlr1, hdlr2,
                 mq.jsHandler(hdlr3)
             ]);
 
@@ -169,20 +130,18 @@ describe("mq", () => {
         it("Message", () => {
             var handler = new mq.Chain([
                 (v) => {
-                    return {};
+                    return "123";
                 },
                 (v) => {
-                    assert.isObject(v.result);
                     return "aaa" + v.result;
                 }
             ]);
 
             var req = new mq.Message();
             mq.invoke(handler, req);
-            assert.equal("aaa[object Object]", req.result);
+            assert.equal("aaa123", req.result);
 
             var handler = new mq.Chain([
-
                 (v) => {
                     v.params[0] = {};
                 },
