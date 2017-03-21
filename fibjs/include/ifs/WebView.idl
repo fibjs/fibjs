@@ -19,6 +19,22 @@ interface WebView : EventEmitter
 
 	/*! @brief 向 webview 内发送消息
 	 @param msg 要发送的消息
+	 
+	 @code
+	 	// index.js
+		var gui = require('gui');
+		var webview = gui.open('fs:index.html');
+
+		webview.postMessage("hello from fibjs");
+
+		// index.html
+		<script>
+		window.external.onmessage = function(msg){
+			alert(msg); // 会出现内容为 'hello from fibjs' 的弹窗
+		};
+		</script>
+
+	 @endcode
 	 */
 	postMessage(String msg) async;
 
@@ -28,15 +44,51 @@ interface WebView : EventEmitter
 	/*! @brief 查询和绑定加载成功事件，相当于 on("load", func); */
 	Function onload;
 
-	/*! @brief 查询和绑定窗口移动事件，相当于 on("move", func); */
+	/*! @brief 查询和绑定窗口移动事件，相当于 on("move", func); 
+	@code
+		var gui = require('gui');
+		var webview = gui.open('fs:index.html');
+
+		webview.onmove = function(xoffset, yoffset) {}
+	 @endcode
+	*/
 	Function onmove;
 
-	/*! @brief 查询和绑定窗口尺寸改变事件，相当于 on("size", func); */
+	/*! @brief 查询和绑定窗口尺寸改变事件，相当于 on("size", func);
+	@code
+		var gui = require('gui');
+		var webview = gui.open('fs:index.html');
+
+		webview.onsize = function(width, height) {}
+	 @endcode
+	*/
 	Function onsize;
 
-	/*! @brief 查询和绑定窗口关闭事件，相当于 on("close", func); */
+	/*! @brief 查询和绑定窗口关闭事件，相当于 on("close", func);
+	@code
+		var gui = require('gui');
+		var webview = gui.open('fs:index.html');
+
+		webview.onclose = function() {}
+	 @endcode
+	*/
 	Function onclose;
 
-	/*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func); */
+	/*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func);
+	@code
+		// index.html
+		<script>
+		window.external.postMessage('hello from html')
+		</script>
+
+		// index.js
+		var gui = require('gui');
+		var webview = gui.open('fs:index.html');
+
+		webview.onmessage = function(msg) {
+			console.log(msg); // 将会打印 'hello from html'
+		}
+	 @endcode
+	*/
 	Function onmessage;
 };
