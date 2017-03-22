@@ -42,8 +42,7 @@ public:
     virtual result_t get(exlib::string name, v8::Local<v8::Value> &retVal);
     virtual result_t get(exlib::string name, v8::Local<v8::Function> updater, v8::Local<v8::Value> &retVal);
     virtual result_t set(exlib::string name, v8::Local<v8::Value> value);
-    virtual result_t put(exlib::string name, v8::Local<v8::Value> value);
-    virtual result_t put(v8::Local<v8::Object> map);
+    virtual result_t set(v8::Local<v8::Object> map);
     virtual result_t remove(exlib::string name);
     virtual result_t isEmpty(bool &retVal);
 

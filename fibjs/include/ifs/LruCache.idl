@@ -39,22 +39,16 @@ interface LruCache : object
      */
     Value get(String name, Function updater);
 
-    /*! @brief 修改一个键值数据，键值不存在则不作任何操作
+    /*! @brief 设定一个键值数据，键值不存在则插入一条新数据
      @param name 指定要设定的键值
      @param value 指定要设定的数据
      */
     set(String name, Value value);
 
-    /*! @brief 设定一个键值数据，键值不存在则插入一条新数据
-     @param name 指定要设定的键值
-     @param value 指定要设定的数据
-     */
-    put(String name, Value value);
-
     /*! @brief 设定一个键值数据，键值不存在则插入新数据
      @param map 指定要设定的键值数据字典
      */
-    put(Object map);
+    set(Object map);
 
     /*! @brief 删除指定键值的全部值
      @param name 指定要删除的键值

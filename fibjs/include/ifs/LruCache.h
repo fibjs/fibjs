@@ -30,8 +30,7 @@ public:
     virtual result_t get(exlib::string name, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get(exlib::string name, v8::Local<v8::Function> updater, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t set(exlib::string name, v8::Local<v8::Value> value) = 0;
-    virtual result_t put(exlib::string name, v8::Local<v8::Value> value) = 0;
-    virtual result_t put(v8::Local<v8::Object> map) = 0;
+    virtual result_t set(v8::Local<v8::Object> map) = 0;
     virtual result_t remove(exlib::string name) = 0;
     virtual result_t isEmpty(bool& retVal) = 0;
 
@@ -46,7 +45,6 @@ public:
     static void s_has(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -63,7 +61,6 @@ namespace fibjs
             {"has", s_has, false},
             {"get", s_get, false},
             {"set", s_set, false},
-            {"put", s_put, false},
             {"remove", s_remove, false},
             {"isEmpty", s_isEmpty, false}
         };
@@ -181,26 +178,11 @@ namespace fibjs
 
         hr = pInst->set(v0, v1);
 
-        METHOD_VOID();
-    }
-
-    inline void LruCache_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(LruCache_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(2, 2);
-
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Value>, 1);
-
-        hr = pInst->put(v0, v1);
-
         METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
-        hr = pInst->put(v0);
+        hr = pInst->set(v0);
 
         METHOD_VOID();
     }

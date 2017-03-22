@@ -829,24 +829,16 @@ describe('util', () => {
             deepEqual(c.toJSON(), {});
         });
 
-        it("put", () => {
-            c.put("b", 100);
+        it("set", () => {
+            c.set("b", 100);
             deepEqual(c.toJSON(), {
                 "b": 100
             });
 
-            c.put({
+            c.set({
                 "b": 200,
                 "a": 100
             });
-            deepEqual(c.toJSON(), {
-                "a": 100,
-                "b": 200
-            });
-        });
-
-        it("set", () => {
-            c.set("c", 100);
             deepEqual(c.toJSON(), {
                 "a": 100,
                 "b": 200
@@ -887,13 +879,13 @@ describe('util', () => {
         it("size", () => {
             assert.equal(c.size, 0);
 
-            c.put('a', 100);
+            c.set('a', 100);
             assert.equal(c.size, 1);
 
-            c.put('b', 100);
-            c.put('c', 200);
-            c.put('d', 300);
-            c.put('e', 400);
+            c.set('b', 100);
+            c.set('c', 200);
+            c.set('d', 300);
+            c.set('e', 400);
 
             assert.equal(c.size, 3);
 
@@ -907,12 +899,12 @@ describe('util', () => {
         it("timeout", () => {
             c = new util.LruCache(3, 200);
 
-            c.put('f', 100);
-            c.put('d', 300);
-            c.put('e', 400);
+            c.set('f', 100);
+            c.set('d', 300);
+            c.set('e', 400);
 
             coroutine.sleep(100);
-            c.put('f', 500);
+            c.set('f', 500);
             deepEqual(c.toJSON(), {
                 "f": 500,
                 "e": 400,
@@ -926,7 +918,7 @@ describe('util', () => {
                 "d": 300
             });
 
-            c.put('e', 700);
+            c.set('e', 700);
 
             assert.equal(c.get('d'), 300);
             coroutine.sleep(101);
@@ -989,10 +981,10 @@ describe('util', () => {
             var no1 = os.memoryUsage().nativeObjects.objects;
 
             var lc = new util.LruCache(1024);
-            lc.put("test", lc);
+            lc.set("test", lc);
             assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
 
-            lc.put("test1", new Buffer());
+            lc.set("test1", new Buffer());
             assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 
             lc.remove("test1");

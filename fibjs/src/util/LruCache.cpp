@@ -137,25 +137,6 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
 
 result_t LruCache::set(exlib::string name, v8::Local<v8::Value> value)
 {
-    std::map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
-
-    if (find != m_datas.end())
-    {
-        update(find);
-        update_time(find);
-
-        if (m_timeout > 0)
-            find->second.insert.now();
-        SetPrivate(name, value);
-    }
-
-    cleanup();
-
-    return 0;
-}
-
-result_t LruCache::put(exlib::string name, v8::Local<v8::Value> value)
-{
     static _linkedNode newNode;
     std::map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
 
@@ -195,9 +176,9 @@ inline result_t _map(LruCache *o, v8::Local<v8::Object> m,
     return 0;
 }
 
-result_t LruCache::put(v8::Local<v8::Object> map)
+result_t LruCache::set(v8::Local<v8::Object> map)
 {
-    return _map(this, map, &LruCache::put);
+    return _map(this, map, &LruCache::set);
 }
 
 result_t LruCache::remove(exlib::string name)
