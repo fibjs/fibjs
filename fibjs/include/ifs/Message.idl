@@ -9,6 +9,12 @@
  *  */
 interface Message : object
 {
+    /*! @brief 指定消息类型 1，代表一个文本类型 */
+    const TEXT = 1;
+
+    /*! @brief 指定消息类型 2，代表一个二进制类型 */
+    const BINARY = 2;
+
     /*! @brief 消息对象构造函数 */
     Message();
 
@@ -20,6 +26,12 @@ interface Message : object
 
     /*! @brief 消息的返回结果 */
     Variant result;
+
+    /*! @brief 消息类型 */
+    Integer type;
+
+    /*! @brief 查询消息的数据 */
+    readonly Value data;
 
     /*! @brief 包含消息数据部分的流对象 */
     SeekableStream body;

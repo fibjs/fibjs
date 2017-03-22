@@ -213,7 +213,9 @@ result_t WebSocketMessage::sendTo(Stream_base *stm, AsyncEvent *ac)
             uint8_t buf[16];
             int32_t pos = 0;
 
-            buf[0] = 0x80 | (pThis->m_pThis->m_type & 0x0f);
+            int32_t type;
+            pThis->m_pThis->get_type(type);
+            buf[0] = 0x80 | (type & 0x0f);
 
             int64_t size = pThis->m_size;
             if (size < 126)
@@ -355,7 +357,7 @@ result_t WebSocketMessage::readFrom(Stream_base *stm, AsyncEvent *ac)
                 }
             }
             else
-                pThis->m_pThis->m_type = ch & 0x0f;
+                pThis->m_pThis->set_type(ch & 0x0f);
 
             ch = strBuffer[1];
 
@@ -497,7 +499,9 @@ result_t WebSocketMessage::get_response(obj_ptr<Message_base> &retVal)
 
     if (!m_message->m_response)
     {
-        int32_t type = m_type;
+        int32_t type;
+        get_type(type);
+
         if (type == ws_base::_PING)
             type = ws_base::_PONG;
         m_message->m_response = new WebSocketMessage(type, false, m_maxSize, true);
@@ -508,46 +512,17 @@ result_t WebSocketMessage::get_response(obj_ptr<Message_base> &retVal)
 
 result_t WebSocketMessage::get_type(int32_t &retVal)
 {
-    retVal = m_type;
-    return 0;
+    return m_message->get_type(retVal);
 }
 
 result_t WebSocketMessage::set_type(int32_t newVal)
 {
-    m_type = newVal;
-    return 0;
+    return m_message->set_type(newVal);
 }
 
 result_t WebSocketMessage::get_data(v8::Local<v8::Value>& retVal)
 {
-    result_t hr;
-
-    obj_ptr<SeekableStream_base> body;
-    obj_ptr<Buffer_base> data;
-
-    hr = m_message->get_body(body);
-    if (hr < 0)
-        return hr;
-
-    body->rewind();
-    hr = body->cc_readAll(data);
-    if (hr < 0)
-        return hr;
-
-    if (hr == CALL_RETURN_NULL)
-        return CALL_RETURN_NULL;
-
-    if (m_type == ws_base::_TEXT)
-    {
-        exlib::string txt;
-
-        data->toString(txt);
-        retVal = holder()->NewFromUtf8(txt);
-    }
-    else
-        retVal = data->wrap();
-
-    return 0;
+    return m_message->get_data(retVal);
 }
 
 result_t WebSocketMessage::get_masked(bool &retVal)

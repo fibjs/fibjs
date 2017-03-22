@@ -25,6 +25,9 @@ public:
     virtual result_t set_params(List_base *newVal);
     virtual result_t get_result(Variant &retVal);
     virtual result_t set_result(Variant newVal);
+    virtual result_t get_type(int32_t& retVal);
+    virtual result_t set_type(int32_t newVal);
+    virtual result_t get_data(v8::Local<v8::Value>& retVal);
     virtual result_t get_body(obj_ptr<SeekableStream_base> &retVal);
     virtual result_t set_body(SeekableStream_base *newVal);
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
@@ -42,7 +45,8 @@ public:
     virtual result_t set_lastError(exlib::string newVal);
 
 public:
-    Message(bool bRep = false) : m_bRep(bRep), m_end(false)
+    Message(bool bRep = false) :
+        m_type(_BINARY), m_bRep(bRep), m_end(false)
     {
     }
 
@@ -56,6 +60,7 @@ public:
     obj_ptr<Message_base> m_response;
 
 private:
+    int32_t m_type;
     obj_ptr<List_base> m_params;
     VariantEx m_result;
     exlib::string m_value;

@@ -16,12 +16,6 @@ interface WebSocketMessage: Message
 	 */
 	WebSocketMessage(Integer type = ws.BINARY, Boolean masked = true, Integer maxSize = 67108864);
 
-	/*! @brief websocket 消息类型 */
-	Integer type;
-
-	/*! @brief 查询消息的数据 */
-	readonly Value data;
-
 	/*! @brief 查询和读取 websocket 掩码标记，缺省为 true */
 	Boolean masked;
 

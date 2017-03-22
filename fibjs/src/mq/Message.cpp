@@ -55,6 +55,50 @@ result_t Message::set_result(Variant newVal)
     return 0;
 }
 
+result_t Message::get_type(int32_t &retVal)
+{
+    retVal = m_type;
+    return 0;
+}
+
+result_t Message::set_type(int32_t newVal)
+{
+    m_type = newVal;
+    return 0;
+}
+
+result_t Message::get_data(v8::Local<v8::Value>& retVal)
+{
+    result_t hr;
+
+    obj_ptr<SeekableStream_base> body;
+    obj_ptr<Buffer_base> data;
+
+    hr = get_body(body);
+    if (hr < 0)
+        return hr;
+
+    body->rewind();
+    hr = body->cc_readAll(data);
+    if (hr < 0)
+        return hr;
+
+    if (hr == CALL_RETURN_NULL)
+        return CALL_RETURN_NULL;
+
+    if (m_type == _TEXT)
+    {
+        exlib::string txt;
+
+        data->toString(txt);
+        retVal = holder()->NewFromUtf8(txt);
+    }
+    else
+        retVal = data->wrap();
+
+    return 0;
+}
+
 result_t Message::get_body(obj_ptr<SeekableStream_base> &retVal)
 {
     if (m_body == NULL)

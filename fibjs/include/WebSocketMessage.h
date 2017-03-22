@@ -18,9 +18,10 @@ class WebSocketMessage: public WebSocketMessage_base
 {
 public:
     WebSocketMessage(int32_t type, bool masked, int32_t maxSize, bool bRep = false)
-        : m_type(type), m_masked(masked), m_maxSize(maxSize), m_error(0), m_bRep(bRep)
+        : m_masked(masked), m_maxSize(maxSize), m_error(0), m_bRep(bRep)
     {
         m_message = new Message(m_bRep);
+        m_message->set_type(type);
     }
 
 public:
@@ -31,6 +32,9 @@ public:
     virtual result_t set_params(List_base *newVal);
     virtual result_t get_result(Variant &retVal);
     virtual result_t set_result(Variant newVal);
+    virtual result_t get_type(int32_t& retVal);
+    virtual result_t set_type(int32_t newVal);
+    virtual result_t get_data(v8::Local<v8::Value>& retVal);
     virtual result_t get_body(obj_ptr<SeekableStream_base> &retVal);
     virtual result_t set_body(SeekableStream_base *newVal);
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac);
@@ -49,9 +53,6 @@ public:
 
 public:
     // WebSocketMessage_base
-    virtual result_t get_type(int32_t& retVal);
-    virtual result_t set_type(int32_t newVal);
-    virtual result_t get_data(v8::Local<v8::Value>& retVal);
     virtual result_t get_masked(bool& retVal);
     virtual result_t set_masked(bool newVal);
     virtual result_t get_maxSize(int32_t& retVal);
@@ -62,7 +63,6 @@ public:
 
 public:
     obj_ptr<Stream_base> m_stm;
-    int32_t m_type;
     bool m_masked;
     int32_t m_maxSize;
     int32_t m_error;

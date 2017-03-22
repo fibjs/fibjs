@@ -176,6 +176,21 @@ result_t HttpResponse::set_result(Variant newVal)
     return m_message->set_result(newVal);
 }
 
+result_t HttpResponse::get_type(int32_t &retVal)
+{
+    return m_message->get_type(retVal);
+}
+
+result_t HttpResponse::set_type(int32_t newVal)
+{
+    return m_message->set_type(newVal);
+}
+
+result_t HttpResponse::get_data(v8::Local<v8::Value>& retVal)
+{
+    return m_message->get_data(retVal);
+}
+
 result_t HttpResponse::get_lastError(exlib::string& retVal)
 {
     return m_message->get_lastError(retVal);
