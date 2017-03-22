@@ -8,6 +8,7 @@
 #include "object.h"
 #include "WebSocket.h"
 #include "WebSocketMessage.h"
+#include "EventInfo.h"
 #include "ifs/io.h"
 #include "ifs/http.h"
 #include "Map.h"
@@ -343,7 +344,7 @@ result_t WebSocket::on_close(WebSocket* pThis)
 	if (pThis->m_ac)
 		pThis->m_ac->post(CALL_RETURN_NULL);
 
-	Variant v = new WebSocketEvent(pThis->m_code, pThis->m_reason, "close", pThis);
+	Variant v = new EventInfo(pThis, "close", pThis->m_code, pThis->m_reason);
 	pThis->_emit("close", &v, 1);
 
 	return 0;
@@ -361,7 +362,7 @@ void WebSocket::endConnect(int32_t code, exlib::string reason)
 				m_code = 1006;
 				m_reason = "Abnormal Closure";
 
-				Variant v = new WebSocketEvent(code, reason, "error", this);
+				Variant v = new EventInfo(this, "error", code, reason);
 				_emit("error", &v, 1);
 			} else
 			{

@@ -5,8 +5,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _WebSocketEvent_base_H_
-#define _WebSocketEvent_base_H_
+#ifndef _EventInfo_base_H_
+#define _EventInfo_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -17,16 +17,18 @@
 namespace fibjs
 {
 
-class WebSocketEvent_base : public object_base
+class EventInfo_base : public object_base
 {
-    DECLARE_CLASS(WebSocketEvent_base);
+    DECLARE_CLASS(EventInfo_base);
 
 public:
-    // WebSocketEvent_base
+    // EventInfo_base
     virtual result_t get_code(int32_t& retVal) = 0;
     virtual result_t get_reason(exlib::string& retVal) = 0;
     virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t get_target(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t _named_getter(const char* property, int32_t& retVal) = 0;
+    virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -44,13 +46,15 @@ public:
     static void s_get_reason(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_get_target(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);
 };
 
 }
 
 namespace fibjs
 {
-    inline ClassInfo& WebSocketEvent_base::class_info()
+    inline ClassInfo& EventInfo_base::class_info()
     {
         static ClassData::ClassProperty s_property[] = 
         {
@@ -60,10 +64,15 @@ namespace fibjs
             {"target", s_get_target, block_set, false}
         };
 
+        static ClassData::ClassNamed s_named = 
+        {
+            i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator
+        };
+
         static ClassData s_cd = 
         { 
-            "WebSocketEvent", false, s__new, NULL, 
-            0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+            "EventInfo", false, s__new, NULL, 
+            0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, &s_named,
             &object_base::class_info()
         };
 
@@ -71,11 +80,11 @@ namespace fibjs
         return s_ci;
     }
 
-    inline void WebSocketEvent_base::s_get_code(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void EventInfo_base::s_get_code(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         int32_t vr;
 
-        METHOD_INSTANCE(WebSocketEvent_base);
+        METHOD_INSTANCE(EventInfo_base);
         PROPERTY_ENTER();
 
         hr = pInst->get_code(vr);
@@ -83,11 +92,11 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void WebSocketEvent_base::s_get_reason(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void EventInfo_base::s_get_reason(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
-        METHOD_INSTANCE(WebSocketEvent_base);
+        METHOD_INSTANCE(EventInfo_base);
         PROPERTY_ENTER();
 
         hr = pInst->get_reason(vr);
@@ -95,11 +104,11 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void WebSocketEvent_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void EventInfo_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         exlib::string vr;
 
-        METHOD_INSTANCE(WebSocketEvent_base);
+        METHOD_INSTANCE(EventInfo_base);
         PROPERTY_ENTER();
 
         hr = pInst->get_type(vr);
@@ -107,16 +116,44 @@ namespace fibjs
         METHOD_RETURN();
     }
 
-    inline void WebSocketEvent_base::s_get_target(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void EventInfo_base::s_get_target(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_INSTANCE(WebSocketEvent_base);
+        METHOD_INSTANCE(EventInfo_base);
         PROPERTY_ENTER();
 
         hr = pInst->get_target(vr);
 
         METHOD_RETURN();
+    }
+
+    inline void EventInfo_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(EventInfo_base);
+        PROPERTY_ENTER();
+
+        v8::String::Utf8Value k(property);
+        if(class_info().has(*k))return;
+
+        hr = pInst->_named_getter(*k, vr);
+        if(hr == CALL_RETURN_NULL)return;
+
+        METHOD_RETURN();
+    }
+
+    inline void EventInfo_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
+    {
+        v8::Local<v8::Array> vr;
+
+        METHOD_INSTANCE(EventInfo_base);
+        PROPERTY_ENTER();
+
+        hr = pInst->_named_enumerator(vr);
+
+        METHOD_RETURN1();
     }
 
 }
