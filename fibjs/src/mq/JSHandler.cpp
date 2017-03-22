@@ -56,8 +56,6 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     v8::Local<v8::Value> a = v8::Local<v8::Value>::New(isolate->m_isolate, o);
     v8::Local<v8::Value> hdlr = GetPrivate("handler");
 
-    result_t hr;
-
     while (true)
     {
         v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(hdlr);
