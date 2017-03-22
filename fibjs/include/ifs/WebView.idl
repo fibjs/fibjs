@@ -49,7 +49,9 @@ interface WebView : EventEmitter
 		var gui = require('gui');
 		var webview = gui.open('fs:index.html');
 
-		webview.onmove = function(xoffset, yoffset) {}
+		webview.onmove = function(evt) {
+			console.log(evt.left, evt.top);
+		}
 	 @endcode
 	*/
 	Function onmove;
@@ -59,10 +61,12 @@ interface WebView : EventEmitter
 		var gui = require('gui');
 		var webview = gui.open('fs:index.html');
 
-		webview.onsize = function(width, height) {}
+		webview.onresize = function(evt) {
+			console.log(evt.width, evt.height);
+		}
 	 @endcode
 	*/
-	Function onsize;
+	Function onresize;
 
 	/*! @brief 查询和绑定窗口关闭事件，相当于 on("close", func);
 	@code

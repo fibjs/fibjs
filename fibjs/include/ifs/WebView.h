@@ -37,8 +37,8 @@ public:
     virtual result_t set_onload(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onmove(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onmove(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onsize(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onsize(v8::Local<v8::Function> newVal) = 0;
+    virtual result_t get_onresize(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_onresize(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onclose(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onclose(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onmessage(v8::Local<v8::Function>& retVal) = 0;
@@ -67,8 +67,8 @@ public:
     static void s_set_onload(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_onmove(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_onmove(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_onsize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_onsize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_onresize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_set_onresize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_onclose(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
     static void s_set_onclose(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
     static void s_get_onmessage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
@@ -102,7 +102,7 @@ namespace fibjs
             {"visible", s_get_visible, s_set_visible, false},
             {"onload", s_get_onload, s_set_onload, false},
             {"onmove", s_get_onmove, s_set_onmove, false},
-            {"onsize", s_get_onsize, s_set_onsize, false},
+            {"onresize", s_get_onresize, s_set_onresize, false},
             {"onclose", s_get_onclose, s_set_onclose, false},
             {"onmessage", s_get_onmessage, s_set_onmessage, false}
         };
@@ -273,25 +273,25 @@ namespace fibjs
         PROPERTY_SET_LEAVE();
     }
 
-    inline void WebView_base::s_get_onsize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    inline void WebView_base::s_get_onresize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
         v8::Local<v8::Function> vr;
 
         METHOD_INSTANCE(WebView_base);
         PROPERTY_ENTER();
 
-        hr = pInst->get_onsize(vr);
+        hr = pInst->get_onresize(vr);
 
         METHOD_RETURN();
     }
 
-    inline void WebView_base::s_set_onsize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
+    inline void WebView_base::s_set_onresize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
     {
         METHOD_INSTANCE(WebView_base);
         PROPERTY_ENTER();
         PROPERTY_VAL(v8::Local<v8::Function>);
 
-        hr = pInst->set_onsize(v0);
+        hr = pInst->set_onresize(v0);
 
         PROPERTY_SET_LEAVE();
     }

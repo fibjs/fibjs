@@ -56,7 +56,7 @@ public:
 public:
 	EVENT_FUNC(load);
 	EVENT_FUNC(move);
-	EVENT_FUNC(size);
+	EVENT_FUNC(resize);
 	EVENT_FUNC(close);
 	EVENT_FUNC(message);
 

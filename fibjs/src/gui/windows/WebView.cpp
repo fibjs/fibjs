@@ -14,6 +14,7 @@
 #include "ifs/os.h"
 #include "path.h"
 #include "WebView.h"
+#include "EventInfo.h"
 #include "utf8.h"
 #include <exlib/include/thread.h>
 #include <exdispid.h>
@@ -676,14 +677,16 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		{
 			RECT rcWin;
 			GetWindowRect(hWnd, &rcWin);
-			Variant vars[2];
 
 			int dpix = 0, dpiy = 0;
 			webView1->GetDPI(&dpix, &dpiy);
 
-			vars[0] = (int32_t)rcWin.left * 96 / dpix;
-			vars[1] = (int32_t)rcWin.top * 96 / dpiy;
-			webView1->_emit("move", vars, 2);
+			obj_ptr<EventInfo> ei = new EventInfo(webView1, "move");
+			ei->put("left", (int32_t)rcWin.left * 96 / dpix);
+			ei->put("top", (int32_t)rcWin.top * 96 / dpiy);
+
+			Variant v = ei;
+			webView1->_emit("move", &v, 1);
 		}
 		break;
 	case WM_SIZE:
@@ -701,9 +704,12 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 			int dpix = 0, dpiy = 0;
 			webView1->GetDPI(&dpix, &dpiy);
 
-			vars[0] = (int32_t)(rcWin.right - rcWin.left) * 96 / dpix;
-			vars[1] = (int32_t)(rcWin.bottom - rcWin.top) * 96 / dpiy;
-			webView1->_emit("size", vars, 2);
+			obj_ptr<EventInfo> ei = new EventInfo(webView1, "resize");
+			ei->put("width", (int32_t)(rcWin.right - rcWin.left) * 96 / dpix);
+			ei->put("height", (int32_t)(rcWin.bottom - rcWin.top) * 96 / dpiy);
+
+			Variant v = ei;
+			webView1->_emit("resize", &v, 1);
 		}
 		break;
 	case WM_CLOSE:
@@ -711,7 +717,10 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		if (webView1 != 0)
 		{
 			SetWindowLongPtr(hWnd, 0, 0);
-			webView1->_emit("close", (Variant*)NULL, 0);
+
+			Variant v = new EventInfo(webView1, "close");
+			webView1->_emit("close", &v, 1);
+
 			webView1->clear();
 			webView1->Release();
 		}
@@ -1466,7 +1475,8 @@ HRESULT WebView::OnDownloadComplete(DISPPARAMS* pDispParams)
 
 HRESULT WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
 {
-	_emit("load", NULL, 0);
+	Variant v = new EventInfo(this, "load");
+	_emit("load", &v, 1);
 	return E_NOTIMPL;
 }
 
