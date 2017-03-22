@@ -99,6 +99,18 @@ public:
         operator=(v);
     }
 
+    Variant(int32_t v) :
+        m_type(VT_Undefined)
+    {
+        operator=(v);
+    }
+
+    Variant(int64_t v) :
+        m_type(VT_Undefined)
+    {
+        operator=(v);
+    }
+
     template<typename T>
     Variant(obj_ptr<T> &v) :
         m_type(VT_Undefined)
