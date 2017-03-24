@@ -1,5 +1,10 @@
 # ![fibjs Logo](logo/fibjs-small.png?raw=true) - JavaScript on Fiber
 
+[![travis build status][travis-image]][travis-url]
+
+[travis-image]: https://img.shields.io/travis/xicilion/fibjs.svg?style=flat-square
+[travis-url]: https://travis-ci.org/xicilion/fibjs
+
 ## About fibjs
 
 fibjs 是一个建立在 Google v8 JavaScript 引擎基础上的应用服务器开发框架，不同于 node.js，fibjs 采用 fiber 解决 v8 引擎的多路复用，并通过大量 c++ 组件，将重负荷运算委托给后台线程，释放 v8 线程，争取更大的并发时间。
