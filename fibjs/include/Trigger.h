@@ -288,7 +288,7 @@ public:
 	}
 
 	result_t fireTrigger(v8::Local<v8::Array> esa, v8::Local<v8::Value> *args, int32_t argCount,
-	                     QuickArray<obj_ptr<Fiber_base> >& evs)
+	                     QuickArray<obj_ptr<Fiber_base> >& evs, v8::Local<v8::Function>& ff)
 	{
 		if (esa.IsEmpty())
 			return 0;
@@ -302,11 +302,16 @@ public:
 			v8::Local<v8::Value> func = esa->Get(i);
 			if (func->IsFunction())
 			{
-				obj_ptr<Fiber_base> f;
-				hr = JSFiber::New(o, v8::Local<v8::Function>::Cast(func), args, argCount, f);
-				if (hr < 0)
-					return hr;
-				evs.append(f);
+				if (ff.IsEmpty())
+					ff = v8::Local<v8::Function>::Cast(func);
+				else
+				{
+					obj_ptr<Fiber_base> f;
+					hr = JSFiber::New(o, v8::Local<v8::Function>::Cast(func), args, argCount, f);
+					if (hr < 0)
+						return hr;
+					evs.append(f);
+				}
 			}
 		}
 
@@ -319,11 +324,13 @@ public:
 		result_t hr;
 		retVal = false;
 		QuickArray<obj_ptr<Fiber_base> > evs;
+		v8::Local<v8::Function> ff;
 
 		exlib::string strKey = "_e_";
 		strKey.append(ev);
 
-		hr = fireTrigger(GetHiddenList(strKey), args, argCount, evs);
+		hr = fireTrigger(GetHiddenList(strKey), args, argCount,
+		                 evs, ff);
 		if (hr < 0)
 			return hr;
 
@@ -331,9 +338,15 @@ public:
 		strKey.append(ev);
 
 		hr = fireTrigger(GetHiddenList(strKey, false, true),
-		                 args, argCount, evs);
+		                 args, argCount, evs, ff);
 		if (hr < 0)
 			return hr;
+
+		if (!ff.IsEmpty())
+		{
+			ff->Call(o, argCount, args);
+			retVal = true;
+		}
 
 		if (evs.size() > 0)
 		{
