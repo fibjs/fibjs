@@ -176,6 +176,35 @@ public:
         return *this;
     }
 
+    bool strictEqual(const Variant &v)
+    {
+        if (this->type() != v.type())
+            return false;
+        switch (this->type())
+        {
+        case VT_Undefined:
+            return true;
+        case VT_Null:
+            return true;
+        case VT_Number:
+            return (m_Val.dblVal == v.m_Val.dblVal);
+        case VT_Integer:
+            return (m_Val.intVal == v.m_Val.intVal);
+        case VT_Long:
+            return (m_Val.longVal = v.m_Val.longVal);
+        case VT_String:
+            return (this->strVal() == v.strVal());
+        case VT_Boolean:
+            return (m_Val.boolVal == v.m_Val.boolVal);
+        case VT_Object:
+            return (this->object() == v.object());
+        case VT_JSValue:
+            return (this->jsVal() == v.jsVal());
+        default:
+            return false;
+        }
+    }
+
     Variant &operator=(int32_t v)
     {
         clear();
