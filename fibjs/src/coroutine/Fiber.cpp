@@ -44,7 +44,7 @@ void *FiberBase::fiber_proc(void *p)
     {
         AsyncEvent *ae;
 
-        if ((ae = (AsyncEvent*)isolate->m_jobs.tryget()) == NULL)
+        // if ((ae = (AsyncEvent*)isolate->m_jobs.tryget()) == NULL)
         {
             isolate->m_idleFibers ++;
             if (isolate->m_idleFibers > g_spareFibers) {
