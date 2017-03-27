@@ -3,7 +3,7 @@ compiler: gcc
 deploy:
   provider: releases
   api_key:
-    secure: # 使用自己的 key 替换
+    secure: NjAZ4QjjsEes/nZzfUDn3FvDRW85+LdRMaPluqBO3APZksBiwSHkkKVRAvIyQJoMGqikxUNP5yx+KFBixvYIjUJY++lFSzMdlNVSi2W4X9cDP87QkPJfO6kFlcaE7wqtGJW1MQf+iCTsLirGHEMl5eDRDVPMFsf3hnpeuO/EQ7s=
   file:
     - "bin/${DIST}/fibjs_${DIST_FILENAME}"
     - "bin/${DIST}/installer_${DIST_FILENAME}.sh"
@@ -11,6 +11,7 @@ deploy:
   on:
     tags: true
     repo: xicilion/fibjs
+    branch: master
 addons:
   apt:
     sources:
