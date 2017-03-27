@@ -3,7 +3,7 @@ compiler: gcc
 deploy:
   provider: releases
   api_key:
-    secure: # 使用自己的 key 替换
+    secure: NjAZ4QjjsEes/nZzfUDn3FvDRW85+LdRMaPluqBO3APZksBiwSHkkKVRAvIyQJoMGqikxUNP5yx+KFBixvYIjUJY++lFSzMdlNVSi2W4X9cDP87QkPJfO6kFlcaE7wqtGJW1MQf+iCTsLirGHEMl5eDRDVPMFsf3hnpeuO/EQ7s=
   file:
     - "bin/${DIST}/fibjs_${DIST_FILENAME}"
     - "bin/${DIST}/installer_${DIST_FILENAME}.sh"
@@ -11,6 +11,7 @@ deploy:
   on:
     tags: true
     repo: xicilion/fibjs
+    branch: master
 addons:
   apt:
     sources:
@@ -18,24 +19,24 @@ addons:
     packages:
     - gcc-4.9
     - g++-4.9
-env: 
-  - DIST=Linux_amd64_release;DIST_FILENAME=linux_x64;
+env:
+- DIST=Linux_amd64_release;DIST_FILENAME=linux_x64;
 matrix:
   include:
-    - os: osx
-      osx_image: xcode8.2
-      env:
-        - DIST=Darwin_amd64_release;DIST_FILENAME=darwin
+  - os: osx
+    osx_image: xcode8.2
+    env:
+    - DIST=Darwin_amd64_release;DIST_FILENAME=darwin
 install:
-  - git submodule init
-  - git submodule update
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CXX=g++-4.9; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=gcc-4.9; fi
+- git submodule init
+- git submodule update
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CXX=g++-4.9; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=gcc-4.9; fi
 script:
-  - sh build -j2
-  - cp "bin/${DIST}/fibjs" "bin/${DIST}/fibjs_${DIST_FILENAME}"
-  - chmod a+x "bin/${DIST}/fibjs_${DIST_FILENAME}"
-  - cp "bin/${DIST}/installer.sh" "bin/${DIST}/installer_${DIST_FILENAME}.sh"
-  - chmod a+x "bin/${DIST}/installer_${DIST_FILENAME}.sh"
-  # run test
-  - cd test && ../bin/${DIST}/fibjs main.js
+- sh build -j2
+- cp "bin/${DIST}/fibjs" "bin/${DIST}/fibjs_${DIST_FILENAME}"
+- chmod a+x "bin/${DIST}/fibjs_${DIST_FILENAME}"
+- cp "bin/${DIST}/installer.sh" "bin/${DIST}/installer_${DIST_FILENAME}.sh"
+- chmod a+x "bin/${DIST}/installer_${DIST_FILENAME}.sh"
+# run test
+- cd test && ../bin/${DIST}/fibjs main.js
