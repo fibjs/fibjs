@@ -191,7 +191,7 @@ public:
         case VT_Integer:
             return (m_Val.intVal == v.m_Val.intVal);
         case VT_Long:
-            return (m_Val.longVal = v.m_Val.longVal);
+            return (m_Val.longVal == v.m_Val.longVal);
         case VT_String:
             return (this->strVal() == v.strVal());
         case VT_Boolean:
