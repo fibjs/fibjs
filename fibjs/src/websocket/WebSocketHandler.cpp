@@ -242,7 +242,9 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             asyncInvoke *pThis = (asyncInvoke *) pState;
 
             pThis->set(error_end);
-            return mq_base::invoke(pThis->m_pThis->m_err_hdlr, pThis->m_msg, pThis);
+            if (pThis->m_pThis->m_err_hdlr)
+                return mq_base::invoke(pThis->m_pThis->m_err_hdlr, pThis->m_msg, pThis);
+            return 0;
         }
 
         static int32_t error_end(AsyncState *pState, int32_t n)
