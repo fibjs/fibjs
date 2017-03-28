@@ -89,6 +89,29 @@ result_t List::push(Variant v, int32_t& retVal)
     return 0;
 }
 
+result_t List::indexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal)
+{
+    int32_t len = (int32_t)m_array.size();
+    int32_t k;
+
+    if (fromIndex >= 0) {
+        k = fromIndex;
+    } else {
+        k = len + fromIndex;
+        if (k < 0) k = 0;
+    }
+    retVal = -1;
+    while (k < len) {
+        if (m_array[k].strictEqual(searchElement)) {
+            retVal = k;
+            return 0;
+        }
+        k++;
+    }
+
+    return 0;
+}
+
 result_t List::push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal)
 {
     if (m_freeze)

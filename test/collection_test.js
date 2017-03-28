@@ -38,6 +38,66 @@ describe("collection", () => {
             a.resize(0);
         });
 
+        it('indexOf', () => {
+            var nuList = new collection.List([2, 9, 9e10]);
+            assert.equal(nuList.indexOf(2), 0);
+            assert.equal(nuList.indexOf(7), -1);
+            assert.equal(nuList.indexOf(9e10, 2), 2);
+            assert.equal(nuList.indexOf(2, -1), -1);
+            assert.equal(nuList.indexOf(2, -3), 0);
+
+            var nullist = new collection.List([null, undefined]);
+            assert.equal(nullist.indexOf(0), -1);
+            assert.equal(nullist.indexOf(null), 0);
+            assert.equal(nullist.indexOf(undefined), 1);
+
+            var strlist = new collection.List(['a', 'b', 'c']);
+            assert.equal(strlist.indexOf('a'), 0);
+            assert.equal(strlist.indexOf('d'), -1);
+            assert.equal(strlist.indexOf('c', 2), 2);
+            assert.equal(strlist.indexOf('a', -1), -1);
+            assert.equal(strlist.indexOf('a', -3), 0);
+
+            var boollist = new collection.List([true, false, true]);
+            assert.equal(boollist.indexOf(true), 0);
+            assert.equal(boollist.indexOf(false), 1);
+
+            var sl = new collection.List(['aaa', 'bbb', 'ccc', 'aaa', 'ddd']);
+            assert.equal(sl.indexOf('aaa'), 0);
+            assert.equal(sl.indexOf('bbb'), 1);
+            assert.equal(sl.indexOf('ccc'), 2);
+            assert.equal(sl.indexOf('ddd'), 4);
+            assert.equal(sl.indexOf('eee'), -1);
+
+            var obj1 = {
+                'name': 'obj1'
+            };
+            var obj2 = {
+                'name': 'obj2'
+            };
+            var obj3 = {
+                'name': 'obj3'
+            };
+            var obj4 = {
+                'name': 'obj4'
+            };
+            var objlist = new collection.List([obj1, obj2, obj3, obj4]);
+            assert.equal(objlist.indexOf({
+                'name': 'obj1'
+            }), -1);
+            assert.equal(objlist.indexOf(obj1), 0);
+            assert.equal(objlist.indexOf(obj2), 1);
+
+            var fs = require('fs');
+            var http = require('http');
+            var coroutine = require('coroutine');
+            var fibobjlist = new collection.List([fs, http, coroutine]);
+            assert.equal(fibobjlist.indexOf(1), -1);
+            assert.equal(fibobjlist.indexOf(fs), 0);
+            assert.equal(fibobjlist.indexOf(http), 1);
+            assert.equal(fibobjlist.indexOf(coroutine), 2);
+        });
+
         it("Memory Leak detect", () => {
             var a = new collection.List();
             GC();
