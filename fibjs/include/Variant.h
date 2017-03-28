@@ -199,7 +199,7 @@ public:
         case VT_Object:
             return (this->object() == v.object());
         case VT_JSValue:
-            return (this->jsVal() == v.jsVal());
+            return this->jsVal()->StrictEquals(v.jsVal());
         default:
             return false;
         }

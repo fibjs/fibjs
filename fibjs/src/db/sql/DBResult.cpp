@@ -51,13 +51,6 @@ result_t DBResult::resize(int32_t sz)
     return m_array->resize(sz);
 }
 
-result_t DBResult::indexOf(Variant searchElement, int32_t& retVal)
-{
-    if (!m_size)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-    return m_array->indexOf(searchElement, 0, retVal);
-}
-
 result_t DBResult::indexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal)
 {
     if (!m_size)

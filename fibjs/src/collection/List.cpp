@@ -89,29 +89,15 @@ result_t List::push(Variant v, int32_t& retVal)
     return 0;
 }
 
-result_t List::indexOf(Variant searchElement, int32_t& retVal)
-{
-    return this->indexOf(searchElement, 0, retVal);
-}
-
 result_t List::indexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal)
 {
     int32_t len = (int32_t)m_array.size();
-    int32_t n = fromIndex;
     int32_t k;
 
-    if (len == 0) {
-        retVal = -1;
-        return 0;
-    }
-    if (n >= len) {
-        retVal = -1;
-        return 0;
-    }
-    if (n >= 0) {
-        k = n;
+    if (fromIndex >= 0) {
+        k = fromIndex;
     } else {
-        k = len + n;
+        k = len + fromIndex;
         if (k < 0) k = 0;
     }
     retVal = -1;
