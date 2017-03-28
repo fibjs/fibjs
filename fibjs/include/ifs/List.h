@@ -78,364 +78,364 @@ public:
 
 namespace fibjs
 {
-inline ClassInfo& List_base::class_info()
-{
-    static ClassData::ClassMethod s_method[] =
+    inline ClassInfo& List_base::class_info()
     {
-        {"freeze", s_freeze, false},
-        {"resize", s_resize, false},
-        {"push", s_push, false},
-        {"indexOf", s_indexOf, false},
-        {"pushArray", s_pushArray, false},
-        {"pop", s_pop, false},
-        {"slice", s_slice, false},
-        {"concat", s_concat, false},
-        {"every", s_every, false},
-        {"some", s_some, false},
-        {"filter", s_filter, false},
-        {"forEach", s_forEach, false},
-        {"map", s_map, false},
-        {"reduce", s_reduce, false},
-        {"sort", s_sort, false},
-        {"toArray", s_toArray, false}
-    };
+        static ClassData::ClassMethod s_method[] = 
+        {
+            {"freeze", s_freeze, false},
+            {"resize", s_resize, false},
+            {"push", s_push, false},
+            {"indexOf", s_indexOf, false},
+            {"pushArray", s_pushArray, false},
+            {"pop", s_pop, false},
+            {"slice", s_slice, false},
+            {"concat", s_concat, false},
+            {"every", s_every, false},
+            {"some", s_some, false},
+            {"filter", s_filter, false},
+            {"forEach", s_forEach, false},
+            {"map", s_map, false},
+            {"reduce", s_reduce, false},
+            {"sort", s_sort, false},
+            {"toArray", s_toArray, false}
+        };
 
-    static ClassData::ClassProperty s_property[] =
+        static ClassData::ClassProperty s_property[] = 
+        {
+            {"length", s_get_length, block_set, false}
+        };
+
+        static ClassData::ClassIndexed s_indexed = 
+        {
+            i_IndexedGetter, i_IndexedSetter
+        };
+
+        static ClassData s_cd = 
+        { 
+            "List", false, s__new, NULL, 
+            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, &s_indexed, NULL,
+            &object_base::class_info()
+        };
+
+        static ClassInfo s_ci(s_cd);
+        return s_ci;
+    }
+
+    inline void List_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        {"length", s_get_length, block_set, false}
-    };
+        CONSTRUCT_INIT();
+        __new(args);
+    }
 
-    static ClassData::ClassIndexed s_indexed =
+    template<typename T>void List_base::__new(const T& args)
     {
-        i_IndexedGetter, i_IndexedSetter
-    };
+        obj_ptr<List_base> vr;
 
-    static ClassData s_cd =
+        CONSTRUCT_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = _new(vr, args.This());
+
+        METHOD_OVER(1, 1);
+
+        ARG(v8::Local<v8::Array>, 0);
+
+        hr = _new(v0, vr, args.This());
+
+        CONSTRUCT_RETURN();
+    }
+
+    inline void List_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)
     {
-        "List", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, &s_indexed, NULL,
-        &object_base::class_info()
-    };
+        Variant vr;
 
-    static ClassInfo s_ci(s_cd);
-    return s_ci;
-}
+        METHOD_INSTANCE(List_base);
+        PROPERTY_ENTER();
 
-inline void List_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    CONSTRUCT_INIT();
-    __new(args);
-}
+        hr = pInst->_indexed_getter(index, vr);
 
-template<typename T>void List_base::__new(const T& args)
-{
-    obj_ptr<List_base> vr;
+        METHOD_RETURN();
+    }
 
-    CONSTRUCT_ENTER();
+    inline void List_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        METHOD_INSTANCE(List_base);
+        PROPERTY_ENTER();
 
-    METHOD_OVER(0, 0);
+        PROPERTY_VAL(Variant);
+        hr = pInst->_indexed_setter(index, v0);
 
-    hr = _new(vr, args.This());
+        METHOD_VOID();
+    }
 
-    METHOD_OVER(1, 1);
+    inline void List_base::s_freeze(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    ARG(v8::Local<v8::Array>, 0);
+        METHOD_OVER(0, 0);
 
-    hr = _new(v0, vr, args.This());
+        hr = pInst->freeze();
 
-    CONSTRUCT_RETURN();
-}
+        METHOD_VOID();
+    }
 
-inline void List_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)
-{
-    Variant vr;
+    inline void List_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
+    {
+        int32_t vr;
 
-    METHOD_INSTANCE(List_base);
-    PROPERTY_ENTER();
+        METHOD_INSTANCE(List_base);
+        PROPERTY_ENTER();
 
-    hr = pInst->_indexed_getter(index, vr);
+        hr = pInst->get_length(vr);
 
-    METHOD_RETURN();
-}
+        METHOD_RETURN();
+    }
 
-inline void List_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)
-{
-    METHOD_INSTANCE(List_base);
-    PROPERTY_ENTER();
+    inline void List_base::s_resize(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    PROPERTY_VAL(Variant);
-    hr = pInst->_indexed_setter(index, v0);
+        METHOD_OVER(1, 1);
 
-    METHOD_VOID();
-}
+        ARG(int32_t, 0);
 
-inline void List_base::s_freeze(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+        hr = pInst->resize(v0);
 
-    METHOD_OVER(0, 0);
+        METHOD_VOID();
+    }
 
-    hr = pInst->freeze();
+    inline void List_base::s_push(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
 
-    METHOD_VOID();
-}
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-inline void List_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-{
-    int32_t vr;
+        METHOD_OVER(1, 1);
 
-    METHOD_INSTANCE(List_base);
-    PROPERTY_ENTER();
+        ARG(Variant, 0);
 
-    hr = pInst->get_length(vr);
+        hr = pInst->push(v0, vr);
 
-    METHOD_RETURN();
-}
+        METHOD_OVER(-1, 0);
 
-inline void List_base::s_resize(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+        hr = pInst->push(args, vr);
 
-    METHOD_OVER(1, 1);
+        METHOD_RETURN();
+    }
 
-    ARG(int32_t, 0);
+    inline void List_base::s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
 
-    hr = pInst->resize(v0);
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    METHOD_VOID();
-}
+        METHOD_OVER(2, 1);
 
-inline void List_base::s_push(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
+        ARG(Variant, 0);
+        OPT_ARG(int32_t, 1, 0);
 
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+        hr = pInst->indexOf(v0, v1, vr);
 
-    METHOD_OVER(1, 1);
+        METHOD_RETURN();
+    }
 
-    ARG(Variant, 0);
+    inline void List_base::s_pushArray(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    hr = pInst->push(v0, vr);
+        METHOD_OVER(1, 1);
 
-    METHOD_OVER(-1, 0);
+        ARG(v8::Local<v8::Array>, 0);
 
-    hr = pInst->push(args, vr);
+        hr = pInst->pushArray(v0);
 
-    METHOD_RETURN();
-}
+        METHOD_VOID();
+    }
 
-inline void List_base::s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
+    inline void List_base::s_pop(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        Variant vr;
 
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+        METHOD_OVER(0, 0);
 
-    ARG(Variant, 0);
-    OPT_ARG(int32_t, 1, 0);
+        hr = pInst->pop(vr);
 
-    hr = pInst->indexOf(v0, v1, vr);
+        METHOD_RETURN();
+    }
 
-    METHOD_RETURN();
-}
+    inline void List_base::s_slice(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<List_base> vr;
 
-inline void List_base::s_pushArray(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+        METHOD_OVER(2, 0);
 
-    ARG(v8::Local<v8::Array>, 0);
+        OPT_ARG(int32_t, 0, 0);
+        OPT_ARG(int32_t, 1, -1);
 
-    hr = pInst->pushArray(v0);
+        hr = pInst->slice(v0, v1, vr);
 
-    METHOD_VOID();
-}
+        METHOD_RETURN();
+    }
 
-inline void List_base::s_pop(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    Variant vr;
+    inline void List_base::s_concat(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<List_base> vr;
 
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    METHOD_OVER(0, 0);
+        METHOD_OVER(-1, 0);
 
-    hr = pInst->pop(vr);
+        hr = pInst->concat(args, vr);
 
-    METHOD_RETURN();
-}
+        METHOD_RETURN();
+    }
 
-inline void List_base::s_slice(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<List_base> vr;
+    inline void List_base::s_every(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        bool vr;
 
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    METHOD_OVER(2, 0);
+        METHOD_OVER(2, 1);
 
-    OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(int32_t, 1, -1);
+        ARG(v8::Local<v8::Function>, 0);
+        OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
 
-    hr = pInst->slice(v0, v1, vr);
+        hr = pInst->every(v0, v1, vr);
 
-    METHOD_RETURN();
-}
+        METHOD_RETURN();
+    }
 
-inline void List_base::s_concat(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<List_base> vr;
+    inline void List_base::s_some(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        bool vr;
 
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    METHOD_OVER(-1, 0);
+        METHOD_OVER(2, 1);
 
-    hr = pInst->concat(args, vr);
+        ARG(v8::Local<v8::Function>, 0);
+        OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
 
-    METHOD_RETURN();
-}
+        hr = pInst->some(v0, v1, vr);
 
-inline void List_base::s_every(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    bool vr;
+        METHOD_RETURN();
+    }
 
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+    inline void List_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<List_base> vr;
 
-    METHOD_OVER(2, 1);
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+        METHOD_OVER(2, 1);
 
-    hr = pInst->every(v0, v1, vr);
+        ARG(v8::Local<v8::Function>, 0);
+        OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
 
-    METHOD_RETURN();
-}
+        hr = pInst->filter(v0, v1, vr);
 
-inline void List_base::s_some(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    bool vr;
+        METHOD_RETURN();
+    }
 
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+    inline void List_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+        METHOD_OVER(2, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+        ARG(v8::Local<v8::Function>, 0);
+        OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
 
-    hr = pInst->some(v0, v1, vr);
+        hr = pInst->forEach(v0, v1);
 
-    METHOD_RETURN();
-}
+        METHOD_VOID();
+    }
 
-inline void List_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<List_base> vr;
+    inline void List_base::s_map(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<List_base> vr;
 
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+        METHOD_OVER(2, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+        ARG(v8::Local<v8::Function>, 0);
+        OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
 
-    hr = pInst->filter(v0, v1, vr);
+        hr = pInst->map(v0, v1, vr);
 
-    METHOD_RETURN();
-}
+        METHOD_RETURN();
+    }
 
-inline void List_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+    inline void List_base::s_reduce(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Value> vr;
 
-    METHOD_OVER(2, 1);
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+        METHOD_OVER(2, 1);
 
-    hr = pInst->forEach(v0, v1);
+        ARG(v8::Local<v8::Function>, 0);
+        OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
 
-    METHOD_VOID();
-}
+        hr = pInst->reduce(v0, v1, vr);
 
-inline void List_base::s_map(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<List_base> vr;
+        METHOD_RETURN();
+    }
 
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+    inline void List_base::s_sort(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        obj_ptr<List_base> vr;
 
-    METHOD_OVER(2, 1);
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+        METHOD_OVER(1, 1);
 
-    hr = pInst->map(v0, v1, vr);
+        ARG(v8::Local<v8::Function>, 0);
 
-    METHOD_RETURN();
-}
+        hr = pInst->sort(v0, vr);
 
-inline void List_base::s_reduce(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Value> vr;
+        METHOD_OVER(0, 0);
 
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
+        hr = pInst->sort(vr);
 
-    METHOD_OVER(2, 1);
+        METHOD_RETURN();
+    }
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+    inline void List_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Array> vr;
 
-    hr = pInst->reduce(v0, v1, vr);
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
 
-    METHOD_RETURN();
-}
+        METHOD_OVER(0, 0);
 
-inline void List_base::s_sort(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<List_base> vr;
+        hr = pInst->toArray(vr);
 
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Function>, 0);
-
-    hr = pInst->sort(v0, vr);
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->sort(vr);
-
-    METHOD_RETURN();
-}
-
-inline void List_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Array> vr;
-
-    METHOD_INSTANCE(List_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->toArray(vr);
-
-    METHOD_RETURN();
-}
+        METHOD_RETURN();
+    }
 
 }
 
