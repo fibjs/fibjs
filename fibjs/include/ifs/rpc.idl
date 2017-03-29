@@ -8,12 +8,6 @@
  */
 module rpc
 {
-	/*! @brief 生成一个 json-rpc 消息转换处理器
-	 @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
-	 @return 生成的消息转换处理器
-	 */
-	static Handler json(Value hdlr);
-
 	/*! @brief 创建 rpc 任务代理，参见 RpcTask
 	 @param id 指定要添加的模块名称，名称不支持相对路径
 	 @return 返回 RpcTask 代理对象

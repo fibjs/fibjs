@@ -498,9 +498,6 @@
     <ClInclude Include="include\JSHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\JsonRpcHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\List.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1238,9 +1235,6 @@
       <Filter>Source Files\sandbox</Filter>
     </ClCompile>
     <ClCompile Include="src\other\Image.cpp">
-      <Filter>Source Files\other</Filter>
-    </ClCompile>
-    <ClCompile Include="src\other\JsonRpcHandler.cpp">
       <Filter>Source Files\other</Filter>
     </ClCompile>
     <ClCompile Include="src\other\RpcTask.cpp">

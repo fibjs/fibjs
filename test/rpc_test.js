@@ -2,11 +2,6 @@ var test = require("test");
 test.setup();
 
 var rpc = require('rpc');
-var http = require('http');
-var mq = require('mq');
-var net = require('net');
-var io = require('io');
-var encoding = require('encoding');
 var os = require('os');
 var coroutine = require('coroutine');
 
@@ -15,33 +10,10 @@ var base_port = coroutine.vmid * 10000;
 describe("rpc", () => {
     var ss = [];
 
-    var m = new http.Request();
-
-    m.value = 'test/tttt/tttt/';
-    m.setHeader("Content-Type", "application/json, charset=utf-8;");
-    m.body.write(encoding.json.encode({
-        method: 'aaaa',
-        params: [100, 200],
-        id: 1234
-    }));
-
     after(() => {
         ss.forEach((s) => {
             s.close();
         });
-    });
-
-    it("function", () => {
-        var jr = rpc.json((m, p1, p2) => {
-            m.value = '';
-            return p1 + ',' + p2;
-        });
-
-        jr.invoke(m);
-
-        m.response.body.rewind();
-        assert.equal(m.response.body.read().toString(),
-            '{"id":1234,"result":"100,200"}');
     });
 
     it("Task", () => {
@@ -85,32 +57,6 @@ describe("rpc", () => {
 
         task.foo();
         assert.equal(n, 1);
-    });
-
-    it("over tcp", () => {
-        var hdlr = new http.Handler(rpc.json({
-            update: (v) => {
-                return 1;
-            }
-        }));
-        hdlr.crossDomain = true;
-        var svr = new net.TcpServer(8090 + base_port, hdlr);
-        ss.push(svr.socket);
-        svr.asyncRun();
-
-        var s = new net.Socket();
-        s.connect('127.0.0.1', 8090 + base_port);
-
-        var bs = new io.BufferedStream(s);
-        bs.EOL = '\r\n';
-
-        for (var i = 0; i < 50; i++) {
-            var req = new http.Request();
-            req.addHeader("content-type", "application/json");
-            req.body.write('{"method":"update","params":[{}]}');
-            req.sendTo(s);
-            req.response.readFrom(bs);
-        }
     });
 
     xit("Garbage Collection", () => {

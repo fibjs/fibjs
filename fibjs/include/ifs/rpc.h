@@ -17,7 +17,6 @@
 namespace fibjs
 {
 
-class Handler_base;
 class RpcTask_base;
 
 class rpc_base : public object_base
@@ -26,7 +25,6 @@ class rpc_base : public object_base
 
 public:
     // rpc_base
-    static result_t json(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal);
     static result_t open(exlib::string id, obj_ptr<RpcTask_base>& retVal);
 
 public:
@@ -41,13 +39,11 @@ public:
     }
 
 public:
-    static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 }
 
-#include "Handler.h"
 #include "RpcTask.h"
 
 namespace fibjs
@@ -56,7 +52,6 @@ namespace fibjs
     {
         static ClassData::ClassMethod s_method[] = 
         {
-            {"json", s_json, true},
             {"open", s_open, true}
         };
 
@@ -69,21 +64,6 @@ namespace fibjs
 
         static ClassInfo s_ci(s_cd);
         return s_ci;
-    }
-
-    inline void rpc_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Handler_base> vr;
-
-        METHOD_ENTER();
-
-        METHOD_OVER(1, 1);
-
-        ARG(v8::Local<v8::Value>, 0);
-
-        hr = json(v0, vr);
-
-        METHOD_RETURN();
     }
 
     inline void rpc_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)

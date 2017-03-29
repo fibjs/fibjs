@@ -282,7 +282,6 @@
     <ClInclude Include="include\Int64.h" />
     <ClInclude Include="include\Isolate.h" />
     <ClInclude Include="include\JSHandler.h" />
-    <ClInclude Include="include\JsonRpcHandler.h" />
     <ClInclude Include="include\LevelDB.h" />
     <ClInclude Include="include\List.h" />
     <ClInclude Include="include\Lock.h" />
@@ -479,7 +478,6 @@
     <ClCompile Include="src\os\Service_other.cpp" />
     <ClCompile Include="src\os\Service_win.cpp" />
     <ClCompile Include="src\other\Image.cpp" />
-    <ClCompile Include="src\other\JsonRpcHandler.cpp" />
     <ClCompile Include="src\other\Regex.cpp" />
     <ClCompile Include="src\other\RpcTask.cpp" />
     <ClCompile Include="src\other\uuid.cpp" />

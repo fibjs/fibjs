@@ -9,7 +9,6 @@
 #include "ifs/rpc.h"
 #include "ifs/json.h"
 #include "RpcTask.h"
-#include "JsonRpcHandler.h"
 #include "JSHandler.h"
 #include "SandBox.h"
 #include "Fiber.h"
@@ -365,18 +364,6 @@ result_t rpc_base::open(exlib::string id, obj_ptr<RpcTask_base>& retVal)
 		return CHECK_ERROR(CALL_E_INVALIDARG);
 
 	retVal = new RpcTask(path);
-	return 0;
-}
-
-result_t rpc_base::json(v8::Local<v8::Value> hdlr,
-                        obj_ptr<Handler_base> &retVal)
-{
-	obj_ptr<Handler_base> hdlr1;
-	result_t hr = JSHandler::New(hdlr, hdlr1);
-	if (hr < 0)
-		return hr;
-
-	retVal = new JsonRpcHandler(hdlr1);
 	return 0;
 }
 
