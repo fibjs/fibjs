@@ -24,9 +24,6 @@ interface Message : object
     /*! @brief 消息的基本参数 */
     List params;
 
-    /*! @brief 消息的返回结果 */
-    Variant result;
-
     /*! @brief 消息类型 */
     Integer type;
 

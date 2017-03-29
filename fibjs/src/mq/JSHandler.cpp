@@ -111,8 +111,6 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
         {
             if (hdlr->IsObject())
                 return JSHandler::New(hdlr, retVal);
-
-            msg->set_result(hdlr);
             return CALL_RETURN_NULL;
         }
     }

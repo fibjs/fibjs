@@ -42,16 +42,6 @@ result_t WebSocketMessage::set_params(List_base *newVal)
     return m_message->set_params(newVal);
 }
 
-result_t WebSocketMessage::get_result(Variant &retVal)
-{
-    return m_message->get_result(retVal);
-}
-
-result_t WebSocketMessage::set_result(Variant newVal)
-{
-    return m_message->set_result(newVal);
-}
-
 result_t WebSocketMessage::get_body(obj_ptr<SeekableStream_base> &retVal)
 {
     return m_message->get_body(retVal);

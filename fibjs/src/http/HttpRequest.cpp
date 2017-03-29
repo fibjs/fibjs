@@ -165,16 +165,6 @@ result_t HttpRequest::set_params(List_base *newVal)
     return m_message->set_params(newVal);
 }
 
-result_t HttpRequest::get_result(Variant &retVal)
-{
-    return m_message->get_result(retVal);
-}
-
-result_t HttpRequest::set_result(Variant newVal)
-{
-    return m_message->set_result(newVal);
-}
-
 result_t HttpRequest::get_type(int32_t &retVal)
 {
     return m_message->get_type(retVal);

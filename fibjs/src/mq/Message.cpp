@@ -40,21 +40,6 @@ result_t Message::set_params(List_base *newVal)
     return 0;
 }
 
-result_t Message::get_result(Variant &retVal)
-{
-    retVal = m_result;
-    return 0;
-}
-
-result_t Message::set_result(Variant newVal)
-{
-    if (newVal.type() == Variant::VT_JSValue)
-        setJSObject();
-
-    m_result = newVal;
-    return 0;
-}
-
 result_t Message::get_type(int32_t &retVal)
 {
     retVal = m_type;
@@ -174,7 +159,6 @@ result_t Message::clear()
 {
     m_end = false;
     m_params.Release();
-    m_result.clear();
     m_value.clear();
     m_body.Release();
     m_response.Release();

@@ -23,8 +23,6 @@ public:
     virtual result_t set_value(exlib::string newVal);
     virtual result_t get_params(obj_ptr<List_base> &retVal);
     virtual result_t set_params(List_base *newVal);
-    virtual result_t get_result(Variant &retVal);
-    virtual result_t set_result(Variant newVal);
     virtual result_t get_type(int32_t& retVal);
     virtual result_t set_type(int32_t newVal);
     virtual result_t get_data(v8::Local<v8::Value>& retVal);
@@ -62,7 +60,6 @@ public:
 private:
     int32_t m_type;
     obj_ptr<List_base> m_params;
-    VariantEx m_result;
     exlib::string m_value;
     obj_ptr<SeekableStream_base> m_body;
     exlib::string m_lastError;

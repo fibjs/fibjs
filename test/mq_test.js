@@ -130,19 +130,6 @@ describe("mq", () => {
         it("Message", () => {
             var handler = new mq.Chain([
                 (v) => {
-                    return "123";
-                },
-                (v) => {
-                    return "aaa" + v.result;
-                }
-            ]);
-
-            var req = new mq.Message();
-            mq.invoke(handler, req);
-            assert.equal("aaa123", req.result);
-
-            var handler = new mq.Chain([
-                (v) => {
                     v.params[0] = {};
                 },
                 (v) => {
@@ -156,37 +143,38 @@ describe("mq", () => {
         });
 
         it("end chain", () => {
+            var n = 0;
             var handler = new mq.Chain([
                 (v) => {
-                    return 1;
+                    n = 1;
                 },
                 (v) => {
                     v.end();
                 },
                 (v) => {
-                    return 3;
+                    n = 3;
                 }
             ]);
 
             var req = new mq.Message();
             mq.invoke(handler, req);
-            assert.equal(1, req.result);
+            assert.equal(1, n);
 
             var handler1 = new mq.Chain([
                 (v) => {
-                    return 2;
+                    n = 2;
                 },
                 (v) => {
                     v.response.end();
                 },
                 (v) => {
-                    return 4;
+                    n = 4;
                 }
             ]);
 
             var req = new mq.Message();
             mq.invoke(handler1, req);
-            assert.equal(2, req.result);
+            assert.equal(2, n);
         });
 
         it("memory leak", () => {
