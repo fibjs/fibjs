@@ -98,6 +98,19 @@ describe("collection", () => {
             assert.equal(fibobjlist.indexOf(coroutine), 2);
         });
 
+        it('lastIndexof', () => {
+            var list = new collection.List([2, 5, 9, 2]);
+            assert.equal(list.lastIndexOf(2), 3);
+            assert.equal(list.lastIndexOf(7), -1);
+            assert.equal(list.lastIndexOf(2, -10), -1);
+            assert.equal(list.lastIndexOf(9, -1), 2);
+            assert.equal(list.lastIndexOf(2, 3), 3);
+            assert.equal(list.lastIndexOf(2, 2), 0);
+            assert.equal(list.lastIndexOf(2, -2), 0);
+            assert.equal(list.lastIndexOf(2, -1), 3);
+            assert.equal(list.lastIndexOf(2, -3), 0);
+        });
+
         it("Memory Leak detect", () => {
             var a = new collection.List();
             GC();
@@ -349,4 +362,4 @@ describe("collection", () => {
     });
 });
 
-// test.run(console.DEBUG);
+test.run(console.DEBUG);

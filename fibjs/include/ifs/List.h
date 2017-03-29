@@ -33,6 +33,7 @@ public:
     virtual result_t push(Variant v, int32_t& retVal) = 0;
     virtual result_t push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
     virtual result_t indexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal) = 0;
+    virtual result_t lastIndexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal) = 0;
     virtual result_t pushArray(v8::Local<v8::Array> data) = 0;
     virtual result_t pop(Variant& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal) = 0;
@@ -60,6 +61,7 @@ public:
     static void s_resize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_push(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pushArray(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pop(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -86,6 +88,7 @@ namespace fibjs
             {"resize", s_resize, false},
             {"push", s_push, false},
             {"indexOf", s_indexOf, false},
+            {"lastIndexOf", s_lastIndexOf, false},
             {"pushArray", s_pushArray, false},
             {"pop", s_pop, false},
             {"slice", s_slice, false},
@@ -240,6 +243,23 @@ namespace fibjs
         OPT_ARG(int32_t, 1, 0);
 
         hr = pInst->indexOf(v0, v1, vr);
+
+        METHOD_RETURN();
+    }
+
+    inline void List_base::s_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
+
+        METHOD_INSTANCE(List_base);
+        METHOD_ENTER();
+
+        METHOD_OVER(2, 1);
+
+        ARG(Variant, 0);
+        OPT_ARG(int32_t, 1, 0);
+
+        hr = pInst->lastIndexOf(v0, v1, vr);
 
         METHOD_RETURN();
     }
