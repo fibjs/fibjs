@@ -1,6 +1,7 @@
 environment:
   matrix:
     - image: Visual Studio 2015
+    - image: Visual Studio 2017
 
 platform:
   - x86
@@ -11,9 +12,9 @@ install:
   - git submodule update
 
 test_script:
-  - IF /I "%PLATFORM%" == "x64" ECHO "x64 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64 &&   build release amd64 && cd test && ..\bin\Windows_amd64_release\fibjs.exe main.js
-  - IF /I "%PLATFORM%" == "x86" ECHO "x86 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&   build release i386 && cd test && ..\bin\Windows_i386_release\fibjs.exe main.js
-
+  - IF /I "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2017" set NOXP=noxp
+  - IF /I "%PLATFORM%" == "x64" ECHO "x64 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64 &&   build release amd64 !NOXP! && cd test && ..\bin\Windows_amd64_release\fibjs.exe main.js
+  - IF /I "%PLATFORM%" == "x86" ECHO "x86 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&   build release i386 !NOXP! && cd test && ..\bin\Windows_i386_release\fibjs.exe main.js
 matrix:
   fast_finish: true
 
