@@ -343,6 +343,12 @@ result_t SslSocket::get_peerCert(obj_ptr<X509Cert_base> &retVal)
     return 0;
 }
 
+result_t SslSocket::get_stream(obj_ptr<Stream_base>& retVal)
+{
+    retVal = m_s;
+    return 0;
+}
+
 result_t SslSocket::handshake(int32_t *retVal, AsyncEvent *ac)
 {
     class asyncHandshake: public asyncSsl

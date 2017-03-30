@@ -40,6 +40,9 @@ interface SslSocket : Stream
   /*! @brief 连接对方的证书 */
   readonly X509Cert peerCert;
 
+  /*! @brief 查询消息 ssl 建立时的下层流对象 */
+  readonly Stream stream;
+
   /*! @brief 在给定的连接上连接 ssl 连接，客户端模式
     @param s 给定的底层连接
     @param server_name 指定服务器名称，可缺省
