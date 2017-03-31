@@ -304,6 +304,12 @@ describe('path', () => {
 			var message = 'path.resolve(' + test[0].map(JSON.stringify).join(',') + ')' +
 				'\n  expect=' + JSON.stringify(expected) +
 				'\n  actual=' + JSON.stringify(actual);
+
+            if (isWindows) {
+              actual = actual.toLowerCase();
+              expected = expected.toLowerCase();
+            }
+
 			if (actual !== expected) failures.push('\n' + message);
 			assert.equal(actual, expected, message);
 		});
