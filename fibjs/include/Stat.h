@@ -79,6 +79,7 @@ public:
 
 public:
     result_t getStat(exlib::string path);
+    void fill(exlib::string path, struct stat64 &st);
     void fill(exlib::string path, BY_HANDLE_FILE_INFORMATION &fd);
 
 #ifdef _WIN32

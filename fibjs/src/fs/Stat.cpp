@@ -105,6 +105,29 @@ result_t Stat::getStat(exlib::string path)
 
 #endif
 
+void Stat::fill(exlib::string path, struct stat64 &st)
+{
+    path_base::basename(path, "", name);
+
+    size = st.st_size;
+    mode = st.st_mode;
+    mtime = (double)st.st_mtime * 1000ll;
+    atime = (double)st.st_atime * 1000ll;
+    ctime = (double)st.st_ctime * 1000ll;
+
+    m_isReadable = (S_IRUSR & st.st_mode) != 0;
+    m_isWritable = (S_IWUSR & st.st_mode) != 0;
+    m_isExecutable = (S_IXUSR & st.st_mode) != 0;
+
+    m_isDirectory = (S_IFDIR & st.st_mode) != 0;
+    m_isFile = (S_IFREG & st.st_mode) != 0;
+
+    m_isSymbolicLink = S_ISLNK(st.st_mode);
+
+    m_isMemory = false;
+    m_isSocket = false;
+}
+
 void Stat::init()
 {
     name.resize(0);
