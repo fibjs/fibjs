@@ -410,7 +410,7 @@ describe("net", () => {
 
         c1.close();
 
-        svr.stats.reset();
+        // svr.stats.reset();
         coroutine.sleep(10);
         assert.deepEqual({
             "total": 1,
