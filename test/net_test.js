@@ -48,70 +48,72 @@ describe("net", () => {
         });
     });
 
-    it("echo", () => {
-        function connect(c) {
-            console.log(c.remoteAddress, c.remotePort, "->",
-                c.localAddress, c.localPort);
-            try {
-                var b;
+    if (process.env.IGNORE) {
+        it("echo", () => {
+            function connect(c) {
+                console.log(c.remoteAddress, c.remotePort, "->",
+                    c.localAddress, c.localPort);
+                try {
+                    var b;
 
-                while (b = c.recv())
-                    c.send(b);
-            } finally {
-                c.close();
-                c.dispose();
+                    while (b = c.recv())
+                        c.send(b);
+                } finally {
+                    c.close();
+                    c.dispose();
+                }
             }
-        }
 
-        function accept(s) {
-            while (1)
-                coroutine.start(connect, s.accept());
-        }
+            function accept(s) {
+                while (1)
+                    coroutine.start(connect, s.accept());
+            }
 
-        var s = new net.Socket(net_config.family,
-            net.SOCK_STREAM);
-        ss.push(s);
+            var s = new net.Socket(net_config.family,
+                net.SOCK_STREAM);
+            ss.push(s);
 
-        s.bind(8080 + base_port);
-        s.listen();
-        assert.equal(s.localPort, 8080 + base_port);
-        coroutine.start(accept, s);
+            s.bind(8080 + base_port);
+            s.listen();
+            assert.equal(s.localPort, 8080 + base_port);
+            coroutine.start(accept, s);
 
-        function conn_socket() {
-            var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
-            s1.connect(net_config.address, 8080 + base_port);
-            console.log(s1.remoteAddress, s1.remotePort, "<-",
-                s1.localAddress, s1.localPort);
-            s1.send(new Buffer("GET / HTTP/1.0"));
-            assert.equal("GET / HTTP/1.0", s1.recv());
-            s1.close();
-            s1.dispose();
-        }
+            function conn_socket() {
+                var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
+                s1.connect(net_config.address, 8080 + base_port);
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+                s1.dispose();
+            }
 
-        function conn() {
-            var s1 = net.connect(net_config.address, 8080 + base_port, 0, net_config.family);
-            console.log(s1.remoteAddress, s1.remotePort, "<-",
-                s1.localAddress, s1.localPort);
-            s1.send(new Buffer("GET / HTTP/1.0"));
-            assert.equal("GET / HTTP/1.0", s1.recv());
-            s1.close();
-            s1.dispose();
-        }
+            function conn() {
+                var s1 = net.connect(net_config.address, 8080 + base_port, 0, net_config.family);
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+                s1.dispose();
+            }
 
-        function conn_url() {
-            var s1 = net.connect('tcp://' + net_config.host + ':' + (8080 + base_port));
-            console.log(s1.remoteAddress, s1.remotePort, "<-",
-                s1.localAddress, s1.localPort);
-            s1.send(new Buffer("GET / HTTP/1.0"));
-            assert.equal("GET / HTTP/1.0", s1.recv());
-            s1.close();
-            s1.dispose();
-        }
+            function conn_url() {
+                var s1 = net.connect('tcp://' + net_config.host + ':' + (8080 + base_port));
+                console.log(s1.remoteAddress, s1.remotePort, "<-",
+                    s1.localAddress, s1.localPort);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+                s1.dispose();
+            }
 
-        conn_socket();
-        conn();
-        conn_url();
-    });
+            conn_socket();
+            conn();
+            conn_url();
+        });
+    }
 
     it("copyTo", () => {
         var str = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
