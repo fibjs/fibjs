@@ -5,6 +5,10 @@ test.setup();
 
 var coroutine = require('coroutine');
 
+var win = require("os").type == "Windows";
+
+process.env.IGNORE = !win || !process.env.CI
+
 global.full_test = process.argv.indexOf('full') >= 0;
 
 run("assert_test.js");

@@ -76,24 +76,24 @@ describe('path', () => {
         assert.equal(path.dirname('main.js'), '');
 
         if (isWindows) {
-            assert.equal(path.dirname('c:\\'), 'c:\\');
-            assert.equal(path.dirname('c:\\foo'), 'c:\\');
-            assert.equal(path.dirname('c:\\foo\\'), 'c:\\');
-            assert.equal(path.dirname('c:\\foo\\bar'), 'c:\\foo');
-            assert.equal(path.dirname('c:\\foo\\bar\\'), 'c:\\foo');
-            assert.equal(path.dirname('c:\\foo\\bar\\baz'), 'c:\\foo\\bar');
+            assert.equal(path.dirname('C:\\'), 'C:\\');
+            assert.equal(path.dirname('C:\\foo'), 'C:\\');
+            assert.equal(path.dirname('C:\\foo\\'), 'C:\\');
+            assert.equal(path.dirname('C:\\foo\\bar'), 'C:\\foo');
+            assert.equal(path.dirname('C:\\foo\\bar\\'), 'C:\\foo');
+            assert.equal(path.dirname('C:\\foo\\bar\\baz'), 'C:\\foo\\bar');
             assert.equal(path.dirname('\\'), '\\');
             assert.equal(path.dirname('\\foo'), '\\');
             assert.equal(path.dirname('\\foo\\'), '\\');
             assert.equal(path.dirname('\\foo\\bar'), '\\foo');
             assert.equal(path.dirname('\\foo\\bar\\'), '\\foo');
             assert.equal(path.dirname('\\foo\\bar\\baz'), '\\foo\\bar');
-            assert.equal(path.dirname('c:'), 'c:');
-            assert.equal(path.dirname('c:foo'), 'c:');
-            assert.equal(path.dirname('c:foo\\'), 'c:');
-            assert.equal(path.dirname('c:foo\\bar'), 'c:foo');
-            assert.equal(path.dirname('c:foo\\bar\\'), 'c:foo');
-            assert.equal(path.dirname('c:foo\\bar\\baz'), 'c:foo\\bar');
+            assert.equal(path.dirname('C:'), 'C:');
+            assert.equal(path.dirname('C:foo'), 'C:');
+            assert.equal(path.dirname('C:foo\\'), 'C:');
+            assert.equal(path.dirname('C:foo\\bar'), 'C:foo');
+            assert.equal(path.dirname('C:foo\\bar\\'), 'C:foo');
+            assert.equal(path.dirname('C:foo\\bar\\baz'), 'C:foo\\bar');
             assert.equal(path.dirname('\\\\unc\\share'), '\\\\unc\\share');
             assert.equal(path.dirname('\\\\unc\\share\\foo'), '\\\\unc\\share\\');
             assert.equal(path.dirname('\\\\unc\\share\\foo\\'), '\\\\unc\\share\\');
@@ -114,7 +114,7 @@ describe('path', () => {
             assert.equal(path.normalize('a//b//../b'), 'a\\b');
             assert.equal(path.normalize('a//b//./c'), 'a\\b\\c');
             assert.equal(path.normalize('a//b//.'), 'a\\b');
-            assert.equal(path.normalize('c:/foo/../../../bar'), 'c:\\bar');
+            assert.equal(path.normalize('C:/foo/../../../bar'), 'C:\\bar');
             assert.equal(path.normalize('f:/'), 'f:\\');
             assert.equal(path.normalize('f:path/to/../../../../path1'),
                 'f:..\\..\\path1');
@@ -265,8 +265,8 @@ describe('path', () => {
         assert.equal(failures.length, 0, failures.join(''));
 
         if (isWindows) {
-            assert.equal(path.join('c:/path1', 'c:path2'), 'c:\\path1\\path2');
-            assert.equal(path.join('c:/path1', 'd:path2'), 'd:path2');
+            assert.equal(path.join('C:/path1', 'C:path2'), 'C:\\path1\\path2');
+            assert.equal(path.join('C:/path1', 'd:path2'), 'd:path2');
         }
     });
 
@@ -274,17 +274,17 @@ describe('path', () => {
 		if (isWindows) {
 			var resolveTests =
 				// arguments                                    result
-				[[['c:/blah\\blah', 'd:/games', 'c:../a'], 'c:\\blah\\a'],
-				[['c:/ignore', 'd:\\a/b\\c/d', '\\e.exe'], 'd:\\e.exe'],
-				[['c:/ignore', 'c:/some/file'], 'c:\\some\\file'],
+				[[['C:/blah\\blah', 'd:/games', 'C:../a'], 'C:\\blah\\a'],
+				[['C:/ignore', 'd:\\a/b\\c/d', '\\e.exe'], 'd:\\e.exe'],
+				[['C:/ignore', 'C:/some/file'], 'C:\\some\\file'],
 				[['d:/ignore', 'd:some/dir//'], 'd:\\ignore\\some\\dir'],
 				[['.'], process.cwd()],
 				[['//server/share', '..', 'relative\\'], '\\\\server\\share\\relative'],
-				// [[‘c:/‘, '//'], 'c:\\'],
-				// [[‘c:/‘, '//dir'], 'c:\\dir'],
-				[['c:/', '//server/share'], '\\\\server\\share'],
-				[['c:/', '//server//share'], '\\\\server\\share'],
-				[['c:/', '/some//dir'], 'c:\\some\\dir']
+				// [[‘C:/‘, '//'], 'C:\\'],
+				// [[‘C:/‘, '//dir'], 'C:\\dir'],
+				[['C:/', '//server/share'], '\\\\server\\share'],
+				[['C:/', '//server//share'], '\\\\server\\share'],
+				[['C:/', '/some//dir'], 'C:\\some\\dir']
 				];
 		} else {
 			// Posix
