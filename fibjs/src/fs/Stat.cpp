@@ -47,6 +47,33 @@ void Stat::fill(WIN32_FIND_DATAW &fd)
     m_isSocket = false;
 }
 
+void Stat::fill(exlib::string path, BY_HANDLE_FILE_INFORMATION &fd)
+{
+    path_base::basename(path, "", name);
+    
+    size = ((int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow);
+    mode = S_IREAD | S_IEXEC;
+
+    mtime = FileTimeToJSTime(fd.ftLastWriteTime);
+    atime = FileTimeToJSTime(fd.ftLastAccessTime);
+    ctime = FileTimeToJSTime(fd.ftCreationTime);
+
+    if ((m_isDirectory = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) != 0) == true)
+        mode |= S_IFDIR;
+    if ((m_isFile = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) == 0) == true)
+        mode |= S_IFREG;
+
+    m_isReadable = true;
+    if ((m_isWritable = (FILE_ATTRIBUTE_READONLY & fd.dwFileAttributes) == 0) == true)
+        mode |= S_IWRITE;
+    m_isExecutable = true;
+
+    m_isSymbolicLink = false;
+
+    m_isMemory = false;
+    m_isSocket = false;
+}
+
 result_t Stat::getStat(exlib::string path)
 {
 
@@ -77,29 +104,6 @@ result_t Stat::getStat(exlib::string path)
 }
 
 #endif
-
-void Stat::fill(exlib::string path, struct stat64 &st)
-{
-    path_base::basename(path, "", name);
-
-    size = st.st_size;
-    mode = st.st_mode;
-    mtime = (double)st.st_mtime * 1000ll;
-    atime = (double)st.st_atime * 1000ll;
-    ctime = (double)st.st_ctime * 1000ll;
-
-    m_isReadable = (S_IRUSR & st.st_mode) != 0;
-    m_isWritable = (S_IWUSR & st.st_mode) != 0;
-    m_isExecutable = (S_IXUSR & st.st_mode) != 0;
-
-    m_isDirectory = (S_IFDIR & st.st_mode) != 0;
-    m_isFile = (S_IFREG & st.st_mode) != 0;
-
-    m_isSymbolicLink = S_ISLNK(st.st_mode);
-
-    m_isMemory = false;
-    m_isSocket = false;
-}
 
 void Stat::init()
 {

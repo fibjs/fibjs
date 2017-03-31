@@ -263,32 +263,6 @@ result_t File::get_name(exlib::string &retVal)
 }
 
 #ifdef _WIN32
-inline int file_attr_to_st_mode (DWORD attr)
-{
-    int fMode = S_IREAD | S_IEXEC;
-
-    if (attr & FILE_ATTRIBUTE_DIRECTORY)
-        fMode |= S_IFDIR;
-    else
-        fMode |= S_IFREG;
-
-    if (!(attr & FILE_ATTRIBUTE_READONLY))
-        fMode |= S_IWRITE;
-
-    return fMode;
-}
-
-inline long long filetime_to_hnsec(const FILETIME *ft)
-{
-    long long winTime = ((long long)ft->dwHighDateTime << 32) + ft->dwLowDateTime;
-    /* Windows to Unix Epoch conversion */
-    return winTime - 116444736000000000LL;
-}
-
-inline time_t filetime_to_time_t(const FILETIME *ft)
-{
-    return (time_t)((((int64_t)ft->dwHighDateTime << 32) + ft->dwLowDateTime - 116444736000000000LL) / 10000000);
-}
 
 result_t File::stat(obj_ptr<Stat_base> &retVal, AsyncEvent *ac)
 {
@@ -303,20 +277,10 @@ result_t File::stat(obj_ptr<Stat_base> &retVal, AsyncEvent *ac)
     if (!GetFileInformationByHandle((HANDLE)_get_osfhandle(m_fd), &fdata))
         return CHECK_ERROR(LastError());
 
-    struct stat64 st;
-    st.st_ino = 0;
-    st.st_gid = 0;
-    st.st_uid = 0;
-    st.st_nlink = 1;
-    st.st_mode = file_attr_to_st_mode(fdata.dwFileAttributes);
-    st.st_size = fdata.nFileSizeLow | (((uint64_t)fdata.nFileSizeHigh) << 32);
-    st.st_dev = st.st_rdev = 0; /* not used by Git */
-    st.st_atime = filetime_to_time_t(&(fdata.ftLastAccessTime));
-    st.st_mtime = filetime_to_time_t(&(fdata.ftLastWriteTime));
-    st.st_ctime = filetime_to_time_t(&(fdata.ftCreationTime));
-
     obj_ptr<Stat> pStat = new Stat();
-    pStat->fill(name, st);
+
+    pStat->fill(name, fdata);
+
     retVal = pStat;
 
     return 0;
