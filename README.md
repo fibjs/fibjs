@@ -1,9 +1,12 @@
 # ![fibjs Logo](logo/fibjs-small.png?raw=true) - JavaScript on Fiber
 
 [![travis build status][travis-image]][travis-url]
+[![appveyor build status][appveyor-image]][appveyor-url]
 
 [travis-image]: https://img.shields.io/travis/xicilion/fibjs.svg?style=flat-square
 [travis-url]: https://travis-ci.org/xicilion/fibjs
+[appveyor-image]: https://ci.appveyor.com/api/projects/status/github/xicilion/fibjs?svg=true
+[appveyor-url]: https://ci.appveyor.com/project/xicilion/fibjs
 
 ## About fibjs
 
