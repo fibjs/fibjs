@@ -4,6 +4,7 @@ test.setup();
 var vm = require('vm');
 var os = require('os');
 var fs = require('fs');
+var coroutine = require('coroutine');
 
 describe("vm", () => {
     var sbox;
@@ -172,6 +173,12 @@ describe("vm", () => {
     it("Garbage Collection", () => {
         sbox = undefined;
         GC();
+        coroutine.sleep(10);
+        GC();
+        coroutine.sleep(10);
+        GC();
+        coroutine.sleep(10);
+
         var no1 = os.memoryUsage().nativeObjects.objects;
 
         sbox = new vm.SandBox({});
@@ -189,12 +196,25 @@ describe("vm", () => {
 
         a = undefined;
 
-        GC();
+        var cnt = 0;
+        while (no1 != os.memoryUsage().nativeObjects.objects) {
+            GC();
+            coroutine.sleep(10);
+            if (cnt++ > 100)
+                break;
+        }
+
         assert.equal(no1, os.memoryUsage().nativeObjects.objects);
     });
 
     it("Garbage Collection 1", () => {
         GC();
+        coroutine.sleep(10);
+        GC();
+        coroutine.sleep(10);
+        GC();
+        coroutine.sleep(10);
+
         var no1 = os.memoryUsage().nativeObjects.objects;
 
         var a = {
@@ -202,19 +222,14 @@ describe("vm", () => {
         };
         a = undefined;
 
-        GC();
-        assert.equal(no1, os.memoryUsage().nativeObjects.objects);
-    });
+        var cnt = 0;
+        while (no1 != os.memoryUsage().nativeObjects.objects) {
+            GC();
+            coroutine.sleep(10);
+            if (cnt++ > 100)
+                break;
+        }
 
-    it("Garbage Collection 2", () => {
-        GC();
-        var no1 = os.memoryUsage().nativeObjects.objects;
-
-        new vm.SandBox({
-            rpc: require('rpc')
-        }).addScript('server.js', 'exports.a = require("rpc").json(require)');
-
-        GC();
         assert.equal(no1, os.memoryUsage().nativeObjects.objects);
     });
 });
