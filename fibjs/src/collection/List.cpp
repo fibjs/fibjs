@@ -112,6 +112,31 @@ result_t List::indexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal
     return 0;
 }
 
+
+result_t List::lastIndexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal)
+{
+    int32_t k, len;
+    len = (int32_t)m_array.size();
+    retVal = -1;
+
+    if (len == 0) return 0;
+    if (!fromIndex) k = len - 1;
+    else if (fromIndex > 0) k = std::min(fromIndex, len - 1);
+    else k = len + fromIndex;
+
+    while (k >= 0)
+    {
+        if (m_array[k].strictEqual(searchElement))
+        {
+            retVal = k;
+            return 0;
+        }
+        k--;
+    }
+
+    return 0;
+}
+
 result_t List::push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal)
 {
     if (m_freeze)

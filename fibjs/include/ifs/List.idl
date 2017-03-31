@@ -47,6 +47,16 @@ interface List : object
      */
     Integer indexOf(Variant searchElement, Integer fromIndex = 0);
 
+    /*! @brief lastIndexOf() 方法返回指定元素在数组中的最后一个的索引，如果不存在则返回 -1。从数组的后面向前查找，从 fromIndex 处开始。
+      @param searchElement 要查找的元素
+      @param fromIndex 从此位置开始逆向查找。默认为数组的长度减 1，即整个数组都被查找。
+      如果该值大于或等于数组的长度，则整个数组会被查找。
+      如果为负值，将其视为从数组末尾向前的偏移。即使该值为负，数组仍然会被从后向前查找。
+      如果该值为负时，其绝对值大于数组长度，则方法返回 -1，即数组不会被查找
+      @return 给定元素在数组中最后一次出现的索引位置; 若没有找到则返回 -1
+     */
+    Integer lastIndexOf(Variant searchElement, Integer fromIndex = 0);
+
     /*! @brief 在数组结尾添加一个元素
       @param ... 指定添加的多个元素
       @return 添加元素之后数组的长度
