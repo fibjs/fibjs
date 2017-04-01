@@ -14,7 +14,18 @@ var net_config = {
     host: '[::1]'
 };
 
-if (os.type == 'Windows' && os.version < "6.0")
+var has_ipv6 = false;
+
+var ni = os.networkInfo();
+
+for (var n in ni) {
+    ni[n].forEach((c) => {
+        if (c.family == 'IPv6')
+            has_ipv6 = true;
+    });
+}
+
+if (!has_ipv6)
     net_config = {
         family: net.AF_INET,
         address: '127.0.0.1',
