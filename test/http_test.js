@@ -906,7 +906,13 @@ describe("http", () => {
             assert.equal(200, rep.status);
             assert.equal(14, rep.length);
 
-            assert.deepEqual(new Date(rep.firstHeader('Last-Modified')), fs.stat(url).mtime);
+            var a = new Date(rep.firstHeader('Last-Modified'));
+            var b = fs.stat(url).mtime;
+
+            a = JSON.stringify(a).split('.')[0];
+            b = JSON.stringify(b).split('.')[0];
+
+            assert.equal(a, b);
         });
 
         it("not modified", () => {
