@@ -911,7 +911,7 @@ describe('util', () => {
                 "d": 300
             });
 
-            coroutine.sleep(40);
+            coroutine.sleep(10);
             deepEqual(c.toJSON(), {
                 "f": 500,
                 "e": 400,
@@ -928,7 +928,7 @@ describe('util', () => {
             });
 
             assert.equal(c.get('f'), 500);
-            coroutine.sleep(60);
+            coroutine.sleep(90);
             deepEqual(c.toJSON(), {
                 "e": 700
             });
