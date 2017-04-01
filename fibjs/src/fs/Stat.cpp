@@ -47,6 +47,33 @@ void Stat::fill(WIN32_FIND_DATAW &fd)
     m_isSocket = false;
 }
 
+void Stat::fill(exlib::string path, BY_HANDLE_FILE_INFORMATION &fd)
+{
+    path_base::basename(path, "", name);
+    
+    size = ((int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow);
+    mode = S_IREAD | S_IEXEC;
+
+    mtime = FileTimeToJSTime(fd.ftLastWriteTime);
+    atime = FileTimeToJSTime(fd.ftLastAccessTime);
+    ctime = FileTimeToJSTime(fd.ftCreationTime);
+
+    if ((m_isDirectory = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) != 0) == true)
+        mode |= S_IFDIR;
+    if ((m_isFile = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) == 0) == true)
+        mode |= S_IFREG;
+
+    m_isReadable = true;
+    if ((m_isWritable = (FILE_ATTRIBUTE_READONLY & fd.dwFileAttributes) == 0) == true)
+        mode |= S_IWRITE;
+    m_isExecutable = true;
+
+    m_isSymbolicLink = false;
+
+    m_isMemory = false;
+    m_isSocket = false;
+}
+
 result_t Stat::getStat(exlib::string path)
 {
 
