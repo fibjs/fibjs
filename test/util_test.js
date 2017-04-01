@@ -897,13 +897,13 @@ describe('util', () => {
         });
 
         it("timeout", () => {
-            c = new util.LruCache(3, 200);
+            c = new util.LruCache(3, 1000);
 
             c.set('f', 100);
             c.set('d', 300);
             c.set('e', 400);
 
-            coroutine.sleep(100);
+            coroutine.sleep(500);
             c.set('f', 500);
             deepEqual(c.toJSON(), {
                 "f": 500,
@@ -911,7 +911,7 @@ describe('util', () => {
                 "d": 300
             });
 
-            coroutine.sleep(40);
+            coroutine.sleep(200);
             deepEqual(c.toJSON(), {
                 "f": 500,
                 "e": 400,
@@ -921,14 +921,14 @@ describe('util', () => {
             c.set('e', 700);
 
             assert.equal(c.get('d'), 300);
-            coroutine.sleep(101);
+            coroutine.sleep(510);
             deepEqual(c.toJSON(), {
                 "e": 700,
                 "f": 500
             });
 
             assert.equal(c.get('f'), 500);
-            coroutine.sleep(60);
+            coroutine.sleep(300);
             deepEqual(c.toJSON(), {
                 "e": 700
             });
