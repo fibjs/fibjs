@@ -94,7 +94,7 @@ result_t object_base::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8:
     return JSTrigger(this).removeAllListeners(evs, retVal);
 }
 
-result_t object_base::set(exlib::string ev, v8::Local<v8::Function> func)
+result_t object_base::setListener(exlib::string ev, v8::Local<v8::Function> func)
 {
     result_t hr;
     JSTrigger e(this);
@@ -107,7 +107,7 @@ result_t object_base::set(exlib::string ev, v8::Local<v8::Function> func)
     return e.on(ev, func, r);
 }
 
-result_t object_base::get(exlib::string ev, v8::Local<v8::Function> func)
+result_t object_base::getListener(exlib::string ev, v8::Local<v8::Function> func)
 {
     result_t hr;
     JSTrigger e(this);
