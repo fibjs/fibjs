@@ -778,6 +778,7 @@ describe("http", () => {
             var req = get_response();
             assert.equal(req.status, 500);
 
+            coroutine.sleep(100);
             assert.equal(err_500, 1);
             assert.deepEqual(getStats(hdr), {
                 "total": 4,
