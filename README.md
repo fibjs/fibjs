@@ -3,10 +3,10 @@
 [![travis build status][travis-image]][travis-url]
 [![appveyor build status][appveyor-image]][appveyor-url]
 
-[travis-image]: https://img.shields.io/travis/xicilion/fibjs.svg?style=flat-square
-[travis-url]: https://travis-ci.org/xicilion/fibjs
-[appveyor-image]: https://ci.appveyor.com/api/projects/status/github/xicilion/fibjs?svg=true
-[appveyor-url]: https://ci.appveyor.com/project/xicilion/fibjs
+[travis-image]: https://img.shields.io/travis/fibjs/fibjs.svg?style=flat-square
+[travis-url]: https://travis-ci.org/fibjs/fibjs
+[appveyor-image]: https://ci.appveyor.com/api/projects/status/github/fibjs/fibjs?svg=true
+[appveyor-url]: https://ci.appveyor.com/project/fibjs/fibjs
 
 ## About fibjs
 
@@ -23,7 +23,7 @@ All the source code and docs are on github. However, I use github for convenienc
 
 ***English Docs:*** http://fibjs.org/en/
 
-***文档下载(Documents repository):*** https://github.com/xicilion/fibjs_docs
+***文档下载(Documents repository):*** https://github.com/fibjs/fibjs_docs
 
 ***了解 fibjs 的并发(Understanding how to develop for fibjs):*** http://fibjs.org/d2/de8/start_prog.html
 
@@ -96,7 +96,7 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 	pkg install git
 
 ## Download
-	git clone https://github.com/xicilion/fibjs.git
+	git clone https://github.com/fibjs/fibjs.git
 	cd fibjs
 	git submodule init
 	git submodule update
