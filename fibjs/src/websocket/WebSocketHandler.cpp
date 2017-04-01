@@ -167,7 +167,7 @@ result_t WebSocketHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             Variant v = sock;
             pHandler->_emit("accept", &v, 1);
 
-            sock->startRecv();
+            // sock->startRecv();
 
             return CALL_E_PENDDING;
         }

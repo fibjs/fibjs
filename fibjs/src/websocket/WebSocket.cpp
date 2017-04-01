@@ -27,6 +27,7 @@ public:
 	{
 		m_data = new Buffer(data);
 		m_msg = new WebSocketMessage(type, m_this->m_masked, 0);
+
 		set(fill);
 	}
 
@@ -242,6 +243,8 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 	};
 
 	obj_ptr<WebSocket> sock = new WebSocket(url, protocol, origin);
+	sock->wrap(This);
+
 	(new asyncConnect(sock))->post(0);
 
 	retVal = sock;
@@ -251,17 +254,17 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 
 void WebSocket::startRecv()
 {
-	class asyncReac: public AsyncState
+	class asyncRead: public AsyncState
 	{
 	public:
-		asyncReac(WebSocket* pThis) : AsyncState(NULL), m_this(pThis)
+		asyncRead(WebSocket* pThis) : AsyncState(NULL), m_this(pThis)
 		{
 			set(recv);
 		}
 
 		static int32_t recv(AsyncState *pState, int32_t n)
 		{
-			asyncReac *pThis = (asyncReac *) pState;
+			asyncRead *pThis = (asyncRead *) pState;
 
 			pThis->m_msg = new WebSocketMessage(ws_base::_TEXT, false, pThis->m_this->m_maxSize);
 
@@ -271,7 +274,7 @@ void WebSocket::startRecv()
 
 		static int32_t event(AsyncState *pState, int32_t n)
 		{
-			asyncReac *pThis = (asyncReac *) pState;
+			asyncRead *pThis = (asyncRead *) pState;
 
 			bool masked;
 			pThis->m_msg->get_masked(masked);
@@ -333,7 +336,8 @@ void WebSocket::startRecv()
 		obj_ptr<WebSocketMessage> m_msg;
 	};
 
-	(new asyncReac(this))->post(0);
+	if (m_stream && m_readState.xchg(ws_base::_OPEN) != ws_base::_OPEN)
+		(new asyncRead(this))->apost(0);
 }
 
 result_t WebSocket::on_close(WebSocket* pThis)
