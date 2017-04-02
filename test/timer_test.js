@@ -4,19 +4,28 @@ test.setup();
 var coroutine = require("coroutine");
 var os = require("os");
 
+function timer_count() {
+    var cnt = 0;
+    os.memoryUsage().nativeObjects.inherits.forEach((v) => {
+        if (v['class'] === 'Timer')
+            cnt += v.objects;
+    });
+    return cnt;
+}
+
 describe("timer", () => {
     it("setTimeout", () => {
         var n = 0;
 
         GC();
-        var no1 = os.memoryUsage().nativeObjects.objects;
+        var no1 = timer_count();
 
         setTimeout(() => {
             n = 1;
         }, 1);
 
         GC();
-        var no2 = os.memoryUsage().nativeObjects.objects;
+        var no2 = timer_count();
         assert.equal(no1 + 1, no2);
 
         assert.equal(n, 0);
@@ -25,7 +34,7 @@ describe("timer", () => {
         assert.equal(n, 1);
 
         GC();
-        no2 = os.memoryUsage().nativeObjects.objects;
+        no2 = timer_count();
         assert.equal(no1, no2);
     });
 
@@ -33,7 +42,7 @@ describe("timer", () => {
         var n = 0;
 
         GC();
-        var no1 = os.memoryUsage().nativeObjects.objects;
+        var no1 = timer_count();
 
         var t = setTimeout(() => {
             n = 1;
@@ -42,11 +51,11 @@ describe("timer", () => {
         assert.equal(n, 0);
         clearTimeout(t);
         t = undefined;
-        coroutine.sleep(10);
+        coroutine.sleep(100);
         assert.equal(n, 0);
 
         GC();
-        var no2 = os.memoryUsage().nativeObjects.objects;
+        var no2 = timer_count();
         assert.equal(no1, no2);
     });
 
@@ -56,7 +65,7 @@ describe("timer", () => {
         }, 1);
 
         clearTimeout(t);
-        coroutine.sleep(10);
+        coroutine.sleep(100);
         assert.doesNotThrow(() => {
             clearTimeout(t);
         });
@@ -66,14 +75,14 @@ describe("timer", () => {
         var n = 0;
 
         GC();
-        var no1 = os.memoryUsage().nativeObjects.objects;
+        var no1 = timer_count();
 
         setImmediate(() => {
             n = 1;
         });
 
         GC();
-        var no2 = os.memoryUsage().nativeObjects.objects;
+        var no2 = timer_count();
         assert.equal(no1 + 1, no2);
 
         assert.equal(n, 0);
@@ -82,7 +91,7 @@ describe("timer", () => {
         assert.equal(n, 1);
 
         GC();
-        no2 = os.memoryUsage().nativeObjects.objects;
+        no2 = timer_count();
         assert.equal(no1, no2);
     });
 
@@ -90,7 +99,7 @@ describe("timer", () => {
         var n = 0;
 
         GC();
-        var no1 = os.memoryUsage().nativeObjects.objects;
+        var no1 = timer_count();
 
         var t = setImmediate(() => {
             n = 1;
@@ -99,11 +108,11 @@ describe("timer", () => {
         assert.equal(n, 0);
         clearImmediate(t);
         t = undefined;
-        coroutine.sleep(10);
+        coroutine.sleep(100);
         assert.equal(n, 0);
 
         GC();
-        var no2 = os.memoryUsage().nativeObjects.objects;
+        var no2 = timer_count();
         assert.equal(no1, no2);
     });
 
@@ -111,7 +120,7 @@ describe("timer", () => {
         var n = 0;
 
         GC();
-        var no1 = os.memoryUsage().nativeObjects.objects;
+        var no1 = timer_count();
 
         var t = setInterval(() => {
             if (n < 2)
@@ -119,7 +128,7 @@ describe("timer", () => {
         }, 1);
 
         GC();
-        var no2 = os.memoryUsage().nativeObjects.objects;
+        var no2 = timer_count();
         assert.equal(no1 + 1, no2);
 
         assert.equal(n, 0);
@@ -130,11 +139,11 @@ describe("timer", () => {
         n = 0;
         clearInterval(t);
         t = undefined;
-        coroutine.sleep(10);
+        coroutine.sleep(100);
         assert.equal(n, 0);
 
         GC();
-        var no2 = os.memoryUsage().nativeObjects.objects;
+        var no2 = timer_count();
         assert.equal(no1, no2);
     });
 
@@ -142,7 +151,7 @@ describe("timer", () => {
         var n = 0;
 
         GC();
-        var no1 = os.memoryUsage().nativeObjects.objects;
+        var no1 = timer_count();
 
         setInterval(function() {
             n++;
@@ -150,11 +159,12 @@ describe("timer", () => {
         }, 1);
 
         assert.equal(n, 0);
-        coroutine.sleep(10);
+        for (var i = 0; i < 1000 && n == 0; i++)
+            coroutine.sleep(1);
         assert.equal(n, 1);
 
         GC();
-        var no2 = os.memoryUsage().nativeObjects.objects;
+        var no2 = timer_count();
         assert.equal(no1, no2);
     });
 });
