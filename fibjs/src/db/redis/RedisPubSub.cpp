@@ -62,7 +62,9 @@ result_t Redis::_single(exlib::string key, v8::Local<v8::Function> func, int32_t
 {
     exlib::string key1 = s_cmd[cmd][1] + key;
 
-    m_subMode = 1;
+    if (!m_subMode)
+        m_subMode = 1;
+
     if (!((cmd & 1) ? unregsub(key1, func) : regsub(key1, func)))
         return 0;
 
@@ -96,7 +98,8 @@ result_t Redis::unpsub(exlib::string pattern, v8::Local<v8::Function> func)
 
 result_t Redis::_map(v8::Local<v8::Object> &map, int32_t cmd)
 {
-    m_subMode = 1;
+    if (!m_subMode)
+        m_subMode = 1;
 
     Isolate* isolate = holder();
     v8::Local<v8::Array> channels = map->GetPropertyNames();
