@@ -10,7 +10,7 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    repo: xicilion/fibjs
+    repo: fibjs/fibjs
     branch: master
 addons:
   apt:
