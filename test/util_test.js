@@ -934,6 +934,26 @@ describe('util', () => {
             });
         });
 
+        it("change timeout", () => {
+            c = new util.LruCache(3);
+
+            c.set('d', 300);
+            c.set('e', 400);
+            c.set('f', 500);
+
+            coroutine.sleep(500);
+            deepEqual(c.toJSON(), {
+                "f": 500,
+                "e": 400,
+                "d": 300
+            });
+
+            c.timeout = 100;
+
+            coroutine.sleep(500);
+            deepEqual(c.toJSON(), {});
+        });
+
         it("updater", () => {
             var call_num = 0;
 

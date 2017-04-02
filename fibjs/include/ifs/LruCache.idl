@@ -17,6 +17,9 @@ interface LruCache : object
     /*! @brief 查询容器内数值个数 */
     readonly Integer size;
 
+    /*! @brief 查询和设置容器内元素失效时间，单位是 ms，小于等于 0 不失效 */
+    Integer timeout;
+
     /*! @brief 清除容器数据 */
     clear();
 

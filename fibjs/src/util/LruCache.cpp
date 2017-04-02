@@ -48,6 +48,18 @@ result_t LruCache::get_size(int32_t &retVal)
     return 0;
 }
 
+result_t LruCache::get_timeout(int32_t& retVal)
+{
+    retVal = m_timeout;
+    return 0;
+}
+
+result_t LruCache::set_timeout(int32_t newVal)
+{
+    m_timeout = newVal;
+    return 0;
+}
+
 result_t LruCache::clear()
 {
     m_datas.clear();
@@ -116,8 +128,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
                 find = m_datas.insert(std::pair<exlib::string, _linkedNode>(sname, newNode)).first;
                 insert(find);
 
-                if (m_timeout > 0)
-                    find->second.insert.now();
+                find->second.insert.now();
                 SetPrivate(name, v);
             }
 
@@ -151,8 +162,7 @@ result_t LruCache::set(exlib::string name, v8::Local<v8::Value> value)
         update_time(find);
     }
 
-    if (m_timeout > 0)
-        find->second.insert.now();
+    find->second.insert.now();
     SetPrivate(name, value);
 
     cleanup();

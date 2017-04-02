@@ -37,6 +37,8 @@ public:
 public:
     // LruCache_base
     virtual result_t get_size(int32_t &retVal);
+    virtual result_t get_timeout(int32_t& retVal);
+    virtual result_t set_timeout(int32_t newVal);
     virtual result_t clear();
     virtual result_t has(exlib::string name, bool &retVal);
     virtual result_t get(exlib::string name, v8::Local<v8::Value> &retVal);
@@ -79,21 +81,18 @@ private:
         else
             m_end_lru = prev;
 
-        if (m_timeout > 0)
-        {
-            std::map<exlib::string, _linkedNode>::iterator prev1 = _instantiate(it->second.m_prev1);
-            std::map<exlib::string, _linkedNode>::iterator next1 = _instantiate(it->second.m_next1);
+        std::map<exlib::string, _linkedNode>::iterator prev1 = _instantiate(it->second.m_prev1);
+        std::map<exlib::string, _linkedNode>::iterator next1 = _instantiate(it->second.m_next1);
 
-            if (prev1 != m_datas.end())
-                prev1->second.m_next1 = _generalize(next1);
-            else
-                m_begin = next1;
+        if (prev1 != m_datas.end())
+            prev1->second.m_next1 = _generalize(next1);
+        else
+            m_begin = next1;
 
-            if (next1 != m_datas.end())
-                next1->second.m_prev1 = _generalize(prev1);
-            else
-                m_end = prev1;
-        }
+        if (next1 != m_datas.end())
+            next1->second.m_prev1 = _generalize(prev1);
+        else
+            m_end = prev1;
 
         DeletePrivate(it->first);
 
@@ -112,18 +111,15 @@ private:
 
         m_begin_lru = it;
 
-        if (m_timeout > 0)
-        {
-            it->second.m_next1 = _generalize(m_begin);
-            it->second.m_prev1 = _generalize(m_datas.end());
+        it->second.m_next1 = _generalize(m_begin);
+        it->second.m_prev1 = _generalize(m_datas.end());
 
-            if (m_begin != m_datas.end())
-                m_begin->second.m_prev1 = _generalize(it);
-            else
-                m_end = it;
+        if (m_begin != m_datas.end())
+            m_begin->second.m_prev1 = _generalize(it);
+        else
+            m_end = it;
 
-            m_begin = it;
-        }
+        m_begin = it;
     }
 
     void update(std::map<exlib::string, _linkedNode>::iterator it)
@@ -157,7 +153,7 @@ private:
 
     void update_time(std::map<exlib::string, _linkedNode>::iterator it)
     {
-        if (m_timeout > 0 && m_begin != it)
+        if (m_begin != it)
         {
             std::map<exlib::string, _linkedNode>::iterator prev1 = _instantiate(it->second.m_prev1);
             std::map<exlib::string, _linkedNode>::iterator next1 = _instantiate(it->second.m_next1);
