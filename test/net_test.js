@@ -308,6 +308,7 @@ describe("net", () => {
             function accept2(s) {
                 var c = s.accept();
                 coroutine.start(recv2, c, "1234", 1);
+                coroutine.sleep(10);
                 coroutine.start(recv2, c, "4567", 2);
             }
 
@@ -321,6 +322,7 @@ describe("net", () => {
 
             var c1 = new net.Socket();
             c1.connect('127.0.0.1', 8084 + base_port);
+            coroutine.sleep(100);
 
             c1.send('1234');
             coroutine.sleep(10);
