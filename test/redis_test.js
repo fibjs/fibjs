@@ -6,6 +6,8 @@ var db = require('db');
 var encoding = require('encoding');
 var coroutine = require('coroutine');
 
+var test_util = require('test_util');
+
 var dbs = "redis://127.0.0.1";
 
 var rdb = db.open(dbs);
@@ -668,29 +670,34 @@ describe("redis", () => {
         it("Memory Leak detect", () => {
             rdb = undefined;
             GC();
-            var no1 = os.memoryUsage().nativeObjects.objects;
+            var no1 = test_util.countObject('Redis');
+            var no2 = test_util.countObject('Socket');
 
             rdb = db.open(dbs);
 
-            assert.equal(no1 + 3, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1 + 1, test_util.countObject('Redis'));
+            assert.equal(no2 + 1, test_util.countObject('Socket'));
 
             rdb.sub("test.ch1", subf1);
 
             coroutine.sleep(200);
 
             GC();
-            assert.equal(no1 + 3, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1 + 1, test_util.countObject('Redis'));
+            assert.equal(no2 + 1, test_util.countObject('Socket'));
 
             rdb.close();
             coroutine.sleep(200);
 
             GC();
-            assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1 + 1, test_util.countObject('Redis'));
+            assert.equal(no2, test_util.countObject('Socket'));
 
             rdb = undefined;
 
             GC();
-            assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1, test_util.countObject('Redis'));
+            assert.equal(no2, test_util.countObject('Socket'));
         });
 
     });
