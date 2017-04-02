@@ -670,6 +670,8 @@ describe("redis", () => {
         it("Memory Leak detect", () => {
             rdb = undefined;
             GC();
+            coroutine.sleep(200);
+
             var no1 = test_util.countObject('Redis');
             var no2 = test_util.countObject('Socket');
 
