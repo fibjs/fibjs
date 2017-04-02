@@ -194,7 +194,7 @@ describe("db", () => {
         });
     });
 
-    if (global.full_test) {
+    if (full_test) {
         describe("mysql", () => {
             _test('mysql://root@localhost/test');
         });

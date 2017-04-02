@@ -20,7 +20,7 @@ run("path_test.js");
 run("util_test.js");
 run("xml_test.js");
 
-if (global.full_test)
+if (full_test)
     run("xml_suite.js");
 
 run("coroutine_test.js");
@@ -53,7 +53,7 @@ run("ws_test.js");
 run("vm_test.js");
 run("db_test.js");
 
-if (global.full_test) {
+if (full_test) {
     run("mongo_test.js");
     run("redis_test.js");
 }

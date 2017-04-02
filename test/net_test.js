@@ -510,7 +510,7 @@ describe("net", () => {
         assert.equal(no1, os.memoryUsage().nativeObjects.objects);
     });
 
-    if (global.full_test)
+    if (full_test)
         describe("Smtp", () => {
             var s;
 
