@@ -725,6 +725,7 @@ describe("http", () => {
             var req = get_response();
             assert.equal(req.status, 200);
 
+            coroutine.sleep(100);
             assert.deepEqual(getStats(hdr), {
                 "total": 1,
                 "pendding": 0,
@@ -742,6 +743,7 @@ describe("http", () => {
             var req = get_response();
             assert.equal(req.status, 400);
 
+            coroutine.sleep(100);
             assert.equal(err_400, 1);
             assert.deepEqual(getStats(hdr), {
                 "total": 2,
@@ -760,6 +762,7 @@ describe("http", () => {
             var req = get_response();
             assert.equal(req.status, 404);
 
+            coroutine.sleep(100);
             assert.equal(err_404, 1);
             assert.deepEqual(getStats(hdr), {
                 "total": 3,
@@ -1377,4 +1380,4 @@ describe("http", () => {
     });
 });
 
-// test.run(console.DEBUG);
+process.exit(test.run(console.DEBUG));
