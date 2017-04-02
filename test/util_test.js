@@ -812,7 +812,7 @@ describe('util', () => {
 
         it("uptime", () => {
             coroutine.sleep(100);
-            assert.closeTo(100, s.uptime(), 40);
+            assert.closeTo(100, s.uptime(), 100);
         });
     });
 
