@@ -1380,4 +1380,4 @@ describe("http", () => {
     });
 });
 
-process.exit(test.run(console.DEBUG));
+// test.run(console.DEBUG);
