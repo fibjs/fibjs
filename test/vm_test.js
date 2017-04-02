@@ -170,67 +170,51 @@ describe("vm", () => {
         });
     });
 
+    function buffer_count() {
+        var cnt = 0;
+        os.memoryUsage().nativeObjects.inherits.forEach((v) => {
+            if (v['class'] === 'Buffer')
+                cnt += v.objects;
+        });
+        return cnt;
+    }
+
     it("Garbage Collection", () => {
         sbox = undefined;
-        GC();
-        coroutine.sleep(10);
-        GC();
-        coroutine.sleep(10);
-        GC();
-        coroutine.sleep(10);
 
-        var no1 = os.memoryUsage().nativeObjects.objects;
+        GC();
+        var no1 = buffer_count();
 
         sbox = new vm.SandBox({});
-        assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
+        assert.equal(no1, buffer_count());
 
         var a = sbox.addScript("t1.js", "module.exports = {a : new Buffer()};");
-
-        GC();
-        assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
+        assert.equal(no1 + 1, buffer_count());
 
         sbox = undefined;
 
         GC();
-        assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
+        assert.equal(no1 + 1, buffer_count());
 
         a = undefined;
 
-        var cnt = 0;
-        while (no1 != os.memoryUsage().nativeObjects.objects) {
-            GC();
-            coroutine.sleep(10);
-            if (cnt++ > 100)
-                break;
-        }
-
-        assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+        GC();
+        assert.equal(no1, buffer_count());
     });
 
     it("Garbage Collection 1", () => {
         GC();
-        coroutine.sleep(10);
-        GC();
-        coroutine.sleep(10);
-        GC();
-        coroutine.sleep(10);
-
-        var no1 = os.memoryUsage().nativeObjects.objects;
+        var no1 = buffer_count();
 
         var a = {
-            b: new vm.SandBox({}).addScript('b.js', "exports.a = new Buffer()")
+            b: new vm.SandBox({}).addScript('b.js', "module.exports = new Buffer()")
         };
+        assert.equal(no1 + 1, buffer_count());
+
         a = undefined;
+        GC();
 
-        var cnt = 0;
-        while (no1 != os.memoryUsage().nativeObjects.objects) {
-            GC();
-            coroutine.sleep(10);
-            if (cnt++ > 100)
-                break;
-        }
-
-        assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+        assert.equal(no1, buffer_count());
     });
 });
 
