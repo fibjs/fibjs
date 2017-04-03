@@ -364,7 +364,7 @@ describe("net", () => {
         var t2 = new Date();
 
         assert.greaterThan(t2 - t1, 49);
-        assert.lessThan(t2 - t1, 100);
+        assert.lessThan(t2 - t1, 500);
 
         var c2 = new net.Socket();
         c2.timeout = 50;
