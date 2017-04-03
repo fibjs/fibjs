@@ -39,7 +39,7 @@ interface SslHandler: Handler
      */
     SslHandler(X509Cert crt, PKey key, Value hdlr);
 
-    /*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
+    /*! @brief 设定证书验证模式，缺省为 VERIFY_NONE */
     Integer verification;
 
     /*! @brief 客户端证书验证证书链*/
