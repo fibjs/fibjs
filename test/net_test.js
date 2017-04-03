@@ -375,7 +375,7 @@ describe("net", () => {
         var t2 = new Date();
 
         assert.greaterThan(t2 - t1, 40);
-        assert.lessThan(t2 - t1, 200);
+        assert.lessThan(t2 - t1, 500);
     });
 
     it("bind same port", () => {
