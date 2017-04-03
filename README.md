@@ -12,7 +12,7 @@
 
 fibjs 是一个建立在 Google v8 JavaScript 引擎基础上的应用服务器开发框架，不同于 node.js，fibjs 采用 fiber 解决 v8 引擎的多路复用，并通过大量 c++ 组件，将重负荷运算委托给后台线程，释放 v8 线程，争取更大的并发时间。
 
-fibjs is a runtime for javaScript applictions built on google v8 JS.  Unlike node.js, fibjs uses fibers for parallelizing v8  engine. Through a large amoung of C++ components, heavy duty operations are performed in a background thread and the v8 thread is released. Thus fibjs, allows for greater concurrency 
+fibjs is a runtime for javaScript applictions built on google v8 JS.  Unlike node.js, fibjs uses fibers for parallelizing v8  engine. Through a large amoung of C++ components, heavy duty operations are performed in a background thread and the v8 thread is released. Thus fibjs, allows for greater concurrency
 ## Online Docs
 
 github 中有全部文档的源码和生成文档，为方便查阅，我在线上存放了一份，但是更新可能会没有 github 及时，仅供参阅。
@@ -34,77 +34,122 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 
 ## Prerequisites (unix)
 
-	GCC 4.8 or newer
-	CMake 2.6 or newer
-	GNU Make 3.81 or newer
-	libexecinfo (FreeBSD and OpenBSD only)
+- GCC 4.8 or newer
+- CMake 2.6 or newer
+- GNU Make 3.81 or newer
+- libexecinfo (FreeBSD and OpenBSD only)
 
 ----------------------------------
 ### on ubuntu:
-	apt install g++
-	apt install make
-	apt install cmake
-	apt install git
+
+```sh
+apt install g++
+apt install make
+apt install cmake
+apt install git
+```
 
 ### 32bit on ubuntu:
-	apt install g++-multilib
+
+```sh
+apt install g++-multilib
+```
 
 ### arm on ubuntu:
-	apt install g++-arm-linux-gnueabihf
+
+```sh
+apt install g++-arm-linux-gnueabihf
+```
 
 ### arm64 on ubuntu:
-	apt install g++-aarch64-linux-gnu
+
+```sh
+apt install g++-aarch64-linux-gnu
+```
 
 ### mips on ubuntu:
-	apt install g++-mips-linux-gnu
+
+```sh
+apt install g++-mips-linux-gnu
+```
 
 ### mips64 on ubuntu:
-	apt install g++-mips64-linux-gnuabi64
+
+```sh
+apt install g++-mips64-linux-gnuabi64
+```
 
 ### powerpc on ubuntu:
-	apt install g++-powerpc-linux-gnu
+
+```sh
+apt install g++-powerpc-linux-gnu
+```
 
 ### powerpc64 on ubuntu:
-	apt install g++-powerpc64-linux-gnu
+
+```sh
+apt install g++-powerpc64-linux-gnu
+```
 
 ### fix
-	rm -f /usr/include/asm
-	ln -s x86_64-linux-gnu /usr/include/i386-linux-gnu
-	ln -s x86_64-linux-gnu /usr/include/x86_64-linux-gnux32
+
+```sh
+rm -f /usr/include/asm
+ln -s x86_64-linux-gnu /usr/include/i386-linux-gnu
+ln -s x86_64-linux-gnu /usr/include/x86_64-linux-gnux32
+```
 
 ----------------------------------
 ### on fedora:
-	dnf install gcc-c++
-	dnf install libstdc++-static
-	dnf install make
-	dnf install cmake
-	dnf install git
+
+```sh
+dnf install gcc-c++
+dnf install libstdc++-static
+dnf install make
+dnf install cmake
+dnf install git
+```
 
 ### 32bit on fedora:
-	dnf install glibc-devel.i686
-	dnf install libstdc++-static.i686
+
+```sh
+dnf install glibc-devel.i686
+dnf install libstdc++-static.i686
+```
 
 ----------------------------------
 ### on osx:
-	brew install cmake
-	brew install git
+
+```sh
+brew install cmake
+brew install git
+```
 
 ----------------------------------
 ### on freebsd:
-	pkg install cmake
-	pkg install libexecinfo
-	pkg install git
+
+```sh
+pkg install cmake
+pkg install libexecinfo
+pkg install git
+```
 
 ## Download
-	git clone https://github.com/fibjs/fibjs.git
-	cd fibjs
-	git submodule init
-	git submodule update
+
+```sh
+git clone https://github.com/fibjs/fibjs.git
+cd fibjs
+git submodule init
+git submodule update
+```
 
 ## Update
-	cd fibjs
-	git pull
-	git submodule update
+
+```sh
+cd fibjs
+git pull
+git submodule update
+```
 
 ## Build
 
@@ -117,7 +162,7 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 	    Visual Studio 2015
 	      Visual Studio Tools
 	        Developer Command Prompt for VS2015
-	        
+
 	build
 
 ----------------------------------
@@ -125,12 +170,20 @@ Please ignore the compiler warnings.Basically , it's from third party library .
 ## Install
 
 ### on linux/freebsd/osx:
-	sudo sh bin/(Darwin|Linux|FreeBSD)_(i386|amd64|arm|arm64)_release/installer.sh
+
+```sh
+sudo sh bin/(Darwin|Linux|FreeBSD)_(i386|amd64|arm|arm64)_release/installer.sh
+```
 
 ### on Windows console (run as administrator):
-	bin\Windows_(i386|amd64)_release\installer.exe
+
+```sh
+bin\Windows_(i386|amd64)_release\installer.exe
+```
 
 ## Test
 
-	cd test
-	fibjs main.js
+```sh
+cd test
+fibjs main.js
+```
