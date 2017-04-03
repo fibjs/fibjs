@@ -23,7 +23,7 @@ set(archdetect_c_code "
 #  if defined(__mips64)
 #error cmake_ARCH mips64
 #  else
-#error cmake_ARCH arm
+#error cmake_ARCH mips
 #  endif
 # endif
 

@@ -73,7 +73,7 @@ interface HttpsServer: HttpServer
    */
   HttpsServer(X509Cert crt, PKey key, String addr, Integer port, Value hdlr);
 
-  /*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
+  /*! @brief 设定证书验证模式，缺省为 VERIFY_NONE */
   Integer verification;
 
   /*! @brief 客户端证书验证 ca */
