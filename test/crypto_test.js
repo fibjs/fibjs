@@ -714,7 +714,8 @@ describe('crypto', () => {
         it("self-sign", () => {
             req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk);
             ca = req.sign("C=CN, O=baoz.cn, CN=baoz.me", pk, {
-                ca: true
+                ca: true,
+                notBefore: new Date(new Date().getTime() - 1000)
             });
         });
 
