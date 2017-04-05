@@ -15,8 +15,8 @@ env:
   - ARCH=arm64
   - ARCH=mips
   - ARCH=mips64
-  - ARCH=ppc
-  - ARCH=ppc64
+#  - ARCH=ppc
+#  - ARCH=ppc64
 matrix:
   include:
     - os: osx
