@@ -25,7 +25,10 @@ function listEquals(list, arr) {
 }
 
 describe("redis", () => {
+    var rdb;
+
     before(() => {
+        rdb = db.open(dbs);
         var keys = rdb.command("keys", "*").toArray();
         if (keys.length)
             rdb.del(keys);
