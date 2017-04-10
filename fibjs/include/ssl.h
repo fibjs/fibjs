@@ -17,11 +17,9 @@
 #include <mbedtls/mbedtls/ssl_cache.h>
 #include "X509Cert.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class _ssl
-{
+class _ssl {
 public:
     _ssl()
     {
@@ -29,7 +27,7 @@ public:
 
         mbedtls_ctr_drbg_init(&ctr_drbg);
         mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
-                              (const unsigned char *) "fibjs", 5);
+            (const unsigned char*)"fibjs", 5);
 
         mbedtls_ssl_cache_init(&m_cache);
         m_authmode = ssl_base::_VERIFY_REQUIRED;
@@ -47,7 +45,7 @@ public:
 
 public:
     static result_t setError(int32_t ret);
-    obj_ptr<X509Cert> &ca()
+    obj_ptr<X509Cert>& ca()
     {
         if (!m_ca)
             m_ca = new X509Cert();

@@ -14,14 +14,12 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Buffer_base;
 class List_base;
 
-class LevelDB_base : public object_base
-{
+class LevelDB_base : public object_base {
     DECLARE_CLASS(LevelDB_base);
 
 public:
@@ -71,237 +69,231 @@ public:
     ASYNC_MEMBER1(LevelDB_base, remove, Buffer_base*);
     ASYNC_MEMBER0(LevelDB_base, close);
 };
-
 }
 
 #include "Buffer.h"
 #include "List.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& LevelDB_base::class_info()
 {
-    inline ClassInfo& LevelDB_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"has", s_has, false},
-            {"get", s_get, false},
-            {"mget", s_mget, false},
-            {"set", s_set, false},
-            {"mset", s_mset, false},
-            {"mremove", s_mremove, false},
-            {"remove", s_remove, false},
-            {"forEach", s_forEach, false},
-            {"between", s_between, false},
-            {"begin", s_begin, false},
-            {"commit", s_commit, false},
-            {"close", s_close, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "has", s_has, false },
+        { "get", s_get, false },
+        { "mget", s_mget, false },
+        { "set", s_set, false },
+        { "mset", s_mset, false },
+        { "mremove", s_mremove, false },
+        { "remove", s_remove, false },
+        { "forEach", s_forEach, false },
+        { "between", s_between, false },
+        { "begin", s_begin, false },
+        { "commit", s_commit, false },
+        { "close", s_close, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "LevelDB", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "LevelDB", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void LevelDB_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void LevelDB_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(LevelDB_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_has(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_has(v0, vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_has(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_has(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void LevelDB_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+inline void LevelDB_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(LevelDB_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_get(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_get(v0, vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_get(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_get(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void LevelDB_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<List_base> vr;
+inline void LevelDB_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<List_base> vr;
 
-        METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(LevelDB_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Array>, 0);
+    ARG(v8::Local<v8::Array>, 0);
 
-        hr = pInst->mget(v0, vr);
+    hr = pInst->mget(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void LevelDB_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER();
+inline void LevelDB_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(LevelDB_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(2, 2);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_set(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_set(v0, v1);
+    if (!cb.IsEmpty()) {
+        pInst->acb_set(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_set(v0, v1);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void LevelDB_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER();
+inline void LevelDB_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(LevelDB_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
-        hr = pInst->mset(v0);
+    hr = pInst->mset(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void LevelDB_base::s_mremove(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER();
+inline void LevelDB_base::s_mremove(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(LevelDB_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Array>, 0);
+    ARG(v8::Local<v8::Array>, 0);
 
-        hr = pInst->mremove(v0);
+    hr = pInst->mremove(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void LevelDB_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER();
+inline void LevelDB_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(LevelDB_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_remove(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_remove(v0);
+    if (!cb.IsEmpty()) {
+        pInst->acb_remove(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_remove(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER();
+inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(LevelDB_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Function>, 0);
+    ARG(v8::Local<v8::Function>, 0);
 
-        hr = pInst->forEach(v0);
+    hr = pInst->forEach(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void LevelDB_base::s_between(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER();
+inline void LevelDB_base::s_between(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(LevelDB_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(3, 3);
+    METHOD_OVER(3, 3);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
-        ARG(v8::Local<v8::Function>, 2);
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(v8::Local<v8::Function>, 2);
 
-        hr = pInst->between(v0, v1, v2);
+    hr = pInst->between(v0, v1, v2);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void LevelDB_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<LevelDB_base> vr;
+inline void LevelDB_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<LevelDB_base> vr;
 
-        METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(LevelDB_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->begin(vr);
+    hr = pInst->begin(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void LevelDB_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER();
+inline void LevelDB_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(LevelDB_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->commit();
+    hr = pInst->commit();
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void LevelDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(LevelDB_base);
-        METHOD_ENTER();
+inline void LevelDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(LevelDB_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(0, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_close(cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_close();
+    if (!cb.IsEmpty()) {
+        pInst->acb_close(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_close();
 
-        METHOD_VOID();
-    }
-
+    METHOD_VOID();
+}
 }
 
 #endif
-

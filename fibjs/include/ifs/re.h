@@ -14,13 +14,11 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Regex_base;
 
-class re_base : public object_base
-{
+class re_base : public object_base {
     DECLARE_CLASS(re_base);
 
 public:
@@ -41,48 +39,42 @@ public:
 public:
     static void s_compile(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
 #include "Regex.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& re_base::class_info()
 {
-    inline ClassInfo& re_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"compile", s_compile, true}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "compile", s_compile, true }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "re", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "re", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void re_base::s_compile(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Regex_base> vr;
+inline void re_base::s_compile(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Regex_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(exlib::string, 1, "");
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        hr = compile(v0, v1, vr);
+    hr = compile(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

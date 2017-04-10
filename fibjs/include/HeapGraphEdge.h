@@ -12,67 +12,67 @@
 #ifndef _fj_HEAPGRAPHEDGE_H
 #define _fj_HEAPGRAPHEDGE_H
 
-namespace fibjs
-{
+namespace fibjs {
 
-class HeapGraphEdge : public HeapGraphEdge_base
-{
+class HeapGraphEdge : public HeapGraphEdge_base {
 public:
-	HeapGraphEdge(HeapSnapshot_base* snapshot, int32_t _type,
-	              exlib::string& _name, int32_t _fromid, int32_t _toid) :
-		m_snapshot(snapshot), m_type(_type), m_name(_name),
-		m_fromId(_fromid), m_toId(_toid)
-	{
-	}
-
-public:
-	// HeapGraphEdge_base
-	virtual result_t get_type(int32_t& retVal);
-	virtual result_t get_name(exlib::string& retVal);
-	virtual result_t get_description(exlib::string& retVal);
-	virtual result_t getFromNode(obj_ptr<HeapGraphNode_base>& retVal);
-	virtual result_t getToNode(obj_ptr<HeapGraphNode_base>& retVal);
+    HeapGraphEdge(HeapSnapshot_base* snapshot, int32_t _type,
+        exlib::string& _name, int32_t _fromid, int32_t _toid)
+        : m_snapshot(snapshot)
+        , m_type(_type)
+        , m_name(_name)
+        , m_fromId(_fromid)
+        , m_toId(_toid)
+    {
+    }
 
 public:
-	int32_t toid()
-	{
-		return m_toId;
-	}
+    // HeapGraphEdge_base
+    virtual result_t get_type(int32_t& retVal);
+    virtual result_t get_name(exlib::string& retVal);
+    virtual result_t get_description(exlib::string& retVal);
+    virtual result_t getFromNode(obj_ptr<HeapGraphNode_base>& retVal);
+    virtual result_t getToNode(obj_ptr<HeapGraphNode_base>& retVal);
 
-	static void get_description(HeapGraphEdge_base* edge, exlib::string& retVal)
-	{
-		static const char* types[] = {
-			"ContextVariable",
-			"Element",
-			"Property",
-			"Internal",
-			"Hidden",
-			"Shortcut",
-			"Weak"
-		};
+public:
+    int32_t toid()
+    {
+        return m_toId;
+    }
 
-		int32_t type;
-		exlib::string name;
+    static void get_description(HeapGraphEdge_base* edge, exlib::string& retVal)
+    {
+        static const char* types[] = {
+            "ContextVariable",
+            "Element",
+            "Property",
+            "Internal",
+            "Hidden",
+            "Shortcut",
+            "Weak"
+        };
 
-		edge->get_type(type);
-		edge->get_name(retVal);
+        int32_t type;
+        exlib::string name;
 
-		retVal.append(1, '[');
-		if (type >= 0 && type < (int32_t)ARRAYSIZE(types))
-			retVal.append(types[type]);
-		else
-			retVal.append("Unknown");
-		retVal.append(1, ']');
-	}
+        edge->get_type(type);
+        edge->get_name(retVal);
+
+        retVal.append(1, '[');
+        if (type >= 0 && type < (int32_t)ARRAYSIZE(types))
+            retVal.append(types[type]);
+        else
+            retVal.append("Unknown");
+        retVal.append(1, ']');
+    }
 
 private:
-	weak_ptr<HeapSnapshot_base> m_snapshot;
-	int32_t m_type;
-	exlib::string m_name;
-	int32_t m_fromId;
-	int32_t m_toId;
+    weak_ptr<HeapSnapshot_base> m_snapshot;
+    int32_t m_type;
+    exlib::string m_name;
+    int32_t m_fromId;
+    int32_t m_toId;
 };
-
 }
 
 #endif // _fj_HEAPGRAPHEDGE_H

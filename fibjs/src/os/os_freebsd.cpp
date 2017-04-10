@@ -23,25 +23,23 @@
 #include <stdlib.h>
 
 #undef NANOSEC
-#define NANOSEC ((uint64_t) 1e9)
+#define NANOSEC ((uint64_t)1e9)
 
 #ifndef CPUSTATES
-# define CPUSTATES 5U
+#define CPUSTATES 5U
 #endif
 
 #ifndef CP_USER
-# define CP_USER 0
-# define CP_NICE 1
-# define CP_SYS 2
-# define CP_IDLE 3
-# define CP_INTR 4
+#define CP_USER 0
+#define CP_NICE 1
+#define CP_SYS 2
+#define CP_IDLE 3
+#define CP_INTR 4
 #endif
 
+namespace fibjs {
 
-namespace fibjs
-{
-
-result_t os_base::uptime(double &retVal)
+result_t os_base::uptime(double& retVal)
 {
     time_t now;
     struct timeval info;
@@ -53,11 +51,11 @@ result_t os_base::uptime(double &retVal)
 
     now = ::time(NULL);
 
-    retVal = (double) (now - info.tv_sec);
+    retVal = (double)(now - info.tv_sec);
     return 0;
 }
 
-result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
+result_t os_base::loadavg(v8::Local<v8::Array>& retVal)
 {
     double avg[3] = { 0, 0, 0 };
     Isolate* isolate = Isolate::current();
@@ -69,9 +67,9 @@ result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
     if (sysctl(which, 2, &info, &size, NULL, 0) < 0)
         return CHECK_ERROR(LastError());
 
-    avg[0] = (double) info.ldavg[0] / info.fscale;
-    avg[1] = (double) info.ldavg[1] / info.fscale;
-    avg[2] = (double) info.ldavg[2] / info.fscale;
+    avg[0] = (double)info.ldavg[0] / info.fscale;
+    avg[1] = (double)info.ldavg[1] / info.fscale;
+    avg[2] = (double)info.ldavg[2] / info.fscale;
 
     retVal = v8::Array::New(isolate->m_isolate, 3);
     retVal->Set(0, v8::Number::New(isolate->m_isolate, avg[0]));
@@ -81,7 +79,7 @@ result_t os_base::loadavg(v8::Local<v8::Array> &retVal)
     return 0;
 }
 
-result_t os_base::totalmem(int64_t &retVal)
+result_t os_base::totalmem(int64_t& retVal)
 {
     uint64_t info;
     int32_t which[] = { CTL_HW, HW_PHYSMEM };
@@ -95,26 +93,25 @@ result_t os_base::totalmem(int64_t &retVal)
     return 0;
 }
 
-result_t os_base::freemem(int64_t &retVal)
+result_t os_base::freemem(int64_t& retVal)
 {
     int32_t freecount;
     size_t size = sizeof(freecount);
 
     if (sysctlbyname("vm.stats.vm.v_free_count", &freecount, &size, NULL, 0)
-            == -1)
+        == -1)
         return CHECK_ERROR(LastError());
 
-    retVal = (int64_t) freecount * sysconf(_SC_PAGESIZE);
+    retVal = (int64_t)freecount * sysconf(_SC_PAGESIZE);
 
     return 0;
 }
 
-result_t os_base::CPUs(int32_t &retVal)
+result_t os_base::CPUs(int32_t& retVal)
 {
     static int32_t cpus = 0;
 
-    if (cpus > 0)
-    {
+    if (cpus > 0) {
         retVal = cpus;
         return 0;
     }
@@ -131,7 +128,7 @@ result_t os_base::CPUs(int32_t &retVal)
     return 0;
 }
 
-result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
+result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
@@ -140,10 +137,9 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
     v8::Local<v8::Object> cpuinfo;
     v8::Local<v8::Object> cputimes;
 
-    uint32_t ticks = (uint32_t) sysconf(_SC_CLK_TCK), multiplier =
-                         ((uint64_t) 1000L / ticks), cpuspeed, maxcpus, cur = 0;
+    uint32_t ticks = (uint32_t)sysconf(_SC_CLK_TCK), multiplier = ((uint64_t)1000L / ticks), cpuspeed, maxcpus, cur = 0;
     char model[512];
-    long *cp_times;
+    long* cp_times;
     int32_t numcpus;
     size_t size;
     int32_t i;
@@ -171,39 +167,37 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
 
     size = maxcpus * CPUSTATES * sizeof(long);
 
-    cp_times = (long int *) malloc(size);
+    cp_times = (long int*)malloc(size);
     if (cp_times == NULL)
         return CHECK_ERROR(LastError());
 
-    if (sysctlbyname("kern.cp_times", cp_times, &size, NULL, 0) < 0)
-    {
+    if (sysctlbyname("kern.cp_times", cp_times, &size, NULL, 0) < 0) {
         free(cp_times);
         return CHECK_ERROR(LastError());
     }
 
-    for (i = 0; i < numcpus; i++)
-    {
+    for (i = 0; i < numcpus; i++) {
         cpuinfo = v8::Object::New(isolate->m_isolate);
         cputimes = v8::Object::New(isolate->m_isolate);
         cputimes->Set(
             isolate->NewFromUtf8("user"),
             v8::Number::New(isolate->m_isolate,
-                            (uint64_t)(cp_times[CP_USER + cur]) * multiplier));
+                (uint64_t)(cp_times[CP_USER + cur]) * multiplier));
         cputimes->Set(
             isolate->NewFromUtf8("nice"),
             v8::Number::New(isolate->m_isolate,
-                            (uint64_t)(cp_times[CP_NICE + cur]) * multiplier));
+                (uint64_t)(cp_times[CP_NICE + cur]) * multiplier));
         cputimes->Set(
             isolate->NewFromUtf8("sys"),
             v8::Number::New(isolate->m_isolate, (uint64_t)(cp_times[CP_SYS + cur]) * multiplier));
         cputimes->Set(
             isolate->NewFromUtf8("idle"),
             v8::Number::New(isolate->m_isolate,
-                            (uint64_t)(cp_times[CP_IDLE + cur]) * multiplier));
+                (uint64_t)(cp_times[CP_IDLE + cur]) * multiplier));
         cputimes->Set(
             isolate->NewFromUtf8("irq"),
             v8::Number::New(isolate->m_isolate,
-                            (uint64_t)(cp_times[CP_INTR + cur]) * multiplier));
+                (uint64_t)(cp_times[CP_INTR + cur]) * multiplier));
 
         cpuinfo->Set(isolate->NewFromUtf8("model"), isolate->NewFromUtf8(model));
         cpuinfo->Set(isolate->NewFromUtf8("speed"), v8::Number::New(isolate->m_isolate, cpuspeed));
@@ -219,7 +213,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array> &retVal)
     return 0;
 }
 
-result_t os_base::get_execPath(exlib::string &retVal)
+result_t os_base::get_execPath(exlib::string& retVal)
 {
     char exeName[1024] = "";
     size_t size = sizeof(exeName);
@@ -245,30 +239,28 @@ result_t os_base::get_execPath(exlib::string &retVal)
     return 0;
 }
 
-result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
+result_t os_base::memoryUsage(v8::Local<v8::Object>& retVal)
 {
     size_t rss;
 
-    kvm_t *kd = NULL;
-    struct kinfo_proc *kinfo = NULL;
+    kvm_t* kd = NULL;
+    struct kinfo_proc* kinfo = NULL;
     pid_t pid;
     int32_t nprocs;
     size_t page_size = getpagesize();
 
     static bool _init = false;
-    static kvm_t *(*_kvm_open)(char *, const char *, char *, int32_t, const char *);
-    static void (*_kvm_close)(kvm_t *);
-    static struct kinfo_proc* (*_kvm_getprocs)(kvm_t *, int32_t, int32_t, int32_t *);
+    static kvm_t* (*_kvm_open)(char*, const char*, char*, int32_t, const char*);
+    static void (*_kvm_close)(kvm_t*);
+    static struct kinfo_proc* (*_kvm_getprocs)(kvm_t*, int32_t, int32_t, int32_t*);
 
-    if (!_init)
-    {
-        void *handle = dlopen("libkvm.so", RTLD_LAZY);
+    if (!_init) {
+        void* handle = dlopen("libkvm.so", RTLD_LAZY);
 
-        if (handle)
-        {
-            _kvm_open = (kvm_t * (*)(char *, const char *, char *, int32_t, const char *))dlsym(handle, "kvm_open");
-            _kvm_getprocs = (struct kinfo_proc * (*)(kvm_t *, int32_t, int32_t, int32_t *))dlsym(handle, "kvm_getprocs");
-            _kvm_close = (void (*)(kvm_t *))dlsym(handle, "kvm_close");
+        if (handle) {
+            _kvm_open = (kvm_t * (*)(char*, const char*, char*, int32_t, const char*))dlsym(handle, "kvm_open");
+            _kvm_getprocs = (struct kinfo_proc * (*)(kvm_t*, int32_t, int32_t, int32_t*))dlsym(handle, "kvm_getprocs");
+            _kvm_close = (void (*)(kvm_t*))dlsym(handle, "kvm_close");
         }
     }
 
@@ -282,8 +274,7 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
         return CHECK_ERROR(LastError());
 
     kinfo = _kvm_getprocs(kd, KERN_PROC_PID, pid, &nprocs);
-    if (kinfo == NULL)
-    {
+    if (kinfo == NULL) {
         _kvm_close(kd);
         return CHECK_ERROR(LastError());
     }
@@ -302,9 +293,9 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
     isolate->m_isolate->GetHeapStatistics(&v8_heap_stats);
     info->Set(isolate->NewFromUtf8("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
     info->Set(isolate->NewFromUtf8("heapTotal"),
-              v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size()));
+        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size()));
     info->Set(isolate->NewFromUtf8("heapUsed"),
-              v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size()));
+        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size()));
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
@@ -314,7 +305,6 @@ result_t os_base::memoryUsage(v8::Local<v8::Object> &retVal)
 
     return 0;
 }
-
 }
 
 #endif

@@ -11,15 +11,12 @@
 #include "XmlElement.h"
 #include <string.h>
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t XmlAttr::get_namespaceURI(exlib::string &retVal)
+result_t XmlAttr::get_namespaceURI(exlib::string& retVal)
 {
-    if (m_namespaceURI.empty())
-    {
-        if (m_name == "xmlns")
-        {
+    if (m_namespaceURI.empty()) {
+        if (m_name == "xmlns") {
             retVal = "http://www.w3.org/2000/xmlns/";
             return 0;
         }
@@ -31,7 +28,7 @@ result_t XmlAttr::get_namespaceURI(exlib::string &retVal)
     return 0;
 }
 
-result_t XmlAttr::get_prefix(exlib::string &retVal)
+result_t XmlAttr::get_prefix(exlib::string& retVal)
 {
     if (m_prefix.empty())
         return CALL_RETURN_NULL;
@@ -46,19 +43,19 @@ result_t XmlAttr::set_prefix(exlib::string newVal)
     return 0;
 }
 
-result_t XmlAttr::get_localName(exlib::string &retVal)
+result_t XmlAttr::get_localName(exlib::string& retVal)
 {
     retVal = m_localName;
     return 0;
 }
 
-result_t XmlAttr::get_name(exlib::string &retVal)
+result_t XmlAttr::get_name(exlib::string& retVal)
 {
     retVal = m_name;
     return 0;
 }
 
-result_t XmlAttr::get_value(exlib::string &retVal)
+result_t XmlAttr::get_value(exlib::string& retVal)
 {
     retVal = m_value;
     return 0;
@@ -76,12 +73,12 @@ void XmlAttr::fix_prefix()
         m_owner->fix_prefix(m_namespaceURI, m_prefix);
 }
 
-result_t XmlAttr::get_nodeName(exlib::string &retVal)
+result_t XmlAttr::get_nodeName(exlib::string& retVal)
 {
     return get_name(retVal);
 }
 
-result_t XmlAttr::get_nodeValue(exlib::string &retVal)
+result_t XmlAttr::get_nodeValue(exlib::string& retVal)
 {
     return get_value(retVal);
 }
@@ -91,14 +88,13 @@ result_t XmlAttr::set_nodeValue(exlib::string newVal)
     return set_value(newVal);
 }
 
-result_t XmlAttr::toString(exlib::string &retVal)
+result_t XmlAttr::toString(exlib::string& retVal)
 {
     retVal = " ";
 
     if (m_prefix.empty())
         retVal.append(m_name);
-    else
-    {
+    else {
         retVal.append(m_prefix);
         retVal += ':';
         retVal.append(m_localName);
@@ -109,16 +105,13 @@ result_t XmlAttr::toString(exlib::string &retVal)
     exlib::string str;
     int32_t sz = (int32_t)m_value.length();
 
-    if (sz)
-    {
-        const char *data = m_value.c_str();
+    if (sz) {
+        const char* data = m_value.c_str();
         int32_t sz1 = 0;
         int32_t i;
 
-        for (i = 0; i < sz; i ++)
-        {
-            switch (data[i])
-            {
+        for (i = 0; i < sz; i++) {
+            switch (data[i]) {
             case '<':
                 sz1 += 4;
                 break;
@@ -132,22 +125,19 @@ result_t XmlAttr::toString(exlib::string &retVal)
                 sz1 += 6;
                 break;
             default:
-                sz1 ++;
+                sz1++;
             }
         }
 
         if (sz == sz1)
             str = m_value;
-        else
-        {
+        else {
             str.resize(sz1);
-            char *data1 = &str[0];
+            char* data1 = &str[0];
 
-            for (i = 0; i < sz; i ++)
-            {
+            for (i = 0; i < sz; i++) {
                 char ch;
-                switch (ch = data[i])
-                {
+                switch (ch = data[i]) {
                 case '<':
                     memcpy(data1, "&lt;", 4);
                     data1 += 4;
@@ -176,5 +166,4 @@ result_t XmlAttr::toString(exlib::string &retVal)
 
     return 0;
 }
-
 }

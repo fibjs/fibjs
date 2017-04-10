@@ -8,10 +8,9 @@
 #include "object.h"
 #include "Event.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t Event_base::_new(bool value, obj_ptr<Event_base> &retVal, v8::Local<v8::Object> This)
+result_t Event_base::_new(bool value, obj_ptr<Event_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new Event();
     if (value)
@@ -20,10 +19,9 @@ result_t Event_base::_new(bool value, obj_ptr<Event_base> &retVal, v8::Local<v8:
     return 0;
 }
 
-result_t Event::acquire(bool blocking, bool &retVal)
+result_t Event::acquire(bool blocking, bool& retVal)
 {
-    if (!blocking)
-    {
+    if (!blocking) {
         retVal = m_event.isSet();
         return 0;
     }
@@ -44,7 +42,7 @@ result_t Event::count(int32_t& retVal)
     return 0;
 }
 
-result_t Event::isSet(bool &retVal)
+result_t Event::isSet(bool& retVal)
 {
     retVal = m_event.isSet();
     return 0;
@@ -77,5 +75,4 @@ result_t Event::wait()
     m_event.wait();
     return 0;
 }
-
 }

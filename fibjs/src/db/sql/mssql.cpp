@@ -8,7 +8,6 @@
 #include "object.h"
 #include "ifs/db.h"
 
-
 #ifdef _WIN32
 
 #include "mssql.h"
@@ -17,11 +16,10 @@
 #include "Buffer.h"
 #include "date.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t db_base::openMSSQL(exlib::string connString, obj_ptr<MSSQL_base> &retVal,
-                            AsyncEvent *ac)
+result_t db_base::openMSSQL(exlib::string connString, obj_ptr<MSSQL_base>& retVal,
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -38,7 +36,7 @@ result_t db_base::openMSSQL(exlib::string connString, obj_ptr<MSSQL_base> &retVa
     obj_ptr<mssql> conn = new mssql();
 
     hr = conn->connect(u->m_hostname.c_str(), u->m_username.c_str(), u->m_password.c_str(),
-                       u->m_pathname.length() > 0 ? u->m_pathname.c_str() + 1 : "");
+        u->m_pathname.length() > 0 ? u->m_pathname.c_str() + 1 : "");
     if (hr < 0)
         return hr;
 
@@ -55,15 +53,14 @@ static result_t close_conn(ADODB::_Connection* conn)
 
 mssql::~mssql()
 {
-    if (m_conn)
-    {
+    if (m_conn) {
         asyncCall(close_conn, m_conn);
         m_conn = NULL;
     }
 }
 
-result_t mssql::connect(const char *server, const char *username,
-                        const char *password, const char *dbName)
+result_t mssql::connect(const char* server, const char* username,
+    const char* password, const char* dbName)
 {
     if (m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -71,8 +68,8 @@ result_t mssql::connect(const char *server, const char *username,
     HRESULT hr;
 
     hr = CoCreateInstance(__uuidof(ADODB::Connection), NULL,
-                          CLSCTX_INPROC_SERVER, __uuidof(ADODB::_Connection),
-                          (void **)&m_conn);
+        CLSCTX_INPROC_SERVER, __uuidof(ADODB::_Connection),
+        (void**)&m_conn);
     if (FAILED(hr))
         return hr;
 
@@ -89,7 +86,7 @@ result_t mssql::connect(const char *server, const char *username,
     bstr_t bstrPass(UTF8_W(password));
 
     hr = m_conn->Open(bstrConn, bstrUser, bstrPass,
-                      ADODB::adConnectUnspecified);
+        ADODB::adConnectUnspecified);
     if (FAILED(hr))
         return error(hr);
 
@@ -104,7 +101,7 @@ result_t mssql::get_type(exlib::string& retVal)
     return 0;
 }
 
-result_t mssql::close(AsyncEvent *ac)
+result_t mssql::close(AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -119,7 +116,7 @@ result_t mssql::close(AsyncEvent *ac)
     return 0;
 }
 
-result_t mssql::use(exlib::string dbName, AsyncEvent *ac)
+result_t mssql::use(exlib::string dbName, AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -137,7 +134,7 @@ result_t mssql::use(exlib::string dbName, AsyncEvent *ac)
     return 0;
 }
 
-result_t mssql::begin(AsyncEvent *ac)
+result_t mssql::begin(AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -155,7 +152,7 @@ result_t mssql::begin(AsyncEvent *ac)
     return 0;
 }
 
-result_t mssql::commit(AsyncEvent *ac)
+result_t mssql::commit(AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -172,7 +169,7 @@ result_t mssql::commit(AsyncEvent *ac)
     return 0;
 }
 
-result_t mssql::rollback(AsyncEvent *ac)
+result_t mssql::rollback(AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -189,8 +186,8 @@ result_t mssql::rollback(AsyncEvent *ac)
     return 0;
 }
 
-result_t mssql::execute(const char *sql, int32_t sLen,
-                        obj_ptr<DBResult_base> &retVal)
+result_t mssql::execute(const char* sql, int32_t sLen,
+    obj_ptr<DBResult_base>& retVal)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -208,13 +205,11 @@ result_t mssql::execute(const char *sql, int32_t sLen,
 
     VARIANT_BOOL bEof = VARIANT_TRUE;
     rs->get_adoEOF(&bEof);
-    if (bEof == VARIANT_FALSE)
-    {
+    if (bEof == VARIANT_FALSE) {
         ADODB::Fields* fields = NULL;
 
         rs->get_Fields(&fields);
-        if (FAILED(hr))
-        {
+        if (FAILED(hr)) {
             rs->Release();
             return error(hr);
         }
@@ -222,14 +217,12 @@ result_t mssql::execute(const char *sql, int32_t sLen,
         long columns;
         fields->get_Count(&columns);
 
-        if (columns > 0)
-        {
+        if (columns > 0) {
             int32_t i;
 
             res = new DBResult(columns);
 
-            for (i = 0; i < columns; i++)
-            {
+            for (i = 0; i < columns; i++) {
                 ADODB::Field* field = NULL;
                 _variant_t vi((long)i);
                 BSTR bstrName = NULL;
@@ -242,26 +235,22 @@ result_t mssql::execute(const char *sql, int32_t sLen,
                 field->Release();
             }
 
-            while (bEof == VARIANT_FALSE)
-            {
+            while (bEof == VARIANT_FALSE) {
                 int32_t i;
 
                 res->beginRow();
-                for (i = 0; i < columns; i++)
-                {
+                for (i = 0; i < columns; i++) {
                     Variant v;
                     ADODB::Field* field = NULL;
                     _variant_t vi((long)i);
 
                     fields->get_Item(vi, &field);
-                    if (field)
-                    {
+                    if (field) {
                         _variant_t value;
 
                         field->get_Value(&value);
 
-                        switch (value.vt)
-                        {
+                        switch (value.vt) {
                         case VT_NULL:
                             v.setNull();
                             break;
@@ -288,8 +277,7 @@ result_t mssql::execute(const char *sql, int32_t sLen,
                         case VT_BSTR:
                             v = utf16to8String(value.bstrVal);
                             break;
-                        case VT_DATE:
-                        {
+                        case VT_DATE: {
                             date_t d;
                             SYSTEMTIME st;
 
@@ -300,8 +288,7 @@ result_t mssql::execute(const char *sql, int32_t sLen,
                             v = d;
                             break;
                         }
-                        case VT_DECIMAL:
-                        {
+                        case VT_DECIMAL: {
                             double myDouble = value;
                             v = myDouble;
                             break;
@@ -337,7 +324,7 @@ result_t mssql::execute(const char *sql, int32_t sLen,
     return 0;
 }
 
-result_t mssql::execute(exlib::string sql, obj_ptr<DBResult_base> &retVal, AsyncEvent *ac)
+result_t mssql::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -345,11 +332,11 @@ result_t mssql::execute(exlib::string sql, obj_ptr<DBResult_base> &retVal, Async
     if (!ac)
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
-    return execute(sql.c_str(), (int32_t) sql.length(), retVal);
+    return execute(sql.c_str(), (int32_t)sql.length(), retVal);
 }
 
-result_t mssql::execute(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value> &args,
-                        obj_ptr<DBResult_base> &retVal)
+result_t mssql::execute(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args,
+    obj_ptr<DBResult_base>& retVal)
 {
     exlib::string str;
     result_t hr = format(sql, args, str);
@@ -359,8 +346,8 @@ result_t mssql::execute(exlib::string sql, const v8::FunctionCallbackInfo<v8::Va
     return ac_execute(str, retVal);
 }
 
-result_t mssql::format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value> &args,
-                       exlib::string &retVal)
+result_t mssql::format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args,
+    exlib::string& retVal)
 {
     return db_base::formatMSSQL(sql, args, retVal);
 }
@@ -369,11 +356,10 @@ result_t mssql::format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Val
 
 #else
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t db_base::openMSSQL(exlib::string connString, obj_ptr<MSSQL_base> &retVal,
-                            AsyncEvent *ac)
+result_t db_base::openMSSQL(exlib::string connString, obj_ptr<MSSQL_base>& retVal,
+    AsyncEvent* ac)
 {
     return CALL_E_INVALIDARG;
 }

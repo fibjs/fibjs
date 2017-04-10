@@ -10,16 +10,14 @@
 #ifndef NULLHANDLER_H_
 #define NULLHANDLER_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class NullHandler: public Handler_base
-{
-	FIBER_FREE();
+class NullHandler : public Handler_base {
+    FIBER_FREE();
 
 public:
-	// Handler_base
-	virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal, AsyncEvent *ac);
+    // Handler_base
+    virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, AsyncEvent* ac);
 };
 
 } /* namespace fibjs */

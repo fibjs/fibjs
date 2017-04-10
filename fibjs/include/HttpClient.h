@@ -11,13 +11,14 @@
 #include "HttpCookie.h"
 #include "List.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class HttpClient: public HttpClient_base
-{
+class HttpClient : public HttpClient_base {
 public:
-    HttpClient(): m_timeout(0), m_enableCookie(true), m_autoRedirect(true)
+    HttpClient()
+        : m_timeout(0)
+        , m_enableCookie(true)
+        , m_autoRedirect(true)
     {
         m_cookies = new List();
         m_userAgent = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36";

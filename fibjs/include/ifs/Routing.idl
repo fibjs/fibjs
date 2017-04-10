@@ -39,111 +39,111 @@
  @endcode
  匹配消息 "/func1/123/456.html" 后，value == "123"，params == ["123"];
  */
-interface Routing: Handler
+interface Routing : Handler
 {
-  /*! @brief 创建一个消息处理器路由对象
+    /*! @brief 创建一个消息处理器路由对象
    @param map 初始化路由参数
    */
-  Routing(Object map = {});
+    Routing(Object map = {});
 
-  /*! @brief 创建一个消息处理器路由对象
+    /*! @brief 创建一个消息处理器路由对象
    @param method 指定 http 请求方法，"*" 接受所有方法
    @param map 初始化路由参数
    */
-  Routing(String method, Object map);
+    Routing(String method, Object map);
 
-  /*! @brief 从已有路由对象中添加规则，添加后原路由将被清空
+    /*! @brief 从已有路由对象中添加规则，添加后原路由将被清空
    @param route 已经初始化的路由对象
    */
-  append(Routing route);
+    append(Routing route);
 
-  /*! @brief 添加一组路由规则
+    /*! @brief 添加一组路由规则
    @param map 路由参数
    */
-  append(Object map);
+    append(Object map);
 
-  /*! @brief 添加一条路由规则
+    /*! @brief 添加一条路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
-  append(String pattern, Value hdlr);
+    append(String pattern, Value hdlr);
 
-  /*! @brief 添加一组路由规则
+    /*! @brief 添加一组路由规则
    @param method 指定 http 请求方法，"*" 接受所有方法
    @param map 路由参数
    */
-  append(String method, Object map);
+    append(String method, Object map);
 
-  /*! @brief 添加一条路由规则
+    /*! @brief 添加一条路由规则
    @param method 指定 http 请求方法，"*" 接受所有方法
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
-  append(String method, String pattern, Value hdlr);
+    append(String method, String pattern, Value hdlr);
 
-  /*! @brief 添加一组接受所有 http 方法路由规则
+    /*! @brief 添加一组接受所有 http 方法路由规则
    @param map 路由参数
    */
-  all(Object map);
+    all(Object map);
 
-  /*! @brief 添加一条接受所有 http 方法路由规则
+    /*! @brief 添加一条接受所有 http 方法路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
-  all(String pattern, Value hdlr);
+    all(String pattern, Value hdlr);
 
-  /*! @brief 添加一组 GET 方法路由规则
+    /*! @brief 添加一组 GET 方法路由规则
    @param map 路由参数
    */
-  get(Object map);
+    get(Object map);
 
-  /*! @brief 添加一条接受 http GET 方法路由规则
+    /*! @brief 添加一条接受 http GET 方法路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
-  get(String pattern, Value hdlr);
+    get(String pattern, Value hdlr);
 
-  /*! @brief 添加一组接受 http POST 方法路由规则
+    /*! @brief 添加一组接受 http POST 方法路由规则
    @param map 路由参数
    */
-  post(Object map);
+    post(Object map);
 
-  /*! @brief 添加一条接受 http POST 方法路由规则
+    /*! @brief 添加一条接受 http POST 方法路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
-  post(String pattern, Value hdlr);
+    post(String pattern, Value hdlr);
 
-  /*! @brief 添加一组接受 http DELETE 方法路由规则
+    /*! @brief 添加一组接受 http DELETE 方法路由规则
    @param map 路由参数
    */
-  del(Object map);
+    del(Object map);
 
-  /*! @brief 添加一条接受 http DELETE 方法路由规则
+    /*! @brief 添加一条接受 http DELETE 方法路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
-  del(String pattern, Value hdlr);
+    del(String pattern, Value hdlr);
 
-  /*! @brief 添加一组 PUT 方法路由规则
+    /*! @brief 添加一组 PUT 方法路由规则
    @param map 路由参数
    */
-  put(Object map);
+    put(Object map);
 
-  /*! @brief 添加一条接受 http PUT 方法路由规则
+    /*! @brief 添加一条接受 http PUT 方法路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
-  put(String pattern, Value hdlr);
+    put(String pattern, Value hdlr);
 
-  /*! @brief 添加一组 PATCH 方法路由规则
+    /*! @brief 添加一组 PATCH 方法路由规则
    @param map 路由参数
    */
-  patch(Object map);
+    patch(Object map);
 
-  /*! @brief 添加一条接受 http PATCH 方法路由规则
+    /*! @brief 添加一条接受 http PATCH 方法路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
-  patch(String pattern, Value hdlr);
+    patch(String pattern, Value hdlr);
 };

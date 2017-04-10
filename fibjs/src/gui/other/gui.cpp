@@ -9,8 +9,7 @@
 
 #include "object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 void init_gui()
 {
@@ -19,7 +18,6 @@ void init_gui()
 void putGuiPool(AsyncEvent* ac)
 {
 }
-
 }
 
 #endif

@@ -10,14 +10,14 @@
 #ifndef _SERVICE_H_
 #define _SERVICE_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Service : public Service_base
-{
+class Service : public Service_base {
 public:
-    Service(exlib::string name) : m_name(name)
-    {}
+    Service(exlib::string name)
+        : m_name(name)
+    {
+    }
 
 public:
     EVENT_SUPPORT();

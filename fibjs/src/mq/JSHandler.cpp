@@ -14,10 +14,9 @@
 #include "ifs/mq.h"
 #include "ifs/console.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-inline result_t msgMethod(Message_base *msg, exlib::string &method)
+inline result_t msgMethod(Message_base* msg, exlib::string& method)
 {
     exlib::string str;
     const char *p, *p1;
@@ -25,8 +24,7 @@ inline result_t msgMethod(Message_base *msg, exlib::string &method)
     msg->get_value(str);
 
     p = p1 = str.c_str();
-    while (true)
-    {
+    while (true) {
         while (*p && *p != '.' && *p != '/' && *p != '\\')
             p++;
         if (p != p1)
@@ -38,13 +36,13 @@ inline result_t msgMethod(Message_base *msg, exlib::string &method)
     }
 
     msg->set_value(*p ? p + 1 : "");
-    method.assign(p1, (int32_t) (p - p1));
+    method.assign(p1, (int32_t)(p - p1));
 
     return 0;
 }
 
-result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                           AsyncEvent *ac)
+result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+    AsyncEvent* ac)
 {
     if (ac)
         return CHECK_ERROR(CALL_E_NOASYNC);
@@ -56,59 +54,50 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     v8::Local<v8::Value> a = v8::Local<v8::Value>::New(isolate->m_isolate, o);
     v8::Local<v8::Value> hdlr = GetPrivate("handler");
 
-    while (true)
-    {
+    while (true) {
         v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(hdlr);
         obj_ptr<List_base> params;
         std::vector<v8::Local<v8::Value> > argv;
-        v8::Local<v8::Value> *pargv;
+        v8::Local<v8::Value>* pargv;
         int32_t len = 0, i;
 
-        if (msg != NULL)
-        {
+        if (msg != NULL) {
             msg->get_params(params);
             params->get_length(len);
         }
 
-        if (len > 0)
-        {
+        if (len > 0) {
             argv.resize(len + 1);
             argv[0] = a;
 
-            for (i = 0; i < len; i++)
-            {
+            for (i = 0; i < len; i++) {
                 Variant v;
                 params->_indexed_getter(i, v);
                 argv[i + 1] = v;
             }
 
             pargv = argv.data();
-        }
-        else
+        } else
             pargv = &a;
 
         {
             TryCatch try_catch;
             hdlr = func->Call(v8::Undefined(isolate->m_isolate), len + 1, pargv);
-            if (try_catch.HasCaught())
-            {
+            if (try_catch.HasCaught()) {
                 v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-                        isolate->m_isolate, 1, v8::StackTrace::kScriptId);
-                if (stackTrace->GetFrameCount() > 0)
-                {
+                    isolate->m_isolate, 1, v8::StackTrace::kScriptId);
+                if (stackTrace->GetFrameCount() > 0) {
                     try_catch.ReThrow();
                     return CALL_E_JAVASCRIPT;
-                }
-                else
+                } else
                     return CHECK_ERROR(Runtime::setError(GetException(try_catch, 0)));
             }
         }
 
-        if (IsEmpty (hdlr))
+        if (IsEmpty(hdlr))
             return CALL_RETURN_NULL;
 
-        if (!hdlr->IsFunction())
-        {
+        if (!hdlr->IsFunction()) {
             if (hdlr->IsObject())
                 return JSHandler::New(hdlr, retVal);
             return CALL_RETURN_NULL;
@@ -118,15 +107,17 @@ result_t JSHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
     return 0;
 }
 
-result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
-                              obj_ptr<Handler_base> &retVal, AsyncEvent *ac)
+result_t JSHandler::js_invoke(Handler_base* hdlr, object_base* v,
+    obj_ptr<Handler_base>& retVal, AsyncEvent* ac)
 {
-    class asyncInvoke: public AsyncEvent
-    {
+    class asyncInvoke : public AsyncEvent {
     public:
-        asyncInvoke(Handler_base *pThis, object_base *v,
-                    obj_ptr<Handler_base> &retVal, AsyncEvent *ac) :
-            m_ac(ac), m_pThis(pThis), m_v(v), m_retVal(retVal)
+        asyncInvoke(Handler_base* pThis, object_base* v,
+            obj_ptr<Handler_base>& retVal, AsyncEvent* ac)
+            : m_ac(ac)
+            , m_pThis(pThis)
+            , m_v(v)
+            , m_retVal(retVal)
         {
         }
 
@@ -154,25 +145,22 @@ result_t JSHandler::js_invoke(Handler_base *hdlr, object_base *v,
         }
 
     private:
-        AsyncEvent *m_ac;
+        AsyncEvent* m_ac;
         obj_ptr<Handler_base> m_pThis;
         obj_ptr<object_base> m_v;
-        obj_ptr<Handler_base> &m_retVal;
+        obj_ptr<Handler_base>& m_retVal;
         result_t m_hr;
         exlib::string m_message;
     };
 
-    if (!ac)
-    {
+    if (!ac) {
         result_t hr;
         obj_ptr<Handler_base> hdlr1 = hdlr;
         obj_ptr<Handler_base> hdlr2;
 
-        while (true)
-        {
+        while (true) {
             hr = hdlr1->invoke(v, hdlr2, NULL);
-            if (hr == CALL_E_NOSYNC)
-            {
+            if (hr == CALL_E_NOSYNC) {
                 retVal = hdlr1;
                 return 0;
             }

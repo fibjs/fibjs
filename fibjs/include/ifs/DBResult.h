@@ -15,13 +15,11 @@
 #include "../object.h"
 #include "List.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class List_base;
 
-class DBResult_base : public List_base
-{
+class DBResult_base : public List_base {
     DECLARE_CLASS(DBResult_base);
 
 public:
@@ -42,72 +40,66 @@ public:
     }
 
 public:
-    static void s_get_insertId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_affected(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_fields(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_insertId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_affected(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_fields(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& DBResult_base::class_info()
 {
-    inline ClassInfo& DBResult_base::class_info()
-    {
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"insertId", s_get_insertId, block_set, false},
-            {"affected", s_get_affected, block_set, false},
-            {"fields", s_get_fields, block_set, false}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "insertId", s_get_insertId, block_set, false },
+        { "affected", s_get_affected, block_set, false },
+        { "fields", s_get_fields, block_set, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "DBResult", false, s__new, NULL, 
-            0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &List_base::class_info()
-        };
+    static ClassData s_cd = {
+        "DBResult", false, s__new, NULL,
+        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &List_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void DBResult_base::s_get_insertId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int64_t vr;
+inline void DBResult_base::s_get_insertId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
 
-        METHOD_INSTANCE(DBResult_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(DBResult_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_insertId(vr);
+    hr = pInst->get_insertId(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void DBResult_base::s_get_affected(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int64_t vr;
+inline void DBResult_base::s_get_affected(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
 
-        METHOD_INSTANCE(DBResult_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(DBResult_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_affected(vr);
+    hr = pInst->get_affected(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void DBResult_base::s_get_fields(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        v8::Local<v8::Array> vr;
+inline void DBResult_base::s_get_fields(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
 
-        METHOD_INSTANCE(DBResult_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(DBResult_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_fields(vr);
+    hr = pInst->get_fields(vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

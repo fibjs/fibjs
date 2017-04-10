@@ -8,12 +8,12 @@
  */
 module collection
 {
-	/*! @brief 创建一个 Map 容器，参见 Map */
-	static Map;
+    /*! @brief 创建一个 Map 容器，参见 Map */
+    static Map;
 
-	/*! @brief 创建一个 List 容器，参见 List */
-	static List;
+    /*! @brief 创建一个 List 容器，参见 List */
+    static List;
 
-	/*! @brief 创建一个 Queue 容器，参见 Queue */
-	static Queue;
+    /*! @brief 创建一个 Queue 容器，参见 Queue */
+    static Queue;
 };

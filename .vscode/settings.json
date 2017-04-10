@@ -1,0 +1,11 @@
+// Place your settings in this file to overwrite the default settings
+{
+    "editor.formatOnSave": true,
+
+    "files.associations": {
+        "*.idl": "cpp"
+    },
+
+    "C_Cpp.clang_format_sortIncludes": false,
+    "C_Cpp.clang_format_fallbackStyle": "WebKit"
+}

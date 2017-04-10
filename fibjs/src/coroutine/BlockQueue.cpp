@@ -8,17 +8,16 @@
 #include "object.h"
 #include "BlockQueue.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t BlockQueue_base::_new(int32_t size, obj_ptr<BlockQueue_base> &retVal,
-                               v8::Local<v8::Object> This)
+result_t BlockQueue_base::_new(int32_t size, obj_ptr<BlockQueue_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     retVal = new BlockQueue(size);
     return 0;
 }
 
-result_t BlockQueue::add(v8::Local<v8::Value> e, bool &retVal)
+result_t BlockQueue::add(v8::Local<v8::Value> e, bool& retVal)
 {
     if ((int32_t)m_list.size() == m_size)
         return CHECK_ERROR(Runtime::setError("BlockQueue: queue is full."));
@@ -29,10 +28,9 @@ result_t BlockQueue::add(v8::Local<v8::Value> e, bool &retVal)
     return 0;
 }
 
-result_t BlockQueue::offer(v8::Local<v8::Value> e, bool &retVal)
+result_t BlockQueue::offer(v8::Local<v8::Value> e, bool& retVal)
 {
-    if ((int32_t)m_list.size() == m_size)
-    {
+    if ((int32_t)m_list.size() == m_size) {
         retVal = false;
         return 0;
     }
@@ -43,7 +41,7 @@ result_t BlockQueue::offer(v8::Local<v8::Value> e, bool &retVal)
     return 0;
 }
 
-result_t BlockQueue::remove(v8::Local<v8::Value> &retVal)
+result_t BlockQueue::remove(v8::Local<v8::Value>& retVal)
 {
     if (m_list.size() == 0)
         return CHECK_ERROR(CALL_E_EMPTY);
@@ -51,7 +49,7 @@ result_t BlockQueue::remove(v8::Local<v8::Value> &retVal)
     return take(retVal);
 }
 
-result_t BlockQueue::poll(v8::Local<v8::Value> &retVal)
+result_t BlockQueue::poll(v8::Local<v8::Value>& retVal)
 {
     if (m_list.size() == 0)
         return CALL_RETURN_NULL;
@@ -59,7 +57,7 @@ result_t BlockQueue::poll(v8::Local<v8::Value> &retVal)
     return take(retVal);
 }
 
-result_t BlockQueue::element(v8::Local<v8::Value> &retVal)
+result_t BlockQueue::element(v8::Local<v8::Value>& retVal)
 {
     if (m_list.size() == 0)
         return CHECK_ERROR(CALL_E_EMPTY);
@@ -69,7 +67,7 @@ result_t BlockQueue::element(v8::Local<v8::Value> &retVal)
     return 0;
 }
 
-result_t BlockQueue::peek(v8::Local<v8::Value> &retVal)
+result_t BlockQueue::peek(v8::Local<v8::Value>& retVal)
 {
     if (m_list.size() == 0)
         return CALL_RETURN_NULL;
@@ -83,12 +81,10 @@ result_t BlockQueue::clear()
 {
     int32_t n = (int32_t)m_list.size();
 
-    if (n > 0)
-    {
+    if (n > 0) {
         m_list.clear();
 
-        while (n-- > 0)
-        {
+        while (n-- > 0) {
             m_semTake.wait();
             m_semPut.post();
         }
@@ -97,26 +93,26 @@ result_t BlockQueue::clear()
     return 0;
 }
 
-result_t BlockQueue::toArray(v8::Local<v8::Array> &retVal)
+result_t BlockQueue::toArray(v8::Local<v8::Array>& retVal)
 {
-    v8::Local<v8::Array> a = v8::Array::New(holder()->m_isolate, (int32_t) m_list.size());
+    v8::Local<v8::Array> a = v8::Array::New(holder()->m_isolate, (int32_t)m_list.size());
     int32_t i = 0;
 
     for (std::list<VariantEx>::iterator it = m_list.begin(); it != m_list.end();
-            ++it)
+         ++it)
         a->Set(i++, *it);
 
     retVal = a;
     return 0;
 }
 
-result_t BlockQueue::get_length(int32_t &retVal)
+result_t BlockQueue::get_length(int32_t& retVal)
 {
-    retVal = (int32_t) m_list.size();
+    retVal = (int32_t)m_list.size();
     return 0;
 }
 
-result_t BlockQueue::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
+result_t BlockQueue::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 {
     result_t hr;
     v8::Local<v8::Array> as;
@@ -140,7 +136,7 @@ result_t BlockQueue::put(v8::Local<v8::Value> e)
     return 0;
 }
 
-result_t BlockQueue::take(v8::Local<v8::Value> &retVal)
+result_t BlockQueue::take(v8::Local<v8::Value>& retVal)
 {
     m_semTake.wait();
 

@@ -8,25 +8,24 @@
 #include "object.h"
 #include "Map.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t Map_base::_new(obj_ptr<Map_base> &retVal, v8::Local<v8::Object> This)
+result_t Map_base::_new(obj_ptr<Map_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new Map();
     return 0;
 }
 
 result_t Map_base::_new(v8::Local<v8::Object> map, obj_ptr<Map_base>& retVal,
-                        v8::Local<v8::Object> This)
+    v8::Local<v8::Object> This)
 {
     retVal = new Map();
     return retVal->put(map);
 }
 
-result_t Map::get_size(int32_t &retVal)
+result_t Map::get_size(int32_t& retVal)
 {
-    retVal = (int32_t) m_datas.size();
+    retVal = (int32_t)m_datas.size();
     return 0;
 }
 
@@ -36,21 +35,20 @@ result_t Map::clear()
     return 0;
 }
 
-result_t Map::has(exlib::string name, bool &retVal)
+result_t Map::has(exlib::string name, bool& retVal)
 {
     retVal = m_datas.find(name) != m_datas.end();
     return 0;
 }
 
-inline result_t _map(Map *o, v8::Local<v8::Object> m,
-                     result_t (Map::*fn)(exlib::string name, Variant value))
+inline result_t _map(Map* o, v8::Local<v8::Object> m,
+    result_t (Map::*fn)(exlib::string name, Variant value))
 {
     v8::Local<v8::Array> ks = m->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
 
-    for (i = 0; i < len; i++)
-    {
+    for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
         (o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
     }
@@ -58,7 +56,7 @@ inline result_t _map(Map *o, v8::Local<v8::Object> m,
     return 0;
 }
 
-result_t Map::get(exlib::string name, Variant &retVal)
+result_t Map::get(exlib::string name, Variant& retVal)
 {
     std::map<exlib::string, VariantEx>::iterator it = m_datas.find(name);
 
@@ -109,18 +107,18 @@ result_t Map::remove(exlib::string name)
     return 0;
 }
 
-result_t Map::isEmpty(bool &retVal)
+result_t Map::isEmpty(bool& retVal)
 {
     retVal = m_datas.empty();
     return 0;
 }
 
-result_t Map::_named_getter(const char* property, Variant &retVal)
+result_t Map::_named_getter(const char* property, Variant& retVal)
 {
     return get(property, retVal);
 }
 
-result_t Map::_named_enumerator(v8::Local<v8::Array> &retVal)
+result_t Map::_named_enumerator(v8::Local<v8::Array>& retVal)
 {
     int32_t i = 0;
     Isolate* isolate = holder();
@@ -140,7 +138,7 @@ result_t Map::_named_setter(const char* property, Variant newVal)
 }
 
 result_t Map::_named_deleter(const char* property,
-                             v8::Local<v8::Boolean> &retVal)
+    v8::Local<v8::Boolean>& retVal)
 {
     return remove(property);
 }

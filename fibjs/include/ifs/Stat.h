@@ -14,11 +14,9 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Stat_base : public object_base
-{
+class Stat_base : public object_base {
     DECLARE_CLASS(Stat_base);
 
 public:
@@ -51,12 +49,12 @@ public:
     }
 
 public:
-    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_mode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_mtime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_atime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_ctime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_mode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_mtime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_atime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_ctime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_isWritable(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isReadable(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isExecutable(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -67,246 +65,239 @@ public:
     static void s_isMemory(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isSocket(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& Stat_base::class_info()
 {
-    inline ClassInfo& Stat_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"isWritable", s_isWritable, false},
-            {"isReadable", s_isReadable, false},
-            {"isExecutable", s_isExecutable, false},
-            {"isHidden", s_isHidden, false},
-            {"isDirectory", s_isDirectory, false},
-            {"isFile", s_isFile, false},
-            {"isSymbolicLink", s_isSymbolicLink, false},
-            {"isMemory", s_isMemory, false},
-            {"isSocket", s_isSocket, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "isWritable", s_isWritable, false },
+        { "isReadable", s_isReadable, false },
+        { "isExecutable", s_isExecutable, false },
+        { "isHidden", s_isHidden, false },
+        { "isDirectory", s_isDirectory, false },
+        { "isFile", s_isFile, false },
+        { "isSymbolicLink", s_isSymbolicLink, false },
+        { "isMemory", s_isMemory, false },
+        { "isSocket", s_isSocket, false }
+    };
 
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"name", s_get_name, block_set, false},
-            {"size", s_get_size, block_set, false},
-            {"mode", s_get_mode, block_set, false},
-            {"mtime", s_get_mtime, block_set, false},
-            {"atime", s_get_atime, block_set, false},
-            {"ctime", s_get_ctime, block_set, false}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "name", s_get_name, block_set, false },
+        { "size", s_get_size, block_set, false },
+        { "mode", s_get_mode, block_set, false },
+        { "mtime", s_get_mtime, block_set, false },
+        { "atime", s_get_atime, block_set, false },
+        { "ctime", s_get_ctime, block_set, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "Stat", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "Stat", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void Stat_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void Stat_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_INSTANCE(Stat_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_name(vr);
+    hr = pInst->get_name(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int64_t vr;
+inline void Stat_base::s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
 
-        METHOD_INSTANCE(Stat_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_size(vr);
+    hr = pInst->get_size(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_get_mode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+inline void Stat_base::s_get_mode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(Stat_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_mode(vr);
+    hr = pInst->get_mode(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_get_mtime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        date_t vr;
+inline void Stat_base::s_get_mtime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    date_t vr;
 
-        METHOD_INSTANCE(Stat_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_mtime(vr);
+    hr = pInst->get_mtime(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_get_atime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        date_t vr;
+inline void Stat_base::s_get_atime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    date_t vr;
 
-        METHOD_INSTANCE(Stat_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_atime(vr);
+    hr = pInst->get_atime(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_get_ctime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        date_t vr;
+inline void Stat_base::s_get_ctime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    date_t vr;
 
-        METHOD_INSTANCE(Stat_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_ctime(vr);
+    hr = pInst->get_ctime(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_isWritable(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void Stat_base::s_isWritable(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->isWritable(vr);
+    hr = pInst->isWritable(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_isReadable(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void Stat_base::s_isReadable(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->isReadable(vr);
+    hr = pInst->isReadable(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_isExecutable(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void Stat_base::s_isExecutable(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->isExecutable(vr);
+    hr = pInst->isExecutable(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_isHidden(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void Stat_base::s_isHidden(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->isHidden(vr);
+    hr = pInst->isHidden(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_isDirectory(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void Stat_base::s_isDirectory(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->isDirectory(vr);
+    hr = pInst->isDirectory(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_isFile(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void Stat_base::s_isFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->isFile(vr);
+    hr = pInst->isFile(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_isSymbolicLink(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void Stat_base::s_isSymbolicLink(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->isSymbolicLink(vr);
+    hr = pInst->isSymbolicLink(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_isMemory(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void Stat_base::s_isMemory(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->isMemory(vr);
+    hr = pInst->isMemory(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stat_base::s_isSocket(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void Stat_base::s_isSocket(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(Stat_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->isSocket(vr);
+    hr = pInst->isSocket(vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

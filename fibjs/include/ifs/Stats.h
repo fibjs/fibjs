@@ -14,11 +14,9 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Stats_base : public object_base
-{
+class Stats_base : public object_base {
     DECLARE_CLASS(Stats_base);
 
 public:
@@ -34,8 +32,8 @@ public:
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 
 public:
-    template<typename T>
-    static void __new(const T &args);
+    template <typename T>
+    static void __new(const T& args);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -44,167 +42,163 @@ public:
     static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_reset(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);
+    static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args);
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& Stats_base::class_info()
 {
-    inline ClassInfo& Stats_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"inc", s_inc, false},
-            {"dec", s_dec, false},
-            {"add", s_add, false},
-            {"reset", s_reset, false},
-            {"uptime", s_uptime, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "inc", s_inc, false },
+        { "dec", s_dec, false },
+        { "add", s_add, false },
+        { "reset", s_reset, false },
+        { "uptime", s_uptime, false }
+    };
 
-        static ClassData::ClassNamed s_named = 
-        {
-            i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator
-        };
+    static ClassData::ClassNamed s_named = {
+        i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator
+    };
 
-        static ClassData s_cd = 
-        { 
-            "Stats", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, &s_named,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "Stats", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, &s_named,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void Stats_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
+inline void Stats_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    CONSTRUCT_INIT();
+    __new(args);
+}
 
-    template<typename T>void Stats_base::__new(const T& args)
-    {
-        obj_ptr<Stats_base> vr;
+template <typename T>
+void Stats_base::__new(const T& args)
+{
+    obj_ptr<Stats_base> vr;
 
-        CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Array>, 0);
+    ARG(v8::Local<v8::Array>, 0);
 
-        hr = _new(v0, vr, args.This());
+    hr = _new(v0, vr, args.This());
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(v8::Local<v8::Array>, 0);
-        ARG(v8::Local<v8::Array>, 1);
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(v8::Local<v8::Array>, 1);
 
-        hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
-        CONSTRUCT_RETURN();
-    }
+    CONSTRUCT_RETURN();
+}
 
-    inline void Stats_base::s_inc(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Stats_base);
-        METHOD_ENTER();
+inline void Stats_base::s_inc(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Stats_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = pInst->inc(v0);
+    hr = pInst->inc(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Stats_base::s_dec(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Stats_base);
-        METHOD_ENTER();
+inline void Stats_base::s_dec(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Stats_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = pInst->dec(v0);
+    hr = pInst->dec(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Stats_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Stats_base);
-        METHOD_ENTER();
+inline void Stats_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Stats_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(int32_t, 1);
+    ARG(exlib::string, 0);
+    ARG(int32_t, 1);
 
-        hr = pInst->add(v0, v1);
+    hr = pInst->add(v0, v1);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Stats_base::s_reset(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Stats_base);
-        METHOD_ENTER();
+inline void Stats_base::s_reset(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Stats_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->reset();
+    hr = pInst->reset();
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Stats_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void Stats_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(Stats_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Stats_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->uptime(vr);
+    hr = pInst->uptime(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stats_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+inline void Stats_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(Stats_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(Stats_base);
+    PROPERTY_ENTER();
 
-        v8::String::Utf8Value k(property);
-        if(class_info().has(*k))return;
+    v8::String::Utf8Value k(property);
+    if (class_info().has(*k))
+        return;
 
-        hr = pInst->_named_getter(*k, vr);
-        if(hr == CALL_RETURN_NULL)return;
+    hr = pInst->_named_getter(*k, vr);
+    if (hr == CALL_RETURN_NULL)
+        return;
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stats_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)
-    {
-        v8::Local<v8::Array> vr;
+inline void Stats_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args)
+{
+    v8::Local<v8::Array> vr;
 
-        METHOD_INSTANCE(Stats_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(Stats_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->_named_enumerator(vr);
+    hr = pInst->_named_enumerator(vr);
 
-        METHOD_RETURN1();
-    }
-
+    METHOD_RETURN1();
+}
 }
 
 #endif
-

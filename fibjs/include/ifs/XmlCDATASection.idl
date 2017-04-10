@@ -11,6 +11,4 @@ CDATA 区段包含了不会被解析器解析的文本。CDATA 区段中的标�
 
 在一个 CDATA 中唯一被识别的分隔符是 "]]>"，它可标示 CDATA 区段的结束。CDATA 区段不能进行嵌套。
 */
-interface XmlCDATASection : XmlText
-{
-};
+interface XmlCDATASection : XmlText{};

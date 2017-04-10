@@ -11,20 +11,18 @@
 #include "ifs/Stats.h"
 #include "QuickArray.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Stats: public Stats_base
-{
+class Stats : public Stats_base {
 public:
     // Stats_base
     virtual result_t inc(exlib::string key);
     virtual result_t dec(exlib::string key);
     virtual result_t add(exlib::string key, int32_t value);
     virtual result_t reset();
-    virtual result_t uptime(int32_t &retVal);
-    virtual result_t _named_getter(const char *property, int32_t &retVal);
-    virtual result_t _named_enumerator(v8::Local<v8::Array> &retVal);
+    virtual result_t uptime(int32_t& retVal);
+    virtual result_t _named_getter(const char* property, int32_t& retVal);
+    virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal);
 
 public:
     void inc(int32_t n)
@@ -44,10 +42,10 @@ public:
 
 public:
     void init(int32_t sn, int32_t n);
-    void set_key(int32_t n, const char *key);
+    void set_key(int32_t n, const char* key);
     result_t set_key(int32_t n, v8::Local<v8::Value> key);
 
-    void init(const char **staticKeys, int32_t sn, const char **keys, int32_t n)
+    void init(const char** staticKeys, int32_t sn, const char** keys, int32_t n)
     {
         int32_t i;
 
@@ -60,7 +58,7 @@ public:
             set_key(sn + i, keys[i]);
     }
 
-    void init(const char **keys, int32_t n)
+    void init(const char** keys, int32_t n)
     {
         init(NULL, 0, keys, n);
     }

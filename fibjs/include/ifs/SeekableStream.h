@@ -15,15 +15,13 @@
 #include "../object.h"
 #include "Stream.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Stream_base;
 class Buffer_base;
 class Stat_base;
 
-class SeekableStream_base : public Stream_base
-{
+class SeekableStream_base : public Stream_base {
     DECLARE_CLASS(SeekableStream_base);
 
 public:
@@ -58,129 +56,123 @@ public:
     ASYNC_MEMBERVALUE1(SeekableStream_base, readAll, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE1(SeekableStream_base, stat, obj_ptr<Stat_base>);
 };
-
 }
 
 #include "Buffer.h"
 #include "Stat.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& SeekableStream_base::class_info()
 {
-    inline ClassInfo& SeekableStream_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"seek", s_seek, false},
-            {"tell", s_tell, false},
-            {"rewind", s_rewind, false},
-            {"size", s_size, false},
-            {"readAll", s_readAll, false},
-            {"stat", s_stat, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "seek", s_seek, false },
+        { "tell", s_tell, false },
+        { "rewind", s_rewind, false },
+        { "size", s_size, false },
+        { "readAll", s_readAll, false },
+        { "stat", s_stat, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "SeekableStream", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &Stream_base::class_info()
-        };
+    static ClassData s_cd = {
+        "SeekableStream", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &Stream_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void SeekableStream_base::s_seek(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(SeekableStream_base);
-        METHOD_ENTER();
+inline void SeekableStream_base::s_seek(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(SeekableStream_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(int64_t, 0);
-        ARG(int32_t, 1);
+    ARG(int64_t, 0);
+    ARG(int32_t, 1);
 
-        hr = pInst->seek(v0, v1);
+    hr = pInst->seek(v0, v1);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void SeekableStream_base::s_tell(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int64_t vr;
+inline void SeekableStream_base::s_tell(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
 
-        METHOD_INSTANCE(SeekableStream_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(SeekableStream_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->tell(vr);
+    hr = pInst->tell(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SeekableStream_base::s_rewind(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(SeekableStream_base);
-        METHOD_ENTER();
+inline void SeekableStream_base::s_rewind(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(SeekableStream_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->rewind();
+    hr = pInst->rewind();
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void SeekableStream_base::s_size(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int64_t vr;
+inline void SeekableStream_base::s_size(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
 
-        METHOD_INSTANCE(SeekableStream_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(SeekableStream_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->size(vr);
+    hr = pInst->size(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_INSTANCE(SeekableStream_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(SeekableStream_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(0, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_readAll(cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_readAll(vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_readAll(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_readAll(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SeekableStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Stat_base> vr;
+inline void SeekableStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stat_base> vr;
 
-        METHOD_INSTANCE(SeekableStream_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(SeekableStream_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(0, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_stat(cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_stat(vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_stat(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_stat(vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

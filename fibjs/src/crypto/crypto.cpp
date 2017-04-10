@@ -18,13 +18,12 @@
 #include <string.h>
 #include <mbedtls/mbedtls/pkcs5.h>
 
-namespace fibjs
-{
+namespace fibjs {
 
 DECLARE_MODULE(crypto);
 
 result_t crypto_base::loadPKey(exlib::string filename, exlib::string password,
-                               obj_ptr<PKey_base>& retVal)
+    obj_ptr<PKey_base>& retVal)
 {
     obj_ptr<PKey_base> key = new PKey();
     result_t hr = key->importFile(filename, password);
@@ -72,8 +71,8 @@ result_t crypto_base::loadReq(exlib::string filename, obj_ptr<X509Req_base>& ret
     return 0;
 }
 
-result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
-                                  AsyncEvent *ac)
+result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -90,8 +89,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
 
     t = time(NULL);
 
-    for (i = 0; i < size; i += sizeof(buf))
-    {
+    for (i = 0; i < size; i += sizeof(buf)) {
         ret = mbedtls_havege_random(&hs, buf, sizeof(buf));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
@@ -108,7 +106,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
 }
 
 result_t crypto_base::simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
-                                        AsyncEvent* ac)
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -119,7 +117,7 @@ result_t crypto_base::simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retV
     char* ptr = &strBuf[0];
     int32_t i;
 
-    for (i = 0; i < size; i ++)
+    for (i = 0; i < size; i++)
         ptr[i] = rand() % 256;
 
     retVal = new Buffer(strBuf);
@@ -127,8 +125,8 @@ result_t crypto_base::simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retV
     return 0;
 }
 
-result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base> &retVal,
-                                        AsyncEvent *ac)
+result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -142,11 +140,9 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base> &retV
 
     mbedtls_entropy_init(&entropy);
 
-    for (i = 0; i < size; i += sizeof(buf))
-    {
+    for (i = 0; i < size; i += sizeof(buf)) {
         ret = mbedtls_entropy_func(&entropy, buf, sizeof(buf));
-        if (ret != 0)
-        {
+        if (ret != 0) {
             mbedtls_entropy_free(&entropy);
             return CHECK_ERROR(_ssl::setError(ret));
         }
@@ -170,33 +166,31 @@ inline int32_t _min(int32_t a, int32_t b)
     return a < b ? a : b;
 }
 
-char *randomart(const unsigned char *dgst_raw, size_t dgst_raw_len,
-                exlib::string title, int32_t size)
+char* randomart(const unsigned char* dgst_raw, size_t dgst_raw_len,
+    exlib::string title, int32_t size)
 {
     const char augmentation_string[] = " .o+=*BOX@%&#/^SE";
     char *retval, *p;
-    unsigned char *field;
+    unsigned char* field;
     int32_t i, b, n;
     int32_t x, y;
     const size_t len = sizeof(augmentation_string) - 2;
     int32_t fieldY = size + 1;
     int32_t fieldX = size * 2 + 1;
 
-    retval = (char *)calloc(1, (fieldX + 3) * (fieldY + 2));
+    retval = (char*)calloc(1, (fieldX + 3) * (fieldY + 2));
     if (retval == NULL)
         return NULL;
 
-    field = (unsigned char *)calloc(1, fieldX * fieldY);
+    field = (unsigned char*)calloc(1, fieldX * fieldY);
     x = fieldX / 2;
     y = fieldY / 2;
 
-    for (i = 0; i < (int32_t)dgst_raw_len; i++)
-    {
+    for (i = 0; i < (int32_t)dgst_raw_len; i++) {
         int32_t input;
 
         input = dgst_raw[i];
-        for (b = 0; b < 4; b++)
-        {
+        for (b = 0; b < 4; b++) {
             x += (input & 0x1) ? 1 : -1;
             y += (input & 0x2) ? 1 : -1;
 
@@ -222,8 +216,7 @@ char *randomart(const unsigned char *dgst_raw, size_t dgst_raw_len,
     *p++ = '\n';
 
     n = (int32_t)title.length();
-    if (n > 0)
-    {
+    if (n > 0) {
         if (n > fieldX - 2)
             n = fieldX - 2;
         p = retval + (fieldX - n) / 2;
@@ -235,8 +228,7 @@ char *randomart(const unsigned char *dgst_raw, size_t dgst_raw_len,
         p = retval + fieldX + 3;
     }
 
-    for (y = 0; y < fieldY; y++)
-    {
+    for (y = 0; y < fieldY; y++) {
         *p++ = '|';
         for (x = 0; x < fieldX; x++)
             *p++ = augmentation_string[_min(field[x * fieldY + y], len)];
@@ -254,17 +246,16 @@ char *randomart(const unsigned char *dgst_raw, size_t dgst_raw_len,
     return retval;
 }
 
-result_t crypto_base::randomArt(Buffer_base *data, exlib::string title,
-                                int32_t size, exlib::string &retVal)
+result_t crypto_base::randomArt(Buffer_base* data, exlib::string title,
+    int32_t size, exlib::string& retVal)
 {
     exlib::string buf;
 
     data->toString(buf);
-    char *str = randomart((const unsigned char *)buf.c_str(), buf.length(),
-                          title, size);
+    char* str = randomart((const unsigned char*)buf.c_str(), buf.length(),
+        title, size);
 
-    if (str)
-    {
+    if (str) {
         retVal = str;
         free(str);
     }
@@ -272,10 +263,10 @@ result_t crypto_base::randomArt(Buffer_base *data, exlib::string title,
     return 0;
 }
 
-inline int pkcs5_pbkdf1(mbedtls_md_context_t *ctx, const unsigned char *password,
-                        size_t plen, const unsigned char *salt, size_t slen,
-                        unsigned int iteration_count,
-                        uint32_t key_length, unsigned char *output)
+inline int pkcs5_pbkdf1(mbedtls_md_context_t* ctx, const unsigned char* password,
+    size_t plen, const unsigned char* salt, size_t slen,
+    unsigned int iteration_count,
+    uint32_t key_length, unsigned char* output)
 {
     int ret;
     unsigned int i;
@@ -283,14 +274,13 @@ inline int pkcs5_pbkdf1(mbedtls_md_context_t *ctx, const unsigned char *password
     unsigned char work[MBEDTLS_MD_MAX_SIZE];
     unsigned char md_size = mbedtls_md_get_size(ctx->md_info);
     size_t use_len;
-    unsigned char *out_p = output;
+    unsigned char* out_p = output;
     bool bFirst = true;
 
     if (iteration_count > 0xFFFFFFFF)
         return (MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA);
 
-    while (key_length)
-    {
+    while (key_length) {
         if ((ret = mbedtls_md_starts(ctx)) != 0)
             return (ret);
 
@@ -310,8 +300,7 @@ inline int pkcs5_pbkdf1(mbedtls_md_context_t *ctx, const unsigned char *password
 
         memcpy(md1, work, md_size);
 
-        for (i = 1; i < iteration_count; i++)
-        {
+        for (i = 1; i < iteration_count; i++) {
             if ((ret = mbedtls_md_starts(ctx)) != 0)
                 return (ret);
 
@@ -327,7 +316,7 @@ inline int pkcs5_pbkdf1(mbedtls_md_context_t *ctx, const unsigned char *password
         use_len = (key_length < md_size) ? key_length : md_size;
         memcpy(out_p, work, use_len);
 
-        key_length -= (uint32_t) use_len;
+        key_length -= (uint32_t)use_len;
         out_p += use_len;
     }
 
@@ -335,7 +324,7 @@ inline int pkcs5_pbkdf1(mbedtls_md_context_t *ctx, const unsigned char *password
 }
 
 result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t iterations,
-                             int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -353,20 +342,19 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
 
     mbedtls_md_context_t ctx;
     mbedtls_md_setup(&ctx, mbedtls_md_info_from_type((mbedtls_md_type_t)algo), 1);
-    pkcs5_pbkdf1(&ctx, (const unsigned char *)str_pass.c_str(), str_pass.length(),
-                 (const unsigned char *)str_salt.c_str(), str_salt.length(),
-                 iterations, size, (unsigned char *)&str_key[0]);
+    pkcs5_pbkdf1(&ctx, (const unsigned char*)str_pass.c_str(), str_pass.length(),
+        (const unsigned char*)str_salt.c_str(), str_salt.length(),
+        iterations, size, (unsigned char*)&str_key[0]);
     mbedtls_md_free(&ctx);
 
     retVal = new Buffer(str_key);
 
     return 0;
-
 }
 
 result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t iterations,
-                             int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
-                             AsyncEvent* ac)
+    int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -380,7 +368,7 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
 }
 
 result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations,
-                             int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -398,9 +386,9 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
 
     mbedtls_md_context_t ctx;
     mbedtls_md_setup(&ctx, mbedtls_md_info_from_type((mbedtls_md_type_t)algo), 1);
-    mbedtls_pkcs5_pbkdf2_hmac(&ctx, (const unsigned char *)str_pass.c_str(), str_pass.length(),
-                              (const unsigned char *)str_salt.c_str(), str_salt.length(),
-                              iterations, size, (unsigned char *)&str_key[0]);
+    mbedtls_pkcs5_pbkdf2_hmac(&ctx, (const unsigned char*)str_pass.c_str(), str_pass.length(),
+        (const unsigned char*)str_salt.c_str(), str_salt.length(),
+        iterations, size, (unsigned char*)&str_key[0]);
     mbedtls_md_free(&ctx);
 
     retVal = new Buffer(str_key);
@@ -409,8 +397,8 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
 }
 
 result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations,
-                             int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
-                             AsyncEvent* ac)
+    int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -424,9 +412,8 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
 }
 
 result_t crypto_base::pbkdf2Sync(Buffer_base* password, Buffer_base* salt, int32_t iterations,
-                                 int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal)
+    int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal)
 {
     return ac_pbkdf2(password, salt, iterations, size, algoName, retVal);
 }
-
 }

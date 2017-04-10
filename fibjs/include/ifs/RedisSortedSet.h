@@ -14,14 +14,12 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Buffer_base;
 class List_base;
 
-class RedisSortedSet_base : public object_base
-{
+class RedisSortedSet_base : public object_base {
     DECLARE_CLASS(RedisSortedSet_base);
 
 public:
@@ -62,214 +60,208 @@ public:
     static void s_rank(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rankRev(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
 #include "Buffer.h"
 #include "List.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& RedisSortedSet_base::class_info()
 {
-    inline ClassInfo& RedisSortedSet_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"add", s_add, false},
-            {"score", s_score, false},
-            {"incr", s_incr, false},
-            {"remove", s_remove, false},
-            {"len", s_len, false},
-            {"count", s_count, false},
-            {"range", s_range, false},
-            {"rangeRev", s_rangeRev, false},
-            {"rank", s_rank, false},
-            {"rankRev", s_rankRev, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "add", s_add, false },
+        { "score", s_score, false },
+        { "incr", s_incr, false },
+        { "remove", s_remove, false },
+        { "len", s_len, false },
+        { "count", s_count, false },
+        { "range", s_range, false },
+        { "rangeRev", s_rangeRev, false },
+        { "rank", s_rank, false },
+        { "rankRev", s_rankRev, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "RedisSortedSet", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "RedisSortedSet", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void RedisSortedSet_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void RedisSortedSet_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(RedisSortedSet_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
-        hr = pInst->add(v0, vr);
+    hr = pInst->add(v0, vr);
 
-        METHOD_OVER(-1, 0);
+    METHOD_OVER(-1, 0);
 
-        hr = pInst->add(args, vr);
+    hr = pInst->add(args, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void RedisSortedSet_base::s_score(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+inline void RedisSortedSet_base::s_score(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(RedisSortedSet_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->score(v0, vr);
+    hr = pInst->score(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void RedisSortedSet_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+inline void RedisSortedSet_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(RedisSortedSet_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        OPT_ARG(int64_t, 1, 1);
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(int64_t, 1, 1);
 
-        hr = pInst->incr(v0, v1, vr);
+    hr = pInst->incr(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void RedisSortedSet_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void RedisSortedSet_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(RedisSortedSet_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Array>, 0);
+    ARG(v8::Local<v8::Array>, 0);
 
-        hr = pInst->remove(v0, vr);
+    hr = pInst->remove(v0, vr);
 
-        METHOD_OVER(-1, 0);
+    METHOD_OVER(-1, 0);
 
-        hr = pInst->remove(args, vr);
+    hr = pInst->remove(args, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void RedisSortedSet_base::s_len(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void RedisSortedSet_base::s_len(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(RedisSortedSet_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->len(vr);
+    hr = pInst->len(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void RedisSortedSet_base::s_count(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void RedisSortedSet_base::s_count(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(RedisSortedSet_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
 
-        hr = pInst->count(v0, v1, vr);
+    hr = pInst->count(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void RedisSortedSet_base::s_range(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<List_base> vr;
+inline void RedisSortedSet_base::s_range(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<List_base> vr;
 
-        METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(RedisSortedSet_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        OPT_ARG(bool, 2, false);
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    OPT_ARG(bool, 2, false);
 
-        hr = pInst->range(v0, v1, v2, vr);
+    hr = pInst->range(v0, v1, v2, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void RedisSortedSet_base::s_rangeRev(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<List_base> vr;
+inline void RedisSortedSet_base::s_rangeRev(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<List_base> vr;
 
-        METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(RedisSortedSet_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        OPT_ARG(bool, 2, false);
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    OPT_ARG(bool, 2, false);
 
-        hr = pInst->rangeRev(v0, v1, v2, vr);
+    hr = pInst->rangeRev(v0, v1, v2, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void RedisSortedSet_base::s_rank(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void RedisSortedSet_base::s_rank(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(RedisSortedSet_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->rank(v0, vr);
+    hr = pInst->rank(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void RedisSortedSet_base::s_rankRev(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void RedisSortedSet_base::s_rankRev(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(RedisSortedSet_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(RedisSortedSet_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        hr = pInst->rankRev(v0, vr);
+    hr = pInst->rankRev(v0, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

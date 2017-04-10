@@ -15,26 +15,23 @@
 #include <exif/include/exif.h>
 #include "ifs/gd.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 DECLARE_MODULE(gd);
 
 void Image::setExtMemory(int32_t add)
 {
-    if (m_image)
-    {
-        int32_t psize =
-            gdImageTrueColor(m_image) ? sizeof(int32_t) : sizeof(unsigned char);
+    if (m_image) {
+        int32_t psize = gdImageTrueColor(m_image) ? sizeof(int32_t) : sizeof(unsigned char);
         int32_t sx = gdImageSX(m_image);
         int32_t sy = gdImageSY(m_image);
         extMemory(
-            (sizeof(gdImage) + sizeof(void *) * sy + psize * sx * sy) * add);
+            (sizeof(gdImage) + sizeof(void*) * sy + psize * sx * sy) * add);
     }
 }
 
 result_t gd_base::create(int32_t width, int32_t height, int32_t color,
-                         obj_ptr<Image_base> &retVal, AsyncEvent *ac)
+    obj_ptr<Image_base>& retVal, AsyncEvent* ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -51,8 +48,8 @@ result_t gd_base::create(int32_t width, int32_t height, int32_t color,
     return 0;
 }
 
-result_t gd_base::load(Buffer_base *data, obj_ptr<Image_base> &retVal,
-                       AsyncEvent *ac)
+result_t gd_base::load(Buffer_base* data, obj_ptr<Image_base>& retVal,
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -66,22 +63,23 @@ result_t gd_base::load(Buffer_base *data, obj_ptr<Image_base> &retVal,
     return 0;
 }
 
-result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
-                       AsyncEvent *ac)
+result_t gd_base::load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal,
+    AsyncEvent* ac)
 {
-    class asyncLoad: public AsyncState
-    {
+    class asyncLoad : public AsyncState {
     public:
-        asyncLoad(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
-                  AsyncEvent *ac) :
-            AsyncState(ac), m_stm(stm), m_retVal(retVal)
+        asyncLoad(SeekableStream_base* stm, obj_ptr<Image_base>& retVal,
+            AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_stm(stm)
+            , m_retVal(retVal)
         {
             set(read);
         }
 
-        static int32_t read(AsyncState *pState, int32_t n)
+        static int32_t read(AsyncState* pState, int32_t n)
         {
-            asyncLoad *pThis = (asyncLoad *) pState;
+            asyncLoad* pThis = (asyncLoad*)pState;
             result_t hr;
             int64_t len;
 
@@ -94,12 +92,12 @@ result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
                 return hr;
 
             pThis->set(load);
-            return pThis->m_stm->read((int32_t) len, pThis->m_buffer, pThis);
+            return pThis->m_stm->read((int32_t)len, pThis->m_buffer, pThis);
         }
 
-        static int32_t load(AsyncState *pState, int32_t n)
+        static int32_t load(AsyncState* pState, int32_t n)
         {
-            asyncLoad *pThis = (asyncLoad *) pState;
+            asyncLoad* pThis = (asyncLoad*)pState;
 
             if (n == CALL_RETURN_NULL)
                 return CHECK_ERROR(CALL_E_INVALID_DATA);
@@ -115,7 +113,7 @@ result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
 
     private:
         obj_ptr<SeekableStream_base> m_stm;
-        obj_ptr<Image_base> &m_retVal;
+        obj_ptr<Image_base>& m_retVal;
         obj_ptr<Buffer_base> m_buffer;
     };
 
@@ -125,38 +123,39 @@ result_t gd_base::load(SeekableStream_base *stm, obj_ptr<Image_base> &retVal,
     return (new asyncLoad(stm, retVal, ac))->post(0);
 }
 
-result_t gd_base::load(exlib::string fname, obj_ptr<Image_base> &retVal,
-                       AsyncEvent *ac)
+result_t gd_base::load(exlib::string fname, obj_ptr<Image_base>& retVal,
+    AsyncEvent* ac)
 {
-    class asyncLoad: public AsyncState
-    {
+    class asyncLoad : public AsyncState {
     public:
-        asyncLoad(exlib::string fname, obj_ptr<Image_base> &retVal,
-                  AsyncEvent *ac) :
-            AsyncState(ac), m_fname(fname), m_retVal(retVal)
+        asyncLoad(exlib::string fname, obj_ptr<Image_base>& retVal,
+            AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_fname(fname)
+            , m_retVal(retVal)
         {
             set(open);
         }
 
-        static int32_t open(AsyncState *pState, int32_t n)
+        static int32_t open(AsyncState* pState, int32_t n)
         {
-            asyncLoad *pThis = (asyncLoad *) pState;
+            asyncLoad* pThis = (asyncLoad*)pState;
 
             pThis->set(read);
             return fs_base::open(pThis->m_fname, "r", pThis->m_file, pThis);
         }
 
-        static int32_t read(AsyncState *pState, int32_t n)
+        static int32_t read(AsyncState* pState, int32_t n)
         {
-            asyncLoad *pThis = (asyncLoad *) pState;
+            asyncLoad* pThis = (asyncLoad*)pState;
 
             pThis->set(close);
             return load(pThis->m_file, pThis->m_retVal, pThis);
         }
 
-        static int32_t close(AsyncState *pState, int32_t n)
+        static int32_t close(AsyncState* pState, int32_t n)
         {
-            asyncLoad *pThis = (asyncLoad *) pState;
+            asyncLoad* pThis = (asyncLoad*)pState;
 
             pThis->done();
             return pThis->m_file->close(pThis);
@@ -165,7 +164,7 @@ result_t gd_base::load(exlib::string fname, obj_ptr<Image_base> &retVal,
     private:
         exlib::string m_fname;
         obj_ptr<SeekableStream_base> m_file;
-        obj_ptr<Image_base> &m_retVal;
+        obj_ptr<Image_base>& m_retVal;
     };
 
     if (!ac)
@@ -174,10 +173,10 @@ result_t gd_base::load(exlib::string fname, obj_ptr<Image_base> &retVal,
     return (new asyncLoad(fname, retVal, ac))->post(0);
 }
 
-result_t gd_base::rgb(int32_t red, int32_t green, int32_t blue, int32_t &retVal)
+result_t gd_base::rgb(int32_t red, int32_t green, int32_t blue, int32_t& retVal)
 {
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255)
+        || blue > 255)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = gdTrueColor(red, green, blue);
@@ -185,10 +184,10 @@ result_t gd_base::rgb(int32_t red, int32_t green, int32_t blue, int32_t &retVal)
 }
 
 result_t gd_base::rgba(int32_t red, int32_t green, int32_t blue,
-                       double alpha, int32_t &retVal)
+    double alpha, int32_t& retVal)
 {
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255 || alpha < 0 || alpha > 1)
+        || blue > 255 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = gdTrueColorAlpha(red, green, blue, (int32_t)round(alpha * 127));
@@ -200,14 +199,14 @@ inline int32_t rgb_quant(double p, double q, double h)
     if (h < 0)
         h += 360;
 
-    if (h >= 360 )
+    if (h >= 360)
         h -= 360;
 
     if (h < 60)
         return (int32_t)round((p + (q - p) * h / 60) * 255);
 
     if (h < 180)
-        return (int32_t)round(q * 255 );
+        return (int32_t)round(q * 255);
 
     if (h < 240)
         return (int32_t)round((p + (q - p) * (240 - h) / 60) * 255);
@@ -219,32 +218,28 @@ inline int32_t hsl2rgb(double h, double s, double l)
 {
     double p, q;
 
-    if (s == 0)
-    {
+    if (s == 0) {
         int32_t c = (int32_t)round(l * 255);
         return gdTrueColor(c, c, c);
     }
 
-    if (l <= 0.5)
-    {
+    if (l <= 0.5) {
         p = l * (1 - s);
         q = 2 * l - p;
-    }
-    else
-    {
+    } else {
         q = l + s - (l * s);
         p = 2 * l - q;
     }
 
     return gdTrueColor(rgb_quant(p, q, h + 120),
-                       rgb_quant(p, q, h),
-                       rgb_quant(p, q, h - 120));
+        rgb_quant(p, q, h),
+        rgb_quant(p, q, h - 120));
 }
 
-result_t gd_base::hsl(double hue, double saturation, double lightness, int32_t &retVal)
+result_t gd_base::hsl(double hue, double saturation, double lightness, int32_t& retVal)
 {
     if (hue < 0 || hue > 360 || saturation < 0 || saturation > 1 || lightness < 0
-            || lightness > 1)
+        || lightness > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = hsl2rgb(hue, saturation, lightness);
@@ -252,10 +247,10 @@ result_t gd_base::hsl(double hue, double saturation, double lightness, int32_t &
 }
 
 result_t gd_base::hsla(double hue, double saturation, double lightness,
-                       double alpha, int32_t &retVal)
+    double alpha, int32_t& retVal)
 {
     if (hue < 0 || hue > 360 || saturation < 0 || saturation > 1 || lightness < 0
-            || lightness > 1 || alpha < 0 || alpha > 1)
+        || lightness > 1 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = ((int32_t)round(alpha * 127) << 24) | hsl2rgb(hue, saturation, lightness);
@@ -306,15 +301,15 @@ inline int32_t hsb2rgb(double h, double s, double b)
         break;
     }
 
-    return gdTrueColor((int32_t)round (cr * 255.0),
-                       (int32_t)round (cg * 255.0),
-                       (int32_t)round (cb * 255.0));
+    return gdTrueColor((int32_t)round(cr * 255.0),
+        (int32_t)round(cg * 255.0),
+        (int32_t)round(cb * 255.0));
 }
 
 result_t gd_base::hsb(double hue, double saturation, double brightness, int32_t& retVal)
 {
     if (hue < 0 || hue > 360 || saturation < 0 || saturation > 1 || brightness < 0
-            || brightness > 1)
+        || brightness > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = hsb2rgb(hue, saturation, brightness);
@@ -322,39 +317,38 @@ result_t gd_base::hsb(double hue, double saturation, double brightness, int32_t&
 }
 
 result_t gd_base::hsba(double hue, double saturation, double brightness,
-                       double alpha, int32_t& retVal)
+    double alpha, int32_t& retVal)
 {
     if (hue < 0 || hue > 360 || saturation < 0 || saturation > 1 || brightness < 0
-            || brightness > 1 || alpha < 0 || alpha > 1)
+        || brightness > 1 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = ((int32_t)round(alpha * 127) << 24) | hsb2rgb(hue, saturation, brightness);
     return 0;
 }
 
-result_t gd_base::color(exlib::string color, int32_t &retVal)
+result_t gd_base::color(exlib::string color, int32_t& retVal)
 {
     const char* c_str = color.c_str();
 
     if (*c_str == '#')
-        c_str ++;
+        c_str++;
 
     if (!qisxdigit(c_str[0]) || !qisxdigit(c_str[1]) || !qisxdigit(c_str[2]))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (!c_str[3])
         retVal = gdTrueColor(qhex(c_str[0]) * 17,
-                             qhex(c_str[1]) * 17,
-                             qhex(c_str[2]) * 17);
-    else
-    {
+            qhex(c_str[1]) * 17,
+            qhex(c_str[2]) * 17);
+    else {
         if (!qisxdigit(c_str[3]) || !qisxdigit(c_str[4]) || !qisxdigit(c_str[5])
-                || c_str[6])
+            || c_str[6])
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
         retVal = gdTrueColor((qhex(c_str[0]) << 4) | qhex(c_str[1]),
-                             (qhex(c_str[2]) << 4) | qhex(c_str[3]),
-                             (qhex(c_str[4]) << 4) | qhex(c_str[5]));
+            (qhex(c_str[2]) << 4) | qhex(c_str[3]),
+            (qhex(c_str[4]) << 4) | qhex(c_str[5]));
     }
 
     return 0;
@@ -380,7 +374,7 @@ result_t Image::create(int32_t width, int32_t height, int32_t color)
     return 0;
 }
 
-result_t Image::load(Buffer_base *data)
+result_t Image::load(Buffer_base* data)
 {
     exlib::string strBuf;
     data->toString(strBuf);
@@ -389,8 +383,8 @@ result_t Image::load(Buffer_base *data)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int32_t format;
-    unsigned char ch1 = (unsigned char) strBuf[0];
-    unsigned char ch2 = (unsigned char) strBuf[1];
+    unsigned char ch1 = (unsigned char)strBuf[0];
+    unsigned char ch2 = (unsigned char)strBuf[1];
 
     if (ch1 == 0x47 && ch2 == 0x49)
         format = gd_base::_GIF;
@@ -407,27 +401,24 @@ result_t Image::load(Buffer_base *data)
     else
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    switch (format)
-    {
+    switch (format) {
     case gd_base::_GIF:
-        m_image = gdImageCreateFromGifPtr((int32_t) strBuf.length(),
-                                          (void *) strBuf.c_str());
+        m_image = gdImageCreateFromGifPtr((int32_t)strBuf.length(),
+            (void*)strBuf.c_str());
         break;
     case gd_base::_PNG:
-        m_image = gdImageCreateFromPngPtr((int32_t) strBuf.length(),
-                                          (void *) strBuf.c_str());
+        m_image = gdImageCreateFromPngPtr((int32_t)strBuf.length(),
+            (void*)strBuf.c_str());
         break;
     case gd_base::_JPEG:
-        m_image = gdImageCreateFromJpegPtr((int32_t) strBuf.length(),
-                                           (void *) strBuf.c_str());
-        if (m_image != NULL)
-        {
+        m_image = gdImageCreateFromJpegPtr((int32_t)strBuf.length(),
+            (void*)strBuf.c_str());
+        if (m_image != NULL) {
             EXIFInfo result;
-            result.parseFrom((const unsigned char *) strBuf.c_str(),
-                             (uint32_t)strBuf.length());
+            result.parseFrom((const unsigned char*)strBuf.c_str(),
+                (uint32_t)strBuf.length());
 
-            switch (result.Orientation)
-            {
+            switch (result.Orientation) {
             case 2:
                 gdImageFlipHorizontal(m_image);
                 break;
@@ -452,16 +443,16 @@ result_t Image::load(Buffer_base *data)
 
         break;
     case gd_base::_TIFF:
-        m_image = gdImageCreateFromTiffPtr((int32_t) strBuf.length(),
-                                           (void *) strBuf.c_str());
+        m_image = gdImageCreateFromTiffPtr((int32_t)strBuf.length(),
+            (void*)strBuf.c_str());
         break;
     case gd_base::_BMP:
-        m_image = gdImageCreateFromBmpPtr((int32_t) strBuf.length(),
-                                          (void *) strBuf.c_str());
+        m_image = gdImageCreateFromBmpPtr((int32_t)strBuf.length(),
+            (void*)strBuf.c_str());
         break;
     case gd_base::_WEBP:
-        m_image = gdImageCreateFromWebpPtr((int32_t) strBuf.length(),
-                                           (void *) strBuf.c_str());
+        m_image = gdImageCreateFromWebpPtr((int32_t)strBuf.length(),
+            (void*)strBuf.c_str());
         break;
     }
 
@@ -483,7 +474,7 @@ int32_t my_replacer(gdImagePtr im, int32_t src)
 }
 
 result_t Image::getData(int32_t format, int32_t quality,
-                        obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
+    obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -492,45 +483,38 @@ result_t Image::getData(int32_t format, int32_t quality,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t size = 0;
-    void *data = NULL;
+    void* data = NULL;
     int32_t sx = gdImageSX(m_image);
     int32_t sy = gdImageSY(m_image);
     int32_t i, j;
     int32_t trans = -1;
 
-    if (gdImageTrueColor(m_image))
-    {
-        for (i = 0; i < sx && trans == -1; i ++)
+    if (gdImageTrueColor(m_image)) {
+        for (i = 0; i < sx && trans == -1; i++)
             for (j = 0; j < sy && trans == -1; j++)
                 if ((gdImageGetPixel(m_image, i, j) & 0xff000000) != 0)
                     trans = 0;
-    }
-    else
+    } else
         trans = gdImageGetTransparent(m_image);
 
     gdImagePtr nowImage = m_image;
 
-    if (trans != -1)
-    {
-        if (format != gd_base::_PNG)
-        {
+    if (trans != -1) {
+        if (format != gd_base::_PNG) {
             if (gdImageTrueColor(m_image))
                 nowImage = gdImageCreateTrueColor(sx, sy);
-            else
-            {
+            else {
                 nowImage = gdImageCreate(sx, sy);
                 gdImagePaletteCopy(nowImage, m_image);
             }
 
             gdImageFilledRectangle(nowImage, 0, 0, sx, sy, gdImageColorAllocate(nowImage, 255, 255, 255));
             gdImageCopy(nowImage, m_image, 0, 0, 0, 0, sx, sy);
-        }
-        else if (gdImageTrueColor(m_image))
+        } else if (gdImageTrueColor(m_image))
             gdImageSaveAlpha(m_image, 1);
     }
 
-    switch (format)
-    {
+    switch (format) {
     case gd_base::_GIF:
         data = gdImageGifPtr(nowImage, &size);
         break;
@@ -557,36 +541,39 @@ result_t Image::getData(int32_t format, int32_t quality,
     if (data == NULL)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = new Buffer((char *) data, size);
+    retVal = new Buffer((char*)data, size);
     gdFree(data);
 
     return 0;
 }
 
-result_t Image::save(Stream_base *stm, int32_t format, int32_t quality,
-                     AsyncEvent *ac)
+result_t Image::save(Stream_base* stm, int32_t format, int32_t quality,
+    AsyncEvent* ac)
 {
-    class asyncSave: public AsyncState
-    {
+    class asyncSave : public AsyncState {
     public:
-        asyncSave(Image *img, Stream_base *stm, int32_t format, int32_t quality,
-                  AsyncEvent *ac) :
-            AsyncState(ac), m_pThis(img), m_stm(stm), m_format(format), m_quality(quality)
+        asyncSave(Image* img, Stream_base* stm, int32_t format, int32_t quality,
+            AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(img)
+            , m_stm(stm)
+            , m_format(format)
+            , m_quality(quality)
         {
             set(getData);
         }
 
-        static int32_t getData(AsyncState *pState, int32_t n)
+        static int32_t getData(AsyncState* pState, int32_t n)
         {
-            asyncSave *pThis = (asyncSave *) pState;
+            asyncSave* pThis = (asyncSave*)pState;
 
             pThis->set(save);
             return pThis->m_pThis->getData(pThis->m_format, pThis->m_quality, pThis->m_buf, pThis);
         }
 
-        static int32_t save(AsyncState *pState, int32_t n)
+        static int32_t save(AsyncState* pState, int32_t n)
         {
-            asyncSave *pThis = (asyncSave *) pState;
+            asyncSave* pThis = (asyncSave*)pState;
 
             pThis->done();
             return pThis->m_stm->write(pThis->m_buf, pThis);
@@ -610,37 +597,40 @@ result_t Image::save(Stream_base *stm, int32_t format, int32_t quality,
 }
 
 result_t Image::save(exlib::string fname, int32_t format, int32_t quality,
-                     AsyncEvent *ac)
+    AsyncEvent* ac)
 {
-    class asyncSave: public AsyncState
-    {
+    class asyncSave : public AsyncState {
     public:
-        asyncSave(Image *img, exlib::string fname, int32_t format, int32_t quality,
-                  AsyncEvent *ac) :
-            AsyncState(ac), m_pThis(img), m_fname(fname), m_format(format), m_quality(quality)
+        asyncSave(Image* img, exlib::string fname, int32_t format, int32_t quality,
+            AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(img)
+            , m_fname(fname)
+            , m_format(format)
+            , m_quality(quality)
         {
             set(open);
         }
 
-        static int32_t open(AsyncState *pState, int32_t n)
+        static int32_t open(AsyncState* pState, int32_t n)
         {
-            asyncSave *pThis = (asyncSave *) pState;
+            asyncSave* pThis = (asyncSave*)pState;
 
             pThis->set(save);
             return fs_base::open(pThis->m_fname, "w", pThis->m_file, pThis);
         }
 
-        static int32_t save(AsyncState *pState, int32_t n)
+        static int32_t save(AsyncState* pState, int32_t n)
         {
-            asyncSave *pThis = (asyncSave *) pState;
+            asyncSave* pThis = (asyncSave*)pState;
 
             pThis->set(close);
             return pThis->m_pThis->save(pThis->m_file, pThis->m_format, pThis->m_quality, pThis);
         }
 
-        static int32_t close(AsyncState *pState, int32_t n)
+        static int32_t close(AsyncState* pState, int32_t n)
         {
-            asyncSave *pThis = (asyncSave *) pState;
+            asyncSave* pThis = (asyncSave*)pState;
 
             pThis->done();
             return pThis->m_file->close(pThis);
@@ -664,7 +654,7 @@ result_t Image::save(exlib::string fname, int32_t format, int32_t quality,
     return (new asyncSave(this, fname, format, quality, ac))->post(0);
 }
 
-result_t Image::get_width(int32_t &retVal)
+result_t Image::get_width(int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -673,7 +663,7 @@ result_t Image::get_width(int32_t &retVal)
     return 0;
 }
 
-result_t Image::get_height(int32_t &retVal)
+result_t Image::get_height(int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -682,7 +672,7 @@ result_t Image::get_height(int32_t &retVal)
     return 0;
 }
 
-result_t Image::get_format(int32_t &retVal)
+result_t Image::get_format(int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -691,17 +681,16 @@ result_t Image::get_format(int32_t &retVal)
     return 0;
 }
 
-result_t Image::get_type(int32_t &retVal)
+result_t Image::get_type(int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    retVal =
-        gdImageTrueColor(m_image) ? gd_base::_TRUECOLOR : gd_base::_PALETTE;
+    retVal = gdImageTrueColor(m_image) ? gd_base::_TRUECOLOR : gd_base::_PALETTE;
     return 0;
 }
 
-result_t Image::get_colorsTotal(int32_t &retVal)
+result_t Image::get_colorsTotal(int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -711,178 +700,178 @@ result_t Image::get_colorsTotal(int32_t &retVal)
 }
 
 result_t Image::colorAllocate(int32_t red, int32_t green, int32_t blue,
-                              int32_t &retVal)
+    int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255)
+        || blue > 255)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = gdImageColorAllocate(m_image, red, green, blue);
     return 0;
 }
 
-result_t Image::colorAllocate(int32_t color, int32_t &retVal)
+result_t Image::colorAllocate(int32_t color, int32_t& retVal)
 {
     return colorAllocate((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff, retVal);
 }
 
 result_t Image::colorAllocateAlpha(int32_t red, int32_t green, int32_t blue,
-                                   double alpha, int32_t &retVal)
+    double alpha, int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255 || alpha < 0 || alpha > 1)
+        || blue > 255 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = gdImageColorAllocateAlpha(m_image, red, green, blue, (int32_t)round(alpha * 127));
     return 0;
 }
 
-result_t Image::colorAllocateAlpha(int32_t color, int32_t &retVal)
+result_t Image::colorAllocateAlpha(int32_t color, int32_t& retVal)
 {
     return colorAllocateAlpha((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff,
-                              ((color >> 24) & 0xff) / 127.0, retVal);
+        ((color >> 24) & 0xff) / 127.0, retVal);
 }
 
 result_t Image::colorClosest(int32_t red, int32_t green, int32_t blue,
-                             int32_t &retVal)
+    int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255)
+        || blue > 255)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = gdImageColorClosest(m_image, red, green, blue);
     return 0;
 }
 
-result_t Image::colorClosest(int32_t color, int32_t &retVal)
+result_t Image::colorClosest(int32_t color, int32_t& retVal)
 {
     return colorClosest((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff, retVal);
 }
 
 result_t Image::colorClosestHWB(int32_t red, int32_t green, int32_t blue,
-                                int32_t &retVal)
+    int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255)
+        || blue > 255)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = gdImageColorClosestHWB(m_image, red, green, blue);
     return 0;
 }
 
-result_t Image::colorClosestHWB(int32_t color, int32_t &retVal)
+result_t Image::colorClosestHWB(int32_t color, int32_t& retVal)
 {
     return colorClosestHWB((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff, retVal);
 }
 
 result_t Image::colorClosestAlpha(int32_t red, int32_t green, int32_t blue,
-                                  double alpha, int32_t &retVal)
+    double alpha, int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255 || alpha < 0 || alpha > 1)
+        || blue > 255 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = gdImageColorClosestAlpha(m_image, red, green, blue, (int32_t)round(alpha * 127));
     return 0;
 }
 
-result_t Image::colorClosestAlpha(int32_t color, int32_t &retVal)
+result_t Image::colorClosestAlpha(int32_t color, int32_t& retVal)
 {
     return colorClosestAlpha((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff,
-                             ((color >> 24) & 0xff) / 127.0, retVal);
+        ((color >> 24) & 0xff) / 127.0, retVal);
 }
 
 result_t Image::colorExact(int32_t red, int32_t green, int32_t blue,
-                           int32_t &retVal)
+    int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255)
+        || blue > 255)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = gdImageColorExact(m_image, red, green, blue);
     return 0;
 }
 
-result_t Image::colorExact(int32_t color, int32_t &retVal)
+result_t Image::colorExact(int32_t color, int32_t& retVal)
 {
     return colorExact((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff, retVal);
 }
 
 result_t Image::colorExactAlpha(int32_t red, int32_t green, int32_t blue,
-                                double alpha, int32_t &retVal)
+    double alpha, int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255 || alpha < 0 || alpha > 1)
+        || blue > 255 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = gdImageColorExactAlpha(m_image, red, green, blue, (int32_t)round(alpha * 127));
     return 0;
 }
 
-result_t Image::colorExactAlpha(int32_t color, int32_t &retVal)
+result_t Image::colorExactAlpha(int32_t color, int32_t& retVal)
 {
     return colorExactAlpha((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff,
-                           ((color >> 24) & 0xff) / 127.0, retVal);
+        ((color >> 24) & 0xff) / 127.0, retVal);
 }
 
 result_t Image::colorResolve(int32_t red, int32_t green, int32_t blue,
-                             int32_t &retVal)
+    int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255)
+        || blue > 255)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = gdImageColorResolve(m_image, red, green, blue);
     return 0;
 }
 
-result_t Image::colorResolve(int32_t color, int32_t &retVal)
+result_t Image::colorResolve(int32_t color, int32_t& retVal)
 {
     return colorResolve((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff, retVal);
 }
 
 result_t Image::colorResolveAlpha(int32_t red, int32_t green, int32_t blue,
-                                  double alpha, int32_t &retVal)
+    double alpha, int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-            || blue > 255 || alpha < 0 || alpha > 1)
+        || blue > 255 || alpha < 0 || alpha > 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = gdImageColorResolveAlpha(m_image, red, green, blue, (int32_t)round(alpha * 127));
     return 0;
 }
 
-result_t Image::colorResolveAlpha(int32_t color, int32_t &retVal)
+result_t Image::colorResolveAlpha(int32_t color, int32_t& retVal)
 {
     return colorResolveAlpha((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff,
-                             ((color >> 24) & 0xff) / 127.0, retVal);
+        ((color >> 24) & 0xff) / 127.0, retVal);
 }
 
 result_t Image::colorDeallocate(int32_t colorIndex)
@@ -903,7 +892,7 @@ result_t Image::clip(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     return 0;
 }
 
-result_t Image::getPixel(int32_t x, int32_t y, int32_t &retVal)
+result_t Image::getPixel(int32_t x, int32_t y, int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -912,7 +901,7 @@ result_t Image::getPixel(int32_t x, int32_t y, int32_t &retVal)
     return 0;
 }
 
-result_t Image::getTrueColorPixel(int32_t x, int32_t y, int32_t &retVal)
+result_t Image::getTrueColorPixel(int32_t x, int32_t y, int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -930,7 +919,7 @@ result_t Image::setPixel(int32_t x, int32_t y, int32_t color)
     return 0;
 }
 
-result_t Image::get_transparent(int32_t &retVal)
+result_t Image::get_transparent(int32_t& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -966,7 +955,7 @@ result_t Image::set_progressive(bool newVal)
     return 0;
 }
 
-result_t Image::get_alphaBlending(bool &retVal)
+result_t Image::get_alphaBlending(bool& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -994,7 +983,7 @@ result_t Image::setThickness(int32_t thickness)
 }
 
 result_t Image::line(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
-                     int32_t color)
+    int32_t color)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1004,7 +993,7 @@ result_t Image::line(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
 }
 
 result_t Image::rectangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
-                          int32_t color)
+    int32_t color)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1014,7 +1003,7 @@ result_t Image::rectangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
 }
 
 result_t Image::filledRectangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
-                                int32_t color)
+    int32_t color)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1023,14 +1012,13 @@ result_t Image::filledRectangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
     return 0;
 }
 
-result_t getPoints(v8::Local<v8::Array> &points, std::vector<gdPoint> &pts)
+result_t getPoints(v8::Local<v8::Array>& points, std::vector<gdPoint>& pts)
 {
     int32_t i, len = points->Length();
 
     pts.resize(len);
 
-    for (i = 0; i < len; i++)
-    {
+    for (i = 0; i < len; i++) {
         v8::Local<v8::Value> v = points->Get(i);
 
         if (!v->IsArray())
@@ -1053,13 +1041,13 @@ result_t Image::polygon(v8::Local<v8::Array> points, int32_t color)
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    std::vector < gdPoint > pts;
+    std::vector<gdPoint> pts;
 
     result_t hr = getPoints(points, pts);
     if (hr < 0)
         return hr;
 
-    gdImagePolygon(m_image, pts.data(), (int32_t) pts.size(), color);
+    gdImagePolygon(m_image, pts.data(), (int32_t)pts.size(), color);
     return 0;
 }
 
@@ -1068,13 +1056,13 @@ result_t Image::openPolygon(v8::Local<v8::Array> points, int32_t color)
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    std::vector < gdPoint > pts;
+    std::vector<gdPoint> pts;
 
     result_t hr = getPoints(points, pts);
     if (hr < 0)
         return hr;
 
-    gdImageOpenPolygon(m_image, pts.data(), (int32_t) pts.size(), color);
+    gdImageOpenPolygon(m_image, pts.data(), (int32_t)pts.size(), color);
     return 0;
 }
 
@@ -1083,18 +1071,18 @@ result_t Image::filledPolygon(v8::Local<v8::Array> points, int32_t color)
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    std::vector < gdPoint > pts;
+    std::vector<gdPoint> pts;
 
     result_t hr = getPoints(points, pts);
     if (hr < 0)
         return hr;
 
-    gdImageFilledPolygon(m_image, pts.data(), (int32_t) pts.size(), color);
+    gdImageFilledPolygon(m_image, pts.data(), (int32_t)pts.size(), color);
     return 0;
 }
 
 result_t Image::ellipse(int32_t x, int32_t y, int32_t width, int32_t height,
-                        int32_t color)
+    int32_t color)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1107,7 +1095,7 @@ result_t Image::ellipse(int32_t x, int32_t y, int32_t width, int32_t height,
 }
 
 result_t Image::filledEllipse(int32_t x, int32_t y, int32_t width,
-                              int32_t height, int32_t color)
+    int32_t height, int32_t color)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1120,7 +1108,7 @@ result_t Image::filledEllipse(int32_t x, int32_t y, int32_t width,
 }
 
 result_t Image::arc(int32_t x, int32_t y, int32_t width, int32_t height,
-                    int32_t start, int32_t end, int32_t color)
+    int32_t start, int32_t end, int32_t color)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1136,7 +1124,7 @@ result_t Image::arc(int32_t x, int32_t y, int32_t width, int32_t height,
 }
 
 result_t Image::filledArc(int32_t x, int32_t y, int32_t width, int32_t height,
-                          int32_t start, int32_t end, int32_t color, int32_t style)
+    int32_t start, int32_t end, int32_t color, int32_t style)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1161,7 +1149,7 @@ result_t Image::fill(int32_t x, int32_t y, int32_t color)
 }
 
 result_t Image::fillToBorder(int32_t x, int32_t y, int32_t borderColor,
-                             int32_t color)
+    int32_t color)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1170,7 +1158,7 @@ result_t Image::fillToBorder(int32_t x, int32_t y, int32_t borderColor,
     return 0;
 }
 
-result_t Image::New(int32_t width, int32_t height, obj_ptr<Image> &retVal)
+result_t Image::New(int32_t width, int32_t height, obj_ptr<Image>& retVal)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1191,7 +1179,7 @@ result_t Image::New(int32_t width, int32_t height, obj_ptr<Image> &retVal)
     return 0;
 }
 
-result_t Image::colorReplace(int32_t src, int32_t dst, AsyncEvent *ac)
+result_t Image::colorReplace(int32_t src, int32_t dst, AsyncEvent* ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1204,7 +1192,7 @@ result_t Image::colorReplace(int32_t src, int32_t dst, AsyncEvent *ac)
 }
 
 result_t Image::crop(int32_t x, int32_t y, int32_t width, int32_t height,
-                     obj_ptr<Image_base> &retVal, AsyncEvent *ac)
+    obj_ptr<Image_base>& retVal, AsyncEvent* ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1229,7 +1217,7 @@ result_t Image::crop(int32_t x, int32_t y, int32_t width, int32_t height,
     return 0;
 }
 
-result_t Image::clone(obj_ptr<Image_base> &retVal, AsyncEvent *ac)
+result_t Image::clone(obj_ptr<Image_base>& retVal, AsyncEvent* ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1247,7 +1235,7 @@ result_t Image::clone(obj_ptr<Image_base> &retVal, AsyncEvent *ac)
 }
 
 result_t Image::resample(int32_t width, int32_t height,
-                         obj_ptr<Image_base> &retVal, AsyncEvent *ac)
+    obj_ptr<Image_base>& retVal, AsyncEvent* ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1265,14 +1253,14 @@ result_t Image::resample(int32_t width, int32_t height,
 
     gdImageAlphaBlending(dst->m_image, 0);
     gdImageCopyResampled(dst->m_image, m_image, 0, 0, 0, 0, width, height,
-                         gdImageSX(m_image), gdImageSY(m_image));
+        gdImageSX(m_image), gdImageSY(m_image));
     gdImageAlphaBlending(dst->m_image, 1);
 
     retVal = dst;
     return 0;
 }
 
-result_t Image::flip(int32_t dir, AsyncEvent *ac)
+result_t Image::flip(int32_t dir, AsyncEvent* ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1304,27 +1292,23 @@ result_t Image::rotate(int32_t dir)
 
     if (gdImageTrueColor(m_image))
         newImage = gdImageCreateTrueColor(sy, sx);
-    else
-    {
+    else {
         newImage = gdImageCreate(sy, sx);
         gdImagePaletteCopy(newImage, m_image);
     }
 
     gdImageColorTransparent(newImage, gdImageGetTransparent(m_image));
 
-    if (dir == gd_base::_LEFT)
-    {
+    if (dir == gd_base::_LEFT) {
         for (i = 0; i < sx; i++)
             for (j = 0; j < sy; j++)
                 gdImageSetPixel(newImage, j, sx - i - 1,
-                                gdImageGetPixel(m_image, i, j));
-    }
-    else
-    {
+                    gdImageGetPixel(m_image, i, j));
+    } else {
         for (i = 0; i < sx; i++)
             for (j = 0; j < sy; j++)
                 gdImageSetPixel(newImage, sy - j - 1, i,
-                                gdImageGetPixel(m_image, i, j));
+                    gdImageGetPixel(m_image, i, j));
     }
 
     setExtMemory(-1);
@@ -1335,7 +1319,7 @@ result_t Image::rotate(int32_t dir)
     return 0;
 }
 
-result_t Image::rotate(int32_t dir, AsyncEvent *ac)
+result_t Image::rotate(int32_t dir, AsyncEvent* ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1346,7 +1330,7 @@ result_t Image::rotate(int32_t dir, AsyncEvent *ac)
     return rotate(dir);
 }
 
-result_t Image::convert(int32_t color, AsyncEvent *ac)
+result_t Image::convert(int32_t color, AsyncEvent* ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1357,27 +1341,23 @@ result_t Image::convert(int32_t color, AsyncEvent *ac)
     if (color != gd_base::_TRUECOLOR && color != gd_base::_PALETTE)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (color == gd_base::_TRUECOLOR && !gdImageTrueColor(m_image))
-    {
+    if (color == gd_base::_TRUECOLOR && !gdImageTrueColor(m_image)) {
         setExtMemory(-1);
         gdImagePaletteToTrueColor(m_image);
         setExtMemory();
-    }
-    else if (color == gd_base::_PALETTE && gdImageTrueColor(m_image))
-    {
+    } else if (color == gd_base::_PALETTE && gdImageTrueColor(m_image)) {
         setExtMemory(-1);
         gdImageTrueColorToPalette(m_image, 1, 256);
         setExtMemory();
-    }
-    else
+    } else
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return 0;
 }
 
-result_t Image::copy(Image_base *source, int32_t dstX, int32_t dstY,
-                     int32_t srcX, int32_t srcY, int32_t width, int32_t height,
-                     AsyncEvent *ac)
+result_t Image::copy(Image_base* source, int32_t dstX, int32_t dstY,
+    int32_t srcX, int32_t srcY, int32_t width, int32_t height,
+    AsyncEvent* ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1388,7 +1368,7 @@ result_t Image::copy(Image_base *source, int32_t dstX, int32_t dstY,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    Image *src = (Image *) source;
+    Image* src = (Image*)source;
     if (!src->m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -1396,9 +1376,9 @@ result_t Image::copy(Image_base *source, int32_t dstX, int32_t dstY,
     return 0;
 }
 
-result_t Image::copyMerge(Image_base *source, int32_t dstX, int32_t dstY,
-                          int32_t srcX, int32_t srcY, int32_t width, int32_t height,
-                          int32_t percent, AsyncEvent *ac)
+result_t Image::copyMerge(Image_base* source, int32_t dstX, int32_t dstY,
+    int32_t srcX, int32_t srcY, int32_t width, int32_t height,
+    int32_t percent, AsyncEvent* ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1409,18 +1389,18 @@ result_t Image::copyMerge(Image_base *source, int32_t dstX, int32_t dstY,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    Image *src = (Image *) source;
+    Image* src = (Image*)source;
     if (!src->m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     gdImageCopyMerge(m_image, src->m_image, dstX, dstY, srcX, srcY, width,
-                     height, percent);
+        height, percent);
     return 0;
 }
 
-result_t Image::copyMergeGray(Image_base *source, int32_t dstX, int32_t dstY,
-                              int32_t srcX, int32_t srcY, int32_t width, int32_t height,
-                              int32_t percent, AsyncEvent *ac)
+result_t Image::copyMergeGray(Image_base* source, int32_t dstX, int32_t dstY,
+    int32_t srcX, int32_t srcY, int32_t width, int32_t height,
+    int32_t percent, AsyncEvent* ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1431,18 +1411,18 @@ result_t Image::copyMergeGray(Image_base *source, int32_t dstX, int32_t dstY,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    Image *src = (Image *) source;
+    Image* src = (Image*)source;
     if (!src->m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     gdImageCopyMergeGray(m_image, src->m_image, dstX, dstY, srcX, srcY, width,
-                         height, percent);
+        height, percent);
     return 0;
 }
 
-result_t Image::copyResized(Image_base *source, int32_t dstX, int32_t dstY,
-                            int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW,
-                            int32_t srcH, AsyncEvent *ac)
+result_t Image::copyResized(Image_base* source, int32_t dstX, int32_t dstY,
+    int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW,
+    int32_t srcH, AsyncEvent* ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1450,18 +1430,18 @@ result_t Image::copyResized(Image_base *source, int32_t dstX, int32_t dstY,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    Image *src = (Image *) source;
+    Image* src = (Image*)source;
     if (!src->m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     gdImageCopyResized(m_image, src->m_image, dstX, dstY, srcX, srcY, dstW,
-                       dstH, srcW, srcH);
+        dstH, srcW, srcH);
     return 0;
 }
 
-result_t Image::copyResampled(Image_base *source, int32_t dstX, int32_t dstY,
-                              int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW,
-                              int32_t srcH, AsyncEvent *ac)
+result_t Image::copyResampled(Image_base* source, int32_t dstX, int32_t dstY,
+    int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW,
+    int32_t srcH, AsyncEvent* ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1469,18 +1449,18 @@ result_t Image::copyResampled(Image_base *source, int32_t dstX, int32_t dstY,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    Image *src = (Image *) source;
+    Image* src = (Image*)source;
     if (!src->m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     gdImageCopyResampled(m_image, src->m_image, dstX, dstY, srcX, srcY, dstW,
-                         dstH, srcW, srcH);
+        dstH, srcW, srcH);
     return 0;
 }
 
-result_t Image::copyRotated(Image_base *source, double dstX, double dstY,
-                            int32_t srcX, int32_t srcY, int32_t width, int32_t height,
-                            double angle, AsyncEvent *ac)
+result_t Image::copyRotated(Image_base* source, double dstX, double dstY,
+    int32_t srcX, int32_t srcY, int32_t width, int32_t height,
+    double angle, AsyncEvent* ac)
 {
     if (width <= 0 || height <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1491,12 +1471,12 @@ result_t Image::copyRotated(Image_base *source, double dstX, double dstY,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    Image *src = (Image *) source;
+    Image* src = (Image*)source;
     if (!src->m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     gdImageCopyRotated(m_image, src->m_image, dstX, dstY, srcX, srcY, width,
-                       height, angle);
+        height, angle);
     return 0;
 }
 
@@ -1508,8 +1488,7 @@ result_t Image::filter(int32_t filterType, double arg1, double arg2, double arg3
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    switch (filterType)
-    {
+    switch (filterType) {
     case gd_base::_MEAN_REMOVAL:
         gdImageMeanRemoval(m_image);
         break;
@@ -1555,7 +1534,7 @@ result_t Image::filter(int32_t filterType, double arg1, double arg2, double arg3
 }
 
 result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_t width, int32_t height,
-                       obj_ptr<Image_base>& retVal)
+    obj_ptr<Image_base>& retVal)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -1563,8 +1542,7 @@ result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_
     if (x == -1 && y == -1 && width == -1 && height == -1) {
         width = gdImageSX(m_image);
         height = gdImageSY(m_image);
-    }
-    else if (x < 0 || y < 0 || width < 0 || height < 0 || affine->Length() != 6 )
+    } else if (x < 0 || y < 0 || width < 0 || height < 0 || affine->Length() != 6)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<Image> dst = new Image();
@@ -1576,7 +1554,7 @@ result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_
     rect.height = height;
 
     double affineMatrix[6];
-    for ( int32_t i = 0; i <= 5; i++)
+    for (int32_t i = 0; i <= 5; i++)
         affineMatrix[i] = affine->Get(i)->NumberValue();
 
     gdTransformAffineGetImage(&dst->m_image, m_image, &rect, affineMatrix);
@@ -1586,7 +1564,6 @@ result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_
 
     return 0;
 }
-
 
 result_t Image::gaussianBlur(int32_t radius, AsyncEvent* ac)
 {
@@ -1600,8 +1577,7 @@ result_t Image::gaussianBlur(int32_t radius, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     gdImagePtr dst = gdImageCopyGaussianBlurred(m_image, radius, -1);
-    if (dst)
-    {
+    if (dst) {
         setExtMemory(-1);
         gdImageDestroy(m_image);
         m_image = dst;

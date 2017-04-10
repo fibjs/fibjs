@@ -10,8 +10,7 @@
 #include "ifs/encoding.h"
 #include "ifs/url.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 DECLARE_MODULE(url);
 
@@ -27,7 +26,7 @@ result_t url_base::format(v8::Local<v8::Object> args, exlib::string& retVal)
 }
 
 result_t url_base::parse(exlib::string url, bool parseQueryString,
-                         obj_ptr<UrlObject_base>& retVal)
+    obj_ptr<UrlObject_base>& retVal)
 {
     obj_ptr<Url> u = new Url();
 
@@ -40,16 +39,13 @@ result_t url_base::parse(exlib::string url, bool parseQueryString,
     return 0;
 }
 
-static const char *pathTable =
-    " !  $%& ()*+,-./0123456789:; =  @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
-static const char *queryTable =
-    " !  $%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
-static const char *hashTable =
-    " ! #$%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+static const char* pathTable = " !  $%& ()*+,-./0123456789:; =  @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+static const char* queryTable = " !  $%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+static const char* hashTable = " ! #$%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
 
 result_t UrlObject_base::_new(exlib::string url, bool parseQueryString,
-                              obj_ptr<UrlObject_base> &retVal,
-                              v8::Local<v8::Object> This)
+    obj_ptr<UrlObject_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     obj_ptr<Url> u = new Url();
 
@@ -62,8 +58,8 @@ result_t UrlObject_base::_new(exlib::string url, bool parseQueryString,
     return 0;
 }
 
-result_t UrlObject_base::_new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base> &retVal,
-                              v8::Local<v8::Object> This)
+result_t UrlObject_base::_new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     obj_ptr<Url> u = new Url();
 
@@ -76,7 +72,7 @@ result_t UrlObject_base::_new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base
     return 0;
 }
 
-Url::Url(const Url &u)
+Url::Url(const Url& u)
 {
     m_protocol = u.m_protocol;
     m_slashes = u.m_slashes;
@@ -108,18 +104,17 @@ void Url::clear()
     m_ipv6 = false;
 }
 
-void Url::parseProtocol(const char *&url)
+void Url::parseProtocol(const char*& url)
 {
-    const char *p = url;
+    const char* p = url;
     char ch;
 
     while ((ch = *p)
-            && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '+'
-                || ch == '-'))
+        && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '+'
+               || ch == '-'))
         p++;
 
-    if (ch == ':')
-    {
+    if (ch == ':') {
         p++;
 
         exlib::string str(url, p - url);
@@ -128,30 +123,27 @@ void Url::parseProtocol(const char *&url)
     }
 }
 
-void Url::parseAuth(const char *&url)
+void Url::parseAuth(const char*& url)
 {
-    const char *p1 = url;
-    const char *p2 = NULL;
+    const char* p1 = url;
+    const char* p2 = NULL;
     char ch;
 
     while ((ch = *p1)
-            && (ch != '/' && ch != '@' && ch != '?' && ch != '#' && ch != ':'))
+        && (ch != '/' && ch != '@' && ch != '?' && ch != '#' && ch != ':'))
         p1++;
 
-    if (ch == ':')
-    {
+    if (ch == ':') {
         p2 = p1 + 1;
 
         while ((ch = *p2) && (ch != '/' && ch != '@' && ch != '?' && ch != '#'))
             p2++;
     }
 
-    if (ch == '@')
-    {
+    if (ch == '@') {
         m_username.assign(url, p1 - url);
         encoding_base::decodeURI(m_username, m_username);
-        if (p2)
-        {
+        if (p2) {
             m_password.assign(p1 + 1, p2 - p1 - 1);
             encoding_base::decodeURI(m_password, m_password);
         }
@@ -160,14 +152,13 @@ void Url::parseAuth(const char *&url)
     }
 }
 
-void Url::parseHost(const char *&url, exlib::string &hostname, exlib::string &port)
+void Url::parseHost(const char*& url, exlib::string& hostname, exlib::string& port)
 {
-    const char *p1 = url;
-    const char *p2 = NULL;
+    const char* p1 = url;
+    const char* p2 = NULL;
     char ch;
 
-    if (*p1 == '[')
-    {
+    if (*p1 == '[') {
         p1++;
         while ((ch = *p1) && (qisxdigit(ch) || ch == ':' || ch == '.'))
             p1++;
@@ -175,17 +166,14 @@ void Url::parseHost(const char *&url, exlib::string &hostname, exlib::string &po
             ch = *++p1;
         else
             url++;
-    }
-    else
-    {
+    } else {
         while ((ch = *p1)
-                && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_'
-                    || ch == '-'))
+            && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_'
+                   || ch == '-'))
             p1++;
     }
 
-    if (ch == ':')
-    {
+    if (ch == ':') {
         p2 = p1 + 1;
 
         while ((ch = *p2) && qisdigit(ch))
@@ -207,12 +195,11 @@ void Url::parseHost(const char *&url, exlib::string &hostname, exlib::string &po
     url = p2 ? p2 : p1;
 }
 
-void Url::parseHost(const char *&url)
+void Url::parseHost(const char*& url)
 {
-    const char *p0 = url;
+    const char* p0 = url;
 
-    while (true)
-    {
+    while (true) {
         parseHost(url, m_hostname, m_port);
         m_ipv6 = qstrchr(m_hostname.c_str(), ':') != NULL;
 
@@ -222,8 +209,7 @@ void Url::parseHost(const char *&url)
         url++;
     }
 
-    if (url > p0)
-    {
+    if (url > p0) {
         if (*(url - 1) == ':')
             m_host.assign(p0, url - p0 - 1);
         else
@@ -232,9 +218,9 @@ void Url::parseHost(const char *&url)
     }
 }
 
-void Url::parsePath(const char *&url)
+void Url::parsePath(const char*& url)
 {
-    const char *p = url;
+    const char* p = url;
     char ch;
 
     while ((ch = *p) && ch != '?' && ch != '#')
@@ -242,8 +228,7 @@ void Url::parsePath(const char *&url)
 
     if (isUrlSlash(*url) || m_hostname.length() == 0 || !m_defslashes)
         m_pathname.assign(url, p - url);
-    else
-    {
+    else {
         m_pathname.assign(1, URL_SLASH);
         m_pathname.append(url, p - url);
     }
@@ -253,12 +238,12 @@ void Url::parsePath(const char *&url)
     url = p;
 }
 
-void Url::parseQuery(const char *&url)
+void Url::parseQuery(const char*& url)
 {
     if (*url != '?')
         return;
 
-    const char *p = ++url;
+    const char* p = ++url;
     char ch;
 
     while ((ch = *p) && ch != '#')
@@ -269,7 +254,7 @@ void Url::parseQuery(const char *&url)
     url = p;
 }
 
-void Url::parseHash(const char *&url)
+void Url::parseHash(const char*& url)
 {
     if (*url != '#')
         return;
@@ -291,13 +276,10 @@ result_t Url::parse(exlib::string url, bool parseQueryString)
     if (m_slashes)
         c_str += 2;
 
-    if (!m_protocol.compare("javascript:"))
-    {
+    if (!m_protocol.compare("javascript:")) {
         m_slashes = false;
         bHost = false;
-    }
-    else if (m_slashes || bHost)
-    {
+    } else if (m_slashes || bHost) {
         parseAuth(c_str);
         parseHost(c_str);
     }
@@ -306,8 +288,7 @@ result_t Url::parse(exlib::string url, bool parseQueryString)
     parseQuery(c_str);
     parseHash(c_str);
 
-    if (parseQueryString)
-    {
+    if (parseQueryString) {
         m_queryParsed = new HttpCollection();
         m_queryParsed->parse(m_query);
     }
@@ -315,13 +296,12 @@ result_t Url::parse(exlib::string url, bool parseQueryString)
     return 0;
 }
 
-bool getString(Isolate* isolate, v8::Local<v8::Object> &args,
-               const char *key, exlib::string& retVal)
+bool getString(Isolate* isolate, v8::Local<v8::Object>& args,
+    const char* key, exlib::string& retVal)
 {
     v8::Local<v8::Value> v = args->Get(isolate->NewFromUtf8(key));
 
-    if (!v.IsEmpty() && (v->IsString() || v->IsStringObject()))
-    {
+    if (!v.IsEmpty() && (v->IsString() || v->IsStringObject())) {
         retVal = *v8::String::Utf8Value(v);
         return true;
     }
@@ -374,7 +354,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     return 0;
 }
 
-result_t Url::resolve(exlib::string url, obj_ptr<UrlObject_base> &retVal)
+result_t Url::resolve(exlib::string url, obj_ptr<UrlObject_base>& retVal)
 {
     obj_ptr<Url> u = new Url();
 
@@ -385,8 +365,7 @@ result_t Url::resolve(exlib::string url, obj_ptr<UrlObject_base> &retVal)
     obj_ptr<Url> base = new Url(*this);
 
     if (u->m_hostname.length() > 0 || u->m_slashes
-            || (u->m_protocol.length() > 0 && u->m_protocol.compare(m_protocol)))
-    {
+        || (u->m_protocol.length() > 0 && u->m_protocol.compare(m_protocol))) {
         if (u->m_protocol.length())
             base->m_protocol = u->m_protocol;
         base->m_slashes = u->m_slashes;
@@ -402,13 +381,10 @@ result_t Url::resolve(exlib::string url, obj_ptr<UrlObject_base> &retVal)
         base->m_ipv6 = u->m_ipv6;
 
         base->normalize();
-    }
-    else if (u->m_pathname.length())
-    {
+    } else if (u->m_pathname.length()) {
         if (isUrlSlash(u->m_pathname[0]))
             base->m_pathname = u->m_pathname;
-        else
-        {
+        else {
             if (!isUrlSlash(m_pathname[m_pathname.length() - 1]))
                 base->m_pathname.append("/../", 4);
             base->m_pathname.append(u->m_pathname);
@@ -418,13 +394,10 @@ result_t Url::resolve(exlib::string url, obj_ptr<UrlObject_base> &retVal)
 
         base->m_query = u->m_query;
         base->m_hash = u->m_hash;
-    }
-    else if (u->m_query.length())
-    {
+    } else if (u->m_query.length()) {
         base->m_query = u->m_query;
         base->m_hash = u->m_hash;
-    }
-    else if (u->m_hash.length())
+    } else if (u->m_hash.length())
         base->m_hash = u->m_hash;
 
     retVal = base;
@@ -438,8 +411,8 @@ result_t Url::normalize()
         return 0;
 
     exlib::string str;
-    const char *p1 = m_pathname.c_str();
-    char *pstr;
+    const char* p1 = m_pathname.c_str();
+    char* pstr;
     int32_t pos = 0;
     int32_t root = 0;
     bool bRoot = false;
@@ -447,8 +420,7 @@ result_t Url::normalize()
     str.resize(m_pathname.length());
     pstr = &str[0];
 
-    if (isUrlSlash(p1[0]))
-    {
+    if (isUrlSlash(p1[0])) {
         pstr[pos++] = URL_SLASH;
         p1++;
         bRoot = true;
@@ -456,50 +428,35 @@ result_t Url::normalize()
 
     root = pos;
 
-    while (*p1)
-    {
-        if (isUrlSlash(p1[0]))
-        {
+    while (*p1) {
+        if (isUrlSlash(p1[0])) {
             p1++;
-        }
-        else if (p1[0] == '.' && (!p1[1] || isUrlSlash(p1[1])))
-        {
+        } else if (p1[0] == '.' && (!p1[1] || isUrlSlash(p1[1]))) {
             p1 += p1[1] ? 2 : 1;
-        }
-        else if ((p1[0] == '.') && (p1[1] == '.')
-                 && (!p1[2] || isUrlSlash(p1[2])))
-        {
-            if (pos > root)
-            {
+        } else if ((p1[0] == '.') && (p1[1] == '.')
+            && (!p1[2] || isUrlSlash(p1[2]))) {
+            if (pos > root) {
                 if ((pstr[pos - 2] == '.') && (pstr[pos - 3] == '.')
-                        && ((root == pos - 3) || (pstr[pos - 4] == URL_SLASH)))
-                {
+                    && ((root == pos - 3) || (pstr[pos - 4] == URL_SLASH))) {
                     pstr[pos++] = '.';
                     pstr[pos++] = '.';
                     pstr[pos++] = URL_SLASH;
-                }
-                else
-                {
+                } else {
                     pos--;
                     while (pos > root && !isUrlSlash(pstr[pos - 1]))
                         pos--;
                 }
-            }
-            else if (!bRoot)
-            {
+            } else if (!bRoot) {
                 pstr[pos++] = '.';
                 pstr[pos++] = '.';
                 pstr[pos++] = URL_SLASH;
             }
 
             p1 += p1[2] ? 3 : 2;
-        }
-        else
-        {
+        } else {
             while (*p1 && !isUrlSlash(*p1))
                 pstr[pos++] = *p1++;
-            if (*p1)
-            {
+            if (*p1) {
                 p1++;
                 pstr[pos++] = URL_SLASH;
             }
@@ -513,12 +470,12 @@ result_t Url::normalize()
     return 0;
 }
 
-result_t Url::toString(exlib::string &retVal)
+result_t Url::toString(exlib::string& retVal)
 {
     return get_href(retVal);
 }
 
-result_t Url::get_href(exlib::string &retVal)
+result_t Url::get_href(exlib::string& retVal)
 {
     retVal.clear();
 
@@ -530,8 +487,7 @@ result_t Url::get_href(exlib::string &retVal)
 
     exlib::string str;
 
-    if (m_username.length() > 0)
-    {
+    if (m_username.length() > 0) {
         get_auth(str);
         retVal.append(str);
         retVal.append(1, '@');
@@ -553,7 +509,7 @@ result_t Url::set_href(exlib::string newVal)
     return parse(newVal, m_queryParsed != NULL);
 }
 
-result_t Url::get_protocol(exlib::string &retVal)
+result_t Url::get_protocol(exlib::string& retVal)
 {
     retVal = m_protocol;
     return 0;
@@ -561,8 +517,7 @@ result_t Url::get_protocol(exlib::string &retVal)
 
 result_t Url::set_protocol(exlib::string newVal)
 {
-    static const char *s_slashed[] =
-    {
+    static const char* s_slashed[] = {
         "http:", "https:", "ftp:", "gopher:", "file:", "http:", "https:", "ftp:",
         "gopher:", "file:"
     };
@@ -570,28 +525,25 @@ result_t Url::set_protocol(exlib::string newVal)
 
     m_protocol = newVal;
     m_defslashes = false;
-    if (m_protocol.length() > 0)
-    {
+    if (m_protocol.length() > 0) {
         qstrlwr(&m_protocol[0]);
 
         if (m_protocol[m_protocol.length() - 1] != ':')
             m_protocol.append(1, ':');
 
-        for (i = 0; i < (int32_t) (sizeof(s_slashed) / sizeof(const char *)); i++)
-            if (!m_protocol.compare(s_slashed[i]))
-            {
+        for (i = 0; i < (int32_t)(sizeof(s_slashed) / sizeof(const char*)); i++)
+            if (!m_protocol.compare(s_slashed[i])) {
                 m_defslashes = true;
                 break;
             }
-    }
-    else
+    } else
         m_defslashes = true;
 
     m_slashes = m_defslashes;
     return 0;
 }
 
-result_t Url::get_slashes(bool &retVal)
+result_t Url::get_slashes(bool& retVal)
 {
     retVal = m_slashes;
     return 0;
@@ -603,14 +555,13 @@ result_t Url::set_slashes(bool newVal)
     return 0;
 }
 
-result_t Url::get_auth(exlib::string &retVal)
+result_t Url::get_auth(exlib::string& retVal)
 {
     exlib::string str;
 
     encoding_base::encodeURIComponent(m_username, str);
     retVal = str;
-    if (m_password.length() > 0)
-    {
+    if (m_password.length() > 0) {
         retVal.append(1, ':');
         encoding_base::encodeURIComponent(m_password, str);
         retVal.append(str);
@@ -625,7 +576,7 @@ result_t Url::set_auth(exlib::string newVal)
     return 0;
 }
 
-result_t Url::get_username(exlib::string &retVal)
+result_t Url::get_username(exlib::string& retVal)
 {
     retVal = m_username;
     return 0;
@@ -637,7 +588,7 @@ result_t Url::set_username(exlib::string newVal)
     return 0;
 }
 
-result_t Url::get_password(exlib::string &retVal)
+result_t Url::get_password(exlib::string& retVal)
 {
     retVal = m_password;
     return 0;
@@ -649,7 +600,7 @@ result_t Url::set_password(exlib::string newVal)
     return 0;
 }
 
-result_t Url::get_host(exlib::string &retVal)
+result_t Url::get_host(exlib::string& retVal)
 {
     retVal = m_host;
     return 0;
@@ -661,7 +612,7 @@ result_t Url::set_host(exlib::string newVal)
     return 0;
 }
 
-result_t Url::get_hostname(exlib::string &retVal)
+result_t Url::get_hostname(exlib::string& retVal)
 {
     retVal = m_hostname;
     return 0;
@@ -673,8 +624,7 @@ result_t Url::set_hostname(exlib::string newVal)
 
     m_ipv6 = qstrchr(m_hostname.c_str(), ':') != NULL;
 
-    if (!m_hostname.empty() && m_host.empty())
-    {
+    if (!m_hostname.empty() && m_host.empty()) {
         if (m_ipv6)
             m_host.append(1, '[');
 
@@ -683,8 +633,7 @@ result_t Url::set_hostname(exlib::string newVal)
         if (m_ipv6)
             m_host.append(1, ']');
 
-        if (m_port.length() > 0)
-        {
+        if (m_port.length() > 0) {
             m_host.append(1, ':');
             m_host.append(m_port);
         }
@@ -693,7 +642,7 @@ result_t Url::set_hostname(exlib::string newVal)
     return 0;
 }
 
-result_t Url::get_port(exlib::string &retVal)
+result_t Url::get_port(exlib::string& retVal)
 {
     retVal = m_port;
     return 0;
@@ -705,7 +654,7 @@ result_t Url::set_port(exlib::string newVal)
     return 0;
 }
 
-result_t Url::get_path(exlib::string &retVal)
+result_t Url::get_path(exlib::string& retVal)
 {
     exlib::string str;
 
@@ -720,7 +669,7 @@ result_t Url::set_path(exlib::string newVal)
     return 0;
 }
 
-result_t Url::get_pathname(exlib::string &retVal)
+result_t Url::get_pathname(exlib::string& retVal)
 {
     retVal = m_pathname;
     return 0;
@@ -730,16 +679,15 @@ result_t Url::set_pathname(exlib::string newVal)
 {
     m_pathname = newVal;
     if (m_pathname.length() > 0 && !isUrlSlash(m_pathname[0])
-            && m_hostname.length() > 0)
+        && m_hostname.length() > 0)
         m_pathname = URL_SLASH + m_pathname;
 
     return 0;
 }
 
-result_t Url::get_search(exlib::string &retVal)
+result_t Url::get_search(exlib::string& retVal)
 {
-    if (m_query.length() > 0)
-    {
+    if (m_query.length() > 0) {
         retVal.assign(1, '?');
         retVal.append(m_query);
     }
@@ -752,7 +700,7 @@ result_t Url::set_search(exlib::string newVal)
     return 0;
 }
 
-result_t Url::get_query(v8::Local<v8::Value> &retVal)
+result_t Url::get_query(v8::Local<v8::Value>& retVal)
 {
     if (m_queryParsed)
         retVal = m_queryParsed->wrap();
@@ -765,17 +713,14 @@ result_t Url::get_query(v8::Local<v8::Value> &retVal)
 result_t Url::set_query(v8::Local<v8::Value> newVal)
 {
     if (!newVal.IsEmpty()) {
-        if (newVal->IsString() || newVal->IsStringObject())
-        {
+        if (newVal->IsString() || newVal->IsStringObject()) {
             m_query = *v8::String::Utf8Value(newVal);
 
-            if (m_queryParsed)
-            {
+            if (m_queryParsed) {
                 m_queryParsed = new HttpCollection();
                 m_queryParsed->parse(m_query);
             }
-        } else
-        {
+        } else {
             obj_ptr<HttpCollection> queryParsed = (HttpCollection*)HttpCollection_base::getInstance(newVal);
             if (!queryParsed)
                 return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -786,7 +731,7 @@ result_t Url::set_query(v8::Local<v8::Value> newVal)
     return 0;
 }
 
-result_t Url::get_hash(exlib::string &retVal)
+result_t Url::get_hash(exlib::string& retVal)
 {
     retVal = m_hash;
     return 0;

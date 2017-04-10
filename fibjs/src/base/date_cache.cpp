@@ -17,8 +17,7 @@
 #include <windows.h>
 #endif
 
-namespace fibjs
-{
+namespace fibjs {
 
 const int kMaxInt = 0x7FFFFFFF;
 const int msPerSecond = 1000;
@@ -27,17 +26,23 @@ const int msPerSecond = 1000;
 
 class TimezoneCache {
 public:
-    TimezoneCache() : initialized_(false) { }
+    TimezoneCache()
+        : initialized_(false)
+    {
+    }
 
-    void Clear() {
+    void Clear()
+    {
         initialized_ = false;
     }
 
     // Initialize timezone information. The timezone information is obtained from
     // windows. If we cannot get the timezone information we fall back to CET.
-    void InitializeIfNeeded() {
+    void InitializeIfNeeded()
+    {
         // Just return if timezone information has already been initialized.
-        if (initialized_) return;
+        if (initialized_)
+            return;
 
         // Initialize POSIX time zone data.
         _tzset();
@@ -60,14 +65,12 @@ public:
         initialized_ = true;
     }
 
-
 private:
     static const int kTzNameSize = 128;
     bool initialized_;
     TIME_ZONE_INFORMATION tzinfo_;
     friend class Win32Time;
 };
-
 
 class Win32Time {
 public:
@@ -120,21 +123,21 @@ private:
     TimeStamp time_;
 };
 
-
 // Initialize timestamp to start of epoc.
-Win32Time::Win32Time() {
+Win32Time::Win32Time()
+{
     t() = 0;
 }
 
-
 // Initialize timestamp from a JavaScript timestamp.
-Win32Time::Win32Time(double jstime) {
+Win32Time::Win32Time(double jstime)
+{
     t() = static_cast<int64_t>(jstime) * kTimeScaler + kTimeEpoc;
 }
 
-
 // Initialize timestamp from date/time components.
-Win32Time::Win32Time(int year, int mon, int day, int hour, int min, int sec) {
+Win32Time::Win32Time(int year, int mon, int day, int hour, int min, int sec)
+{
     SYSTEMTIME st;
     st.wYear = year;
     st.wMonth = mon;
@@ -146,24 +149,23 @@ Win32Time::Win32Time(int year, int mon, int day, int hour, int min, int sec) {
     SystemTimeToFileTime(&st, &ft());
 }
 
-
 // Convert timestamp to JavaScript timestamp.
-double Win32Time::ToJSTime() {
+double Win32Time::ToJSTime()
+{
     return static_cast<double>((t() - kTimeEpoc) / kTimeScaler);
 }
-
 
 // Return the local timezone offset in milliseconds east of UTC. This
 // takes into account whether daylight saving is in effect at the time.
 // Only times in the 32-bit Unix range may be passed to this function.
 // Also, adding the time-zone offset to the input must not overflow.
 // The function EquivalentTime() in date.js guarantees this.
-int64_t Win32Time::LocalOffset(TimezoneCache* cache) {
+int64_t Win32Time::LocalOffset(TimezoneCache* cache)
+{
     cache->InitializeIfNeeded();
 
     Win32Time rounded_to_second(*this);
-    rounded_to_second.t() =
-        rounded_to_second.t() / 1000 / kTimeScaler * 1000 * kTimeScaler;
+    rounded_to_second.t() = rounded_to_second.t() / 1000 / kTimeScaler * 1000 * kTimeScaler;
     // Convert to local time using POSIX localtime function.
     // Windows XP Service Pack 3 made SystemTimeToTzSpecificLocalTime()
     // very slow.  Other browsers use localtime().
@@ -179,7 +181,8 @@ int64_t Win32Time::LocalOffset(TimezoneCache* cache) {
 
     // Convert to local time, as struct with fields for day, hour, year, etc.
     tm posix_local_time_struct;
-    if (localtime_s(&posix_local_time_struct, &posix_time)) return 0;
+    if (localtime_s(&posix_local_time_struct, &posix_time))
+        return 0;
 
     if (posix_local_time_struct.tm_isdst > 0) {
         return (cache->tzinfo_.Bias + cache->tzinfo_.DaylightBias) * -kMsPerMinute;
@@ -190,22 +193,20 @@ int64_t Win32Time::LocalOffset(TimezoneCache* cache) {
     }
 }
 
-
 // Return whether or not daylight savings time is in effect at this time.
-bool Win32Time::InDST(TimezoneCache* cache) {
+bool Win32Time::InDST(TimezoneCache* cache)
+{
     cache->InitializeIfNeeded();
 
     // Determine if DST is in effect at the specified time.
     bool in_dst = false;
-    if (cache->tzinfo_.StandardDate.wMonth != 0 ||
-            cache->tzinfo_.DaylightDate.wMonth != 0) {
+    if (cache->tzinfo_.StandardDate.wMonth != 0 || cache->tzinfo_.DaylightDate.wMonth != 0) {
         // Get the local timezone offset for the timestamp in milliseconds.
         int64_t offset = LocalOffset(cache);
 
         // Compute the offset for DST. The bias parameters in the timezone info
         // are specified in minutes. These must be converted to milliseconds.
-        int64_t dstofs =
-            -(cache->tzinfo_.Bias + cache->tzinfo_.DaylightBias) * kMsPerMinute;
+        int64_t dstofs = -(cache->tzinfo_.Bias + cache->tzinfo_.DaylightBias) * kMsPerMinute;
 
         // If the local time offset equals the timezone bias plus the daylight
         // bias then DST is in effect.
@@ -215,77 +216,85 @@ bool Win32Time::InDST(TimezoneCache* cache) {
     return in_dst;
 }
 
-
 // Return the daylight savings time offset for this time.
-int64_t Win32Time::DaylightSavingsOffset(TimezoneCache* cache) {
+int64_t Win32Time::DaylightSavingsOffset(TimezoneCache* cache)
+{
     return InDST(cache) ? 60 * kMsPerMinute : 0;
 }
 
-
-TimezoneCache* CreateTimezoneCache() {
+TimezoneCache* CreateTimezoneCache()
+{
     return new TimezoneCache();
 }
 
-
-void DisposeTimezoneCache(TimezoneCache* cache) {
+void DisposeTimezoneCache(TimezoneCache* cache)
+{
     delete cache;
 }
 
-
-void ClearTimezoneCache(TimezoneCache* cache) {
+void ClearTimezoneCache(TimezoneCache* cache)
+{
     cache->Clear();
 }
 
-double DaylightSavingsOffset(double time, TimezoneCache* cache) {
+double DaylightSavingsOffset(double time, TimezoneCache* cache)
+{
     int64_t offset = Win32Time(time).DaylightSavingsOffset(cache);
     return static_cast<double>(offset);
 }
 
-double LocalTimeOffset(TimezoneCache* cache) {
+double LocalTimeOffset(TimezoneCache* cache)
+{
     // Use current time, rounded to the millisecond.
     Win32Time t((double)std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::system_clock::now().time_since_epoch()).count());
+        std::chrono::system_clock::now().time_since_epoch())
+                    .count());
     // Time::LocalOffset inlcudes any daylight savings offset, so subtract it.
-    return static_cast<double>(t.LocalOffset(cache) -
-                               t.DaylightSavingsOffset(cache));
+    return static_cast<double>(t.LocalOffset(cache) - t.DaylightSavingsOffset(cache));
 }
 
 #else
 
-class TimezoneCache {};
+class TimezoneCache {
+};
 
-
-TimezoneCache* CreateTimezoneCache() {
+TimezoneCache* CreateTimezoneCache()
+{
     return 0;
 }
 
-
-void DisposeTimezoneCache(TimezoneCache* cache) {
+void DisposeTimezoneCache(TimezoneCache* cache)
+{
 }
 
-
-void ClearTimezoneCache(TimezoneCache* cache) {
+void ClearTimezoneCache(TimezoneCache* cache)
+{
 }
 
-
-double DaylightSavingsOffset(double time, TimezoneCache*) {
-    if (std::isnan(time)) return std::numeric_limits<double>::quiet_NaN();
+double DaylightSavingsOffset(double time, TimezoneCache*)
+{
+    if (std::isnan(time))
+        return std::numeric_limits<double>::quiet_NaN();
     time_t tv = static_cast<time_t>(std::floor(time / msPerSecond));
     struct tm* t = localtime(&tv);
-    if (0 == t) return std::numeric_limits<double>::quiet_NaN();
+    if (0 == t)
+        return std::numeric_limits<double>::quiet_NaN();
     return t->tm_isdst > 0 ? 3600 * msPerSecond : 0;
 }
 
-double LocalTimeOffset(TimezoneCache* cache) {
+double LocalTimeOffset(TimezoneCache* cache)
+{
     time_t tv = time(0);
     struct tm* t = localtime(&tv);
-    return static_cast<double>(t->tm_gmtoff * msPerSecond -
-                               (t->tm_isdst > 0 ? 3600 * msPerSecond : 0));
+    return static_cast<double>(t->tm_gmtoff * msPerSecond - (t->tm_isdst > 0 ? 3600 * msPerSecond : 0));
 }
 
 #endif
 
-inline int BoolToInt(bool b) { return b ? 1 : 0; }
+inline int BoolToInt(bool b)
+{
+    return b ? 1 : 0;
+}
 
 class DateCacheX {
 public:
@@ -296,12 +305,10 @@ public:
 
     // The largest time that can be passed to OS date-time library functions.
     static const int kMaxEpochTimeInSec = kMaxInt;
-    static const int64_t kMaxEpochTimeInMs =
-        static_cast<int64_t>(kMaxInt) * 1000;
+    static const int64_t kMaxEpochTimeInMs = static_cast<int64_t>(kMaxInt) * 1000;
 
     // The largest time that can be stored in JSDate.
-    static const int64_t kMaxTimeInMs =
-        static_cast<int64_t>(864000000) * 10000000;
+    static const int64_t kMaxTimeInMs = static_cast<int64_t>(864000000) * 10000000;
 
     // Conservative upper bound on time that can be stored in JSDate
     // before UTC conversion.
@@ -313,11 +320,14 @@ public:
     // It is an invariant of DateCacheX that cache stamp is non-negative.
     static const int kInvalidStamp = -1;
 
-    DateCacheX() : tz_cache_(CreateTimezoneCache()) {
+    DateCacheX()
+        : tz_cache_(CreateTimezoneCache())
+    {
         ResetDateCacheX();
     }
 
-    virtual ~DateCacheX() {
+    virtual ~DateCacheX()
+    {
         DisposeTimezoneCache(tz_cache_);
         tz_cache_ = 0;
     }
@@ -326,53 +336,60 @@ public:
     void ResetDateCacheX();
 
     // Computes floor(time_ms / kMsPerDay).
-    static int DaysFromTime(int64_t time_ms) {
-        if (time_ms < 0) time_ms -= (kMsPerDay - 1);
+    static int DaysFromTime(int64_t time_ms)
+    {
+        if (time_ms < 0)
+            time_ms -= (kMsPerDay - 1);
         return static_cast<int>(time_ms / kMsPerDay);
     }
 
     // Computes modulo(time_ms, kMsPerDay) given that
     // days = floor(time_ms / kMsPerDay).
-    static int TimeInDay(int64_t time_ms, int days) {
+    static int TimeInDay(int64_t time_ms, int days)
+    {
         return static_cast<int>(time_ms - days * kMsPerDay);
     }
 
     // Given the number of days since the epoch, computes the weekday.
     // ECMA 262 - 15.9.1.6.
-    int Weekday(int days) {
+    int Weekday(int days)
+    {
         int result = (days + 4) % 7;
         return result >= 0 ? result : result + 7;
     }
 
-    bool IsLeap(int year) {
+    bool IsLeap(int year)
+    {
         return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
     }
 
-
     // ECMA 262 - 15.9.1.7.
-    int LocalOffsetInMs() {
-        if (local_offset_ms_ == kInvalidLocalOffsetInMs)  {
+    int LocalOffsetInMs()
+    {
+        if (local_offset_ms_ == kInvalidLocalOffsetInMs) {
             local_offset_ms_ = GetLocalOffsetFromOS();
         }
         return local_offset_ms_;
     }
 
-
     // ECMA 262 - 15.9.5.26
-    int TimezoneOffset(int64_t time_ms) {
+    int TimezoneOffset(int64_t time_ms)
+    {
         int64_t local_ms = ToLocal(time_ms);
         return static_cast<int>((time_ms - local_ms) / kMsPerMin);
     }
 
     // ECMA 262 - 15.9.1.9
     // LocalTime(t) = t + LocalTZA + DaylightSavingTA(t)
-    int64_t ToLocal(int64_t time_ms) {
+    int64_t ToLocal(int64_t time_ms)
+    {
         return time_ms + LocalOffsetInMs() + DaylightSavingsOffsetInMs(time_ms);
     }
 
     // ECMA 262 - 15.9.1.9
     // UTC(t) = t - LocalTZA - DaylightSavingTA(t - LocalTZA)
-    int64_t ToUTC(int64_t time_ms) {
+    int64_t ToUTC(int64_t time_ms)
+    {
         // We need to compute UTC time that corresponds to the given local time.
         // Literally following spec here leads to incorrect time computation at
         // the points were we transition to and from DST.
@@ -413,7 +430,6 @@ public:
         return time_ms - DaylightSavingsOffsetInMs(time_ms - kMsPerHour);
     }
 
-
     // Computes a time equivalent to the given time according
     // to ECMA 262 - 15.9.1.9.
     // The issue here is that some library calls don't work right for dates
@@ -423,7 +439,8 @@ public:
     // and same starting day for the year. The ECMAscript specification says
     // we must do this, but for compatibility with other browsers, we use
     // the actual year if it is in the range 1970..2037
-    int64_t EquivalentTime(int64_t time_ms) {
+    int64_t EquivalentTime(int64_t time_ms)
+    {
         int days = DaysFromTime(time_ms);
         int time_within_day_ms = static_cast<int>(time_ms - days * kMsPerDay);
         int year, month, day;
@@ -436,7 +453,8 @@ public:
     // - leap year,
     // - week day of first day.
     // ECMA 262 - 15.9.1.9.
-    int EquivalentYear(int year) {
+    int EquivalentYear(int year)
+    {
         int week_day = Weekday(DaysFromYearMonth(year, 0));
         int recent_year = (IsLeap(year) ? 1956 : 1967) + (week_day * 12) % 28;
         // Find the year in the range 2008..2037 that is equivalent mod 28.
@@ -454,16 +472,18 @@ public:
 
     // Breaks down the time value.
     void BreakDownTime(int64_t time_ms, int* year, int* month, int* day,
-                       int* weekday, int* hour, int* min, int* sec, int* ms);
+        int* weekday, int* hour, int* min, int* sec, int* ms);
 
     // These functions are virtual so that we can override them when testing.
-    virtual int GetDaylightSavingsOffsetFromOS(int64_t time_sec) {
+    virtual int GetDaylightSavingsOffsetFromOS(int64_t time_sec)
+    {
         double time_ms = static_cast<double>(time_sec * 1000);
         return static_cast<int>(
-                   DaylightSavingsOffset(time_ms, tz_cache_));
+            DaylightSavingsOffset(time_ms, tz_cache_));
     }
 
-    virtual int GetLocalOffsetFromOS() {
+    virtual int GetLocalOffsetFromOS()
+    {
         double offset = LocalTimeOffset(tz_cache_);
         return static_cast<int>(offset);
     }
@@ -510,7 +530,8 @@ private:
     // Makes the given segment invalid.
     inline void ClearSegment(DST* segment);
 
-    bool InvalidSegment(DST* segment) {
+    bool InvalidSegment(DST* segment)
+    {
         return segment->start_sec > segment->end_sec;
     }
 
@@ -532,19 +553,16 @@ private:
     TimezoneCache* tz_cache_;
 };
 
-
 static const int kDaysIn4Years = 4 * 365 + 1;
 static const int kDaysIn100Years = 25 * kDaysIn4Years - 1;
 static const int kDaysIn400Years = 4 * kDaysIn100Years + 1;
 static const int kDays1970to2000 = 30 * 365 + 7;
-static const int kDaysOffset = 1000 * kDaysIn400Years + 5 * kDaysIn400Years -
-                               kDays1970to2000;
+static const int kDaysOffset = 1000 * kDaysIn400Years + 5 * kDaysIn400Years - kDays1970to2000;
 static const int kYearsOffset = 400000;
-static const char kDaysInMonths[] =
-{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+static const char kDaysInMonths[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-
-void DateCacheX::ResetDateCacheX() {
+void DateCacheX::ResetDateCacheX()
+{
     for (int i = 0; i < kDSTSize; ++i) {
         ClearSegment(&dst_[i]);
     }
@@ -556,17 +574,17 @@ void DateCacheX::ResetDateCacheX() {
     ClearTimezoneCache(tz_cache_);
 }
 
-
-void DateCacheX::ClearSegment(DST* segment) {
+void DateCacheX::ClearSegment(DST* segment)
+{
     segment->start_sec = kMaxEpochTimeInSec;
     segment->end_sec = -kMaxEpochTimeInSec;
     segment->offset_ms = 0;
     segment->last_used = 0;
 }
 
-
 void DateCacheX::YearMonthDayFromDays(
-    int days, int* year, int* month, int* day) {
+    int days, int* year, int* month, int* day)
+{
     if (ymd_valid_) {
         // Check conservatively if the given 'days' has
         // the same year and month as the cached 'days'.
@@ -601,9 +619,7 @@ void DateCacheX::YearMonthDayFromDays(
     days %= 365;
     *year += yd3;
 
-
     bool is_leap = (!yd1 || yd2) && !yd3;
-
 
     days += is_leap;
 
@@ -636,14 +652,12 @@ void DateCacheX::YearMonthDayFromDays(
     ymd_days_ = save_days;
 }
 
-
-int DateCacheX::DaysFromYearMonth(int year, int month) {
-    static const int day_from_month[] = {0, 31, 59, 90, 120, 151,
-                                         181, 212, 243, 273, 304, 334
-                                        };
-    static const int day_from_month_leap[] = {0, 31, 60, 91, 121, 152,
-                                              182, 213, 244, 274, 305, 335
-                                             };
+int DateCacheX::DaysFromYearMonth(int year, int month)
+{
+    static const int day_from_month[] = { 0, 31, 59, 90, 120, 151,
+        181, 212, 243, 273, 304, 334 };
+    static const int day_from_month_leap[] = { 0, 31, 60, 91, 121, 152,
+        182, 213, 244, 274, 305, 335 };
 
     year += month / 12;
     month %= 12;
@@ -651,7 +665,6 @@ int DateCacheX::DaysFromYearMonth(int year, int month) {
         year--;
         month += 12;
     }
-
 
     // year_delta is an arbitrary number such that:
     // a) year_delta = -1 (mod 400)
@@ -662,17 +675,10 @@ int DateCacheX::DaysFromYearMonth(int year, int month) {
     // c) there shouldn't be an overflow for 32-bit integers in the following
     //    operations.
     static const int year_delta = 399999;
-    static const int base_day = 365 * (1970 + year_delta) +
-                                (1970 + year_delta) / 4 -
-                                (1970 + year_delta) / 100 +
-                                (1970 + year_delta) / 400;
+    static const int base_day = 365 * (1970 + year_delta) + (1970 + year_delta) / 4 - (1970 + year_delta) / 100 + (1970 + year_delta) / 400;
 
     int year1 = year + year_delta;
-    int day_from_year = 365 * year1 +
-                        year1 / 4 -
-                        year1 / 100 +
-                        year1 / 400 -
-                        base_day;
+    int day_from_year = 365 * year1 + year1 / 4 - year1 / 100 + year1 / 400 - base_day;
 
     if ((year % 4 != 0) || (year % 100 == 0 && year % 400 != 0)) {
         return day_from_year + day_from_month[month];
@@ -680,10 +686,10 @@ int DateCacheX::DaysFromYearMonth(int year, int month) {
     return day_from_year + day_from_month_leap[month];
 }
 
-
 void DateCacheX::BreakDownTime(int64_t time_ms, int* year, int* month, int* day,
-                               int* weekday, int* hour, int* min, int* sec,
-                               int* ms) {
+    int* weekday, int* hour, int* min, int* sec,
+    int* ms)
+{
     int const days = DaysFromTime(time_ms);
     int const time_in_day_ms = TimeInDay(time_ms, days);
     YearMonthDayFromDays(days, year, month, day);
@@ -694,11 +700,9 @@ void DateCacheX::BreakDownTime(int64_t time_ms, int* year, int* month, int* day,
     *ms = time_in_day_ms % 1000;
 }
 
-
-void DateCacheX::ExtendTheAfterSegment(int time_sec, int offset_ms) {
-    if (after_->offset_ms == offset_ms &&
-            after_->start_sec <= time_sec + kDefaultDSTDeltaInSec &&
-            time_sec <= after_->end_sec) {
+void DateCacheX::ExtendTheAfterSegment(int time_sec, int offset_ms)
+{
+    if (after_->offset_ms == offset_ms && after_->start_sec <= time_sec + kDefaultDSTDeltaInSec && time_sec <= after_->end_sec) {
         // Extend the after_ segment.
         after_->start_sec = time_sec;
     } else {
@@ -714,11 +718,11 @@ void DateCacheX::ExtendTheAfterSegment(int time_sec, int offset_ms) {
     }
 }
 
-
-int DateCacheX::DaylightSavingsOffsetInMs(int64_t time_ms) {
+int DateCacheX::DaylightSavingsOffsetInMs(int64_t time_ms)
+{
     int time_sec = (time_ms >= 0 && time_ms <= kMaxEpochTimeInMs)
-                   ? static_cast<int>(time_ms / 1000)
-                   : static_cast<int>(EquivalentTime(time_ms) / 1000);
+        ? static_cast<int>(time_ms / 1000)
+        : static_cast<int>(EquivalentTime(time_ms) / 1000);
 
     // Invalidate cache if the usage counter is close to overflow.
     // Note that dst_usage_counter is incremented less than ten times
@@ -731,15 +735,13 @@ int DateCacheX::DaylightSavingsOffsetInMs(int64_t time_ms) {
     }
 
     // Optimistic fast check.
-    if (before_->start_sec <= time_sec &&
-            time_sec <= before_->end_sec) {
+    if (before_->start_sec <= time_sec && time_sec <= before_->end_sec) {
         // Cache hit.
         before_->last_used = ++dst_usage_counter_;
         return before_->offset_ms;
     }
 
     ProbeDST(time_sec);
-
 
     if (InvalidSegment(before_)) {
         // Cache miss.
@@ -820,8 +822,8 @@ int DateCacheX::DaylightSavingsOffsetInMs(int64_t time_ms) {
     return 0;
 }
 
-
-void DateCacheX::ProbeDST(int time_sec) {
+void DateCacheX::ProbeDST(int time_sec)
+{
     DST* before = 0;
     DST* after = 0;
 
@@ -844,18 +846,20 @@ void DateCacheX::ProbeDST(int time_sec) {
     }
     if (after == 0) {
         after = InvalidSegment(after_) && before != after_
-                ? after_ : LeastRecentlyUsedDST(before);
+            ? after_
+            : LeastRecentlyUsedDST(before);
     }
 
     before_ = before;
     after_ = after;
 }
 
-
-DateCacheX::DST* DateCacheX::LeastRecentlyUsedDST(DST* skip) {
+DateCacheX::DST* DateCacheX::LeastRecentlyUsedDST(DST* skip)
+{
     DST* result = 0;
     for (int i = 0; i < kDSTSize; ++i) {
-        if (&dst_[i] == skip) continue;
+        if (&dst_[i] == skip)
+            continue;
         if (result == 0 || result->last_used > dst_[i].last_used) {
             result = &dst_[i];
         }
@@ -871,23 +875,21 @@ DateCache::DateCache()
 
 DateCache::~DateCache()
 {
-    delete (DateCacheX *)m_pdc;
+    delete (DateCacheX*)m_pdc;
 }
 
 int64_t DateCache::ToLocal(int64_t time_ms)
 {
-    return ((DateCacheX *)m_pdc)->ToLocal(time_ms);
+    return ((DateCacheX*)m_pdc)->ToLocal(time_ms);
 }
 
 int64_t DateCache::ToUTC(int64_t time_ms)
 {
-    return ((DateCacheX *)m_pdc)->ToUTC(time_ms);
+    return ((DateCacheX*)m_pdc)->ToUTC(time_ms);
 }
 
 int32_t DateCache::LocalOffset()
 {
-    return ((DateCacheX *)m_pdc)->GetLocalOffsetFromOS() / 36000;
+    return ((DateCacheX*)m_pdc)->GetLocalOffsetFromOS() / 36000;
 }
-
 }
-

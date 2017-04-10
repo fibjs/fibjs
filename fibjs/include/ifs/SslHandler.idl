@@ -12,7 +12,7 @@
  }
  @endcode
  */
-interface SslHandler: Handler
+interface SslHandler : Handler
 {
     /*! @brief SslHandler 构造函数，创建一个新的 SslHandler 对象
       @param certs 服务器证书列表，格式为

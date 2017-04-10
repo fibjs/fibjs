@@ -10,11 +10,11 @@
  */
 interface RpcTask : object
 {
-	/*! @brief 调用当前代理方法，并返回结果
+    /*! @brief 调用当前代理方法，并返回结果
 	 @param ... 可变参数列表
 	 */
-	Value Function(...);
+    Value Function(...);
 
-	/*! @brief 返回当前代理的下级代理对象 */
-	readonly RpcTask operator[String];
+    /*! @brief 返回当前代理的下级代理对象 */
+    readonly RpcTask operator[String];
 };

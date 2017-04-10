@@ -10,14 +10,12 @@
 
 #include "ifs/Semaphore.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Semaphore: public Semaphore_base
-{
+class Semaphore : public Semaphore_base {
 public:
-    Semaphore(int32_t count) :
-        m_sem(count)
+    Semaphore(int32_t count)
+        : m_sem(count)
     {
     }
 
@@ -25,7 +23,7 @@ public:
 
 public:
     // Lock_base
-    virtual result_t acquire(bool blocking, bool &retVal);
+    virtual result_t acquire(bool blocking, bool& retVal);
     virtual result_t release();
     virtual result_t count(int32_t& retVal);
 
@@ -33,12 +31,11 @@ public:
     // Semaphore_base
     virtual result_t wait();
     virtual result_t post();
-    virtual result_t trywait(bool &retVal);
+    virtual result_t trywait(bool& retVal);
 
 private:
     exlib::Semaphore m_sem;
 };
-
 }
 
 #endif /* SEMAPHORE_H_ */

@@ -14,11 +14,9 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class TextColor_base : public object_base
-{
+class TextColor_base : public object_base {
     DECLARE_CLASS(TextColor_base);
 
 public:
@@ -44,134 +42,128 @@ public:
     }
 
 public:
-    static void s_get_notice(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_notice(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_warn(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_warn(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_error(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_error(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_highLight(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_highLight(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_notice(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_notice(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_warn(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_warn(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_error(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_error(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_highLight(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_highLight(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& TextColor_base::class_info()
 {
-    inline ClassInfo& TextColor_base::class_info()
-    {
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"notice", s_get_notice, s_set_notice, false},
-            {"warn", s_get_warn, s_set_warn, false},
-            {"error", s_get_error, s_set_error, false},
-            {"highLight", s_get_highLight, s_set_highLight, false}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "notice", s_get_notice, s_set_notice, false },
+        { "warn", s_get_warn, s_set_warn, false },
+        { "error", s_get_error, s_set_error, false },
+        { "highLight", s_get_highLight, s_set_highLight, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "TextColor", false, s__new, NULL, 
-            0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "TextColor", false, s__new, NULL,
+        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void TextColor_base::s_get_notice(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void TextColor_base::s_get_notice(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_INSTANCE(TextColor_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(TextColor_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_notice(vr);
+    hr = pInst->get_notice(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void TextColor_base::s_set_notice(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(TextColor_base);
-        PROPERTY_ENTER();
-        PROPERTY_VAL(exlib::string);
+inline void TextColor_base::s_set_notice(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(TextColor_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(exlib::string);
 
-        hr = pInst->set_notice(v0);
+    hr = pInst->set_notice(v0);
 
-        PROPERTY_SET_LEAVE();
-    }
+    PROPERTY_SET_LEAVE();
+}
 
-    inline void TextColor_base::s_get_warn(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void TextColor_base::s_get_warn(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_INSTANCE(TextColor_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(TextColor_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_warn(vr);
+    hr = pInst->get_warn(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void TextColor_base::s_set_warn(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(TextColor_base);
-        PROPERTY_ENTER();
-        PROPERTY_VAL(exlib::string);
+inline void TextColor_base::s_set_warn(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(TextColor_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(exlib::string);
 
-        hr = pInst->set_warn(v0);
+    hr = pInst->set_warn(v0);
 
-        PROPERTY_SET_LEAVE();
-    }
+    PROPERTY_SET_LEAVE();
+}
 
-    inline void TextColor_base::s_get_error(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void TextColor_base::s_get_error(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_INSTANCE(TextColor_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(TextColor_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_error(vr);
+    hr = pInst->get_error(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void TextColor_base::s_set_error(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(TextColor_base);
-        PROPERTY_ENTER();
-        PROPERTY_VAL(exlib::string);
+inline void TextColor_base::s_set_error(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(TextColor_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(exlib::string);
 
-        hr = pInst->set_error(v0);
+    hr = pInst->set_error(v0);
 
-        PROPERTY_SET_LEAVE();
-    }
+    PROPERTY_SET_LEAVE();
+}
 
-    inline void TextColor_base::s_get_highLight(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void TextColor_base::s_get_highLight(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_INSTANCE(TextColor_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(TextColor_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_highLight(vr);
+    hr = pInst->get_highLight(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void TextColor_base::s_set_highLight(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(TextColor_base);
-        PROPERTY_ENTER();
-        PROPERTY_VAL(exlib::string);
+inline void TextColor_base::s_set_highLight(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(TextColor_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(exlib::string);
 
-        hr = pInst->set_highLight(v0);
+    hr = pInst->set_highLight(v0);
 
-        PROPERTY_SET_LEAVE();
-    }
-
+    PROPERTY_SET_LEAVE();
+}
 }
 
 #endif
-

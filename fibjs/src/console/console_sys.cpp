@@ -11,24 +11,21 @@
 
 #include <syslog.h>
 
-namespace fibjs
+namespace fibjs {
+
+result_t sys_logger::write(AsyncEvent* ac)
 {
+    item* p1;
 
-result_t sys_logger::write(AsyncEvent *ac)
-{
-	item *p1;
+    while ((p1 = m_workinglogs.getHead()) != 0) {
+        if (p1->m_priority != console_base::_PRINT)
+            ::syslog(p1->m_priority, "%s", p1->full(false).c_str());
 
-	while ((p1 = m_workinglogs.getHead()) != 0)
-	{
-		if (p1->m_priority != console_base::_PRINT)
-			::syslog(p1->m_priority, "%s", p1->full(false).c_str());
+        delete p1;
+    }
 
-		delete p1;
-	}
-
-	return 0;
+    return 0;
 }
-
 }
 
 #endif

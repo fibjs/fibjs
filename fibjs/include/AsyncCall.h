@@ -6,14 +6,13 @@
 #include "utils.h"
 #include "Runtime.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class AsyncEvent: public exlib::linkitem
-{
+class AsyncEvent : public exlib::linkitem {
 public:
     virtual ~AsyncEvent()
-    {}
+    {
+    }
 
 public:
     void sync(Isolate* isolate)
@@ -49,10 +48,10 @@ public:
     }
 };
 
-class AsyncCall: public AsyncEvent
-{
+class AsyncCall : public AsyncEvent {
 public:
-    AsyncCall(void **a) : args(a)
+    AsyncCall(void** a)
+        : args(a)
     {
         m_isolate = Isolate::current();
     }
@@ -70,8 +69,7 @@ public:
 
     int32_t wait()
     {
-        if (!weak.isSet())
-        {
+        if (!weak.isSet()) {
             Isolate::rt _rt(m_isolate);
             weak.wait();
         }
@@ -109,7 +107,7 @@ public:
 
 protected:
     exlib::Event weak;
-    void **args;
+    void** args;
 
 private:
     Isolate* m_isolate;
@@ -117,11 +115,10 @@ private:
     int32_t m_v;
 };
 
-class CAsyncCall: public AsyncEvent
-{
+class CAsyncCall : public AsyncEvent {
 public:
-    CAsyncCall(void **a) :
-        args(a)
+    CAsyncCall(void** a)
+        : args(a)
     {
     }
 
@@ -163,28 +160,29 @@ public:
 
 protected:
     exlib::Event weak;
-    void **args;
+    void** args;
 
 private:
     exlib::string m_error;
     int32_t m_v;
 };
 
-class AsyncState: public AsyncEvent
-{
+class AsyncState : public AsyncEvent {
 public:
-    AsyncState(AsyncEvent *ac) :
-        m_ac(ac), m_bAsyncState(false), m_state(NULL)
+    AsyncState(AsyncEvent* ac)
+        : m_ac(ac)
+        , m_bAsyncState(false)
+        , m_state(NULL)
     {
     }
 
 public:
-    void set(int32_t (*fn)(AsyncState *, int32_t))
+    void set(int32_t (*fn)(AsyncState*, int32_t))
     {
         m_state = fn;
     }
 
-    bool is(int32_t (*fn)(AsyncState *, int32_t))
+    bool is(int32_t (*fn)(AsyncState*, int32_t))
     {
         return m_state == fn;
     }
@@ -203,13 +201,11 @@ public:
         if (!bAsyncState)
             m_bAsyncState = true;
 
-        do
-        {
+        do {
             if (hr < 0)
                 hr = error(hr);
 
-            if (hr < 0 || !m_state)
-            {
+            if (hr < 0 || !m_state) {
                 if (bAsyncState && m_ac)
                     m_ac->post(hr);
 
@@ -218,8 +214,7 @@ public:
             }
 
             hr = m_state(this, hr);
-        }
-        while (hr != CALL_E_PENDDING);
+        } while (hr != CALL_E_PENDDING);
 
         return hr;
     }
@@ -247,18 +242,18 @@ public:
     }
 
 private:
-    AsyncEvent *m_ac;
+    AsyncEvent* m_ac;
     bool m_bAsyncState;
     int32_t m_v;
-    int32_t (*m_state)(AsyncState *, int32_t);
+    int32_t (*m_state)(AsyncState*, int32_t);
 };
 
-template<typename T, typename T1>
-class AsyncFunc: public AsyncEvent
-{
+template <typename T, typename T1>
+class AsyncFunc : public AsyncEvent {
 public:
-    AsyncFunc(T func, T1 v) :
-        m_func(func), m_v(v)
+    AsyncFunc(T func, T1 v)
+        : m_func(func)
+        , m_v(v)
     {
     }
 
@@ -280,23 +275,23 @@ private:
     T1 m_v;
 };
 
-template<typename T, typename T1>
+template <typename T, typename T1>
 void asyncCall(T func, T1 v)
 {
     (new AsyncFunc<T, T1>(func, v))->async(CALL_E_NOSYNC);
 }
 
-template<typename T, typename T1>
+template <typename T, typename T1>
 void syncCall(Isolate* isolate, T func, T1 v)
 {
     (new AsyncFunc<T, T1>(func, v))->sync(isolate);
 }
 
-template<typename T>
-class _at
-{
+template <typename T>
+class _at {
 public:
-    _at(T& v) : m_v(v)
+    _at(T& v)
+        : m_v(v)
     {
     }
 
@@ -309,11 +304,11 @@ private:
     T m_v;
 };
 
-template<typename T>
-class _at<T*>
-{
+template <typename T>
+class _at<T*> {
 public:
-    _at(T* v) : m_v(v)
+    _at(T* v)
+        : m_v(v)
     {
     }
 
@@ -326,10 +321,8 @@ private:
     obj_ptr<T> m_v;
 };
 
-class AsyncCallBack:
-    public AsyncEvent,
-    public exlib::Task_base
-{
+class AsyncCallBack : public AsyncEvent,
+                      public exlib::Task_base {
 public:
     AsyncCallBack(v8::Local<v8::Function> cb)
     {
@@ -399,7 +392,6 @@ private:
     exlib::string m_error;
     int32_t m_v;
 };
-
 }
 
 #endif

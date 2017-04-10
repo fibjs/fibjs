@@ -13,16 +13,16 @@
 #include "map"
 #include "Fiber.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-#define WORKER_STACK_SIZE   128
+#define WORKER_STACK_SIZE 128
 
-class acPool
-{
+class acPool {
 public:
-    acPool(int32_t max_idle, bool bThread = false) :
-        m_bThread(bThread), m_max_idle(max_idle), m_idleWorkers(1)
+    acPool(int32_t max_idle, bool bThread = false)
+        : m_bThread(bThread)
+        , m_max_idle(max_idle)
+        , m_idleWorkers(1)
     {
         new_worker();
     }
@@ -36,14 +36,16 @@ public:
 private:
     void new_worker()
     {
-        class _thread : public exlib::OSThread
-        {
+        class _thread : public exlib::OSThread {
         public:
-            typedef void* (*thread_func)(void *);
+            typedef void* (*thread_func)(void*);
 
         public:
-            _thread(thread_func proc, void* arg) : m_proc(proc), m_arg(arg)
-            {}
+            _thread(thread_func proc, void* arg)
+                : m_proc(proc)
+                , m_arg(arg)
+            {
+            }
 
         public:
             virtual void Run()
@@ -71,14 +73,12 @@ private:
     void worker_proc()
     {
         Runtime rt(NULL);
-        AsyncEvent *p;
+        AsyncEvent* p;
 
         m_idleWorkers.dec();
 
-        while (true)
-        {
-            if (m_idleWorkers.inc() > m_max_idle)
-            {
+        while (true) {
+            if (m_idleWorkers.inc() > m_max_idle) {
                 if (m_idleWorkers.dec() > 0)
                     break;
 
@@ -94,7 +94,7 @@ private:
         }
     }
 
-    static void *worker_proc(void *ptr)
+    static void* worker_proc(void* ptr)
     {
         ((acPool*)ptr)->worker_proc();
         return 0;
@@ -148,28 +148,24 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
 {
     JSFiber::scope s;
 
-    v8::Local<v8::Function> func =
-        v8::Local<v8::Function>::New(pThis->m_isolate->m_isolate, pThis->m_cb);
+    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(pThis->m_isolate->m_isolate, pThis->m_cb);
 
     v8::Local<v8::Value> args[2];
 
-    if (pThis->m_v == CALL_RETURN_NULL)
-    {
+    if (pThis->m_v == CALL_RETURN_NULL) {
         args[0] = v8::Undefined(pThis->m_isolate->m_isolate);
         args[1] = v8::Null(pThis->m_isolate->m_isolate);
-    } else if (pThis->m_v >= 0)
-    {
+    } else if (pThis->m_v >= 0) {
         args[0] = v8::Undefined(pThis->m_isolate->m_isolate);
         args[1] = pThis->getValue();
-    } else
-    {
+    } else {
         if (pThis->m_v == CALL_E_EXCEPTION)
             Runtime::setError(pThis->m_error);
 
         v8::Local<v8::Value> e = v8::Exception::Error(
-                                     pThis->m_isolate->NewFromUtf8(getResultMessage(pThis->m_v)));
+            pThis->m_isolate->NewFromUtf8(getResultMessage(pThis->m_v)));
         e->ToObject()->Set(pThis->m_isolate->NewFromUtf8("number"),
-                           v8::Int32::New(pThis->m_isolate->m_isolate, -pThis->m_v));
+            v8::Int32::New(pThis->m_isolate->m_isolate, -pThis->m_v));
 
         args[0] = e;
         args[1] = v8::Undefined(pThis->m_isolate->m_isolate);
@@ -191,5 +187,4 @@ void init_acThread()
     s_acPool = new acPool(2);
 #endif
 }
-
 }

@@ -3,15 +3,15 @@
 */
 interface XmlDocumentType : XmlNode
 {
-	/*! @brief 返回 DTD 的名称
+    /*! @brief 返回 DTD 的名称
 	*/
-	readonly String name;
+    readonly String name;
 
-	/*! @brief 可返回外部 DTD 的公共识别符
+    /*! @brief 可返回外部 DTD 的公共识别符
 	*/
-	readonly String publicId;
+    readonly String publicId;
 
-	/*! @brief 可返回外部 DTD 的系统识别符
+    /*! @brief 可返回外部 DTD 的系统识别符
 	*/
-	readonly String systemId;
+    readonly String systemId;
 };

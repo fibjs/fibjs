@@ -12,13 +12,12 @@
 #include "ifs/test.h"
 #include "ifs/Buffer.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 DECLARE_MODULE(vm);
 
-result_t SandBox_base::_new(v8::Local<v8::Object> mods, obj_ptr<SandBox_base> &retVal,
-                            v8::Local<v8::Object> This)
+result_t SandBox_base::_new(v8::Local<v8::Object> mods, obj_ptr<SandBox_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     obj_ptr<SandBox> sbox = new SandBox();
     sbox->wrap(This);
@@ -33,9 +32,9 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods, obj_ptr<SandBox_base> &r
 }
 
 result_t SandBox_base::_new(v8::Local<v8::Object> mods,
-                            v8::Local<v8::Function> require,
-                            obj_ptr<SandBox_base> &retVal,
-                            v8::Local<v8::Object> This)
+    v8::Local<v8::Function> require,
+    obj_ptr<SandBox_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     obj_ptr<SandBox> sbox = new SandBox();
     sbox->wrap(This);
@@ -63,8 +62,7 @@ void SandBox::initRoot()
 
     RootModule* pModule = RootModule::g_root;
 
-    while (pModule)
-    {
+    while (pModule) {
         ClassInfo& ci = pModule->class_info();
         InstallModule(ci.name(), ci.getModule(isolate));
 
@@ -89,8 +87,7 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
     int32_t len = ks->Length();
     int32_t i;
 
-    for (i = 0; i < len; i++)
-    {
+    for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
         add(*v8::String::Utf8Value(k), mods->Get(k));
     }
@@ -104,7 +101,7 @@ result_t SandBox::remove(exlib::string id)
     return 0;
 }
 
-result_t SandBox::clone(obj_ptr<SandBox_base> &retVal)
+result_t SandBox::clone(obj_ptr<SandBox_base>& retVal)
 {
     obj_ptr<SandBox> sbox = new SandBox();
     sbox->SetPrivate("_mods", mods()->Clone());

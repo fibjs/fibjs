@@ -5,14 +5,13 @@
 #include <stdio.h>
 #include "utf8.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-static exlib::string fmtString(result_t hr, const char *str, int32_t len = -1)
+static exlib::string fmtString(result_t hr, const char* str, int32_t len = -1)
 {
     exlib::string s;
     if (len < 0)
-        len = (int32_t) qstrlen(str);
+        len = (int32_t)qstrlen(str);
 
     s.resize(len + 16);
     s.resize(sprintf(&s[0], "[%d] %s", hr, str));
@@ -22,8 +21,7 @@ static exlib::string fmtString(result_t hr, const char *str, int32_t len = -1)
 
 exlib::string getResultMessage(result_t hr)
 {
-    static const char *s_errors[] =
-    {
+    static const char* s_errors[] = {
         "",
         // CALL_E_BADPARAMCOUNT
         "Invalid number of parameters.",
@@ -74,8 +72,7 @@ exlib::string getResultMessage(result_t hr)
         "Javascript error."
     };
 
-    if (hr == CALL_E_EXCEPTION)
-    {
+    if (hr == CALL_E_EXCEPTION) {
         exlib::string s = Runtime::errMessage();
 
         if (s.length() > 0)
@@ -91,8 +88,7 @@ exlib::string getResultMessage(result_t hr)
     exlib::wchar MsgBuf[1024];
 
     if (FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                       NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), MsgBuf, 1024, NULL ))
-    {
+            NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), MsgBuf, 1024, NULL)) {
         exlib::string s = fmtString(hr, UTF8_A(MsgBuf));
         size_t sz = s.length();
 
@@ -111,32 +107,29 @@ v8::Local<v8::Value> ThrowResult(result_t hr)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Value> e = v8::Exception::Error(
-                                 isolate->NewFromUtf8(getResultMessage(hr)));
+        isolate->NewFromUtf8(getResultMessage(hr)));
     e->ToObject()->Set(isolate->NewFromUtf8("number"), v8::Int32::New(isolate->m_isolate, -hr));
 
     return isolate->m_isolate->ThrowException(e);
 }
 
-inline const char *ToCString(const v8::String::Utf8Value &value)
+inline const char* ToCString(const v8::String::Utf8Value& value)
 {
     return *value ? *value : "<string conversion failed>";
 }
 
-exlib::string GetException(TryCatch &try_catch, result_t hr)
+exlib::string GetException(TryCatch& try_catch, result_t hr)
 {
-    if (try_catch.HasCaught())
-    {
+    if (try_catch.HasCaught()) {
         v8::String::Utf8Value exception(try_catch.Exception());
 
         v8::Local<v8::Message> message = try_catch.Message();
         if (message.IsEmpty())
             return ToCString(exception);
-        else
-        {
+        else {
             v8::Local<v8::Value> trace_value = try_catch.StackTrace();
 
-            if (!IsEmpty(trace_value))
-            {
+            if (!IsEmpty(trace_value)) {
                 v8::String::Utf8Value stack_trace(trace_value);
                 const char* s = ToCString(stack_trace);
                 const char* s1 = qstrchr(s, '\n');
@@ -152,21 +145,17 @@ exlib::string GetException(TryCatch &try_catch, result_t hr)
 
             v8::String::Utf8Value filename(message->GetScriptResourceName());
 
-            if (qstrcmp(ToCString(exception), "SyntaxError: ", 13))
-            {
+            if (qstrcmp(ToCString(exception), "SyntaxError: ", 13)) {
                 strError.append(ToCString(exception));
                 strError.append("\n    at ");
-            }
-            else
-            {
+            } else {
                 strError.append((ToCString(exception) + 13));
                 strError.append("\n    at ");
             }
 
             strError.append(ToCString(filename));
             int32_t lineNumber = message->GetLineNumber();
-            if (lineNumber > 0)
-            {
+            if (lineNumber > 0) {
                 char numStr[32];
 
                 strError.append(1, ':');
@@ -179,41 +168,35 @@ exlib::string GetException(TryCatch &try_catch, result_t hr)
 
             return strError;
         }
-    }
-    else if (hr < 0)
+    } else if (hr < 0)
         return getResultMessage(hr);
 
     return "";
 }
 
-result_t throwSyntaxError(TryCatch &try_catch)
+result_t throwSyntaxError(TryCatch& try_catch)
 {
     v8::String::Utf8Value exception(try_catch.Exception());
 
     v8::Local<v8::Message> message = try_catch.Message();
     if (message.IsEmpty())
         ThrowError(ToCString(exception));
-    else
-    {
+    else {
         exlib::string strError;
 
         v8::String::Utf8Value filename(message->GetScriptResourceName());
 
-        if (qstrcmp(ToCString(exception), "SyntaxError: ", 13))
-        {
+        if (qstrcmp(ToCString(exception), "SyntaxError: ", 13)) {
             strError.append(ToCString(exception));
             strError.append("\n    at ");
-        }
-        else
-        {
+        } else {
             strError.append((ToCString(exception) + 13));
             strError.append("\n    at ");
         }
 
         strError.append(ToCString(filename));
         int32_t lineNumber = message->GetLineNumber();
-        if (lineNumber > 0)
-        {
+        if (lineNumber > 0) {
             char numStr[32];
 
             strError.append(1, ':');
@@ -230,22 +213,21 @@ result_t throwSyntaxError(TryCatch &try_catch)
     return CALL_E_JAVASCRIPT;
 }
 
-void ReportException(TryCatch &try_catch, result_t hr)
+void ReportException(TryCatch& try_catch, result_t hr)
 {
-    if (try_catch.HasCaught() ||  hr < 0)
+    if (try_catch.HasCaught() || hr < 0)
         errorLog(GetException(try_catch, hr));
 }
 
 exlib::string traceInfo(int32_t deep)
 {
     v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-            Isolate::current()->m_isolate, deep, v8::StackTrace::kOverview);
+        Isolate::current()->m_isolate, deep, v8::StackTrace::kOverview);
     int32_t count = stackTrace->GetFrameCount();
     int32_t i;
     exlib::string strBuffer;
 
-    for (i = 0; i < count; i++)
-    {
+    for (i = 0; i < count; i++) {
         char numStr[32];
         v8::Local<v8::StackFrame> f = stackTrace->GetFrame(i);
 
@@ -254,18 +236,15 @@ exlib::string traceInfo(int32_t deep)
 
         strBuffer.append("\n    at ");
 
-        if (**funname)
-        {
+        if (**funname) {
             strBuffer.append(*funname);
             strBuffer.append(" (", 2);
         }
 
-        if (*filename)
-        {
+        if (*filename) {
             strBuffer.append(*filename);
             strBuffer.append(1, ':');
-        }
-        else
+        } else
             strBuffer.append("[eval]:", 7);
 
         sprintf(numStr, "%d", f->GetLineNumber());
@@ -280,5 +259,4 @@ exlib::string traceInfo(int32_t deep)
 
     return strBuffer;
 }
-
 }

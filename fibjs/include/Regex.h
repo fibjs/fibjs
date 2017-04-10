@@ -11,14 +11,12 @@
 #ifndef REGEX_H_
 #define REGEX_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Regex: public Regex_base
-{
+class Regex : public Regex_base {
 public:
-    Regex() :
-        m_re(NULL)
+    Regex()
+        : m_re(NULL)
     {
         reset();
     }
@@ -30,16 +28,16 @@ public:
 
 public:
     // Regex_base
-    virtual result_t exec(exlib::string str, v8::Local<v8::Array> &retVal);
-    virtual result_t test(exlib::string str, bool &retVal);
-    virtual result_t get_lastIndex(int32_t &retVal);
+    virtual result_t exec(exlib::string str, v8::Local<v8::Array>& retVal);
+    virtual result_t test(exlib::string str, bool& retVal);
+    virtual result_t get_lastIndex(int32_t& retVal);
     virtual result_t set_lastIndex(int32_t newVal);
-    virtual result_t get_global(bool &retVal);
-    virtual result_t get_ignoreCase(bool &retVal);
-    virtual result_t get_multiline(bool &retVal);
+    virtual result_t get_global(bool& retVal);
+    virtual result_t get_ignoreCase(bool& retVal);
+    virtual result_t get_multiline(bool& retVal);
 
 public:
-    result_t compile(const char *pattern, const char *opt);
+    result_t compile(const char* pattern, const char* opt);
 
 private:
     void reset()
@@ -57,7 +55,7 @@ private:
     bool m_bIgnoreCase;
     bool m_bMultiline;
     int32_t m_nlastIndex;
-    pcre *m_re;
+    pcre* m_re;
 };
 
 } /* namespace fibjs */

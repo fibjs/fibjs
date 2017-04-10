@@ -12,14 +12,11 @@
 #ifndef DATE_H_
 #define DATE_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class date_t
-{
+class date_t {
 public:
-    enum
-    {
+    enum {
         _YEAR = 0,
         _MONTH = 1,
         _DAY = 2,
@@ -29,18 +26,18 @@ public:
     };
 
 public:
-    date_t(double v = NAN) :
-        d(v)
+    date_t(double v = NAN)
+        : d(v)
     {
     }
 
-    date_t(const date_t &v) :
-        d(v.d)
+    date_t(const date_t& v)
+        : d(v.d)
     {
     }
 
-    date_t(v8::Local<v8::Value> v) :
-        d(NAN)
+    date_t(v8::Local<v8::Value> v)
+        : d(NAN)
     {
         operator=(v);
     }
@@ -53,25 +50,26 @@ public:
     void now()
     {
         d = (double)std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count();
+            std::chrono::system_clock::now().time_since_epoch())
+                .count();
     }
 
     void create(int32_t Y, int32_t M, int32_t D, int32_t h, int32_t m, int32_t s, int32_t ms);
     void fromDosTime(int32_t tm);
 
-    date_t &operator=(double v)
+    date_t& operator=(double v)
     {
         d = v;
         return *this;
     }
 
-    date_t &operator=(const date_t &v)
+    date_t& operator=(const date_t& v)
     {
         d = v.d;
         return *this;
     }
 
-    date_t &operator=(v8::Local<v8::Value> v)
+    date_t& operator=(v8::Local<v8::Value> v)
     {
         d = v->NumberValue();
         return *this;
@@ -103,23 +101,22 @@ public:
     void toLocal();
     void toUTC();
 
-    void parse(const char *str, int32_t len = -1);
+    void parse(const char* str, int32_t len = -1);
     void parse(exlib::string str)
     {
         parse(str.c_str(), (int32_t)str.length());
     }
 
-    void toGMTString(exlib::string &retVal);
-    void toX509String(exlib::string &retVal);
-    void sqlString(exlib::string &retVal);
-    void stamp(exlib::string &retVal);
+    void toGMTString(exlib::string& retVal);
+    void toX509String(exlib::string& retVal);
+    void sqlString(exlib::string& retVal);
+    void stamp(exlib::string& retVal);
 
     static int32_t timezone();
 
 private:
     double d;
 };
-
 }
 
 #endif /* DATE_H_ */

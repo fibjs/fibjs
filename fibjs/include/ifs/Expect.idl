@@ -187,4 +187,3 @@ interface Expect : object
      */
     closeTo(Value expected, Value delta);
 };
-

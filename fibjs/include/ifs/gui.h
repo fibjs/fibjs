@@ -14,18 +14,16 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class WebView_base;
 class Map_base;
 
-class gui_base : public object_base
-{
+class gui_base : public object_base {
     DECLARE_CLASS(gui_base);
 
 public:
-    enum{
+    enum {
         _IE7 = 7000,
         _IE8 = 8000,
         _IE9 = 9000,
@@ -52,12 +50,12 @@ public:
     }
 
 public:
-    static void s_get_IE7(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_IE8(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_IE9(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_IE10(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_IE11(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_EDGE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_IE7(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_IE8(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_IE9(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_IE10(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_IE11(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_EDGE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -65,129 +63,122 @@ public:
     ASYNC_STATICVALUE2(gui_base, open, exlib::string, obj_ptr<WebView_base>);
     ASYNC_STATICVALUE3(gui_base, open, exlib::string, Map_base*, obj_ptr<WebView_base>);
 };
-
 }
 
 #include "WebView.h"
 #include "Map.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& gui_base::class_info()
 {
-    inline ClassInfo& gui_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"setVersion", s_setVersion, true},
-            {"open", s_open, true}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "setVersion", s_setVersion, true },
+        { "open", s_open, true }
+    };
 
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"IE7", s_get_IE7, block_set, true},
-            {"IE8", s_get_IE8, block_set, true},
-            {"IE9", s_get_IE9, block_set, true},
-            {"IE10", s_get_IE10, block_set, true},
-            {"IE11", s_get_IE11, block_set, true},
-            {"EDGE", s_get_EDGE, block_set, true}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "IE7", s_get_IE7, block_set, true },
+        { "IE8", s_get_IE8, block_set, true },
+        { "IE9", s_get_IE9, block_set, true },
+        { "IE10", s_get_IE10, block_set, true },
+        { "IE11", s_get_IE11, block_set, true },
+        { "EDGE", s_get_EDGE, block_set, true }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "gui", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "gui", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void gui_base::s_get_IE7(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _IE7;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
+inline void gui_base::s_get_IE7(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr = _IE7;
+    PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-    inline void gui_base::s_get_IE8(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _IE8;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
+inline void gui_base::s_get_IE8(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr = _IE8;
+    PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-    inline void gui_base::s_get_IE9(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _IE9;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
+inline void gui_base::s_get_IE9(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr = _IE9;
+    PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-    inline void gui_base::s_get_IE10(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _IE10;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
+inline void gui_base::s_get_IE10(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr = _IE10;
+    PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-    inline void gui_base::s_get_IE11(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _IE11;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
+inline void gui_base::s_get_IE11(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr = _IE11;
+    PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-    inline void gui_base::s_get_EDGE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _EDGE;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
+inline void gui_base::s_get_EDGE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr = _EDGE;
+    PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-    inline void gui_base::s_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void gui_base::s_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(int32_t, 0);
+    ARG(int32_t, 0);
 
-        hr = setVersion(v0);
+    hr = setVersion(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void gui_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<WebView_base> vr;
+inline void gui_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<WebView_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_open(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_open(v0, vr);
+    if (!cb.IsEmpty()) {
+        acb_open(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_open(v0, vr);
 
-        ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(obj_ptr<Map_base>, 1);
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Map_base>, 1);
 
-        if(!cb.IsEmpty()) {
-            acb_open(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_open(v0, v1, vr);
+    if (!cb.IsEmpty()) {
+        acb_open(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_open(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

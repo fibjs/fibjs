@@ -8,10 +8,9 @@
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-namespace fibjs
-{
+namespace fibjs {
 
-inline result_t generateEnd(const int32_t buffer_length, const int32_t offset, int32_t &end)
+inline result_t generateEnd(const int32_t buffer_length, const int32_t offset, int32_t& end)
 {
     if (end < 0)
         end = buffer_length + end + 1;
@@ -37,52 +36,51 @@ inline result_t validOffset(const int32_t buffer_length, const int32_t offset)
 }
 
 result_t Buffer_base::_new(exlib::string str, exlib::string codec,
-                           obj_ptr<Buffer_base> &retVal,
-                           v8::Local<v8::Object> This)
+    obj_ptr<Buffer_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->append(str, codec);
 }
 
-result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base> &retVal,
-                           v8::Local<v8::Object> This)
+result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->resize(size);
 }
 
 result_t Buffer_base::_new(v8::Local<v8::Array> datas,
-                           obj_ptr<Buffer_base> &retVal,
-                           v8::Local<v8::Object> This)
+    obj_ptr<Buffer_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->append(datas);
 }
 
 result_t Buffer_base::_new(v8::Local<v8::ArrayBuffer> datas,
-                           obj_ptr<Buffer_base>& retVal,
-                           v8::Local<v8::Object> This)
+    obj_ptr<Buffer_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->append(datas);
 }
 
 result_t Buffer_base::_new(v8::Local<v8::TypedArray> datas,
-                           obj_ptr<Buffer_base>& retVal,
-                           v8::Local<v8::Object> This)
+    obj_ptr<Buffer_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->append(datas);
 }
 
 result_t Buffer_base::_new(Buffer_base* buffer,
-                           obj_ptr<Buffer_base> &retVal,
-                           v8::Local<v8::Object> This)
+    obj_ptr<Buffer_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
     return retVal->append(buffer);
 }
-
 
 result_t Buffer_base::isBuffer(v8::Local<v8::Value> v, bool& retVal)
 {
@@ -106,8 +104,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     exlib::string str;
     Isolate* isolate = Isolate::current();
 
-    for (int32_t i = 0; i < sz; i ++)
-    {
+    for (int32_t i = 0; i < sz; i++) {
         v8::Local<v8::Value> v = buflist->Get(i);
         obj_ptr<Buffer_base> vdata;
 
@@ -116,18 +113,16 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
             return CHECK_ERROR(hr);
 
         exlib::string vstr;
-        vdata -> toString(vstr);
-        buf_length = (int32_t) vstr.length();
+        vdata->toString(vstr);
+        buf_length = (int32_t)vstr.length();
 
         if (-1 == cutLength)
             total_length = offset + buf_length;
 
-        if (offset + buf_length <=  total_length) {
+        if (offset + buf_length <= total_length) {
             str.append(vstr.c_str(), buf_length);
             offset += buf_length;
-        }
-        else
-        {
+        } else {
             str.append(vstr.c_str(), total_length - offset);
             offset = total_length;
             break;
@@ -139,12 +134,12 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     return hr;
 }
 
-result_t Buffer::_indexed_getter(uint32_t index, int32_t &retVal)
+result_t Buffer::_indexed_getter(uint32_t index, int32_t& retVal)
 {
     if (index >= m_data.length())
         return CHECK_ERROR(CALL_E_BADINDEX);
 
-    retVal = (unsigned char) m_data.c_str()[index];
+    retVal = (unsigned char)m_data.c_str()[index];
     return 0;
 }
 
@@ -160,9 +155,9 @@ result_t Buffer::_indexed_setter(uint32_t index, int32_t newVal)
     return 0;
 }
 
-result_t Buffer::get_length(int32_t &retVal)
+result_t Buffer::get_length(int32_t& retVal)
 {
-    retVal = (int32_t) m_data.length();
+    retVal = (int32_t)m_data.length();
     return 0;
 }
 
@@ -171,7 +166,7 @@ result_t Buffer::resize(int32_t sz)
     if (sz < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    extMemory(sz - (int32_t) m_data.length());
+    extMemory(sz - (int32_t)m_data.length());
     m_data.resize(sz);
 
     return 0;
@@ -193,8 +188,7 @@ result_t Buffer::append(v8::Local<v8::ArrayBuffer> datas)
     int32_t sz = (int32_t)cnt.ByteLength();
     char* ptr = (char*)cnt.Data();
 
-    if (sz)
-    {
+    if (sz) {
         extMemory(sz);
         m_data.append(ptr, sz);
     }
@@ -202,21 +196,20 @@ result_t Buffer::append(v8::Local<v8::ArrayBuffer> datas)
     return 0;
 }
 
-result_t Buffer::append(Buffer_base *data)
+result_t Buffer::append(Buffer_base* data)
 {
     exlib::string strBuf;
     data->toString(strBuf);
 
-    extMemory((int32_t) strBuf.length());
+    extMemory((int32_t)strBuf.length());
     m_data.append(strBuf);
     return 0;
 }
 
 result_t Buffer::append(exlib::string str, exlib::string codec)
 {
-    if ((codec == "utf8") || (codec == "utf-8"))
-    {
-        extMemory((int32_t) str.length());
+    if ((codec == "utf8") || (codec == "utf-8")) {
+        extMemory((int32_t)str.length());
         m_data.append(str);
         return 0;
     }
@@ -248,18 +241,17 @@ result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib:
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
     max_length = (int32_t)str.length();
-    max_length = MIN(max_length,  buffer_length - offset);
+    max_length = MIN(max_length, buffer_length - offset);
     if (0 == length)
         return 0;
     else if (0 < length)
-        max_length = MIN(max_length,  length);
+        max_length = MIN(max_length, length);
 
     if (max_length < 0)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
     retVal = max_length;
-    if ((codec == "utf8") || (codec == "utf-8"))
-    {
+    if ((codec == "utf8") || (codec == "utf-8")) {
         memcpy(&m_data[offset], str.c_str(), max_length);
         return 0;
     }
@@ -312,15 +304,13 @@ result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, obj_ptr<Buff
         return CHECK_ERROR(hr);
 
     int32_t length = end - offset;
-    int32_t str_length = (int32_t) v.length();
+    int32_t str_length = (int32_t)v.length();
 
-    if (str_length == 0)
-    {
+    if (str_length == 0) {
         retVal = this;
         return 0;
     }
-    while (length > 0)
-    {
+    while (length > 0) {
         memcpy(&m_data[offset], v.c_str(), MIN(str_length, length));
         length -= str_length;
         offset += str_length;
@@ -336,18 +326,16 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffe
     if (hr < 0)
         return CHECK_ERROR(hr);
 
-    obj_ptr<Buffer> v_data = dynamic_cast<Buffer *>(v);
+    obj_ptr<Buffer> v_data = dynamic_cast<Buffer*>(v);
     int32_t length = end - offset;
     int32_t v_length = (int32_t)v_data->m_data.length();
 
-    if (v_length == 0)
-    {
+    if (v_length == 0) {
         retVal = this;
         return 0;
     }
 
-    while (length > 0)
-    {
+    while (length > 0) {
         memcpy(&m_data[offset], v_data->m_data.c_str(), MIN(v_length, length));
         length -= v_length;
         offset += v_length;
@@ -366,10 +354,8 @@ result_t Buffer::indexOf(int32_t v, int32_t offset, int32_t& retVal)
 
     const char* _data = m_data.c_str();
 
-    while (offset < buf_length)
-    {
-        if (_data[offset] == (v & 255))
-        {
+    while (offset < buf_length) {
+        if (_data[offset] == (v & 255)) {
             retVal = offset;
             return 0;
         }
@@ -386,12 +372,12 @@ result_t Buffer::indexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
     if (hr < 0)
         return CHECK_ERROR(hr);
 
-    obj_ptr<Buffer> v_data = dynamic_cast<Buffer *>(v);
+    obj_ptr<Buffer> v_data = dynamic_cast<Buffer*>(v);
     exlib::string vstr;
     v_data->toString(vstr);
 
     const char* find = exlib::qmemfind(m_data.c_str() + offset, m_data.length() - offset,
-                                       vstr.c_str(), vstr.length());
+        vstr.c_str(), vstr.length());
 
     retVal = find ? (int32_t)(find - m_data.c_str()) : -1;
     return 0;
@@ -404,19 +390,19 @@ result_t Buffer::indexOf(exlib::string v, int32_t offset, int32_t& retVal)
         return CHECK_ERROR(hr);
 
     const char* find = exlib::qmemfind(m_data.c_str() + offset, m_data.length() - offset,
-                                       v.c_str(), v.length());
+        v.c_str(), v.length());
 
     retVal = find ? (int32_t)(find - m_data.c_str()) : -1;
     return 0;
 }
 
-result_t Buffer::compare(Buffer_base * buf, int32_t& retVal)
+result_t Buffer::compare(Buffer_base* buf, int32_t& retVal)
 {
-    obj_ptr<Buffer> cmpdata = dynamic_cast<Buffer *>(buf);
+    obj_ptr<Buffer> cmpdata = dynamic_cast<Buffer*>(buf);
     int32_t pos_length = (int32_t)m_data.length();
     int32_t neg_length = (int32_t)cmpdata->m_data.length();
 
-    retVal =  memcmp(&m_data[0], cmpdata->m_data.c_str(), MIN(pos_length, neg_length));
+    retVal = memcmp(&m_data[0], cmpdata->m_data.c_str(), MIN(pos_length, neg_length));
     if (retVal)
         return 0;
 
@@ -424,7 +410,7 @@ result_t Buffer::compare(Buffer_base * buf, int32_t& retVal)
     return 0;
 }
 
-result_t Buffer::copy(Buffer_base * targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t &retVal)
+result_t Buffer::copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal)
 {
     if (targetStart < 0 || sourceStart < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -432,15 +418,14 @@ result_t Buffer::copy(Buffer_base * targetBuffer, int32_t targetStart, int32_t s
     if (sourceStart > (int32_t)m_data.length())
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
-    Buffer *buf = static_cast<Buffer *>(targetBuffer);
+    Buffer* buf = static_cast<Buffer*>(targetBuffer);
     int32_t bufLen;
     buf->get_length(bufLen);
 
     if (sourceEnd == -1)
         sourceEnd = (int32_t)m_data.length();
 
-    if (targetStart >= bufLen || sourceStart >= sourceEnd)
-    {
+    if (targetStart >= bufLen || sourceStart >= sourceEnd) {
         retVal = 0;
         return 0;
     }
@@ -457,141 +442,142 @@ result_t Buffer::copy(Buffer_base * targetBuffer, int32_t targetStart, int32_t s
     return 0;
 }
 
-result_t Buffer::readNumber(int32_t offset, char *buf, int32_t size, bool noAssert, bool le)
+result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size, bool noAssert, bool le)
 {
     int32_t sz = size;
 
-    if (offset + sz > (int32_t) m_data.length())
-    {
+    if (offset + sz > (int32_t)m_data.length()) {
         if (!noAssert)
             return CHECK_ERROR(CALL_E_OUTRANGE);
 
-        sz = (int32_t) m_data.length() - offset;
+        sz = (int32_t)m_data.length() - offset;
         if (sz <= 0)
             return 0;
     }
 
-    if (size == 1)
-    {
+    if (size == 1) {
         buf[0] = *(m_data.c_str() + offset);
         return 0;
     }
 
     if (le)
         memcpy(buf, m_data.c_str() + offset, sz);
-    else
-    {
+    else {
         int32_t i;
-        for (i = 0; i < sz; i ++)
+        for (i = 0; i < sz; i++)
             buf[size - i - 1] = *(m_data.c_str() + offset + i);
     }
 
     return 0;
 }
 
-#define READ_NUMBER(t, le) \
-    t v = 0; \
-    result_t hr = readNumber(offset, (char *)&v, sizeof(v), noAssert, le); \
-    if (hr < 0)return hr; \
-    retVal = v; \
+#define READ_NUMBER(t, le)                                                \
+    t v = 0;                                                              \
+    result_t hr = readNumber(offset, (char*)&v, sizeof(v), noAssert, le); \
+    if (hr < 0)                                                           \
+        return hr;                                                        \
+    retVal = v;                                                           \
     return 0;
 
-#define READ_U_NUMBER_48(t, le) \
-    t v = 0; \
-    result_t hr = readNumber(offset, (char *)&v, 6, noAssert, le); \
-    if (hr < 0)return hr; \
-    retVal = v; \
+#define READ_U_NUMBER_48(t, le)                                   \
+    t v = 0;                                                      \
+    result_t hr = readNumber(offset, (char*)&v, 6, noAssert, le); \
+    if (hr < 0)                                                   \
+        return hr;                                                \
+    retVal = v;                                                   \
     return 0;
 
-#define READ_NUMBER_48(t, le) \
-    t v = 0; \
-    result_t hr = readNumber(offset, (char *)&v, 6, noAssert, le); \
-    if (hr < 0)return hr; \
-    if(v&0x800000000000)v=-(v&0x7fffffffffff); \
-    retVal = v; \
+#define READ_NUMBER_48(t, le)                                     \
+    t v = 0;                                                      \
+    result_t hr = readNumber(offset, (char*)&v, 6, noAssert, le); \
+    if (hr < 0)                                                   \
+        return hr;                                                \
+    if (v & 0x800000000000)                                       \
+        v = -(v & 0x7fffffffffff);                                \
+    retVal = v;                                                   \
     return 0;
 
-result_t Buffer::readUInt8(int32_t offset, bool noAssert, int32_t &retVal)
+result_t Buffer::readUInt8(int32_t offset, bool noAssert, int32_t& retVal)
 {
     READ_NUMBER(uint8_t, true);
 }
 
-result_t Buffer::readUInt16LE(int32_t offset, bool noAssert, int32_t &retVal)
+result_t Buffer::readUInt16LE(int32_t offset, bool noAssert, int32_t& retVal)
 {
     READ_NUMBER(uint16_t, true);
 }
 
-result_t Buffer::readUInt16BE(int32_t offset, bool noAssert, int32_t &retVal)
+result_t Buffer::readUInt16BE(int32_t offset, bool noAssert, int32_t& retVal)
 {
     READ_NUMBER(uint16_t, false);
 }
 
-result_t Buffer::readUInt32LE(int32_t offset, bool noAssert, int64_t &retVal)
+result_t Buffer::readUInt32LE(int32_t offset, bool noAssert, int64_t& retVal)
 {
     READ_NUMBER(uint32_t, true);
 }
 
-result_t Buffer::readUInt32BE(int32_t offset, bool noAssert, int64_t &retVal)
+result_t Buffer::readUInt32BE(int32_t offset, bool noAssert, int64_t& retVal)
 {
     READ_NUMBER(uint32_t, false);
 }
 
-result_t Buffer::readUIntLE(int32_t offset, bool noAssert, int64_t &retVal)
+result_t Buffer::readUIntLE(int32_t offset, bool noAssert, int64_t& retVal)
 {
     READ_U_NUMBER_48(uint64_t, true);
 }
 
-result_t Buffer::readUIntBE(int32_t offset, bool noAssert, int64_t &retVal)
+result_t Buffer::readUIntBE(int32_t offset, bool noAssert, int64_t& retVal)
 {
     READ_U_NUMBER_48(uint64_t, false);
 }
 
-result_t Buffer::readInt8(int32_t offset, bool noAssert, int32_t &retVal)
+result_t Buffer::readInt8(int32_t offset, bool noAssert, int32_t& retVal)
 {
     READ_NUMBER(int8_t, true);
 }
 
-result_t Buffer::readInt16LE(int32_t offset, bool noAssert, int32_t &retVal)
+result_t Buffer::readInt16LE(int32_t offset, bool noAssert, int32_t& retVal)
 {
     READ_NUMBER(int16_t, true);
 }
 
-result_t Buffer::readInt16BE(int32_t offset, bool noAssert, int32_t &retVal)
+result_t Buffer::readInt16BE(int32_t offset, bool noAssert, int32_t& retVal)
 {
     READ_NUMBER(int16_t, false);
 }
 
-result_t Buffer::readInt32LE(int32_t offset, bool noAssert, int32_t &retVal)
+result_t Buffer::readInt32LE(int32_t offset, bool noAssert, int32_t& retVal)
 {
     READ_NUMBER(int32_t, true);
 }
 
-result_t Buffer::readInt32BE(int32_t offset, bool noAssert, int32_t &retVal)
+result_t Buffer::readInt32BE(int32_t offset, bool noAssert, int32_t& retVal)
 {
     READ_NUMBER(int32_t, false);
 }
 
-result_t Buffer::readIntLE(int32_t offset, bool noAssert, int64_t &retVal)
+result_t Buffer::readIntLE(int32_t offset, bool noAssert, int64_t& retVal)
 {
     READ_NUMBER_48(int64_t, true);
 }
 
-result_t Buffer::readIntBE(int32_t offset, bool noAssert, int64_t &retVal)
+result_t Buffer::readIntBE(int32_t offset, bool noAssert, int64_t& retVal)
 {
     READ_NUMBER_48(int64_t, false);
 }
 
-result_t Buffer::readInt64LE(int32_t offset, bool noAssert, int64_t &retVal)
+result_t Buffer::readInt64LE(int32_t offset, bool noAssert, int64_t& retVal)
 {
     READ_NUMBER(int64_t, true);
 }
 
-result_t Buffer::readInt64BE(int32_t offset, bool noAssert, int64_t &retVal)
+result_t Buffer::readInt64BE(int32_t offset, bool noAssert, int64_t& retVal)
 {
     READ_NUMBER(int64_t, false);
 }
 
-result_t Buffer::readInt64LE(int32_t offset, bool noAssert, obj_ptr<Int64_base> &retVal)
+result_t Buffer::readInt64LE(int32_t offset, bool noAssert, obj_ptr<Int64_base>& retVal)
 {
     int64_t v;
     result_t hr = readInt64LE(offset, noAssert, v);
@@ -602,7 +588,7 @@ result_t Buffer::readInt64LE(int32_t offset, bool noAssert, obj_ptr<Int64_base> 
     return 0;
 }
 
-result_t Buffer::readInt64BE(int32_t offset, bool noAssert, obj_ptr<Int64_base> &retVal)
+result_t Buffer::readInt64BE(int32_t offset, bool noAssert, obj_ptr<Int64_base>& retVal)
 {
     int64_t v;
     result_t hr = readInt64BE(offset, noAssert, v);
@@ -613,68 +599,67 @@ result_t Buffer::readInt64BE(int32_t offset, bool noAssert, obj_ptr<Int64_base> 
     return 0;
 }
 
-result_t Buffer::readFloatLE(int32_t offset, bool noAssert, double &retVal)
+result_t Buffer::readFloatLE(int32_t offset, bool noAssert, double& retVal)
 {
     READ_NUMBER(float, true);
 }
 
-result_t Buffer::readFloatBE(int32_t offset, bool noAssert, double &retVal)
+result_t Buffer::readFloatBE(int32_t offset, bool noAssert, double& retVal)
 {
     READ_NUMBER(float, false);
 }
 
-result_t Buffer::readDoubleLE(int32_t offset, bool noAssert, double &retVal)
+result_t Buffer::readDoubleLE(int32_t offset, bool noAssert, double& retVal)
 {
     READ_NUMBER(double, true);
 }
 
-result_t Buffer::readDoubleBE(int32_t offset, bool noAssert, double &retVal)
+result_t Buffer::readDoubleBE(int32_t offset, bool noAssert, double& retVal)
 {
     READ_NUMBER(double, false);
 }
 
-result_t Buffer::writeNumber(int32_t offset, const char *buf, int32_t size, bool noAssert, bool le)
+result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size, bool noAssert, bool le)
 {
     int32_t sz = size;
 
-    if (offset + sz > (int32_t) m_data.length())
-    {
+    if (offset + sz > (int32_t)m_data.length()) {
         if (!noAssert)
             return CHECK_ERROR(CALL_E_OUTRANGE);
 
-        sz = (int32_t) m_data.length() - offset;
+        sz = (int32_t)m_data.length() - offset;
         if (sz <= 0)
             return 0;
     }
 
-    if (size == 1)
-    {
+    if (size == 1) {
         m_data[offset] = buf[0];
         return 0;
     }
 
     if (le)
         memcpy(&m_data[offset], buf, sz);
-    else
-    {
+    else {
         int32_t i;
-        for (i = 0; i < sz; i ++)
+        for (i = 0; i < sz; i++)
             m_data[offset + i] = buf[size - i - 1];
     }
 
     return 0;
 }
 
-#define WRITE_NUMBER(t, le) \
-    t v = (t)value; \
-    result_t hr = writeNumber(offset, (char *)&v, sizeof(v), noAssert, le); \
-    if (hr < 0)return hr; \
+#define WRITE_NUMBER(t, le)                                                \
+    t v = (t)value;                                                        \
+    result_t hr = writeNumber(offset, (char*)&v, sizeof(v), noAssert, le); \
+    if (hr < 0)                                                            \
+        return hr;                                                         \
     return 0;
 
-#define WRITE_NUMBER_48(t, le) \
-    t v = (t)value; \
-    result_t hr = writeNumber(offset, (char *)&v, 6, noAssert, le); \
-    if (hr < 0)return hr; \
+#define WRITE_NUMBER_48(t, le)                                     \
+    t v = (t)value;                                                \
+    result_t hr = writeNumber(offset, (char*)&v, 6, noAssert, le); \
+    if (hr < 0)                                                    \
+        return hr;                                                 \
     return 0;
 
 result_t Buffer::writeUInt8(int32_t value, int32_t offset, bool noAssert)
@@ -752,9 +737,9 @@ result_t Buffer::writeInt64LE(int64_t value, int32_t offset, bool noAssert)
     WRITE_NUMBER(int64_t, true);
 }
 
-result_t Buffer::writeInt64LE(Int64_base *value, int32_t offset, bool noAssert)
+result_t Buffer::writeInt64LE(Int64_base* value, int32_t offset, bool noAssert)
 {
-    return writeInt64LE(((Int64 *)value)->m_num, offset, noAssert);
+    return writeInt64LE(((Int64*)value)->m_num, offset, noAssert);
 }
 
 result_t Buffer::writeInt64BE(int64_t value, int32_t offset, bool noAssert)
@@ -762,9 +747,9 @@ result_t Buffer::writeInt64BE(int64_t value, int32_t offset, bool noAssert)
     WRITE_NUMBER(int64_t, false);
 }
 
-result_t Buffer::writeInt64BE(Int64_base *value, int32_t offset, bool noAssert)
+result_t Buffer::writeInt64BE(Int64_base* value, int32_t offset, bool noAssert)
 {
-    return writeInt64BE(((Int64 *)value)->m_num, offset, noAssert);
+    return writeInt64BE(((Int64*)value)->m_num, offset, noAssert);
 }
 
 result_t Buffer::writeFloatLE(double value, int32_t offset, bool noAssert)
@@ -789,12 +774,12 @@ result_t Buffer::writeDoubleBE(double value, int32_t offset, bool noAssert)
 
 result_t Buffer::slice(int32_t start, obj_ptr<Buffer_base>& retVal)
 {
-    return slice(start, (int32_t) m_data.length(), retVal);
+    return slice(start, (int32_t)m_data.length(), retVal);
 }
 
-result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
+result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal)
 {
-    int32_t length = (int32_t) m_data.length();
+    int32_t length = (int32_t)m_data.length();
 
     if (start < 0)
         start = length + start;
@@ -809,29 +794,28 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base> &retVal)
         start = end;
 
     obj_ptr<Buffer> pNew = new Buffer();
-    if (start < end)
-    {
+    if (start < end) {
         pNew->m_data.append(m_data.c_str() + start, end - start);
-        pNew->extMemory((int32_t) (end - start));
+        pNew->extMemory((int32_t)(end - start));
     }
     retVal = pNew;
 
     return 0;
 }
 
-result_t Buffer::toString(exlib::string &retVal)
+result_t Buffer::toString(exlib::string& retVal)
 {
     retVal = m_data;
     return 0;
 }
 
-result_t Buffer::hex(exlib::string &retVal)
+result_t Buffer::hex(exlib::string& retVal)
 {
     obj_ptr<Buffer_base> data = this;
     return hex_base::encode(data, retVal);
 }
 
-result_t Buffer::base64(exlib::string &retVal)
+result_t Buffer::base64(exlib::string& retVal)
 {
     obj_ptr<Buffer_base> data = this;
     return base64_base::encode(data, retVal);
@@ -840,8 +824,7 @@ result_t Buffer::base64(exlib::string &retVal)
 result_t Buffer::equals(object_base* expected, bool& retVal)
 {
     obj_ptr<Buffer_base> buf = Buffer_base::getInstance(expected);
-    if (!buf)
-    {
+    if (!buf) {
         retVal = false;
         return 0;
     }
@@ -849,48 +832,39 @@ result_t Buffer::equals(object_base* expected, bool& retVal)
     exlib::string str;
     buf->toString(str);
 
-    retVal = (m_data.length() == str.length()) &&
-             !memcmp(m_data.c_str(), str.c_str(), str.length());
+    retVal = (m_data.length() == str.length()) && !memcmp(m_data.c_str(), str.c_str(), str.length());
 
     return 0;
 }
 
-result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exlib::string &retVal)
+result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal)
 {
     result_t hr;
     exlib::string str;
     int32_t str_length;
 
-    if ((codec == "utf8") || (codec == "utf-8") ||
-            (codec == "undefined"))
-    {
+    if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined")) {
         str = m_data;
         hr = 0;
-    }
-    else
-    {
+    } else {
         if ((codec == "hex"))
             hr = hex_base::encode(this, str);
         else if ((codec == "base64"))
             hr = base64_base::encode(this, str);
-        else if ((codec == "ascii"))
-        {
+        else if ((codec == "ascii")) {
             int32_t len, i;
 
             len = (int32_t)m_data.length();
             str.resize(len);
             const char* _data = m_data.c_str();
-            for (i = 0; i < len; i ++)
+            for (i = 0; i < len; i++)
                 str[i] = _data[i] & 0x7f;
 
             hr = 0;
-        } else if ((codec == "ucs2") || (codec == "ucs-2") ||
-                   (codec == "utf16le") || (codec == "utf-16le"))
-        {
-            str = utf16to8String((const exlib::wchar *)m_data.c_str(), (int32_t)m_data.length() / 2);
+        } else if ((codec == "ucs2") || (codec == "ucs-2") || (codec == "utf16le") || (codec == "utf-16le")) {
+            str = utf16to8String((const exlib::wchar*)m_data.c_str(), (int32_t)m_data.length() / 2);
             hr = 0;
-        }
-        else
+        } else
             hr = iconv_base::decode(codec, this, str);
     }
 
@@ -914,28 +888,28 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exli
 result_t Buffer::toArray(v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = holder();
-    v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t) m_data.length());
+    v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
     int32_t i;
     const char* _data = m_data.c_str();
 
-    for (i = 0; i < (int32_t) m_data.length(); i++)
-        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char) _data[i]));
+    for (i = 0; i < (int32_t)m_data.length(); i++)
+        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
 
     retVal = a;
 
     return 0;
 }
 
-result_t Buffer::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
+result_t Buffer::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t) m_data.length());
+    v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
     int32_t i;
     const char* _data = m_data.c_str();
 
-    for (i = 0; i < (int32_t) m_data.length(); i++)
-        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char) _data[i]));
+    for (i = 0; i < (int32_t)m_data.length(); i++)
+        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
 
     o->Set(isolate->NewFromUtf8("type"), isolate->NewFromUtf8("Buffer"));
     o->Set(isolate->NewFromUtf8("data"), a);
@@ -947,12 +921,10 @@ result_t Buffer::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 
 void Buffer::fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Object>& o)
 {
-    if (data->IsArray())
-    {
+    if (data->IsArray()) {
         obj_ptr<Buffer_base> buf = new Buffer();
         buf->append(v8::Local<v8::Array>::Cast(data));
         o = buf->wrap();
     }
 }
-
 }

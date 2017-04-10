@@ -14,19 +14,17 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class console_base;
 class assert_base;
 class Expect_base;
 
-class test_base : public object_base
-{
+class test_base : public object_base {
     DECLARE_CLASS(test_base);
 
 public:
-    enum{
+    enum {
         _BDD = 0,
         _TDD = 1
     };
@@ -59,8 +57,8 @@ public:
     }
 
 public:
-    static void s_get_BDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_TDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_BDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_TDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_describe(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_it(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,246 +70,238 @@ public:
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_expect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setup(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_slow(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_slow(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
-
 }
 
 #include "console.h"
 #include "assert.h"
 #include "Expect.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& test_base::class_info()
 {
-    inline ClassInfo& test_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"describe", s_describe, true},
-            {"xdescribe", s_xdescribe, true},
-            {"it", s_it, true},
-            {"xit", s_xit, true},
-            {"before", s_before, true},
-            {"after", s_after, true},
-            {"beforeEach", s_beforeEach, true},
-            {"afterEach", s_afterEach, true},
-            {"run", s_run, true},
-            {"expect", s_expect, true},
-            {"setup", s_setup, true}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "describe", s_describe, true },
+        { "xdescribe", s_xdescribe, true },
+        { "it", s_it, true },
+        { "xit", s_xit, true },
+        { "before", s_before, true },
+        { "after", s_after, true },
+        { "beforeEach", s_beforeEach, true },
+        { "afterEach", s_afterEach, true },
+        { "run", s_run, true },
+        { "expect", s_expect, true },
+        { "setup", s_setup, true }
+    };
 
-        static ClassData::ClassObject s_object[] = 
-        {
-            {"assert", assert_base::class_info}
-        };
+    static ClassData::ClassObject s_object[] = {
+        { "assert", assert_base::class_info }
+    };
 
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"BDD", s_get_BDD, block_set, true},
-            {"TDD", s_get_TDD, block_set, true},
-            {"slow", s_get_slow, s_set_slow, true}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "BDD", s_get_BDD, block_set, true },
+        { "TDD", s_get_TDD, block_set, true },
+        { "slow", s_get_slow, s_set_slow, true }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "test", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "test", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void test_base::s_get_BDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _BDD;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
+inline void test_base::s_get_BDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr = _BDD;
+    PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-    inline void test_base::s_get_TDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _TDD;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
+inline void test_base::s_get_TDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr = _TDD;
+    PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-    inline void test_base::s_describe(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void test_base::s_describe(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        hr = describe(v0, v1);
+    hr = describe(v0, v1);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void test_base::s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void test_base::s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        hr = xdescribe(v0, v1);
+    hr = xdescribe(v0, v1);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void test_base::s_it(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void test_base::s_it(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        hr = it(v0, v1);
+    hr = it(v0, v1);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void test_base::s_xit(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void test_base::s_xit(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        hr = xit(v0, v1);
+    hr = xit(v0, v1);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void test_base::s_before(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void test_base::s_before(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Function>, 0);
+    ARG(v8::Local<v8::Function>, 0);
 
-        hr = before(v0);
+    hr = before(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void test_base::s_after(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void test_base::s_after(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Function>, 0);
+    ARG(v8::Local<v8::Function>, 0);
 
-        hr = after(v0);
+    hr = after(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void test_base::s_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void test_base::s_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Function>, 0);
+    ARG(v8::Local<v8::Function>, 0);
 
-        hr = beforeEach(v0);
+    hr = beforeEach(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void test_base::s_afterEach(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void test_base::s_afterEach(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Function>, 0);
+    ARG(v8::Local<v8::Function>, 0);
 
-        hr = afterEach(v0);
+    hr = afterEach(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void test_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void test_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
-        OPT_ARG(int32_t, 0, console_base::_ERROR);
+    OPT_ARG(int32_t, 0, console_base::_ERROR);
 
-        hr = run(v0, vr);
+    hr = run(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void test_base::s_expect(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Expect_base> vr;
+inline void test_base::s_expect(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Expect_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        hr = expect(v0, v1, vr);
+    hr = expect(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void test_base::s_setup(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void test_base::s_setup(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
-        OPT_ARG(int32_t, 0, _BDD);
+    OPT_ARG(int32_t, 0, _BDD);
 
-        hr = setup(v0);
+    hr = setup(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void test_base::s_get_slow(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+inline void test_base::s_get_slow(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_slow(vr);
+    hr = get_slow(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void test_base::s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        PROPERTY_ENTER();
-        PROPERTY_VAL(int32_t);
+inline void test_base::s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
 
-        hr = set_slow(v0);
+    hr = set_slow(v0);
 
-        PROPERTY_SET_LEAVE();
-    }
-
+    PROPERTY_SET_LEAVE();
+}
 }
 
 #endif
-

@@ -8,25 +8,24 @@
 #include "object.h"
 #include "Condition.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t Condition_base::_new(obj_ptr<Condition_base> &retVal, v8::Local<v8::Object> This)
+result_t Condition_base::_new(obj_ptr<Condition_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new Condition();
 
     return 0;
 }
 
-result_t Condition_base::_new(Lock_base *lock, obj_ptr<Condition_base> &retVal,
-                              v8::Local<v8::Object> This)
+result_t Condition_base::_new(Lock_base* lock, obj_ptr<Condition_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     retVal = new Condition(lock);
 
     return 0;
 }
 
-result_t Condition::acquire(bool blocking, bool &retVal)
+result_t Condition::acquire(bool blocking, bool& retVal)
 {
     return m_lockCond->acquire(blocking, retVal);
 }
@@ -74,5 +73,4 @@ result_t Condition::notifyAll()
 
     return 0;
 }
-
 }

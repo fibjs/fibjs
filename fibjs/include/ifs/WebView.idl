@@ -1,23 +1,23 @@
 /*! @brief 浏览器窗口对象 */
 interface WebView : EventEmitter
 {
-	/*! @brief 设置 webview 的页面 html
+    /*! @brief 设置 webview 的页面 html
 	 @param html 设置的 html
 	 */
-	setHtml(String html) async;
+    setHtml(String html) async;
 
-	/*! @brief 打印当前窗口文档
+    /*! @brief 打印当前窗口文档
 	 @param mode 打印参数，0: 快速打印; 1: 标准打印; 2: 打印预览。缺省为 1
 	 */
-	print(Integer mode = 1) async;
+    print(Integer mode = 1) async;
 
-	/*! @brief 关闭当前窗口 */
-	close() async;
+    /*! @brief 关闭当前窗口 */
+    close() async;
 
-	/*! @brief 等待当前窗口关闭 */
-	wait() async;
+    /*! @brief 等待当前窗口关闭 */
+    wait() async;
 
-	/*! @brief 向 webview 内发送消息
+    /*! @brief 向 webview 内发送消息
 	 @param msg 要发送的消息
 	 
 	 @code
@@ -36,15 +36,15 @@ interface WebView : EventEmitter
 
 	 @endcode
 	 */
-	postMessage(String msg) async;
+    postMessage(String msg) async;
 
-	/*! @brief 查询和设置窗口是否显示 */
-	Boolean visible;
+    /*! @brief 查询和设置窗口是否显示 */
+    Boolean visible;
 
-	/*! @brief 查询和绑定加载成功事件，相当于 on("load", func); */
-	Function onload;
+    /*! @brief 查询和绑定加载成功事件，相当于 on("load", func); */
+    Function onload;
 
-	/*! @brief 查询和绑定窗口移动事件，相当于 on("move", func); 
+    /*! @brief 查询和绑定窗口移动事件，相当于 on("move", func); 
 	@code
 		var gui = require('gui');
 		var webview = gui.open('fs:index.html');
@@ -54,9 +54,9 @@ interface WebView : EventEmitter
 		}
 	 @endcode
 	*/
-	Function onmove;
+    Function onmove;
 
-	/*! @brief 查询和绑定窗口尺寸改变事件，相当于 on("size", func);
+    /*! @brief 查询和绑定窗口尺寸改变事件，相当于 on("size", func);
 	@code
 		var gui = require('gui');
 		var webview = gui.open('fs:index.html');
@@ -66,9 +66,9 @@ interface WebView : EventEmitter
 		}
 	 @endcode
 	*/
-	Function onresize;
+    Function onresize;
 
-	/*! @brief 查询和绑定窗口关闭事件，相当于 on("close", func);
+    /*! @brief 查询和绑定窗口关闭事件，相当于 on("close", func);
 	@code
 		var gui = require('gui');
 		var webview = gui.open('fs:index.html');
@@ -76,9 +76,9 @@ interface WebView : EventEmitter
 		webview.onclose = function() {}
 	 @endcode
 	*/
-	Function onclose;
+    Function onclose;
 
-	/*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func);
+    /*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func);
 	@code
 		// index.html
 		<script>
@@ -94,5 +94,5 @@ interface WebView : EventEmitter
 		}
 	 @endcode
 	*/
-	Function onmessage;
+    Function onmessage;
 };

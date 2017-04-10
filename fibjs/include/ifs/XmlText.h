@@ -15,13 +15,11 @@
 #include "../object.h"
 #include "XmlCharacterData.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class XmlCharacterData_base;
 
-class XmlText_base : public XmlCharacterData_base
-{
+class XmlText_base : public XmlCharacterData_base {
     DECLARE_CLASS(XmlText_base);
 
 public:
@@ -42,46 +40,40 @@ public:
 public:
     static void s_splitText(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& XmlText_base::class_info()
 {
-    inline ClassInfo& XmlText_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"splitText", s_splitText, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "splitText", s_splitText, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "XmlText", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &XmlCharacterData_base::class_info()
-        };
+    static ClassData s_cd = {
+        "XmlText", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &XmlCharacterData_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void XmlText_base::s_splitText(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<XmlText_base> vr;
+inline void XmlText_base::s_splitText(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlText_base> vr;
 
-        METHOD_INSTANCE(XmlText_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(XmlText_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(int32_t, 0);
+    ARG(int32_t, 0);
 
-        hr = pInst->splitText(v0, vr);
+    hr = pInst->splitText(v0, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

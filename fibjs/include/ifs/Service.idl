@@ -51,5 +51,4 @@ interface Service : EventEmitter
 
     /*! @brief 查询和绑定服务恢复事件，相当于 on("continue", func); */
     Function oncontinue;
-
 };

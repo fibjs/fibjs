@@ -14,13 +14,11 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Stream_base;
 
-class Smtp_base : public object_base
-{
+class Smtp_base : public object_base {
     DECLARE_CLASS(Smtp_base);
 
 public:
@@ -39,8 +37,8 @@ public:
     virtual result_t get_socket(obj_ptr<Stream_base>& retVal) = 0;
 
 public:
-    template<typename T>
-    static void __new(const T &args);
+    template <typename T>
+    static void __new(const T& args);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -52,9 +50,9 @@ public:
     static void s_to(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_data(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_quit(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER1(Smtp_base, connect, exlib::string);
@@ -66,245 +64,239 @@ public:
     ASYNC_MEMBER1(Smtp_base, data, exlib::string);
     ASYNC_MEMBER0(Smtp_base, quit);
 };
-
 }
 
 #include "Stream.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& Smtp_base::class_info()
 {
-    inline ClassInfo& Smtp_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"connect", s_connect, false},
-            {"command", s_command, false},
-            {"hello", s_hello, false},
-            {"login", s_login, false},
-            {"from", s_from, false},
-            {"to", s_to, false},
-            {"data", s_data, false},
-            {"quit", s_quit, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "connect", s_connect, false },
+        { "command", s_command, false },
+        { "hello", s_hello, false },
+        { "login", s_login, false },
+        { "from", s_from, false },
+        { "to", s_to, false },
+        { "data", s_data, false },
+        { "quit", s_quit, false }
+    };
 
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"timeout", s_get_timeout, s_set_timeout, false},
-            {"socket", s_get_socket, block_set, false}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "timeout", s_get_timeout, s_set_timeout, false },
+        { "socket", s_get_socket, block_set, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "Smtp", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "Smtp", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void Smtp_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
+inline void Smtp_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    CONSTRUCT_INIT();
+    __new(args);
+}
 
-    template<typename T>void Smtp_base::__new(const T& args)
-    {
-        obj_ptr<Smtp_base> vr;
+template <typename T>
+void Smtp_base::__new(const T& args)
+{
+    obj_ptr<Smtp_base> vr;
 
-        CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = _new(vr, args.This());
+    hr = _new(vr, args.This());
 
-        CONSTRUCT_RETURN();
-    }
+    CONSTRUCT_RETURN();
+}
 
-    inline void Smtp_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER();
+inline void Smtp_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Smtp_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_connect(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_connect(v0);
+    if (!cb.IsEmpty()) {
+        pInst->acb_connect(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_connect(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Smtp_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void Smtp_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Smtp_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(exlib::string, 1);
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_command(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_command(v0, v1, vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_command(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_command(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Smtp_base::s_hello(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER();
+inline void Smtp_base::s_hello(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Smtp_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 0);
+    ASYNC_METHOD_OVER(1, 0);
 
-        OPT_ARG(exlib::string, 0, "localhost");
+    OPT_ARG(exlib::string, 0, "localhost");
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_hello(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_hello(v0);
+    if (!cb.IsEmpty()) {
+        pInst->acb_hello(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_hello(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Smtp_base::s_login(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER();
+inline void Smtp_base::s_login(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Smtp_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(exlib::string, 1);
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_login(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_login(v0, v1);
+    if (!cb.IsEmpty()) {
+        pInst->acb_login(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_login(v0, v1);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Smtp_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER();
+inline void Smtp_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Smtp_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_from(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_from(v0);
+    if (!cb.IsEmpty()) {
+        pInst->acb_from(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_from(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Smtp_base::s_to(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER();
+inline void Smtp_base::s_to(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Smtp_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_to(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_to(v0);
+    if (!cb.IsEmpty()) {
+        pInst->acb_to(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_to(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Smtp_base::s_data(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER();
+inline void Smtp_base::s_data(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Smtp_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_data(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_data(v0);
+    if (!cb.IsEmpty()) {
+        pInst->acb_data(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_data(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Smtp_base::s_quit(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Smtp_base);
-        METHOD_ENTER();
+inline void Smtp_base::s_quit(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Smtp_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(0, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_quit(cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_quit();
+    if (!cb.IsEmpty()) {
+        pInst->acb_quit(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_quit();
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Smtp_base::s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+inline void Smtp_base::s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(Smtp_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(Smtp_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_timeout(vr);
+    hr = pInst->get_timeout(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Smtp_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(Smtp_base);
-        PROPERTY_ENTER();
-        PROPERTY_VAL(int32_t);
+inline void Smtp_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(Smtp_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
 
-        hr = pInst->set_timeout(v0);
+    hr = pInst->set_timeout(v0);
 
-        PROPERTY_SET_LEAVE();
-    }
+    PROPERTY_SET_LEAVE();
+}
 
-    inline void Smtp_base::s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Stream_base> vr;
+inline void Smtp_base::s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
 
-        METHOD_INSTANCE(Smtp_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(Smtp_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_socket(vr);
+    hr = pInst->get_socket(vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

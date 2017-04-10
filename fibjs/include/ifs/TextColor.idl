@@ -3,15 +3,15 @@
  */
 interface TextColor : object
 {
-	/*! @brief 指定 console.notice 颜色 */
-	String notice;
+    /*! @brief 指定 console.notice 颜色 */
+    String notice;
 
-	/*! @brief 指定 console.warn 颜色 */
-	String warn;
+    /*! @brief 指定 console.warn 颜色 */
+    String warn;
 
-	/*! @brief 指定 console.error 颜色 */
-	String error;
+    /*! @brief 指定 console.error 颜色 */
+    String error;
 
-	/*! @brief 指定 highLight 颜色 */
-	String highLight;
+    /*! @brief 指定 highLight 颜色 */
+    String highLight;
 };

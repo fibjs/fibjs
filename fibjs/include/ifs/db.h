@@ -14,8 +14,7 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class MySQL_base;
 class MSSQL_base;
@@ -24,8 +23,7 @@ class MongoDB_base;
 class LevelDB_base;
 class Redis_base;
 
-class db_base : public object_base
-{
+class db_base : public object_base {
     DECLARE_CLASS(db_base);
 
 public:
@@ -75,7 +73,6 @@ public:
     ASYNC_STATICVALUE2(db_base, openLevelDB, exlib::string, obj_ptr<LevelDB_base>);
     ASYNC_STATICVALUE2(db_base, openRedis, exlib::string, obj_ptr<Redis_base>);
 };
-
 }
 
 #include "MySQL.h"
@@ -85,231 +82,226 @@ public:
 #include "LevelDB.h"
 #include "Redis.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& db_base::class_info()
 {
-    inline ClassInfo& db_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"open", s_open, true},
-            {"openMySQL", s_openMySQL, true},
-            {"openMSSQL", s_openMSSQL, true},
-            {"openSQLite", s_openSQLite, true},
-            {"openMongoDB", s_openMongoDB, true},
-            {"openLevelDB", s_openLevelDB, true},
-            {"openRedis", s_openRedis, true},
-            {"format", s_format, true},
-            {"formatMySQL", s_formatMySQL, true},
-            {"formatMSSQL", s_formatMSSQL, true},
-            {"escape", s_escape, true}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "open", s_open, true },
+        { "openMySQL", s_openMySQL, true },
+        { "openMSSQL", s_openMSSQL, true },
+        { "openSQLite", s_openSQLite, true },
+        { "openMongoDB", s_openMongoDB, true },
+        { "openLevelDB", s_openLevelDB, true },
+        { "openRedis", s_openRedis, true },
+        { "format", s_format, true },
+        { "formatMySQL", s_formatMySQL, true },
+        { "formatMSSQL", s_formatMSSQL, true },
+        { "escape", s_escape, true }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "db", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "db", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void db_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<object_base> vr;
+inline void db_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<object_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_open(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_open(v0, vr);
+    if (!cb.IsEmpty()) {
+        acb_open(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_open(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void db_base::s_openMySQL(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<MySQL_base> vr;
+inline void db_base::s_openMySQL(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<MySQL_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_openMySQL(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_openMySQL(v0, vr);
+    if (!cb.IsEmpty()) {
+        acb_openMySQL(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_openMySQL(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void db_base::s_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<MSSQL_base> vr;
+inline void db_base::s_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<MSSQL_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_openMSSQL(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_openMSSQL(v0, vr);
+    if (!cb.IsEmpty()) {
+        acb_openMSSQL(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_openMSSQL(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void db_base::s_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<SQLite_base> vr;
+inline void db_base::s_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<SQLite_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_openSQLite(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_openSQLite(v0, vr);
+    if (!cb.IsEmpty()) {
+        acb_openSQLite(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_openSQLite(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void db_base::s_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<MongoDB_base> vr;
+inline void db_base::s_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<MongoDB_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_openMongoDB(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_openMongoDB(v0, vr);
+    if (!cb.IsEmpty()) {
+        acb_openMongoDB(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_openMongoDB(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void db_base::s_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<LevelDB_base> vr;
+inline void db_base::s_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<LevelDB_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_openLevelDB(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_openLevelDB(v0, vr);
+    if (!cb.IsEmpty()) {
+        acb_openLevelDB(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_openLevelDB(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void db_base::s_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Redis_base> vr;
+inline void db_base::s_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Redis_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_openRedis(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_openRedis(v0, vr);
+    if (!cb.IsEmpty()) {
+        acb_openRedis(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_openRedis(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void db_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void db_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(-1, 1);
+    METHOD_OVER(-1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = format(v0, args, vr);
+    hr = format(v0, args, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void db_base::s_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void db_base::s_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(-1, 1);
+    METHOD_OVER(-1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = formatMySQL(v0, args, vr);
+    hr = formatMySQL(v0, args, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void db_base::s_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void db_base::s_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(-1, 1);
+    METHOD_OVER(-1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = formatMSSQL(v0, args, vr);
+    hr = formatMSSQL(v0, args, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void db_base::s_escape(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void db_base::s_escape(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(bool, 1, false);
+    ARG(exlib::string, 0);
+    OPT_ARG(bool, 1, false);
 
-        hr = escape(v0, v1, vr);
+    hr = escape(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

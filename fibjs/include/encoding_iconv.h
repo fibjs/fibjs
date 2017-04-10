@@ -11,23 +11,21 @@
 #ifndef ENCODING_ICONV_H_
 #define ENCODING_ICONV_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class encoding_iconv
-{
+class encoding_iconv {
 public:
     encoding_iconv();
     encoding_iconv(exlib::string charset);
     ~encoding_iconv();
 
-    void open(const char *charset);
+    void open(const char* charset);
 
-    result_t encode(exlib::string data, exlib::string &retVal);
-    result_t encode(exlib::string data, obj_ptr<Buffer_base> &retVal);
+    result_t encode(exlib::string data, exlib::string& retVal);
+    result_t encode(exlib::string data, obj_ptr<Buffer_base>& retVal);
 
-    result_t decode(const exlib::string &data, exlib::string &retVal);
-    result_t decode(Buffer_base *data, exlib::string &retVal);
+    result_t decode(const exlib::string& data, exlib::string& retVal);
+    result_t decode(Buffer_base* data, exlib::string& retVal);
 
     exlib::string charset() const
     {
@@ -35,8 +33,8 @@ public:
     }
 
 private:
-    void *m_iconv_en;
-    void *m_iconv_de;
+    void* m_iconv_en;
+    void* m_iconv_de;
     exlib::string m_charset;
 };
 

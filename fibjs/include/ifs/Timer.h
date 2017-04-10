@@ -14,11 +14,9 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Timer_base : public object_base
-{
+class Timer_base : public object_base {
     DECLARE_CLASS(Timer_base);
 
 public:
@@ -39,42 +37,36 @@ public:
 public:
     static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& Timer_base::class_info()
 {
-    inline ClassInfo& Timer_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"clear", s_clear, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "clear", s_clear, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "Timer", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "Timer", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void Timer_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Timer_base);
-        METHOD_ENTER();
+inline void Timer_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Timer_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->clear();
+    hr = pInst->clear();
 
-        METHOD_VOID();
-    }
-
+    METHOD_VOID();
+}
 }
 
 #endif
-

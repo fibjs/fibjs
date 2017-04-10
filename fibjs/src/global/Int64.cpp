@@ -8,34 +8,33 @@
 #include "object.h"
 #include "Int64.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t Int64_base::_new(int64_t num, obj_ptr<Int64_base> &retVal,
-                          v8::Local<v8::Object>)
+result_t Int64_base::_new(int64_t num, obj_ptr<Int64_base>& retVal,
+    v8::Local<v8::Object>)
 {
     retVal = new Int64(num);
     return 0;
 }
 
-result_t Int64_base::_new(Int64_base *num, obj_ptr<Int64_base> &retVal,
-                          v8::Local<v8::Object>)
+result_t Int64_base::_new(Int64_base* num, obj_ptr<Int64_base>& retVal,
+    v8::Local<v8::Object>)
 {
-    retVal = new Int64(((Int64 *)num)->m_num);
+    retVal = new Int64(((Int64*)num)->m_num);
     return 0;
 }
 
 result_t Int64_base::_new(int64_t hi, int64_t lo,
-                          obj_ptr<Int64_base> &retVal,
-                          v8::Local<v8::Object> This)
+    obj_ptr<Int64_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     retVal = new Int64(hi, lo);
     return 0;
 }
 
 result_t Int64_base::_new(exlib::string num, int32_t base,
-                          obj_ptr<Int64_base> &retVal,
-                          v8::Local<v8::Object> This)
+    obj_ptr<Int64_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     obj_ptr<Int64> i = new Int64();
     result_t hr = i->fromString(num, base);
@@ -46,7 +45,7 @@ result_t Int64_base::_new(exlib::string num, int32_t base,
     return 0;
 }
 
-result_t Int64::get_hi(int64_t &retVal)
+result_t Int64::get_hi(int64_t& retVal)
 {
     retVal = (m_num >> 32);
     return 0;
@@ -58,7 +57,7 @@ result_t Int64::set_hi(int64_t newVal)
     return 0;
 }
 
-result_t Int64::get_lo(int64_t &retVal)
+result_t Int64::get_lo(int64_t& retVal)
 {
     retVal = (m_num & 0xffffffff);
     return 0;
@@ -70,70 +69,70 @@ result_t Int64::set_lo(int64_t newVal)
     return 0;
 }
 
-result_t Int64::equal(Int64_base *num, bool &retVal)
+result_t Int64::equal(Int64_base* num, bool& retVal)
 {
-    retVal = m_num == ((Int64 *)num)->m_num;
+    retVal = m_num == ((Int64*)num)->m_num;
     return 0;
 }
 
-result_t Int64::compare(Int64_base *num, int32_t &retVal)
+result_t Int64::compare(Int64_base* num, int32_t& retVal)
 {
-    int64_t num1 = ((Int64 *)num)->m_num;
+    int64_t num1 = ((Int64*)num)->m_num;
     if (m_num > num1)
         retVal = 1;
     else if (m_num < num1)
         retVal = -1;
-    else retVal = 0;
+    else
+        retVal = 0;
 
     return 0;
 }
 
-result_t Int64::shiftLeft(int32_t bits, obj_ptr<Int64_base> &retVal)
+result_t Int64::shiftLeft(int32_t bits, obj_ptr<Int64_base>& retVal)
 {
     retVal = new Int64(m_num << bits);
     return 0;
 }
 
-result_t Int64::shiftRight(int32_t bits, obj_ptr<Int64_base> &retVal)
+result_t Int64::shiftRight(int32_t bits, obj_ptr<Int64_base>& retVal)
 {
     retVal = new Int64(m_num >> bits);
     return 0;
 }
 
-result_t Int64::_and(Int64_base *num, obj_ptr<Int64_base> &retVal)
+result_t Int64::_and(Int64_base* num, obj_ptr<Int64_base>& retVal)
 {
-    retVal = new Int64(m_num & ((Int64 *)num)->m_num);
+    retVal = new Int64(m_num & ((Int64*)num)->m_num);
     return 0;
 }
 
-result_t Int64::_or(Int64_base *num, obj_ptr<Int64_base> &retVal)
+result_t Int64::_or(Int64_base* num, obj_ptr<Int64_base>& retVal)
 {
-    retVal = new Int64(m_num | ((Int64 *)num)->m_num);
+    retVal = new Int64(m_num | ((Int64*)num)->m_num);
     return 0;
 }
 
-result_t Int64::_xor(Int64_base *num, obj_ptr<Int64_base> &retVal)
+result_t Int64::_xor(Int64_base* num, obj_ptr<Int64_base>& retVal)
 {
-    retVal = new Int64(m_num ^ ((Int64 *)num)->m_num);
+    retVal = new Int64(m_num ^ ((Int64*)num)->m_num);
     return 0;
 }
 
-result_t Int64::add(Int64_base *num, obj_ptr<Int64_base> &retVal)
+result_t Int64::add(Int64_base* num, obj_ptr<Int64_base>& retVal)
 {
-    retVal = new Int64(m_num + ((Int64 *)num)->m_num);
+    retVal = new Int64(m_num + ((Int64*)num)->m_num);
     return 0;
 }
 
-result_t Int64::sub(Int64_base *num, obj_ptr<Int64_base> &retVal)
+result_t Int64::sub(Int64_base* num, obj_ptr<Int64_base>& retVal)
 {
-    retVal = new Int64(m_num - ((Int64 *)num)->m_num);
+    retVal = new Int64(m_num - ((Int64*)num)->m_num);
     return 0;
 }
 
 result_t Int64::fromString(exlib::string numStr, int32_t base)
 {
-    static const char __base32_map[] =
-    {
+    static const char __base32_map[] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 2x  !"#$%&'()*+,-./   */
         14, 11, 26, 27, 28, 29, 30, 31, -1, 6, -1, -1, -1, -1, -1, -1, /* 3x 0123456789:;<=>?   */
         -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, /* 4x @ABCDEFGHIJKLMNO   */
@@ -142,8 +141,7 @@ result_t Int64::fromString(exlib::string numStr, int32_t base)
         15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1 /* 7X pqrstuvwxyz{\}~DEL */
     };
 
-    static const char __base64_map[] =
-    {
+    static const char __base64_map[] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, 62, -1, 63, /* 2x  !"#$%&'()*+,-./   */
         52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, /* 3x 0123456789:;<=>?   */
         -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, /* 4x @ABCDEFGHIJKLMNO   */
@@ -159,21 +157,18 @@ result_t Int64::fromString(exlib::string numStr, int32_t base)
 
     bool bNeg = false;
 
-    if (base == 10)
-    {
-        if (c_str[0] == '-')
-        {
+    if (base == 10) {
+        if (c_str[0] == '-') {
             bNeg = true;
-            c_str ++;
+            c_str++;
         }
-        if (c_str[0] == '0' && c_str[1] == 'x')
-        {
+        if (c_str[0] == '0' && c_str[1] == 'x') {
             base = 16;
             c_str += 2;
         }
     }
 
-    const char *__base;
+    const char* __base;
     uint64_t val = 0;
     int32_t ch;
 
@@ -186,8 +181,7 @@ result_t Int64::fromString(exlib::string numStr, int32_t base)
     else
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    while (0 != (ch = *c_str ++))
-    {
+    while (0 != (ch = *c_str++)) {
         if (__base)
             ch = (ch > 0x20 && ch < 0x80) ? __base[ch - 0x20] : -1;
         else
@@ -206,13 +200,13 @@ result_t Int64::fromString(exlib::string numStr, int32_t base)
     return 0;
 }
 
-result_t Int64::toString(int32_t base, exlib::string &retVal)
+result_t Int64::toString(int32_t base, exlib::string& retVal)
 {
     static char __base16_map[] = "0123456789abcdef";
     static char __base32_map[] = "abcdefghijklmnopqrstuvwxyz234567";
     static char __base64_map[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    const char *__base;
-    char buf[64] = {0};
+    const char* __base;
+    char buf[64] = { 0 };
     int32_t pos = 64;
     uint64_t val;
 
@@ -226,25 +220,22 @@ result_t Int64::toString(int32_t base, exlib::string &retVal)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (base == 10 && m_num < 0)
-        val = (uint64_t) - m_num;
+        val = (uint64_t)-m_num;
     else
         val = (uint64_t)m_num;
 
-    while (pos > 0 && val > 0)
-    {
+    while (pos > 0 && val > 0) {
         buf[--pos] = __base[val % base];
         val /= base;
     }
 
-    if (base == 16)
-    {
+    if (base == 16) {
         if (64 == pos)
             buf[--pos] = '0';
 
         buf[--pos] = 'x';
         buf[--pos] = '0';
-    }
-    else if (base == 10 && m_num < 0)
+    } else if (base == 10 && m_num < 0)
         buf[--pos] = '-';
 
     if (64 - pos > 0)
@@ -255,7 +246,7 @@ result_t Int64::toString(int32_t base, exlib::string &retVal)
     return 0;
 }
 
-result_t Int64::valueOf(v8::Local<v8::Value> &retVal)
+result_t Int64::valueOf(v8::Local<v8::Value>& retVal)
 {
     double num;
 
@@ -264,7 +255,7 @@ result_t Int64::valueOf(v8::Local<v8::Value> &retVal)
     return 0;
 }
 
-result_t Int64::toNumber(double &retVal)
+result_t Int64::toNumber(double& retVal)
 {
     if (m_num < -9007199254740992ll || m_num > 9007199254740992ll)
         retVal = INFINITY;
@@ -274,7 +265,7 @@ result_t Int64::toNumber(double &retVal)
     return 0;
 }
 
-result_t Int64::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
+result_t Int64::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 {
     exlib::string str;
 
@@ -283,5 +274,4 @@ result_t Int64::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
 
     return 0;
 }
-
 }

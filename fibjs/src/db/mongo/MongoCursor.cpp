@@ -11,10 +11,9 @@
 #include "ifs/util.h"
 #include "Fiber.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t MongoCursor::_initCursor(MongoDB *db, AsyncEvent *ac)
+result_t MongoCursor::_initCursor(MongoDB* db, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -28,7 +27,7 @@ result_t MongoCursor::_initCursor(MongoDB *db, AsyncEvent *ac)
     return 0;
 }
 
-result_t MongoCursor::_nextCursor(int32_t &retVal, AsyncEvent *ac)
+result_t MongoCursor::_nextCursor(int32_t& retVal, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -37,9 +36,9 @@ result_t MongoCursor::_nextCursor(int32_t &retVal, AsyncEvent *ac)
     return 0;
 }
 
-MongoCursor::MongoCursor(MongoDB *db, const exlib::string &ns,
-                         const exlib::string &name, v8::Local<v8::Object> query,
-                         v8::Local<v8::Object> projection)
+MongoCursor::MongoCursor(MongoDB* db, const exlib::string& ns,
+    const exlib::string& name, v8::Local<v8::Object> query,
+    v8::Local<v8::Object> projection)
 {
     Isolate* isolate = holder();
 
@@ -60,7 +59,7 @@ MongoCursor::MongoCursor(MongoDB *db, const exlib::string &ns,
     m_bSpecial = false;
 }
 
-static result_t _close(MongoCursor::cursor *cur)
+static result_t _close(MongoCursor::cursor* cur)
 {
     mongo_cursor_destroy(cur);
     delete cur;
@@ -80,13 +79,12 @@ MongoCursor::~MongoCursor()
 
 void MongoCursor::ensureSpecial()
 {
-    if (!m_bSpecial)
-    {
+    if (!m_bSpecial) {
         Isolate* isolate = holder();
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
         o->Set(isolate->NewFromUtf8("query"),
-               v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
+            v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
         m_query.Reset();
 
         m_query.Reset(isolate->m_isolate, o);
@@ -95,13 +93,13 @@ void MongoCursor::ensureSpecial()
 }
 
 result_t MongoCursor::hint(v8::Local<v8::Object> opts,
-                           obj_ptr<MongoCursor_base> &retVal)
+    obj_ptr<MongoCursor_base>& retVal)
 {
     return _addSpecial("$hint", opts, retVal);
 }
 
-result_t MongoCursor::limit(int32_t size, obj_ptr<MongoCursor_base> &retVal,
-                            AsyncEvent* ac)
+result_t MongoCursor::limit(int32_t size, obj_ptr<MongoCursor_base>& retVal,
+    AsyncEvent* ac)
 {
     if (m_bInit)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -115,7 +113,7 @@ result_t MongoCursor::limit(int32_t size, obj_ptr<MongoCursor_base> &retVal,
     return 0;
 }
 
-result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
+result_t MongoCursor::count(bool applySkipLimit, int32_t& retVal)
 {
     bson bbq;
 
@@ -125,12 +123,11 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t &retVal)
     Isolate* isolate = holder();
     if (m_bSpecial)
         encodeValue(isolate, &bbq, "query",
-                    v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Get(isolate->NewFromUtf8("query")));
+            v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Get(isolate->NewFromUtf8("query")));
     else
         encodeValue(isolate, &bbq, "query", v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
 
-    if (applySkipLimit)
-    {
+    if (applySkipLimit) {
         if (m_cursor->limit)
             bson_append_int(&bbq, "limit", m_cursor->limit);
         if (m_cursor->skip)
@@ -156,8 +153,7 @@ result_t MongoCursor::forEach(v8::Local<v8::Function> func)
     v8::Local<v8::Object> o;
     Isolate* isolate = holder();
 
-    while ((hr = next(o)) != CALL_RETURN_NULL)
-    {
+    while ((hr = next(o)) != CALL_RETURN_NULL) {
         v8::Local<v8::Value> a = o;
         v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate->m_isolate), 1, &a);
 
@@ -169,7 +165,7 @@ result_t MongoCursor::forEach(v8::Local<v8::Function> func)
 }
 
 result_t MongoCursor::map(v8::Local<v8::Function> func,
-                          v8::Local<v8::Array> &retVal)
+    v8::Local<v8::Array>& retVal)
 {
     result_t hr;
     Isolate* isolate = holder();
@@ -177,8 +173,7 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
     v8::Local<v8::Array> as = v8::Array::New(isolate->m_isolate);
     int32_t n = 0;
 
-    while ((hr = next(o)) != CALL_RETURN_NULL)
-    {
+    while ((hr = next(o)) != CALL_RETURN_NULL) {
         v8::Local<v8::Value> a = o;
         v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate->m_isolate), 1, &a);
 
@@ -193,10 +188,9 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
     return hr < 0 ? hr : 0;
 }
 
-result_t MongoCursor::hasNext(bool &retVal)
+result_t MongoCursor::hasNext(bool& retVal)
 {
-    if (!m_bInit)
-    {
+    if (!m_bInit) {
         result_t hr;
         Isolate* isolate = holder();
 
@@ -207,8 +201,7 @@ result_t MongoCursor::hasNext(bool &retVal)
         m_bInit = true;
     }
 
-    if (m_state == CUR_NONE)
-    {
+    if (m_state == CUR_NONE) {
         int32_t res;
         ac__nextCursor(res);
         m_state = (res == MONGO_OK) ? CUR_DATA : CUR_NODATA;
@@ -219,7 +212,7 @@ result_t MongoCursor::hasNext(bool &retVal)
     return CHECK_ERROR(m_cursor->m_db->error());
 }
 
-result_t MongoCursor::next(v8::Local<v8::Object> &retVal)
+result_t MongoCursor::next(v8::Local<v8::Object>& retVal)
 {
     bool has;
     result_t hr = hasNext(has);
@@ -236,17 +229,16 @@ result_t MongoCursor::next(v8::Local<v8::Object> &retVal)
     return 0;
 }
 
-result_t MongoCursor::size(int32_t &retVal)
+result_t MongoCursor::size(int32_t& retVal)
 {
     return count(true, retVal);
 }
 
-result_t MongoCursor::skip(int32_t num, obj_ptr<MongoCursor_base> &retVal,
-                           AsyncEvent* ac)
+result_t MongoCursor::skip(int32_t num, obj_ptr<MongoCursor_base>& retVal,
+    AsyncEvent* ac)
 {
     if (m_bInit)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-
 
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -258,13 +250,13 @@ result_t MongoCursor::skip(int32_t num, obj_ptr<MongoCursor_base> &retVal,
 }
 
 result_t MongoCursor::sort(v8::Local<v8::Object> opts,
-                           obj_ptr<MongoCursor_base> &retVal)
+    obj_ptr<MongoCursor_base>& retVal)
 {
     return _addSpecial("orderby", opts, retVal);
 }
 
-result_t MongoCursor::_addSpecial(const char *name, v8::Local<v8::Value> opts,
-                                  obj_ptr<MongoCursor_base> &retVal)
+result_t MongoCursor::_addSpecial(const char* name, v8::Local<v8::Value> opts,
+    obj_ptr<MongoCursor_base>& retVal)
 {
     if (m_bInit)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -277,15 +269,14 @@ result_t MongoCursor::_addSpecial(const char *name, v8::Local<v8::Value> opts,
     return 0;
 }
 
-result_t MongoCursor::toArray(v8::Local<v8::Array> &retVal)
+result_t MongoCursor::toArray(v8::Local<v8::Array>& retVal)
 {
     result_t hr;
     v8::Local<v8::Object> o;
     v8::Local<v8::Array> as = v8::Array::New(holder()->m_isolate);
     int32_t n = 0;
 
-    while ((hr = next(o)) != CALL_RETURN_NULL)
-    {
+    while ((hr = next(o)) != CALL_RETURN_NULL) {
         as->Set(n, o);
         n++;
     }
@@ -297,7 +288,7 @@ result_t MongoCursor::toArray(v8::Local<v8::Array> &retVal)
     return 0;
 }
 
-result_t MongoCursor::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
+result_t MongoCursor::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 {
     result_t hr;
     v8::Local<v8::Array> as;

@@ -48,4 +48,3 @@ interface Stats : object
     /*! @brief 允许使用键值下标直接访问数值 */
     readonly Integer operator[String];
 };
-

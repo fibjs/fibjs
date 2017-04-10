@@ -10,26 +10,26 @@ interface ZmqSocket : object
     /*! @brief 绑定指定地址和端口
      @param addr 指定绑定的地址，如："tcp://*:3000"
      */
-   	bind(String addr);
+    bind(String addr);
 
     /*! @brief 连接到指定地址的服务器
      @param addr 指定连接的地址，如："tcp://*:3000"
      */
-	connect(String addr);
+    connect(String addr);
 
     /*! @brief 接收一个数据包
      @return 返回接收到的数据包
      */
-	Buffer recv() async;
+    Buffer recv() async;
 
     /*! @brief 发送一个数据包
      @param data 指定发送的数据包
      */
-	send(Buffer data);
+    send(Buffer data);
 
     /*! @brief 关闭当前 socket */
-	close();
+    close();
 
     /*! @brief 查询当前 socket 类型 */
-	readonly Integer type;
+    readonly Integer type;
 };

@@ -15,13 +15,11 @@
 #include "../object.h"
 #include "BufferedStream.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class BufferedStream_base;
 
-class SubProcess_base : public BufferedStream_base
-{
+class SubProcess_base : public BufferedStream_base {
     DECLARE_CLASS(SubProcess_base);
 
 public:
@@ -48,130 +46,123 @@ public:
     static void s_kill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_findWindow(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_pid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_pid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE1(SubProcess_base, wait, int32_t);
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& SubProcess_base::class_info()
 {
-    inline ClassInfo& SubProcess_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"kill", s_kill, false},
-            {"wait", s_wait, false},
-            {"findWindow", s_findWindow, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "kill", s_kill, false },
+        { "wait", s_wait, false },
+        { "findWindow", s_findWindow, false }
+    };
 
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"pid", s_get_pid, block_set, false},
-            {"stdin", s_get_stdin, block_set, false},
-            {"stdout", s_get_stdout, block_set, false}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "pid", s_get_pid, block_set, false },
+        { "stdin", s_get_stdin, block_set, false },
+        { "stdout", s_get_stdout, block_set, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "SubProcess", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &BufferedStream_base::class_info()
-        };
+    static ClassData s_cd = {
+        "SubProcess", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &BufferedStream_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void SubProcess_base::s_kill(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(SubProcess_base);
-        METHOD_ENTER();
+inline void SubProcess_base::s_kill(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(SubProcess_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(int32_t, 0);
+    ARG(int32_t, 0);
 
-        hr = pInst->kill(v0);
+    hr = pInst->kill(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void SubProcess_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void SubProcess_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(SubProcess_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(SubProcess_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(0, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_wait(cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_wait(vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_wait(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_wait(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SubProcess_base::s_findWindow(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Value> vr;
+inline void SubProcess_base::s_findWindow(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
 
-        METHOD_INSTANCE(SubProcess_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(SubProcess_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = pInst->findWindow(v0, vr);
+    hr = pInst->findWindow(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SubProcess_base::s_get_pid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+inline void SubProcess_base::s_get_pid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(SubProcess_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(SubProcess_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_pid(vr);
+    hr = pInst->get_pid(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SubProcess_base::s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<BufferedStream_base> vr;
+inline void SubProcess_base::s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<BufferedStream_base> vr;
 
-        METHOD_INSTANCE(SubProcess_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(SubProcess_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_stdin(vr);
+    hr = pInst->get_stdin(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SubProcess_base::s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<BufferedStream_base> vr;
+inline void SubProcess_base::s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<BufferedStream_base> vr;
 
-        METHOD_INSTANCE(SubProcess_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(SubProcess_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_stdout(vr);
+    hr = pInst->get_stdout(vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

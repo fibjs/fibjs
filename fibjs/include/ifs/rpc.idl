@@ -8,9 +8,9 @@
  */
 module rpc
 {
-	/*! @brief 创建 rpc 任务代理，参见 RpcTask
+    /*! @brief 创建 rpc 任务代理，参见 RpcTask
 	 @param id 指定要添加的模块名称，名称不支持相对路径
 	 @return 返回 RpcTask 代理对象
 	 */
-	static RpcTask open(String id);
+    static RpcTask open(String id);
 };

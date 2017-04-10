@@ -12,28 +12,26 @@
 #ifndef URL_H_
 #define URL_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Url: public UrlObject_base
-{
+class Url : public UrlObject_base {
 public:
     Url()
     {
         extMemory(1024);
     }
 
-    Url(const Url &u);
+    Url(const Url& u);
 
 public:
     // object_base
-    result_t toString(exlib::string &retVal);
+    result_t toString(exlib::string& retVal);
 
 public:
     // UrlObject_base
     virtual result_t parse(exlib::string url, bool parseQueryString);
     virtual result_t format(v8::Local<v8::Object> args);
-    virtual result_t resolve(exlib::string to, obj_ptr<UrlObject_base> &retVal);
+    virtual result_t resolve(exlib::string to, obj_ptr<UrlObject_base>& retVal);
     virtual result_t normalize();
     virtual result_t get_href(exlib::string& retVal);
     virtual result_t set_href(exlib::string newVal);
@@ -70,48 +68,44 @@ public:
         return parse(url, false);
     }
 
-    static void parseHost(const char *&url, exlib::string &hostname, exlib::string &port);
+    static void parseHost(const char*& url, exlib::string& hostname, exlib::string& port);
 
 private:
     void clear();
 
-    void parseProtocol(const char *&url);
+    void parseProtocol(const char*& url);
 
-    void parseAuth(const char *&url);
-    void parseHost(const char *&url);
-    void parsePath(const char *&url);
-    void parseQuery(const char *&url);
-    void parseHash(const char *&url);
+    void parseAuth(const char*& url);
+    void parseHost(const char*& url);
+    void parsePath(const char*& url);
+    void parseQuery(const char*& url);
+    void parseHash(const char*& url);
 
 public:
-    inline static void decodeURI(const char *url, int32_t sz, exlib::string &retVal, bool space = false)
+    inline static void decodeURI(const char* url, int32_t sz, exlib::string& retVal, bool space = false)
     {
         if (sz < 0)
-            sz = (int32_t) qstrlen(url);
+            sz = (int32_t)qstrlen(url);
 
         if (sz == 0)
             return;
 
         int32_t len, l;
-        const char *src;
+        const char* src;
         unsigned char ch;
-        char *bstr;
+        char* bstr;
         exlib::string str;
 
-        for (len = 0, src = url, l = sz; l > 0; src++, len++, l--)
-        {
-            ch = (unsigned char) * src;
-            if (ch == '%' && l > 2 && qisxdigit(src[1]) && qisxdigit(src[2]))
-            {
+        for (len = 0, src = url, l = sz; l > 0; src++, len++, l--) {
+            ch = (unsigned char)*src;
+            if (ch == '%' && l > 2 && qisxdigit(src[1]) && qisxdigit(src[2])) {
                 src += 2;
                 l -= 2;
-            }
-            else if ((ch == '%' || ch == '\\') && l > 5
-                     && (src[1] == 'u' || src[1] == 'U') && qisxdigit(src[2])
-                     && qisxdigit(src[3]) && qisxdigit(src[4]) && qisxdigit(src[5]))
-            {
+            } else if ((ch == '%' || ch == '\\') && l > 5
+                && (src[1] == 'u' || src[1] == 'U') && qisxdigit(src[2])
+                && qisxdigit(src[3]) && qisxdigit(src[4]) && qisxdigit(src[5])) {
                 exlib::wchar wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
-                                   + (qhex(src[4]) << 4) + qhex(src[5]);
+                    + (qhex(src[4]) << 4) + qhex(src[5]);
 
                 len += utf8_strlen(&wch, 1) - 1;
 
@@ -120,33 +114,27 @@ public:
             }
         }
 
-
         str.resize(len);
         bstr = &str[0];
 
-        for (len = 0, src = url, l = sz; l > 0; src++, len++, l--)
-        {
-            ch = (unsigned char) * src;
+        for (len = 0, src = url, l = sz; l > 0; src++, len++, l--) {
+            ch = (unsigned char)*src;
 
-            if (ch == '%' && l > 2 && qisxdigit(src[1]) && qisxdigit(src[2]))
-            {
+            if (ch == '%' && l > 2 && qisxdigit(src[1]) && qisxdigit(src[2])) {
                 *bstr++ = (qhex(src[1]) << 4) + qhex(src[2]);
                 src += 2;
                 l -= 2;
-            }
-            else if ((ch == '%' || ch == '\\') && l > 5
-                     && (src[1] == 'u' || src[1] == 'U') && qisxdigit(src[2])
-                     && qisxdigit(src[3]) && qisxdigit(src[4]) && qisxdigit(src[5]))
-            {
+            } else if ((ch == '%' || ch == '\\') && l > 5
+                && (src[1] == 'u' || src[1] == 'U') && qisxdigit(src[2])
+                && qisxdigit(src[3]) && qisxdigit(src[4]) && qisxdigit(src[5])) {
                 exlib::wchar wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
-                                   + (qhex(src[4]) << 4) + qhex(src[5]);
+                    + (qhex(src[4]) << 4) + qhex(src[5]);
 
                 bstr += utf8_wcstombs(&wch, 1, bstr, 5);
 
                 src += 5;
                 l -= 5;
-            }
-            else if (space && ch == '+')
+            } else if (space && ch == '+')
                 *bstr++ = ' ';
             else
                 *bstr++ = ch;
@@ -155,31 +143,30 @@ public:
         retVal = str;
     }
 
-    inline static void decodeURI(exlib::string url, exlib::string &retVal, bool space = false)
+    inline static void decodeURI(exlib::string url, exlib::string& retVal, bool space = false)
     {
         decodeURI(url.c_str(), (int32_t)url.length(), retVal, space);
     }
 
-    inline static void encodeURI(const char *url, int32_t sz, exlib::string &retVal,
-                                 const char *tab)
+    inline static void encodeURI(const char* url, int32_t sz, exlib::string& retVal,
+        const char* tab)
     {
-        static const char *hex = "0123456789ABCDEF";
+        static const char* hex = "0123456789ABCDEF";
 
         if (sz < 0)
-            sz = (int32_t) qstrlen(url);
+            sz = (int32_t)qstrlen(url);
 
         if (sz == 0)
             return;
 
         int32_t len, l;
-        const char *src;
+        const char* src;
         unsigned char ch;
-        char *bstr;
+        char* bstr;
         exlib::string str;
 
-        for (len = 0, src = url, l = sz; l > 0; len++, l--)
-        {
-            ch = (unsigned char) * src++;
+        for (len = 0, src = url, l = sz; l > 0; len++, l--) {
+            ch = (unsigned char)*src++;
             if (ch < 0x20 || ch >= 0x80 || tab[ch - 0x20] == ' ')
                 len += 2;
         }
@@ -187,13 +174,11 @@ public:
         str.resize(len);
         bstr = &str[0];
 
-        for (src = url, l = sz; l > 0; l--)
-        {
-            ch = (unsigned char) * src++;
+        for (src = url, l = sz; l > 0; l--) {
+            ch = (unsigned char)*src++;
             if (ch >= 0x20 && ch < 0x80 && tab[ch - 0x20] != ' ')
                 *bstr++ = ch;
-            else
-            {
+            else {
                 *bstr++ = '%';
 
                 *bstr++ = hex[(ch >> 4) & 15];
@@ -204,8 +189,8 @@ public:
         retVal = str;
     }
 
-    inline static void encodeURI(exlib::string url, exlib::string &retVal,
-                                 const char *tab)
+    inline static void encodeURI(exlib::string url, exlib::string& retVal,
+        const char* tab)
     {
         encodeURI(url.c_str(), (int32_t)url.length(), retVal, tab);
     }

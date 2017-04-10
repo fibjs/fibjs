@@ -15,14 +15,12 @@
 #include "../object.h"
 #include "EventEmitter.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class EventEmitter_base;
 class SubProcess_base;
 
-class process_base : public EventEmitter_base
-{
+class process_base : public EventEmitter_base {
     DECLARE_CLASS(process_base);
 
 public:
@@ -62,13 +60,13 @@ public:
     }
 
 public:
-    static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_execArgv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_env(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_platform(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_execArgv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_env(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_platform(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_umask(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -80,304 +78,297 @@ public:
     static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
 #include "SubProcess.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& process_base::class_info()
 {
-    inline ClassInfo& process_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"umask", s_umask, true},
-            {"exit", s_exit, true},
-            {"cwd", s_cwd, true},
-            {"chdir", s_chdir, true},
-            {"uptime", s_uptime, true},
-            {"memoryUsage", s_memoryUsage, true},
-            {"nextTick", s_nextTick, true},
-            {"open", s_open, true},
-            {"start", s_start, true},
-            {"run", s_run, true}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "umask", s_umask, true },
+        { "exit", s_exit, true },
+        { "cwd", s_cwd, true },
+        { "chdir", s_chdir, true },
+        { "uptime", s_uptime, true },
+        { "memoryUsage", s_memoryUsage, true },
+        { "nextTick", s_nextTick, true },
+        { "open", s_open, true },
+        { "start", s_start, true },
+        { "run", s_run, true }
+    };
 
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"argv", s_get_argv, block_set, true},
-            {"execArgv", s_get_execArgv, block_set, true},
-            {"version", s_get_version, block_set, true},
-            {"execPath", s_get_execPath, block_set, true},
-            {"env", s_get_env, block_set, true},
-            {"arch", s_get_arch, block_set, true},
-            {"platform", s_get_platform, block_set, true}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "argv", s_get_argv, block_set, true },
+        { "execArgv", s_get_execArgv, block_set, true },
+        { "version", s_get_version, block_set, true },
+        { "execPath", s_get_execPath, block_set, true },
+        { "env", s_get_env, block_set, true },
+        { "arch", s_get_arch, block_set, true },
+        { "platform", s_get_platform, block_set, true }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "process", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &EventEmitter_base::class_info()
-        };
+    static ClassData s_cd = {
+        "process", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &EventEmitter_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void process_base::s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        v8::Local<v8::Array> vr;
+inline void process_base::s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_argv(vr);
+    hr = get_argv(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_get_execArgv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        v8::Local<v8::Array> vr;
+inline void process_base::s_get_execArgv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_execArgv(vr);
+    hr = get_execArgv(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void process_base::s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_version(vr);
+    hr = get_version(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void process_base::s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_execPath(vr);
+    hr = get_execPath(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_get_env(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        v8::Local<v8::Object> vr;
+inline void process_base::s_get_env(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_env(vr);
+    hr = get_env(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void process_base::s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_arch(vr);
+    hr = get_arch(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_get_platform(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void process_base::s_get_platform(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_platform(vr);
+    hr = get_platform(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_umask(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void process_base::s_umask(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(int32_t, 0);
+    ARG(int32_t, 0);
 
-        hr = umask(v0, vr);
+    hr = umask(v0, vr);
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = umask(v0, vr);
+    hr = umask(v0, vr);
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = umask(vr);
+    hr = umask(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_exit(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void process_base::s_exit(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(int32_t, 0);
+    ARG(int32_t, 0);
 
-        hr = exit(v0);
+    hr = exit(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void process_base::s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void process_base::s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = cwd(vr);
+    hr = cwd(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void process_base::s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = chdir(v0);
+    hr = chdir(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void process_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        double vr;
+inline void process_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    double vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = uptime(vr);
+    hr = uptime(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Object> vr;
+inline void process_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = memoryUsage(vr);
+    hr = memoryUsage(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void process_base::s_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        METHOD_OVER(-1, 1);
+    METHOD_OVER(-1, 1);
 
-        ARG(v8::Local<v8::Function>, 0);
+    ARG(v8::Local<v8::Function>, 0);
 
-        hr = nextTick(v0, args);
+    hr = nextTick(v0, args);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void process_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<SubProcess_base> vr;
+inline void process_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<SubProcess_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Array>, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Array>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        hr = open(v0, v1, v2, vr);
+    hr = open(v0, v1, v2, vr);
 
-        METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-        hr = open(v0, v1, vr);
+    hr = open(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<SubProcess_base> vr;
+inline void process_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<SubProcess_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Array>, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Array>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        hr = start(v0, v1, v2, vr);
+    hr = start(v0, v1, v2, vr);
 
-        METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-        hr = start(v0, v1, vr);
+    hr = start(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void process_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void process_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Array>, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Array>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        hr = run(v0, v1, v2, vr);
+    hr = run(v0, v1, v2, vr);
 
-        METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-        hr = run(v0, v1, vr);
+    hr = run(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

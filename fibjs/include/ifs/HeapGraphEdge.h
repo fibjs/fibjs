@@ -14,13 +14,11 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class HeapGraphNode_base;
 
-class HeapGraphEdge_base : public object_base
-{
+class HeapGraphEdge_base : public object_base {
     DECLARE_CLASS(HeapGraphEdge_base);
 
 public:
@@ -43,110 +41,103 @@ public:
     }
 
 public:
-    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_description(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_description(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_getFromNode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getToNode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
 #include "HeapGraphNode.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& HeapGraphEdge_base::class_info()
 {
-    inline ClassInfo& HeapGraphEdge_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"getFromNode", s_getFromNode, false},
-            {"getToNode", s_getToNode, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "getFromNode", s_getFromNode, false },
+        { "getToNode", s_getToNode, false }
+    };
 
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"type", s_get_type, block_set, false},
-            {"name", s_get_name, block_set, false},
-            {"description", s_get_description, block_set, false}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "type", s_get_type, block_set, false },
+        { "name", s_get_name, block_set, false },
+        { "description", s_get_description, block_set, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "HeapGraphEdge", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "HeapGraphEdge", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void HeapGraphEdge_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+inline void HeapGraphEdge_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(HeapGraphEdge_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(HeapGraphEdge_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_type(vr);
+    hr = pInst->get_type(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void HeapGraphEdge_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void HeapGraphEdge_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_INSTANCE(HeapGraphEdge_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(HeapGraphEdge_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_name(vr);
+    hr = pInst->get_name(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void HeapGraphEdge_base::s_get_description(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void HeapGraphEdge_base::s_get_description(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_INSTANCE(HeapGraphEdge_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(HeapGraphEdge_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_description(vr);
+    hr = pInst->get_description(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void HeapGraphEdge_base::s_getFromNode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<HeapGraphNode_base> vr;
+inline void HeapGraphEdge_base::s_getFromNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HeapGraphNode_base> vr;
 
-        METHOD_INSTANCE(HeapGraphEdge_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(HeapGraphEdge_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->getFromNode(vr);
+    hr = pInst->getFromNode(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void HeapGraphEdge_base::s_getToNode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<HeapGraphNode_base> vr;
+inline void HeapGraphEdge_base::s_getToNode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HeapGraphNode_base> vr;
 
-        METHOD_INSTANCE(HeapGraphEdge_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(HeapGraphEdge_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->getToNode(vr);
+    hr = pInst->getToNode(vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

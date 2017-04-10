@@ -12,15 +12,14 @@
 #include "Fiber.h"
 #include <vector>
 
-namespace fibjs
-{
+namespace fibjs {
 
 DECLARE_MODULE(coroutine);
 
 extern int32_t g_spareFibers;
 
 result_t coroutine_base::start(v8::Local<v8::Function> func,
-                               const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<Fiber_base> &retVal)
+    const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<Fiber_base>& retVal)
 {
     return JSFiber::New(func, args, 1, retVal);
 }
@@ -33,20 +32,18 @@ private:
         v8::Local<v8::Function> func = v8::Local<v8::Function>::New(m_isolate->m_isolate, m_func);
         v8::Local<v8::Array> retVal = v8::Local<v8::Array>::New(m_isolate->m_isolate, m_retVal);
 
-        while (m_pos < m_count)
-        {
+        while (m_pos < m_count) {
             JSFiber::scope s;
             v8::Local<v8::Value> v;
             int32_t pos = m_pos;
 
             s->set_caller(m_caller);
 
-            m_pos ++;
+            m_pos++;
             if (func.IsEmpty())
                 v = v8::Local<v8::Function>::Cast(datas->Get(pos))
-                    ->Call(s->wrap(), 0, NULL);
-            else
-            {
+                        ->Call(s->wrap(), 0, NULL);
+            else {
                 v8::Local<v8::Value> a = datas->Get(pos);
                 v = func->Call(s->wrap(), 1, &a);
             }
@@ -57,7 +54,7 @@ private:
                 m_error = true;
         }
 
-        m_fibers --;
+        m_fibers--;
         if (m_fibers == 0)
             m_event->set();
 
@@ -69,7 +66,7 @@ private:
         return pThis->_worker();
     }
 
-    result_t run(v8::Local<v8::Array> &retVal)
+    result_t run(v8::Local<v8::Array>& retVal)
     {
         int32_t i;
 
@@ -81,7 +78,7 @@ private:
         m_pos = 0;
         m_caller = JSFiber::current();
 
-        for (i = 0; i < m_fibers; i ++)
+        for (i = 0; i < m_fibers; i++)
             syncCall(m_isolate, worker, this);
 
         m_event->wait();
@@ -95,22 +92,20 @@ private:
 
 public:
     result_t run(v8::Local<v8::Array> funcs,
-                 v8::Local<v8::Array> &retVal, int32_t fibers = -1)
+        v8::Local<v8::Array>& retVal, int32_t fibers = -1)
     {
         m_isolate = Isolate::current();
         int32_t i;
 
         m_count = funcs->Length();
-        if (m_count == 0)
-        {
+        if (m_count == 0) {
             retVal = v8::Array::New(m_isolate->m_isolate, 0);
             return 0;
         }
 
         m_fibers = (fibers > 0 && fibers < m_count) ? fibers : m_count;
 
-        for (i = 0; i < m_count; i++)
-        {
+        for (i = 0; i < m_count; i++) {
             v8::Local<v8::Value> v = funcs->Get(i);
             if (v.IsEmpty() || !v->IsFunction())
                 return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -122,13 +117,12 @@ public:
     }
 
     result_t run(v8::Local<v8::Array> datas, v8::Local<v8::Function> func,
-                 v8::Local<v8::Array> &retVal, int32_t fibers = -1)
+        v8::Local<v8::Array>& retVal, int32_t fibers = -1)
     {
         m_isolate = Isolate::current();
 
         m_count = datas->Length();
-        if (m_count == 0)
-        {
+        if (m_count == 0) {
             retVal = v8::Array::New(m_isolate->m_isolate, 0);
             return 0;
         }
@@ -153,20 +147,19 @@ public:
 };
 
 result_t coroutine_base::parallel(v8::Local<v8::Array> funcs, int32_t fibers,
-                                  v8::Local<v8::Array> &retVal)
+    v8::Local<v8::Array>& retVal)
 {
     _parallels _p;
     return _p.run(funcs, retVal, fibers);
 }
 
-result_t coroutine_base::parallel(const v8::FunctionCallbackInfo<v8::Value> &args,
-                                  v8::Local<v8::Array> &retVal)
+result_t coroutine_base::parallel(const v8::FunctionCallbackInfo<v8::Value>& args,
+    v8::Local<v8::Array>& retVal)
 {
     int32_t l = args.Length();
     int32_t i;
 
-    if (l == 0)
-    {
+    if (l == 0) {
         retVal = v8::Array::New(Isolate::current()->m_isolate);
         return 0;
     }
@@ -180,29 +173,29 @@ result_t coroutine_base::parallel(const v8::FunctionCallbackInfo<v8::Value> &arg
 }
 
 result_t coroutine_base::parallel(v8::Local<v8::Array> datas, v8::Local<v8::Function> func,
-                                  int32_t fibers, v8::Local<v8::Array> &retVal)
+    int32_t fibers, v8::Local<v8::Array>& retVal)
 {
     _parallels _p;
     return _p.run(datas, func, retVal, fibers);
 }
 
 result_t coroutine_base::parallel(v8::Local<v8::Function> func, int32_t num,
-                                  int32_t fibers, v8::Local<v8::Array>& retVal)
+    int32_t fibers, v8::Local<v8::Array>& retVal)
 {
     v8::Isolate* isolate = Isolate::current()->m_isolate;
     v8::Local<v8::Array> datas = v8::Array::New(isolate, num);
     int32_t i;
 
-    for (i = 0; i < num; i ++)
+    for (i = 0; i < num; i++)
         datas->Set(i, v8::Int32::New(isolate, i));
 
     _parallels _p;
     return _p.run(datas, func, retVal, fibers);
 }
 
-result_t coroutine_base::current(obj_ptr<Fiber_base> &retVal)
+result_t coroutine_base::current(obj_ptr<Fiber_base>& retVal)
 {
-    Fiber_base *fb = JSFiber::current();
+    Fiber_base* fb = JSFiber::current();
 
     if (!fb)
         return CALL_RETURN_NULL;
@@ -214,11 +207,12 @@ result_t coroutine_base::current(obj_ptr<Fiber_base> &retVal)
 
 result_t coroutine_base::sleep(int32_t ms, AsyncEvent* ac)
 {
-    class AcyncSleep : public exlib::Task_base
-    {
+    class AcyncSleep : public exlib::Task_base {
     public:
-        AcyncSleep(AsyncEvent* ac) : m_ac(ac)
-        {}
+        AcyncSleep(AsyncEvent* ac)
+            : m_ac(ac)
+        {
+        }
 
     public:
         // exlib::Task_base
@@ -256,9 +250,8 @@ result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)
 
     retVal = v8::Array::New(isolate->m_isolate);
 
-    while (p)
-    {
-        retVal->Set(n ++, ((JSFiber*)p)->wrap());
+    while (p) {
+        retVal->Set(n++, ((JSFiber*)p)->wrap());
         p = p->m_next;
     }
 
@@ -300,5 +293,4 @@ result_t coroutine_base::set_loglevel(int32_t newVal)
     isolate->m_loglevel = newVal;
     return 0;
 }
-
 }

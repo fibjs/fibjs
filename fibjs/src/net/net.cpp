@@ -12,8 +12,7 @@
 #include "Smtp.h"
 #include "Url.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 DECLARE_MODULE(net);
 
@@ -23,7 +22,7 @@ result_t net_base::info(v8::Local<v8::Object>& retVal)
 }
 
 result_t net_base::resolve(exlib::string name, int32_t family,
-                           exlib::string &retVal, AsyncEvent *ac)
+    exlib::string& retVal, AsyncEvent* ac)
 {
     if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -35,25 +34,22 @@ result_t net_base::resolve(exlib::string name, int32_t family,
 
     addr_info.init(family);
 
-    addrinfo hints =
-    { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
-    addrinfo *result = NULL;
-    addrinfo *ptr = NULL;
+    addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
+    addrinfo* result = NULL;
+    addrinfo* ptr = NULL;
 
     if (getaddrinfo(name.c_str(), NULL, &hints, &result))
         return CHECK_ERROR(SocketError());
 
     for (ptr = result; ptr != NULL; ptr = ptr->ai_next)
-        if (ptr->ai_family == addr_info.addr4.sin_family)
-        {
+        if (ptr->ai_family == addr_info.addr4.sin_family) {
             memcpy(&addr_info, ptr->ai_addr, addr_info.size());
             break;
         }
 
     freeaddrinfo(result);
 
-    if (ptr == NULL)
-    {
+    if (ptr == NULL) {
 #ifdef _WIN32
         return -WSAHOST_NOT_FOUND;
 #else
@@ -66,20 +62,20 @@ result_t net_base::resolve(exlib::string name, int32_t family,
     return 0;
 }
 
-result_t net_base::ip(exlib::string name, exlib::string &retVal,
-                      AsyncEvent *ac)
+result_t net_base::ip(exlib::string name, exlib::string& retVal,
+    AsyncEvent* ac)
 {
     return resolve(name, net_base::_AF_INET, retVal, ac);
 }
 
-result_t net_base::ipv6(exlib::string name, exlib::string &retVal,
-                        AsyncEvent *ac)
+result_t net_base::ipv6(exlib::string name, exlib::string& retVal,
+    AsyncEvent* ac)
 {
     return resolve(name, net_base::_AF_INET6, retVal, ac);
 }
 
 result_t net_base::connect(exlib::string host, int32_t port, int32_t timeout, int32_t family,
-                           obj_ptr<Stream_base> &retVal, AsyncEvent *ac)
+    obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
     if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -100,8 +96,8 @@ result_t net_base::connect(exlib::string host, int32_t port, int32_t timeout, in
     return socket->connect(host, port, ac);
 }
 
-result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base> &retVal,
-                           AsyncEvent *ac)
+result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal,
+    AsyncEvent* ac)
 {
     if (!qstrcmp(url.c_str(), "ssl:", 4))
         return ssl_base::connect(url, timeout, retVal, ac);
@@ -123,12 +119,12 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
 
     int32_t nPort = atoi(u->m_port.c_str());
     return connect(u->m_hostname.c_str(), nPort, timeout,
-                   u->m_ipv6 ? net_base::_AF_INET6 : net_base::_AF_INET,
-                   retVal, ac);
+        u->m_ipv6 ? net_base::_AF_INET6 : net_base::_AF_INET,
+        retVal, ac);
 }
 
 result_t net_base::openSmtp(exlib::string url, int32_t timeout,
-                            obj_ptr<Smtp_base> &retVal, AsyncEvent *ac)
+    obj_ptr<Smtp_base>& retVal, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -143,5 +139,4 @@ result_t net_base::openSmtp(exlib::string url, int32_t timeout,
 
     return retVal->connect(url, ac);
 }
-
 }

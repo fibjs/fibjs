@@ -18,35 +18,35 @@
  */
 interface TcpServer : object
 {
-  /*! @brief TcpServer 构造函数，在所有本机地址侦听
+    /*! @brief TcpServer 构造函数，在所有本机地址侦听
     @param port 指定 tcp 服务器侦听端口
     @param listener 指定 tcp 接收到的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
-  TcpServer(Integer port, Value listener);
+    TcpServer(Integer port, Value listener);
 
-  /*! @brief TcpServer 构造函数
+    /*! @brief TcpServer 构造函数
     @param addr 指定 tcp 服务器侦听地址，为 "" 则在本机所有地址侦听
     @param port 指定 tcp 服务器侦听端口
     @param listener 指定 tcp 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
    */
-  TcpServer(String addr, Integer port, Value listener);
+    TcpServer(String addr, Integer port, Value listener);
 
-  /*! @brief 运行服务器并开始接收和分发连接，此函数不会返回 */
-  run() async;
+    /*! @brief 运行服务器并开始接收和分发连接，此函数不会返回 */
+    run() async;
 
-  /*! @brief 异步运行服务器并开始接收和分发连接，调用后立即返回，服务器在后台运行 */
-  asyncRun();
+    /*! @brief 异步运行服务器并开始接收和分发连接，调用后立即返回，服务器在后台运行 */
+    asyncRun();
 
-  /*! @brief 关闭 socket中止正在运行的服务器 */
-  stop() async;
+    /*! @brief 关闭 socket中止正在运行的服务器 */
+    stop() async;
 
-  /*! @brief 服务器当前侦听的 Socket 对象  */
-  readonly Socket socket;
+    /*! @brief 服务器当前侦听的 Socket 对象  */
+    readonly Socket socket;
 
-  /*! @brief 服务器当前事件处理接口对象 */
-  Handler handler;
+    /*! @brief 服务器当前事件处理接口对象 */
+    Handler handler;
 
-  /*! @brief 查询当前服务器运行状态
+    /*! @brief 查询当前服务器运行状态
 
     返回的结果为一个 Stats 对象，初始化计数器如下：
     @code
@@ -58,5 +58,5 @@ interface TcpServer : object
     }
     @endcode
    */
-  readonly Stats stats;
+    readonly Stats stats;
 };

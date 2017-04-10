@@ -11,15 +11,13 @@
 #ifndef CHAIN_H_
 #define CHAIN_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Chain: public Chain_base
-{
+class Chain : public Chain_base {
 public:
     // Handler_base
-    virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                            AsyncEvent *ac);
+    virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+        AsyncEvent* ac);
 
 public:
     // object_base
@@ -27,7 +25,7 @@ public:
     {
         int32_t i, sz = (int32_t)m_array.size();
 
-        for (i = 0; i < sz; i ++)
+        for (i = 0; i < sz; i++)
             m_array[i].dispose();
 
         return 0;
@@ -39,7 +37,7 @@ public:
     virtual result_t append(v8::Local<v8::Value> hdlr);
 
 public:
-    result_t append(Handler_base *hdlr)
+    result_t append(Handler_base* hdlr)
     {
         int32_t no = (int32_t)m_array.size();
 

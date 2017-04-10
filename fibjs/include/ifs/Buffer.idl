@@ -491,4 +491,3 @@ interface Buffer : object
     */
     String toString();
 };
-

@@ -8,88 +8,88 @@
  */
 module profiler
 {
-	/*! @brief 隐藏节点，当显示给用户时可以被过滤掉 */
-	const Node_Hidden = 0;
+    /*! @brief 隐藏节点，当显示给用户时可以被过滤掉 */
+    const Node_Hidden = 0;
 
-	/*! @brief 数组 */
-	const Node_Array = 1;
+    /*! @brief 数组 */
+    const Node_Array = 1;
 
-	/*! @brief 字符串 */
-	const Node_String = 2;
+    /*! @brief 字符串 */
+    const Node_String = 2;
 
-	/*! @brief JS对象（字符串和数组除外） */
-	const Node_Object = 3;
+    /*! @brief JS对象（字符串和数组除外） */
+    const Node_Object = 3;
 
-	/*! @brief 编译后的代码 */
-	const Node_Code = 4;
+    /*! @brief 编译后的代码 */
+    const Node_Code = 4;
 
-	/*! @brief 函数闭包 */
-	const Node_Closure = 5;
+    /*! @brief 函数闭包 */
+    const Node_Closure = 5;
 
-	/*! @brief 正则表达式 */
-	const Node_RegExp = 6;
+    /*! @brief 正则表达式 */
+    const Node_RegExp = 6;
 
-	/*! @brief 堆中排好序的数字 */
-	const Node_HeapNumber = 7;
+    /*! @brief 堆中排好序的数字 */
+    const Node_HeapNumber = 7;
 
-	/*! @brief Native对象（非v8堆上的） */
-	const Node_Native = 8;
+    /*! @brief Native对象（非v8堆上的） */
+    const Node_Native = 8;
 
-	/*! @brief Synthetic对象 */
-	const Node_Synthetic = 9;
+    /*! @brief Synthetic对象 */
+    const Node_Synthetic = 9;
 
-	/*! @brief 拼接的字符串 */
-	const Node_ConsString = 10;
+    /*! @brief 拼接的字符串 */
+    const Node_ConsString = 10;
 
-	/*! @brief 分割的字符串 */
-	const Node_SlicedString = 11;
+    /*! @brief 分割的字符串 */
+    const Node_SlicedString = 11;
 
-	/*! @brief 符号（ES6） */
-	const Node_Symbol = 12;
+    /*! @brief 符号（ES6） */
+    const Node_Symbol = 12;
 
-	/*! @brief 堆中排好序的SIMD值(ES7) */
-	const Node_SimdValue = 13;
+    /*! @brief 堆中排好序的SIMD值(ES7) */
+    const Node_SimdValue = 13;
 
-	/*! @brief 函数中的变量 */
-	const Edge_ContextVariable = 0;
+    /*! @brief 函数中的变量 */
+    const Edge_ContextVariable = 0;
 
-	/*! @brief 数组中的元素 */
-	const Edge_Element = 1;
+    /*! @brief 数组中的元素 */
+    const Edge_Element = 1;
 
-	/*! @brief 有名对象的属性 */
-	const Edge_Property = 2;
+    /*! @brief 有名对象的属性 */
+    const Edge_Property = 2;
 
-	/*! @brief JS无法进入的链接 */
-	const Edge_Internal = 3;
+    /*! @brief JS无法进入的链接 */
+    const Edge_Internal = 3;
 
-	/*! @brief 指向需要事先计算出空间大小的节点 */
-	const Edge_Hidden = 4;
+    /*! @brief 指向需要事先计算出空间大小的节点 */
+    const Edge_Hidden = 4;
 
-	/*! @brief 指向无法事先计算出空间大小的节点 */
-	const Edge_Shortcut = 5;
+    /*! @brief 指向无法事先计算出空间大小的节点 */
+    const Edge_Shortcut = 5;
 
-	/*! @brief 一个弱引用（被GC忽视） */
-	const Edge_Weak = 6;
+    /*! @brief 一个弱引用（被GC忽视） */
+    const Edge_Weak = 6;
 
-	/*! @brief 根据指定名称保存一个堆快照
+    /*! @brief 根据指定名称保存一个堆快照
 	 @param fname 堆快照名称
 	 */
-	static saveSnapshot(String fname);
+    static saveSnapshot(String fname);
 
-	/*! @brief 根据指定名称读取一个堆快照
+    /*! @brief 根据指定名称读取一个堆快照
 	 @param fname 堆快照名称
 	 @return 返回读取到的堆快照
 	 */
-	static HeapSnapshot loadSnapshot(String fname);
+    static HeapSnapshot loadSnapshot(String fname);
 
-	/*! @brief 获取当前时间节点的堆快照，堆快照记录了当前时刻JS堆的状态
+    /*! @brief 获取当前时间节点的堆快照，堆快照记录了当前时刻JS堆的状态
 	 @return 返回获取到的堆信息快照
 	 */
-	static HeapSnapshot takeSnapshot();
+    static HeapSnapshot takeSnapshot();
 
-	/*! @brief 执行给定的函数，并对比执行前后 v8 堆的变化
+    /*! @brief 执行给定的函数，并对比执行前后 v8 堆的变化
 	 @param test 给定要测试的函数
 	 @return 返回对比的结果
 	 */
-	static Object diff(Function test);
+    static Object diff(Function test);
 };

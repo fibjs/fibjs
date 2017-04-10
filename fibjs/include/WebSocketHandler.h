@@ -11,11 +11,9 @@
 #ifndef WEBSOCKETHANDLER_H_
 #define WEBSOCKETHANDLER_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class WebSocketHandler: public WebSocketHandler_base
-{
+class WebSocketHandler : public WebSocketHandler_base {
     FIBER_FREE();
 
 public:
@@ -34,8 +32,8 @@ public:
 
 public:
     // Handler_base
-    virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                            AsyncEvent *ac);
+    virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+        AsyncEvent* ac);
 
 public:
     // HandlerEx_base
@@ -46,7 +44,7 @@ public:
 
 public:
     // WebSocketHandler_base
-    virtual result_t get_maxSize(int32_t &retVal);
+    virtual result_t get_maxSize(int32_t& retVal);
     virtual result_t set_maxSize(int32_t newVal);
 
 public:

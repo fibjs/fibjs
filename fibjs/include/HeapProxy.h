@@ -14,14 +14,12 @@
 #ifndef _fj_HEAPPROXY_H
 #define _fj_HEAPPROXY_H
 
-namespace fibjs
-{
+namespace fibjs {
 
-class HeapSnapshotProxy : public HeapSnapshot_base
-{
+class HeapSnapshotProxy : public HeapSnapshot_base {
 public:
-    HeapSnapshotProxy(const v8::HeapSnapshot* snapshot) :
-        m_snapshot(snapshot)
+    HeapSnapshotProxy(const v8::HeapSnapshot* snapshot)
+        : m_snapshot(snapshot)
     {
     }
 
@@ -55,11 +53,11 @@ private:
     obj_ptr<List> m_nodes;
 };
 
-class HeapGraphNodeProxy : public HeapGraphNode_base
-{
+class HeapGraphNodeProxy : public HeapGraphNode_base {
 public:
-    HeapGraphNodeProxy(HeapSnapshotProxy* snapshot, const v8::HeapGraphNode* node) :
-        m_snapshot(snapshot), m_node(node)
+    HeapGraphNodeProxy(HeapSnapshotProxy* snapshot, const v8::HeapGraphNode* node)
+        : m_snapshot(snapshot)
+        , m_node(node)
     {
     }
 
@@ -78,11 +76,11 @@ private:
     obj_ptr<List> m_childs;
 };
 
-class HeapGraphEdgeProxy : public HeapGraphEdge_base
-{
+class HeapGraphEdgeProxy : public HeapGraphEdge_base {
 public:
-    HeapGraphEdgeProxy(HeapSnapshotProxy* snapshot, const v8::HeapGraphEdge* edge) :
-        m_snapshot(snapshot), m_edge(edge)
+    HeapGraphEdgeProxy(HeapSnapshotProxy* snapshot, const v8::HeapGraphEdge* edge)
+        : m_snapshot(snapshot)
+        , m_edge(edge)
     {
     }
 
@@ -98,7 +96,6 @@ private:
     weak_ptr<HeapSnapshotProxy> m_snapshot;
     const v8::HeapGraphEdge* m_edge;
 };
-
 }
 
 #endif // _fj_HEAPPROXY_H

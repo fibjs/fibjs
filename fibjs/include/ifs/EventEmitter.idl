@@ -7,108 +7,107 @@
  */
 interface EventEmitter : object
 {
-	/*! @brief 构造函数 */
-	EventEmitter();
+    /*! @brief 构造函数 */
+    EventEmitter();
 
-  /*! @brief 绑定一个事件处理函数到对象
+    /*! @brief 绑定一个事件处理函数到对象
     @param ev 指定事件的名称
     @param func 指定事件处理函数
     @return 返回成功绑定的数量，如果函数已绑定则返回 0
    */
-  Object on(String ev, Function func);
+    Object on(String ev, Function func);
 
-  /*! @brief 绑定一个事件处理函数到对象
+    /*! @brief 绑定一个事件处理函数到对象
     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-  Object on(Object map);
+    Object on(Object map);
 
-  /*! @brief 绑定一个事件处理函数到对象
+    /*! @brief 绑定一个事件处理函数到对象
     @param ev 指定事件的名称
     @param func 指定事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-  Object addListener(String ev, Function func);
+    Object addListener(String ev, Function func);
 
-  /*! @brief 绑定一个事件处理函数到对象
+    /*! @brief 绑定一个事件处理函数到对象
     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-  Object addListener(Object map);
+    Object addListener(Object map);
 
-  /*! @brief 绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次
+    /*! @brief 绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次
     @param ev 指定事件的名称
     @param func 指定事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-  Object once(String ev, Function func);
+    Object once(String ev, Function func);
 
-  /*! @brief 绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次
+    /*! @brief 绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次
     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-  Object once(Object map);
+    Object once(Object map);
 
-  /*! @brief 从对象处理队列中取消指定函数
+    /*! @brief 从对象处理队列中取消指定函数
     @param ev 指定事件的名称
     @param func 指定事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-  Object off(String ev, Function func);
+    Object off(String ev, Function func);
 
-  /*! @brief 取消对象处理队列中的全部函数
+    /*! @brief 取消对象处理队列中的全部函数
     @param ev 指定事件的名称
     @return 返回事件对象本身，便于链式调用
    */
-  Object off(String ev);
+    Object off(String ev);
 
-  /*! @brief 从对象处理队列中取消指定函数
+    /*! @brief 从对象处理队列中取消指定函数
     @param map 指定事件映射关系，对象属性名称作为事件名称，属性的值作为事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-  Object off(Object map);
+    Object off(Object map);
 
-  /*! @brief 从对象处理队列中取消指定函数
+    /*! @brief 从对象处理队列中取消指定函数
     @param ev 指定事件的名称
     @param func 指定事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-  Object removeListener(String ev, Function func);
+    Object removeListener(String ev, Function func);
 
-  /*! @brief 取消对象处理队列中的全部函数
+    /*! @brief 取消对象处理队列中的全部函数
     @param ev 指定事件的名称
     @return 返回事件对象本身，便于链式调用
    */
-  Object removeListener(String ev);
+    Object removeListener(String ev);
 
-  /*! @brief 从对象处理队列中取消指定函数
+    /*! @brief 从对象处理队列中取消指定函数
     @param map 指定事件映射关系，对象属性名称作为事件名称，属性的值作为事件处理函数
     @return 返回事件对象本身，便于链式调用
    */
-  Object removeListener(Object map);
+    Object removeListener(Object map);
 
-  /*! @brief 从对象处理队列中取消所有事件的所有监听器， 如果指定事件，则移除指定事件的所有监听器。
+    /*! @brief 从对象处理队列中取消所有事件的所有监听器， 如果指定事件，则移除指定事件的所有监听器。
     @param evs 指定事件的名称
     @return 返回事件对象本身，便于链式调用
    */
-  Object removeAllListeners(Array evs = []);
+    Object removeAllListeners(Array evs = []);
 
-  /* 监听器的默认限制的数量，仅用于兼容
+    /* 监听器的默认限制的数量，仅用于兼容
     @param n 指定事件的数量
    */
-  setMaxListeners(Integer n);
+    setMaxListeners(Integer n);
 
-  /*! @brief 查询对象指定事件的监听器数组
+    /*! @brief 查询对象指定事件的监听器数组
     @param ev 指定事件的名称
     @return 返回指定事件的监听器数组
    */
-  Array listeners(String ev);
+    Array listeners(String ev);
 
-  /*! @brief 主动触发一个事件
+    /*! @brief 主动触发一个事件
     @param ev 事件名称
     @param ... 事件参数，将会传递给事件处理函数
     @return 返回事件触发状态，有响应事件返回 true，否则返回 false
    */
-  Boolean emit(String ev, ...);
+    Boolean emit(String ev, ...);
 };
-

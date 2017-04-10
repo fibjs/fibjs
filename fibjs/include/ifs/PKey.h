@@ -14,13 +14,11 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Buffer_base;
 
-class PKey_base : public object_base
-{
+class PKey_base : public object_base {
     DECLARE_CLASS(PKey_base);
 
 public:
@@ -44,14 +42,14 @@ public:
     virtual result_t verify(Buffer_base* sign, Buffer_base* data, bool& retVal, AsyncEvent* ac) = 0;
 
 public:
-    template<typename T>
-    static void __new(const T &args);
+    template <typename T>
+    static void __new(const T& args);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_keySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_keySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -73,316 +71,310 @@ public:
     ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE3(PKey_base, verify, Buffer_base*, Buffer_base*, bool);
 };
-
 }
 
 #include "Buffer.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& PKey_base::class_info()
 {
-    inline ClassInfo& PKey_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"genRsaKey", s_genRsaKey, false},
-            {"genEcKey", s_genEcKey, false},
-            {"isPrivate", s_isPrivate, false},
-            {"clone", s_clone, false},
-            {"importKey", s_importKey, false},
-            {"importFile", s_importFile, false},
-            {"exportPem", s_exportPem, false},
-            {"exportDer", s_exportDer, false},
-            {"encrypt", s_encrypt, false},
-            {"decrypt", s_decrypt, false},
-            {"sign", s_sign, false},
-            {"verify", s_verify, false}
-        };
-
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"name", s_get_name, block_set, false},
-            {"keySize", s_get_keySize, block_set, false},
-            {"publicKey", s_get_publicKey, block_set, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "genRsaKey", s_genRsaKey, false },
+        { "genEcKey", s_genEcKey, false },
+        { "isPrivate", s_isPrivate, false },
+        { "clone", s_clone, false },
+        { "importKey", s_importKey, false },
+        { "importFile", s_importFile, false },
+        { "exportPem", s_exportPem, false },
+        { "exportDer", s_exportDer, false },
+        { "encrypt", s_encrypt, false },
+        { "decrypt", s_decrypt, false },
+        { "sign", s_sign, false },
+        { "verify", s_verify, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "PKey", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "name", s_get_name, block_set, false },
+        { "keySize", s_get_keySize, block_set, false },
+        { "publicKey", s_get_publicKey, block_set, false }
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassData s_cd = {
+        "PKey", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
 
-    inline void PKey_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    template<typename T>void PKey_base::__new(const T& args)
-    {
-        obj_ptr<PKey_base> vr;
+inline void PKey_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    CONSTRUCT_INIT();
+    __new(args);
+}
 
-        CONSTRUCT_ENTER();
+template <typename T>
+void PKey_base::__new(const T& args)
+{
+    obj_ptr<PKey_base> vr;
 
-        METHOD_OVER(0, 0);
+    CONSTRUCT_ENTER();
 
-        hr = _new(vr, args.This());
+    METHOD_OVER(0, 0);
 
-        CONSTRUCT_RETURN();
-    }
+    hr = _new(vr, args.This());
 
-    inline void PKey_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+    CONSTRUCT_RETURN();
+}
 
-        METHOD_INSTANCE(PKey_base);
-        PROPERTY_ENTER();
+inline void PKey_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        hr = pInst->get_name(vr);
+    METHOD_INSTANCE(PKey_base);
+    PROPERTY_ENTER();
 
-        METHOD_RETURN();
-    }
+    hr = pInst->get_name(vr);
 
-    inline void PKey_base::s_get_keySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+    METHOD_RETURN();
+}
 
-        METHOD_INSTANCE(PKey_base);
-        PROPERTY_ENTER();
+inline void PKey_base::s_get_keySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        hr = pInst->get_keySize(vr);
+    METHOD_INSTANCE(PKey_base);
+    PROPERTY_ENTER();
 
-        METHOD_RETURN();
-    }
+    hr = pInst->get_keySize(vr);
 
-    inline void PKey_base::s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<PKey_base> vr;
+    METHOD_RETURN();
+}
 
-        METHOD_INSTANCE(PKey_base);
-        PROPERTY_ENTER();
+inline void PKey_base::s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<PKey_base> vr;
 
-        hr = pInst->get_publicKey(vr);
+    METHOD_INSTANCE(PKey_base);
+    PROPERTY_ENTER();
 
-        METHOD_RETURN();
-    }
+    hr = pInst->get_publicKey(vr);
 
-    inline void PKey_base::s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER();
+    METHOD_RETURN();
+}
 
-        ASYNC_METHOD_OVER(1, 1);
+inline void PKey_base::s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
 
-        ARG(int32_t, 0);
+    ASYNC_METHOD_OVER(1, 1);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_genRsaKey(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_genRsaKey(v0);
+    ARG(int32_t, 0);
 
-        METHOD_VOID();
-    }
+    if (!cb.IsEmpty()) {
+        pInst->acb_genRsaKey(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_genRsaKey(v0);
 
-    inline void PKey_base::s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER();
+    METHOD_VOID();
+}
 
-        ASYNC_METHOD_OVER(1, 0);
+inline void PKey_base::s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
 
-        OPT_ARG(exlib::string, 0, "secp521r1");
+    ASYNC_METHOD_OVER(1, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_genEcKey(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_genEcKey(v0);
+    OPT_ARG(exlib::string, 0, "secp521r1");
 
-        METHOD_VOID();
-    }
+    if (!cb.IsEmpty()) {
+        pInst->acb_genEcKey(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_genEcKey(v0);
 
-    inline void PKey_base::s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+    METHOD_VOID();
+}
 
-        METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER();
+inline void PKey_base::s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_OVER(0, 0);
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
 
-        hr = pInst->isPrivate(vr);
+    METHOD_OVER(0, 0);
 
-        METHOD_RETURN();
-    }
+    hr = pInst->isPrivate(vr);
 
-    inline void PKey_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<PKey_base> vr;
+    METHOD_RETURN();
+}
 
-        METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER();
+inline void PKey_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<PKey_base> vr;
 
-        METHOD_OVER(0, 0);
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
 
-        hr = pInst->clone(vr);
+    METHOD_OVER(0, 0);
 
-        METHOD_RETURN();
-    }
+    hr = pInst->clone(vr);
 
-    inline void PKey_base::s_importKey(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER();
+    METHOD_RETURN();
+}
 
-        METHOD_OVER(2, 1);
+inline void PKey_base::s_importKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    METHOD_OVER(2, 1);
 
-        hr = pInst->importKey(v0, v1);
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        METHOD_OVER(2, 1);
+    hr = pInst->importKey(v0, v1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(exlib::string, 1, "");
+    METHOD_OVER(2, 1);
 
-        hr = pInst->importKey(v0, v1);
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        METHOD_VOID();
-    }
+    hr = pInst->importKey(v0, v1);
 
-    inline void PKey_base::s_importFile(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER();
+    METHOD_VOID();
+}
 
-        METHOD_OVER(2, 1);
+inline void PKey_base::s_importFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
 
-        ARG(exlib::string, 0);
-        OPT_ARG(exlib::string, 1, "");
+    METHOD_OVER(2, 1);
 
-        hr = pInst->importFile(v0, v1);
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        METHOD_VOID();
-    }
+    hr = pInst->importFile(v0, v1);
 
-    inline void PKey_base::s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+    METHOD_VOID();
+}
 
-        METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER();
+inline void PKey_base::s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_OVER(0, 0);
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
 
-        hr = pInst->exportPem(vr);
+    METHOD_OVER(0, 0);
 
-        METHOD_RETURN();
-    }
+    hr = pInst->exportPem(vr);
 
-    inline void PKey_base::s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+    METHOD_RETURN();
+}
 
-        METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER();
+inline void PKey_base::s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_OVER(0, 0);
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
 
-        hr = pInst->exportDer(vr);
+    METHOD_OVER(0, 0);
 
-        METHOD_RETURN();
-    }
+    hr = pInst->exportDer(vr);
 
-    inline void PKey_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+    METHOD_RETURN();
+}
 
-        METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER();
+inline void PKey_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_OVER(1, 1);
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    ASYNC_METHOD_OVER(1, 1);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_encrypt(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_encrypt(v0, vr);
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        METHOD_RETURN();
-    }
+    if (!cb.IsEmpty()) {
+        pInst->acb_encrypt(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_encrypt(v0, vr);
 
-    inline void PKey_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+    METHOD_RETURN();
+}
 
-        METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER();
+inline void PKey_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_OVER(1, 1);
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    ASYNC_METHOD_OVER(1, 1);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_decrypt(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_decrypt(v0, vr);
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        METHOD_RETURN();
-    }
+    if (!cb.IsEmpty()) {
+        pInst->acb_decrypt(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_decrypt(v0, vr);
 
-    inline void PKey_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+    METHOD_RETURN();
+}
 
-        METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER();
+inline void PKey_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        ASYNC_METHOD_OVER(2, 1);
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        OPT_ARG(int32_t, 1, 0);
+    ASYNC_METHOD_OVER(2, 1);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_sign(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_sign(v0, v1, vr);
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(int32_t, 1, 0);
 
-        METHOD_RETURN();
-    }
+    if (!cb.IsEmpty()) {
+        pInst->acb_sign(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_sign(v0, v1, vr);
 
-    inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+    METHOD_RETURN();
+}
 
-        METHOD_INSTANCE(PKey_base);
-        METHOD_ENTER();
+inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        ASYNC_METHOD_OVER(2, 2);
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
+    ASYNC_METHOD_OVER(2, 2);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_verify(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_verify(v0, v1, vr);
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
 
-        METHOD_RETURN();
-    }
+    if (!cb.IsEmpty()) {
+        pInst->acb_verify(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_verify(v0, v1, vr);
 
+    METHOD_RETURN();
+}
 }
 
 #endif
-

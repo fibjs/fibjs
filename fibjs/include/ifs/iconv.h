@@ -14,13 +14,11 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Buffer_base;
 
-class iconv_base : public object_base
-{
+class iconv_base : public object_base {
     DECLARE_CLASS(iconv_base);
 
 public:
@@ -43,65 +41,59 @@ public:
     static void s_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
 #include "Buffer.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& iconv_base::class_info()
 {
-    inline ClassInfo& iconv_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"encode", s_encode, true},
-            {"decode", s_decode, true}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "encode", s_encode, true },
+        { "decode", s_decode, true }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "iconv", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "iconv", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void iconv_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+inline void iconv_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(exlib::string, 1);
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
 
-        hr = encode(v0, v1, vr);
+    hr = encode(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void iconv_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void iconv_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
 
-        hr = decode(v0, v1, vr);
+    hr = decode(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

@@ -7,53 +7,53 @@
  */
 module registry
 {
-	/*! @brief 注册表根，存储Windows可识别的文件类型的详细列表，以及相关联的程序 */
-	const CLASSES_ROOT = 0;
+    /*! @brief 注册表根，存储Windows可识别的文件类型的详细列表，以及相关联的程序 */
+    const CLASSES_ROOT = 0;
 
-	/*! @brief 注册表根，存储当前用户设置的信息 */
-	const CURRENT_USER = 1;
+    /*! @brief 注册表根，存储当前用户设置的信息 */
+    const CURRENT_USER = 1;
 
-	/*! @brief 注册表根，包括安装在计算机上的硬件和软件的信息 */
-	const LOCAL_MACHINE = 2;
+    /*! @brief 注册表根，包括安装在计算机上的硬件和软件的信息 */
+    const LOCAL_MACHINE = 2;
 
-	/*! @brief 注册表根，包含使用计算机的用户的信息 */
-	const USERS = 3;
+    /*! @brief 注册表根，包含使用计算机的用户的信息 */
+    const USERS = 3;
 
-	/*! @brief 注册表根，这个分支包含计算机当前的硬件配置信息 */
-	const CURRENT_CONFIG = 5;
+    /*! @brief 注册表根，这个分支包含计算机当前的硬件配置信息 */
+    const CURRENT_CONFIG = 5;
 
-	/*! @brief 注册表数据类型，字符串 */
-	const SZ = 1;
+    /*! @brief 注册表数据类型，字符串 */
+    const SZ = 1;
 
-	/*! @brief 注册表数据类型，扩展字符串 */
-	const EXPAND_SZ = 2;
+    /*! @brief 注册表数据类型，扩展字符串 */
+    const EXPAND_SZ = 2;
 
-	/*! @brief 注册表数据类型，32 位数值 */
-	const DWORD = 4;
+    /*! @brief 注册表数据类型，32 位数值 */
+    const DWORD = 4;
 
-	/*! @brief 注册表数据类型，64 位数值 */
-	const QWORD = 11;
+    /*! @brief 注册表数据类型，64 位数值 */
+    const QWORD = 11;
 
     /*! @brief 返回指定键值下的所有子健
      @param root 指定注册表根
      @param key 指定键值
      @return 返回该键值下所有子健
      */
-	static List listSubKey(Integer root, String key);
+    static List listSubKey(Integer root, String key);
 
     /*! @brief 返回指定键值下的所有数据的健
      @param root 指定注册表根
      @param key 指定键值
      @return 返回该键值下所有数据的健
      */
-	static List listValue(Integer root, String key);
+    static List listValue(Integer root, String key);
 
     /*! @brief 查询指定键值的数值
      @param root 指定注册表根
      @param key 指定键值
      @return 返回指定键值的数值
      */
-	static Value get(Integer root, String key);
+    static Value get(Integer root, String key);
 
     /*! @brief 设置指定键值为数字
      @param root 指定注册表根
@@ -61,7 +61,7 @@ module registry
      @param value 指定数字
      @param type 指定类型，允许的类型为 DWORD 和 QWORD，缺省为 DWORD
      */
-	static set(Integer root, String key, Number value, Integer type = DWORD);
+    static set(Integer root, String key, Number value, Integer type = DWORD);
 
     /*! @brief 设置指定键值为字符串
      @param root 指定注册表根
@@ -69,25 +69,25 @@ module registry
      @param value 指定字符串
      @param type 指定类型，允许的类型为 SZ 和 EXPAND_SZ，缺省为 SZ
      */
-	static set(Integer root, String key, String value, Integer type = SZ);
+    static set(Integer root, String key, String value, Integer type = SZ);
 
     /*! @brief 设置指定键值为多字符串
      @param root 指定注册表根
      @param key 指定键值
      @param value 指定多字符串数组
      */
-	static set(Integer root, String key, Array value);
+    static set(Integer root, String key, Array value);
 
     /*! @brief 设置指定键值为二进制
      @param root 指定注册表根
      @param key 指定键值
      @param value 指定二进制数据
      */
-	static set(Integer root, String key, Buffer value);
+    static set(Integer root, String key, Buffer value);
 
     /*! @brief 删除指定键值的数值
      @param root 指定注册表根
      @param key 指定键值
      */
-	static del(Integer root, String key);
+    static del(Integer root, String key);
 };

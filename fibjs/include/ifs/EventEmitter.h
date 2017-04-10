@@ -14,11 +14,9 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class EventEmitter_base : public object_base
-{
+class EventEmitter_base : public object_base {
     DECLARE_CLASS(EventEmitter_base);
 
 public:
@@ -42,8 +40,8 @@ public:
     virtual result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args, bool& retVal) = 0;
 
 public:
-    template<typename T>
-    static void __new(const T &args);
+    template <typename T>
+    static void __new(const T& args);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -57,246 +55,241 @@ public:
     static void s_listeners(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_emit(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& EventEmitter_base::class_info()
 {
-    inline ClassInfo& EventEmitter_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"on", s_on, false},
-            {"addListener", s_addListener, false},
-            {"once", s_once, false},
-            {"off", s_off, false},
-            {"removeListener", s_removeListener, false},
-            {"removeAllListeners", s_removeAllListeners, false},
-            {"setMaxListeners", s_setMaxListeners, false},
-            {"listeners", s_listeners, false},
-            {"emit", s_emit, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "on", s_on, false },
+        { "addListener", s_addListener, false },
+        { "once", s_once, false },
+        { "off", s_off, false },
+        { "removeListener", s_removeListener, false },
+        { "removeAllListeners", s_removeAllListeners, false },
+        { "setMaxListeners", s_setMaxListeners, false },
+        { "listeners", s_listeners, false },
+        { "emit", s_emit, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "EventEmitter", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "EventEmitter", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void EventEmitter_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
+inline void EventEmitter_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    CONSTRUCT_INIT();
+    __new(args);
+}
 
-    template<typename T>void EventEmitter_base::__new(const T& args)
-    {
-        obj_ptr<EventEmitter_base> vr;
+template <typename T>
+void EventEmitter_base::__new(const T& args)
+{
+    obj_ptr<EventEmitter_base> vr;
 
-        CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = _new(vr, args.This());
+    hr = _new(vr, args.This());
 
-        CONSTRUCT_RETURN();
-    }
+    CONSTRUCT_RETURN();
+}
 
-    inline void EventEmitter_base::s_on(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Object> vr;
+inline void EventEmitter_base::s_on(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
 
-        METHOD_INSTANCE(EventEmitter_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(EventEmitter_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        hr = pInst->on(v0, v1, vr);
+    hr = pInst->on(v0, v1, vr);
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
-        hr = pInst->on(v0, vr);
+    hr = pInst->on(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void EventEmitter_base::s_addListener(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Object> vr;
+inline void EventEmitter_base::s_addListener(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
 
-        METHOD_INSTANCE(EventEmitter_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(EventEmitter_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        hr = pInst->addListener(v0, v1, vr);
+    hr = pInst->addListener(v0, v1, vr);
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
-        hr = pInst->addListener(v0, vr);
+    hr = pInst->addListener(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void EventEmitter_base::s_once(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Object> vr;
+inline void EventEmitter_base::s_once(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
 
-        METHOD_INSTANCE(EventEmitter_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(EventEmitter_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        hr = pInst->once(v0, v1, vr);
+    hr = pInst->once(v0, v1, vr);
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
-        hr = pInst->once(v0, vr);
+    hr = pInst->once(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void EventEmitter_base::s_off(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Object> vr;
+inline void EventEmitter_base::s_off(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
 
-        METHOD_INSTANCE(EventEmitter_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(EventEmitter_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        hr = pInst->off(v0, v1, vr);
+    hr = pInst->off(v0, v1, vr);
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = pInst->off(v0, vr);
+    hr = pInst->off(v0, vr);
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
-        hr = pInst->off(v0, vr);
+    hr = pInst->off(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void EventEmitter_base::s_removeListener(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Object> vr;
+inline void EventEmitter_base::s_removeListener(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
 
-        METHOD_INSTANCE(EventEmitter_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(EventEmitter_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        hr = pInst->removeListener(v0, v1, vr);
+    hr = pInst->removeListener(v0, v1, vr);
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = pInst->removeListener(v0, vr);
+    hr = pInst->removeListener(v0, vr);
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
-        hr = pInst->removeListener(v0, vr);
+    hr = pInst->removeListener(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void EventEmitter_base::s_removeAllListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Object> vr;
+inline void EventEmitter_base::s_removeAllListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
 
-        METHOD_INSTANCE(EventEmitter_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(EventEmitter_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
-        OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
+    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
 
-        hr = pInst->removeAllListeners(v0, vr);
+    hr = pInst->removeAllListeners(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void EventEmitter_base::s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(EventEmitter_base);
-        METHOD_ENTER();
+inline void EventEmitter_base::s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(EventEmitter_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(int32_t, 0);
+    ARG(int32_t, 0);
 
-        hr = pInst->setMaxListeners(v0);
+    hr = pInst->setMaxListeners(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void EventEmitter_base::s_listeners(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Array> vr;
+inline void EventEmitter_base::s_listeners(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
 
-        METHOD_INSTANCE(EventEmitter_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(EventEmitter_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = pInst->listeners(v0, vr);
+    hr = pInst->listeners(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void EventEmitter_base::s_emit(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void EventEmitter_base::s_emit(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(EventEmitter_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(EventEmitter_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(-1, 1);
+    METHOD_OVER(-1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = pInst->emit(v0, args, vr);
+    hr = pInst->emit(v0, args, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

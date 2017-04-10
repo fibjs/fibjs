@@ -14,16 +14,14 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class List_base;
 class ZipInfo_base;
 class Buffer_base;
 class SeekableStream_base;
 
-class ZipFile_base : public object_base
-{
+class ZipFile_base : public object_base {
     DECLARE_CLASS(ZipFile_base);
 
 public:
@@ -77,7 +75,6 @@ public:
     ASYNC_MEMBER3(ZipFile_base, write, SeekableStream_base*, exlib::string, exlib::string);
     ASYNC_MEMBER0(ZipFile_base, close);
 };
-
 }
 
 #include "List.h"
@@ -85,243 +82,238 @@ public:
 #include "Buffer.h"
 #include "SeekableStream.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& ZipFile_base::class_info()
 {
-    inline ClassInfo& ZipFile_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"namelist", s_namelist, false},
-            {"infolist", s_infolist, false},
-            {"getinfo", s_getinfo, false},
-            {"read", s_read, false},
-            {"readAll", s_readAll, false},
-            {"extract", s_extract, false},
-            {"extractAll", s_extractAll, false},
-            {"write", s_write, false},
-            {"close", s_close, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "namelist", s_namelist, false },
+        { "infolist", s_infolist, false },
+        { "getinfo", s_getinfo, false },
+        { "read", s_read, false },
+        { "readAll", s_readAll, false },
+        { "extract", s_extract, false },
+        { "extractAll", s_extractAll, false },
+        { "write", s_write, false },
+        { "close", s_close, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "ZipFile", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "ZipFile", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void ZipFile_base::s_namelist(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<List_base> vr;
+inline void ZipFile_base::s_namelist(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<List_base> vr;
 
-        METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(ZipFile_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(0, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_namelist(cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_namelist(vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_namelist(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_namelist(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void ZipFile_base::s_infolist(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<List_base> vr;
+inline void ZipFile_base::s_infolist(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<List_base> vr;
 
-        METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(ZipFile_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(0, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_infolist(cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_infolist(vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_infolist(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_infolist(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void ZipFile_base::s_getinfo(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<ZipInfo_base> vr;
+inline void ZipFile_base::s_getinfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<ZipInfo_base> vr;
 
-        METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(ZipFile_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_getinfo(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_getinfo(v0, vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_getinfo(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_getinfo(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void ZipFile_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+inline void ZipFile_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(ZipFile_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(2, 1);
+    ASYNC_METHOD_OVER(2, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(exlib::string, 1, "");
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_read(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_read(v0, v1, vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_read(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_read(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void ZipFile_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<List_base> vr;
+inline void ZipFile_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<List_base> vr;
 
-        METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(ZipFile_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 0);
+    ASYNC_METHOD_OVER(1, 0);
 
-        OPT_ARG(exlib::string, 0, "");
+    OPT_ARG(exlib::string, 0, "");
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_readAll(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_readAll(v0, vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_readAll(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_readAll(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER();
+inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(ZipFile_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(3, 2);
+    ASYNC_METHOD_OVER(3, 2);
 
-        ARG(exlib::string, 0);
-        ARG(exlib::string, 1);
-        OPT_ARG(exlib::string, 2, "");
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_extract(v0, v1, v2, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_extract(v0, v1, v2);
+    if (!cb.IsEmpty()) {
+        pInst->acb_extract(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_extract(v0, v1, v2);
 
-        ASYNC_METHOD_OVER(3, 2);
+    ASYNC_METHOD_OVER(3, 2);
 
-        ARG(exlib::string, 0);
-        ARG(obj_ptr<SeekableStream_base>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<SeekableStream_base>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_extract(v0, v1, v2, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_extract(v0, v1, v2);
+    if (!cb.IsEmpty()) {
+        pInst->acb_extract(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_extract(v0, v1, v2);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER();
+inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(ZipFile_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(2, 1);
+    ASYNC_METHOD_OVER(2, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(exlib::string, 1, "");
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_extractAll(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_extractAll(v0, v1);
+    if (!cb.IsEmpty()) {
+        pInst->acb_extractAll(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_extractAll(v0, v1);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER();
+inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(ZipFile_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(3, 2);
+    ASYNC_METHOD_OVER(3, 2);
 
-        ARG(exlib::string, 0);
-        ARG(exlib::string, 1);
-        OPT_ARG(exlib::string, 2, "");
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_write(v0, v1, v2, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_write(v0, v1, v2);
+    if (!cb.IsEmpty()) {
+        pInst->acb_write(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_write(v0, v1, v2);
 
-        ASYNC_METHOD_OVER(3, 2);
+    ASYNC_METHOD_OVER(3, 2);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(exlib::string, 1);
-        OPT_ARG(exlib::string, 2, "");
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_write(v0, v1, v2, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_write(v0, v1, v2);
+    if (!cb.IsEmpty()) {
+        pInst->acb_write(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_write(v0, v1, v2);
 
-        ASYNC_METHOD_OVER(3, 2);
+    ASYNC_METHOD_OVER(3, 2);
 
-        ARG(obj_ptr<SeekableStream_base>, 0);
-        ARG(exlib::string, 1);
-        OPT_ARG(exlib::string, 2, "");
+    ARG(obj_ptr<SeekableStream_base>, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_write(v0, v1, v2, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_write(v0, v1, v2);
+    if (!cb.IsEmpty()) {
+        pInst->acb_write(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_write(v0, v1, v2);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void ZipFile_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(ZipFile_base);
-        METHOD_ENTER();
+inline void ZipFile_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(ZipFile_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(0, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_close(cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_close();
+    if (!cb.IsEmpty()) {
+        pInst->acb_close(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_close();
 
-        METHOD_VOID();
-    }
-
+    METHOD_VOID();
+}
 }
 
 #endif
-

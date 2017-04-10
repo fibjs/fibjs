@@ -8,10 +8,9 @@
 #include "console.h"
 #include "utf8.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-TextColor *logger::get_std_color()
+TextColor* logger::get_std_color()
 {
     static obj_ptr<TextColor> s_tc;
 
@@ -25,8 +24,7 @@ TextColor *logger::get_std_color()
 
 void std_logger::out(exlib::string& txt)
 {
-    class color_out
-    {
+    class color_out {
     public:
         color_out()
         {
@@ -40,8 +38,7 @@ void std_logger::out(exlib::string& txt)
         {
             DWORD dwWrite;
 
-            while (sz)
-            {
+            while (sz) {
                 size_t sz1 = sz;
                 if (sz1 >= 16384)
                     sz1 = 16384;
@@ -53,42 +50,34 @@ void std_logger::out(exlib::string& txt)
 
         void out(exlib::string& s)
         {
-            if (!m_tty)
-            {
+            if (!m_tty) {
                 fwrite(s.c_str(), 1, s.length(), stdout);
                 return;
             }
 
             exlib::wstring ws = utf8to16String(s);
-            exlib::wchar *ptr = &ws[0];
-            exlib::wchar *pend = ptr + ws.length();
-            exlib::wchar *ptr2;
+            exlib::wchar* ptr = &ws[0];
+            exlib::wchar* pend = ptr + ws.length();
+            exlib::wchar* ptr2;
 
-            while (ptr2 = (exlib::wchar *) qstrchr(ptr, L'\x1b'))
-            {
-                if (ptr2[1] == '[')
-                {
+            while (ptr2 = (exlib::wchar*)qstrchr(ptr, L'\x1b')) {
+                if (ptr2[1] == '[') {
                     WriteConsole(ptr, ptr2 - ptr);
 
                     ptr2 += 2;
 
-                    while (true)
-                    {
-                        if (ptr2[0] == 'm')
-                        {
+                    while (true) {
+                        if (ptr2[0] == 'm') {
                             m_Now = m_wAttr;
                             m_wLight = m_wAttr & FOREGROUND_INTENSITY;
                             SetConsoleTextAttribute(m_handle, m_Now);
-                            ptr2 ++;
+                            ptr2++;
                             break;
                         }
 
-                        if (qisdigit(ptr2[0]))
-                        {
-                            if (ptr2[1] == 'm')
-                            {
-                                if (ptr2[0] == '0')
-                                {
+                        if (qisdigit(ptr2[0])) {
+                            if (ptr2[1] == 'm') {
+                                if (ptr2[0] == '0') {
                                     m_Now = m_wAttr;
                                     m_wLight = m_wAttr & FOREGROUND_INTENSITY;
                                     SetConsoleTextAttribute(m_handle, m_Now);
@@ -100,8 +89,7 @@ void std_logger::out(exlib::string& txt)
                             WORD mask, val;
                             WORD light = m_wLight;
 
-                            if (ptr2[1] == ';')
-                            {
+                            if (ptr2[1] == ';') {
                                 if (ptr2[0] == '0')
                                     m_wLight = light = 0;
                                 else if (ptr2[0] == '1')
@@ -109,29 +97,21 @@ void std_logger::out(exlib::string& txt)
                                 ptr2 += 2;
                             }
 
-                            if (ptr2[0] == '3')
-                            {
+                            if (ptr2[0] == '3') {
                                 mask = 0xf0;
-                                ptr2 ++;
-                            }
-                            else if (ptr2[0] == '4')
-                            {
+                                ptr2++;
+                            } else if (ptr2[0] == '4') {
                                 mask = 0x0f;
-                                ptr2 ++;
-                            }
-                            else if (ptr2[0] == '9')
-                            {
+                                ptr2++;
+                            } else if (ptr2[0] == '9') {
                                 mask = 0xf0;
                                 light |= FOREGROUND_INTENSITY;
-                                ptr2 ++;
-                            }
-                            else if (ptr2[0] == '1' && ptr2[1] == '0')
-                            {
+                                ptr2++;
+                            } else if (ptr2[0] == '1' && ptr2[1] == '0') {
                                 mask = 0x0f;
                                 light |= FOREGROUND_INTENSITY << 4;
                                 ptr2 += 2;
-                            }
-                            else
+                            } else
                                 break;
 
                             if (!qisdigit(ptr2[0]))
@@ -139,19 +119,15 @@ void std_logger::out(exlib::string& txt)
 
                             val = ptr2[0] - '0';
 
-                            if (val != 8)
-                            {
-                                if (val == 9)
-                                {
+                            if (val != 8) {
+                                if (val == 9) {
                                     val = (m_wAttr & 0x0f) | (m_Now & 0xf0);
 
                                     m_Now = val | light;
                                     SetConsoleTextAttribute(m_handle, m_Now);
-                                }
-                                else
-                                {
+                                } else {
                                     val = (val & 2) | ((val & 1) ? 4 : 0)
-                                          | ((val & 4) ? 1 : 0);
+                                        | ((val & 4) ? 1 : 0);
 
                                     if (mask == 0x0f)
                                         val <<= 4;
@@ -161,10 +137,9 @@ void std_logger::out(exlib::string& txt)
                                 }
                             }
 
-                            ptr2 ++;
-                            if (ptr2[0] == 'm')
-                            {
-                                ptr2 ++;
+                            ptr2++;
+                            if (ptr2[0] == 'm') {
+                                ptr2++;
                                 break;
                             }
                         }
@@ -196,12 +171,11 @@ void std_logger::out(exlib::string& txt)
 
 #endif
 
-result_t std_logger::write(AsyncEvent *ac)
+result_t std_logger::write(AsyncEvent* ac)
 {
-    item *p1;
+    item* p1;
 
-    while ((p1 = m_workinglogs.getHead()) != 0)
-    {
+    while ((p1 = m_workinglogs.getHead()) != 0) {
         exlib::string txt;
         if (p1->m_priority == console_base::_NOTICE)
             txt = logger::notice() + p1->m_msg + COLOR_RESET + "\n";
@@ -222,5 +196,4 @@ result_t std_logger::write(AsyncEvent *ac)
 
     return 0;
 }
-
 }

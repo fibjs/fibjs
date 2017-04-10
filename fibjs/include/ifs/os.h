@@ -14,14 +14,12 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Service_base;
 class BufferedStream_base;
 
-class os_base : public object_base
-{
+class os_base : public object_base {
     DECLARE_CLASS(os_base);
 
 public:
@@ -60,12 +58,12 @@ public:
     }
 
 public:
-    static void s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_timezone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_timezone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -79,339 +77,331 @@ public:
     static void s_platform(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_time(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(os_base, openPrinter, exlib::string, obj_ptr<BufferedStream_base>);
 };
-
 }
 
 #include "Service.h"
 #include "BufferedStream.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& os_base::class_info()
 {
-    inline ClassInfo& os_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"uptime", s_uptime, true},
-            {"loadavg", s_loadavg, true},
-            {"totalmem", s_totalmem, true},
-            {"freemem", s_freemem, true},
-            {"CPUInfo", s_CPUInfo, true},
-            {"CPUs", s_CPUs, true},
-            {"tmpdir", s_tmpdir, true},
-            {"networkInfo", s_networkInfo, true},
-            {"printerInfo", s_printerInfo, true},
-            {"openPrinter", s_openPrinter, true},
-            {"platform", s_platform, true},
-            {"time", s_time, true},
-            {"dateAdd", s_dateAdd, true},
-            {"memoryUsage", s_memoryUsage, true}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "uptime", s_uptime, true },
+        { "loadavg", s_loadavg, true },
+        { "totalmem", s_totalmem, true },
+        { "freemem", s_freemem, true },
+        { "CPUInfo", s_CPUInfo, true },
+        { "CPUs", s_CPUs, true },
+        { "tmpdir", s_tmpdir, true },
+        { "networkInfo", s_networkInfo, true },
+        { "printerInfo", s_printerInfo, true },
+        { "openPrinter", s_openPrinter, true },
+        { "platform", s_platform, true },
+        { "time", s_time, true },
+        { "dateAdd", s_dateAdd, true },
+        { "memoryUsage", s_memoryUsage, true }
+    };
 
-        static ClassData::ClassObject s_object[] = 
-        {
-            {"Service", Service_base::class_info}
-        };
+    static ClassData::ClassObject s_object[] = {
+        { "Service", Service_base::class_info }
+    };
 
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"hostname", s_get_hostname, block_set, true},
-            {"type", s_get_type, block_set, true},
-            {"version", s_get_version, block_set, true},
-            {"arch", s_get_arch, block_set, true},
-            {"timezone", s_get_timezone, block_set, true},
-            {"EOL", s_get_EOL, block_set, true},
-            {"execPath", s_get_execPath, block_set, true}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "hostname", s_get_hostname, block_set, true },
+        { "type", s_get_type, block_set, true },
+        { "version", s_get_version, block_set, true },
+        { "arch", s_get_arch, block_set, true },
+        { "timezone", s_get_timezone, block_set, true },
+        { "EOL", s_get_EOL, block_set, true },
+        { "execPath", s_get_execPath, block_set, true }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "os", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "os", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void os_base::s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void os_base::s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_hostname(vr);
+    hr = get_hostname(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void os_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_type(vr);
+    hr = get_type(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void os_base::s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_version(vr);
+    hr = get_version(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void os_base::s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_arch(vr);
+    hr = get_arch(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_get_timezone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+inline void os_base::s_get_timezone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_timezone(vr);
+    hr = get_timezone(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void os_base::s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_EOL(vr);
+    hr = get_EOL(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        double vr;
+inline void os_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    double vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = uptime(vr);
+    hr = uptime(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Array> vr;
+inline void os_base::s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = loadavg(vr);
+    hr = loadavg(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int64_t vr;
+inline void os_base::s_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = totalmem(vr);
+    hr = totalmem(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_freemem(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int64_t vr;
+inline void os_base::s_freemem(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = freemem(vr);
+    hr = freemem(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_CPUInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Array> vr;
+inline void os_base::s_CPUInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = CPUInfo(vr);
+    hr = CPUInfo(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_CPUs(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void os_base::s_CPUs(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = CPUs(vr);
+    hr = CPUs(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void os_base::s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = tmpdir(vr);
+    hr = tmpdir(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_networkInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Object> vr;
+inline void os_base::s_networkInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = networkInfo(vr);
+    hr = networkInfo(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Array> vr;
+inline void os_base::s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = printerInfo(vr);
+    hr = printerInfo(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<BufferedStream_base> vr;
+inline void os_base::s_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<BufferedStream_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_openPrinter(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_openPrinter(v0, vr);
+    if (!cb.IsEmpty()) {
+        acb_openPrinter(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_openPrinter(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_platform(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void os_base::s_platform(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = platform(vr);
+    hr = platform(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        date_t vr;
+inline void os_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    date_t vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
-        OPT_ARG(exlib::string, 0, "");
+    OPT_ARG(exlib::string, 0, "");
 
-        hr = time(v0, vr);
+    hr = time(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        date_t vr;
+inline void os_base::s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    date_t vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(3, 3);
+    METHOD_OVER(3, 3);
 
-        ARG(date_t, 0);
-        ARG(int32_t, 1);
-        ARG(exlib::string, 2);
+    ARG(date_t, 0);
+    ARG(int32_t, 1);
+    ARG(exlib::string, 2);
 
-        hr = dateAdd(v0, v1, v2, vr);
+    hr = dateAdd(v0, v1, v2, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void os_base::s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        PROPERTY_ENTER();
+    PROPERTY_ENTER();
 
-        hr = get_execPath(vr);
+    hr = get_execPath(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void os_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Object> vr;
+inline void os_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = memoryUsage(vr);
+    hr = memoryUsage(vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

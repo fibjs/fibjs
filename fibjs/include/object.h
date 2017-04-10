@@ -19,21 +19,21 @@
 #undef min
 #undef max
 
-namespace fibjs
-{
+namespace fibjs {
 
 #include "object_async.inl"
 
-#define JSOBJECT_JSVALUE        1
-#define JSOBJECT_JSHANDLE       2
-#define JSOBJECT_JSREFFER       4
+#define JSOBJECT_JSVALUE 1
+#define JSOBJECT_JSHANDLE 2
+#define JSOBJECT_JSREFFER 4
 
-class object_base: public obj_base
-{
+class object_base : public obj_base {
 public:
-    object_base() :
-        m_isolate(NULL), m_isJSObject(0),
-        m_nExtMemory(sizeof(object_base) * 2), m_nExtMemoryDelay(0)
+    object_base()
+        : m_isolate(NULL)
+        , m_isJSObject(0)
+        , m_nExtMemory(sizeof(object_base) * 2)
+        , m_nExtMemoryDelay(0)
     {
         object_base::class_info().Ref();
     }
@@ -49,10 +49,8 @@ public:
 public:
     virtual void Unref()
     {
-        if (internalUnref() == 0)
-        {
-            if (m_isJSObject)
-            {
+        if (internalUnref() == 0) {
+            if (m_isJSObject) {
                 assert(!m_weak.m_inlist);
 
                 Isolate* isolate = m_isolate;
@@ -69,21 +67,20 @@ private:
     exlib::linkitem m_weak;
 
 public:
-    virtual bool enterTask(exlib::Task_base *current)
+    virtual bool enterTask(exlib::Task_base* current)
     {
         return m_lock.lock(current);
     }
 
     virtual void enter()
     {
-        if (!m_lock.trylock())
-        {
+        if (!m_lock.trylock()) {
             Isolate::rt _rt(holder());
             m_lock.lock();
         }
     }
 
-    virtual void leave(exlib::Task_base *current = NULL)
+    virtual void leave(exlib::Task_base* current = NULL)
     {
         m_lock.unlock(current);
     }
@@ -96,18 +93,18 @@ private:
 public:
     static void gc_delete(exlib::linkitem* node)
     {
-        object_base *pThis = NULL;
-        pThis = (object_base *) ((char *) node
-                                 - ((char *) &pThis->m_weak - (char *) 0));
+        object_base* pThis = NULL;
+        pThis = (object_base*)((char*)node
+            - ((char*)&pThis->m_weak - (char*)0));
 
         delete pThis;
     }
 
 private:
-    static void WeakCallback(const v8::WeakCallbackInfo<object_base> &data)
+    static void WeakCallback(const v8::WeakCallbackInfo<object_base>& data)
     {
         assert(!data.GetParameter()->handle_.IsEmpty());
-        object_base *pThis = data.GetParameter();
+        object_base* pThis = data.GetParameter();
 
         assert(pThis->m_isJSObject & JSOBJECT_JSREFFER);
 
@@ -152,8 +149,7 @@ public:
         Isolate* isolate = holder();
         v8::Isolate* v8_isolate = isolate->m_isolate;
 
-        if (!(m_isJSObject & JSOBJECT_JSHANDLE))
-        {
+        if (!(m_isJSObject & JSOBJECT_JSHANDLE)) {
             if (o.IsEmpty())
                 o = Classinfo().CreateInstance(isolate);
             handle_.Reset(v8_isolate, o);
@@ -162,12 +158,10 @@ public:
             v8_isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
 
             m_isJSObject |= JSOBJECT_JSHANDLE;
-        }
-        else
+        } else
             o = v8::Local<v8::Object>::New(v8_isolate, handle_);
 
-        if (!(m_isJSObject & JSOBJECT_JSREFFER))
-        {
+        if (!(m_isJSObject & JSOBJECT_JSREFFER)) {
             m_isJSObject |= JSOBJECT_JSREFFER;
             internalRef();
             handle_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kFinalizer);
@@ -177,11 +171,10 @@ public:
     }
 
 public:
-    class scope
-    {
+    class scope {
     public:
-        scope(object_base *pInst) :
-            m_pInst(pInst)
+        scope(object_base* pInst)
+            : m_pInst(pInst)
         {
             m_pInst->enter();
         }
@@ -192,7 +185,7 @@ public:
         }
 
     private:
-        object_base *m_pInst;
+        object_base* m_pInst;
     };
 
 public:
@@ -208,58 +201,52 @@ public:
     result_t setListener(exlib::string ev, v8::Local<v8::Function> func);
     result_t getListener(exlib::string ev, v8::Local<v8::Function> func);
     result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal);
-    result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args, bool& retVal);
-    result_t _emit(exlib::string ev, v8::Local<v8::Value> *args, int32_t argCount, bool& retVal);
-    result_t _emit(exlib::string ev, Variant *args, int32_t argCount);
+    result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args, bool& retVal);
+    result_t _emit(exlib::string ev, v8::Local<v8::Value>* args, int32_t argCount, bool& retVal);
+    result_t _emit(exlib::string ev, Variant* args, int32_t argCount);
 
     void extMemory(int32_t ext)
     {
         if (handle_.IsEmpty())
             m_nExtMemory += ext;
-        else
-        {
+        else {
             ext += m_nExtMemoryDelay;
             m_nExtMemoryDelay = 0;
 
-            if (ext != 0)
-            {
+            if (ext != 0) {
                 Isolate* isolate = m_isolate;
 
-                if (isolate && Runtime::is_current(isolate))
-                {
+                if (isolate && Runtime::is_current(isolate)) {
                     isolate->m_isolate->AdjustAmountOfExternalAllocatedMemory(ext);
                     m_nExtMemory += ext;
-                }
-                else
+                } else
                     m_nExtMemoryDelay = ext;
             }
         }
     }
 
 private:
-    v8::Local<v8::Array> GetHiddenList(const char *k, bool create = false,
-                                       bool autoDelete = false);
+    v8::Local<v8::Array> GetHiddenList(const char* k, bool create = false,
+        bool autoDelete = false);
 
 private:
     int32_t m_nExtMemory;
     int32_t m_nExtMemoryDelay;
 
 public:
-    template<typename T>
-    static void __new(const T &args) {}
+    template <typename T>
+    static void __new(const T& args) {}
 
 private:
     void clear_handle()
     {
-        if (m_isJSObject & JSOBJECT_JSHANDLE)
-        {
+        if (m_isJSObject & JSOBJECT_JSHANDLE) {
             m_isJSObject &= ~JSOBJECT_JSHANDLE;
 
             Isolate* isolate = holder();
             v8::Isolate* v8_isolate = isolate->m_isolate;
 
-            v8::Local<v8::Object>::New(v8_isolate, handle_)->SetAlignedPointerInInternalField(
-                0, 0);
+            v8::Local<v8::Object>::New(v8_isolate, handle_)->SetAlignedPointerInInternalField(0, 0);
             handle_.Reset();
 
             v8_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
@@ -273,8 +260,8 @@ public:
         Isolate* isolate = holder();
 
         return o->GetPrivate(o->CreationContext(),
-                             v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)))
-               .ToLocalChecked();
+                    v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)))
+            .ToLocalChecked();
     }
 
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
@@ -283,8 +270,8 @@ public:
         Isolate* isolate = holder();
 
         o->SetPrivate(o->CreationContext(),
-                      v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)),
-                      value);
+            v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)),
+            value);
     }
 
     void DeletePrivate(exlib::string key)
@@ -293,7 +280,7 @@ public:
         Isolate* isolate = holder();
 
         o->DeletePrivate(o->CreationContext(),
-                         v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)));
+            v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)));
     }
 
 public:
@@ -302,8 +289,7 @@ public:
     {
         clear_handle();
 
-        if (m_isJSObject & JSOBJECT_JSREFFER)
-        {
+        if (m_isJSObject & JSOBJECT_JSREFFER) {
             m_isJSObject &= ~JSOBJECT_JSREFFER;
             if (internalUnref() == 0)
                 delete this;
@@ -318,13 +304,13 @@ public:
         return 0;
     }
 
-    virtual result_t toString(exlib::string &retVal)
+    virtual result_t toString(exlib::string& retVal)
     {
         retVal = Classinfo().name();
         return 0;
     }
 
-    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     {
         v8::Local<v8::Object> o = wrap();
         v8::Local<v8::Object> o1 = v8::Object::New(holder()->m_isolate);
@@ -335,7 +321,7 @@ public:
         return 0;
     }
 
-    virtual result_t valueOf(v8::Local<v8::Value> &retVal)
+    virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
         retVal = wrap();
         return 0;
@@ -343,7 +329,7 @@ public:
 
 public:
     static void block_set(v8::Local<v8::String> property,
-                          v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info)
+        v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info)
     {
         Isolate* isolate = Isolate::current();
 
@@ -356,7 +342,7 @@ public:
     }
 
     static void i_IndexedSetter(uint32_t index,
-                                v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &info)
+        v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
     {
         Isolate* isolate = Isolate::current();
 
@@ -365,7 +351,7 @@ public:
     }
 
     static void i_NamedSetter(v8::Local<v8::String> property,
-                              v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &info)
+        v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
     {
         Isolate* isolate = Isolate::current();
 
@@ -374,7 +360,7 @@ public:
     }
 
     static void i_NamedDeleter(
-        v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &info)
+        v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& info)
     {
         Isolate* isolate = Isolate::current();
 
@@ -386,15 +372,14 @@ public:
     DECLARE_CLASSINFO(object_base);
 
 private:
-    static void s_dispose(const v8::FunctionCallbackInfo<v8::Value> &args);
+    static void s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_toString(const v8::FunctionCallbackInfo<v8::Value> &args);
-    static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &args);
-    static void s_valueOf(const v8::FunctionCallbackInfo<v8::Value> &args);
+    static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_valueOf(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
-class RootModule
-{
+class RootModule {
 public:
     RootModule()
     {
@@ -403,22 +388,22 @@ public:
     }
 
 public:
-    virtual ClassInfo &class_info() = 0;
+    virtual ClassInfo& class_info() = 0;
 
 public:
     RootModule* m_next;
     static RootModule* g_root;
 };
 
-inline void *ClassInfo::getInstance(void *o)
+inline void* ClassInfo::getInstance(void* o)
 {
-    object_base *obj = (object_base *) o;
+    object_base* obj = (object_base*)o;
 
     if (!obj)
         return NULL;
 
-    ClassInfo *cls = &obj->Classinfo();
-    ClassInfo *tcls = this;
+    ClassInfo* cls = &obj->Classinfo();
+    ClassInfo* tcls = this;
 
     while (cls && cls != tcls)
         cls = cls->m_cd.base;
@@ -429,19 +414,17 @@ inline void *ClassInfo::getInstance(void *o)
     return obj;
 }
 
-inline ClassInfo &object_base::class_info()
+inline ClassInfo& object_base::class_info()
 {
-    static ClassData::ClassMethod s_method[] =
-    {
+    static ClassData::ClassMethod s_method[] = {
         { "dispose", s_dispose },
-        { "equals", s_equals, false},
+        { "equals", s_equals, false },
         { "toString", s_toString },
         { "toJSON", s_toJSON },
         { "valueOf", s_valueOf }
     };
 
-    static ClassData s_cd =
-    {
+    static ClassData s_cd = {
         "object", false, NULL, NULL, 5, s_method, 0,
         NULL, 0, NULL, NULL, NULL, NULL
     };
@@ -450,7 +433,7 @@ inline ClassInfo &object_base::class_info()
     return s_ci;
 }
 
-inline void object_base::s_dispose(const v8::FunctionCallbackInfo<v8::Value> &args)
+inline void object_base::s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(object_base);
     METHOD_ENTER();
@@ -478,7 +461,7 @@ inline void object_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value> &args)
+inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -492,7 +475,7 @@ inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value> &a
     METHOD_RETURN();
 }
 
-inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &args)
+inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
@@ -508,7 +491,7 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value> &arg
     METHOD_RETURN();
 }
 
-inline void object_base::s_valueOf(const v8::FunctionCallbackInfo<v8::Value> &args)
+inline void object_base::s_valueOf(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
@@ -521,7 +504,6 @@ inline void object_base::s_valueOf(const v8::FunctionCallbackInfo<v8::Value> &ar
 
     METHOD_RETURN();
 }
-
 }
 
 #endif

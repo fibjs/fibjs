@@ -32,8 +32,7 @@
 #include <stdio.h>
 #endif
 
-namespace fibjs
-{
+namespace fibjs {
 
 DECLARE_MODULE(fs);
 
@@ -51,7 +50,7 @@ void init_fs()
 }
 
 result_t fs_base::open(exlib::string fname, exlib::string flags,
-                       obj_ptr<SeekableStream_base> &retVal, AsyncEvent *ac)
+    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -60,8 +59,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
     path_base::normalize(fname, safe_name);
 
     size_t pos = safe_name.find('?');
-    if (pos != exlib::string::npos && safe_name[pos + 1] == PATH_SLASH)
-    {
+    if (pos != exlib::string::npos && safe_name[pos + 1] == PATH_SLASH) {
         exlib::string zip_file = safe_name.substr(0, pos);
         exlib::string member = safe_name.substr(pos + 2);
         obj_ptr<ZipFile_base> zfile;
@@ -75,9 +73,8 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
         {
             int32_t sz = (int32_t)member.length();
             const char* buf = member.c_str();
-            for (int32_t i = 0; i < sz; i ++)
-                if (buf[i] == PATH_SLASH)
-                {
+            for (int32_t i = 0; i < sz; i++)
+                if (buf[i] == PATH_SLASH) {
                     member[i] = '/';
                     bChanged = true;
                 }
@@ -93,30 +90,26 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
             list = it->second;
         s_cachelock.unlock();
 
-        if (list)
-        {
+        if (list) {
             int32_t len, i;
             bool bFound = false;
 
             list->get_length(len);
 
-            for (i = 0; i < len; i ++)
-            {
+            for (i = 0; i < len; i++) {
                 Variant v;
                 exlib::string s;
 
                 list->_indexed_getter(i, v);
                 s = v.string();
 
-                if (member == s)
-                {
+                if (member == s) {
                     bFound = true;
                     break;
                 }
 
 #ifdef _WIN32
-                if (bChanged && member1 == s)
-                {
+                if (bChanged && member1 == s) {
                     member = member1;
                     bFound = true;
                     break;
@@ -132,19 +125,16 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
         if (hr < 0)
             return hr;
 
-        if (list == NULL)
-        {
+        if (list == NULL) {
             zfile->cc_namelist(list);
             s_cache.insert(std::pair<exlib::string, obj_ptr<List_base> >(zip_file, list));
         }
 
         hr = zfile->cc_read(member, "", data);
-        if (hr < 0)
-        {
+        if (hr < 0) {
             hr = CALL_E_FILE_NOT_FOUND;
 #ifdef _WIN32
-            if (bChanged)
-            {
+            if (bChanged) {
                 hr = zfile->cc_read(member1, "", data);
                 if (hr < 0)
                     return hr;
@@ -158,8 +148,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
         data->toString(strData);
 
         retVal = new MemoryStream::CloneStream(strData, s_date);
-    } else
-    {
+    } else {
         obj_ptr<File> pFile = new File();
         result_t hr;
 
@@ -174,8 +163,8 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
 }
 
 result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
-                                 obj_ptr<BufferedStream_base> &retVal,
-                                 AsyncEvent *ac)
+    obj_ptr<BufferedStream_base>& retVal,
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -188,8 +177,8 @@ result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
     return BufferedStream_base::_new(pFile, retVal);
 }
 
-result_t fs_base::readTextFile(exlib::string fname, exlib::string &retVal,
-                               AsyncEvent *ac)
+result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -211,8 +200,8 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string &retVal,
     return buf->toString(retVal);
 }
 
-result_t fs_base::readFile(exlib::string fname, obj_ptr<Buffer_base> &retVal,
-                           AsyncEvent *ac)
+result_t fs_base::readFile(exlib::string fname, obj_ptr<Buffer_base>& retVal,
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -237,7 +226,7 @@ result_t fs_base::readFile(exlib::string fname, obj_ptr<Buffer_base> &retVal,
 }
 
 result_t fs_base::readLines(exlib::string fname, int32_t maxlines,
-                            v8::Local<v8::Array> &retVal)
+    v8::Local<v8::Array>& retVal)
 {
     obj_ptr<BufferedStream_base> pFile;
     result_t hr;
@@ -250,7 +239,7 @@ result_t fs_base::readLines(exlib::string fname, int32_t maxlines,
 }
 
 result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt,
-                                AsyncEvent *ac)
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -288,8 +277,8 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* 
     return hr;
 }
 
-result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base> &retVal,
-                       AsyncEvent *ac)
+result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal,
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -307,7 +296,7 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base> &retVal,
 
 #ifndef _WIN32
 
-result_t fs_base::exists(exlib::string path, bool &retVal, AsyncEvent *ac)
+result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -316,7 +305,7 @@ result_t fs_base::exists(exlib::string path, bool &retVal, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::unlink(exlib::string path, AsyncEvent *ac)
+result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -327,7 +316,7 @@ result_t fs_base::unlink(exlib::string path, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent *ac)
+result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -338,7 +327,7 @@ result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::rmdir(exlib::string path, AsyncEvent *ac)
+result_t fs_base::rmdir(exlib::string path, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -349,7 +338,7 @@ result_t fs_base::rmdir(exlib::string path, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent *ac)
+result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -361,7 +350,7 @@ result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent *ac)
 }
 
 result_t fs_base::rename(exlib::string from, exlib::string to,
-                         AsyncEvent *ac)
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -378,8 +367,7 @@ result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
     if ((input = ::open(from.c_str(), O_RDONLY)) == -1)
         return CHECK_ERROR(LastError());
 
-    if ((output = ::open(to.c_str(), O_RDWR | O_CREAT, 0666)) == -1)
-    {
+    if ((output = ::open(to.c_str(), O_RDWR | O_CREAT, 0666)) == -1) {
         ::close(input);
         return CHECK_ERROR(LastError());
     }
@@ -388,7 +376,7 @@ result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
     int result = fcopyfile(input, output, 0, COPYFILE_ALL);
 #else
     off_t bytesCopied = 0;
-    struct stat fileinfo = {0};
+    struct stat fileinfo = { 0 };
     fstat(input, &fileinfo);
     int result = sendfile(output, input, &bytesCopied, fileinfo.st_size);
 #endif
@@ -402,14 +390,14 @@ result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
     return 0;
 }
 
-result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal,
-                          AsyncEvent *ac)
+result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal,
+    AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    DIR *dp;
-    struct dirent *ep;
+    DIR* dp;
+    struct dirent* ep;
     exlib::string fpath;
     obj_ptr<List> oa;
 
@@ -432,7 +420,7 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal,
 
 #else
 
-result_t fs_base::exists(exlib::string path, bool &retVal, AsyncEvent *ac)
+result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -441,7 +429,7 @@ result_t fs_base::exists(exlib::string path, bool &retVal, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::unlink(exlib::string path, AsyncEvent *ac)
+result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -452,7 +440,7 @@ result_t fs_base::unlink(exlib::string path, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent *ac)
+result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -463,7 +451,7 @@ result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::rmdir(exlib::string path, AsyncEvent *ac)
+result_t fs_base::rmdir(exlib::string path, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -474,12 +462,12 @@ result_t fs_base::rmdir(exlib::string path, AsyncEvent *ac)
     return 0;
 }
 
-result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent *ac)
+result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent *ac)
+result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -498,7 +486,7 @@ result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
     return 0;
 }
 
-result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal, AsyncEvent *ac)
+result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -517,15 +505,12 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base> &retVal, AsyncE
 
     oa = new List();
 
-    do
-    {
-        if (qstrcmp(fd.cFileName, L".") && qstrcmp(fd.cFileName, L".."))
-        {
+    do {
+        if (qstrcmp(fd.cFileName, L".") && qstrcmp(fd.cFileName, L"..")) {
             exlib::string name = UTF8_A(fd.cFileName);
             oa->append(name);
         }
-    }
-    while (FindNextFileW(hFind, &fd));
+    } while (FindNextFileW(hFind, &fd));
 
     FindClose(hFind);
 
@@ -590,6 +575,4 @@ result_t fs_base::writeFileSync(exlib::string fname, Buffer_base* data)
 {
     return ac_writeFile(fname, data);
 }
-
 }
-

@@ -15,15 +15,13 @@
 #include "../object.h"
 #include "Stream.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Stream_base;
 class X509Cert_base;
 class PKey_base;
 
-class SslSocket_base : public Stream_base
-{
+class SslSocket_base : public Stream_base {
     DECLARE_CLASS(SslSocket_base);
 
 public:
@@ -39,16 +37,16 @@ public:
     virtual result_t accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
-    template<typename T>
-    static void __new(const T &args);
+    template <typename T>
+    static void __new(const T& args);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_peerCert(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_peerCert(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -56,170 +54,164 @@ public:
     ASYNC_MEMBERVALUE3(SslSocket_base, connect, Stream_base*, exlib::string, int32_t);
     ASYNC_MEMBERVALUE2(SslSocket_base, accept, Stream_base*, obj_ptr<SslSocket_base>);
 };
-
 }
 
 #include "X509Cert.h"
 #include "PKey.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& SslSocket_base::class_info()
 {
-    inline ClassInfo& SslSocket_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"connect", s_connect, false},
-            {"accept", s_accept, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "connect", s_connect, false },
+        { "accept", s_accept, false }
+    };
 
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"verification", s_get_verification, s_set_verification, false},
-            {"ca", s_get_ca, block_set, false},
-            {"peerCert", s_get_peerCert, block_set, false},
-            {"stream", s_get_stream, block_set, false}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "verification", s_get_verification, s_set_verification, false },
+        { "ca", s_get_ca, block_set, false },
+        { "peerCert", s_get_peerCert, block_set, false },
+        { "stream", s_get_stream, block_set, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "SslSocket", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &Stream_base::class_info()
-        };
+    static ClassData s_cd = {
+        "SslSocket", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &Stream_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void SslSocket_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
+inline void SslSocket_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    CONSTRUCT_INIT();
+    __new(args);
+}
 
-    template<typename T>void SslSocket_base::__new(const T& args)
-    {
-        obj_ptr<SslSocket_base> vr;
+template <typename T>
+void SslSocket_base::__new(const T& args)
+{
+    obj_ptr<SslSocket_base> vr;
 
-        CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER();
 
-        METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
-        OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
+    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
 
-        hr = _new(v0, vr, args.This());
+    hr = _new(v0, vr, args.This());
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(obj_ptr<X509Cert_base>, 0);
-        ARG(obj_ptr<PKey_base>, 1);
+    ARG(obj_ptr<X509Cert_base>, 0);
+    ARG(obj_ptr<PKey_base>, 1);
 
-        hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
-        CONSTRUCT_RETURN();
-    }
+    CONSTRUCT_RETURN();
+}
 
-    inline void SslSocket_base::s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+inline void SslSocket_base::s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(SslSocket_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(SslSocket_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_verification(vr);
+    hr = pInst->get_verification(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SslSocket_base::s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(SslSocket_base);
-        PROPERTY_ENTER();
-        PROPERTY_VAL(int32_t);
+inline void SslSocket_base::s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(SslSocket_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
 
-        hr = pInst->set_verification(v0);
+    hr = pInst->set_verification(v0);
 
-        PROPERTY_SET_LEAVE();
-    }
+    PROPERTY_SET_LEAVE();
+}
 
-    inline void SslSocket_base::s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<X509Cert_base> vr;
+inline void SslSocket_base::s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<X509Cert_base> vr;
 
-        METHOD_INSTANCE(SslSocket_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(SslSocket_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_ca(vr);
+    hr = pInst->get_ca(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SslSocket_base::s_get_peerCert(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<X509Cert_base> vr;
+inline void SslSocket_base::s_get_peerCert(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<X509Cert_base> vr;
 
-        METHOD_INSTANCE(SslSocket_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(SslSocket_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_peerCert(vr);
+    hr = pInst->get_peerCert(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SslSocket_base::s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Stream_base> vr;
+inline void SslSocket_base::s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
 
-        METHOD_INSTANCE(SslSocket_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(SslSocket_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_stream(vr);
+    hr = pInst->get_stream(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SslSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+inline void SslSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(SslSocket_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(SslSocket_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(2, 1);
+    ASYNC_METHOD_OVER(2, 1);
 
-        ARG(obj_ptr<Stream_base>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_connect(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_connect(v0, v1, vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_connect(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_connect(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SslSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<SslSocket_base> vr;
+inline void SslSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<SslSocket_base> vr;
 
-        METHOD_INSTANCE(SslSocket_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(SslSocket_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(obj_ptr<Stream_base>, 0);
+    ARG(obj_ptr<Stream_base>, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_accept(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_accept(v0, vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_accept(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_accept(v0, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

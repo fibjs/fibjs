@@ -12,14 +12,14 @@
 #ifndef DBRESULT_H_
 #define DBRESULT_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class DBResult: public DBResult_base
-{
+class DBResult : public DBResult_base {
 public:
-    DBResult(int32_t sz, int64_t affected = 0, int64_t insertId = 0) :
-        m_size(sz), m_affected(affected), m_insertId(insertId)
+    DBResult(int32_t sz, int64_t affected = 0, int64_t insertId = 0)
+        : m_size(sz)
+        , m_affected(affected)
+        , m_insertId(insertId)
     {
         m_array = new List();
 
@@ -29,41 +29,41 @@ public:
 
 public:
     // object_base
-    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value> &retVal);
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
 
 public:
     // List_base
-    virtual result_t _indexed_getter(uint32_t index, Variant &retVal);
+    virtual result_t _indexed_getter(uint32_t index, Variant& retVal);
     virtual result_t _indexed_setter(uint32_t index, Variant newVal);
     virtual result_t freeze();
-    virtual result_t get_length(int32_t &retVal);
+    virtual result_t get_length(int32_t& retVal);
     virtual result_t resize(int32_t sz);
     virtual result_t push(Variant v, int32_t& retVal);
     virtual result_t push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal);
     virtual result_t pushArray(v8::Local<v8::Array> data);
     virtual result_t indexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal);
     virtual result_t lastIndexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal);
-    virtual result_t pop(Variant &retVal);
-    virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base> &retVal);
-    virtual result_t concat(const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<List_base> &retVal);
-    virtual result_t every(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, bool &retVal);
-    virtual result_t some(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, bool &retVal);
-    virtual result_t filter(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, obj_ptr<List_base> &retVal);
+    virtual result_t pop(Variant& retVal);
+    virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal);
+    virtual result_t concat(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal);
+    virtual result_t every(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, bool& retVal);
+    virtual result_t some(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, bool& retVal);
+    virtual result_t filter(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, obj_ptr<List_base>& retVal);
     virtual result_t forEach(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg);
-    virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, obj_ptr<List_base> &retVal);
+    virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, obj_ptr<List_base>& retVal);
     virtual result_t reduce(v8::Local<v8::Function> func, v8::Local<v8::Value> initVal, v8::Local<v8::Value>& retVal);
     virtual result_t sort(v8::Local<v8::Function> func, obj_ptr<List_base>& retVal);
     virtual result_t sort(obj_ptr<List_base>& retVal);
-    virtual result_t toArray(v8::Local<v8::Array> &retVal);
+    virtual result_t toArray(v8::Local<v8::Array>& retVal);
 
 public:
     // DBResult_base
-    virtual result_t get_insertId(int64_t &retVal);
-    virtual result_t get_affected(int64_t &retVal);
-    virtual result_t get_fields(v8::Local<v8::Array> &retVal);
+    virtual result_t get_insertId(int64_t& retVal);
+    virtual result_t get_affected(int64_t& retVal);
+    virtual result_t get_fields(v8::Local<v8::Array>& retVal);
 
 public:
-    void setField(int32_t i, exlib::string &s)
+    void setField(int32_t i, exlib::string& s)
     {
         m_fields->setField(i, s);
     }
@@ -79,7 +79,7 @@ public:
         m_nowRow.Release();
     }
 
-    void rowValue(int32_t i, Variant &v)
+    void rowValue(int32_t i, Variant& v)
     {
         m_nowRow->setValue(i, v);
         extMemory((int32_t)v.size());

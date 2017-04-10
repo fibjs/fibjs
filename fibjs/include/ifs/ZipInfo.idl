@@ -1,24 +1,24 @@
 /*! @brief zip 文件访问对象 */
 interface ZipInfo : object
 {
-	/*! @brief 只读属性成员, 文件名 */
-	readonly String filename;
+    /*! @brief 只读属性成员, 文件名 */
+    readonly String filename;
 
-	/*! @brief 只读属性成员, 文件日期 */
-	readonly Date date;
+    /*! @brief 只读属性成员, 文件日期 */
+    readonly Date date;
 
-	/*! @brief 只读属性成员, 文件压缩类型 */
-	readonly String compress_type;
+    /*! @brief 只读属性成员, 文件压缩类型 */
+    readonly String compress_type;
 
-	/*! @brief 只读属性成员, 文件压缩后大小 */
-	readonly Long compress_size;
+    /*! @brief 只读属性成员, 文件压缩后大小 */
+    readonly Long compress_size;
 
-	/*! @brief 只读属性成员, 文件大小 */
-	readonly Long file_size;
+    /*! @brief 只读属性成员, 文件大小 */
+    readonly Long file_size;
 
-	/*! @brief 只读属性成员, 密码 */
-	readonly Boolean password;
+    /*! @brief 只读属性成员, 密码 */
+    readonly Boolean password;
 
-	/*! @brief 只读属性成员, 文件数据 */
-	readonly Buffer data;
+    /*! @brief 只读属性成员, 文件数据 */
+    readonly Buffer data;
 };

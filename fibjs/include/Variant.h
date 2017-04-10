@@ -13,32 +13,30 @@
 #ifndef VARIANT_H_
 #define VARIANT_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class TryCatch : public v8::TryCatch
-{
+class TryCatch : public v8::TryCatch {
 public:
-    ~TryCatch() {
+    ~TryCatch()
+    {
         Reset();
     }
 };
 
-inline bool IsEmpty(v8::Local<v8::Value> &v)
+inline bool IsEmpty(v8::Local<v8::Value>& v)
 {
     return v.IsEmpty() || v->IsUndefined() || v->IsNull();
 }
 
 inline void extend(const v8::Local<v8::Object> src,
-                   v8::Local<v8::Object> &dest, bool bDataOnly = true)
+    v8::Local<v8::Object>& dest, bool bDataOnly = true)
 {
     TryCatch try_catch;
     v8::Local<v8::Array> ks = src->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
 
-    for (i = 0; i < len; i++)
-    {
+    for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
         v8::Local<v8::Value> v = src->Get(k);
 
@@ -49,11 +47,9 @@ inline void extend(const v8::Local<v8::Object> src,
 
 class object_base;
 
-class Variant
-{
+class Variant {
 public:
-    enum Type
-    {
+    enum Type {
         VT_Undefined = 0,
         VT_Null,
         VT_Boolean,
@@ -70,56 +66,56 @@ public:
     };
 
 public:
-    Variant() :
-        m_type(VT_Undefined)
+    Variant()
+        : m_type(VT_Undefined)
     {
     }
 
-    Variant(const Variant &v) :
-        m_type(VT_Undefined)
-    {
-        operator=(v);
-    }
-
-    Variant(const exlib::string &v) :
-        m_type(VT_Undefined)
+    Variant(const Variant& v)
+        : m_type(VT_Undefined)
     {
         operator=(v);
     }
 
-    Variant(const char *v) :
-        m_type(VT_Undefined)
+    Variant(const exlib::string& v)
+        : m_type(VT_Undefined)
     {
         operator=(v);
     }
 
-    Variant(obj_base* v) :
-        m_type(VT_Undefined)
+    Variant(const char* v)
+        : m_type(VT_Undefined)
     {
         operator=(v);
     }
 
-    Variant(int32_t v) :
-        m_type(VT_Undefined)
+    Variant(obj_base* v)
+        : m_type(VT_Undefined)
     {
         operator=(v);
     }
 
-    Variant(int64_t v) :
-        m_type(VT_Undefined)
+    Variant(int32_t v)
+        : m_type(VT_Undefined)
     {
         operator=(v);
     }
 
-    template<typename T>
-    Variant(obj_ptr<T> &v) :
-        m_type(VT_Undefined)
+    Variant(int64_t v)
+        : m_type(VT_Undefined)
+    {
+        operator=(v);
+    }
+
+    template <typename T>
+    Variant(obj_ptr<T>& v)
+        : m_type(VT_Undefined)
     {
         operator=((T*)v);
     }
 
-    Variant(v8::Local<v8::Value> v) :
-        m_type(VT_Undefined)
+    Variant(v8::Local<v8::Value> v)
+        : m_type(VT_Undefined)
     {
         operator=(v);
     }
@@ -135,17 +131,13 @@ public:
             strVal().~basic_string();
         else if (type() == VT_Object && m_Val.objVal)
             m_Val.objVal->Unref();
-        else if (type() == VT_JSValue)
-        {
-            if (isPersistent())
-            {
-                v8::Persistent<v8::Value> &jsobj = jsValEx();
+        else if (type() == VT_JSValue) {
+            if (isPersistent()) {
+                v8::Persistent<v8::Value>& jsobj = jsValEx();
                 jsobj.Reset();
                 jsobj.~Persistent();
-            }
-            else
-            {
-                v8::Local<v8::Value> &jsobj = jsVal();
+            } else {
+                v8::Local<v8::Value>& jsobj = jsVal();
                 jsobj.~Local();
             }
         }
@@ -153,7 +145,7 @@ public:
         set_type(VT_Undefined);
     }
 
-    Variant &operator=(const Variant &v)
+    Variant& operator=(const Variant& v)
     {
         if (v.type() == VT_String)
             return operator=(v.strVal());
@@ -161,8 +153,7 @@ public:
         if (v.type() == VT_Object)
             return operator=(v.m_Val.objVal);
 
-        if (v.type() == VT_JSValue)
-        {
+        if (v.type() == VT_JSValue) {
             if (v.isPersistent())
                 return operator=(v8::Local<v8::Value>::New(Isolate::current()->m_isolate, v.jsValEx()));
             else
@@ -176,12 +167,11 @@ public:
         return *this;
     }
 
-    bool strictEqual(const Variant &v)
+    bool strictEqual(const Variant& v)
     {
         if (this->type() != v.type())
             return false;
-        switch (this->type())
-        {
+        switch (this->type()) {
         case VT_Undefined:
             return true;
         case VT_Null:
@@ -205,7 +195,7 @@ public:
         }
     }
 
-    Variant &operator=(int32_t v)
+    Variant& operator=(int32_t v)
     {
         clear();
 
@@ -215,17 +205,14 @@ public:
         return *this;
     }
 
-    Variant &operator=(int64_t v)
+    Variant& operator=(int64_t v)
     {
         clear();
 
-        if (v >= -2147483648ll && v <= 2147483647ll)
-        {
+        if (v >= -2147483648ll && v <= 2147483647ll) {
             set_type(VT_Integer);
-            m_Val.intVal = (int32_t) v;
-        }
-        else
-        {
+            m_Val.intVal = (int32_t)v;
+        } else {
             set_type(VT_Long);
             m_Val.longVal = v;
         }
@@ -233,7 +220,7 @@ public:
         return *this;
     }
 
-    Variant &operator=(double v)
+    Variant& operator=(double v)
     {
         clear();
 
@@ -243,7 +230,7 @@ public:
         return *this;
     }
 
-    Variant &operator=(date_t &v)
+    Variant& operator=(date_t& v)
     {
         clear();
 
@@ -253,56 +240,54 @@ public:
         return *this;
     }
 
-    Variant &operator=(const exlib::string &v)
+    Variant& operator=(const exlib::string& v)
     {
-        if (type() != VT_String)
-        {
+        if (type() != VT_String) {
             clear();
             set_type(VT_String);
             new (m_Val.strVal) exlib::string(v);
-        }
-        else
+        } else
             strVal() = v;
 
         return *this;
     }
 
-    Variant &operator=(const char *v)
+    Variant& operator=(const char* v)
     {
         exlib::string s(v);
 
         return operator=(s);
     }
 
-    Variant &operator=(object_base *v)
+    Variant& operator=(object_base* v)
     {
-        return operator=((obj_base *) v);
+        return operator=((obj_base*)v);
     }
 
-    template<typename T>
-    Variant &operator=(obj_ptr<T> &v)
+    template <typename T>
+    Variant& operator=(obj_ptr<T>& v)
     {
-        return operator=((T*) v);
+        return operator=((T*)v);
     }
 
-    Variant &operator=(v8::Local<v8::Value> v);
+    Variant& operator=(v8::Local<v8::Value> v);
 
-    Variant &operator=(v8::Local<v8::Function> v)
-    {
-        return operator=(v8::Local<v8::Value>::Cast(v));
-    }
-
-    Variant &operator=(v8::Local<v8::Object> v)
+    Variant& operator=(v8::Local<v8::Function> v)
     {
         return operator=(v8::Local<v8::Value>::Cast(v));
     }
 
-    Variant &operator=(v8::Local<v8::Array> v)
+    Variant& operator=(v8::Local<v8::Object> v)
     {
         return operator=(v8::Local<v8::Value>::Cast(v));
     }
 
-    Variant &setNull()
+    Variant& operator=(v8::Local<v8::Array> v)
+    {
+        return operator=(v8::Local<v8::Value>::Cast(v));
+    }
+
+    Variant& setNull()
     {
         clear();
 
@@ -312,12 +297,12 @@ public:
 
     Type type() const
     {
-        return (Type) (m_type & VT_Type);
+        return (Type)(m_type & VT_Type);
     }
 
     void set_type(Type t)
     {
-        m_type = (Type) (t | (m_type & VT_Persistent));
+        m_type = (Type)(t | (m_type & VT_Persistent));
     }
 
     bool isUndefined()
@@ -327,7 +312,7 @@ public:
 
     void toPersistent()
     {
-        m_type = (Type) (m_type | VT_Persistent);
+        m_type = (Type)(m_type | VT_Persistent);
     }
 
     bool isPersistent() const
@@ -366,26 +351,26 @@ public:
         return m_Val.boolVal;
     }
 
-    void parseNumber(const char *str, int32_t len = -1);
-    void parseDate(const char *str, int32_t len = -1)
+    void parseNumber(const char* str, int32_t len = -1);
+    void parseDate(const char* str, int32_t len = -1)
     {
         set_type(VT_Date);
         dateVal().parse(str, len);
     }
 
-    void toString(exlib::string &retVal) const;
+    void toString(exlib::string& retVal) const;
 
     void toJSON();
 
-    object_base *object() const
+    object_base* object() const
     {
         if (type() != VT_Object)
             return NULL;
-        return (object_base *)m_Val.objVal;
+        return (object_base*)m_Val.objVal;
     }
 
 private:
-    Variant &operator=(obj_base *v)
+    Variant& operator=(obj_base* v)
     {
         clear();
 
@@ -397,47 +382,45 @@ private:
         return *this;
     }
 
-    exlib::string &strVal() const
+    exlib::string& strVal() const
     {
-        exlib::string *pval = (exlib::string *)m_Val.strVal;
+        exlib::string* pval = (exlib::string*)m_Val.strVal;
         return *pval;
     }
 
-    date_t &dateVal() const
+    date_t& dateVal() const
     {
-        date_t *pval = (date_t *)m_Val.dateVal;
+        date_t* pval = (date_t*)m_Val.dateVal;
         return *pval;
     }
 
-    v8::Persistent<v8::Value> &jsValEx() const
+    v8::Persistent<v8::Value>& jsValEx() const
     {
-        v8::Persistent<v8::Value> *pval = (v8::Persistent<v8::Value> *)m_Val.jsVal;
+        v8::Persistent<v8::Value>* pval = (v8::Persistent<v8::Value>*)m_Val.jsVal;
         return *pval;
     }
 
-    v8::Local<v8::Value> &jsVal() const
+    v8::Local<v8::Value>& jsVal() const
     {
-        v8::Local<v8::Value> *pval = (v8::Local<v8::Value> *)m_Val.jsVal;
+        v8::Local<v8::Value>* pval = (v8::Local<v8::Value>*)m_Val.jsVal;
         return *pval;
     }
 
 private:
     Type m_type;
-    union
-    {
+    union {
         bool boolVal;
         int32_t intVal;
         int64_t longVal;
         double dblVal;
-        obj_base *objVal;
+        obj_base* objVal;
         char dateVal[sizeof(date_t)];
         char strVal[sizeof(exlib::string)];
         char jsVal[sizeof(v8::Persistent<v8::Value>)];
     } m_Val;
 };
 
-class VariantEx: public Variant
-{
+class VariantEx : public Variant {
 
 public:
     VariantEx()
@@ -445,13 +428,13 @@ public:
         toPersistent();
     }
 
-    VariantEx(const Variant &v)
+    VariantEx(const Variant& v)
     {
         toPersistent();
         operator=(v);
     }
 
-    VariantEx(const VariantEx &v)
+    VariantEx(const VariantEx& v)
     {
         toPersistent();
         operator=(v);
@@ -463,26 +446,26 @@ public:
         operator=(v);
     }
 
-    VariantEx(const exlib::string &v)
+    VariantEx(const exlib::string& v)
     {
         toPersistent();
         operator=(v);
     }
 
-    VariantEx(const char *v)
+    VariantEx(const char* v)
     {
         toPersistent();
         operator=(v);
     }
 
-    Variant &operator=(const VariantEx &v)
+    Variant& operator=(const VariantEx& v)
     {
         Variant::operator=((const Variant)v);
         return *this;
     }
 
-    template<typename T>
-    VariantEx &operator=(T v)
+    template <typename T>
+    VariantEx& operator=(T v)
     {
         Variant::operator=(v);
         return *this;

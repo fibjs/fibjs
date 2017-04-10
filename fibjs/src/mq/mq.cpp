@@ -14,27 +14,27 @@
 #include "Routing.h"
 #include "Fiber.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 DECLARE_MODULE(mq);
 
-result_t mq_base::invoke(Handler_base *hdlr, object_base *v,
-                         AsyncEvent *ac)
+result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
+    AsyncEvent* ac)
 {
-    class asyncInvoke: public AsyncState
-    {
+    class asyncInvoke : public AsyncState {
     public:
-        asyncInvoke(Handler_base *hdlr, object_base *v, AsyncEvent *ac) :
-            AsyncState(ac), m_next(hdlr), m_v(v)
+        asyncInvoke(Handler_base* hdlr, object_base* v, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_next(hdlr)
+            , m_v(v)
         {
             set(call);
         }
 
     public:
-        static int32_t call(AsyncState *pState, int32_t n)
+        static int32_t call(AsyncState* pState, int32_t n)
         {
-            asyncInvoke *pThis = (asyncInvoke *) pState;
+            asyncInvoke* pThis = (asyncInvoke*)pState;
             result_t hr;
 
             if (n == CALL_RETURN_NULL)
@@ -46,7 +46,7 @@ result_t mq_base::invoke(Handler_base *hdlr, object_base *v,
             hr = pThis->m_hdlr->invoke(pThis->m_v, pThis->m_next, pThis);
             if (hr == CALL_E_NOASYNC)
                 return JSHandler::js_invoke(pThis->m_hdlr, pThis->m_v, pThis->m_next,
-                                            pThis);
+                    pThis);
 
             return hr;
         }
@@ -64,7 +64,7 @@ result_t mq_base::invoke(Handler_base *hdlr, object_base *v,
 }
 
 result_t mq_base::jsHandler(v8::Local<v8::Value> hdlr,
-                            obj_ptr<Handler_base> &retVal)
+    obj_ptr<Handler_base>& retVal)
 {
     if ((retVal = Handler_base::getInstance(hdlr)) != NULL)
         return 0;
@@ -72,10 +72,9 @@ result_t mq_base::jsHandler(v8::Local<v8::Value> hdlr,
     return JSHandler::New(hdlr, retVal);
 }
 
-result_t mq_base::nullHandler(obj_ptr<Handler_base> &retVal)
+result_t mq_base::nullHandler(obj_ptr<Handler_base>& retVal)
 {
     retVal = new NullHandler();
     return 0;
 }
-
 }

@@ -11,11 +11,9 @@
 #ifndef HTTPHANDLER_H_
 #define HTTPHANDLER_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class HttpHandler: public HttpHandler_base
-{
+class HttpHandler : public HttpHandler_base {
     FIBER_FREE();
 
 public:
@@ -35,8 +33,8 @@ public:
 
 public:
     // Handler_base
-    virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                            AsyncEvent *ac);
+    virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+        AsyncEvent* ac);
 
 public:
     // HandlerEx_base
@@ -47,13 +45,13 @@ public:
 
 public:
     // HttpHandler_base
-    virtual result_t get_crossDomain(bool &retVal);
+    virtual result_t get_crossDomain(bool& retVal);
     virtual result_t set_crossDomain(bool newVal);
-    virtual result_t get_forceGZIP(bool &retVal);
+    virtual result_t get_forceGZIP(bool& retVal);
     virtual result_t set_forceGZIP(bool newVal);
-    virtual result_t get_maxHeadersCount(int32_t &retVal);
+    virtual result_t get_maxHeadersCount(int32_t& retVal);
     virtual result_t set_maxHeadersCount(int32_t newVal);
-    virtual result_t get_maxUploadSize(int32_t &retVal);
+    virtual result_t get_maxUploadSize(int32_t& retVal);
     virtual result_t set_maxUploadSize(int32_t newVal);
 
 public:

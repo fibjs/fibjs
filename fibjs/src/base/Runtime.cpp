@@ -12,44 +12,42 @@
 #include "ifs/global.h"
 #include "ifs/process.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 static int32_t s_tls_rt;
 
 void init_rt()
 {
-	s_tls_rt = exlib::Fiber::tlsAlloc();
+    s_tls_rt = exlib::Fiber::tlsAlloc();
 }
 
 void Runtime::reg()
 {
-	exlib::Fiber::tlsPut(s_tls_rt, this);
+    exlib::Fiber::tlsPut(s_tls_rt, this);
 }
 
 Runtime* Runtime::current()
 {
-	return (Runtime *)exlib::Fiber::tlsGet(s_tls_rt);
+    return (Runtime*)exlib::Fiber::tlsGet(s_tls_rt);
 }
 
-class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator
-{
+class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
 public:
-	virtual void* Allocate(size_t length)
-	{
-		void* data = AllocateUninitialized(length);
-		return data == NULL ? data : memset(data, 0, length);
-	}
+    virtual void* Allocate(size_t length)
+    {
+        void* data = AllocateUninitialized(length);
+        return data == NULL ? data : memset(data, 0, length);
+    }
 
-	virtual void* AllocateUninitialized(size_t length)
-	{
-		return malloc(length);
-	}
+    virtual void* AllocateUninitialized(size_t length)
+    {
+        return malloc(length);
+    }
 
-	virtual void Free(void* data, size_t)
-	{
-		free(data);
-	}
+    virtual void Free(void* data, size_t)
+    {
+        free(data);
+    }
 };
 
 exlib::LockedList<Isolate> s_isolates;
@@ -60,107 +58,112 @@ bool Isolate::rt::g_trace = false;
 
 inline JSFiber* saveTrace()
 {
-	JSFiber* fiber = JSFiber::current();
-	assert(fiber != 0);
-	fiber->m_traceInfo = traceInfo(300);
-	return fiber;
+    JSFiber* fiber = JSFiber::current();
+    assert(fiber != 0);
+    fiber->m_traceInfo = traceInfo(300);
+    return fiber;
 }
 
-Isolate::rt::rt(Isolate* cur) :
-	rt_base(cur), m_fiber(g_trace ? saveTrace() : NULL),
-	unlocker(m_isolate->m_isolate)
+Isolate::rt::rt(Isolate* cur)
+    : rt_base(cur)
+    , m_fiber(g_trace ? saveTrace() : NULL)
+    , unlocker(m_isolate->m_isolate)
 {
 }
 
 Isolate::rt::~rt()
 {
-	if (m_fiber)
-		m_fiber->m_traceInfo.resize(0);
+    if (m_fiber)
+        m_fiber->m_traceInfo.resize(0);
 }
 
 static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallbackFlags flags)
 {
-	Isolate *isolate = Isolate::current();
-	exlib::linkitem* p;
-	exlib::List<exlib::linkitem> freelist;
+    Isolate* isolate = Isolate::current();
+    exlib::linkitem* p;
+    exlib::List<exlib::linkitem> freelist;
 
-	while (true)
-	{
-		isolate->m_weakLock.lock();
-		isolate->m_weak.getList(freelist);
-		isolate->m_weakLock.unlock();
+    while (true) {
+        isolate->m_weakLock.lock();
+        isolate->m_weak.getList(freelist);
+        isolate->m_weakLock.unlock();
 
-		if (freelist.empty())
-			break;
+        if (freelist.empty())
+            break;
 
-		while ((p = freelist.getHead()) != 0)
-			object_base::gc_delete(p);
-	}
+        while ((p = freelist.getHead()) != 0)
+            object_base::gc_delete(p);
+    }
 }
 
-void *init_proc(void *p)
+void* init_proc(void* p)
 {
-	Isolate* isolate = (Isolate*)p;
-	Runtime rt(isolate);
+    Isolate* isolate = (Isolate*)p;
+    Runtime rt(isolate);
 
-	isolate->init();
-	return FiberBase::fiber_proc(p);
+    isolate->init();
+    return FiberBase::fiber_proc(p);
 }
 
-Isolate::Isolate(const char *fname) :
-	m_id((int32_t)s_iso_id.inc()),
-	m_test_setup_bbd(false), m_test_setup_tdd(false), m_test(NULL),
-	m_currentFibers(0), m_idleFibers(0),
-	m_loglevel(console_base::_NOTSET), m_interrupt(false),
-	m_flake_tm(0), m_flake_host(0), m_flake_count(0)
+Isolate::Isolate(const char* fname)
+    : m_id((int32_t)s_iso_id.inc())
+    , m_test_setup_bbd(false)
+    , m_test_setup_tdd(false)
+    , m_test(NULL)
+    , m_currentFibers(0)
+    , m_idleFibers(0)
+    , m_loglevel(console_base::_NOTSET)
+    , m_interrupt(false)
+    , m_flake_tm(0)
+    , m_flake_host(0)
+    , m_flake_count(0)
 {
-	if (fname)
-		m_fname = fname;
+    if (fname)
+        m_fname = fname;
 
-	static v8::Isolate::CreateParams create_params;
-	static ShellArrayBufferAllocator array_buffer_allocator;
-	create_params.array_buffer_allocator = &array_buffer_allocator;
+    static v8::Isolate::CreateParams create_params;
+    static ShellArrayBufferAllocator array_buffer_allocator;
+    create_params.array_buffer_allocator = &array_buffer_allocator;
 
-	m_isolate = v8::Isolate::New(create_params);
-	m_isolate->AddGCEpilogueCallback(fb_GCCallback, v8::kGCTypeMarkSweepCompact);
+    m_isolate = v8::Isolate::New(create_params);
+    m_isolate->AddGCEpilogueCallback(fb_GCCallback, v8::kGCTypeMarkSweepCompact);
 
-	m_currentFibers++;
-	m_idleFibers ++;
+    m_currentFibers++;
+    m_idleFibers++;
 
-	exlib::Service::Create(init_proc, this, stack_size * 1024, "JSFiber");
+    exlib::Service::Create(init_proc, this, stack_size * 1024, "JSFiber");
 }
 
-Isolate * Isolate::current()
+Isolate* Isolate::current()
 {
-	Runtime *rt = Runtime::current();
-	if (rt == NULL)
-		return NULL;
+    Runtime* rt = Runtime::current();
+    if (rt == NULL)
+        return NULL;
 
-	return rt->isolate();
+    return rt->isolate();
 }
 
 void Isolate::init()
 {
-	s_isolates.putTail(this);
+    s_isolates.putTail(this);
 
-	v8::Locker locker(m_isolate);
-	v8::Isolate::Scope isolate_scope(m_isolate);
-	v8::HandleScope handle_scope(m_isolate);
+    v8::Locker locker(m_isolate);
+    v8::Isolate::Scope isolate_scope(m_isolate);
+    v8::HandleScope handle_scope(m_isolate);
 
-	v8::Local<v8::Context> _context = v8::Context::New(m_isolate);
-	m_context.Reset(m_isolate, _context);
+    v8::Local<v8::Context> _context = v8::Context::New(m_isolate);
+    m_context.Reset(m_isolate, _context);
 
-	v8::Local<v8::Object> glob = _context->Global();
-	m_global.Reset(m_isolate, glob);
+    v8::Local<v8::Object> glob = _context->Global();
+    m_global.Reset(m_isolate, glob);
 
-	v8::Context::Scope context_scope(_context);
+    v8::Context::Scope context_scope(_context);
 
-	m_topSandbox = new SandBox();
-	m_topSandbox->initRoot();
+    m_topSandbox = new SandBox();
+    m_topSandbox->initRoot();
 
-	static const char* skips[] = {"repl", "argv", "__filename", "__dirname", "__sbname", NULL};
-	global_base::class_info().Attach(this, glob, skips);
+    static const char* skips[] = { "repl", "argv", "__filename", "__dirname", "__sbname", NULL };
+    global_base::class_info().Attach(this, glob, skips);
 }
 
 } /* namespace fibjs */
-

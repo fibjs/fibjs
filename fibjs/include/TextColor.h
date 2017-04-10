@@ -10,8 +10,7 @@
 
 #include "ifs/TextColor.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 #define COLOR_RESET "\x1b[0m"
 #define COLOR_BLACK "\x1b[0;30m" /* Black */
@@ -35,8 +34,7 @@ namespace fibjs
 
 #define COLOR_TITLE "\x1B[1;39m"
 
-class TextColor: public TextColor_base
-{
+class TextColor : public TextColor_base {
 public:
     TextColor()
     {
@@ -48,13 +46,13 @@ public:
 
 public:
     // TextColor_base
-    virtual result_t get_notice(exlib::string &retVal);
+    virtual result_t get_notice(exlib::string& retVal);
     virtual result_t set_notice(exlib::string newVal);
-    virtual result_t get_warn(exlib::string &retVal);
+    virtual result_t get_warn(exlib::string& retVal);
     virtual result_t set_warn(exlib::string newVal);
-    virtual result_t get_error(exlib::string &retVal);
+    virtual result_t get_error(exlib::string& retVal);
     virtual result_t set_error(exlib::string newVal);
-    virtual result_t get_highLight(exlib::string &retVal);
+    virtual result_t get_highLight(exlib::string& retVal);
     virtual result_t set_highLight(exlib::string newVal);
 
 public:
@@ -63,7 +61,6 @@ public:
     exlib::string m_error;
     exlib::string m_highLight;
 };
-
 }
 
 #endif /* STAT_H_ */

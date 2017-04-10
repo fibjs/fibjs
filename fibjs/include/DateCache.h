@@ -10,24 +10,21 @@
 #ifndef DATACACHE_H_
 #define DATACACHE_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class DateCache
-{
+class DateCache {
 public:
-	DateCache();
-	~DateCache();
+    DateCache();
+    ~DateCache();
 
 public:
-	int64_t ToLocal(int64_t time_ms);
-	int64_t ToUTC(int64_t time_ms);
-	int32_t LocalOffset();
+    int64_t ToLocal(int64_t time_ms);
+    int64_t ToUTC(int64_t time_ms);
+    int32_t LocalOffset();
 
 private:
-	void *m_pdc;
+    void* m_pdc;
 };
-
 }
 
 #endif

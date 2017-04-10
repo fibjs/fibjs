@@ -10,37 +10,38 @@
 #ifndef HTTPCOOKIE_H_
 #define HTTPCOOKIE_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class HttpCookie: public HttpCookie_base
-{
+class HttpCookie : public HttpCookie_base {
 public:
-    HttpCookie() : m_httpOnly(false), m_secure(false)
-    {}
+    HttpCookie()
+        : m_httpOnly(false)
+        , m_secure(false)
+    {
+    }
 
 public:
     // HttpCookie_base
     virtual result_t parse(exlib::string header);
-    virtual result_t match(exlib::string url, bool &retVal);
-    virtual result_t get_name(exlib::string &retVal);
+    virtual result_t match(exlib::string url, bool& retVal);
+    virtual result_t get_name(exlib::string& retVal);
     virtual result_t set_name(exlib::string newVal);
-    virtual result_t get_value(exlib::string &retVal);
+    virtual result_t get_value(exlib::string& retVal);
     virtual result_t set_value(exlib::string newVal);
-    virtual result_t get_domain(exlib::string &retVal);
+    virtual result_t get_domain(exlib::string& retVal);
     virtual result_t set_domain(exlib::string newVal);
-    virtual result_t get_path(exlib::string &retVal);
+    virtual result_t get_path(exlib::string& retVal);
     virtual result_t set_path(exlib::string newVal);
-    virtual result_t get_expires(date_t &retVal);
+    virtual result_t get_expires(date_t& retVal);
     virtual result_t set_expires(date_t newVal);
-    virtual result_t get_httpOnly(bool &retVal);
+    virtual result_t get_httpOnly(bool& retVal);
     virtual result_t set_httpOnly(bool newVal);
-    virtual result_t get_secure(bool &retVal);
+    virtual result_t get_secure(bool& retVal);
     virtual result_t set_secure(bool newVal);
 
 public:
     // object_base
-    virtual result_t toString(exlib::string &retVal);
+    virtual result_t toString(exlib::string& retVal);
 
 public:
     result_t fill(v8::Local<v8::Object> opts, bool bBase);

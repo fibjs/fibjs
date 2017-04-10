@@ -15,44 +15,42 @@
 #include "QuickArray.h"
 #include <map>
 
-namespace fibjs
-{
+namespace fibjs {
 
-X509Cert::_name X509Cert::g_usages[] =
-{
-    {MBEDTLS_X509_KU_DIGITAL_SIGNATURE, "digitalSignature"},
-    {MBEDTLS_X509_KU_NON_REPUDIATION, "nonRepudiation"},
-    {MBEDTLS_X509_KU_KEY_ENCIPHERMENT, "keyEncipherment"},
-    {MBEDTLS_X509_KU_DATA_ENCIPHERMENT, "dataEncipherment"},
-    {MBEDTLS_X509_KU_KEY_AGREEMENT, "keyAgreement"},
-    {MBEDTLS_X509_KU_KEY_CERT_SIGN, "keyCertSign"},
-    {MBEDTLS_X509_KU_CRL_SIGN, "cRLSign"}
+X509Cert::_name X509Cert::g_usages[] = {
+    { MBEDTLS_X509_KU_DIGITAL_SIGNATURE, "digitalSignature" },
+    { MBEDTLS_X509_KU_NON_REPUDIATION, "nonRepudiation" },
+    { MBEDTLS_X509_KU_KEY_ENCIPHERMENT, "keyEncipherment" },
+    { MBEDTLS_X509_KU_DATA_ENCIPHERMENT, "dataEncipherment" },
+    { MBEDTLS_X509_KU_KEY_AGREEMENT, "keyAgreement" },
+    { MBEDTLS_X509_KU_KEY_CERT_SIGN, "keyCertSign" },
+    { MBEDTLS_X509_KU_CRL_SIGN, "cRLSign" }
 };
 
-X509Cert::_name X509Cert::g_types[] =
-{
-    {MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT, "client"},
-    {MBEDTLS_X509_NS_CERT_TYPE_SSL_SERVER, "server"},
-    {MBEDTLS_X509_NS_CERT_TYPE_EMAIL, "email"},
-    {MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING, "objsign"},
-    {MBEDTLS_X509_NS_CERT_TYPE_RESERVED, "reserved"},
-    {MBEDTLS_X509_NS_CERT_TYPE_SSL_CA, "sslCA"},
-    {MBEDTLS_X509_NS_CERT_TYPE_EMAIL_CA, "emailCA"},
-    {MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING_CA, "objCA"}
+X509Cert::_name X509Cert::g_types[] = {
+    { MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT, "client" },
+    { MBEDTLS_X509_NS_CERT_TYPE_SSL_SERVER, "server" },
+    { MBEDTLS_X509_NS_CERT_TYPE_EMAIL, "email" },
+    { MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING, "objsign" },
+    { MBEDTLS_X509_NS_CERT_TYPE_RESERVED, "reserved" },
+    { MBEDTLS_X509_NS_CERT_TYPE_SSL_CA, "sslCA" },
+    { MBEDTLS_X509_NS_CERT_TYPE_EMAIL_CA, "emailCA" },
+    { MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING_CA, "objCA" }
 };
 
-result_t X509Cert_base::_new(obj_ptr<X509Cert_base> &retVal, v8::Local<v8::Object> This)
+result_t X509Cert_base::_new(obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new X509Cert();
     return 0;
 }
 
-X509Cert::X509Cert() : m_rootLoaded(false)
+X509Cert::X509Cert()
+    : m_rootLoaded(false)
 {
     mbedtls_x509_crt_init(&m_crt);
 }
 
-X509Cert::X509Cert(X509Cert *root, int32_t no)
+X509Cert::X509Cert(X509Cert* root, int32_t no)
 {
     m_root = root;
     m_no = no;
@@ -64,7 +62,7 @@ X509Cert::~X509Cert()
         mbedtls_x509_crt_free(&m_crt);
 }
 
-result_t X509Cert::load(Buffer_base *derCert)
+result_t X509Cert::load(Buffer_base* derCert)
 {
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -74,15 +72,15 @@ result_t X509Cert::load(Buffer_base *derCert)
     exlib::string crt;
     derCert->toString(crt);
 
-    ret = mbedtls_x509_crt_parse_der(&m_crt, (const unsigned char *)crt.c_str(),
-                                     crt.length());
+    ret = mbedtls_x509_crt_parse_der(&m_crt, (const unsigned char*)crt.c_str(),
+        crt.length());
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }
 
-result_t X509Cert::load(const mbedtls_x509_crt *crt)
+result_t X509Cert::load(const mbedtls_x509_crt* crt)
 {
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -103,10 +101,9 @@ result_t X509Cert::load(exlib::string txtCert)
 
     int32_t ret;
 
-    if (qstrstr(txtCert.c_str(), "BEGIN CERTIFICATE"))
-    {
-        ret = mbedtls_x509_crt_parse(&m_crt, (const unsigned char *)txtCert.c_str(),
-                                     txtCert.length() + 1);
+    if (qstrstr(txtCert.c_str(), "BEGIN CERTIFICATE")) {
+        ret = mbedtls_x509_crt_parse(&m_crt, (const unsigned char*)txtCert.c_str(),
+            txtCert.length() + 1);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -118,8 +115,7 @@ result_t X509Cert::load(exlib::string txtCert)
     std::map<exlib::string, bool> verifies;
     std::map<exlib::string, bool> certs;
 
-    while (!p.end())
-    {
+    while (!p.end()) {
         exlib::string cka_label;
         exlib::string cka_value;
         exlib::string cka_serial;
@@ -132,8 +128,7 @@ result_t X509Cert::load(exlib::string txtCert)
         bool is_ca = false;
         bool is_verify = false;
 
-        while (!p.end())
-        {
+        while (!p.end()) {
             exlib::string line;
             exlib::string cmd, type, value;
 
@@ -144,12 +139,9 @@ result_t X509Cert::load(exlib::string txtCert)
             if (p1.get() == '#')
                 continue;
 
-            if (in_multiline)
-            {
-                if (p1.get() == '\\')
-                {
-                    while (p1.get() == '\\')
-                    {
+            if (in_multiline) {
+                if (p1.get() == '\\') {
+                    while (p1.get() == '\\') {
                         char ch1, ch2, ch3;
 
                         p1.skip();
@@ -173,8 +165,7 @@ result_t X509Cert::load(exlib::string txtCert)
                 }
 
                 p1.getWord(cmd);
-                if ((cmd == "END"))
-                {
+                if ((cmd == "END")) {
                     if (is_value)
                         cka_value = _value;
                     else if (is_serial)
@@ -190,8 +181,7 @@ result_t X509Cert::load(exlib::string txtCert)
 
             p1.skipSpace();
             p1.getWord(type);
-            if ((type == "MULTILINE_OCTAL"))
-            {
+            if ((type == "MULTILINE_OCTAL")) {
                 in_multiline = true;
                 _value.resize(0);
 
@@ -203,10 +193,8 @@ result_t X509Cert::load(exlib::string txtCert)
             p1.skipSpace();
             p1.getLeft(value);
 
-            if (!in_obj)
-            {
-                if ((cmd == "CKA_CLASS"))
-                {
+            if (!in_obj) {
+                if ((cmd == "CKA_CLASS")) {
                     in_obj = true;
                     is_cert = (value == "CKO_CERTIFICATE");
                     is_trust = (value == "CKO_NSS_TRUST");
@@ -216,8 +204,7 @@ result_t X509Cert::load(exlib::string txtCert)
 
             if ((cmd == "CKA_LABEL"))
                 cka_label = value;
-            else if (is_trust && (cmd == "CKA_TRUST_SERVER_AUTH"))
-            {
+            else if (is_trust && (cmd == "CKA_TRUST_SERVER_AUTH")) {
                 is_ca = (value == "CKT_NSS_TRUSTED_DELEGATOR");
                 is_verify = (value == "CKT_NSS_MUST_VERIFY_TRUST");
             }
@@ -226,16 +213,13 @@ result_t X509Cert::load(exlib::string txtCert)
                 break;
         }
 
-        if (!cka_label.empty())
-        {
-            if (is_trust)
-            {
+        if (!cka_label.empty()) {
+            if (is_trust) {
                 if (is_ca)
                     certs.insert(std::pair<exlib::string, bool>(cka_label + cka_serial, true));
                 if (is_verify)
                     verifies.insert(std::pair<exlib::string, bool>(cka_label + cka_serial, true));
-            }
-            else if (is_cert && !cka_value.empty())
+            } else if (is_cert && !cka_value.empty())
                 values.append(std::pair<exlib::string, exlib::string>(cka_label + cka_serial, cka_value));
         }
     }
@@ -243,17 +227,15 @@ result_t X509Cert::load(exlib::string txtCert)
     bool is_loaded = false;
     int32_t i;
 
-    for (i = 0; i < (int32_t)values.size(); i++)
-    {
-        std::pair<exlib::string, exlib::string> &c = values[i];
+    for (i = 0; i < (int32_t)values.size(); i++) {
+        std::pair<exlib::string, exlib::string>& c = values[i];
         std::map<exlib::string, bool>::iterator it_trust;
 
         it_trust = verifies.find(c.first);
-        if (it_trust != verifies.end())
-        {
+        if (it_trust != verifies.end()) {
             ret = mbedtls_x509_crt_parse_der(&m_crt,
-                                             (const unsigned char *)c.second.c_str(),
-                                             c.second.length());
+                (const unsigned char*)c.second.c_str(),
+                c.second.length());
             if (ret != 0)
                 return CHECK_ERROR(_ssl::setError(ret));
 
@@ -261,17 +243,15 @@ result_t X509Cert::load(exlib::string txtCert)
         }
     }
 
-    for (i = 0; i < (int32_t)values.size(); i++)
-    {
-        std::pair<exlib::string, exlib::string> &c = values[i];
+    for (i = 0; i < (int32_t)values.size(); i++) {
+        std::pair<exlib::string, exlib::string>& c = values[i];
         std::map<exlib::string, bool>::iterator it_trust;
 
         it_trust = certs.find(c.first);
-        if (it_trust != certs.end())
-        {
+        if (it_trust != certs.end()) {
             ret = mbedtls_x509_crt_parse_der(&m_crt,
-                                             (const unsigned char *)c.second.c_str(),
-                                             c.second.length() );
+                (const unsigned char*)c.second.c_str(),
+                c.second.length());
             if (ret != 0)
                 return CHECK_ERROR(_ssl::setError(ret));
 
@@ -298,12 +278,11 @@ result_t X509Cert::loadFile(exlib::string filename)
     if (hr < 0)
         return hr;
 
-    if (qstrstr(data.c_str(), "BEGIN CERTIFICATE") ||
-            qstrstr(data.c_str(), "CKO_CERTIFICATE"))
+    if (qstrstr(data.c_str(), "BEGIN CERTIFICATE") || qstrstr(data.c_str(), "CKO_CERTIFICATE"))
         return load(data.c_str());
 
-    ret = mbedtls_x509_crt_parse_der(&m_crt, (const unsigned char *)data.c_str(),
-                                     data.length());
+    ret = mbedtls_x509_crt_parse_der(&m_crt, (const unsigned char*)data.c_str(),
+        data.length());
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -316,14 +295,13 @@ result_t X509Cert::loadRootCerts()
         return 0;
     m_rootLoaded = true;
 
-    _cert *pca = g_root_ca;
+    _cert* pca = g_root_ca;
     int32_t ret;
 
-    while (pca->size)
-    {
+    while (pca->size) {
         ret = mbedtls_x509_crt_parse_der(&m_crt,
-                                         (const unsigned char *)pca->data,
-                                         pca->size);
+            (const unsigned char*)pca->data,
+            pca->size);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -333,29 +311,27 @@ result_t X509Cert::loadRootCerts()
     return 0;
 }
 
-result_t X509Cert::verify(X509Cert_base *cert, bool &retVal, AsyncEvent *ac)
+result_t X509Cert::verify(X509Cert_base* cert, bool& retVal, AsyncEvent* ac)
 {
     int32_t ret;
     uint32_t flags;
 
-    ret = mbedtls_x509_crt_verify(&(((X509Cert *)cert)->m_crt), &m_crt, NULL, NULL, &flags,
-                                  NULL, NULL);
-    if (ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED)
-    {
+    ret = mbedtls_x509_crt_verify(&(((X509Cert*)cert)->m_crt), &m_crt, NULL, NULL, &flags,
+        NULL, NULL);
+    if (ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED) {
         retVal = false;
         return 0;
-    }
-    else if (ret != 0)
+    } else if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
     retVal = true;
     return 0;
 }
 
-#define PEM_BEGIN_CRT           "-----BEGIN CERTIFICATE-----\n"
-#define PEM_END_CRT             "-----END CERTIFICATE-----\n"
+#define PEM_BEGIN_CRT "-----BEGIN CERTIFICATE-----\n"
+#define PEM_END_CRT "-----END CERTIFICATE-----\n"
 
-result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
+result_t X509Cert::dump(v8::Local<v8::Array>& retVal)
 {
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -363,23 +339,21 @@ result_t X509Cert::dump(v8::Local<v8::Array> &retVal)
     Isolate* isolate = holder();
     retVal = v8::Array::New(isolate->m_isolate);
 
-    const mbedtls_x509_crt *pCert = &m_crt;
+    const mbedtls_x509_crt* pCert = &m_crt;
     int32_t ret, n = 0;
     exlib::string buf;
     size_t olen;
 
-    while (pCert)
-    {
-        if (pCert->raw.len > 0)
-        {
+    while (pCert) {
+        if (pCert->raw.len > 0) {
             buf.resize(pCert->raw.len * 2 + 64);
             ret = mbedtls_pem_write_buffer(PEM_BEGIN_CRT, PEM_END_CRT,
-                                           pCert->raw.p, pCert->raw.len,
-                                           (unsigned char *)&buf[0], buf.length(), &olen);
+                pCert->raw.p, pCert->raw.len,
+                (unsigned char*)&buf[0], buf.length(), &olen);
             if (ret != 0)
                 return CHECK_ERROR(_ssl::setError(ret));
 
-            retVal->Set(n ++, isolate->NewFromUtf8(buf.c_str(), (int32_t) olen - 1));
+            retVal->Set(n++, isolate->NewFromUtf8(buf.c_str(), (int32_t)olen - 1));
         }
         pCert = pCert->next;
     }
@@ -399,23 +373,23 @@ result_t X509Cert::clear()
     return 0;
 }
 
-mbedtls_x509_crt *X509Cert::get_crt()
+mbedtls_x509_crt* X509Cert::get_crt()
 {
     if (!m_root)
         return &m_crt;
 
     int32_t n = m_no;
-    mbedtls_x509_crt *crt = &m_root->m_crt;
+    mbedtls_x509_crt* crt = &m_root->m_crt;
 
     while (n && (crt = crt->next))
-        n --;
+        n--;
 
     return crt;
 }
 
-result_t X509Cert::get_version(int32_t &retVal)
+result_t X509Cert::get_version(int32_t& retVal)
 {
-    mbedtls_x509_crt *crt = get_crt();
+    mbedtls_x509_crt* crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -423,9 +397,9 @@ result_t X509Cert::get_version(int32_t &retVal)
     return 0;
 }
 
-result_t X509Cert::get_serial(exlib::string &retVal)
+result_t X509Cert::get_serial(exlib::string& retVal)
 {
-    mbedtls_x509_crt *crt = get_crt();
+    mbedtls_x509_crt* crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -450,9 +424,9 @@ result_t X509Cert::get_serial(exlib::string &retVal)
     return 0;
 }
 
-result_t X509Cert::get_issuer(exlib::string &retVal)
+result_t X509Cert::get_issuer(exlib::string& retVal)
 {
-    mbedtls_x509_crt *crt = get_crt();
+    mbedtls_x509_crt* crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -471,9 +445,9 @@ result_t X509Cert::get_issuer(exlib::string &retVal)
     return 0;
 }
 
-result_t X509Cert::get_subject(exlib::string &retVal)
+result_t X509Cert::get_subject(exlib::string& retVal)
 {
-    mbedtls_x509_crt *crt = get_crt();
+    mbedtls_x509_crt* crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -492,35 +466,35 @@ result_t X509Cert::get_subject(exlib::string &retVal)
     return 0;
 }
 
-result_t X509Cert::get_notBefore(date_t &retVal)
+result_t X509Cert::get_notBefore(date_t& retVal)
 {
-    mbedtls_x509_crt *crt = get_crt();
+    mbedtls_x509_crt* crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal.create(crt->valid_from.year, crt->valid_from.mon,
-                  crt->valid_from.day,  crt->valid_from.hour,
-                  crt->valid_from.min,  crt->valid_from.sec, 0);
+        crt->valid_from.day, crt->valid_from.hour,
+        crt->valid_from.min, crt->valid_from.sec, 0);
 
     return 0;
 }
 
-result_t X509Cert::get_notAfter(date_t &retVal)
+result_t X509Cert::get_notAfter(date_t& retVal)
 {
-    mbedtls_x509_crt *crt = get_crt();
+    mbedtls_x509_crt* crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal.create(crt->valid_to.year, crt->valid_to.mon,
-                  crt->valid_to.day,  crt->valid_to.hour,
-                  crt->valid_to.min,  crt->valid_to.sec, 0);
+        crt->valid_to.day, crt->valid_to.hour,
+        crt->valid_to.min, crt->valid_to.sec, 0);
 
     return 0;
 }
 
-result_t X509Cert::get_ca(bool &retVal)
+result_t X509Cert::get_ca(bool& retVal)
 {
-    mbedtls_x509_crt *crt = get_crt();
+    mbedtls_x509_crt* crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -528,9 +502,9 @@ result_t X509Cert::get_ca(bool &retVal)
     return 0;
 }
 
-result_t X509Cert::get_pathlen(int32_t &retVal)
+result_t X509Cert::get_pathlen(int32_t& retVal)
 {
-    mbedtls_x509_crt *crt = get_crt();
+    mbedtls_x509_crt* crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -538,19 +512,17 @@ result_t X509Cert::get_pathlen(int32_t &retVal)
     return 0;
 }
 
-result_t X509Cert::get_usage(exlib::string &retVal)
+result_t X509Cert::get_usage(exlib::string& retVal)
 {
-    mbedtls_x509_crt *crt = get_crt();
+    mbedtls_x509_crt* crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int32_t key_usage = crt->key_usage;
 
     int32_t i;
-    for (i = 0; i < (int32_t)ARRAYSIZE(g_usages); i ++)
-    {
-        if (key_usage & g_usages[i].id)
-        {
+    for (i = 0; i < (int32_t)ARRAYSIZE(g_usages); i++) {
+        if (key_usage & g_usages[i].id) {
             if (!retVal.empty())
                 retVal.append(", ", 2);
             retVal.append(g_usages[i].name);
@@ -560,19 +532,17 @@ result_t X509Cert::get_usage(exlib::string &retVal)
     return 0;
 }
 
-result_t X509Cert::get_type(exlib::string &retVal)
+result_t X509Cert::get_type(exlib::string& retVal)
 {
-    mbedtls_x509_crt *crt = get_crt();
+    mbedtls_x509_crt* crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int32_t cert_type = crt->ns_cert_type;
 
     int32_t i;
-    for (i = 0; i < (int32_t)ARRAYSIZE(g_types); i ++)
-    {
-        if (cert_type & g_types[i].id)
-        {
+    for (i = 0; i < (int32_t)ARRAYSIZE(g_types); i++) {
+        if (cert_type & g_types[i].id) {
             if (!retVal.empty())
                 retVal.append(", ", 2);
             retVal.append(g_types[i].name);
@@ -582,9 +552,9 @@ result_t X509Cert::get_type(exlib::string &retVal)
     return 0;
 }
 
-result_t X509Cert::get_publicKey(obj_ptr<PKey_base> &retVal)
+result_t X509Cert::get_publicKey(obj_ptr<PKey_base>& retVal)
 {
-    mbedtls_x509_crt *crt = get_crt();
+    mbedtls_x509_crt* crt = get_crt();
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -599,18 +569,15 @@ result_t X509Cert::get_publicKey(obj_ptr<PKey_base> &retVal)
     return 0;
 }
 
-result_t X509Cert::get_next(obj_ptr<X509Cert_base> &retVal)
+result_t X509Cert::get_next(obj_ptr<X509Cert_base>& retVal)
 {
-    if (m_root)
-    {
-        mbedtls_x509_crt *crt = get_crt();
+    if (m_root) {
+        mbedtls_x509_crt* crt = get_crt();
         if (!crt || !crt->next)
             return CALL_RETURN_NULL;
 
         retVal = new X509Cert(m_root, m_no + 1);
-    }
-    else
-    {
+    } else {
         if (!m_crt.next)
             return CALL_RETURN_NULL;
 
@@ -619,5 +586,4 @@ result_t X509Cert::get_next(obj_ptr<X509Cert_base> &retVal)
 
     return 0;
 }
-
 }

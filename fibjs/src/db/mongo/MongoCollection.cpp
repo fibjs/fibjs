@@ -11,10 +11,9 @@
 #include "encoding_bson.h"
 #include <vector>
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t MongoCollection::_batchInsert(std::vector<const bson *> pdata, int num, int32_t &retVal, AsyncEvent *ac)
+result_t MongoCollection::_batchInsert(std::vector<const bson*> pdata, int num, int32_t& retVal, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -27,7 +26,7 @@ result_t MongoCollection::_batchInsert(std::vector<const bson *> pdata, int num,
     return 0;
 }
 
-result_t MongoCollection::_insert(const bson *data, int32_t &retVal, AsyncEvent *ac)
+result_t MongoCollection::_insert(const bson* data, int32_t& retVal, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -40,7 +39,7 @@ result_t MongoCollection::_insert(const bson *data, int32_t &retVal, AsyncEvent 
     return 0;
 }
 
-result_t MongoCollection::_update(const bson *cond, const bson *op, int flags, int32_t &retVal, AsyncEvent *ac)
+result_t MongoCollection::_update(const bson* cond, const bson* op, int flags, int32_t& retVal, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -53,7 +52,7 @@ result_t MongoCollection::_update(const bson *cond, const bson *op, int flags, i
     return 0;
 }
 
-result_t MongoCollection::_remove(const bson *data, int32_t &retVal, AsyncEvent *ac)
+result_t MongoCollection::_remove(const bson* data, int32_t& retVal, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -67,7 +66,7 @@ result_t MongoCollection::_remove(const bson *data, int32_t &retVal, AsyncEvent 
 }
 
 result_t MongoCollection::find(v8::Local<v8::Object> query,
-                               v8::Local<v8::Object> projection, obj_ptr<MongoCursor_base> &retVal)
+    v8::Local<v8::Object> projection, obj_ptr<MongoCursor_base>& retVal)
 {
     obj_ptr<MongoDB> db(m_db);
     if (!db)
@@ -78,14 +77,14 @@ result_t MongoCollection::find(v8::Local<v8::Object> query,
 }
 
 result_t MongoCollection::findOne(v8::Local<v8::Object> query,
-                                  v8::Local<v8::Object> projection, v8::Local<v8::Object> &retVal)
+    v8::Local<v8::Object> projection, v8::Local<v8::Object>& retVal)
 {
     obj_ptr<MongoDB> db(m_db);
     if (!db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     obj_ptr<MongoCursor> cur = new MongoCursor(db, m_ns, m_name, query,
-            projection);
+        projection);
     obj_ptr<MongoCursor_base> cur1;
 
     cur->ac_limit(1, cur1);
@@ -93,7 +92,7 @@ result_t MongoCollection::findOne(v8::Local<v8::Object> query,
 }
 
 result_t MongoCollection::findAndModify(v8::Local<v8::Object> query,
-                                        v8::Local<v8::Object> &retVal)
+    v8::Local<v8::Object>& retVal)
 {
     return runCommand("findAndModify", query, retVal);
 }
@@ -105,26 +104,23 @@ result_t MongoCollection::insert(v8::Local<v8::Array> documents)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     std::vector<bson> bbs;
-    std::vector<const bson *> pbbs;
+    std::vector<const bson*> pbbs;
     int32_t n = documents->Length();
     int32_t i;
     result_t hr;
 
-    if (n > 0)
-    {
+    if (n > 0) {
         Isolate* isolate = holder();
 
         bbs.resize(n);
         pbbs.resize(n);
 
-        for (i = 0; i < n; i++)
-        {
+        for (i = 0; i < n; i++) {
             hr = encodeObject(isolate, &bbs[i], documents->Get(i));
-            if (hr < 0)
-            {
+            if (hr < 0) {
                 n = i;
                 for (i = 0; i < n; i++)
-                    bson_destroy (&bbs[i]);
+                    bson_destroy(&bbs[i]);
                 return hr;
             }
 
@@ -135,7 +131,7 @@ result_t MongoCollection::insert(v8::Local<v8::Array> documents)
         ac__batchInsert(pbbs, n, result);
 
         for (i = 0; i < n; i++)
-            bson_destroy (&bbs[i]);
+            bson_destroy(&bbs[i]);
 
         if (result != MONGO_OK)
             return CHECK_ERROR(db->error());
@@ -175,10 +171,9 @@ result_t MongoCollection::save(v8::Local<v8::Object> document)
     v8::Local<v8::String> strId = isolate->NewFromUtf8("_id", 3);
     v8::Local<v8::Value> id = document->Get(strId);
 
-    if (IsEmpty (id))
+    if (IsEmpty(id))
         return insert(document);
-    else
-    {
+    else {
         v8::Local<v8::Object> query = v8::Object::New(isolate->m_isolate);
 
         query->Set(strId, id);
@@ -187,7 +182,7 @@ result_t MongoCollection::save(v8::Local<v8::Object> document)
 }
 
 result_t MongoCollection::update(v8::Local<v8::Object> query,
-                                 v8::Local<v8::Object> document, bool upsert, bool multi)
+    v8::Local<v8::Object> document, bool upsert, bool multi)
 {
     obj_ptr<MongoDB> db(m_db);
     if (!db)
@@ -195,7 +190,7 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
 
     bson bbq, bbd;
     int32_t flags = (upsert ? MONGO_UPDATE_UPSERT : 0)
-                    + (multi ? MONGO_UPDATE_MULTI : 0);
+        + (multi ? MONGO_UPDATE_MULTI : 0);
 
     Isolate* isolate = holder();
     result_t hr;
@@ -205,8 +200,7 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
         return hr;
 
     hr = encodeObject(isolate, &bbd, document);
-    if (hr < 0)
-    {
+    if (hr < 0) {
         bson_destroy(&bbq);
         return hr;
     }
@@ -224,12 +218,12 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
 }
 
 result_t MongoCollection::update(v8::Local<v8::Object> query,
-                                 v8::Local<v8::Object> document, v8::Local<v8::Object> options)
+    v8::Local<v8::Object> document, v8::Local<v8::Object> options)
 {
     Isolate* isolate = holder();
     return update(query, document,
-                  options->Get(isolate->NewFromUtf8("upsert", 6))->BooleanValue(),
-                  options->Get(isolate->NewFromUtf8("multi", 5))->BooleanValue());
+        options->Get(isolate->NewFromUtf8("upsert", 6))->BooleanValue(),
+        options->Get(isolate->NewFromUtf8("multi", 5))->BooleanValue());
 }
 
 result_t MongoCollection::remove(v8::Local<v8::Object> query)
@@ -257,7 +251,7 @@ result_t MongoCollection::remove(v8::Local<v8::Object> query)
 }
 
 result_t MongoCollection::runCommand(v8::Local<v8::Object> cmd,
-                                     v8::Local<v8::Object> &retVal)
+    v8::Local<v8::Object>& retVal)
 {
     obj_ptr<MongoDB> db(m_db);
     if (!db)
@@ -267,7 +261,7 @@ result_t MongoCollection::runCommand(v8::Local<v8::Object> cmd,
 }
 
 result_t MongoCollection::runCommand(exlib::string cmd,
-                                     v8::Local<v8::Object> arg, v8::Local<v8::Object> &retVal)
+    v8::Local<v8::Object> arg, v8::Local<v8::Object>& retVal)
 {
 
     obj_ptr<MongoDB> db(m_db);
@@ -278,8 +272,7 @@ result_t MongoCollection::runCommand(exlib::string cmd,
 
     bson_init(&bbq);
     bson_append_string(&bbq, cmd.c_str(), m_name.c_str());
-    if (!appendObject(holder(), &bbq, arg))
-    {
+    if (!appendObject(holder(), &bbq, arg)) {
         bson_destroy(&bbq);
         return CHECK_ERROR(CALL_E_INVALIDARG);
     }
@@ -289,7 +282,7 @@ result_t MongoCollection::runCommand(exlib::string cmd,
 }
 
 result_t MongoCollection::runCommand(exlib::string cmd, exlib::string cmd1,
-                                     exlib::string arg, v8::Local<v8::Object> &retVal)
+    exlib::string arg, v8::Local<v8::Object>& retVal)
 {
     obj_ptr<MongoDB> db(m_db);
     if (!db)
@@ -319,7 +312,7 @@ result_t MongoCollection::drop()
 }
 
 result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
-                                      v8::Local<v8::Object> options)
+    v8::Local<v8::Object> options)
 {
     obj_ptr<MongoDB> db(m_db);
     if (!db)
@@ -328,11 +321,10 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
     exlib::string name;
 
     v8::Local<v8::Array> ks = keys->GetPropertyNames();
-    int32_t len = (int32_t) ks->Length();
+    int32_t len = (int32_t)ks->Length();
     int32_t i;
 
-    for (i = 0; i < len; i++)
-    {
+    for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
         v8::Local<v8::Value> v = keys->Get(k);
 
@@ -370,23 +362,23 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
     return coll->insert(idx);
 }
 
-result_t MongoCollection::reIndex(v8::Local<v8::Object> &retVal)
+result_t MongoCollection::reIndex(v8::Local<v8::Object>& retVal)
 {
     return runCommand("reIndex", "", "", retVal);
 }
 
 result_t MongoCollection::dropIndex(exlib::string name,
-                                    v8::Local<v8::Object> &retVal)
+    v8::Local<v8::Object>& retVal)
 {
     return runCommand("deleteIndexes", "index", name, retVal);
 }
 
-result_t MongoCollection::dropIndexes(v8::Local<v8::Object> &retVal)
+result_t MongoCollection::dropIndexes(v8::Local<v8::Object>& retVal)
 {
     return runCommand("deleteIndexes", "index", "*", retVal);
 }
 
-result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base> &retVal)
+result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base>& retVal)
 {
     obj_ptr<MongoDB> db(m_db);
     if (!db)
@@ -408,7 +400,7 @@ result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base> &retVal)
 }
 
 result_t MongoCollection::getCollection(exlib::string name,
-                                        obj_ptr<MongoCollection_base> &retVal)
+    obj_ptr<MongoCollection_base>& retVal)
 {
     obj_ptr<MongoDB> db(m_db);
     if (!db)
@@ -429,12 +421,12 @@ result_t MongoCollection::getCollection(exlib::string name,
 }
 
 result_t MongoCollection::_named_getter(const char* property,
-                                        obj_ptr<MongoCollection_base> &retVal)
+    obj_ptr<MongoCollection_base>& retVal)
 {
     return getCollection(property, retVal);
 }
 
-result_t MongoCollection::_named_enumerator(v8::Local<v8::Array> &retVal)
+result_t MongoCollection::_named_enumerator(v8::Local<v8::Array>& retVal)
 {
     return 0;
 }

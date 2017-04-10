@@ -14,13 +14,11 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Buffer_base;
 
-class DatagramPacket_base : public object_base
-{
+class DatagramPacket_base : public object_base {
     DECLARE_CLASS(DatagramPacket_base);
 
 public:
@@ -41,74 +39,68 @@ public:
     }
 
 public:
-    static void s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_address(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_port(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_address(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_port(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
-
 }
 
 #include "Buffer.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& DatagramPacket_base::class_info()
 {
-    inline ClassInfo& DatagramPacket_base::class_info()
-    {
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"data", s_get_data, block_set, false},
-            {"address", s_get_address, block_set, false},
-            {"port", s_get_port, block_set, false}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "data", s_get_data, block_set, false },
+        { "address", s_get_address, block_set, false },
+        { "port", s_get_port, block_set, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "DatagramPacket", false, s__new, NULL, 
-            0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "DatagramPacket", false, s__new, NULL,
+        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void DatagramPacket_base::s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<Buffer_base> vr;
+inline void DatagramPacket_base::s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_INSTANCE(DatagramPacket_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(DatagramPacket_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_data(vr);
+    hr = pInst->get_data(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void DatagramPacket_base::s_get_address(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void DatagramPacket_base::s_get_address(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_INSTANCE(DatagramPacket_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(DatagramPacket_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_address(vr);
+    hr = pInst->get_address(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void DatagramPacket_base::s_get_port(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+inline void DatagramPacket_base::s_get_port(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_INSTANCE(DatagramPacket_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(DatagramPacket_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_port(vr);
+    hr = pInst->get_port(vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

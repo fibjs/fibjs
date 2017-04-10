@@ -14,13 +14,11 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Buffer_base;
 
-class SandBox_base : public object_base
-{
+class SandBox_base : public object_base {
     DECLARE_CLASS(SandBox_base);
 
 public:
@@ -38,8 +36,8 @@ public:
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal) = 0;
 
 public:
-    template<typename T>
-    static void __new(const T &args);
+    template <typename T>
+    static void __new(const T& args);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -51,187 +49,182 @@ public:
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
 #include "Buffer.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& SandBox_base::class_info()
 {
-    inline ClassInfo& SandBox_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"add", s_add, false},
-            {"compile", s_compile, false},
-            {"addScript", s_addScript, false},
-            {"remove", s_remove, false},
-            {"clone", s_clone, false},
-            {"run", s_run, false},
-            {"require", s_require, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "add", s_add, false },
+        { "compile", s_compile, false },
+        { "addScript", s_addScript, false },
+        { "remove", s_remove, false },
+        { "clone", s_clone, false },
+        { "run", s_run, false },
+        { "require", s_require, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "SandBox", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "SandBox", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void SandBox_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-        __new(args);
-    }
+inline void SandBox_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    CONSTRUCT_INIT();
+    __new(args);
+}
 
-    template<typename T>void SandBox_base::__new(const T& args)
-    {
-        obj_ptr<SandBox_base> vr;
+template <typename T>
+void SandBox_base::__new(const T& args)
+{
+    obj_ptr<SandBox_base> vr;
 
-        CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
-        hr = _new(v0, vr, args.This());
+    hr = _new(v0, vr, args.This());
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(v8::Local<v8::Object>, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
-        CONSTRUCT_RETURN();
-    }
+    CONSTRUCT_RETURN();
+}
 
-    inline void SandBox_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(SandBox_base);
-        METHOD_ENTER();
+inline void SandBox_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(SandBox_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Value>, 1);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Value>, 1);
 
-        hr = pInst->add(v0, v1);
+    hr = pInst->add(v0, v1);
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
-        hr = pInst->add(v0);
+    hr = pInst->add(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void SandBox_base::s_compile(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+inline void SandBox_base::s_compile(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_INSTANCE(SandBox_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(SandBox_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(exlib::string, 1);
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
 
-        hr = pInst->compile(v0, v1, vr);
+    hr = pInst->compile(v0, v1, vr);
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = pInst->compile(v0, vr);
+    hr = pInst->compile(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SandBox_base::s_addScript(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Value> vr;
+inline void SandBox_base::s_addScript(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
 
-        METHOD_INSTANCE(SandBox_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(SandBox_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
-        ARG(exlib::string, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
 
-        hr = pInst->addScript(v0, v1, vr);
+    hr = pInst->addScript(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SandBox_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(SandBox_base);
-        METHOD_ENTER();
+inline void SandBox_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(SandBox_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = pInst->remove(v0);
+    hr = pInst->remove(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void SandBox_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<SandBox_base> vr;
+inline void SandBox_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<SandBox_base> vr;
 
-        METHOD_INSTANCE(SandBox_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(SandBox_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->clone(vr);
+    hr = pInst->clone(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void SandBox_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(SandBox_base);
-        METHOD_ENTER();
+inline void SandBox_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(SandBox_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(isolate));
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(isolate));
 
-        hr = pInst->run(v0, v1);
+    hr = pInst->run(v0, v1);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void SandBox_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Value> vr;
+inline void SandBox_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
 
-        METHOD_INSTANCE(SandBox_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(SandBox_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(exlib::string, 1, "");
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        hr = pInst->require(v0, v1, vr);
+    hr = pInst->require(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

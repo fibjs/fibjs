@@ -11,11 +11,10 @@
 #include "Buffer.h"
 #include "List.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 result_t db_base::openLevelDB(exlib::string connString,
-                              obj_ptr<LevelDB_base> &retVal, AsyncEvent *ac)
+    obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -47,7 +46,7 @@ result_t LevelDB::open(const char* connString)
     return 0;
 }
 
-result_t close_ldb(leveldb::DB *db)
+result_t close_ldb(leveldb::DB* db)
 {
     delete db;
     return 0;
@@ -55,16 +54,14 @@ result_t close_ldb(leveldb::DB *db)
 
 LevelDB::~LevelDB()
 {
-    if (m_batch)
-    {
+    if (m_batch) {
         m_batch->Clear();
         delete m_batch;
-    }
-    else if (m_db)
+    } else if (m_db)
         asyncCall(close_ldb, m_db);
 }
 
-result_t LevelDB::has(Buffer_base *key, bool &retVal, AsyncEvent *ac)
+result_t LevelDB::has(Buffer_base* key, bool& retVal, AsyncEvent* ac)
 {
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -77,14 +74,12 @@ result_t LevelDB::has(Buffer_base *key, bool &retVal, AsyncEvent *ac)
 
     std::string value;
     leveldb::Status s = db()->Get(leveldb::ReadOptions(),
-                                  leveldb::Slice(key1.c_str(), key1.length()),
-                                  &value);
-    if (s.IsNotFound())
-    {
+        leveldb::Slice(key1.c_str(), key1.length()),
+        &value);
+    if (s.IsNotFound()) {
         retVal = false;
         return 0;
-    }
-    else if (!s.ok())
+    } else if (!s.ok())
         return CHECK_ERROR(Runtime::setError(s.ToString()));
 
     retVal = true;
@@ -92,7 +87,7 @@ result_t LevelDB::has(Buffer_base *key, bool &retVal, AsyncEvent *ac)
     return 0;
 }
 
-result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
+result_t LevelDB::get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -105,8 +100,8 @@ result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, AsyncEvent
 
     std::string value;
     leveldb::Status s = db()->Get(leveldb::ReadOptions(),
-                                  leveldb::Slice(key1.c_str(), key1.length()),
-                                  &value);
+        leveldb::Slice(key1.c_str(), key1.length()),
+        &value);
     if (s.IsNotFound())
         return CALL_RETURN_NULL;
     else if (!s.ok())
@@ -117,23 +112,22 @@ result_t LevelDB::get(Buffer_base *key, obj_ptr<Buffer_base> &retVal, AsyncEvent
     return 0;
 }
 
-result_t LevelDB::_mget(std::vector<exlib::string> *keys,
-                        obj_ptr<List_base> &retVal, AsyncEvent *ac)
+result_t LevelDB::_mget(std::vector<exlib::string>* keys,
+    obj_ptr<List_base>& retVal, AsyncEvent* ac)
 {
-    std::vector<exlib::string> &ks = *keys;
+    std::vector<exlib::string>& ks = *keys;
     obj_ptr<List> list = new List();
     int32_t i;
 
     Variant nil;
     nil.setNull();
 
-    for (i = 0; i < (int32_t)ks.size(); i ++)
-    {
+    for (i = 0; i < (int32_t)ks.size(); i++) {
         std::string value;
 
         leveldb::Status s = db()->Get(leveldb::ReadOptions(),
-                                      leveldb::Slice(ks[i].c_str(), ks[i].length()),
-                                      &value);
+            leveldb::Slice(ks[i].c_str(), ks[i].length()),
+            &value);
         if (s.IsNotFound())
             list->append(nil);
         else if (!s.ok())
@@ -147,7 +141,7 @@ result_t LevelDB::_mget(std::vector<exlib::string> *keys,
     return 0;
 }
 
-result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<List_base> &retVal)
+result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal)
 {
     std::vector<exlib::string> ks;
     int32_t len = keys->Length();
@@ -161,8 +155,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<List_base> &retVal)
 
     Isolate* isolate = holder();
 
-    for (i = 0; i < len; i ++)
-    {
+    for (i = 0; i < len; i++) {
         v8::Local<v8::Value> v = keys->Get(i);
         obj_ptr<Buffer_base> buf;
 
@@ -179,7 +172,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<List_base> &retVal)
     return ac__mget(&ks, retVal);
 }
 
-result_t LevelDB::_commit(leveldb::WriteBatch *batch, AsyncEvent *ac)
+result_t LevelDB::_commit(leveldb::WriteBatch* batch, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -191,7 +184,7 @@ result_t LevelDB::_commit(leveldb::WriteBatch *batch, AsyncEvent *ac)
     return 0;
 }
 
-result_t LevelDB::set(Buffer_base *key, Buffer_base *value, AsyncEvent *ac)
+result_t LevelDB::set(Buffer_base* key, Buffer_base* value, AsyncEvent* ac)
 {
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -206,7 +199,7 @@ result_t LevelDB::set(Buffer_base *key, Buffer_base *value, AsyncEvent *ac)
     value->toString(value1);
 
     leveldb::Status s = Set(leveldb::Slice(key1.c_str(), key1.length()),
-                            leveldb::Slice(value1.c_str(), value1.length()));
+        leveldb::Slice(value1.c_str(), value1.length()));
     if (!s.ok())
         return CHECK_ERROR(Runtime::setError(s.ToString()));
 
@@ -219,15 +212,14 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     leveldb::WriteBatch batch;
-    leveldb::WriteBatch *batch_ = m_batch ? m_batch : &batch;
+    leveldb::WriteBatch* batch_ = m_batch ? m_batch : &batch;
 
     v8::Local<v8::Array> ks = map->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
     result_t hr;
 
-    for (i = 0; i < len; i++)
-    {
+    for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
         v8::String::Utf8Value uk(k);
         exlib::string key(*uk, uk.length());
@@ -238,7 +230,7 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
             return hr;
 
         batch_->Put(leveldb::Slice(key.c_str(), key.length()),
-                    leveldb::Slice(value1.c_str(), value1.length()));
+            leveldb::Slice(value1.c_str(), value1.length()));
     }
 
     if (m_batch)
@@ -253,14 +245,13 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     leveldb::WriteBatch batch;
-    leveldb::WriteBatch *batch_ = m_batch ? m_batch : &batch;
+    leveldb::WriteBatch* batch_ = m_batch ? m_batch : &batch;
 
     int32_t len = keys->Length();
     int32_t i;
     result_t hr;
 
-    for (i = 0; i < len; i++)
-    {
+    for (i = 0; i < len; i++) {
         exlib::string key;
         hr = getValue(keys->Get(i), key);
         if (hr < 0)
@@ -275,7 +266,7 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
     return ac__commit(&batch);
 }
 
-result_t LevelDB::remove(Buffer_base *key, AsyncEvent *ac)
+result_t LevelDB::remove(Buffer_base* key, AsyncEvent* ac)
 {
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -294,12 +285,11 @@ result_t LevelDB::remove(Buffer_base *key, AsyncEvent *ac)
     return 0;
 }
 
-result_t LevelDB::Iter::_iter(AsyncEvent *ac)
+result_t LevelDB::Iter::_iter(AsyncEvent* ac)
 {
     m_count = 0;
 
-    if (m_first)
-    {
+    if (m_first) {
         if (m_from.empty())
             m_it->SeekToFirst();
         else
@@ -307,19 +297,15 @@ result_t LevelDB::Iter::_iter(AsyncEvent *ac)
 
         m_first = false;
 
-        if (!m_it->Valid())
-        {
+        if (!m_it->Valid()) {
             m_end = true;
             return 0;
         }
     }
 
-    while (m_count < ITER_BLOCK_SIZE)
-    {
+    while (m_count < ITER_BLOCK_SIZE) {
         leveldb::Slice key = m_it->key();
-        if (!m_to.empty() &&
-                key.compare(leveldb::Slice(m_to.c_str(), m_to.length())) >= 0)
-        {
+        if (!m_to.empty() && key.compare(leveldb::Slice(m_to.c_str(), m_to.length())) >= 0) {
             m_end = true;
             break;
         }
@@ -327,11 +313,10 @@ result_t LevelDB::Iter::_iter(AsyncEvent *ac)
         m_kvs[m_count * 2] = new Buffer(key.ToString());
         m_kvs[m_count * 2 + 1] = new Buffer(m_it->value().ToString());
 
-        m_count ++;
+        m_count++;
 
         m_it->Next();
-        if (!m_it->Valid())
-        {
+        if (!m_it->Valid()) {
             m_end = true;
             break;
         }
@@ -345,16 +330,13 @@ result_t LevelDB::Iter::iter(Isolate* isolate, v8::Local<v8::Function> func)
     result_t hr;
     int32_t i;
 
-    do
-    {
+    do {
         hr = ac__iter();
         if (hr < 0)
             return hr;
 
-        for (i = 0; i < m_count; i ++)
-        {
-            v8::Local<v8::Value> args[2] =
-            {
+        for (i = 0; i < m_count; i++) {
+            v8::Local<v8::Value> args[2] = {
                 m_kvs[i * 2 + 1]->wrap(), m_kvs[i * 2]->wrap()
             };
 
@@ -365,14 +347,12 @@ result_t LevelDB::Iter::iter(Isolate* isolate, v8::Local<v8::Function> func)
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
-            if (v->BooleanValue())
-            {
+            if (v->BooleanValue()) {
                 m_end = true;
                 break;
             }
         }
-    }
-    while (!m_end);
+    } while (!m_end);
 
     return 0;
 }
@@ -385,7 +365,7 @@ result_t LevelDB::forEach(v8::Local<v8::Function> func)
     return Iter(db()).iter(holder(), func);
 }
 
-result_t LevelDB::between(Buffer_base *from, Buffer_base *to, v8::Local<v8::Function> func)
+result_t LevelDB::between(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func)
 {
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -399,7 +379,7 @@ result_t LevelDB::between(Buffer_base *from, Buffer_base *to, v8::Local<v8::Func
     return it->iter(holder(), func);
 }
 
-result_t LevelDB::begin(obj_ptr<LevelDB_base> &retVal)
+result_t LevelDB::begin(obj_ptr<LevelDB_base>& retVal)
 {
     obj_ptr<LevelDB> db = new LevelDB();
 
@@ -422,10 +402,9 @@ result_t LevelDB::commit()
     return hr;
 }
 
-result_t LevelDB::close(AsyncEvent *ac)
+result_t LevelDB::close(AsyncEvent* ac)
 {
-    if (m_batch)
-    {
+    if (m_batch) {
         m_base.Release();
 
         m_batch->Clear();
@@ -446,5 +425,4 @@ result_t LevelDB::close(AsyncEvent *ac)
 
     return 0;
 }
-
 }

@@ -14,13 +14,11 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class EventEmitter_base;
 
-class events_base : public object_base
-{
+class events_base : public object_base {
     DECLARE_CLASS(events_base);
 
 public:
@@ -33,34 +31,27 @@ public:
         isolate->m_isolate->ThrowException(
             isolate->NewFromUtf8("not a constructor"));
     }
-
 };
-
 }
 
 #include "EventEmitter.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& events_base::class_info()
 {
-    inline ClassInfo& events_base::class_info()
-    {
-        static ClassData::ClassObject s_object[] = 
-        {
-            {"EventEmitter", EventEmitter_base::class_info}
-        };
+    static ClassData::ClassObject s_object[] = {
+        { "EventEmitter", EventEmitter_base::class_info }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "events", true, s__new, NULL, 
-            0, NULL, ARRAYSIZE(s_object), s_object, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "events", true, s__new, NULL,
+        0, NULL, ARRAYSIZE(s_object), s_object, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
-
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 }
 
 #endif
-

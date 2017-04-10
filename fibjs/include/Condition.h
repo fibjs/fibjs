@@ -11,14 +11,12 @@
 #ifndef CONDITION_H_
 #define CONDITION_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Condition: public Condition_base
-{
+class Condition : public Condition_base {
 public:
-    Condition(Lock_base *lock) :
-        m_lockCond(lock)
+    Condition(Lock_base* lock)
+        : m_lockCond(lock)
     {
     }
 
@@ -31,7 +29,7 @@ public:
 
 public:
     // Lock_base
-    virtual result_t acquire(bool blocking, bool &retVal);
+    virtual result_t acquire(bool blocking, bool& retVal);
     virtual result_t release();
     virtual result_t count(int32_t& retVal);
 
@@ -45,7 +43,6 @@ private:
     obj_ptr<Lock_base> m_lockCond;
     exlib::CondVar m_cond;
 };
-
 }
 
 #endif /* CONDITION_H_ */

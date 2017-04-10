@@ -14,11 +14,9 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class assert_base : public object_base
-{
+class assert_base : public object_base {
     DECLARE_CLASS(assert_base);
 
 public:
@@ -131,791 +129,785 @@ public:
     static void s_throws(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_doesNotThrow(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& assert_base::class_info()
 {
-    inline ClassInfo& assert_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"ok", s_ok, true},
-            {"notOk", s_notOk, true},
-            {"equal", s_equal, true},
-            {"notEqual", s_notEqual, true},
-            {"strictEqual", s_strictEqual, true},
-            {"notStrictEqual", s_notStrictEqual, true},
-            {"deepEqual", s_deepEqual, true},
-            {"notDeepEqual", s_notDeepEqual, true},
-            {"closeTo", s_closeTo, true},
-            {"notCloseTo", s_notCloseTo, true},
-            {"lessThan", s_lessThan, true},
-            {"notLessThan", s_notLessThan, true},
-            {"greaterThan", s_greaterThan, true},
-            {"notGreaterThan", s_notGreaterThan, true},
-            {"exist", s_exist, true},
-            {"notExist", s_notExist, true},
-            {"isTrue", s_isTrue, true},
-            {"isNotTrue", s_isNotTrue, true},
-            {"isFalse", s_isFalse, true},
-            {"isNotFalse", s_isNotFalse, true},
-            {"isNull", s_isNull, true},
-            {"isNotNull", s_isNotNull, true},
-            {"isUndefined", s_isUndefined, true},
-            {"isDefined", s_isDefined, true},
-            {"isFunction", s_isFunction, true},
-            {"isNotFunction", s_isNotFunction, true},
-            {"isObject", s_isObject, true},
-            {"isNotObject", s_isNotObject, true},
-            {"isArray", s_isArray, true},
-            {"isNotArray", s_isNotArray, true},
-            {"isString", s_isString, true},
-            {"isNotString", s_isNotString, true},
-            {"isNumber", s_isNumber, true},
-            {"isNotNumber", s_isNotNumber, true},
-            {"isBoolean", s_isBoolean, true},
-            {"isNotBoolean", s_isNotBoolean, true},
-            {"typeOf", s_typeOf, true},
-            {"notTypeOf", s_notTypeOf, true},
-            {"property", s_property, true},
-            {"notProperty", s_notProperty, true},
-            {"deepProperty", s_deepProperty, true},
-            {"notDeepProperty", s_notDeepProperty, true},
-            {"propertyVal", s_propertyVal, true},
-            {"propertyNotVal", s_propertyNotVal, true},
-            {"deepPropertyVal", s_deepPropertyVal, true},
-            {"deepPropertyNotVal", s_deepPropertyNotVal, true},
-            {"throws", s_throws, true},
-            {"doesNotThrow", s_doesNotThrow, true}
-        };
-
-        static ClassData s_cd = 
-        { 
-            "assert", true, s__new, s__function, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
-
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
-
-    inline void assert_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
-
-        METHOD_OVER(2, 1);
-
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
-
-        hr = _function(v0, v1);
-
-        METHOD_VOID();
-    }
-
-    inline void assert_base::s_ok(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
-
-        METHOD_OVER(2, 1);
-
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
-
-        hr = ok(v0, v1);
-
-        METHOD_VOID();
-    }
-
-    inline void assert_base::s_notOk(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
-
-        METHOD_OVER(2, 1);
-
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    static ClassData::ClassMethod s_method[] = {
+        { "ok", s_ok, true },
+        { "notOk", s_notOk, true },
+        { "equal", s_equal, true },
+        { "notEqual", s_notEqual, true },
+        { "strictEqual", s_strictEqual, true },
+        { "notStrictEqual", s_notStrictEqual, true },
+        { "deepEqual", s_deepEqual, true },
+        { "notDeepEqual", s_notDeepEqual, true },
+        { "closeTo", s_closeTo, true },
+        { "notCloseTo", s_notCloseTo, true },
+        { "lessThan", s_lessThan, true },
+        { "notLessThan", s_notLessThan, true },
+        { "greaterThan", s_greaterThan, true },
+        { "notGreaterThan", s_notGreaterThan, true },
+        { "exist", s_exist, true },
+        { "notExist", s_notExist, true },
+        { "isTrue", s_isTrue, true },
+        { "isNotTrue", s_isNotTrue, true },
+        { "isFalse", s_isFalse, true },
+        { "isNotFalse", s_isNotFalse, true },
+        { "isNull", s_isNull, true },
+        { "isNotNull", s_isNotNull, true },
+        { "isUndefined", s_isUndefined, true },
+        { "isDefined", s_isDefined, true },
+        { "isFunction", s_isFunction, true },
+        { "isNotFunction", s_isNotFunction, true },
+        { "isObject", s_isObject, true },
+        { "isNotObject", s_isNotObject, true },
+        { "isArray", s_isArray, true },
+        { "isNotArray", s_isNotArray, true },
+        { "isString", s_isString, true },
+        { "isNotString", s_isNotString, true },
+        { "isNumber", s_isNumber, true },
+        { "isNotNumber", s_isNotNumber, true },
+        { "isBoolean", s_isBoolean, true },
+        { "isNotBoolean", s_isNotBoolean, true },
+        { "typeOf", s_typeOf, true },
+        { "notTypeOf", s_notTypeOf, true },
+        { "property", s_property, true },
+        { "notProperty", s_notProperty, true },
+        { "deepProperty", s_deepProperty, true },
+        { "notDeepProperty", s_notDeepProperty, true },
+        { "propertyVal", s_propertyVal, true },
+        { "propertyNotVal", s_propertyNotVal, true },
+        { "deepPropertyVal", s_deepPropertyVal, true },
+        { "deepPropertyNotVal", s_deepPropertyNotVal, true },
+        { "throws", s_throws, true },
+        { "doesNotThrow", s_doesNotThrow, true }
+    };
+
+    static ClassData s_cd = {
+        "assert", true, s__new, s__function,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
+
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
+
+inline void assert_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
+
+    hr = _function(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void assert_base::s_ok(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
+
+    hr = ok(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void assert_base::s_notOk(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
+
+    hr = notOk(v0, v1);
 
-        hr = notOk(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = equal(v0, v1, v2);
 
-        hr = equal(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_notEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_notEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = notEqual(v0, v1, v2);
 
-        hr = notEqual(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_strictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_strictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = strictEqual(v0, v1, v2);
 
-        hr = strictEqual(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_notStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_notStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = notStrictEqual(v0, v1, v2);
 
-        hr = notStrictEqual(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_deepEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_deepEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = deepEqual(v0, v1, v2);
 
-        hr = deepEqual(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_notDeepEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_notDeepEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = notDeepEqual(v0, v1, v2);
 
-        hr = notDeepEqual(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_closeTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_closeTo(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(4, 3);
 
-        METHOD_OVER(4, 3);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    ARG(v8::Local<v8::Value>, 2);
+    OPT_ARG(exlib::string, 3, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        ARG(v8::Local<v8::Value>, 2);
-        OPT_ARG(exlib::string, 3, "");
+    hr = closeTo(v0, v1, v2, v3);
 
-        hr = closeTo(v0, v1, v2, v3);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_notCloseTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_notCloseTo(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(4, 3);
 
-        METHOD_OVER(4, 3);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    ARG(v8::Local<v8::Value>, 2);
+    OPT_ARG(exlib::string, 3, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        ARG(v8::Local<v8::Value>, 2);
-        OPT_ARG(exlib::string, 3, "");
+    hr = notCloseTo(v0, v1, v2, v3);
 
-        hr = notCloseTo(v0, v1, v2, v3);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_lessThan(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_lessThan(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = lessThan(v0, v1, v2);
 
-        hr = lessThan(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_notLessThan(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_notLessThan(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = notLessThan(v0, v1, v2);
 
-        hr = notLessThan(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_greaterThan(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_greaterThan(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = greaterThan(v0, v1, v2);
 
-        hr = greaterThan(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_notGreaterThan(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_notGreaterThan(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = notGreaterThan(v0, v1, v2);
 
-        hr = notGreaterThan(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_exist(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_exist(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = exist(v0, v1);
 
-        hr = exist(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_notExist(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_notExist(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = notExist(v0, v1);
 
-        hr = notExist(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isTrue(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isTrue(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isTrue(v0, v1);
 
-        hr = isTrue(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isNotTrue(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isNotTrue(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isNotTrue(v0, v1);
 
-        hr = isNotTrue(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isFalse(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isFalse(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isFalse(v0, v1);
 
-        hr = isFalse(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isNotFalse(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isNotFalse(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isNotFalse(v0, v1);
 
-        hr = isNotFalse(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isNull(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isNull(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isNull(v0, v1);
 
-        hr = isNull(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isNotNull(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isNotNull(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isNotNull(v0, v1);
 
-        hr = isNotNull(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isUndefined(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isUndefined(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isUndefined(v0, v1);
 
-        hr = isUndefined(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isDefined(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isDefined(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isDefined(v0, v1);
 
-        hr = isDefined(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isFunction(v0, v1);
 
-        hr = isFunction(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isNotFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isNotFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isNotFunction(v0, v1);
 
-        hr = isNotFunction(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isObject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isObject(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isObject(v0, v1);
 
-        hr = isObject(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isNotObject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isNotObject(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isNotObject(v0, v1);
 
-        hr = isNotObject(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isArray(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isArray(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isArray(v0, v1);
 
-        hr = isArray(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isNotArray(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isNotArray(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isNotArray(v0, v1);
 
-        hr = isNotArray(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isString(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isString(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isString(v0, v1);
 
-        hr = isString(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isNotString(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isNotString(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isNotString(v0, v1);
 
-        hr = isNotString(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isNumber(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isNumber(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isNumber(v0, v1);
 
-        hr = isNumber(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isNotNumber(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isNotNumber(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isNotNumber(v0, v1);
 
-        hr = isNotNumber(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isBoolean(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isBoolean(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isBoolean(v0, v1);
 
-        hr = isBoolean(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_isNotBoolean(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_isNotBoolean(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = isNotBoolean(v0, v1);
 
-        hr = isNotBoolean(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_typeOf(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_typeOf(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(exlib::string, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = typeOf(v0, v1, v2);
 
-        hr = typeOf(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_notTypeOf(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_notTypeOf(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(exlib::string, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = notTypeOf(v0, v1, v2);
 
-        hr = notTypeOf(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_property(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_property(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = property(v0, v1, v2);
 
-        hr = property(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_notProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_notProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = notProperty(v0, v1, v2);
 
-        hr = notProperty(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_deepProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_deepProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = deepProperty(v0, v1, v2);
 
-        hr = deepProperty(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_notDeepProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_notDeepProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(exlib::string, 2, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        OPT_ARG(exlib::string, 2, "");
+    hr = notDeepProperty(v0, v1, v2);
 
-        hr = notDeepProperty(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_propertyVal(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_propertyVal(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(4, 3);
 
-        METHOD_OVER(4, 3);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    ARG(v8::Local<v8::Value>, 2);
+    OPT_ARG(exlib::string, 3, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        ARG(v8::Local<v8::Value>, 2);
-        OPT_ARG(exlib::string, 3, "");
+    hr = propertyVal(v0, v1, v2, v3);
 
-        hr = propertyVal(v0, v1, v2, v3);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_propertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_propertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(4, 3);
 
-        METHOD_OVER(4, 3);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    ARG(v8::Local<v8::Value>, 2);
+    OPT_ARG(exlib::string, 3, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        ARG(v8::Local<v8::Value>, 2);
-        OPT_ARG(exlib::string, 3, "");
+    hr = propertyNotVal(v0, v1, v2, v3);
 
-        hr = propertyNotVal(v0, v1, v2, v3);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_deepPropertyVal(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_deepPropertyVal(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(4, 3);
 
-        METHOD_OVER(4, 3);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    ARG(v8::Local<v8::Value>, 2);
+    OPT_ARG(exlib::string, 3, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        ARG(v8::Local<v8::Value>, 2);
-        OPT_ARG(exlib::string, 3, "");
+    hr = deepPropertyVal(v0, v1, v2, v3);
 
-        hr = deepPropertyVal(v0, v1, v2, v3);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_deepPropertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_deepPropertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(4, 3);
 
-        METHOD_OVER(4, 3);
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    ARG(v8::Local<v8::Value>, 2);
+    OPT_ARG(exlib::string, 3, "");
 
-        ARG(v8::Local<v8::Value>, 0);
-        ARG(v8::Local<v8::Value>, 1);
-        ARG(v8::Local<v8::Value>, 2);
-        OPT_ARG(exlib::string, 3, "");
+    hr = deepPropertyNotVal(v0, v1, v2, v3);
 
-        hr = deepPropertyNotVal(v0, v1, v2, v3);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_throws(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_throws(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Function>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Function>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = throws(v0, v1);
 
-        hr = throws(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void assert_base::s_doesNotThrow(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-    inline void assert_base::s_doesNotThrow(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+    METHOD_OVER(2, 1);
 
-        METHOD_OVER(2, 1);
+    ARG(v8::Local<v8::Function>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-        ARG(v8::Local<v8::Function>, 0);
-        OPT_ARG(exlib::string, 1, "");
+    hr = doesNotThrow(v0, v1);
 
-        hr = doesNotThrow(v0, v1);
-
-        METHOD_VOID();
-    }
-
+    METHOD_VOID();
+}
 }
 
 #endif
-

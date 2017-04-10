@@ -12,24 +12,27 @@
 #ifndef XMLDATAIMPL_H_
 #define XMLDATAIMPL_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class XmlDataImpl
-{
+class XmlDataImpl {
 public:
-    XmlDataImpl(const char *data) : m_data(data)
+    XmlDataImpl(const char* data)
+        : m_data(data)
     {
     }
 
-    XmlDataImpl(const exlib::string &data) : m_data(data)
-    {}
+    XmlDataImpl(const exlib::string& data)
+        : m_data(data)
+    {
+    }
 
-    XmlDataImpl(const XmlDataImpl &data) : m_data(data.m_data)
-    {}
+    XmlDataImpl(const XmlDataImpl& data)
+        : m_data(data.m_data)
+    {
+    }
 
 public:
-    result_t get_data(exlib::string &retVal)
+    result_t get_data(exlib::string& retVal)
     {
         retVal = m_data;
         return 0;
@@ -41,13 +44,13 @@ public:
         return 0;
     }
 
-    result_t get_length(int32_t &retVal)
+    result_t get_length(int32_t& retVal)
     {
         retVal = (int32_t)utf8to16String(m_data).length();
         return 0;
     }
 
-    result_t substringData(int32_t offset, int32_t count, exlib::string &retVal)
+    result_t substringData(int32_t offset, int32_t count, exlib::string& retVal)
     {
         exlib::wstring _data(utf8to16String(m_data));
 
@@ -109,7 +112,7 @@ public:
         return 0;
     }
 
-    result_t splitText(int32_t offset, exlib::string &retVal)
+    result_t splitText(int32_t offset, exlib::string& retVal)
     {
         exlib::wstring _data(utf8to16String(m_data));
 
@@ -130,14 +133,12 @@ public:
         if (!sz)
             return exlib::string();
 
-        const char *data = m_data.c_str();
+        const char* data = m_data.c_str();
         int32_t sz1 = 0;
         int32_t i;
 
-        for (i = 0; i < sz; i ++)
-        {
-            switch (data[i])
-            {
+        for (i = 0; i < sz; i++) {
+            switch (data[i]) {
             case '<':
                 sz1 += 4;
                 break;
@@ -148,7 +149,7 @@ public:
                 sz1 += 5;
                 break;
             default:
-                sz1 ++;
+                sz1++;
             }
         }
 
@@ -156,13 +157,11 @@ public:
             return m_data;
 
         str.resize(sz1);
-        char *data1 = &str[0];
+        char* data1 = &str[0];
 
-        for (i = 0; i < sz; i ++)
-        {
+        for (i = 0; i < sz; i++) {
             char ch;
-            switch (ch = data[i])
-            {
+            switch (ch = data[i]) {
             case '<':
                 memcpy(data1, "&lt;", 4);
                 data1 += 4;

@@ -10,16 +10,15 @@
 #include "parse.h"
 #include "HttpUploadCollection.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base> &retVal, v8::Local<v8::Object> This)
+result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new HttpRequest();
     return 0;
 }
 
-result_t HttpRequest::get_protocol(exlib::string &retVal)
+result_t HttpRequest::get_protocol(exlib::string& retVal)
 {
     return m_message->get_protocol(retVal);
 }
@@ -29,43 +28,43 @@ result_t HttpRequest::set_protocol(exlib::string newVal)
     return m_message->set_protocol(newVal);
 }
 
-result_t HttpRequest::get_headers(obj_ptr<HttpCollection_base> &retVal)
+result_t HttpRequest::get_headers(obj_ptr<HttpCollection_base>& retVal)
 {
     return m_message->get_headers(retVal);
 }
 
-result_t HttpRequest::get_body(obj_ptr<SeekableStream_base> &retVal)
+result_t HttpRequest::get_body(obj_ptr<SeekableStream_base>& retVal)
 {
     return m_message->get_body(retVal);
 }
 
-result_t HttpRequest::set_body(SeekableStream_base *newVal)
+result_t HttpRequest::set_body(SeekableStream_base* newVal)
 {
     return m_message->set_body(newVal);
 }
 
-result_t HttpRequest::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                           AsyncEvent *ac)
+result_t HttpRequest::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+    AsyncEvent* ac)
 {
     return m_message->read(bytes, retVal, ac);
 }
 
-result_t HttpRequest::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
+result_t HttpRequest::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     return m_message->readAll(retVal, ac);
 }
 
-result_t HttpRequest::write(Buffer_base *data, AsyncEvent *ac)
+result_t HttpRequest::write(Buffer_base* data, AsyncEvent* ac)
 {
     return m_message->write(data, ac);
 }
 
-result_t HttpRequest::get_length(int64_t &retVal)
+result_t HttpRequest::get_length(int64_t& retVal)
 {
     return m_message->get_length(retVal);
 }
 
-result_t HttpRequest::get_keepAlive(bool &retVal)
+result_t HttpRequest::get_keepAlive(bool& retVal)
 {
     return m_message->get_keepAlive(retVal);
 }
@@ -75,7 +74,7 @@ result_t HttpRequest::set_keepAlive(bool newVal)
     return m_message->set_keepAlive(newVal);
 }
 
-result_t HttpRequest::get_upgrade(bool &retVal)
+result_t HttpRequest::get_upgrade(bool& retVal)
 {
     return m_message->get_upgrade(retVal);
 }
@@ -85,7 +84,7 @@ result_t HttpRequest::set_upgrade(bool newVal)
     return m_message->set_upgrade(newVal);
 }
 
-result_t HttpRequest::get_maxHeadersCount(int32_t &retVal)
+result_t HttpRequest::get_maxHeadersCount(int32_t& retVal)
 {
     return m_message->get_maxHeadersCount(retVal);
 }
@@ -95,7 +94,7 @@ result_t HttpRequest::set_maxHeadersCount(int32_t newVal)
     return m_message->set_maxHeadersCount(newVal);
 }
 
-result_t HttpRequest::get_maxUploadSize(int32_t &retVal)
+result_t HttpRequest::get_maxUploadSize(int32_t& retVal)
 {
     return m_message->get_maxUploadSize(retVal);
 }
@@ -105,17 +104,17 @@ result_t HttpRequest::set_maxUploadSize(int32_t newVal)
     return m_message->get_maxUploadSize(newVal);
 }
 
-result_t HttpRequest::hasHeader(exlib::string name, bool &retVal)
+result_t HttpRequest::hasHeader(exlib::string name, bool& retVal)
 {
     return m_message->hasHeader(name, retVal);
 }
 
-result_t HttpRequest::firstHeader(exlib::string name, Variant &retVal)
+result_t HttpRequest::firstHeader(exlib::string name, Variant& retVal)
 {
     return m_message->firstHeader(name, retVal);
 }
 
-result_t HttpRequest::allHeader(exlib::string name, obj_ptr<List_base> &retVal)
+result_t HttpRequest::allHeader(exlib::string name, obj_ptr<List_base>& retVal)
 {
     return m_message->allHeader(name, retVal);
 }
@@ -145,7 +144,7 @@ result_t HttpRequest::removeHeader(exlib::string name)
     return m_message->removeHeader(name);
 }
 
-result_t HttpRequest::get_value(exlib::string &retVal)
+result_t HttpRequest::get_value(exlib::string& retVal)
 {
     return m_message->get_value(retVal);
 }
@@ -155,17 +154,17 @@ result_t HttpRequest::set_value(exlib::string newVal)
     return m_message->set_value(newVal);
 }
 
-result_t HttpRequest::get_params(obj_ptr<List_base> &retVal)
+result_t HttpRequest::get_params(obj_ptr<List_base>& retVal)
 {
     return m_message->get_params(retVal);
 }
 
-result_t HttpRequest::set_params(List_base *newVal)
+result_t HttpRequest::set_params(List_base* newVal)
 {
     return m_message->set_params(newVal);
 }
 
-result_t HttpRequest::get_type(int32_t &retVal)
+result_t HttpRequest::get_type(int32_t& retVal)
 {
     return m_message->get_type(retVal);
 }
@@ -215,7 +214,7 @@ result_t HttpRequest::clear()
     return 0;
 }
 
-result_t HttpRequest::sendTo(Stream_base *stm, AsyncEvent *ac)
+result_t HttpRequest::sendTo(Stream_base* stm, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -225,8 +224,7 @@ result_t HttpRequest::sendTo(Stream_base *stm, AsyncEvent *ac)
 
     strCommand.append(1, ' ');
     strCommand.append(m_address);
-    if (!m_queryString.empty())
-    {
+    if (!m_queryString.empty()) {
         strCommand.append(1, '?');
         strCommand.append(m_queryString);
     }
@@ -238,31 +236,32 @@ result_t HttpRequest::sendTo(Stream_base *stm, AsyncEvent *ac)
     return m_message->sendTo(stm, strCommand, ac);
 }
 
-result_t HttpRequest::readFrom(Stream_base *stm, AsyncEvent *ac)
+result_t HttpRequest::readFrom(Stream_base* stm, AsyncEvent* ac)
 {
-    class asyncReadFrom: public AsyncState
-    {
+    class asyncReadFrom : public AsyncState {
     public:
-        asyncReadFrom(HttpRequest *pThis, BufferedStream_base *stm,
-                      AsyncEvent *ac) :
-            AsyncState(ac), m_pThis(pThis), m_stm(stm)
+        asyncReadFrom(HttpRequest* pThis, BufferedStream_base* stm,
+            AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(pThis)
+            , m_stm(stm)
         {
             m_pThis->clear();
             set(begin);
         }
 
-        static int32_t begin(AsyncState *pState, int32_t n)
+        static int32_t begin(AsyncState* pState, int32_t n)
         {
-            asyncReadFrom *pThis = (asyncReadFrom *) pState;
+            asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
             pThis->set(command);
             return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine,
-                                          pThis);
+                pThis);
         }
 
-        static int32_t command(AsyncState *pState, int32_t n)
+        static int32_t command(AsyncState* pState, int32_t n)
         {
-            asyncReadFrom *pThis = (asyncReadFrom *) pState;
+            asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
             if (n == CALL_RETURN_NULL)
                 return pThis->done(CALL_RETURN_NULL);
@@ -275,18 +274,16 @@ result_t HttpRequest::readFrom(Stream_base *stm, AsyncEvent *ac)
 
             p.skipSpace();
 
-            exlib::string &addr = pThis->m_pThis->m_address;
+            exlib::string& addr = pThis->m_pThis->m_address;
 
             if (!p.getWord(addr, '?'))
                 return CHECK_ERROR(Runtime::setError("HttpRequest: bad address."));
 
-            if (!qstricmp(addr.c_str(), "http://", 7))
-            {
-                const char *p = qstrchr(addr.c_str() + 7, '/');
+            if (!qstricmp(addr.c_str(), "http://", 7)) {
+                const char* p = qstrchr(addr.c_str() + 7, '/');
                 if (p)
                     pThis->m_pThis->m_message->set_value(p);
-            }
-            else
+            } else
                 pThis->m_pThis->m_message->set_value(addr);
 
             if (p.want('?'))
@@ -321,13 +318,13 @@ result_t HttpRequest::readFrom(Stream_base *stm, AsyncEvent *ac)
     return (new asyncReadFrom(this, _stm, ac))->post(0);
 }
 
-result_t HttpRequest::get_method(exlib::string &retVal)
+result_t HttpRequest::get_method(exlib::string& retVal)
 {
     retVal = m_method;
     return 0;
 }
 
-result_t HttpRequest::get_stream(obj_ptr<Stream_base> &retVal)
+result_t HttpRequest::get_stream(obj_ptr<Stream_base>& retVal)
 {
     return m_message->get_stream(retVal);
 }
@@ -338,7 +335,7 @@ result_t HttpRequest::set_method(exlib::string newVal)
     return 0;
 }
 
-result_t HttpRequest::get_address(exlib::string &retVal)
+result_t HttpRequest::get_address(exlib::string& retVal)
 {
     retVal = m_address;
     return 0;
@@ -350,7 +347,7 @@ result_t HttpRequest::set_address(exlib::string newVal)
     return 0;
 }
 
-result_t HttpRequest::get_queryString(exlib::string &retVal)
+result_t HttpRequest::get_queryString(exlib::string& retVal)
 {
     retVal = m_queryString;
     return 0;
@@ -362,7 +359,7 @@ result_t HttpRequest::set_queryString(exlib::string newVal)
     return 0;
 }
 
-result_t HttpRequest::get_response(obj_ptr<Message_base> &retVal)
+result_t HttpRequest::get_response(obj_ptr<Message_base>& retVal)
 {
     if (!m_message->m_response)
         m_message->m_response = new HttpResponse();
@@ -370,10 +367,9 @@ result_t HttpRequest::get_response(obj_ptr<Message_base> &retVal)
     return m_message->get_response(retVal);
 }
 
-result_t HttpRequest::get_cookies(obj_ptr<HttpCollection_base> &retVal)
+result_t HttpRequest::get_cookies(obj_ptr<HttpCollection_base>& retVal)
 {
-    if (!m_cookies)
-    {
+    if (!m_cookies) {
         exlib::string strCookie;
         obj_ptr<HttpCollection> c = new HttpCollection();
 
@@ -387,17 +383,15 @@ result_t HttpRequest::get_cookies(obj_ptr<HttpCollection_base> &retVal)
     return 0;
 }
 
-result_t HttpRequest::get_form(obj_ptr<HttpCollection_base> &retVal)
+result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 {
-    if (m_form == NULL)
-    {
+    if (m_form == NULL) {
         int64_t len = 0;
 
         get_length(len);
         if (len == 0)
             m_form = new HttpCollection();
-        else
-        {
+        else {
             exlib::string strType;
             bool bUpload = false;
             Variant v;
@@ -410,30 +404,26 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base> &retVal)
             if (!qstricmp(strType.c_str(), "multipart/form-data;", 20))
                 bUpload = true;
             else if (qstricmp(strType.c_str(),
-                              "application/x-www-form-urlencoded", 33))
+                         "application/x-www-form-urlencoded", 33))
                 return CHECK_ERROR(Runtime::setError("HttpRequest: unknown form format: " + strType));
 
             obj_ptr<Buffer_base> buf;
             obj_ptr<SeekableStream_base> _body;
 
-            get_body (_body);
+            get_body(_body);
             _body->rewind();
-            result_t hr = _body->read((int32_t) len, buf, NULL);
+            result_t hr = _body->read((int32_t)len, buf, NULL);
             if (hr < 0)
                 return hr;
 
             exlib::string strForm;
             buf->toString(strForm);
 
-            if (bUpload)
-            {
-                obj_ptr<HttpUploadCollection> col =
-                    new HttpUploadCollection();
+            if (bUpload) {
+                obj_ptr<HttpUploadCollection> col = new HttpUploadCollection();
                 col->parse(strForm, strType.c_str());
                 m_form = col;
-            }
-            else
-            {
+            } else {
                 obj_ptr<HttpCollection> c = new HttpCollection();
                 c->parse(strForm);
                 m_form = c;
@@ -446,10 +436,9 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base> &retVal)
     return 0;
 }
 
-result_t HttpRequest::get_query(obj_ptr<HttpCollection_base> &retVal)
+result_t HttpRequest::get_query(obj_ptr<HttpCollection_base>& retVal)
 {
-    if (m_query == NULL)
-    {
+    if (m_query == NULL) {
         obj_ptr<HttpCollection> c = new HttpCollection();
         c->parse(m_queryString);
         m_query = c;

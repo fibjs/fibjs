@@ -9,11 +9,10 @@
 #include <LruCache.h>
 #include <Event.h>
 
-namespace fibjs
-{
+namespace fibjs {
 
 result_t LruCache_base::_new(int32_t size, int32_t timeout,
-                             obj_ptr<LruCache_base> &retVal, v8::Local<v8::Object> This)
+    obj_ptr<LruCache_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new LruCache(size, timeout);
     return 0;
@@ -23,28 +22,25 @@ void LruCache::cleanup()
 {
     std::map<exlib::string, _linkedNode>::iterator it;
 
-    if (m_timeout > 0)
-    {
+    if (m_timeout > 0) {
         date_t t;
         t.now();
 
-        while ((it = m_end) != m_datas.end() &&
-                t.diff(it->second.insert) > m_timeout)
+        while ((it = m_end) != m_datas.end() && t.diff(it->second.insert) > m_timeout)
             remove(it);
     }
 
-    if (m_size > 0)
-    {
-        while ((int32_t) m_datas.size() > m_size)
+    if (m_size > 0) {
+        while ((int32_t)m_datas.size() > m_size)
             remove(m_end_lru);
     }
 }
 
-result_t LruCache::get_size(int32_t &retVal)
+result_t LruCache::get_size(int32_t& retVal)
 {
     cleanup();
 
-    retVal = (int32_t) m_datas.size();
+    retVal = (int32_t)m_datas.size();
     return 0;
 }
 
@@ -73,7 +69,7 @@ result_t LruCache::clear()
     return 0;
 }
 
-result_t LruCache::has(exlib::string name, bool &retVal)
+result_t LruCache::has(exlib::string name, bool& retVal)
 {
     cleanup();
 
@@ -81,13 +77,13 @@ result_t LruCache::has(exlib::string name, bool &retVal)
     return 0;
 }
 
-result_t LruCache::get(exlib::string name, v8::Local<v8::Value> &retVal)
+result_t LruCache::get(exlib::string name, v8::Local<v8::Value>& retVal)
 {
     return get(name, v8::Local<v8::Function>(), retVal);
 }
 
 result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
-                       v8::Local<v8::Value> &retVal)
+    v8::Local<v8::Value>& retVal)
 {
     static _linkedNode newNode;
     v8::Handle<v8::Object> o = wrap();
@@ -99,8 +95,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
 
     cleanup();
 
-    while (true)
-    {
+    while (true) {
         obj_ptr<Event_base> e;
 
         find = m_datas.find(sname);
@@ -112,8 +107,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
 
         std::map<exlib::string, obj_ptr<Event_base> >::iterator padding;
         padding = m_paddings.find(sname);
-        if (padding == m_paddings.end())
-        {
+        if (padding == m_paddings.end()) {
             e = new Event();
             padding = m_paddings.insert(std::pair<exlib::string, obj_ptr<Event_base> >(sname, e)).first;
             v8::Local<v8::Value> v = updater->Call(o, 1, &a);
@@ -123,8 +117,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
-            if (!IsEmpty(v))
-            {
+            if (!IsEmpty(v)) {
                 find = m_datas.insert(std::pair<exlib::string, _linkedNode>(sname, newNode)).first;
                 insert(find);
 
@@ -151,13 +144,10 @@ result_t LruCache::set(exlib::string name, v8::Local<v8::Value> value)
     static _linkedNode newNode;
     std::map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
 
-    if (find == m_datas.end())
-    {
+    if (find == m_datas.end()) {
         find = m_datas.insert(std::pair<exlib::string, _linkedNode>(name, newNode)).first;
         insert(find);
-    }
-    else
-    {
+    } else {
         update(find);
         update_time(find);
     }
@@ -170,15 +160,14 @@ result_t LruCache::set(exlib::string name, v8::Local<v8::Value> value)
     return 0;
 }
 
-inline result_t _map(LruCache *o, v8::Local<v8::Object> m,
-                     result_t (LruCache::*fn)(exlib::string name, v8::Local<v8::Value> value))
+inline result_t _map(LruCache* o, v8::Local<v8::Object> m,
+    result_t (LruCache::*fn)(exlib::string name, v8::Local<v8::Value> value))
 {
     v8::Local<v8::Array> ks = m->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
 
-    for (i = 0; i < len; i++)
-    {
+    for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
         (o->*fn)(*v8::String::Utf8Value(k), m->Get(k));
     }
@@ -203,7 +192,7 @@ result_t LruCache::remove(exlib::string name)
     return 0;
 }
 
-result_t LruCache::isEmpty(bool &retVal)
+result_t LruCache::isEmpty(bool& retVal)
 {
     cleanup();
 
@@ -211,7 +200,7 @@ result_t LruCache::isEmpty(bool &retVal)
     return 0;
 }
 
-result_t LruCache::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
+result_t LruCache::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 {
     cleanup();
 
@@ -219,8 +208,7 @@ result_t LruCache::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
     std::map<exlib::string, _linkedNode>::iterator it = m_begin_lru;
     v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
 
-    while (it != m_datas.end())
-    {
+    while (it != m_datas.end()) {
         v8::Local<v8::String> name = isolate->NewFromUtf8(it->first);
         obj->Set(name, GetPrivate(it->first));
         it = _instantiate(it->second.m_next);

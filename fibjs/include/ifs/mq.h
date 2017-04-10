@@ -14,8 +14,7 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Message_base;
 class HttpHandler_base;
@@ -23,8 +22,7 @@ class Chain_base;
 class Routing_base;
 class Handler_base;
 
-class mq_base : public object_base
-{
+class mq_base : public object_base {
     DECLARE_CLASS(mq_base);
 
 public:
@@ -55,7 +53,6 @@ public:
 public:
     ASYNC_STATIC2(mq_base, invoke, Handler_base*, object_base*);
 };
-
 }
 
 #include "Message.h"
@@ -64,103 +61,97 @@ public:
 #include "Routing.h"
 #include "Handler.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& mq_base::class_info()
 {
-    inline ClassInfo& mq_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"jsHandler", s_jsHandler, true},
-            {"await", s_await, true},
-            {"nullHandler", s_nullHandler, true},
-            {"invoke", s_invoke, true}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "jsHandler", s_jsHandler, true },
+        { "await", s_await, true },
+        { "nullHandler", s_nullHandler, true },
+        { "invoke", s_invoke, true }
+    };
 
-        static ClassData::ClassObject s_object[] = 
-        {
-            {"Message", Message_base::class_info},
-            {"HttpHandler", HttpHandler_base::class_info},
-            {"Chain", Chain_base::class_info},
-            {"Routing", Routing_base::class_info}
-        };
+    static ClassData::ClassObject s_object[] = {
+        { "Message", Message_base::class_info },
+        { "HttpHandler", HttpHandler_base::class_info },
+        { "Chain", Chain_base::class_info },
+        { "Routing", Routing_base::class_info }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "mq", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "mq", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void mq_base::s_jsHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Handler_base> vr;
+inline void mq_base::s_jsHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Handler_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
-        hr = jsHandler(v0, vr);
+    hr = jsHandler(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void mq_base::s_await(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Handler_base> vr;
+inline void mq_base::s_await(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Handler_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = await(vr);
+    hr = await(vr);
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(v8::Local<v8::Function>, 0);
+    ARG(v8::Local<v8::Function>, 0);
 
-        hr = await(v0, vr);
+    hr = await(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void mq_base::s_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Handler_base> vr;
+inline void mq_base::s_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Handler_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = nullHandler(vr);
+    hr = nullHandler(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void mq_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void mq_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(2, 2);
 
-        ARG(obj_ptr<Handler_base>, 0);
-        ARG(obj_ptr<object_base>, 1);
+    ARG(obj_ptr<Handler_base>, 0);
+    ARG(obj_ptr<object_base>, 1);
 
-        if(!cb.IsEmpty()) {
-            acb_invoke(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_invoke(v0, v1);
+    if (!cb.IsEmpty()) {
+        acb_invoke(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_invoke(v0, v1);
 
-        METHOD_VOID();
-    }
-
+    METHOD_VOID();
+}
 }
 
 #endif
-

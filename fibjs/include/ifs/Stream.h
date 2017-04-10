@@ -14,13 +14,11 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Buffer_base;
 
-class Stream_base : public object_base
-{
+class Stream_base : public object_base {
     DECLARE_CLASS(Stream_base);
 
 public:
@@ -53,110 +51,104 @@ public:
     ASYNC_MEMBER0(Stream_base, close);
     ASYNC_MEMBERVALUE3(Stream_base, copyTo, Stream_base*, int64_t, int64_t);
 };
-
 }
 
 #include "Buffer.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& Stream_base::class_info()
 {
-    inline ClassInfo& Stream_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"read", s_read, false},
-            {"write", s_write, false},
-            {"close", s_close, false},
-            {"copyTo", s_copyTo, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "read", s_read, false },
+        { "write", s_write, false },
+        { "close", s_close, false },
+        { "copyTo", s_copyTo, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "Stream", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "Stream", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_INSTANCE(Stream_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 0);
+    ASYNC_METHOD_OVER(1, 0);
 
-        OPT_ARG(int32_t, 0, -1);
+    OPT_ARG(int32_t, 0, -1);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_read(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_read(v0, vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_read(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_read(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Stream_base);
-        METHOD_ENTER();
+inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_write(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_write(v0);
+    if (!cb.IsEmpty()) {
+        pInst->acb_write(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_write(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Stream_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Stream_base);
-        METHOD_ENTER();
+inline void Stream_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(0, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_close(cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_close();
+    if (!cb.IsEmpty()) {
+        pInst->acb_close(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_close();
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void Stream_base::s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int64_t vr;
+inline void Stream_base::s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
 
-        METHOD_INSTANCE(Stream_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(2, 1);
+    ASYNC_METHOD_OVER(2, 1);
 
-        ARG(obj_ptr<Stream_base>, 0);
-        OPT_ARG(int64_t, 1, -1);
+    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(int64_t, 1, -1);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_copyTo(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_copyTo(v0, v1, vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_copyTo(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_copyTo(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

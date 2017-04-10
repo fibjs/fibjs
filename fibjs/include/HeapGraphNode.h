@@ -12,17 +12,18 @@
 #ifndef _fj_HEAPGRAPHNODE_H
 #define _fj_HEAPGRAPHNODE_H
 
-namespace fibjs
-{
+namespace fibjs {
 
 class HeapSnapshot;
-class HeapGraphNode : public HeapGraphNode_base
-{
+class HeapGraphNode : public HeapGraphNode_base {
 public:
     HeapGraphNode(int32_t _type, exlib::string& _name, int32_t _id,
-                  int32_t _size, List* _childs) :
-        m_type(_type), m_name(_name), m_id(_id),
-        m_shallowSize(_size), m_childs(_childs)
+        int32_t _size, List* _childs)
+        : m_type(_type)
+        , m_name(_name)
+        , m_id(_id)
+        , m_shallowSize(_size)
+        , m_childs(_childs)
     {
     }
 
@@ -76,7 +77,6 @@ private:
     int32_t m_shallowSize;
     obj_ptr<List> m_childs;
 };
-
 }
 
 #endif // _fj_HEAPGRAPHNODE_H

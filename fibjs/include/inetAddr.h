@@ -11,24 +11,20 @@
 #ifndef INETADDR_H_
 #define INETADDR_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-union inetAddr
-{
+union inetAddr {
     struct sockaddr_in addr4;
     struct sockaddr_in6 addr6;
 
     int32_t size()
     {
-        return addr6.sin6_family == PF_INET6 ?
-               (int32_t) sizeof(addr6) : (int32_t) sizeof(addr4);
+        return addr6.sin6_family == PF_INET6 ? (int32_t)sizeof(addr6) : (int32_t)sizeof(addr4);
     }
 
     int32_t family()
     {
-        return addr6.sin6_family == PF_INET6 ?
-               net_base::_AF_INET6 : net_base::_AF_INET;
+        return addr6.sin6_family == PF_INET6 ? net_base::_AF_INET6 : net_base::_AF_INET;
     }
 
     int32_t port()

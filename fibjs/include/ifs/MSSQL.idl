@@ -8,8 +8,8 @@
 */
 interface MSSQL : DbConnection
 {
-	/*! @brief 选择当前数据库连接的缺省数据库
+    /*! @brief 选择当前数据库连接的缺省数据库
 	 @param dbName 指定数据库名
 	 */
-	use(String dbName) async;
+    use(String dbName) async;
 };

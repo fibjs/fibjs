@@ -13,11 +13,9 @@
 #ifndef _fj_HEAPSNAPSHOT_H
 #define _fj_HEAPSNAPSHOT_H
 
-namespace fibjs
-{
+namespace fibjs {
 
-class HeapSnapshot : public HeapSnapshot_base
-{
+class HeapSnapshot : public HeapSnapshot_base {
 public:
     // HeapSnapshot_base
     virtual result_t diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal);
@@ -30,14 +28,13 @@ public:
 public:
     result_t load(exlib::string fname);
     static result_t diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
-                         v8::Local<v8::Object>& retVal);
+        v8::Local<v8::Object>& retVal);
 
 private:
     date_t m_time;
     obj_ptr<List> m_nodes;
     std::map<int32_t, int32_t> _nodes;
 };
-
 }
 
 #endif // _fj_HEAPSNAPSHOT_H

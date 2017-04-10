@@ -418,23 +418,23 @@ function gen_code(cls, def) {
                     ftype = def.declare.name;
                 }
 
-                txts.push('    inline void ' + cls + '_base::s_' + fname + '(const v8::FunctionCallbackInfo<v8::Value>& args)\n    {');
+                txts.push('inline void ' + cls + '_base::s_' + fname + '(const v8::FunctionCallbackInfo<v8::Value>& args)\n{');
 
                 if (fname == '_new') {
-                    txts.push('        CONSTRUCT_INIT();\n        __new(args);\n    }\n');
-                    txts.push('    template<typename T>void ' + cls + '_base::__new(const T& args)\n    {');
+                    txts.push('    CONSTRUCT_INIT();\n    __new(args);\n}\n');
+                    txts.push('template <typename T>\nvoid ' + cls + '_base::__new(const T& args)\n{');
                 }
 
                 if (ftype)
-                    txts.push('        ' + get_rtype(ftype) + ' vr;\n');
+                    txts.push('    ' + get_rtype(ftype) + ' vr;\n');
 
                 if (!fstatic)
-                    txts.push('        METHOD_INSTANCE(' + cls + '_base);');
+                    txts.push('    METHOD_INSTANCE(' + cls + '_base);');
 
                 if (fname == '_new')
-                    txts.push('        CONSTRUCT_ENTER();\n');
+                    txts.push('    CONSTRUCT_ENTER();\n');
                 else
-                    txts.push('        METHOD_ENTER();\n');
+                    txts.push('    METHOD_ENTER();\n');
 
                 fn.overs.forEach(ov => {
                     var argc = 0;
@@ -461,17 +461,17 @@ function gen_code(cls, def) {
                                 else
                                     defValue = '_' + p.default.const;
 
-                                params.push('        OPT_ARG(' + get_rtype(p.type) + ', ' + params.length + ', ' + defValue + ');');
+                                params.push('    OPT_ARG(' + get_rtype(p.type) + ', ' + params.length + ', ' + defValue + ');');
                             } else {
                                 if (fname == '_new' && params.length == 0 && ov.params.length == 1 && p.type == ftype)
-                                    params.push('        STRICT_ARG(' + get_rtype(p.type) + ', ' + params.length + ');');
+                                    params.push('    STRICT_ARG(' + get_rtype(p.type) + ', ' + params.length + ');');
                                 else
-                                    params.push('        ARG(' + get_rtype(p.type) + ', ' + params.length + ');');
+                                    params.push('    ARG(' + get_rtype(p.type) + ', ' + params.length + ');');
                             }
                         });
                     }
 
-                    txts.push('        ' + (ov.async ? 'ASYNC_' : '') + 'METHOD_OVER(' + argc + ', ' + opts + ');\n');
+                    txts.push('    ' + (ov.async ? 'ASYNC_' : '') + 'METHOD_OVER(' + argc + ', ' + opts + ');\n');
                     if (params.length)
                         txts.push(params.join('\n') + '\n');
 
@@ -481,23 +481,23 @@ function gen_code(cls, def) {
 
                     if (ov.async) {
                         args.push('cb');
-                        txts.push('        if(!cb.IsEmpty()) {\n            ' + (fstatic ? 'acb_' : 'pInst->acb_') + get_name(fname) + '(' + args.join(', ') + ');');
-                        txts.push('            hr = CALL_RETURN_NULL;\n        } else');
-                        txts.push('            hr = ' + (fstatic ? 'ac_' : 'pInst->ac_') + get_name(fname) + '(' + args_call.join(', ') + ');\n');
+                        txts.push('    if (!cb.IsEmpty()) {\n        ' + (fstatic ? 'acb_' : 'pInst->acb_') + get_name(fname) + '(' + args.join(', ') + ');');
+                        txts.push('        hr = CALL_RETURN_NULL;\n    } else');
+                        txts.push('        hr = ' + (fstatic ? 'ac_' : 'pInst->ac_') + get_name(fname) + '(' + args_call.join(', ') + ');\n');
                     } else {
                         if (fname == '_new')
                             args_call.push('args.This()');
-                        txts.push('        hr = ' + (fstatic ? '' : 'pInst->') + get_name(fname) + '(' + args_call.join(', ') + ');\n');
+                        txts.push('    hr = ' + (fstatic ? '' : 'pInst->') + get_name(fname) + '(' + args_call.join(', ') + ');\n');
                     }
                 });
 
                 if (ftype) {
                     if (fname == '_new')
-                        txts.push('        CONSTRUCT_RETURN();\n    }\n');
+                        txts.push('    CONSTRUCT_RETURN();\n}\n');
                     else
-                        txts.push('        METHOD_RETURN();\n    }\n');
+                        txts.push('    METHOD_RETURN();\n}\n');
                 } else
-                    txts.push('        METHOD_VOID();\n    }\n');
+                    txts.push('    METHOD_VOID();\n}\n');
             }
         },
         "prop": {
@@ -541,35 +541,35 @@ function gen_code(cls, def) {
                 var fstatic = fn.static;
 
                 if (fname) {
-                    txts.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
+                    txts.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
                     if (!fn.readonly)
-                        txts.push("    static void s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);");
+                        txts.push("    static void s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);");
                 }
             },
             "stub_func": fn => {
                 var fname = fn.name;
                 var fstatic = fn.static;
 
-                txts.push('    inline void ' + cls + '_base::s_get_' + fname + '(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n        ' + get_rtype(fn.type) + ' vr;\n');
+                txts.push('inline void ' + cls + '_base::s_get_' + fname + '(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ' + get_rtype(fn.type) + ' vr;\n');
                 if (!fstatic)
-                    txts.push('        METHOD_INSTANCE(' + cls + '_base);');
-                txts.push('        PROPERTY_ENTER();\n');
+                    txts.push('    METHOD_INSTANCE(' + cls + '_base);');
+                txts.push('    PROPERTY_ENTER();\n');
                 if (fstatic)
-                    txts.push('        hr = get_' + fname + '(vr);\n');
+                    txts.push('    hr = get_' + fname + '(vr);\n');
                 else
-                    txts.push('        hr = pInst->get_' + fname + '(vr);\n');
-                txts.push('        METHOD_RETURN();\n    }\n');
+                    txts.push('    hr = pInst->get_' + fname + '(vr);\n');
+                txts.push('    METHOD_RETURN();\n}\n');
 
                 if (!fn.readonly) {
-                    txts.push('    inline void ' + cls + '_base::s_set_' + fname + '(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)\n    {');
+                    txts.push('inline void ' + cls + '_base::s_set_' + fname + '(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)\n{');
                     if (!fstatic)
-                        txts.push('        METHOD_INSTANCE(' + cls + '_base);');
-                    txts.push('        PROPERTY_ENTER();\n        PROPERTY_VAL(' + get_rtype(fn.type) + ');\n');
+                        txts.push('    METHOD_INSTANCE(' + cls + '_base);');
+                    txts.push('    PROPERTY_ENTER();\n    PROPERTY_VAL(' + get_rtype(fn.type) + ');\n');
                     if (fstatic)
-                        txts.push('        hr = set_' + fname + '(v0);\n');
+                        txts.push('    hr = set_' + fname + '(v0);\n');
                     else
-                        txts.push('        hr = pInst->set_' + fname + '(v0);\n');
-                    txts.push('        PROPERTY_SET_LEAVE();\n    }\n');
+                        txts.push('    hr = pInst->set_' + fname + '(v0);\n');
+                    txts.push('    PROPERTY_SET_LEAVE();\n}\n');
                 }
 
             }
@@ -583,12 +583,12 @@ function gen_code(cls, def) {
             "declare": () => {},
             "stub": fn => {
                 var fname = fn.name;
-                txts.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
+                txts.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
             },
             "stub_func": fn => {
                 var fname = fn.name;
-                txts.push('    inline void ' + cls + '_base::s_get_' + fname + '(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {');
-                txts.push('        int32_t vr = _' + fname + ';\n        PROPERTY_ENTER();\n        METHOD_RETURN();\n    }\n');
+                txts.push('inline void ' + cls + '_base::s_get_' + fname + '(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');
+                txts.push('    int32_t vr = _' + fname + ';\n    PROPERTY_ENTER();\n    METHOD_RETURN();\n}\n');
             }
         },
         "operator": {
@@ -611,52 +611,52 @@ function gen_code(cls, def) {
             },
             "stub": fn => {
                 if (fn.index) {
-                    txts.push("    static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);");
-                    txts.push("    static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args);");
+                    txts.push("    static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
+                    txts.push("    static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args);");
                     if (!fn.readonly) {
-                        txts.push("    static void i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);");
-                        txts.push("    static void i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args);");
+                        txts.push("    static void i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);");
+                        txts.push("    static void i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& args);");
                     }
                 } else {
-                    txts.push("    static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args);");
+                    txts.push("    static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);");
                     if (!fn.readonly)
-                        txts.push("    static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args);");
+                        txts.push("    static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);");
                 }
             },
             "stub_func": fn => {
                 if (fn.index) {
-                    txts.push('    inline void ' + cls + '_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {\n        ' + get_rtype(fn.type) + ' vr;\n');
-                    txts.push('        METHOD_INSTANCE(' + cls + '_base);\n        PROPERTY_ENTER();\n');
-                    txts.push('        v8::String::Utf8Value k(property);\n        if(class_info().has(*k))return;\n');
-                    txts.push('        hr = pInst->_named_getter(*k, vr);\n        if(hr == CALL_RETURN_NULL)return;\n');
-                    txts.push('        METHOD_RETURN();\n    }\n');
-                    txts.push('    inline void ' + cls + '_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array> &args)\n    {\n        v8::Local<v8::Array> vr;\n');
-                    txts.push('        METHOD_INSTANCE(' + cls + '_base);\n        PROPERTY_ENTER();\n');
-                    txts.push('        hr = pInst->_named_enumerator(vr);\n');
-                    txts.push('        METHOD_RETURN1();\n    }\n');
+                    txts.push('inline void ' + cls + '_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ' + get_rtype(fn.type) + ' vr;\n');
+                    txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');
+                    txts.push('    v8::String::Utf8Value k(property);\n    if (class_info().has(*k))\n        return;\n');
+                    txts.push('    hr = pInst->_named_getter(*k, vr);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
+                    txts.push('    METHOD_RETURN();\n}\n');
+                    txts.push('inline void ' + cls + '_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args)\n{\n    v8::Local<v8::Array> vr;\n');
+                    txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');
+                    txts.push('    hr = pInst->_named_enumerator(vr);\n');
+                    txts.push('    METHOD_RETURN1();\n}\n');
 
                     if (!fn.readonly) {
-                        txts.push('    inline void ' + cls + '_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {');
-                        txts.push('        METHOD_INSTANCE(' + cls + '_base);\n        PROPERTY_ENTER();\n');
-                        txts.push('        PROPERTY_VAL(' + get_rtype(fn.type) + ');\n        v8::String::Utf8Value k(property);\n        if(class_info().has(*k))return;\n');
-                        txts.push('        hr = pInst->_named_setter(*k, v0);\n');
-                        txts.push('        METHOD_VOID();\n    }\n');
-                        txts.push('    inline void ' + cls + '_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean> &args)\n    {\n        v8::Local<v8::Boolean> vr;\n');
-                        txts.push('        METHOD_INSTANCE(' + cls + '_base);\n        PROPERTY_ENTER();\n');
-                        txts.push('        v8::String::Utf8Value k(property);\n        if(class_info().has(*k)){args.GetReturnValue().Set(v8::False(isolate));return;}\n');
-                        txts.push('        hr = pInst->_named_deleter(*k, vr);\n        METHOD_RETURN1();\n    }\n');
+                        txts.push('inline void ' + cls + '_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');
+                        txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');
+                        txts.push('    PROPERTY_VAL(' + get_rtype(fn.type) + ');\n    v8::String::Utf8Value k(property);\n    if (class_info().has(*k))\n        return;\n');
+                        txts.push('    hr = pInst->_named_setter(*k, v0);\n');
+                        txts.push('    METHOD_VOID();\n}\n');
+                        txts.push('inline void ' + cls + '_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)\n{\n    v8::Local<v8::Boolean> vr;\n');
+                        txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');
+                        txts.push('    v8::String::Utf8Value k(property);\n    if (class_info().has(*k)) {\n        args.GetReturnValue().Set(v8::False(isolate));\n        return;\n    }\n');
+                        txts.push('    hr = pInst->_named_deleter(*k, vr);\n    METHOD_RETURN1();\n}\n');
                     }
                 } else {
-                    txts.push('    inline void ' + cls + '_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {');
-                    txts.push('        ' + get_rtype(fn.type) + ' vr;\n');
-                    txts.push('        METHOD_INSTANCE(' + cls + '_base);\n        PROPERTY_ENTER();\n');
-                    txts.push('        hr = pInst->_indexed_getter(index, vr);\n\n        METHOD_RETURN();\n    }\n');
+                    txts.push('inline void ' + cls + '_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');
+                    txts.push('    ' + get_rtype(fn.type) + ' vr;\n');
+                    txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');
+                    txts.push('    hr = pInst->_indexed_getter(index, vr);\n\n    METHOD_RETURN();\n}\n');
 
                     if (!fn.readonly) {
-                        txts.push('    inline void ' + cls + '_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value> &args)\n    {');
-                        txts.push('        METHOD_INSTANCE(' + cls + '_base);\n        PROPERTY_ENTER();\n');
-                        txts.push('        PROPERTY_VAL(' + get_rtype(fn.type) + ');\n        hr = pInst->_indexed_setter(index, v0);\n');
-                        txts.push('        METHOD_VOID();\n    }\n');
+                        txts.push('inline void ' + cls + '_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');
+                        txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');
+                        txts.push('    PROPERTY_VAL(' + get_rtype(fn.type) + ');\n    hr = pInst->_indexed_setter(index, v0);\n');
+                        txts.push('    METHOD_VOID();\n}\n');
                     }
                 }
             }
@@ -681,11 +681,11 @@ function gen_code(cls, def) {
         if (def.declare.extend !== 'object')
             txts.push('#include "' + def.declare.extend + '.h"');
 
-        txts.push('\nnamespace fibjs\n{\n');
+        txts.push('\nnamespace fibjs {\n');
     }
 
     function gen_end() {
-        txts.push("}\n\n#endif\n\n");
+        txts.push("}\n\n#endif\n");
     }
 
     function gen_refer_cls() {
@@ -707,7 +707,7 @@ function gen_code(cls, def) {
 
     function gen_cls() {
         function gen_cls_declare() {
-            txts.push("class " + cls + "_base : public " + def.declare.extend + "_base\n{");
+            txts.push("class " + cls + "_base : public " + def.declare.extend + "_base {");
             txts.push("    DECLARE_CLASS(" + cls + "_base);");
         }
 
@@ -720,7 +720,7 @@ function gen_code(cls, def) {
             });
 
             if (consts.length) {
-                txts.push("\npublic:\n    enum{");
+                txts.push("\npublic:\n    enum {");
                 txts.push(consts.join(",\n"));
                 txts.push("    };");
             }
@@ -739,7 +739,7 @@ function gen_code(cls, def) {
         function gen_cls_new() {
             txts.push("");
             if (hasNew)
-                txts.push("public:\n    template<typename T>\n    static void __new(const T &args);\n");
+                txts.push("public:\n    template <typename T>\n    static void __new(const T& args);\n");
             else if (staticCallAsFunc)
                 txts.push("public:\n    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)\n    {\n" +
                     "        CONSTRUCT_INIT();\n        s__function(args);\n    }\n");
@@ -817,7 +817,7 @@ function gen_code(cls, def) {
             txts.push('');
             refers.forEach(c => txts.push('#include "' + c + '.h"'));
         }
-        txts.push('\nnamespace fibjs\n{');
+        txts.push('\nnamespace fibjs {');
     }
 
     function gen_cls_info() {
@@ -839,14 +839,14 @@ function gen_code(cls, def) {
                     return;
 
                 if (fn.memType == "method")
-                    deflist.push('            {"' + fname + '", s_' + fname + ', ' + (fstatic ? 'true' : 'false') + '}');
+                    deflist.push('        { "' + fname + '", s_' + fname + ', ' + (fstatic ? 'true' : 'false') + ' }');
             });
 
             if (deflist.length) {
                 method_count = deflist.length;
-                txts.push('        static ClassData::ClassMethod s_method[] = \n        {');
+                txts.push('    static ClassData::ClassMethod s_method[] = {');
                 txts.push(deflist.join(",\n"));
-                txts.push('        };\n');
+                txts.push('    };\n');
             }
         }
 
@@ -855,14 +855,14 @@ function gen_code(cls, def) {
 
             def.members.forEach(fn => {
                 if (fn.memType == 'object')
-                    deflist.push('            {"' + fn.name + '", ' + fn.type + '_base::class_info}');
+                    deflist.push('        { "' + fn.name + '", ' + fn.type + '_base::class_info }');
             });
 
             if (deflist.length) {
                 object_count = deflist.length;
-                txts.push('        static ClassData::ClassObject s_object[] = \n        {');
+                txts.push('    static ClassData::ClassObject s_object[] = {');
                 txts.push(deflist.join(",\n"));
-                txts.push('        };\n');
+                txts.push('    };\n');
             }
         }
 
@@ -872,38 +872,38 @@ function gen_code(cls, def) {
             def.members.forEach(fn => {
                 if (fn.memType == 'prop') {
                     var fname = fn.name;
-                    deflist.push('            {"' + fname + '", s_get_' + fname + ', ' +
+                    deflist.push('        { "' + fname + '", s_get_' + fname + ', ' +
                         (fn.readonly ? 'block_set' : 's_set_' + fname) + ', ' +
-                        (fn.static ? 'true' : 'false') + '}');
+                        (fn.static ? 'true' : 'false') + ' }');
                 } else if (fn.memType == 'const') {
                     var fname = fn.name;
-                    deflist.push('            {"' + fname + '", s_get_' + fname + ', block_set, true}');
+                    deflist.push('        { "' + fname + '", s_get_' + fname + ', block_set, true }');
                 }
             });
 
             if (deflist.length) {
                 prop_count = deflist.length;
-                txts.push('        static ClassData::ClassProperty s_property[] = \n        {');
+                txts.push('    static ClassData::ClassProperty s_property[] = {');
                 txts.push(deflist.join(",\n"));
-                txts.push('        };\n');
+                txts.push('    };\n');
             }
         }
 
         function gen_operator_info() {
             if (fnIndexed)
-                txts.push('        static ClassData::ClassIndexed s_indexed = \n        {\n            i_IndexedGetter, i_IndexedSetter\n        };\n');
+                txts.push('    static ClassData::ClassIndexed s_indexed = {\n        i_IndexedGetter, i_IndexedSetter\n    };\n');
 
             if (fnNamed)
-                txts.push('        static ClassData::ClassNamed s_named = \n        {\n            i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator\n        };\n');
+                txts.push('    static ClassData::ClassNamed s_named = {\n        i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator\n    };\n');
         }
 
         function gen_def_info() {
             var ds;
-            txts.push('        static ClassData s_cd = \n        { ');
-            txts.push('            "' + cls + '", ' + !!def.declare.module + ', ' + 's__new, ' +
-                (callAsFunc ? 's__function' : 'NULL') + ', ');
+            txts.push('    static ClassData s_cd = {');
+            txts.push('        "' + cls + '", ' + !!def.declare.module + ', ' + 's__new, ' +
+                (callAsFunc ? 's__function' : 'NULL') + ',');
 
-            ds = '            ';
+            ds = '        ';
             ds += method_count ? ('ARRAYSIZE(s_method), s_method, ') : '0, NULL, ';
             ds += object_count ? ('ARRAYSIZE(s_object), s_object, ') : '0, NULL, ';
             ds += prop_count ? ('ARRAYSIZE(s_property), s_property, ') : '0, NULL, ';
@@ -911,12 +911,12 @@ function gen_code(cls, def) {
             ds += fnNamed ? '&s_named,' : 'NULL,';
             txts.push(ds);
             txts.push((def.declare.extend ?
-                ('            &' + def.declare.extend + '_base::class_info()') :
-                '            NULL'));
-            txts.push('        };\n');
+                ('        &' + def.declare.extend + '_base::class_info()') :
+                '        NULL'));
+            txts.push('    };\n');
         }
 
-        txts.push("    inline ClassInfo& " + cls + "_base::class_info()\n    {");
+        txts.push("inline ClassInfo& " + cls + "_base::class_info()\n{");
 
         gen_method_info();
         gen_object_info();
@@ -925,7 +925,7 @@ function gen_code(cls, def) {
 
         gen_def_info();
 
-        txts.push("        static ClassInfo s_ci(s_cd);\n        return s_ci;\n    }\n");
+        txts.push("    static ClassInfo s_ci(s_cd);\n    return s_ci;\n}\n");
     }
 
     function gen_stub() {
@@ -1013,11 +1013,14 @@ function gen_code(cls, def) {
     gen_end();
 
     var txt = txts.join("\n");
+    txt = txt.replace(/};\n\n}/g, '};\n}');
+    txt = txt.replace(/}\n\n}/g, '}\n}');
+
     var fname = baseFolder + cls + ".h";
 
     if (!fs.exists(fname) || txt !== fs.readTextFile(fname)) {
         console.log(cls + ".h");
-        fs.writeTextFile(fname, txts.join("\n"));
+        fs.writeTextFile(fname, txt);
     }
 }
 
@@ -1034,7 +1037,7 @@ for (var cls in defs) {
 
 function clean_folder(path) {
     var dir = fs.readdir(path);
-    dir.forEach(function(name) {
+    dir.forEach(function (name) {
         var fname = path + '/' + name;
         var f = fs.stat(fname);
         if (f.isDirectory()) {
@@ -1054,7 +1057,7 @@ process.run('doxygen');
 
 function replace_dot(path) {
     var dir = fs.readdir(path);
-    dir.forEach(function(name) {
+    dir.forEach(function (name) {
         var fname = path + '/' + name;
         var f = fs.stat(fname);
         if (f.isDirectory()) {

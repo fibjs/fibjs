@@ -10,13 +10,12 @@
 #ifndef RUNTIME_H_
 #define RUNTIME_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Runtime
-{
+class Runtime {
 public:
-    Runtime(Isolate* isolate) : m_isolate(isolate)
+    Runtime(Isolate* isolate)
+        : m_isolate(isolate)
     {
         reg();
     }
@@ -41,7 +40,7 @@ public:
         return rt->m_code;
     }
 
-    static result_t setError(const char *err = NULL)
+    static result_t setError(const char* err = NULL)
     {
         Runtime* rt = Runtime::current();
 
@@ -50,7 +49,7 @@ public:
         return rt->m_code;
     }
 
-    static const exlib::string &errMessage()
+    static const exlib::string& errMessage()
     {
         return Runtime::current()->m_error;
     }
@@ -68,7 +67,7 @@ public:
 
     static bool is_current(Isolate* isolate)
     {
-        Runtime *rt = current();
+        Runtime* rt = current();
         if (rt == NULL)
             return false;
 

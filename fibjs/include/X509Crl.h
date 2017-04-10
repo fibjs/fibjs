@@ -11,27 +11,24 @@
 #ifndef _fj_X509CRL_H
 #define _fj_X509CRL_H
 
-namespace fibjs
-{
+namespace fibjs {
 
-class X509Crl : public X509Crl_base
-{
+class X509Crl : public X509Crl_base {
 public:
-	X509Crl();
-	~X509Crl();
+    X509Crl();
+    ~X509Crl();
 
 public:
-	// X509Crl_base
-	virtual result_t load(Buffer_base *derCrl);
-	virtual result_t load(exlib::string pemCrl);
-	virtual result_t loadFile(exlib::string filename);
-	virtual result_t dump(v8::Local<v8::Array> &retVal);
-	virtual result_t clear();
+    // X509Crl_base
+    virtual result_t load(Buffer_base* derCrl);
+    virtual result_t load(exlib::string pemCrl);
+    virtual result_t loadFile(exlib::string filename);
+    virtual result_t dump(v8::Local<v8::Array>& retVal);
+    virtual result_t clear();
 
 private:
-	mbedtls_x509_crl m_crl;
+    mbedtls_x509_crl m_crl;
 };
-
 }
 
 #endif

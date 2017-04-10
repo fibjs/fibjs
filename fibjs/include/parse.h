@@ -10,22 +10,23 @@
 #ifndef PARSE_H_
 #define PARSE_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class _parser
-{
+class _parser {
 public:
-    _parser(const char *s, int32_t n = -1) :
-        string(s), pos(0)
+    _parser(const char* s, int32_t n = -1)
+        : string(s)
+        , pos(0)
     {
         if (n < 0)
             n = (int32_t)qstrlen(s);
         sz = n;
     }
 
-    _parser(exlib::string &s) :
-        string(s.c_str()), sz((int32_t) s.length()), pos(0)
+    _parser(exlib::string& s)
+        : string(s.c_str())
+        , sz((int32_t)s.length())
+        , pos(0)
     {
     }
 
@@ -47,8 +48,7 @@ public:
     {
         char ch;
 
-        while (0 != (ch = get()))
-        {
+        while (0 != (ch = get())) {
             if (qisspace(ch))
                 skip();
             else
@@ -60,8 +60,7 @@ public:
     {
         char ch;
 
-        while (0 != (ch = get()))
-        {
+        while (0 != (ch = get())) {
             if (qisspace(ch))
                 break;
             else
@@ -73,8 +72,7 @@ public:
     {
         char ch;
 
-        while (0 != (ch = get()))
-        {
+        while (0 != (ch = get())) {
             if (qisspace(ch) || ch == ch1)
                 break;
             else
@@ -86,8 +84,7 @@ public:
     {
         char ch;
 
-        while (0 != (ch = get()))
-        {
+        while (0 != (ch = get())) {
             if (qisspace(ch) || ch == ch1 || ch == ch2)
                 break;
             else
@@ -99,8 +96,7 @@ public:
     {
         char ch;
 
-        while (0 != (ch = get()))
-        {
+        while (0 != (ch = get())) {
             if (qisspace(ch) || ch == ch1 || ch == ch2 || ch == ch3)
                 break;
             else
@@ -112,8 +108,7 @@ public:
     {
         char ch;
 
-        while (0 != (ch = get()))
-        {
+        while (0 != (ch = get())) {
             if (ch == ch1)
                 break;
             else
@@ -125,8 +120,7 @@ public:
     {
         char ch;
 
-        while (0 != (ch = get()))
-        {
+        while (0 != (ch = get())) {
             if (ch == ch1 || ch == ch2)
                 break;
             else
@@ -138,8 +132,7 @@ public:
     {
         char ch;
 
-        while (0 != (ch = get()))
-        {
+        while (0 != (ch = get())) {
             if (ch == ch1 || ch == ch2 || ch == ch3)
                 break;
             else
@@ -155,7 +148,7 @@ public:
         return ch;
     }
 
-    int32_t getWord(exlib::string &retVal)
+    int32_t getWord(exlib::string& retVal)
     {
         int32_t p1, p2;
 
@@ -168,7 +161,7 @@ public:
         return p2;
     }
 
-    int32_t getWord(exlib::string &retVal, char ch1)
+    int32_t getWord(exlib::string& retVal, char ch1)
     {
         int32_t p1, p2;
 
@@ -181,7 +174,7 @@ public:
         return p2;
     }
 
-    int32_t getWord(exlib::string &retVal, char ch1, char ch2)
+    int32_t getWord(exlib::string& retVal, char ch1, char ch2)
     {
         int32_t p1, p2;
 
@@ -194,7 +187,7 @@ public:
         return p2;
     }
 
-    int32_t getWord(exlib::string &retVal, char ch1, char ch2, char ch3)
+    int32_t getWord(exlib::string& retVal, char ch1, char ch2, char ch3)
     {
         int32_t p1, p2;
 
@@ -207,7 +200,7 @@ public:
         return p2;
     }
 
-    int32_t getString(exlib::string &retVal, char ch1)
+    int32_t getString(exlib::string& retVal, char ch1)
     {
         int32_t p1, p2;
 
@@ -220,7 +213,7 @@ public:
         return p2;
     }
 
-    int32_t getString(exlib::string &retVal, char ch1, char ch2)
+    int32_t getString(exlib::string& retVal, char ch1, char ch2)
     {
         int32_t p1, p2;
 
@@ -233,7 +226,7 @@ public:
         return p2;
     }
 
-    int32_t getString(exlib::string &retVal, char ch1, char ch2, char ch3)
+    int32_t getString(exlib::string& retVal, char ch1, char ch2, char ch3)
     {
         int32_t p1, p2;
 
@@ -246,7 +239,7 @@ public:
         return p2;
     }
 
-    int32_t getLeft(exlib::string &retVal)
+    int32_t getLeft(exlib::string& retVal)
     {
         int32_t p2 = sz - pos;
         retVal.assign(string + pos, p2);
@@ -255,15 +248,14 @@ public:
         return p2;
     }
 
-    int32_t getLine(exlib::string &retVal)
+    int32_t getLine(exlib::string& retVal)
     {
         int32_t p1, p2;
         char ch;
 
         p1 = pos;
 
-        while (0 != (ch = get()))
-        {
+        while (0 != (ch = get())) {
             if (ch == '\r' || ch == '\n')
                 break;
             else
@@ -271,8 +263,7 @@ public:
         }
         p2 = pos - p1;
 
-        if (ch)
-        {
+        if (ch) {
             skip();
             if (get() + ch == '\r' + '\n')
                 skip();
@@ -300,7 +291,7 @@ public:
         return pos >= sz;
     }
 
-    const char *now()
+    const char* now()
     {
         return string + pos;
     }
@@ -311,11 +302,10 @@ public:
     }
 
 public:
-    const char *string;
+    const char* string;
     int32_t sz;
     int32_t pos;
 };
-
 }
 
 #endif /* PARSE_H_ */

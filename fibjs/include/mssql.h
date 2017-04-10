@@ -14,13 +14,12 @@
 // #import "msado25.tlb" raw_interfaces_only, rename("EOF", "adoEOF")
 #include "msado25.tlh"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class mssql: public MSSQL_base
-{
+class mssql : public MSSQL_base {
 public:
-    mssql() : m_conn(NULL)
+    mssql()
+        : m_conn(NULL)
     {
     }
 
@@ -29,21 +28,21 @@ public:
 public:
     // DbConnection_base
     virtual result_t get_type(exlib::string& retVal);
-    virtual result_t close(AsyncEvent *ac);
-    virtual result_t begin(AsyncEvent *ac);
-    virtual result_t commit(AsyncEvent *ac);
-    virtual result_t rollback(AsyncEvent *ac);
-    virtual result_t execute(exlib::string sql, obj_ptr<DBResult_base> &retVal, AsyncEvent *ac);
-    virtual result_t execute(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<DBResult_base> &retVal);
-    virtual result_t format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value> &args, exlib::string &retVal);
+    virtual result_t close(AsyncEvent* ac);
+    virtual result_t begin(AsyncEvent* ac);
+    virtual result_t commit(AsyncEvent* ac);
+    virtual result_t rollback(AsyncEvent* ac);
+    virtual result_t execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac);
+    virtual result_t execute(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<DBResult_base>& retVal);
+    virtual result_t format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
 
 public:
     // MySQL_base
-    virtual result_t use(exlib::string dbName, AsyncEvent *ac);
+    virtual result_t use(exlib::string dbName, AsyncEvent* ac);
 
 public:
-    result_t connect(const char *server, const char *username, const char *password, const char *dbName);
-    result_t execute(const char *sql, int32_t sLen, obj_ptr<DBResult_base> &retVal);
+    result_t connect(const char* server, const char* username, const char* password, const char* dbName);
+    result_t execute(const char* sql, int32_t sLen, obj_ptr<DBResult_base>& retVal);
 
 private:
     inline result_t error(HRESULT hr)
@@ -51,20 +50,17 @@ private:
         ADODB::Errors* errs = NULL;
 
         m_conn->get_Errors(&errs);
-        if (errs)
-        {
+        if (errs) {
             ADODB::Error* err = NULL;
             _variant_t i(0);
 
             errs->get_Item(i, &err);
-            if (err)
-            {
+            if (err) {
                 BSTR msg = NULL;
                 err->get_Description(&msg);
                 err->Release();
 
-                if (msg)
-                {
+                if (msg) {
                     exlib::string msga = utf16to8String(msg);
                     SysFreeString(msg);
                     return Runtime::setError(msga);

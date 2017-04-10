@@ -14,8 +14,7 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class HttpRequest_base;
 class HttpResponse_base;
@@ -31,8 +30,7 @@ class SeekableStream_base;
 class Map_base;
 class Buffer_base;
 
-class http_base : public object_base
-{
+class http_base : public object_base {
     DECLARE_CLASS(http_base);
 
 public:
@@ -76,15 +74,15 @@ public:
     }
 
 public:
-    static void s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_enableCookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_enableCookie(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_autoRedirect(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_autoRedirect(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_userAgent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_userAgent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_enableCookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_enableCookie(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_autoRedirect(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_autoRedirect(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_userAgent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_userAgent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -97,7 +95,6 @@ public:
     ASYNC_STATICVALUE3(http_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE5(http_base, request, exlib::string, exlib::string, SeekableStream_base*, Map_base*, obj_ptr<HttpResponse_base>);
 };
-
 }
 
 #include "HttpRequest.h"
@@ -114,351 +111,344 @@ public:
 #include "Map.h"
 #include "Buffer.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& http_base::class_info()
 {
-    inline ClassInfo& http_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"fileHandler", s_fileHandler, true},
-            {"request", s_request, true},
-            {"get", s_get, true},
-            {"post", s_post, true},
-            {"del", s_del, true},
-            {"put", s_put, true},
-            {"patch", s_patch, true}
-        };
-
-        static ClassData::ClassObject s_object[] = 
-        {
-            {"Request", HttpRequest_base::class_info},
-            {"Response", HttpResponse_base::class_info},
-            {"Cookie", HttpCookie_base::class_info},
-            {"Server", HttpServer_base::class_info},
-            {"Client", HttpClient_base::class_info},
-            {"HttpsServer", HttpsServer_base::class_info},
-            {"Handler", HttpHandler_base::class_info}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "fileHandler", s_fileHandler, true },
+        { "request", s_request, true },
+        { "get", s_get, true },
+        { "post", s_post, true },
+        { "del", s_del, true },
+        { "put", s_put, true },
+        { "patch", s_patch, true }
+    };
 
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"cookies", s_get_cookies, block_set, true},
-            {"timeout", s_get_timeout, s_set_timeout, true},
-            {"enableCookie", s_get_enableCookie, s_set_enableCookie, true},
-            {"autoRedirect", s_get_autoRedirect, s_set_autoRedirect, true},
-            {"userAgent", s_get_userAgent, s_set_userAgent, true}
-        };
+    static ClassData::ClassObject s_object[] = {
+        { "Request", HttpRequest_base::class_info },
+        { "Response", HttpResponse_base::class_info },
+        { "Cookie", HttpCookie_base::class_info },
+        { "Server", HttpServer_base::class_info },
+        { "Client", HttpClient_base::class_info },
+        { "HttpsServer", HttpsServer_base::class_info },
+        { "Handler", HttpHandler_base::class_info }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "http", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "cookies", s_get_cookies, block_set, true },
+        { "timeout", s_get_timeout, s_set_timeout, true },
+        { "enableCookie", s_get_enableCookie, s_set_enableCookie, true },
+        { "autoRedirect", s_get_autoRedirect, s_set_autoRedirect, true },
+        { "userAgent", s_get_userAgent, s_set_userAgent, true }
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassData s_cd = {
+        "http", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
 
-    inline void http_base::s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        obj_ptr<List_base> vr;
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-        PROPERTY_ENTER();
+inline void http_base::s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<List_base> vr;
 
-        hr = get_cookies(vr);
+    PROPERTY_ENTER();
 
-        METHOD_RETURN();
-    }
+    hr = get_cookies(vr);
 
-    inline void http_base::s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+    METHOD_RETURN();
+}
 
-        PROPERTY_ENTER();
+inline void http_base::s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        hr = get_timeout(vr);
+    PROPERTY_ENTER();
 
-        METHOD_RETURN();
-    }
+    hr = get_timeout(vr);
 
-    inline void http_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        PROPERTY_ENTER();
-        PROPERTY_VAL(int32_t);
+    METHOD_RETURN();
+}
 
-        hr = set_timeout(v0);
+inline void http_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
 
-        PROPERTY_SET_LEAVE();
-    }
+    hr = set_timeout(v0);
 
-    inline void http_base::s_get_enableCookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        bool vr;
+    PROPERTY_SET_LEAVE();
+}
 
-        PROPERTY_ENTER();
+inline void http_base::s_get_enableCookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        hr = get_enableCookie(vr);
+    PROPERTY_ENTER();
 
-        METHOD_RETURN();
-    }
+    hr = get_enableCookie(vr);
 
-    inline void http_base::s_set_enableCookie(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        PROPERTY_ENTER();
-        PROPERTY_VAL(bool);
+    METHOD_RETURN();
+}
 
-        hr = set_enableCookie(v0);
+inline void http_base::s_set_enableCookie(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    PROPERTY_ENTER();
+    PROPERTY_VAL(bool);
 
-        PROPERTY_SET_LEAVE();
-    }
+    hr = set_enableCookie(v0);
 
-    inline void http_base::s_get_autoRedirect(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        bool vr;
+    PROPERTY_SET_LEAVE();
+}
 
-        PROPERTY_ENTER();
+inline void http_base::s_get_autoRedirect(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        hr = get_autoRedirect(vr);
+    PROPERTY_ENTER();
 
-        METHOD_RETURN();
-    }
+    hr = get_autoRedirect(vr);
 
-    inline void http_base::s_set_autoRedirect(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        PROPERTY_ENTER();
-        PROPERTY_VAL(bool);
+    METHOD_RETURN();
+}
 
-        hr = set_autoRedirect(v0);
+inline void http_base::s_set_autoRedirect(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    PROPERTY_ENTER();
+    PROPERTY_VAL(bool);
 
-        PROPERTY_SET_LEAVE();
-    }
+    hr = set_autoRedirect(v0);
 
-    inline void http_base::s_get_userAgent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+    PROPERTY_SET_LEAVE();
+}
 
-        PROPERTY_ENTER();
+inline void http_base::s_get_userAgent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        hr = get_userAgent(vr);
+    PROPERTY_ENTER();
 
-        METHOD_RETURN();
-    }
+    hr = get_userAgent(vr);
 
-    inline void http_base::s_set_userAgent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        PROPERTY_ENTER();
-        PROPERTY_VAL(exlib::string);
+    METHOD_RETURN();
+}
 
-        hr = set_userAgent(v0);
+inline void http_base::s_set_userAgent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    PROPERTY_ENTER();
+    PROPERTY_VAL(exlib::string);
 
-        PROPERTY_SET_LEAVE();
-    }
+    hr = set_userAgent(v0);
 
-    inline void http_base::s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Handler_base> vr;
+    PROPERTY_SET_LEAVE();
+}
 
-        METHOD_ENTER();
+inline void http_base::s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Handler_base> vr;
 
-        METHOD_OVER(2, 1);
+    METHOD_ENTER();
 
-        ARG(exlib::string, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    METHOD_OVER(2, 1);
 
-        hr = fileHandler(v0, v1, vr);
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-        METHOD_RETURN();
-    }
+    hr = fileHandler(v0, v1, vr);
 
-    inline void http_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<HttpResponse_base> vr;
+    METHOD_RETURN();
+}
 
-        METHOD_ENTER();
+inline void http_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpResponse_base> vr;
 
-        ASYNC_METHOD_OVER(2, 2);
+    METHOD_ENTER();
 
-        ARG(obj_ptr<Stream_base>, 0);
-        ARG(obj_ptr<HttpRequest_base>, 1);
+    ASYNC_METHOD_OVER(2, 2);
 
-        if(!cb.IsEmpty()) {
-            acb_request(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_request(v0, v1, vr);
+    ARG(obj_ptr<Stream_base>, 0);
+    ARG(obj_ptr<HttpRequest_base>, 1);
 
-        METHOD_OVER(3, 2);
+    if (!cb.IsEmpty()) {
+        acb_request(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_request(v0, v1, vr);
 
-        ARG(exlib::string, 0);
-        ARG(exlib::string, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    METHOD_OVER(3, 2);
 
-        hr = request(v0, v1, v2, vr);
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        ASYNC_METHOD_OVER(4, 4);
+    hr = request(v0, v1, v2, vr);
 
-        ARG(exlib::string, 0);
-        ARG(exlib::string, 1);
-        ARG(obj_ptr<SeekableStream_base>, 2);
-        ARG(obj_ptr<Map_base>, 3);
+    ASYNC_METHOD_OVER(4, 4);
 
-        if(!cb.IsEmpty()) {
-            acb_request(v0, v1, v2, v3, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_request(v0, v1, v2, v3, vr);
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    ARG(obj_ptr<SeekableStream_base>, 2);
+    ARG(obj_ptr<Map_base>, 3);
 
-        METHOD_OVER(4, 3);
+    if (!cb.IsEmpty()) {
+        acb_request(v0, v1, v2, v3, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_request(v0, v1, v2, v3, vr);
 
-        ARG(exlib::string, 0);
-        ARG(exlib::string, 1);
-        ARG(obj_ptr<SeekableStream_base>, 2);
-        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
+    METHOD_OVER(4, 3);
 
-        hr = request(v0, v1, v2, v3, vr);
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    ARG(obj_ptr<SeekableStream_base>, 2);
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
-        METHOD_OVER(4, 3);
+    hr = request(v0, v1, v2, v3, vr);
 
-        ARG(exlib::string, 0);
-        ARG(exlib::string, 1);
-        ARG(obj_ptr<Buffer_base>, 2);
-        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
+    METHOD_OVER(4, 3);
 
-        hr = request(v0, v1, v2, v3, vr);
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
-        METHOD_RETURN();
-    }
+    hr = request(v0, v1, v2, v3, vr);
 
-    inline void http_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<HttpResponse_base> vr;
+    METHOD_RETURN();
+}
 
-        METHOD_ENTER();
+inline void http_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpResponse_base> vr;
 
-        METHOD_OVER(2, 1);
+    METHOD_ENTER();
 
-        ARG(exlib::string, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    METHOD_OVER(2, 1);
 
-        hr = get(v0, v1, vr);
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-        METHOD_RETURN();
-    }
+    hr = get(v0, v1, vr);
 
-    inline void http_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<HttpResponse_base> vr;
+    METHOD_RETURN();
+}
 
-        METHOD_ENTER();
+inline void http_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpResponse_base> vr;
 
-        METHOD_OVER(3, 2);
+    METHOD_ENTER();
 
-        ARG(exlib::string, 0);
-        ARG(obj_ptr<SeekableStream_base>, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    METHOD_OVER(3, 2);
 
-        hr = post(v0, v1, v2, vr);
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<SeekableStream_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        METHOD_OVER(3, 2);
+    hr = post(v0, v1, v2, vr);
 
-        ARG(exlib::string, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    METHOD_OVER(3, 2);
 
-        hr = post(v0, v1, v2, vr);
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        METHOD_OVER(2, 1);
+    hr = post(v0, v1, v2, vr);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    METHOD_OVER(2, 1);
 
-        hr = post(v0, v1, vr);
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-        METHOD_RETURN();
-    }
+    hr = post(v0, v1, vr);
 
-    inline void http_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<HttpResponse_base> vr;
+    METHOD_RETURN();
+}
 
-        METHOD_ENTER();
+inline void http_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpResponse_base> vr;
 
-        METHOD_OVER(2, 1);
+    METHOD_ENTER();
 
-        ARG(exlib::string, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    METHOD_OVER(2, 1);
 
-        hr = del(v0, v1, vr);
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-        METHOD_RETURN();
-    }
+    hr = del(v0, v1, vr);
 
-    inline void http_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<HttpResponse_base> vr;
+    METHOD_RETURN();
+}
 
-        METHOD_ENTER();
+inline void http_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpResponse_base> vr;
 
-        METHOD_OVER(3, 2);
+    METHOD_ENTER();
 
-        ARG(exlib::string, 0);
-        ARG(obj_ptr<SeekableStream_base>, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    METHOD_OVER(3, 2);
 
-        hr = put(v0, v1, v2, vr);
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<SeekableStream_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        METHOD_OVER(3, 2);
+    hr = put(v0, v1, v2, vr);
 
-        ARG(exlib::string, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    METHOD_OVER(3, 2);
 
-        hr = put(v0, v1, v2, vr);
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        METHOD_OVER(2, 1);
+    hr = put(v0, v1, v2, vr);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    METHOD_OVER(2, 1);
 
-        hr = put(v0, v1, vr);
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-        METHOD_RETURN();
-    }
+    hr = put(v0, v1, vr);
 
-    inline void http_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<HttpResponse_base> vr;
+    METHOD_RETURN();
+}
 
-        METHOD_ENTER();
+inline void http_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpResponse_base> vr;
 
-        METHOD_OVER(3, 2);
+    METHOD_ENTER();
 
-        ARG(exlib::string, 0);
-        ARG(obj_ptr<SeekableStream_base>, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    METHOD_OVER(3, 2);
 
-        hr = patch(v0, v1, v2, vr);
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<SeekableStream_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        METHOD_OVER(3, 2);
+    hr = patch(v0, v1, v2, vr);
 
-        ARG(exlib::string, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
-        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    METHOD_OVER(3, 2);
 
-        hr = patch(v0, v1, v2, vr);
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-        METHOD_OVER(2, 1);
+    hr = patch(v0, v1, v2, vr);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    METHOD_OVER(2, 1);
 
-        hr = patch(v0, v1, vr);
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-        METHOD_RETURN();
-    }
+    hr = patch(v0, v1, vr);
 
+    METHOD_RETURN();
+}
 }
 
 #endif
-

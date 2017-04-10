@@ -11,14 +11,12 @@
 #ifndef MONGOID_H_
 #define MONGOID_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class MongoID: public MongoID_base
-{
+class MongoID : public MongoID_base {
 public:
-    MongoID(const bson_oid_t *id) :
-        m_id(*id)
+    MongoID(const bson_oid_t* id)
+        : m_id(*id)
     {
     }
 
@@ -31,7 +29,7 @@ public:
     }
 
 public:
-    virtual result_t toString(exlib::string &retVal)
+    virtual result_t toString(exlib::string& retVal)
     {
         char buf[25];
 
@@ -41,7 +39,7 @@ public:
         return 0;
     }
 
-    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     {
         exlib::string str;
 

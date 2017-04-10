@@ -12,17 +12,16 @@
 #ifndef ROUTING_H_
 #define ROUTING_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Routing: public Routing_base
-{
+class Routing : public Routing_base {
 public:
-    class rule: public obj_base
-    {
+    class rule : public obj_base {
     public:
-        rule(exlib::string method, pcre *re, Handler_base *hdlr) :
-            m_method(method), m_re(re), m_hdlr(hdlr)
+        rule(exlib::string method, pcre* re, Handler_base* hdlr)
+            : m_method(method)
+            , m_re(re)
+            , m_hdlr(hdlr)
         {
         }
 
@@ -33,7 +32,7 @@ public:
 
     public:
         exlib::string m_method;
-        pcre *m_re;
+        pcre* m_re;
         naked_ptr<Handler_base> m_hdlr;
     };
 
@@ -43,7 +42,7 @@ public:
     {
         int32_t i, sz = (int32_t)m_array.size();
 
-        for (i = 0; i < sz; i ++)
+        for (i = 0; i < sz; i++)
             m_array[i]->m_hdlr.dispose();
 
         return 0;
@@ -51,8 +50,8 @@ public:
 
 public:
     // Handler_base
-    virtual result_t invoke(object_base *v,
-                            obj_ptr<Handler_base> &retVal, AsyncEvent *ac);
+    virtual result_t invoke(object_base* v,
+        obj_ptr<Handler_base>& retVal, AsyncEvent* ac);
 
 public:
     // Routing_base
@@ -75,7 +74,7 @@ public:
     virtual result_t patch(exlib::string pattern, v8::Local<v8::Value> hdlr);
 
 public:
-    result_t append(exlib::string method, exlib::string pattern, Handler_base *hdlr);
+    result_t append(exlib::string method, exlib::string pattern, Handler_base* hdlr);
 
 private:
     std::vector<obj_ptr<rule> > m_array;

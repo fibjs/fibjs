@@ -10,19 +10,18 @@
 #include "ifs/http.h"
 #include "JSHandler.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 result_t HttpServer_base::_new(int32_t port, v8::Local<v8::Value> hdlr,
-                               obj_ptr<HttpServer_base> &retVal,
-                               v8::Local<v8::Object> This)
+    obj_ptr<HttpServer_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     return _new("", port, hdlr, retVal, This);
 }
 
 result_t HttpServer_base::_new(exlib::string addr, int32_t port, v8::Local<v8::Value> hdlr,
-                               obj_ptr<HttpServer_base> &retVal,
-                               v8::Local<v8::Object> This)
+    obj_ptr<HttpServer_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     result_t hr;
 
@@ -57,7 +56,7 @@ result_t HttpServer::create(exlib::string addr, int32_t port, v8::Local<v8::Valu
     return _server->create(addr, port, _handler);
 }
 
-result_t HttpServer::run(AsyncEvent *ac)
+result_t HttpServer::run(AsyncEvent* ac)
 {
     return m_server->run(ac);
 }
@@ -67,22 +66,22 @@ result_t HttpServer::asyncRun()
     return m_server->asyncRun();
 }
 
-result_t HttpServer::stop(AsyncEvent *ac)
+result_t HttpServer::stop(AsyncEvent* ac)
 {
     return m_server->stop(ac);
 }
 
-result_t HttpServer::get_socket(obj_ptr<Socket_base> &retVal)
+result_t HttpServer::get_socket(obj_ptr<Socket_base>& retVal)
 {
     return m_server->get_socket(retVal);
 }
 
-result_t HttpServer::get_handler(obj_ptr<Handler_base> &retVal)
+result_t HttpServer::get_handler(obj_ptr<Handler_base>& retVal)
 {
     return handler()->get_handler(retVal);
 }
 
-result_t HttpServer::set_handler(Handler_base *newVal)
+result_t HttpServer::set_handler(Handler_base* newVal)
 {
     return handler()->set_handler(newVal);
 }
@@ -92,7 +91,7 @@ result_t HttpServer::onerror(v8::Local<v8::Object> hdlrs)
     return handler()->onerror(hdlrs);
 }
 
-result_t HttpServer::get_crossDomain(bool &retVal)
+result_t HttpServer::get_crossDomain(bool& retVal)
 {
     return handler()->get_crossDomain(retVal);
 }
@@ -102,7 +101,7 @@ result_t HttpServer::set_crossDomain(bool newVal)
     return handler()->set_crossDomain(newVal);
 }
 
-result_t HttpServer::get_forceGZIP(bool &retVal)
+result_t HttpServer::get_forceGZIP(bool& retVal)
 {
     return handler()->get_forceGZIP(retVal);
 }
@@ -112,7 +111,7 @@ result_t HttpServer::set_forceGZIP(bool newVal)
     return handler()->set_forceGZIP(newVal);
 }
 
-result_t HttpServer::get_maxHeadersCount(int32_t &retVal)
+result_t HttpServer::get_maxHeadersCount(int32_t& retVal)
 {
     return handler()->get_maxHeadersCount(retVal);
 }
@@ -122,22 +121,23 @@ result_t HttpServer::set_maxHeadersCount(int32_t newVal)
     return handler()->set_maxHeadersCount(newVal);
 }
 
-result_t HttpServer::get_maxUploadSize(int32_t &retVal)
+result_t HttpServer::get_maxUploadSize(int32_t& retVal)
 {
     return handler()->get_maxUploadSize(retVal);
 }
 
 result_t HttpServer::set_maxUploadSize(int32_t newVal)
 {
-    return handler()->set_maxUploadSize(newVal);;
+    return handler()->set_maxUploadSize(newVal);
+    ;
 }
 
-result_t HttpServer::get_httpStats(obj_ptr<Stats_base> &retVal)
+result_t HttpServer::get_httpStats(obj_ptr<Stats_base>& retVal)
 {
     return handler()->get_stats(retVal);
 }
 
-result_t HttpServer::get_stats(obj_ptr<Stats_base> &retVal)
+result_t HttpServer::get_stats(obj_ptr<Stats_base>& retVal)
 {
     return m_server->get_stats(retVal);
 }

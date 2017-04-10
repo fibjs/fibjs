@@ -25,8 +25,7 @@
 #include "encoding_iconv.h"
 #include "ifs/encoding.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 DECLARE_MODULE(iconv);
 
@@ -44,7 +43,7 @@ inline void init_iconv()
 
 #define _iconv_open iconv_open
 #define _iconv_close iconv_close
-#define _iconv ((size_t (*)(iconv_t, const char **, size_t *, char **, size_t *))&iconv)
+#define _iconv ((size_t(*)(iconv_t, const char**, size_t*, char**, size_t*)) & iconv)
 
 inline void init_iconv()
 {
@@ -54,11 +53,11 @@ inline void init_iconv()
 
 #ifndef HAVE_ICONV_H
 
-typedef void *iconv_t;
+typedef void* iconv_t;
 
-static iconv_t iconv_open(const char *tocode, const char *fromcode)
+static iconv_t iconv_open(const char* tocode, const char* fromcode)
 {
-    return (iconv_t) - 1;
+    return (iconv_t)-1;
 }
 
 static int32_t iconv_close(iconv_t cd)
@@ -66,46 +65,43 @@ static int32_t iconv_close(iconv_t cd)
     return 0;
 }
 
-static size_t iconv(iconv_t cd, const char **inbuf, size_t *inbytesleft,
-                    char **outbuf, size_t *outbytesleft)
+static size_t iconv(iconv_t cd, const char** inbuf, size_t* inbytesleft,
+    char** outbuf, size_t* outbytesleft)
 {
     return 0;
 }
 
 #endif
 
-static size_t (*_iconv)(iconv_t, const char **, size_t *, char **, size_t *);
-static iconv_t (*_iconv_open)(const char *, const char *);
+static size_t (*_iconv)(iconv_t, const char**, size_t*, char**, size_t*);
+static iconv_t (*_iconv_open)(const char*, const char*);
 static int32_t (*_iconv_close)(iconv_t);
 
 inline void init_iconv()
 {
     static bool _init = false;
 
-    if (!_init)
-    {
+    if (!_init) {
         _init = true;
 
-        void *handle = dlopen("libiconv.so", RTLD_LAZY);
+        void* handle = dlopen("libiconv.so", RTLD_LAZY);
 
-        if (handle)
-        {
-            _iconv = (size_t (*)(iconv_t, const char **, size_t *, char **, size_t *))dlsym(handle, "iconv");
+        if (handle) {
+            _iconv = (size_t(*)(iconv_t, const char**, size_t*, char**, size_t*))dlsym(handle, "iconv");
             if (!_iconv)
-                _iconv = (size_t (*)(iconv_t, const char **, size_t *, char **, size_t *))dlsym(handle, "libiconv");
+                _iconv = (size_t(*)(iconv_t, const char**, size_t*, char**, size_t*))dlsym(handle, "libiconv");
 
-            _iconv_open = (iconv_t (*)(const char *, const char *))dlsym(handle, "iconv_open");
+            _iconv_open = (iconv_t(*)(const char*, const char*))dlsym(handle, "iconv_open");
             if (!_iconv_open)
-                _iconv_open = (iconv_t (*)(const char *, const char *))dlsym(handle, "libiconv_open");
+                _iconv_open = (iconv_t(*)(const char*, const char*))dlsym(handle, "libiconv_open");
 
-            _iconv_close = (int32_t (*)(iconv_t))dlsym(handle, "iconv_close");
+            _iconv_close = (int32_t(*)(iconv_t))dlsym(handle, "iconv_close");
             if (!_iconv_close)
-                _iconv_close = (int32_t (*)(iconv_t))dlsym(handle, "libiconv_close");
+                _iconv_close = (int32_t(*)(iconv_t))dlsym(handle, "libiconv_close");
         }
 
-        if (!_iconv || !_iconv_open || !_iconv_close)
-        {
-            _iconv = (size_t (*)(iconv_t, const char **, size_t *, char **, size_t *))iconv;
+        if (!_iconv || !_iconv_open || !_iconv_close) {
+            _iconv = (size_t(*)(iconv_t, const char**, size_t*, char**, size_t*))iconv;
             _iconv_open = iconv_open;
             _iconv_close = iconv_close;
         }
@@ -114,15 +110,17 @@ inline void init_iconv()
 
 #endif
 
-encoding_iconv::encoding_iconv() :
-    m_iconv_en(NULL), m_iconv_de(NULL)
+encoding_iconv::encoding_iconv()
+    : m_iconv_en(NULL)
+    , m_iconv_de(NULL)
 {
     init_iconv();
     m_charset = "utf-8";
 }
 
-encoding_iconv::encoding_iconv(exlib::string charset) :
-    m_iconv_en(NULL), m_iconv_de(NULL)
+encoding_iconv::encoding_iconv(exlib::string charset)
+    : m_iconv_en(NULL)
+    , m_iconv_de(NULL)
 {
     init_iconv();
     m_charset = (charset == "gb2312") ? "gbk" : charset;
@@ -137,16 +135,14 @@ encoding_iconv::~encoding_iconv()
         _iconv_close((iconv_t)m_iconv_de);
 }
 
-void encoding_iconv::open(const char *charset)
+void encoding_iconv::open(const char* charset)
 {
-    if (m_iconv_en)
-    {
+    if (m_iconv_en) {
         _iconv_close((iconv_t)m_iconv_en);
         m_iconv_en = NULL;
     }
 
-    if (m_iconv_de)
-    {
+    if (m_iconv_de) {
         _iconv_close((iconv_t)m_iconv_de);
         m_iconv_de = NULL;
     }
@@ -154,32 +150,29 @@ void encoding_iconv::open(const char *charset)
     m_charset = charset;
 }
 
-result_t encoding_iconv::encode(exlib::string data, exlib::string &retVal)
+result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
 {
     if ((m_charset == "utf8") || (m_charset == "utf-8"))
         retVal = data;
-    else
-    {
-        if (!m_iconv_en)
-        {
+    else {
+        if (!m_iconv_en) {
             m_iconv_en = _iconv_open(m_charset.c_str(), "utf-8");
-            if (m_iconv_en == (iconv_t)(-1))
-            {
+            if (m_iconv_en == (iconv_t)(-1)) {
                 m_iconv_en = NULL;
                 return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
             }
         }
 
-        const char * _data = data.c_str();
+        const char* _data = data.c_str();
         size_t sz = data.length();
 
         retVal.resize(sz * 2);
-        char *output_buf = &retVal[0];
+        char* output_buf = &retVal[0];
         size_t output_size = retVal.length();
 
         size_t n = _iconv((iconv_t)m_iconv_en, &_data, &sz, &output_buf, &output_size);
 
-        if (n == (size_t) - 1)
+        if (n == (size_t)-1)
             return CHECK_ERROR(Runtime::setError("encoding: convert error."));
 
         retVal.resize(retVal.length() - output_size);
@@ -188,7 +181,7 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string &retVal)
     return 0;
 }
 
-result_t encoding_iconv::encode(exlib::string data, obj_ptr<Buffer_base> &retVal)
+result_t encoding_iconv::encode(exlib::string data, obj_ptr<Buffer_base>& retVal)
 {
     exlib::string strBuf;
 
@@ -201,33 +194,30 @@ result_t encoding_iconv::encode(exlib::string data, obj_ptr<Buffer_base> &retVal
     return 0;
 }
 
-result_t encoding_iconv::decode(const exlib::string &data, exlib::string &retVal)
+result_t encoding_iconv::decode(const exlib::string& data, exlib::string& retVal)
 {
     if ((m_charset == "utf8") || (m_charset == "utf-8"))
         retVal = data;
-    else
-    {
-        if (!m_iconv_de)
-        {
+    else {
+        if (!m_iconv_de) {
             m_iconv_de = _iconv_open("utf-8", m_charset.c_str());
-            if (m_iconv_de == (iconv_t)(-1))
-            {
+            if (m_iconv_de == (iconv_t)(-1)) {
                 m_iconv_de = NULL;
                 return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
             }
         }
 
         size_t sz = data.length();
-        const char *ptr = data.c_str();
+        const char* ptr = data.c_str();
         exlib::string strBuf;
 
         strBuf.resize(sz * 2);
-        char *output_buf = &strBuf[0];
+        char* output_buf = &strBuf[0];
         size_t output_size = strBuf.length();
 
         size_t n = _iconv((iconv_t)m_iconv_de, &ptr, &sz, &output_buf, &output_size);
 
-        if (n == (size_t) - 1)
+        if (n == (size_t)-1)
             return CHECK_ERROR(Runtime::setError("encoding: convert error."));
 
         strBuf.resize(strBuf.length() - output_size);
@@ -238,7 +228,7 @@ result_t encoding_iconv::decode(const exlib::string &data, exlib::string &retVal
     return 0;
 }
 
-result_t encoding_iconv::decode(Buffer_base *data, exlib::string &retVal)
+result_t encoding_iconv::decode(Buffer_base* data, exlib::string& retVal)
 {
     exlib::string strData;
     data->toString(strData);
@@ -247,16 +237,14 @@ result_t encoding_iconv::decode(Buffer_base *data, exlib::string &retVal)
 }
 
 result_t iconv_base::encode(exlib::string charset, exlib::string data,
-                            obj_ptr<Buffer_base> &retVal)
+    obj_ptr<Buffer_base>& retVal)
 {
     return encoding_iconv(charset).encode(data, retVal);
 }
 
-result_t iconv_base::decode(exlib::string charset, Buffer_base *data,
-                            exlib::string &retVal)
+result_t iconv_base::decode(exlib::string charset, Buffer_base* data,
+    exlib::string& retVal)
 {
     return encoding_iconv(charset).decode(data, retVal);
 }
-
 }
-

@@ -8,11 +8,10 @@
 #include "object.h"
 #include "Semaph.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t Semaphore_base::_new(int32_t value, obj_ptr<Semaphore_base> &retVal,
-                              v8::Local<v8::Object> This)
+result_t Semaphore_base::_new(int32_t value, obj_ptr<Semaphore_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     if (value < 0)
         return CHECK_ERROR(CALL_E_OUTRANGE);
@@ -22,10 +21,9 @@ result_t Semaphore_base::_new(int32_t value, obj_ptr<Semaphore_base> &retVal,
     return 0;
 }
 
-result_t Semaphore::acquire(bool blocking, bool &retVal)
+result_t Semaphore::acquire(bool blocking, bool& retVal)
 {
-    if (!blocking)
-    {
+    if (!blocking) {
         retVal = m_sem.trywait();
         return 0;
     }
@@ -65,11 +63,10 @@ result_t Semaphore::post()
     return 0;
 }
 
-result_t Semaphore::trywait(bool &retVal)
+result_t Semaphore::trywait(bool& retVal)
 {
     retVal = m_sem.trywait();
 
     return 0;
 }
-
 }

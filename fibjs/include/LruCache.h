@@ -12,14 +12,13 @@
 #ifndef LRUCACHE_H_
 #define LRUCACHE_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class LruCache: public LruCache_base
-{
+class LruCache : public LruCache_base {
 public:
-    LruCache(int32_t size, int32_t timeout) :
-        m_size(size), m_timeout(timeout)
+    LruCache(int32_t size, int32_t timeout)
+        : m_size(size)
+        , m_timeout(timeout)
     {
         m_begin_lru = m_datas.end();
         m_end_lru = m_datas.end();
@@ -32,38 +31,37 @@ public:
 
 public:
     // object_base
-    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value> &retVal);
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
 
 public:
     // LruCache_base
-    virtual result_t get_size(int32_t &retVal);
+    virtual result_t get_size(int32_t& retVal);
     virtual result_t get_timeout(int32_t& retVal);
     virtual result_t set_timeout(int32_t newVal);
     virtual result_t clear();
-    virtual result_t has(exlib::string name, bool &retVal);
-    virtual result_t get(exlib::string name, v8::Local<v8::Value> &retVal);
-    virtual result_t get(exlib::string name, v8::Local<v8::Function> updater, v8::Local<v8::Value> &retVal);
+    virtual result_t has(exlib::string name, bool& retVal);
+    virtual result_t get(exlib::string name, v8::Local<v8::Value>& retVal);
+    virtual result_t get(exlib::string name, v8::Local<v8::Function> updater, v8::Local<v8::Value>& retVal);
     virtual result_t set(exlib::string name, v8::Local<v8::Value> value);
     virtual result_t set(v8::Local<v8::Object> map);
     virtual result_t remove(exlib::string name);
-    virtual result_t isEmpty(bool &retVal);
+    virtual result_t isEmpty(bool& retVal);
 
 private:
-    class _linkedNode
-    {
+    class _linkedNode {
     public:
         date_t insert;
         std::map<exlib::string, void *>::iterator m_prev, m_next, m_prev1, m_next1;
     };
 
-    inline std::map<exlib::string, void *>::iterator _generalize(std::map<exlib::string, _linkedNode>::iterator it)
+    inline std::map<exlib::string, void*>::iterator _generalize(std::map<exlib::string, _linkedNode>::iterator it)
     {
-        return *((std::map<exlib::string, void *>::iterator *) &it);
+        return *((std::map<exlib::string, void*>::iterator*)&it);
     }
 
-    inline std::map<exlib::string, _linkedNode>::iterator _instantiate(std::map<exlib::string, void *>::iterator it)
+    inline std::map<exlib::string, _linkedNode>::iterator _instantiate(std::map<exlib::string, void*>::iterator it)
     {
-        return *((std::map<exlib::string, _linkedNode>::iterator *) &it);
+        return *((std::map<exlib::string, _linkedNode>::iterator*)&it);
     }
 
     void remove(std::map<exlib::string, _linkedNode>::iterator it)
@@ -124,8 +122,7 @@ private:
 
     void update(std::map<exlib::string, _linkedNode>::iterator it)
     {
-        if (m_begin_lru != it)
-        {
+        if (m_begin_lru != it) {
             std::map<exlib::string, _linkedNode>::iterator prev = _instantiate(it->second.m_prev);
             std::map<exlib::string, _linkedNode>::iterator next = _instantiate(it->second.m_next);
 
@@ -153,8 +150,7 @@ private:
 
     void update_time(std::map<exlib::string, _linkedNode>::iterator it)
     {
-        if (m_begin != it)
-        {
+        if (m_begin != it) {
             std::map<exlib::string, _linkedNode>::iterator prev1 = _instantiate(it->second.m_prev1);
             std::map<exlib::string, _linkedNode>::iterator next1 = _instantiate(it->second.m_next1);
 

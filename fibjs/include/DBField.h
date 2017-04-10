@@ -10,11 +10,9 @@
 #ifndef DBFIELD_H_
 #define DBFIELD_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class DBField: public obj_base
-{
+class DBField : public obj_base {
 public:
     DBField(int32_t sz)
     {
@@ -22,7 +20,7 @@ public:
     }
 
 public:
-    void setField(int32_t i, exlib::string &s)
+    void setField(int32_t i, exlib::string& s)
     {
         m_fields[i] = s;
     }
@@ -31,19 +29,19 @@ public:
     {
         uint32_t i;
 
-        for (i = 0; i < (uint32_t) m_fields.size(); i++)
+        for (i = 0; i < (uint32_t)m_fields.size(); i++)
             if (!qstricmp(name.c_str(), m_fields[i].c_str()))
                 return i;
 
         return -1;
     }
 
-    exlib::string &name(int32_t i)
+    exlib::string& name(int32_t i)
     {
         return m_fields[i];
     }
 
-    void names(v8::Isolate* isolate, v8::Local<v8::Array> &retVal)
+    void names(v8::Isolate* isolate, v8::Local<v8::Array>& retVal)
     {
         int32_t i;
 
@@ -52,11 +50,9 @@ public:
             retVal->Set(i, GetReturnValue(isolate, m_fields[i]));
     }
 
-
 private:
     std::vector<exlib::string> m_fields;
 };
-
 }
 
 #endif /* DBFIELD_H_ */

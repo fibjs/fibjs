@@ -13,8 +13,7 @@
 #include <string.h>
 #include <set>
 
-namespace fibjs
-{
+namespace fibjs {
 
 size_t HttpCollection::size()
 {
@@ -27,13 +26,12 @@ size_t HttpCollection::size()
     return sz;
 }
 
-inline void cp(char *buf, size_t sz, size_t &pos, const char *str, size_t szStr)
+inline void cp(char* buf, size_t sz, size_t& pos, const char* str, size_t szStr)
 {
     buf += pos;
 
     pos += szStr;
-    if (pos > sz)
-    {
+    if (pos > sz) {
         szStr -= pos - sz;
         pos = sz;
     }
@@ -41,15 +39,14 @@ inline void cp(char *buf, size_t sz, size_t &pos, const char *str, size_t szStr)
     memcpy(buf, str, szStr);
 }
 
-size_t HttpCollection::getData(char *buf, size_t sz)
+size_t HttpCollection::getData(char* buf, size_t sz)
 {
     size_t pos = 0;
     int32_t i;
 
-    for (i = 0; i < m_count; i++)
-    {
-        exlib::string &n = m_names[i];
-        exlib::string &v = m_values[i];
+    for (i = 0; i < m_count; i++) {
+        exlib::string& n = m_names[i];
+        exlib::string& v = m_values[i];
 
         cp(buf, sz, pos, n.c_str(), n.length());
         cp(buf, sz, pos, ": ", 2);
@@ -66,28 +63,25 @@ result_t HttpCollection::clear()
     return 0;
 }
 
-result_t HttpCollection::parse(exlib::string &str, const char* sep, const char* eq)
+result_t HttpCollection::parse(exlib::string& str, const char* sep, const char* eq)
 {
-    const char *pstr = str.c_str();
-    int32_t nSize = (int32_t) str.length();
-    const char *pstrTemp;
+    const char* pstr = str.c_str();
+    int32_t nSize = (int32_t)str.length();
+    const char* pstrTemp;
     exlib::string strKey, strValue;
     int32_t sep_len = (int32_t)qstrlen(sep);
     int32_t eq_len = (int32_t)qstrlen(eq);
     bool found_eq;
 
-    while (nSize)
-    {
+    while (nSize) {
         pstrTemp = pstr;
         found_eq = false;
 
-        while (nSize)
-        {
+        while (nSize) {
             if (!qstrcmp(pstr, sep, sep_len))
                 break;
 
-            if (!qstrcmp(pstr, eq, eq_len))
-            {
+            if (!qstrcmp(pstr, eq, eq_len)) {
                 found_eq = true;
                 break;
             }
@@ -97,33 +91,29 @@ result_t HttpCollection::parse(exlib::string &str, const char* sep, const char* 
         }
 
         if (pstr > pstrTemp)
-            Url::decodeURI(pstrTemp, (int32_t) (pstr - pstrTemp), strKey, true);
+            Url::decodeURI(pstrTemp, (int32_t)(pstr - pstrTemp), strKey, true);
         else
             strKey.clear();
 
-        if (nSize && found_eq)
-        {
+        if (nSize && found_eq) {
             nSize -= eq_len;
             pstr += eq_len;
         }
 
         pstrTemp = pstr;
-        while (nSize && qstrcmp(pstr, sep, sep_len))
-        {
+        while (nSize && qstrcmp(pstr, sep, sep_len)) {
             pstr++;
             nSize--;
         }
 
-        if (!strKey.empty())
-        {
+        if (!strKey.empty()) {
             if (pstr > pstrTemp)
-                Url::decodeURI(pstrTemp, (int32_t) (pstr - pstrTemp), strValue, true);
+                Url::decodeURI(pstrTemp, (int32_t)(pstr - pstrTemp), strValue, true);
             else
                 strValue.clear();
         }
 
-        if (nSize)
-        {
+        if (nSize) {
             nSize -= sep_len;
             pstr += sep_len;
         }
@@ -135,56 +125,49 @@ result_t HttpCollection::parse(exlib::string &str, const char* sep, const char* 
     return 0;
 }
 
-result_t HttpCollection::parseCookie(exlib::string &str)
+result_t HttpCollection::parseCookie(exlib::string& str)
 {
-    const char *pstr = str.c_str();
-    int32_t nSize = (int32_t) str.length();
-    const char *pstrTemp;
+    const char* pstr = str.c_str();
+    int32_t nSize = (int32_t)str.length();
+    const char* pstrTemp;
     exlib::string strKey, strValue;
 
-    while (nSize)
-    {
-        while (nSize && *pstr == ' ')
-        {
+    while (nSize) {
+        while (nSize && *pstr == ' ') {
             pstr++;
             nSize--;
         }
 
         pstrTemp = pstr;
-        while (nSize && *pstr != '=' && *pstr != ';')
-        {
+        while (nSize && *pstr != '=' && *pstr != ';') {
             pstr++;
             nSize--;
         }
 
         if (pstr > pstrTemp)
-            Url::decodeURI(pstrTemp, (int32_t) (pstr - pstrTemp), strKey, true);
+            Url::decodeURI(pstrTemp, (int32_t)(pstr - pstrTemp), strKey, true);
         else
             strKey.clear();
 
-        if (nSize && *pstr == '=')
-        {
+        if (nSize && *pstr == '=') {
             nSize--;
             pstr++;
         }
 
         pstrTemp = pstr;
-        while (nSize && *pstr != ';')
-        {
+        while (nSize && *pstr != ';') {
             pstr++;
             nSize--;
         }
 
-        if (!strKey.empty())
-        {
+        if (!strKey.empty()) {
             if (pstr > pstrTemp)
-                Url::decodeURI(pstrTemp, (int32_t) (pstr - pstrTemp), strValue, true);
+                Url::decodeURI(pstrTemp, (int32_t)(pstr - pstrTemp), strValue, true);
             else
                 strValue.clear();
         }
 
-        if (nSize)
-        {
+        if (nSize) {
             nSize--;
             pstr++;
         }
@@ -196,14 +179,13 @@ result_t HttpCollection::parseCookie(exlib::string &str)
     return 0;
 }
 
-result_t HttpCollection::has(exlib::string name, bool &retVal)
+result_t HttpCollection::has(exlib::string name, bool& retVal)
 {
     int32_t i;
 
     retVal = false;
     for (i = 0; i < m_count; i++)
-        if (!qstricmp(m_names[i].c_str(), name.c_str()))
-        {
+        if (!qstricmp(m_names[i].c_str(), name.c_str())) {
             retVal = true;
             break;
         }
@@ -211,13 +193,12 @@ result_t HttpCollection::has(exlib::string name, bool &retVal)
     return 0;
 }
 
-result_t HttpCollection::first(exlib::string name, Variant &retVal)
+result_t HttpCollection::first(exlib::string name, Variant& retVal)
 {
     int32_t i;
 
     for (i = 0; i < m_count; i++)
-        if (!qstricmp(m_names[i].c_str(), name.c_str()))
-        {
+        if (!qstricmp(m_names[i].c_str(), name.c_str())) {
             retVal = m_values[i];
             return 0;
         }
@@ -225,7 +206,7 @@ result_t HttpCollection::first(exlib::string name, Variant &retVal)
     return CALL_RETURN_NULL;
 }
 
-result_t HttpCollection::all(exlib::string name, obj_ptr<List_base> &retVal)
+result_t HttpCollection::all(exlib::string name, obj_ptr<List_base>& retVal)
 {
     obj_ptr<List> list;
     int32_t i;
@@ -264,8 +245,7 @@ result_t HttpCollection::set(exlib::string name, Variant value)
     bool bFound = false;
 
     for (i = 0; i < m_count; i++)
-        if (!qstricmp(m_names[i].c_str(), name.c_str()))
-        {
+        if (!qstricmp(m_names[i].c_str(), name.c_str())) {
             exlib::string s;
 
             value.toString(s);
@@ -275,15 +255,12 @@ result_t HttpCollection::set(exlib::string name, Variant value)
             break;
         }
 
-    if (bFound)
-    {
+    if (bFound) {
         int32_t p = ++i;
 
         for (; i < m_count; i++)
-            if (qstricmp(m_names[i].c_str(), name.c_str()))
-            {
-                if (i != p)
-                {
+            if (qstricmp(m_names[i].c_str(), name.c_str())) {
+                if (i != p) {
                     m_names[p] = m_names[i];
                     m_values[p] = m_values[i];
                 }
@@ -292,8 +269,7 @@ result_t HttpCollection::set(exlib::string name, Variant value)
             }
 
         m_count = p;
-    }
-    else
+    } else
         return add(name, value);
 
     return 0;
@@ -310,10 +286,8 @@ result_t HttpCollection::remove(exlib::string name)
     int32_t p = 0;
 
     for (i = 0; i < m_count; i++)
-        if (qstricmp(m_names[i].c_str(), name.c_str()))
-        {
-            if (i != p)
-            {
+        if (qstricmp(m_names[i].c_str(), name.c_str())) {
+            if (i != p) {
                 m_names[p] = m_names[i];
                 m_values[p] = m_values[i];
             }
@@ -326,7 +300,7 @@ result_t HttpCollection::remove(exlib::string name)
     return 0;
 }
 
-result_t HttpCollection::_named_getter(const char *property, Variant &retVal)
+result_t HttpCollection::_named_getter(const char* property, Variant& retVal)
 {
     int32_t i;
     int32_t n = 0;
@@ -334,15 +308,12 @@ result_t HttpCollection::_named_getter(const char *property, Variant &retVal)
     v8::Local<v8::Array> a;
 
     for (i = 0; i < m_count; i++)
-        if (!qstricmp(m_names[i].c_str(), property))
-        {
-            if (n == 0)
-            {
+        if (!qstricmp(m_names[i].c_str(), property)) {
+            if (n == 0) {
                 v = m_values[i];
                 n = 1;
             } else {
-                if (n == 1)
-                {
+                if (n == 1) {
                     Isolate* isolate = holder();
                     a = v8::Array::New(isolate->m_isolate);
                     a->Set(0, v);
@@ -350,12 +321,11 @@ result_t HttpCollection::_named_getter(const char *property, Variant &retVal)
                 }
 
                 Variant t = m_values[i];
-                a->Set(n ++, t);
+                a->Set(n++, t);
             }
         }
 
-    if (n > 0)
-    {
+    if (n > 0) {
         retVal = v;
         return 0;
     }
@@ -363,30 +333,29 @@ result_t HttpCollection::_named_getter(const char *property, Variant &retVal)
     return CALL_RETURN_NULL;
 }
 
-result_t HttpCollection::_named_enumerator(v8::Local<v8::Array> &retVal)
+result_t HttpCollection::_named_enumerator(v8::Local<v8::Array>& retVal)
 {
     int32_t i, n;
     std::set<exlib::string> name_set;
     Isolate* isolate = holder();
 
     retVal = v8::Array::New(isolate->m_isolate);
-    for (i = 0, n = 0; i < m_count; i++)
-    {
+    for (i = 0, n = 0; i < m_count; i++) {
         exlib::string& name = m_names[i];
         if (name_set.insert(name).second)
-            retVal->Set(n ++, isolate->NewFromUtf8(name));
+            retVal->Set(n++, isolate->NewFromUtf8(name));
     }
 
     return 0;
 }
 
-result_t HttpCollection::_named_setter(const char *property, Variant newVal)
+result_t HttpCollection::_named_setter(const char* property, Variant newVal)
 {
     return set(property, newVal);
 }
 
-result_t HttpCollection::_named_deleter(const char *property,
-                                        v8::Local<v8::Boolean> &retVal)
+result_t HttpCollection::_named_deleter(const char* property,
+    v8::Local<v8::Boolean>& retVal)
 {
     int32_t n = m_count;
     remove(property);

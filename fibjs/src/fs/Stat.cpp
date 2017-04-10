@@ -10,17 +10,16 @@
 #include "ifs/path.h"
 #include "utf8.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 #ifdef _WIN32
 
-inline double FileTimeToJSTime(FILETIME &ft)
+inline double FileTimeToJSTime(FILETIME& ft)
 {
-    return (double)(*(int64_t *)&ft - 116444736000000000) / 10000;
+    return (double)(*(int64_t*)&ft - 116444736000000000) / 10000;
 }
 
-void Stat::fill(WIN32_FIND_DATAW &fd)
+void Stat::fill(WIN32_FIND_DATAW& fd)
 {
     name = utf16to8String(fd.cFileName);
 
@@ -47,10 +46,10 @@ void Stat::fill(WIN32_FIND_DATAW &fd)
     m_isSocket = false;
 }
 
-void Stat::fill(exlib::string path, BY_HANDLE_FILE_INFORMATION &fd)
+void Stat::fill(exlib::string path, BY_HANDLE_FILE_INFORMATION& fd)
 {
     path_base::basename(path, "", name);
-    
+
     size = ((int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow);
     mode = S_IREAD | S_IEXEC;
 
@@ -105,7 +104,7 @@ result_t Stat::getStat(exlib::string path)
 
 #endif
 
-void Stat::fill(exlib::string path, struct stat64 &st)
+void Stat::fill(exlib::string path, struct stat64& st)
 {
     path_base::basename(path, "", name);
 
@@ -151,94 +150,93 @@ void Stat::init()
     m_isSocket = false;
 }
 
-result_t Stat::get_name(exlib::string &retVal)
+result_t Stat::get_name(exlib::string& retVal)
 {
     retVal = name;
     return 0;
 }
 
-result_t Stat::get_size(int64_t &retVal)
+result_t Stat::get_size(int64_t& retVal)
 {
     retVal = size;
     return 0;
 }
 
-result_t Stat::get_mode(int32_t &retVal)
+result_t Stat::get_mode(int32_t& retVal)
 {
     retVal = mode;
     return 0;
 }
 
-result_t Stat::get_mtime(date_t &retVal)
+result_t Stat::get_mtime(date_t& retVal)
 {
     retVal = mtime;
     return 0;
 }
 
-result_t Stat::get_atime(date_t &retVal)
+result_t Stat::get_atime(date_t& retVal)
 {
     retVal = atime;
     return 0;
 }
 
-result_t Stat::get_ctime(date_t &retVal)
+result_t Stat::get_ctime(date_t& retVal)
 {
     retVal = ctime;
     return 0;
 }
 
-result_t Stat::isWritable(bool &retVal)
+result_t Stat::isWritable(bool& retVal)
 {
     retVal = m_isWritable;
     return 0;
 }
 
-result_t Stat::isReadable(bool &retVal)
+result_t Stat::isReadable(bool& retVal)
 {
     retVal = m_isReadable;
     return 0;
 }
 
-result_t Stat::isExecutable(bool &retVal)
+result_t Stat::isExecutable(bool& retVal)
 {
     retVal = m_isExecutable;
     return 0;
 }
 
-result_t Stat::isHidden(bool &retVal)
+result_t Stat::isHidden(bool& retVal)
 {
     retVal = m_isHidden;
     return 0;
 }
 
-result_t Stat::isDirectory(bool &retVal)
+result_t Stat::isDirectory(bool& retVal)
 {
     retVal = m_isDirectory;
     return 0;
 }
 
-result_t Stat::isFile(bool &retVal)
+result_t Stat::isFile(bool& retVal)
 {
     retVal = m_isFile;
     return 0;
 }
 
-result_t Stat::isSymbolicLink(bool &retVal)
+result_t Stat::isSymbolicLink(bool& retVal)
 {
     retVal = m_isSymbolicLink;
     return 0;
 }
 
-result_t Stat::isMemory(bool &retVal)
+result_t Stat::isMemory(bool& retVal)
 {
     retVal = m_isMemory;
     return 0;
 }
 
-result_t Stat::isSocket(bool &retVal)
+result_t Stat::isSocket(bool& retVal)
 {
     retVal = m_isSocket;
     return 0;
 }
-
 }

@@ -10,12 +10,10 @@
 #ifndef QUICKARRAY_H_
 #define QUICKARRAY_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-template<typename T>
-class QuickArray
-{
+template <typename T>
+class QuickArray {
 private:
     inline size_t BlockSize() const
     {
@@ -35,8 +33,7 @@ private:
 
     inline void _grow(size_t n)
     {
-        if (n > 0)
-        {
+        if (n > 0) {
             size_t c1, c2;
             size_t i, s;
 
@@ -45,15 +42,14 @@ private:
             c1 = (s + BlockSize() - 1) / BlockSize();
             c2 = (m_size + BlockSize() - 1) / BlockSize();
 
-            if (c1 > c2)
-            {
+            if (c1 > c2) {
                 if (c2 > 0)
-                    m_p = (T **) realloc(m_p, sizeof(T *) * c1);
+                    m_p = (T**)realloc(m_p, sizeof(T*) * c1);
                 else
-                    m_p = (T **) malloc(sizeof(T *) * c1);
+                    m_p = (T**)malloc(sizeof(T*) * c1);
 
                 for (i = c2; i < c1; i++)
-                    m_p[i] = (T *) malloc(sizeof(T) * BlockSize());
+                    m_p[i] = (T*)malloc(sizeof(T) * BlockSize());
             }
         }
     }
@@ -65,7 +61,7 @@ public:
         m_p = 0;
     }
 
-    QuickArray(const QuickArray<T> &rhs)
+    QuickArray(const QuickArray<T>& rhs)
     {
         m_size = 0;
         m_p = 0;
@@ -77,7 +73,7 @@ public:
         resize(0);
     }
 
-    QuickArray<T> &operator=(const QuickArray<T> &rhs)
+    QuickArray<T>& operator=(const QuickArray<T>& rhs)
     {
         resize(0);
         append(rhs);
@@ -87,8 +83,7 @@ public:
 
     size_t resize(size_t s)
     {
-        if (s < m_size)
-        {
+        if (s < m_size) {
             size_t c1, c2;
             size_t i;
 
@@ -96,45 +91,37 @@ public:
             c2 = (m_size + BlockSize() - 1) / BlockSize();
 
             size_t p1 = s / BlockSize(), p2 = s % BlockSize();
-            T *ptr = m_p[p1];
+            T* ptr = m_p[p1];
 
-            for (i = s; i < m_size; i++)
-            {
+            for (i = s; i < m_size; i++) {
                 ptr[p2++].~T();
-                if (i < m_size - 1 && p2 == BlockSize())
-                {
+                if (i < m_size - 1 && p2 == BlockSize()) {
                     p1++;
                     ptr = m_p[p1];
                     p2 = 0;
                 }
             }
 
-            if (c1 < c2)
-            {
+            if (c1 < c2) {
                 for (i = c1; i < c2; i++)
                     free(m_p[i]);
 
                 if (c1 > 0)
-                    m_p = (T **) realloc(m_p, sizeof(T *) * c1);
-                else
-                {
+                    m_p = (T**)realloc(m_p, sizeof(T*) * c1);
+                else {
                     free(m_p);
                     m_p = NULL;
                 }
             }
-        }
-        else if (s > m_size)
-        {
+        } else if (s > m_size) {
             _grow(s - m_size);
 
             size_t p1 = m_size / BlockSize(), p2 = m_size % BlockSize();
-            T *ptr = m_p[p1];
+            T* ptr = m_p[p1];
 
-            for (size_t i = m_size; i < s; i++)
-            {
+            for (size_t i = m_size; i < s; i++) {
                 new (&ptr[p2++]) T();
-                if (i < s - 1 && p2 == BlockSize())
-                {
+                if (i < s - 1 && p2 == BlockSize()) {
                     p1++;
                     ptr = m_p[p1];
                     p2 = 0;
@@ -152,7 +139,7 @@ public:
         return m_size;
     }
 
-    T &operator[](size_t i)
+    T& operator[](size_t i)
     {
         if (i >= m_size)
             resize(i + 1);
@@ -165,29 +152,26 @@ public:
         resize(m_size - 1);
     }
 
-    T &alloc()
+    T& alloc()
     {
         return operator[](m_size);
     }
 
-    template<typename V>
-    void append(const V *rhs, size_t n)
+    template <typename V>
+    void append(const V* rhs, size_t n)
     {
-        if (n > 0)
-        {
+        if (n > 0) {
             size_t s = m_size + n;
             _grow(n);
 
             size_t pos = 0, p1 = m_size / BlockSize(),
                    p2 = m_size % BlockSize();
-            T *ptr = m_p[p1];
+            T* ptr = m_p[p1];
 
-            for (size_t i = m_size; i < s; i++)
-            {
+            for (size_t i = m_size; i < s; i++) {
                 new (&ptr[p2++]) T(rhs[pos++]);
 
-                if (i < s - 1 && p2 == BlockSize())
-                {
+                if (i < s - 1 && p2 == BlockSize()) {
                     p1++;
                     ptr = m_p[p1];
                     p2 = 0;
@@ -198,8 +182,8 @@ public:
         }
     }
 
-    template<typename V>
-    void append(const V &t)
+    template <typename V>
+    void append(const V& t)
     {
         append(&t, 1);
     }
@@ -210,10 +194,9 @@ public:
     }
 
 private:
-    T **m_p;
+    T** m_p;
     size_t m_size;
 };
-
 }
 
 #endif /* QUICKARRAY_H_ */

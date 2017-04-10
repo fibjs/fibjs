@@ -8,10 +8,9 @@
 #include "object.h"
 #include "DBResult.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t DBResult::_indexed_getter(uint32_t index, Variant &retVal)
+result_t DBResult::_indexed_getter(uint32_t index, Variant& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -32,10 +31,9 @@ result_t DBResult::freeze()
     return m_array->freeze();
 }
 
-result_t DBResult::get_length(int32_t &retVal)
+result_t DBResult::get_length(int32_t& retVal)
 {
-    if (!m_size)
-    {
+    if (!m_size) {
         retVal = 0;
         return 0;
     }
@@ -74,7 +72,7 @@ result_t DBResult::push(Variant v, int32_t& retVal)
     return m_array->push(v, retVal);
 }
 
-result_t DBResult::push(const v8::FunctionCallbackInfo<v8::Value> &args, int32_t& retVal)
+result_t DBResult::push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -90,7 +88,7 @@ result_t DBResult::pushArray(v8::Local<v8::Array> data)
     return m_array->pushArray(data);
 }
 
-result_t DBResult::pop(Variant &retVal)
+result_t DBResult::pop(Variant& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -98,7 +96,7 @@ result_t DBResult::pop(Variant &retVal)
     return m_array->pop(retVal);
 }
 
-result_t DBResult::slice(int32_t start, int32_t end, obj_ptr<List_base> &retVal)
+result_t DBResult::slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -106,7 +104,7 @@ result_t DBResult::slice(int32_t start, int32_t end, obj_ptr<List_base> &retVal)
     return m_array->slice(start, end, retVal);
 }
 
-result_t DBResult::concat(const v8::FunctionCallbackInfo<v8::Value> &args, obj_ptr<List_base> &retVal)
+result_t DBResult::concat(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -115,7 +113,7 @@ result_t DBResult::concat(const v8::FunctionCallbackInfo<v8::Value> &args, obj_p
 }
 
 result_t DBResult::every(v8::Local<v8::Function> func,
-                         v8::Local<v8::Value> thisArg, bool &retVal)
+    v8::Local<v8::Value> thisArg, bool& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -124,7 +122,7 @@ result_t DBResult::every(v8::Local<v8::Function> func,
 }
 
 result_t DBResult::some(v8::Local<v8::Function> func,
-                        v8::Local<v8::Value> thisArg, bool &retVal)
+    v8::Local<v8::Value> thisArg, bool& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -133,7 +131,7 @@ result_t DBResult::some(v8::Local<v8::Function> func,
 }
 
 result_t DBResult::filter(v8::Local<v8::Function> func,
-                          v8::Local<v8::Value> thisArg, obj_ptr<List_base> &retVal)
+    v8::Local<v8::Value> thisArg, obj_ptr<List_base>& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -142,7 +140,7 @@ result_t DBResult::filter(v8::Local<v8::Function> func,
 }
 
 result_t DBResult::forEach(v8::Local<v8::Function> func,
-                           v8::Local<v8::Value> thisArg)
+    v8::Local<v8::Value> thisArg)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -151,7 +149,7 @@ result_t DBResult::forEach(v8::Local<v8::Function> func,
 }
 
 result_t DBResult::map(v8::Local<v8::Function> func,
-                       v8::Local<v8::Value> thisArg, obj_ptr<List_base> &retVal)
+    v8::Local<v8::Value> thisArg, obj_ptr<List_base>& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -160,7 +158,7 @@ result_t DBResult::map(v8::Local<v8::Function> func,
 }
 
 result_t DBResult::reduce(v8::Local<v8::Function> func, v8::Local<v8::Value> initVal,
-                          v8::Local<v8::Value>& retVal)
+    v8::Local<v8::Value>& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -194,12 +192,12 @@ result_t DBResult::sort(obj_ptr<List_base>& retVal)
     return 0;
 }
 
-result_t DBResult::toArray(v8::Local<v8::Array> &retVal)
+result_t DBResult::toArray(v8::Local<v8::Array>& retVal)
 {
     return m_array->toArray(retVal);
 }
 
-result_t DBResult::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
+result_t DBResult::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 {
     if (m_size)
         return m_array->toJSON(key, retVal);
@@ -208,28 +206,28 @@ result_t DBResult::toJSON(exlib::string key, v8::Local<v8::Value> &retVal)
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
     o->Set(isolate->NewFromUtf8("affected", 8),
-           v8::Number::New(isolate->m_isolate, (double) m_affected));
+        v8::Number::New(isolate->m_isolate, (double)m_affected));
     o->Set(isolate->NewFromUtf8("insertId", 8),
-           v8::Number::New(isolate->m_isolate, (double) m_insertId));
+        v8::Number::New(isolate->m_isolate, (double)m_insertId));
 
     retVal = o;
 
     return 0;
 }
 
-result_t DBResult::get_insertId(int64_t &retVal)
+result_t DBResult::get_insertId(int64_t& retVal)
 {
     retVal = m_insertId;
     return 0;
 }
 
-result_t DBResult::get_affected(int64_t &retVal)
+result_t DBResult::get_affected(int64_t& retVal)
 {
     retVal = m_affected;
     return 0;
 }
 
-result_t DBResult::get_fields(v8::Local<v8::Array> &retVal)
+result_t DBResult::get_fields(v8::Local<v8::Array>& retVal)
 {
     if (!m_size)
         retVal = v8::Array::New(holder()->m_isolate);

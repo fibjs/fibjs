@@ -11,32 +11,30 @@
 #include "ifs/Queue.h"
 #include <list>
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Queue: public Queue_base
-{
+class Queue : public Queue_base {
 public:
-    Queue(int32_t size) :
-        m_size(size)
+    Queue(int32_t size)
+        : m_size(size)
     {
     }
 
 public:
     // Queue_base
-    virtual result_t add(v8::Local<v8::Value> e, bool &retVal);
-    virtual result_t offer(v8::Local<v8::Value> e, bool &retVal);
-    virtual result_t remove(v8::Local<v8::Value> &retVal);
-    virtual result_t poll(v8::Local<v8::Value> &retVal);
-    virtual result_t element(v8::Local<v8::Value> &retVal);
-    virtual result_t peek(v8::Local<v8::Value> &retVal);
+    virtual result_t add(v8::Local<v8::Value> e, bool& retVal);
+    virtual result_t offer(v8::Local<v8::Value> e, bool& retVal);
+    virtual result_t remove(v8::Local<v8::Value>& retVal);
+    virtual result_t poll(v8::Local<v8::Value>& retVal);
+    virtual result_t element(v8::Local<v8::Value>& retVal);
+    virtual result_t peek(v8::Local<v8::Value>& retVal);
     virtual result_t clear();
-    virtual result_t toArray(v8::Local<v8::Array> &retVal);
-    virtual result_t get_length(int32_t &retVal);
+    virtual result_t toArray(v8::Local<v8::Array>& retVal);
+    virtual result_t get_length(int32_t& retVal);
 
 public:
     // Object
-    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value> &retVal);
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
 
 private:
     std::list<VariantEx> m_list;

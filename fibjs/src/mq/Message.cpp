@@ -10,10 +10,9 @@
 #include "List.h"
 #include "MemoryStream.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-result_t Message::get_value(exlib::string &retVal)
+result_t Message::get_value(exlib::string& retVal)
 {
     retVal = m_value;
     return 0;
@@ -25,7 +24,7 @@ result_t Message::set_value(exlib::string newVal)
     return 0;
 }
 
-result_t Message::get_params(obj_ptr<List_base> &retVal)
+result_t Message::get_params(obj_ptr<List_base>& retVal)
 {
     if (m_params == NULL)
         m_params = new List();
@@ -34,13 +33,13 @@ result_t Message::get_params(obj_ptr<List_base> &retVal)
     return 0;
 }
 
-result_t Message::set_params(List_base *newVal)
+result_t Message::set_params(List_base* newVal)
 {
     m_params = newVal;
     return 0;
 }
 
-result_t Message::get_type(int32_t &retVal)
+result_t Message::get_type(int32_t& retVal)
 {
     retVal = m_type;
     return 0;
@@ -71,20 +70,18 @@ result_t Message::get_data(v8::Local<v8::Value>& retVal)
     if (hr == CALL_RETURN_NULL)
         return CALL_RETURN_NULL;
 
-    if (m_type == _TEXT)
-    {
+    if (m_type == _TEXT) {
         exlib::string txt;
 
         data->toString(txt);
         retVal = holder()->NewFromUtf8(txt);
-    }
-    else
+    } else
         retVal = data->wrap();
 
     return 0;
 }
 
-result_t Message::get_body(obj_ptr<SeekableStream_base> &retVal)
+result_t Message::get_body(obj_ptr<SeekableStream_base>& retVal)
 {
     if (m_body == NULL)
         m_body = new MemoryStream();
@@ -93,14 +90,14 @@ result_t Message::get_body(obj_ptr<SeekableStream_base> &retVal)
     return 0;
 }
 
-result_t Message::set_body(SeekableStream_base *newVal)
+result_t Message::set_body(SeekableStream_base* newVal)
 {
     m_body = newVal;
     return 0;
 }
 
-result_t Message::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
-                       AsyncEvent *ac)
+result_t Message::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
+    AsyncEvent* ac)
 {
     if (m_body == NULL)
         return CALL_RETURN_NULL;
@@ -108,7 +105,7 @@ result_t Message::read(int32_t bytes, obj_ptr<Buffer_base> &retVal,
     return m_body->read(bytes, retVal, ac);
 }
 
-result_t Message::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
+result_t Message::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (m_body == NULL)
         return CALL_RETURN_NULL;
@@ -116,7 +113,7 @@ result_t Message::readAll(obj_ptr<Buffer_base> &retVal, AsyncEvent *ac)
     return m_body->readAll(retVal, ac);
 }
 
-result_t Message::write(Buffer_base *data, AsyncEvent *ac)
+result_t Message::write(Buffer_base* data, AsyncEvent* ac)
 {
     if (m_body == NULL)
         m_body = new MemoryStream();
@@ -124,17 +121,16 @@ result_t Message::write(Buffer_base *data, AsyncEvent *ac)
     return m_body->write(data, ac);
 }
 
-result_t Message::get_length(int64_t &retVal)
+result_t Message::get_length(int64_t& retVal)
 {
-    if (m_body == NULL)
-    {
+    if (m_body == NULL) {
         retVal = 0;
         return 0;
     }
     return m_body->size(retVal);
 }
 
-result_t Message_base::_new(obj_ptr<Message_base> &retVal, v8::Local<v8::Object> This)
+result_t Message_base::_new(obj_ptr<Message_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new Message();
     return 0;
@@ -166,22 +162,22 @@ result_t Message::clear()
     return 0;
 }
 
-result_t Message::sendTo(Stream_base *stm, AsyncEvent *ac)
+result_t Message::sendTo(Stream_base* stm, AsyncEvent* ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t Message::readFrom(Stream_base *stm, AsyncEvent *ac)
+result_t Message::readFrom(Stream_base* stm, AsyncEvent* ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t Message::get_stream(obj_ptr<Stream_base> &retVal)
+result_t Message::get_stream(obj_ptr<Stream_base>& retVal)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t Message::get_response(obj_ptr<Message_base> &retVal)
+result_t Message::get_response(obj_ptr<Message_base>& retVal)
 {
     if (m_bRep)
         return CHECK_ERROR(CALL_E_INVALID_CALL);

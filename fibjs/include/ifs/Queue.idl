@@ -56,4 +56,3 @@ interface Queue : object
     /*! @brief 返回当前队列尺寸 */
     readonly Integer length;
 };
-

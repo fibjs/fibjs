@@ -14,13 +14,11 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class RpcTask_base;
 
-class rpc_base : public object_base
-{
+class rpc_base : public object_base {
     DECLARE_CLASS(rpc_base);
 
 public:
@@ -41,47 +39,41 @@ public:
 public:
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
 #include "RpcTask.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& rpc_base::class_info()
 {
-    inline ClassInfo& rpc_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"open", s_open, true}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "open", s_open, true }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "rpc", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "rpc", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void rpc_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<RpcTask_base> vr;
+inline void rpc_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<RpcTask_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = open(v0, vr);
+    hr = open(v0, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

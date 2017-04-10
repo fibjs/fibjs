@@ -8,23 +8,21 @@
 #include "object.h"
 #include "Redis.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-#define SUBSCRIBE       0
-#define UNSUBSCRIBE     1
-#define PSUBSCRIBE      2
-#define PUNSUBSCRIBE    3
+#define SUBSCRIBE 0
+#define UNSUBSCRIBE 1
+#define PSUBSCRIBE 2
+#define PUNSUBSCRIBE 3
 
-const char *s_cmd[][2] =
-{
-    {"SUBSCRIBE", "s_"},
-    {"UNSUBSCRIBE", "s_"},
-    {"PSUBSCRIBE", "p_"},
-    {"PUNSUBSCRIBE", "p_"}
+const char* s_cmd[][2] = {
+    { "SUBSCRIBE", "s_" },
+    { "UNSUBSCRIBE", "s_" },
+    { "PSUBSCRIBE", "p_" },
+    { "PUNSUBSCRIBE", "p_" }
 };
 
-bool Redis::regsub(exlib::string &key, v8::Local<v8::Function> func)
+bool Redis::regsub(exlib::string& key, v8::Local<v8::Function> func)
 {
     v8::Local<v8::Object> r;
     on(key, func, r);
@@ -32,9 +30,8 @@ bool Redis::regsub(exlib::string &key, v8::Local<v8::Function> func)
     std::map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
 
     if (it != m_funcs.end())
-        it->second ++;
-    else
-    {
+        it->second++;
+    else {
         m_funcs.insert(std::pair<exlib::string, int32_t>(key, 1));
         return true;
     }
@@ -42,15 +39,14 @@ bool Redis::regsub(exlib::string &key, v8::Local<v8::Function> func)
     return false;
 }
 
-bool Redis::unregsub(exlib::string &key, v8::Local<v8::Function> func)
+bool Redis::unregsub(exlib::string& key, v8::Local<v8::Function> func)
 {
     v8::Local<v8::Object> r;
     off(key, func, r);
 
     std::map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
 
-    if (it != m_funcs.end() && (--(it->second) == 0))
-    {
+    if (it != m_funcs.end() && (--(it->second) == 0)) {
         m_funcs.erase(it);
         return true;
     }
@@ -72,14 +68,14 @@ result_t Redis::_single(exlib::string key, v8::Local<v8::Function> func, int32_t
     return doCommand(s_cmd[cmd][0], key, v);
 }
 
-result_t Redis::sub(Buffer_base *channel, v8::Local<v8::Function> func)
+result_t Redis::sub(Buffer_base* channel, v8::Local<v8::Function> func)
 {
     exlib::string key;
     channel->toString(key);
     return _single(key, func, SUBSCRIBE);
 }
 
-result_t Redis::unsub(Buffer_base *channel, v8::Local<v8::Function> func)
+result_t Redis::unsub(Buffer_base* channel, v8::Local<v8::Function> func)
 {
     exlib::string key;
     channel->toString(key);
@@ -96,7 +92,7 @@ result_t Redis::unpsub(exlib::string pattern, v8::Local<v8::Function> func)
     return _single(pattern, func, PUNSUBSCRIBE);
 }
 
-result_t Redis::_map(v8::Local<v8::Object> &map, int32_t cmd)
+result_t Redis::_map(v8::Local<v8::Object>& map, int32_t cmd)
 {
     if (!m_subMode)
         m_subMode = 1;
@@ -108,8 +104,7 @@ result_t Redis::_map(v8::Local<v8::Object> &map, int32_t cmd)
     v8::Local<v8::Array> subs = v8::Array::New(isolate->m_isolate);
     int32_t count = 0;
 
-    for (i = 0; i < sz; i ++)
-    {
+    for (i = 0; i < sz; i++) {
         v8::Local<v8::Value> channel = channels->Get(i);
         exlib::string s;
 
@@ -124,7 +119,7 @@ result_t Redis::_map(v8::Local<v8::Object> &map, int32_t cmd)
         v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(value);
 
         if ((cmd & 1) ? unregsub(s, func) : regsub(s, func))
-            subs->Set(count ++, channel);
+            subs->Set(count++, channel);
     }
 
     if (!count)
@@ -165,7 +160,7 @@ result_t Redis::unsub(exlib::string key, int32_t cmd)
     return doCommand(s_cmd[cmd][0], key, v);
 }
 
-result_t Redis::unsub(Buffer_base *channel)
+result_t Redis::unsub(Buffer_base* channel)
 {
     exlib::string key;
 
@@ -178,13 +173,12 @@ result_t Redis::unpsub(exlib::string pattern)
     return unsub(pattern, PUNSUBSCRIBE);
 }
 
-result_t Redis::unsub(v8::Local<v8::Array> &channels, int32_t cmd)
+result_t Redis::unsub(v8::Local<v8::Array>& channels, int32_t cmd)
 {
     int32_t sz = channels->Length();
     int32_t i;
 
-    for (i = 0; i < sz; i ++)
-    {
+    for (i = 0; i < sz; i++) {
         v8::Local<v8::Value> key = channels->Get(i);
         exlib::string s;
 
@@ -210,9 +204,8 @@ result_t Redis::unpsub(v8::Local<v8::Array> patterns)
     return unsub(patterns, PUNSUBSCRIBE);
 }
 
-result_t Redis::pub(Buffer_base *channel, Buffer_base *message, int32_t &retVal)
+result_t Redis::pub(Buffer_base* channel, Buffer_base* message, int32_t& retVal)
 {
     return doCommand("PUBLISH", channel, message, retVal);
 }
-
 }

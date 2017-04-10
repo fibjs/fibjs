@@ -14,8 +14,7 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Buffer_base;
 class List_base;
@@ -24,8 +23,7 @@ class RedisList_base;
 class RedisSet_base;
 class RedisSortedSet_base;
 
-class Redis_base : public object_base
-{
+class Redis_base : public object_base {
     DECLARE_CLASS(Redis_base);
 
 public:
@@ -127,8 +125,8 @@ public:
     static void s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_psub(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_onsuberror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_onsuberror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_onsuberror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onsuberror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_pub(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getHash(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getList(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -138,7 +136,6 @@ public:
     static void s_restore(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
 #include "Buffer.h"
@@ -148,784 +145,778 @@ public:
 #include "RedisSet.h"
 #include "RedisSortedSet.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& Redis_base::class_info()
 {
-    inline ClassInfo& Redis_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"command", s_command, false},
-            {"set", s_set, false},
-            {"setNX", s_setNX, false},
-            {"setXX", s_setXX, false},
-            {"mset", s_mset, false},
-            {"msetNX", s_msetNX, false},
-            {"append", s_append, false},
-            {"setRange", s_setRange, false},
-            {"getRange", s_getRange, false},
-            {"strlen", s_strlen, false},
-            {"bitcount", s_bitcount, false},
-            {"get", s_get, false},
-            {"mget", s_mget, false},
-            {"getset", s_getset, false},
-            {"decr", s_decr, false},
-            {"incr", s_incr, false},
-            {"setBit", s_setBit, false},
-            {"getBit", s_getBit, false},
-            {"exists", s_exists, false},
-            {"type", s_type, false},
-            {"keys", s_keys, false},
-            {"del", s_del, false},
-            {"expire", s_expire, false},
-            {"ttl", s_ttl, false},
-            {"persist", s_persist, false},
-            {"rename", s_rename, false},
-            {"renameNX", s_renameNX, false},
-            {"sub", s_sub, false},
-            {"unsub", s_unsub, false},
-            {"psub", s_psub, false},
-            {"unpsub", s_unpsub, false},
-            {"pub", s_pub, false},
-            {"getHash", s_getHash, false},
-            {"getList", s_getList, false},
-            {"getSet", s_getSet, false},
-            {"getSortedSet", s_getSortedSet, false},
-            {"dump", s_dump, false},
-            {"restore", s_restore, false},
-            {"close", s_close, false}
-        };
-
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"onsuberror", s_get_onsuberror, s_set_onsuberror, false}
-        };
-
-        static ClassData s_cd = 
-        { 
-            "Redis", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
-
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
-
-    inline void Redis_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Value> vr;
-
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(-1, 1);
-
-        ARG(exlib::string, 0);
-
-        hr = pInst->command(v0, args, vr);
-
-        METHOD_RETURN();
-    }
+    static ClassData::ClassMethod s_method[] = {
+        { "command", s_command, false },
+        { "set", s_set, false },
+        { "setNX", s_setNX, false },
+        { "setXX", s_setXX, false },
+        { "mset", s_mset, false },
+        { "msetNX", s_msetNX, false },
+        { "append", s_append, false },
+        { "setRange", s_setRange, false },
+        { "getRange", s_getRange, false },
+        { "strlen", s_strlen, false },
+        { "bitcount", s_bitcount, false },
+        { "get", s_get, false },
+        { "mget", s_mget, false },
+        { "getset", s_getset, false },
+        { "decr", s_decr, false },
+        { "incr", s_incr, false },
+        { "setBit", s_setBit, false },
+        { "getBit", s_getBit, false },
+        { "exists", s_exists, false },
+        { "type", s_type, false },
+        { "keys", s_keys, false },
+        { "del", s_del, false },
+        { "expire", s_expire, false },
+        { "ttl", s_ttl, false },
+        { "persist", s_persist, false },
+        { "rename", s_rename, false },
+        { "renameNX", s_renameNX, false },
+        { "sub", s_sub, false },
+        { "unsub", s_unsub, false },
+        { "psub", s_psub, false },
+        { "unpsub", s_unpsub, false },
+        { "pub", s_pub, false },
+        { "getHash", s_getHash, false },
+        { "getList", s_getList, false },
+        { "getSet", s_getSet, false },
+        { "getSortedSet", s_getSortedSet, false },
+        { "dump", s_dump, false },
+        { "restore", s_restore, false },
+        { "close", s_close, false }
+    };
+
+    static ClassData::ClassProperty s_property[] = {
+        { "onsuberror", s_get_onsuberror, s_set_onsuberror, false }
+    };
+
+    static ClassData s_cd = {
+        "Redis", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
+
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
+
+inline void Redis_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 1);
 
-    inline void Redis_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
-
-        METHOD_OVER(3, 2);
+    ARG(exlib::string, 0);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
-        OPT_ARG(int64_t, 2, 0);
+    hr = pInst->command(v0, args, vr);
 
-        hr = pInst->set(v0, v1, v2);
+    METHOD_RETURN();
+}
 
-        METHOD_VOID();
-    }
+inline void Redis_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_setNX(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(int64_t, 2, 0);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
-        OPT_ARG(int64_t, 2, 0);
+    hr = pInst->set(v0, v1, v2);
 
-        hr = pInst->setNX(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void Redis_base::s_setNX(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_setXX(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(3, 2);
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(int64_t, 2, 0);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
-        OPT_ARG(int64_t, 2, 0);
+    hr = pInst->setNX(v0, v1, v2);
 
-        hr = pInst->setXX(v0, v1, v2);
+    METHOD_VOID();
+}
 
-        METHOD_VOID();
-    }
+inline void Redis_base::s_setXX(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(1, 1);
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(int64_t, 2, 0);
 
-        ARG(v8::Local<v8::Object>, 0);
+    hr = pInst->setXX(v0, v1, v2);
 
-        hr = pInst->mset(v0);
+    METHOD_VOID();
+}
 
-        METHOD_OVER(-1, 0);
+inline void Redis_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-        hr = pInst->mset(args);
+    METHOD_OVER(1, 1);
 
-        METHOD_VOID();
-    }
+    ARG(v8::Local<v8::Object>, 0);
 
-    inline void Redis_base::s_msetNX(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    hr = pInst->mset(v0);
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(-1, 0);
 
-        ARG(v8::Local<v8::Object>, 0);
+    hr = pInst->mset(args);
 
-        hr = pInst->msetNX(v0);
+    METHOD_VOID();
+}
 
-        METHOD_OVER(-1, 0);
+inline void Redis_base::s_msetNX(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-        hr = pInst->msetNX(args);
+    METHOD_OVER(1, 1);
 
-        METHOD_VOID();
-    }
+    ARG(v8::Local<v8::Object>, 0);
 
-    inline void Redis_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    hr = pInst->msetNX(v0);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(-1, 0);
 
-        METHOD_OVER(2, 2);
+    hr = pInst->msetNX(args);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
+    METHOD_VOID();
+}
 
-        hr = pInst->append(v0, v1, vr);
+inline void Redis_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_setRange(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(2, 2);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
 
-        METHOD_OVER(3, 3);
+    hr = pInst->append(v0, v1, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(int32_t, 1);
-        ARG(obj_ptr<Buffer_base>, 2);
+    METHOD_RETURN();
+}
 
-        hr = pInst->setRange(v0, v1, v2, vr);
+inline void Redis_base::s_setRange(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_getRange(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+    METHOD_OVER(3, 3);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(int32_t, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
 
-        METHOD_OVER(3, 3);
+    hr = pInst->setRange(v0, v1, v2, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
+    METHOD_RETURN();
+}
 
-        hr = pInst->getRange(v0, v1, v2, vr);
+inline void Redis_base::s_getRange(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_strlen(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(3, 3);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->getRange(v0, v1, v2, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->strlen(v0, vr);
+inline void Redis_base::s_strlen(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_bitcount(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(1, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        METHOD_OVER(3, 1);
+    hr = pInst->strlen(v0, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        OPT_ARG(int32_t, 1, 0);
-        OPT_ARG(int32_t, 2, -1);
+    METHOD_RETURN();
+}
 
-        hr = pInst->bitcount(v0, v1, v2, vr);
+inline void Redis_base::s_bitcount(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+    METHOD_OVER(3, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 2, -1);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->bitcount(v0, v1, v2, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->get(v0, vr);
+inline void Redis_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<List_base> vr;
+    METHOD_OVER(1, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->get(v0, vr);
 
-        ARG(v8::Local<v8::Array>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->mget(v0, vr);
+inline void Redis_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<List_base> vr;
 
-        METHOD_OVER(-1, 0);
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-        hr = pInst->mget(args, vr);
+    METHOD_OVER(1, 1);
 
-        METHOD_RETURN();
-    }
+    ARG(v8::Local<v8::Array>, 0);
 
-    inline void Redis_base::s_getset(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+    hr = pInst->mget(v0, vr);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(-1, 0);
 
-        METHOD_OVER(2, 2);
+    hr = pInst->mget(args, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
+    METHOD_RETURN();
+}
 
-        hr = pInst->getset(v0, v1, vr);
+inline void Redis_base::s_getset(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_decr(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int64_t vr;
+    METHOD_OVER(2, 2);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
 
-        METHOD_OVER(2, 1);
+    hr = pInst->getset(v0, v1, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        OPT_ARG(int64_t, 1, 1);
+    METHOD_RETURN();
+}
 
-        hr = pInst->decr(v0, v1, vr);
+inline void Redis_base::s_decr(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int64_t vr;
+    METHOD_OVER(2, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(int64_t, 1, 1);
 
-        METHOD_OVER(2, 1);
+    hr = pInst->decr(v0, v1, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        OPT_ARG(int64_t, 1, 1);
+    METHOD_RETURN();
+}
 
-        hr = pInst->incr(v0, v1, vr);
+inline void Redis_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_setBit(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(2, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(int64_t, 1, 1);
 
-        METHOD_OVER(3, 3);
+    hr = pInst->incr(v0, v1, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
+    METHOD_RETURN();
+}
 
-        hr = pInst->setBit(v0, v1, v2, vr);
+inline void Redis_base::s_setBit(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_getBit(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(3, 3);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
 
-        METHOD_OVER(2, 2);
+    hr = pInst->setBit(v0, v1, v2, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(int32_t, 1);
+    METHOD_RETURN();
+}
 
-        hr = pInst->getBit(v0, v1, vr);
+inline void Redis_base::s_getBit(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+    METHOD_OVER(2, 2);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(int32_t, 1);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->getBit(v0, v1, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->exists(v0, vr);
+inline void Redis_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+    METHOD_OVER(1, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->exists(v0, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->type(v0, vr);
+inline void Redis_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<List_base> vr;
+    METHOD_OVER(1, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->type(v0, vr);
 
-        ARG(exlib::string, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->keys(v0, vr);
+inline void Redis_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<List_base> vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(1, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(exlib::string, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->keys(v0, vr);
 
-        ARG(v8::Local<v8::Array>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->del(v0, vr);
+inline void Redis_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_OVER(-1, 0);
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-        hr = pInst->del(args, vr);
+    METHOD_OVER(1, 1);
 
-        METHOD_RETURN();
-    }
+    ARG(v8::Local<v8::Array>, 0);
 
-    inline void Redis_base::s_expire(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+    hr = pInst->del(v0, vr);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(-1, 0);
 
-        METHOD_OVER(2, 2);
+    hr = pInst->del(args, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(int64_t, 1);
+    METHOD_RETURN();
+}
 
-        hr = pInst->expire(v0, v1, vr);
+inline void Redis_base::s_expire(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_ttl(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int64_t vr;
+    METHOD_OVER(2, 2);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(int64_t, 1);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->expire(v0, v1, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->ttl(v0, vr);
+inline void Redis_base::s_ttl(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_persist(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+    METHOD_OVER(1, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->ttl(v0, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->persist(v0, vr);
+inline void Redis_base::s_persist(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(1, 1);
 
-        METHOD_OVER(2, 2);
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
+    hr = pInst->persist(v0, vr);
 
-        hr = pInst->rename(v0, v1);
+    METHOD_RETURN();
+}
 
-        METHOD_VOID();
-    }
+inline void Redis_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_renameNX(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+    METHOD_OVER(2, 2);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
 
-        METHOD_OVER(2, 2);
+    hr = pInst->rename(v0, v1);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
+    METHOD_VOID();
+}
 
-        hr = pInst->renameNX(v0, v1, vr);
+inline void Redis_base::s_renameNX(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_sub(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(2, 2);
 
-        METHOD_OVER(2, 2);
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    hr = pInst->renameNX(v0, v1, vr);
 
-        hr = pInst->sub(v0, v1);
+    METHOD_RETURN();
+}
 
-        METHOD_OVER(1, 1);
+inline void Redis_base::s_sub(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-        ARG(v8::Local<v8::Object>, 0);
+    METHOD_OVER(2, 2);
 
-        hr = pInst->sub(v0);
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        METHOD_VOID();
-    }
+    hr = pInst->sub(v0, v1);
 
-    inline void Redis_base::s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(1, 1);
 
-        METHOD_OVER(1, 1);
+    ARG(v8::Local<v8::Object>, 0);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    hr = pInst->sub(v0);
 
-        hr = pInst->unsub(v0);
+    METHOD_VOID();
+}
 
-        METHOD_OVER(2, 2);
+inline void Redis_base::s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->unsub(v0, v1);
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->unsub(v0);
 
-        ARG(v8::Local<v8::Array>, 0);
+    METHOD_OVER(2, 2);
 
-        hr = pInst->unsub(v0);
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->unsub(v0, v1);
 
-        ARG(v8::Local<v8::Object>, 0);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->unsub(v0);
+    ARG(v8::Local<v8::Array>, 0);
 
-        METHOD_VOID();
-    }
+    hr = pInst->unsub(v0);
 
-    inline void Redis_base::s_psub(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(1, 1);
 
-        METHOD_OVER(2, 2);
+    ARG(v8::Local<v8::Object>, 0);
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    hr = pInst->unsub(v0);
 
-        hr = pInst->psub(v0, v1);
+    METHOD_VOID();
+}
 
-        METHOD_OVER(1, 1);
+inline void Redis_base::s_psub(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-        ARG(v8::Local<v8::Object>, 0);
+    METHOD_OVER(2, 2);
 
-        hr = pInst->psub(v0);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        METHOD_VOID();
-    }
+    hr = pInst->psub(v0, v1);
 
-    inline void Redis_base::s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(1, 1);
 
-        METHOD_OVER(1, 1);
+    ARG(v8::Local<v8::Object>, 0);
 
-        ARG(exlib::string, 0);
+    hr = pInst->psub(v0);
 
-        hr = pInst->unpsub(v0);
+    METHOD_VOID();
+}
 
-        METHOD_OVER(2, 2);
+inline void Redis_base::s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-        ARG(exlib::string, 0);
-        ARG(v8::Local<v8::Function>, 1);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->unpsub(v0, v1);
+    ARG(exlib::string, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->unpsub(v0);
 
-        ARG(v8::Local<v8::Array>, 0);
+    METHOD_OVER(2, 2);
 
-        hr = pInst->unpsub(v0);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->unpsub(v0, v1);
 
-        ARG(v8::Local<v8::Object>, 0);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->unpsub(v0);
+    ARG(v8::Local<v8::Array>, 0);
 
-        METHOD_VOID();
-    }
+    hr = pInst->unpsub(v0);
 
-    inline void Redis_base::s_get_onsuberror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        v8::Local<v8::Function> vr;
+    METHOD_OVER(1, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        PROPERTY_ENTER();
+    ARG(v8::Local<v8::Object>, 0);
 
-        hr = pInst->get_onsuberror(vr);
+    hr = pInst->unpsub(v0);
 
-        METHOD_RETURN();
-    }
+    METHOD_VOID();
+}
 
-    inline void Redis_base::s_set_onsuberror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        PROPERTY_ENTER();
-        PROPERTY_VAL(v8::Local<v8::Function>);
+inline void Redis_base::s_get_onsuberror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
 
-        hr = pInst->set_onsuberror(v0);
+    METHOD_INSTANCE(Redis_base);
+    PROPERTY_ENTER();
 
-        PROPERTY_SET_LEAVE();
-    }
+    hr = pInst->get_onsuberror(vr);
 
-    inline void Redis_base::s_pub(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_RETURN();
+}
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+inline void Redis_base::s_set_onsuberror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(v8::Local<v8::Function>);
 
-        METHOD_OVER(2, 2);
+    hr = pInst->set_onsuberror(v0);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
+    PROPERTY_SET_LEAVE();
+}
 
-        hr = pInst->pub(v0, v1, vr);
+inline void Redis_base::s_pub(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_getHash(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<RedisHash_base> vr;
+    METHOD_OVER(2, 2);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->pub(v0, v1, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->getHash(v0, vr);
+inline void Redis_base::s_getHash(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<RedisHash_base> vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_getList(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<RedisList_base> vr;
+    METHOD_OVER(1, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->getHash(v0, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->getList(v0, vr);
+inline void Redis_base::s_getList(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<RedisList_base> vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_getSet(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<RedisSet_base> vr;
+    METHOD_OVER(1, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->getList(v0, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->getSet(v0, vr);
+inline void Redis_base::s_getSet(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<RedisSet_base> vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_getSortedSet(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<RedisSortedSet_base> vr;
+    METHOD_OVER(1, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->getSet(v0, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->getSortedSet(v0, vr);
+inline void Redis_base::s_getSortedSet(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<RedisSortedSet_base> vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+    METHOD_OVER(1, 1);
 
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->getSortedSet(v0, vr);
 
-        ARG(obj_ptr<Buffer_base>, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->dump(v0, vr);
+inline void Redis_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_restore(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(1, 1);
 
-        METHOD_OVER(3, 2);
+    ARG(obj_ptr<Buffer_base>, 0);
 
-        ARG(obj_ptr<Buffer_base>, 0);
-        ARG(obj_ptr<Buffer_base>, 1);
-        OPT_ARG(int64_t, 2, 0);
+    hr = pInst->dump(v0, vr);
 
-        hr = pInst->restore(v0, v1, v2);
+    METHOD_RETURN();
+}
 
-        METHOD_VOID();
-    }
+inline void Redis_base::s_restore(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
 
-    inline void Redis_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Redis_base);
-        METHOD_ENTER();
+    METHOD_OVER(3, 2);
 
-        METHOD_OVER(0, 0);
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(int64_t, 2, 0);
 
-        hr = pInst->close();
+    hr = pInst->restore(v0, v1, v2);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
+inline void Redis_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Redis_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->close();
+
+    METHOD_VOID();
+}
 }
 
 #endif
-

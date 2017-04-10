@@ -15,13 +15,11 @@
 #include "../object.h"
 #include "SeekableStream.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class SeekableStream_base;
 
-class File_base : public SeekableStream_base
-{
+class File_base : public SeekableStream_base {
     DECLARE_CLASS(File_base);
 
 public:
@@ -44,7 +42,7 @@ public:
     }
 
 public:
-    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_eof(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -55,116 +53,109 @@ public:
     ASYNC_MEMBER0(File_base, flush);
     ASYNC_MEMBER1(File_base, chmod, int32_t);
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& File_base::class_info()
 {
-    inline ClassInfo& File_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"truncate", s_truncate, false},
-            {"eof", s_eof, false},
-            {"flush", s_flush, false},
-            {"chmod", s_chmod, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "truncate", s_truncate, false },
+        { "eof", s_eof, false },
+        { "flush", s_flush, false },
+        { "chmod", s_chmod, false }
+    };
 
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"name", s_get_name, block_set, false}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "name", s_get_name, block_set, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "File", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &SeekableStream_base::class_info()
-        };
+    static ClassData s_cd = {
+        "File", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &SeekableStream_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void File_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        exlib::string vr;
+inline void File_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_INSTANCE(File_base);
-        PROPERTY_ENTER();
+    METHOD_INSTANCE(File_base);
+    PROPERTY_ENTER();
 
-        hr = pInst->get_name(vr);
+    hr = pInst->get_name(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void File_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(File_base);
-        METHOD_ENTER();
+inline void File_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(File_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(int64_t, 0);
+    ARG(int64_t, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_truncate(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_truncate(v0);
+    if (!cb.IsEmpty()) {
+        pInst->acb_truncate(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_truncate(v0);
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void File_base::s_eof(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void File_base::s_eof(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(File_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(File_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->eof(vr);
+    hr = pInst->eof(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void File_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(File_base);
-        METHOD_ENTER();
+inline void File_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(File_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(0, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_flush(cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_flush();
+    if (!cb.IsEmpty()) {
+        pInst->acb_flush(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_flush();
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void File_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(File_base);
-        METHOD_ENTER();
+inline void File_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(File_base);
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(int32_t, 0);
+    ARG(int32_t, 0);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_chmod(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_chmod(v0);
+    if (!cb.IsEmpty()) {
+        pInst->acb_chmod(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_chmod(v0);
 
-        METHOD_VOID();
-    }
-
+    METHOD_VOID();
+}
 }
 
 #endif
-

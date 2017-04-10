@@ -11,16 +11,19 @@
 #ifndef XMLNODEIMPL_H_
 #define XMLNODEIMPL_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class XmlNodeImpl
-{
+class XmlNodeImpl {
 public:
-    XmlNodeImpl(XmlDocument_base *document, XmlNode_base *node, int32_t type) :
-        m_childs(new XmlNodeList(this)),
-        m_document(document), m_node(node), m_type(type), m_parent(NULL), m_index(-1)
-    {}
+    XmlNodeImpl(XmlDocument_base* document, XmlNode_base* node, int32_t type)
+        : m_childs(new XmlNodeList(this))
+        , m_document(document)
+        , m_node(node)
+        , m_type(type)
+        , m_parent(NULL)
+        , m_index(-1)
+    {
+    }
 
     ~XmlNodeImpl()
     {
@@ -28,13 +31,13 @@ public:
     }
 
 public:
-    result_t get_nodeType(int32_t &retVal)
+    result_t get_nodeType(int32_t& retVal)
     {
         retVal = m_type;
         return 0;
     }
 
-    result_t get_parentNode(obj_ptr<XmlNode_base> &retVal)
+    result_t get_parentNode(obj_ptr<XmlNode_base>& retVal)
     {
         if (!m_parent)
             return CALL_RETURN_NULL;
@@ -42,50 +45,49 @@ public:
         return 0;
     }
 
-    result_t get_childNodes(obj_ptr<XmlNodeList_base> &retVal)
+    result_t get_childNodes(obj_ptr<XmlNodeList_base>& retVal)
     {
         retVal = m_childs;
         return 0;
     }
 
-    result_t get_previousSibling(obj_ptr<XmlNode_base> &retVal)
+    result_t get_previousSibling(obj_ptr<XmlNode_base>& retVal)
     {
         if (!m_parent)
             return CALL_RETURN_NULL;
         return m_parent->m_childs->item(m_index - 1, retVal);
     }
 
-    result_t get_nextSibling(obj_ptr<XmlNode_base> &retVal)
+    result_t get_nextSibling(obj_ptr<XmlNode_base>& retVal)
     {
         if (!m_parent)
             return CALL_RETURN_NULL;
         return m_parent->m_childs->item(m_index + 1, retVal);
     }
 
-    result_t get_ownerDocument(obj_ptr<XmlDocument_base> &retVal)
+    result_t get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
     {
         retVal = m_document;
         return !retVal ? CALL_RETURN_NULL : 0;
     }
 
-    result_t lookupPrefix(exlib::string namespaceURI, exlib::string &retVal)
+    result_t lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
     {
         if (!m_parent || m_parent->m_type == xml_base::_DOCUMENT_NODE)
             return CALL_RETURN_NULL;
         return m_parent->m_node->lookupPrefix(namespaceURI, retVal);
     }
 
-    result_t lookupNamespaceURI(exlib::string prefix, exlib::string &retVal)
+    result_t lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
     {
         if (!m_parent || m_parent->m_type == xml_base::_DOCUMENT_NODE)
             return CALL_RETURN_NULL;
         return m_parent->m_node->lookupNamespaceURI(prefix, retVal);
     }
 
-    result_t cloneNode(XmlNode_base *to, bool deep, obj_ptr<XmlNode_base> &retVal)
+    result_t cloneNode(XmlNode_base* to, bool deep, obj_ptr<XmlNode_base>& retVal)
     {
-        if (deep)
-        {
+        if (deep) {
             result_t hr = m_childs->cloneChilds(to);
             if (hr < 0)
                 return hr;
@@ -95,14 +97,13 @@ public:
         return 0;
     }
 
-    static const char *s_nss[][2];
-    static bool globalNamespaceURI(exlib::string prefix, exlib::string &retVal)
+    static const char* s_nss[][2];
+    static bool globalNamespaceURI(exlib::string prefix, exlib::string& retVal)
     {
         int32_t i;
 
-        for (i = 0; s_nss[i][0]; i ++)
-            if (prefix == s_nss[i][0])
-            {
+        for (i = 0; s_nss[i][0]; i++)
+            if (prefix == s_nss[i][0]) {
                 retVal = s_nss[i][1];
                 return true;
             }
@@ -110,13 +111,12 @@ public:
         return false;
     }
 
-    static bool globalPrefix(exlib::string namespaceURI, exlib::string &retVal)
+    static bool globalPrefix(exlib::string namespaceURI, exlib::string& retVal)
     {
         int32_t i;
 
-        for (i = 0; s_nss[i][1]; i ++)
-            if (namespaceURI == s_nss[i][1])
-            {
+        for (i = 0; s_nss[i][1]; i++)
+            if (namespaceURI == s_nss[i][1]) {
                 retVal = s_nss[i][0];
                 return true;
             }
@@ -125,9 +125,9 @@ public:
     }
 
 public:
-    static XmlNodeImpl *fromNode(XmlNode_base *pNode);
+    static XmlNodeImpl* fromNode(XmlNode_base* pNode);
 
-    void setParent(XmlNodeImpl *parent, int32_t idx)
+    void setParent(XmlNodeImpl* parent, int32_t idx)
     {
         m_document = parent->m_document;
         m_parent = parent;
@@ -145,9 +145,9 @@ public:
 public:
     obj_ptr<XmlNodeList> m_childs;
     weak_ptr<XmlDocument_base> m_document;
-    XmlNode_base *m_node;
+    XmlNode_base* m_node;
     int32_t m_type;
-    XmlNodeImpl *m_parent;
+    XmlNodeImpl* m_parent;
     int32_t m_index;
 };
 

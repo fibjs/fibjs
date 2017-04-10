@@ -13,8 +13,7 @@
 #include "date.h"
 #include "console.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 DECLARE_MODULE(test);
 
@@ -40,15 +39,17 @@ public:
     }
 };
 
-enum
-{
-    HOOK_BEFORE = 0, HOOK_AFTER = 1, HOOK_BEFORECASE = 2, HOOK_AFTERCASE = 3,
+enum {
+    HOOK_BEFORE = 0,
+    HOOK_AFTER = 1,
+    HOOK_BEFORECASE = 2,
+    HOOK_AFTERCASE = 3,
 };
 
-class _case: public obj_base
-{
-    _case(exlib::string name = "") :
-        m_pos(0), m_error(false)
+class _case : public obj_base {
+    _case(exlib::string name = "")
+        : m_pos(0)
+        , m_error(false)
     {
         m_name = name;
     }
@@ -59,7 +60,7 @@ class _case: public obj_base
 
         m_block.Reset();
         for (i = 0; i < 4; i++)
-            for (j = 0; j < (int32_t) m_hooks[i].size(); j++)
+            for (j = 0; j < (int32_t)m_hooks[i].size(); j++)
                 m_hooks[i][j].Reset();
     }
 
@@ -76,7 +77,7 @@ public:
     {
         TestData* td = TestData::current();
 
-        _case *now = td->m_now;
+        _case* now = td->m_now;
         if (!td->m_now)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
@@ -89,11 +90,11 @@ public:
     {
         TestData* td = TestData::current();
 
-        _case *now = td->m_now;
+        _case* now = td->m_now;
         if (!now || td->m_now == td->m_root)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-        _case *p = new _case(name);
+        _case* p = new _case(name);
         p->m_block.Reset(Isolate::current()->m_isolate, block);
 
         now->m_subs.append(p);
@@ -105,11 +106,11 @@ public:
     {
         TestData* td = TestData::current();
 
-        _case *now = td->m_now;
+        _case* now = td->m_now;
         if (!td->m_now)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-        QuickArray<v8::Persistent<v8::Function> > &fa = now->m_hooks[type];
+        QuickArray<v8::Persistent<v8::Function> >& fa = now->m_hooks[type];
         size_t sz = fa.size();
 
         fa.resize(sz + 1);
@@ -148,32 +149,29 @@ public:
 
         Isolate* isolate = Isolate::current();
 
-        while (stack.size())
-        {
-            _case *p = stack[stack.size() - 1];
+        while (stack.size()) {
+            _case* p = stack[stack.size() - 1];
             _case *p1, *p2;
 
-            if (p->m_pos == 0)
-            {
-                for (i = 0; i < (int32_t) p->m_hooks[HOOK_BEFORE].size(); i++)
+            if (p->m_pos == 0) {
+                for (i = 0; i < (int32_t)p->m_hooks[HOOK_BEFORE].size(); i++)
                     if (v8::Local<v8::Function>::New(isolate->m_isolate,
-                                                     p->m_hooks[HOOK_BEFORE][i])->Call(v8::Undefined(isolate->m_isolate),
-                                                             0, NULL).IsEmpty())
-                    {
+                            p->m_hooks[HOOK_BEFORE][i])
+                            ->Call(v8::Undefined(isolate->m_isolate),
+                                0, NULL)
+                            .IsEmpty()) {
                         coroutine_base::set_loglevel(oldlevel);
                         clear();
                         return 0;
                     }
             }
 
-            if (p->m_pos < (int32_t) p->m_subs.size())
-            {
+            if (p->m_pos < (int32_t)p->m_subs.size()) {
                 exlib::string str(stack.size() * 2, ' ');
 
                 p1 = p->m_subs[p->m_pos++];
 
-                if (p1->m_block.IsEmpty())
-                {
+                if (p1->m_block.IsEmpty()) {
                     coroutine_base::set_loglevel(oldlevel);
                     if (stack.size() == 1)
                         asyncLog(console_base::_INFO, "");
@@ -189,15 +187,15 @@ public:
                     continue;
                 }
 
-                for (j = 0; j < (int32_t) stack.size(); j++)
-                {
+                for (j = 0; j < (int32_t)stack.size(); j++) {
                     p2 = stack[j];
-                    for (i = 0; i < (int32_t) p2->m_hooks[HOOK_BEFORECASE].size();
-                            i++)
+                    for (i = 0; i < (int32_t)p2->m_hooks[HOOK_BEFORECASE].size();
+                         i++)
                         if (v8::Local<v8::Function>::New(isolate->m_isolate,
-                                                         p2->m_hooks[HOOK_BEFORECASE][i])->Call(v8::Undefined(isolate->m_isolate),
-                                                                 0, NULL).IsEmpty())
-                        {
+                                p2->m_hooks[HOOK_BEFORECASE][i])
+                                ->Call(v8::Undefined(isolate->m_isolate),
+                                    0, NULL)
+                                .IsEmpty()) {
                             coroutine_base::set_loglevel(oldlevel);
                             clear();
                             return 0;
@@ -210,23 +208,19 @@ public:
                     date_t d1, d2;
 
                     d1.now();
-                    v8::Local<v8::Function>::New(isolate->m_isolate, p1->m_block)->Call(v8::Undefined(isolate->m_isolate),
-                            0, NULL);
+                    v8::Local<v8::Function>::New(isolate->m_isolate, p1->m_block)->Call(v8::Undefined(isolate->m_isolate), 0, NULL);
                     d2.now();
 
-                    if (try_catch.HasCaught())
-                    {
+                    if (try_catch.HasCaught()) {
                         sprintf(buf, "%d) ", ++errcnt);
 
                         p1->m_error = true;
                         if (loglevel > console_base::_ERROR)
                             ReportException(try_catch, 0);
-                        else if (loglevel == console_base::_ERROR)
-                        {
+                        else if (loglevel == console_base::_ERROR) {
                             exlib::string str1(buf);
 
-                            for (i = 1; i < (int32_t)stack.size(); i ++)
-                            {
+                            for (i = 1; i < (int32_t)stack.size(); i++) {
                                 str1.append(stack[i]->m_name);
                                 str1.append(" ", 1);
                             }
@@ -238,16 +232,13 @@ public:
 
                         str.append(buf);
                         str.append(p1->m_name);
-                    }
-                    else
-                    {
+                    } else {
                         double n = d2.diff(d1);
 
                         str.append(logger::notice() + "\xe2\x88\x9a " COLOR_RESET);
                         str.append(p1->m_name);
-                        if (n > s_slow / 2)
-                        {
-                            sprintf(buf, " (%dms) ", (int32_t) n);
+                        if (n > s_slow / 2) {
+                            sprintf(buf, " (%dms) ", (int32_t)n);
 
                             if (n > s_slow)
                                 str.append(logger::error());
@@ -262,20 +253,18 @@ public:
 
                 coroutine_base::set_loglevel(oldlevel);
                 asyncLog(
-                    p1->m_error ?
-                    console_base::_ERROR :
-                    console_base::_INFO, str);
+                    p1->m_error ? console_base::_ERROR : console_base::_INFO, str);
                 coroutine_base::set_loglevel(loglevel);
 
-                for (j = (int32_t) stack.size() - 1; j >= 0; j--)
-                {
+                for (j = (int32_t)stack.size() - 1; j >= 0; j--) {
                     p2 = stack[j];
-                    for (i = (int32_t) p2->m_hooks[HOOK_AFTERCASE].size() - 1;
-                            i >= 0; i--)
+                    for (i = (int32_t)p2->m_hooks[HOOK_AFTERCASE].size() - 1;
+                         i >= 0; i--)
                         if (v8::Local<v8::Function>::New(isolate->m_isolate,
-                                                         p2->m_hooks[HOOK_AFTERCASE][i])->Call(v8::Undefined(isolate->m_isolate),
-                                                                 0, NULL).IsEmpty())
-                        {
+                                p2->m_hooks[HOOK_AFTERCASE][i])
+                                ->Call(v8::Undefined(isolate->m_isolate),
+                                    0, NULL)
+                                .IsEmpty()) {
                             coroutine_base::set_loglevel(oldlevel);
                             clear();
                             return 0;
@@ -283,13 +272,13 @@ public:
                 }
             }
 
-            if (p->m_pos == (int32_t)p->m_subs.size())
-            {
-                for (i = (int32_t) p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--)
+            if (p->m_pos == (int32_t)p->m_subs.size()) {
+                for (i = (int32_t)p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--)
                     if (v8::Local<v8::Function>::New(isolate->m_isolate,
-                                                     p->m_hooks[HOOK_AFTER][i])->Call(v8::Undefined(isolate->m_isolate),
-                                                             0, NULL).IsEmpty())
-                    {
+                            p->m_hooks[HOOK_AFTER][i])
+                            ->Call(v8::Undefined(isolate->m_isolate),
+                                0, NULL)
+                            .IsEmpty()) {
                         coroutine_base::set_loglevel(oldlevel);
                         clear();
                         return 0;
@@ -302,24 +291,20 @@ public:
         asyncLog(console_base::_INFO, "");
 
         da2.now();
-        if (errcnt == 0)
-        {
+        if (errcnt == 0) {
             sprintf(buf,
-                    (logger::notice() + "  \xe2\x88\x9a %d tests completed" COLOR_RESET " (%dms)").c_str(),
-                    cnt, (int32_t) da2.diff(da1));
+                (logger::notice() + "  \xe2\x88\x9a %d tests completed" COLOR_RESET " (%dms)").c_str(),
+                cnt, (int32_t)da2.diff(da1));
             asyncLog(console_base::_INFO, buf);
-        }
-        else
-        {
+        } else {
             sprintf(buf, (logger::error() + "  × %d of %d tests failed" COLOR_RESET " (%dms)").c_str(),
-                    errcnt, cnt, (int32_t) da2.diff(da1));
+                errcnt, cnt, (int32_t)da2.diff(da1));
             asyncLog(console_base::_ERROR, buf);
         }
 
         asyncLog(console_base::_INFO, "");
 
-        for (i = 0; i < (int32_t) msgs.size(); i++)
-        {
+        for (i = 0; i < (int32_t)msgs.size(); i++) {
             asyncLog(console_base::_INFO, names[i]);
             asyncLog(console_base::_ERROR, msgs[i]);
         }
@@ -354,7 +339,7 @@ result_t test_base::describe(exlib::string name, v8::Local<v8::Function> block)
 
     _case::init();
 
-    _case *last = td->m_now;
+    _case* last = td->m_now;
 
     result_t hr = _case::enter(name);
     if (hr < 0)
@@ -407,7 +392,7 @@ result_t test_base::run(int32_t loglevel, int32_t& retVal)
 }
 
 result_t test_base::expect(v8::Local<v8::Value> actual, exlib::string msg,
-                           obj_ptr<Expect_base> &retVal)
+    obj_ptr<Expect_base>& retVal)
 {
     retVal = new Expect(actual, msg);
     return 0;
@@ -422,88 +407,99 @@ result_t test_base::setup(int32_t mode)
     v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
     v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate->m_isolate, isolate->m_context);
 
-    if (!isolate->m_test_setup_bbd && !isolate->m_test_setup_tdd)
-    {
+    if (!isolate->m_test_setup_bbd && !isolate->m_test_setup_tdd) {
         glob->DefineOwnProperty(_context, isolate->NewFromUtf8("expect"),
-                                createV8Function("expect", isolate->m_isolate, s_expect),
-                                (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                createV8Function("expect", isolate->m_isolate, s_expect),
+                (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+            .IsJust();
 
         glob->DefineOwnProperty(_context, isolate->NewFromUtf8("assert"),
-                                assert_base::class_info().getModule(isolate),
-                                (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                assert_base::class_info().getModule(isolate),
+                (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+            .IsJust();
     }
 
-    if (mode == _BDD)
-    {
-        if (!isolate->m_test_setup_bbd)
-        {
+    if (mode == _BDD) {
+        if (!isolate->m_test_setup_bbd) {
             isolate->m_test_setup_bbd = true;
 
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("describe"),
-                                    createV8Function("describe", isolate->m_isolate, s_describe),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("describe", isolate->m_isolate, s_describe),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xdescribe"),
-                                    createV8Function("xdescribe", isolate->m_isolate, s_xdescribe),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("xdescribe", isolate->m_isolate, s_xdescribe),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("it"),
-                                    createV8Function("it", isolate->m_isolate, s_it),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("it", isolate->m_isolate, s_it),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xit"),
-                                    createV8Function("xit", isolate->m_isolate, s_xit),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("xit", isolate->m_isolate, s_xit),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("before"),
-                                    createV8Function("before", isolate->m_isolate, s_before),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("before", isolate->m_isolate, s_before),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("after"),
-                                    createV8Function("after", isolate->m_isolate, s_after),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("after", isolate->m_isolate, s_after),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("beforeEach"),
-                                    createV8Function("beforeEach", isolate->m_isolate, s_beforeEach),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("beforeEach", isolate->m_isolate, s_beforeEach),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("afterEach"),
-                                    createV8Function("afterEach", isolate->m_isolate, s_afterEach),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("afterEach", isolate->m_isolate, s_afterEach),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
         }
-    }
-    else if (mode == _TDD)
-    {
-        if (!isolate->m_test_setup_tdd)
-        {
+    } else if (mode == _TDD) {
+        if (!isolate->m_test_setup_tdd) {
             isolate->m_test_setup_tdd = true;
 
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("suite"),
-                                    createV8Function("suite", isolate->m_isolate, s_describe),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("suite", isolate->m_isolate, s_describe),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xsuite"),
-                                    createV8Function("xsuite", isolate->m_isolate, s_xdescribe),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("xsuite", isolate->m_isolate, s_xdescribe),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("test"),
-                                    createV8Function("test", isolate->m_isolate, s_it),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("test", isolate->m_isolate, s_it),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xtest"),
-                                    createV8Function("xtest", isolate->m_isolate, s_xit),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("xtest", isolate->m_isolate, s_xit),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("suiteSetup"),
-                                    createV8Function("suiteSetup", isolate->m_isolate, s_before),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("suiteSetup", isolate->m_isolate, s_before),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("suiteTeardown"),
-                                    createV8Function("suiteTeardown", isolate->m_isolate, s_after),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("suiteTeardown", isolate->m_isolate, s_after),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("setup"),
-                                    createV8Function("setup", isolate->m_isolate, s_beforeEach),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("setup", isolate->m_isolate, s_beforeEach),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
             glob->DefineOwnProperty(_context, isolate->NewFromUtf8("teardown"),
-                                    createV8Function("teardown", isolate->m_isolate, s_afterEach),
-                                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete)).IsJust();
+                    createV8Function("teardown", isolate->m_isolate, s_afterEach),
+                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                .IsJust();
         }
-    }
-    else
+    } else
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     return 0;
 }
 
-result_t test_base::get_slow(int32_t &retVal)
+result_t test_base::get_slow(int32_t& retVal)
 {
     retVal = s_slow;
     return 0;
@@ -514,5 +510,4 @@ result_t test_base::set_slow(int32_t newVal)
     s_slow = newVal;
     return 0;
 }
-
 }

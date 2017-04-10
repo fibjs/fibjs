@@ -15,13 +15,11 @@
 #include "../object.h"
 #include "Handler.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Handler_base;
 
-class AsyncWait_base : public Handler_base
-{
+class AsyncWait_base : public Handler_base {
     DECLARE_CLASS(AsyncWait_base);
 
 public:
@@ -42,42 +40,36 @@ public:
 public:
     static void s_end(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& AsyncWait_base::class_info()
 {
-    inline ClassInfo& AsyncWait_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"end", s_end, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "end", s_end, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "AsyncWait", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &Handler_base::class_info()
-        };
+    static ClassData s_cd = {
+        "AsyncWait", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &Handler_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void AsyncWait_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(AsyncWait_base);
-        METHOD_ENTER();
+inline void AsyncWait_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(AsyncWait_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->end();
+    hr = pInst->end();
 
-        METHOD_VOID();
-    }
-
+    METHOD_VOID();
+}
 }
 
 #endif
-

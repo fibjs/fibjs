@@ -3,11 +3,11 @@
  */
 interface XmlProcessingInstruction : XmlNode
 {
-	/*! @brief 返回此处理指令的目标
+    /*! @brief 返回此处理指令的目标
 	*/
-	readonly String target;
+    readonly String target;
 
-	/*! @brief 设置或返回此处理指令的内容
+    /*! @brief 设置或返回此处理指令的内容
 	*/
-	String data;
+    String data;
 };

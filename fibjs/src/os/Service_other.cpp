@@ -10,16 +10,14 @@
 #include "object.h"
 #include "ifs/Service.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 result_t Service_base::_new(exlib::string name, v8::Local<v8::Function> worker,
-                            v8::Local<v8::Object> event, obj_ptr<Service_base>& retVal,
-                            v8::Local<v8::Object> This)
+    v8::Local<v8::Object> event, obj_ptr<Service_base>& retVal,
+    v8::Local<v8::Object> This)
 {
-	return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
-
 }
 
 #endif

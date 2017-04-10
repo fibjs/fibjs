@@ -14,15 +14,13 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Buffer_base;
 class gd_base;
 class Stream_base;
 
-class Image_base : public object_base
-{
+class Image_base : public object_base {
     DECLARE_CLASS(Image_base);
 
 public:
@@ -106,17 +104,17 @@ public:
     }
 
 public:
-    static void s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_height(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_format(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_colorsTotal(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_transparent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_progressive(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_progressive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
-    static void s_get_alphaBlending(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_set_alphaBlending(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args);
+    static void s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_height(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_format(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_colorsTotal(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_transparent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_progressive(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_progressive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_alphaBlending(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_alphaBlending(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_getData(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_save(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_colorAllocate(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -183,1142 +181,1135 @@ public:
     ASYNC_MEMBER5(Image_base, filter, int32_t, double, double, double, double);
     ASYNC_MEMBER1(Image_base, gaussianBlur, int32_t);
 };
-
 }
 
 #include "Buffer.h"
 #include "gd.h"
 #include "Stream.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& Image_base::class_info()
 {
-    inline ClassInfo& Image_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"getData", s_getData, false},
-            {"save", s_save, false},
-            {"colorAllocate", s_colorAllocate, false},
-            {"colorAllocateAlpha", s_colorAllocateAlpha, false},
-            {"colorClosest", s_colorClosest, false},
-            {"colorClosestHWB", s_colorClosestHWB, false},
-            {"colorClosestAlpha", s_colorClosestAlpha, false},
-            {"colorExact", s_colorExact, false},
-            {"colorExactAlpha", s_colorExactAlpha, false},
-            {"colorResolve", s_colorResolve, false},
-            {"colorResolveAlpha", s_colorResolveAlpha, false},
-            {"colorDeallocate", s_colorDeallocate, false},
-            {"clip", s_clip, false},
-            {"getPixel", s_getPixel, false},
-            {"getTrueColorPixel", s_getTrueColorPixel, false},
-            {"setPixel", s_setPixel, false},
-            {"setThickness", s_setThickness, false},
-            {"line", s_line, false},
-            {"rectangle", s_rectangle, false},
-            {"filledRectangle", s_filledRectangle, false},
-            {"polygon", s_polygon, false},
-            {"openPolygon", s_openPolygon, false},
-            {"filledPolygon", s_filledPolygon, false},
-            {"ellipse", s_ellipse, false},
-            {"filledEllipse", s_filledEllipse, false},
-            {"arc", s_arc, false},
-            {"filledArc", s_filledArc, false},
-            {"fill", s_fill, false},
-            {"fillToBorder", s_fillToBorder, false},
-            {"colorReplace", s_colorReplace, false},
-            {"clone", s_clone, false},
-            {"resample", s_resample, false},
-            {"crop", s_crop, false},
-            {"flip", s_flip, false},
-            {"rotate", s_rotate, false},
-            {"convert", s_convert, false},
-            {"copy", s_copy, false},
-            {"copyMerge", s_copyMerge, false},
-            {"copyMergeGray", s_copyMergeGray, false},
-            {"copyResized", s_copyResized, false},
-            {"copyResampled", s_copyResampled, false},
-            {"copyRotated", s_copyRotated, false},
-            {"filter", s_filter, false},
-            {"affine", s_affine, false},
-            {"gaussianBlur", s_gaussianBlur, false}
-        };
-
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"width", s_get_width, block_set, false},
-            {"height", s_get_height, block_set, false},
-            {"format", s_get_format, block_set, false},
-            {"type", s_get_type, block_set, false},
-            {"colorsTotal", s_get_colorsTotal, block_set, false},
-            {"transparent", s_get_transparent, s_set_transparent, false},
-            {"progressive", s_get_progressive, s_set_progressive, false},
-            {"alphaBlending", s_get_alphaBlending, s_set_alphaBlending, false}
-        };
-
-        static ClassData s_cd = 
-        { 
-            "Image", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
-
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
-
-    inline void Image_base::s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(Image_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_width(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void Image_base::s_get_height(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
-
-        METHOD_INSTANCE(Image_base);
-        PROPERTY_ENTER();
-
-        hr = pInst->get_height(vr);
-
-        METHOD_RETURN();
-    }
-
-    inline void Image_base::s_get_format(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+    static ClassData::ClassMethod s_method[] = {
+        { "getData", s_getData, false },
+        { "save", s_save, false },
+        { "colorAllocate", s_colorAllocate, false },
+        { "colorAllocateAlpha", s_colorAllocateAlpha, false },
+        { "colorClosest", s_colorClosest, false },
+        { "colorClosestHWB", s_colorClosestHWB, false },
+        { "colorClosestAlpha", s_colorClosestAlpha, false },
+        { "colorExact", s_colorExact, false },
+        { "colorExactAlpha", s_colorExactAlpha, false },
+        { "colorResolve", s_colorResolve, false },
+        { "colorResolveAlpha", s_colorResolveAlpha, false },
+        { "colorDeallocate", s_colorDeallocate, false },
+        { "clip", s_clip, false },
+        { "getPixel", s_getPixel, false },
+        { "getTrueColorPixel", s_getTrueColorPixel, false },
+        { "setPixel", s_setPixel, false },
+        { "setThickness", s_setThickness, false },
+        { "line", s_line, false },
+        { "rectangle", s_rectangle, false },
+        { "filledRectangle", s_filledRectangle, false },
+        { "polygon", s_polygon, false },
+        { "openPolygon", s_openPolygon, false },
+        { "filledPolygon", s_filledPolygon, false },
+        { "ellipse", s_ellipse, false },
+        { "filledEllipse", s_filledEllipse, false },
+        { "arc", s_arc, false },
+        { "filledArc", s_filledArc, false },
+        { "fill", s_fill, false },
+        { "fillToBorder", s_fillToBorder, false },
+        { "colorReplace", s_colorReplace, false },
+        { "clone", s_clone, false },
+        { "resample", s_resample, false },
+        { "crop", s_crop, false },
+        { "flip", s_flip, false },
+        { "rotate", s_rotate, false },
+        { "convert", s_convert, false },
+        { "copy", s_copy, false },
+        { "copyMerge", s_copyMerge, false },
+        { "copyMergeGray", s_copyMergeGray, false },
+        { "copyResized", s_copyResized, false },
+        { "copyResampled", s_copyResampled, false },
+        { "copyRotated", s_copyRotated, false },
+        { "filter", s_filter, false },
+        { "affine", s_affine, false },
+        { "gaussianBlur", s_gaussianBlur, false }
+    };
+
+    static ClassData::ClassProperty s_property[] = {
+        { "width", s_get_width, block_set, false },
+        { "height", s_get_height, block_set, false },
+        { "format", s_get_format, block_set, false },
+        { "type", s_get_type, block_set, false },
+        { "colorsTotal", s_get_colorsTotal, block_set, false },
+        { "transparent", s_get_transparent, s_set_transparent, false },
+        { "progressive", s_get_progressive, s_set_progressive, false },
+        { "alphaBlending", s_get_alphaBlending, s_set_alphaBlending, false }
+    };
+
+    static ClassData s_cd = {
+        "Image", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
+
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
+
+inline void Image_base::s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(Image_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_width(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Image_base::s_get_height(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(Image_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_height(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Image_base::s_get_format(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(Image_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_format(vr);
 
-        METHOD_INSTANCE(Image_base);
-        PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-        hr = pInst->get_format(vr);
+inline void Image_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    PROPERTY_ENTER();
 
-    inline void Image_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+    hr = pInst->get_type(vr);
 
-        METHOD_INSTANCE(Image_base);
-        PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-        hr = pInst->get_type(vr);
+inline void Image_base::s_get_colorsTotal(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    PROPERTY_ENTER();
 
-    inline void Image_base::s_get_colorsTotal(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+    hr = pInst->get_colorsTotal(vr);
 
-        METHOD_INSTANCE(Image_base);
-        PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-        hr = pInst->get_colorsTotal(vr);
+inline void Image_base::s_get_transparent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    PROPERTY_ENTER();
 
-    inline void Image_base::s_get_transparent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr;
+    hr = pInst->get_transparent(vr);
 
-        METHOD_INSTANCE(Image_base);
-        PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-        hr = pInst->get_transparent(vr);
+inline void Image_base::s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
 
-        METHOD_RETURN();
-    }
+    hr = pInst->set_transparent(v0);
 
-    inline void Image_base::s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(Image_base);
-        PROPERTY_ENTER();
-        PROPERTY_VAL(int32_t);
+    PROPERTY_SET_LEAVE();
+}
 
-        hr = pInst->set_transparent(v0);
+inline void Image_base::s_get_progressive(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        PROPERTY_SET_LEAVE();
-    }
+    METHOD_INSTANCE(Image_base);
+    PROPERTY_ENTER();
 
-    inline void Image_base::s_get_progressive(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        bool vr;
+    hr = pInst->get_progressive(vr);
 
-        METHOD_INSTANCE(Image_base);
-        PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-        hr = pInst->get_progressive(vr);
+inline void Image_base::s_set_progressive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(bool);
 
-        METHOD_RETURN();
-    }
+    hr = pInst->set_progressive(v0);
 
-    inline void Image_base::s_set_progressive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(Image_base);
-        PROPERTY_ENTER();
-        PROPERTY_VAL(bool);
+    PROPERTY_SET_LEAVE();
+}
 
-        hr = pInst->set_progressive(v0);
+inline void Image_base::s_get_alphaBlending(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        PROPERTY_SET_LEAVE();
-    }
+    METHOD_INSTANCE(Image_base);
+    PROPERTY_ENTER();
 
-    inline void Image_base::s_get_alphaBlending(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        bool vr;
+    hr = pInst->get_alphaBlending(vr);
 
-        METHOD_INSTANCE(Image_base);
-        PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-        hr = pInst->get_alphaBlending(vr);
+inline void Image_base::s_set_alphaBlending(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(bool);
 
-        METHOD_RETURN();
-    }
+    hr = pInst->set_alphaBlending(v0);
 
-    inline void Image_base::s_set_alphaBlending(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &args)
-    {
-        METHOD_INSTANCE(Image_base);
-        PROPERTY_ENTER();
-        PROPERTY_VAL(bool);
+    PROPERTY_SET_LEAVE();
+}
 
-        hr = pInst->set_alphaBlending(v0);
+inline void Image_base::s_getData(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
 
-        PROPERTY_SET_LEAVE();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_getData(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Buffer_base> vr;
+    ASYNC_METHOD_OVER(2, 0);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    OPT_ARG(int32_t, 0, gd_base::_PNG);
+    OPT_ARG(int32_t, 1, 85);
 
-        ASYNC_METHOD_OVER(2, 0);
+    if (!cb.IsEmpty()) {
+        pInst->acb_getData(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_getData(v0, v1, vr);
 
-        OPT_ARG(int32_t, 0, gd_base::_PNG);
-        OPT_ARG(int32_t, 1, 85);
+    METHOD_RETURN();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_getData(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_getData(v0, v1, vr);
+inline void Image_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_RETURN();
-    }
+    ASYNC_METHOD_OVER(3, 1);
 
-    inline void Image_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(int32_t, 1, gd_base::_PNG);
+    OPT_ARG(int32_t, 2, 85);
 
-        ASYNC_METHOD_OVER(3, 1);
+    if (!cb.IsEmpty()) {
+        pInst->acb_save(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_save(v0, v1, v2);
 
-        ARG(obj_ptr<Stream_base>, 0);
-        OPT_ARG(int32_t, 1, gd_base::_PNG);
-        OPT_ARG(int32_t, 2, 85);
+    ASYNC_METHOD_OVER(3, 1);
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_save(v0, v1, v2, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_save(v0, v1, v2);
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, gd_base::_PNG);
+    OPT_ARG(int32_t, 2, 85);
 
-        ASYNC_METHOD_OVER(3, 1);
+    if (!cb.IsEmpty()) {
+        pInst->acb_save(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_save(v0, v1, v2);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(int32_t, 1, gd_base::_PNG);
-        OPT_ARG(int32_t, 2, 85);
+    METHOD_VOID();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_save(v0, v1, v2, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_save(v0, v1, v2);
+inline void Image_base::s_colorAllocate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_VOID();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_colorAllocate(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(3, 3);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
 
-        METHOD_OVER(3, 3);
+    hr = pInst->colorAllocate(v0, v1, v2, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->colorAllocate(v0, v1, v2, vr);
+    ARG(int32_t, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->colorAllocate(v0, vr);
 
-        ARG(int32_t, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->colorAllocate(v0, vr);
+inline void Image_base::s_colorAllocateAlpha(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_colorAllocateAlpha(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(4, 4);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(double, 3);
 
-        METHOD_OVER(4, 4);
+    hr = pInst->colorAllocateAlpha(v0, v1, v2, v3, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(double, 3);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->colorAllocateAlpha(v0, v1, v2, v3, vr);
+    ARG(int32_t, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->colorAllocateAlpha(v0, vr);
 
-        ARG(int32_t, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->colorAllocateAlpha(v0, vr);
+inline void Image_base::s_colorClosest(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_colorClosest(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(3, 3);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
 
-        METHOD_OVER(3, 3);
+    hr = pInst->colorClosest(v0, v1, v2, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->colorClosest(v0, v1, v2, vr);
+    ARG(int32_t, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->colorClosest(v0, vr);
 
-        ARG(int32_t, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->colorClosest(v0, vr);
+inline void Image_base::s_colorClosestHWB(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_colorClosestHWB(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(3, 3);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
 
-        METHOD_OVER(3, 3);
+    hr = pInst->colorClosestHWB(v0, v1, v2, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->colorClosestHWB(v0, v1, v2, vr);
+    ARG(int32_t, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->colorClosestHWB(v0, vr);
 
-        ARG(int32_t, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->colorClosestHWB(v0, vr);
+inline void Image_base::s_colorClosestAlpha(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_colorClosestAlpha(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(4, 4);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(double, 3);
 
-        METHOD_OVER(4, 4);
+    hr = pInst->colorClosestAlpha(v0, v1, v2, v3, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(double, 3);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->colorClosestAlpha(v0, v1, v2, v3, vr);
+    ARG(int32_t, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->colorClosestAlpha(v0, vr);
 
-        ARG(int32_t, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->colorClosestAlpha(v0, vr);
+inline void Image_base::s_colorExact(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_colorExact(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(3, 3);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
 
-        METHOD_OVER(3, 3);
+    hr = pInst->colorExact(v0, v1, v2, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->colorExact(v0, v1, v2, vr);
+    ARG(int32_t, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->colorExact(v0, vr);
 
-        ARG(int32_t, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->colorExact(v0, vr);
+inline void Image_base::s_colorExactAlpha(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_colorExactAlpha(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(4, 4);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(double, 3);
 
-        METHOD_OVER(4, 4);
+    hr = pInst->colorExactAlpha(v0, v1, v2, v3, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(double, 3);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->colorExactAlpha(v0, v1, v2, v3, vr);
+    ARG(int32_t, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->colorExactAlpha(v0, vr);
 
-        ARG(int32_t, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->colorExactAlpha(v0, vr);
+inline void Image_base::s_colorResolve(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_colorResolve(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(3, 3);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
 
-        METHOD_OVER(3, 3);
+    hr = pInst->colorResolve(v0, v1, v2, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->colorResolve(v0, v1, v2, vr);
+    ARG(int32_t, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->colorResolve(v0, vr);
 
-        ARG(int32_t, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->colorResolve(v0, vr);
+inline void Image_base::s_colorResolveAlpha(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_colorResolveAlpha(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(4, 4);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(double, 3);
 
-        METHOD_OVER(4, 4);
+    hr = pInst->colorResolveAlpha(v0, v1, v2, v3, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(double, 3);
+    METHOD_OVER(1, 1);
 
-        hr = pInst->colorResolveAlpha(v0, v1, v2, v3, vr);
+    ARG(int32_t, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->colorResolveAlpha(v0, vr);
 
-        ARG(int32_t, 0);
+    METHOD_RETURN();
+}
 
-        hr = pInst->colorResolveAlpha(v0, vr);
+inline void Image_base::s_colorDeallocate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_RETURN();
-    }
+    METHOD_OVER(1, 1);
 
-    inline void Image_base::s_colorDeallocate(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->colorDeallocate(v0);
 
-        ARG(int32_t, 0);
+    METHOD_VOID();
+}
 
-        hr = pInst->colorDeallocate(v0);
+inline void Image_base::s_clip(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(4, 4);
 
-    inline void Image_base::s_clip(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
 
-        METHOD_OVER(4, 4);
+    hr = pInst->clip(v0, v1, v2, v3);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
+    METHOD_VOID();
+}
 
-        hr = pInst->clip(v0, v1, v2, v3);
+inline void Image_base::s_getPixel(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_VOID();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_getPixel(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(2, 2);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
 
-        METHOD_OVER(2, 2);
+    hr = pInst->getPixel(v0, v1, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
+    METHOD_RETURN();
+}
 
-        hr = pInst->getPixel(v0, v1, vr);
+inline void Image_base::s_getTrueColorPixel(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_getTrueColorPixel(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int32_t vr;
+    METHOD_OVER(2, 2);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
 
-        METHOD_OVER(2, 2);
+    hr = pInst->getTrueColorPixel(v0, v1, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
+    METHOD_RETURN();
+}
 
-        hr = pInst->getTrueColorPixel(v0, v1, vr);
+inline void Image_base::s_setPixel(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_RETURN();
-    }
+    METHOD_OVER(3, 3);
 
-    inline void Image_base::s_setPixel(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
 
-        METHOD_OVER(3, 3);
+    hr = pInst->setPixel(v0, v1, v2);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
+    METHOD_VOID();
+}
 
-        hr = pInst->setPixel(v0, v1, v2);
+inline void Image_base::s_setThickness(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(1, 1);
 
-    inline void Image_base::s_setThickness(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
 
-        METHOD_OVER(1, 1);
+    hr = pInst->setThickness(v0);
 
-        ARG(int32_t, 0);
+    METHOD_VOID();
+}
 
-        hr = pInst->setThickness(v0);
+inline void Image_base::s_line(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(5, 5);
 
-    inline void Image_base::s_line(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
 
-        METHOD_OVER(5, 5);
+    hr = pInst->line(v0, v1, v2, v3, v4);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
+    METHOD_VOID();
+}
 
-        hr = pInst->line(v0, v1, v2, v3, v4);
+inline void Image_base::s_rectangle(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(5, 5);
 
-    inline void Image_base::s_rectangle(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
 
-        METHOD_OVER(5, 5);
+    hr = pInst->rectangle(v0, v1, v2, v3, v4);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
+    METHOD_VOID();
+}
 
-        hr = pInst->rectangle(v0, v1, v2, v3, v4);
+inline void Image_base::s_filledRectangle(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(5, 5);
 
-    inline void Image_base::s_filledRectangle(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
 
-        METHOD_OVER(5, 5);
+    hr = pInst->filledRectangle(v0, v1, v2, v3, v4);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
+    METHOD_VOID();
+}
 
-        hr = pInst->filledRectangle(v0, v1, v2, v3, v4);
+inline void Image_base::s_polygon(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(2, 2);
 
-    inline void Image_base::s_polygon(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(int32_t, 1);
 
-        METHOD_OVER(2, 2);
+    hr = pInst->polygon(v0, v1);
 
-        ARG(v8::Local<v8::Array>, 0);
-        ARG(int32_t, 1);
+    METHOD_VOID();
+}
 
-        hr = pInst->polygon(v0, v1);
+inline void Image_base::s_openPolygon(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(2, 2);
 
-    inline void Image_base::s_openPolygon(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(int32_t, 1);
 
-        METHOD_OVER(2, 2);
+    hr = pInst->openPolygon(v0, v1);
 
-        ARG(v8::Local<v8::Array>, 0);
-        ARG(int32_t, 1);
+    METHOD_VOID();
+}
 
-        hr = pInst->openPolygon(v0, v1);
+inline void Image_base::s_filledPolygon(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(2, 2);
 
-    inline void Image_base::s_filledPolygon(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(int32_t, 1);
 
-        METHOD_OVER(2, 2);
+    hr = pInst->filledPolygon(v0, v1);
 
-        ARG(v8::Local<v8::Array>, 0);
-        ARG(int32_t, 1);
+    METHOD_VOID();
+}
 
-        hr = pInst->filledPolygon(v0, v1);
+inline void Image_base::s_ellipse(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(5, 5);
 
-    inline void Image_base::s_ellipse(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
 
-        METHOD_OVER(5, 5);
+    hr = pInst->ellipse(v0, v1, v2, v3, v4);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
+    METHOD_VOID();
+}
 
-        hr = pInst->ellipse(v0, v1, v2, v3, v4);
+inline void Image_base::s_filledEllipse(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(5, 5);
 
-    inline void Image_base::s_filledEllipse(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
 
-        METHOD_OVER(5, 5);
+    hr = pInst->filledEllipse(v0, v1, v2, v3, v4);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
+    METHOD_VOID();
+}
 
-        hr = pInst->filledEllipse(v0, v1, v2, v3, v4);
+inline void Image_base::s_arc(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(7, 7);
 
-    inline void Image_base::s_arc(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
+    ARG(int32_t, 5);
+    ARG(int32_t, 6);
 
-        METHOD_OVER(7, 7);
+    hr = pInst->arc(v0, v1, v2, v3, v4, v5, v6);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
-        ARG(int32_t, 5);
-        ARG(int32_t, 6);
+    METHOD_VOID();
+}
 
-        hr = pInst->arc(v0, v1, v2, v3, v4, v5, v6);
+inline void Image_base::s_filledArc(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(8, 7);
 
-    inline void Image_base::s_filledArc(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
+    ARG(int32_t, 5);
+    ARG(int32_t, 6);
+    OPT_ARG(int32_t, 7, gd_base::_ARC);
 
-        METHOD_OVER(8, 7);
+    hr = pInst->filledArc(v0, v1, v2, v3, v4, v5, v6, v7);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
-        ARG(int32_t, 5);
-        ARG(int32_t, 6);
-        OPT_ARG(int32_t, 7, gd_base::_ARC);
+    METHOD_VOID();
+}
 
-        hr = pInst->filledArc(v0, v1, v2, v3, v4, v5, v6, v7);
+inline void Image_base::s_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(3, 3);
 
-    inline void Image_base::s_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
 
-        METHOD_OVER(3, 3);
+    hr = pInst->fill(v0, v1, v2);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
+    METHOD_VOID();
+}
 
-        hr = pInst->fill(v0, v1, v2);
+inline void Image_base::s_fillToBorder(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    METHOD_OVER(4, 4);
 
-    inline void Image_base::s_fillToBorder(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
 
-        METHOD_OVER(4, 4);
+    hr = pInst->fillToBorder(v0, v1, v2, v3);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
+    METHOD_VOID();
+}
 
-        hr = pInst->fillToBorder(v0, v1, v2, v3);
+inline void Image_base::s_colorReplace(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    ASYNC_METHOD_OVER(2, 2);
 
-    inline void Image_base::s_colorReplace(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
 
-        ASYNC_METHOD_OVER(2, 2);
+    if (!cb.IsEmpty()) {
+        pInst->acb_colorReplace(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_colorReplace(v0, v1);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
+    METHOD_VOID();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_colorReplace(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_colorReplace(v0, v1);
+inline void Image_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Image_base> vr;
 
-        METHOD_VOID();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Image_base> vr;
+    ASYNC_METHOD_OVER(0, 0);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    if (!cb.IsEmpty()) {
+        pInst->acb_clone(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_clone(vr);
 
-        ASYNC_METHOD_OVER(0, 0);
+    METHOD_RETURN();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_clone(cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_clone(vr);
+inline void Image_base::s_resample(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Image_base> vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_resample(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Image_base> vr;
+    ASYNC_METHOD_OVER(2, 2);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
 
-        ASYNC_METHOD_OVER(2, 2);
+    if (!cb.IsEmpty()) {
+        pInst->acb_resample(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_resample(v0, v1, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
+    METHOD_RETURN();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_resample(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_resample(v0, v1, vr);
+inline void Image_base::s_crop(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Image_base> vr;
 
-        METHOD_RETURN();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_crop(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Image_base> vr;
+    ASYNC_METHOD_OVER(4, 4);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
 
-        ASYNC_METHOD_OVER(4, 4);
+    if (!cb.IsEmpty()) {
+        pInst->acb_crop(v0, v1, v2, v3, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_crop(v0, v1, v2, v3, vr);
 
-        ARG(int32_t, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
+    METHOD_RETURN();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_crop(v0, v1, v2, v3, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_crop(v0, v1, v2, v3, vr);
+inline void Image_base::s_flip(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_RETURN();
-    }
+    ASYNC_METHOD_OVER(1, 0);
 
-    inline void Image_base::s_flip(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    OPT_ARG(int32_t, 0, gd_base::_HORIZONTAL);
 
-        ASYNC_METHOD_OVER(1, 0);
+    if (!cb.IsEmpty()) {
+        pInst->acb_flip(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_flip(v0);
 
-        OPT_ARG(int32_t, 0, gd_base::_HORIZONTAL);
+    METHOD_VOID();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_flip(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_flip(v0);
+inline void Image_base::s_rotate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    ASYNC_METHOD_OVER(1, 1);
 
-    inline void Image_base::s_rotate(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
 
-        ASYNC_METHOD_OVER(1, 1);
+    if (!cb.IsEmpty()) {
+        pInst->acb_rotate(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_rotate(v0);
 
-        ARG(int32_t, 0);
+    METHOD_VOID();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_rotate(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_rotate(v0);
+inline void Image_base::s_convert(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    ASYNC_METHOD_OVER(1, 0);
 
-    inline void Image_base::s_convert(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    OPT_ARG(int32_t, 0, gd_base::_TRUECOLOR);
 
-        ASYNC_METHOD_OVER(1, 0);
+    if (!cb.IsEmpty()) {
+        pInst->acb_convert(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_convert(v0);
 
-        OPT_ARG(int32_t, 0, gd_base::_TRUECOLOR);
+    METHOD_VOID();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_convert(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_convert(v0);
+inline void Image_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    ASYNC_METHOD_OVER(7, 7);
 
-    inline void Image_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Image_base>, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
+    ARG(int32_t, 5);
+    ARG(int32_t, 6);
 
-        ASYNC_METHOD_OVER(7, 7);
+    if (!cb.IsEmpty()) {
+        pInst->acb_copy(v0, v1, v2, v3, v4, v5, v6, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_copy(v0, v1, v2, v3, v4, v5, v6);
 
-        ARG(obj_ptr<Image_base>, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
-        ARG(int32_t, 5);
-        ARG(int32_t, 6);
+    METHOD_VOID();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_copy(v0, v1, v2, v3, v4, v5, v6, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_copy(v0, v1, v2, v3, v4, v5, v6);
+inline void Image_base::s_copyMerge(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    ASYNC_METHOD_OVER(8, 8);
 
-    inline void Image_base::s_copyMerge(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Image_base>, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
+    ARG(int32_t, 5);
+    ARG(int32_t, 6);
+    ARG(int32_t, 7);
 
-        ASYNC_METHOD_OVER(8, 8);
+    if (!cb.IsEmpty()) {
+        pInst->acb_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7);
 
-        ARG(obj_ptr<Image_base>, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
-        ARG(int32_t, 5);
-        ARG(int32_t, 6);
-        ARG(int32_t, 7);
+    METHOD_VOID();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7);
+inline void Image_base::s_copyMergeGray(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    ASYNC_METHOD_OVER(8, 8);
 
-    inline void Image_base::s_copyMergeGray(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Image_base>, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
+    ARG(int32_t, 5);
+    ARG(int32_t, 6);
+    ARG(int32_t, 7);
 
-        ASYNC_METHOD_OVER(8, 8);
+    if (!cb.IsEmpty()) {
+        pInst->acb_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7);
 
-        ARG(obj_ptr<Image_base>, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
-        ARG(int32_t, 5);
-        ARG(int32_t, 6);
-        ARG(int32_t, 7);
+    METHOD_VOID();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7);
+inline void Image_base::s_copyResized(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    ASYNC_METHOD_OVER(9, 9);
 
-    inline void Image_base::s_copyResized(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Image_base>, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
+    ARG(int32_t, 5);
+    ARG(int32_t, 6);
+    ARG(int32_t, 7);
+    ARG(int32_t, 8);
 
-        ASYNC_METHOD_OVER(9, 9);
+    if (!cb.IsEmpty()) {
+        pInst->acb_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8);
 
-        ARG(obj_ptr<Image_base>, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
-        ARG(int32_t, 5);
-        ARG(int32_t, 6);
-        ARG(int32_t, 7);
-        ARG(int32_t, 8);
+    METHOD_VOID();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8);
+inline void Image_base::s_copyResampled(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    ASYNC_METHOD_OVER(9, 9);
 
-    inline void Image_base::s_copyResampled(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Image_base>, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
+    ARG(int32_t, 5);
+    ARG(int32_t, 6);
+    ARG(int32_t, 7);
+    ARG(int32_t, 8);
 
-        ASYNC_METHOD_OVER(9, 9);
+    if (!cb.IsEmpty()) {
+        pInst->acb_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8);
 
-        ARG(obj_ptr<Image_base>, 0);
-        ARG(int32_t, 1);
-        ARG(int32_t, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
-        ARG(int32_t, 5);
-        ARG(int32_t, 6);
-        ARG(int32_t, 7);
-        ARG(int32_t, 8);
+    METHOD_VOID();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8);
+inline void Image_base::s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    ASYNC_METHOD_OVER(8, 8);
 
-    inline void Image_base::s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(obj_ptr<Image_base>, 0);
+    ARG(double, 1);
+    ARG(double, 2);
+    ARG(int32_t, 3);
+    ARG(int32_t, 4);
+    ARG(int32_t, 5);
+    ARG(int32_t, 6);
+    ARG(double, 7);
 
-        ASYNC_METHOD_OVER(8, 8);
+    if (!cb.IsEmpty()) {
+        pInst->acb_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7);
 
-        ARG(obj_ptr<Image_base>, 0);
-        ARG(double, 1);
-        ARG(double, 2);
-        ARG(int32_t, 3);
-        ARG(int32_t, 4);
-        ARG(int32_t, 5);
-        ARG(int32_t, 6);
-        ARG(double, 7);
+    METHOD_VOID();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7);
+inline void Image_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_VOID();
-    }
+    ASYNC_METHOD_OVER(5, 1);
 
-    inline void Image_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
+    OPT_ARG(double, 1, 0);
+    OPT_ARG(double, 2, 0);
+    OPT_ARG(double, 3, 0);
+    OPT_ARG(double, 4, 0);
 
-        ASYNC_METHOD_OVER(5, 1);
+    if (!cb.IsEmpty()) {
+        pInst->acb_filter(v0, v1, v2, v3, v4, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_filter(v0, v1, v2, v3, v4);
 
-        ARG(int32_t, 0);
-        OPT_ARG(double, 1, 0);
-        OPT_ARG(double, 2, 0);
-        OPT_ARG(double, 3, 0);
-        OPT_ARG(double, 4, 0);
+    METHOD_VOID();
+}
 
-        if(!cb.IsEmpty()) {
-            pInst->acb_filter(v0, v1, v2, v3, v4, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_filter(v0, v1, v2, v3, v4);
+inline void Image_base::s_affine(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Image_base> vr;
 
-        METHOD_VOID();
-    }
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-    inline void Image_base::s_affine(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Image_base> vr;
+    METHOD_OVER(5, 1);
 
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(v8::Local<v8::Array>, 0);
+    OPT_ARG(int32_t, 1, -1);
+    OPT_ARG(int32_t, 2, -1);
+    OPT_ARG(int32_t, 3, -1);
+    OPT_ARG(int32_t, 4, -1);
 
-        METHOD_OVER(5, 1);
+    hr = pInst->affine(v0, v1, v2, v3, v4, vr);
 
-        ARG(v8::Local<v8::Array>, 0);
-        OPT_ARG(int32_t, 1, -1);
-        OPT_ARG(int32_t, 2, -1);
-        OPT_ARG(int32_t, 3, -1);
-        OPT_ARG(int32_t, 4, -1);
+    METHOD_RETURN();
+}
 
-        hr = pInst->affine(v0, v1, v2, v3, v4, vr);
+inline void Image_base::s_gaussianBlur(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Image_base);
+    METHOD_ENTER();
 
-        METHOD_RETURN();
-    }
+    ASYNC_METHOD_OVER(1, 1);
 
-    inline void Image_base::s_gaussianBlur(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(Image_base);
-        METHOD_ENTER();
+    ARG(int32_t, 0);
 
-        ASYNC_METHOD_OVER(1, 1);
+    if (!cb.IsEmpty()) {
+        pInst->acb_gaussianBlur(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_gaussianBlur(v0);
 
-        ARG(int32_t, 0);
-
-        if(!cb.IsEmpty()) {
-            pInst->acb_gaussianBlur(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = pInst->ac_gaussianBlur(v0);
-
-        METHOD_VOID();
-    }
-
+    METHOD_VOID();
+}
 }
 
 #endif
-

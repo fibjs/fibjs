@@ -54,36 +54,34 @@ inline int32_t ftruncate64(int32_t fd, __int64 where)
 
 #endif
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Stat: public Stat_base
-{
+class Stat : public Stat_base {
 public:
     // Stat_base
-    virtual result_t get_name(exlib::string &retVal);
-    virtual result_t get_size(int64_t &retVal);
-    virtual result_t get_mode(int32_t &retVal);
-    virtual result_t get_mtime(date_t &retVal);
-    virtual result_t get_atime(date_t &retVal);
-    virtual result_t get_ctime(date_t &retVal);
-    virtual result_t isWritable(bool &retVal);
-    virtual result_t isReadable(bool &retVal);
-    virtual result_t isExecutable(bool &retVal);
-    virtual result_t isHidden(bool &retVal);
-    virtual result_t isDirectory(bool &retVal);
-    virtual result_t isFile(bool &retVal);
-    virtual result_t isSymbolicLink(bool &retVal);
-    virtual result_t isMemory(bool &retVal);
-    virtual result_t isSocket(bool &retVal);
+    virtual result_t get_name(exlib::string& retVal);
+    virtual result_t get_size(int64_t& retVal);
+    virtual result_t get_mode(int32_t& retVal);
+    virtual result_t get_mtime(date_t& retVal);
+    virtual result_t get_atime(date_t& retVal);
+    virtual result_t get_ctime(date_t& retVal);
+    virtual result_t isWritable(bool& retVal);
+    virtual result_t isReadable(bool& retVal);
+    virtual result_t isExecutable(bool& retVal);
+    virtual result_t isHidden(bool& retVal);
+    virtual result_t isDirectory(bool& retVal);
+    virtual result_t isFile(bool& retVal);
+    virtual result_t isSymbolicLink(bool& retVal);
+    virtual result_t isMemory(bool& retVal);
+    virtual result_t isSocket(bool& retVal);
 
 public:
     result_t getStat(exlib::string path);
-    void fill(exlib::string path, struct stat64 &st);
+    void fill(exlib::string path, struct stat64& st);
 
 #ifdef _WIN32
-    void fill(WIN32_FIND_DATAW &fd);
-    void fill(exlib::string path, BY_HANDLE_FILE_INFORMATION &fd);
+    void fill(WIN32_FIND_DATAW& fd);
+    void fill(exlib::string path, BY_HANDLE_FILE_INFORMATION& fd);
 #endif
 
     void init();
@@ -97,7 +95,6 @@ public:
     bool m_isDirectory, m_isFile, m_isSymbolicLink;
     bool m_isMemory, m_isSocket;
 };
-
 }
 
 #endif /* STAT_H_ */

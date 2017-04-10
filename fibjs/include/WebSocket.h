@@ -12,21 +12,30 @@
 #ifndef WEBSOCKET_H_
 #define WEBSOCKET_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class WebSocket: public WebSocket_base
-{
+class WebSocket : public WebSocket_base {
 public:
-    WebSocket(exlib::string url, exlib::string protocol, exlib::string origin):
-        m_ac(NULL), m_url(url), m_protocol(protocol), m_origin(origin), m_masked(true),
-        m_maxSize(67108864), m_readyState(ws_base::_CONNECTING)
-    {}
+    WebSocket(exlib::string url, exlib::string protocol, exlib::string origin)
+        : m_ac(NULL)
+        , m_url(url)
+        , m_protocol(protocol)
+        , m_origin(origin)
+        , m_masked(true)
+        , m_maxSize(67108864)
+        , m_readyState(ws_base::_CONNECTING)
+    {
+    }
 
-    WebSocket(Stream_base* stream, exlib::string protocol, AsyncEvent *ac):
-        m_stream(stream), m_ac(ac), m_protocol(protocol), m_masked(false),
-        m_maxSize(67108864), m_readyState(ws_base::_OPEN)
-    {}
+    WebSocket(Stream_base* stream, exlib::string protocol, AsyncEvent* ac)
+        : m_stream(stream)
+        , m_ac(ac)
+        , m_protocol(protocol)
+        , m_masked(false)
+        , m_maxSize(67108864)
+        , m_readyState(ws_base::_OPEN)
+    {
+    }
 
 public:
     // WebSocket_base
@@ -61,29 +70,53 @@ public:
     }
 
     virtual result_t addListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
-    {return on(ev, func, retVal);}
+    {
+        return on(ev, func, retVal);
+    }
     virtual result_t addListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
-    {return on(map, retVal);}
+    {
+        return on(map, retVal);
+    }
     virtual result_t off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
-    {   return object_base::off(ev, func, retVal);}
+    {
+        return object_base::off(ev, func, retVal);
+    }
     virtual result_t off(exlib::string ev, v8::Local<v8::Object>& retVal)
-    {   return object_base::off(ev, retVal);}
+    {
+        return object_base::off(ev, retVal);
+    }
     virtual result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
-    {   return object_base::off(map, retVal);}
+    {
+        return object_base::off(map, retVal);
+    }
     virtual result_t removeListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
-    {   return object_base::off(ev, func, retVal);}
+    {
+        return object_base::off(ev, func, retVal);
+    }
     virtual result_t removeListener(exlib::string ev, v8::Local<v8::Object>& retVal)
-    {   return object_base::off(ev, retVal);}
+    {
+        return object_base::off(ev, retVal);
+    }
     virtual result_t removeListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
-    {   return object_base::off(map, retVal);}
+    {
+        return object_base::off(map, retVal);
+    }
     virtual result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal)
-    {   return object_base::removeAllListeners(evs, retVal);}
+    {
+        return object_base::removeAllListeners(evs, retVal);
+    }
     virtual result_t setMaxListeners(int32_t n)
-    {   return 0;}
+    {
+        return 0;
+    }
     virtual result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
-    {   return object_base::listeners(ev, retVal);}
+    {
+        return object_base::listeners(ev, retVal);
+    }
     virtual result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args, bool& retVal)
-    {   return object_base::emit(ev, args, retVal);}
+    {
+        return object_base::emit(ev, args, retVal);
+    }
 
 public:
     // WebSocket_base
@@ -110,7 +143,7 @@ public:
 
 public:
     obj_ptr<Stream_base> m_stream;
-    AsyncEvent *m_ac;
+    AsyncEvent* m_ac;
 
     exlib::string m_url;
     exlib::string m_protocol;

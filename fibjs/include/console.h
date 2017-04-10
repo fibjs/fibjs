@@ -15,27 +15,24 @@
 #include "ifs/fs.h"
 #include "File.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 #define LOGTIME true
 
-class logger : public AsyncEvent
-{
+class logger : public AsyncEvent {
 public:
-    class item : public exlib::linkitem
-    {
+    class item : public exlib::linkitem {
     public:
-        item(int32_t priority, exlib::string& msg) :
-            m_priority(priority), m_msg(msg)
+        item(int32_t priority, exlib::string& msg)
+            : m_priority(priority)
+            , m_msg(msg)
         {
             m_d.now();
         }
 
         exlib::string full(bool type = LOGTIME)
         {
-            static const char *s_levels[] =
-            {
+            static const char* s_levels[] = {
                 "FATAL  - ",
                 "ALERT  - ",
                 "CRIT   - ",
@@ -67,11 +64,13 @@ public:
     };
 
 public:
-    logger() : m_bWorking(false), m_bStop(false)
+    logger()
+        : m_bWorking(false)
+        , m_bStop(false)
     {
         int32_t i;
 
-        for (i = 0; i < console_base::_NOTSET; i ++)
+        for (i = 0; i < console_base::_NOTSET; i++)
             m_levels[i] = true;
     }
 
@@ -82,20 +81,16 @@ public:
         v8::Local<v8::Array> levels;
 
         hr = GetConfigValue(isolate->m_isolate, o, "levels", levels);
-        if (hr == CALL_E_PARAMNOTOPTIONAL)
-        {
-        }
-        else if (hr < 0)
+        if (hr == CALL_E_PARAMNOTOPTIONAL) {
+        } else if (hr < 0)
             return hr;
-        else
-        {
-            for (i = 0; i < console_base::_NOTSET; i ++)
+        else {
+            for (i = 0; i < console_base::_NOTSET; i++)
                 m_levels[i] = false;
 
             int32_t sz = levels->Length();
 
-            for (i = 0; i < sz; i ++)
-            {
+            for (i = 0; i < sz; i++) {
                 v8::Local<v8::Value> l = levels->Get(i);
                 int32_t num;
 
@@ -120,10 +115,8 @@ public:
         result_t hr = v;
         bool bStop = false;
 
-        do
-        {
-            if (hr < 0)
-            {
+        do {
+            if (hr < 0) {
                 m_lock.lock();
                 m_bWorking = false;
                 bStop = m_bStop;
@@ -160,18 +153,16 @@ public:
     }
 
 public:
-    virtual result_t write(AsyncEvent *ac) = 0;
+    virtual result_t write(AsyncEvent* ac) = 0;
 
     void log(int32_t priority, exlib::string& msg)
     {
-        if (priority >= 0 && priority < console_base::_NOTSET && m_levels[priority])
-        {
+        if (priority >= 0 && priority < console_base::_NOTSET && m_levels[priority]) {
             item* i = new item(priority, msg);
 
             m_lock.lock();
             m_acLog.putTail(i);
-            if (!m_bWorking)
-            {
+            if (!m_bWorking) {
                 m_bWorking = true;
                 async(CALL_E_NOSYNC);
             }
@@ -188,38 +179,36 @@ public:
     void stop()
     {
         m_lock.lock();
-        if (!m_bWorking)
-        {
+        if (!m_bWorking) {
             destroy();
             return;
-        }
-        else
+        } else
             m_bStop = true;
         m_lock.unlock();
     }
 
 public:
-    static exlib::string &notice()
+    static exlib::string& notice()
     {
         return get_std_color()->m_notice;
     }
 
-    static exlib::string &warn()
+    static exlib::string& warn()
     {
         return get_std_color()->m_warn;
     }
 
-    static exlib::string &error()
+    static exlib::string& error()
     {
         return get_std_color()->m_error;
     }
 
-    static exlib::string &highLight()
+    static exlib::string& highLight()
     {
         return get_std_color()->m_highLight;
     }
 
-    static TextColor *get_std_color();
+    static TextColor* get_std_color();
 
 protected:
     exlib::List<item> m_workinglogs;
@@ -240,21 +229,21 @@ private:
     bool m_levels[console_base::_NOTSET];
 };
 
-class std_logger : public logger
-{
+class std_logger : public logger {
 public:
-    virtual result_t write(AsyncEvent *ac);
+    virtual result_t write(AsyncEvent* ac);
     static void out(exlib::string& txt);
 };
 
-class stream_logger : public logger
-{
+class stream_logger : public logger {
 public:
-    stream_logger(Stream_base* out) : m_out(out)
-    {}
+    stream_logger(Stream_base* out)
+        : m_out(out)
+    {
+    }
 
 public:
-    virtual result_t write(AsyncEvent *ac);
+    virtual result_t write(AsyncEvent* ac);
 
     void close()
     {
@@ -265,11 +254,10 @@ private:
     obj_ptr<Stream_base> m_out;
 };
 
-class file_logger : public logger
-{
+class file_logger : public logger {
 public:
     virtual result_t config(Isolate* isolate, v8::Local<v8::Object> o);
-    virtual result_t write(AsyncEvent *ac);
+    virtual result_t write(AsyncEvent* ac);
 
 private:
     void clearFile();
@@ -289,14 +277,13 @@ private:
 
 #ifdef _WIN32
 
-class event_logger : public logger
-{
+class event_logger : public logger {
 public:
     event_logger();
     ~event_logger();
 
 public:
-    virtual result_t write(AsyncEvent *ac);
+    virtual result_t write(AsyncEvent* ac);
 
 private:
     HANDLE m_event;
@@ -304,14 +291,12 @@ private:
 
 #else
 
-class sys_logger : public logger
-{
+class sys_logger : public logger {
 public:
-    virtual result_t write(AsyncEvent *ac);
+    virtual result_t write(AsyncEvent* ac);
 };
 
 #endif
-
 }
 
 #endif // _fj_CONSOLE_H

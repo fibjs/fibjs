@@ -14,13 +14,11 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class HttpCollection_base;
 
-class querystring_base : public object_base
-{
+class querystring_base : public object_base {
     DECLARE_CLASS(querystring_base);
 
 public:
@@ -47,101 +45,95 @@ public:
     static void s_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_stringify(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
 #include "HttpCollection.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& querystring_base::class_info()
 {
-    inline ClassInfo& querystring_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"escape", s_escape, true},
-            {"unescape", s_unescape, true},
-            {"parse", s_parse, true},
-            {"stringify", s_stringify, true}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "escape", s_escape, true },
+        { "unescape", s_unescape, true },
+        { "parse", s_parse, true },
+        { "stringify", s_stringify, true }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "querystring", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "querystring", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void querystring_base::s_escape(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void querystring_base::s_escape(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = escape(v0, vr);
+    hr = escape(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void querystring_base::s_unescape(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void querystring_base::s_unescape(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        hr = unescape(v0, vr);
+    hr = unescape(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void querystring_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<HttpCollection_base> vr;
+inline void querystring_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpCollection_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(4, 1);
+    METHOD_OVER(4, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(exlib::string, 1, "&");
-        OPT_ARG(exlib::string, 2, "=");
-        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "&");
+    OPT_ARG(exlib::string, 2, "=");
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
-        hr = parse(v0, v1, v2, v3, vr);
+    hr = parse(v0, v1, v2, v3, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void querystring_base::s_stringify(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void querystring_base::s_stringify(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(4, 1);
+    METHOD_OVER(4, 1);
 
-        ARG(v8::Local<v8::Object>, 0);
-        OPT_ARG(exlib::string, 1, "&");
-        OPT_ARG(exlib::string, 2, "=");
-        OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
+    ARG(v8::Local<v8::Object>, 0);
+    OPT_ARG(exlib::string, 1, "&");
+    OPT_ARG(exlib::string, 2, "=");
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
 
-        hr = stringify(v0, v1, v2, v3, vr);
+    hr = stringify(v0, v1, v2, v3, vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

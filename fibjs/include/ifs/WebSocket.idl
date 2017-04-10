@@ -9,20 +9,20 @@
  */
 interface WebSocket : EventEmitter
 {
-  WebSocket(String url, String protocol = "", String origin = "");
+    WebSocket(String url, String protocol = "", String origin = "");
 
-  readonly String url;
-  readonly String protocol;
-  readonly String origin;
+    readonly String url;
+    readonly String protocol;
+    readonly String origin;
 
-  readonly Integer readyState;
+    readonly Integer readyState;
 
-  close(Integer code = 1000, String reason = "");
-  send(String data);
-  send(Buffer data);
+    close(Integer code = 1000, String reason = "");
+    send(String data);
+    send(Buffer data);
 
-  Function onopen;
-  Function onmessage;
-  Function onclose;
-  Function onerror;
+    Function onopen;
+    Function onmessage;
+    Function onclose;
+    Function onerror;
 };

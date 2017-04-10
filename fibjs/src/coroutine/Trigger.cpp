@@ -13,25 +13,22 @@
 #include "QuickArray.h"
 #include <vector>
 
-namespace fibjs
-{
+namespace fibjs {
 
-class RootModule_events : public RootModule
-{
+class RootModule_events : public RootModule {
 public:
     RootModule_events()
     {
-        static ClassData::ClassMethod s_method[] =
-        {
-            {"on", JSTrigger::s_on, true},
-            {"addListener", JSTrigger::s_on, true},
-            {"once", JSTrigger::s_once, true},
-            {"off", JSTrigger::s_off, true},
-            {"removeListener", JSTrigger::s_off, true},
-            {"removeAllListeners", JSTrigger::s_removeAllListeners, true},
-            {"setMaxListeners", JSTrigger::s_setMaxListeners, true},
-            {"listeners", JSTrigger::s_listeners, true},
-            {"emit", JSTrigger::s_emit, true}
+        static ClassData::ClassMethod s_method[] = {
+            { "on", JSTrigger::s_on, true },
+            { "addListener", JSTrigger::s_on, true },
+            { "once", JSTrigger::s_once, true },
+            { "off", JSTrigger::s_off, true },
+            { "removeListener", JSTrigger::s_off, true },
+            { "removeAllListeners", JSTrigger::s_removeAllListeners, true },
+            { "setMaxListeners", JSTrigger::s_setMaxListeners, true },
+            { "listeners", JSTrigger::s_listeners, true },
+            { "emit", JSTrigger::s_emit, true }
         };
 
         ClassData& cd = EventEmitter_base::class_info().data();
@@ -42,49 +39,49 @@ public:
     }
 
 public:
-    virtual ClassInfo &class_info()
+    virtual ClassInfo& class_info()
     {
         return events_base::class_info();
     }
 } s_RootModule_events;
 
-result_t EventEmitter_base::_new(obj_ptr<EventEmitter_base> &retVal, v8::Local<v8::Object> This)
+result_t EventEmitter_base::_new(obj_ptr<EventEmitter_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new EventEmitter();
     return 0;
 }
 
-result_t object_base::on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> &retVal)
+result_t object_base::on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).on(ev, func, retVal);
 }
 
-result_t object_base::on(v8::Local<v8::Object> map, v8::Local<v8::Object> &retVal)
+result_t object_base::on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).on(map, retVal);
 }
 
-result_t object_base::once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> &retVal)
+result_t object_base::once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).once(ev, func, retVal);
 }
 
-result_t object_base::once(v8::Local<v8::Object> map, v8::Local<v8::Object> &retVal)
+result_t object_base::once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).once(map, retVal);
 }
 
-result_t object_base::off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> &retVal)
+result_t object_base::off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).off(ev, func, retVal);
 }
 
-result_t object_base::off(exlib::string ev, v8::Local<v8::Object> &retVal)
+result_t object_base::off(exlib::string ev, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).off(ev, retVal);
 }
 
-result_t object_base::off(v8::Local<v8::Object> map, v8::Local<v8::Object> &retVal)
+result_t object_base::off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).off(map, retVal);
 }
@@ -129,15 +126,15 @@ result_t object_base::listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
     return JSTrigger(this).listeners(ev, retVal);
 }
 
-result_t object_base::_emit(exlib::string ev, Variant *args, int32_t argCount)
+result_t object_base::_emit(exlib::string ev, Variant* args, int32_t argCount)
 {
-    class jsTrigger: public AsyncEvent
-    {
+    class jsTrigger : public AsyncEvent {
     public:
-        jsTrigger(object_base *obj, exlib::string ev, Variant *args, int32_t argCount) :
-            m_obj(obj), m_ev(ev)
+        jsTrigger(object_base* obj, exlib::string ev, Variant* args, int32_t argCount)
+            : m_obj(obj)
+            , m_ev(ev)
         {
-            m_args.append((VariantEx *)args, argCount);
+            m_args.append((VariantEx*)args, argCount);
         }
 
     public:
@@ -153,7 +150,7 @@ result_t object_base::_emit(exlib::string ev, Variant *args, int32_t argCount)
                 argv[i] = v8::Local<v8::Value>::New(m_obj->holder()->m_isolate, m_args[i]);
 
             bool r;
-            JSTrigger(m_obj)._emit(m_ev, argv.data(), (int32_t) argv.size(), r);
+            JSTrigger(m_obj)._emit(m_ev, argv.data(), (int32_t)argv.size(), r);
 
             delete this;
 
@@ -173,10 +170,9 @@ result_t object_base::_emit(exlib::string ev, Variant *args, int32_t argCount)
     return 0;
 }
 
-result_t object_base::emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value> &args,
-                           bool& retVal)
+result_t object_base::emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args,
+    bool& retVal)
 {
     return JSTrigger(this).emit(ev, args, retVal);
 }
-
 }

@@ -14,14 +14,11 @@
 #include "HttpRequest.h"
 #include "Url.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-static const char *s_defType[2] =
-{ NULL, "application/octet-stream" };
+static const char* s_defType[2] = { NULL, "application/octet-stream" };
 
-static const char *s_mimeTypes[][2] =
-{
+static const char* s_mimeTypes[][2] = {
     { "ai", "application/postscript" },
     { "asc", "text/plain" },
     { "au", "audio/basic" },
@@ -104,7 +101,7 @@ static const char *s_mimeTypes[][2] =
 };
 
 result_t http_base::fileHandler(exlib::string root, v8::Local<v8::Object> mimes,
-                                obj_ptr<Handler_base> &retVal)
+    obj_ptr<Handler_base>& retVal)
 {
     obj_ptr<HttpFileHandler> hdlr = new HttpFileHandler(root);
     result_t hr = hdlr->set_mimes(mimes);
@@ -122,8 +119,7 @@ result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
     int32_t i;
     result_t hr;
 
-    for (i = 0; i < len; i++)
-    {
+    for (i = 0; i < len; i++) {
         v8::Local<v8::Value> ks = keys->Get(i);
         exlib::string v;
 
@@ -137,29 +133,30 @@ result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
     return 0;
 }
 
-static int32_t mt_cmp(const void *p, const void *q)
+static int32_t mt_cmp(const void* p, const void* q)
 {
-    return qstricmp(*(const char **) p, *(const char **) q);
+    return qstricmp(*(const char**)p, *(const char**)q);
 }
 
-result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                                 AsyncEvent *ac)
+result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+    AsyncEvent* ac)
 {
-    class asyncInvoke: public AsyncState
-    {
+    class asyncInvoke : public AsyncState {
     public:
-        asyncInvoke(HttpFileHandler *pThis, HttpRequest_base *req,
-                    AsyncEvent *ac) :
-            AsyncState(ac), m_pThis(pThis), m_req(req), m_gzip(false)
+        asyncInvoke(HttpFileHandler* pThis, HttpRequest_base* req,
+            AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(pThis)
+            , m_req(req)
+            , m_gzip(false)
         {
             obj_ptr<Message_base> m;
             req->get_response(m);
-            m_rep = (HttpResponse_base *)(Message_base *)m;
+            m_rep = (HttpResponse_base*)(Message_base*)m;
 
             Variant hdr;
 
-            if (m_req->firstHeader("Accept-Encoding", hdr) != CALL_RETURN_NULL)
-            {
+            if (m_req->firstHeader("Accept-Encoding", hdr) != CALL_RETURN_NULL) {
                 exlib::string str = hdr.string();
 
                 if (qstristr(str.c_str(), "gzip"))
@@ -180,12 +177,11 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             set(start);
         }
 
-        static int32_t start(AsyncState *pState, int32_t n)
+        static int32_t start(AsyncState* pState, int32_t n)
         {
-            asyncInvoke *pThis = (asyncInvoke *) pState;
+            asyncInvoke* pThis = (asyncInvoke*)pState;
 
-            if (qstrchr(pThis->m_url.c_str(), '%'))
-            {
+            if (qstrchr(pThis->m_url.c_str(), '%')) {
                 pThis->m_rep->set_status(400);
                 return pThis->done(CALL_RETURN_NULL);
             }
@@ -196,30 +192,28 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             pThis->set(open);
             return fs_base::open(pThis->m_path, "r", pThis->m_file,
-                                 pThis);
+                pThis);
         }
 
-        static int32_t open(AsyncState *pState, int32_t n)
+        static int32_t open(AsyncState* pState, int32_t n)
         {
-            asyncInvoke *pThis = (asyncInvoke *) pState;
+            asyncInvoke* pThis = (asyncInvoke*)pState;
             exlib::string ext;
 
             path_base::extname(pThis->m_url, ext);
 
-            if (ext.length() > 0)
-            {
-                const char *pKey = ext.c_str() + 1;
-                std::map<exlib::string, exlib::string> &_mimes = pThis->m_pThis->m_mimes;
+            if (ext.length() > 0) {
+                const char* pKey = ext.c_str() + 1;
+                std::map<exlib::string, exlib::string>& _mimes = pThis->m_pThis->m_mimes;
 
                 std::map<exlib::string, exlib::string>::iterator it = _mimes.find(pKey);
 
                 if (it != _mimes.end())
                     pThis->m_rep->addHeader("Content-Type", it->second);
-                else
-                {
-                    const char **pMimeType = (const char **) bsearch(&pKey,
-                                             &s_mimeTypes, sizeof(s_mimeTypes) / sizeof(s_defType),
-                                             sizeof(s_defType), mt_cmp);
+                else {
+                    const char** pMimeType = (const char**)bsearch(&pKey,
+                        &s_mimeTypes, sizeof(s_mimeTypes) / sizeof(s_defType),
+                        sizeof(s_defType), mt_cmp);
 
                     if (!pMimeType)
                         pMimeType = s_defType;
@@ -232,9 +226,9 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
             return pThis->m_file->stat(pThis->m_stat, pThis);
         }
 
-        static int32_t stat(AsyncState *pState, int32_t n)
+        static int32_t stat(AsyncState* pState, int32_t n)
         {
-            asyncInvoke *pThis = (asyncInvoke *) pState;
+            asyncInvoke* pThis = (asyncInvoke*)pState;
             date_t d;
             exlib::string str;
 
@@ -242,8 +236,8 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
             Variant v;
             if (pThis->m_req->firstHeader("If-Modified-Since",
-                                          v) != CALL_RETURN_NULL)
-            {
+                    v)
+                != CALL_RETURN_NULL) {
                 date_t d1;
                 double diff;
                 exlib::string str = v.string();
@@ -251,8 +245,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
                 d1.parse(str);
                 diff = d.diff(d1);
 
-                if (diff > -1000 && diff < 1000)
-                {
+                if (diff > -1000 && diff < 1000) {
                     pThis->m_rep->set_status(304);
                     return pThis->done(CALL_RETURN_NULL);
                 }
@@ -271,8 +264,7 @@ result_t HttpFileHandler::invoke(object_base *v, obj_ptr<Handler_base> &retVal,
 
         virtual int32_t error(int32_t v)
         {
-            if (m_gzip)
-            {
+            if (m_gzip) {
                 m_gzip = false;
 
                 set(start);

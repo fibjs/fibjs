@@ -14,11 +14,9 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class object_base : public object_base
-{
+class object_base : public object_base {
     DECLARE_CLASS(object_base);
 
 public:
@@ -47,106 +45,100 @@ public:
     static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_valueOf(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& object_base::class_info()
 {
-    inline ClassInfo& object_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"dispose", s_dispose, false},
-            {"equals", s_equals, false},
-            {"toString", s_toString, false},
-            {"toJSON", s_toJSON, false},
-            {"valueOf", s_valueOf, false}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "dispose", s_dispose, false },
+        { "equals", s_equals, false },
+        { "toString", s_toString, false },
+        { "toJSON", s_toJSON, false },
+        { "valueOf", s_valueOf, false }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "object", false, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "object", false, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void object_base::s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_INSTANCE(object_base);
-        METHOD_ENTER();
+inline void object_base::s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(object_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->dispose();
+    hr = pInst->dispose();
 
-        METHOD_VOID();
-    }
+    METHOD_VOID();
+}
 
-    inline void object_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        bool vr;
+inline void object_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
 
-        METHOD_INSTANCE(object_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(object_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
-        ARG(obj_ptr<object_base>, 0);
+    ARG(obj_ptr<object_base>, 0);
 
-        hr = pInst->equals(v0, vr);
+    hr = pInst->equals(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_INSTANCE(object_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(object_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->toString(vr);
+    hr = pInst->toString(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Value> vr;
+inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
 
-        METHOD_INSTANCE(object_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(object_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
-        OPT_ARG(exlib::string, 0, "");
+    OPT_ARG(exlib::string, 0, "");
 
-        hr = pInst->toJSON(v0, vr);
+    hr = pInst->toJSON(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void object_base::s_valueOf(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Value> vr;
+inline void object_base::s_valueOf(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
 
-        METHOD_INSTANCE(object_base);
-        METHOD_ENTER();
+    METHOD_INSTANCE(object_base);
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = pInst->valueOf(vr);
+    hr = pInst->valueOf(vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

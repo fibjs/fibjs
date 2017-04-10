@@ -8,11 +8,10 @@
 #include "object.h"
 #include <Stats.h>
 
-namespace fibjs
-{
+namespace fibjs {
 
 result_t Stats_base::_new(v8::Local<v8::Array> keys,
-                          obj_ptr<Stats_base> &retVal, v8::Local<v8::Object> This)
+    obj_ptr<Stats_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<Stats> pStats = new Stats();
     int32_t n = keys->Length();
@@ -21,8 +20,7 @@ result_t Stats_base::_new(v8::Local<v8::Array> keys,
 
     pStats->init(0, n);
 
-    for (i = 0; i < n; i++)
-    {
+    for (i = 0; i < n; i++) {
         hr = pStats->set_key(i, keys->Get(i));
         if (hr < 0)
             return hr;
@@ -33,8 +31,8 @@ result_t Stats_base::_new(v8::Local<v8::Array> keys,
 }
 
 result_t Stats_base::_new(v8::Local<v8::Array> staticKeys,
-                          v8::Local<v8::Array> keys, obj_ptr<Stats_base> &retVal,
-                          v8::Local<v8::Object> This)
+    v8::Local<v8::Array> keys, obj_ptr<Stats_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     obj_ptr<Stats> pStats = new Stats();
     int32_t sn = staticKeys->Length();
@@ -44,15 +42,13 @@ result_t Stats_base::_new(v8::Local<v8::Array> staticKeys,
 
     pStats->init(sn, n + sn);
 
-    for (i = 0; i < sn; i++)
-    {
+    for (i = 0; i < sn; i++) {
         hr = pStats->set_key(i, staticKeys->Get(i));
         if (hr < 0)
             return hr;
     }
 
-    for (i = 0; i < n; i++)
-    {
+    for (i = 0; i < n; i++) {
         hr = pStats->set_key(sn + i, keys->Get(i));
         if (hr < 0)
             return hr;
@@ -76,7 +72,7 @@ void Stats::init(int32_t sn, int32_t n)
     m_date.now();
 }
 
-void Stats::set_key(int32_t n, const char *key)
+void Stats::set_key(int32_t n, const char* key)
 {
     m_keys[n] = key;
 }
@@ -84,7 +80,7 @@ void Stats::set_key(int32_t n, const char *key)
 result_t Stats::set_key(int32_t n, v8::Local<v8::Value> key)
 {
     v8::String::Utf8Value str(key);
-    const char *p = *str;
+    const char* p = *str;
     if (p == NULL)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -149,7 +145,7 @@ result_t Stats::reset()
     return 0;
 }
 
-result_t Stats::uptime(int32_t &retVal)
+result_t Stats::uptime(int32_t& retVal)
 {
     date_t d1;
 
@@ -159,7 +155,7 @@ result_t Stats::uptime(int32_t &retVal)
     return 0;
 }
 
-result_t Stats::_named_getter(const char *property, int32_t &retVal)
+result_t Stats::_named_getter(const char* property, int32_t& retVal)
 {
     int32_t i = find(property);
 
@@ -171,7 +167,7 @@ result_t Stats::_named_getter(const char *property, int32_t &retVal)
     return 0;
 }
 
-result_t Stats::_named_enumerator(v8::Local<v8::Array> &retVal)
+result_t Stats::_named_enumerator(v8::Local<v8::Array>& retVal)
 {
     int32_t i;
     Isolate* isolate = holder();

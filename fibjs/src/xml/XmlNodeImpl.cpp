@@ -15,41 +15,37 @@
 #include "XmlCDATASection.h"
 #include "XmlProcessingInstruction.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-const char *XmlNodeImpl::s_nss[][2] =
-{
-    {"xml", "http://www.w3.org/XML/1998/namespace"},
-    {"xmlns", "http://www.w3.org/2000/xmlns/"},
-    {NULL, NULL}
+const char* XmlNodeImpl::s_nss[][2] = {
+    { "xml", "http://www.w3.org/XML/1998/namespace" },
+    { "xmlns", "http://www.w3.org/2000/xmlns/" },
+    { NULL, NULL }
 };
 
-XmlNodeImpl *XmlNodeImpl::fromNode(XmlNode_base *pNode)
+XmlNodeImpl* XmlNodeImpl::fromNode(XmlNode_base* pNode)
 {
     int32_t type;
 
     pNode->get_nodeType(type);
 
-    switch (type)
-    {
+    switch (type) {
     case xml_base::_ELEMENT_NODE:
-        return (XmlElement *)pNode;
+        return (XmlElement*)pNode;
     case xml_base::_TEXT_NODE:
-        return (XmlText *)pNode;
+        return (XmlText*)pNode;
     case xml_base::_CDATA_SECTION_NODE:
-        return (XmlCDATASection *)pNode;
+        return (XmlCDATASection*)pNode;
     case xml_base::_PROCESSING_INSTRUCTION_NODE:
-        return (XmlProcessingInstruction *)pNode;
+        return (XmlProcessingInstruction*)pNode;
     case xml_base::_COMMENT_NODE:
-        return (XmlComment *)pNode;
+        return (XmlComment*)pNode;
     case xml_base::_DOCUMENT_NODE:
-        return (XmlDocument *)pNode;
+        return (XmlDocument*)pNode;
     case xml_base::_DOCUMENT_TYPE_NODE:
-        return (XmlDocumentType *)pNode;
+        return (XmlDocumentType*)pNode;
     }
 
     return NULL;
 }
-
 }

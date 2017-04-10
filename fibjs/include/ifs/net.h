@@ -14,8 +14,7 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class Socket_base;
 class Stream_base;
@@ -23,12 +22,11 @@ class Smtp_base;
 class TcpServer_base;
 class UrlObject_base;
 
-class net_base : public object_base
-{
+class net_base : public object_base {
     DECLARE_CLASS(net_base);
 
 public:
-    enum{
+    enum {
         _AF_INET = 2,
         _AF_INET6 = 10,
         _SOCK_STREAM = 1,
@@ -58,10 +56,10 @@ public:
     }
 
 public:
-    static void s_get_AF_INET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_AF_INET6(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
-    static void s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args);
+    static void s_get_AF_INET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_AF_INET6(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_info(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_ip(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -78,7 +76,6 @@ public:
     ASYNC_STATICVALUE3(net_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE3(net_base, openSmtp, exlib::string, int32_t, obj_ptr<Smtp_base>);
 };
-
 }
 
 #include "Socket.h"
@@ -87,214 +84,207 @@ public:
 #include "TcpServer.h"
 #include "UrlObject.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& net_base::class_info()
 {
-    inline ClassInfo& net_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"info", s_info, true},
-            {"resolve", s_resolve, true},
-            {"ip", s_ip, true},
-            {"ipv6", s_ipv6, true},
-            {"connect", s_connect, true},
-            {"openSmtp", s_openSmtp, true},
-            {"backend", s_backend, true}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "info", s_info, true },
+        { "resolve", s_resolve, true },
+        { "ip", s_ip, true },
+        { "ipv6", s_ipv6, true },
+        { "connect", s_connect, true },
+        { "openSmtp", s_openSmtp, true },
+        { "backend", s_backend, true }
+    };
 
-        static ClassData::ClassObject s_object[] = 
-        {
-            {"Socket", Socket_base::class_info},
-            {"Smtp", Smtp_base::class_info},
-            {"TcpServer", TcpServer_base::class_info},
-            {"Url", UrlObject_base::class_info}
-        };
+    static ClassData::ClassObject s_object[] = {
+        { "Socket", Socket_base::class_info },
+        { "Smtp", Smtp_base::class_info },
+        { "TcpServer", TcpServer_base::class_info },
+        { "Url", UrlObject_base::class_info }
+    };
 
-        static ClassData::ClassProperty s_property[] = 
-        {
-            {"AF_INET", s_get_AF_INET, block_set, true},
-            {"AF_INET6", s_get_AF_INET6, block_set, true},
-            {"SOCK_STREAM", s_get_SOCK_STREAM, block_set, true},
-            {"SOCK_DGRAM", s_get_SOCK_DGRAM, block_set, true}
-        };
+    static ClassData::ClassProperty s_property[] = {
+        { "AF_INET", s_get_AF_INET, block_set, true },
+        { "AF_INET6", s_get_AF_INET6, block_set, true },
+        { "SOCK_STREAM", s_get_SOCK_STREAM, block_set, true },
+        { "SOCK_DGRAM", s_get_SOCK_DGRAM, block_set, true }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "net", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "net", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void net_base::s_get_AF_INET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _AF_INET;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
+inline void net_base::s_get_AF_INET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr = _AF_INET;
+    PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-    inline void net_base::s_get_AF_INET6(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _AF_INET6;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
+inline void net_base::s_get_AF_INET6(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr = _AF_INET6;
+    PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-    inline void net_base::s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _SOCK_STREAM;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
+inline void net_base::s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr = _SOCK_STREAM;
+    PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-    inline void net_base::s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &args)
-    {
-        int32_t vr = _SOCK_DGRAM;
-        PROPERTY_ENTER();
-        METHOD_RETURN();
-    }
+inline void net_base::s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr = _SOCK_DGRAM;
+    PROPERTY_ENTER();
+    METHOD_RETURN();
+}
 
-    inline void net_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        v8::Local<v8::Object> vr;
+inline void net_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = info(vr);
+    hr = info(vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void net_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void net_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(2, 1);
+    ASYNC_METHOD_OVER(2, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(int32_t, 1, _AF_INET);
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, _AF_INET);
 
-        if(!cb.IsEmpty()) {
-            acb_resolve(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_resolve(v0, v1, vr);
+    if (!cb.IsEmpty()) {
+        acb_resolve(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_resolve(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void net_base::s_ip(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void net_base::s_ip(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_ip(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_ip(v0, vr);
+    if (!cb.IsEmpty()) {
+        acb_ip(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_ip(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void net_base::s_ipv6(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void net_base::s_ipv6(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-        ARG(exlib::string, 0);
+    ARG(exlib::string, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_ipv6(v0, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_ipv6(v0, vr);
+    if (!cb.IsEmpty()) {
+        acb_ipv6(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_ipv6(v0, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void net_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Stream_base> vr;
+inline void net_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(4, 2);
+    ASYNC_METHOD_OVER(4, 2);
 
-        ARG(exlib::string, 0);
-        ARG(int32_t, 1);
-        OPT_ARG(int32_t, 2, 0);
-        OPT_ARG(int32_t, 3, net_base::_AF_INET);
+    ARG(exlib::string, 0);
+    ARG(int32_t, 1);
+    OPT_ARG(int32_t, 2, 0);
+    OPT_ARG(int32_t, 3, net_base::_AF_INET);
 
-        if(!cb.IsEmpty()) {
-            acb_connect(v0, v1, v2, v3, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_connect(v0, v1, v2, v3, vr);
+    if (!cb.IsEmpty()) {
+        acb_connect(v0, v1, v2, v3, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_connect(v0, v1, v2, v3, vr);
 
-        ASYNC_METHOD_OVER(2, 1);
+    ASYNC_METHOD_OVER(2, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(int32_t, 1, 0);
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_connect(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_connect(v0, v1, vr);
+    if (!cb.IsEmpty()) {
+        acb_connect(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_connect(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void net_base::s_openSmtp(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        obj_ptr<Smtp_base> vr;
+inline void net_base::s_openSmtp(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Smtp_base> vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(2, 1);
+    ASYNC_METHOD_OVER(2, 1);
 
-        ARG(exlib::string, 0);
-        OPT_ARG(int32_t, 1, 0);
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
 
-        if(!cb.IsEmpty()) {
-            acb_openSmtp(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_openSmtp(v0, v1, vr);
+    if (!cb.IsEmpty()) {
+        acb_openSmtp(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_openSmtp(v0, v1, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void net_base::s_backend(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        exlib::string vr;
+inline void net_base::s_backend(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
-        hr = backend(vr);
+    hr = backend(vr);
 
-        METHOD_RETURN();
-    }
-
+    METHOD_RETURN();
+}
 }
 
 #endif
-

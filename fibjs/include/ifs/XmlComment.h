@@ -15,13 +15,11 @@
 #include "../object.h"
 #include "XmlCharacterData.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class XmlCharacterData_base;
 
-class XmlComment_base : public XmlCharacterData_base
-{
+class XmlComment_base : public XmlCharacterData_base {
     DECLARE_CLASS(XmlComment_base);
 
 public:
@@ -34,27 +32,21 @@ public:
         isolate->m_isolate->ThrowException(
             isolate->NewFromUtf8("not a constructor"));
     }
-
 };
-
 }
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& XmlComment_base::class_info()
 {
-    inline ClassInfo& XmlComment_base::class_info()
-    {
-        static ClassData s_cd = 
-        { 
-            "XmlComment", false, s__new, NULL, 
-            0, NULL, 0, NULL, 0, NULL, NULL, NULL,
-            &XmlCharacterData_base::class_info()
-        };
+    static ClassData s_cd = {
+        "XmlComment", false, s__new, NULL,
+        0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        &XmlCharacterData_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
-
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 }
 
 #endif
-

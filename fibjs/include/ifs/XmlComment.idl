@@ -6,6 +6,4 @@ XmlComment 节点表示 XML 文档中的注释。
 
 使用 XmlDocument.createComment() 来创建一个注释对象。
 */
-interface XmlComment : XmlCharacterData
-{
-};
+interface XmlComment : XmlCharacterData{};

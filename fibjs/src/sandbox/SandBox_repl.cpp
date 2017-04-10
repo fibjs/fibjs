@@ -14,8 +14,7 @@
 #include "console.h"
 #include "parse.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 void asyncLog(int32_t priority, exlib::string msg);
 
@@ -30,7 +29,7 @@ void output(int32_t priority, exlib::string msg)
     asyncLog(console_base::_PRINT, msg);
 }
 
-bool repl_command(exlib::string &line, v8::Local<v8::Array> cmds)
+bool repl_command(exlib::string& line, v8::Local<v8::Array> cmds)
 {
     _parser p(line);
     exlib::string cmd_word;
@@ -41,31 +40,27 @@ bool repl_command(exlib::string &line, v8::Local<v8::Array> cmds)
     p.skipSpace();
     p.getWord(cmd_word);
 
-    if (cmd_word == ".help")
-    {
+    if (cmd_word == ".help") {
         exlib::string help_str = ".exit     Exit the repl\n"
                                  ".help     Show repl options\n"
                                  ".info     Show fibjs build information";
 
         Isolate* isolate = Isolate::current();
 
-        for (i = 0; i < len; i ++)
-        {
+        for (i = 0; i < len; i++) {
             v8::Local<v8::Value> v = cmds->Get(i);
             v8::Local<v8::Object> o;
             exlib::string cmd;
             exlib::string help;
 
             hr = GetArgumentValue(v, o, true);
-            if (hr >= 0)
-            {
+            if (hr >= 0) {
                 hr = GetConfigValue(isolate->m_isolate, o, "cmd", cmd, true);
                 if (hr >= 0)
                     hr = GetConfigValue(isolate->m_isolate, o, "help", help, true);
             }
 
-            if (hr < 0)
-            {
+            if (hr < 0) {
                 output(console_base::_ERROR, "Invalid cmds argument.");
                 return false;
             }
@@ -81,8 +76,7 @@ bool repl_command(exlib::string &line, v8::Local<v8::Array> cmds)
     if (cmd_word == ".exit")
         return false;
 
-    if (cmd_word == ".info")
-    {
+    if (cmd_word == ".info") {
         v8::Local<v8::Object> o;
 
         util_base::buildInfo(o);
@@ -92,35 +86,30 @@ bool repl_command(exlib::string &line, v8::Local<v8::Array> cmds)
 
     Isolate* isolate = Isolate::current();
 
-    for (i = 0; i < len; i ++)
-    {
+    for (i = 0; i < len; i++) {
         v8::Local<v8::Value> v = cmds->Get(i);
         v8::Local<v8::Object> o;
         exlib::string cmd;
         v8::Local<v8::Function> exec;
 
         hr = GetArgumentValue(v, o, true);
-        if (hr >= 0)
-        {
+        if (hr >= 0) {
             hr = GetConfigValue(isolate->m_isolate, o, "cmd", cmd, true);
             if (hr >= 0)
                 hr = GetConfigValue(isolate->m_isolate, o, "exec", exec, true);
         }
 
-        if (hr < 0)
-        {
+        if (hr < 0) {
             output(console_base::_ERROR, "Invalid cmds argument.");
             return false;
         }
 
-        if (cmd_word == cmd)
-        {
+        if (cmd_word == cmd) {
             v8::Local<v8::Array> argv = v8::Array::New(isolate->m_isolate);
             int32_t n = 0;
 
-            while (!cmd_word.empty())
-            {
-                argv->Set(n ++, GetReturnValue(isolate->m_isolate, cmd_word));
+            while (!cmd_word.empty()) {
+                argv->Set(n++, GetReturnValue(isolate->m_isolate, cmd_word));
                 p.skipSpace();
                 p.getWord(cmd_word);
             }
@@ -158,10 +147,8 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
     obj_ptr<BufferedStream_base> bs;
     stream_logger* logger = NULL;
 
-    if (out)
-    {
-        if ((logger = s_stream) != NULL)
-        {
+    if (out) {
+        if ((logger = s_stream) != NULL) {
             s_stream = NULL;
             logger->close();
         }
@@ -177,16 +164,14 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
     output(console_base::_INFO, str_ver);
     output(console_base::_INFO, "Type \".help\" for more information.");
 
-    while (true)
-    {
+    while (true) {
         if (!v.IsEmpty() && !v->IsUndefined())
             console_base::dir(v);
 
         v = v1;
 
         exlib::string line;
-        if (out)
-        {
+        if (out) {
             output(console_base::_PRINT, buf.empty() ? "> " : " ... ");
             hr = bs->ac_readLine(-1, line);
             if (hr >= 0)
@@ -200,8 +185,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
         if (line.empty())
             continue;
 
-        if (line[0] == '.')
-        {
+        if (line[0] == '.') {
             if (!repl_command(line, cmds))
                 break;
             continue;
@@ -215,11 +199,9 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
             TryCatch try_catch;
 
             script = v8::Script::Compile(isolate->NewFromUtf8(buf), strFname);
-            if (script.IsEmpty())
-            {
+            if (script.IsEmpty()) {
                 v8::String::Utf8Value exception(try_catch.Exception());
-                if (*exception && qstrcmp(*exception, "SyntaxError: Unexpected end of input"))
-                {
+                if (*exception && qstrcmp(*exception, "SyntaxError: Unexpected end of input")) {
                     buf.clear();
                     ReportException(try_catch, 0);
                 }
@@ -234,8 +216,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
         }
     }
 
-    if (out)
-    {
+    if (out) {
         if (logger == s_stream)
             s_stream = NULL;
 
@@ -244,5 +225,4 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
 
     return hr;
 }
-
 }

@@ -12,10 +12,9 @@
 #include "Buffer.h"
 #include <algorithm>
 
-namespace fibjs
-{
+namespace fibjs {
 
-#define MAX_COUNT   128
+#define MAX_COUNT 128
 
 result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
 {
@@ -38,23 +37,21 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
 
     exlib::string split;
     hr = GetConfigValue(isolate->m_isolate, o, "split", split);
-    if (hr >= 0)
-    {
+    if (hr >= 0) {
         if ((split == "day"))
             m_split_mode = date_t::_DAY;
         else if ((split == "hour"))
             m_split_mode = date_t::_HOUR;
         else if ((split == "minute"))
             m_split_mode = date_t::_MINUTE;
-        else
-        {
+        else {
             int32_t l = (int32_t)split.length();
             int32_t i;
 
             if (l > 4 || l < 2)
                 return CHECK_ERROR(Runtime::setError("Unknown split mode."));
 
-            for (i = 0; i < l - 1; i ++)
+            for (i = 0; i < l - 1; i++)
                 if (!qisdigit(split[i]))
                     return CHECK_ERROR(Runtime::setError("Unknown split mode."));
                 else
@@ -69,8 +66,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
             else
                 return CHECK_ERROR(Runtime::setError("Unknown split mode."));
         }
-    }
-    else if (hr != CALL_E_PARAMNOTOPTIONAL)
+    } else if (hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     hr = GetConfigValue(isolate->m_isolate, o, "count", m_count);
@@ -78,8 +74,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
         m_count = MAX_COUNT + 100;
     else if (hr < 0)
         return hr;
-    else
-    {
+    else {
         if (m_split_size == 0 && m_split_mode == 0)
             return CHECK_ERROR(Runtime::setError("Missing split mode."));
 
@@ -111,8 +106,7 @@ void file_logger::clearFile()
 
     fd->get_length(sz);
 
-    for (i = 0; i < sz; i ++)
-    {
+    for (i = 0; i < sz; i++) {
         Variant v;
 
         fd->_indexed_getter(i, v);
@@ -120,34 +114,31 @@ void file_logger::clearFile()
 
         fullname = m_folder + name;
 
-        if ((fullname.length() == m_path.length() + 14) &&
-                !qstrcmp(fullname.c_str(), m_path.c_str(), (int32_t)m_path.length()))
-        {
+        if ((fullname.length() == m_path.length() + 14) && !qstrcmp(fullname.c_str(), m_path.c_str(), (int32_t)m_path.length())) {
             int32_t p, l;
 
             l = (int32_t)fullname.length();
-            for (p = (int32_t)m_path.length(); p < l && qisdigit(fullname[p]); p++);
+            for (p = (int32_t)m_path.length(); p < l && qisdigit(fullname[p]); p++)
+                ;
 
             if (p == l)
                 files.push_back(fullname);
         }
     }
 
-    if ((int32_t)files.size() > m_count - 1)
-    {
+    if ((int32_t)files.size() > m_count - 1) {
         std::sort(files.begin(), files.end());
 
         int32_t dels = (int32_t)files.size() - m_count + 1;
 
-        for (i = 0; i < dels; i ++)
+        for (i = 0; i < dels; i++)
             fs_base::unlink(files[i], &ac);
     }
 }
 
 result_t file_logger::initFile()
 {
-    if (m_split_mode && m_file)
-    {
+    if (m_split_mode && m_file) {
         date_t d;
 
         d.now();
@@ -157,13 +148,11 @@ result_t file_logger::initFile()
 
     result_t hr;
 
-    if (!m_file)
-    {
+    if (!m_file) {
         obj_ptr<File> f = new File();
         exlib::string name(m_path);
 
-        if (m_count > 1)
-        {
+        if (m_count > 1) {
             exlib::string tm;
 
             m_date.now();
@@ -192,28 +181,24 @@ result_t file_logger::initFile()
     return 0;
 }
 
-result_t file_logger::write(AsyncEvent *ac)
+result_t file_logger::write(AsyncEvent* ac)
 {
-    item *p1;
+    item* p1;
 
-    while (!m_workinglogs.empty())
-    {
+    while (!m_workinglogs.empty()) {
         exlib::string outBuffer;
         result_t hr;
 
         hr = initFile();
-        if (hr < 0)
-        {
+        if (hr < 0) {
             while ((p1 = m_workinglogs.getHead()) != 0)
                 delete p1;
 
             break;
         }
 
-        while ((p1 = m_workinglogs.getHead()) != 0)
-        {
-            if (p1->m_priority != console_base::_PRINT)
-            {
+        while ((p1 = m_workinglogs.getHead()) != 0) {
+            if (p1->m_priority != console_base::_PRINT) {
                 outBuffer.append(p1->full());
                 outBuffer.append("\n", 1);
             }
@@ -227,8 +212,7 @@ result_t file_logger::write(AsyncEvent *ac)
                 break;
         }
 
-        if (m_file)
-        {
+        if (m_file) {
             hr = m_file->Write(outBuffer);
             if (hr < 0)
                 m_file.Release();
@@ -241,5 +225,4 @@ result_t file_logger::write(AsyncEvent *ac)
 
     return 0;
 }
-
 }

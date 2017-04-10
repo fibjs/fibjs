@@ -11,16 +11,18 @@
 #ifndef EVENTINFO_H_
 #define EVENTINFO_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class EventInfo: public EventInfo_base
-{
+class EventInfo : public EventInfo_base {
 public:
     EventInfo(obj_ptr<object_base> target, exlib::string type,
-              int32_t code = 0, exlib::string reason = "") :
-        m_target(target), m_type(type), m_code(code), m_reason(reason)
-    {}
+        int32_t code = 0, exlib::string reason = "")
+        : m_target(target)
+        , m_type(type)
+        , m_code(code)
+        , m_reason(reason)
+    {
+    }
 
 public:
     // EventInfo_base

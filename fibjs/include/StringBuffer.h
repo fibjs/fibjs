@@ -12,14 +12,12 @@
 #ifndef STRINGARRAY_H_
 #define STRINGARRAY_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class StringBuffer
-{
+class StringBuffer {
 public:
-    StringBuffer() :
-        m_size(0)
+    StringBuffer()
+        : m_size(0)
     {
     }
 
@@ -29,20 +27,17 @@ public:
         int32_t i, p = 0;
         exlib::string s;
 
-        if (m_size > 0)
-        {
+        if (m_size > 0) {
             if (m_array.size() == 1)
                 s = m_array[0];
-            else
-            {
+            else {
                 s.resize(m_size);
-                for (i = 0; i < (int32_t) m_array.size(); i++)
-                {
-                    exlib::string &s1 = m_array[i];
+                for (i = 0; i < (int32_t)m_array.size(); i++) {
+                    exlib::string& s1 = m_array[i];
                     size_t len = s1.length();
 
                     memcpy(&s[p], s1.c_str(), len);
-                    p += (int32_t) len;
+                    p += (int32_t)len;
                 }
             }
 
@@ -60,8 +55,7 @@ public:
 
     void append(exlib::string s)
     {
-        if (s.length() > 0)
-        {
+        if (s.length() > 0) {
             m_size += s.length();
             m_array.append(s);
         }
@@ -72,8 +66,7 @@ public:
         if (sz < 0)
             sz = (int32_t)qstrlen(s);
 
-        if (sz > 0)
-        {
+        if (sz > 0) {
             m_size += sz;
             m_array.append(exlib::string(s, sz));
         }
@@ -85,14 +78,13 @@ public:
             m_array.resize(1);
 
         m_array[m_array.size() - 1] += ch;
-        m_size ++;
+        m_size++;
     }
 
 private:
     QuickArray<exlib::string> m_array;
     size_t m_size;
 };
-
 }
 
 #endif /* STRINGARRAY_H_ */

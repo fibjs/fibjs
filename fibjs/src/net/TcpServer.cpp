@@ -11,12 +11,11 @@
 #include "JSHandler.h"
 #include "ifs/console.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 result_t _new_tcpServer(exlib::string addr, int32_t port,
-                        Handler_base *listener, obj_ptr<TcpServer_base> &retVal,
-                        v8::Local<v8::Object> This)
+    Handler_base* listener, obj_ptr<TcpServer_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     obj_ptr<TcpServer> svr = new TcpServer();
     svr->wrap(This);
@@ -31,15 +30,15 @@ result_t _new_tcpServer(exlib::string addr, int32_t port,
 }
 
 result_t TcpServer_base::_new(int32_t port, v8::Local<v8::Value> listener,
-                              obj_ptr<TcpServer_base> &retVal,
-                              v8::Local<v8::Object> This)
+    obj_ptr<TcpServer_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     return _new("", port, listener, retVal, This);
 }
 
 result_t TcpServer_base::_new(exlib::string addr, int32_t port,
-                              v8::Local<v8::Value> listener, obj_ptr<TcpServer_base> &retVal,
-                              v8::Local<v8::Object> This)
+    v8::Local<v8::Value> listener, obj_ptr<TcpServer_base>& retVal,
+    v8::Local<v8::Object> This)
 {
     obj_ptr<Handler_base> hdlr1;
     result_t hr = JSHandler::New(listener, hdlr1);
@@ -49,14 +48,14 @@ result_t TcpServer_base::_new(exlib::string addr, int32_t port,
     return _new_tcpServer(addr, port, hdlr1, retVal, This);
 }
 
-static const char *s_staticCounter[] =
-{ "total", "connections" };
-static const char *s_Counter[] =
-{ "accept", "close" };
+static const char* s_staticCounter[] = { "total", "connections" };
+static const char* s_Counter[] = { "accept", "close" };
 
-enum
-{
-    TCPS_TOTAL = 0, TCPS_CONNECTIONS, TCPS_ACCEPT, TCPS_CLOSE
+enum {
+    TCPS_TOTAL = 0,
+    TCPS_CONNECTIONS,
+    TCPS_ACCEPT,
+    TCPS_CLOSE
 };
 
 TcpServer::TcpServer()
@@ -67,12 +66,12 @@ TcpServer::TcpServer()
 }
 
 result_t TcpServer::create(exlib::string addr, int32_t port,
-                           Handler_base *listener)
+    Handler_base* listener)
 {
     result_t hr;
 
     hr = Socket_base::_new(net_base::_AF_INET, net_base::_SOCK_STREAM,
-                           m_socket);
+        m_socket);
     if (hr < 0)
         return hr;
 
@@ -89,29 +88,31 @@ result_t TcpServer::create(exlib::string addr, int32_t port,
     return 0;
 }
 
-result_t TcpServer::run(AsyncEvent *ac)
+result_t TcpServer::run(AsyncEvent* ac)
 {
-    class asyncInvoke: public AsyncState
-    {
+    class asyncInvoke : public AsyncState {
     public:
-        asyncInvoke(TcpServer *pThis, Socket_base *pSock) :
-            AsyncState(NULL), m_pThis(pThis), m_sock(pSock), m_obj(pSock)
+        asyncInvoke(TcpServer* pThis, Socket_base* pSock)
+            : AsyncState(NULL)
+            , m_pThis(pThis)
+            , m_sock(pSock)
+            , m_obj(pSock)
         {
             set(invoke);
         }
 
     public:
-        static int32_t invoke(AsyncState *pState, int32_t n)
+        static int32_t invoke(AsyncState* pState, int32_t n)
         {
-            asyncInvoke *pThis = (asyncInvoke *) pState;
+            asyncInvoke* pThis = (asyncInvoke*)pState;
 
             pThis->set(close);
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_obj, pThis);
         }
 
-        static int32_t close(AsyncState *pState, int32_t n)
+        static int32_t close(AsyncState* pState, int32_t n)
         {
-            asyncInvoke *pThis = (asyncInvoke *) pState;
+            asyncInvoke* pThis = (asyncInvoke*)pState;
 
             pThis->done();
             pThis->m_pThis->m_stats->inc(TCPS_CLOSE);
@@ -132,34 +133,33 @@ result_t TcpServer::run(AsyncEvent *ac)
         obj_ptr<object_base> m_obj;
     };
 
-    class asyncAccept: public AsyncState
-    {
+    class asyncAccept : public AsyncState {
     public:
-        asyncAccept(TcpServer *pThis, AsyncEvent *ac) :
-            AsyncState(ac), m_pThis(pThis)
+        asyncAccept(TcpServer* pThis, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pThis(pThis)
         {
             set(accept);
         }
 
     public:
-        static int32_t accept(AsyncState *pState, int32_t n)
+        static int32_t accept(AsyncState* pState, int32_t n)
         {
-            asyncAccept *pThis = (asyncAccept *) pState;
+            asyncAccept* pThis = (asyncAccept*)pState;
 
             pThis->set(invoke);
             return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
         }
 
-        static int32_t invoke(AsyncState *pState, int32_t n)
+        static int32_t invoke(AsyncState* pState, int32_t n)
         {
-            asyncAccept *pThis = (asyncAccept *) pState;
+            asyncAccept* pThis = (asyncAccept*)pState;
 
             pThis->m_pThis->m_stats->inc(TCPS_TOTAL);
             pThis->m_pThis->m_stats->inc(TCPS_ACCEPT);
             pThis->m_pThis->m_stats->inc(TCPS_CONNECTIONS);
 
-            if (pThis->m_retVal)
-            {
+            if (pThis->m_retVal) {
                 (new asyncInvoke(pThis->m_pThis, pThis->m_retVal))->apost(0);
                 pThis->m_retVal.Release();
             }
@@ -169,8 +169,7 @@ result_t TcpServer::run(AsyncEvent *ac)
 
         virtual int32_t error(int32_t v)
         {
-            if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL)
-            {
+            if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL) {
                 m_pThis->dispose();
                 return v;
             }
@@ -199,19 +198,19 @@ result_t TcpServer::run(AsyncEvent *ac)
 
 result_t TcpServer::asyncRun()
 {
-    class asyncCall: public AsyncState
-    {
+    class asyncCall : public AsyncState {
     public:
-        asyncCall(TcpServer *pThis) :
-            AsyncState(NULL), m_pThis(pThis)
+        asyncCall(TcpServer* pThis)
+            : AsyncState(NULL)
+            , m_pThis(pThis)
         {
             set(accept);
         }
 
     public:
-        static int32_t accept(AsyncState *pState, int32_t n)
+        static int32_t accept(AsyncState* pState, int32_t n)
         {
-            asyncCall *pThis = (asyncCall *) pState;
+            asyncCall* pThis = (asyncCall*)pState;
             return pThis->m_pThis->run(pThis);
         }
 
@@ -229,7 +228,7 @@ result_t TcpServer::asyncRun()
     return 0;
 }
 
-result_t TcpServer::stop(AsyncEvent *ac)
+result_t TcpServer::stop(AsyncEvent* ac)
 {
     if (!m_socket)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -237,7 +236,7 @@ result_t TcpServer::stop(AsyncEvent *ac)
     return m_socket->close(ac);
 }
 
-result_t TcpServer::get_socket(obj_ptr<Socket_base> &retVal)
+result_t TcpServer::get_socket(obj_ptr<Socket_base>& retVal)
 {
     if (!m_socket)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -246,13 +245,13 @@ result_t TcpServer::get_socket(obj_ptr<Socket_base> &retVal)
     return 0;
 }
 
-result_t TcpServer::get_handler(obj_ptr<Handler_base> &retVal)
+result_t TcpServer::get_handler(obj_ptr<Handler_base>& retVal)
 {
     retVal = m_hdlr;
     return 0;
 }
 
-result_t TcpServer::set_handler(Handler_base *newVal)
+result_t TcpServer::set_handler(Handler_base* newVal)
 {
     obj_ptr<Handler_base> hdlr = (Handler_base*)m_hdlr;
 
@@ -265,7 +264,7 @@ result_t TcpServer::set_handler(Handler_base *newVal)
     return 0;
 }
 
-result_t TcpServer::get_stats(obj_ptr<Stats_base> &retVal)
+result_t TcpServer::get_stats(obj_ptr<Stats_base>& retVal)
 {
     retVal = m_stats;
     return 0;

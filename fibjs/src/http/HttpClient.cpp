@@ -4,7 +4,6 @@
  *  Created on: Aug 12, 2016
  */
 
-
 #include "object.h"
 #include "HttpClient.h"
 #include "Buffer.h"
@@ -17,8 +16,7 @@
 #include "ifs/net.h"
 #include "ifs/zlib.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 result_t HttpClient_base::_new(obj_ptr<HttpClient_base>& retVal, v8::Local<v8::Object> This)
 {
@@ -91,8 +89,7 @@ result_t HttpClient::update(obj_ptr<HttpCookie> cookie)
     if (length == 0)
         return 0;
 
-    for (i = 0; i < length; i++)
-    {
+    for (i = 0; i < length; i++) {
         Variant v;
         obj_ptr<HttpCookie> hc;
 
@@ -155,8 +152,7 @@ result_t HttpClient::update_cookies(exlib::string url, obj_ptr<List_base> cookie
     if (length == 0)
         return 0;
 
-    for (i = 0; i < length; i++)
-    {
+    for (i = 0; i < length; i++) {
         Variant v;
         obj_ptr<HttpCookie> hc;
 
@@ -198,8 +194,7 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
 
     now.now();
 
-    for (i = 0; i < length; i++)
-    {
+    for (i = 0; i < length; i++) {
         Variant v;
         obj_ptr<HttpCookie> hc;
         date_t date;
@@ -215,8 +210,7 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
             continue;
 
         hc->match(url, match);
-        if (match)
-        {
+        if (match) {
             hc->get_name(s2);
             s1 = s2;
             s1 += '=';
@@ -232,32 +226,33 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
     return 0;
 }
 
-
-result_t HttpClient::request(Stream_base *conn, HttpRequest_base *req,
-                             obj_ptr<HttpResponse_base> &retVal,
-                             AsyncEvent *ac)
+result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
+    obj_ptr<HttpResponse_base>& retVal,
+    AsyncEvent* ac)
 {
-    class asyncRequest: public AsyncState
-    {
+    class asyncRequest : public AsyncState {
     public:
-        asyncRequest(Stream_base *conn, HttpRequest_base *req,
-                     obj_ptr<HttpResponse_base> &retVal, AsyncEvent *ac) :
-            AsyncState(ac), m_conn(conn), m_req(req), m_retVal(retVal)
+        asyncRequest(Stream_base* conn, HttpRequest_base* req,
+            obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_conn(conn)
+            , m_req(req)
+            , m_retVal(retVal)
         {
             set(send);
         }
 
-        static int32_t send(AsyncState *pState, int32_t n)
+        static int32_t send(AsyncState* pState, int32_t n)
         {
-            asyncRequest *pThis = (asyncRequest *) pState;
+            asyncRequest* pThis = (asyncRequest*)pState;
 
             pThis->set(recv);
             return pThis->m_req->sendTo(pThis->m_conn, pThis);
         }
 
-        static int32_t recv(AsyncState *pState, int32_t n)
+        static int32_t recv(AsyncState* pState, int32_t n)
         {
-            asyncRequest *pThis = (asyncRequest *) pState;
+            asyncRequest* pThis = (asyncRequest*)pState;
 
             pThis->m_retVal = new HttpResponse();
             pThis->m_bs = new BufferedStream(pThis->m_conn);
@@ -267,17 +262,17 @@ result_t HttpClient::request(Stream_base *conn, HttpRequest_base *req,
             return pThis->m_retVal->readFrom(pThis->m_bs, pThis);
         }
 
-        static int32_t unzip(AsyncState *pState, int32_t n)
+        static int32_t unzip(AsyncState* pState, int32_t n)
         {
-            asyncRequest *pThis = (asyncRequest *) pState;
+            asyncRequest* pThis = (asyncRequest*)pState;
 
             pThis->set(close);
 
             Variant hdr;
 
             if (pThis->m_retVal->firstHeader("Content-Encoding",
-                                             hdr) != CALL_RETURN_NULL)
-            {
+                    hdr)
+                != CALL_RETURN_NULL) {
                 pThis->m_retVal->removeHeader("Content-Encoding");
 
                 pThis->m_retVal->get_body(pThis->m_body);
@@ -287,21 +282,20 @@ result_t HttpClient::request(Stream_base *conn, HttpRequest_base *req,
 
                 if (str == "gzip")
                     return zlib_base::gunzipTo(pThis->m_body,
-                                               pThis->m_unzip, pThis);
+                        pThis->m_unzip, pThis);
                 else if (str == "deflate")
                     return zlib_base::inflateRawTo(pThis->m_body,
-                                                   pThis->m_unzip, pThis);
+                        pThis->m_unzip, pThis);
             }
 
             return 0;
         }
 
-        static int32_t close(AsyncState *pState, int32_t n)
+        static int32_t close(AsyncState* pState, int32_t n)
         {
-            asyncRequest *pThis = (asyncRequest *) pState;
+            asyncRequest* pThis = (asyncRequest*)pState;
 
-            if (pThis->m_unzip)
-            {
+            if (pThis->m_unzip) {
                 pThis->m_unzip->rewind();
                 pThis->m_retVal->set_body(pThis->m_unzip);
             }
@@ -310,9 +304,9 @@ result_t HttpClient::request(Stream_base *conn, HttpRequest_base *req,
         }
 
     private:
-        Stream_base *m_conn;
-        HttpRequest_base *m_req;
-        obj_ptr<HttpResponse_base> &m_retVal;
+        Stream_base* m_conn;
+        HttpRequest_base* m_req;
+        obj_ptr<HttpResponse_base>& m_retVal;
         obj_ptr<BufferedStream> m_bs;
         obj_ptr<MemoryStream> m_unzip;
         obj_ptr<SeekableStream_base> m_body;
@@ -325,25 +319,29 @@ result_t HttpClient::request(Stream_base *conn, HttpRequest_base *req,
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
-                             SeekableStream_base* body, Map_base* headers,
-                             obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    SeekableStream_base* body, Map_base* headers,
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
 
-    class asyncRequest: public AsyncState
-    {
+    class asyncRequest : public AsyncState {
     public:
-        asyncRequest(HttpClient *hc, exlib::string method, exlib::string url,
-                     SeekableStream_base* body, Map_base* headers,
-                     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) :
-            AsyncState(ac), m_method(method), m_url(url), m_body(body),
-            m_headers(headers), m_retVal(retVal), m_hc(hc)
+        asyncRequest(HttpClient* hc, exlib::string method, exlib::string url,
+            SeekableStream_base* body, Map_base* headers,
+            obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_method(method)
+            , m_url(url)
+            , m_body(body)
+            , m_headers(headers)
+            , m_retVal(retVal)
+            , m_hc(hc)
         {
             set(prepare);
         }
 
-        static int32_t prepare(AsyncState *pState, int32_t n)
+        static int32_t prepare(AsyncState* pState, int32_t n)
         {
-            asyncRequest *pThis = (asyncRequest *) pState;
+            asyncRequest* pThis = (asyncRequest*)pState;
 
             result_t hr;
             bool ssl = false;
@@ -358,12 +356,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             if (hr < 0)
                 return hr;
 
-            if (u->m_protocol == "https:")
-            {
+            if (u->m_protocol == "https:") {
                 ssl = true;
                 pThis->m_connUrl = "ssl://";
-            }
-            else if (u->m_protocol == "http:")
+            } else if (u->m_protocol == "http:")
                 pThis->m_connUrl = "tcp://";
             else
                 return CHECK_ERROR(Runtime::setError("http: unknown protocol"));
@@ -373,12 +369,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 
             pThis->m_connUrl.append(u->m_host);
 
-            if (!u->m_port.empty())
-            {
+            if (!u->m_port.empty()) {
                 pThis->m_connUrl.append(":", 1);
                 pThis->m_connUrl.append(u->m_port);
-            }
-            else
+            } else
                 pThis->m_connUrl.append(ssl ? ":443" : ":80");
 
             pThis->m_req = new HttpRequest();
@@ -403,17 +397,17 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             return net_base::connect(pThis->m_connUrl, pThis->m_hc->m_timeout, pThis->m_conn, pThis);
         }
 
-        static int32_t connected(AsyncState *pState, int32_t n)
+        static int32_t connected(AsyncState* pState, int32_t n)
         {
-            asyncRequest *pThis = (asyncRequest *) pState;
+            asyncRequest* pThis = (asyncRequest*)pState;
 
             pThis->set(requested);
             return pThis->m_hc->request(pThis->m_conn, pThis->m_req, pThis->m_retVal, pThis);
         }
 
-        static int32_t requested(AsyncState *pState, int32_t n)
+        static int32_t requested(AsyncState* pState, int32_t n)
         {
-            asyncRequest *pThis = (asyncRequest *) pState;
+            asyncRequest* pThis = (asyncRequest*)pState;
             bool enableCookie = false;
 
             pThis->set(closed);
@@ -424,8 +418,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                 return 0;
 
             pThis->m_hc->get_enableCookie(enableCookie);
-            if (enableCookie)
-            {
+            if (enableCookie) {
                 obj_ptr<List_base> cookies;
                 pThis->m_retVal->get_cookies(cookies);
                 pThis->m_hc->update_cookies(pThis->m_url, cookies);
@@ -434,9 +427,9 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             return pThis->m_conn->close(pThis);
         }
 
-        static int32_t closed(AsyncState *pState, int32_t n)
+        static int32_t closed(AsyncState* pState, int32_t n)
         {
-            asyncRequest *pThis = (asyncRequest *) pState;
+            asyncRequest* pThis = (asyncRequest*)pState;
 
             result_t hr;
             int32_t status;
@@ -491,8 +484,8 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
-                             SeekableStream_base *body, v8::Local<v8::Object> headers,
-                             obj_ptr<HttpResponse_base> &retVal)
+    SeekableStream_base* body, v8::Local<v8::Object> headers,
+    obj_ptr<HttpResponse_base>& retVal)
 {
     obj_ptr<Map_base> map = new Map();
     map->put(headers);
@@ -500,14 +493,14 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
-                             v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
 {
-    return request(method, url, (SeekableStream_base *) NULL, headers, retVal);
+    return request(method, url, (SeekableStream_base*)NULL, headers, retVal);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
-                             Buffer_base *body, v8::Local<v8::Object> headers,
-                             obj_ptr<HttpResponse_base> &retVal)
+    Buffer_base* body, v8::Local<v8::Object> headers,
+    obj_ptr<HttpResponse_base>& retVal)
 {
     obj_ptr<SeekableStream_base> stm = new MemoryStream();
     stm->write(body, NULL);
@@ -515,69 +508,68 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 }
 
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> headers,
-                         obj_ptr<HttpResponse_base> &retVal)
+    obj_ptr<HttpResponse_base>& retVal)
 {
     return request("GET", url, headers, retVal);
 }
 
-result_t HttpClient::post(exlib::string url, Buffer_base *body,
-                          v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+result_t HttpClient::post(exlib::string url, Buffer_base* body,
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
 {
     return request("POST", url, body, headers, retVal);
 }
 
-result_t HttpClient::post(exlib::string url, SeekableStream_base *body,
-                          v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+result_t HttpClient::post(exlib::string url, SeekableStream_base* body,
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
 {
     return request("POST", url, body, headers, retVal);
 }
 
 result_t HttpClient::post(exlib::string url, v8::Local<v8::Object> headers,
-                          obj_ptr<HttpResponse_base> &retVal)
+    obj_ptr<HttpResponse_base>& retVal)
 {
     return request("POST", url, headers, retVal);
 }
 
 result_t HttpClient::del(exlib::string url, v8::Local<v8::Object> headers,
-                         obj_ptr<HttpResponse_base> &retVal)
+    obj_ptr<HttpResponse_base>& retVal)
 {
     return request("DELETE", url, headers, retVal);
 }
 
-result_t HttpClient::put(exlib::string url, Buffer_base *body,
-                         v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+result_t HttpClient::put(exlib::string url, Buffer_base* body,
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
 {
     return request("PUT", url, body, headers, retVal);
 }
 
-result_t HttpClient::put(exlib::string url, SeekableStream_base *body,
-                         v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+result_t HttpClient::put(exlib::string url, SeekableStream_base* body,
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
 {
     return request("PUT", url, body, headers, retVal);
 }
 
 result_t HttpClient::put(exlib::string url, v8::Local<v8::Object> headers,
-                         obj_ptr<HttpResponse_base> &retVal)
+    obj_ptr<HttpResponse_base>& retVal)
 {
     return request("PUT", url, headers, retVal);
 }
 
-result_t HttpClient::patch(exlib::string url, Buffer_base *body,
-                           v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+result_t HttpClient::patch(exlib::string url, Buffer_base* body,
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
 {
     return request("PATCH", url, body, headers, retVal);
 }
 
-result_t HttpClient::patch(exlib::string url, SeekableStream_base *body,
-                           v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base> &retVal)
+result_t HttpClient::patch(exlib::string url, SeekableStream_base* body,
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
 {
     return request("PATCH", url, body, headers, retVal);
 }
 
 result_t HttpClient::patch(exlib::string url, v8::Local<v8::Object> headers,
-                           obj_ptr<HttpResponse_base> &retVal)
+    obj_ptr<HttpResponse_base>& retVal)
 {
     return request("PATCH", url, headers, retVal);
 }
-
 }

@@ -7,34 +7,34 @@
  */
 module gui
 {
-	/*! @brief WebView ie 模拟版本，指定 ie7 */
-	const IE7 = 7000;
+    /*! @brief WebView ie 模拟版本，指定 ie7 */
+    const IE7 = 7000;
 
-	/*! @brief WebView ie 模拟版本，指定 ie8 */
-	const IE8 = 8000;
+    /*! @brief WebView ie 模拟版本，指定 ie8 */
+    const IE8 = 8000;
 
-	/*! @brief WebView ie 模拟版本，指定 ie9 */
-	const IE9 = 9000;
+    /*! @brief WebView ie 模拟版本，指定 ie9 */
+    const IE9 = 9000;
 
-	/*! @brief WebView ie 模拟版本，指定 ie10 */
-	const IE10 = 10000;
+    /*! @brief WebView ie 模拟版本，指定 ie10 */
+    const IE10 = 10000;
 
-	/*! @brief WebView ie 模拟版本，指定 ie11 */
-	const IE11 = 11000;
+    /*! @brief WebView ie 模拟版本，指定 ie11 */
+    const IE11 = 11000;
 
-	/*! @brief WebView ie 模拟版本，指定 edge */
-	const EDGE = 11001;
+    /*! @brief WebView ie 模拟版本，指定 edge */
+    const EDGE = 11001;
 
-	/* 设置 WebView 内 ie 模拟版本 */
-	static setVersion(Integer ver);
+    /* 设置 WebView 内 ie 模拟版本 */
+    static setVersion(Integer ver);
 
-	/*! @brief 打开一个窗口并访问指定网址
+    /*! @brief 打开一个窗口并访问指定网址
 	 @param url 指定的网址，，可以使用 fs:path 访问本地文件系统
 	 @return 返回打开的窗口对象
 	 */
-	static WebView open(String url) async;
+    static WebView open(String url) async;
 
-	/*! @brief 打开一个窗口并访问指定网址
+    /*! @brief 打开一个窗口并访问指定网址
 	 @param url 指定的网址，，可以使用 fs:path 访问本地文件系统
 	 @param opt 打开窗口参数，支持以下参数:
 	 @code
@@ -54,5 +54,5 @@ module gui
 	 当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中
 	 @return 返回打开的窗口对象
 	 */
-	static WebView open(String url, Map opt) async;
+    static WebView open(String url, Map opt) async;
 };

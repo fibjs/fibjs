@@ -156,4 +156,3 @@ module hash
      */
     static Digest hmac_ripemd160(Buffer key);
 };
-

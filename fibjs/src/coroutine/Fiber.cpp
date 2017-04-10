@@ -10,12 +10,11 @@
 #include "ifs/os.h"
 #include "ifs/process.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 extern int32_t stack_size;
 
-#define MAX_IDLE   256
+#define MAX_IDLE 256
 
 int32_t g_spareFibers;
 static int32_t g_tlsCurrent;
@@ -26,7 +25,7 @@ void init_fiber()
     g_tlsCurrent = exlib::Fiber::tlsAlloc();
 }
 
-void *FiberBase::fiber_proc(void *p)
+void* FiberBase::fiber_proc(void* p)
 {
     result_t hr = 0;
     Isolate* isolate = (Isolate*)p;
@@ -39,16 +38,15 @@ void *FiberBase::fiber_proc(void *p)
     v8::Context::Scope context_scope(
         v8::Local<v8::Context>::New(isolate->m_isolate, isolate->m_context));
 
-    isolate->m_idleFibers --;
-    while (1)
-    {
-        AsyncEvent *ae;
+    isolate->m_idleFibers--;
+    while (1) {
+        AsyncEvent* ae;
 
         // if ((ae = (AsyncEvent*)isolate->m_jobs.tryget()) == NULL)
         {
-            isolate->m_idleFibers ++;
+            isolate->m_idleFibers++;
             if (isolate->m_idleFibers > g_spareFibers) {
-                isolate->m_idleFibers --;
+                isolate->m_idleFibers--;
                 break;
             }
 
@@ -57,13 +55,12 @@ void *FiberBase::fiber_proc(void *p)
                 ae = (AsyncEvent*)isolate->m_jobs.get();
             }
 
-            isolate->m_idleFibers --;
+            isolate->m_idleFibers--;
         }
 
-        if (isolate->m_idleFibers == 0)
-        {
+        if (isolate->m_idleFibers == 0) {
             isolate->m_currentFibers++;
-            isolate->m_idleFibers ++;
+            isolate->m_idleFibers++;
 
             exlib::Service::Create(fiber_proc, isolate, stack_size * 1024, "JSFiber");
         }
@@ -74,14 +71,13 @@ void *FiberBase::fiber_proc(void *p)
         }
 
         if (isolate->m_pendding.dec() == 0)
-            if (isolate->m_id == 1)
-            {
+            if (isolate->m_id == 1) {
                 JSFiber::scope s;
                 process_base::exit(hr);
             }
     }
 
-    isolate->m_currentFibers --;
+    isolate->m_currentFibers--;
 
     return NULL;
 }
@@ -90,8 +86,7 @@ void FiberBase::set_caller(Fiber_base* caller)
 {
     m_caller = caller;
 
-    if (m_caller)
-    {
+    if (m_caller) {
         v8::Local<v8::Object> co = m_caller->wrap();
         v8::Local<v8::Object> o = wrap();
 
@@ -100,8 +95,7 @@ void FiberBase::set_caller(Fiber_base* caller)
 
         int32_t i;
 
-        for (i = 0; i < len; i++)
-        {
+        for (i = 0; i < len; i++) {
             v8::Local<v8::Value> k = ks->Get(i);
             o->Set(k, co->Get(k));
         }
@@ -121,8 +115,7 @@ void FiberBase::start()
 
 result_t FiberBase::join()
 {
-    if (!m_quit.isSet())
-    {
+    if (!m_quit.isSet()) {
         Isolate::rt _rt(holder());
         m_quit.wait();
     }
@@ -140,7 +133,7 @@ result_t FiberBase::get_traceInfo(exlib::string& retVal)
     return 0;
 }
 
-result_t FiberBase::get_caller(obj_ptr<Fiber_base> &retVal)
+result_t FiberBase::get_caller(obj_ptr<Fiber_base>& retVal)
 {
     if (m_caller == NULL)
         return CALL_RETURN_NULL;
@@ -149,9 +142,9 @@ result_t FiberBase::get_caller(obj_ptr<Fiber_base> &retVal)
     return 0;
 }
 
-JSFiber *JSFiber::current()
+JSFiber* JSFiber::current()
 {
-    return (JSFiber *)exlib::Fiber::tlsGet(g_tlsCurrent);
+    return (JSFiber*)exlib::Fiber::tlsGet(g_tlsCurrent);
 }
 
 result_t JSFiber::js_invoke()
@@ -171,7 +164,7 @@ result_t JSFiber::js_invoke()
 
     clear();
 
-    retVal = func->Call(pThis, (int32_t) argv.size(), argv.data());
+    retVal = func->Call(pThis, (int32_t)argv.size(), argv.data());
 
     if (!IsEmpty(retVal))
         m_result.Reset(isolate->m_isolate, retVal);
@@ -181,8 +174,9 @@ result_t JSFiber::js_invoke()
     return 0;
 }
 
-JSFiber::scope::scope(JSFiber *fb) :
-    m_hr(0), m_pFiber(fb)
+JSFiber::scope::scope(JSFiber* fb)
+    : m_hr(0)
+    , m_pFiber(fb)
 {
     if (fb == NULL)
         m_pFiber = new JSFiber();

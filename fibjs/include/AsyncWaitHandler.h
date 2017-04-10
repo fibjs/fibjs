@@ -11,20 +11,19 @@
 #include "ifs/AsyncWait.h"
 #include "Event.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
-class AsyncWaitHandler: public AsyncWait_base
-{
+class AsyncWaitHandler : public AsyncWait_base {
 
     FIBER_FREE();
 
 public:
-    class asyncWaiter: public AsyncEvent
-    {
+    class asyncWaiter : public AsyncEvent {
     public:
-        asyncWaiter(AsyncEvent *ac) : m_ac(ac)
-        {}
+        asyncWaiter(AsyncEvent* ac)
+            : m_ac(ac)
+        {
+        }
 
     public:
         virtual void invoke()
@@ -34,24 +33,28 @@ public:
         }
 
     private:
-        AsyncEvent *m_ac;
+        AsyncEvent* m_ac;
     };
 
 public:
-    AsyncWaitHandler() : m_as(NULL), m_stat(0), m_invoked(0)
-    {}
+    AsyncWaitHandler()
+        : m_as(NULL)
+        , m_stat(0)
+        , m_invoked(0)
+    {
+    }
 
 public:
     // Handler_base
-    virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                            AsyncEvent *ac);
+    virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+        AsyncEvent* ac);
 
 public:
     // AsyncWait_base
     virtual result_t end();
 
 private:
-    asyncWaiter *m_as;
+    asyncWaiter* m_as;
     exlib::atomic m_stat;
     exlib::atomic m_invoked;
 };

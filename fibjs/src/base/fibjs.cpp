@@ -12,13 +12,12 @@
 #include "Stat.h"
 #include "utf8.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 void init_date();
 void init_rt();
-void init_argv(int32_t argc, char **argv);
-void init_start_argv(int32_t argc, char **argv);
+void init_argv(int32_t argc, char** argv);
+void init_start_argv(int32_t argc, char** argv);
 void init_prof();
 void init_cipher();
 void init_acThread();
@@ -29,9 +28,9 @@ void init_fs();
 void init_fiber();
 void init_sandbox();
 void init_Task(int32_t vms);
-bool options(int32_t* argc, char *argv[]);
+bool options(int32_t* argc, char* argv[]);
 
-void init(int32_t& argc, char *argv[])
+void init(int32_t& argc, char* argv[])
 {
     ::setlocale(LC_ALL, "");
 
@@ -63,7 +62,7 @@ void init(int32_t& argc, char *argv[])
 
     srand((unsigned int)time(0));
 
-    v8::Platform *platform = v8::platform::CreateDefaultPlatform();
+    v8::Platform* platform = v8::platform::CreateDefaultPlatform();
     v8::V8::InitializePlatform(platform);
 
     v8::V8::Initialize();
@@ -75,16 +74,13 @@ static result_t main_fiber(Isolate* isolate)
 {
     JSFiber::scope s;
 
-    if (!isolate->m_fname.empty())
-    {
+    if (!isolate->m_fname.empty()) {
         v8::Local<v8::Array> argv;
 
         global_base::get_argv(argv);
         s.m_hr = isolate->m_topSandbox->run(
-                     isolate->m_fname, argv, true);
-    }
-    else
-    {
+            isolate->m_fname, argv, true);
+    } else {
         v8::Local<v8::Array> cmds = v8::Array::New(isolate->m_isolate);
         s.m_hr = isolate->m_topSandbox->repl(cmds);
     }
@@ -92,15 +88,16 @@ static result_t main_fiber(Isolate* isolate)
     return s.m_hr;
 }
 
-void main(int32_t argc, char *argv[])
+void main(int32_t argc, char* argv[])
 {
     init(argc, argv);
 
     int32_t i;
 
-    for (i = 1; (i < argc) && (argv[i][0] == '-'); i ++);
+    for (i = 1; (i < argc) && (argv[i][0] == '-'); i++)
+        ;
 
-    const char *fname = NULL;
+    const char* fname = NULL;
     if (i < argc)
         fname = argv[i];
 
@@ -108,7 +105,6 @@ void main(int32_t argc, char *argv[])
     syncCall(isolate, main_fiber, isolate);
     exlib::Service::dispatch();
 }
-
 }
 
 #ifdef _WIN32
@@ -120,17 +116,16 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #endif
 {
     int32_t argc;
-    char **argv;
+    char** argv;
 
-    LPWSTR *szArglist = CommandLineToArgvW(GetCommandLineW(), &argc);
+    LPWSTR* szArglist = CommandLineToArgvW(GetCommandLineW(), &argc);
     std::vector<exlib::string> strArgList;
     std::vector<char*> ptrArgList;
     int32_t i;
 
     strArgList.resize(argc);
     ptrArgList.resize(argc);
-    for (i = 0; i < argc; i ++)
-    {
+    for (i = 0; i < argc; i++) {
         strArgList[i] = fibjs::utf16to8String(szArglist[i]);
         ptrArgList[i] = strArgList[i].c_buffer();
     }
@@ -143,7 +138,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 #else
 
-int32_t main(int32_t argc, char *argv[])
+int32_t main(int32_t argc, char* argv[])
 {
     fibjs::main(argc, argv);
     return 0;

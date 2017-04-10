@@ -14,15 +14,13 @@
 
 #include "../object.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 class MemoryStream_base;
 class BufferedStream_base;
 class Stream_base;
 
-class io_base : public object_base
-{
+class io_base : public object_base {
     DECLARE_CLASS(io_base);
 
 public:
@@ -49,80 +47,73 @@ public:
     ASYNC_STATICVALUE4(io_base, copyStream, Stream_base*, Stream_base*, int64_t, int64_t);
     ASYNC_STATIC2(io_base, bridge, Stream_base*, Stream_base*);
 };
-
 }
 
 #include "MemoryStream.h"
 #include "BufferedStream.h"
 #include "Stream.h"
 
-namespace fibjs
+namespace fibjs {
+inline ClassInfo& io_base::class_info()
 {
-    inline ClassInfo& io_base::class_info()
-    {
-        static ClassData::ClassMethod s_method[] = 
-        {
-            {"copyStream", s_copyStream, true},
-            {"bridge", s_bridge, true}
-        };
+    static ClassData::ClassMethod s_method[] = {
+        { "copyStream", s_copyStream, true },
+        { "bridge", s_bridge, true }
+    };
 
-        static ClassData::ClassObject s_object[] = 
-        {
-            {"MemoryStream", MemoryStream_base::class_info},
-            {"BufferedStream", BufferedStream_base::class_info}
-        };
+    static ClassData::ClassObject s_object[] = {
+        { "MemoryStream", MemoryStream_base::class_info },
+        { "BufferedStream", BufferedStream_base::class_info }
+    };
 
-        static ClassData s_cd = 
-        { 
-            "io", true, s__new, NULL, 
-            ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, NULL, NULL,
-            &object_base::class_info()
-        };
+    static ClassData s_cd = {
+        "io", true, s__new, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
 
-        static ClassInfo s_ci(s_cd);
-        return s_ci;
-    }
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
 
-    inline void io_base::s_copyStream(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        int64_t vr;
+inline void io_base::s_copyStream(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
 
-        METHOD_ENTER();
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(3, 2);
+    ASYNC_METHOD_OVER(3, 2);
 
-        ARG(obj_ptr<Stream_base>, 0);
-        ARG(obj_ptr<Stream_base>, 1);
-        OPT_ARG(int64_t, 2, -1);
+    ARG(obj_ptr<Stream_base>, 0);
+    ARG(obj_ptr<Stream_base>, 1);
+    OPT_ARG(int64_t, 2, -1);
 
-        if(!cb.IsEmpty()) {
-            acb_copyStream(v0, v1, v2, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_copyStream(v0, v1, v2, vr);
+    if (!cb.IsEmpty()) {
+        acb_copyStream(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_copyStream(v0, v1, v2, vr);
 
-        METHOD_RETURN();
-    }
+    METHOD_RETURN();
+}
 
-    inline void io_base::s_bridge(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        METHOD_ENTER();
+inline void io_base::s_bridge(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
 
-        ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(2, 2);
 
-        ARG(obj_ptr<Stream_base>, 0);
-        ARG(obj_ptr<Stream_base>, 1);
+    ARG(obj_ptr<Stream_base>, 0);
+    ARG(obj_ptr<Stream_base>, 1);
 
-        if(!cb.IsEmpty()) {
-            acb_bridge(v0, v1, cb);
-            hr = CALL_RETURN_NULL;
-        } else
-            hr = ac_bridge(v0, v1);
+    if (!cb.IsEmpty()) {
+        acb_bridge(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_bridge(v0, v1);
 
-        METHOD_VOID();
-    }
-
+    METHOD_VOID();
+}
 }
 
 #endif
-

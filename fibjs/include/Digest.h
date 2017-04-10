@@ -11,22 +11,20 @@
 #ifndef DIGEST_H_
 #define DIGEST_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class Digest : public Digest_base
-{
+class Digest : public Digest_base {
 public:
     Digest(mbedtls_md_type_t algo);
-    Digest(mbedtls_md_type_t algo, const char *key, int32_t sz);
+    Digest(mbedtls_md_type_t algo, const char* key, int32_t sz);
     ~Digest();
 
 public:
     // Digest_base
-    virtual result_t update(Buffer_base *data);
-    virtual result_t digest(Buffer_base *data, obj_ptr<Buffer_base> &retVal);
-    virtual result_t digest(obj_ptr<Buffer_base> &retVal);
-    virtual result_t get_size(int32_t &retVal);
+    virtual result_t update(Buffer_base* data);
+    virtual result_t digest(Buffer_base* data, obj_ptr<Buffer_base>& retVal);
+    virtual result_t digest(obj_ptr<Buffer_base>& retVal);
+    virtual result_t get_size(int32_t& retVal);
 
 private:
     mbedtls_md_context_t m_ctx;

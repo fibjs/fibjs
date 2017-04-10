@@ -13,11 +13,9 @@
 #ifndef JSHANDLER_H_
 #define JSHANDLER_H_
 
-namespace fibjs
-{
+namespace fibjs {
 
-class JSHandler: public Handler_base
-{
+class JSHandler : public Handler_base {
     FIBER_FREE();
 
 public:
@@ -29,24 +27,21 @@ public:
 
 public:
     // Handler_base
-    virtual result_t invoke(object_base *v, obj_ptr<Handler_base> &retVal,
-                            AsyncEvent *ac);
+    virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+        AsyncEvent* ac);
 
 public:
     static result_t New(v8::Local<v8::Value> hdlr,
-                        obj_ptr<Handler_base> &retVal)
+        obj_ptr<Handler_base>& retVal)
     {
-        if (hdlr->IsString() || hdlr->IsStringObject() ||
-                hdlr->IsNumberObject() || hdlr->IsRegExp() ||
-                (!hdlr->IsFunction() && !hdlr->IsObject()))
+        if (hdlr->IsString() || hdlr->IsStringObject() || hdlr->IsNumberObject() || hdlr->IsRegExp() || (!hdlr->IsFunction() && !hdlr->IsObject()))
             return CHECK_ERROR(CALL_E_BADVARTYPE);
 
         retVal = Handler_base::getInstance(hdlr);
         if (retVal)
             return 0;
 
-        if (hdlr->IsArray())
-        {
+        if (hdlr->IsArray()) {
             v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(hdlr);
 
             obj_ptr<Chain_base> chain = new Chain();
@@ -58,8 +53,7 @@ public:
             return 0;
         }
 
-        if (!hdlr->IsFunction())
-        {
+        if (!hdlr->IsFunction()) {
             v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(hdlr);
 
             obj_ptr<Routing_base> r = new Routing();
@@ -79,8 +73,8 @@ public:
     }
 
 public:
-    static result_t js_invoke(Handler_base *hdlr, object_base *v,
-                              obj_ptr<Handler_base> &retVal, AsyncEvent *ac);
+    static result_t js_invoke(Handler_base* hdlr, object_base* v,
+        obj_ptr<Handler_base>& retVal, AsyncEvent* ac);
 };
 
 } /* namespace fibjs */

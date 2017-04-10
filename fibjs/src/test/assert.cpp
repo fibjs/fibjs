@@ -10,38 +10,30 @@
 #include "ifs/encoding.h"
 #include "QuickArray.h"
 
-namespace fibjs
-{
+namespace fibjs {
 
 DECLARE_MODULE(assert);
 
 exlib::string json_format(v8::Local<v8::Value> obj);
 
-class _msg
-{
+class _msg {
 public:
-    _msg(exlib::string s0, const char *s1)
+    _msg(exlib::string s0, const char* s1)
     {
-        if (!s0.empty())
-        {
+        if (!s0.empty()) {
             msg = s0;
-        }
-        else
-        {
+        } else {
             strs[0] = s1;
             strs[1] = NULL;
         }
     }
 
-    _msg(exlib::string s0, const char *s1, v8::Local<v8::Value> &v1,
-         const char *s2)
+    _msg(exlib::string s0, const char* s1, v8::Local<v8::Value>& v1,
+        const char* s2)
     {
-        if (!s0.empty())
-        {
+        if (!s0.empty()) {
             msg = s0;
-        }
-        else
-        {
+        } else {
             strs[0] = s1;
             strs[1] = s2;
             strs[2] = NULL;
@@ -50,15 +42,12 @@ public:
         }
     }
 
-    _msg(exlib::string s0, const char *s1, v8::Local<v8::Value> &v1,
-         const char *s2, v8::Local<v8::Value> &v2, const char *s3 = "")
+    _msg(exlib::string s0, const char* s1, v8::Local<v8::Value>& v1,
+        const char* s2, v8::Local<v8::Value>& v2, const char* s3 = "")
     {
-        if (!s0.empty())
-        {
+        if (!s0.empty()) {
             msg = s0;
-        }
-        else
-        {
+        } else {
             strs[0] = s1;
             strs[1] = s2;
             strs[2] = s3;
@@ -69,16 +58,13 @@ public:
         }
     }
 
-    _msg(exlib::string s0, const char *s1, v8::Local<v8::Value> &v1,
-         const char *s2, v8::Local<v8::Value> &v2, const char *s3,
-         v8::Local<v8::Value> &v3, const char *s4 = "")
+    _msg(exlib::string s0, const char* s1, v8::Local<v8::Value>& v1,
+        const char* s2, v8::Local<v8::Value>& v2, const char* s3,
+        v8::Local<v8::Value>& v3, const char* s4 = "")
     {
-        if (!s0.empty())
-        {
+        if (!s0.empty()) {
             msg = s0;
-        }
-        else
-        {
+        } else {
             strs[0] = s1;
             strs[1] = s2;
             strs[2] = s3;
@@ -91,17 +77,14 @@ public:
         }
     }
 
-    _msg(exlib::string s0, const char *s1, v8::Local<v8::Value> &v1,
-         const char *s2, v8::Local<v8::Value> &v2, const char *s3,
-         v8::Local<v8::Value> &v3, const char *s4,
-         v8::Local<v8::Value> &v4, const char *s5 = "")
+    _msg(exlib::string s0, const char* s1, v8::Local<v8::Value>& v1,
+        const char* s2, v8::Local<v8::Value>& v2, const char* s3,
+        v8::Local<v8::Value>& v3, const char* s4,
+        v8::Local<v8::Value>& v4, const char* s5 = "")
     {
-        if (!s0.empty())
-        {
+        if (!s0.empty()) {
             msg = s0;
-        }
-        else
-        {
+        } else {
             strs[0] = s1;
             strs[1] = s2;
             strs[2] = s3;
@@ -119,27 +102,22 @@ public:
     {
         exlib::string str(msg);
 
-        if (str.empty())
-        {
+        if (str.empty()) {
             str = strs[0];
 
-            if (strs[1])
-            {
+            if (strs[1]) {
                 str.append(json_format(*vs[0]));
                 str.append(strs[1]);
 
-                if (strs[2])
-                {
+                if (strs[2]) {
                     str.append(json_format(*vs[1]));
                     str.append(strs[2]);
 
-                    if (strs[3])
-                    {
+                    if (strs[3]) {
                         str.append(json_format(*vs[2]));
                         str.append(strs[3]);
 
-                        if (strs[4])
-                        {
+                        if (strs[4]) {
                             str.append(json_format(*vs[3]));
                             str.append(strs[4]);
                         }
@@ -153,8 +131,8 @@ public:
 
 private:
     exlib::string msg;
-    const char *strs[5];
-    v8::Local<v8::Value> *vs[4];
+    const char* strs[5];
+    v8::Local<v8::Value>* vs[4];
 };
 
 inline void _test(bool value, _msg msg)
@@ -171,14 +149,14 @@ result_t assert_base::_function(v8::Local<v8::Value> actual, exlib::string msg)
 result_t assert_base::ok(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(actual->BooleanValue(),
-          _msg(msg, "expected ", actual, " to be truthy"));
+        _msg(msg, "expected ", actual, " to be truthy"));
     return 0;
 }
 
 result_t assert_base::notOk(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(!actual->BooleanValue(),
-          _msg(msg, "expected ", actual, " to be falsy"));
+        _msg(msg, "expected ", actual, " to be falsy"));
     return 0;
 }
 
@@ -196,18 +174,17 @@ bool regexpEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 }
 
 bool deepEquals(QuickArray<v8::Local<v8::Object> >& acts,
-                QuickArray<v8::Local<v8::Object> >& exps,
-                v8::Local<v8::Value> actual, v8::Local<v8::Value> expected);
+    QuickArray<v8::Local<v8::Object> >& exps,
+    v8::Local<v8::Value> actual, v8::Local<v8::Value> expected);
 
 int32_t checkStack(QuickArray<v8::Local<v8::Object> >& acts,
-                   QuickArray<v8::Local<v8::Object> >& exps,
-                   v8::Local<v8::Object> actual, v8::Local<v8::Object> expected)
+    QuickArray<v8::Local<v8::Object> >& exps,
+    v8::Local<v8::Object> actual, v8::Local<v8::Object> expected)
 {
     int32_t i;
 
     for (i = 0; i < (int32_t)acts.size(); i++)
-        if (actual->Equals(acts[i]))
-        {
+        if (actual->Equals(acts[i])) {
             if (expected->Equals(exps[i]))
                 return 0;
             return -1;
@@ -220,12 +197,12 @@ int32_t checkStack(QuickArray<v8::Local<v8::Object> >& acts,
 }
 
 bool arrayEquals(QuickArray<v8::Local<v8::Object> >& acts,
-                 QuickArray<v8::Local<v8::Object> >& exps,
-                 v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
+    QuickArray<v8::Local<v8::Object> >& exps,
+    v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
     v8::Local<v8::Array> act = v8::Local<v8::Array>::Cast(actual);
     v8::Local<v8::Array> exp = v8::Local<v8::Array>::Cast(expected);
-    int32_t len = (int32_t) act->Length();
+    int32_t len = (int32_t)act->Length();
     int32_t i;
 
     i = checkStack(acts, exps, act, exp);
@@ -234,16 +211,14 @@ bool arrayEquals(QuickArray<v8::Local<v8::Object> >& acts,
     if (i == -1)
         return false;
 
-    if (len != (int32_t) exp->Length())
-    {
+    if (len != (int32_t)exp->Length()) {
         acts.pop();
         exps.pop();
         return false;
     }
 
     for (i = 0; i < len; i++)
-        if (!deepEquals(acts, exps, act->Get(i), exp->Get(i)))
-        {
+        if (!deepEquals(acts, exps, act->Get(i), exp->Get(i))) {
             acts.pop();
             exps.pop();
             return false;
@@ -255,8 +230,8 @@ bool arrayEquals(QuickArray<v8::Local<v8::Object> >& acts,
 }
 
 bool objectEquals(QuickArray<v8::Local<v8::Object> >& acts,
-                  QuickArray<v8::Local<v8::Object> >& exps,
-                  v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
+    QuickArray<v8::Local<v8::Object> >& exps,
+    v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
     v8::Local<v8::Object> act = v8::Local<v8::Object>::Cast(actual);
     v8::Local<v8::Object> exp = v8::Local<v8::Object>::Cast(expected);
@@ -270,20 +245,17 @@ bool objectEquals(QuickArray<v8::Local<v8::Object> >& acts,
         return false;
 
     v8::Local<v8::Array> keys = act->GetPropertyNames();
-    int32_t len = (int32_t) keys->Length();
+    int32_t len = (int32_t)keys->Length();
 
-    if (len != (int32_t) exp->GetPropertyNames()->Length())
-    {
+    if (len != (int32_t)exp->GetPropertyNames()->Length()) {
         acts.pop();
         exps.pop();
         return false;
     }
 
-    for (i = 0; i < len; i++)
-    {
+    for (i = 0; i < len; i++) {
         v8::Local<v8::Value> ks = keys->Get(i);
-        if (!deepEquals(acts, exps, act->Get(ks), exp->Get(ks)))
-        {
+        if (!deepEquals(acts, exps, act->Get(ks), exp->Get(ks))) {
             acts.pop();
             exps.pop();
             return false;
@@ -296,15 +268,14 @@ bool objectEquals(QuickArray<v8::Local<v8::Object> >& acts,
 }
 
 bool deepEquals(QuickArray<v8::Local<v8::Object> >& acts,
-                QuickArray<v8::Local<v8::Object> >& exps,
-                v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
+    QuickArray<v8::Local<v8::Object> >& exps,
+    v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
     if (!IsEmpty(actual) && !IsEmpty(expected) && !actual->IsFunction()
-            && !expected->IsFunction())
-    {
+        && !expected->IsFunction()) {
         if (actual->IsDate())
             return expected->IsDate()
-                   && (actual->NumberValue() == expected->NumberValue());
+                && (actual->NumberValue() == expected->NumberValue());
 
         if (expected->IsDate())
             return false;
@@ -320,8 +291,7 @@ bool deepEquals(QuickArray<v8::Local<v8::Object> >& acts,
 
         obj_ptr<object_base> obj1 = object_base::getInstance(actual);
         obj_ptr<object_base> obj2 = object_base::getInstance(expected);
-        if (obj1 && obj2)
-        {
+        if (obj1 && obj2) {
             bool v;
             obj1->equals(obj2, v);
             return v;
@@ -335,63 +305,63 @@ bool deepEquals(QuickArray<v8::Local<v8::Object> >& acts,
 }
 
 result_t assert_base::equal(v8::Local<v8::Value> actual,
-                            v8::Local<v8::Value> expected, exlib::string msg)
+    v8::Local<v8::Value> expected, exlib::string msg)
 {
     _test(actual->Equals(expected),
-          _msg(msg, "expected ", actual, " to equal ", expected));
+        _msg(msg, "expected ", actual, " to equal ", expected));
     return 0;
 }
 
 result_t assert_base::notEqual(v8::Local<v8::Value> actual,
-                               v8::Local<v8::Value> expected, exlib::string msg)
+    v8::Local<v8::Value> expected, exlib::string msg)
 {
     _test(!actual->Equals(expected),
-          _msg(msg, "expected ", actual, " to not equal ", expected));
+        _msg(msg, "expected ", actual, " to not equal ", expected));
     return 0;
 }
 
 result_t assert_base::strictEqual(v8::Local<v8::Value> actual,
-                                  v8::Local<v8::Value> expected, exlib::string msg)
+    v8::Local<v8::Value> expected, exlib::string msg)
 {
     _test(actual->StrictEquals(expected),
-          _msg(msg, "expected ", actual, " to strictly equal ", expected));
+        _msg(msg, "expected ", actual, " to strictly equal ", expected));
     return 0;
 }
 
 result_t assert_base::notStrictEqual(v8::Local<v8::Value> actual,
-                                     v8::Local<v8::Value> expected, exlib::string msg)
+    v8::Local<v8::Value> expected, exlib::string msg)
 {
     _test(!actual->StrictEquals(expected),
-          _msg(msg, "expected ", actual, " to not strictly equal ",
-               expected));
+        _msg(msg, "expected ", actual, " to not strictly equal ",
+            expected));
     return 0;
 }
 
 result_t assert_base::deepEqual(v8::Local<v8::Value> actual,
-                                v8::Local<v8::Value> expected, exlib::string msg)
+    v8::Local<v8::Value> expected, exlib::string msg)
 {
     QuickArray<v8::Local<v8::Object> > acts;
     QuickArray<v8::Local<v8::Object> > exps;
 
     _test(deepEquals(acts, exps, actual, expected),
-          _msg(msg, "expected ", actual, " to deeply equal ", expected));
+        _msg(msg, "expected ", actual, " to deeply equal ", expected));
     return 0;
 }
 
 result_t assert_base::notDeepEqual(v8::Local<v8::Value> actual,
-                                   v8::Local<v8::Value> expected, exlib::string msg)
+    v8::Local<v8::Value> expected, exlib::string msg)
 {
     QuickArray<v8::Local<v8::Object> > acts;
     QuickArray<v8::Local<v8::Object> > exps;
 
     _test(!deepEquals(acts, exps, actual, expected),
-          _msg(msg, "expected ", actual, " to not deeply equal ", expected));
+        _msg(msg, "expected ", actual, " to not deeply equal ", expected));
     return 0;
 }
 
 result_t assert_base::closeTo(v8::Local<v8::Value> actual,
-                              v8::Local<v8::Value> expected, v8::Local<v8::Value> delta,
-                              exlib::string msg)
+    v8::Local<v8::Value> expected, v8::Local<v8::Value> delta,
+    exlib::string msg)
 {
     double n, n1;
 
@@ -412,14 +382,14 @@ result_t assert_base::closeTo(v8::Local<v8::Value> actual,
     if (n < 0)
         n = -n;
     _test(n <= n1,
-          _msg(msg, "expected ", actual, " to be close to ", expected,
-               " +/- ", delta));
+        _msg(msg, "expected ", actual, " to be close to ", expected,
+            " +/- ", delta));
     return 0;
 }
 
 result_t assert_base::notCloseTo(v8::Local<v8::Value> actual,
-                                 v8::Local<v8::Value> expected, v8::Local<v8::Value> delta,
-                                 exlib::string msg)
+    v8::Local<v8::Value> expected, v8::Local<v8::Value> delta,
+    exlib::string msg)
 {
     double n, n1;
 
@@ -440,12 +410,12 @@ result_t assert_base::notCloseTo(v8::Local<v8::Value> actual,
     if (n < 0)
         n = -n;
     _test(n > n1,
-          _msg(msg, "expected ", actual, " not to be close to ", expected,
-               " +/- ", delta));
+        _msg(msg, "expected ", actual, " not to be close to ", expected,
+            " +/- ", delta));
     return 0;
 }
 
-double valcmp(v8::Local<v8::Value> &val1, v8::Local<v8::Value> &val2)
+double valcmp(v8::Local<v8::Value>& val1, v8::Local<v8::Value>& val2)
 {
     bool n1 = val1->IsNumber() || val1->IsNumberObject();
     bool n2 = val2->IsNumber() || val2->IsNumberObject();
@@ -454,14 +424,11 @@ double valcmp(v8::Local<v8::Value> &val1, v8::Local<v8::Value> &val2)
     if (n1 && n2)
         return val1->NumberValue() - val2->NumberValue();
 
-    if (n1)
-    {
+    if (n1) {
         v1 = val2->NumberValue();
         if (!isnan(v1))
             return val1->NumberValue() - v1;
-    }
-    else if (n2)
-    {
+    } else if (n2) {
         v1 = val1->NumberValue();
         if (!isnan(v1))
             return v1 - val2->NumberValue();
@@ -477,7 +444,7 @@ double valcmp(v8::Local<v8::Value> &val1, v8::Local<v8::Value> &val2)
 }
 
 result_t assert_base::lessThan(v8::Local<v8::Value> actual,
-                               v8::Local<v8::Value> expected, exlib::string msg)
+    v8::Local<v8::Value> expected, exlib::string msg)
 {
     double r = valcmp(actual, expected);
 
@@ -489,7 +456,7 @@ result_t assert_base::lessThan(v8::Local<v8::Value> actual,
 }
 
 result_t assert_base::notLessThan(v8::Local<v8::Value> actual,
-                                  v8::Local<v8::Value> expected, exlib::string msg)
+    v8::Local<v8::Value> expected, exlib::string msg)
 {
     double r = valcmp(actual, expected);
 
@@ -501,7 +468,7 @@ result_t assert_base::notLessThan(v8::Local<v8::Value> actual,
 }
 
 result_t assert_base::greaterThan(v8::Local<v8::Value> actual,
-                                  v8::Local<v8::Value> expected, exlib::string msg)
+    v8::Local<v8::Value> expected, exlib::string msg)
 {
     double r = valcmp(actual, expected);
 
@@ -513,7 +480,7 @@ result_t assert_base::greaterThan(v8::Local<v8::Value> actual,
 }
 
 result_t assert_base::notGreaterThan(v8::Local<v8::Value> actual,
-                                     v8::Local<v8::Value> expected, exlib::string msg)
+    v8::Local<v8::Value> expected, exlib::string msg)
 {
     double r = valcmp(actual, expected);
 
@@ -527,14 +494,14 @@ result_t assert_base::notGreaterThan(v8::Local<v8::Value> actual,
 result_t assert_base::exist(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(!actual->IsNull() && !actual->IsUndefined(),
-          _msg(msg, "expected ", actual, " to be true"));
+        _msg(msg, "expected ", actual, " to be true"));
     return 0;
 }
 
 result_t assert_base::notExist(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(actual->IsNull() || actual->IsUndefined(),
-          _msg(msg, "expected ", actual, " not to be true"));
+        _msg(msg, "expected ", actual, " not to be true"));
     return 0;
 }
 
@@ -559,7 +526,7 @@ result_t assert_base::isFalse(v8::Local<v8::Value> actual, exlib::string msg)
 result_t assert_base::isNotFalse(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(!actual->IsFalse(),
-          _msg(msg, "expected ", actual, " not to be false"));
+        _msg(msg, "expected ", actual, " not to be false"));
     return 0;
 }
 
@@ -578,29 +545,29 @@ result_t assert_base::isNotNull(v8::Local<v8::Value> actual, exlib::string msg)
 result_t assert_base::isUndefined(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(actual->IsUndefined(),
-          _msg(msg, "expected ", actual, " to be undefined"));
+        _msg(msg, "expected ", actual, " to be undefined"));
     return 0;
 }
 
 result_t assert_base::isDefined(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(!actual->IsUndefined(),
-          _msg(msg, "expected ", actual, " not to be undefined"));
+        _msg(msg, "expected ", actual, " not to be undefined"));
     return 0;
 }
 
 result_t assert_base::isFunction(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(actual->IsFunction(),
-          _msg(msg, "expected ", actual, " to be function"));
+        _msg(msg, "expected ", actual, " to be function"));
     return 0;
 }
 
 result_t assert_base::isNotFunction(v8::Local<v8::Value> actual,
-                                    exlib::string msg)
+    exlib::string msg)
 {
     _test(!actual->IsFunction(),
-          _msg(msg, "expected ", actual, " not to be function"));
+        _msg(msg, "expected ", actual, " not to be function"));
     return 0;
 }
 
@@ -613,7 +580,7 @@ result_t assert_base::isObject(v8::Local<v8::Value> actual, exlib::string msg)
 result_t assert_base::isNotObject(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(!actual->IsObject(),
-          _msg(msg, "expected ", actual, " not to be object"));
+        _msg(msg, "expected ", actual, " not to be object"));
     return 0;
 }
 
@@ -626,55 +593,55 @@ result_t assert_base::isArray(v8::Local<v8::Value> actual, exlib::string msg)
 result_t assert_base::isNotArray(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(!actual->IsArray(),
-          _msg(msg, "expected ", actual, " not to be array"));
+        _msg(msg, "expected ", actual, " not to be array"));
     return 0;
 }
 
 result_t assert_base::isString(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(actual->IsString() || actual->IsStringObject(),
-          _msg(msg, "expected ", actual, " to be string"));
+        _msg(msg, "expected ", actual, " to be string"));
     return 0;
 }
 
 result_t assert_base::isNotString(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(!actual->IsString() && !actual->IsStringObject(),
-          _msg(msg, "expected ", actual, " not to be string"));
+        _msg(msg, "expected ", actual, " not to be string"));
     return 0;
 }
 
 result_t assert_base::isNumber(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(actual->IsNumber() || actual->IsNumberObject(),
-          _msg(msg, "expected ", actual, " to be number"));
+        _msg(msg, "expected ", actual, " to be number"));
     return 0;
 }
 
 result_t assert_base::isNotNumber(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(!actual->IsNumber() && !actual->IsNumberObject(),
-          _msg(msg, "expected ", actual, " not to be number"));
+        _msg(msg, "expected ", actual, " not to be number"));
     return 0;
 }
 
 result_t assert_base::isBoolean(v8::Local<v8::Value> actual, exlib::string msg)
 {
     _test(actual->IsBoolean() || actual->IsBooleanObject(),
-          _msg(msg, "expected ", actual, " to be boolean"));
+        _msg(msg, "expected ", actual, " to be boolean"));
     return 0;
 }
 
 result_t assert_base::isNotBoolean(v8::Local<v8::Value> actual,
-                                   exlib::string msg)
+    exlib::string msg)
 {
     _test(!actual->IsBoolean() && !actual->IsBooleanObject(),
-          _msg(msg, "expected ", actual, " not to be boolean"));
+        _msg(msg, "expected ", actual, " not to be boolean"));
     return 0;
 }
 
 result_t assert_base::typeOf(v8::Local<v8::Value> actual, exlib::string type,
-                             exlib::string msg)
+    exlib::string msg)
 {
     if ((type == "array"))
         return isArray(actual, msg);
@@ -697,7 +664,7 @@ result_t assert_base::typeOf(v8::Local<v8::Value> actual, exlib::string type,
 }
 
 result_t assert_base::notTypeOf(v8::Local<v8::Value> actual, exlib::string type,
-                                exlib::string msg)
+    exlib::string msg)
 {
     if ((type == "array"))
         return isNotArray(actual, msg);
@@ -720,7 +687,7 @@ result_t assert_base::notTypeOf(v8::Local<v8::Value> actual, exlib::string type,
 }
 
 result_t has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
-                  bool &retVal)
+    bool& retVal)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -732,7 +699,7 @@ result_t has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 }
 
 result_t assert_base::property(v8::Local<v8::Value> object,
-                               v8::Local<v8::Value> prop, exlib::string msg)
+    v8::Local<v8::Value> prop, exlib::string msg)
 {
     bool r;
     result_t hr = has_prop(object, prop, r);
@@ -744,7 +711,7 @@ result_t assert_base::property(v8::Local<v8::Value> object,
 }
 
 result_t assert_base::notProperty(v8::Local<v8::Value> object,
-                                  v8::Local<v8::Value> prop, exlib::string msg)
+    v8::Local<v8::Value> prop, exlib::string msg)
 {
     bool r;
     result_t hr = has_prop(object, prop, r);
@@ -756,7 +723,7 @@ result_t assert_base::notProperty(v8::Local<v8::Value> object,
 }
 
 result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
-                       bool &retVal)
+    bool& retVal)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -767,12 +734,10 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     const char *p, *p1;
 
     p = *s;
-    while ((p1 = qstrchr(p, '.')) != NULL)
-    {
+    while ((p1 = qstrchr(p, '.')) != NULL) {
         object = v->Get(isolate->NewFromUtf8(p, (int32_t)(p1 - p)));
 
-        if (object.IsEmpty() || (!object->IsObject() && !object->IsString()))
-        {
+        if (object.IsEmpty() || (!object->IsObject() && !object->IsString())) {
             retVal = false;
             return 0;
         }
@@ -787,7 +752,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 }
 
 result_t assert_base::deepProperty(v8::Local<v8::Value> object,
-                                   v8::Local<v8::Value> prop, exlib::string msg)
+    v8::Local<v8::Value> prop, exlib::string msg)
 {
     bool r;
     result_t hr = deep_has_prop(object, prop, r);
@@ -799,7 +764,7 @@ result_t assert_base::deepProperty(v8::Local<v8::Value> object,
 }
 
 result_t assert_base::notDeepProperty(v8::Local<v8::Value> object,
-                                      v8::Local<v8::Value> prop, exlib::string msg)
+    v8::Local<v8::Value> prop, exlib::string msg)
 {
     bool r;
     result_t hr = deep_has_prop(object, prop, r);
@@ -807,13 +772,13 @@ result_t assert_base::notDeepProperty(v8::Local<v8::Value> object,
         return hr;
 
     _test(!r,
-          _msg(msg, "expected ", object, " to not have a deep property ",
-               prop));
+        _msg(msg, "expected ", object, " to not have a deep property ",
+            prop));
     return 0;
 }
 
 result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
-                 v8::Local<v8::Value> value, bool &retVal, v8::Local<v8::Value> &got)
+    v8::Local<v8::Value> value, bool& retVal, v8::Local<v8::Value>& got)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -826,8 +791,8 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 }
 
 result_t assert_base::propertyVal(v8::Local<v8::Value> object,
-                                  v8::Local<v8::Value> prop, v8::Local<v8::Value> value,
-                                  exlib::string msg)
+    v8::Local<v8::Value> prop, v8::Local<v8::Value> value,
+    exlib::string msg)
 {
     bool r;
     v8::Local<v8::Value> got;
@@ -837,14 +802,14 @@ result_t assert_base::propertyVal(v8::Local<v8::Value> object,
         return hr;
 
     _test(r,
-          _msg(msg, "expected ", object, " to have a property ", prop, " of ",
-               value, ", but got ", got));
+        _msg(msg, "expected ", object, " to have a property ", prop, " of ",
+            value, ", but got ", got));
     return 0;
 }
 
 result_t assert_base::propertyNotVal(v8::Local<v8::Value> object,
-                                     v8::Local<v8::Value> prop, v8::Local<v8::Value> value,
-                                     exlib::string msg)
+    v8::Local<v8::Value> prop, v8::Local<v8::Value> value,
+    exlib::string msg)
 {
     bool r;
     v8::Local<v8::Value> got;
@@ -854,13 +819,13 @@ result_t assert_base::propertyNotVal(v8::Local<v8::Value> object,
         return hr;
 
     _test(!r,
-          _msg(msg, "expected ", object, " not to have a property ", prop,
-               " of ", value));
+        _msg(msg, "expected ", object, " not to have a property ", prop,
+            " of ", value));
     return 0;
 }
 
 result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
-                      v8::Local<v8::Value> value, bool &retVal, v8::Local<v8::Value> &got)
+    v8::Local<v8::Value> value, bool& retVal, v8::Local<v8::Value>& got)
 {
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -871,12 +836,10 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     const char *p, *p1;
 
     p = *s;
-    while ((p1 = qstrchr(p, '.')) != NULL)
-    {
+    while ((p1 = qstrchr(p, '.')) != NULL) {
         object = v->Get(isolate->NewFromUtf8(p, (int32_t)(p1 - p)));
 
-        if (object.IsEmpty() || (!object->IsObject() && !object->IsString()))
-        {
+        if (object.IsEmpty() || (!object->IsObject() && !object->IsString())) {
             retVal = false;
             return 0;
         }
@@ -892,8 +855,8 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 }
 
 result_t assert_base::deepPropertyVal(v8::Local<v8::Value> object,
-                                      v8::Local<v8::Value> prop, v8::Local<v8::Value> value,
-                                      exlib::string msg)
+    v8::Local<v8::Value> prop, v8::Local<v8::Value> value,
+    exlib::string msg)
 {
     bool r;
     v8::Local<v8::Value> got;
@@ -903,14 +866,14 @@ result_t assert_base::deepPropertyVal(v8::Local<v8::Value> object,
         return hr;
 
     _test(r,
-          _msg(msg, "expected ", object, " to have a deep property ", prop,
-               " of ", value, ", but got ", got));
+        _msg(msg, "expected ", object, " to have a deep property ", prop,
+            " of ", value, ", but got ", got));
     return 0;
 }
 
 result_t assert_base::deepPropertyNotVal(v8::Local<v8::Value> object,
-        v8::Local<v8::Value> prop, v8::Local<v8::Value> value,
-        exlib::string msg)
+    v8::Local<v8::Value> prop, v8::Local<v8::Value> value,
+    exlib::string msg)
 {
     bool r;
     v8::Local<v8::Value> got;
@@ -920,8 +883,8 @@ result_t assert_base::deepPropertyNotVal(v8::Local<v8::Value> object,
         return hr;
 
     _test(!r,
-          _msg(msg, "expected ", object, " not to have a deep property ",
-               prop, " of ", value));
+        _msg(msg, "expected ", object, " not to have a deep property ",
+            prop, " of ", value));
     return 0;
 }
 
@@ -939,7 +902,7 @@ result_t assert_base::throws(v8::Local<v8::Function> block, exlib::string msg)
 }
 
 result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
-                                   exlib::string msg)
+    exlib::string msg)
 {
     bool err;
     {
@@ -951,5 +914,4 @@ result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
 
     return 0;
 }
-
 }
