@@ -70,6 +70,11 @@ public:
         return v8::String::NewFromUtf8(m_isolate, str.c_str(), v8::String::kNormalString, (int32_t)str.length());
     }
 
+    v8::Local<v8::Context> context()
+    {
+        return m_isolate->GetCurrentContext();
+    }
+
 public:
     int32_t m_id;
     exlib::string m_fname;
@@ -81,7 +86,6 @@ public:
 
     v8::Isolate* m_isolate;
     v8::Persistent<v8::Context> m_context;
-    v8::Persistent<v8::Object> m_global;
     v8::Persistent<v8::Object> m_env;
 
     v8::Persistent<v8::Value> m_proto;

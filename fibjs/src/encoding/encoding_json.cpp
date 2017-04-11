@@ -31,7 +31,7 @@ inline result_t _jsonEncode(v8::Local<v8::Value> data,
     v8::Local<v8::Object> _json;
 
     if (isolate->m_json.IsEmpty()) {
-        v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
+        v8::Local<v8::Object> glob = isolate->context()->Global();
         _json = glob->Get(isolate->NewFromUtf8("JSON"))->ToObject();
         isolate->m_json.Reset(isolate->m_isolate, _json);
 

@@ -155,7 +155,6 @@ void Isolate::init()
     m_context.Reset(m_isolate, _context);
 
     v8::Local<v8::Object> glob = _context->Global();
-    m_global.Reset(m_isolate, glob);
 
     v8::Context::Scope context_scope(_context);
 

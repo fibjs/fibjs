@@ -222,7 +222,7 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<
     args[ARRAYSIZE(s_names)] = isolate->NewFromUtf8(name);
     ;
     args[ARRAYSIZE(s_names) + 1] = isolate->NewFromUtf8(pname);
-    v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
+    v8::Local<v8::Object> glob = isolate->context()->Global();
     v = v8::Local<v8::Function>::Cast(v)->Call(glob, ARRAYSIZE(s_names) + 2, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
@@ -283,7 +283,7 @@ result_t SandBox::Context::run(Buffer_base* src, exlib::string name, v8::Local<v
     args[ARRAYSIZE(s_names)] = isolate->NewFromUtf8(name);
     ;
     args[ARRAYSIZE(s_names) + 1] = isolate->NewFromUtf8(pname);
-    v8::Local<v8::Object> glob = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
+    v8::Local<v8::Object> glob = isolate->context()->Global();
     v = v8::Local<v8::Function>::Cast(v)->Call(glob, ARRAYSIZE(s_names) + 2, args);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;

@@ -12,7 +12,7 @@ namespace fibjs {
 result_t global_base::get_global(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
-    retVal = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_global);
+    retVal = isolate->context()->Global();
     return 0;
 }
 
