@@ -404,7 +404,7 @@ result_t test_base::setup(int32_t mode)
     if (isolate->m_test_setup_bbd && isolate->m_test_setup_tdd)
         return 0;
 
-    v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate->m_isolate, isolate->context());
+    v8::Local<v8::Context> _context = isolate->context();
     v8::Local<v8::Object> glob = _context->Global();
 
     if (!isolate->m_test_setup_bbd && !isolate->m_test_setup_tdd) {

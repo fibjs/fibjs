@@ -187,7 +187,7 @@ public:
 
     void Attach(Isolate* isolate, v8::Local<v8::Object> o, const char** skips = NULL)
     {
-        v8::Local<v8::Context> _context = v8::Local<v8::Context>::New(isolate->m_isolate, isolate->context());
+        v8::Local<v8::Context> _context = isolate->context();
 
         int32_t i, j;
 
