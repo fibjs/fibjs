@@ -78,7 +78,7 @@ public:
         v8::Local<v8::Value> args[2];
 
         args[0] = v->wrap();
-        args[1] = createV8Function("done", isolate->m_isolate, _done, retVal->wrap());
+        args[1] = isolate->NewFunction("done", _done, retVal->wrap());
 
         proc->Call(args[0], 2, args);
         return 0;

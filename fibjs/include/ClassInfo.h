@@ -199,7 +199,7 @@ public:
 
                 if (!skips || !skips[j])
                     o->DefineOwnProperty(_context, isolate->NewFromUtf8(m_cd.cms[i].name),
-                         createV8Function(m_cd.name, isolate->m_isolate, m_cd.cms[i].invoker),
+                         isolate->NewFunction(m_cd.name, m_cd.cms[i].invoker),
                          (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
                         .IsJust();
             }

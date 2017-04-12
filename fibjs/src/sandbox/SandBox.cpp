@@ -69,7 +69,7 @@ void SandBox::initRoot()
         pModule = pModule->m_next;
     }
 
-    InstallModule("expect", createV8Function("expect", isolate->m_isolate, test_base::s_expect));
+    InstallModule("expect", isolate->NewFunction("expect", test_base::s_expect));
     InstallModule("buffer", Buffer_base::class_info().getFunction(isolate));
 }
 

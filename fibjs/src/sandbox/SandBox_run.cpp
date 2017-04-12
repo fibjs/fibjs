@@ -166,8 +166,8 @@ SandBox::Context::Context(SandBox* sb, exlib::string id)
     _mod->Set(isolate->NewFromUtf8("_sbox"), m_sb->wrap());
     _mod->Set(isolate->NewFromUtf8("_id"), m_id);
 
-    m_fnRequest = createV8Function("require", isolate->m_isolate, _require, _mod);
-    m_fnRun = createV8Function("run", isolate->m_isolate, _run, _mod);
+    m_fnRequest = isolate->NewFunction("require", _require, _mod);
+    m_fnRun = isolate->NewFunction("run", _run, _mod);
 }
 
 static const char* s_names[] = { "module", "exports", "require", "run", "argv", "repl" };

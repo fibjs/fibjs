@@ -70,6 +70,14 @@ public:
         return v8::String::NewFromUtf8(m_isolate, str.c_str(), v8::String::kNormalString, (int32_t)str.length());
     }
 
+    v8::Local<v8::Function> NewFunction(const char* funcName, v8::FunctionCallback callback,
+        v8::Local<v8::Value> data = v8::Local<v8::Value>())
+    {
+        v8::Local<v8::Function> func = v8::Function::New(m_isolate, callback, data);
+        func->SetName(NewFromUtf8(funcName));
+        return func;
+    }
+
     v8::Local<v8::Context> context()
     {
         return m_isolate->GetCurrentContext();

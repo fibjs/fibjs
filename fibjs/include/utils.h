@@ -1026,13 +1026,4 @@ inline exlib::string dump_str(exlib::string str)
 void flushLog();
 }
 
-inline v8::Local<v8::Function> createV8Function(const char* funcName,
-    v8::Isolate* isolate, v8::FunctionCallback callback,
-    v8::Local<v8::Value> data = v8::Local<v8::Value>())
-{
-    v8::Local<v8::Function> func = v8::Function::New(isolate, callback, data);
-    func->SetName(v8::String::NewFromUtf8(isolate, funcName));
-    return func;
-}
-
 #endif
