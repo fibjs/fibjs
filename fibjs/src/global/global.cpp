@@ -88,7 +88,7 @@ result_t global_base::sync(v8::Local<v8::Function> func, v8::Local<v8::Function>
 
 result_t global_base::run(exlib::string fname, v8::Local<v8::Array> argv)
 {
-    return Isolate::current()->m_topSandbox->run(fname, argv);
+    return 0;
 }
 
 result_t global_base::get_argv(v8::Local<v8::Array>& retVal)
@@ -108,16 +108,16 @@ result_t global_base::get___dirname(exlib::string& retVal)
 
 result_t global_base::require(exlib::string id, v8::Local<v8::Value>& retVal)
 {
-    return Isolate::current()->m_topSandbox->require(id, "", retVal);
+    return 0;
 }
 
 result_t global_base::repl(v8::Local<v8::Array> cmds)
 {
-    return Isolate::current()->m_topSandbox->repl(cmds);
+    return 0;
 }
 
 result_t global_base::repl(Stream_base* out, v8::Local<v8::Array> cmds)
 {
-    return Isolate::current()->m_topSandbox->repl(cmds, out);
+    return 0;
 }
 }

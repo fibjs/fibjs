@@ -154,15 +154,13 @@ void Isolate::init()
     v8::Local<v8::Context> _context = v8::Context::New(m_isolate);
     m_context.Reset(m_isolate, _context);
 
-    v8::Local<v8::Object> glob = _context->Global();
-
     v8::Context::Scope context_scope(_context);
+
+    static const char* skips[] = { "repl", "argv", "__filename", "__dirname", "__sbname", NULL };
+    global_base::class_info().Attach(this, _context->Global(), skips);
 
     m_topSandbox = new SandBox();
     m_topSandbox->initRoot();
-
-    static const char* skips[] = { "repl", "argv", "__filename", "__dirname", "__sbname", NULL };
-    global_base::class_info().Attach(this, glob, skips);
 }
 
 } /* namespace fibjs */
