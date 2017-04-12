@@ -143,7 +143,7 @@ QPS
 
 ### 相关代码
 #### 服务器代码1_fibjs
-```
+```js
 var http = require('http'),
 	net = require('net'),
 	coroutine = require('coroutine');
@@ -174,7 +174,7 @@ svr.run();
 ```
 
 #### 服务器代码2_使用cluster的nodejs
-```
+```js
 var cluster = require('cluster'),
 	http = require('http'),
 	url = require('url'),
@@ -207,7 +207,7 @@ if (cluster.isMaster) {
 ```
 
 #### 服务器代码3_使用多核的go
-```
+```go
 package main
 import (
     "net/http"
@@ -232,7 +232,7 @@ func main() {
 ```
 
 #### 服务器代码4_nginx模块
-```
+```c
 #include <ngx_config.h> 
 #include <ngx_core.h> 
 #include <ngx_http.h> 
@@ -333,7 +333,7 @@ static char *ngx_http_hello_world(ngx_conf_t *cf,ngx_command_t *cmd,void *conf)
 
 ###脚本_集群调度
 
-```
+```sh
 #!/usr/bash
 
 if [ $# -lt 1 ]; then
