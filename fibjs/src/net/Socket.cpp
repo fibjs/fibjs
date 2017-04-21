@@ -194,7 +194,7 @@ result_t Socket::get_remotePort(int32_t& retVal)
     if (::getpeername(m_aio.m_fd, (sockaddr*)&addr_info, &sz) == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
 
-    retVal = ntohs(addr_info.port());
+    retVal = addr_info.port();
 
     return 0;
 }

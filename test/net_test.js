@@ -43,7 +43,7 @@ var backend = {
 function del(f) {
     try {
         fs.unlink(f);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 describe("net", () => {
@@ -113,6 +113,7 @@ describe("net", () => {
             var s1 = net.connect('tcp://' + net_config.host + ':' + (8080 + base_port));
             console.log(s1.remoteAddress, s1.remotePort, "<-",
                 s1.localAddress, s1.localPort);
+            assert.equal(s1.remotePort, 8080 + base_port);
             s1.send(new Buffer("GET / HTTP/1.0"));
             assert.equal("GET / HTTP/1.0", s1.recv());
             s1.close();
@@ -379,9 +380,9 @@ describe("net", () => {
     });
 
     it("bind same port", () => {
-        new net.TcpServer(8811 + base_port, (c) => {});
+        new net.TcpServer(8811 + base_port, (c) => { });
         assert.throws(() => {
-            new net.TcpServer(8811 + base_port, (c) => {});
+            new net.TcpServer(8811 + base_port, (c) => { });
         });
     });
 
@@ -476,7 +477,7 @@ describe("net", () => {
         GC();
         no1 = os.memoryUsage().nativeObjects.objects;
 
-        ss = new net.TcpServer(9812, (c) => {});
+        ss = new net.TcpServer(9812, (c) => { });
         coroutine.start(() => {
             ss.run();
         });
@@ -489,7 +490,7 @@ describe("net", () => {
         GC();
         assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 
-        ss = new net.TcpServer(9813, (c) => {});
+        ss = new net.TcpServer(9813, (c) => { });
         ss.asyncRun();
 
         coroutine.sleep(50);
@@ -501,7 +502,7 @@ describe("net", () => {
         assert.equal(no1, os.memoryUsage().nativeObjects.objects);
 
         (() => {
-            var s = new net.TcpServer(9884, () => {});
+            var s = new net.TcpServer(9884, () => { });
         })();
 
         coroutine.sleep(50);
