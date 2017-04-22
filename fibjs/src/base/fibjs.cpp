@@ -97,7 +97,7 @@ void main(int32_t argc, char* argv[])
     for (i = 1; (i < argc) && (argv[i][0] == '-'); i++)
         ;
 
-    const char* fname = NULL;
+    exlib::string fname;
     if (i < argc)
         fname = argv[i];
 

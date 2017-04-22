@@ -52,7 +52,7 @@ public:
     };
 
 public:
-    Isolate(const char* fname);
+    Isolate(exlib::string fname);
 
 public:
     static Isolate* current();

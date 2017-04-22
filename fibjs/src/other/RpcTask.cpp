@@ -186,7 +186,7 @@ static result_t task_fiber(Isolate* isolate)
             s_vms.inc();
         else {
             s_idles.inc();
-            Isolate* new_isolate = new Isolate(NULL);
+            Isolate* new_isolate = new Isolate("");
             syncCall(new_isolate, init_task_fiber, new_isolate);
         }
     }
@@ -278,7 +278,7 @@ result_t RpcTask::_function(const v8::FunctionCallbackInfo<v8::Value>& args,
 
         s_vms.dec();
         s_idles.inc();
-        Isolate* new_isolate = new Isolate(NULL);
+        Isolate* new_isolate = new Isolate("");
         syncCall(new_isolate, init_task_fiber, new_isolate);
     }
 
