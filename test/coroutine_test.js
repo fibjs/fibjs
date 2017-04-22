@@ -7,110 +7,112 @@ var coroutine = require('coroutine');
 var n;
 
 describe('coroutine', () => {
-    function t_fiber(v1, v2) {
-        n = v1 + v2;
-    }
-
-    it('start', () => {
-        n = 123;
-
-        var f = coroutine.start(t_fiber, 100, 200);
-        assert.equal(n, 123);
-        coroutine.sleep(1);
-        assert.equal(n, 300);
-
-    });
-
-    it('join', () => {
-        n = 300;
-
-        var f = coroutine.start(t_fiber, 123, 200);
-        assert.equal(n, 300);
-        f.join();
-        assert.equal(n, 323);
-    });
-
-    it("Memory Leak detect", () => {
-        GC();
-        var no1 = os.memoryUsage().nativeObjects.objects;
-        var f = coroutine.start((v) => {}, new Buffer());
-        GC();
-        assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
-        f.join();
-
-        GC();
-        assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
-
-        f = undefined;
-        GC();
-        assert.equal(no1, os.memoryUsage().nativeObjects.objects);
-    });
-
-    it('Fiber-local storage', () => {
-        function t_fiber1(v1, v2) {
-            n = v1 + v2 + this.v;
+    describe('Fiber', () => {
+        function t_fiber(v1, v2) {
+            n = v1 + v2;
         }
 
-        n = 323;
+        it('start', () => {
+            n = 123;
 
-        var f = coroutine.start(t_fiber1, 100, 200);
-        assert.equal(n, 323);
-        f.v = 1000;
-        f.join();
-        assert.equal(n, 1300);
-    });
+            var f = coroutine.start(t_fiber, 100, 200);
+            assert.equal(n, 123);
+            coroutine.sleep(1);
+            assert.equal(n, 300);
 
-    it('current', () => {
-        function t_fiber2(v1, v2) {
-            n = v1 + v2 + coroutine.current().v;
-        }
+        });
 
-        n = 1300;
+        it('join', () => {
+            n = 300;
 
-        var f = coroutine.start(t_fiber2, 100, 200);
-        assert.equal(n, 1300);
-        f.v = 2000;
-        f.join();
-        assert.equal(n, 2300);
+            var f = coroutine.start(t_fiber, 123, 200);
+            assert.equal(n, 300);
+            f.join();
+            assert.equal(n, 323);
+        });
 
-        f = coroutine.start(t_fiber2, 100, 200);
-        assert.equal(n, 2300);
-        f.v = 1000;
-        coroutine.sleep(10);
-        f.join();
-        assert.equal(n, 1300);
-    });
+        it("Memory Leak detect", () => {
+            GC();
+            var no1 = os.memoryUsage().nativeObjects.objects;
+            var f = coroutine.start((v) => {}, new Buffer());
+            GC();
+            assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
+            f.join();
 
-    it('caller', () => {
-        function t_fiber3(v1, v2) {
-            n = v1 + v2 + this.caller.v;
-        }
+            GC();
+            assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
 
-        n = 1300;
+            f = undefined;
+            GC();
+            assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+        });
 
-        var f = coroutine.start(t_fiber3, 100, 200);
-        assert.equal(n, 1300);
-        coroutine.current().v = 1234;
-        f.join();
-        assert.equal(n, 1534);
-    });
+        it('Fiber-local storage', () => {
+            function t_fiber1(v1, v2) {
+                n = v1 + v2 + this.v;
+            }
 
-    it('inherit local storage', () => {
-        function t_fiber4() {
-            n = coroutine.current().v;
-        }
+            n = 323;
 
-        n = 0;
+            var f = coroutine.start(t_fiber1, 100, 200);
+            assert.equal(n, 323);
+            f.v = 1000;
+            f.join();
+            assert.equal(n, 1300);
+        });
 
-        coroutine.current().v = 1000;
+        it('current', () => {
+            function t_fiber2(v1, v2) {
+                n = v1 + v2 + coroutine.current().v;
+            }
 
-        var f = coroutine.start(t_fiber4);
-        assert.equal(n, 0);
+            n = 1300;
 
-        coroutine.current().v = 2000;
+            var f = coroutine.start(t_fiber2, 100, 200);
+            assert.equal(n, 1300);
+            f.v = 2000;
+            f.join();
+            assert.equal(n, 2300);
 
-        f.join();
-        assert.equal(n, 1000);
+            f = coroutine.start(t_fiber2, 100, 200);
+            assert.equal(n, 2300);
+            f.v = 1000;
+            coroutine.sleep(10);
+            f.join();
+            assert.equal(n, 1300);
+        });
+
+        it('caller', () => {
+            function t_fiber3(v1, v2) {
+                n = v1 + v2 + this.caller.v;
+            }
+
+            n = 1300;
+
+            var f = coroutine.start(t_fiber3, 100, 200);
+            assert.equal(n, 1300);
+            coroutine.current().v = 1234;
+            f.join();
+            assert.equal(n, 1534);
+        });
+
+        it('inherit local storage', () => {
+            function t_fiber4() {
+                n = coroutine.current().v;
+            }
+
+            n = 0;
+
+            coroutine.current().v = 1000;
+
+            var f = coroutine.start(t_fiber4);
+            assert.equal(n, 0);
+
+            coroutine.current().v = 2000;
+
+            f.join();
+            assert.equal(n, 1000);
+        });
     });
 
     it('parallel', () => {
@@ -262,6 +264,12 @@ describe('coroutine', () => {
         }
         coroutine.start(stack_size);
         coroutine.sleep();
+    });
+
+    describe('Worker', () => {
+        it("new", () => {
+            var worker = new coroutine.Worker('worker_main.js');
+        });
     });
 
     describe('BlockQueue', () => {

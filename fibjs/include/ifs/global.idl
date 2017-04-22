@@ -14,6 +14,9 @@ module global
     /*! @brief 控制台访问对象 */
     static process;
 
+    /*! @brief Worker 宿主对象，仅在 Worker 入口脚本有效 */
+    static readonly Worker Master;
+
     /*! @brief 全局对象 */
     static readonly Object global;
 

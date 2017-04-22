@@ -20,6 +20,7 @@ class Buffer_base;
 class Int64_base;
 class console_base;
 class process_base;
+class Worker_base;
 class Timer_base;
 class Stream_base;
 
@@ -28,6 +29,7 @@ class global_base : public object_base {
 
 public:
     // global_base
+    static result_t get_Master(obj_ptr<Worker_base>& retVal);
     static result_t get_global(v8::Local<v8::Object>& retVal);
     static result_t run(exlib::string fname, v8::Local<v8::Array> argv);
     static result_t get_argv(v8::Local<v8::Array>& retVal);
@@ -57,6 +59,7 @@ public:
     }
 
 public:
+    static void s_get_Master(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_global(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -79,6 +82,7 @@ public:
 #include "Int64.h"
 #include "console.h"
 #include "process.h"
+#include "Worker.h"
 #include "Timer.h"
 #include "Stream.h"
 
@@ -107,6 +111,7 @@ inline ClassInfo& global_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
+        { "Master", s_get_Master, block_set, true },
         { "global", s_get_global, block_set, true },
         { "argv", s_get_argv, block_set, true },
         { "__filename", s_get___filename, block_set, true },
@@ -121,6 +126,17 @@ inline ClassInfo& global_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
+}
+
+inline void global_base::s_get_Master(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Worker_base> vr;
+
+    PROPERTY_ENTER();
+
+    hr = get_Master(vr);
+
+    METHOD_RETURN();
 }
 
 inline void global_base::s_get_global(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)

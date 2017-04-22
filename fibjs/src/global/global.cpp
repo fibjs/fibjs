@@ -9,6 +9,11 @@
 
 namespace fibjs {
 
+result_t global_base::get_Master(obj_ptr<Worker_base>& retVal)
+{
+    return CALL_RETURN_NULL;
+}
+
 result_t global_base::get_global(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();

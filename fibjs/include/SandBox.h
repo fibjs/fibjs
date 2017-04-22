@@ -60,6 +60,7 @@ public:
     result_t repl(v8::Local<v8::Array> cmds, Stream_base* out = NULL);
 
     result_t run(exlib::string fname, v8::Local<v8::Array> argv, bool main);
+    result_t run(exlib::string fname);
 
 public:
     class Context {

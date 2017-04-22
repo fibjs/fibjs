@@ -1,0 +1,14 @@
+/*! @brief 独立线程工作对象
+ */
+interface Worker : EventEmitter
+{
+    Worker(String path, Object opts = {});
+
+    postMessage(String data);
+    postMessage(Buffer data);
+
+    Function onopen;
+    Function onmessage;
+    Function onclose;
+    Function onerror;
+};
