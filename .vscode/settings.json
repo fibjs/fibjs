@@ -3,7 +3,8 @@
     "editor.formatOnSave": true,
 
     "files.associations": {
-        "*.idl": "cpp"
+        "*.idl": "cpp",
+        "*.ipp": "cpp"
     },
 
     "C_Cpp.clang_format_sortIncludes": false,
