@@ -306,6 +306,9 @@
     <ClInclude Include="include\ifs\WebSocketMessage.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\Worker.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\MongoCollection.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -807,6 +810,9 @@
     <ClInclude Include="include\WebSocketMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Worker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\ZipFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -983,6 +989,9 @@
       <Filter>Source Files\coroutine</Filter>
     </ClCompile>
     <ClCompile Include="src\coroutine\Trigger.cpp">
+      <Filter>Source Files\coroutine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\coroutine\Worker.cpp">
       <Filter>Source Files\coroutine</Filter>
     </ClCompile>
     <ClCompile Include="src\crypto\Cipher.cpp">

@@ -257,6 +257,7 @@
     <ClInclude Include="include\ifs\WebSocketHandler.h" />
     <ClInclude Include="include\ifs\WebSocketMessage.h" />
     <ClInclude Include="include\ifs\WebView.h" />
+    <ClInclude Include="include\ifs\Worker.h" />
     <ClInclude Include="include\ifs\X509Cert.h" />
     <ClInclude Include="include\ifs\X509Crl.h" />
     <ClInclude Include="include\ifs\X509Req.h" />
@@ -338,6 +339,7 @@
     <ClInclude Include="include\WebSocket.h" />
     <ClInclude Include="include\WebSocketHandler.h" />
     <ClInclude Include="include\WebSocketMessage.h" />
+    <ClInclude Include="include\Worker.h" />
     <ClInclude Include="include\X509Cert.h" />
     <ClInclude Include="include\X509Crl.h" />
     <ClInclude Include="include\X509Req.h" />
@@ -395,6 +397,7 @@
     <ClCompile Include="src\coroutine\Lock.cpp" />
     <ClCompile Include="src\coroutine\Semaphore.cpp" />
     <ClCompile Include="src\coroutine\Trigger.cpp" />
+    <ClCompile Include="src\coroutine\Worker.cpp" />
     <ClCompile Include="src\crypto\Cipher.cpp" />
     <ClCompile Include="src\crypto\crypto.cpp" />
     <ClCompile Include="src\crypto\Digest.cpp" />
