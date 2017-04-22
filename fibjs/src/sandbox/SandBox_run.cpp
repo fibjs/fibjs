@@ -171,6 +171,7 @@ SandBox::Context::Context(SandBox* sb, exlib::string id)
 }
 
 static const char* s_names[] = { "module", "exports", "require", "run", "argv", "repl" };
+static const char* func_args = "(function(module,exports,require,run,argv,repl,__filename,__dirname){";
 
 result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<v8::Value>* args)
 {
@@ -185,15 +186,7 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<
     {
         TryCatch try_catch;
 
-        exlib::string str("(function(");
-        int32_t i;
-
-        for (i = 0; i < (int32_t)ARRAYSIZE(s_names); i++) {
-            str += s_names[i];
-            str += ',';
-        }
-
-        exlib::string src1 = str + "__filename,__dirname){" + src + "\n});";
+        exlib::string src1 = func_args + src + "\n});";
 
         script = v8::Script::Compile(
             isolate->NewFromUtf8(src1), soname);
@@ -220,7 +213,6 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, v8::Local<
         return CALL_E_JAVASCRIPT;
 
     args[ARRAYSIZE(s_names)] = isolate->NewFromUtf8(name);
-    ;
     args[ARRAYSIZE(s_names) + 1] = isolate->NewFromUtf8(pname);
     v8::Local<v8::Object> glob = isolate->context()->Global();
     v = v8::Local<v8::Function>::Cast(v)->Call(glob, ARRAYSIZE(s_names) + 2, args);
@@ -281,7 +273,6 @@ result_t SandBox::Context::run(Buffer_base* src, exlib::string name, v8::Local<v
         return CALL_E_JAVASCRIPT;
 
     args[ARRAYSIZE(s_names)] = isolate->NewFromUtf8(name);
-    ;
     args[ARRAYSIZE(s_names) + 1] = isolate->NewFromUtf8(pname);
     v8::Local<v8::Object> glob = isolate->context()->Global();
     v = v8::Local<v8::Function>::Cast(v)->Call(glob, ARRAYSIZE(s_names) + 2, args);
@@ -365,15 +356,7 @@ result_t SandBox::compile(exlib::string srcname, exlib::string script,
                 return throwSyntaxError(try_catch);
         }
 
-        exlib::string str("(function(");
-        int32_t i;
-
-        for (i = 0; i < (int32_t)ARRAYSIZE(s_names); i++) {
-            str += s_names[i];
-            str += ',';
-        }
-
-        script = str + "__filename,__dirname){" + script + "\n});";
+        script = func_args + script + "\n});";
 
         v8::ScriptCompiler::Source script_source(
             isolate->NewFromUtf8(script), v8::ScriptOrigin(soname));
