@@ -16,6 +16,7 @@
 #include <sys/utsname.h>
 #include <ifaddrs.h>
 #include <net/if.h>
+#include <net/if_dl.h>
 #include <string.h>
 
 namespace fibjs {
@@ -64,7 +65,10 @@ result_t os_base::networkInfo(v8::Local<v8::Object>& retVal)
     struct ::ifaddrs *addrs, *ent;
     struct ::sockaddr_in* in4;
     struct ::sockaddr_in6* in6;
+    struct ::sockaddr_in* mask4;
+    struct ::sockaddr_in6* mask6;
     char ip[INET6_ADDRSTRLEN];
+    char netmask[INET6_ADDRSTRLEN];
 
     if (getifaddrs(&addrs) != 0)
         return CHECK_ERROR(LastError());
@@ -77,8 +81,9 @@ result_t os_base::networkInfo(v8::Local<v8::Object>& retVal)
         v8::Local<v8::Array> ret;
         v8::Local<v8::Object> o;
         v8::Local<v8::String> name, ipaddr, family;
-
+        
         bzero(&ip, sizeof(ip));
+        bzero(&netmask, sizeof(netmask));
         if (!(ent->ifa_flags & IFF_UP && ent->ifa_flags & IFF_RUNNING))
             continue;
 
@@ -88,7 +93,7 @@ result_t os_base::networkInfo(v8::Local<v8::Object>& retVal)
         if (ent->ifa_addr->sa_family != AF_INET6
             && ent->ifa_addr->sa_family != AF_INET)
             continue;
-
+        
         name = isolate->NewFromUtf8(ent->ifa_name);
         if (retVal->Has(name)) {
             ret = v8::Local<v8::Array>::Cast(retVal->Get(name));
@@ -99,21 +104,59 @@ result_t os_base::networkInfo(v8::Local<v8::Object>& retVal)
 
         if (ent->ifa_addr->sa_family == AF_INET6) {
             in6 = (struct sockaddr_in6*)ent->ifa_addr;
+            mask6 = (struct sockaddr_in6*)ent->ifa_netmask;
+
             inet_ntop(AF_INET6, &(in6->sin6_addr), ip, INET6_ADDRSTRLEN);
+            inet_ntop(AF_INET6, &(mask6->sin6_addr), netmask, INET6_ADDRSTRLEN);
             family = isolate->NewFromUtf8("IPv6");
         } else if (ent->ifa_addr->sa_family == AF_INET) {
             in4 = (struct sockaddr_in*)ent->ifa_addr;
+            mask4 = (struct sockaddr_in*)ent->ifa_netmask;
+
             inet_ntop(AF_INET, &(in4->sin_addr), ip, INET6_ADDRSTRLEN);
+            inet_ntop(AF_INET, &(mask4->sin_addr), netmask, INET6_ADDRSTRLEN);
             family = isolate->NewFromUtf8("IPv4");
         }
 
         o = v8::Object::New(isolate->m_isolate);
         o->Set(isolate->NewFromUtf8("address"), isolate->NewFromUtf8(ip));
+        o->Set(isolate->NewFromUtf8("netmask"), isolate->NewFromUtf8(netmask));
         o->Set(isolate->NewFromUtf8("family"), family);
         o->Set(isolate->NewFromUtf8("internal"),
             ent->ifa_flags & IFF_LOOPBACK ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate));
 
         ret->Set(ret->Length(), o);
+    }
+
+    for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
+        if (!((ent->ifa_flags & IFF_UP) && (ent->ifa_flags & IFF_RUNNING)) ||
+            (ent->ifa_addr == NULL) ||
+            (ent->ifa_addr->sa_family != AF_LINK)) {
+            continue;
+        }
+
+        v8::Local<v8::String> name;
+        v8::Local<v8::Array> ret;
+        unsigned char *ptr;
+        char mac[18];
+
+        name = isolate->NewFromUtf8(ent->ifa_name);
+
+        if (!retVal->Has(name)) {
+            continue;
+        }
+        ret = v8::Local<v8::Array>::Cast(retVal->Get(name));
+
+        ptr = (unsigned char *)LLADDR((struct sockaddr_dl*)(ent->ifa_addr));
+        sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x",
+                                    *ptr, *(ptr+1), *(ptr+2), *(ptr+3), *(ptr+4), *(ptr+5));
+    
+        int32_t len = ret->Length();
+        for (int i = 0; i < len; i++)
+        {   
+            v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(ret->Get(i));
+            o->Set(isolate->NewFromUtf8("mac"), isolate->NewFromUtf8(mac));
+        }
     }
 
     freeifaddrs(addrs);
