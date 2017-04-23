@@ -24,8 +24,7 @@ result_t Worker::_main()
     JSFiber::scope s;
 
     v8::Local<v8::Array> argv = v8::Array::New(m_isolate->m_isolate);
-    return m_isolate->m_topSandbox->run(
-        m_isolate->m_fname, argv, true);
+    return m_isolate->m_topSandbox->run(m_isolate->m_fname, argv);
 }
 
 result_t Worker::worker_fiber(Worker* worker)
