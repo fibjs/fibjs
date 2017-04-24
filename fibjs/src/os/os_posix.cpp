@@ -16,10 +16,26 @@
 #include <sys/utsname.h>
 #include <ifaddrs.h>
 #include <net/if.h>
-#include <net/if_dl.h>
+#ifdef Linux
+#include <linux/if_packet.h> 
+#endif
 #include <string.h>
 
 namespace fibjs {
+
+struct sockaddr_dl {
+	u_char	sdl_len;	/* Total length of sockaddr */
+	u_char	sdl_family;	/* AF_DLI */
+	u_short	sdl_index;	/* if != 0, system given index for interface */
+	u_char	sdl_type;	/* interface type */
+	u_char	sdl_nlen;	/* interface name length, no trailing 0 reqd. */
+	u_char	sdl_alen;	/* link level address length */
+	u_char	sdl_slen;	/* link layer selector length */
+	char	sdl_data[12];	/* minimum work area, can be larger;
+				   contains both if name and ll address */
+};
+
+#define LLADDR(s) ((caddr_t)((s)->sdl_data + (s)->sdl_nlen))
 
 result_t os_base::get_type(exlib::string& retVal)
 {
@@ -131,7 +147,11 @@ result_t os_base::networkInfo(v8::Local<v8::Object>& retVal)
     for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
         if (!((ent->ifa_flags & IFF_UP) && (ent->ifa_flags & IFF_RUNNING)) ||
             (ent->ifa_addr == NULL) ||
+#ifdef Linux
+            (ent->ifa_addr->sa_family != AF_PACKET)) {
+#else
             (ent->ifa_addr->sa_family != AF_LINK)) {
+#endif
             continue;
         }
 
@@ -147,13 +167,19 @@ result_t os_base::networkInfo(v8::Local<v8::Object>& retVal)
         }
         ret = v8::Local<v8::Array>::Cast(retVal->Get(name));
 
+#ifdef Linux
+        struct sockaddr_ll *s = (struct sockaddr_ll*)ent->ifa_addr;
+        int macAddrlen = 0;
+        for(int i = 0; i < 6; i++)
+            macAddrlen += sprintf(mac + macAddrlen, "%02X%s", s->sll_addr[i], i < 5 ? ":" : "");
+#else
         ptr = (unsigned char *)LLADDR((struct sockaddr_dl*)(ent->ifa_addr));
         sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x",
-                                    *ptr, *(ptr+1), *(ptr+2), *(ptr+3), *(ptr+4), *(ptr+5));
-    
+                *ptr, *(ptr+1), *(ptr+2), *(ptr+3), *(ptr+4), *(ptr+5));
+#endif
         int32_t len = ret->Length();
         for (int i = 0; i < len; i++)
-        {   
+        {
             v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(ret->Get(i));
             o->Set(isolate->NewFromUtf8("mac"), isolate->NewFromUtf8(mac));
         }
