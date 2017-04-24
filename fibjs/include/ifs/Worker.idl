@@ -9,6 +9,4 @@ interface Worker : EventEmitter
 
     Function onopen;
     Function onmessage;
-    Function onclose;
-    Function onerror;
 };

@@ -8,6 +8,7 @@
 #include "ifs/SandBox.h"
 #include "ifs/Stream.h"
 #include "ifs/process.h"
+#include "ifs/Worker.h"
 #include <map>
 
 #ifndef SANDBOX_H_
@@ -60,6 +61,7 @@ public:
     result_t repl(v8::Local<v8::Array> cmds, Stream_base* out = NULL);
 
     result_t run_main(exlib::string fname, v8::Local<v8::Array> argv);
+    result_t run_worker(exlib::string fname, Worker_base* worker);
 
 public:
     class Context {
@@ -74,6 +76,9 @@ public:
 
         template <typename T>
         result_t run_main(T src, exlib::string name, v8::Local<v8::Array> argv);
+
+        template <typename T>
+        result_t run_worker(T src, exlib::string name, Worker_base* worker);
 
         template <typename T>
         result_t run_module(T src, exlib::string name, v8::Local<v8::Object> module,

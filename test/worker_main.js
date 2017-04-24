@@ -1,1 +1,3 @@
-console.log(Master);
+Master.onmessage = (evt) => {
+
+};

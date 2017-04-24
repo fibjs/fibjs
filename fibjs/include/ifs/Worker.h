@@ -32,10 +32,6 @@ public:
     virtual result_t set_onopen(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onmessage(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onmessage(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onclose(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onclose(v8::Local<v8::Function> newVal) = 0;
-    virtual result_t get_onerror(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onerror(v8::Local<v8::Function> newVal) = 0;
 
 public:
     template <typename T>
@@ -48,10 +44,6 @@ public:
     static void s_set_onopen(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_onmessage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_onmessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onclose(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onclose(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onerror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onerror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
 }
 
@@ -66,9 +58,7 @@ inline ClassInfo& Worker_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "onopen", s_get_onopen, s_set_onopen, false },
-        { "onmessage", s_get_onmessage, s_set_onmessage, false },
-        { "onclose", s_get_onclose, s_set_onclose, false },
-        { "onerror", s_get_onerror, s_set_onerror, false }
+        { "onmessage", s_get_onmessage, s_set_onmessage, false }
     };
 
     static ClassData s_cd = {
@@ -166,52 +156,6 @@ inline void Worker_base::s_set_onmessage(v8::Local<v8::String> property, v8::Loc
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onmessage(v0);
-
-    PROPERTY_SET_LEAVE();
-}
-
-inline void Worker_base::s_get_onclose(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Function> vr;
-
-    METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_onclose(vr);
-
-    METHOD_RETURN();
-}
-
-inline void Worker_base::s_set_onclose(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
-{
-    METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
-
-    hr = pInst->set_onclose(v0);
-
-    PROPERTY_SET_LEAVE();
-}
-
-inline void Worker_base::s_get_onerror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Function> vr;
-
-    METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_onerror(vr);
-
-    METHOD_RETURN();
-}
-
-inline void Worker_base::s_set_onerror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
-{
-    METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
-
-    hr = pInst->set_onerror(v0);
 
     PROPERTY_SET_LEAVE();
 }

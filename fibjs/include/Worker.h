@@ -15,7 +15,8 @@ namespace fibjs {
 class Worker : public Worker_base {
 public:
     Worker(Worker* worker)
-        : m_worker(worker)
+        : m_isolate(NULL)
+        , m_worker(worker)
     {
     }
 
@@ -27,14 +28,13 @@ public:
     // Worker_base
     virtual result_t postMessage(exlib::string data);
     virtual result_t postMessage(Buffer_base* data);
-    virtual result_t get_onopen(v8::Local<v8::Function>& retVal);
-    virtual result_t set_onopen(v8::Local<v8::Function> newVal);
-    virtual result_t get_onmessage(v8::Local<v8::Function>& retVal);
-    virtual result_t set_onmessage(v8::Local<v8::Function> newVal);
-    virtual result_t get_onclose(v8::Local<v8::Function>& retVal);
-    virtual result_t set_onclose(v8::Local<v8::Function> newVal);
-    virtual result_t get_onerror(v8::Local<v8::Function>& retVal);
-    virtual result_t set_onerror(v8::Local<v8::Function> newVal);
+
+public:
+    EVENT_FUNC(open);
+    EVENT_FUNC(message);
+
+public:
+    void start();
 
 private:
     static result_t worker_fiber(Worker* worker);

@@ -15,16 +15,25 @@ namespace fibjs {
 result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
     obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This)
 {
-    retVal = new Worker(path, opts);
+    obj_ptr<Worker> worker = new Worker(path, opts);
+    worker->wrap(This);
+    worker->start();
+
+    retVal = worker;
     return 0;
+}
+
+void Worker::start()
+{
+    syncCall(m_isolate, worker_fiber, this);
 }
 
 result_t Worker::_main()
 {
     JSFiber::scope s;
 
-    v8::Local<v8::Array> argv = v8::Array::New(m_isolate->m_isolate);
-    return m_isolate->m_topSandbox->run(m_isolate->m_fname, argv);
+    _emit("open", NULL, 0);
+    return m_isolate->m_topSandbox->run_worker(m_isolate->m_fname, m_worker);
 }
 
 result_t Worker::worker_fiber(Worker* worker)
@@ -36,8 +45,6 @@ Worker::Worker(exlib::string path, v8::Local<v8::Object> opts)
 {
     m_worker = new Worker(this);
     m_isolate = new Isolate(path);
-    Ref();
-    syncCall(m_isolate, worker_fiber, this);
 }
 
 result_t Worker::postMessage(exlib::string data)
@@ -46,46 +53,6 @@ result_t Worker::postMessage(exlib::string data)
 }
 
 result_t Worker::postMessage(Buffer_base* data)
-{
-    return 0;
-}
-
-result_t Worker::get_onopen(v8::Local<v8::Function>& retVal)
-{
-    return 0;
-}
-
-result_t Worker::set_onopen(v8::Local<v8::Function> newVal)
-{
-    return 0;
-}
-
-result_t Worker::get_onmessage(v8::Local<v8::Function>& retVal)
-{
-    return 0;
-}
-
-result_t Worker::set_onmessage(v8::Local<v8::Function> newVal)
-{
-    return 0;
-}
-
-result_t Worker::get_onclose(v8::Local<v8::Function>& retVal)
-{
-    return 0;
-}
-
-result_t Worker::set_onclose(v8::Local<v8::Function> newVal)
-{
-    return 0;
-}
-
-result_t Worker::get_onerror(v8::Local<v8::Function>& retVal)
-{
-    return 0;
-}
-
-result_t Worker::set_onerror(v8::Local<v8::Function> newVal)
 {
     return 0;
 }

@@ -267,9 +267,13 @@ describe('coroutine', () => {
     });
 
     describe('Worker', () => {
-        it("new", () => {
+        it("new", sync((done) => {
             var worker = new coroutine.Worker('worker_main.js');
-        });
+
+            worker.onopen = () => {
+                done();
+            };
+        }));
     });
 
     describe('BlockQueue', () => {

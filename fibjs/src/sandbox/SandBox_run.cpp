@@ -289,7 +289,6 @@ result_t SandBox::Context::run_script(T src, exlib::string name, v8::Local<v8::A
     Isolate* isolate = m_sb->holder();
 
     v8::Local<v8::Value> und = v8::Undefined(isolate->m_isolate);
-    // "module", "exports", "require", "run", "argv", "repl"
     v8::Local<v8::Value> args[10] = {
         m_fnRequest,
         m_fnRun,
@@ -311,7 +310,6 @@ result_t SandBox::Context::run_main(T src, exlib::string name, v8::Local<v8::Arr
     v8::Local<v8::Value> replFunc = global_base::class_info().getModule(isolate)->Get(
         isolate->NewFromUtf8("repl"));
 
-    // "module", "exports", "require", "run", "argv", "repl"
     v8::Local<v8::Value> args[10] = {
         m_fnRequest,
         m_fnRun,
@@ -319,6 +317,23 @@ result_t SandBox::Context::run_main(T src, exlib::string name, v8::Local<v8::Arr
         replFunc
     };
     return run(src, name, main_args, args, main_args_count);
+}
+
+static const char* worker_args = "(function(require,run,Master,__filename,__dirname){";
+static const int32_t worker_args_count = 5;
+
+template <typename T>
+result_t SandBox::Context::run_worker(T src, exlib::string name, Worker_base* worker)
+{
+    Isolate* isolate = m_sb->holder();
+
+    v8::Local<v8::Value> und = v8::Undefined(isolate->m_isolate);
+    v8::Local<v8::Value> args[10] = {
+        m_fnRequest,
+        m_fnRun,
+        worker->wrap()
+    };
+    return run(src, name, worker_args, args, worker_args_count);
 }
 
 static const char* module_args = "(function(module,exports,require,run,__filename,__dirname){";
@@ -331,7 +346,6 @@ result_t SandBox::Context::run_module(T src, exlib::string name, v8::Local<v8::O
     Isolate* isolate = m_sb->holder();
 
     v8::Local<v8::Value> und = v8::Undefined(isolate->m_isolate);
-    // "module", "exports", "require", "run", "argv", "repl"
     v8::Local<v8::Value> args[10] = {
         module,
         exports,
@@ -372,6 +386,9 @@ result_t SandBox::compile(exlib::string srcname, exlib::string script,
             break;
         case 2:
             args = script_args;
+            break;
+        case 3:
+            args = worker_args;
             break;
         default:
             args = module_args;
@@ -793,6 +810,49 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
 
         Context context(this, pname);
         return context.run_main(buf, pname, argv);
+    }
+}
+
+result_t SandBox::run_worker(exlib::string fname, Worker_base* worker)
+{
+    result_t hr;
+
+    exlib::string sfname = s_root;
+
+    pathAdd(sfname, fname);
+    path_base::normalize(sfname, sfname);
+
+    bool is_jsc = false;
+
+    if (sfname.length() > 4 && !qstrcmp(sfname.c_str() + sfname.length() - 4, ".jsc"))
+        is_jsc = true;
+    else if (!(sfname.length() > 3 && !qstrcmp(sfname.c_str() + sfname.length() - 3, ".js")))
+        return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
+
+    const char* pname = sfname.c_str();
+
+    obj_ptr<Buffer_base> bin;
+    exlib::string buf;
+
+    if (is_jsc) {
+        hr = fs_base::cc_readFile(pname, bin);
+        if (hr < 0)
+            return hr;
+
+        Context context(this, pname);
+        return context.run_worker(bin, pname, worker);
+    } else {
+        hr = fs_base::cc_readTextFile(pname, buf);
+        if (hr < 0)
+            return hr;
+
+        if (buf[0] == '#' && buf[1] == '!') {
+            buf[0] = '/';
+            buf[1] = '/';
+        }
+
+        Context context(this, pname);
+        return context.run_worker(buf, pname, worker);
     }
 }
 
