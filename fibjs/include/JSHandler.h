@@ -16,6 +16,10 @@
 namespace fibjs {
 
 class JSHandler : public Handler_base {
+
+public:
+    JSHandler(v8::Local<v8::Value> proc, bool async = false);
+
     FIBER_FREE();
 
 public:
@@ -31,10 +35,10 @@ public:
         AsyncEvent* ac);
 
 public:
-    static result_t New(v8::Local<v8::Value> hdlr,
-        obj_ptr<Handler_base>& retVal)
+    static result_t New(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal)
     {
-        if (hdlr->IsString() || hdlr->IsStringObject() || hdlr->IsNumberObject() || hdlr->IsRegExp() || (!hdlr->IsFunction() && !hdlr->IsObject()))
+        if (hdlr->IsString() || hdlr->IsStringObject() || hdlr->IsNumberObject() || hdlr->IsRegExp()
+            || (!hdlr->IsFunction() && !hdlr->IsObject()))
             return CHECK_ERROR(CALL_E_BADVARTYPE);
 
         retVal = Handler_base::getInstance(hdlr);
@@ -53,9 +57,8 @@ public:
             return 0;
         }
 
+        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(hdlr);
         if (!hdlr->IsFunction()) {
-            v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(hdlr);
-
             obj_ptr<Routing_base> r = new Routing();
             result_t hr = r->append(o);
             if (hr < 0)
@@ -65,16 +68,25 @@ public:
             return 0;
         }
 
-        obj_ptr<JSHandler> r = new JSHandler();
-        r->SetPrivate("handler", hdlr);
+        Isolate* isolate = Isolate::current();
+        v8::Local<v8::Value> _async = o->GetPrivate(o->CreationContext(),
+                                           v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8("_async")))
+                                          .ToLocalChecked();
 
-        retVal = r;
+        if (!IsEmpty(_async))
+            retVal = new JSHandler(_async, true);
+        else
+            retVal = new JSHandler(hdlr);
+
         return 0;
     }
 
 public:
     static result_t js_invoke(Handler_base* hdlr, object_base* v,
         obj_ptr<Handler_base>& retVal, AsyncEvent* ac);
+
+private:
+    bool m_async;
 };
 
 } /* namespace fibjs */

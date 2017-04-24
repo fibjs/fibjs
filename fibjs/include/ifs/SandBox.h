@@ -27,8 +27,8 @@ public:
     static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t add(exlib::string id, v8::Local<v8::Value> mod) = 0;
     virtual result_t add(v8::Local<v8::Object> mods) = 0;
-    virtual result_t compile(exlib::string srcname, exlib::string script, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t compile(exlib::string script, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t compile(exlib::string srcname, exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t compile(exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t addScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t remove(exlib::string id) = 0;
     virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
@@ -133,18 +133,20 @@ inline void SandBox_base::s_compile(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
+    OPT_ARG(int32_t, 2, 0);
 
-    hr = pInst->compile(v0, v1, vr);
+    hr = pInst->compile(v0, v1, v2, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
 
-    hr = pInst->compile(v0, vr);
+    hr = pInst->compile(v0, v1, vr);
 
     METHOD_RETURN();
 }

@@ -78,8 +78,7 @@ static result_t main_fiber(Isolate* isolate)
         v8::Local<v8::Array> argv;
 
         global_base::get_argv(argv);
-        s.m_hr = isolate->m_topSandbox->run(
-            isolate->m_fname, argv, true);
+        s.m_hr = isolate->m_topSandbox->run_main(isolate->m_fname, argv);
     } else {
         v8::Local<v8::Array> cmds = v8::Array::New(isolate->m_isolate);
         s.m_hr = isolate->m_topSandbox->repl(cmds);

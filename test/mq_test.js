@@ -459,25 +459,25 @@ describe("mq", () => {
         assert.equal(n, 400);
     });
 
-    it("await(func)", () => {
+    it("sync(func)", () => {
         var n = 100;
 
-        mq.invoke(mq.await((v, done) => {
+        mq.invoke(mq.jsHandler(sync((v, done) => {
             function delayend() {
                 assert.equal(n, 100);
                 n = 200;
                 done();
             }
             setTimeout(delayend, 10);
-        }), m);
+        })), m);
         assert.equal(n, 200);
 
         n = 300;
-        mq.invoke(mq.await((v, done) => {
+        mq.invoke(mq.jsHandler(sync((v, done) => {
             assert.equal(n, 300);
             n = 400;
             done();
-        }), m);
+        })), m);
         assert.equal(n, 400);
     });
 });

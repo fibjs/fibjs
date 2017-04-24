@@ -13,32 +13,22 @@
 #include "ifs/global.h"
 #include "ifs/mq.h"
 #include "ifs/console.h"
+#include "AsyncWaitHandler.h"
 
 namespace fibjs {
 
-inline result_t msgMethod(Message_base* msg, exlib::string& method)
+static void _done(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    exlib::string str;
-    const char *p, *p1;
+    AsyncWait_base* v = AsyncWait_base::getInstance(args.Data()->ToObject());
+    if (v)
+        v->end();
+    args.GetReturnValue().SetUndefined();
+}
 
-    msg->get_value(str);
-
-    p = p1 = str.c_str();
-    while (true) {
-        while (*p && *p != '.' && *p != '/' && *p != '\\')
-            p++;
-        if (p != p1)
-            break;
-        if (!*p)
-            return CHECK_ERROR(Runtime::setError("JSHandler: method \"" + method + "\" not found."));
-        p++;
-        p1 = p;
-    }
-
-    msg->set_value(*p ? p + 1 : "");
-    method.assign(p1, (int32_t)(p - p1));
-
-    return 0;
+JSHandler::JSHandler(v8::Local<v8::Value> proc, bool async)
+    : m_async(async)
+{
+    SetPrivate("handler", proc);
 }
 
 result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -46,6 +36,25 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 {
     if (ac)
         return CHECK_ERROR(CALL_E_NOASYNC);
+
+    if (m_async) {
+        v8::Local<v8::Value> v1 = GetPrivate("handler");
+        if (IsEmpty(v1))
+            return CALL_RETURN_NULL;
+
+        Isolate* isolate = holder();
+
+        retVal = new AsyncWaitHandler();
+        v8::Local<v8::Function> proc = v8::Local<v8::Function>::Cast(v1);
+
+        v8::Local<v8::Value> args[2];
+
+        args[0] = v->wrap();
+        args[1] = isolate->NewFunction("done", _done, retVal->wrap());
+
+        proc->Call(args[0], 2, args);
+        return 0;
+    }
 
     v8::Local<v8::Object> o = v->wrap();
     Isolate* isolate = holder();
