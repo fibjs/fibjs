@@ -286,9 +286,6 @@ static const int32_t script_args_count = 5;
 template <typename T>
 result_t SandBox::Context::run_script(T src, exlib::string name, v8::Local<v8::Array> argv)
 {
-    Isolate* isolate = m_sb->holder();
-
-    v8::Local<v8::Value> und = v8::Undefined(isolate->m_isolate);
     v8::Local<v8::Value> args[10] = {
         m_fnRequest,
         m_fnRun,
@@ -306,7 +303,6 @@ result_t SandBox::Context::run_main(T src, exlib::string name, v8::Local<v8::Arr
 {
     Isolate* isolate = m_sb->holder();
 
-    v8::Local<v8::Value> und = v8::Undefined(isolate->m_isolate);
     v8::Local<v8::Value> replFunc = global_base::class_info().getModule(isolate)->Get(
         isolate->NewFromUtf8("repl"));
 
@@ -325,9 +321,6 @@ static const int32_t worker_args_count = 5;
 template <typename T>
 result_t SandBox::Context::run_worker(T src, exlib::string name, Worker_base* worker)
 {
-    Isolate* isolate = m_sb->holder();
-
-    v8::Local<v8::Value> und = v8::Undefined(isolate->m_isolate);
     v8::Local<v8::Value> args[10] = {
         m_fnRequest,
         m_fnRun,
@@ -343,9 +336,6 @@ template <typename T>
 result_t SandBox::Context::run_module(T src, exlib::string name, v8::Local<v8::Object> module,
     v8::Local<v8::Object> exports)
 {
-    Isolate* isolate = m_sb->holder();
-
-    v8::Local<v8::Value> und = v8::Undefined(isolate->m_isolate);
     v8::Local<v8::Value> args[10] = {
         module,
         exports,

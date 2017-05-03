@@ -818,7 +818,7 @@ result_t ZipFile::close(AsyncEvent* ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    int32_t err;
+    int32_t err = ZIP_OK;
 
     if (m_unz) {
         err = unzClose(m_unz);
