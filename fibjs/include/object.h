@@ -335,6 +335,19 @@ public:
     result_t unbind_dispose(obj_ptr<object_base>& retVal)
     {
         dispose();
+
+        Isolate* isolate = m_isolate;
+
+        if (isolate) {
+            isolate->m_weakLock.lock();
+#ifdef DEBUG
+            if (m_weak.m_inlist)
+#endif
+                isolate->m_weak.remove(&m_weak);
+            isolate->m_weakLock.unlock();
+            m_isolate = NULL;
+        }
+
         retVal = this;
 
         return 0;
