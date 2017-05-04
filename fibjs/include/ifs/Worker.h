@@ -18,7 +18,6 @@
 namespace fibjs {
 
 class EventEmitter_base;
-class Buffer_base;
 
 class Worker_base : public EventEmitter_base {
     DECLARE_CLASS(Worker_base);
@@ -26,10 +25,7 @@ class Worker_base : public EventEmitter_base {
 public:
     // Worker_base
     static result_t _new(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t postMessage(exlib::string data) = 0;
-    virtual result_t postMessage(Buffer_base* data) = 0;
-    virtual result_t get_onopen(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onopen(v8::Local<v8::Function> newVal) = 0;
+    virtual result_t postMessage(v8::Local<v8::Value> data) = 0;
     virtual result_t get_onmessage(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onmessage(v8::Local<v8::Function> newVal) = 0;
 
@@ -40,14 +36,10 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_onopen(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onopen(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_onmessage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_onmessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
 }
-
-#include "Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& Worker_base::class_info()
@@ -57,7 +49,6 @@ inline ClassInfo& Worker_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "onopen", s_get_onopen, s_set_onopen, false },
         { "onmessage", s_get_onmessage, s_set_onmessage, false }
     };
 
@@ -101,40 +92,11 @@ inline void Worker_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-
-    hr = pInst->postMessage(v0);
-
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = pInst->postMessage(v0);
 
     METHOD_VOID();
-}
-
-inline void Worker_base::s_get_onopen(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Function> vr;
-
-    METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_onopen(vr);
-
-    METHOD_RETURN();
-}
-
-inline void Worker_base::s_set_onopen(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
-{
-    METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
-
-    hr = pInst->set_onopen(v0);
-
-    PROPERTY_SET_LEAVE();
 }
 
 inline void Worker_base::s_get_onmessage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)

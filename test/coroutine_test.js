@@ -267,13 +267,74 @@ describe('coroutine', () => {
     });
 
     describe('Worker', () => {
-        it("new", sync((done) => {
-            var worker = new coroutine.Worker('worker_main.js');
+        var worker;
 
-            worker.onopen = () => {
-                done();
-            };
-        }));
+        it("new", () => {
+            worker = new coroutine.Worker('worker_main.js');
+        });
+
+        describe("message", () => {
+            var msg_trans = sync((msg, done) => {
+                worker.onmessage = (evt) => {
+                    done(null, evt.data);
+                };
+                worker.postMessage(msg);
+            });
+
+            it('value', () => {
+                assert.strictEqual(msg_trans(123), 123);
+
+                var d = new Date();
+                assert.equal(msg_trans(d).getTime(), d.getTime());
+
+                assert.strictEqual(msg_trans('abcded阿斯蒂芬'), 'abcded阿斯蒂芬');
+            });
+
+            it('array', () => {
+                var a = [1, 2, 3, 4];
+                assert.deepEqual(msg_trans(a), a);
+
+                var a = [1, 2, [3, 4, 5, 6], 4];
+                assert.deepEqual(msg_trans(a), a);
+            });
+
+            it('object', () => {
+                var o = {
+                    a: 1,
+                    b: 2,
+                    c: 3
+                };
+                assert.deepEqual(msg_trans(o), o);
+
+                var o = {
+                    a: 1,
+                    b: {
+                        d: 4,
+                        e: 5
+                    },
+                    c: 3
+                };
+                assert.deepEqual(msg_trans(o), o);
+
+                var o = {
+                    a: 1,
+                    b: [
+                        4,
+                        5
+                    ],
+                    c: 3
+                };
+                assert.deepEqual(msg_trans(o), o);
+            });
+
+            describe('native object', () => {
+                it('default', () => {
+                    assert.throws(() => {
+                        msg_trans(worker);
+                    });
+                });
+            });
+        });
     });
 
     describe('BlockQueue', () => {

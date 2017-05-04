@@ -4,9 +4,7 @@ interface Worker : EventEmitter
 {
     Worker(String path, Object opts = {});
 
-    postMessage(String data);
-    postMessage(Buffer data);
+    postMessage(Value data);
 
-    Function onopen;
     Function onmessage;
 };

@@ -9,6 +9,7 @@
 #define WORKER_H_
 
 #include "ifs/Worker.h"
+#include "Event.h"
 
 namespace fibjs {
 
@@ -26,11 +27,9 @@ public:
 
 public:
     // Worker_base
-    virtual result_t postMessage(exlib::string data);
-    virtual result_t postMessage(Buffer_base* data);
+    virtual result_t postMessage(v8::Local<v8::Value> data);
 
 public:
-    EVENT_FUNC(open);
     EVENT_FUNC(message);
 
 public:
@@ -43,6 +42,7 @@ private:
 private:
     Isolate* m_isolate;
     obj_ptr<Worker> m_worker;
+    obj_ptr<Event_base> m_event;
 };
 }
 

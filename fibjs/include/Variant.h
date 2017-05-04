@@ -61,6 +61,8 @@ public:
         VT_Object,
         VT_JSValue,
         VT_JSON,
+        VT_UNBOUND_ARRAY,
+        VT_UNBOUND_OBJECT,
         VT_Type = 255,
         VT_Persistent = 256
     };
@@ -127,11 +129,15 @@ public:
 
     void clear()
     {
-        if (type() == VT_String || type() == VT_JSON)
+        Type _t = type();
+
+        if (_t == VT_UNBOUND_ARRAY || _t == VT_UNBOUND_ARRAY)
+            clearUnbind();
+        else if (_t == VT_String || _t == VT_JSON)
             strVal().~basic_string();
-        else if (type() == VT_Object && m_Val.objVal)
+        else if (_t == VT_Object && m_Val.objVal)
             m_Val.objVal->Unref();
-        else if (type() == VT_JSValue) {
+        else if (_t == VT_JSValue) {
             if (isPersistent()) {
                 v8::Persistent<v8::Value>& jsobj = jsValEx();
                 jsobj.Reset();
@@ -147,21 +153,25 @@ public:
 
     Variant& operator=(const Variant& v)
     {
-        if (v.type() == VT_String)
+        Type _t = v.type();
+
+        if (_t == VT_String)
             return operator=(v.strVal());
 
-        if (v.type() == VT_Object)
+        if (_t == VT_Object)
             return operator=(v.m_Val.objVal);
 
-        if (v.type() == VT_JSValue) {
+        if (_t == VT_JSValue) {
             if (v.isPersistent())
                 return operator=(v8::Local<v8::Value>::New(Isolate::current()->m_isolate, v.jsValEx()));
             else
                 return operator=(v.jsVal());
         }
 
+        assert(_t != VT_UNBOUND_ARRAY && _t != VT_UNBOUND_ARRAY);
+
         clear();
-        set_type(v.type());
+        set_type(_t);
         m_Val.longVal = v.m_Val.longVal;
 
         return *this;
@@ -169,9 +179,12 @@ public:
 
     bool strictEqual(const Variant& v)
     {
-        if (this->type() != v.type())
+        Type _t = type();
+
+        if (_t != v.type())
             return false;
-        switch (this->type()) {
+
+        switch (_t) {
         case VT_Undefined:
             return true;
         case VT_Null:
@@ -183,13 +196,13 @@ public:
         case VT_Long:
             return (m_Val.longVal == v.m_Val.longVal);
         case VT_String:
-            return (this->strVal() == v.strVal());
+            return (strVal() == v.strVal());
         case VT_Boolean:
             return (m_Val.boolVal == v.m_Val.boolVal);
         case VT_Object:
-            return (this->object() == v.object());
+            return (object() == v.object());
         case VT_JSValue:
-            return this->jsVal()->StrictEquals(v.jsVal());
+            return jsVal()->StrictEquals(v.jsVal());
         default:
             return false;
         }
@@ -362,6 +375,9 @@ public:
 
     void toJSON();
 
+    int32_t unbind();
+    void clearUnbind();
+
     object_base* object() const
     {
         if (type() != VT_Object)
@@ -407,6 +423,11 @@ private:
     }
 
 private:
+    struct buf {
+        int32_t cnt;
+        void* data;
+    };
+
     Type m_type;
     union {
         bool boolVal;
@@ -417,6 +438,7 @@ private:
         char dateVal[sizeof(date_t)];
         char strVal[sizeof(exlib::string)];
         char jsVal[sizeof(v8::Persistent<v8::Value>)];
+        buf buffer;
     } m_Val;
 };
 

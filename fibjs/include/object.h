@@ -327,6 +327,11 @@ public:
         return 0;
     }
 
+    virtual result_t unbind(obj_ptr<object_base>& retVal)
+    {
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+    }
+
 public:
     static void block_set(v8::Local<v8::String> property,
         v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info)

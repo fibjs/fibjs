@@ -13,6 +13,12 @@
 
 namespace fibjs {
 
+class UNBIND_DATA {
+public:
+    exlib::string k;
+    Variant v;
+};
+
 Variant& Variant::operator=(v8::Local<v8::Value> v)
 {
     clear();
@@ -112,6 +118,34 @@ Variant::operator v8::Local<v8::Value>() const
     case VT_String: {
         exlib::string& str = strVal();
         return isolate->NewFromUtf8(str);
+    }
+    case VT_UNBOUND_ARRAY: {
+        v8::Local<v8::Array> a;
+        int32_t len, i;
+        UNBIND_DATA* data;
+
+        len = m_Val.buffer.cnt;
+        data = (UNBIND_DATA*)m_Val.buffer.data;
+        a = v8::Array::New(isolate->m_isolate, len);
+
+        for (i = 0; i < len; i++)
+            a->Set(i, data[i].v.operator v8::Local<v8::Value>());
+
+        return a;
+    }
+    case VT_UNBOUND_OBJECT: {
+        v8::Local<v8::Object> o;
+        int32_t len, i;
+        UNBIND_DATA* data;
+
+        len = m_Val.buffer.cnt;
+        data = (UNBIND_DATA*)m_Val.buffer.data;
+        o = v8::Object::New(isolate->m_isolate);
+
+        for (i = 0; i < len; i++)
+            o->Set(isolate->NewFromUtf8(data[i].k), data[i].v.operator v8::Local<v8::Value>());
+
+        return o;
     }
     }
 
@@ -273,6 +307,8 @@ void Variant::toString(exlib::string& retVal) const
         retVal = strVal();
         break;
     case VT_JSValue:
+    case VT_UNBOUND_ARRAY:
+    case VT_UNBOUND_OBJECT:
         retVal = "[Object]";
         break;
     case VT_JSON:
@@ -293,5 +329,87 @@ void Variant::toJSON()
         set_type(VT_JSON);
         new (m_Val.strVal) exlib::string(str);
     }
+}
+
+result_t Variant::unbind()
+{
+    result_t hr;
+
+    switch (type()) {
+    case VT_Object: {
+        object_base* obj = (object_base*)m_Val.objVal;
+        obj_ptr<object_base> obj1;
+
+        if (obj == NULL)
+            break;
+
+        hr = obj->unbind(obj1);
+        if (hr < 0)
+            return hr;
+
+        m_Val.objVal = obj1;
+        obj->Unref();
+
+        break;
+    }
+    case VT_JSValue: {
+        v8::Local<v8::Value> v = operator v8::Local<v8::Value>();
+        v8::Local<v8::Object> o;
+        v8::Local<v8::Array> a;
+        int32_t len, i;
+        UNBIND_DATA* data;
+
+        if (GetArgumentValue(v, a, true) >= 0) {
+            clear();
+            set_type(VT_UNBOUND_ARRAY);
+
+            len = a->Length();
+
+            m_Val.buffer.cnt = len;
+            if (len > 0) {
+                m_Val.buffer.data = data = new UNBIND_DATA[len];
+
+                for (i = 0; i < len; i++)
+                    data[i].v = a->Get(i);
+            }
+        } else if (GetArgumentValue(v, o, true) >= 0) {
+            clear();
+            set_type(VT_UNBOUND_OBJECT);
+
+            v8::Local<v8::Array> ks = o->GetPropertyNames();
+            len = ks->Length();
+
+            m_Val.buffer.cnt = len;
+            if (len > 0) {
+                m_Val.buffer.data = data = new UNBIND_DATA[len];
+                for (i = 0; i < len; i++) {
+                    v8::Local<v8::Value> k = ks->Get(i);
+
+                    data[i].k = *v8::String::Utf8Value(k);
+                    data[i].v = o->Get(k);
+                }
+            }
+        } else
+            return CHECK_ERROR(CALL_E_TYPEMISMATCH);
+
+        for (i = 0; i < len; i++) {
+            hr = data[i].v.unbind();
+            if (hr < 0)
+                return hr;
+        }
+
+        break;
+    }
+    default:
+        break;
+    }
+
+    return 0;
+}
+
+void Variant::clearUnbind()
+{
+    if (m_Val.buffer.cnt > 0)
+        delete[](UNBIND_DATA*) m_Val.buffer.data;
 }
 }
