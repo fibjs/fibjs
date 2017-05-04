@@ -386,4 +386,9 @@ result_t Socket::sendto(Buffer_base* data, exlib::string host, int32_t port,
 
     return 0;
 }
+
+result_t Socket::unbind(obj_ptr<object_base>& retVal)
+{
+    return unbind_dispose(retVal);
+}
 }

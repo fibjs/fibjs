@@ -40,6 +40,10 @@ public:
     virtual ~Socket();
 
 public:
+    // object_base
+    virtual result_t unbind(obj_ptr<object_base>& retVal);
+
+public:
     // Stream_base
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         AsyncEvent* ac);

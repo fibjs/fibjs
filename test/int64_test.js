@@ -40,8 +40,8 @@ describe('Int64', () => {
     it('can be compared', () => {
         var a = new Int64(2),
             b = new Int64(3);
-        assert.isTrue(a.equal(a));
-        assert.isFalse(a.equal(b));
+        assert.isTrue(a.equals(a));
+        assert.isFalse(a.equals(b));
         assert.equal(a.compare(a), 0);
         assert.equal(a.compare(b), -1);
         assert.equal(b.compare(a), 1);
@@ -88,11 +88,11 @@ describe('Int64', () => {
         var a = new Int64(3),
             b = new Int64(2),
             c = new Int64('0xfffffffffffffffe');
-        assert.isTrue(a.add(b).equal(new Int64(5)));
-        assert.isTrue(a.add(4).equal(new Int64(7)));
+        assert.isTrue(a.add(b).equals(new Int64(5)));
+        assert.isTrue(a.add(4).equals(new Int64(7)));
 
         // unsigned integer overflow
-        assert.isTrue(c.add(3).equal(new Int64(1)));
+        assert.isTrue(c.add(3).equals(new Int64(1)));
 
         // numbers larger than int32
         assert.equal(a.add(0x100000000).toString(16), '0x100000003');
@@ -102,11 +102,11 @@ describe('Int64', () => {
         var a = new Int64(3),
             b = new Int64(2),
             c = new Int64('0xffffffffffffffff');
-        assert.isTrue(a.sub(b).equal(new Int64(1)));
-        assert.isTrue(a.sub(1).equal(new Int64(2)));
+        assert.isTrue(a.sub(b).equals(new Int64(1)));
+        assert.isTrue(a.sub(1).equals(new Int64(2)));
 
         // unsigned integer underflow
-        assert.isTrue(a.sub(4).equal(new Int64('0xffffffffffffffff')));
+        assert.isTrue(a.sub(4).equals(new Int64('0xffffffffffffffff')));
 
         // numbers larger than int32
         assert.equal(c.sub(0x100000000).toString(16), '0xfffffffeffffffff');
@@ -123,33 +123,33 @@ describe('Int64', () => {
         n = new Int64(0xfedcba98, 0x76543210);
 
         assert.equal(n.toString(2), "1111111011011100101110101001100001110110010101000011001000010000");
-        assert.isTrue(n.equal(new Int64("1111111011011100101110101001100001110110010101000011001000010000", 2)));
+        assert.isTrue(n.equals(new Int64("1111111011011100101110101001100001110110010101000011001000010000", 2)));
 
         assert.equal(n.toString(8), "1773345651416625031020");
-        assert.isTrue(n.equal(new Int64("1773345651416625031020", 8)));
+        assert.isTrue(n.equals(new Int64("1773345651416625031020", 8)));
 
         assert.equal(n.toString(16), "0xfedcba9876543210");
-        assert.isTrue(n.equal(new Int64("0xfedcba9876543210", 16)));
+        assert.isTrue(n.equals(new Int64("0xfedcba9876543210", 16)));
 
         assert.equal(n.toString(32), "p5xf2tb3fimqq");
-        assert.isTrue(n.equal(new Int64("p5xf2tb3fimqq", 32)));
+        assert.isTrue(n.equals(new Int64("p5xf2tb3fimqq", 32)));
 
         assert.equal(n.toString(32), "p5xf2tb3fimqq");
-        assert.isTrue(n.equal(new Int64("p5xf2tb3fimqq", 32)));
+        assert.isTrue(n.equals(new Int64("p5xf2tb3fimqq", 32)));
 
         assert.equal(n.toString(64), "P7cuph2VDIQ");
-        assert.isTrue(n.equal(new Int64("P7cuph2VDIQ", 64)));
+        assert.isTrue(n.equals(new Int64("P7cuph2VDIQ", 64)));
 
         n = new Int64(0);
 
         assert.equal(n.toString(16), "0x0");
-        assert.isTrue(n.equal(new Int64("0x0", 16)));
+        assert.isTrue(n.equals(new Int64("0x0", 16)));
 
         assert.equal(n.toString(32), "a");
-        assert.isTrue(n.equal(new Int64("a", 32)));
+        assert.isTrue(n.equals(new Int64("a", 32)));
 
         assert.equal(n.toString(64), "A");
-        assert.isTrue(n.equal(new Int64("A", 64)));
+        assert.isTrue(n.equals(new Int64("A", 64)));
 
         assert.throws(() => {
             n.toString(17);

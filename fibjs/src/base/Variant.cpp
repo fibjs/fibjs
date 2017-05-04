@@ -347,8 +347,9 @@ result_t Variant::unbind()
         if (hr < 0)
             return hr;
 
+        m_Val.objVal->Unref();
         m_Val.objVal = obj1;
-        obj->Unref();
+        m_Val.objVal->Ref();
 
         break;
     }

@@ -332,6 +332,14 @@ public:
         return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
+    result_t unbind_dispose(obj_ptr<object_base>& retVal)
+    {
+        dispose();
+        retVal = this;
+
+        return 0;
+    }
+
 public:
     static void block_set(v8::Local<v8::String> property,
         v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info)

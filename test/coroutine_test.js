@@ -2,7 +2,10 @@ var test = require("test");
 test.setup();
 
 var os = require('os');
+var net = require('net');
 var coroutine = require('coroutine');
+
+var base_port = coroutine.vmid * 10000;
 
 var n;
 
@@ -332,6 +335,32 @@ describe('coroutine', () => {
                     assert.throws(() => {
                         msg_trans(worker);
                     });
+                });
+
+                it('Int64', () => {
+                    var v = new Int64(1000);
+                    var v1 = msg_trans(v);
+                    assert.notEqual(v, v1);
+                    assert.deepEqual(v, v1);
+                });
+
+                it('Buffer', () => {
+                    var v = new Buffer("1234567890");
+                    var v1 = msg_trans(v);
+                    assert.notEqual(v, v1);
+                    assert.ok(Buffer.isBuffer(v1));
+                    assert.deepEqual(v, v1);
+                });
+
+                it('Socket', () => {
+                    var v = new net.Socket(net.AF_INET, net.SOCK_STREAM);
+                    v.bind(8899 + base_port);
+
+                    var v1 = msg_trans(v);
+                    assert.throws(() => {
+                        v.localPort;
+                    });
+                    assert.equal(v1.localPort, 8899 + base_port);
                 });
             });
         });

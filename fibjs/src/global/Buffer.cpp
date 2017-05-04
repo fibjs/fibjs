@@ -927,4 +927,10 @@ void Buffer::fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8:
         o = buf->wrap();
     }
 }
+
+result_t Buffer::unbind(obj_ptr<object_base>& retVal)
+{
+    retVal = new Buffer(m_data);
+    return 0;
+}
 }

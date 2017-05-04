@@ -25,12 +25,18 @@ public:
     }
 
 public:
+    // object_base
+    virtual result_t equals(object_base* expected, bool& retVal);
+    virtual result_t valueOf(v8::Local<v8::Value>& retVal);
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
+    virtual result_t unbind(obj_ptr<object_base>& retVal);
+
+public:
     // Int64_base
     virtual result_t get_hi(int64_t& retVal);
     virtual result_t set_hi(int64_t newVal);
     virtual result_t get_lo(int64_t& retVal);
     virtual result_t set_lo(int64_t newVal);
-    virtual result_t equal(Int64_base* num, bool& retVal);
     virtual result_t compare(Int64_base* num, int32_t& retVal);
     virtual result_t shiftLeft(int32_t bits, obj_ptr<Int64_base>& retVal);
     virtual result_t shiftRight(int32_t bits, obj_ptr<Int64_base>& retVal);
@@ -41,11 +47,6 @@ public:
     virtual result_t sub(Int64_base* num, obj_ptr<Int64_base>& retVal);
     virtual result_t toNumber(double& retVal);
     virtual result_t toString(int32_t base, exlib::string& retVal);
-
-public:
-    // object_base
-    virtual result_t valueOf(v8::Local<v8::Value>& retVal);
-    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
 
 public:
     result_t fromString(exlib::string numStr, int32_t base);

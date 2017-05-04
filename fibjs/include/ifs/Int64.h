@@ -29,7 +29,6 @@ public:
     virtual result_t set_hi(int64_t newVal) = 0;
     virtual result_t get_lo(int64_t& retVal) = 0;
     virtual result_t set_lo(int64_t newVal) = 0;
-    virtual result_t equal(Int64_base* num, bool& retVal) = 0;
     virtual result_t compare(Int64_base* num, int32_t& retVal) = 0;
     virtual result_t shiftLeft(int32_t bits, obj_ptr<Int64_base>& retVal) = 0;
     virtual result_t shiftRight(int32_t bits, obj_ptr<Int64_base>& retVal) = 0;
@@ -51,7 +50,6 @@ public:
     static void s_set_hi(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_lo(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_lo(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_equal(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_shiftLeft(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_shiftRight(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -69,7 +67,6 @@ namespace fibjs {
 inline ClassInfo& Int64_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "equal", s_equal, false },
         { "compare", s_compare, false },
         { "shiftLeft", s_shiftLeft, false },
         { "shiftRight", s_shiftRight, false },
@@ -183,22 +180,6 @@ inline void Int64_base::s_set_lo(v8::Local<v8::String> property, v8::Local<v8::V
     hr = pInst->set_lo(v0);
 
     PROPERTY_SET_LEAVE();
-}
-
-inline void Int64_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    bool vr;
-
-    METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<Int64_base>, 0);
-
-    hr = pInst->equal(v0, vr);
-
-    METHOD_RETURN();
 }
 
 inline void Int64_base::s_compare(const v8::FunctionCallbackInfo<v8::Value>& args)

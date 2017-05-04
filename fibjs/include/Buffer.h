@@ -38,6 +38,7 @@ public:
 public:
     // object_base
     virtual result_t equals(object_base* expected, bool& retVal);
+    virtual result_t unbind(obj_ptr<object_base>& retVal);
 
 public:
     // Buffer_base

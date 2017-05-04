@@ -69,12 +69,6 @@ result_t Int64::set_lo(int64_t newVal)
     return 0;
 }
 
-result_t Int64::equal(Int64_base* num, bool& retVal)
-{
-    retVal = m_num == ((Int64*)num)->m_num;
-    return 0;
-}
-
 result_t Int64::compare(Int64_base* num, int32_t& retVal)
 {
     int64_t num1 = ((Int64*)num)->m_num;
@@ -200,6 +194,18 @@ result_t Int64::fromString(exlib::string numStr, int32_t base)
     return 0;
 }
 
+result_t Int64::equals(object_base* expected, bool& retVal)
+{
+    obj_ptr<Int64_base> v = Int64_base::getInstance(expected);
+    if (!v) {
+        retVal = false;
+        return 0;
+    }
+
+    retVal = m_num == ((Int64*)(Int64_base*)v)->m_num;
+    return 0;
+}
+
 result_t Int64::toString(int32_t base, exlib::string& retVal)
 {
     static char __base16_map[] = "0123456789abcdef";
@@ -272,6 +278,12 @@ result_t Int64::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     toString(16, str);
     retVal = holder()->NewFromUtf8(str);
 
+    return 0;
+}
+
+result_t Int64::unbind(obj_ptr<object_base>& retVal)
+{
+    retVal = new Int64(m_num);
     return 0;
 }
 }
