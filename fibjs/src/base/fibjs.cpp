@@ -27,7 +27,6 @@ void init_aio();
 void init_fs();
 void init_fiber();
 void init_sandbox();
-void init_Task(int32_t vms);
 bool options(int32_t* argc, char* argv[]);
 
 void init(int32_t& argc, char* argv[])
@@ -66,8 +65,6 @@ void init(int32_t& argc, char* argv[])
     v8::V8::InitializePlatform(platform);
 
     v8::V8::Initialize();
-
-    init_Task(cpus);
 }
 
 static result_t main_fiber(Isolate* isolate)

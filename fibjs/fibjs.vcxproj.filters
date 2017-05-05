@@ -303,9 +303,6 @@
     <ClInclude Include="include\Routing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\RpcTask.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Runtime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -627,9 +624,6 @@
     <ClInclude Include="include\ifs\Routing.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\RpcTask.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\SQLite.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -847,9 +841,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\registry.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\rpc.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\ssl.h">
@@ -1296,9 +1287,6 @@
       <Filter>Source Files\other</Filter>
     </ClCompile>
     <ClCompile Include="src\other\Regex.cpp">
-      <Filter>Source Files\other</Filter>
-    </ClCompile>
-    <ClCompile Include="src\other\RpcTask.cpp">
       <Filter>Source Files\other</Filter>
     </ClCompile>
     <ClCompile Include="src\other\uuid.cpp">
