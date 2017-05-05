@@ -48,7 +48,7 @@ describe("mq", () => {
 
         function fun2(v) {
             n = n | 2;
-            return mq.jsHandler(fun3);
+            return new mq.Handler(fun3);
         }
 
         function fun1(v) {
@@ -56,7 +56,7 @@ describe("mq", () => {
             return fun2;
         }
 
-        var jv = mq.jsHandler(fun1);
+        var jv = new mq.Handler(fun1);
 
         it("direct invoke", () => {
             n = 0;
@@ -69,37 +69,19 @@ describe("mq", () => {
             mq.invoke(jv, v);
             assert.equal(7, n);
         });
-
-        it("JSHandler return error result", () => {
-            assert.throws(() => {
-                new mq.JSHandler((v) => {
-                    return 100;
-                }).invoke(v);
-            });
-
-            assert.throws(() => {
-                mq.invoke((v) => {
-                    return 100;
-                }, v);
-            });
-        });
     });
 
     describe("chain handler", () => {
         it("chain invoke", () => {
-            var chain = new mq.Chain([hdlr1, hdlr2,
-                mq.jsHandler(hdlr3)
-            ]);
+            var chain = new mq.Chain([hdlr1, hdlr2, hdlr3]);
 
             n = 0;
             chain.invoke(v);
             assert.equal(7, n);
         });
 
-        it("create by jsHandler", () => {
-            var chain = mq.jsHandler([hdlr1, hdlr2,
-                mq.jsHandler(hdlr3)
-            ]);
+        it("create by Handler", () => {
+            var chain = new mq.Handler([hdlr1, hdlr2, hdlr3]);
 
             n = 0;
             chain.invoke(v);
@@ -116,9 +98,7 @@ describe("mq", () => {
                 assert.equal(p2, "b1234");
             }
 
-            var chain1 = new mq.Chain([chain_params, chain_params,
-                mq.jsHandler(chain_params)
-            ]);
+            var chain1 = new mq.Chain([chain_params, chain_params, chain_params]);
 
             m.value = '';
             m.params.resize(2);
@@ -189,7 +169,7 @@ describe("mq", () => {
             GC();
             assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 
-            svr.handler = mq.jsHandler((v) => {});
+            svr.handler = (v) => {};
             svr = undefined;
 
             GC();
@@ -245,7 +225,7 @@ describe("mq", () => {
         var r = new mq.Routing({
             '^a$': hdlr1,
             '^c$': hdlr3,
-            '^b$': mq.jsHandler(hdlr2),
+            '^b$': hdlr2,
             '^params/(([0-9]+)\.(([a-z])?[0-9]+)\.html)$': params,
             '^params0/[0-9]+\.html$': params0,
             '^params1/([0-9]+)\.html$': params1,
@@ -309,7 +289,7 @@ describe("mq", () => {
             req.params.resize(1);
             req.params[0] = [];
 
-            mq.jsHandler(function t(request, d) {
+            new mq.Handler(function t(request, d) {
                 assert.isArray(d);
                 return "ok";
             }).invoke(req);
@@ -421,7 +401,7 @@ describe("mq", () => {
             GC();
             assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 
-            svr.handler = mq.jsHandler((v) => {});
+            svr.handler = (v) => {};
             svr = undefined;
 
             GC();
@@ -432,7 +412,7 @@ describe("mq", () => {
     it("await", () => {
         var n = 100;
 
-        mq.invoke(mq.jsHandler((r) => {
+        mq.invoke((r) => {
             var aw = mq.await();
 
             function delayend() {
@@ -443,11 +423,11 @@ describe("mq", () => {
             coroutine.start(delayend);
 
             return aw;
-        }), m);
+        }, m);
         assert.equal(n, 200);
 
         n = 300;
-        mq.invoke(mq.jsHandler((r) => {
+        mq.invoke((r) => {
             var aw = mq.await();
 
             assert.equal(n, 300);
@@ -455,29 +435,29 @@ describe("mq", () => {
             aw.end();
 
             return aw;
-        }), m);
+        }, m);
         assert.equal(n, 400);
     });
 
     it("sync(func)", () => {
         var n = 100;
 
-        mq.invoke(mq.jsHandler(sync((v, done) => {
+        mq.invoke(sync((v, done) => {
             function delayend() {
                 assert.equal(n, 100);
                 n = 200;
                 done();
             }
             setTimeout(delayend, 10);
-        })), m);
+        }), m);
         assert.equal(n, 200);
 
         n = 300;
-        mq.invoke(mq.jsHandler(sync((v, done) => {
+        mq.invoke(sync((v, done) => {
             assert.equal(n, 300);
             n = 400;
             done();
-        })), m);
+        }), m);
         assert.equal(n, 400);
     });
 });

@@ -8,7 +8,6 @@
 #include "object.h"
 #include "TcpServer.h"
 #include "ifs/mq.h"
-#include "JSHandler.h"
 #include "ifs/console.h"
 
 namespace fibjs {
@@ -29,23 +28,17 @@ result_t _new_tcpServer(exlib::string addr, int32_t port,
     return 0;
 }
 
-result_t TcpServer_base::_new(int32_t port, v8::Local<v8::Value> listener,
-    obj_ptr<TcpServer_base>& retVal,
-    v8::Local<v8::Object> This)
+result_t TcpServer_base::_new(int32_t port, Handler_base* listener,
+    obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This)
 {
     return _new("", port, listener, retVal, This);
 }
 
 result_t TcpServer_base::_new(exlib::string addr, int32_t port,
-    v8::Local<v8::Value> listener, obj_ptr<TcpServer_base>& retVal,
+    Handler_base* listener, obj_ptr<TcpServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
-    obj_ptr<Handler_base> hdlr1;
-    result_t hr = JSHandler::New(listener, hdlr1);
-    if (hr < 0)
-        return hr;
-
-    return _new_tcpServer(addr, port, hdlr1, retVal, This);
+    return _new_tcpServer(addr, port, listener, retVal, This);
 }
 
 static const char* s_staticCounter[] = { "total", "connections" };

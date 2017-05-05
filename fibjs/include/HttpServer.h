@@ -48,7 +48,7 @@ public:
     virtual result_t get_httpStats(obj_ptr<Stats_base>& retVal);
 
 public:
-    result_t create(exlib::string addr, int32_t port, v8::Local<v8::Value> hdlr);
+    result_t create(exlib::string addr, int32_t port, Handler_base* hdlr);
 
 private:
     HttpHandler_base* handler()

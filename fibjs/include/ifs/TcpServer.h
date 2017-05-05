@@ -16,8 +16,8 @@
 
 namespace fibjs {
 
-class Socket_base;
 class Handler_base;
+class Socket_base;
 class Stats_base;
 
 class TcpServer_base : public object_base {
@@ -25,8 +25,8 @@ class TcpServer_base : public object_base {
 
 public:
     // TcpServer_base
-    static result_t _new(int32_t port, v8::Local<v8::Value> listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string addr, int32_t port, v8::Local<v8::Value> listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(int32_t port, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string addr, int32_t port, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t run(AsyncEvent* ac) = 0;
     virtual result_t asyncRun() = 0;
     virtual result_t stop(AsyncEvent* ac) = 0;
@@ -55,8 +55,8 @@ public:
 };
 }
 
-#include "Socket.h"
 #include "Handler.h"
+#include "Socket.h"
 #include "Stats.h"
 
 namespace fibjs {
@@ -100,7 +100,7 @@ void TcpServer_base::__new(const T& args)
     METHOD_OVER(2, 2);
 
     ARG(int32_t, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    ARG(obj_ptr<Handler_base>, 1);
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -108,7 +108,7 @@ void TcpServer_base::__new(const T& args)
 
     ARG(exlib::string, 0);
     ARG(int32_t, 1);
-    ARG(v8::Local<v8::Value>, 2);
+    ARG(obj_ptr<Handler_base>, 2);
 
     hr = _new(v0, v1, v2, vr, args.This());
 

@@ -15,23 +15,23 @@
  });
  @endcode
  */
-interface HttpServer: TcpServer
+interface HttpServer : TcpServer
 {
-  /*! @brief HttpServer 构造函数，在所有本机地址侦听
+    /*! @brief HttpServer 构造函数，在所有本机地址侦听
     @param port 指定 http 服务器侦听端口
-    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    */
-  HttpServer(Integer port, Value hdlr);
+    HttpServer(Integer port, Handler hdlr);
 
-  /*! @brief HttpServer 构造函数
+    /*! @brief HttpServer 构造函数
     @param addr 指定 http 服务器侦听地址，为 "" 则在本机所有地址侦听
     @param port 指定 http 服务器侦听端口
-    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    */
-  HttpServer(String addr, Integer port, Value hdlr);
+    HttpServer(String addr, Integer port, Handler hdlr);
 
-  /*! @brief 设置错误处理器
-   @param hdlrs 指定不同的错误的处理器，key 是错误号，value 是处理器，可以是内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+    /*! @brief 设置错误处理器
+   @param hdlrs 指定不同的错误的处理器，key 是错误号，value 是处理器，可以是内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    使用方式：
    @code
        hdlr.onerror({
@@ -43,21 +43,21 @@ interface HttpServer: TcpServer
        })
    @endcode
    */
-  onerror(Object hdlrs);
+    onerror(Object hdlrs);
 
-  /*! @brief 查询和设置是否允许跨域请求，缺省为 false */
-  Boolean crossDomain;
+    /*! @brief 查询和设置是否允许跨域请求，缺省为 false */
+    Boolean crossDomain;
 
-  /*! @brief 查询和设置是否允强制使用 gzip 压缩输出，缺省为 false */
-  Boolean forceGZIP;
+    /*! @brief 查询和设置是否允强制使用 gzip 压缩输出，缺省为 false */
+    Boolean forceGZIP;
 
-  /*! @brief 查询和设置最大请求头个数，缺省为 128 */
-  Integer maxHeadersCount;
+    /*! @brief 查询和设置最大请求头个数，缺省为 128 */
+    Integer maxHeadersCount;
 
-  /*! @brief 查询和设置最大上传尺寸，以 MB 为单位，缺省为 64 */
-  Integer maxUploadSize;
+    /*! @brief 查询和设置最大上传尺寸，以 MB 为单位，缺省为 64 */
+    Integer maxUploadSize;
 
-  /*! @brief 查询 http 协议转换处理器的工作状态
+    /*! @brief 查询 http 协议转换处理器的工作状态
 
     返回的结果为一个 Stats 对象，结构如下：
     @code
@@ -73,5 +73,5 @@ interface HttpServer: TcpServer
     }
     @endcode
    */
-  readonly Stats httpStats;
+    readonly Stats httpStats;
 };

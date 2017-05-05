@@ -10,12 +10,12 @@
   var hdlr = new http.Handler(...);
   @endcode
  */
-interface HttpHandler: HandlerEx
+interface HttpHandler : HandlerEx
 {
     /*! @brief 创建一个 http 协议处理器对象，将流对象的数据转变为 http 消息对象
-    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
     */
-    HttpHandler(Value hdlr);
+    HttpHandler(Handler hdlr);
 
     /*! @brief 查询和设置是否允许跨域请求，缺省为 false */
     Boolean crossDomain;

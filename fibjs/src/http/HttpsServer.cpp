@@ -8,19 +8,18 @@
 #include "object.h"
 #include "HttpsServer.h"
 #include "ifs/http.h"
-#include "JSHandler.h"
 
 namespace fibjs {
 
 result_t HttpsServer_base::_new(v8::Local<v8::Array> certs, int32_t port,
-    v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal,
+    Handler_base* hdlr, obj_ptr<HttpsServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
     return _new(certs, "", port, hdlr, retVal, This);
 }
 
 result_t HttpsServer_base::_new(v8::Local<v8::Array> certs, exlib::string addr, int32_t port,
-    v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal,
+    Handler_base* hdlr, obj_ptr<HttpsServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
     obj_ptr<HttpsServer> svr = new HttpsServer();
@@ -36,14 +35,14 @@ result_t HttpsServer_base::_new(v8::Local<v8::Array> certs, exlib::string addr, 
 }
 
 result_t HttpsServer_base::_new(X509Cert_base* crt, PKey_base* key, int32_t port,
-    v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal,
+    Handler_base* hdlr, obj_ptr<HttpsServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
     return _new(crt, key, "", port, hdlr, retVal, This);
 }
 
 result_t HttpsServer_base::_new(X509Cert_base* crt, PKey_base* key, exlib::string addr, int32_t port,
-    v8::Local<v8::Value> hdlr, obj_ptr<HttpsServer_base>& retVal,
+    Handler_base* hdlr, obj_ptr<HttpsServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
     obj_ptr<HttpsServer> svr = new HttpsServer();
@@ -59,7 +58,7 @@ result_t HttpsServer_base::_new(X509Cert_base* crt, PKey_base* key, exlib::strin
 }
 
 result_t HttpsServer::create(X509Cert_base* crt, PKey_base* key, exlib::string addr, int32_t port,
-    v8::Local<v8::Value> hdlr)
+    Handler_base* hdlr)
 {
     result_t hr;
     obj_ptr<SslServer_base> _server;
@@ -69,7 +68,7 @@ result_t HttpsServer::create(X509Cert_base* crt, PKey_base* key, exlib::string a
     if (hr < 0)
         return hr;
 
-    hr = SslServer_base::_new(crt, key, addr, port, _handler->wrap(), _server);
+    hr = SslServer_base::_new(crt, key, addr, port, _handler, _server);
     if (hr < 0)
         return hr;
 
@@ -82,7 +81,7 @@ result_t HttpsServer::create(X509Cert_base* crt, PKey_base* key, exlib::string a
 }
 
 result_t HttpsServer::create(v8::Local<v8::Array> certs, exlib::string addr, int32_t port,
-    v8::Local<v8::Value> hdlr)
+    Handler_base* hdlr)
 {
     result_t hr;
     obj_ptr<SslServer_base> _server;
@@ -92,7 +91,7 @@ result_t HttpsServer::create(v8::Local<v8::Array> certs, exlib::string addr, int
     if (hr < 0)
         return hr;
 
-    hr = SslServer_base::_new(certs, addr, port, _handler->wrap(), _server);
+    hr = SslServer_base::_new(certs, addr, port, _handler, _server);
     if (hr < 0)
         return hr;
 

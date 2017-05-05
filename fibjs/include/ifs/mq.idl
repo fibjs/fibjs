@@ -8,13 +8,7 @@ module mq
     /*! @brief 创建一个 http 协议处理器对象，参见 HttpHandler */
     static HttpHandler;
 
-    /*! @brief 创建一个消息处理器链处理对象，参见 Chain */
-    static Chain;
-
-    /*! @brief 创建一个消息处理器路由对象，参见 Routing*/
-    static Routing;
-
-    /*! @brief 创建一个 javascript 消息处理器对象，传递值内置处理器则直接返回
+    /*! @brief 创建一个消息处理器对象，传递值内置处理器则直接返回
      @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象:
      - Function javascript 函数，将使用此函数进行处理
      - Handler 内置处理器，将使用此处理器进行处理
@@ -36,7 +30,13 @@ module mq
 
      无返回或者其他的返回结果将结束消息处理。
      */
-    static Handler jsHandler(Value hdlr);
+    static Handler;
+
+    /*! @brief 创建一个消息处理器链处理对象，参见 Chain */
+    static Chain;
+
+    /*! @brief 创建一个消息处理器路由对象，参见 Routing*/
+    static Routing;
 
     /*! @brief 创建一个异步等待处理器
       @return 返回创建的处理器

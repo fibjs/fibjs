@@ -34,21 +34,10 @@ public:
 public:
     // Chain_base
     virtual result_t append(v8::Local<v8::Array> hdlrs);
-    virtual result_t append(v8::Local<v8::Value> hdlr);
+    virtual result_t append(Handler_base* hdlr);
 
 public:
-    result_t append(Handler_base* hdlr)
-    {
-        int32_t no = (int32_t)m_array.size();
-
-        char strBuf[32];
-        sprintf(strBuf, "handler_%d", no);
-
-        SetPrivate(strBuf, hdlr->wrap());
-        m_array.append(hdlr);
-
-        return 0;
-    }
+    result_t append(v8::Local<v8::Value> hdlr);
 
 private:
     QuickArray<naked_ptr<Handler_base> > m_array;

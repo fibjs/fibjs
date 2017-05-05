@@ -81,6 +81,19 @@ result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     return (new asyncInvoke(this, v, ac))->post(0);
 }
 
+result_t Chain::append(Handler_base* hdlr)
+{
+    int32_t no = (int32_t)m_array.size();
+
+    char strBuf[32];
+    sprintf(strBuf, "handler_%d", no);
+
+    SetPrivate(strBuf, hdlr->wrap());
+    m_array.append(hdlr);
+
+    return 0;
+}
+
 result_t Chain::append(v8::Local<v8::Value> hdlr)
 {
     obj_ptr<Handler_base> hdlr1;

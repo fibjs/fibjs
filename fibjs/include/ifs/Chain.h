@@ -26,7 +26,7 @@ public:
     // Chain_base
     static result_t _new(v8::Local<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t append(v8::Local<v8::Array> hdlrs) = 0;
-    virtual result_t append(v8::Local<v8::Value> hdlr) = 0;
+    virtual result_t append(Handler_base* hdlr) = 0;
 
 public:
     template <typename T>
@@ -90,7 +90,7 @@ inline void Chain_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG(obj_ptr<Handler_base>, 0);
 
     hr = pInst->append(v0);
 

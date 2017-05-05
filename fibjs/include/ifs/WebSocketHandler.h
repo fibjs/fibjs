@@ -18,13 +18,14 @@
 namespace fibjs {
 
 class HandlerEx_base;
+class Handler_base;
 
 class WebSocketHandler_base : public HandlerEx_base {
     DECLARE_CLASS(WebSocketHandler_base);
 
 public:
     // WebSocketHandler_base
-    static result_t _new(v8::Local<v8::Value> hdlr, obj_ptr<WebSocketHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Handler_base* hdlr, obj_ptr<WebSocketHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_maxSize(int32_t& retVal) = 0;
     virtual result_t set_maxSize(int32_t newVal) = 0;
 
@@ -38,6 +39,8 @@ public:
     static void s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
 }
+
+#include "Handler.h"
 
 namespace fibjs {
 inline ClassInfo& WebSocketHandler_base::class_info()
@@ -71,7 +74,7 @@ void WebSocketHandler_base::__new(const T& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG(obj_ptr<Handler_base>, 0);
 
     hr = _new(v0, vr, args.This());
 

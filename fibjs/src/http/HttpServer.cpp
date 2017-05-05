@@ -8,18 +8,17 @@
 #include "object.h"
 #include "HttpServer.h"
 #include "ifs/http.h"
-#include "JSHandler.h"
 
 namespace fibjs {
 
-result_t HttpServer_base::_new(int32_t port, v8::Local<v8::Value> hdlr,
+result_t HttpServer_base::_new(int32_t port, Handler_base* hdlr,
     obj_ptr<HttpServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
     return _new("", port, hdlr, retVal, This);
 }
 
-result_t HttpServer_base::_new(exlib::string addr, int32_t port, v8::Local<v8::Value> hdlr,
+result_t HttpServer_base::_new(exlib::string addr, int32_t port, Handler_base* hdlr,
     obj_ptr<HttpServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
@@ -36,7 +35,7 @@ result_t HttpServer_base::_new(exlib::string addr, int32_t port, v8::Local<v8::V
     return 0;
 }
 
-result_t HttpServer::create(exlib::string addr, int32_t port, v8::Local<v8::Value> hdlr)
+result_t HttpServer::create(exlib::string addr, int32_t port, Handler_base* hdlr)
 {
     result_t hr;
     obj_ptr<TcpServer> _server;

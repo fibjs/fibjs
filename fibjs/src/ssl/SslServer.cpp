@@ -7,19 +7,18 @@
 
 #include "object.h"
 #include "SslServer.h"
-#include "JSHandler.h"
 
 namespace fibjs {
 
 result_t SslServer_base::_new(v8::Local<v8::Array> certs, int32_t port,
-    v8::Local<v8::Value> listener, obj_ptr<SslServer_base>& retVal,
+    Handler_base* listener, obj_ptr<SslServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
     return _new(certs, "", port, listener, retVal, This);
 }
 
 result_t SslServer_base::_new(v8::Local<v8::Array> certs, exlib::string addr, int32_t port,
-    v8::Local<v8::Value> listener, obj_ptr<SslServer_base>& retVal,
+    Handler_base* listener, obj_ptr<SslServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
     obj_ptr<SslServer> svr = new SslServer();
@@ -35,14 +34,14 @@ result_t SslServer_base::_new(v8::Local<v8::Array> certs, exlib::string addr, in
 }
 
 result_t SslServer_base::_new(X509Cert_base* crt, PKey_base* key, int32_t port,
-    v8::Local<v8::Value> listener, obj_ptr<SslServer_base>& retVal,
+    Handler_base* listener, obj_ptr<SslServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
     return _new(crt, key, "", port, listener, retVal, This);
 }
 
 result_t SslServer_base::_new(X509Cert_base* crt, PKey_base* key, exlib::string addr, int32_t port,
-    v8::Local<v8::Value> listener, obj_ptr<SslServer_base>& retVal,
+    Handler_base* listener, obj_ptr<SslServer_base>& retVal,
     v8::Local<v8::Object> This)
 {
     obj_ptr<SslServer> svr = new SslServer();
@@ -58,7 +57,7 @@ result_t SslServer_base::_new(X509Cert_base* crt, PKey_base* key, exlib::string 
 }
 
 result_t SslServer::create(X509Cert_base* crt, PKey_base* key, exlib::string addr, int32_t port,
-    v8::Local<v8::Value> listener)
+    Handler_base* listener)
 {
     result_t hr;
     obj_ptr<TcpServer_base> _server;
@@ -68,7 +67,7 @@ result_t SslServer::create(X509Cert_base* crt, PKey_base* key, exlib::string add
     if (hr < 0)
         return hr;
 
-    hr = TcpServer_base::_new(addr, port, _handler->wrap(), _server);
+    hr = TcpServer_base::_new(addr, port, _handler, _server);
     if (hr < 0)
         return hr;
 
@@ -81,7 +80,7 @@ result_t SslServer::create(X509Cert_base* crt, PKey_base* key, exlib::string add
 }
 
 result_t SslServer::create(v8::Local<v8::Array> certs, exlib::string addr, int32_t port,
-    v8::Local<v8::Value> listener)
+    Handler_base* listener)
 {
     result_t hr;
     obj_ptr<TcpServer_base> _server;
@@ -91,7 +90,7 @@ result_t SslServer::create(v8::Local<v8::Array> certs, exlib::string addr, int32
     if (hr < 0)
         return hr;
 
-    hr = TcpServer_base::_new(addr, port, _handler->wrap(), _server);
+    hr = TcpServer_base::_new(addr, port, _handler, _server);
     if (hr < 0)
         return hr;
 

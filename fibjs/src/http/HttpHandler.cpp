@@ -33,18 +33,12 @@ enum {
     HTTP_TOTAL_TIME
 };
 
-result_t HttpHandler_base::_new(v8::Local<v8::Value> hdlr,
-    obj_ptr<HttpHandler_base>& retVal,
+result_t HttpHandler_base::_new(Handler_base* hdlr, obj_ptr<HttpHandler_base>& retVal,
     v8::Local<v8::Object> This)
 {
-    obj_ptr<Handler_base> hdlr1;
-    result_t hr = JSHandler::New(hdlr, hdlr1);
-    if (hr < 0)
-        return hr;
-
     obj_ptr<HttpHandler> ht_hdlr = new HttpHandler();
     ht_hdlr->wrap(This);
-    ht_hdlr->set_handler(hdlr1);
+    ht_hdlr->set_handler(hdlr);
 
     retVal = ht_hdlr;
 

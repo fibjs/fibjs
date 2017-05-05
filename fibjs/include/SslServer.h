@@ -42,9 +42,9 @@ public:
 
 public:
     result_t create(X509Cert_base* crt, PKey_base* key, exlib::string addr, int32_t port,
-        v8::Local<v8::Value> listener);
+        Handler_base* listener);
     result_t create(v8::Local<v8::Array> certs, exlib::string addr, int32_t port,
-        v8::Local<v8::Value> listener);
+        Handler_base* listener);
 
 private:
     SslHandler_base* handler()

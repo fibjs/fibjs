@@ -18,6 +18,48 @@ namespace fibjs {
 
 DECLARE_MODULE(mq);
 
+result_t Handler_base::_new(v8::Local<v8::Array> hdlrs, obj_ptr<Handler_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<Chain_base> chain;
+    result_t hr = Chain_base::_new(hdlrs, chain, This);
+    if (hr < 0)
+        return hr;
+
+    retVal = chain;
+
+    return 0;
+}
+
+result_t Handler_base::_new(v8::Local<v8::Object> map, obj_ptr<Handler_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<Routing_base> routing;
+    result_t hr = Routing_base::_new(map, routing, This);
+    if (hr < 0)
+        return hr;
+
+    retVal = routing;
+
+    return 0;
+}
+
+result_t Handler_base::_new(v8::Local<v8::Function> hdlr, obj_ptr<Handler_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Value> _async = hdlr->GetPrivate(hdlr->CreationContext(),
+                                          v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8("_async")))
+                                      .ToLocalChecked();
+
+    if (!IsEmpty(_async))
+        retVal = new JSHandler(_async, true);
+    else
+        retVal = new JSHandler(hdlr);
+
+    return 0;
+}
+
 result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
     AsyncEvent* ac)
 {
@@ -61,15 +103,6 @@ result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncInvoke(hdlr, v, ac))->post(0);
-}
-
-result_t mq_base::jsHandler(v8::Local<v8::Value> hdlr,
-    obj_ptr<Handler_base>& retVal)
-{
-    if ((retVal = Handler_base::getInstance(hdlr)) != NULL)
-        return 0;
-
-    return JSHandler::New(hdlr, retVal);
 }
 
 result_t mq_base::nullHandler(obj_ptr<Handler_base>& retVal)

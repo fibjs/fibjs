@@ -8,11 +8,10 @@
 #include "object.h"
 #include "ifs/mq.h"
 #include "SslHandler.h"
-#include "JSHandler.h"
 
 namespace fibjs {
 
-result_t SslHandler_base::_new(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr,
+result_t SslHandler_base::_new(v8::Local<v8::Array> certs, Handler_base* hdlr,
     obj_ptr<SslHandler_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<SslHandler> sslHdlr = new SslHandler();
@@ -28,7 +27,7 @@ result_t SslHandler_base::_new(v8::Local<v8::Array> certs, v8::Local<v8::Value> 
 }
 
 result_t SslHandler_base::_new(X509Cert_base* crt, PKey_base* key,
-    v8::Local<v8::Value> hdlr, obj_ptr<SslHandler_base>& retVal,
+    Handler_base* hdlr, obj_ptr<SslHandler_base>& retVal,
     v8::Local<v8::Object> This)
 {
     obj_ptr<SslHandler> sslHdlr = new SslHandler();
@@ -43,16 +42,11 @@ result_t SslHandler_base::_new(X509Cert_base* crt, PKey_base* key,
     return 0;
 }
 
-result_t SslHandler::init(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr)
+result_t SslHandler::init(v8::Local<v8::Array> certs, Handler_base* hdlr)
 {
     result_t hr;
 
-    obj_ptr<Handler_base> hdlr1;
-    hr = JSHandler::New(hdlr, hdlr1);
-    if (hr < 0)
-        return hr;
-
-    set_handler(hdlr1);
+    set_handler(hdlr);
 
     hr = SslSocket_base::_new(certs, m_socket);
     if (hr < 0)
@@ -61,16 +55,11 @@ result_t SslHandler::init(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr)
     m_socket->set_verification(ssl_base::_VERIFY_NONE);
     return 0;
 }
-result_t SslHandler::init(X509Cert_base* crt, PKey_base* key, v8::Local<v8::Value> hdlr)
+result_t SslHandler::init(X509Cert_base* crt, PKey_base* key, Handler_base* hdlr)
 {
     result_t hr;
 
-    obj_ptr<Handler_base> hdlr1;
-    hr = JSHandler::New(hdlr, hdlr1);
-    if (hr < 0)
-        return hr;
-
-    set_handler(hdlr1);
+    set_handler(hdlr);
 
     hr = SslSocket_base::_new(crt, key, m_socket);
     if (hr < 0)

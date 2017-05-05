@@ -64,9 +64,9 @@ interface Routing : Handler
 
     /*! @brief 添加一条路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    */
-    append(String pattern, Value hdlr);
+    append(String pattern, Handler hdlr);
 
     /*! @brief 添加一组路由规则
    @param method 指定 http 请求方法，"*" 接受所有方法
@@ -77,9 +77,9 @@ interface Routing : Handler
     /*! @brief 添加一条路由规则
    @param method 指定 http 请求方法，"*" 接受所有方法
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    */
-    append(String method, String pattern, Value hdlr);
+    append(String method, String pattern, Handler hdlr);
 
     /*! @brief 添加一组接受所有 http 方法路由规则
    @param map 路由参数
@@ -88,9 +88,9 @@ interface Routing : Handler
 
     /*! @brief 添加一条接受所有 http 方法路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    */
-    all(String pattern, Value hdlr);
+    all(String pattern, Handler hdlr);
 
     /*! @brief 添加一组 GET 方法路由规则
    @param map 路由参数
@@ -99,9 +99,9 @@ interface Routing : Handler
 
     /*! @brief 添加一条接受 http GET 方法路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    */
-    get(String pattern, Value hdlr);
+    get(String pattern, Handler hdlr);
 
     /*! @brief 添加一组接受 http POST 方法路由规则
    @param map 路由参数
@@ -110,9 +110,9 @@ interface Routing : Handler
 
     /*! @brief 添加一条接受 http POST 方法路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    */
-    post(String pattern, Value hdlr);
+    post(String pattern, Handler hdlr);
 
     /*! @brief 添加一组接受 http DELETE 方法路由规则
    @param map 路由参数
@@ -121,9 +121,9 @@ interface Routing : Handler
 
     /*! @brief 添加一条接受 http DELETE 方法路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    */
-    del(String pattern, Value hdlr);
+    del(String pattern, Handler hdlr);
 
     /*! @brief 添加一组 PUT 方法路由规则
    @param map 路由参数
@@ -132,9 +132,9 @@ interface Routing : Handler
 
     /*! @brief 添加一条接受 http PUT 方法路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    */
-    put(String pattern, Value hdlr);
+    put(String pattern, Handler hdlr);
 
     /*! @brief 添加一组 PATCH 方法路由规则
    @param map 路由参数
@@ -143,7 +143,7 @@ interface Routing : Handler
 
     /*! @brief 添加一条接受 http PATCH 方法路由规则
    @param pattern 消息匹配格式
-   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    */
-    patch(String pattern, Value hdlr);
+    patch(String pattern, Handler hdlr);
 };

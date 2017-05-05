@@ -57,24 +57,24 @@ public:
     // Routing_base
     virtual result_t append(Routing_base* route);
     virtual result_t append(v8::Local<v8::Object> map);
-    virtual result_t append(exlib::string pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t append(exlib::string pattern, Handler_base* hdlr);
     virtual result_t append(exlib::string method, v8::Local<v8::Object> map);
-    virtual result_t append(exlib::string method, exlib::string pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t append(exlib::string method, exlib::string pattern, Handler_base* hdlr);
     virtual result_t all(v8::Local<v8::Object> map);
-    virtual result_t all(exlib::string pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t all(exlib::string pattern, Handler_base* hdlr);
     virtual result_t get(v8::Local<v8::Object> map);
-    virtual result_t get(exlib::string pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t get(exlib::string pattern, Handler_base* hdlr);
     virtual result_t post(v8::Local<v8::Object> map);
-    virtual result_t post(exlib::string pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t post(exlib::string pattern, Handler_base* hdlr);
     virtual result_t del(v8::Local<v8::Object> map);
-    virtual result_t del(exlib::string pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t del(exlib::string pattern, Handler_base* hdlr);
     virtual result_t put(v8::Local<v8::Object> map);
-    virtual result_t put(exlib::string pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t put(exlib::string pattern, Handler_base* hdlr);
     virtual result_t patch(v8::Local<v8::Object> map);
-    virtual result_t patch(exlib::string pattern, v8::Local<v8::Value> hdlr);
+    virtual result_t patch(exlib::string pattern, Handler_base* hdlr);
 
 public:
-    result_t append(exlib::string method, exlib::string pattern, Handler_base* hdlr);
+    result_t append(exlib::string method, exlib::string pattern, v8::Local<v8::Value> hdlr);
 
 private:
     std::vector<obj_ptr<rule> > m_array;

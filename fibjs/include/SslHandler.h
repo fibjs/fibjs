@@ -39,8 +39,8 @@ public:
     virtual result_t set_handler(Handler_base* newVal);
 
 public:
-    result_t init(v8::Local<v8::Array> certs, v8::Local<v8::Value> hdlr);
-    result_t init(X509Cert_base* crt, PKey_base* key, v8::Local<v8::Value> hdlr);
+    result_t init(v8::Local<v8::Array> certs, Handler_base* hdlr);
+    result_t init(X509Cert_base* crt, PKey_base* key, Handler_base* hdlr);
 
 private:
     naked_ptr<Handler_base> m_hdlr;

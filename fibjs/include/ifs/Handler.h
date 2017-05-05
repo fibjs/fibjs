@@ -21,20 +21,17 @@ class Handler_base : public object_base {
 
 public:
     // Handler_base
+    static result_t _new(v8::Local<v8::Array> hdlrs, obj_ptr<Handler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> map, obj_ptr<Handler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Function> hdlr, obj_ptr<Handler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
-    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-
-        Isolate* isolate = Isolate::current();
-
-        isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8("not a constructor"));
-    }
+    template <typename T>
+    static void __new(const T& args);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -57,6 +54,40 @@ inline ClassInfo& Handler_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
+}
+
+inline void Handler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    CONSTRUCT_INIT();
+    __new(args);
+}
+
+template <typename T>
+void Handler_base::__new(const T& args)
+{
+    obj_ptr<Handler_base> vr;
+
+    CONSTRUCT_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Array>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    CONSTRUCT_RETURN();
 }
 
 inline void Handler_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)

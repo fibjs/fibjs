@@ -18,6 +18,7 @@
 namespace fibjs {
 
 class TcpServer_base;
+class Handler_base;
 class Stats_base;
 
 class HttpServer_base : public TcpServer_base {
@@ -25,8 +26,8 @@ class HttpServer_base : public TcpServer_base {
 
 public:
     // HttpServer_base
-    static result_t _new(int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string addr, int32_t port, v8::Local<v8::Value> hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string addr, int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t onerror(v8::Local<v8::Object> hdlrs) = 0;
     virtual result_t get_crossDomain(bool& retVal) = 0;
     virtual result_t set_crossDomain(bool newVal) = 0;
@@ -57,6 +58,7 @@ public:
 };
 }
 
+#include "Handler.h"
 #include "Stats.h"
 
 namespace fibjs {
@@ -100,7 +102,7 @@ void HttpServer_base::__new(const T& args)
     METHOD_OVER(2, 2);
 
     ARG(int32_t, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    ARG(obj_ptr<Handler_base>, 1);
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -108,7 +110,7 @@ void HttpServer_base::__new(const T& args)
 
     ARG(exlib::string, 0);
     ARG(int32_t, 1);
-    ARG(v8::Local<v8::Value>, 2);
+    ARG(obj_ptr<Handler_base>, 2);
 
     hr = _new(v0, v1, v2, vr, args.This());
 

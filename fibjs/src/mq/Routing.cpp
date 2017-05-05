@@ -124,6 +124,32 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     return CHECK_ERROR(Runtime::setError("Routing: unknown routing: " + value));
 }
 
+result_t Routing::append(exlib::string method, v8::Local<v8::Object> map)
+{
+    v8::Local<v8::Array> ks = map->GetPropertyNames();
+    int32_t len = ks->Length();
+    int32_t i;
+    result_t hr;
+
+    for (i = 0; i < len; i++) {
+        v8::Local<v8::Value> k = ks->Get(i);
+        v8::Local<v8::Value> v = map->Get(k);
+
+        obj_ptr<Handler_base> hdlr = Handler_base::getInstance(v);
+
+        if (hdlr) {
+            append(method, *v8::String::Utf8Value(k), hdlr);
+            continue;
+        }
+
+        hr = append(method, *v8::String::Utf8Value(k), v);
+        if (hr < 0)
+            return hr;
+    }
+
+    return 0;
+}
+
 result_t Routing::append(exlib::string method, exlib::string pattern, Handler_base* hdlr)
 {
     int32_t opt = PCRE_JAVASCRIPT_COMPAT | PCRE_NEWLINE_ANYCRLF | PCRE_UCP | PCRE_CASELESS;
@@ -148,32 +174,6 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
 
     obj_ptr<rule> r = new rule(method, re, hdlr);
     m_array.insert(m_array.begin(), r);
-
-    return 0;
-}
-
-result_t Routing::append(exlib::string method, v8::Local<v8::Object> map)
-{
-    v8::Local<v8::Array> ks = map->GetPropertyNames();
-    int32_t len = ks->Length();
-    int32_t i;
-    result_t hr;
-
-    for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> k = ks->Get(i);
-        v8::Local<v8::Value> v = map->Get(k);
-
-        obj_ptr<Handler_base> hdlr = Handler_base::getInstance(v);
-
-        if (hdlr) {
-            append(method, *v8::String::Utf8Value(k), hdlr);
-            continue;
-        }
-
-        hr = append(method, *v8::String::Utf8Value(k), v);
-        if (hr < 0)
-            return hr;
-    }
 
     return 0;
 }
@@ -214,7 +214,7 @@ result_t Routing::append(v8::Local<v8::Object> map)
     return append("*", map);
 }
 
-result_t Routing::append(exlib::string pattern, v8::Local<v8::Value> hdlr)
+result_t Routing::append(exlib::string pattern, Handler_base* hdlr)
 {
     return append("*", pattern, hdlr);
 }
@@ -224,7 +224,7 @@ result_t Routing::all(v8::Local<v8::Object> map)
     return append("*", map);
 }
 
-result_t Routing::all(exlib::string pattern, v8::Local<v8::Value> hdlr)
+result_t Routing::all(exlib::string pattern, Handler_base* hdlr)
 {
     return append("*", pattern, hdlr);
 }
@@ -234,7 +234,7 @@ result_t Routing::get(v8::Local<v8::Object> map)
     return append("GET", map);
 }
 
-result_t Routing::get(exlib::string pattern, v8::Local<v8::Value> hdlr)
+result_t Routing::get(exlib::string pattern, Handler_base* hdlr)
 {
     return append("GET", pattern, hdlr);
 }
@@ -244,7 +244,7 @@ result_t Routing::post(v8::Local<v8::Object> map)
     return append("POST", map);
 }
 
-result_t Routing::post(exlib::string pattern, v8::Local<v8::Value> hdlr)
+result_t Routing::post(exlib::string pattern, Handler_base* hdlr)
 {
     return append("POST", pattern, hdlr);
 }
@@ -254,7 +254,7 @@ result_t Routing::del(v8::Local<v8::Object> map)
     return append("DELETE", map);
 }
 
-result_t Routing::del(exlib::string pattern, v8::Local<v8::Value> hdlr)
+result_t Routing::del(exlib::string pattern, Handler_base* hdlr)
 {
     return append("DELETE", pattern, hdlr);
 }
@@ -264,7 +264,7 @@ result_t Routing::put(v8::Local<v8::Object> map)
     return append("PUT", map);
 }
 
-result_t Routing::put(exlib::string pattern, v8::Local<v8::Value> hdlr)
+result_t Routing::put(exlib::string pattern, Handler_base* hdlr)
 {
     return append("PUT", pattern, hdlr);
 }
@@ -274,7 +274,7 @@ result_t Routing::patch(v8::Local<v8::Object> map)
     return append("PATCH", map);
 }
 
-result_t Routing::patch(exlib::string pattern, v8::Local<v8::Value> hdlr)
+result_t Routing::patch(exlib::string pattern, Handler_base* hdlr)
 {
     return append("PATCH", pattern, hdlr);
 }

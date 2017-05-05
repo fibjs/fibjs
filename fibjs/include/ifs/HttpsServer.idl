@@ -15,9 +15,9 @@
  });
  @endcode
  */
-interface HttpsServer: HttpServer
+interface HttpsServer : HttpServer
 {
-  /*! @brief HttpsServer 构造函数，在所有本机地址侦听
+    /*! @brief HttpsServer 构造函数，在所有本机地址侦听
     @param certs 服务器证书列表，格式为
       @code
       [
@@ -32,11 +32,11 @@ interface HttpsServer: HttpServer
       ]
       @endcode
     @param port 指定 http 服务器侦听端口
-    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见
    */
-  HttpsServer(Array certs, Integer port, Value hdlr);
+    HttpsServer(Array certs, Integer port, Handler hdlr);
 
-  /*! @brief HttpsServer 构造函数
+    /*! @brief HttpsServer 构造函数
     @param certs 服务器证书列表，格式为
       @code
       [
@@ -52,30 +52,30 @@ interface HttpsServer: HttpServer
       @endcode
     @param addr 指定 http 服务器侦听地址，为 "" 则在本机所有地址侦听
     @param port 指定 http 服务器侦听端口
-    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见
    */
-  HttpsServer(Array certs, String addr, Integer port, Value hdlr);
+    HttpsServer(Array certs, String addr, Integer port, Handler hdlr);
 
-  /*! @brief HttpsServer 构造函数，在所有本机地址侦听
+    /*! @brief HttpsServer 构造函数，在所有本机地址侦听
     @param crt X509Cert 证书，用于客户端验证服务器
     @param key PKey 私钥，用于与客户端会话
     @param port 指定 http 服务器侦听端口
-    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见
    */
-  HttpsServer(X509Cert crt, PKey key, Integer port, Value hdlr);
+    HttpsServer(X509Cert crt, PKey key, Integer port, Handler hdlr);
 
-  /*! @brief HttpsServer 构造函数
+    /*! @brief HttpsServer 构造函数
     @param crt X509Cert 证书，用于客户端验证服务器
     @param key PKey 私钥，用于与客户端会话
     @param addr 指定 http 服务器侦听地址，为 "" 则在本机所有地址侦听
     @param port 指定 http 服务器侦听端口
-    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.jsHandler
+    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见
    */
-  HttpsServer(X509Cert crt, PKey key, String addr, Integer port, Value hdlr);
+    HttpsServer(X509Cert crt, PKey key, String addr, Integer port, Handler hdlr);
 
-  /*! @brief 设定证书验证模式，缺省为 VERIFY_NONE */
-  Integer verification;
+    /*! @brief 设定证书验证模式，缺省为 VERIFY_NONE */
+    Integer verification;
 
-  /*! @brief 客户端证书验证 ca */
-  readonly X509Cert ca;
+    /*! @brief 客户端证书验证 ca */
+    readonly X509Cert ca;
 };

@@ -36,18 +36,12 @@ result_t ws_base::upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>&
     return 0;
 }
 
-result_t WebSocketHandler_base::_new(v8::Local<v8::Value> hdlr,
-    obj_ptr<WebSocketHandler_base>& retVal,
-    v8::Local<v8::Object> This)
+result_t WebSocketHandler_base::_new(Handler_base* hdlr,
+    obj_ptr<WebSocketHandler_base>& retVal, v8::Local<v8::Object> This)
 {
-    obj_ptr<Handler_base> hdlr1;
-    result_t hr = JSHandler::New(hdlr, hdlr1);
-    if (hr < 0)
-        return hr;
-
     obj_ptr<WebSocketHandler> pk_hdlr = new WebSocketHandler();
     pk_hdlr->wrap(This);
-    pk_hdlr->set_handler(hdlr1);
+    pk_hdlr->set_handler(hdlr);
 
     retVal = pk_hdlr;
 
