@@ -201,7 +201,7 @@ result_t HttpRequest::isEnded(bool& retVal)
 
 result_t HttpRequest::clear()
 {
-    m_message = new HttpMessage();
+    m_message->clear();
 
     m_method.assign("GET", 3);
     m_address.assign("/", 1);

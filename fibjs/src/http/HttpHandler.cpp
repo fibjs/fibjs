@@ -75,29 +75,30 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_stmBuffered = new BufferedStream(stm);
             m_stmBuffered->set_EOL("\r\n");
 
+            m_req = new HttpRequest();
+
+            obj_ptr<Message_base> m;
+            m_req->get_response(m);
+            m_rep = (HttpResponse_base*)(Message_base*)m;
+
+            m_req->set_maxHeadersCount(pThis->m_maxHeadersCount);
+            m_req->set_maxUploadSize(pThis->m_maxUploadSize);
+
             set(read);
         }
 
         static int32_t read(AsyncState* pState, int32_t n)
         {
             asyncInvoke* pThis = (asyncInvoke*)pState;
+            bool bKeepAlive = false;
 
-            if (pThis->m_rep) {
-                bool bKeepAlive = false;
+            pThis->m_rep->get_keepAlive(bKeepAlive);
 
-                pThis->m_rep->get_keepAlive(bKeepAlive);
-                if (!bKeepAlive)
-                    return pThis->done(CALL_RETURN_NULL);
+            if (!bKeepAlive)
+                return pThis->done(CALL_RETURN_NULL);
 
-                pThis->m_rep.Release();
-                pThis->m_zip.Release();
-                pThis->m_body.Release();
-            }
-
-            pThis->m_req = new HttpRequest();
-
-            pThis->m_req->set_maxHeadersCount(pThis->m_pThis->m_maxHeadersCount);
-            pThis->m_req->set_maxUploadSize(pThis->m_pThis->m_maxUploadSize);
+            pThis->m_zip.Release();
+            pThis->m_body.Release();
 
             pThis->set(invoke);
             return pThis->m_req->readFrom(pThis->m_stmBuffered, pThis);
@@ -113,10 +114,6 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_pThis->m_stats->inc(HTTP_TOTAL);
             pThis->m_pThis->m_stats->inc(HTTP_REQUEST);
             pThis->m_pThis->m_stats->inc(HTTP_PENDDING);
-
-            obj_ptr<Message_base> m;
-            pThis->m_req->get_response(m);
-            pThis->m_rep = (HttpResponse_base*)(Message_base*)m;
 
             exlib::string str;
 
@@ -350,10 +347,6 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_pThis->m_stats->inc(HTTP_TOTAL);
                 m_pThis->m_stats->inc(HTTP_REQUEST);
                 m_pThis->m_stats->inc(HTTP_PENDDING);
-
-                obj_ptr<Message_base> m;
-                m_req->get_response(m);
-                m_rep = (HttpResponse_base*)(Message_base*)m;
 
                 m_rep->set_keepAlive(false);
                 m_rep->set_status(400);

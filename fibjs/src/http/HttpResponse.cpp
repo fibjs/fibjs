@@ -202,7 +202,7 @@ result_t HttpResponse::isEnded(bool& retVal)
 
 result_t HttpResponse::clear()
 {
-    m_message = new HttpMessage(true);
+    m_message->clear();
 
     m_cookies.Release();
     m_status = 200;

@@ -157,7 +157,9 @@ result_t Message::clear()
     m_params.Release();
     m_value.clear();
     m_body.Release();
-    m_response.Release();
+
+    if (m_response)
+        m_response->clear();
 
     return 0;
 }
