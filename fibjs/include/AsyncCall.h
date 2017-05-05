@@ -18,7 +18,8 @@ public:
     void sync(Isolate* isolate)
     {
         isolate->m_pendding.inc();
-        isolate->m_jobs.put(this);
+        isolate->m_jobs.putTail(this);
+        isolate->m_sem.post();
     }
 
     virtual result_t js_invoke()

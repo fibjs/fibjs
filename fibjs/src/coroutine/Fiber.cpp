@@ -40,10 +40,7 @@ void* FiberBase::fiber_proc(void* p)
 
     isolate->m_idleFibers--;
     while (1) {
-        AsyncEvent* ae;
-
-        // if ((ae = (AsyncEvent*)isolate->m_jobs.tryget()) == NULL)
-        {
+        if (!isolate->m_sem.trywait()) {
             isolate->m_idleFibers++;
             if (isolate->m_idleFibers > g_spareFibers) {
                 isolate->m_idleFibers--;
@@ -52,7 +49,7 @@ void* FiberBase::fiber_proc(void* p)
 
             {
                 v8::Unlocker unlocker(isolate->m_isolate);
-                ae = (AsyncEvent*)isolate->m_jobs.get();
+                isolate->m_sem.wait();
             }
 
             isolate->m_idleFibers--;
@@ -67,6 +64,7 @@ void* FiberBase::fiber_proc(void* p)
 
         {
             v8::HandleScope handle_scope(isolate->m_isolate);
+            AsyncEvent* ae = (AsyncEvent*)isolate->m_jobs.getHead();
             hr = ae->js_invoke();
         }
 
@@ -109,7 +107,8 @@ void FiberBase::start()
     set_caller(JSFiber::current());
 
     isolate->m_pendding.inc();
-    isolate->m_jobs.put(this);
+    isolate->m_jobs.putTail(this);
+    isolate->m_sem.post();
     Ref();
 }
 
