@@ -30,12 +30,12 @@ if (win) {
         it("webview", () => {
             var check = false;
             var closed = false;
-            var svr = new http.Server(8899 + base_port, (r) => {
+            var svr = new http.Server(8999 + base_port, (r) => {
                 check = true;
             });
             svr.asyncRun();
 
-            var win = gui.open("http://127.0.0.1:" + (8899 + base_port) + "/");
+            var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
 
             for (var i = 0; i < 1000 && !check; i++)
                 coroutine.sleep(10);
