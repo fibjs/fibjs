@@ -86,7 +86,7 @@ public:
 public:
     static result_t js_invoke(Handler_base* hdlr, object_base* v,
         obj_ptr<Handler_base>& retVal, AsyncEvent* ac);
-    static result_t js_invoke(Handler_base* hdlr, v8::Local<v8::Object>& v,
+    static result_t js_invoke(Handler_base* hdlr, v8::Local<v8::Object> v,
         obj_ptr<Handler_base>& retVal, AsyncEvent* ac);
 
 private:

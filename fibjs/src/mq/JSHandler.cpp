@@ -271,7 +271,7 @@ result_t JSHandler::js_invoke(Handler_base* hdlr, object_base* v,
     return CALL_E_PENDDING;
 }
 
-result_t JSHandler::js_invoke(Handler_base* hdlr, v8::Local<v8::Object>& v,
+result_t JSHandler::js_invoke(Handler_base* hdlr, v8::Local<v8::Object> v,
     obj_ptr<Handler_base>& retVal, AsyncEvent* ac)
 {
     class asyncInvoke : public AsyncEvent {
@@ -311,7 +311,7 @@ result_t JSHandler::js_invoke(Handler_base* hdlr, v8::Local<v8::Object>& v,
     private:
         AsyncEvent* m_ac;
         obj_ptr<Handler_base> m_pThis;
-        v8::Local<v8::Object>& m_v;
+        v8::Local<v8::Object> m_v;
         obj_ptr<Handler_base>& m_retVal;
         result_t m_hr;
         exlib::string m_message;
