@@ -28,6 +28,8 @@ public:
     // Handler_base
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         AsyncEvent* ac);
+    virtual result_t invoke(v8::Local<v8::Object> v, obj_ptr<Handler_base>& retVal,
+        AsyncEvent* ac);
 
     result_t set_mimes(v8::Local<v8::Object> mimes);
 

@@ -297,4 +297,10 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     return (new asyncInvoke(this, req, ac))->post(0);
 }
 
+result_t HttpFileHandler::invoke(v8::Local<v8::Object> v, obj_ptr<Handler_base>& retVal,
+    AsyncEvent* ac)
+{
+    return CALL_RETURN_NULL;
+}
+
 } /* namespace fibjs */

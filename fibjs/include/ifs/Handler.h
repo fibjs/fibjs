@@ -25,6 +25,7 @@ public:
     static result_t _new(v8::Local<v8::Object> map, obj_ptr<Handler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Function> hdlr, obj_ptr<Handler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t invoke(v8::Local<v8::Object> v, obj_ptr<Handler_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     template <typename T>
@@ -36,6 +37,7 @@ public:
 
 public:
     ASYNC_MEMBERVALUE2(Handler_base, invoke, object_base*, obj_ptr<Handler_base>);
+    ASYNC_MEMBERVALUE2(Handler_base, invoke, v8::Local<v8::Object>, obj_ptr<Handler_base>);
 };
 }
 
@@ -100,6 +102,16 @@ inline void Handler_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& ar
     ASYNC_METHOD_OVER(1, 1);
 
     ARG(obj_ptr<object_base>, 0);
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_invoke(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_invoke(v0, vr);
+
+    ASYNC_METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
 
     if (!cb.IsEmpty()) {
         pInst->acb_invoke(v0, cb);

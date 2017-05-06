@@ -30,6 +30,7 @@ public:
     static result_t await(obj_ptr<Handler_base>& retVal);
     static result_t nullHandler(obj_ptr<Handler_base>& retVal);
     static result_t invoke(Handler_base* hdlr, object_base* v, AsyncEvent* ac);
+    static result_t invoke(Handler_base* hdlr, v8::Local<v8::Object> v, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -49,6 +50,7 @@ public:
 
 public:
     ASYNC_STATIC2(mq_base, invoke, Handler_base*, object_base*);
+    ASYNC_STATIC2(mq_base, invoke, Handler_base*, v8::Local<v8::Object>);
 };
 }
 
@@ -119,6 +121,17 @@ inline void mq_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG(obj_ptr<Handler_base>, 0);
     ARG(obj_ptr<object_base>, 1);
+
+    if (!cb.IsEmpty()) {
+        acb_invoke(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_invoke(v0, v1);
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Handler_base>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
     if (!cb.IsEmpty()) {
         acb_invoke(v0, v1, cb);

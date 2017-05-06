@@ -61,13 +61,29 @@ describe("mq", () => {
         it("direct invoke", () => {
             n = 0;
             jv.invoke(v);
+            jv.invoke({});
             assert.equal(3, n);
         });
 
         it("recursion invoke", () => {
             n = 0;
             mq.invoke(jv, v);
+            mq.invoke(jv, {});
             assert.equal(7, n);
+        });
+
+        it("js object param", () => {
+            var ctx = { i: 0 };
+            var chain = new mq.Handler([
+                ctx => ctx.i++,
+                ctx => ctx.i++,
+                ctx => ctx.i++
+            ]);
+            chain.invoke(ctx);
+            assert.equal(ctx.i, 3);
+            ctx.i = 0;
+            mq.invoke(chain, ctx);
+            assert.equal(ctx.i, 3);
         });
     });
 
@@ -77,6 +93,7 @@ describe("mq", () => {
 
             n = 0;
             chain.invoke(v);
+            chain.invoke({});
             assert.equal(7, n);
         });
 
@@ -85,6 +102,7 @@ describe("mq", () => {
 
             n = 0;
             chain.invoke(v);
+            chain.invoke({});
             assert.equal(7, n);
         });
 
@@ -158,18 +176,18 @@ describe("mq", () => {
         });
 
         it("memory leak", () => {
-            var svr = new net.TcpServer(8888, () => {});
+            var svr = new net.TcpServer(8888, () => { });
             ss.push(svr.socket);
 
             GC();
             var no1 = os.memoryUsage().nativeObjects.objects;
 
-            svr.handler = new mq.Chain([(v) => {}, (v) => {}]);
+            svr.handler = new mq.Chain([(v) => { }, (v) => { }]);
 
             GC();
             assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 
-            svr.handler = (v) => {};
+            svr.handler = (v) => { };
             svr = undefined;
 
             GC();
@@ -295,10 +313,14 @@ describe("mq", () => {
             }).invoke(req);
         });
 
+        it("js object param", () => {
+            assert.throws(() => mq.invoke(r, {}));
+        });
+
         it("path to value", () => {
             var r = new mq.Routing({
-                "^/api/a$": (v) => {},
-                "^/api/a(/.*)$": (v) => {}
+                "^/api/a$": (v) => { },
+                "^/api/a(/.*)$": (v) => { }
             });
 
             var m = new mq.Message();
@@ -348,8 +370,8 @@ describe("mq", () => {
         describe("order", () => {
             it("map append", () => {
                 var r = new mq.Routing({
-                    "^/api/a(/.*)$": (v) => {},
-                    "^/api/(.*)$": (v) => {}
+                    "^/api/a(/.*)$": (v) => { },
+                    "^/api/(.*)$": (v) => { }
                 });
 
                 var m = new mq.Message();
@@ -361,8 +383,8 @@ describe("mq", () => {
             it("append", () => {
                 var r = new mq.Routing();
 
-                r.append("^/api/a(/.*)$", (v) => {});
-                r.append("^/api/(.*)$", (v) => {});
+                r.append("^/api/a(/.*)$", (v) => { });
+                r.append("^/api/(.*)$", (v) => { });
 
                 var m = new mq.Message();
                 m.value = '/api/a/';
@@ -372,8 +394,8 @@ describe("mq", () => {
 
             it("append route", () => {
                 var r1 = new mq.Routing({
-                    "^/api/a(/.*)$": (v) => {},
-                    "^/api/(.*)$": (v) => {}
+                    "^/api/a(/.*)$": (v) => { },
+                    "^/api/(.*)$": (v) => { }
                 });
 
                 var r = new mq.Routing();
@@ -387,21 +409,21 @@ describe("mq", () => {
         });
 
         it("memory leak", () => {
-            var svr = new net.TcpServer(8890, () => {});
+            var svr = new net.TcpServer(8890, () => { });
             ss.push(svr.socket);
 
             GC();
             var no1 = os.memoryUsage().nativeObjects.objects;
 
             svr.handler = new mq.Routing({
-                "^/api/a$": (v) => {},
-                "^/api/a(/.*)$": (v) => {}
+                "^/api/a$": (v) => { },
+                "^/api/a(/.*)$": (v) => { }
             });
 
             GC();
             assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
 
-            svr.handler = (v) => {};
+            svr.handler = (v) => { };
             svr = undefined;
 
             GC();
@@ -437,6 +459,16 @@ describe("mq", () => {
             return aw;
         }, m);
         assert.equal(n, 400);
+
+        var ctx = { i: 0 };
+        mq.invoke((r) => {
+            var aw = mq.await();
+            assert.equal(r.i, 0);
+            r.i++;
+            aw.end();
+            return aw;
+        }, ctx);
+        assert.equal(ctx.i, 1);
     });
 
     it("sync(func)", () => {
@@ -459,6 +491,15 @@ describe("mq", () => {
             done();
         }), m);
         assert.equal(n, 400);
+
+        var ctx = { i: 0 };
+        mq.invoke(sync((v, done) => {
+            assert.equal(v.i, 0);
+            v.i++;
+            done();
+        }), ctx);
+
+        assert.equal(ctx.i, 1);
     });
 });
 

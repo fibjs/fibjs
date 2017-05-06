@@ -33,6 +33,8 @@ public:
     // Handler_base
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         AsyncEvent* ac);
+    virtual result_t invoke(v8::Local<v8::Object> v, obj_ptr<Handler_base>& retVal,
+        AsyncEvent* ac);
 
 public:
     static result_t New(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal)
@@ -83,6 +85,8 @@ public:
 
 public:
     static result_t js_invoke(Handler_base* hdlr, object_base* v,
+        obj_ptr<Handler_base>& retVal, AsyncEvent* ac);
+    static result_t js_invoke(Handler_base* hdlr, v8::Local<v8::Object>& v,
         obj_ptr<Handler_base>& retVal, AsyncEvent* ac);
 
 private:

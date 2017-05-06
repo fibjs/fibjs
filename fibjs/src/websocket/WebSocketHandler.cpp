@@ -295,6 +295,12 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     return (new asyncInvoke(this, req, m_event, ac))->post(0);
 }
 
+result_t WebSocketHandler::invoke(v8::Local<v8::Object> v, obj_ptr<Handler_base>& retVal,
+    AsyncEvent* ac)
+{
+    return CALL_RETURN_NULL;
+}
+
 result_t WebSocketHandler::get_maxSize(int32_t& retVal)
 {
     retVal = m_maxSize;
