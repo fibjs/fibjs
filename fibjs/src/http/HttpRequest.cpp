@@ -207,7 +207,9 @@ result_t HttpRequest::clear()
     m_address.assign("/", 1);
     m_queryString.clear();
 
-    m_cookies.Release();
+    if (m_cookies)
+        m_cookies->clear();
+
     m_query.Release();
     m_form.Release();
 
