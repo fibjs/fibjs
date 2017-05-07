@@ -142,7 +142,7 @@ inform()
 	echo " \$ git submodule init"
 	echo " \$ git submodule update"
 	echo ""
-	exit 0
+	exit 1
 }
 
 if [ "$ENABLE_JOBS" = "1" -a "$BUILD_JOBS" = "" ]; then
