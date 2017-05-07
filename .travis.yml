@@ -1,13 +1,6 @@
 dist: trusty
-language: cpp
-compiler: gcc-5
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-5
-    - g++-5
+services:
+  - docker
 env:
   - ARCH=amd64
   - ARCH=i386
@@ -15,8 +8,6 @@ env:
   - ARCH=arm64
   - ARCH=mips
   - ARCH=mips64
-#  - ARCH=ppc
-#  - ARCH=ppc64
 matrix:
   include:
     - os: osx
@@ -26,11 +17,9 @@ matrix:
 install:
   - git submodule init
   - git submodule update
-  - ./.travis/installer.sh
-  - ls -la /usr/bin | grep gcc
-  - ls -la /usr/bin | grep g++
+  - docker pull fibjs/fibjs:build-env
 script:
   - echo "${ARCH}"
-  - sh build -j2 ${ARCH}
+  - ./.travis/build.sh
   - ./.travis/test.sh
   # - ./.travis/release.sh
