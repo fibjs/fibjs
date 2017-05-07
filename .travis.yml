@@ -1,4 +1,5 @@
 dist: trusty
+language: cpp
 services:
   - docker
 env:
