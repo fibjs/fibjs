@@ -18,7 +18,7 @@ matrix:
 install:
   - git submodule init
   - git submodule update
-  - docker pull fibjs/fibjs:build-env
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull fibjs/fibjs:build-env; fi
 script:
   - echo "${ARCH}"
   - ./.travis/build.sh
