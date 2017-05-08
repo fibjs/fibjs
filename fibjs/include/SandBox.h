@@ -21,8 +21,6 @@ public:
     // SandBox_base
     virtual result_t add(exlib::string id, v8::Local<v8::Value> mod);
     virtual result_t add(v8::Local<v8::Object> mods);
-    virtual result_t compile(exlib::string srcname, exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal);
-    virtual result_t compile(exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal);
     virtual result_t addScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal);
     virtual result_t remove(exlib::string id);
     virtual result_t clone(obj_ptr<SandBox_base>& retVal);

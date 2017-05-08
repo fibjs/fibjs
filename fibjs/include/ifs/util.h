@@ -18,6 +18,7 @@ namespace fibjs {
 
 class Stats_base;
 class LruCache_base;
+class Buffer_base;
 
 class util_base : public object_base {
     DECLARE_CLASS(util_base);
@@ -60,6 +61,8 @@ public:
     static result_t each(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
     static result_t map(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Array>& retVal);
     static result_t reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> memo, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
+    static result_t compile(exlib::string srcname, exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal);
+    static result_t compile(exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal);
     static result_t buildInfo(v8::Local<v8::Object>& retVal);
 
 public:
@@ -107,12 +110,14 @@ public:
     static void s_each(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_map(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_reduce(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_compile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
 #include "Stats.h"
 #include "LruCache.h"
+#include "Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& util_base::class_info()
@@ -151,6 +156,7 @@ inline ClassInfo& util_base::class_info()
         { "each", s_each, true },
         { "map", s_map, true },
         { "reduce", s_reduce, true },
+        { "compile", s_compile, true },
         { "buildInfo", s_buildInfo, true }
     };
 
@@ -683,6 +689,30 @@ inline void util_base::s_reduce(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate));
 
     hr = reduce(v0, v1, v2, v3, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_compile(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(int32_t, 2, 0);
+
+    hr = compile(v0, v1, v2, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = compile(v0, v1, vr);
 
     METHOD_RETURN();
 }

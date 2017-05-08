@@ -278,6 +278,21 @@ module util
     /*! @brief LRU(least recently used) 缓存对象，参见 LruCache 对象。*/
     static LruCache;
 
+    /*! @brief 编译脚本为二进制代码
+     @param srcname 指定要添加的脚本名称
+     @param script 指定要编译的脚本代码
+     @param mode 编译模式，0: module, 1: main, 2: script, 3: worker，缺省为 0
+     @return 返回编译出的二进制代码
+     */
+    static Buffer compile(String srcname, String script, Integer mode = 0);
+
+    /*! @brief 编译脚本为二进制代码
+     @param script 指定要编译的脚本代码
+     @param mode 编译模式，0: module, 1: main, 2: script, 3: worker，缺省为 0
+     @return 返回编译出的二进制代码
+     */
+    static Buffer compile(String script, Integer mode = 0);
+
     /*! @brief 查询当前引擎及各组件版本信息
 
      @return 返回结构如下：

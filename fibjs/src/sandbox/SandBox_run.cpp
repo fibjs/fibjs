@@ -280,7 +280,7 @@ result_t SandBox::Context::run(Buffer_base* src, exlib::string name, exlib::stri
     return 0;
 }
 
-static const char* script_args = "(function(require,run,argv,__filename,__dirname){";
+const char* script_args = "(function(require,run,argv,__filename,__dirname){";
 static const int32_t script_args_count = 5;
 
 template <typename T>
@@ -295,7 +295,7 @@ result_t SandBox::Context::run_script(T src, exlib::string name, v8::Local<v8::A
     return run(src, name, script_args, args, script_args_count);
 }
 
-static const char* main_args = "(function(require,run,argv,repl,__filename,__dirname){";
+const char* main_args = "(function(require,run,argv,repl,__filename,__dirname){";
 static const int32_t main_args_count = 6;
 
 template <typename T>
@@ -315,7 +315,7 @@ result_t SandBox::Context::run_main(T src, exlib::string name, v8::Local<v8::Arr
     return run(src, name, main_args, args, main_args_count);
 }
 
-static const char* worker_args = "(function(require,run,Master,__filename,__dirname){";
+const char* worker_args = "(function(require,run,Master,__filename,__dirname){";
 static const int32_t worker_args_count = 5;
 
 template <typename T>
@@ -329,7 +329,7 @@ result_t SandBox::Context::run_worker(T src, exlib::string name, Worker_base* wo
     return run(src, name, worker_args, args, worker_args_count);
 }
 
-static const char* module_args = "(function(module,exports,require,run,__filename,__dirname){";
+const char* module_args = "(function(module,exports,require,run,__filename,__dirname){";
 static const int32_t module_args_count = 6;
 
 template <typename T>
@@ -344,74 +344,6 @@ result_t SandBox::Context::run_module(T src, exlib::string name, v8::Local<v8::O
     };
 
     return run(src, name, module_args, args, module_args_count);
-}
-
-result_t SandBox::compile(exlib::string srcname, exlib::string script,
-    int32_t mode, obj_ptr<Buffer_base>& retVal)
-{
-    Isolate* isolate = holder();
-    exlib::string oname = srcname;
-
-    v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
-
-    v8::Local<v8::Script> code;
-    {
-        TryCatch try_catch;
-
-        {
-            v8::ScriptCompiler::Source script_source(
-                isolate->NewFromUtf8(script));
-
-            if (v8::ScriptCompiler::CompileUnbound(
-                    isolate->m_isolate, &script_source)
-                    .IsEmpty())
-                return throwSyntaxError(try_catch);
-        }
-
-        const char* args;
-
-        switch (mode) {
-        case 1:
-            args = main_args;
-            break;
-        case 2:
-            args = script_args;
-            break;
-        case 3:
-            args = worker_args;
-            break;
-        default:
-            args = module_args;
-            break;
-        }
-        script = args + script + "\n});";
-
-        v8::ScriptCompiler::Source script_source(
-            isolate->NewFromUtf8(script), v8::ScriptOrigin(soname));
-
-        if (v8::ScriptCompiler::CompileUnbound(
-                isolate->m_isolate, &script_source,
-                v8::ScriptCompiler::kProduceCodeCache)
-                .IsEmpty())
-            return throwSyntaxError(try_catch);
-
-        const v8::ScriptCompiler::CachedData* cache = script_source.GetCachedData();
-
-        exlib::string buf((const char*)cache->data, cache->length);
-
-        int32_t len = (int32_t)script.length();
-        buf.append((const char*)&len, sizeof(len));
-
-        obj_ptr<Buffer_base> unz = new Buffer(buf);
-        return zlib_base::cc_gzip(unz, retVal);
-    }
-
-    return 0;
-}
-
-result_t SandBox::compile(exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal)
-{
-    return compile("", script, mode, retVal);
 }
 
 result_t SandBox::addScript(exlib::string srcname, exlib::string script,
