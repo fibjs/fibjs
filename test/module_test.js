@@ -97,55 +97,6 @@ describe("module", () => {
         });
     });
 
-    describe(".modules", () => {
-        it("root folder", () => {
-            var a = require('mod1');
-            assert.deepEqual(a, {
-                "a": 100
-            });
-
-            assert.equal(a, require('./.modules/mod1'));
-            assert.equal(a, require('.modules/mod1'));
-        });
-
-        it("current folder", () => {
-            var a = require('./module/mod_test').require("mod2");
-            assert.deepEqual(a, {
-                "a": 200
-            });
-
-            assert.equal(a, require('./module/.modules/mod2'));
-            assert.equal(a, require('module/.modules/mod2'));
-        });
-
-        it("parent folder", () => {
-            var a = require('./module/mod_test').require("mod4");
-            assert.deepEqual(a, {
-                "a": 400
-            });
-
-            assert.equal(a, require('./.modules/mod4'));
-            assert.equal(a, require('.modules/mod4'));
-        });
-
-        it("priority", () => {
-            var a = require('./module/mod_test').require("mod3");
-            assert.deepEqual(a, {
-                "a": 300
-            });
-
-            assert.equal(a, require('./module/.modules/mod3'));
-            assert.equal(a, require('module/.modules/mod3'));
-        });
-
-        it("no .modules folder", () => {
-            var a = require('./module/no.modules/mod_test').require("mod5");
-            assert.deepEqual(a, {
-                "a": 500
-            });
-        });
-    });
-
     describe("node_modules", () => {
         it("root folder", () => {
             var a = require('node_mod1');

@@ -644,24 +644,6 @@ result_t SandBox::require(exlib::string base, exlib::string id,
 
             if (str1.length())
                 str1 += PATH_SLASH;
-            str1 += ".modules";
-            str1 += PATH_SLASH;
-            str1 += fname;
-            path_base::normalize(str1, fname1);
-
-            hr = require(base, fname1, retVal, NO_SEARCH);
-            if (hr >= 0) {
-                InstallModule(strId, retVal);
-                return 0;
-            }
-
-            if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
-                return hr;
-
-            str1 = str;
-
-            if (str1.length())
-                str1 += PATH_SLASH;
             str1 += "node_modules";
             str1 += PATH_SLASH;
             str1 += fname;
