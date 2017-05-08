@@ -1358,6 +1358,9 @@
     <ClCompile Include="src\util\util.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
+    <ClCompile Include="src\util\util_compile.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
     <ClCompile Include="src\websocket\WebSocket.cpp">
       <Filter>Source Files\websocket</Filter>
     </ClCompile>
