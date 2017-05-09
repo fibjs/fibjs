@@ -19,6 +19,7 @@ namespace fibjs {
 
 class Message_base;
 class HttpCollection_base;
+class Stream_base;
 class List_base;
 class Map_base;
 
@@ -38,6 +39,7 @@ public:
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
     virtual result_t get_maxUploadSize(int32_t& retVal) = 0;
     virtual result_t set_maxUploadSize(int32_t newVal) = 0;
+    virtual result_t get_socket(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t hasHeader(exlib::string name, bool& retVal) = 0;
     virtual result_t firstHeader(exlib::string name, Variant& retVal) = 0;
     virtual result_t allHeader(exlib::string name, obj_ptr<List_base>& retVal) = 0;
@@ -70,6 +72,7 @@ public:
     static void s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_maxUploadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_hasHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_firstHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_allHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -80,6 +83,7 @@ public:
 }
 
 #include "HttpCollection.h"
+#include "Stream.h"
 #include "List.h"
 #include "Map.h"
 
@@ -101,7 +105,8 @@ inline ClassInfo& HttpMessage_base::class_info()
         { "keepAlive", s_get_keepAlive, s_set_keepAlive, false },
         { "upgrade", s_get_upgrade, s_set_upgrade, false },
         { "maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false },
-        { "maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize, false }
+        { "maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize, false },
+        { "socket", s_get_socket, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -239,6 +244,18 @@ inline void HttpMessage_base::s_set_maxUploadSize(v8::Local<v8::String> property
     hr = pInst->set_maxUploadSize(v0);
 
     PROPERTY_SET_LEAVE();
+}
+
+inline void HttpMessage_base::s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_INSTANCE(HttpMessage_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_socket(vr);
+
+    METHOD_RETURN();
 }
 
 inline void HttpMessage_base::s_hasHeader(const v8::FunctionCallbackInfo<v8::Value>& args)

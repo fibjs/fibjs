@@ -61,6 +61,7 @@ public:
     virtual result_t set_maxHeadersCount(int32_t newVal);
     virtual result_t get_maxUploadSize(int32_t& retVal);
     virtual result_t set_maxUploadSize(int32_t newVal);
+    virtual result_t get_socket(obj_ptr<Stream_base>& retVal);
     virtual result_t hasHeader(exlib::string name, bool& retVal);
     virtual result_t firstHeader(exlib::string name, Variant& retVal);
     virtual result_t allHeader(exlib::string name, obj_ptr<List_base>& retVal);

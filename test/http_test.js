@@ -422,9 +422,10 @@ describe("http", () => {
             assert.equal('test', req.headers['content-type']);
             assert.equal('0123456789', req.body.read());
 
-            assert.equal(req.stream.size(), 94);
+            assert.equal(req.socket.size(), 94);
             req.clear();
             assert.equal(req.stream, null);
+            assert.equal(req.socket, null);
 
             var r = get_response("HTTP/1.0 200\r\n\r\n");
             assert.equal(r.status, 200);

@@ -308,7 +308,8 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
     if (!_stm)
         return CHECK_ERROR(Runtime::setError("HttpMessage: only accept BufferedStream object."));
 
-    _stm->get_stream(m_stm);
+    _stm->get_stream(m_socket);
+    m_stm = _stm;
 
     return (new asyncReadFrom(this, _stm, ac))->post(0);
 }
@@ -500,6 +501,15 @@ result_t HttpMessage::set_maxUploadSize(int32_t newVal)
     return 0;
 }
 
+result_t HttpMessage::get_socket(obj_ptr<Stream_base>& retVal)
+{
+    if (!m_socket)
+        return CALL_RETURN_NULL;
+
+    retVal = m_socket;
+    return 0;
+}
+
 result_t HttpMessage::hasHeader(exlib::string name, bool& retVal)
 {
     return m_headers->has(name, retVal);
@@ -563,6 +573,7 @@ result_t HttpMessage::clear()
     m_headers->clear();
 
     m_stm.Release();
+    m_socket.Release();
 
     return 0;
 }

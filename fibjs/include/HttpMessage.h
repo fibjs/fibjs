@@ -39,6 +39,7 @@ public:
     result_t set_maxHeadersCount(int32_t newVal);
     result_t get_maxUploadSize(int32_t& retVal);
     result_t set_maxUploadSize(int32_t newVal);
+    result_t get_socket(obj_ptr<Stream_base>& retVal);
     result_t hasHeader(exlib::string name, bool& retVal);
     result_t firstHeader(exlib::string name, Variant& retVal);
     result_t allHeader(exlib::string name, obj_ptr<List_base>& retVal);
@@ -67,6 +68,7 @@ public:
 
 public:
     obj_ptr<Stream_base> m_stm;
+    obj_ptr<Stream_base> m_socket;
     bool m_bResponse;
     exlib::string m_protocol;
     bool m_keepAlive;

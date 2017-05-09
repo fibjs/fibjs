@@ -105,6 +105,11 @@ result_t HttpResponse::set_maxUploadSize(int32_t newVal)
     return m_message->get_maxUploadSize(newVal);
 }
 
+result_t HttpResponse::get_socket(obj_ptr<Stream_base>& retVal)
+{
+    return m_message->get_socket(retVal);
+}
+
 result_t HttpResponse::hasHeader(exlib::string name, bool& retVal)
 {
     return m_message->hasHeader(name, retVal);
