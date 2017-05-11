@@ -89,7 +89,6 @@ result_t TcpServer::run(AsyncEvent* ac)
             : AsyncState(NULL)
             , m_pThis(pThis)
             , m_sock(pSock)
-            , m_obj(pSock)
         {
             set(invoke);
         }
@@ -100,7 +99,7 @@ result_t TcpServer::run(AsyncEvent* ac)
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
             pThis->set(close);
-            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_obj, pThis);
+            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_sock, pThis);
         }
 
         static int32_t close(AsyncState* pState, int32_t n)
@@ -123,7 +122,6 @@ result_t TcpServer::run(AsyncEvent* ac)
     private:
         obj_ptr<TcpServer> m_pThis;
         obj_ptr<Socket_base> m_sock;
-        obj_ptr<object_base> m_obj;
     };
 
     class asyncAccept : public AsyncState {
