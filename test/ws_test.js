@@ -163,7 +163,7 @@ describe('ws', () => {
             v.response.body = v.body;
         }));
         ss.push(httpd.socket);
-        httpd.asyncRun();
+        httpd.run(() => {});
 
         var rep = http.get("http://127.0.0.1:" + (8810 + base_port) + "/", {
             "Upgrade": "websocket",
@@ -184,6 +184,8 @@ describe('ws', () => {
         test_msg(65535, true);
         test_msg(65536, true);
 
+        rep.stream.stream.close();
+
         var rep = http.get("http://127.0.0.1:" + (8810 + base_port) + "/", {
             "Connection": "Upgrade",
             "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
@@ -191,6 +193,8 @@ describe('ws', () => {
         });
 
         assert.equal(rep.status, 500);
+
+        rep.stream.stream.close();
 
         var rep = http.get("http://127.0.0.1:" + (8810 + base_port) + "/", {
             "Upgrade": "websocket",
@@ -200,6 +204,8 @@ describe('ws', () => {
 
         assert.equal(rep.status, 500);
 
+        rep.stream.stream.close();
+
         var rep = http.get("http://127.0.0.1:" + (8810 + base_port) + "/", {
             "Upgrade": "websocket",
             "Connection": "Upgrade",
@@ -207,6 +213,8 @@ describe('ws', () => {
         });
 
         assert.equal(rep.status, 500);
+
+        rep.stream.stream.close();
 
         var rep = http.get("http://127.0.0.1:" + (8810 + base_port) + "/", {
             "Upgrade": "websocket",
@@ -219,6 +227,8 @@ describe('ws', () => {
         assert.throws(() => {
             test_msg(10);
         });
+
+        rep.stream.stream.close();
     });
 
     it("connect", () => {
@@ -251,6 +261,7 @@ describe('ws', () => {
         test_msg(65535, true);
         test_msg(65536, true);
 
+        s.close();
     });
 
     it("ping", () => {
@@ -267,6 +278,8 @@ describe('ws', () => {
 
         assert.equal(msg.type, ws.PONG);
         assert.equal(msg.body.readAll().toString(), body);
+
+        s.close();
     });
 
     it("close", () => {
@@ -282,6 +295,8 @@ describe('ws', () => {
         assert.throws(() => {
             msg.readFrom(s);
         });
+
+        s.close();
     });
 
     it("non-control opcode", () => {
@@ -295,6 +310,8 @@ describe('ws', () => {
         assert.throws(() => {
             msg.readFrom(s);
         });
+
+        s.close();
     });
 
     it("drop other type message", () => {
@@ -308,6 +325,8 @@ describe('ws', () => {
         assert.throws(() => {
             msg.readFrom(s);
         });
+
+        s.close();
     });
 
     it("remote close", () => {
@@ -315,7 +334,7 @@ describe('ws', () => {
             v.stream.close();
         }));
         ss.push(httpd.socket);
-        httpd.asyncRun();
+        httpd.run(() => {});
 
         var s = ws.connect("ws://127.0.0.1:" + (8811 + base_port) + "/");
 
@@ -328,6 +347,8 @@ describe('ws', () => {
         assert.throws(() => {
             msg.readFrom(s);
         });
+
+        s.close();
     });
 
     it("onerror", () => {
@@ -346,7 +367,7 @@ describe('ws', () => {
 
         var httpd = new http.Server(8812 + base_port, hdlr);
         ss.push(httpd.socket);
-        httpd.asyncRun();
+        httpd.run(() => {});
 
         var s = ws.connect("ws://127.0.0.1:" + (8812 + base_port) + "/");
 
@@ -359,6 +380,8 @@ describe('ws', () => {
             coroutine.sleep(1);
 
         assert.equal(err_500, 1);
+
+        s.close();
     });
 
     describe('WebSocketHandler', () => {
@@ -411,7 +434,7 @@ describe('ws', () => {
                 })
             }));
             ss.push(httpd.socket);
-            httpd.asyncRun();
+            httpd.run(() => {});
         });
 
         describe("handshake", () => {
@@ -424,6 +447,8 @@ describe('ws', () => {
                 test_msg(s, 126, true);
                 test_msg(s, 65535, true);
                 test_msg(s, 65536, true);
+
+                s.stream.close();
             });
 
             it("missing Upgrade header.", () => {
@@ -434,6 +459,7 @@ describe('ws', () => {
                 });
 
                 assert.equal(rep.status, 500);
+                rep.stream.stream.close();
             });
 
             it("invalid connection header.", () => {
@@ -444,6 +470,7 @@ describe('ws', () => {
                 });
 
                 assert.equal(rep.status, 500);
+                rep.stream.stream.close();
             });
 
             it("missing Sec-WebSocket-Key header.", () => {
@@ -454,6 +481,7 @@ describe('ws', () => {
                 });
 
                 assert.equal(rep.status, 500);
+                rep.stream.stream.close();
             });
 
             it("missing Sec-WebSocket-Version header.", () => {
@@ -464,6 +492,7 @@ describe('ws', () => {
                 });
 
                 assert.equal(rep.status, 500);
+                rep.stream.stream.close();
             });
         });
 
@@ -481,6 +510,8 @@ describe('ws', () => {
 
             assert.equal(msg.type, ws.PONG);
             assert.equal(msg.body.readAll().toString(), body);
+
+            s.close();
         });
 
 
@@ -500,6 +531,8 @@ describe('ws', () => {
             assert.throws(() => {
                 msg.readFrom(s);
             });
+
+            s.close();
         });
 
         it("non-control opcode", () => {
@@ -520,6 +553,8 @@ describe('ws', () => {
 
             assert.equal(msg.type, ws.PONG);
             assert.equal(msg.body.readAll().toString(), body);
+
+            s.close();
         });
 
         it("drop other type message", () => {
@@ -540,6 +575,8 @@ describe('ws', () => {
 
             assert.equal(msg.type, ws.PONG);
             assert.equal(msg.body.readAll().toString(), body);
+
+            s.close();
         });
 
     });
