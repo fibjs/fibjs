@@ -1,29 +1,29 @@
 dist: trusty
 language: cpp
 services:
-- docker
+  - docker
 env:
-- ARCH=amd64
-- ARCH=i386
-- ARCH=arm
-- ARCH=arm64
-- ARCH=mips
-- ARCH=mips64
+  - ARCH=amd64
+  - ARCH=i386
+  - ARCH=arm
+  - ARCH=arm64
+  - ARCH=mips
+  - ARCH=mips64
 matrix:
   include:
   - os: osx
     osx_image: xcode8.2
     env:
-    - ARCH=amd64
+      - ARCH=amd64
 install:
-- git submodule init
-- git submodule update
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull fibjs/fibjs:build-env; fi
+  - git submodule init
+  - git submodule update
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull fibjs/fibjs:build-env; fi
 script:
-- echo "${ARCH}"
-- ./.travis/build.sh
-- ./.travis/test.sh
-- ./.travis/release.sh
+  - echo "${ARCH}"
+  - ./.travis/build.sh
+  - ./.travis/test.sh
+  - ./.travis/release.sh
 deploy:
   provider: releases
   api_key:
