@@ -15,7 +15,35 @@ test_script:
   - IF /I "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2017" set NOXP=noxp
   - IF /I "%PLATFORM%" == "x64" ECHO "x64 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64 &&   build release amd64 !NOXP! && cd test && ..\bin\Windows_amd64_release\fibjs.exe main.js
   - IF /I "%PLATFORM%" == "x86" ECHO "x86 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&   build release i386 !NOXP! && cd test && ..\bin\Windows_i386_release\fibjs.exe main.js
+  - mkdir dist
+  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs.exe .\dist\fibjs_windows_x64.exe
+  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs_gui.exe .\dist\fibjs_gui_windows_x64.exe
+  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\installer.exe .\dist\installer_windows_x64.exe
+  - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs.exe .\dist\fibjs_windows_x86.exe
+  - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs_gui.exe .\dist\fibjs_gui_windows_x86.exe
+  - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\installer.exe .\dist\installer_windows_x86.exe
 matrix:
   fast_finish: true
-
+artifacts:
+  - path: dist\fibjs_windows_x64.exe
+    name: fibjs_windows_x64.exe
+  - path: dist\fibjs_gui_windows_x64.exe
+    name: fibjs_gui_windows_x64.exe
+  - path: dist\installer_windows_x64.exe
+    name: installer_windows_x64.exe
+  - path: dist\fibjs_windows_x86.exe
+    name: fibjs_windows_x86.exe
+  - path: dist\fibjs_gui_windows_x86.exe
+    name: fibjs_gui_windows_x86.exe
+  - path: dist\installer_windows_x86.exe
+    name: installer_windows_x86.exe
+deploy:
+  provider: GitHub
+  auth_token:
+    secure: CgT2ZT3xWB8Y31GJ4cIOZ6aHb5tvP8mYr3wqMr535JzScGFz8ZGCKp0/GbhDfMw4
+  artifact: /.*\.exe/
+  draft: false
+  prerelease: false
+  on:
+    appveyor_repo_tag: true
 build: off
