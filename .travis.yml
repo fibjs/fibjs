@@ -30,6 +30,7 @@ deploy:
     secure: e8Vlz6ZGelHDh7FXXu39xuGBk08jSXfmddJKG2nAg3HfXKXOEPniVKXtlsCpXD7FrzAo23V3caKBdFRye785JCJ1Xgf6rJx1lwB/0uAYaYYqq+DIVsiK+w3IoaZWvf/yEw6wYXsGI2jgUz3RIinETr/HomO5HAFAQHwbHqL6Jn8=
   file_glob: true
   file: dist/*
+  skip_cleanup: true
   on:
     tags: true
     repo: fibjs/fibjs
