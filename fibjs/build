@@ -174,12 +174,13 @@ if [ "${BUILD_TYPE}" = "release" ]; then
 	cd "${BIN_PATH}"
 	cp "${FIBJS_PATH}/installer.txt" "installer.sh"
 	cp fibjs js
-	strip js -o fibjs
+	${BUILD_PREFIX}strip js -o fibjs
 	tar -zcf fibjs.tar.gz fibjs
 	cat fibjs.tar.gz >> installer.sh
 	chmod 777 installer.sh
 	rm fibjs*
 	mv js fibjs
+	echo '[100%] Built target install.sh'
 fi
 
 cd "${FIBJS_PATH}"
