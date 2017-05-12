@@ -11,10 +11,10 @@ env:
   - ARCH=mips64
 matrix:
   include:
-  - os: osx
-    osx_image: xcode8.2
-    env:
-      - ARCH=amd64
+    - os: osx
+      osx_image: xcode8.2
+      env:
+        - ARCH=amd64
 install:
   - git submodule init
   - git submodule update
