@@ -606,6 +606,10 @@ describe('ws', () => {
             assert.equal(s.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
             assert.equal(s.protocol, "test");
             // assert.equal(s.readyState, ws.CONNECTING);
+
+            s.onopen = () => {
+                s.close();
+            };
         });
 
         it('onopen', () => {
@@ -623,6 +627,8 @@ describe('ws', () => {
 
             assert.isTrue(t);
             assert.equal(s.readyState, ws.OPEN);
+
+            s.close();
         });
 
         it('send/onmessage', () => {
@@ -651,6 +657,8 @@ describe('ws', () => {
 
             assert.isTrue(Buffer.isBuffer(msg.data));
             assert.equal(msg.data.toString(), '456');
+
+            s.close();
         });
 
         it('close/onclose', () => {
