@@ -1,9 +1,46 @@
 ## 2017-05-13, Version 0.3.0 @ngot
 
+Good news, we will land the ES6 Module support in the 1.0.0. Before that, we still have a lot of work to do.
 ### Notable Changes
 
-* **module**:
+0.3.0 is a pre-release update version of fibjs. There are many exciting features in this release such as multi-thread Worker Mode, built-in WebSocket, arm & mip arch support, better compatibility to npm. We recommend you to try these new features. 
 
+* **module**:
+  * support `node_modules` directory.
+  * remove `.module` directory support.
+  * remove `__sbname` support.
+  * add `util.compile` method. JavaScript code can be built into ByteCode with `.jsc` extension and it can be required like `require('mod.jsc')`. This is very useful to ship production and protect you code.
+  * support virtual zip path. You can pacck you code into a zip file and just require it like this: `require('./test.zip?/b.js'))`
+  * syntax check after load error to speed the require.
+  * SandBox.require adding base argv，set the start query dir
+  * package.json support directory.
+  * sandbox add --approot to set the run path.
+  * remove the sandbox name from the source path
+* **mq**:
+  * remove mq.jsHandler
+* **rpc**:
+  * remove rpc module. Please use coroutine.Worker instead.
+* **events**:
+  * remove Trigger Object，use events.EventEmitter instead.
+* **http**:
+  * remove Message.result property
+  * add HttpMessage.socket
+  * add httpClient
+* **coroutine**:
+  * add multi-thread Worker support.
+* **process**:
+  * process extends EventEmitter.
+  * add process.nextTick
+* **ws**:
+  * add WebSocket module.
+* **querystring**:
+  * add querystring module.
+* **zmq**:
+  * add zmq module.
+* **gui**:
+  * add gui module on windows in purpose to support webview.
+* **db**:
+  * add MSSQL support
 ### Commits
 
 * [[`233254d`](https://github.com/fibjs/fibjs/commit/233254d)] - **ws, fix**: fix the close error. (xicilion)
@@ -175,7 +212,7 @@
 * [[`ee14ea1`](https://github.com/fibjs/fibjs/commit/ee14ea1)] - **encoding, fix**: fix sometimes parse error. (xicilion)
 * [[`9682aa9`](https://github.com/fibjs/fibjs/commit/9682aa9)] - **console, fix**: fix big string output error on Window XP. (xicilion)
 * [[`6dfdc20`](https://github.com/fibjs/fibjs/commit/6dfdc20)] - **db, feat**: MySQL support null & decimal. (xicilion)
-* [[`ee4930e`](https://github.com/fibjs/fibjs/commit/ee4930e)] - **db, feat**: add MySQL support. (xicilion)
+* [[`ee4930e`](https://github.com/fibjs/fibjs/commit/ee4930e)] - **db, feat**: add MSSQL support. (xicilion)
 * [[`b1c68ef`](https://github.com/fibjs/fibjs/commit/b1c68ef)] - **db, refactor**: SQLite default to wal mode. (xicilion)
 * [[`62af5f0`](https://github.com/fibjs/fibjs/commit/62af5f0)] - **os, feat**: Add Service Object on Windows. (xicilion)
 * [[`0e24bc9`](https://github.com/fibjs/fibjs/commit/0e24bc9)] - **http, fix**: fix the message starts with '0' cut off when transferred by chunk. (xicilion)
