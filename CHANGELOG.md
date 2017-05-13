@@ -1,9 +1,9 @@
-## 2017-05-13, Version 0.3.0 @ngot
+## 2017-05-13, Version v0.3.0 @ngot
 
 Good news, we will land the ES6 Module support in the 1.0.0. Before that, we still have a lot of work to do.
 ### Notable Changes
 
-0.3.0 is a pre-release update version of fibjs. There are many exciting features in this release such as multi-thread Worker Mode, built-in WebSocket, arm & mip arch support, better compatibility to npm. We recommend you to try these new features. 
+v0.3.0 is a pre-release update version of fibjs. There are many exciting features in this release such as multi-thread Worker Mode, built-in WebSocket, arm & mip arch support, better compatibility to npm. We recommend you to try these new features. 
 
 * **module**:
   * support `node_modules` directory.
