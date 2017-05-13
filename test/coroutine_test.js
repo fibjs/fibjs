@@ -361,6 +361,7 @@ describe('coroutine', () => {
                         v.localPort;
                     });
                     assert.equal(v1.localPort, 8899 + base_port);
+                    v1.close();
                 });
             });
         });
