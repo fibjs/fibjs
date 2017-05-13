@@ -56,6 +56,18 @@ function cookie_data(cookie) {
 
 
 describe("http", () => {
+    var ss = [];
+
+    after(() => {
+        http.cookies.resize(0);
+        http.autoRedirect = true;
+        http.enableCookie = true;
+
+        ss.forEach((s) => {
+            s.close();
+        });
+    });
+
     describe("headers", () => {
         var d = new http.Request().headers;
 
@@ -668,10 +680,8 @@ describe("http", () => {
             svr = new net.TcpServer(8881 + base_port, hdr);
 
             svr.asyncRun();
-        });
 
-        after(() => {
-            svr.socket.close();
+            ss.push(svr.socket);
         });
 
         beforeEach(() => {
@@ -1050,10 +1060,8 @@ describe("http", () => {
                 }
             });
             svr.asyncRun();
-        });
 
-        after(() => {
-            svr.socket.close();
+            ss.push(svr.socket);
         });
 
         describe("request", () => {
@@ -1138,7 +1146,6 @@ describe("http", () => {
     });
 
     describe("https server/global https request", () => {
-
         var svr;
         var cookie;
 
@@ -1161,10 +1168,11 @@ describe("http", () => {
                 }
             });
             svr.asyncRun();
+
+            ss.push(svr.socket);
         });
 
         after(() => {
-            svr.socket.close();
             ssl.ca.clear();
         });
 
@@ -1229,8 +1237,8 @@ describe("http", () => {
 
         before(() => {
             http.enableCookie = true;
-            svr = new http.Server(8882 + base_port, (r) => {
-                var port = 8882 + base_port;
+            svr = new http.Server(8884 + base_port, (r) => {
+                var port = 8884 + base_port;
                 cookie = r.headers.cookie;
 
                 r.response.addHeader("set-cookie", "root1=value1; domain=127.0.0.2; path=/");
@@ -1253,7 +1261,7 @@ describe("http", () => {
                 } else if (r.address == "/redirect/a/b/f") {
                     r.response.redirect("../g");
                 } else if (r.address == "/redirect1") {
-                    r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/redirect1");
+                    r.response.redirect("http://127.0.0.1:" + (8884 + base_port) + "/redirect1");
                 } else if (r.address != "/gzip_test") {
                     r.response.addHeader("set-cookie", "request=value; domain=127.0.0.1; path=/request");
                     r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1; path=/request");
@@ -1270,50 +1278,48 @@ describe("http", () => {
                 }
             });
             svr.asyncRun();
-        });
 
-        after(() => {
-            svr.socket.close();
+            ss.push(svr.socket);
         });
 
         describe("request & cookie", () => {
             var client = new http.Client();
 
             it("simple", () => {
-                assert.equal(client.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request").body.readAll().toString(),
+                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request").body.readAll().toString(),
                     "/request");
 
                 assert.equal(cookie, undefined);
-                client.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request");
+                client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request");
                 assert.equal(cookie, "root=value2; request=value; request1=value");
             });
 
             it("redirect", () => {
-                assert.equal(client.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect").body.readAll().toString(),
+                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect").body.readAll().toString(),
                     "/request");
 
                 assert.equal(cookie, "root=value2; request=value; request1=value");
                 assert.throws(() => {
-                    client.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect1")
+                    client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect1")
                 });
             });
 
             it("body", () => {
-                assert.equal(client.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", "body").body.readAll().toString(),
+                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request:", "body").body.readAll().toString(),
                     "/request:body");
             });
 
             it("header", () => {
-                assert.equal(client.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request:", {
                     "test_header": "header"
                 }).body.read().toString(), "/request:header");
             });
 
             it("gzip", () => {
-                assert.equal(client.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test").body.readAll().toString(),
+                assert.equal(client.get("http://127.0.0.1:" + (8884 + base_port) + "/gzip_test").body.readAll().toString(),
                     "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 assert.equal(cookie, "root=value2");
-                client.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test");
+                client.get("http://127.0.0.1:" + (8884 + base_port) + "/gzip_test");
                 assert.equal(cookie, "root=value2; gzip_test=value");
             });
 
@@ -1325,11 +1331,11 @@ describe("http", () => {
             it("disable cookie", () => {
                 assert.equal(client.enableCookie, true);
                 client.enableCookie = false;
-                assert.equal(client.request('GET', "http://127.0.0.1:" + (8882 + base_port) + "/name").body.readAll().toString(),
+                assert.equal(client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/name").body.readAll().toString(),
                     "/name");
                 assert.equal(cookie, undefined);
 
-                client.request('GET', "http://127.0.0.1:" + (8882 + base_port) + "/name");
+                client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/name");
                 assert.equal(cookie, undefined);
             })
         });
@@ -1340,41 +1346,41 @@ describe("http", () => {
             it("overtime", () => {
                 client.timeout = 200;
                 assert.throws(() => {
-                    client.get("http://127.0.0.1:" + (8882 + base_port) + "/timeout")
+                    client.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout")
                 });
             });
 
             it("intime", () => {
                 client.timeout = 1000;
-                assert.equal(client.get("http://127.0.0.1:" + (8882 + base_port) + "/timeout").body.readAll().toString(),
+                assert.equal(client.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout").body.readAll().toString(),
                     "/timeout");
             });
 
             it("global overtime", () => {
                 http.timeout = 200;
                 assert.throws(() => {
-                    http.get("http://127.0.0.1:" + (8882 + base_port) + "/timeout")
+                    http.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout")
                 });
             });
 
             it("global intime", () => {
                 http.timeout = 1000;
-                assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/timeout").body.readAll().toString(),
+                assert.equal(http.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout").body.readAll().toString(),
                     "/timeout");
             });
 
             it("autoredirect", () => {
-                assert.equal(http.get('http://127.0.0.1:' + (8882 + base_port) + '/redirect/a/b/c').body.readAll().toString(),
+                assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/c').body.readAll().toString(),
                     "/d");
-                assert.equal(http.get('http://127.0.0.1:' + (8882 + base_port) + '/redirect/a/b/d').body.readAll().toString(),
+                assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/d').body.readAll().toString(),
                     "/redirect/a/b/e");
-                assert.equal(http.get('http://127.0.0.1:' + (8882 + base_port) + '/redirect/a/b/f').body.readAll().toString(),
+                assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/f').body.readAll().toString(),
                     "/redirect/a/g");
             });
 
             it("disable autoredirect", () => {
                 http.autoRedirect = false;
-                var resp = http.get('http://127.0.0.1:' + (8882 + base_port) + '/redirect');
+                var resp = http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect');
                 assert.equal(resp.headers.location, "request");
             })
         });
