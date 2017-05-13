@@ -1,7 +1,6 @@
 environment:
   matrix:
     - image: Visual Studio 2015
-    - image: Visual Studio 2017
 
 platform:
   - x86
