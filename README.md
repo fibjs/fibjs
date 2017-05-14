@@ -1,5 +1,7 @@
 # ![fibjs Logo](logo/fibjs-small.png?raw=true)  JavaScript on Fiber
 
+[![Join the chat at https://gitter.im/fibjs/fibjs](https://badges.gitter.im/fibjs/fibjs.svg)](https://gitter.im/fibjs/fibjs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![travis build status][travis-image]][travis-url]
 [![appveyor build status][appveyor-image]][appveyor-url]
 
