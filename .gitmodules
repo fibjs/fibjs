@@ -4,3 +4,4 @@
 [submodule "vender"]
 	path = vender
 	url = https://github.com/fibjs/fibjs_vender.git
+	branch = 0.3.x
