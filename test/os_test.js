@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('./test_util');
+
 var os = require('os');
 var io = require('io');
 
@@ -21,11 +23,11 @@ describe('os', () => {
 
     it("nativeObjects", () => {
         GC();
-        var no1 = os.memoryUsage().nativeObjects.objects;
+        var no1 = test_util.countObject('Buffer');
         var b = new Buffer();
-        assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
+        assert.equal(no1 + 1, test_util.countObject('Buffer'));
         b.dispose();
-        assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+        assert.equal(no1, test_util.countObject('Buffer'));
     });
 
     it('time', () => {

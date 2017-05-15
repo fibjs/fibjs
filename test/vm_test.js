@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('./test_util');
+
 var vm = require('vm');
 var os = require('os');
 var fs = require('fs');
@@ -173,51 +175,42 @@ describe("vm", () => {
         });
     });
 
-    function buffer_count() {
-        var cnt = 0;
-        os.memoryUsage().nativeObjects.inherits.forEach((v) => {
-            if (v['class'] === 'Buffer')
-                cnt += v.objects;
-        });
-        return cnt;
-    }
-
     it("Garbage Collection", () => {
         sbox = undefined;
 
         GC();
-        var no1 = buffer_count();
+        var no1 = test_util.countObject('Buffer');
 
         sbox = new vm.SandBox({});
-        assert.equal(no1, buffer_count());
+        assert.equal(no1, test_util.countObject('Buffer'));
 
         var a = sbox.addScript("t1.js", "module.exports = {a : new Buffer()};");
-        assert.equal(no1 + 1, buffer_count());
+        assert.equal(no1 + 1, test_util.countObject('Buffer'));
 
         sbox = undefined;
 
         GC();
-        assert.equal(no1 + 1, buffer_count());
+        assert.equal(no1 + 1, test_util.countObject('Buffer'));
 
         a = undefined;
 
         GC();
-        assert.equal(no1, buffer_count());
+        assert.equal(no1, test_util.countObject('Buffer'));
     });
 
     it("Garbage Collection 1", () => {
         GC();
-        var no1 = buffer_count();
+        var no1 = test_util.countObject('Buffer');
 
         var a = {
             b: new vm.SandBox({}).addScript('b.js', "module.exports = new Buffer()")
         };
-        assert.equal(no1 + 1, buffer_count());
+        assert.equal(no1 + 1, test_util.countObject('Buffer'));
 
         a = undefined;
         GC();
 
-        assert.equal(no1, buffer_count());
+        assert.equal(no1, test_util.countObject('Buffer'));
     });
 });
 

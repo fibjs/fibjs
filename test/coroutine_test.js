@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('./test_util');
+
 var os = require('os');
 var net = require('net');
 var coroutine = require('coroutine');
@@ -36,18 +38,18 @@ describe('coroutine', () => {
 
         it("Memory Leak detect", () => {
             GC();
-            var no1 = os.memoryUsage().nativeObjects.objects;
+            var no1 = test_util.countObject('Buffer');
             var f = coroutine.start((v) => {}, new Buffer());
             GC();
-            assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1 + 1, test_util.countObject('Buffer'));
             f.join();
 
             GC();
-            assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1, test_util.countObject('Buffer'));
 
             f = undefined;
             GC();
-            assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1, test_util.countObject('Buffer'));
         });
 
         it('Fiber-local storage', () => {

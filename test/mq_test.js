@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('./test_util');
+
 var mq = require('mq');
 var http = require('http');
 var net = require('net');
@@ -162,18 +164,18 @@ describe("mq", () => {
             ss.push(svr.socket);
 
             GC();
-            var no1 = os.memoryUsage().nativeObjects.objects;
+            var no1 = test_util.countObject('Chain');
 
             svr.handler = new mq.Chain([(v) => {}, (v) => {}]);
 
             GC();
-            assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1 + 1, test_util.countObject('Chain'));
 
             svr.handler = (v) => {};
             svr = undefined;
 
             GC();
-            assert.equal(no1 - 3, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1, test_util.countObject('Chain'));
         });
     });
 
@@ -391,7 +393,7 @@ describe("mq", () => {
             ss.push(svr.socket);
 
             GC();
-            var no1 = os.memoryUsage().nativeObjects.objects;
+            var no1 = test_util.countObject('Routing');
 
             svr.handler = new mq.Routing({
                 "^/api/a$": (v) => {},
@@ -399,13 +401,13 @@ describe("mq", () => {
             });
 
             GC();
-            assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1 + 1, test_util.countObject('Routing'));
 
             svr.handler = (v) => {};
             svr = undefined;
 
             GC();
-            assert.equal(no1 - 3, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1, test_util.countObject('Routing'));
         });
     });
 

@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('./test_util');
+
 var net = require('net');
 var fs = require('fs');
 var os = require('os');
@@ -43,7 +45,7 @@ var backend = {
 function del(f) {
     try {
         fs.unlink(f);
-    } catch (e) { }
+    } catch (e) {}
 }
 
 describe("net", () => {
@@ -354,14 +356,18 @@ describe("net", () => {
         coroutine.start(accept4, s2);
 
         var c1 = new net.Socket();
-        c1.connect('127.0.0.1', 8085 + base_port);
 
         c1.timeout = 50;
+
+        var no = test_util.countObject('Timer');
+        c1.connect('127.0.0.1', 8085 + base_port);
+        assert.equal(no, test_util.countObject('Timer'));
 
         var t1 = new Date();
         assert.throws(() => {
             c1.recv();
         });
+        assert.equal(no, test_util.countObject('Timer'));
         var t2 = new Date();
 
         assert.greaterThan(t2 - t1, 49);
@@ -373,6 +379,8 @@ describe("net", () => {
         assert.throws(() => {
             c2.connect('192.166.166.166', 8086 + base_port);
         });
+        coroutine.sleep(10);
+        assert.equal(no, test_util.countObject('Timer'));
         var t2 = new Date();
 
         assert.greaterThan(t2 - t1, 40);
@@ -380,10 +388,11 @@ describe("net", () => {
     });
 
     it("bind same port", () => {
-        new net.TcpServer(8811 + base_port, (c) => { });
+        var svr = new net.TcpServer(8811 + base_port, (c) => {});
         assert.throws(() => {
-            new net.TcpServer(8811 + base_port, (c) => { });
+            new net.TcpServer(8811 + base_port, (c) => {});
         });
+        ss.push(svr.socket);
     });
 
     it("stats", () => {
@@ -475,9 +484,9 @@ describe("net", () => {
         GC();
         coroutine.sleep(100);
         GC();
-        no1 = os.memoryUsage().nativeObjects.objects;
+        no1 = test_util.countObject('Socket');
 
-        ss = new net.TcpServer(9812, (c) => { });
+        ss = new net.TcpServer(9812, (c) => {});
         coroutine.start(() => {
             ss.run();
         });
@@ -488,9 +497,9 @@ describe("net", () => {
         coroutine.sleep(50);
 
         GC();
-        assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+        assert.equal(no1, test_util.countObject('Socket'));
 
-        ss = new net.TcpServer(9813, (c) => { });
+        ss = new net.TcpServer(9813, (c) => {});
         ss.asyncRun();
 
         coroutine.sleep(50);
@@ -499,16 +508,16 @@ describe("net", () => {
         coroutine.sleep(50);
 
         GC();
-        assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+        assert.equal(no1, test_util.countObject('Socket'));
 
         (() => {
-            var s = new net.TcpServer(9884, () => { });
+            var s = new net.TcpServer(9884, () => {});
         })();
 
         coroutine.sleep(50);
 
         GC();
-        assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+        assert.equal(no1, test_util.countObject('Socket'));
     });
 
     if (global.full_test)

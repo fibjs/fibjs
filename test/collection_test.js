@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('./test_util');
+
 var collection = require('collection');
 var os = require('os');
 
@@ -114,18 +116,18 @@ describe("collection", () => {
         it("Memory Leak detect", () => {
             var a = new collection.List();
             GC();
-            var no1 = os.memoryUsage().nativeObjects.objects;
+            var no1 = test_util.countObject('Buffer');
             a.push(new Buffer());
             GC();
-            assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1 + 1, test_util.countObject('Buffer'));
             a.resize(0);
             a = undefined;
             GC();
-            assert.equal(no1 - 1, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1, test_util.countObject('Buffer'));
             new Buffer();
-            assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1 + 1, test_util.countObject('Buffer'));
             GC();
-            assert.equal(no1 - 1, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1, test_util.countObject('Buffer'));
         });
 
         it("toArray", () => {
