@@ -1352,6 +1352,8 @@ describe("http", () => {
                 assert.throws(() => {
                     client.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout")
                 });
+                for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++)
+                    coroutine.sleep(1);
                 assert.equal(no, test_util.countObject('Timer'));
             });
 
@@ -1360,6 +1362,8 @@ describe("http", () => {
                 var no = test_util.countObject('Timer');
                 assert.equal(client.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout").body.readAll().toString(),
                     "/timeout");
+                for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++)
+                    coroutine.sleep(1);
                 assert.equal(no, test_util.countObject('Timer'));
             });
 
