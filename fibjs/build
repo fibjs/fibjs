@@ -178,8 +178,8 @@ if [ "${BUILD_TYPE}" = "release" ]; then
 	tar -zcf fibjs.tar.gz fibjs
 	cat fibjs.tar.gz >> installer.sh
 	chmod 777 installer.sh
-	rm fibjs*
 	mv js fibjs
+	xz -cz fibjs > fibjs.xz
 	echo '[100%] Built target install.sh'
 fi
 
