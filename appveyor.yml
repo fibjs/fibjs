@@ -18,9 +18,11 @@ test_script:
   - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs.exe .\dist\fibjs-windows-x64.exe
   - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs_gui.exe .\dist\fibjs-gui-windows-x64.exe
   - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\installer.exe .\dist\installer-windows-x64.exe
+  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs.cab .\dist\fibjs-windows-x64.cab
   - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs.exe .\dist\fibjs-windows-x86.exe
   - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs_gui.exe .\dist\fibjs-gui-windows-x86.exe
   - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\installer.exe .\dist\installer-windows-x86.exe
+  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_i386_release\fibjs.cab .\dist\fibjs-windows-x86.cab
 matrix:
   fast_finish: true
 artifacts:
@@ -28,6 +30,8 @@ artifacts:
     name: fibjs-windows-x64.exe
   - path: dist\fibjs-gui-windows-x64.exe
     name: fibjs-gui-windows-x64.exe
+  - path: dist\fibjs-windows-x64.cab
+    name: fibjs-windows-x64.cab
   - path: dist\installer-windows-x64.exe
     name: installer-windows-x64.exe
   - path: dist\fibjs-windows-x86.exe
@@ -36,11 +40,13 @@ artifacts:
     name: fibjs-gui-windows-x86.exe
   - path: dist\installer-windows-x86.exe
     name: installer-windows-x86.exe
+  - path: dist\fibjs-windows-x86.cab
+    name: fibjs-windows-x86.cab
 deploy:
   provider: GitHub
   auth_token:
     secure: 16VBdcQ419efvcrd4msOXpevoyHAo+oe5Xyq0bmw4DU+UNSf5cNoJwbOvB5LLve2
-  artifact: /.*\.exe/
+  artifact: /.*\.exe|.*\.cab/
   draft: false
   prerelease: false
   on:
