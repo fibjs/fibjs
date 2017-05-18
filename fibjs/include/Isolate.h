@@ -93,12 +93,12 @@ public:
     exlib::List<exlib::linkitem> m_weak;
 
     v8::Isolate* m_isolate;
-    v8::Persistent<v8::Context> m_context;
-    v8::Persistent<v8::Object> m_env;
+    v8::Global<v8::Context> m_context;
+    v8::Global<v8::Object> m_env;
 
-    v8::Persistent<v8::Value> m_proto;
-    v8::Persistent<v8::Object> m_json;
-    v8::Persistent<v8::Function> m_stringify;
+    v8::Global<v8::Value> m_proto;
+    v8::Global<v8::Object> m_json;
+    v8::Global<v8::Function> m_stringify;
 
     obj_ptr<SandBox> m_topSandbox;
     obj_ptr<obj_base> m_httpclient;

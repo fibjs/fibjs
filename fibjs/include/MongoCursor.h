@@ -77,7 +77,7 @@ private:
     bson m_bbq, m_bbp;
     bool m_bInit;
     bool m_bSpecial;
-    v8::Persistent<v8::Object> m_query;
+    v8::Global<v8::Object> m_query;
     enum {
         CUR_NONE,
         CUR_DATA,

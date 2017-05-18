@@ -88,7 +88,7 @@ public:
     exlib::Locker m_lock;
 
 private:
-    v8::Persistent<v8::Object> handle_;
+    v8::Global<v8::Object> handle_;
 
 public:
     static void gc_delete(exlib::linkitem* node)

@@ -386,7 +386,7 @@ protected:
 
 protected:
     obj_ptr<object_base> m_pThis;
-    v8::Persistent<v8::Function> m_cb;
+    v8::Global<v8::Function> m_cb;
 
 private:
     Isolate* m_isolate;
