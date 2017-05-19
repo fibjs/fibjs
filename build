@@ -11,6 +11,8 @@ usage()
 	echo "      Specifies the architecture for code generation."
 	echo "  clean: "
 	echo "      Clean the build folder."
+	echo "  ci: "
+	echo "      Specifies the environment is CI."
 	echo "  -h, --help:"
 	echo "      Print this message and exit."
 	echo "  -j: enable make '-j' option."
@@ -54,6 +56,8 @@ do
 		i386|amd64|arm|arm64|mips|mips64|ppc|ppc64) TARGET_ARCH=$i
 			;;
 		release|debug|clean) BUILD_TYPE=$i
+			;;
+		ci) CI="ci"
 			;;
 		-j*) ENABLE_JOBS=1; BUILD_JOBS="${i#-j}"
 			;;
@@ -184,7 +188,7 @@ else
 fi
 
 cd fibjs
-sh build $BUILD_TYPE $TARGET_ARCH
+sh build $BUILD_TYPE $TARGET_ARCH $CI
 if [ $? != 0 ]; then
 	exit 1
 fi
