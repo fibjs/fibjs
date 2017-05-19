@@ -181,8 +181,10 @@ if [ "${BUILD_TYPE}" = "release" ]; then
 	echo '[100%] Built target install.sh'
 	chmod 777 installer.sh
 	mv js fibjs
-	xz -cz fibjs > fibjs.xz
-	echo '[100%] Built target fibjs.xz'
+	if [ "${CI}" = "true" ]; then
+		xz -cz -T2 fibjs > fibjs.xz
+		echo '[100%] Built target fibjs.xz'
+	fi
 fi
 
 cd "${FIBJS_PATH}"
