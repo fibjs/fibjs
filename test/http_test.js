@@ -1239,6 +1239,7 @@ describe("http", () => {
 
         before(() => {
             http.enableCookie = true;
+            var pcnt = 0;
             svr = new http.Server(8884 + base_port, (r) => {
                 var port = 8884 + base_port;
                 cookie = r.headers.cookie;
@@ -1264,6 +1265,11 @@ describe("http", () => {
                     r.response.redirect("../g");
                 } else if (r.address == "/redirect1") {
                     r.response.redirect("http://127.0.0.1:" + (8884 + base_port) + "/redirect1");
+                } else if (r.address == '/parallel') {
+                    var n = pcnt++;
+                    coroutine.sleep(100);
+                    var n1 = pcnt++;
+                    r.response.write(new String(n1 - n - 1));
                 } else if (r.address != "/gzip_test") {
                     r.response.addHeader("set-cookie", "request=value; domain=127.0.0.1; path=/request");
                     r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1; path=/request");
@@ -1325,6 +1331,12 @@ describe("http", () => {
                 assert.equal(cookie, "root=value2; gzip_test=value");
             });
 
+            it('parallel', () => {
+                var rs = coroutine.parallel(() => {
+                    return client.get("http://127.0.0.1:" + (8884 + base_port) + "/parallel").body.readAll().toString();
+                }, 2);
+                assert.ok(rs[0] !== '0' || rs[1] !== '0');
+            });
         });
 
         describe("disable client cookie", () => {
@@ -1367,20 +1379,20 @@ describe("http", () => {
                 assert.equal(no, test_util.countObject('Timer'));
             });
 
-            xit("global overtime", () => {
+            it("global overtime", () => {
                 http.timeout = 200;
                 assert.throws(() => {
                     http.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout")
                 });
             });
 
-            xit("global intime", () => {
+            it("global intime", () => {
                 http.timeout = 1000;
                 assert.equal(http.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout").body.readAll().toString(),
                     "/timeout");
             });
 
-            xit("autoredirect", () => {
+            it("autoredirect", () => {
                 assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/c').body.readAll().toString(),
                     "/d");
                 assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/d').body.readAll().toString(),
@@ -1389,7 +1401,7 @@ describe("http", () => {
                     "/redirect/a/g");
             });
 
-            xit("disable autoredirect", () => {
+            it("disable autoredirect", () => {
                 http.autoRedirect = false;
                 var resp = http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect');
                 assert.equal(resp.headers.location, "request");
