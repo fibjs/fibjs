@@ -19,6 +19,7 @@ install:
   - git submodule init
   - git submodule update
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull fibjs/build-env:latest; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install xz; fi
 script:
   - echo "${ARCH}"
   - ./.travis/build.sh
