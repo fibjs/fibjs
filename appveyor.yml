@@ -22,7 +22,7 @@ test_script:
   - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs.exe .\dist\fibjs-windows-x86.exe
   - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs_gui.exe .\dist\fibjs-gui-windows-x86.exe
   - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\installer.exe .\dist\installer-windows-x86.exe
-  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_i386_release\fibjs.cab .\dist\fibjs-windows-x86.cab
+  - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs.cab .\dist\fibjs-windows-x86.cab
 matrix:
   fast_finish: true
 artifacts:
