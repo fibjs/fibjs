@@ -1,3 +1,38 @@
+## 2017-05-20, Version v0.3.1 @ngot
+
+* **bugfix** :
+  * util.compile function export error.
+  * fix Timer.clear release error.
+* **feature** :
+  * HttpClient: enable parallel query
+* **internal** :
+  * upgrade V8 to 6.0.252
+
+### Commits
+
+* [[`02426d5371`](https://github.com/fibjs/fibjs/commit/02426d5371)] - **ci, feat**: add ssh deploy (#218) (ngot)
+* [[`59d743dacc`](https://github.com/fibjs/fibjs/commit/59d743dacc)] - **util, bugfix**: util.compile function export error. (xicilion)
+* [[`51af1f60d7`](https://github.com/fibjs/fibjs/commit/51af1f60d7)] - **ci, fix**: osx lost xz deps (ngot)
+* [[`0c055cd114`](https://github.com/fibjs/fibjs/commit/0c055cd114)] - **ci, fix**: osx build (ngot)
+* [[`82b0aad977`](https://github.com/fibjs/fibjs/commit/82b0aad977)] - **ci, refacor**: rename gui (ngot)
+* [[`64b5d53a81`](https://github.com/fibjs/fibjs/commit/64b5d53a81)] - **ci, fix**: add env param (ngot)
+* [[`0edf3dcdb9`](https://github.com/fibjs/fibjs/commit/0edf3dcdb9)] - **ci, refactor**: only ci env run the xz compress (ngot)
+* [[`4529e4ba0d`](https://github.com/fibjs/fibjs/commit/4529e4ba0d)] - **ci, chore**:output build step message. (xicilion)
+* [[`a4e84fd00f`](https://github.com/fibjs/fibjs/commit/a4e84fd00f)] - **http, test**:HttpClient parallel query test. (xicilion)
+* [[`53946382d9`](https://github.com/fibjs/fibjs/commit/53946382d9)] - **http, feat**: enable parallel query (xicilion)
+* [[`7285222e6e`](https://github.com/fibjs/fibjs/commit/7285222e6e)] - **ci, feat**: enable overwrite when build failed (ngot)
+* [[`ff0db46997`](https://github.com/fibjs/fibjs/commit/ff0db46997)] - **ci, fix**: windows x86 cab release (ngot)
+* [[`f339104932`](https://github.com/fibjs/fibjs/commit/f339104932)] - **ci, feat**: windows cab files (ngot)
+* [[`9bcc013036`](https://github.com/fibjs/fibjs/commit/9bcc013036)] - **ci, feat**: release compress files (ngot)
+* [[`3a05b3199b`](https://github.com/fibjs/fibjs/commit/3a05b3199b)] - **deps, feat**: upgrade to v8::Global interface. (xicilion)
+* [[`d29ca964f3`](https://github.com/fibjs/fibjs/commit/d29ca964f3)] - **internal, deps**: upgrade v8 to 6.0.252 (xicilion)
+* [[`2c6b793304`](https://github.com/fibjs/fibjs/commit/2c6b793304)] - **test, bugfix**: Wait for the timer to release (xicilion)
+* [[`0903f95dff`](https://github.com/fibjs/fibjs/commit/0903f95dff)] - **test, refactor**: rewrite GC test case. (xicilion)
+* [[`82f0041590`](https://github.com/fibjs/fibjs/commit/82f0041590)] - **timer, bugfix**: fix Timer.clear release error. (xicilion)
+* [[`29a8389ca6`](https://github.com/fibjs/fibjs/commit/29a8389ca6)] - **internal, deps**: upgrade v8 (xicilion)
+* [[`6168c1ecf2`](https://github.com/fibjs/fibjs/commit/6168c1ecf2)] - **doc, feat**: add gitter badge (ngot)
+* [[`3046566b2b`](https://github.com/fibjs/fibjs/commit/3046566b2b)] - **chore, badge**: change build image (#208) (ngot)
+
 ## 2017-05-13, Version v0.3.0 @ngot
 
 Good news, we will land the ES6 Module support in the 1.0.0. Before that, we still have a lot of work to do.
