@@ -981,7 +981,7 @@ describe("http", () => {
         });
 
         describe("zip virtual file", () => {
-            var zurl = base_port + 'test.html.zip?/test.html';
+            var zurl = base_port + 'test.html.zip$/test.html';
 
             before(() => {
                 var zipfile = zip.open(base_port + 'test.html.zip', "w");
