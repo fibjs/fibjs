@@ -111,11 +111,11 @@ pkg install git
 
 @subsection install_step2 第二步：获取代码
 
-fibjs 当前 github 地址为：https://github.com/xicilion/fibjs
+fibjs 当前 github 地址为：https://github.com/fibjs/fibjs
 
 在合适的位置执行以下命令：
 @code
-git clone https://github.com/xicilion/fibjs.git
+git clone https://github.com/fibjs/fibjs.git
 cd fibjs
 git submodule init
 git submodule update
