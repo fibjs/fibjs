@@ -2,37 +2,53 @@ dist: trusty
 language: cpp
 services:
   - docker
+addons:
+  ssh_known_hosts: fibjs.org
+  apt:
+    packages:
+      - sshpass
 env:
+  global:
+    - secure: d3bZyFmhqWD/Ul/SIz36xKzItIjeOZtCPf1Kpt6PShpGRWlBNfpFJRrvyqg+ZUl+afSYJqeg9tfkB93IFcFraaPejUCAmIDNg2GtaETfNMU2V60hoHRQMe+PtJ9cIxpxutOWteKFpSP2DVepbYS7AsiXZPOTsEeOBZX7pgK9/7YSN6Ag3+JapbHqzbbJHhnCg1/eAbWB024kPRaLxa12MmlMR080P2NM27g3QISSMXd1ZFp8IWrsWSyOYdkyGoKZOSxCpJLC2lR5ihXeYpyDCQKifdL9X9VichcIJmL0+KUeDcCRecG7NK4gr3+q1fHPzXASFVc7QJZ1RiwaPiFbexZSj2zruj7//BYXeWVZ33h0sCNh5BzfUozyM+NloxTs+4iY5V/oZEjCHWrDA2TIAqIqxJXkYXmrf0ApXjSTTsIgPjfZgvH955dfSJE5F6gTy9hDqoleX9EZHHRFAXRTgubUjHIo+UWxIIc4TabBZm2KYQIIg6ggfFmT4HzbaxDLxr2CBAlbWGb5P6h3+UdzqRu48EkeVfQjlFG4Z7cX39gWLt/hZvEzaCMBrWHzKT09kM08jrPtEYcebFYm5+TcrFr2Ioy4Z5c4o42GQa33DQHGgzf80CFvsH9TLftAJVuXOlBS1anfkApmQBxx1El2GEjGNmOdddKJm2aJXyuVGzg=
+    - secure: HSU6dobF1ermw1ynexbUGaj3h+ZIfECWQ7WVWsh/rOUEj+SVxjfUU1YqV9rqxNgZ/C9MVy7LFgsTy63BKg7fzeON9J85KSCsA2gH8XNxrLaSaeti5fiot3rba7kYqpN8Lg+hnz1DqP8tsFmWX1eGuJa8dQCmTASPSlxP53siLkoOqQfCTcD0NXQvIdsRr4CyQkl2vwqA+273musGkbUKt5nZkhlAAFkYLXCj5+z9HA0+JvoSsDNNep7dcY5TvUQbCGDqLVEinjLC0iINuMXNm0W7TDnEKw5/DGYtPuV2RWtLMGU09K92cI+DccGjMW7zU7XcyJIUmbWYxzsS59yYbiYJzdSXSh8yW7fGYbYgkk2Qu6iVmP+h+cft4fYtTJKuR1GjA3eQUYCzyA4srpJ/H23A9yStN7HmeSeF83mluhmvYWOS9EthlcuMV4GovT//nIJ8j/1t/x11iFVm2HVwQ+8BqlIpHxPQL4ptSpSm5Qq0v8cgZ6U6sD/T/aAK1BSsV0AcleSYzad+fhZPt0zWm39b7W8F/mdbSzILQy6ja7mNvKT4fkc28SLPkWFQfn8qhF+4EtwXkb3rKykQzPOO+jCLgBK3Y3aPloSS81ywU01VOEFOJdPrzot0perllANPk+NPBv8f60178DFIpy2U1rqs/gas10vJZ+HHcoB8l2Q=
+    - secure: IZoB4Uh0TALe8zG3OQDhIUXWy1fC2EjHP09sWrIVJXrUZQiCLgbYR2r1Lll49Nsb2Lk4x5Jp2YluCfXMjM4VV5Vr41oQUgPc3Mar6WxjfL9zJMzc2Hl5wOwG8MOdr9jt0Y5ojA/KJDFj2JJ3uCInld+aOCb/e8+P8namZwzMJfIZ0TLc75dszGN5P//IPXGphFph6St/LEghsuKOvci5WDSFdZL3WmP7+2hJbCIJ5HOY+hln6rOSU4/517JuZ/WhhQFwZKpLX1u2B4rTDSQcVYQmxrHV+w1r5yzG2rqlre6AkLPv70vMvNhTNoZo0UWhFOYLeYGNRYXlJciIFuDO8dMLlUF03L+cC7U4AYLQZg+w8uCQUdXv3fc00SHh5+B6o1PYZFB5GT/uOnGLFmvTq6d7SikKgBM+9n2Xa8fN5H3BRi+rS4a05KQ8h/5NUKwbUeeKgSBxxTBFgvXq/mHiuM1I8DssGr1tlRvx2Nsk6Y+aYgwxbgFUAR9uitidaTMVlac+LNrCjoEFPqH8VIEX3ngxYn6BUXNCp/w1U7UBGasxXi3kkeA842uHAak69zHZDc7m04/xuD/Y7tCZRnd++xFG6er51XZ8BKfnktIDnz6t2Cx9aub2hCUyELTQS2qIFvnDNBdwvaa16A4WEX8lmpACcwnwHycAksQrNTJ6ZA0=
+    - secure: lwTCTxo3vzF7ZHg2YerGWKutSgbCZfAeQRtkjfPXFMRYIrkMfySuZQC0ps35/TT+vPGRgGKGmNyA4pnzTZDGj6XlcTc7zmMYLqVW2+vvVlHgMT7Y9dnbofLZISByB80puMOmpetPmghg4nvmN6l/F+kZWRF3eNStnMtiLeY/EMCvTtCWEc5QFLvjEdnvjwz4B6F6LPAUiHb2zgE1/bUpDzQlVuIIZIBOtz8x/6OqMujQRyXuFRd7a578l+Hf9BLmJVyv7XWzvtT2f0Z+DjrGJOm6HShNhm7739zO5LZbxTOksRZ2U2DUNc0rw7XO5hT/pkLwiFqigPAfI+bjRhS/HbYTmrTjzIrGSPb9wmYeLUW+eI9skzC/mA5OkBQCCo16N6KE/d+fl6C2MIncSYEc3nJTViGRm92zQuP4xVKEj+lQFYdK90tKNGqeLhRE5DNZ0ELISAQFOIEGQluWl+zautyxj38Hf7CG7VJeh0KrwfRsaKktarIucMySnlTxOBFSIBAhPoA+dIbzJcZORLDLOZS9xKRbo8honrFLwGIdLN40zs2L3YmpBY+lmv/y2h5oWsby3sojf2sk+AuhXk+2IKaZTELf1ab+IV9Yfy/Kcus5VJnZdmKQeJUGxXaA1Bg/YMUbQovcv31Mwz4v4/gcWBQ7CMUAa2yF+ccpQPzyGcw=
+matrix:
+  include:
+  - os: osx
+    osx_image: xcode8.2
+    env:
+      - ARCH=amd64
   - ARCH=amd64
   - ARCH=i386
   - ARCH=arm
   - ARCH=arm64
   - ARCH=mips
   - ARCH=mips64
-matrix:
-  include:
-    - os: osx
-      osx_image: xcode8.2
-      env:
-        - ARCH=amd64
 install:
   - git submodule init
   - git submodule update
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull fibjs/build-env:latest; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull fibjs/build-env:latest;fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install xz; fi
 script:
   - echo "${ARCH}"
-  - ./.travis/build.sh
-  - ./.travis/test.sh
-  - ./.travis/release.sh
+  - "./.travis/build.sh"
+  - "./.travis/test.sh"
+  - "./.travis/release.sh"
 deploy:
-  provider: releases
-  api_key:
-    secure: e8Vlz6ZGelHDh7FXXu39xuGBk08jSXfmddJKG2nAg3HfXKXOEPniVKXtlsCpXD7FrzAo23V3caKBdFRye785JCJ1Xgf6rJx1lwB/0uAYaYYqq+DIVsiK+w3IoaZWvf/yEw6wYXsGI2jgUz3RIinETr/HomO5HAFAQHwbHqL6Jn8=
-  file_glob: true
-  file: dist/*
-  skip_cleanup: true
-  overwrite: true
-  on:
-    tags: true
-    repo: fibjs/fibjs
+  - provider: releases
+    api_key:
+      secure: e8Vlz6ZGelHDh7FXXu39xuGBk08jSXfmddJKG2nAg3HfXKXOEPniVKXtlsCpXD7FrzAo23V3caKBdFRye785JCJ1Xgf6rJx1lwB/0uAYaYYqq+DIVsiK+w3IoaZWvf/yEw6wYXsGI2jgUz3RIinETr/HomO5HAFAQHwbHqL6Jn8=
+    file_glob: true
+    file: dist/*
+    skip_cleanup: true
+    overwrite: true
+    on:
+      tags: true
+      repo: fibjs/fibjs
+  - provider: script
+    script: "./.travis/deploy.sh"
+    skip_cleanup: true
+    on:
+      tags: true
+      repo: fibjs/fibjs
