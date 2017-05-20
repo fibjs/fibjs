@@ -20,7 +20,7 @@ fibjs is a JavaScript runtime built on Chrome's V8 JavaScript engine.  fibjs use
 
 ## Download
 
-- [https://github.com/fibjs/fibjs/releases](https://github.com/fibjs/fibjs/releases)
+- [http://fibjs.org/downloads/](http://fibjs.org/downloads/)
 
 ## Documentation
 
