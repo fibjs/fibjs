@@ -14,6 +14,8 @@
 namespace fibjs {
 
 class HttpClient : public HttpClient_base {
+    FIBER_FREE();
+
 public:
     HttpClient()
         : m_timeout(0)

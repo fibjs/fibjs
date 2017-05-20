@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('./test_util');
+
 var os = require("os");
 
 var win = process.platform == 'win32';
@@ -49,13 +51,13 @@ if (win) {
             win.close();
             win = undefined;
 
-            for (var i = 0; i < 1000 && has_class(os.memoryUsage().nativeObjects, 'WebView'); i++) {
+            for (var i = 0; i < 1000 && test_util.countObject('WebView'); i++) {
                 coroutine.sleep(100);
                 GC();
             }
 
             GC();
-            assert.notOk(has_class(os.memoryUsage().nativeObjects, 'WebView'));
+            assert.equal(test_util.countObject('WebView'), 0);
         });
     });
 }

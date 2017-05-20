@@ -2,35 +2,65 @@ dist: trusty
 language: cpp
 services:
   - docker
+addons:
+  ssh_known_hosts: fibjs.org
+  apt:
+    packages:
+      - sshpass
 env:
-  - ARCH=amd64
-  - ARCH=i386
-  - ARCH=arm
-  - ARCH=arm64
-  - ARCH=mips
-  - ARCH=mips64
+  global:
+    - secure: GnxtHxKJE9tWEoJ81UvtIT4NR2e0FehFq8z+5WbG0imbwSFrXYj0cKE8hDpyYZ6maGOL8lhZdjYfj3GU0pngDzGLKGUOyi5YgMMBtxdqk/kpB9RhIOfwuiBW+cbClIoaR6JCVErF4KFV6P/aTM3WKY7P4YArupt/EQ8lWxs6HcI=
+    - secure: O5ikUYy3s7vuSg10a9jNv1x6e1jivMwWzuO9EWSZsXne9XcGJccry9xqLLynF/FgaHqRByk5tzhPmbMAW0jzWh+lj/mSyXz9Is+9WgS9RZHxPhTIKPmSPtxZGoGvFB9PIeD+rO7/9uXZCaY1Dh1mwaBGoDEM1njBKFL4lbfxGUI=
+    - secure: f3jaeAd2cd7Td2HzepuhEZ6t6Sk/Lscck/Yt3D4e6qCm+gxlG+n+1oWdIAyPgwMLYm9VfnHnoQnwBD1moLL77Ore7YbL2ssu0ZUPyzwh64Z4jP0/sIBZF7suSVPrTAKtvy2dYzC63URX2nnhit4o5KZPg9dbimdZAObb3VEovVo=
+    - secure: jAYOkZJpJ7A7FFhq7VmYJx5F7Y8BxkzRTdvF+t5RWu3/9dPfLR8wQTyji5V6fd2zj/IhR+T/PvcHKLCjNJN8W27NHoLLeQDUNgZKTqJ/HMt/bvtn0+Xxs3D/nRMt3zEIh5FPHYYCtB6WWn53gS0VGC42aS4065320PpgIk81AdE=
 matrix:
   include:
     - os: osx
       osx_image: xcode8.2
       env:
         - ARCH=amd64
+    - os: linux
+      env:
+        - ARCH=amd64
+    - os: linux
+      env:
+        - ARCH=i386
+    - os: linux
+      env:
+        - ARCH=arm
+    - os: linux
+      env:
+        - ARCH=arm64
+    - os: linux
+      env:
+        - ARCH=mips
+    - os: linux
+      env:
+        - ARCH=mips64
 install:
   - git submodule init
   - git submodule update
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull fibjs/fibjs:build-env; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull fibjs/build-env:latest; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install xz; fi
 script:
   - echo "${ARCH}"
   - ./.travis/build.sh
   - ./.travis/test.sh
   - ./.travis/release.sh
 deploy:
-  provider: releases
-  api_key:
-    secure: e8Vlz6ZGelHDh7FXXu39xuGBk08jSXfmddJKG2nAg3HfXKXOEPniVKXtlsCpXD7FrzAo23V3caKBdFRye785JCJ1Xgf6rJx1lwB/0uAYaYYqq+DIVsiK+w3IoaZWvf/yEw6wYXsGI2jgUz3RIinETr/HomO5HAFAQHwbHqL6Jn8=
-  file_glob: true
-  file: dist/*
-  skip_cleanup: true
-  on:
-    tags: true
-    repo: fibjs/fibjs
+  - provider: releases
+    api_key:
+      secure: e8Vlz6ZGelHDh7FXXu39xuGBk08jSXfmddJKG2nAg3HfXKXOEPniVKXtlsCpXD7FrzAo23V3caKBdFRye785JCJ1Xgf6rJx1lwB/0uAYaYYqq+DIVsiK+w3IoaZWvf/yEw6wYXsGI2jgUz3RIinETr/HomO5HAFAQHwbHqL6Jn8=
+    file_glob: true
+    file: ${TRAVIS_TAG}/*
+    skip_cleanup: true
+    overwrite: true
+    on:
+      tags: true
+      repo: fibjs/fibjs
+  - provider: script
+    script: "./.travis/deploy.sh"
+    skip_cleanup: true
+    on:
+      tags: true
+      repo: fibjs/fibjs

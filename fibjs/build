@@ -11,6 +11,8 @@ usage()
 	echo "      Specifies the architecture for code generation."
 	echo "  clean: "
 	echo "      Clean the build folder."
+	echo "  ci: "
+	echo "      Specifies the environment is CI."
 	echo "  -h, --help:"
 	echo "      Print this message and exit."
 	echo ""
@@ -51,6 +53,8 @@ do
 		i386|amd64|arm|arm64|mips|mips64|ppc|ppc64) TARGET_ARCH=$i
 			;;
 		release|debug|clean) BUILD_TYPE=$i
+			;;
+			ci) CI="ci"
 			;;
   --help|-h) usage
 			;;
@@ -176,11 +180,15 @@ if [ "${BUILD_TYPE}" = "release" ]; then
 	cp fibjs js
 	${BUILD_PREFIX}strip js -o fibjs
 	tar -zcf fibjs.tar.gz fibjs
+	echo '[100%] Built target fibjs.tar.gz'
 	cat fibjs.tar.gz >> installer.sh
-	chmod 777 installer.sh
-	rm fibjs*
-	mv js fibjs
 	echo '[100%] Built target install.sh'
+	chmod 777 installer.sh
+	mv js fibjs
+	if [ "${CI}" = "ci" ]; then
+		xz -cz -T2 fibjs > fibjs.xz
+		echo '[100%] Built target fibjs.xz'
+	fi
 fi
 
 cd "${FIBJS_PATH}"

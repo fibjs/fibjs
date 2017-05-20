@@ -74,9 +74,9 @@ public:
         }
 
     public:
-        v8::Persistent<v8::FunctionTemplate> m_class;
-        v8::Persistent<v8::Function> m_function;
-        v8::Persistent<v8::Object> m_cache;
+        v8::Global<v8::FunctionTemplate> m_class;
+        v8::Global<v8::Function> m_function;
+        v8::Global<v8::Object> m_cache;
         bool m_init_isolate;
     };
 

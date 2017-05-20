@@ -1,31 +1,24 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('test_util');
+
 var coroutine = require("coroutine");
 var os = require("os");
-
-function timer_count() {
-    var cnt = 0;
-    os.memoryUsage().nativeObjects.inherits.forEach((v) => {
-        if (v['class'] === 'Timer')
-            cnt += v.objects;
-    });
-    return cnt;
-}
 
 describe("timer", () => {
     it("setTimeout", () => {
         var n = 0;
 
         GC();
-        var no1 = timer_count();
+        var no1 = test_util.countObject('Timer');
 
         setTimeout(() => {
             n = 1;
         }, 1);
 
         GC();
-        var no2 = timer_count();
+        var no2 = test_util.countObject('Timer');
         assert.equal(no1 + 1, no2);
 
         assert.equal(n, 0);
@@ -34,7 +27,7 @@ describe("timer", () => {
         assert.equal(n, 1);
 
         GC();
-        no2 = timer_count();
+        no2 = test_util.countObject('Timer');
         assert.equal(no1, no2);
     });
 
@@ -42,7 +35,7 @@ describe("timer", () => {
         var n = 0;
 
         GC();
-        var no1 = timer_count();
+        var no1 = test_util.countObject('Timer');
 
         var t = setTimeout(() => {
             n = 1;
@@ -55,7 +48,7 @@ describe("timer", () => {
         assert.equal(n, 0);
 
         GC();
-        var no2 = timer_count();
+        var no2 = test_util.countObject('Timer');
         assert.equal(no1, no2);
     });
 
@@ -75,14 +68,14 @@ describe("timer", () => {
         var n = 0;
 
         GC();
-        var no1 = timer_count();
+        var no1 = test_util.countObject('Timer');
 
         setImmediate(() => {
             n = 1;
         });
 
         GC();
-        var no2 = timer_count();
+        var no2 = test_util.countObject('Timer');
         assert.equal(no1 + 1, no2);
 
         assert.equal(n, 0);
@@ -91,7 +84,7 @@ describe("timer", () => {
         assert.equal(n, 1);
 
         GC();
-        no2 = timer_count();
+        no2 = test_util.countObject('Timer');
         assert.equal(no1, no2);
     });
 
@@ -99,7 +92,7 @@ describe("timer", () => {
         var n = 0;
 
         GC();
-        var no1 = timer_count();
+        var no1 = test_util.countObject('Timer');
 
         var t = setImmediate(() => {
             n = 1;
@@ -112,7 +105,7 @@ describe("timer", () => {
         assert.equal(n, 0);
 
         GC();
-        var no2 = timer_count();
+        var no2 = test_util.countObject('Timer');
         assert.equal(no1, no2);
     });
 
@@ -120,7 +113,7 @@ describe("timer", () => {
         var n = 0;
 
         GC();
-        var no1 = timer_count();
+        var no1 = test_util.countObject('Timer');
 
         var t = setInterval(() => {
             if (n < 2)
@@ -128,7 +121,7 @@ describe("timer", () => {
         }, 1);
 
         GC();
-        var no2 = timer_count();
+        var no2 = test_util.countObject('Timer');
         assert.equal(no1 + 1, no2);
 
         assert.equal(n, 0);
@@ -143,7 +136,7 @@ describe("timer", () => {
         assert.equal(n, 0);
 
         GC();
-        var no2 = timer_count();
+        var no2 = test_util.countObject('Timer');
         assert.equal(no1, no2);
     });
 
@@ -151,9 +144,9 @@ describe("timer", () => {
         var n = 0;
 
         GC();
-        var no1 = timer_count();
+        var no1 = test_util.countObject('Timer');
 
-        setInterval(function() {
+        setInterval(function () {
             n++;
             clearInterval(this);
         }, 1);
@@ -164,7 +157,7 @@ describe("timer", () => {
         assert.equal(n, 1);
 
         GC();
-        var no2 = timer_count();
+        var no2 = test_util.countObject('Timer');
         assert.equal(no1, no2);
     });
 });

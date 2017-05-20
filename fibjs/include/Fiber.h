@@ -138,10 +138,10 @@ public:
     }
 
 private:
-    v8::Persistent<v8::Function> m_func;
-    QuickArray<v8::Persistent<v8::Value> > m_argv;
-    v8::Persistent<v8::Value> m_result;
-    v8::Persistent<v8::Object> m_this;
+    v8::Global<v8::Function> m_func;
+    QuickArray<v8::Global<v8::Value> > m_argv;
+    v8::Global<v8::Value> m_result;
+    v8::Global<v8::Object> m_this;
 };
 
 } /* namespace fibjs */

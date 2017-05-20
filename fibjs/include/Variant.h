@@ -64,7 +64,7 @@ public:
         VT_UNBOUND_ARRAY,
         VT_UNBOUND_OBJECT,
         VT_Type = 255,
-        VT_Persistent = 256
+        VT_Global = 256
     };
 
 public:
@@ -138,10 +138,10 @@ public:
         else if (_t == VT_Object && m_Val.objVal)
             m_Val.objVal->Unref();
         else if (_t == VT_JSValue) {
-            if (isPersistent()) {
-                v8::Persistent<v8::Value>& jsobj = jsValEx();
+            if (isGlobal()) {
+                v8::Global<v8::Value>& jsobj = jsValEx();
                 jsobj.Reset();
-                jsobj.~Persistent();
+                jsobj.~Global();
             } else {
                 v8::Local<v8::Value>& jsobj = jsVal();
                 jsobj.~Local();
@@ -162,7 +162,7 @@ public:
             return operator=(v.m_Val.objVal);
 
         if (_t == VT_JSValue) {
-            if (v.isPersistent())
+            if (v.isGlobal())
                 return operator=(v8::Local<v8::Value>::New(Isolate::current()->m_isolate, v.jsValEx()));
             else
                 return operator=(v.jsVal());
@@ -315,7 +315,7 @@ public:
 
     void set_type(Type t)
     {
-        m_type = (Type)(t | (m_type & VT_Persistent));
+        m_type = (Type)(t | (m_type & VT_Global));
     }
 
     bool isUndefined()
@@ -323,14 +323,14 @@ public:
         return type() == VT_Undefined;
     }
 
-    void toPersistent()
+    void toGlobal()
     {
-        m_type = (Type)(m_type | VT_Persistent);
+        m_type = (Type)(m_type | VT_Global);
     }
 
-    bool isPersistent() const
+    bool isGlobal() const
     {
-        return (m_type & VT_Persistent) == VT_Persistent;
+        return (m_type & VT_Global) == VT_Global;
     }
 
     size_t size() const
@@ -410,9 +410,9 @@ private:
         return *pval;
     }
 
-    v8::Persistent<v8::Value>& jsValEx() const
+    v8::Global<v8::Value>& jsValEx() const
     {
-        v8::Persistent<v8::Value>* pval = (v8::Persistent<v8::Value>*)m_Val.jsVal;
+        v8::Global<v8::Value>* pval = (v8::Global<v8::Value>*)m_Val.jsVal;
         return *pval;
     }
 
@@ -437,7 +437,7 @@ private:
         obj_base* objVal;
         char dateVal[sizeof(date_t)];
         char strVal[sizeof(exlib::string)];
-        char jsVal[sizeof(v8::Persistent<v8::Value>)];
+        char jsVal[sizeof(v8::Global<v8::Value>)];
         buf buffer;
     } m_Val;
 };
@@ -447,36 +447,36 @@ class VariantEx : public Variant {
 public:
     VariantEx()
     {
-        toPersistent();
+        toGlobal();
     }
 
     VariantEx(const Variant& v)
     {
-        toPersistent();
+        toGlobal();
         operator=(v);
     }
 
     VariantEx(const VariantEx& v)
     {
-        toPersistent();
+        toGlobal();
         operator=(v);
     }
 
     VariantEx(v8::Local<v8::Value> v)
     {
-        toPersistent();
+        toGlobal();
         operator=(v);
     }
 
     VariantEx(const exlib::string& v)
     {
-        toPersistent();
+        toGlobal();
         operator=(v);
     }
 
     VariantEx(const char* v)
     {
-        toPersistent();
+        toGlobal();
         operator=(v);
     }
 

@@ -29,7 +29,7 @@ public:
     // Timer_base
     virtual result_t clear()
     {
-        if (m_cancel.CompareAndSwap(0, 1))
+        if (m_cancel.CompareAndSwap(0, 1) == 0)
             exlib::Fiber::cancel_sleep(this);
 
         return 0;

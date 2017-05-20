@@ -138,9 +138,9 @@ public:
 public:
     Isolate* m_isolate;
     int32_t m_count, m_fibers, m_pos;
-    v8::Persistent<v8::Array> m_datas;
-    v8::Persistent<v8::Function> m_func;
-    v8::Persistent<v8::Array> m_retVal;
+    v8::Global<v8::Array> m_datas;
+    v8::Global<v8::Function> m_func;
+    v8::Global<v8::Array> m_retVal;
     obj_ptr<Event> m_event;
     obj_ptr<Fiber_base> m_caller;
     bool m_error;

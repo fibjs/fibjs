@@ -62,8 +62,8 @@ Variant& Variant::operator=(v8::Local<v8::Value> v)
         else {
             set_type(VT_JSValue);
 
-            if (isPersistent()) {
-                new (m_Val.jsVal) v8::Persistent<v8::Value>();
+            if (isGlobal()) {
+                new (m_Val.jsVal) v8::Global<v8::Value>();
                 jsValEx().Reset(Isolate::current()->m_isolate, v);
             } else
                 new (m_Val.jsVal) v8::Local<v8::Value>(v);
@@ -84,7 +84,7 @@ Variant::operator v8::Local<v8::Value>() const
         return v8::Undefined(isolate->m_isolate);
     case VT_Null:
     case VT_Type:
-    case VT_Persistent:
+    case VT_Global:
         return v8::Null(isolate->m_isolate);
     case VT_Boolean:
         return m_Val.boolVal ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate);
@@ -105,7 +105,7 @@ Variant::operator v8::Local<v8::Value>() const
         return obj->wrap();
     }
     case VT_JSValue:
-        if (isPersistent())
+        if (isGlobal())
             return v8::Local<v8::Value>::New(isolate->m_isolate, jsValEx());
         else
             return jsVal();
@@ -255,7 +255,7 @@ void Variant::toString(exlib::string& retVal) const
         break;
     case VT_Null:
     case VT_Type:
-    case VT_Persistent:
+    case VT_Global:
         retVal = "null";
         break;
     case VT_Boolean:

@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('./test_util');
+
 var io = require('io');
 var fs = require('fs');
 var http = require('http');
@@ -1237,6 +1239,7 @@ describe("http", () => {
 
         before(() => {
             http.enableCookie = true;
+            var pcnt = 0;
             svr = new http.Server(8884 + base_port, (r) => {
                 var port = 8884 + base_port;
                 cookie = r.headers.cookie;
@@ -1262,6 +1265,11 @@ describe("http", () => {
                     r.response.redirect("../g");
                 } else if (r.address == "/redirect1") {
                     r.response.redirect("http://127.0.0.1:" + (8884 + base_port) + "/redirect1");
+                } else if (r.address == '/parallel') {
+                    var n = pcnt++;
+                    coroutine.sleep(100);
+                    var n1 = pcnt++;
+                    r.response.write(new String(n1 - n - 1));
                 } else if (r.address != "/gzip_test") {
                     r.response.addHeader("set-cookie", "request=value; domain=127.0.0.1; path=/request");
                     r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1; path=/request");
@@ -1323,6 +1331,12 @@ describe("http", () => {
                 assert.equal(cookie, "root=value2; gzip_test=value");
             });
 
+            it('parallel', () => {
+                var rs = coroutine.parallel(() => {
+                    return client.get("http://127.0.0.1:" + (8884 + base_port) + "/parallel").body.readAll().toString();
+                }, 2);
+                assert.ok(rs[0] !== '0' || rs[1] !== '0');
+            });
         });
 
         describe("disable client cookie", () => {
@@ -1345,15 +1359,24 @@ describe("http", () => {
 
             it("overtime", () => {
                 client.timeout = 200;
+
+                var no = test_util.countObject('Timer');
                 assert.throws(() => {
                     client.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout")
                 });
+                for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++)
+                    coroutine.sleep(1);
+                assert.equal(no, test_util.countObject('Timer'));
             });
 
             it("intime", () => {
                 client.timeout = 1000;
+                var no = test_util.countObject('Timer');
                 assert.equal(client.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout").body.readAll().toString(),
                     "/timeout");
+                for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++)
+                    coroutine.sleep(1);
+                assert.equal(no, test_util.countObject('Timer'));
             });
 
             it("global overtime", () => {

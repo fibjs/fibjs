@@ -110,7 +110,7 @@ public:
         if (!td->m_now)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-        QuickArray<v8::Persistent<v8::Function> >& fa = now->m_hooks[type];
+        QuickArray<v8::Global<v8::Function> >& fa = now->m_hooks[type];
         size_t sz = fa.size();
 
         fa.resize(sz + 1);
@@ -326,9 +326,9 @@ public:
 
 private:
     exlib::string m_name;
-    v8::Persistent<v8::Function> m_block;
+    v8::Global<v8::Function> m_block;
     QuickArray<obj_ptr<_case> > m_subs;
-    QuickArray<v8::Persistent<v8::Function> > m_hooks[4];
+    QuickArray<v8::Global<v8::Function> > m_hooks[4];
     int32_t m_pos;
     bool m_error;
 };

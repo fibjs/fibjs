@@ -265,7 +265,7 @@ describe('util', () => {
         assert.deepEqual(util.first([1, 2, 3], 2), [1, 2]);
         assert.deepEqual(util.first([1, 2, 3], 5), [1, 2, 3]);
 
-        var result = (function() {
+        var result = (function () {
             return util.first([1, 2, 3], 2);
         }());
         assert.deepEqual(result, [1, 2]);
@@ -333,7 +333,7 @@ describe('util', () => {
                 [4]
             ]
         ]]);
-        var result = (function() {
+        var result = (function () {
             return util.flatten(arguments);
         }(1, [2], [3, [
             [
@@ -356,7 +356,7 @@ describe('util', () => {
         var list = [1, 2, 1, 0, 3, 1, 4];
         assert.deepEqual(util.without(list, 0, 1), [2, 3, 4]);
 
-        var result = (function() {
+        var result = (function () {
             return util.without(arguments, 0, 1);
         }(1, 2, 1, 0, 3, 1, 4));
         assert.deepEqual(result, [2, 3, 4]);
@@ -431,7 +431,7 @@ describe('util', () => {
         assert.deepEqual(util.pick(null, 'a', 'b'), {});
         assert.deepEqual(util.pick(undefined, 'toString'), {});
 
-        var Obj = function() {};
+        var Obj = function () {};
         Obj.prototype = {
             a: 1,
             b: 2,
@@ -479,7 +479,7 @@ describe('util', () => {
         assert.deepEqual(util.omit(null, 'a', 'b'), {});
         assert.deepEqual(util.omit(undefined, 'toString'), {});
 
-        var Obj = function() {};
+        var Obj = function () {};
         Obj.prototype = {
             a: 1,
             b: 2,
@@ -498,7 +498,7 @@ describe('util', () => {
         });
 
         var answers = [];
-        util.each([1, 2, 3], function(num) {
+        util.each([1, 2, 3], function (num) {
             answers.push(num * this.multiplier);
         }, {
             multiplier: 5
@@ -544,7 +544,7 @@ describe('util', () => {
         });
         assert.deepEqual(doubled, [2, 4, 6]);
 
-        var tripled = util.map([1, 2, 3], function(num) {
+        var tripled = util.map([1, 2, 3], function (num) {
             return num * this.multiplier;
         }, {
             multiplier: 3
@@ -571,7 +571,7 @@ describe('util', () => {
 
         assert.deepEqual(util.map(null, () => {}), []);
 
-        assert.deepEqual(util.map([1], function() {
+        assert.deepEqual(util.map([1], function () {
             return this.length;
         }, [5]), [1]);
     });
@@ -586,7 +586,7 @@ describe('util', () => {
         var context = {
             multiplier: 3
         };
-        sum = util.reduce([1, 2, 3], function(sum, num) {
+        sum = util.reduce([1, 2, 3], function (sum, num) {
             return sum + num * this.multiplier;
         }, 0, context);
         assert.equal(sum, 18);
@@ -967,7 +967,7 @@ describe('util', () => {
             assert.equal(c.get("a", updater), "a_value");
             assert.equal(call_num, 1);
 
-            assert.isUndefined(c.get("a1", function() {}));
+            assert.isUndefined(c.get("a1", function () {}));
             assert.isFalse(c.has("a1"));
 
             coroutine.start(() => {

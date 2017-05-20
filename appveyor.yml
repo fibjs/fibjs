@@ -14,35 +14,47 @@ test_script:
   - IF /I "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2017" set NOXP=noxp
   - IF /I "%PLATFORM%" == "x64" ECHO "x64 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64 &&   build release amd64 !NOXP! && cd test && ..\bin\Windows_amd64_release\fibjs.exe main.js
   - IF /I "%PLATFORM%" == "x86" ECHO "x86 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&   build release i386 !NOXP! && cd test && ..\bin\Windows_i386_release\fibjs.exe main.js
-  - mkdir dist
-  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs.exe .\dist\fibjs-windows-x64.exe
-  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs_gui.exe .\dist\fibjs-gui-windows-x64.exe
-  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\installer.exe .\dist\installer-windows-x64.exe
-  - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs.exe .\dist\fibjs-windows-x86.exe
-  - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs_gui.exe .\dist\fibjs-gui-windows-x86.exe
-  - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\installer.exe .\dist\installer-windows-x86.exe
+  - mkdir %APPVEYOR_REPO_TAG_NAME%
+  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs.exe .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x64.exe
+  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs_gui.exe .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-gui-x64.exe
+  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\installer.exe .\%APPVEYOR_REPO_TAG_NAME%\installer-%APPVEYOR_REPO_TAG_NAME%-windows-x64.exe
+  - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs.cab .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x64.cab
+  - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs.exe .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x86.exe
+  - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs_gui.exe .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-gui-x86.exe
+  - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\installer.exe .\%APPVEYOR_REPO_TAG_NAME%\installer-%APPVEYOR_REPO_TAG_NAME%-windows-x86.exe
+  - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs.cab .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x86.cab
 matrix:
   fast_finish: true
 artifacts:
-  - path: dist\fibjs-windows-x64.exe
-    name: fibjs-windows-x64.exe
-  - path: dist\fibjs-gui-windows-x64.exe
-    name: fibjs-gui-windows-x64.exe
-  - path: dist\installer-windows-x64.exe
-    name: installer-windows-x64.exe
-  - path: dist\fibjs-windows-x86.exe
-    name: fibjs-windows-x86.exe
-  - path: dist\fibjs-gui-windows-x86.exe
-    name: fibjs-gui-windows-x86.exe
-  - path: dist\installer-windows-x86.exe
-    name: installer-windows-x86.exe
+  - path: .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x64.exe
+    name: fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x64.exe
+  - path: .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-gui-x64.exe
+    name: fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-gui-x64.exe
+  - path: .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x64.cab
+    name: fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x64.cab
+  - path: .\%APPVEYOR_REPO_TAG_NAME%\installer-%APPVEYOR_REPO_TAG_NAME%-windows-x64.exe
+    name: installer-%APPVEYOR_REPO_TAG_NAME%-windows-x64.exe
+  - path: .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x86.exe
+    name: fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x86.exe
+  - path: .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-gui-x86.exe
+    name: fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-gui-x86.exe
+  - path: .\%APPVEYOR_REPO_TAG_NAME%\installer-%APPVEYOR_REPO_TAG_NAME%-windows-x86.exe
+    name: installer-%APPVEYOR_REPO_TAG_NAME%-windows-x86.exe
+  - path: .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x86.cab
+    name: fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x86.cab
 deploy:
-  provider: GitHub
-  auth_token:
-    secure: 16VBdcQ419efvcrd4msOXpevoyHAo+oe5Xyq0bmw4DU+UNSf5cNoJwbOvB5LLve2
-  artifact: /.*\.exe/
-  draft: false
-  prerelease: false
-  on:
-    appveyor_repo_tag: true
+  - provider: GitHub
+    auth_token:
+      secure: 16VBdcQ419efvcrd4msOXpevoyHAo+oe5Xyq0bmw4DU+UNSf5cNoJwbOvB5LLve2
+    draft: false
+    prerelease: false
+    on:
+      appveyor_repo_tag: true
+  - provider: FTP
+    protocol: sftp
+    host: fibjs.org
+    username: ngot
+    password:
+      secure: LQmnsIyjjG2yWTuslQQgLw==
+    folder: downloads/
 build: off
