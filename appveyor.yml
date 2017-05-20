@@ -55,6 +55,6 @@ deploy:
     host: fibjs.org
     username: ngot
     password:
-      secure: kJWeHMUeFh2hk9iq9mtvtA==
+      secure: LQmnsIyjjG2yWTuslQQgLw==
     folder: downloads/
 build: off
