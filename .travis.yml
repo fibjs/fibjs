@@ -15,28 +15,28 @@ env:
     - secure: jAYOkZJpJ7A7FFhq7VmYJx5F7Y8BxkzRTdvF+t5RWu3/9dPfLR8wQTyji5V6fd2zj/IhR+T/PvcHKLCjNJN8W27NHoLLeQDUNgZKTqJ/HMt/bvtn0+Xxs3D/nRMt3zEIh5FPHYYCtB6WWn53gS0VGC42aS4065320PpgIk81AdE=
 matrix:
   include:
-  - os: osx
-    osx_image: xcode8.2
-    env:
-      - ARCH=amd64
-  - os: linux
-    env:
-      - ARCH=amd64
-  - os: linux
-    env:
-      - ARCH=i386
-  - os: linux
-    env:
-      - ARCH=arm
-  - os: linux
-    env:
-      - ARCH=arm64
-  - os: linux
-    env:
-      - ARCH=mips
-  - os: linux
-    env:
-      - ARCH=mips64
+    - os: osx
+      osx_image: xcode8.2
+      env:
+        - ARCH=amd64
+    - os: linux
+      env:
+        - ARCH=amd64
+    - os: linux
+      env:
+        - ARCH=i386
+    - os: linux
+      env:
+        - ARCH=arm
+    - os: linux
+      env:
+        - ARCH=arm64
+    - os: linux
+      env:
+        - ARCH=mips
+    - os: linux
+      env:
+        - ARCH=mips64
 install:
   - git submodule init
   - git submodule update
