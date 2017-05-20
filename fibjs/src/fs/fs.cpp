@@ -90,63 +90,55 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
             list = it->second;
         s_cachelock.unlock();
 
-        if (list) {
-            int32_t len, i;
-            bool bFound = false;
+        if (list == NULL) {
+            hr = zip_base::cc_open(zip_file, "r", zip_base::_ZIP_DEFLATED, zfile);
+            if (hr < 0)
+                return hr;
 
-            list->get_length(len);
+            hr = zfile->cc_readAll("", list);
+            if (hr < 0)
+                return hr;
 
-            for (i = 0; i < len; i++) {
-                Variant v;
-                exlib::string s;
+            s_cachelock.lock();
+            s_cache.insert(std::pair<exlib::string, obj_ptr<List_base> >(zip_file, list));
+            s_cachelock.unlock();
+        }
 
-                list->_indexed_getter(i, v);
-                s = v.string();
+        int32_t len, i;
+        bool bFound = false;
+        obj_ptr<ZipInfo_base> zi;
 
-                if (member == s) {
-                    bFound = true;
-                    break;
-                }
+        list->get_length(len);
 
-#ifdef _WIN32
-                if (bChanged && member1 == s) {
-                    member = member1;
-                    bFound = true;
-                    break;
-                }
-#endif
+        for (i = 0; i < len; i++) {
+            Variant v;
+            exlib::string s;
+
+            list->_indexed_getter(i, v);
+            zi = ZipInfo_base::getInstance(v.object());
+
+            zi->get_filename(s);
+
+            if (member == s) {
+                bFound = true;
+                break;
             }
 
-            if (!bFound)
-                return CALL_E_FILE_NOT_FOUND;
-        }
-
-        hr = zip_base::cc_open(zip_file, "r", zip_base::_ZIP_DEFLATED, zfile);
-        if (hr < 0)
-            return hr;
-
-        if (list == NULL) {
-            zfile->cc_namelist(list);
-            s_cache.insert(std::pair<exlib::string, obj_ptr<List_base> >(zip_file, list));
-        }
-
-        hr = zfile->cc_read(member, "", data);
-        if (hr < 0) {
-            hr = CALL_E_FILE_NOT_FOUND;
 #ifdef _WIN32
-            if (bChanged) {
-                hr = zfile->cc_read(member1, "", data);
-                if (hr < 0)
-                    return hr;
-            } else
-                return hr;
-#else
-            return hr;
+            if (bChanged && member1 == s) {
+                member = member1;
+                bFound = true;
+                break;
+            }
 #endif
         }
 
-        data->toString(strData);
+        if (!bFound)
+            return CALL_E_FILE_NOT_FOUND;
 
+        zi->get_data(data);
+        if (data)
+            data->toString(strData);
         retVal = new MemoryStream::CloneStream(strData, s_date);
     } else {
         obj_ptr<File> pFile = new File();
