@@ -14,6 +14,7 @@ test_script:
   - IF /I "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2017" set NOXP=noxp
   - IF /I "%PLATFORM%" == "x64" ECHO "x64 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64 &&   build release amd64 !NOXP! && cd test && ..\bin\Windows_amd64_release\fibjs.exe main.js
   - IF /I "%PLATFORM%" == "x86" ECHO "x86 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&   build release i386 !NOXP! && cd test && ..\bin\Windows_i386_release\fibjs.exe main.js
+  - IF /I "%APPVEYOR_REPO_TAG%" == "true" set APPVEYOR_REPO_TAG_NAME=dist
   - mkdir %APPVEYOR_REPO_TAG_NAME%
   - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs.exe .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x64.exe
   - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs_gui.exe .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-gui-x64.exe
@@ -57,4 +58,6 @@ deploy:
     password:
       secure: LQmnsIyjjG2yWTuslQQgLw==
     folder: downloads/
+    on:
+      appveyor_repo_tag: true
 build: off
