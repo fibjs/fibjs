@@ -46,7 +46,7 @@ script:
   - echo "${ARCH}"
   - ./.travis/build.sh
   - ./.travis/test.sh
-  - ./.travis/release.sh
+  - if [[ "$TRAVIS_TAG" != "" ]]; then ./.travis/release.sh; fi
 deploy:
   - provider: releases
     api_key:
