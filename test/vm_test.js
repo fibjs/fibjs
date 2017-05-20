@@ -58,6 +58,10 @@ describe("vm", () => {
         var b = sbox.addScript("tc2.jsc", bin1);
         assert.equal(100, b.a);
         assert.equal(100, sbox.require("tc2").a);
+
+        var bin2 = util.compile("tc3.js", "module.exports = function(v) {return v;}");
+        var b = sbox.addScript("tc3.jsc", bin2);
+        assert.equal(100, b(100));
     });
 
     it("require jsc", () => {
