@@ -32,7 +32,7 @@ void putGuiPool(AsyncEvent* ac)
     PostThreadMessage(s_thread, WM_USER + 1000, 0, 0);
 }
 
-static WebView* s_activeWin = NULL;
+static HWND s_activeWin = NULL;
 
 class gui_thread : public exlib::OSThread,
                    public IClassFactory {
@@ -308,8 +308,11 @@ public:
             MSG msg;
             GetMessage(&msg, NULL, 0, 0);
 
-            if (s_activeWin)
-                s_activeWin->TranslateAccelerator(&msg);
+            if (s_activeWin) {
+                WebView* webView1 = (WebView*)GetWindowLongPtr(s_activeWin, 0);
+                if (webView1 && (webView1->TranslateAccelerator(&msg) == S_OK))
+                    continue;
+            }
 
             TranslateMessage(&msg);
             DispatchMessage(&msg);
@@ -561,8 +564,6 @@ WebView::~WebView()
 
 void WebView::clear()
 {
-    hWndParent = NULL;
-
     if (_onmessage) {
         _onmessage->Release();
         _onmessage = NULL;
@@ -618,8 +619,10 @@ void WebView::clear()
         m_ac = NULL;
     }
 
-    if (s_activeWin == this)
+    if (s_activeWin == hWndParent)
         s_activeWin = NULL;
+
+    hWndParent = NULL;
 }
 
 LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -628,14 +631,11 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     switch (uMsg) {
     case WM_ACTIVATE:
-        webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
-        if (webView1 != 0) {
-            if (WA_INACTIVE == wParam) {
-                if (s_activeWin == webView1)
-                    s_activeWin = NULL;
-            } else
-                s_activeWin = webView1;
-        }
+        if (WA_INACTIVE == wParam) {
+            if (s_activeWin == hWnd)
+                s_activeWin = NULL;
+        } else
+            s_activeWin = hWnd;
         break;
 
     case WM_SETFOCUS:
