@@ -13,7 +13,7 @@ describe("vm", () => {
     var sbox;
 
     after(() => {
-        fs.unlink("vm_test/jsc_test.jsc");
+        fs.unlink(__dirname + "/vm_test/jsc_test.jsc");
     });
 
     it("add", () => {
@@ -34,7 +34,7 @@ describe("vm", () => {
         sbox.add('a', 100);
         sbox.add('coroutine', require('coroutine'));
 
-        sbox.require('./vm_test/t1').fun();
+        sbox.require(__dirname + '/vm_test/t1').fun();
         assert.equal(1000, b.a);
     });
 
@@ -66,14 +66,14 @@ describe("vm", () => {
 
     it("require jsc", () => {
         var bin = util.compile("jsc_test.js", "module.exports = {a : 100};");
-        fs.writeFile("vm_test/jsc_test.jsc", bin);
-        var a = sbox.require("vm_test/jsc_test");
+        fs.writeFile(__dirname + "/vm_test/jsc_test.jsc", bin);
+        var a = sbox.require(__dirname + "/vm_test/jsc_test");
         assert.equal(100, a.a);
     });
 
     it("require jsc arch test", () => {
         console.log("vm_test/jsc_test_" + os.arch);
-        var a = sbox.require("vm_test/jsc_test_" + os.arch);
+        var a = sbox.require(__dirname + "/vm_test/jsc_test_" + os.arch);
         assert.equal(100, a.a);
     });
 

@@ -1,7 +1,7 @@
 var test = require("test");
 test.setup();
 
-var test_util = require('test_util');
+var test_util = require('./test_util');
 
 var coroutine = require("coroutine");
 var os = require("os");
