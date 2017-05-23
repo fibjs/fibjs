@@ -540,6 +540,8 @@ WebView::WebView(exlib::string url, Map_base* opt)
     if (bSilent)
         webBrowser2->put_Silent(VARIANT_TRUE);
 
+    webBrowser2->put_RegisterAsDropTarget(VARIANT_FALSE);
+
     IConnectionPointContainer* cpc;
 
     webBrowser2->QueryInterface(IID_IConnectionPointContainer, (void**)&cpc);
