@@ -1,0 +1,38 @@
+/*! @brief timers 模块 */
+module timers
+{
+    /*! @brief 清除指定的定时器
+     @param t 指定要清除的定时器
+    */
+    static clearInterval(Timer t);
+
+    /*! @brief 清除指定的定时器
+     @param t 指定要清除的定时器
+    */
+    static clearTimeout(Timer t);
+
+    /*! @brief 清除指定的定时器
+     @param t 指定要清除的定时器
+    */
+    static clearImmediate(Timer t);
+
+    /*! @brief 每间隔指定的时间后调用函数
+     @param callback 指定回调函数
+     @param timeout 指定间隔的时间，以毫秒为单位
+     @return 返回定时器对象
+    */
+    static Timer setInterval(Function callback, Integer timeout);
+
+    /*! @brief 在指定的时间后调用函数
+     @param callback 指定回调函数
+     @param timeout 指定延时的时间，以毫秒为单位
+     @return 返回定时器对象
+    */
+    static Timer setTimeout(Function callback, Integer timeout);
+
+    /*! @brief 下一个空闲时间立即执行回调函数
+     @param callback 指定回调函数
+     @return 返回定时器对象
+    */
+    static Timer setImmediate(Function callback);
+};

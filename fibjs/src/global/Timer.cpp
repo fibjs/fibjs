@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "ifs/global.h"
+#include "ifs/timers.h"
 #include "Timer.h"
 
 namespace fibjs {
@@ -61,22 +62,24 @@ private:
     bool m_clear_pendding;
 };
 
-result_t global_base::clearInterval(Timer_base* t)
+DECLARE_MODULE(timers);
+
+result_t timers_base::clearInterval(Timer_base* t)
 {
     return t->clear();
 }
 
-result_t global_base::clearTimeout(Timer_base* t)
+result_t timers_base::clearTimeout(Timer_base* t)
 {
     return t->clear();
 }
 
-result_t global_base::clearImmediate(Timer_base* t)
+result_t timers_base::clearImmediate(Timer_base* t)
 {
     return t->clear();
 }
 
-result_t global_base::setInterval(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal)
+result_t timers_base::setInterval(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal)
 {
     if (timeout < 1)
         timeout = 1;
@@ -88,7 +91,7 @@ result_t global_base::setInterval(v8::Local<v8::Function> callback, int32_t time
     return 0;
 }
 
-result_t global_base::setTimeout(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal)
+result_t timers_base::setTimeout(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal)
 {
     if (timeout < 1)
         timeout = 1;
@@ -100,12 +103,42 @@ result_t global_base::setTimeout(v8::Local<v8::Function> callback, int32_t timeo
     return 0;
 }
 
-result_t global_base::setImmediate(v8::Local<v8::Function> callback, obj_ptr<Timer_base>& retVal)
+result_t timers_base::setImmediate(v8::Local<v8::Function> callback, obj_ptr<Timer_base>& retVal)
 {
     obj_ptr<Timer> timer = new JSTimer(callback);
     timer->sleep();
     retVal = timer;
 
     return 0;
+}
+
+result_t global_base::clearInterval(Timer_base* t)
+{
+    return timers_base::clearInterval(t);
+}
+
+result_t global_base::clearTimeout(Timer_base* t)
+{
+    return timers_base::clearTimeout(t);
+}
+
+result_t global_base::clearImmediate(Timer_base* t)
+{
+    return timers_base::clearImmediate(t);
+}
+
+result_t global_base::setInterval(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal)
+{
+    return timers_base::setInterval(callback, timeout, retVal);
+}
+
+result_t global_base::setTimeout(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal)
+{
+    return timers_base::setTimeout(callback, timeout, retVal);
+}
+
+result_t global_base::setImmediate(v8::Local<v8::Function> callback, obj_ptr<Timer_base>& retVal)
+{
+    return timers_base::setImmediate(callback, retVal);
 }
 }
