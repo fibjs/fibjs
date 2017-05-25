@@ -58,7 +58,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
     exlib::string safe_name;
     path_base::normalize(fname, safe_name);
 
-    size_t pos = safe_name.find('?');
+    size_t pos = safe_name.find('$');
     if (pos != exlib::string::npos && safe_name[pos + 1] == PATH_SLASH) {
         exlib::string zip_file = safe_name.substr(0, pos);
         exlib::string member = safe_name.substr(pos + 2);
