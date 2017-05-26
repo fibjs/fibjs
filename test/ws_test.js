@@ -18,7 +18,7 @@ describe('ws', () => {
         });
     });
 
-    xdescribe('Message', () => {
+    describe('Message', () => {
         function load_msg(data) {
             var ms = new io.MemoryStream();
             ms.write(data);
@@ -583,7 +583,7 @@ describe('ws', () => {
 
     });
 
-    xdescribe('WebSocket', () => {
+    describe('WebSocket', () => {
         it("server", () => {
             var httpd = new http.Server(8814 + base_port, new mq.Routing({
                 "^/ws$": ws.upgrade((s) => {
