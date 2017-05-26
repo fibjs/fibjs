@@ -16,10 +16,10 @@ describe("gd", () => {
     var b = img.colorAllocate(0, 0, 255);
 
     function gd_test(fmt) {
-        img.save('test.pic' + vmid, fmt);
-        var img1 = gd.load('test.pic' + vmid);
+        img.save(__dirname + '/test.pic' + vmid, fmt);
+        var img1 = gd.load(__dirname + '/test.pic' + vmid);
 
-        fs.unlink('test.pic' + vmid);
+        fs.unlink(__dirname + '/test.pic' + vmid);
 
         img1 = gd.load(img.getData(fmt));
 
@@ -202,53 +202,53 @@ describe("gd", () => {
     });
 
     it("filter", () => {
-        img = gd.load('test.png');
+        img = gd.load(__dirname + '/test.png');
         img.filter(gd.MEAN_REMOVAL);
         sample_test(img, [0xffffff, 0xff00, 0xffffff])
 
-        img = gd.load('test.png');
+        img = gd.load(__dirname + '/test.png');
         img.filter(gd.EDGEDETECT);
         sample_test(img, [0x7fffff, 0x7f00, 0xff7fff])
 
-        var img = gd.load('test.png');
+        var img = gd.load(__dirname + '/test.png');
         img.filter(gd.EMBOSS);
         sample_test(img, [0x7fffff, 0xff7fff, 0x7f00])
 
-        img = gd.load('test.png');
+        img = gd.load(__dirname + '/test.png');
         img.filter(gd.SELECTIVE_BLUR);
         sample_test(img, [0xfefdfd, 0xfe00, 0xd4fed4])
 
-        img = gd.load('test.png');
+        img = gd.load(__dirname + '/test.png');
         img.filter(gd.GAUSSIAN_BLUR);
         sample_test(img, [0xffe9e9, 0x3dff3d, 0xa6ffa6])
 
-        img = gd.load('test.png');
+        img = gd.load(__dirname + '/test.png');
         img.filter(gd.NEGATE);
         sample_test(img, [0x0, 0xff00ff, 0x2a002a])
 
-        img = gd.load('test.png');
+        img = gd.load(__dirname + '/test.png');
         img.filter(gd.GRAYSCALE);
         sample_test(img, [0xffffff, 0x959595, 0xededed])
 
-        img = gd.load('test.png');
+        img = gd.load(__dirname + '/test.png');
         img.filter(gd.SMOOTH, 10);
         sample_test(img, [0xffefef, 0x25ff25, 0xb8ffb8])
 
-        img = gd.load('test.png');
+        img = gd.load(__dirname + '/test.png');
         img.filter(gd.BRIGHTNESS, 10);
         sample_test(img, [0xffffff, 0xaff0a, 0xdfffdf])
 
-        img = gd.load('test.png');
+        img = gd.load(__dirname + '/test.png');
         img.filter(gd.CONTRAST, 10);
         sample_test(img, [0xe6e6e6, 0x18e618, 0xc4e6c4])
 
-        img = gd.load('test.png');
+        img = gd.load(__dirname + '/test.png');
         img.filter(gd.COLORIZE, 10, 10, 10, 10);
         sample_test(img, [0xffffff, 0x9ff09, 0xdeffde])
     });
 
     it("affine", () => {
-        var img = gd.load('test.png');
+        var img = gd.load(__dirname + '/test.png');
         var affines = [2, 1, 1, 2, 1, 1];
         var img1 = img.affine(affines);
         assert.equal(img1.width, 1117);

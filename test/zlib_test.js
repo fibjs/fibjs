@@ -94,14 +94,14 @@ describe("zlib", () => {
     });
 
     it("gunzip (from file)", () => {
-        var f1 = fs.openTextStream('./zlib_files/gzip');
-        var f2 = fs.openTextStream('./zlib_files/original.js');
+        var f1 = fs.openTextStream(__dirname + '/zlib_files/gzip');
+        var f2 = fs.openTextStream(__dirname + '/zlib_files/original.js');
         assert.equal(zlib.gunzip(f1.read()).toString(), f2.read().toString());
     });
 
     it("inflate (from file)", () => {
-        var f1 = fs.openTextStream('./zlib_files/deflate');
-        var f2 = fs.openTextStream('./zlib_files/original.js');
+        var f1 = fs.openTextStream(__dirname + '/zlib_files/deflate');
+        var f2 = fs.openTextStream(__dirname + '/zlib_files/original.js');
         assert.equal(zlib.inflateRaw(f1.read()).toString(), f2.read().toString());
     });
 });

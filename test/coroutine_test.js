@@ -275,7 +275,7 @@ describe('coroutine', () => {
         var worker;
 
         it("new", () => {
-            worker = new coroutine.Worker('worker_main.js');
+            worker = new coroutine.Worker(__dirname + '/worker_main.js');
         });
 
         describe("message", () => {

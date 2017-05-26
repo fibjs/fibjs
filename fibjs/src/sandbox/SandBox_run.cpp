@@ -566,10 +566,10 @@ result_t SandBox::require(exlib::string base, exlib::string id,
     fname1 = fullname + PATH_SLASH + "package.json";
     hr = fs_base::cc_readTextFile(fname1, buf);
     if (hr < 0) {
-        fname1 = fullname + ".zip?" + PATH_SLASH + "package.json";
+        fname1 = fullname + ".zip$" + PATH_SLASH + "package.json";
         hr = fs_base::cc_readTextFile(fname1, buf);
         if (hr >= 0)
-            fullname = fullname + ".zip?";
+            fullname = fullname + ".zip$";
     }
 
     if (hr >= 0) {
@@ -612,7 +612,7 @@ result_t SandBox::require(exlib::string base, exlib::string id,
     if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
         return hr;
 
-    fname1 = fullname + ".zip?" + PATH_SLASH + "index";
+    fname1 = fullname + ".zip$" + PATH_SLASH + "index";
     hr = require(base, fname1, retVal, FILE_ONLY);
     if (hr >= 0) {
         InstallModule(strId, retVal);
