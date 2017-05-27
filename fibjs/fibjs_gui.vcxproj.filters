@@ -609,12 +609,6 @@
     <ClInclude Include="include\ifs\PathBase.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\PathPosix.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\PathWin32.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\Queue.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>

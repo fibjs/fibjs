@@ -264,8 +264,6 @@
     <ClInclude Include="include\ifs\MySQL.h" />
     <ClInclude Include="include\ifs\PKey.h" />
     <ClInclude Include="include\ifs\PathBase.h" />
-    <ClInclude Include="include\ifs\PathPosix.h" />
-    <ClInclude Include="include\ifs\PathWin32.h" />
     <ClInclude Include="include\ifs\Queue.h" />
     <ClInclude Include="include\ifs\Redis.h" />
     <ClInclude Include="include\ifs\RedisHash.h" />
