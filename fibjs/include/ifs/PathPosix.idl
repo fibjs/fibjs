@@ -1,0 +1,8 @@
+
+/*! @brief
+    Path POSIX 实现
+ */
+interface PathPosix : PathBase
+{
+    PathPosix();
+};
