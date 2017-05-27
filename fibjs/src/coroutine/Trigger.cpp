@@ -31,10 +31,6 @@ public:
             { "emit", JSTrigger::s_emit, true }
         };
 
-        static ClassData::ClassObject s_object[] = {
-            { "EventEmitter", EventEmitter_base::class_info }
-        };
-
         ClassData& cd = EventEmitter_base::class_info().data();
 
         cd.cor = JSTrigger::s__new;
