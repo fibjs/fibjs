@@ -68,9 +68,9 @@ module path
 
     /*! @brief posix 实现
      */
-    static readonly PathPosix posix;
+    static readonly PathBase posix;
 
     /*! @brief windows 实现
      */
-    static readonly PathWin32 win32;
+    static readonly PathBase win32;
 };

@@ -1,8 +1,0 @@
-
-/*! @brief
-    Path WINDWOS 实现
- */
-interface PathWin32 : PathBase
-{
-    PathWin32();
-};

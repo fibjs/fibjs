@@ -318,21 +318,21 @@ result_t path_base::get_delimiter(exlib::string& retVal)
     return _delimiter(retVal);
 }
 
-result_t path_base::get_posix(obj_ptr<PathPosix_base>& retVal)
+result_t path_base::get_posix(obj_ptr<PathBase_base>& retVal)
 {
-    static obj_ptr<PathPosix_base> obj;
+    static obj_ptr<PathBase_base> obj;
     if (!obj) {
-        PathPosix_base::_new(obj);
+        obj = new PathPosix();
     }
     retVal = obj;
     return 0;
 }
 
-result_t path_base::get_win32(obj_ptr<PathWin32_base>& retVal)
+result_t path_base::get_win32(obj_ptr<PathBase_base>& retVal)
 {
-    static obj_ptr<PathWin32_base> obj;
+    static obj_ptr<PathBase_base> obj;
     if (!obj) {
-        PathWin32_base::_new(obj);
+        obj = new PathWin32();
     }
     retVal = obj;
     return 0;
