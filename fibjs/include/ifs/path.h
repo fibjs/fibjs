@@ -16,8 +16,7 @@
 
 namespace fibjs {
 
-class PathPosix_base;
-class PathWin32_base;
+class PathBase_base;
 
 class path_base : public object_base {
     DECLARE_CLASS(path_base);
@@ -33,8 +32,8 @@ public:
     static result_t resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
     static result_t get_sep(exlib::string& retVal);
     static result_t get_delimiter(exlib::string& retVal);
-    static result_t get_posix(obj_ptr<PathPosix_base>& retVal);
-    static result_t get_win32(obj_ptr<PathWin32_base>& retVal);
+    static result_t get_posix(obj_ptr<PathBase_base>& retVal);
+    static result_t get_win32(obj_ptr<PathBase_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -62,8 +61,7 @@ public:
 };
 }
 
-#include "PathPosix.h"
-#include "PathWin32.h"
+#include "PathBase.h"
 
 namespace fibjs {
 inline ClassInfo& path_base::class_info()
@@ -221,7 +219,7 @@ inline void path_base::s_get_delimiter(v8::Local<v8::String> property, const v8:
 
 inline void path_base::s_get_posix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<PathPosix_base> vr;
+    obj_ptr<PathBase_base> vr;
 
     PROPERTY_ENTER();
 
@@ -232,7 +230,7 @@ inline void path_base::s_get_posix(v8::Local<v8::String> property, const v8::Pro
 
 inline void path_base::s_get_win32(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<PathWin32_base> vr;
+    obj_ptr<PathBase_base> vr;
 
     PROPERTY_ENTER();
 

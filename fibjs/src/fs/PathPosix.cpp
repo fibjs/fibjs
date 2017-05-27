@@ -27,12 +27,6 @@ inline result_t _fullpath_posix(exlib::string path, exlib::string& retVal)
     return _normalize(str, retVal);
 }
 
-result_t PathPosix_base::_new(obj_ptr<PathPosix_base>& retVal, v8::Local<v8::Object> This)
-{
-    retVal = new PathPosix();
-    return 0;
-}
-
 result_t PathPosix::normalize(exlib::string path, exlib::string& retVal)
 {
     return _normalize(path, retVal);
@@ -80,23 +74,23 @@ result_t PathPosix::get_delimiter(exlib::string& retVal)
     return 0;
 }
 
-result_t PathPosix::get_posix(obj_ptr<PathPosix_base>& retVal)
+result_t PathPosix::get_posix(obj_ptr<PathBase_base>& retVal)
 {
-    static obj_ptr<PathPosix_base> obj;
+    static obj_ptr<PathBase_base> obj;
     if (!obj) {
-        PathPosix_base::_new(obj);
+        obj = new PathPosix();
     }
     retVal = obj;
     return 0;
 }
 
-result_t PathPosix::get_win32(obj_ptr<PathWin32_base>& retVal)
+result_t PathPosix::get_win32(obj_ptr<PathBase_base>& retVal)
 {
-    static obj_ptr<PathWin32_base> a;
-    if (!a) {
-        PathWin32_base::_new(a);
+    static obj_ptr<PathBase_base> obj;
+    if (!obj) {
+        obj = new PathWin32();
     }
-    retVal = a;
+    retVal = obj;
     return 0;
 }
 }

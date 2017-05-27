@@ -8,11 +8,11 @@
 #ifndef PATHPOSIX_H
 #define PATHPOSIX_H
 
-#include "ifs/PathPosix.h"
+#include "ifs/PathBase.h"
 
 namespace fibjs {
 
-class PathPosix : public PathPosix_base {
+class PathPosix : public PathBase_base {
 
 public:
     // PathPosix_base
@@ -25,8 +25,8 @@ public:
     virtual result_t resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
     virtual result_t get_sep(exlib::string& retVal);
     virtual result_t get_delimiter(exlib::string& retVal);
-    virtual result_t get_posix(obj_ptr<PathPosix_base>& retVal);
-    virtual result_t get_win32(obj_ptr<PathWin32_base>& retVal);
+    virtual result_t get_posix(obj_ptr<PathBase_base>& retVal);
+    virtual result_t get_win32(obj_ptr<PathBase_base>& retVal);
 };
 }
 
