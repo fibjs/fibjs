@@ -210,8 +210,8 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, exlib::str
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    args[args_count - 2] = isolate->NewFromUtf8(name);
-    args[args_count - 1] = isolate->NewFromUtf8(pname);
+    args[0] = isolate->NewFromUtf8(name);
+    args[1] = isolate->NewFromUtf8(pname);
     v8::Local<v8::Object> glob = isolate->context()->Global();
     v = v8::Local<v8::Function>::Cast(v)->Call(glob, args_count, args);
     if (v.IsEmpty())
@@ -270,8 +270,8 @@ result_t SandBox::Context::run(Buffer_base* src, exlib::string name, exlib::stri
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    args[args_count - 2] = isolate->NewFromUtf8(name);
-    args[args_count - 1] = isolate->NewFromUtf8(pname);
+    args[0] = isolate->NewFromUtf8(name);
+    args[1] = isolate->NewFromUtf8(pname);
     v8::Local<v8::Object> glob = isolate->context()->Global();
     v = v8::Local<v8::Function>::Cast(v)->Call(glob, args_count, args);
     if (v.IsEmpty())
@@ -280,13 +280,14 @@ result_t SandBox::Context::run(Buffer_base* src, exlib::string name, exlib::stri
     return 0;
 }
 
-const char* script_args = "(function(require,run,argv,__filename,__dirname){";
+const char* script_args = "(function(__filename,__dirname,require,run,argv){";
 static const int32_t script_args_count = 5;
 
 template <typename T>
 result_t SandBox::Context::run_script(T src, exlib::string name, v8::Local<v8::Array> argv)
 {
     v8::Local<v8::Value> args[10] = {
+        v8::Local<v8::Value>(), v8::Local<v8::Value>(),
         m_fnRequest,
         m_fnRun,
         argv
@@ -295,7 +296,7 @@ result_t SandBox::Context::run_script(T src, exlib::string name, v8::Local<v8::A
     return run(src, name, script_args, args, script_args_count);
 }
 
-const char* main_args = "(function(require,run,argv,repl,__filename,__dirname){";
+const char* main_args = "(function(__filename,__dirname,require,run,argv,repl){";
 static const int32_t main_args_count = 6;
 
 template <typename T>
@@ -307,6 +308,7 @@ result_t SandBox::Context::run_main(T src, exlib::string name, v8::Local<v8::Arr
         isolate->NewFromUtf8("repl"));
 
     v8::Local<v8::Value> args[10] = {
+        v8::Local<v8::Value>(), v8::Local<v8::Value>(),
         m_fnRequest,
         m_fnRun,
         argv,
@@ -315,13 +317,14 @@ result_t SandBox::Context::run_main(T src, exlib::string name, v8::Local<v8::Arr
     return run(src, name, main_args, args, main_args_count);
 }
 
-const char* worker_args = "(function(require,run,Master,__filename,__dirname){";
+const char* worker_args = "(function(__filename,__dirname,require,run,Master){";
 static const int32_t worker_args_count = 5;
 
 template <typename T>
 result_t SandBox::Context::run_worker(T src, exlib::string name, Worker_base* worker)
 {
     v8::Local<v8::Value> args[10] = {
+        v8::Local<v8::Value>(), v8::Local<v8::Value>(),
         m_fnRequest,
         m_fnRun,
         worker->wrap()
@@ -329,7 +332,7 @@ result_t SandBox::Context::run_worker(T src, exlib::string name, Worker_base* wo
     return run(src, name, worker_args, args, worker_args_count);
 }
 
-const char* module_args = "(function(module,exports,require,run,__filename,__dirname){";
+const char* module_args = "(function(__filename,__dirname,require,run,exports,module){";
 static const int32_t module_args_count = 6;
 
 template <typename T>
@@ -337,10 +340,11 @@ result_t SandBox::Context::run_module(T src, exlib::string name, v8::Local<v8::O
     v8::Local<v8::Object> exports)
 {
     v8::Local<v8::Value> args[10] = {
-        module,
-        exports,
+        v8::Local<v8::Value>(), v8::Local<v8::Value>(),
         m_fnRequest,
-        m_fnRun
+        m_fnRun,
+        exports,
+        module
     };
 
     return run(src, name, module_args, args, module_args_count);
