@@ -321,7 +321,6 @@
     <ClInclude Include="include\ifs\crypto.h" />
     <ClInclude Include="include\ifs\db.h" />
     <ClInclude Include="include\ifs\encoding.h" />
-    <ClInclude Include="include\ifs\events.h" />
     <ClInclude Include="include\ifs\fs.h" />
     <ClInclude Include="include\ifs\gd.h" />
     <ClInclude Include="include\ifs\global.h" />
@@ -344,6 +343,7 @@
     <ClInclude Include="include\ifs\registry.h" />
     <ClInclude Include="include\ifs\ssl.h" />
     <ClInclude Include="include\ifs\test.h" />
+    <ClInclude Include="include\ifs\timers.h" />
     <ClInclude Include="include\ifs\url.h" />
     <ClInclude Include="include\ifs\util.h" />
     <ClInclude Include="include\ifs\uuid.h" />

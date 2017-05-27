@@ -11,6 +11,7 @@
 #include "ifs/util.h"
 #include "ifs/test.h"
 #include "ifs/Buffer.h"
+#include "ifs/EventEmitter.h"
 
 namespace fibjs {
 
@@ -71,6 +72,11 @@ void SandBox::initRoot()
 
     InstallModule("expect", isolate->NewFunction("expect", test_base::s_expect));
     InstallModule("buffer", Buffer_base::class_info().getFunction(isolate));
+
+    v8::Local<v8::Function> _emitter = EventEmitter_base::class_info().getFunction(isolate);
+    _emitter->Set(isolate->NewFromUtf8("EventEmitter"), _emitter);
+
+    InstallModule("events", _emitter);
 }
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)

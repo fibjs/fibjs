@@ -125,6 +125,7 @@ function evevt_test(name, e) {
 }
 
 describe("Trigger/EventEmitter", () => {
+    evevt_test("events", new events());
     evevt_test("events.EventEmitter", new events.EventEmitter());
 
     function MyEmitter() {}
