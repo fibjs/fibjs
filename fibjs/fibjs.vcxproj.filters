@@ -276,6 +276,12 @@
     <ClInclude Include="include\PKey.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\PathPosix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PathWin32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\Queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -598,6 +604,15 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\PKey.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\PathBase.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\PathPosix.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\PathWin32.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Queue.h">
@@ -1122,6 +1137,12 @@
       <Filter>Source Files\encoding</Filter>
     </ClCompile>
     <ClCompile Include="src\fs\File.cpp">
+      <Filter>Source Files\fs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fs\PathPosix.cpp">
+      <Filter>Source Files\fs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fs\PathWin32.cpp">
       <Filter>Source Files\fs</Filter>
     </ClCompile>
     <ClCompile Include="src\fs\Stat.cpp">

@@ -7,6 +7,8 @@
 
 #include "object.h"
 #include "ifs/process.h"
+#include "PathPosix.h"
+#include "PathWin32.h"
 #include "utf8.h"
 #include <sstream>
 #include "path.h"
@@ -15,13 +17,17 @@ namespace fibjs {
 
 DECLARE_MODULE(path);
 
+inline char fixChar(char ch)
+{
+    return isPathSlash(ch) ? PATH_SLASH : ch;
+}
+
 const char* split_path(const char* p)
 {
     char ch;
     const char* p1 = p;
     const char* p2 = NULL;
 
-#ifdef _WIN32
     if (p[0] != 0 && p[1] == ':') {
         p += 2;
         if (isPathSlash(*p))
@@ -44,7 +50,6 @@ const char* split_path(const char* p)
 
         p2 = p;
     }
-#endif
 
     while (*p) {
         ch = *p++;
@@ -61,70 +66,7 @@ const char* split_path(const char* p)
     return p2;
 }
 
-result_t path_base::basename(exlib::string path, exlib::string ext,
-    exlib::string& retVal)
-{
-    const char* p1 = path.c_str();
-    const char* p2 = split_path(p1);
-    const char* p3 = p1 + path.length();
-    int32_t extlen = (int32_t)ext.length();
-
-    while (isPathSlash(*p2))
-        p2++;
-
-    while (p3 > p2 && isPathSlash(*(p3 - 1)))
-        p3--;
-
-    if (extlen && ((int32_t)(p3 - p2) >= extlen)
-        && !pathcmp(ext.c_str(), p3 - extlen, extlen))
-        p3 -= extlen;
-
-    retVal.assign(p2, (int32_t)(p3 - p2));
-
-    return 0;
-}
-
-result_t path_base::extname(exlib::string path, exlib::string& retVal)
-{
-    char ch;
-    const char* p1 = NULL;
-    const char* c_str = path.c_str();
-
-    if (*c_str == '.')
-        c_str++;
-
-    while (*c_str) {
-        ch = *c_str++;
-        if (isPathSlash(ch)) {
-            if (*c_str == '.')
-                c_str++;
-            p1 = NULL;
-        } else if (ch == '.')
-            p1 = c_str - 1;
-    }
-
-    if (p1)
-        retVal.assign(p1, (int32_t)(c_str - p1));
-
-    return 0;
-}
-
-result_t path_base::dirname(exlib::string path, exlib::string& retVal)
-{
-    const char* p1 = path.c_str();
-    const char* p2 = split_path(p1);
-
-    retVal.assign(p1, (int32_t)(p2 - p1));
-
-    return 0;
-}
-
-inline char fixChar(char ch)
-{
-    return isPathSlash(ch) ? PATH_SLASH : ch;
-}
-
-result_t path_base::normalize(exlib::string path, exlib::string& retVal)
+inline result_t _normalize(exlib::string path, exlib::string& retVal)
 {
     exlib::string str;
     const char* p1 = path.c_str();
@@ -136,7 +78,6 @@ result_t path_base::normalize(exlib::string path, exlib::string& retVal)
     str.resize(qstrlen(p1));
     pstr = &str[0];
 
-#ifdef _WIN32
     if (p1[0] != 0 && p1[1] == ':') {
         pstr[pos++] = p1[0];
         pstr[pos++] = ':';
@@ -171,9 +112,7 @@ result_t path_base::normalize(exlib::string path, exlib::string& retVal)
                 bRoot = true;
             }
         }
-    } else
-#endif
-        if (isPathSlash(p1[0])) {
+    } else if (isPathSlash(p1[0])) {
         pstr[pos++] = PATH_SLASH;
         p1++;
         bRoot = true;
@@ -225,7 +164,65 @@ result_t path_base::normalize(exlib::string path, exlib::string& retVal)
     return 0;
 }
 
-result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+inline result_t _basename(exlib::string path, exlib::string ext,
+    exlib::string& retVal)
+{
+    const char* p1 = path.c_str();
+    const char* p2 = split_path(p1);
+    const char* p3 = p1 + path.length();
+    int32_t extlen = (int32_t)ext.length();
+
+    while (isPathSlash(*p2))
+        p2++;
+
+    while (p3 > p2 && isPathSlash(*(p3 - 1)))
+        p3--;
+
+    if (extlen && ((int32_t)(p3 - p2) >= extlen)
+        && !pathcmp(ext.c_str(), p3 - extlen, extlen))
+        p3 -= extlen;
+
+    retVal.assign(p2, (int32_t)(p3 - p2));
+
+    return 0;
+}
+
+inline result_t _extname(exlib::string path, exlib::string& retVal)
+{
+    char ch;
+    const char* p1 = NULL;
+    const char* c_str = path.c_str();
+
+    if (*c_str == '.')
+        c_str++;
+
+    while (*c_str) {
+        ch = *c_str++;
+        if (isPathSlash(ch)) {
+            if (*c_str == '.')
+                c_str++;
+            p1 = NULL;
+        } else if (ch == '.')
+            p1 = c_str - 1;
+    }
+
+    if (p1)
+        retVal.assign(p1, (int32_t)(c_str - p1));
+
+    return 0;
+}
+
+inline result_t _dirname(exlib::string path, exlib::string& retVal)
+{
+    const char* p1 = path.c_str();
+    const char* p2 = split_path(p1);
+
+    retVal.assign(p1, (int32_t)(p2 - p1));
+
+    return 0;
+}
+
+inline result_t _join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
 {
     Path p;
     int32_t argc = args.Length();
@@ -236,10 +233,10 @@ result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib:
         p.append(*s);
     }
 
-    return normalize(p.str(), retVal);
+    return _normalize(p.str(), retVal);
 }
 
-result_t path_base::resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+inline result_t _resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
 {
     exlib::string str;
     process_base::cwd(str);
@@ -253,44 +250,91 @@ result_t path_base::resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exl
         p.append(*s);
     }
 
-    return normalize(p.str(), retVal);
+    return _normalize(p.str(), retVal);
 }
 
-result_t path_base::fullpath(exlib::string path, exlib::string& retVal)
-{
-#ifdef _WIN32
-    exlib::wstring str = utf8to16String(path);
-    exlib::wchar utf16_buffer[MAX_PATH];
-
-    DWORD utf16_len = GetFullPathNameW(str.c_str(), MAX_PATH, utf16_buffer, NULL);
-    if (!utf16_len)
-        return CHECK_ERROR(LastError());
-
-    retVal = utf16to8String(utf16_buffer, (int32_t)utf16_len);
-    return 0;
-#else
-    if (isPathSlash(path.c_str()[0]))
-        return normalize(path, retVal);
-
-    exlib::string str;
-
-    process_base::cwd(str);
-    str.append(1, PATH_SLASH);
-    str.append(path);
-
-    return normalize(str, retVal);
-#endif
-}
-
-result_t path_base::get_sep(exlib::string& retVal)
+inline result_t _sep(exlib::string& retVal)
 {
     retVal.assign(1, PATH_SLASH);
     return 0;
 }
 
-result_t path_base::get_delimiter(exlib::string& retVal)
+inline result_t _delimiter(exlib::string& retVal)
 {
     retVal.assign(1, PATH_DELIMITER);
+    return 0;
+}
+
+result_t path_base::normalize(exlib::string path, exlib::string& retVal)
+{
+    return _normalize(path, retVal);
+}
+
+result_t path_base::basename(exlib::string path, exlib::string ext,
+    exlib::string& retVal)
+{
+    return _basename(path, ext, retVal);
+}
+
+result_t path_base::extname(exlib::string path, exlib::string& retVal)
+{
+    return _extname(path, retVal);
+}
+
+result_t path_base::dirname(exlib::string path, exlib::string& retVal)
+{
+    return _dirname(path, retVal);
+}
+
+extern result_t _fullpath_win32(exlib::string path, exlib::string& retVal);
+extern result_t _fullpath_posix(exlib::string path, exlib::string& retVal);
+
+result_t path_base::fullpath(exlib::string path, exlib::string& retVal)
+{
+#ifdef _WIN32
+    return _fullpath_win32(path, retVal);
+#else
+    return _fullpath_posix(path, retVal);
+#endif
+}
+
+result_t path_base::join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+{
+    return _join(args, retVal);
+}
+
+result_t path_base::resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+{
+    return _resolve(args, retVal);
+}
+
+result_t path_base::get_sep(exlib::string& retVal)
+{
+    return _sep(retVal);
+}
+
+result_t path_base::get_delimiter(exlib::string& retVal)
+{
+    return _delimiter(retVal);
+}
+
+result_t path_base::get_posix(obj_ptr<PathPosix_base>& retVal)
+{
+    static obj_ptr<PathPosix_base> obj;
+    if (!obj) {
+        PathPosix_base::_new(obj);
+    }
+    retVal = obj;
+    return 0;
+}
+
+result_t path_base::get_win32(obj_ptr<PathWin32_base>& retVal)
+{
+    static obj_ptr<PathWin32_base> obj;
+    if (!obj) {
+        PathWin32_base::_new(obj);
+    }
+    retVal = obj;
     return 0;
 }
 }
