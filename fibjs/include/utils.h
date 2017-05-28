@@ -948,6 +948,21 @@ inline bool isPathSlash(char ch)
 
 #endif
 
+#define PATH_SLASH_WIN32 '\\'
+#define PATH_DELIMITER_WIN32 ';'
+#define PATH_SLASH_POSIX '/'
+#define PATH_DELIMITER_POSIX ':'
+
+inline bool isWin32PathSlash(char ch)
+{
+    return ch == '/' || ch == '\\';
+}
+
+inline bool isPosixPathSlash(char ch)
+{
+    return ch == '/';
+}
+
 #define URL_SLASH '/'
 
 inline bool isUrlSlash(char ch)

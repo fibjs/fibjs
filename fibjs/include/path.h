@@ -10,24 +10,9 @@
 
 #include "ifs/path.h"
 #include "ifs/process.h"
+#include "utf8.h"
 
 namespace fibjs {
-
-#ifdef _WIN32
-
-#define pathcmpchr qchricmp
-#define pathcmp qstricmp
-
-#else
-
-#define pathcmp qstrcmp
-
-inline bool pathcmpchr(char ch1, char ch2)
-{
-    return ch1 - ch2;
-}
-
-#endif
 
 class Path {
 public:
@@ -35,21 +20,15 @@ public:
     {
     }
 
-    Path(exlib::string init)
-    {
-        append(init);
-    }
-
 public:
-#ifdef _WIN32
-    void append(exlib::string other)
+    void appendWin32(exlib::string other)
     {
         if (other.empty())
             return;
 
         const char* c_str = other.c_str();
 
-        if (isPathSlash(c_str[0]) && isPathSlash(c_str[1])) {
+        if (isWin32PathSlash(c_str[0]) && isWin32PathSlash(c_str[1])) {
             m_buf = other;
             return;
         }
@@ -62,7 +41,7 @@ public:
             c_str += 2;
         }
 
-        bool is_root = isPathSlash(c_str[0]);
+        bool is_root = isWin32PathSlash(c_str[0]);
         exlib::string base;
         const char* c_strBuf = m_buf.c_str();
         if (*c_strBuf) {
@@ -78,8 +57,8 @@ public:
         if (is_root || base.empty())
             base = c_str;
         else {
-            if (!isPathSlash(base.c_str()[base.length() - 1]))
-                base.append(1, PATH_SLASH);
+            if (!isWin32PathSlash(base.c_str()[base.length() - 1]))
+                base.append(1, PATH_SLASH_WIN32);
 
             base.append(c_str);
         }
@@ -94,28 +73,22 @@ public:
             m_buf = base;
     }
 
-private:
-    exlib::string m_disks[27];
-
-#else
-    void append(exlib::string other)
+    void appendPosix(exlib::string other)
     {
         if (other.empty())
             return;
 
         const char* c_str = other.c_str();
 
-        if (isPathSlash(c_str[0]) || m_buf.empty())
+        if (isPosixPathSlash(c_str[0]) || m_buf.empty())
             m_buf = other;
         else {
-            if (!isPathSlash(m_buf.c_str()[m_buf.length() - 1]))
-                m_buf.append(1, PATH_SLASH);
+            if (!isPosixPathSlash(m_buf.c_str()[m_buf.length() - 1]))
+                m_buf.append(1, PATH_SLASH_POSIX);
 
             m_buf.append(other);
         }
     }
-
-#endif
 
 public:
     exlib::string str()
@@ -125,19 +98,20 @@ public:
 
 private:
     exlib::string m_buf;
+    exlib::string m_disks[27];
 };
 
 inline void pathAdd(exlib::string& strBuffer, exlib::string other)
 {
-    Path p(strBuffer);
-
-    p.append(other);
+    Path p;
+#ifdef _WIN32
+    p.appendWin32(strBuffer);
+    p.appendWin32(other);
+#else
+    p.appendPosix(strBuffer);
+    p.appendPosix(other);
+#endif
     strBuffer = p.str();
-}
-
-inline char fixChar(char ch)
-{
-    return isPathSlash(ch) ? PATH_SLASH : ch;
 }
 
 inline const char* split_path(const char* p)
@@ -148,18 +122,18 @@ inline const char* split_path(const char* p)
 
     if (p[0] != 0 && p[1] == ':') {
         p += 2;
-        if (isPathSlash(*p))
+        if (isPosixPathSlash(*p))
             p++;
         p2 = p;
-    } else if (isPathSlash(p[0]) && isPathSlash(p[1])) {
+    } else if (isPosixPathSlash(p[0]) && isPosixPathSlash(p[1])) {
         p += 2;
-        while (*p && !isPathSlash(*p))
+        while (*p && !isPosixPathSlash(*p))
             p++;
 
         if (*p) {
             p++;
 
-            while (*p && !isPathSlash(*p))
+            while (*p && !isPosixPathSlash(*p))
                 p++;
 
             if (*p)
@@ -171,14 +145,58 @@ inline const char* split_path(const char* p)
 
     while (*p) {
         ch = *p++;
-        if (isPathSlash(ch) && *p)
+        if (isPosixPathSlash(ch) && *p)
             p2 = p - 1;
     }
 
     if (p2 == NULL)
         p2 = p1;
 
-    if (isPathSlash(*p2) && p2 == p1)
+    if (isPosixPathSlash(*p2) && p2 == p1)
+        p2++;
+
+    return p2;
+}
+
+inline const char* split_path_win32(const char* p)
+{
+    char ch;
+    const char* p1 = p;
+    const char* p2 = NULL;
+
+    if (p[0] != 0 && p[1] == ':') {
+        p += 2;
+        if (isWin32PathSlash(*p))
+            p++;
+        p2 = p;
+    } else if (isWin32PathSlash(p[0]) && isWin32PathSlash(p[1])) {
+        p += 2;
+        while (*p && !isWin32PathSlash(*p))
+            p++;
+
+        if (*p) {
+            p++;
+
+            while (*p && !isWin32PathSlash(*p))
+                p++;
+
+            if (*p)
+                p++;
+        }
+
+        p2 = p;
+    }
+
+    while (*p) {
+        ch = *p++;
+        if (isWin32PathSlash(ch) && *p)
+            p2 = p - 1;
+    }
+
+    if (p2 == NULL)
+        p2 = p1;
+
+    if (isWin32PathSlash(*p2) && p2 == p1)
         p2++;
 
     return p2;
@@ -196,42 +214,8 @@ inline result_t _normalize(exlib::string path, exlib::string& retVal)
     str.resize(qstrlen(p1));
     pstr = &str[0];
 
-    if (p1[0] != 0 && p1[1] == ':') {
-        pstr[pos++] = p1[0];
-        pstr[pos++] = ':';
-        p1 += 2;
-
-        if (isPathSlash(*p1)) {
-            pstr[pos++] = PATH_SLASH;
-            p1++;
-            bRoot = true;
-        }
-    } else if (isPathSlash(p1[0]) && isPathSlash(p1[1])) {
-        pstr[pos++] = PATH_SLASH;
-        pstr[pos++] = PATH_SLASH;
-        p1 += 2;
-
-        while (*p1 && !isPathSlash(*p1))
-            pstr[pos++] = *p1++;
-
-        if (*p1) {
-            pstr[pos++] = PATH_SLASH;
-            p1++;
-
-            while (isPathSlash(*p1))
-                p1++;
-
-            while (*p1 && !isPathSlash(*p1))
-                pstr[pos++] = *p1++;
-
-            if (*p1) {
-                pstr[pos++] = PATH_SLASH;
-                p1++;
-                bRoot = true;
-            }
-        }
-    } else if (isPathSlash(p1[0])) {
-        pstr[pos++] = PATH_SLASH;
+    if (isPosixPathSlash(p1[0])) {
+        pstr[pos++] = PATH_SLASH_POSIX;
         p1++;
         bRoot = true;
     }
@@ -239,40 +223,138 @@ inline result_t _normalize(exlib::string path, exlib::string& retVal)
     root = pos;
 
     while (*p1) {
-        if (isPathSlash(p1[0])) {
+        if (isPosixPathSlash(p1[0])) {
             p1++;
-        } else if (p1[0] == '.' && (!p1[1] || isPathSlash(p1[1]))) {
+        } else if (p1[0] == '.' && (!p1[1] || isPosixPathSlash(p1[1]))) {
             p1 += p1[1] ? 2 : 1;
-        } else if ((p1[0] == '.') && (p1[1] == '.') && (!p1[2] || isPathSlash(p1[2]))) {
+        } else if ((p1[0] == '.') && (p1[1] == '.') && (!p1[2] || isPosixPathSlash(p1[2]))) {
             if (pos > root) {
                 if ((pstr[pos - 2] == '.') && (pstr[pos - 3] == '.')
-                    && ((root == pos - 3) || (pstr[pos - 4] == PATH_SLASH))) {
+                    && ((root == pos - 3) || (pstr[pos - 4] == PATH_SLASH_POSIX))) {
                     pstr[pos++] = '.';
                     pstr[pos++] = '.';
-                    pstr[pos++] = PATH_SLASH;
+                    pstr[pos++] = PATH_SLASH_POSIX;
                 } else {
                     pos--;
-                    while (pos > root && !isPathSlash(pstr[pos - 1]))
+                    while (pos > root && !isPosixPathSlash(pstr[pos - 1]))
                         pos--;
                 }
             } else if (!bRoot) {
                 pstr[pos++] = '.';
                 pstr[pos++] = '.';
-                pstr[pos++] = PATH_SLASH;
+                pstr[pos++] = PATH_SLASH_POSIX;
             }
 
             p1 += p1[2] ? 3 : 2;
         } else {
-            while (*p1 && !isPathSlash(*p1))
+            while (*p1 && !isPosixPathSlash(*p1))
                 pstr[pos++] = *p1++;
             if (*p1) {
                 p1++;
-                pstr[pos++] = PATH_SLASH;
+                pstr[pos++] = PATH_SLASH_POSIX;
             }
         }
     }
 
-    if (pos > root && isPathSlash(pstr[pos - 1]))
+    if (pos > root && isPosixPathSlash(pstr[pos - 1]))
+        pos--;
+
+    str.resize(pos);
+
+    retVal = str;
+
+    return 0;
+}
+
+inline result_t _normalize_win32(exlib::string path, exlib::string& retVal)
+{
+    exlib::string str;
+    const char* p1 = path.c_str();
+    char* pstr;
+    int32_t pos = 0;
+    int32_t root = 0;
+    bool bRoot = false;
+
+    str.resize(qstrlen(p1));
+    pstr = &str[0];
+
+    if (p1[0] != 0 && p1[1] == ':') {
+        pstr[pos++] = p1[0];
+        pstr[pos++] = ':';
+        p1 += 2;
+
+        if (isWin32PathSlash(*p1)) {
+            pstr[pos++] = PATH_SLASH_WIN32;
+            p1++;
+            bRoot = true;
+        }
+    } else if (isWin32PathSlash(p1[0]) && isWin32PathSlash(p1[1])) {
+        pstr[pos++] = PATH_SLASH_WIN32;
+        pstr[pos++] = PATH_SLASH_WIN32;
+        p1 += 2;
+
+        while (*p1 && !isWin32PathSlash(*p1))
+            pstr[pos++] = *p1++;
+
+        if (*p1) {
+            pstr[pos++] = PATH_SLASH_WIN32;
+            p1++;
+
+            while (isWin32PathSlash(*p1))
+                p1++;
+
+            while (*p1 && !isWin32PathSlash(*p1))
+                pstr[pos++] = *p1++;
+
+            if (*p1) {
+                pstr[pos++] = PATH_SLASH_WIN32;
+                p1++;
+                bRoot = true;
+            }
+        }
+    } else if (isWin32PathSlash(p1[0])) {
+        pstr[pos++] = PATH_SLASH_WIN32;
+        p1++;
+        bRoot = true;
+    }
+
+    root = pos;
+
+    while (*p1) {
+        if (isWin32PathSlash(p1[0])) {
+            p1++;
+        } else if (p1[0] == '.' && (!p1[1] || isWin32PathSlash(p1[1]))) {
+            p1 += p1[1] ? 2 : 1;
+        } else if ((p1[0] == '.') && (p1[1] == '.') && (!p1[2] || isWin32PathSlash(p1[2]))) {
+            if (pos > root) {
+                if ((pstr[pos - 2] == '.') && (pstr[pos - 3] == '.')
+                    && ((root == pos - 3) || (pstr[pos - 4] == PATH_SLASH_WIN32))) {
+                    pstr[pos++] = '.';
+                    pstr[pos++] = '.';
+                    pstr[pos++] = PATH_SLASH_WIN32;
+                } else {
+                    pos--;
+                    while (pos > root && !isWin32PathSlash(pstr[pos - 1]))
+                        pos--;
+                }
+            } else if (!bRoot) {
+                pstr[pos++] = '.';
+                pstr[pos++] = '.';
+                pstr[pos++] = PATH_SLASH_WIN32;
+            }
+
+            p1 += p1[2] ? 3 : 2;
+        } else {
+            while (*p1 && !isWin32PathSlash(*p1))
+                pstr[pos++] = *p1++;
+            if (*p1) {
+                p1++;
+                pstr[pos++] = PATH_SLASH_WIN32;
+            }
+        }
+    }
+
+    if (pos > root && isWin32PathSlash(pstr[pos - 1]))
         pos--;
 
     str.resize(pos);
@@ -290,14 +372,37 @@ inline result_t _basename(exlib::string path, exlib::string ext,
     const char* p3 = p1 + path.length();
     int32_t extlen = (int32_t)ext.length();
 
-    while (isPathSlash(*p2))
+    while (isPosixPathSlash(*p2))
         p2++;
 
-    while (p3 > p2 && isPathSlash(*(p3 - 1)))
+    while (p3 > p2 && isPosixPathSlash(*(p3 - 1)))
         p3--;
 
     if (extlen && ((int32_t)(p3 - p2) >= extlen)
-        && !pathcmp(ext.c_str(), p3 - extlen, extlen))
+        && !qstrcmp(ext.c_str(), p3 - extlen, extlen))
+        p3 -= extlen;
+
+    retVal.assign(p2, (int32_t)(p3 - p2));
+
+    return 0;
+}
+
+inline result_t _basename_win32(exlib::string path, exlib::string ext,
+    exlib::string& retVal)
+{
+    const char* p1 = path.c_str();
+    const char* p2 = split_path_win32(p1);
+    const char* p3 = p1 + path.length();
+    int32_t extlen = (int32_t)ext.length();
+
+    while (isWin32PathSlash(*p2))
+        p2++;
+
+    while (p3 > p2 && isWin32PathSlash(*(p3 - 1)))
+        p3--;
+
+    if (extlen && ((int32_t)(p3 - p2) >= extlen)
+        && !qstricmp(ext.c_str(), p3 - extlen, extlen))
         p3 -= extlen;
 
     retVal.assign(p2, (int32_t)(p3 - p2));
@@ -316,7 +421,32 @@ inline result_t _extname(exlib::string path, exlib::string& retVal)
 
     while (*c_str) {
         ch = *c_str++;
-        if (isPathSlash(ch)) {
+        if (isPosixPathSlash(ch)) {
+            if (*c_str == '.')
+                c_str++;
+            p1 = NULL;
+        } else if (ch == '.')
+            p1 = c_str - 1;
+    }
+
+    if (p1)
+        retVal.assign(p1, (int32_t)(c_str - p1));
+
+    return 0;
+}
+
+inline result_t _extname_win32(exlib::string path, exlib::string& retVal)
+{
+    char ch;
+    const char* p1 = NULL;
+    const char* c_str = path.c_str();
+
+    if (*c_str == '.')
+        c_str++;
+
+    while (*c_str) {
+        ch = *c_str++;
+        if (isWin32PathSlash(ch)) {
             if (*c_str == '.')
                 c_str++;
             p1 = NULL;
@@ -340,6 +470,16 @@ inline result_t _dirname(exlib::string path, exlib::string& retVal)
     return 0;
 }
 
+inline result_t _dirname_win32(exlib::string path, exlib::string& retVal)
+{
+    const char* p1 = path.c_str();
+    const char* p2 = split_path_win32(p1);
+
+    retVal.assign(p1, (int32_t)(p2 - p1));
+
+    return 0;
+}
+
 inline result_t _join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
 {
     Path p;
@@ -348,10 +488,24 @@ inline result_t _join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::st
 
     for (i = 0; i < argc; i++) {
         v8::String::Utf8Value s(args[i]);
-        p.append(*s);
+        p.appendPosix(*s);
     }
 
     return _normalize(p.str(), retVal);
+}
+
+inline result_t _join_win32(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+{
+    Path p;
+    int32_t argc = args.Length();
+    int32_t i;
+
+    for (i = 0; i < argc; i++) {
+        v8::String::Utf8Value s(args[i]);
+        p.appendWin32(*s);
+    }
+
+    return _normalize_win32(p.str(), retVal);
 }
 
 inline result_t _resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
@@ -359,16 +513,35 @@ inline result_t _resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib:
     exlib::string str;
     process_base::cwd(str);
 
-    Path p(str);
+    Path p;
+    p.appendPosix(str);
     int32_t argc = args.Length();
     int32_t i;
 
     for (i = 0; i < argc; i++) {
         v8::String::Utf8Value s(args[i]);
-        p.append(*s);
+        p.appendPosix(*s);
     }
 
     return _normalize(p.str(), retVal);
+}
+
+inline result_t _resolve_win32(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+{
+    exlib::string str;
+    process_base::cwd(str);
+
+    Path p;
+    p.appendWin32(str);
+    int32_t argc = args.Length();
+    int32_t i;
+
+    for (i = 0; i < argc; i++) {
+        v8::String::Utf8Value s(args[i]);
+        p.appendWin32(*s);
+    }
+
+    return _normalize_win32(p.str(), retVal);
 }
 
 inline result_t _sep(exlib::string& retVal)
@@ -383,7 +556,7 @@ inline result_t _delimiter(exlib::string& retVal)
     return 0;
 }
 
-inline result_t _fullpath_posix(exlib::string path, exlib::string& retVal)
+inline result_t _fullpath(exlib::string path, exlib::string& retVal)
 {
     if (isPathSlash(path.c_str()[0]))
         return _normalize(path, retVal);
