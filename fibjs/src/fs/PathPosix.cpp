@@ -41,7 +41,7 @@ result_t PathPosix::resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exl
 
 result_t PathPosix::get_sep(exlib::string& retVal)
 {
-    retVal = ":";
+    retVal = "/";
     return 0;
 }
 
