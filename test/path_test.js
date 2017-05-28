@@ -323,7 +323,7 @@ describe('path', () => {
         // path.posix.join
         joinTests.forEach((test) => {
             var actual = path.posix.join.apply(path.posix, test[0]);
-            var expected = isWindows ? test[1].replace(/\//g, '\\') : test[1];
+            var expected = test[1];
             var message = 'path.posix.join(' + test[0].map(JSON.stringify).join(',') + ')' + '\n  expect=' + JSON.stringify(expected) + '\n  actual=' + JSON.stringify(actual);
             if (actual !== expected)
                 failures.push('\n' + message);
