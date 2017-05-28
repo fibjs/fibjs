@@ -1,31 +1,8 @@
-#include "ifs/process.h"
 #include "PathWin32.h"
 #include "PathPosix.h"
+#include "path.h"
 
 namespace fibjs {
-
-extern result_t _normalize(exlib::string path, exlib::string& retVal);
-extern result_t _basename(exlib::string path, exlib::string ext, exlib::string& retVal);
-extern result_t _extname(exlib::string path, exlib::string& retVal);
-extern result_t _dirname(exlib::string path, exlib::string& retVal);
-extern result_t _join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
-extern result_t _resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
-extern result_t _sep(exlib::string& retVal);
-extern result_t _delimiter(exlib::string& retVal);
-
-inline result_t _fullpath_posix(exlib::string path, exlib::string& retVal)
-{
-    if (isPathSlash(path.c_str()[0]))
-        return _normalize(path, retVal);
-
-    exlib::string str;
-
-    process_base::cwd(str);
-    str.append(1, PATH_SLASH);
-    str.append(path);
-
-    return _normalize(str, retVal);
-}
 
 result_t PathPosix::normalize(exlib::string path, exlib::string& retVal)
 {
