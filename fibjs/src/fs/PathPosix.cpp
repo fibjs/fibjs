@@ -26,7 +26,7 @@ result_t PathPosix::dirname(exlib::string path, exlib::string& retVal)
 
 result_t PathPosix::fullpath(exlib::string path, exlib::string& retVal)
 {
-    return _fullpath_posix(path, retVal);
+    return _fullpath(path, retVal);
 }
 
 result_t PathPosix::join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
@@ -41,13 +41,13 @@ result_t PathPosix::resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exl
 
 result_t PathPosix::get_sep(exlib::string& retVal)
 {
-    retVal = "/";
+    retVal.assign(1, PATH_SLASH_POSIX);
     return 0;
 }
 
 result_t PathPosix::get_delimiter(exlib::string& retVal)
 {
-    retVal = ":";
+    retVal.assign(1, PATH_DELIMITER_POSIX);
     return 0;
 }
 
