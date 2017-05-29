@@ -52,12 +52,12 @@ module os
     /*! @brief 查询当前运行环境 cpu 个数和参数
      @return 返回包含 cpu 参数的数组，每一项对应一个 cpu
     */
-    static Array CPUInfo();
+    static Array cpus();
 
     /*! @brief 查询当前运行环境 cpu 个数
      @return 返回 cpu 个数
     */
-    static Integer CPUs();
+    static Integer cpuNumbers();
 
     /*! @brief 查询当前运行环境临时文件目录
      @return 返回临时文件目录

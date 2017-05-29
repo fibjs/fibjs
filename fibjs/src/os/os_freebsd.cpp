@@ -107,7 +107,7 @@ result_t os_base::freemem(int64_t& retVal)
     return 0;
 }
 
-result_t os_base::CPUs(int32_t& retVal)
+result_t os_base::cpuNumbers(int32_t& retVal)
 {
     static int32_t cpus = 0;
 
@@ -128,7 +128,7 @@ result_t os_base::CPUs(int32_t& retVal)
     return 0;
 }
 
-result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
+result_t os_base::cpus(v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
@@ -258,8 +258,8 @@ result_t os_base::memoryUsage(v8::Local<v8::Object>& retVal)
         void* handle = dlopen("libkvm.so", RTLD_LAZY);
 
         if (handle) {
-            _kvm_open = (kvm_t * (*)(char*, const char*, char*, int32_t, const char*))dlsym(handle, "kvm_open");
-            _kvm_getprocs = (struct kinfo_proc * (*)(kvm_t*, int32_t, int32_t, int32_t*))dlsym(handle, "kvm_getprocs");
+            _kvm_open = (kvm_t * (*)(char*, const char*, char*, int32_t, const char*)) dlsym(handle, "kvm_open");
+            _kvm_getprocs = (struct kinfo_proc * (*)(kvm_t*, int32_t, int32_t, int32_t*)) dlsym(handle, "kvm_getprocs");
             _kvm_close = (void (*)(kvm_t*))dlsym(handle, "kvm_close");
         }
     }

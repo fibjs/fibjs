@@ -11,13 +11,13 @@ describe('os', () => {
         console.dir({
             type: os.type,
             version: os.version,
-            CPUs: os.CPUs(),
+            CPUs: os.cpuNumbers(),
             uptime: os.uptime(),
             loadavg: os.loadavg(),
             totalmem: os.totalmem(),
             freemem: os.freemem()
         });
-        console.dir(os.CPUInfo());
+        console.dir(os.cpus());
         console.dir(os.networkInterfaces());
     });
 

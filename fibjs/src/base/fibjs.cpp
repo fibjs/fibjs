@@ -35,7 +35,7 @@ void init(int32_t& argc, char* argv[])
 
     int32_t cpus = 0;
 
-    os_base::CPUs(cpus);
+    os_base::cpuNumbers(cpus);
     if (cpus < 2)
         cpus = 2;
 
