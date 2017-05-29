@@ -55,7 +55,7 @@ result_t os_base::release(exlib::string& retVal)
 
 #pragma warning(suppress : 4996)
     if (GetVersionExW(&info) == 0) {
-        return CHECK_ERROR(Runtime::setError("Get os release error!"));
+        return CHECK_ERROR(LastError());
     }
 
     snprintf(release,
@@ -686,14 +686,16 @@ result_t os_base::homedir(exlib::string& retVal)
         int r;
 
         if (OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &token) == 0) {
-            return CHECK_ERROR(GetLastError());
+            return CHECK_ERROR(LastError());
         }
+
         buffersize = sizeof(path);
         if (!GetUserProfileDirectoryW(token, path, &buffersize)) {
-            r = GetLastError();
-            CloseHandle(token);
-            if (r != ERROR_INSUFFICIENT_BUFFER)
-                return CHECK_ERROR(Runtime::setError("GetUserProfileDirectoryW call returned unexpectedly"));
+            r = LastError();
+            if (r != ERROR_INSUFFICIENT_BUFFER) {
+                CloseHandle(token);
+                return CHECK_ERROR(r);
+            }
         }
 
         CloseHandle(token);
