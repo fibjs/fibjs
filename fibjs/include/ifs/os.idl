@@ -21,7 +21,7 @@ module os
     static readonly String version;
 
     /*! @brief 查询当前 cpu 环境，可能的结果为 'amd64', 'arm', 'arm64', 'ia32' */
-    static readonly String arch;
+    static String arch();
 
     /*! @brief 查询运行环境当前时区 */
     static readonly Integer timezone;

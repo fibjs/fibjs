@@ -27,7 +27,7 @@ public:
     static result_t get_hostname(exlib::string& retVal);
     static result_t get_type(exlib::string& retVal);
     static result_t get_version(exlib::string& retVal);
-    static result_t get_arch(exlib::string& retVal);
+    static result_t arch(exlib::string& retVal);
     static result_t get_timezone(int32_t& retVal);
     static result_t get_EOL(exlib::string& retVal);
     static result_t uptime(double& retVal);
@@ -61,7 +61,7 @@ public:
     static void s_get_hostname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_timezone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -92,6 +92,7 @@ namespace fibjs {
 inline ClassInfo& os_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "arch", s_arch, true },
         { "uptime", s_uptime, true },
         { "loadavg", s_loadavg, true },
         { "totalmem", s_totalmem, true },
@@ -116,7 +117,6 @@ inline ClassInfo& os_base::class_info()
         { "hostname", s_get_hostname, block_set, true },
         { "type", s_get_type, block_set, true },
         { "version", s_get_version, block_set, true },
-        { "arch", s_get_arch, block_set, true },
         { "timezone", s_get_timezone, block_set, true },
         { "EOL", s_get_EOL, block_set, true },
         { "execPath", s_get_execPath, block_set, true }
@@ -165,13 +165,15 @@ inline void os_base::s_get_version(v8::Local<v8::String> property, const v8::Pro
     METHOD_RETURN();
 }
 
-inline void os_base::s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void os_base::s_arch(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
 
-    hr = get_arch(vr);
+    METHOD_OVER(0, 0);
+
+    hr = arch(vr);
 
     METHOD_RETURN();
 }
