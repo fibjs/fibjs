@@ -692,7 +692,7 @@ result_t os_base::homedir(exlib::string& retVal)
         buffersize = sizeof(path);
         if (!GetUserProfileDirectoryW(token, path, &buffersize)) {
             r = LastError();
-            if (r != ERROR_INSUFFICIENT_BUFFER) {
+            if (r != -ERROR_INSUFFICIENT_BUFFER) {
                 CloseHandle(token);
                 return CHECK_ERROR(r);
             }
