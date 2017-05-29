@@ -133,6 +133,12 @@ describe('os', () => {
             assert.equal(os.tmpdir(), '/temp');
         }
     });
+
+    it('endianness', () => {
+        const endianness = os.endianness();
+        assert.isString(endianness);
+        assert(/[BL]E/.test(endianness));
+    });
 });
 
 // test.run(console.DEBUG);

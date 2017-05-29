@@ -25,6 +25,7 @@ class os_base : public object_base {
 public:
     // os_base
     static result_t hostname(exlib::string& retVal);
+    static result_t endianness(exlib::string& retVal);
     static result_t type(exlib::string& retVal);
     static result_t get_version(exlib::string& retVal);
     static result_t arch(exlib::string& retVal);
@@ -59,6 +60,7 @@ public:
 
 public:
     static void s_hostname(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_endianness(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_type(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -93,6 +95,7 @@ inline ClassInfo& os_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "hostname", s_hostname, true },
+        { "endianness", s_endianness, true },
         { "type", s_type, true },
         { "arch", s_arch, true },
         { "uptime", s_uptime, true },
@@ -141,6 +144,19 @@ inline void os_base::s_hostname(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(0, 0);
 
     hr = hostname(vr);
+
+    METHOD_RETURN();
+}
+
+inline void os_base::s_endianness(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = endianness(vr);
 
     METHOD_RETURN();
 }
