@@ -5,6 +5,7 @@ var test_util = require('./test_util');
 
 var os = require('os');
 var io = require('io');
+var isWindows = process.platform === 'win32';
 
 describe('os', () => {
     it('stat', () => {
@@ -143,6 +144,16 @@ describe('os', () => {
     it('release', () => {
         const release = os.release();
         assert.isString(release);
+    });
+
+    it('homedir', () => {
+        const homedir = os.homedir();
+        assert.isString(homedir);
+        if (isWindows) {
+            assert.equal(os.homedir(), process.env.USERPROFILE);
+        } else {
+            assert.equal(os.homedir(), process.env.HOME);
+        }
     });
 });
 
