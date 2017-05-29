@@ -9,13 +9,13 @@ var vmid = coroutine.vmid;
 function unlink(pathname) {
     try {
         fs.rmdir(pathname);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 var pathname = 'test_dir' + vmid;
 var pathname1 = 'test1_dir' + vmid;
 
-var win = require("os").type == "Windows";
+var win = require("os").type() == "Windows";
 
 describe('fs', () => {
     before(() => {

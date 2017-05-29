@@ -15,7 +15,7 @@ module os
     static String hostname();
 
     /*! @brief 查询当前运行环境操作系统名称 */
-    static readonly String type;
+    static String type();
 
     /*! @brief 查询当前运行环境操作系统版本 */
     static readonly String version;

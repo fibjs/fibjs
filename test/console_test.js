@@ -9,7 +9,7 @@ describe("console", () => {
             type: "console"
         });
 
-        if (os.type == 'Windows') {
+        if (os.type() == 'Windows') {
             assert.throws(() => {
                 console.add("syslog");
             });

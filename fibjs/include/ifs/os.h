@@ -25,7 +25,7 @@ class os_base : public object_base {
 public:
     // os_base
     static result_t hostname(exlib::string& retVal);
-    static result_t get_type(exlib::string& retVal);
+    static result_t type(exlib::string& retVal);
     static result_t get_version(exlib::string& retVal);
     static result_t arch(exlib::string& retVal);
     static result_t get_timezone(int32_t& retVal);
@@ -59,7 +59,7 @@ public:
 
 public:
     static void s_hostname(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_type(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_timezone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -93,6 +93,7 @@ inline ClassInfo& os_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "hostname", s_hostname, true },
+        { "type", s_type, true },
         { "arch", s_arch, true },
         { "uptime", s_uptime, true },
         { "loadavg", s_loadavg, true },
@@ -115,7 +116,6 @@ inline ClassInfo& os_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "type", s_get_type, block_set, true },
         { "version", s_get_version, block_set, true },
         { "timezone", s_get_timezone, block_set, true },
         { "EOL", s_get_EOL, block_set, true },
@@ -145,13 +145,15 @@ inline void os_base::s_hostname(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void os_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
 
-    hr = get_type(vr);
+    METHOD_OVER(0, 0);
+
+    hr = type(vr);
 
     METHOD_RETURN();
 }
