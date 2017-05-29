@@ -43,7 +43,7 @@ result_t os_base::release(exlib::string& retVal)
 {
     struct utsname info;
     if (uname(&info) < 0) {
-        return CHECK_ERROR(Runtime::setError("Get os release error!"));
+        return CHECK_ERROR(LastError());
     }
 #ifdef _AIX
     char release[256];
@@ -258,11 +258,12 @@ result_t os_base::homedir(exlib::string& retVal)
             bufsize = 16384;
         buf = (char*)malloc(bufsize);
         if (buf == NULL) {
-            return CHECK_ERROR(Runtime::setError("Get homedir error!"));
+            return CHECK_ERROR(LastError());
         }
         s = getpwuid_r(getuid(), &pwd, buf, bufsize, &result);
         if (result == NULL) {
-            return CHECK_ERROR(Runtime::setError("Get homedir error!"));
+            free(buf);
+            return CHECK_ERROR(LastError());
         }
         retVal.append(pwd.pw_dir, strlen(pwd.pw_dir) + 1);
         free(buf);
