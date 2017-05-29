@@ -48,22 +48,14 @@ result_t os_base::type(exlib::string& retVal)
 
 result_t os_base::release(exlib::string& retVal)
 {
+    OSVERSIONINFOEX info = { sizeof(info) };
     char release[256];
-    OSVERSIONINFOW info;
 
-    info.dwOSVersionInfoSize = sizeof(info);
-
-#pragma warning(suppress : 4996)
-    if (GetVersionExW(&info) == 0) {
+    if (GetVersion2(&info) == 0)
         return CHECK_ERROR(LastError());
-    }
 
-    snprintf(release,
-        sizeof(release),
-        "%d.%d.%d",
-        static_cast<int>(info.dwMajorVersion),
-        static_cast<int>(info.dwMinorVersion),
-        static_cast<int>(info.dwBuildNumber));
+    sprintf(release, "%d.%d.%d", static_cast<int32_t>(info.dwMajorVersion),
+        static_cast<int32_t>(info.dwMinorVersion), static_cast<int32_t>(info.dwBuildNumber));
     retVal = release;
     return 0;
 }
@@ -115,21 +107,6 @@ BOOL GetVersion2(OSVERSIONINFOEX* os)
         return FALSE;
     FreeLibrary(hMod);
     return TRUE;
-}
-
-result_t os_base::get_version(exlib::string& retVal)
-{
-    OSVERSIONINFOEX info = { sizeof(info) };
-    char release[256];
-
-    if (GetVersion2(&info) == 0)
-        return CHECK_ERROR(LastError());
-
-    sprintf(release, "%d.%d.%d", static_cast<int32_t>(info.dwMajorVersion),
-        static_cast<int32_t>(info.dwMinorVersion), static_cast<int32_t>(info.dwBuildNumber));
-    retVal = release;
-
-    return 0;
 }
 
 result_t os_base::get_EOL(exlib::string& retVal)
