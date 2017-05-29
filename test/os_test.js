@@ -9,7 +9,7 @@ var io = require('io');
 describe('os', () => {
     it('stat', () => {
         console.dir({
-            type: os.type,
+            type: os.type(),
             version: os.version,
             CPUs: os.cpuNumbers(),
             uptime: os.uptime(),

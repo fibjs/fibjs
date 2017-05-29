@@ -39,7 +39,7 @@ var backend = {
     "Darwin": "KQueue",
     "FreeBSD": "KQueue",
     "Linux": "EPoll"
-}[os.type];
+}[os.type()];
 
 
 function del(f) {

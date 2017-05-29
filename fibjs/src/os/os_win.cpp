@@ -39,7 +39,7 @@ static PROCNTQSI pNtQuerySystemInformation;
 
 namespace fibjs {
 
-result_t os_base::get_type(exlib::string& retVal)
+result_t os_base::type(exlib::string& retVal)
 {
     retVal = "Windows";
     return 0;
