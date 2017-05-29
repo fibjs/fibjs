@@ -364,7 +364,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
     return hr;
 }
 
-result_t os_base::networkInfo(v8::Local<v8::Object>& retVal)
+result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
 {
     unsigned long size = 0;
     IP_ADAPTER_ADDRESSES* adapter_addresses;
