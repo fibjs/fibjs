@@ -43,6 +43,19 @@ result_t os_base::arch(exlib::string& retVal)
     return 0;
 }
 
+result_t os_base::endianness(exlib::string& retVal)
+{
+    const union {
+        uint8_t u8[2];
+        uint16_t u16;
+    } u = {
+        { 1, 0 }
+    };
+
+    retVal = u.u16 == 1 ? "LE" : "BE";
+    return 0;
+}
+
 result_t os_base::time(exlib::string tmString, date_t& retVal)
 {
     if (tmString.empty())

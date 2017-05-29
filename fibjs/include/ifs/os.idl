@@ -14,6 +14,9 @@ module os
     /*! @brief 查询当前运行环境主机名 */
     static String hostname();
 
+    /*! @brief the endianness of the CPU for which the fibjs binary was compiled. */
+    static String endianness();
+
     /*! @brief 查询当前运行环境操作系统名称 */
     static String type();
 
