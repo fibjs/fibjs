@@ -29,7 +29,6 @@ public:
     static result_t type(exlib::string& retVal);
     static result_t release(exlib::string& retVal);
     static result_t homedir(exlib::string& retVal);
-    static result_t get_version(exlib::string& retVal);
     static result_t arch(exlib::string& retVal);
     static result_t get_timezone(int32_t& retVal);
     static result_t get_EOL(exlib::string& retVal);
@@ -66,7 +65,6 @@ public:
     static void s_type(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_release(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_homedir(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_timezone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -125,7 +123,6 @@ inline ClassInfo& os_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "version", s_get_version, block_set, true },
         { "timezone", s_get_timezone, block_set, true },
         { "EOL", s_get_EOL, block_set, true },
         { "execPath", s_get_execPath, block_set, true }
@@ -202,17 +199,6 @@ inline void os_base::s_homedir(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(0, 0);
 
     hr = homedir(vr);
-
-    METHOD_RETURN();
-}
-
-inline void os_base::s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    PROPERTY_ENTER();
-
-    hr = get_version(vr);
 
     METHOD_RETURN();
 }

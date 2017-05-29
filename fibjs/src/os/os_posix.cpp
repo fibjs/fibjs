@@ -69,16 +69,6 @@ result_t os_base::platform(exlib::string& retVal)
     return 0;
 }
 
-result_t os_base::get_version(exlib::string& retVal)
-{
-    struct utsname info;
-
-    uname(&info);
-    retVal = info.release;
-
-    return 0;
-}
-
 result_t os_base::get_EOL(exlib::string& retVal)
 {
     retVal.assign("\n", 1);

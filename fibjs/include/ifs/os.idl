@@ -20,14 +20,11 @@ module os
     /*! @brief 查询当前运行环境操作系统名称 */
     static String type();
 
-    /*! @brief 查询当前运行环境操作系统发行版 */
+    /*! @brief 查询当前运行环境操作系统版本 */
     static String release();
 
     /*! @brief 查询当前用户目录 */
     static String homedir();
-
-    /*! @brief 查询当前运行环境操作系统版本 */
-    static readonly String version;
 
     /*! @brief 查询当前 cpu 环境，可能的结果为 'amd64', 'arm', 'arm64', 'ia32' */
     static String arch();
