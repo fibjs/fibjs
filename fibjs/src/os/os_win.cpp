@@ -18,6 +18,7 @@
 #include "utf8.h"
 #include "inetAddr.h"
 #include "BufferedStream.h"
+#include "userenv.h"
 
 typedef struct
     _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION {
@@ -679,6 +680,26 @@ result_t os_base::homedir(exlib::string& retVal)
 
     // process.env.HOME does not exist , call GetUserProfileDirectoryW()
     if (retVal.empty()) {
+        HANDLE token;
+        exlib::wchar path[MAX_PATH];
+        DWORD buffersize;
+        int r;
+
+        if (OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &token) == 0) {
+            return CHECK_ERROR(GetLastError());
+        }
+        buffersize = sizeof(path);
+        if (!GetUserProfileDirectoryW(token, path, &buffersize)) {
+            r = GetLastError();
+            CloseHandle(token);
+            if (r != ERROR_INSUFFICIENT_BUFFER)
+                return CHECK_ERROR(Runtime::setError("GetUserProfileDirectoryW call returned unexpectedly"));
+        }
+
+        CloseHandle(token);
+
+        buffersize = sizeof(path);
+        retVal = utf16to8String(path, (int32_t)buffersize);
     }
     path_base::normalize(retVal, retVal);
 
