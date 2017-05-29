@@ -23,6 +23,9 @@ module os
     /*! @brief 查询当前运行环境操作系统发行版 */
     static String release();
 
+    /*! @brief 查询当前用户目录 */
+    static String homedir();
+
     /*! @brief 查询当前运行环境操作系统版本 */
     static readonly String version;
 

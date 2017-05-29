@@ -17,6 +17,9 @@
 #include <ifaddrs.h>
 #include <net/if.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #ifdef Linux
 #include <linux/if_packet.h>
@@ -38,7 +41,6 @@ result_t os_base::type(exlib::string& retVal)
 
 result_t os_base::release(exlib::string& retVal)
 {
-    const char* rval;
     struct utsname info;
     if (uname(&info) < 0) {
         return CHECK_ERROR(Runtime::setError("Get os release error!"));
@@ -228,6 +230,43 @@ result_t os_base::tmpdir(exlib::string& retVal)
         retVal = "/tmp";
     } while (false);
 
+    path_base::normalize(retVal, retVal);
+
+    if (retVal.length() > 1 && isPathSlash(retVal[retVal.length() - 1]))
+        retVal.resize(retVal.length() - 1);
+
+    return 0;
+}
+
+result_t os_base::homedir(exlib::string& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Object> env;
+    process_base::get_env(env);
+
+    GetConfigValue(isolate->m_isolate, env, "HOME", retVal, true);
+
+    // process.env.HOME does not exist , call getpwuid_r()
+    if (retVal.empty()) {
+        struct passwd pwd;
+        struct passwd* result;
+        char* buf;
+        size_t bufsize;
+        int s;
+        bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+        if (bufsize == -1)
+            bufsize = 16384;
+        buf = (char*)malloc(bufsize);
+        if (buf == NULL) {
+            return CHECK_ERROR(Runtime::setError("Get homedir error!"));
+        }
+        s = getpwuid_r(getuid(), &pwd, buf, bufsize, &result);
+        if (result == NULL) {
+            return CHECK_ERROR(Runtime::setError("Get homedir error!"));
+        }
+        retVal.append(pwd.pw_dir, strlen(pwd.pw_dir) + 1);
+        free(buf);
+    }
     path_base::normalize(retVal, retVal);
 
     if (retVal.length() > 1 && isPathSlash(retVal[retVal.length() - 1]))

@@ -669,6 +669,25 @@ result_t os_base::tmpdir(exlib::string& retVal)
     return 0;
 }
 
+result_t os_base::homedir(exlib::string& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Object> env;
+    process_base::get_env(env);
+
+    GetConfigValue(isolate->m_isolate, env, "USERPROFILE", retVal, true);
+
+    // process.env.HOME does not exist , call GetUserProfileDirectoryW()
+    if (retVal.empty()) {
+    }
+    path_base::normalize(retVal, retVal);
+
+    if (retVal.length() > 1 && isPathSlash(retVal[retVal.length() - 1]))
+        retVal.resize(retVal.length() - 1);
+
+    return 0;
+}
+
 result_t process_base::cwd(exlib::string& retVal)
 {
     DWORD utf16_len;
