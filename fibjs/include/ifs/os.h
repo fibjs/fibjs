@@ -37,7 +37,7 @@ public:
     static result_t CPUInfo(v8::Local<v8::Array>& retVal);
     static result_t CPUs(int32_t& retVal);
     static result_t tmpdir(exlib::string& retVal);
-    static result_t networkInfo(v8::Local<v8::Object>& retVal);
+    static result_t networkInterfaces(v8::Local<v8::Object>& retVal);
     static result_t printerInfo(v8::Local<v8::Array>& retVal);
     static result_t openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
     static result_t platform(exlib::string& retVal);
@@ -71,7 +71,7 @@ public:
     static void s_CPUInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_CPUs(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_networkInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_networkInterfaces(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_platform(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -99,7 +99,7 @@ inline ClassInfo& os_base::class_info()
         { "CPUInfo", s_CPUInfo, true },
         { "CPUs", s_CPUs, true },
         { "tmpdir", s_tmpdir, true },
-        { "networkInfo", s_networkInfo, true },
+        { "networkInterfaces", s_networkInterfaces, true },
         { "printerInfo", s_printerInfo, true },
         { "openPrinter", s_openPrinter, true },
         { "platform", s_platform, true },
@@ -289,7 +289,7 @@ inline void os_base::s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_networkInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_networkInterfaces(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -297,7 +297,7 @@ inline void os_base::s_networkInfo(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(0, 0);
 
-    hr = networkInfo(vr);
+    hr = networkInterfaces(vr);
 
     METHOD_RETURN();
 }

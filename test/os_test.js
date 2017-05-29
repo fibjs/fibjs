@@ -18,7 +18,7 @@ describe('os', () => {
             freemem: os.freemem()
         });
         console.dir(os.CPUInfo());
-        console.dir(os.networkInfo());
+        console.dir(os.networkInterfaces());
     });
 
     it("nativeObjects", () => {

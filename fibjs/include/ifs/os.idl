@@ -67,7 +67,7 @@ module os
     /*! @brief 查询当前运行环境网络信息
      @return 返回网卡信息
     */
-    static Object networkInfo();
+    static Object networkInterfaces();
 
     /*! @brief 查询当前主机的打印机信息
      @return 返回打印机信息
