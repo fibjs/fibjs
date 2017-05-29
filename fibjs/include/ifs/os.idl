@@ -12,7 +12,7 @@ module os
     static Service;
 
     /*! @brief 查询当前运行环境主机名 */
-    static readonly String hostname;
+    static String hostname();
 
     /*! @brief 查询当前运行环境操作系统名称 */
     static readonly String type;
