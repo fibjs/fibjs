@@ -678,7 +678,7 @@ result_t os_base::homedir(exlib::string& retVal)
 
     GetConfigValue(isolate->m_isolate, env, "USERPROFILE", retVal, true);
 
-    // process.env.HOME does not exist , call GetUserProfileDirectoryW()
+    // process.env.USERPROFILE does not exist , call GetUserProfileDirectoryW()
     if (retVal.empty()) {
         HANDLE token;
         exlib::wchar path[MAX_PATH];
