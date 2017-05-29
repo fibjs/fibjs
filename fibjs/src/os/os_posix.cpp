@@ -36,6 +36,24 @@ result_t os_base::type(exlib::string& retVal)
     return 0;
 }
 
+result_t os_base::release(exlib::string& retVal)
+{
+    const char* rval;
+    struct utsname info;
+    if (uname(&info) < 0) {
+        return CHECK_ERROR(Runtime::setError("Get os release error!"));
+    }
+#ifdef _AIX
+    char release[256];
+    snprintf(release, sizeof(release),
+        "%s.%s", info.version, info.release);
+    retVal = release;
+#else
+    retVal = info.release;
+#endif
+    return 0;
+}
+
 result_t os_base::platform(exlib::string& retVal)
 {
 #ifdef Linux

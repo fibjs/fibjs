@@ -20,6 +20,9 @@ module os
     /*! @brief 查询当前运行环境操作系统名称 */
     static String type();
 
+    /*! @brief 查询当前运行环境操作系统发行版 */
+    static String release();
+
     /*! @brief 查询当前运行环境操作系统版本 */
     static readonly String version;
 

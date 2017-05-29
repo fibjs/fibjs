@@ -45,6 +45,28 @@ result_t os_base::type(exlib::string& retVal)
     return 0;
 }
 
+result_t os_base::release(exlib::string& retVal)
+{
+    char release[256];
+    OSVERSIONINFOW info;
+
+    info.dwOSVersionInfoSize = sizeof(info);
+
+#pragma warning(suppress : 4996)
+    if (GetVersionExW(&info) == 0) {
+        return CHECK_ERROR(Runtime::setError("Get os release error!"));
+    }
+
+    snprintf(release,
+        sizeof(release),
+        "%d.%d.%d",
+        static_cast<int>(info.dwMajorVersion),
+        static_cast<int>(info.dwMinorVersion),
+        static_cast<int>(info.dwBuildNumber));
+    retVal = release;
+    return 0;
+}
+
 result_t os_base::platform(exlib::string& retVal)
 {
     retVal = "win32";
