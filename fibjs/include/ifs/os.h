@@ -34,8 +34,8 @@ public:
     static result_t loadavg(v8::Local<v8::Array>& retVal);
     static result_t totalmem(int64_t& retVal);
     static result_t freemem(int64_t& retVal);
-    static result_t CPUInfo(v8::Local<v8::Array>& retVal);
-    static result_t CPUs(int32_t& retVal);
+    static result_t cpus(v8::Local<v8::Array>& retVal);
+    static result_t cpuNumbers(int32_t& retVal);
     static result_t tmpdir(exlib::string& retVal);
     static result_t networkInterfaces(v8::Local<v8::Object>& retVal);
     static result_t printerInfo(v8::Local<v8::Array>& retVal);
@@ -68,8 +68,8 @@ public:
     static void s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_freemem(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_CPUInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_CPUs(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_cpus(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_cpuNumbers(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_networkInterfaces(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -97,8 +97,8 @@ inline ClassInfo& os_base::class_info()
         { "loadavg", s_loadavg, true },
         { "totalmem", s_totalmem, true },
         { "freemem", s_freemem, true },
-        { "CPUInfo", s_CPUInfo, true },
-        { "CPUs", s_CPUs, true },
+        { "cpus", s_cpus, true },
+        { "cpuNumbers", s_cpuNumbers, true },
         { "tmpdir", s_tmpdir, true },
         { "networkInterfaces", s_networkInterfaces, true },
         { "printerInfo", s_printerInfo, true },
@@ -252,7 +252,7 @@ inline void os_base::s_freemem(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_CPUInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_cpus(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -260,12 +260,12 @@ inline void os_base::s_CPUInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(0, 0);
 
-    hr = CPUInfo(vr);
+    hr = cpus(vr);
 
     METHOD_RETURN();
 }
 
-inline void os_base::s_CPUs(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_cpuNumbers(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -273,7 +273,7 @@ inline void os_base::s_CPUs(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(0, 0);
 
-    hr = CPUs(vr);
+    hr = cpuNumbers(vr);
 
     METHOD_RETURN();
 }
