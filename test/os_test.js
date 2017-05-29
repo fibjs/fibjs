@@ -139,6 +139,11 @@ describe('os', () => {
         assert.isString(endianness);
         assert(/[BL]E/.test(endianness));
     });
+
+    it('release', () => {
+        const release = os.release();
+        assert.isString(release);
+    });
 });
 
 // test.run(console.DEBUG);
