@@ -28,7 +28,7 @@ result_t os_base::get_hostname(exlib::string& retVal)
     return 0;
 }
 
-result_t os_base::get_arch(exlib::string& retVal)
+result_t os_base::arch(exlib::string& retVal)
 {
 #ifdef amd64
     retVal = "x64";

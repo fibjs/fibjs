@@ -72,8 +72,8 @@ describe("vm", () => {
     });
 
     it("require jsc arch test", () => {
-        console.log("vm_test/jsc_test_" + os.arch);
-        var a = sbox.require(__dirname + "/vm_test/jsc_test_" + os.arch);
+        console.log("vm_test/jsc_test_" + os.arch());
+        var a = sbox.require(__dirname + "/vm_test/jsc_test_" + os.arch());
         assert.equal(100, a.a);
     });
 
