@@ -39,6 +39,7 @@ public:
     static result_t cpus(v8::Local<v8::Array>& retVal);
     static result_t cpuNumbers(int32_t& retVal);
     static result_t tmpdir(exlib::string& retVal);
+    static result_t userInfo(v8::Local<v8::Object>& retVal);
     static result_t networkInterfaces(v8::Local<v8::Object>& retVal);
     static result_t printerInfo(v8::Local<v8::Array>& retVal);
     static result_t openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
@@ -75,6 +76,7 @@ public:
     static void s_cpus(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_cpuNumbers(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_userInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_networkInterfaces(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -109,6 +111,7 @@ inline ClassInfo& os_base::class_info()
         { "cpus", s_cpus, true },
         { "cpuNumbers", s_cpuNumbers, true },
         { "tmpdir", s_tmpdir, true },
+        { "userInfo", s_userInfo, true },
         { "networkInterfaces", s_networkInterfaces, true },
         { "printerInfo", s_printerInfo, true },
         { "openPrinter", s_openPrinter, true },
@@ -325,6 +328,19 @@ inline void os_base::s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(0, 0);
 
     hr = tmpdir(vr);
+
+    METHOD_RETURN();
+}
+
+inline void os_base::s_userInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = userInfo(vr);
 
     METHOD_RETURN();
 }

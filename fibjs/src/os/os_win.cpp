@@ -626,6 +626,16 @@ result_t os_base::tmpdir(exlib::string& retVal)
     return 0;
 }
 
+result_t os_base::userInfo(v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    retVal = v8::Object::New(isolate->m_isolate);
+    retVal->Set(isolate->NewFromUtf8("uid"), v8::Integer::New(isolate->m_isolate, -1));
+    retVal->Set(isolate->NewFromUtf8("gid"), v8::Integer::New(isolate->m_isolate, -1));
+    retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
+    return 0;
+}
+
 result_t os_base::homedir(exlib::string& retVal)
 {
     Isolate* isolate = Isolate::current();
