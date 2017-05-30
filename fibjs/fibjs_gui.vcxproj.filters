@@ -822,6 +822,9 @@
     <ClInclude Include="include\ifs\os.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\path.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\path_posix.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>

@@ -19,6 +19,8 @@
 #include "utf8.h"
 #include "inetAddr.h"
 #include "BufferedStream.h"
+#include <windows.h>
+#include <Lmcons.h>
 
 typedef struct
     _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION {
@@ -630,8 +632,49 @@ result_t os_base::userInfo(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
     retVal = v8::Object::New(isolate->m_isolate);
+
+    // username start
+    exlib::string username;
+    char name[UNLEN];
+    DWORD size = UNLEN;
+
+    if (!GetUserName(name, &size))
+        return CHECK_ERROR(LastError());
+    username = name;
+    // username end
+
+    // homedir start
+    exlib::string homedir;
+    HANDLE token;
+    exlib::wchar path[MAX_PATH];
+    DWORD buffersize;
+    int r;
+
+    if (OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &token) == 0) {
+        return CHECK_ERROR(LastError());
+    }
+    buffersize = sizeof(path);
+    if (!GetUserProfileDirectoryW(token, path, &buffersize)) {
+        r = LastError();
+        if (r != -ERROR_INSUFFICIENT_BUFFER) {
+            CloseHandle(token);
+            return CHECK_ERROR(r);
+        }
+    }
+    CloseHandle(token);
+    buffersize = sizeof(path);
+    homedir = utf16to8String(path, (int32_t)buffersize);
+    path_base::normalize(homedir, homedir);
+
+    if (homedir.length() > 1 && isPathSlash(homedir[homedir.length() - 1]))
+        homedir.resize(homedir.length() - 1);
+
+    // homedir end
+
     retVal->Set(isolate->NewFromUtf8("uid"), v8::Integer::New(isolate->m_isolate, -1));
     retVal->Set(isolate->NewFromUtf8("gid"), v8::Integer::New(isolate->m_isolate, -1));
+    retVal->Set(isolate->NewFromUtf8("username"), isolate->NewFromUtf8(username));
+    retVal->Set(isolate->NewFromUtf8("homedir"), isolate->NewFromUtf8(homedir));
     retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
     return 0;
 }
