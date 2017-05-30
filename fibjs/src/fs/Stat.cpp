@@ -7,7 +7,7 @@
 
 #include "object.h"
 #include "Stat.h"
-#include "ifs/path.h"
+#include "path.h"
 #include "utf8.h"
 
 namespace fibjs {

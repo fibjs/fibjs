@@ -3,10 +3,10 @@
 
  引用方法：
  @code
- var path = require('path');
+ var path = require('path').posix;
  @endcode
  */
-module path
+module path_posix
 {
     /*! @brief 标准化路径，处理路径中父目录等信息
 

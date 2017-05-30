@@ -5,8 +5,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _path_base_H_
-#define _path_base_H_
+#ifndef _path_win32_base_H_
+#define _path_win32_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -16,11 +16,11 @@
 
 namespace fibjs {
 
-class path_base : public object_base {
-    DECLARE_CLASS(path_base);
+class path_win32_base : public object_base {
+    DECLARE_CLASS(path_win32_base);
 
 public:
-    // path_base
+    // path_win32_base
     static result_t normalize(exlib::string path, exlib::string& retVal);
     static result_t basename(exlib::string path, exlib::string ext, exlib::string& retVal);
     static result_t extname(exlib::string path, exlib::string& retVal);
@@ -60,7 +60,7 @@ public:
 }
 
 namespace fibjs {
-inline ClassInfo& path_base::class_info()
+inline ClassInfo& path_win32_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "normalize", s_normalize, true },
@@ -80,7 +80,7 @@ inline ClassInfo& path_base::class_info()
     };
 
     static ClassData s_cd = {
-        "path", true, s__new, NULL,
+        "path_win32", true, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
         &object_base::class_info()
     };
@@ -89,7 +89,7 @@ inline ClassInfo& path_base::class_info()
     return s_ci;
 }
 
-inline void path_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_win32_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -104,7 +104,7 @@ inline void path_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void path_base::s_basename(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_win32_base::s_basename(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -120,7 +120,7 @@ inline void path_base::s_basename(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void path_base::s_extname(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_win32_base::s_extname(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -135,7 +135,7 @@ inline void path_base::s_extname(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void path_base::s_dirname(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_win32_base::s_dirname(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -150,7 +150,7 @@ inline void path_base::s_dirname(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void path_base::s_fullpath(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_win32_base::s_fullpath(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -165,7 +165,7 @@ inline void path_base::s_fullpath(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void path_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_win32_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -178,7 +178,7 @@ inline void path_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void path_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_win32_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -191,7 +191,7 @@ inline void path_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void path_base::s_get_sep(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void path_win32_base::s_get_sep(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -202,7 +202,7 @@ inline void path_base::s_get_sep(v8::Local<v8::String> property, const v8::Prope
     METHOD_RETURN();
 }
 
-inline void path_base::s_get_delimiter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void path_win32_base::s_get_delimiter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -213,7 +213,7 @@ inline void path_base::s_get_delimiter(v8::Local<v8::String> property, const v8:
     METHOD_RETURN();
 }
 
-inline void path_base::s_get_posix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void path_win32_base::s_get_posix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -224,7 +224,7 @@ inline void path_base::s_get_posix(v8::Local<v8::String> property, const v8::Pro
     METHOD_RETURN();
 }
 
-inline void path_base::s_get_win32(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void path_win32_base::s_get_win32(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 

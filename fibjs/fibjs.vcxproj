@@ -153,8 +153,6 @@
     <ClInclude Include="include\MongoID.h" />
     <ClInclude Include="include\NullHandler.h" />
     <ClInclude Include="include\PKey.h" />
-    <ClInclude Include="include\PathPosix.h" />
-    <ClInclude Include="include\PathWin32.h" />
     <ClInclude Include="include\Queue.h" />
     <ClInclude Include="include\QuickArray.h" />
     <ClInclude Include="include\Redis.h" />
@@ -263,7 +261,6 @@
     <ClInclude Include="include\ifs\MongoID.h" />
     <ClInclude Include="include\ifs\MySQL.h" />
     <ClInclude Include="include\ifs\PKey.h" />
-    <ClInclude Include="include\ifs\PathBase.h" />
     <ClInclude Include="include\ifs\Queue.h" />
     <ClInclude Include="include\ifs\Redis.h" />
     <ClInclude Include="include\ifs\RedisHash.h" />
@@ -338,7 +335,8 @@
     <ClInclude Include="include\ifs\net.h" />
     <ClInclude Include="include\ifs\object.h" />
     <ClInclude Include="include\ifs\os.h" />
-    <ClInclude Include="include\ifs\path.h" />
+    <ClInclude Include="include\ifs\path_posix.h" />
+    <ClInclude Include="include\ifs\path_win32.h" />
     <ClInclude Include="include\ifs\process.h" />
     <ClInclude Include="include\ifs\profiler.h" />
     <ClInclude Include="include\ifs\querystring.h" />
@@ -443,11 +441,10 @@
     <ClCompile Include="src\encoding\encoding_iconv.cpp" />
     <ClCompile Include="src\encoding\encoding_json.cpp" />
     <ClCompile Include="src\fs\File.cpp" />
-    <ClCompile Include="src\fs\PathPosix.cpp" />
-    <ClCompile Include="src\fs\PathWin32.cpp" />
     <ClCompile Include="src\fs\Stat.cpp" />
     <ClCompile Include="src\fs\fs.cpp" />
-    <ClCompile Include="src\fs\path.cpp" />
+    <ClCompile Include="src\fs\path_posix.cpp" />
+    <ClCompile Include="src\fs\path_win32.cpp" />
     <ClCompile Include="src\global\Buffer.cpp" />
     <ClCompile Include="src\global\Int64.cpp" />
     <ClCompile Include="src\global\Timer.cpp" />

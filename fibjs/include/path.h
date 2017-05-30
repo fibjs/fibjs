@@ -8,11 +8,18 @@
 #ifndef _PATH_UTIL_H_
 #define _PATH_UTIL_H_
 
-#include "ifs/path.h"
+#include "ifs/path_posix.h"
+#include "ifs/path_win32.h"
 #include "ifs/process.h"
 #include "utf8.h"
 
 namespace fibjs {
+
+#ifdef _WIN32
+typedef path_win32_base path_base;
+#else
+typedef path_posix_base path_base;
+#endif
 
 class Path {
 public:

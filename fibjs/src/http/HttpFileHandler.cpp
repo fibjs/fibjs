@@ -9,7 +9,7 @@
 #include "ifs/http.h"
 #include "ifs/fs.h"
 #include "ifs/os.h"
-#include "ifs/path.h"
+#include "path.h"
 #include "HttpFileHandler.h"
 #include "HttpRequest.h"
 #include "Url.h"

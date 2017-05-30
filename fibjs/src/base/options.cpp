@@ -6,7 +6,7 @@
  */
 
 #include "console.h"
-#include "ifs/path.h"
+#include "path.h"
 #include "Fiber.h"
 
 namespace v8 {

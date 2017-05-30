@@ -11,7 +11,7 @@
 
 #include "object.h"
 #include "ifs/os.h"
-#include "ifs/path.h"
+#include "path.h"
 #include "ifs/process.h"
 #include <sys/utsname.h>
 #include <ifaddrs.h>
