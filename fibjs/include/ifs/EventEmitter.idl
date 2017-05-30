@@ -2,7 +2,9 @@
 
  Event 对象可独立创建，以用于组建自定义的事件系统：
  @code
- var e = new events.EventEmitter();
+ var EventEmitter = require('events');
+
+ var e = new EventEmitter();
  @endcode
  */
 interface EventEmitter : object

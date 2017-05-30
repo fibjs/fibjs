@@ -64,19 +64,14 @@ void SandBox::initRoot()
     RootModule* pModule = RootModule::g_root;
 
     while (pModule) {
-        ClassInfo& ci = pModule->class_info();
-        InstallModule(ci.name(), ci.getModule(isolate));
-
+        InstallModule(pModule->name(), pModule->getModule(isolate));
         pModule = pModule->m_next;
     }
 
     InstallModule("expect", isolate->NewFunction("expect", test_base::s_expect));
-    InstallModule("buffer", Buffer_base::class_info().getFunction(isolate));
 
-    v8::Local<v8::Function> _emitter = EventEmitter_base::class_info().getFunction(isolate);
+    v8::Local<v8::Object> _emitter = EventEmitter_base::class_info().getModule(isolate);
     _emitter->Set(isolate->NewFromUtf8("EventEmitter"), _emitter);
-
-    InstallModule("events", _emitter);
 }
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)

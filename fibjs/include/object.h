@@ -416,6 +416,16 @@ public:
 public:
     virtual ClassInfo& class_info() = 0;
 
+    virtual v8::Local<v8::Object> getModule(Isolate* isolate)
+    {
+        return class_info().getModule(isolate);
+    }
+
+    virtual const char* name()
+    {
+        return class_info().name();
+    }
+
 public:
     RootModule* m_next;
     static RootModule* g_root;

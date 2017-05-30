@@ -10,6 +10,8 @@
 
 namespace fibjs {
 
+DECLARE_MODULE_EX(buffer, Buffer);
+
 inline result_t generateEnd(const int32_t buffer_length, const int32_t offset, int32_t& end)
 {
     if (end < 0)

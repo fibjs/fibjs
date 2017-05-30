@@ -15,7 +15,7 @@
 
 namespace fibjs {
 
-class RootModule_events {
+class RootModule_events : public RootModule {
 public:
     RootModule_events()
     {
@@ -36,6 +36,16 @@ public:
         cd.cor = JSTrigger::s__new;
         cd.mc = ARRAYSIZE(s_method);
         cd.cms = s_method;
+    }
+
+    virtual ClassInfo& class_info()
+    {
+        return EventEmitter_base::class_info();
+    }
+
+    virtual const char* name()
+    {
+        return "events";
     }
 } s_RootModule_events;
 
