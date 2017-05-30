@@ -228,6 +228,46 @@ result_t os_base::tmpdir(exlib::string& retVal)
     return 0;
 }
 
+result_t os_base::userInfo(v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    retVal = v8::Object::New(isolate->m_isolate);
+    exlib::string homedir;
+    exlib::string username;
+    exlib::string shell;
+
+    struct passwd pwd;
+    struct passwd* result;
+    char* buf;
+    size_t bufsize;
+    int s;
+    bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (bufsize == -1)
+        bufsize = 16384;
+    buf = (char*)malloc(bufsize);
+    if (buf == NULL) {
+        return CHECK_ERROR(LastError());
+    }
+    s = getpwuid_r(geteuid(), &pwd, buf, bufsize, &result);
+    if (result == NULL) {
+        free(buf);
+        return CHECK_ERROR(LastError());
+    }
+    homedir.append(pwd.pw_dir, strlen(pwd.pw_dir));
+    username.append(pwd.pw_name, strlen(pwd.pw_name));
+    shell.append(pwd.pw_shell, strlen(pwd.pw_shell));
+
+    retVal->Set(isolate->NewFromUtf8("uid"), v8::Integer::New(isolate->m_isolate, pwd.pw_uid));
+    retVal->Set(isolate->NewFromUtf8("gid"), v8::Integer::New(isolate->m_isolate, pwd.pw_gid));
+    retVal->Set(isolate->NewFromUtf8("username"), isolate->NewFromUtf8(username));
+    retVal->Set(isolate->NewFromUtf8("homedir"), isolate->NewFromUtf8(homedir));
+    retVal->Set(isolate->NewFromUtf8("shell"), isolate->NewFromUtf8(shell));
+
+    free(buf);
+
+    return 0;
+}
+
 result_t os_base::homedir(exlib::string& retVal)
 {
     Isolate* isolate = Isolate::current();

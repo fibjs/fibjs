@@ -70,6 +70,11 @@ module os
     */
     static String tmpdir();
 
+    /*! @brief 返回当前有效执行用户信息
+      @return 当前有效执行用户信息
+    */
+    static Object userInfo();
+
     /*! @brief 查询当前运行环境网络信息
      @return 返回网卡信息
     */
