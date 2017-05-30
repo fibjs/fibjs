@@ -15,10 +15,10 @@
 #include "ifs/process.h"
 #include <iphlpapi.h>
 #include <psapi.h>
+#include <userenv.h>
 #include "utf8.h"
 #include "inetAddr.h"
 #include "BufferedStream.h"
-#include "userenv.h"
 
 typedef struct
     _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION {
@@ -46,9 +46,31 @@ result_t os_base::type(exlib::string& retVal)
     return 0;
 }
 
+typedef void(WINAPI* RtlGetVersion_FUNC)(OSVERSIONINFOEXW*);
+
+BOOL GetVersion2(OSVERSIONINFOEXW* os)
+{
+    HMODULE hMod;
+    RtlGetVersion_FUNC func;
+
+    hMod = LoadLibrary(TEXT("ntdll.dll"));
+    if (!hMod)
+        return FALSE;
+
+    func = (RtlGetVersion_FUNC)GetProcAddress(hMod, "RtlGetVersion");
+    if (func == 0) {
+        FreeLibrary(hMod);
+        return FALSE;
+    }
+
+    func(os);
+    FreeLibrary(hMod);
+    return TRUE;
+}
+
 result_t os_base::release(exlib::string& retVal)
 {
-    OSVERSIONINFOEX info = { sizeof(info) };
+    OSVERSIONINFOEXW info = { sizeof(info) };
     char release[256];
 
     if (GetVersion2(&info) == 0)
@@ -64,49 +86,6 @@ result_t os_base::platform(exlib::string& retVal)
 {
     retVal = "win32";
     return 0;
-}
-
-typedef void(WINAPI* RtlGetVersion_FUNC)(OSVERSIONINFOEXW*);
-
-BOOL GetVersion2(OSVERSIONINFOEX* os)
-{
-    HMODULE hMod;
-    RtlGetVersion_FUNC func;
-#ifdef UNICODE
-    OSVERSIONINFOEXW* osw = os;
-#else
-    OSVERSIONINFOEXW o;
-    OSVERSIONINFOEXW* osw = &o;
-#endif
-
-    hMod = LoadLibrary(TEXT("ntdll.dll"));
-    if (hMod) {
-        func = (RtlGetVersion_FUNC)GetProcAddress(hMod, "RtlGetVersion");
-        if (func == 0) {
-            FreeLibrary(hMod);
-            return FALSE;
-        }
-        ZeroMemory(osw, sizeof(*osw));
-        osw->dwOSVersionInfoSize = sizeof(*osw);
-        func(osw);
-#ifndef UNICODE
-        os->dwBuildNumber = osw->dwBuildNumber;
-        os->dwMajorVersion = osw->dwMajorVersion;
-        os->dwMinorVersion = osw->dwMinorVersion;
-        os->dwPlatformId = osw->dwPlatformId;
-        os->dwOSVersionInfoSize = sizeof(*os);
-        DWORD sz = sizeof(os->szCSDVersion);
-        WCHAR* src = osw->szCSDVersion;
-        unsigned char* dtc = (unsigned char*)os->szCSDVersion;
-        while (*src)
-            *dtc++ = (unsigned char)*src++;
-        *dtc = '\0';
-#endif
-
-    } else
-        return FALSE;
-    FreeLibrary(hMod);
-    return TRUE;
 }
 
 result_t os_base::get_EOL(exlib::string& retVal)
