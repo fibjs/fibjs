@@ -12,6 +12,8 @@
 #include "object.h"
 #include "ifs/os.h"
 #include "path.h"
+#include "encoding.h"
+#include "utils.h"
 #include "ifs/process.h"
 #include <iphlpapi.h>
 #include <psapi.h>
@@ -628,9 +630,20 @@ result_t os_base::tmpdir(exlib::string& retVal)
     return 0;
 }
 
-result_t os_base::userInfo(v8::Local<v8::Object>& retVal)
+result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
+    exlib::string encoding;
+
+    v8::Local<v8::String> key = isolate->NewFromUtf8("encoding");
+    v8::Local<v8::Value> option = options->Get(key);
+
+    GetArgumentValue(option, encoding, true);
+
+    if (encoding == "") {
+        encoding = "utf8";
+    }
+
     retVal = v8::Object::New(isolate->m_isolate);
 
     // username start
@@ -673,9 +686,27 @@ result_t os_base::userInfo(v8::Local<v8::Object>& retVal)
 
     retVal->Set(isolate->NewFromUtf8("uid"), v8::Integer::New(isolate->m_isolate, -1));
     retVal->Set(isolate->NewFromUtf8("gid"), v8::Integer::New(isolate->m_isolate, -1));
+
+    if (encoding != "utf8") {
+        obj_ptr<Buffer_base> usernameBuffer = new Buffer(username);
+        obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
+        obj_ptr<Buffer_base> shellBuffer = new Buffer(shell);
+
+        if (encoding == "buffer") {
+            retVal->Set(isolate->NewFromUtf8("username"), V8_RETURN(GetReturnValue(isolate->m_isolate, usernameBuffer)));
+            retVal->Set(isolate->NewFromUtf8("homedir"), V8_RETURN(GetReturnValue(isolate->m_isolate, homedirBuffer)));
+            retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
+            return 0;
+        } else {
+            usernameBuffer->toString(encoding, 0, -1, username);
+            homedirBuffer->toString(encoding, 0, -1, homedir);
+        }
+    }
+
     retVal->Set(isolate->NewFromUtf8("username"), isolate->NewFromUtf8(username));
     retVal->Set(isolate->NewFromUtf8("homedir"), isolate->NewFromUtf8(homedir));
     retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
+
     return 0;
 }
 

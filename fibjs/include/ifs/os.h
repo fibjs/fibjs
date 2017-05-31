@@ -39,7 +39,7 @@ public:
     static result_t cpus(v8::Local<v8::Array>& retVal);
     static result_t cpuNumbers(int32_t& retVal);
     static result_t tmpdir(exlib::string& retVal);
-    static result_t userInfo(v8::Local<v8::Object>& retVal);
+    static result_t userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
     static result_t networkInterfaces(v8::Local<v8::Object>& retVal);
     static result_t printerInfo(v8::Local<v8::Array>& retVal);
     static result_t openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
@@ -338,9 +338,11 @@ inline void os_base::s_userInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_ENTER();
 
-    METHOD_OVER(0, 0);
+    METHOD_OVER(1, 0);
 
-    hr = userInfo(vr);
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
+
+    hr = userInfo(v0, vr);
 
     METHOD_RETURN();
 }
