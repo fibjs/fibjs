@@ -12,6 +12,8 @@
 #include "object.h"
 #include "ifs/os.h"
 #include "path.h"
+#include "encoding.h"
+#include "utils.h"
 #include "ifs/process.h"
 #include <sys/utsname.h>
 #include <ifaddrs.h>
@@ -228,9 +230,20 @@ result_t os_base::tmpdir(exlib::string& retVal)
     return 0;
 }
 
-result_t os_base::userInfo(v8::Local<v8::Object>& retVal)
+result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
+    exlib::string encoding;
+
+    v8::Local<v8::String> key = isolate->NewFromUtf8("encoding");
+    v8::Local<v8::Value> option = options->Get(key);
+
+    GetArgumentValue(option, encoding, true);
+
+    if (encoding == "") {
+        encoding = "utf8";
+    }
+
     retVal = v8::Object::New(isolate->m_isolate);
     exlib::string homedir;
     exlib::string username;
@@ -257,13 +270,31 @@ result_t os_base::userInfo(v8::Local<v8::Object>& retVal)
     username.append(pwd.pw_name, strlen(pwd.pw_name));
     shell.append(pwd.pw_shell, strlen(pwd.pw_shell));
 
+    free(buf);
+
     retVal->Set(isolate->NewFromUtf8("uid"), v8::Integer::New(isolate->m_isolate, pwd.pw_uid));
     retVal->Set(isolate->NewFromUtf8("gid"), v8::Integer::New(isolate->m_isolate, pwd.pw_gid));
+
+    if (encoding != "utf8") {
+        obj_ptr<Buffer_base> usernameBuffer = new Buffer(username);
+        obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
+        obj_ptr<Buffer_base> shellBuffer = new Buffer(shell);
+
+        if (encoding == "buffer") {
+            retVal->Set(isolate->NewFromUtf8("username"), V8_RETURN(GetReturnValue(isolate->m_isolate, usernameBuffer)));
+            retVal->Set(isolate->NewFromUtf8("homedir"), V8_RETURN(GetReturnValue(isolate->m_isolate, homedirBuffer)));
+            retVal->Set(isolate->NewFromUtf8("shell"), V8_RETURN(GetReturnValue(isolate->m_isolate, shellBuffer)));
+            return 0;
+        } else {
+            usernameBuffer->toString(encoding, 0, -1, username);
+            homedirBuffer->toString(encoding, 0, -1, homedir);
+            shellBuffer->toString(encoding, 0, -1, shell);
+        }
+    }
+
     retVal->Set(isolate->NewFromUtf8("username"), isolate->NewFromUtf8(username));
     retVal->Set(isolate->NewFromUtf8("homedir"), isolate->NewFromUtf8(homedir));
     retVal->Set(isolate->NewFromUtf8("shell"), isolate->NewFromUtf8(shell));
-
-    free(buf);
 
     return 0;
 }
