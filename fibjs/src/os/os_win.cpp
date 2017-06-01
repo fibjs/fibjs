@@ -690,7 +690,6 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     if (encoding != "utf8") {
         obj_ptr<Buffer_base> usernameBuffer = new Buffer(username);
         obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
-        obj_ptr<Buffer_base> shellBuffer = new Buffer(shell);
 
         if (encoding == "buffer") {
             retVal->Set(isolate->NewFromUtf8("username"), V8_RETURN(GetReturnValue(isolate->m_isolate, usernameBuffer)));
