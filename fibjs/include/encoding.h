@@ -7,6 +7,7 @@
 
 #include "Buffer.h"
 #include "utf8.h"
+#include "ifs/encoding.h"
 
 #ifndef ENCODING_H_
 #define ENCODING_H_
@@ -101,6 +102,36 @@ inline void baseDecode(const char* pdecodeTable, int32_t dwBits,
     exlib::string strBuf;
     baseDecode(pdecodeTable, dwBits, baseString, strBuf);
     retVal = new Buffer(strBuf);
+}
+
+inline result_t commonEncode(exlib::string codec, exlib::string& data, exlib::string& retVal)
+{
+    result_t hr;
+    if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined")) {
+        retVal = data;
+        hr = 0;
+    } else {
+        if ((codec == "hex"))
+            hr = hex_base::encode(data, retVal);
+        else if ((codec == "base64"))
+            hr = base64_base::encode(data, retVal);
+        else if ((codec == "ascii")) {
+            int32_t len, i;
+
+            len = (int32_t)data.length();
+            retVal.resize(len);
+            const char* _data = data.c_str();
+            for (i = 0; i < len; i++)
+                retVal[i] = _data[i] & 0x7f;
+
+            hr = 0;
+        } else if ((codec == "ucs2") || (codec == "ucs-2") || (codec == "utf16le") || (codec == "utf-16le")) {
+            retVal = utf16to8String((const exlib::wchar*)data.c_str(), (int32_t)data.length() / 2);
+            hr = 0;
+        } else
+            hr = iconv_base::decode(codec, data, retVal);
+    }
+    return hr;
 }
 
 } /* namespace fibjs */

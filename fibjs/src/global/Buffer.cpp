@@ -1,6 +1,6 @@
 #include "object.h"
 #include "Buffer.h"
-#include "ifs/encoding.h"
+#include "encoding.h"
 #include "Int64.h"
 #include "utf8.h"
 #include <cstring>
@@ -845,30 +845,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exli
     exlib::string str;
     int32_t str_length;
 
-    if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined")) {
-        str = m_data;
-        hr = 0;
-    } else {
-        if ((codec == "hex"))
-            hr = hex_base::encode(this, str);
-        else if ((codec == "base64"))
-            hr = base64_base::encode(this, str);
-        else if ((codec == "ascii")) {
-            int32_t len, i;
-
-            len = (int32_t)m_data.length();
-            str.resize(len);
-            const char* _data = m_data.c_str();
-            for (i = 0; i < len; i++)
-                str[i] = _data[i] & 0x7f;
-
-            hr = 0;
-        } else if ((codec == "ucs2") || (codec == "ucs-2") || (codec == "utf16le") || (codec == "utf-16le")) {
-            str = utf16to8String((const exlib::wchar*)m_data.c_str(), (int32_t)m_data.length() / 2);
-            hr = 0;
-        } else
-            hr = iconv_base::decode(codec, this, str);
-    }
+    hr = commonEncode(codec, m_data, str);
 
     if (hr < 0)
         return hr;

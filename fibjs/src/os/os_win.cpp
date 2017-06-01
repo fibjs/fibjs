@@ -633,18 +633,11 @@ result_t os_base::tmpdir(exlib::string& retVal)
 result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
-    exlib::string encoding;
-
-    v8::Local<v8::String> key = isolate->NewFromUtf8("encoding");
-    v8::Local<v8::Value> option = options->Get(key);
-
-    GetArgumentValue(option, encoding, true);
-
-    if (encoding == "") {
-        encoding = "utf8";
-    }
-
     retVal = v8::Object::New(isolate->m_isolate);
+
+    exlib::string encoding = "utf8";
+
+    GetConfigValue(isolate->m_isolate, options, "encoding", encoding, true);
 
     // username start
     exlib::string username;
@@ -675,7 +668,6 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
         }
     }
     CloseHandle(token);
-    buffersize = sizeof(path);
     homedir = utf16to8String(path, (int32_t)buffersize);
     path_base::normalize(homedir, homedir);
 
@@ -688,17 +680,17 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     retVal->Set(isolate->NewFromUtf8("gid"), v8::Integer::New(isolate->m_isolate, -1));
 
     if (encoding != "utf8") {
-        obj_ptr<Buffer_base> usernameBuffer = new Buffer(username);
-        obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
-
         if (encoding == "buffer") {
-            retVal->Set(isolate->NewFromUtf8("username"), V8_RETURN(GetReturnValue(isolate->m_isolate, usernameBuffer)));
-            retVal->Set(isolate->NewFromUtf8("homedir"), V8_RETURN(GetReturnValue(isolate->m_isolate, homedirBuffer)));
+            obj_ptr<Buffer_base> usernameBuffer = new Buffer(username);
+            obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
+
+            retVal->Set(isolate->NewFromUtf8("username"), usernameBuffer->wrap());
+            retVal->Set(isolate->NewFromUtf8("homedir"), homedirBuffer->wrap());
             retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
             return 0;
         } else {
-            usernameBuffer->toString(encoding, 0, -1, username);
-            homedirBuffer->toString(encoding, 0, -1, homedir);
+            commonEncode(encoding, username, username);
+            commonEncode(encoding, homedir, homedir);
         }
     }
 
