@@ -8,6 +8,7 @@ var http = require('http');
 var net = require('net');
 var io = require('io');
 var os = require('os');
+var util = require('util');
 var coroutine = require('coroutine');
 
 var m = new mq.Message();
@@ -444,7 +445,7 @@ describe("mq", () => {
     it("sync(func)", () => {
         var n = 100;
 
-        mq.invoke(sync((v, done) => {
+        mq.invoke(util.sync((v, done) => {
             function delayend() {
                 assert.equal(n, 100);
                 n = 200;
@@ -455,7 +456,7 @@ describe("mq", () => {
         assert.equal(n, 200);
 
         n = 300;
-        mq.invoke(sync((v, done) => {
+        mq.invoke(util.sync((v, done) => {
             assert.equal(n, 300);
             n = 400;
             done();

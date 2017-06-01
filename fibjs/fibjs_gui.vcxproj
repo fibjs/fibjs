@@ -335,6 +335,7 @@
     <ClInclude Include="include\ifs\net.h" />
     <ClInclude Include="include\ifs\object.h" />
     <ClInclude Include="include\ifs\os.h" />
+    <ClInclude Include="include\ifs\path.h" />
     <ClInclude Include="include\ifs\path_posix.h" />
     <ClInclude Include="include\ifs\path_win32.h" />
     <ClInclude Include="include\ifs\process.h" />
@@ -521,6 +522,7 @@
     <ClCompile Include="src\util\Stats.cpp" />
     <ClCompile Include="src\util\util.cpp" />
     <ClCompile Include="src\util\util_compile.cpp" />
+    <ClCompile Include="src\util\util_sync.cpp" />
     <ClCompile Include="src\websocket\WebSocket.cpp" />
     <ClCompile Include="src\websocket\WebSocketHandler.cpp" />
     <ClCompile Include="src\websocket\WebSocketMessage.cpp" />

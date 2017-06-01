@@ -90,12 +90,6 @@ module global
     /*! @brief 强制要求进行垃圾回收*/
     static GC();
 
-    /*! @brief 包裹 callback 方法为同步调用
-     @param func 给定需要包裹的方法
-     @return 返回同步运行的方法
-     */
-    static Function sync(Function func);
-
     /*! @brief 进入交互模式，可以交互执行内部命令和代码，仅在启动 js 可以引用
      @param cmds 补充命令，格式如下：
      @code
