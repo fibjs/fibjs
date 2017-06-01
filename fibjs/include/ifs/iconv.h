@@ -25,6 +25,7 @@ public:
     // iconv_base
     static result_t encode(exlib::string charset, exlib::string data, obj_ptr<Buffer_base>& retVal);
     static result_t decode(exlib::string charset, Buffer_base* data, exlib::string& retVal);
+    static result_t decode(exlib::string charset, exlib::string data, exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -89,6 +90,13 @@ inline void iconv_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& args
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = decode(v0, v1, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
 
     hr = decode(v0, v1, vr);
 

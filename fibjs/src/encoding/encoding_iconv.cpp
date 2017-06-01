@@ -247,4 +247,10 @@ result_t iconv_base::decode(exlib::string charset, Buffer_base* data,
 {
     return encoding_iconv(charset).decode(data, retVal);
 }
+
+result_t iconv_base::decode(exlib::string charset, exlib::string data,
+    exlib::string& retVal)
+{
+    return encoding_iconv(charset).decode(data, retVal);
+}
 }

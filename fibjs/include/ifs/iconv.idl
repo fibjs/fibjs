@@ -11,17 +11,24 @@
  */
 module iconv
 {
-	/*! @brief 用 iconv 将文本转换为二进制数据
+    /*! @brief 用 iconv 将文本转换为二进制数据
 	 @param charset 指定字符集
 	 @param data 要转换的文本
 	 @return 返回解码的二进制数据
 	 */
-	static Buffer encode(String charset, String data);
+    static Buffer encode(String charset, String data);
 
-	/*! @brief 用 iconv 将 Buffer 内容转换为文本
+    /*! @brief 用 iconv 将 Buffer 内容转换为文本
 	 @param charset 指定字符集
 	 @param data 要转换的二进制数据
 	 @return 返回编码的字符串
 	 */
-	static String decode(String charset, Buffer data);
+    static String decode(String charset, Buffer data);
+
+    /*! @brief 用 iconv 将 String 内容转换为文本
+	 @param charset 指定字符集
+	 @param data 要转换的二进制数据
+	 @return 返回编码的字符串
+	 */
+    static String decode(String charset, String data);
 };
