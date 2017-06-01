@@ -5,6 +5,8 @@ var test_util = require('./test_util');
 
 var os = require('os');
 var io = require('io');
+var path = require('path');
+
 var isWindows = process.platform === 'win32';
 
 describe('os', () => {
@@ -154,6 +156,33 @@ describe('os', () => {
         } else {
             assert.equal(os.homedir(), process.env.HOME);
         }
+    });
+
+    it('userInfo', () => {
+        const userInfo = os.userInfo();
+        const userInfoBuffer = os.userInfo({ encoding: 'buffer' });
+        assert.isObject(userInfo);
+
+        if (isWindows) {
+            assert.strictEqual(userInfo.uid, -1);
+            assert.strictEqual(userInfo.gid, -1);
+            assert.strictEqual(userInfo.shell, null);
+            assert.strictEqual(userInfoBuffer.uid, -1);
+            assert.strictEqual(userInfoBuffer.gid, -1);
+            assert.strictEqual(userInfoBuffer.shell, null);
+        } else {
+            assert.isNumber(userInfo.uid);
+            assert.isNumber(userInfo.gid);
+            assert.ok(userInfo.shell.includes(path.sep));
+            assert.strictEqual(userInfo.uid, userInfoBuffer.uid);
+            assert.strictEqual(userInfo.gid, userInfoBuffer.gid);
+            assert.strictEqual(userInfo.shell, userInfoBuffer.shell.toString('utf8'));
+        }
+
+        assert.isString(userInfo.username);
+        assert.ok(userInfo.homedir.includes(path.sep));
+        assert.strictEqual(userInfo.username, userInfoBuffer.username.toString('utf8'));
+        assert.strictEqual(userInfo.homedir, userInfoBuffer.homedir.toString('utf8'));
     });
 });
 
