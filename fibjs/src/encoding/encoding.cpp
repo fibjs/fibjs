@@ -49,6 +49,14 @@ result_t base64_base::encode(Buffer_base* data, exlib::string& retVal)
     return 0;
 }
 
+result_t base64_base::encode(exlib::string data, exlib::string& retVal)
+{
+    baseEncode(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+        6, data, retVal);
+    return 0;
+}
+
 result_t base64_base::decode(exlib::string data,
     obj_ptr<Buffer_base>& retVal)
 {
@@ -170,6 +178,27 @@ result_t hex_base::encode(Buffer_base* data, exlib::string& retVal)
     for (i = 0; i < (int32_t)strData.length(); i++) {
         retVal[pos * 2] = HexChar[(unsigned char)strData[i] >> 4];
         retVal[pos * 2 + 1] = HexChar[(unsigned char)strData[i] & 0xf];
+        pos++;
+        len1 += 2;
+    }
+
+    return 0;
+}
+
+result_t hex_base::encode(exlib::string data, exlib::string& retVal)
+{
+    static char HexChar[] = "0123456789abcdef";
+    int32_t i, pos, len1;
+
+    i = (int32_t)data.length() * 2;
+    retVal.resize(i);
+
+    len1 = 0;
+    pos = 0;
+
+    for (i = 0; i < (int32_t)data.length(); i++) {
+        retVal[pos * 2] = HexChar[(unsigned char)data[i] >> 4];
+        retVal[pos * 2 + 1] = HexChar[(unsigned char)data[i] & 0xf];
         pos++;
         len1 += 2;
     }
