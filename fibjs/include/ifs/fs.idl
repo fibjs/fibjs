@@ -29,6 +29,18 @@ module fs
      */
     static Boolean existsSync(String path);
 
+    /*! @brief 创建硬链接文件, windows 下不支持此方法
+     @param oldPath 源文件
+     @param newPath 将要被创建的文件
+     */
+    static link(String oldPath, String newPath) async;
+
+    /*! @brief 创建硬链接文件，windows 下不支持此方法，是 link 的同步版兼容接口
+     @param oldPath 源文件
+     @param newPath 将要被创建的文件
+     */
+    static linkSync(String oldPath, String newPath);
+
     /*! @brief 删除指定的文件
      @param path 指定要删除的路径
      */
@@ -91,6 +103,46 @@ module fs
      */
     static chmodSync(String path, Integer mode);
 
+    /*! @brief 设置指定文件的访问权限，若文件是软连接则不改变指向文件的权限，Windows 不支持此方法
+     @param path 指定操作的文件
+     @param mode 指定设定的访问权限
+     */
+    static lchmod(String path, Integer mode) async;
+
+    /*! @brief 设置指定文件的访问权限，若文件是软连接则不改变指向文件的权限，是 lchmod 的同步版兼容接口
+     @param path 指定操作的文件
+     @param mode 指定设定的访问权限
+     */
+    static lchmodSync(String path, Integer mode);
+
+    /*! @brief 设置指定文件的拥有者，Windows 不支持此方法
+     @param path 指定设置的文件
+     @param uid 文件拥有者用户id
+     @param gid 文件拥有者组id
+     */
+    static chown(String path, Integer uid, Integer gid) async;
+
+    /*! @brief 设置指定文件的拥有者，Windows 不支持此方法, 是 chown 的同步版兼容接口
+     @param path 指定设置的文件
+     @param uid 文件拥有者用户id
+     @param gid 文件拥有者组id
+     */
+    static chownSync(String path, Integer uid, Integer gid);
+
+    /*! @brief 设置指定文件的拥有者，如果指定的文件是软连接则不会改变其指向文件的拥有者，Windows 不支持此方法
+     @param path 指定设置的文件
+     @param uid 文件拥有者用户id
+     @param gid 文件拥有者组id
+     */
+    static lchown(String path, Integer uid, Integer gid) async;
+
+    /*! @brief 设置指定文件的拥有者，如果指定的文件是软连接则不会改变其指向文件的拥有者，Windows 不支持此方法, 是 lchown 的同步版兼容接口
+     @param path 指定设置的文件
+     @param uid 文件拥有者用户id
+     @param gid 文件拥有者组id
+     */
+    static lchownSync(String path, Integer uid, Integer gid);
+
     /*! @brief 查询指定文件的基础信息
      @param path 指定查询的文件
      @return 返回文件的基础信息
@@ -102,6 +154,66 @@ module fs
      @return 返回文件的基础信息
      */
     static Stat statSync(String path);
+
+    /*! @brief 查询指定文件的基础信息, 和stat不同的是, 当path是一个软连接的时候，返回的将是这个软连接的信息而不是指向的文件的信息
+     @param path 指定查询的文件
+     @return 返回文件的基础信息
+     */
+    static Stat lstat(String path) async;
+
+    /*! @brief 查询指定文件的基础信息，是 lstat 的同步版兼容接口
+     @param path 指定查询的文件
+     @return 返回文件的基础信息
+     */
+    static Stat lstatSync(String path);
+
+    /*! @brief 读取指定的软连接文件, windows 下不支持此方法
+     @param path 指定读取的软连接文件
+     @return 返回软连接指向的文件名
+     */
+    static String readlink(String path) async;
+
+    /*! @brief 读取指定的软连接文件，windows 下不支持此方法，是 readlink 的同步版兼容接口
+     @param path 指定读取的软连接文件
+     @return 返回软连接指向的文件名
+     */
+    static String readlinkSync(String path);
+
+    /*! @brief 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开
+     @param path 指定读取的路径
+     @return 返回处理后的绝对路径
+     */
+    static String realpath(String path) async;
+
+    /*! @brief 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，是 realpath 的同步版兼容接口
+     @param path 指定读取的路径
+     @return 返回处理后的绝对路径
+     */
+    static String realpathSync(String path);
+
+    /*! @brief 创建软连接文件
+     @param target 目标文件，可以是文件、目录、或不存在的路径
+     @param linkpath 将被创建的软连接文件
+     */
+    static symlink(String target, String linkpath) async;
+
+    /*! @brief 创建软连接文件, 是 symlink 的同步版兼容接口
+     @param target 目标文件，可以是文件、目录、或不存在的路径
+     @param linkpath 将被创建的软连接文件
+     */
+    static symlinkSync(String target, String linkpath);
+
+    /*! @brief 修改文件尺寸,如果指定的长度大于源文件大小则用'\0'填充，否则多于的文件内容将丢失
+     @param path 指定被修改文件的路径
+     @param len 指定修改后文件的大小
+     */
+    static truncate(String path, Integer len) async;
+
+    /*! @brief 修改文件尺寸,如果指定的长度大于源文件大小则用'\0'填充，否则多于的文件内容将丢失，是 truncate 的同步版兼容接口
+     @param path 指定被修改文件的路径
+     @param len 指定修改后文件的大小
+     */
+    static truncateSync(String path, Integer len);
 
     /*! @brief 读取指定目录的文件信息
      @param path 指定查询的目录
@@ -196,4 +308,17 @@ module fs
      @param data 指定要写入的二进制数据
      */
     static writeFileSync(String fname, Buffer data);
+
+    /*! @brief 创建二进制文件，并写入内容
+     @param fname 指定文件名
+     @param data 指定要写入的二进制数据
+     */
+    static appendFile(String fname, Buffer data) async;
+
+    /*! @brief 创建二进制文件，并写入内容，是 appendFile 的同步版兼容接口
+     @param fname 指定文件名
+     @param data 指定要写入的二进制数据
+     */
+    static appendFileSync(String fname, Buffer data);
+
 };

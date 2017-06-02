@@ -89,6 +89,11 @@ result_t Stat::getStat(exlib::string path)
     return 0;
 }
 
+result_t Stat::getLstat(exlib::string path)
+{
+    return getStat(path);
+}
+
 #else
 
 result_t Stat::getStat(exlib::string path)
@@ -99,6 +104,16 @@ result_t Stat::getStat(exlib::string path)
 
     fill(path, st);
 
+    return 0;
+}
+
+result_t Stat::getLstat(exlib::string path)
+{
+    struct stat64 st;
+    if (::lstat64(path.c_str(), &st))
+        return CHECK_ERROR(LastError());
+
+    fill(path, st);
     return 0;
 }
 
