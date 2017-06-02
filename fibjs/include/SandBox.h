@@ -67,17 +67,10 @@ public:
         result_t run(Buffer_base* src, exlib::string name, exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count);
         result_t run(exlib::string src, exlib::string name, exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count);
 
-        template <typename T>
-        result_t run_script(T src, exlib::string name, v8::Local<v8::Array> argv);
-
-        template <typename T>
-        result_t run_main(T src, exlib::string name, v8::Local<v8::Array> argv);
-
-        template <typename T>
-        result_t run_worker(T src, exlib::string name, Worker_base* worker);
-
-        template <typename T>
-        result_t run_module(T src, exlib::string name, v8::Local<v8::Object> module,
+        result_t run_script(Buffer_base* src, exlib::string name, v8::Local<v8::Array> argv);
+        result_t run_main(Buffer_base* src, exlib::string name, v8::Local<v8::Array> argv);
+        result_t run_worker(Buffer_base* src, exlib::string name, Worker_base* master);
+        result_t run_module(Buffer_base* src, exlib::string name, v8::Local<v8::Object> module,
             v8::Local<v8::Object> exports);
 
         static result_t repl(v8::Local<v8::Array> cmds, Stream_base* out);
