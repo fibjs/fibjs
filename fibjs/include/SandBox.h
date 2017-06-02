@@ -28,8 +28,6 @@ public:
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
 
 public:
-    result_t addScript(exlib::string srcname, exlib::string script, v8::Local<v8::Value>& retVal);
-
     v8::Local<v8::Object> mods()
     {
         Isolate* isolate = holder();

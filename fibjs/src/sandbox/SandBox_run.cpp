@@ -184,6 +184,11 @@ result_t SandBox::Context::run(exlib::string src, exlib::string name, exlib::str
     {
         TryCatch try_catch;
 
+        if (src.length() > 2 && src[0] == '#' && src[1] == '!') {
+            src[0] = '/';
+            src[1] = '/';
+        }
+
         exlib::string src1 = arg_names + src + "\n});";
 
         script = v8::Script::Compile(
@@ -350,7 +355,7 @@ result_t SandBox::Context::run_module(T src, exlib::string name, v8::Local<v8::O
     return run(src, name, module_args, args, module_args_count);
 }
 
-result_t SandBox::addScript(exlib::string srcname, exlib::string script,
+result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     v8::Local<v8::Value>& retVal)
 {
     exlib::string fname(srcname);
@@ -362,8 +367,12 @@ result_t SandBox::addScript(exlib::string srcname, exlib::string script,
     if (id.length() > 5 && !qstrcmp(id.c_str() + id.length() - 5, ".json")) {
         id.resize(id.length() - 5);
 
+        exlib::string strScript;
+        if (script)
+            script->toString(strScript);
+
         v8::Local<v8::Value> v;
-        hr = json_base::decode(script, v);
+        hr = json_base::decode(strScript, v);
         if (hr < 0)
             return hr;
 
@@ -376,6 +385,10 @@ result_t SandBox::addScript(exlib::string srcname, exlib::string script,
         Context context(this, srcname);
 
         id.resize(id.length() - 3);
+
+        exlib::string strScript;
+        if (script)
+            script->toString(strScript);
 
         v8::Local<v8::Object> mod;
         v8::Local<v8::Object> exports;
@@ -395,7 +408,7 @@ result_t SandBox::addScript(exlib::string srcname, exlib::string script,
 
         InstallModule(id, exports);
 
-        hr = context.run_module(script, srcname, mod, exports);
+        hr = context.run_module(strScript, srcname, mod, exports);
         if (hr < 0) {
             // delete from modules
             remove(id);
@@ -409,25 +422,6 @@ result_t SandBox::addScript(exlib::string srcname, exlib::string script,
 
         retVal = v;
         return 0;
-    } else
-        return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
-
-    return 0;
-}
-
-result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
-    v8::Local<v8::Value>& retVal)
-{
-    exlib::string fname(srcname);
-    result_t hr;
-
-    // add to modules
-    exlib::string id(fname);
-
-    if ((id.length() > 5 && !qstrcmp(id.c_str() + id.length() - 5, ".json")) || (id.length() > 3 && !qstrcmp(id.c_str() + id.length() - 3, ".js"))) {
-        exlib::string strScript;
-        script->toString(strScript);
-        return addScript(srcname, strScript, retVal);
     } else if (id.length() > 4 && !qstrcmp(id.c_str() + id.length() - 4, ".jsc")) {
         Isolate* isolate = holder();
         Context context(this, srcname);
@@ -536,20 +530,14 @@ result_t SandBox::require(exlib::string base, exlib::string id,
         pathAdd(fname1, fname);
         fullname = fname1;
 
-        if (is_jsc) {
-            hr = fs_base::cc_readFile(fname1, bin);
-            if (hr >= 0)
-                return addScript(fname1, bin, retVal);
-        } else {
-            hr = fs_base::cc_readTextFile(fname1, buf);
-            if (hr >= 0)
-                return addScript(fname1, buf, retVal);
-        }
+        hr = fs_base::cc_readFile(fname1, bin);
+        if (hr >= 0)
+            return addScript(fname1, bin, retVal);
     } else {
         fname = fullname + ".js";
-        hr = fs_base::cc_readTextFile(fname, buf);
+        hr = fs_base::cc_readFile(fname, bin);
         if (hr >= 0)
-            return addScript(fname, buf, retVal);
+            return addScript(fname, bin, retVal);
 
         fname = fullname + ".jsc";
         hr = fs_base::cc_readFile(fname, bin);
@@ -557,9 +545,9 @@ result_t SandBox::require(exlib::string base, exlib::string id,
             return addScript(fname, bin, retVal);
 
         fname = fullname + ".json";
-        hr = fs_base::cc_readTextFile(fname, buf);
+        hr = fs_base::cc_readFile(fname, bin);
         if (hr >= 0)
-            return addScript(fname, buf, retVal);
+            return addScript(fname, bin, retVal);
 
         fname = strId;
     }
@@ -711,11 +699,6 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         if (hr < 0)
             return hr;
 
-        if (buf[0] == '#' && buf[1] == '!') {
-            buf[0] = '/';
-            buf[1] = '/';
-        }
-
         Context context(this, pname);
         return context.run_main(buf, pname, argv);
     }
@@ -754,11 +737,6 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* worker)
         if (hr < 0)
             return hr;
 
-        if (buf[0] == '#' && buf[1] == '!') {
-            buf[0] = '/';
-            buf[1] = '/';
-        }
-
         Context context(this, pname);
         return context.run_worker(buf, pname, worker);
     }
@@ -796,11 +774,6 @@ result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv)
         hr = fs_base::cc_readTextFile(pname, buf);
         if (hr < 0)
             return hr;
-
-        if (buf[0] == '#' && buf[1] == '!') {
-            buf[0] = '/';
-            buf[1] = '/';
-        }
 
         Context context(this, pname);
         return context.run_script(buf, pname, argv);
