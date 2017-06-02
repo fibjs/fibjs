@@ -16,7 +16,7 @@
 
 namespace fibjs {
 
-class SandBox : public fibjs::SandBox_base {
+class SandBox : public SandBox_base {
 public:
     // SandBox_base
     virtual result_t add(exlib::string id, v8::Local<v8::Value> mod);
@@ -45,6 +45,7 @@ public:
         return o;
     }
 
+public:
     void initRoot();
     void initRequire(v8::Local<v8::Function> func)
     {

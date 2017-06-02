@@ -18,12 +18,12 @@ namespace fibjs {
 
 void* API_getSocket()
 {
-    return fibjs::socket::create();
+    return socket::create();
 }
 
 void API_deleteSocket(void* sock)
 {
-    fibjs::socket::destroy(sock);
+    socket::destroy(sock);
 }
 
 void API_closeSocket(void* sock)
@@ -32,7 +32,7 @@ void API_closeSocket(void* sock)
 
 int32_t API_connectSocket(void* sock, const char* host, int32_t port)
 {
-    return fibjs::socket::c_connect(sock, host, port);
+    return socket::c_connect(sock, host, port);
 }
 
 int32_t API_setTimeout(void* sock, int32_t timeoutSec)
@@ -46,12 +46,12 @@ void API_clearException(void)
 
 int32_t API_recvSocket(void* sock, char* buffer, int32_t cbBuffer)
 {
-    return fibjs::socket::c_recv(sock, buffer, cbBuffer);
+    return socket::c_recv(sock, buffer, cbBuffer);
 }
 
 int32_t API_sendSocket(void* sock, const char* buffer, int32_t cbBuffer)
 {
-    return fibjs::socket::c_send(sock, buffer, cbBuffer);
+    return socket::c_send(sock, buffer, cbBuffer);
 }
 
 void* API_createResult(int32_t columns)
