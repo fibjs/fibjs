@@ -25,6 +25,11 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
 
     v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
 
+    if (script.length() > 2 && script[0] == '#' && script[1] == '!') {
+        script[0] = '/';
+        script[1] = '/';
+    }
+
     v8::Local<v8::Script> code;
     {
         TryCatch try_catch;
