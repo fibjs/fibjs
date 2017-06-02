@@ -1,5 +1,6 @@
 #include "object.h"
 #include "Buffer.h"
+#include "encoding_iconv.h"
 #include "encoding.h"
 #include "Int64.h"
 #include "utf8.h"
@@ -219,12 +220,7 @@ result_t Buffer::append(exlib::string str, exlib::string codec)
     obj_ptr<Buffer_base> data;
     result_t hr;
 
-    if ((codec == "hex"))
-        hr = hex_base::decode(str, data);
-    else if ((codec == "base64"))
-        hr = base64_base::decode(str, data);
-    else
-        hr = iconv_base::encode(codec, str, data);
+    hr = iconv_base::encode(codec, str, data);
 
     if (hr < 0)
         return hr;
@@ -262,12 +258,7 @@ result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib:
     obj_ptr<Buffer_base> data;
     exlib::string strBuf;
 
-    if ((codec == "hex"))
-        hr = hex_base::decode(str, data);
-    else if ((codec == "base64"))
-        hr = base64_base::decode(str, data);
-    else
-        hr = iconv_base::encode(codec, str, data);
+    hr = iconv_base::encode(codec, str, data);
 
     if (hr < 0)
         return hr;
@@ -845,7 +836,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exli
     exlib::string str;
     int32_t str_length;
 
-    hr = commonEncode(codec, m_data, str);
+    hr = encoding_iconv(codec).decode(m_data, str);
 
     if (hr < 0)
         return hr;

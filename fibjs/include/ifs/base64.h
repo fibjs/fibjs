@@ -24,7 +24,6 @@ class base64_base : public object_base {
 public:
     // base64_base
     static result_t encode(Buffer_base* data, exlib::string& retVal);
-    static result_t encode(exlib::string data, exlib::string& retVal);
     static result_t decode(exlib::string data, obj_ptr<Buffer_base>& retVal);
 
 public:
@@ -73,12 +72,6 @@ inline void base64_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
-
-    hr = encode(v0, vr);
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
 
     hr = encode(v0, vr);
 

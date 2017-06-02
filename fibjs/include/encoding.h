@@ -104,34 +104,85 @@ inline void baseDecode(const char* pdecodeTable, int32_t dwBits,
     retVal = new Buffer(strBuf);
 }
 
-inline result_t commonEncode(exlib::string codec, exlib::string& data, exlib::string& retVal)
+inline result_t base64Encode(exlib::string data,
+    exlib::string& retVal)
 {
-    result_t hr;
-    if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined")) {
-        retVal = data;
-        hr = 0;
-    } else {
-        if ((codec == "hex"))
-            hr = hex_base::encode(data, retVal);
-        else if ((codec == "base64"))
-            hr = base64_base::encode(data, retVal);
-        else if ((codec == "ascii")) {
-            int32_t len, i;
+    baseEncode(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+        6, data, retVal);
+    return 0;
+}
 
-            len = (int32_t)data.length();
-            retVal.resize(len);
-            const char* _data = data.c_str();
-            for (i = 0; i < len; i++)
-                retVal[i] = _data[i] & 0x7f;
+inline result_t base64Decode(exlib::string data,
+    exlib::string& retVal)
+{
+    static const char decodeTable[] = {
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, 62, -1, 63, /* 2x  !"#$%&'()*+,-./   */
+        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, /* 3x 0123456789:;<=>?   */
+        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, /* 4x @ABCDEFGHIJKLMNO   */
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, 63, /* 5X PQRSTUVWXYZ[\]^_   */
+        -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, /* 6x `abcdefghijklmno   */
+        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1 /* 7X pqrstuvwxyz{\}~DEL */
+    };
 
-            hr = 0;
-        } else if ((codec == "ucs2") || (codec == "ucs-2") || (codec == "utf16le") || (codec == "utf-16le")) {
-            retVal = utf16to8String((const exlib::wchar*)data.c_str(), (int32_t)data.length() / 2);
-            hr = 0;
-        } else
-            hr = iconv_base::decode(codec, data, retVal);
+    baseDecode(decodeTable, 6, data, retVal);
+    return 0;
+}
+
+inline result_t hexEncode(exlib::string data, exlib::string& retVal)
+{
+    static char HexChar[] = "0123456789abcdef";
+    int32_t i, pos, len1;
+
+    i = (int32_t)data.length() * 2;
+    retVal.resize(i);
+
+    len1 = 0;
+    pos = 0;
+
+    for (i = 0; i < (int32_t)data.length(); i++) {
+        retVal[pos * 2] = HexChar[(unsigned char)data[i] >> 4];
+        retVal[pos * 2 + 1] = HexChar[(unsigned char)data[i] & 0xf];
+        pos++;
+        len1 += 2;
     }
-    return hr;
+
+    return 0;
+}
+
+inline result_t hexDecode(exlib::string data,
+    exlib::string& retVal)
+{
+    const char* _data = data.c_str();
+    int32_t pos, len = (int32_t)data.length();
+    const char* end = _data + len;
+    exlib::string strBuf;
+    uint32_t ch1, ch2;
+
+    strBuf.resize(len / 2);
+
+    pos = 0;
+    while ((ch1 = utf8_getchar(_data, end)) != 0) {
+        if (qisxdigit(ch1))
+            ch1 = qhex(ch1);
+        else
+            continue;
+
+        ch2 = utf8_getchar(_data, end);
+        if (ch2 == 0)
+            break;
+
+        if (qisxdigit(ch2))
+            ch2 = qhex(ch2);
+        else {
+            ch2 = ch1;
+            ch1 = 0;
+        }
+
+        strBuf[pos++] = (ch1 << 4) + ch2;
+    }
+    retVal = strBuf;
+    return 0;
 }
 
 } /* namespace fibjs */
