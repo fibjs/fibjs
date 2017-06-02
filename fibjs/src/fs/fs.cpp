@@ -32,6 +32,8 @@
 #include <stdio.h>
 #endif
 
+#define MAX_PATH_LENGTH 4096
+
 namespace fibjs {
 
 DECLARE_MODULE(fs);
@@ -269,6 +271,23 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* 
     return hr;
 }
 
+result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    obj_ptr<SeekableStream_base> f;
+    result_t hr;
+
+    hr == cc_open(fname, "a", f);
+    if (hr < 0)
+        return hr;
+
+    hr = f->cc_write(data);
+    f->close(ac);
+
+    return hr;
+}
+
 result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal,
     AsyncEvent* ac)
 {
@@ -286,6 +305,37 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal,
     return 0;
 }
 
+result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Stat> pStat = new Stat();
+
+    result_t hr = pStat->getLstat(path);
+    if (hr < 0)
+        return hr;
+
+    retVal = pStat;
+
+    return 0;
+}
+
+result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
+{
+    return 0;
+}
+
+result_t fs_base::symlink(exlib::string target, exlib::string linkpath, AsyncEvent* ac)
+{
+    return 0;
+}
+
+result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
+{
+    return 0;
+}
+
 #ifndef _WIN32
 
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
@@ -297,6 +347,17 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
+result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (::link(oldPath.c_str(), newPath.c_str()))
+        return CHECK_ERROR(LastError());
+
+    return 0;
+}
+
 result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
 {
     if (!ac)
@@ -305,6 +366,21 @@ result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
     if (::unlink(path.c_str()))
         return CHECK_ERROR(LastError());
 
+    return 0;
+}
+
+result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    char buf[MAX_PATH_LENGTH];
+    int32_t r;
+
+    if ((r = ::readlink(path.c_str(), buf, MAX_PATH_LENGTH)) < 0)
+        return CHECK_ERROR(LastError());
+
+    buf[r] = '\0';
+    retVal = buf;
     return 0;
 }
 
@@ -336,6 +412,39 @@ result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::chmod(path.c_str(), mode))
+        return CHECK_ERROR(LastError());
+
+    return 0;
+}
+
+result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (::lchmod(path.c_str(), mode))
+        return CHECK_ERROR(LastError());
+
+    return 0;
+}
+
+result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (::chown(path.c_str(), uid, gid))
+        return CHECK_ERROR(LastError());
+
+    return 0;
+}
+
+result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (::lchown(path.c_str(), uid, gid))
         return CHECK_ERROR(LastError());
 
     return 0;
@@ -421,6 +530,11 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
+result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
 result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
 {
     if (!ac)
@@ -430,6 +544,11 @@ result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
         return CHECK_ERROR(LastError());
 
     return 0;
+}
+
+result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
 result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
@@ -457,6 +576,36 @@ result_t fs_base::rmdir(exlib::string path, AsyncEvent* ac)
 result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t fs_base::symlink(exlib::string target, exlib::string linkpath, AsyncEvent* ac)
+{
+    return 0;
+}
+
+result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
+{
+    return 0;
 }
 
 result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
@@ -518,9 +667,34 @@ result_t fs_base::existsSync(exlib::string path, bool& retVal)
     return ac_exists(path, retVal);
 }
 
+result_t fs_base::linkSync(exlib::string oldPath, exlib::string newPath)
+{
+    return ac_link(oldPath, newPath);
+}
+
 result_t fs_base::unlinkSync(exlib::string path)
 {
     return ac_unlink(path);
+}
+
+result_t fs_base::readlinkSync(exlib::string path, exlib::string& retVal)
+{
+    return ac_readlink(path, retVal);
+}
+
+result_t fs_base::realpathSync(exlib::string path, exlib::string& retVal)
+{
+    return ac_realpath(path, retVal);
+}
+
+result_t fs_base::symlinkSync(exlib::string target, exlib::string linkpath)
+{
+    return ac_symlink(target, linkpath);
+}
+
+result_t fs_base::truncateSync(exlib::string path, int32_t len)
+{
+    return ac_truncate(path, len);
 }
 
 result_t fs_base::mkdirSync(exlib::string path, int32_t mode)
@@ -543,9 +717,29 @@ result_t fs_base::chmodSync(exlib::string path, int32_t mode)
     return ac_chmod(path, mode);
 }
 
+result_t fs_base::lchmodSync(exlib::string path, int32_t mode)
+{
+    return ac_lchmod(path, mode);
+}
+
+result_t fs_base::chownSync(exlib::string path, int32_t uid, int32_t gid)
+{
+    return ac_chown(path, uid, gid);
+}
+
+result_t fs_base::lchownSync(exlib::string path, int32_t uid, int32_t gid)
+{
+    return ac_lchown(path, uid, gid);
+}
+
 result_t fs_base::statSync(exlib::string path, obj_ptr<Stat_base>& retVal)
 {
     return ac_stat(path, retVal);
+}
+
+result_t fs_base::lstatSync(exlib::string path, obj_ptr<Stat_base>& retVal)
+{
+    return ac_lstat(path, retVal);
 }
 
 result_t fs_base::readdirSync(exlib::string path, obj_ptr<List_base>& retVal)
@@ -567,4 +761,10 @@ result_t fs_base::writeFileSync(exlib::string fname, Buffer_base* data)
 {
     return ac_writeFile(fname, data);
 }
+
+result_t fs_base::appendFileSync(exlib::string fname, Buffer_base* data)
+{
+    return ac_appendFile(fname, data);
+}
+
 }

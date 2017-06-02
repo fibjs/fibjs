@@ -47,8 +47,10 @@ inline int32_t ftruncate64(int32_t fd, __int64 where)
 #define _close close
 
 #ifndef Linux
+#ifndef Darwin
 #define stat64 stat
 #define fstat64 fstat
+#endif
 #define ftruncate64 ftruncate
 #endif
 
@@ -77,6 +79,7 @@ public:
 
 public:
     result_t getStat(exlib::string path);
+    result_t getLstat(exlib::string path);
     void fill(exlib::string path, struct stat64& st);
 
 #ifdef _WIN32
