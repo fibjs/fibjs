@@ -141,7 +141,7 @@ inline result_t hexEncode(exlib::string data, exlib::string& retVal)
  * iconv use decode: local encoding string -> unicode
  * 
  */
-inline result_t commonEncode(exlib::string codec, exlib::string& data, exlib::string& retVal)
+inline result_t commonEncode(exlib::string codec, exlib::string data, exlib::string& retVal)
 {
     result_t hr;
     if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined")) {
