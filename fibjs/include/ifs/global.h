@@ -43,7 +43,6 @@ public:
     static result_t setImmediate(v8::Local<v8::Function> callback, obj_ptr<Timer_base>& retVal);
     static result_t require(exlib::string id, v8::Local<v8::Value>& retVal);
     static result_t GC();
-    static result_t sync(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
     static result_t repl(v8::Local<v8::Array> cmds);
     static result_t repl(Stream_base* out, v8::Local<v8::Array> cmds);
 
@@ -73,7 +72,6 @@ public:
     static void s_setImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_GC(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_sync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_repl(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -99,7 +97,6 @@ inline ClassInfo& global_base::class_info()
         { "setImmediate", s_setImmediate, true },
         { "require", s_require, true },
         { "GC", s_GC, true },
-        { "sync", s_sync, true },
         { "repl", s_repl, true }
     };
 
@@ -307,21 +304,6 @@ inline void global_base::s_GC(const v8::FunctionCallbackInfo<v8::Value>& args)
     hr = GC();
 
     METHOD_VOID();
-}
-
-inline void global_base::s_sync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Function> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Function>, 0);
-
-    hr = sync(v0, vr);
-
-    METHOD_RETURN();
 }
 
 inline void global_base::s_repl(const v8::FunctionCallbackInfo<v8::Value>& args)

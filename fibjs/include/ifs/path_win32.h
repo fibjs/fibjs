@@ -26,6 +26,7 @@ public:
     static result_t extname(exlib::string path, exlib::string& retVal);
     static result_t dirname(exlib::string path, exlib::string& retVal);
     static result_t fullpath(exlib::string path, exlib::string& retVal);
+    static result_t isAbsolute(exlib::string path, bool& retVal);
     static result_t join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
     static result_t resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
     static result_t get_sep(exlib::string& retVal);
@@ -50,6 +51,7 @@ public:
     static void s_extname(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_dirname(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_fullpath(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isAbsolute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_join(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_sep(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -68,6 +70,7 @@ inline ClassInfo& path_win32_base::class_info()
         { "extname", s_extname, true },
         { "dirname", s_dirname, true },
         { "fullpath", s_fullpath, true },
+        { "isAbsolute", s_isAbsolute, true },
         { "join", s_join, true },
         { "resolve", s_resolve, true }
     };
@@ -161,6 +164,21 @@ inline void path_win32_base::s_fullpath(const v8::FunctionCallbackInfo<v8::Value
     ARG(exlib::string, 0);
 
     hr = fullpath(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void path_win32_base::s_isAbsolute(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = isAbsolute(v0, vr);
 
     METHOD_RETURN();
 }

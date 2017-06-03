@@ -588,10 +588,11 @@ inline result_t _fullpath_win32(exlib::string path, exlib::string& retVal)
         return CHECK_ERROR(LastError());
 
     retVal = utf16to8String(utf16_buffer, (int32_t)utf16_len);
-#else
-    ThrowError("not supported on none Win32 platform !");
-#endif
+
     return 0;
+#else
+    return Runtime::setError("not supported on none Win32 platform !");
+#endif
 }
 
 } /* namespace fibjs */

@@ -14,7 +14,7 @@
 
 namespace fibjs {
 
-class BufferedStream : public fibjs::BufferedStream_base {
+class BufferedStream : public BufferedStream_base {
 public:
     BufferedStream(Stream_base* stm)
         : m_stm(stm)

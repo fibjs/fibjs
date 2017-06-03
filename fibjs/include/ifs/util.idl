@@ -293,6 +293,12 @@ module util
      */
     static Buffer compile(String script, Integer mode = 0);
 
+    /*! @brief 包裹 callback 方法为同步调用
+     @param func 给定需要包裹的方法
+     @return 返回同步运行的方法
+     */
+    static Function sync(Function func);
+
     /*! @brief 查询当前引擎及各组件版本信息
 
      @return 返回结构如下：

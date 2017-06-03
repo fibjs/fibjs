@@ -39,6 +39,13 @@ result_t path_win32_base::fullpath(exlib::string path, exlib::string& retVal)
     return _fullpath_win32(path, retVal);
 }
 
+result_t path_win32_base::isAbsolute(exlib::string path, bool& retVal)
+{
+    const char* c_str = path.c_str();
+    retVal = isWin32PathSlash(c_str[0]) || (qisascii(c_str[0]) && c_str[1] == ':');
+    return 0;
+}
+
 result_t path_win32_base::join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
 {
     return _join_win32(args, retVal);

@@ -39,6 +39,12 @@ result_t path_posix_base::fullpath(exlib::string path, exlib::string& retVal)
     return _fullpath(path, retVal);
 }
 
+result_t path_posix_base::isAbsolute(exlib::string path, bool& retVal)
+{
+    retVal = isPosixPathSlash(path.c_str()[0]);
+    return 0;
+}
+
 result_t path_posix_base::join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
 {
     return _join(args, retVal);
