@@ -50,10 +50,17 @@ result_t base64_base::encode(Buffer_base* data, exlib::string& retVal)
 result_t base64_base::decode(exlib::string data,
     obj_ptr<Buffer_base>& retVal)
 {
-    exlib::string strBuf;
-    result_t hr = base64Decode(data, strBuf);
-    retVal = new Buffer(strBuf);
-    return hr;
+    static const char decodeTable[] = {
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, 62, -1, 63, /* 2x  !"#$%&'()*+,-./   */
+        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, /* 3x 0123456789:;<=>?   */
+        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, /* 4x @ABCDEFGHIJKLMNO   */
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, 63, /* 5X PQRSTUVWXYZ[\]^_   */
+        -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, /* 6x `abcdefghijklmno   */
+        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1 /* 7X pqrstuvwxyz{\}~DEL */
+    };
+
+    baseDecode(decodeTable, 6, data, retVal);
+    return 0;
 }
 
 result_t base64vlq_base::encode(int32_t data, exlib::string& retVal)
@@ -154,8 +161,34 @@ result_t hex_base::encode(Buffer_base* data, exlib::string& retVal)
 result_t hex_base::decode(exlib::string data,
     obj_ptr<Buffer_base>& retVal)
 {
+    const char* _data = data.c_str();
+    int32_t pos, len = (int32_t)data.length();
+    const char* end = _data + len;
     exlib::string strBuf;
-    result_t hr = hexDecode(data, strBuf);
+    uint32_t ch1, ch2;
+
+    strBuf.resize(len / 2);
+
+    pos = 0;
+    while ((ch1 = utf8_getchar(_data, end)) != 0) {
+        if (qisxdigit(ch1))
+            ch1 = qhex(ch1);
+        else
+            continue;
+
+        ch2 = utf8_getchar(_data, end);
+        if (ch2 == 0)
+            break;
+
+        if (qisxdigit(ch2))
+            ch2 = qhex(ch2);
+        else {
+            ch2 = ch1;
+            ch1 = 0;
+        }
+
+        strBuf[pos++] = (ch1 << 4) + ch2;
+    }
     retVal = new Buffer(strBuf);
 
     return 0;

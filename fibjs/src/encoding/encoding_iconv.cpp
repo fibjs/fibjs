@@ -23,7 +23,7 @@
 
 #include "object.h"
 #include "encoding_iconv.h"
-#include "encoding.h"
+#include "ifs/encoding.h"
 
 namespace fibjs {
 
@@ -153,37 +153,32 @@ void encoding_iconv::open(const char* charset)
 result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
 {
     result_t hr = 0;
-    if ((m_charset == "utf8") || (m_charset == "utf-8") || (m_charset == "undefined"))
+    if ((m_charset == "utf8") || (m_charset == "utf-8"))
         retVal = data;
     else {
-        if ((m_charset == "hex"))
-            hr = hexDecode(data, retVal);
-        else if ((m_charset == "base64"))
-            hr = base64Decode(data, retVal);
-        else {
-            if (!m_iconv_en) {
-                m_iconv_en = _iconv_open(m_charset.c_str(), "utf-8");
-                if (m_iconv_en == (iconv_t)(-1)) {
-                    m_iconv_en = NULL;
-                    return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
-                }
+        if (!m_iconv_en) {
+            m_iconv_en = _iconv_open(m_charset.c_str(), "utf-8");
+            if (m_iconv_en == (iconv_t)(-1)) {
+                m_iconv_en = NULL;
+                return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
             }
-
-            const char* _data = data.c_str();
-            size_t sz = data.length();
-
-            retVal.resize(sz * 2);
-            char* output_buf = &retVal[0];
-            size_t output_size = retVal.length();
-
-            size_t n = _iconv((iconv_t)m_iconv_en, &_data, &sz, &output_buf, &output_size);
-
-            if (n == (size_t)-1)
-                return CHECK_ERROR(Runtime::setError("encoding: convert error."));
-
-            retVal.resize(retVal.length() - output_size);
         }
+
+        const char* _data = data.c_str();
+        size_t sz = data.length();
+
+        retVal.resize(sz * 2);
+        char* output_buf = &retVal[0];
+        size_t output_size = retVal.length();
+
+        size_t n = _iconv((iconv_t)m_iconv_en, &_data, &sz, &output_buf, &output_size);
+
+        if (n == (size_t)-1)
+            return CHECK_ERROR(Runtime::setError("encoding: convert error."));
+
+        retVal.resize(retVal.length() - output_size);
     }
+
     return hr;
 }
 
@@ -203,52 +198,33 @@ result_t encoding_iconv::encode(exlib::string data, obj_ptr<Buffer_base>& retVal
 result_t encoding_iconv::decode(const exlib::string& data, exlib::string& retVal)
 {
     result_t hr = 0;
-    if ((m_charset == "utf8") || (m_charset == "utf-8") || (m_charset == "undefined"))
+    if ((m_charset == "utf8") || (m_charset == "utf-8"))
         retVal = data;
     else {
-        if ((m_charset == "hex"))
-            hr = hexEncode(data, retVal);
-        else if ((m_charset == "base64"))
-            hr = base64Encode(data, retVal);
-        else if ((m_charset == "ascii")) {
-            int32_t len, i;
-
-            len = (int32_t)data.length();
-            retVal.resize(len);
-            const char* _data = data.c_str();
-            for (i = 0; i < len; i++)
-                retVal[i] = _data[i] & 0x7f;
-
-            hr = 0;
-        } else if ((m_charset == "ucs2") || (m_charset == "ucs-2") || (m_charset == "utf16le") || (m_charset == "utf-16le")) {
-            retVal = utf16to8String((const exlib::wchar*)data.c_str(), (int32_t)data.length() / 2);
-            hr = 0;
-        } else {
-            if (!m_iconv_de) {
-                m_iconv_de = _iconv_open("utf-8", m_charset.c_str());
-                if (m_iconv_de == (iconv_t)(-1)) {
-                    m_iconv_de = NULL;
-                    return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
-                }
+        if (!m_iconv_de) {
+            m_iconv_de = _iconv_open("utf-8", m_charset.c_str());
+            if (m_iconv_de == (iconv_t)(-1)) {
+                m_iconv_de = NULL;
+                return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
             }
-
-            size_t sz = data.length();
-            const char* ptr = data.c_str();
-            exlib::string strBuf;
-
-            strBuf.resize(sz * 2);
-            char* output_buf = &strBuf[0];
-            size_t output_size = strBuf.length();
-
-            size_t n = _iconv((iconv_t)m_iconv_de, &ptr, &sz, &output_buf, &output_size);
-
-            if (n == (size_t)-1)
-                return CHECK_ERROR(Runtime::setError("encoding: convert error."));
-
-            strBuf.resize(strBuf.length() - output_size);
-
-            retVal = strBuf;
         }
+
+        size_t sz = data.length();
+        const char* ptr = data.c_str();
+        exlib::string strBuf;
+
+        strBuf.resize(sz * 2);
+        char* output_buf = &strBuf[0];
+        size_t output_size = strBuf.length();
+
+        size_t n = _iconv((iconv_t)m_iconv_de, &ptr, &sz, &output_buf, &output_size);
+
+        if (n == (size_t)-1)
+            return CHECK_ERROR(Runtime::setError("encoding: convert error."));
+
+        strBuf.resize(strBuf.length() - output_size);
+
+        retVal = strBuf;
     }
 
     return 0;
