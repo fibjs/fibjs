@@ -135,6 +135,12 @@ inline result_t hexEncode(exlib::string data, exlib::string& retVal)
     return 0;
 }
 
+/**
+ * hex & base64 use encode: binary -> hex ,binary -> base64
+ * 
+ * iconv use decode: local encoding string -> unicode
+ * 
+ */
 inline result_t commonEncode(exlib::string codec, exlib::string& data, exlib::string& retVal)
 {
     result_t hr;
