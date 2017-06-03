@@ -679,19 +679,17 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     retVal->Set(isolate->NewFromUtf8("uid"), v8::Integer::New(isolate->m_isolate, -1));
     retVal->Set(isolate->NewFromUtf8("gid"), v8::Integer::New(isolate->m_isolate, -1));
 
-    if (encoding != "utf8") {
-        if (encoding == "buffer") {
-            obj_ptr<Buffer_base> usernameBuffer = new Buffer(username);
-            obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
+    if (encoding == "buffer") {
+        obj_ptr<Buffer_base> usernameBuffer = new Buffer(username);
+        obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
 
-            retVal->Set(isolate->NewFromUtf8("username"), usernameBuffer->wrap());
-            retVal->Set(isolate->NewFromUtf8("homedir"), homedirBuffer->wrap());
-            retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
-            return 0;
-        } else {
-            commonEncode(encoding, username, username);
-            commonEncode(encoding, homedir, homedir);
-        }
+        retVal->Set(isolate->NewFromUtf8("username"), usernameBuffer->wrap());
+        retVal->Set(isolate->NewFromUtf8("homedir"), homedirBuffer->wrap());
+        retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
+        return 0;
+    } else {
+        commonEncode(encoding, username, username);
+        commonEncode(encoding, homedir, homedir);
     }
 
     retVal->Set(isolate->NewFromUtf8("username"), isolate->NewFromUtf8(username));
