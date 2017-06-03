@@ -688,14 +688,16 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
         retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
         return 0;
     } else {
-        commonEncode(encoding, username, username);
-        commonEncode(encoding, homedir, homedir);
+        exlib::string _username;
+        exlib::string _homedir;
+        commonEncode(encoding, username, _username);
+        commonEncode(encoding, homedir, _homedir);
+
+        retVal->Set(isolate->NewFromUtf8("username"), isolate->NewFromUtf8(_username));
+        retVal->Set(isolate->NewFromUtf8("homedir"), isolate->NewFromUtf8(_homedir));
+        retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
+        return 0;
     }
-
-    retVal->Set(isolate->NewFromUtf8("username"), isolate->NewFromUtf8(username));
-    retVal->Set(isolate->NewFromUtf8("homedir"), isolate->NewFromUtf8(homedir));
-    retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
-
     return 0;
 }
 
