@@ -220,12 +220,12 @@ result_t Buffer::append(exlib::string str, exlib::string codec)
     obj_ptr<Buffer_base> data;
     result_t hr;
 
-     if ((codec == "hex"))
-         hr = hex_base::decode(str, data);
-     else if ((codec == "base64"))
-         hr = base64_base::decode(str, data);
-     else
-         hr = iconv_base::encode(codec, str, data);
+    if ((codec == "hex"))
+        hr = hex_base::decode(str, data);
+    else if ((codec == "base64"))
+        hr = base64_base::decode(str, data);
+    else
+        hr = iconv_base::encode(codec, str, data);
 
     if (hr < 0)
         return hr;
@@ -264,11 +264,11 @@ result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib:
     exlib::string strBuf;
 
     if ((codec == "hex"))
-         hr = hex_base::decode(str, data);
-     else if ((codec == "base64"))
-         hr = base64_base::decode(str, data);
-     else
-         hr = iconv_base::encode(codec, str, data);
+        hr = hex_base::decode(str, data);
+    else if ((codec == "base64"))
+        hr = base64_base::decode(str, data);
+    else
+        hr = iconv_base::encode(codec, str, data);
 
     if (hr < 0)
         return hr;
