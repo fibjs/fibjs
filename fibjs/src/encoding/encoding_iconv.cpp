@@ -156,6 +156,9 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
     if ((m_charset == "utf8") || (m_charset == "utf-8"))
         retVal = data;
     else {
+         if (m_charset == "binary")
+            m_charset = "latin1";
+
         if (!m_iconv_en) {
             m_iconv_en = _iconv_open(m_charset.c_str(), "utf-8");
             if (m_iconv_en == (iconv_t)(-1)) {
@@ -201,6 +204,9 @@ result_t encoding_iconv::decode(const exlib::string& data, exlib::string& retVal
     if ((m_charset == "utf8") || (m_charset == "utf-8"))
         retVal = data;
     else {
+        if (m_charset == "binary")
+            m_charset = "latin1";
+
         if (!m_iconv_de) {
             m_iconv_de = _iconv_open("utf-8", m_charset.c_str());
             if (m_iconv_de == (iconv_t)(-1)) {
