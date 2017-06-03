@@ -16,9 +16,6 @@ describe('encoding', () => {
         var b = base64.decode(expected);
         assert.equal(b.toString(), quote);
 
-        var c = base64.encode(quote);
-        assert.equal(c, expected);
-
         var s = base64.encode(b);
         assert.equal(s, expected);
 
@@ -120,10 +117,6 @@ describe('encoding', () => {
         for (var i = 0; i < 256; i++) {
             assert.equal(hexb2[i], hexb[i]);
         }
-
-        var buf = new Buffer('abc-xyc-mn');
-        assert.equal(hex.encode(buf),
-            hex.encode('abc-xyc-mn'));
     });
 
     it('uri', () => {
