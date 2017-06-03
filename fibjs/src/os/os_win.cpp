@@ -12,7 +12,7 @@
 #include "object.h"
 #include "ifs/os.h"
 #include "path.h"
-#include "encoding_iconv.h"
+#include "encoding.h"
 #include "utils.h"
 #include "ifs/process.h"
 #include <iphlpapi.h>
@@ -689,8 +689,8 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
             retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
             return 0;
         } else {
-            encoding_iconv(encoding).decode(username, username);
-            encoding_iconv(encoding).decode(homedir, homedir);
+            commonEncode(encoding, username, username);
+            commonEncode(encoding, homedir, homedir);
         }
     }
 
