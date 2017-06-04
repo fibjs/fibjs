@@ -34,8 +34,12 @@ public:
 
 public:
     // fs_base
+    static result_t get_constants(v8::Local<v8::Object>& retVal);
+    static result_t set_constants(v8::Local<v8::Object> newVal);
     static result_t exists(exlib::string path, bool& retVal, AsyncEvent* ac);
     static result_t existsSync(exlib::string path, bool& retVal);
+    static result_t access(exlib::string path, int32_t mode, bool& retVal, AsyncEvent* ac);
+    static result_t accessSync(exlib::string path, int32_t mode, bool& retVal);
     static result_t link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac);
     static result_t linkSync(exlib::string oldPath, exlib::string newPath);
     static result_t unlink(exlib::string path, AsyncEvent* ac);
@@ -97,8 +101,12 @@ public:
     static void s_get_SEEK_SET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_SEEK_END(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_constants(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_constants(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_existsSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_access(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_accessSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_link(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_linkSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -147,6 +155,7 @@ public:
 
 public:
     ASYNC_STATICVALUE2(fs_base, exists, exlib::string, bool);
+    ASYNC_STATICVALUE3(fs_base, access, exlib::string, int32_t, bool);
     ASYNC_STATIC2(fs_base, link, exlib::string, exlib::string);
     ASYNC_STATIC1(fs_base, unlink, exlib::string);
     ASYNC_STATIC2(fs_base, mkdir, exlib::string, int32_t);
@@ -186,6 +195,8 @@ inline ClassInfo& fs_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "exists", s_exists, true },
         { "existsSync", s_existsSync, true },
+        { "access", s_access, true },
+        { "accessSync", s_accessSync, true },
         { "link", s_link, true },
         { "linkSync", s_linkSync, true },
         { "unlink", s_unlink, true },
@@ -236,7 +247,8 @@ inline ClassInfo& fs_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "SEEK_SET", s_get_SEEK_SET, block_set, true },
         { "SEEK_CUR", s_get_SEEK_CUR, block_set, true },
-        { "SEEK_END", s_get_SEEK_END, block_set, true }
+        { "SEEK_END", s_get_SEEK_END, block_set, true },
+        { "constants", s_get_constants, s_set_constants, true }
     };
 
     static ClassData s_cd = {
@@ -270,6 +282,27 @@ inline void fs_base::s_get_SEEK_END(v8::Local<v8::String> property, const v8::Pr
     METHOD_RETURN();
 }
 
+inline void fs_base::s_get_constants(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    PROPERTY_ENTER();
+
+    hr = get_constants(vr);
+
+    METHOD_RETURN();
+}
+
+inline void fs_base::s_set_constants(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    PROPERTY_ENTER();
+    PROPERTY_VAL(v8::Local<v8::Object>);
+
+    hr = set_constants(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
 inline void fs_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
@@ -300,6 +333,42 @@ inline void fs_base::s_existsSync(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(exlib::string, 0);
 
     hr = existsSync(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void fs_base::s_access(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    if (!cb.IsEmpty()) {
+        acb_access(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_access(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void fs_base::s_accessSync(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = accessSync(v0, v1, vr);
 
     METHOD_RETURN();
 }

@@ -17,6 +17,9 @@ module fs
     /*! @brief seek 方式常量，移动到文件结尾的相对位置 */
     const SEEK_END = 2;
 
+    /*! fs模块的常量对象 */
+    static Object constants;
+
     /*! @brief 查询指定的文件或目录是否存在
      @param path 指定要查询的路径
      @return 返回 True 表示文件或目录存在
@@ -28,6 +31,20 @@ module fs
      @return 返回 True 表示文件或目录存在
      */
     static Boolean existsSync(String path);
+
+    /*! @brief 查询用户对指定的文件的权限
+     @param path 指定要查询的路径
+     @param mode 指定查询的权限,默认为文件是否存在
+     @return 返回 True 表示对文件用友mode指定的权限
+     */
+    static Boolean access(String path, Integer mode = 0) async;
+
+    /*! @brief 查询用户对指定的文件的权限, accesss同步兼容版本
+     @param path 指定要查询的路径
+     @param mode 指定查询的权限,默认为文件是否存在
+     @return 返回 True 表示对文件用友mode指定的权限
+     */
+    static Boolean accessSync(String path, Integer mode = 0);
 
     /*! @brief 创建硬链接文件, windows 下不支持此方法
      @param oldPath 源文件
