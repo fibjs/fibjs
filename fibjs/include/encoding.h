@@ -7,6 +7,8 @@
 
 #include "Buffer.h"
 #include "utf8.h"
+#include "ifs/encoding.h"
+#include "encoding_iconv.h"
 
 #ifndef ENCODING_H_
 #define ENCODING_H_
@@ -101,6 +103,72 @@ inline void baseDecode(const char* pdecodeTable, int32_t dwBits,
     exlib::string strBuf;
     baseDecode(pdecodeTable, dwBits, baseString, strBuf);
     retVal = new Buffer(strBuf);
+}
+
+inline result_t base64Encode(exlib::string data,
+    exlib::string& retVal)
+{
+    baseEncode(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+        6, data, retVal);
+    return 0;
+}
+
+inline result_t hexEncode(exlib::string data, exlib::string& retVal)
+{
+    static char HexChar[] = "0123456789abcdef";
+    int32_t i, pos, len1;
+
+    i = (int32_t)data.length() * 2;
+    retVal.resize(i);
+
+    len1 = 0;
+    pos = 0;
+
+    for (i = 0; i < (int32_t)data.length(); i++) {
+        retVal[pos * 2] = HexChar[(unsigned char)data[i] >> 4];
+        retVal[pos * 2 + 1] = HexChar[(unsigned char)data[i] & 0xf];
+        pos++;
+        len1 += 2;
+    }
+
+    return 0;
+}
+
+/**
+ * hex & base64 use encode: binary -> hex ,binary -> base64
+ * 
+ * iconv use decode: local encoding string -> unicode
+ * 
+ */
+inline result_t commonEncode(exlib::string codec, exlib::string data, exlib::string& retVal)
+{
+    result_t hr;
+    if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined")) {
+        retVal = data;
+        hr = 0;
+    } else {
+        if ((codec == "hex"))
+            hr = hexEncode(data, retVal);
+        else if ((codec == "base64"))
+            hr = base64Encode(data, retVal);
+        else if ((codec == "ascii")) {
+            int32_t len, i;
+
+            len = (int32_t)data.length();
+            retVal.resize(len);
+            const char* _data = data.c_str();
+            for (i = 0; i < len; i++)
+                retVal[i] = _data[i] & 0x7f;
+
+            hr = 0;
+        } else if ((codec == "ucs2") || (codec == "ucs-2") || (codec == "utf16le") || (codec == "utf-16le")) {
+            retVal = utf16to8String((const exlib::wchar*)data.c_str(), (int32_t)data.length() / 2);
+            hr = 0;
+        } else
+            hr = encoding_iconv(codec).decode(data, retVal);
+    }
+    return hr;
 }
 
 } /* namespace fibjs */

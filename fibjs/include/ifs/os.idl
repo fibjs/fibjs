@@ -12,16 +12,22 @@ module os
     static Service;
 
     /*! @brief 查询当前运行环境主机名 */
-    static readonly String hostname;
+    static String hostname();
+
+    /*! @brief the endianness of the CPU for which the fibjs binary was compiled. */
+    static String endianness();
 
     /*! @brief 查询当前运行环境操作系统名称 */
-    static readonly String type;
+    static String type();
 
     /*! @brief 查询当前运行环境操作系统版本 */
-    static readonly String version;
+    static String release();
+
+    /*! @brief 查询当前用户目录 */
+    static String homedir();
 
     /*! @brief 查询当前 cpu 环境，可能的结果为 'amd64', 'arm', 'arm64', 'ia32' */
-    static readonly String arch;
+    static String arch();
 
     /*! @brief 查询运行环境当前时区 */
     static readonly Integer timezone;
@@ -52,22 +58,27 @@ module os
     /*! @brief 查询当前运行环境 cpu 个数和参数
      @return 返回包含 cpu 参数的数组，每一项对应一个 cpu
     */
-    static Array CPUInfo();
+    static Array cpus();
 
     /*! @brief 查询当前运行环境 cpu 个数
      @return 返回 cpu 个数
     */
-    static Integer CPUs();
+    static Integer cpuNumbers();
 
     /*! @brief 查询当前运行环境临时文件目录
      @return 返回临时文件目录
     */
     static String tmpdir();
 
+    /*! @brief 返回当前有效执行用户信息
+      @return 当前有效执行用户信息
+    */
+    static Object userInfo(Object options = {});
+
     /*! @brief 查询当前运行环境网络信息
      @return 返回网卡信息
     */
-    static Object networkInfo();
+    static Object networkInterfaces();
 
     /*! @brief 查询当前主机的打印机信息
      @return 返回打印机信息

@@ -5,20 +5,23 @@ var test_util = require('./test_util');
 
 var os = require('os');
 var io = require('io');
+var path = require('path');
+
+var isWindows = process.platform === 'win32';
 
 describe('os', () => {
     it('stat', () => {
         console.dir({
-            type: os.type,
+            type: os.type(),
             version: os.version,
-            CPUs: os.CPUs(),
+            CPUs: os.cpuNumbers(),
             uptime: os.uptime(),
             loadavg: os.loadavg(),
             totalmem: os.totalmem(),
             freemem: os.freemem()
         });
-        console.dir(os.CPUInfo());
-        console.dir(os.networkInfo());
+        console.dir(os.cpus());
+        console.dir(os.networkInterfaces());
     });
 
     it("nativeObjects", () => {
@@ -132,6 +135,54 @@ describe('os', () => {
             process.env.TEMP = '/temp/////';
             assert.equal(os.tmpdir(), '/temp');
         }
+    });
+
+    it('endianness', () => {
+        const endianness = os.endianness();
+        assert.isString(endianness);
+        assert(/[BL]E/.test(endianness));
+    });
+
+    it('release', () => {
+        const release = os.release();
+        assert.isString(release);
+    });
+
+    it('homedir', () => {
+        const homedir = os.homedir();
+        assert.isString(homedir);
+        if (isWindows) {
+            assert.equal(os.homedir(), process.env.USERPROFILE);
+        } else {
+            assert.equal(os.homedir(), process.env.HOME);
+        }
+    });
+
+    it('userInfo', () => {
+        const userInfo = os.userInfo();
+        const userInfoBuffer = os.userInfo({ encoding: 'buffer' });
+        assert.isObject(userInfo);
+
+        if (isWindows) {
+            assert.strictEqual(userInfo.uid, -1);
+            assert.strictEqual(userInfo.gid, -1);
+            assert.strictEqual(userInfo.shell, null);
+            assert.strictEqual(userInfoBuffer.uid, -1);
+            assert.strictEqual(userInfoBuffer.gid, -1);
+            assert.strictEqual(userInfoBuffer.shell, null);
+        } else {
+            assert.isNumber(userInfo.uid);
+            assert.isNumber(userInfo.gid);
+            assert.ok(userInfo.shell.includes(path.sep));
+            assert.strictEqual(userInfo.uid, userInfoBuffer.uid);
+            assert.strictEqual(userInfo.gid, userInfoBuffer.gid);
+            assert.strictEqual(userInfo.shell, userInfoBuffer.shell.toString('utf8'));
+        }
+
+        assert.isString(userInfo.username);
+        assert.ok(userInfo.homedir.includes(path.sep));
+        assert.strictEqual(userInfo.username, userInfoBuffer.username.toString('utf8'));
+        assert.strictEqual(userInfo.homedir, userInfoBuffer.homedir.toString('utf8'));
     });
 });
 

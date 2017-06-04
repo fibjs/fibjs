@@ -5,6 +5,7 @@ var test_util = require('./test_util');
 
 var os = require('os');
 var net = require('net');
+var util = require('util');
 var coroutine = require('coroutine');
 
 var base_port = coroutine.vmid * 10000;
@@ -279,7 +280,7 @@ describe('coroutine', () => {
         });
 
         describe("message", () => {
-            var msg_trans = sync((msg, done) => {
+            var msg_trans = util.sync((msg, done) => {
                 worker.onmessage = (evt) => {
                     done(null, evt.data);
                 };

@@ -11,13 +11,18 @@
 
 #include "object.h"
 #include "ifs/os.h"
-#include "ifs/path.h"
+#include "path.h"
+#include "encoding.h"
+#include "utils.h"
 #include "ifs/process.h"
 #include <iphlpapi.h>
 #include <psapi.h>
+#include <userenv.h>
 #include "utf8.h"
 #include "inetAddr.h"
 #include "BufferedStream.h"
+#include <windows.h>
+#include <Lmcons.h>
 
 typedef struct
     _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION {
@@ -39,64 +44,37 @@ static PROCNTQSI pNtQuerySystemInformation;
 
 namespace fibjs {
 
-result_t os_base::get_type(exlib::string& retVal)
+result_t os_base::type(exlib::string& retVal)
 {
     retVal = "Windows";
     return 0;
 }
 
-result_t os_base::platform(exlib::string& retVal)
-{
-    retVal = "win32";
-    return 0;
-}
-
 typedef void(WINAPI* RtlGetVersion_FUNC)(OSVERSIONINFOEXW*);
 
-BOOL GetVersion2(OSVERSIONINFOEX* os)
+BOOL GetVersion2(OSVERSIONINFOEXW* os)
 {
     HMODULE hMod;
     RtlGetVersion_FUNC func;
-#ifdef UNICODE
-    OSVERSIONINFOEXW* osw = os;
-#else
-    OSVERSIONINFOEXW o;
-    OSVERSIONINFOEXW* osw = &o;
-#endif
 
     hMod = LoadLibrary(TEXT("ntdll.dll"));
-    if (hMod) {
-        func = (RtlGetVersion_FUNC)GetProcAddress(hMod, "RtlGetVersion");
-        if (func == 0) {
-            FreeLibrary(hMod);
-            return FALSE;
-        }
-        ZeroMemory(osw, sizeof(*osw));
-        osw->dwOSVersionInfoSize = sizeof(*osw);
-        func(osw);
-#ifndef UNICODE
-        os->dwBuildNumber = osw->dwBuildNumber;
-        os->dwMajorVersion = osw->dwMajorVersion;
-        os->dwMinorVersion = osw->dwMinorVersion;
-        os->dwPlatformId = osw->dwPlatformId;
-        os->dwOSVersionInfoSize = sizeof(*os);
-        DWORD sz = sizeof(os->szCSDVersion);
-        WCHAR* src = osw->szCSDVersion;
-        unsigned char* dtc = (unsigned char*)os->szCSDVersion;
-        while (*src)
-            *dtc++ = (unsigned char)*src++;
-        *dtc = '\0';
-#endif
-
-    } else
+    if (!hMod)
         return FALSE;
+
+    func = (RtlGetVersion_FUNC)GetProcAddress(hMod, "RtlGetVersion");
+    if (func == 0) {
+        FreeLibrary(hMod);
+        return FALSE;
+    }
+
+    func(os);
     FreeLibrary(hMod);
     return TRUE;
 }
 
-result_t os_base::get_version(exlib::string& retVal)
+result_t os_base::release(exlib::string& retVal)
 {
-    OSVERSIONINFOEX info = { sizeof(info) };
+    OSVERSIONINFOEXW info = { sizeof(info) };
     char release[256];
 
     if (GetVersion2(&info) == 0)
@@ -105,7 +83,12 @@ result_t os_base::get_version(exlib::string& retVal)
     sprintf(release, "%d.%d.%d", static_cast<int32_t>(info.dwMajorVersion),
         static_cast<int32_t>(info.dwMinorVersion), static_cast<int32_t>(info.dwBuildNumber));
     retVal = release;
+    return 0;
+}
 
+result_t os_base::platform(exlib::string& retVal)
+{
+    retVal = "win32";
     return 0;
 }
 
@@ -244,7 +227,7 @@ result_t os_base::freemem(int64_t& retVal)
     return 0;
 }
 
-result_t os_base::CPUs(int32_t& retVal)
+result_t os_base::cpuNumbers(int32_t& retVal)
 {
     static int32_t cpus = 0;
 
@@ -263,7 +246,7 @@ result_t os_base::CPUs(int32_t& retVal)
     return 0;
 }
 
-result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
+result_t os_base::cpus(v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = Isolate::current();
     retVal = v8::Array::New(isolate->m_isolate);
@@ -364,7 +347,7 @@ result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
     return hr;
 }
 
-result_t os_base::networkInfo(v8::Local<v8::Object>& retVal)
+result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
 {
     unsigned long size = 0;
     IP_ADAPTER_ADDRESSES* adapter_addresses;
@@ -642,6 +625,116 @@ result_t os_base::tmpdir(exlib::string& retVal)
     path_base::normalize(retVal, retVal);
 
     if (retVal.length() > 1 && isPathSlash(retVal[retVal.length() - 1]) && retVal[retVal.length() - 2] != ':')
+        retVal.resize(retVal.length() - 1);
+
+    return 0;
+}
+
+result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    retVal = v8::Object::New(isolate->m_isolate);
+
+    exlib::string encoding = "utf8";
+
+    GetConfigValue(isolate->m_isolate, options, "encoding", encoding, true);
+
+    // username start
+    exlib::string username;
+    char name[UNLEN];
+    DWORD size = UNLEN;
+
+    if (!GetUserName(name, &size))
+        return CHECK_ERROR(LastError());
+    username = name;
+    // username end
+
+    // homedir start
+    exlib::string homedir;
+    HANDLE token;
+    exlib::wchar path[MAX_PATH];
+    DWORD buffersize;
+    int r;
+
+    if (OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &token) == 0) {
+        return CHECK_ERROR(LastError());
+    }
+    buffersize = sizeof(path);
+    if (!GetUserProfileDirectoryW(token, path, &buffersize)) {
+        r = LastError();
+        if (r != -ERROR_INSUFFICIENT_BUFFER) {
+            CloseHandle(token);
+            return CHECK_ERROR(r);
+        }
+    }
+    CloseHandle(token);
+    homedir = utf16to8String(path, (int32_t)buffersize);
+    path_base::normalize(homedir, homedir);
+
+    if (homedir.length() > 1 && isPathSlash(homedir[homedir.length() - 1]))
+        homedir.resize(homedir.length() - 1);
+
+    // homedir end
+
+    retVal->Set(isolate->NewFromUtf8("uid"), v8::Integer::New(isolate->m_isolate, -1));
+    retVal->Set(isolate->NewFromUtf8("gid"), v8::Integer::New(isolate->m_isolate, -1));
+
+    if (encoding == "buffer") {
+        obj_ptr<Buffer_base> usernameBuffer = new Buffer(username);
+        obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
+
+        retVal->Set(isolate->NewFromUtf8("username"), usernameBuffer->wrap());
+        retVal->Set(isolate->NewFromUtf8("homedir"), homedirBuffer->wrap());
+        retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
+        return 0;
+    } else {
+        commonEncode(encoding, username, username);
+        commonEncode(encoding, homedir, homedir);
+
+        retVal->Set(isolate->NewFromUtf8("username"), isolate->NewFromUtf8(username));
+        retVal->Set(isolate->NewFromUtf8("homedir"), isolate->NewFromUtf8(homedir));
+        retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
+        return 0;
+    }
+    return 0;
+}
+
+result_t os_base::homedir(exlib::string& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Object> env;
+    process_base::get_env(env);
+
+    GetConfigValue(isolate->m_isolate, env, "USERPROFILE", retVal, true);
+
+    // process.env.USERPROFILE does not exist , call GetUserProfileDirectoryW()
+    if (retVal.empty()) {
+        HANDLE token;
+        exlib::wchar path[MAX_PATH];
+        DWORD buffersize;
+        int r;
+
+        if (OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &token) == 0) {
+            return CHECK_ERROR(LastError());
+        }
+
+        buffersize = sizeof(path);
+        if (!GetUserProfileDirectoryW(token, path, &buffersize)) {
+            r = LastError();
+            if (r != -ERROR_INSUFFICIENT_BUFFER) {
+                CloseHandle(token);
+                return CHECK_ERROR(r);
+            }
+        }
+
+        CloseHandle(token);
+
+        buffersize = sizeof(path);
+        retVal = utf16to8String(path, (int32_t)buffersize);
+    }
+    path_base::normalize(retVal, retVal);
+
+    if (retVal.length() > 1 && isPathSlash(retVal[retVal.length() - 1]))
         retVal.resize(retVal.length() - 1);
 
     return 0;

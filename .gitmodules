@@ -1,6 +1,3 @@
-[submodule "docs"]
-	path = docs
-	url = https://github.com/fibjs/fibjs_docs.git
 [submodule "vender"]
 	path = vender
 	url = https://github.com/fibjs/fibjs_vender.git

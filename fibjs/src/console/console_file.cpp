@@ -8,7 +8,7 @@
 #include "console.h"
 #include "File.h"
 #include "ifs/fs.h"
-#include "ifs/path.h"
+#include "path.h"
 #include "Buffer.h"
 #include <algorithm>
 

@@ -63,6 +63,7 @@ public:
     static result_t reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> memo, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
     static result_t compile(exlib::string srcname, exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal);
     static result_t compile(exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal);
+    static result_t sync(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
     static result_t buildInfo(v8::Local<v8::Object>& retVal);
 
 public:
@@ -111,6 +112,7 @@ public:
     static void s_map(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_reduce(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_compile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_sync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -157,6 +159,7 @@ inline ClassInfo& util_base::class_info()
         { "map", s_map, true },
         { "reduce", s_reduce, true },
         { "compile", s_compile, true },
+        { "sync", s_sync, true },
         { "buildInfo", s_buildInfo, true }
     };
 
@@ -713,6 +716,21 @@ inline void util_base::s_compile(const v8::FunctionCallbackInfo<v8::Value>& args
     OPT_ARG(int32_t, 1, 0);
 
     hr = compile(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_sync(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = sync(v0, vr);
 
     METHOD_RETURN();
 }

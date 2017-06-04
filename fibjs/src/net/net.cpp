@@ -18,7 +18,7 @@ DECLARE_MODULE(net);
 
 result_t net_base::info(v8::Local<v8::Object>& retVal)
 {
-    return os_base::networkInfo(retVal);
+    return os_base::networkInterfaces(retVal);
 }
 
 result_t net_base::resolve(exlib::string name, int32_t family,

@@ -1,0 +1,83 @@
+
+/*! @brief 文件路径处理模块
+
+ 引用方法：
+ @code
+ var path = require('path').win32;
+ @endcode
+ */
+module path_win32
+{
+    /*! @brief 标准化路径，处理路径中父目录等信息
+
+     @param path 给定的未处理的路径
+     @return 返回经过处理的路径
+     */
+    static String normalize(String path);
+
+    /*! @brief 查询路径中的文件名称，若指定扩展名，则自动取消匹配的扩展名
+
+     @param path 给定查询的路径
+     @param ext 指定扩展名，若文件名中有符合条件的扩展名，将自动取消
+     @return 返回文件名称
+     */
+    static String basename(String path, String ext = "");
+
+    /*! @brief 查询路径中的文件扩展名
+
+     @param path 给定查询的路径
+     @return 返回得到的扩展名
+     */
+    static String extname(String path);
+
+    /*! @brief 查询路径中的目录路径
+
+     @param path 给定查询的路径
+     @return 返回得到的目录的路径
+     */
+    static String dirname(String path);
+
+    /*! @brief 转换给定路径为全路径
+
+     @param path 给定转换的路径
+     @return 返回转换的全路径
+     */
+    static String fullpath(String path);
+
+    /*! @brief 识别给定的路径是否是绝对路径
+
+     @param path 给定需要识别的路径
+     @return 是绝对路径则返回 true
+     */
+    static Boolean isAbsolute(String path);
+
+    /*! @brief 合并一系列路径成为一个单一路径
+
+     @param ... 一个或多个相关的路径
+     @return 返回得到的新路径
+     */
+    static String join(...);
+
+    /*! @brief 合并一系列路径成为一个绝对路径
+
+     @param ... 一个或多个相关的路径
+     @return 返回得到的新路径
+     */
+    static String resolve(...);
+
+    /*! @brief 查询当前操作系统的路径分割字符，posix 返回 '/', windows 返回  '\\'
+     */
+    static readonly String sep;
+
+    /*! @brief 查询当前操作系统的多路径组合字符，posix 返回 ':', windows 返回  ';'
+     */
+    static readonly String delimiter;
+
+    /*! @brief posix 实现，参见 path_posix
+     */
+    static readonly Object posix;
+
+    /*! @brief windows 实现，参见 path_win32
+     */
+    static readonly Object win32;
+};

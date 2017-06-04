@@ -8,7 +8,7 @@
 #include "object.h"
 #include "ifs/fs.h"
 #include "ifs/zip.h"
-#include "ifs/path.h"
+#include "path.h"
 #include "utf8.h"
 #include "Stat.h"
 #include "List.h"
@@ -39,7 +39,7 @@ namespace fibjs {
 DECLARE_MODULE(fs);
 
 static exlib::spinlock s_cachelock;
-static std::map<exlib::string, obj_ptr<List_base> > s_cache;
+static std::map<exlib::string, obj_ptr<List_base>> s_cache;
 static date_t s_date;
 
 void init_fs()
@@ -84,7 +84,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
 #endif
 
         obj_ptr<List_base> list;
-        std::map<exlib::string, obj_ptr<List_base> >::iterator it;
+        std::map<exlib::string, obj_ptr<List_base>>::iterator it;
 
         s_cachelock.lock();
         it = s_cache.find(zip_file);
@@ -102,7 +102,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
                 return hr;
 
             s_cachelock.lock();
-            s_cache.insert(std::pair<exlib::string, obj_ptr<List_base> >(zip_file, list));
+            s_cache.insert(std::pair<exlib::string, obj_ptr<List_base>>(zip_file, list));
             s_cachelock.unlock();
         }
 

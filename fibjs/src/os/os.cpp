@@ -17,7 +17,7 @@ namespace fibjs {
 
 DECLARE_MODULE(os);
 
-result_t os_base::get_hostname(exlib::string& retVal)
+result_t os_base::hostname(exlib::string& retVal)
 {
     char s[255];
 
@@ -28,7 +28,7 @@ result_t os_base::get_hostname(exlib::string& retVal)
     return 0;
 }
 
-result_t os_base::get_arch(exlib::string& retVal)
+result_t os_base::arch(exlib::string& retVal)
 {
 #ifdef amd64
     retVal = "x64";
@@ -40,6 +40,19 @@ result_t os_base::get_arch(exlib::string& retVal)
     retVal = "arm64";
 #endif
 
+    return 0;
+}
+
+result_t os_base::endianness(exlib::string& retVal)
+{
+    const union {
+        uint8_t u8[2];
+        uint16_t u16;
+    } u = {
+        { 1, 0 }
+    };
+
+    retVal = u.u16 == 1 ? "LE" : "BE";
     return 0;
 }
 

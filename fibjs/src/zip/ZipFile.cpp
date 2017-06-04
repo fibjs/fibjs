@@ -8,7 +8,7 @@
 #include "object.h"
 #include "ifs/zip.h"
 #include "ifs/fs.h"
-#include "ifs/path.h"
+#include "path.h"
 #include "ZipFile.h"
 #include "utf8.h"
 #include "Buffer.h"

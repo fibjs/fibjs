@@ -9,7 +9,7 @@
 #include "Fiber.h"
 #include "Trigger.h"
 #include "ifs/coroutine.h"
-#include "ifs/events.h"
+#include "ifs/EventEmitter.h"
 #include "QuickArray.h"
 #include <vector>
 
@@ -38,10 +38,14 @@ public:
         cd.cms = s_method;
     }
 
-public:
     virtual ClassInfo& class_info()
     {
-        return events_base::class_info();
+        return EventEmitter_base::class_info();
+    }
+
+    virtual const char* name()
+    {
+        return "events";
     }
 } s_RootModule_events;
 
@@ -143,7 +147,7 @@ result_t object_base::_emit(exlib::string ev, Variant* args, int32_t argCount)
             JSFiber::scope s;
             size_t i;
 
-            std::vector<v8::Local<v8::Value> > argv;
+            std::vector<v8::Local<v8::Value>> argv;
 
             argv.resize(m_args.size());
             for (i = 0; i < m_args.size(); i++)

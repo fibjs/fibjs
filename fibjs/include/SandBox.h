@@ -10,13 +10,17 @@
 #include "ifs/process.h"
 #include "ifs/Worker.h"
 #include <map>
+#include <vector>
 
 #ifndef SANDBOX_H_
 #define SANDBOX_H_
 
 namespace fibjs {
 
-class SandBox : public fibjs::SandBox_base {
+class SandBox : public SandBox_base {
+public:
+    SandBox();
+
 public:
     // SandBox_base
     virtual result_t add(exlib::string id, v8::Local<v8::Value> mod);
@@ -28,8 +32,6 @@ public:
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
 
 public:
-    result_t addScript(exlib::string srcname, exlib::string script, v8::Local<v8::Value>& retVal);
-
     v8::Local<v8::Object> mods()
     {
         Isolate* isolate = holder();
@@ -47,6 +49,49 @@ public:
         return o;
     }
 
+public:
+    class Context {
+    public:
+        Context(SandBox* sb, exlib::string id);
+        static result_t repl(v8::Local<v8::Array> cmds, Stream_base* out);
+
+    public:
+        obj_ptr<SandBox> m_sb;
+        v8::Local<v8::Value> m_id;
+        v8::Local<v8::Function> m_fnRequest;
+        v8::Local<v8::Function> m_fnRun;
+    };
+
+public:
+    class ExtLoader : public obj_base {
+    public:
+        ExtLoader(const char* ext)
+            : m_ext(ext)
+        {
+        }
+
+    public:
+        virtual result_t run_script(Context* ctx, Buffer_base* src,
+            exlib::string name, v8::Local<v8::Array> argv);
+        virtual result_t run_main(Context* ctx, Buffer_base* src,
+            exlib::string name, v8::Local<v8::Array> argv);
+        virtual result_t run_worker(Context* ctx, Buffer_base* src,
+            exlib::string name, Worker_base* master);
+        virtual result_t run_module(Context* ctx, Buffer_base* src,
+            exlib::string name, v8::Local<v8::Object> module, v8::Local<v8::Object> exports);
+
+    public:
+        virtual result_t run(Context* ctx, Buffer_base* src, exlib::string name,
+            exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count)
+        {
+            return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
+        }
+
+    public:
+        exlib::string m_ext;
+    };
+
+public:
     void initRoot();
     void initRequire(v8::Local<v8::Function> func)
     {
@@ -61,35 +106,38 @@ public:
     result_t run_main(exlib::string fname, v8::Local<v8::Array> argv);
     result_t run_worker(exlib::string fname, Worker_base* worker);
 
+    result_t get_loader(exlib::string fname, obj_ptr<ExtLoader>& retVal)
+    {
+        size_t cnt = m_loaders.size();
+
+        for (size_t i = 0; i < cnt; i++) {
+            obj_ptr<ExtLoader>& l = m_loaders[i];
+
+            if ((fname.length() > l->m_ext.length())
+                && !qstrcmp(fname.c_str() + fname.length() - l->m_ext.length(), l->m_ext.c_str())) {
+                retVal = l;
+                return 0;
+            }
+        }
+
+        return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
+    }
+
 public:
-    class Context {
-    public:
-        Context(SandBox* sb, exlib::string id);
+    static const char* script_args;
+    static const int32_t script_args_count;
 
-        result_t run(Buffer_base* src, exlib::string name, exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count);
-        result_t run(exlib::string src, exlib::string name, exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count);
+    static const char* main_args;
+    static const int32_t main_args_count;
 
-        template <typename T>
-        result_t run_script(T src, exlib::string name, v8::Local<v8::Array> argv);
+    static const char* worker_args;
+    static const int32_t worker_args_count;
 
-        template <typename T>
-        result_t run_main(T src, exlib::string name, v8::Local<v8::Array> argv);
+    static const char* module_args;
+    static const int32_t module_args_count;
 
-        template <typename T>
-        result_t run_worker(T src, exlib::string name, Worker_base* worker);
-
-        template <typename T>
-        result_t run_module(T src, exlib::string name, v8::Local<v8::Object> module,
-            v8::Local<v8::Object> exports);
-
-        static result_t repl(v8::Local<v8::Array> cmds, Stream_base* out);
-
-    public:
-        obj_ptr<SandBox> m_sb;
-        v8::Local<v8::Value> m_id;
-        v8::Local<v8::Function> m_fnRequest;
-        v8::Local<v8::Function> m_fnRun;
-    };
+public:
+    std::vector<obj_ptr<ExtLoader>> m_loaders;
 };
 
 } /* namespace fibjs */

@@ -94,6 +94,9 @@
     <Filter Include="Source Files\sandbox">
       <UniqueIdentifier>{1c86f56f-71b7-1427-cfe7-942f06260480}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\sandbox\loaders">
+      <UniqueIdentifier>{12bf4bdf-e8e5-746e-9844-15b52fab4289}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\ssl">
       <UniqueIdentifier>{946bd967-41b8-dd1c-5b15-d3d20a7609f0}</UniqueIdentifier>
     </Filter>
@@ -780,9 +783,6 @@
     <ClInclude Include="include\ifs\encoding.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\events.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\fs.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -828,6 +828,12 @@
     <ClInclude Include="include\ifs\path.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\path_posix.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\path_win32.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\process.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -847,6 +853,9 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\test.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\timers.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\url.h">
@@ -911,6 +920,9 @@
     </ClInclude>
     <ClInclude Include="src\gui\windows\WebView.h">
       <Filter>Source Files\gui\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sandbox\loaders\loaders.h">
+      <Filter>Source Files\sandbox\loaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1130,7 +1142,10 @@
     <ClCompile Include="src\fs\fs.cpp">
       <Filter>Source Files\fs</Filter>
     </ClCompile>
-    <ClCompile Include="src\fs\path.cpp">
+    <ClCompile Include="src\fs\path_posix.cpp">
+      <Filter>Source Files\fs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fs\path_win32.cpp">
       <Filter>Source Files\fs</Filter>
     </ClCompile>
     <ClCompile Include="src\global\Buffer.cpp">
@@ -1328,6 +1343,18 @@
     <ClCompile Include="src\sandbox\SandBox_run.cpp">
       <Filter>Source Files\sandbox</Filter>
     </ClCompile>
+    <ClCompile Include="src\sandbox\loaders\base_loader.cpp">
+      <Filter>Source Files\sandbox\loaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sandbox\loaders\js_loader.cpp">
+      <Filter>Source Files\sandbox\loaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sandbox\loaders\jsc_loader.cpp">
+      <Filter>Source Files\sandbox\loaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sandbox\loaders\json_loader.cpp">
+      <Filter>Source Files\sandbox\loaders</Filter>
+    </ClCompile>
     <ClCompile Include="src\ssl\SslHandler.cpp">
       <Filter>Source Files\ssl</Filter>
     </ClCompile>
@@ -1359,6 +1386,9 @@
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="src\util\util_compile.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util\util_sync.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="src\websocket\WebSocket.cpp">

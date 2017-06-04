@@ -6,7 +6,6 @@
  */
 
 #include "object.h"
-#include "ifs/encoding.h"
 #include "encoding.h"
 #include "encoding_iconv.h"
 #include "Url.h"
@@ -43,10 +42,9 @@ result_t base32_base::decode(exlib::string data,
 
 result_t base64_base::encode(Buffer_base* data, exlib::string& retVal)
 {
-    baseEncode(
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-        6, data, retVal);
-    return 0;
+    exlib::string strData;
+    data->toString(strData);
+    return base64Encode(strData, retVal);
 }
 
 result_t base64_base::decode(exlib::string data,
@@ -156,25 +154,8 @@ result_t base64vlq_base::decode(exlib::string data, v8::Local<v8::Array>& retVal
 result_t hex_base::encode(Buffer_base* data, exlib::string& retVal)
 {
     exlib::string strData;
-    static char HexChar[] = "0123456789abcdef";
-    int32_t i, pos, len1;
-
     data->toString(strData);
-
-    i = (int32_t)strData.length() * 2;
-    retVal.resize(i);
-
-    len1 = 0;
-    pos = 0;
-
-    for (i = 0; i < (int32_t)strData.length(); i++) {
-        retVal[pos * 2] = HexChar[(unsigned char)strData[i] >> 4];
-        retVal[pos * 2 + 1] = HexChar[(unsigned char)strData[i] & 0xf];
-        pos++;
-        len1 += 2;
-    }
-
-    return 0;
+    return hexEncode(strData, retVal);
 }
 
 result_t hex_base::decode(exlib::string data,
@@ -208,7 +189,6 @@ result_t hex_base::decode(exlib::string data,
 
         strBuf[pos++] = (ch1 << 4) + ch2;
     }
-
     retVal = new Buffer(strBuf);
 
     return 0;

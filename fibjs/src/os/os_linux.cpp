@@ -92,7 +92,7 @@ result_t os_base::freemem(int64_t& retVal)
     return 0;
 }
 
-result_t os_base::CPUs(int32_t& retVal)
+result_t os_base::cpuNumbers(int32_t& retVal)
 {
     static int32_t cpus = 0;
 
@@ -118,7 +118,7 @@ result_t os_base::CPUs(int32_t& retVal)
     return 0;
 }
 
-result_t os_base::CPUInfo(v8::Local<v8::Array>& retVal)
+result_t os_base::cpus(v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = Isolate::current();
     retVal = v8::Array::New(isolate->m_isolate);

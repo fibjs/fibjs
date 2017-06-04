@@ -44,6 +44,13 @@ module path
      */
     static String fullpath(String path);
 
+    /*! @brief 识别给定的路径是否是绝对路径
+
+     @param path 给定需要识别的路径
+     @return 是绝对路径则返回 true
+     */
+    static Boolean isAbsolute(String path);
+
     /*! @brief 合并一系列路径成为一个单一路径
 
      @param ... 一个或多个相关的路径
@@ -65,4 +72,12 @@ module path
     /*! @brief 查询当前操作系统的多路径组合字符，posix 返回 ':', windows 返回  ';'
      */
     static readonly String delimiter;
+
+    /*! @brief posix 实现，参见 path_posix
+     */
+    static readonly Object posix;
+
+    /*! @brief windows 实现，参见 path_win32
+     */
+    static readonly Object win32;
 };

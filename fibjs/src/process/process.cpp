@@ -172,7 +172,7 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
 
 result_t process_base::get_arch(exlib::string& retVal)
 {
-    return os_base::get_arch(retVal);
+    return os_base::arch(retVal);
 }
 
 result_t process_base::get_platform(exlib::string& retVal)

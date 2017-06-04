@@ -321,7 +321,6 @@
     <ClInclude Include="include\ifs\crypto.h" />
     <ClInclude Include="include\ifs\db.h" />
     <ClInclude Include="include\ifs\encoding.h" />
-    <ClInclude Include="include\ifs\events.h" />
     <ClInclude Include="include\ifs\fs.h" />
     <ClInclude Include="include\ifs\gd.h" />
     <ClInclude Include="include\ifs\global.h" />
@@ -337,6 +336,8 @@
     <ClInclude Include="include\ifs\object.h" />
     <ClInclude Include="include\ifs\os.h" />
     <ClInclude Include="include\ifs\path.h" />
+    <ClInclude Include="include\ifs\path_posix.h" />
+    <ClInclude Include="include\ifs\path_win32.h" />
     <ClInclude Include="include\ifs\process.h" />
     <ClInclude Include="include\ifs\profiler.h" />
     <ClInclude Include="include\ifs\querystring.h" />
@@ -344,6 +345,7 @@
     <ClInclude Include="include\ifs\registry.h" />
     <ClInclude Include="include\ifs\ssl.h" />
     <ClInclude Include="include\ifs\test.h" />
+    <ClInclude Include="include\ifs\timers.h" />
     <ClInclude Include="include\ifs\url.h" />
     <ClInclude Include="include\ifs\util.h" />
     <ClInclude Include="include\ifs\uuid.h" />
@@ -365,6 +367,7 @@
     <ClInclude Include="include\utf8.h" />
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="src\gui\windows\WebView.h" />
+    <ClInclude Include="src\sandbox\loaders\loaders.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl" />
@@ -442,7 +445,8 @@
     <ClCompile Include="src\fs\File.cpp" />
     <ClCompile Include="src\fs\Stat.cpp" />
     <ClCompile Include="src\fs\fs.cpp" />
-    <ClCompile Include="src\fs\path.cpp" />
+    <ClCompile Include="src\fs\path_posix.cpp" />
+    <ClCompile Include="src\fs\path_win32.cpp" />
     <ClCompile Include="src\global\Buffer.cpp" />
     <ClCompile Include="src\global\Int64.cpp" />
     <ClCompile Include="src\global\Timer.cpp" />
@@ -508,6 +512,10 @@
     <ClCompile Include="src\sandbox\SandBox.cpp" />
     <ClCompile Include="src\sandbox\SandBox_repl.cpp" />
     <ClCompile Include="src\sandbox\SandBox_run.cpp" />
+    <ClCompile Include="src\sandbox\loaders\base_loader.cpp" />
+    <ClCompile Include="src\sandbox\loaders\js_loader.cpp" />
+    <ClCompile Include="src\sandbox\loaders\jsc_loader.cpp" />
+    <ClCompile Include="src\sandbox\loaders\json_loader.cpp" />
     <ClCompile Include="src\ssl\SslHandler.cpp" />
     <ClCompile Include="src\ssl\SslServer.cpp" />
     <ClCompile Include="src\ssl\SslSocket.cpp" />
@@ -519,6 +527,7 @@
     <ClCompile Include="src\util\Stats.cpp" />
     <ClCompile Include="src\util\util.cpp" />
     <ClCompile Include="src\util\util_compile.cpp" />
+    <ClCompile Include="src\util\util_sync.cpp" />
     <ClCompile Include="src\websocket\WebSocket.cpp" />
     <ClCompile Include="src\websocket\WebSocketHandler.cpp" />
     <ClCompile Include="src\websocket\WebSocketMessage.cpp" />
@@ -627,7 +636,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;dbghelp.lib;shlwapi.lib;urlmon.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;dbghelp.lib;shlwapi.lib;urlmon.lib;userenv.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -647,7 +656,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;dbghelp.lib;shlwapi.lib;urlmon.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;dbghelp.lib;shlwapi.lib;urlmon.lib;userenv.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -672,7 +681,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;dbghelp.lib;shlwapi.lib;urlmon.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;dbghelp.lib;shlwapi.lib;urlmon.lib;userenv.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -699,7 +708,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;dbghelp.lib;shlwapi.lib;urlmon.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;dbghelp.lib;shlwapi.lib;urlmon.lib;userenv.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>

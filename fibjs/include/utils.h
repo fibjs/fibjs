@@ -374,6 +374,19 @@ public:                                       \
         }                                         \
     } s_RootModule_##name;
 
+#define DECLARE_MODULE_EX(mname, module)           \
+    class RootModule_##mname : public RootModule { \
+    public:                                        \
+        virtual ClassInfo& class_info()            \
+        {                                          \
+            return module##_base::class_info();    \
+        }                                          \
+        virtual const char* name()                 \
+        {                                          \
+            return #mname;                         \
+        }                                          \
+    } s_RootModule_##mname;
+
 #define EVENT_SUPPORT()                                                                                            \
 public:                                                                                                            \
     virtual result_t on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)             \
@@ -947,6 +960,21 @@ inline bool isPathSlash(char ch)
 }
 
 #endif
+
+#define PATH_SLASH_WIN32 '\\'
+#define PATH_DELIMITER_WIN32 ';'
+#define PATH_SLASH_POSIX '/'
+#define PATH_DELIMITER_POSIX ':'
+
+inline bool isWin32PathSlash(char ch)
+{
+    return ch == '/' || ch == '\\';
+}
+
+inline bool isPosixPathSlash(char ch)
+{
+    return ch == '/';
+}
 
 #define URL_SLASH '/'
 

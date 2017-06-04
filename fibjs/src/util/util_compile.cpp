@@ -9,13 +9,9 @@
 #include "ifs/util.h"
 #include "ifs/zlib.h"
 #include "Buffer.h"
+#include "SandBox.h"
 
 namespace fibjs {
-
-extern const char* script_args;
-extern const char* main_args;
-extern const char* worker_args;
-extern const char* module_args;
 
 result_t util_base::compile(exlib::string srcname, exlib::string script,
     int32_t mode, obj_ptr<Buffer_base>& retVal)
@@ -24,6 +20,11 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
     exlib::string oname = srcname;
 
     v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
+
+    if (script.length() > 2 && script[0] == '#' && script[1] == '!') {
+        script[0] = '/';
+        script[1] = '/';
+    }
 
     v8::Local<v8::Script> code;
     {
@@ -43,16 +44,16 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
 
         switch (mode) {
         case 1:
-            args = main_args;
+            args = SandBox::main_args;
             break;
         case 2:
-            args = script_args;
+            args = SandBox::script_args;
             break;
         case 3:
-            args = worker_args;
+            args = SandBox::worker_args;
             break;
         default:
-            args = module_args;
+            args = SandBox::module_args;
             break;
         }
         script = args + script + "\n});";
