@@ -455,7 +455,7 @@ public:                                                                         
     }                                                                                                              \
     virtual result_t eventNames(v8::Local<v8::Array>& retVal)                                                      \
     {                                                                                                              \
-        return object_base::eventNames(retVal);                                                          \
+        return object_base::eventNames(retVal);                                                                    \
     }
 
 #define EVENT_FUNC(e)                                           \
