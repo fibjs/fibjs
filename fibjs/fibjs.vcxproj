@@ -367,6 +367,7 @@
     <ClInclude Include="include\utf8.h" />
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="src\gui\windows\WebView.h" />
+    <ClInclude Include="src\sandbox\loaders\loaders.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\object_async.inl" />
@@ -511,6 +512,10 @@
     <ClCompile Include="src\sandbox\SandBox.cpp" />
     <ClCompile Include="src\sandbox\SandBox_repl.cpp" />
     <ClCompile Include="src\sandbox\SandBox_run.cpp" />
+    <ClCompile Include="src\sandbox\loaders\base_loader.cpp" />
+    <ClCompile Include="src\sandbox\loaders\js_loader.cpp" />
+    <ClCompile Include="src\sandbox\loaders\jsc_loader.cpp" />
+    <ClCompile Include="src\sandbox\loaders\json_loader.cpp" />
     <ClCompile Include="src\ssl\SslHandler.cpp" />
     <ClCompile Include="src\ssl\SslServer.cpp" />
     <ClCompile Include="src\ssl\SslSocket.cpp" />

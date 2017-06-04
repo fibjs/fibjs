@@ -10,15 +10,10 @@
 
 #include "ifs/vm.h"
 #include "ifs/fs.h"
-#include "ifs/Stat.h"
 #include "ifs/encoding.h"
 #include "ifs/util.h"
-#include "ifs/global.h"
-#include "ifs/zlib.h"
 #include "path.h"
-#include "Buffer.h"
-
-#include <sstream>
+#include "loaders/loaders.h"
 
 namespace fibjs {
 
@@ -32,6 +27,20 @@ void init_sandbox()
 {
     if (s_root.empty())
         process_base::cwd(s_root);
+}
+
+SandBox::SandBox()
+{
+    obj_ptr<ExtLoader> loader;
+
+    loader = new JsLoader();
+    m_loaders.push_back(loader);
+
+    loader = new JscLoader();
+    m_loaders.push_back(loader);
+
+    loader = new JsonLoader();
+    m_loaders.push_back(loader);
 }
 
 inline exlib::string resolvePath(exlib::string base, exlib::string id)
@@ -170,229 +179,20 @@ SandBox::Context::Context(SandBox* sb, exlib::string id)
     m_fnRun = isolate->NewFunction("run", _run, _mod);
 }
 
-result_t SandBox::Context::run(exlib::string src, exlib::string name, exlib::string arg_names,
-    v8::Local<v8::Value>* args, int32_t args_count)
-{
-    Isolate* isolate = m_sb->holder();
-    exlib::string oname = name;
-
-    v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
-    exlib::string pname;
-    path_base::dirname(name, pname);
-
-    v8::Local<v8::Script> script;
-    {
-        TryCatch try_catch;
-
-        if (src.length() > 2 && src[0] == '#' && src[1] == '!') {
-            src[0] = '/';
-            src[1] = '/';
-        }
-
-        exlib::string src1 = arg_names + src + "\n});";
-
-        script = v8::Script::Compile(
-            isolate->NewFromUtf8(src1), soname);
-        if (script.IsEmpty()) {
-            TryCatch try_catch1;
-
-            v8::ScriptCompiler::Source script_source(
-                isolate->NewFromUtf8(src),
-                v8::ScriptOrigin(soname));
-
-            if (v8::ScriptCompiler::CompileUnbound(
-                    isolate->m_isolate, &script_source)
-                    .IsEmpty()) {
-                try_catch.Reset();
-                return throwSyntaxError(try_catch1);
-            }
-
-            throwSyntaxError(try_catch);
-        }
-    }
-
-    v8::Local<v8::Value> v = script->Run();
-    if (v.IsEmpty())
-        return CALL_E_JAVASCRIPT;
-
-    args[0] = isolate->NewFromUtf8(name);
-    args[1] = isolate->NewFromUtf8(pname);
-    v8::Local<v8::Object> glob = isolate->context()->Global();
-    v = v8::Local<v8::Function>::Cast(v)->Call(glob, args_count, args);
-    if (v.IsEmpty())
-        return CALL_E_JAVASCRIPT;
-
-    return 0;
-}
-
-result_t SandBox::Context::run(Buffer_base* src, exlib::string name, exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count)
-{
-    if (name.length() <= 4 || qstrcmp(name.c_str() + name.length() - 4, ".jsc")) {
-        exlib::string strScript;
-
-        if (src)
-            src->toString(strScript);
-
-        return run(strScript, name, arg_names, args, args_count);
-    }
-
-    result_t hr;
-
-    obj_ptr<Buffer_base> unz;
-    hr = zlib_base::cc_gunzip(src, unz);
-    if (hr < 0)
-        return hr;
-
-    Isolate* isolate = m_sb->holder();
-    exlib::string oname = name;
-
-    v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
-    exlib::string pname;
-    path_base::dirname(name, pname);
-
-    v8::Local<v8::Script> script;
-    {
-        TryCatch try_catch;
-
-        exlib::string code;
-        unz->toString(code);
-
-        v8::ScriptCompiler::CachedData* cache;
-        cache = new v8::ScriptCompiler::CachedData((const uint8_t*)code.c_str(),
-            (int32_t)(code.length() - sizeof(int32_t)));
-
-        exlib::string s_temp_source;
-        int32_t len = *(int32_t*)(code.c_str() + code.length() - sizeof(int32_t));
-        int32_t i;
-
-        s_temp_source.resize(len);
-
-        for (i = 0; i < len; i++)
-            s_temp_source[i] = '.';
-
-        v8::ScriptCompiler::Source source(isolate->NewFromUtf8(s_temp_source),
-            v8::ScriptOrigin(soname), cache);
-
-        script = v8::ScriptCompiler::Compile(isolate->m_isolate, &source,
-            v8::ScriptCompiler::kConsumeCodeCache);
-
-        if (script.IsEmpty())
-            return throwSyntaxError(try_catch);
-    }
-
-    v8::Local<v8::Value> v = script->Run();
-    if (v.IsEmpty())
-        return CALL_E_JAVASCRIPT;
-
-    args[0] = isolate->NewFromUtf8(name);
-    args[1] = isolate->NewFromUtf8(pname);
-    v8::Local<v8::Object> glob = isolate->context()->Global();
-    v = v8::Local<v8::Function>::Cast(v)->Call(glob, args_count, args);
-    if (v.IsEmpty())
-        return CALL_E_JAVASCRIPT;
-
-    return 0;
-}
-
-const char* script_args = "(function(__filename,__dirname,require,run,argv){";
-static const int32_t script_args_count = 5;
-
-result_t SandBox::Context::run_script(Buffer_base* src, exlib::string name, v8::Local<v8::Array> argv)
-{
-    v8::Local<v8::Value> args[10] = {
-        v8::Local<v8::Value>(), v8::Local<v8::Value>(),
-        m_fnRequest,
-        m_fnRun,
-        argv
-    };
-
-    return run(src, name, script_args, args, script_args_count);
-}
-
-const char* main_args = "(function(__filename,__dirname,require,run,argv,repl){";
-static const int32_t main_args_count = 6;
-
-result_t SandBox::Context::run_main(Buffer_base* src, exlib::string name, v8::Local<v8::Array> argv)
-{
-    Isolate* isolate = m_sb->holder();
-
-    v8::Local<v8::Value> replFunc = global_base::class_info().getModule(isolate)->Get(
-        isolate->NewFromUtf8("repl"));
-
-    v8::Local<v8::Value> args[10] = {
-        v8::Local<v8::Value>(), v8::Local<v8::Value>(),
-        m_fnRequest,
-        m_fnRun,
-        argv,
-        replFunc
-    };
-    return run(src, name, main_args, args, main_args_count);
-}
-
-const char* worker_args = "(function(__filename,__dirname,require,run,Master){";
-static const int32_t worker_args_count = 5;
-
-result_t SandBox::Context::run_worker(Buffer_base* src, exlib::string name, Worker_base* master)
-{
-    v8::Local<v8::Value> args[10] = {
-        v8::Local<v8::Value>(), v8::Local<v8::Value>(),
-        m_fnRequest,
-        m_fnRun,
-        master->wrap()
-    };
-    return run(src, name, worker_args, args, worker_args_count);
-}
-
-const char* module_args = "(function(__filename,__dirname,require,run,exports,module){";
-static const int32_t module_args_count = 6;
-
-result_t SandBox::Context::run_module(Buffer_base* src, exlib::string name, v8::Local<v8::Object> module,
-    v8::Local<v8::Object> exports)
-{
-    v8::Local<v8::Value> args[10] = {
-        v8::Local<v8::Value>(), v8::Local<v8::Value>(),
-        m_fnRequest,
-        m_fnRun,
-        exports,
-        module
-    };
-
-    return run(src, name, module_args, args, module_args_count);
-}
-
 result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     v8::Local<v8::Value>& retVal)
 {
-    exlib::string fname(srcname);
     result_t hr;
 
     // add to modules
-    exlib::string id(fname);
+    exlib::string id(srcname);
 
-    if (id.length() > 5 && !qstrcmp(id.c_str() + id.length() - 5, ".json")) {
-        id.resize(id.length() - 5);
+    obj_ptr<ExtLoader> l;
+    hr = get_loader(id, l);
+    if (hr < 0)
+        return hr;
 
-        exlib::string strScript;
-        if (script)
-            script->toString(strScript);
-
-        v8::Local<v8::Value> v;
-        hr = json_base::decode(strScript, v);
-        if (hr < 0)
-            return hr;
-
-        InstallModule(id, v);
-
-        retVal = v;
-        return 0;
-    }
-
-    if (id.length() > 3 && !qstrcmp(id.c_str() + id.length() - 3, ".js"))
-        id.resize(id.length() - 3);
-    else if (id.length() > 4 && !qstrcmp(id.c_str() + id.length() - 4, ".jsc"))
-        id.resize(id.length() - 4);
-    else
-        return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
+    id.resize(id.length() - l->m_ext.length());
 
     Isolate* isolate = holder();
     Context context(this, srcname);
@@ -415,7 +215,7 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
 
     InstallModule(id, exports);
 
-    hr = context.run_module(script, srcname, mod, exports);
+    hr = l->run_module(&context, script, srcname, mod, exports);
     if (hr < 0) {
         // delete from modules
         remove(id);
@@ -638,6 +438,11 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
     pathAdd(sfname, fname);
     path_base::normalize(sfname, sfname);
 
+    obj_ptr<ExtLoader> l;
+    hr = get_loader(sfname, l);
+    if (hr < 0)
+        return hr;
+
     obj_ptr<Buffer_base> bin;
 
     hr = fs_base::cc_readFile(sfname, bin);
@@ -645,7 +450,7 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         return hr;
 
     Context context(this, sfname);
-    return context.run_main(bin, sfname, argv);
+    return l->run_main(&context, bin, sfname, argv);
 }
 
 result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
@@ -657,6 +462,11 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
     pathAdd(sfname, fname);
     path_base::normalize(sfname, sfname);
 
+    obj_ptr<ExtLoader> l;
+    hr = get_loader(sfname, l);
+    if (hr < 0)
+        return hr;
+
     obj_ptr<Buffer_base> bin;
 
     hr = fs_base::cc_readFile(sfname, bin);
@@ -664,7 +474,7 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
         return hr;
 
     Context context(this, sfname);
-    return context.run_worker(bin, sfname, master);
+    return l->run_worker(&context, bin, sfname, master);
 }
 
 result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv)
@@ -676,6 +486,11 @@ result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv)
     pathAdd(sfname, fname);
     path_base::normalize(sfname, sfname);
 
+    obj_ptr<ExtLoader> l;
+    hr = get_loader(sfname, l);
+    if (hr < 0)
+        return hr;
+
     obj_ptr<Buffer_base> bin;
 
     hr = fs_base::cc_readFile(sfname, bin);
@@ -683,6 +498,6 @@ result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv)
         return hr;
 
     Context context(this, sfname);
-    return context.run_script(bin, sfname, argv);
+    return l->run_script(&context, bin, sfname, argv);
 }
 }
