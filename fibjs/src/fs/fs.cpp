@@ -156,6 +156,23 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
     return 0;
 }
 
+result_t fs_base::get_constants(v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    retVal = v8::Object::New(isolate->m_isolate);
+
+    retVal->Set(isolate->NewFromUtf8("F_OK"), v8::Integer::New(isolate->m_isolate, F_OK));
+    retVal->Set(isolate->NewFromUtf8("R_OK"), v8::Integer::New(isolate->m_isolate, R_OK));
+    retVal->Set(isolate->NewFromUtf8("W_OK"), v8::Integer::New(isolate->m_isolate, W_OK));
+    retVal->Set(isolate->NewFromUtf8("X_OK"), v8::Integer::New(isolate->m_isolate, X_OK));
+
+    return 0;
+}
+result_t fs_base::set_constants(v8::Local<v8::Object> newVal)
+{
+    return 0;
+}
+
 result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
     obj_ptr<BufferedStream_base>& retVal,
     AsyncEvent* ac)
@@ -186,7 +203,7 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
         return hr;
 
     hr = f->cc_readAll(buf);
-    f->close(ac);
+    f->cc_close();
 
     if (hr < 0 || hr == CALL_RETURN_NULL)
         return hr;
@@ -209,7 +226,7 @@ result_t fs_base::readFile(exlib::string fname, obj_ptr<Buffer_base>& retVal,
         return hr;
 
     hr = f->cc_readAll(buf);
-    f->close(ac);
+    f->cc_close();
 
     retVal = buf;
 
@@ -248,7 +265,7 @@ result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt,
     obj_ptr<Buffer_base> buf = new Buffer(txt);
 
     hr = f->cc_write(buf);
-    f->close(ac);
+    f->cc_close();
 
     return hr;
 }
@@ -266,7 +283,7 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* 
         return hr;
 
     hr = f->cc_write(data);
-    f->close(ac);
+    f->cc_close();
 
     return hr;
 }
@@ -278,12 +295,12 @@ result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, AsyncEvent*
     obj_ptr<SeekableStream_base> f;
     result_t hr;
 
-    hr == cc_open(fname, "a", f);
+    hr = cc_open(fname, "a", f);
     if (hr < 0)
         return hr;
 
     hr = f->cc_write(data);
-    f->close(ac);
+    f->cc_close();
 
     return hr;
 }
@@ -321,21 +338,6 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEve
     return 0;
 }
 
-result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
-{
-    return 0;
-}
-
-result_t fs_base::symlink(exlib::string target, exlib::string linkpath, AsyncEvent* ac)
-{
-    return 0;
-}
-
-result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
-{
-    return 0;
-}
-
 #ifndef _WIN32
 
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
@@ -343,7 +345,19 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    retVal = access(path.c_str(), F_OK) == 0;
+    retVal = ::access(path.c_str(), F_OK) == 0;
+    return 0;
+}
+
+result_t fs_base::access(exlib::string path, int32_t mode, bool& retVal, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (::access(path.c_str(), mode) < -1)
+        return CHECK_ERROR(LastError());
+
+    retVal = true;
     return 0;
 }
 
@@ -373,6 +387,7 @@ result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
+
     char buf[MAX_PATH_LENGTH];
     int32_t r;
 
@@ -381,6 +396,42 @@ result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent
 
     buf[r] = '\0';
     retVal = buf;
+    return 0;
+}
+
+result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    char buf[MAX_PATH_LENGTH];
+
+    if (::realpath(path.c_str(), buf) == NULL)
+        return CHECK_ERROR(LastError());
+
+    retVal = buf;
+    return 0;
+}
+
+result_t fs_base::symlink(exlib::string target, exlib::string linkpath, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (::symlink(target.c_str(), linkpath.c_str()) < 0)
+        return CHECK_ERROR(LastError());
+
+    return 0;
+}
+
+result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (::truncate(path.c_str(), len) < 0)
+        return CHECK_ERROR(LastError());
+
     return 0;
 }
 
@@ -530,8 +581,35 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
+result_t fs_base::access(exlib::string path, int32_t mode, bool& retVal, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    DWORD attr = GetFileAttributesW(UTF8_W(path));
+
+    if (attr == INVALID_FILE_ATTRIBUTES)
+        return CHECK_ERROR(LastError());
+
+    if (mode & W_OK &&
+            attr & FILE_ATTRIBUTE_READONLY &&
+            !(attr & FILE_ATTRIBUTE_DIRECTORY))
+        retVal = false;
+
+    if (attr & mode)
+        retVal = true;
+
+    return 0;
+}
+
 result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac)
 {
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (::CreateHardLinkW(UTF8_W(newPath), UTF8_W(oldPath), NULL) == 0)
+        return CHECK_ERROR(LastError());
+
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
@@ -600,11 +678,46 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
 
 result_t fs_base::symlink(exlib::string target, exlib::string linkpath, AsyncEvent* ac)
 {
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    bool isDir;
+    obj_ptr<Stat> pStat = new Stat();
+
+    result_t hr = pStat->getStat(target);
+    if (hr < 0)
+        return hr;
+
+    pStat->isDirectory(isDir);
+    if (CreateSymbolicLink(UTF8_W(linkpath), UTF8_W(target), isDir ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0) == 0)
+        return CHECK_ERROR(LastError());
+
     return 0;
 }
 
 result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
 {
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    HANDLE file;
+
+    if ((file = CreateFileW(UTF8_W(path),
+                            GENERIC_WRITE,
+                            FILE_SHARE_WRITE,
+                            NULL,
+                            CREATE_NEW | OPEN_EXISTING,
+                            FILE_ATTRIBUTE_NORMAL,
+                            NULL)) == INVALID_HANDLE_VALUE)
+        return CHECK_ERROR(LastError());
+
+    if (SetFilePointer(file, (LONG)len, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+        return CHECK_ERROR(LastError());
+
+    if (!SetEndOfFile(file))
+        return CHECK_ERROR(LastError());
+
+    CloseHandle(file);
     return 0;
 }
 
@@ -665,6 +778,11 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncE
 result_t fs_base::existsSync(exlib::string path, bool& retVal)
 {
     return ac_exists(path, retVal);
+}
+
+result_t fs_base::accessSync(exlib::string path, int32_t mode, bool& retVal)
+{
+    return ac_access(path, mode, retVal);
 }
 
 result_t fs_base::linkSync(exlib::string oldPath, exlib::string newPath)

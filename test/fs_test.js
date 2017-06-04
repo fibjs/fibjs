@@ -9,7 +9,7 @@ var vmid = coroutine.vmid;
 function unlink(pathname) {
     try {
         fs.rmdir(pathname);
-    } catch (e) { }
+    } catch (e) {}
 }
 
 var pathname = 'test_dir' + vmid;
@@ -108,6 +108,20 @@ describe('fs', () => {
             assert.equal(st.mode & 511, oldm & 511);
 
             f.close();
+        });
+
+        it("fs.chown", () => {
+            var fn = __dirname + '/fs_test.js' + vmid;
+            fs.writeFile(fn, 'chown test');
+            if (require('os').userInfo().username != 'root')
+                assert.throws(() => {
+                    fs.chown(fn, 23, 45)
+                });
+            else
+                assert.doesNotThrow(function() {
+                    fs.chown(fn, 23, 45)
+                });
+            fs.unlink(fn);
         });
     }
 
@@ -216,6 +230,61 @@ describe('fs', () => {
         assert.equal(fl[sz - 2], 't1.js');
         assert.equal(fl[sz - 1], 't2.js');
     });
+
+    it("writeFile & appendFile", () => {
+        var fn = __dirname + '/fs_test.js' + vmid;
+
+        fs.writeFile(fn, 'data to be written');
+        assert.equal(fs.readFile(fn), 'data to be written');
+        fs.appendFile(fn, 'data to be appended');
+        assert.equal(fs.readFile(fn), 'data to be writtendata to be appended');
+
+        fs.unlink(fn);
+    });
+
+    it("link", () => {
+        var fn = __dirname + '/fs_test.js' + vmid;
+        var fn1 = __dirname + '/fs_test.js.link' + vmid
+        fs.writeFile(fn, 'link test');
+        fs.link(fn, fn1);
+        assert.deepEqual(fs.stat(fn).ctime, fs.stat(fn1).ctime);
+        assert.deepEqual(fs.stat(fn).atime, fs.stat(fn1).atime);
+        assert.deepEqual(fs.stat(fn).mtime, fs.stat(fn1).mtime);
+        assert.equal(fs.stat(fn).mode, fs.stat(fn1).mode);
+        assert.equal(fs.stat(fn).size, fs.stat(fn1).size);
+        fs.unlink(fn);
+        assert.equal(fs.readFile(fn1), 'link test');
+        fs.unlink(fn1);
+    });
+
+    it("truncate", () => {
+        var fn = __dirname + '/fs_test.js' + vmid;
+        fs.writeFile(fn, 'truncate test');
+        assert.equal(fs.stat(fn).size, 13);
+        fs.truncate(fn, 100);
+        assert.equal(fs.stat(fn).size, 100);
+        fs.truncate(fn, 10);
+        assert.equal(fs.stat(fn).size, 10);
+        fs.unlink(fn);
+    });
+
+    it("symlink & & lstat & readlink & realpath", () => {
+        var fn = __dirname + '/fs_test.js';
+        var fn1 = __dirname + '/fs_test.js.symlink' + vmid;
+        fs.symlink(fn, fn1);
+        if (!win) {
+            assert.ok(fs.lstat(fn1).isSymbolicLink());
+            assert.equal(fs.readlink(fn1), fn);
+            assert.equal(fs.realpath(fn1), fn);
+        }
+        assert.equal(fs.readFile(fn).toString(), fs.readFile(fn1).toString());
+        fs.unlink(fn1);
+    })
+
+    it("access", () => {
+        var fn = __dirname + '/fs_test.js';
+        assert.ok(fs.access(fn), fs.constants.F_OK | fs.constants.W_OK | fs.constants.R_OK);
+    })
 });
 
-// test.run(console.DEBUG);
+test.run(console.DEBUG);
