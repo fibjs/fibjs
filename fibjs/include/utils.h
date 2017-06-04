@@ -452,6 +452,10 @@ public:                                                                         
     virtual result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args, bool& retVal)         \
     {                                                                                                              \
         return object_base::emit(ev, args, retVal);                                                                \
+    }                                                                                                              \
+    virtual result_t eventNames(v8::Local<v8::Array>& retVal)                                                      \
+    {                                                                                                              \
+        return object_base::eventNames(retVal);                                                          \
     }
 
 #define EVENT_FUNC(e)                                           \

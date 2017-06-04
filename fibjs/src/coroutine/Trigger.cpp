@@ -28,6 +28,7 @@ public:
             { "removeAllListeners", JSTrigger::s_removeAllListeners, true },
             { "setMaxListeners", JSTrigger::s_setMaxListeners, true },
             { "listeners", JSTrigger::s_listeners, true },
+            { "eventNames", JSTrigger::s_eventNames, true },
             { "emit", JSTrigger::s_emit, true }
         };
 
@@ -178,5 +179,10 @@ result_t object_base::emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::
     bool& retVal)
 {
     return JSTrigger(this).emit(ev, args, retVal);
+}
+
+result_t object_base::eventNames(v8::Local<v8::Array>& retVal)
+{
+    return JSTrigger(this).eventNames(retVal);
 }
 }

@@ -117,6 +117,10 @@ public:
     {
         return object_base::emit(ev, args, retVal);
     }
+    virtual result_t eventNames(v8::Local<v8::Array>& retVal)
+    {
+        return object_base::eventNames(retVal);
+    }
 
 public:
     // WebSocket_base

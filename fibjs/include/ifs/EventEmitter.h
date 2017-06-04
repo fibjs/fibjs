@@ -37,6 +37,7 @@ public:
     virtual result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t setMaxListeners(int32_t n) = 0;
     virtual result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal) = 0;
+    virtual result_t eventNames(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args, bool& retVal) = 0;
 
 public:
@@ -53,6 +54,7 @@ public:
     static void s_removeAllListeners(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_listeners(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_eventNames(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_emit(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -69,6 +71,7 @@ inline ClassInfo& EventEmitter_base::class_info()
         { "removeAllListeners", s_removeAllListeners, false },
         { "setMaxListeners", s_setMaxListeners, false },
         { "listeners", s_listeners, false },
+        { "eventNames", s_eventNames, false },
         { "emit", s_emit, false }
     };
 
@@ -271,6 +274,20 @@ inline void EventEmitter_base::s_listeners(const v8::FunctionCallbackInfo<v8::Va
     ARG(exlib::string, 0);
 
     hr = pInst->listeners(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void EventEmitter_base::s_eventNames(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_INSTANCE(EventEmitter_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->eventNames(vr);
 
     METHOD_RETURN();
 }

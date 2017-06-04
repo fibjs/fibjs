@@ -18,18 +18,21 @@ public:
         : isolate(_iso)
         , o(_o)
     {
+        initEv();
     }
 
     JSTrigger(object_base* _o)
         : isolate(_o->holder()->m_isolate)
         , o(_o->wrap())
     {
+        initEv();
     }
 
     JSTrigger(const v8::FunctionCallbackInfo<v8::Value>& args)
         : isolate(args.GetIsolate())
         , o(args.This())
     {
+        initEv();
     }
 
 private:
@@ -38,25 +41,43 @@ private:
         return v8::String::NewFromUtf8(isolate, str.c_str(), v8::String::kNormalString, (int32_t)str.length());
     }
 
+    void initEv()
+    {
+        v8::Local<v8::Value> obj = o->GetPrivate(o->CreationContext(),
+                                        v8::Private::ForApi(isolate, NewFromUtf8("_ev")))
+                                       .ToLocalChecked();
+        if (obj->IsUndefined() || obj->IsNull()) {
+            o->SetPrivate(o->CreationContext(),
+                v8::Private::ForApi(isolate, NewFromUtf8("_ev")),
+                v8::Object::New(isolate));
+        }
+    }
+
+    v8::Local<v8::Object> GetPrivateEv()
+    {
+        v8::Local<v8::Value> obj = o->GetPrivate(o->CreationContext(),
+                                        v8::Private::ForApi(isolate, NewFromUtf8("_ev")))
+                                       .ToLocalChecked();
+        return v8::Local<v8::Object>::Cast(obj);
+    }
+
 public:
     v8::Local<v8::Value> GetPrivate(exlib::string key)
     {
-        return o->GetPrivate(o->CreationContext(),
-                    v8::Private::ForApi(isolate, NewFromUtf8(key)))
-            .ToLocalChecked();
+        v8::Local<v8::Object> ev = GetPrivateEv();
+        return ev->Get(NewFromUtf8(key));
     }
 
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
     {
-        o->SetPrivate(o->CreationContext(),
-            v8::Private::ForApi(isolate, NewFromUtf8(key)),
-            value);
+        v8::Local<v8::Object> ev = GetPrivateEv();
+        ev->Set(NewFromUtf8(key), value);
     }
 
     void DeletePrivate(exlib::string key)
     {
-        o->DeletePrivate(o->CreationContext(),
-            v8::Private::ForApi(isolate, NewFromUtf8(key)));
+        v8::Local<v8::Object> ev = GetPrivateEv();
+        ev->Delete(NewFromUtf8(key));
     }
 
     v8::Local<v8::Array> GetHiddenList(exlib::string k, bool create = false,
@@ -279,7 +300,7 @@ public:
     }
 
     result_t fireTrigger(v8::Local<v8::Array> esa, v8::Local<v8::Value>* args, int32_t argCount,
-        QuickArray<obj_ptr<Fiber_base> >& evs, v8::Local<v8::Function>& ff)
+        QuickArray<obj_ptr<Fiber_base>>& evs, v8::Local<v8::Function>& ff)
     {
         if (esa.IsEmpty())
             return 0;
@@ -311,7 +332,7 @@ public:
     {
         result_t hr;
         retVal = false;
-        QuickArray<obj_ptr<Fiber_base> > evs;
+        QuickArray<obj_ptr<Fiber_base>> evs;
         v8::Local<v8::Function> ff;
 
         exlib::string strKey = "_e_";
@@ -349,7 +370,7 @@ public:
     result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args,
         bool& retVal)
     {
-        std::vector<v8::Local<v8::Value> > _args;
+        std::vector<v8::Local<v8::Value>> _args;
         int32_t len = args.Length();
 
         _args.resize(len - 1);
@@ -358,6 +379,34 @@ public:
             _args[i - 1] = args[i];
 
         return _emit(ev, _args.data(), (int32_t)_args.size(), retVal);
+    }
+
+    result_t eventNames(v8::Local<v8::Array>& retVal)
+    {
+        v8::Local<v8::Object> ev = GetPrivateEv();
+        v8::Local<v8::Array> names = ev->GetOwnPropertyNames();
+        exlib::string n;
+        int32_t len = names->Length();
+        int32_t i;
+        int32_t j;
+
+        retVal = v8::Array::New(isolate);
+
+        for (i = 0; i < len; i++) {
+            v8::Local<v8::Value> name = names->Get(i);
+            GetArgumentValue(name, n, false);
+            j = n.find("_e_", 0);
+            if (j == 0) {
+                n = n.substr(3);
+            } else {
+                j = n.find("_e1_", 0);
+                if (j == 0) {
+                    n = n.substr(4);
+                }
+            }
+            retVal->Set(i, NewFromUtf8(n));
+        }
+        return 0;
     }
 
 public:
@@ -498,6 +547,20 @@ public:
         ARG(exlib::string, 0);
 
         hr = t.emit(v0, args, vr);
+
+        METHOD_RETURN();
+    }
+
+    static void s_eventNames(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Array> vr;
+        JSTrigger t(args);
+
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = t.eventNames(vr);
 
         METHOD_RETURN();
     }
