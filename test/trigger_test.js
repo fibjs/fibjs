@@ -121,6 +121,13 @@ function evevt_test(name, e) {
 
             assert.equal(e.removeAllListeners(['test2', "test3"]), e);
         });
+
+        it("eventNames()", () => {
+            assert.deepEqual(e.eventNames(), [
+                "test1",
+                "test"
+            ]);
+        });
     });
 }
 
