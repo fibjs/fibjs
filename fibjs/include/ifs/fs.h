@@ -38,8 +38,8 @@ public:
     static result_t set_constants(v8::Local<v8::Object> newVal);
     static result_t exists(exlib::string path, bool& retVal, AsyncEvent* ac);
     static result_t existsSync(exlib::string path, bool& retVal);
-    static result_t access(exlib::string path, int32_t mode, bool& retVal, AsyncEvent* ac);
-    static result_t accessSync(exlib::string path, int32_t mode, bool& retVal);
+    static result_t access(exlib::string path, int32_t mode, AsyncEvent* ac);
+    static result_t accessSync(exlib::string path, int32_t mode);
     static result_t link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac);
     static result_t linkSync(exlib::string oldPath, exlib::string newPath);
     static result_t unlink(exlib::string path, AsyncEvent* ac);
@@ -155,7 +155,7 @@ public:
 
 public:
     ASYNC_STATICVALUE2(fs_base, exists, exlib::string, bool);
-    ASYNC_STATICVALUE3(fs_base, access, exlib::string, int32_t, bool);
+    ASYNC_STATIC2(fs_base, access, exlib::string, int32_t);
     ASYNC_STATIC2(fs_base, link, exlib::string, exlib::string);
     ASYNC_STATIC1(fs_base, unlink, exlib::string);
     ASYNC_STATIC2(fs_base, mkdir, exlib::string, int32_t);
@@ -339,8 +339,6 @@ inline void fs_base::s_existsSync(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void fs_base::s_access(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    bool vr;
-
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -352,15 +350,13 @@ inline void fs_base::s_access(const v8::FunctionCallbackInfo<v8::Value>& args)
         acb_access(v0, v1, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = ac_access(v0, v1, vr);
+        hr = ac_access(v0, v1);
 
-    METHOD_RETURN();
+    METHOD_VOID();
 }
 
 inline void fs_base::s_accessSync(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    bool vr;
-
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -368,9 +364,9 @@ inline void fs_base::s_accessSync(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(exlib::string, 0);
     OPT_ARG(int32_t, 1, 0);
 
-    hr = accessSync(v0, v1, vr);
+    hr = accessSync(v0, v1);
 
-    METHOD_RETURN();
+    METHOD_VOID();
 }
 
 inline void fs_base::s_link(const v8::FunctionCallbackInfo<v8::Value>& args)
