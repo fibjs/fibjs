@@ -30,6 +30,10 @@
 
 #else
 #include <stdio.h>
+#define F_OK 0
+#define W_OK 4
+#define R_OK 2
+#define X_OK 1
 #endif
 
 #define MAX_PATH_LENGTH 4096
@@ -610,7 +614,7 @@ result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent*
     if (::CreateHardLinkW(UTF8_W(newPath), UTF8_W(oldPath), NULL) == 0)
         return CHECK_ERROR(LastError());
 
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return 0;
 }
 
 result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
@@ -689,7 +693,7 @@ result_t fs_base::symlink(exlib::string target, exlib::string linkpath, AsyncEve
         return hr;
 
     pStat->isDirectory(isDir);
-    if (CreateSymbolicLink(UTF8_W(linkpath), UTF8_W(target), isDir ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0) == 0)
+    if (CreateSymbolicLinkW(UTF8_W(linkpath), UTF8_W(target), isDir ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0) == 0)
         return CHECK_ERROR(LastError());
 
     return 0;
