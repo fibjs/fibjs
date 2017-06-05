@@ -172,10 +172,6 @@ result_t fs_base::get_constants(v8::Local<v8::Object>& retVal)
 
     return 0;
 }
-result_t fs_base::set_constants(v8::Local<v8::Object> newVal)
-{
-    return 0;
-}
 
 result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
     obj_ptr<BufferedStream_base>& retVal,
