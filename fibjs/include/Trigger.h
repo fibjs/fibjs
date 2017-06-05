@@ -47,37 +47,30 @@ private:
                                         v8::Private::ForApi(isolate, NewFromUtf8("_ev")))
                                        .ToLocalChecked();
         if (obj->IsUndefined() || obj->IsNull()) {
+            events = v8::Object::New(isolate);
             o->SetPrivate(o->CreationContext(),
-                v8::Private::ForApi(isolate, NewFromUtf8("_ev")),
-                v8::Object::New(isolate));
+                v8::Private::ForApi(isolate, NewFromUtf8("_ev")), events);
         }
-    }
-
-    v8::Local<v8::Object> GetPrivateEv()
-    {
-        v8::Local<v8::Value> obj = o->GetPrivate(o->CreationContext(),
-                                        v8::Private::ForApi(isolate, NewFromUtf8("_ev")))
-                                       .ToLocalChecked();
-        return v8::Local<v8::Object>::Cast(obj);
+        else
+        {
+            events = v8::Local<v8::Object>::Cast(obj);
+        }
     }
 
 public:
     v8::Local<v8::Value> GetPrivate(exlib::string key)
     {
-        v8::Local<v8::Object> ev = GetPrivateEv();
-        return ev->Get(NewFromUtf8(key));
+        return events->Get(NewFromUtf8(key));
     }
 
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
     {
-        v8::Local<v8::Object> ev = GetPrivateEv();
-        ev->Set(NewFromUtf8(key), value);
+        events->Set(NewFromUtf8(key), value);
     }
 
     void DeletePrivate(exlib::string key)
     {
-        v8::Local<v8::Object> ev = GetPrivateEv();
-        ev->Delete(NewFromUtf8(key));
+        events->Delete(NewFromUtf8(key));
     }
 
     v8::Local<v8::Array> GetHiddenList(exlib::string k, bool create = false,
@@ -383,8 +376,7 @@ public:
 
     result_t eventNames(v8::Local<v8::Array>& retVal)
     {
-        v8::Local<v8::Object> ev = GetPrivateEv();
-        v8::Local<v8::Array> names = ev->GetOwnPropertyNames();
+        v8::Local<v8::Array> names = events->GetOwnPropertyNames();
         exlib::string n;
         int32_t len = names->Length();
         int32_t i;
@@ -568,6 +560,7 @@ public:
 private:
     v8::Isolate* isolate;
     v8::Local<v8::Object> o;
+    v8::Local<v8::Object> events;
 };
 
 class EventEmitter : public EventEmitter_base {
