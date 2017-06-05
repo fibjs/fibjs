@@ -353,15 +353,14 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t fs_base::access(exlib::string path, int32_t mode, bool& retVal, AsyncEvent* ac)
+result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (::access(path.c_str(), mode) < -1)
+    if (::access(path.c_str(), mode) < 0)
         return CHECK_ERROR(LastError());
 
-    retVal = true;
     return 0;
 }
 
@@ -585,7 +584,7 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t fs_base::access(exlib::string path, int32_t mode, bool& retVal, AsyncEvent* ac)
+result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -598,10 +597,7 @@ result_t fs_base::access(exlib::string path, int32_t mode, bool& retVal, AsyncEv
     if (mode & W_OK &&
             attr & FILE_ATTRIBUTE_READONLY &&
             !(attr & FILE_ATTRIBUTE_DIRECTORY))
-        retVal = false;
-
-    if (attr & mode)
-        retVal = true;
+        return CHECK_ERROR(CALL_E_PERMIT);
 
     return 0;
 }
@@ -784,9 +780,9 @@ result_t fs_base::existsSync(exlib::string path, bool& retVal)
     return ac_exists(path, retVal);
 }
 
-result_t fs_base::accessSync(exlib::string path, int32_t mode, bool& retVal)
+result_t fs_base::accessSync(exlib::string path, int32_t mode)
 {
-    return ac_access(path, mode, retVal);
+    return ac_access(path, mode);
 }
 
 result_t fs_base::linkSync(exlib::string oldPath, exlib::string newPath)

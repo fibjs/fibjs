@@ -283,8 +283,14 @@ describe('fs', () => {
 
     it("access", () => {
         var fn = __dirname + '/fs_test.js';
-        assert.ok(fs.access(fn), fs.constants.F_OK | fs.constants.W_OK | fs.constants.R_OK);
+        var fn1 = __dirname + '/fs_test.js.access' + vmid;
+        assert.doesNotThrow(() => {
+            fs.access(fn, fs.constants.F_OK | fs.constants.W_OK | fs.constants.R_OK);
+        });
+        assert.throws(() => {
+            fs.access(fn1, fs.constants.F_OK);
+        })
     })
 });
 
-test.run(console.DEBUG);
+// test.run(console.DEBUG);
