@@ -35,7 +35,6 @@ public:
 public:
     // fs_base
     static result_t get_constants(v8::Local<v8::Object>& retVal);
-    static result_t set_constants(v8::Local<v8::Object> newVal);
     static result_t exists(exlib::string path, bool& retVal, AsyncEvent* ac);
     static result_t existsSync(exlib::string path, bool& retVal);
     static result_t access(exlib::string path, int32_t mode, AsyncEvent* ac);
@@ -102,7 +101,6 @@ public:
     static void s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_SEEK_END(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_constants(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_constants(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_existsSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_access(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -248,7 +246,7 @@ inline ClassInfo& fs_base::class_info()
         { "SEEK_SET", s_get_SEEK_SET, block_set, true },
         { "SEEK_CUR", s_get_SEEK_CUR, block_set, true },
         { "SEEK_END", s_get_SEEK_END, block_set, true },
-        { "constants", s_get_constants, s_set_constants, true }
+        { "constants", s_get_constants, block_set, true }
     };
 
     static ClassData s_cd = {
@@ -291,16 +289,6 @@ inline void fs_base::s_get_constants(v8::Local<v8::String> property, const v8::P
     hr = get_constants(vr);
 
     METHOD_RETURN();
-}
-
-inline void fs_base::s_set_constants(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
-{
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Object>);
-
-    hr = set_constants(v0);
-
-    PROPERTY_SET_LEAVE();
 }
 
 inline void fs_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args)

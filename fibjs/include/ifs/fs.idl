@@ -18,7 +18,7 @@ module fs
     const SEEK_END = 2;
 
     /*! fs模块的常量对象 */
-    static Object constants;
+    static readonly Object constants;
 
     /*! @brief 查询指定的文件或目录是否存在
      @param path 指定要查询的路径
