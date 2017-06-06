@@ -14,6 +14,7 @@
 #include "ifs/util.h"
 #include "path.h"
 #include "loaders/loaders.h"
+#include "Buffer.h"
 
 namespace fibjs {
 
@@ -231,12 +232,32 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     return 0;
 }
 
+result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
+{
+    result_t hr;
+    std::map<exlib::string, obj_ptr<Buffer_base>>::iterator it;
+
+    it = m_cache.find(fname);
+    if (it != m_cache.end()) {
+        data = it->second;
+        return data ? 0 : CALL_E_FILE_NOT_FOUND;
+    }
+
+    hr = fs_base::cc_readFile(fname, data);
+    if (hr == CALL_RETURN_NULL) {
+        data = new Buffer();
+        hr = 0;
+    }
+
+    m_cache.insert(std::pair<exlib::string, obj_ptr<Buffer_base>>(fname, data));
+    return hr;
+}
+
 result_t SandBox::require(exlib::string base, exlib::string id,
     v8::Local<v8::Value>& retVal, int32_t mode)
 {
     exlib::string strId = resolvePath(base, id);
     exlib::string fname;
-    std::map<exlib::string, VariantEx>::iterator it;
     Isolate* isolate = holder();
     bool is_jsc = false;
 
@@ -295,22 +316,22 @@ result_t SandBox::require(exlib::string base, exlib::string id,
         pathAdd(fname1, fname);
         fullname = fname1;
 
-        hr = fs_base::cc_readFile(fname1, bin);
+        hr = loadFile(fname1, bin);
         if (hr >= 0)
             return addScript(fname1, bin, retVal);
     } else {
         fname = fullname + ".js";
-        hr = fs_base::cc_readFile(fname, bin);
+        hr = loadFile(fname, bin);
         if (hr >= 0)
             return addScript(fname, bin, retVal);
 
         fname = fullname + ".jsc";
-        hr = fs_base::cc_readFile(fname, bin);
+        hr = loadFile(fname, bin);
         if (hr >= 0)
             return addScript(fname, bin, retVal);
 
         fname = fullname + ".json";
-        hr = fs_base::cc_readFile(fname, bin);
+        hr = loadFile(fname, bin);
         if (hr >= 0)
             return addScript(fname, bin, retVal);
 
@@ -321,16 +342,18 @@ result_t SandBox::require(exlib::string base, exlib::string id,
         return hr;
 
     fname1 = fullname + PATH_SLASH + "package.json";
-    hr = fs_base::cc_readTextFile(fname1, buf);
+    hr = loadFile(fname1, bin);
     if (hr < 0) {
         fname1 = fullname + ".zip$" + PATH_SLASH + "package.json";
-        hr = fs_base::cc_readTextFile(fname1, buf);
+        hr = loadFile(fname1, bin);
         if (hr >= 0)
             fullname = fullname + ".zip$";
     }
 
     if (hr >= 0) {
         v8::Local<v8::Value> v;
+
+        bin->toString(buf);
         hr = json_base::decode(buf, v);
         if (hr < 0)
             return hr;
@@ -445,7 +468,7 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
 
     obj_ptr<Buffer_base> bin;
 
-    hr = fs_base::cc_readFile(sfname, bin);
+    hr = loadFile(sfname, bin);
     if (hr < 0)
         return hr;
 
@@ -469,7 +492,7 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
 
     obj_ptr<Buffer_base> bin;
 
-    hr = fs_base::cc_readFile(sfname, bin);
+    hr = loadFile(sfname, bin);
     if (hr < 0)
         return hr;
 
@@ -493,7 +516,7 @@ result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv)
 
     obj_ptr<Buffer_base> bin;
 
-    hr = fs_base::cc_readFile(sfname, bin);
+    hr = loadFile(sfname, bin);
     if (hr < 0)
         return hr;
 

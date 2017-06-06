@@ -123,6 +123,8 @@ public:
         return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
     }
 
+    result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
+
 public:
     static const char* script_args;
     static const int32_t script_args_count;
@@ -138,6 +140,7 @@ public:
 
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;
+    std::map<exlib::string, obj_ptr<Buffer_base>> m_cache;
 };
 
 } /* namespace fibjs */
