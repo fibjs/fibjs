@@ -517,7 +517,7 @@ WebView::WebView(exlib::string url, Map_base* opt)
     hWndParent = CreateWindowExW(0, szWndClassMain, L"", dwStyle, x, y, nWidth, nHeight,
         NULL, NULL, GetModuleHandle(NULL), NULL);
     if (m_visible)
-        ShowWindow(hWndParent, SW_SHOW);
+        ShowWindow(hWndParent, (dwStyle & WS_MAXIMIZE) ? SW_MAXIMIZE : SW_SHOW);
 
     ::SetRect(&rObject, -300, -300, 300, 300);
 
