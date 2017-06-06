@@ -190,6 +190,7 @@ protected:
     HWND hWndControl;
 
     bool m_visible;
+    bool m_maximize;
 
     AsyncEvent* m_ac;
 };
