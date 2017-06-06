@@ -128,6 +128,12 @@ result_t SslHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     return (new asyncInvoke(this, stm, ac))->post(0);
 }
 
+result_t SslHandler::invoke(v8::Local<v8::Object> v, obj_ptr<Handler_base>& retVal,
+    AsyncEvent* ac)
+{
+    return CALL_RETURN_NULL;
+}
+
 result_t SslHandler::get_verification(int32_t& retVal)
 {
     return m_socket->get_verification(retVal);

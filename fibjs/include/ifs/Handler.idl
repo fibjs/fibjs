@@ -21,4 +21,6 @@ interface Handler : object
      @return 返回下一步的处理器
      */
     Handler invoke(object v) async;
+
+    Handler invoke(Object v = {}) async;
 };

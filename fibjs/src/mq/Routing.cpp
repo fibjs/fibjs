@@ -124,6 +124,12 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     return CHECK_ERROR(Runtime::setError("Routing: unknown routing: " + value));
 }
 
+result_t Routing::invoke(v8::Local<v8::Object> v, obj_ptr<Handler_base>& retVal,
+    AsyncEvent* ac)
+{
+    return CHECK_ERROR(CALL_E_BADVARTYPE);
+}
+
 result_t Routing::append(exlib::string method, v8::Local<v8::Object> map)
 {
     v8::Local<v8::Array> ks = map->GetPropertyNames();

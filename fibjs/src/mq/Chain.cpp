@@ -81,6 +81,53 @@ result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     return (new asyncInvoke(this, v, ac))->post(0);
 }
 
+result_t Chain::invoke(v8::Local<v8::Object> v, obj_ptr<Handler_base>& retVal,
+    AsyncEvent* ac)
+{
+    class asyncInvoke : public AsyncState {
+    public:
+        asyncInvoke(Chain* pThis, v8::Local<v8::Object> v, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_v(v)
+            , m_pos(0)
+        {
+            int32_t i;
+
+            m_array.resize(pThis->m_array.size());
+            for (i = 0; i < (int32_t)pThis->m_array.size(); i++)
+                m_array[i] = pThis->m_array[i];
+
+            set(invoke);
+        }
+
+    public:
+        static int32_t invoke(AsyncState* pState, int32_t n)
+        {
+            asyncInvoke* pThis = (asyncInvoke*)pState;
+
+            if (pThis->m_pos == (int32_t)pThis->m_array.size())
+                return pThis->done(CALL_RETURN_NULL);
+
+            pThis->m_pos++;
+            return mq_base::invoke(pThis->m_array[pThis->m_pos - 1],
+                pThis->m_v, pThis);
+        }
+
+    private:
+        std::vector<obj_ptr<Handler_base> > m_array;
+        v8::Local<v8::Object> m_v;
+        int32_t m_pos;
+    };
+
+    if (m_array.size() == 0)
+        return CHECK_ERROR(Runtime::setError("Chain: empty chain."));
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new asyncInvoke(this, v, ac))->post(0);
+}
+
 result_t Chain::append(Handler_base* hdlr)
 {
     int32_t no = (int32_t)m_array.size();
