@@ -15,6 +15,7 @@
 #include "path.h"
 #include "loaders/loaders.h"
 #include "Buffer.h"
+#include "LruCache.h"
 
 namespace fibjs {
 
@@ -32,8 +33,6 @@ void init_sandbox()
 
 SandBox::SandBox()
 {
-    m_cache = new LruCache(0, 3000);
-
     obj_ptr<ExtLoader> loader;
 
     loader = new JsLoader();
@@ -238,8 +237,9 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 {
     result_t hr;
     v8::Local<v8::Value> v;
+    Isolate* isolate = holder();
 
-    m_cache->get(fname, v);
+    isolate->m_script_cache->get(fname, v);
     if (!v.IsEmpty()) {
         data = Buffer_base::getInstance(v);
         return data ? 0 : CALL_E_FILE_NOT_FOUND;
@@ -252,9 +252,9 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     }
 
     if (data)
-        m_cache->set(fname, data->wrap());
+        isolate->m_script_cache->set(fname, data->wrap());
     else
-        m_cache->set(fname, v8::Null(holder()->m_isolate));
+        isolate->m_script_cache->set(fname, v8::Null(holder()->m_isolate));
 
     return hr;
 }

@@ -9,7 +9,6 @@
 #include "ifs/Stream.h"
 #include "ifs/process.h"
 #include "ifs/Worker.h"
-#include "LruCache.h"
 #include <map>
 #include <vector>
 
@@ -141,7 +140,6 @@ public:
 
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;
-    obj_ptr<LruCache> m_cache;
 };
 
 } /* namespace fibjs */

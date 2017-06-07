@@ -9,6 +9,7 @@
 #include "Fiber.h"
 #include "SandBox.h"
 #include "console.h"
+#include "LruCache.h"
 #include "ifs/global.h"
 #include "ifs/process.h"
 
@@ -129,6 +130,8 @@ Isolate::Isolate(exlib::string fname)
 
     m_currentFibers++;
     m_idleFibers++;
+
+    m_script_cache = new LruCache(0, 3000);
 
     exlib::Service::Create(init_proc, this, stack_size * 1024, "JSFiber");
 }
