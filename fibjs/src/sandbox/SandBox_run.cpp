@@ -25,12 +25,6 @@ namespace fibjs {
 
 exlib::string s_root;
 
-void init_sandbox()
-{
-    if (s_root.empty())
-        process_base::cwd(s_root);
-}
-
 SandBox::SandBox()
 {
     obj_ptr<ExtLoader> loader;
@@ -166,6 +160,32 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 }
 
+result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
+{
+    result_t hr;
+    v8::Local<v8::Value> v;
+    Isolate* isolate = holder();
+
+    isolate->m_script_cache->get(fname, v);
+    if (!v.IsEmpty()) {
+        data = Buffer_base::getInstance(v);
+        return data ? 0 : CALL_E_FILE_NOT_FOUND;
+    }
+
+    hr = fs_base::cc_readFile(fname, data);
+    if (hr == CALL_RETURN_NULL) {
+        data = new Buffer();
+        hr = 0;
+    }
+
+    if (data)
+        isolate->m_script_cache->set(fname, data->wrap());
+    else
+        isolate->m_script_cache->set(fname, v8::Null(holder()->m_isolate));
+
+    return hr;
+}
+
 SandBox::Context::Context(SandBox* sb, exlib::string id)
     : m_sb(sb)
 {
@@ -231,32 +251,6 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
 
     retVal = v;
     return 0;
-}
-
-result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
-{
-    result_t hr;
-    v8::Local<v8::Value> v;
-    Isolate* isolate = holder();
-
-    isolate->m_script_cache->get(fname, v);
-    if (!v.IsEmpty()) {
-        data = Buffer_base::getInstance(v);
-        return data ? 0 : CALL_E_FILE_NOT_FOUND;
-    }
-
-    hr = fs_base::cc_readFile(fname, data);
-    if (hr == CALL_RETURN_NULL) {
-        data = new Buffer();
-        hr = 0;
-    }
-
-    if (data)
-        isolate->m_script_cache->set(fname, data->wrap());
-    else
-        isolate->m_script_cache->set(fname, v8::Null(holder()->m_isolate));
-
-    return hr;
 }
 
 result_t SandBox::require(exlib::string base, exlib::string id,
@@ -461,72 +455,75 @@ result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Va
 result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
 {
     result_t hr;
+    bool isAbs;
 
-    exlib::string sfname = s_root;
-
-    pathAdd(sfname, fname);
-    path_base::normalize(sfname, sfname);
+    path_base::isAbsolute(fname, isAbs);
+    if (!isAbs)
+        return CHECK_ERROR(Runtime::setError("SandBox: Invalid file name."));
+    path_base::normalize(fname, fname);
 
     obj_ptr<ExtLoader> l;
-    hr = get_loader(sfname, l);
+    hr = get_loader(fname, l);
     if (hr < 0)
         return hr;
 
     obj_ptr<Buffer_base> bin;
 
-    hr = loadFile(sfname, bin);
+    hr = loadFile(fname, bin);
     if (hr < 0)
         return hr;
 
-    Context context(this, sfname);
-    return l->run_main(&context, bin, sfname, argv);
+    Context context(this, fname);
+    return l->run_main(&context, bin, fname, argv);
 }
 
 result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
 {
     result_t hr;
+    bool isAbs;
 
-    exlib::string sfname = s_root;
-
-    pathAdd(sfname, fname);
-    path_base::normalize(sfname, sfname);
+    path_base::isAbsolute(fname, isAbs);
+    if (!isAbs)
+        return CHECK_ERROR(Runtime::setError("SandBox: Invalid file name."));
+    path_base::normalize(fname, fname);
 
     obj_ptr<ExtLoader> l;
-    hr = get_loader(sfname, l);
+    hr = get_loader(fname, l);
     if (hr < 0)
         return hr;
 
     obj_ptr<Buffer_base> bin;
 
-    hr = loadFile(sfname, bin);
+    hr = loadFile(fname, bin);
     if (hr < 0)
         return hr;
 
-    Context context(this, sfname);
-    return l->run_worker(&context, bin, sfname, master);
+    Context context(this, fname);
+    return l->run_worker(&context, bin, fname, master);
 }
 
 result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv)
 {
     result_t hr;
+    bool isAbs;
 
-    exlib::string sfname = s_root;
-
-    pathAdd(sfname, fname);
-    path_base::normalize(sfname, sfname);
+    path_base::isAbsolute(fname, isAbs);
+    if (!isAbs)
+        return CHECK_ERROR(Runtime::setError("SandBox: Invalid file name."));
+    path_base::normalize(fname, fname);
 
     obj_ptr<ExtLoader> l;
-    hr = get_loader(sfname, l);
+    hr = get_loader(fname, l);
     if (hr < 0)
         return hr;
 
     obj_ptr<Buffer_base> bin;
 
-    hr = loadFile(sfname, bin);
+    hr = loadFile(fname, bin);
     if (hr < 0)
         return hr;
 
-    Context context(this, sfname);
-    return l->run_script(&context, bin, sfname, argv);
+    Context context(this, fname);
+    return l->run_script(&context, bin, fname, argv);
 }
 }

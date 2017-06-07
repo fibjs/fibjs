@@ -11,6 +11,7 @@
 #include "include/libplatform/libplatform.h"
 #include "Stat.h"
 #include "utf8.h"
+#include "path.h"
 
 namespace fibjs {
 
@@ -26,8 +27,8 @@ void init_logger();
 void init_aio();
 void init_fs();
 void init_fiber();
-void init_sandbox();
 bool options(int32_t* argc, char* argv[]);
+extern exlib::string s_root;
 
 void init(int32_t& argc, char* argv[])
 {
@@ -50,7 +51,6 @@ void init(int32_t& argc, char* argv[])
     init_argv(argc, argv);
     init_date();
     init_rt();
-    init_sandbox();
     init_cipher();
     init_acThread();
     init_gui();
@@ -94,8 +94,12 @@ void main(int32_t argc, char* argv[])
         ;
 
     exlib::string fname;
-    if (i < argc)
-        fname = argv[i];
+    if (i < argc) {
+        if (s_root.empty())
+            process_base::cwd(s_root);
+        fname = s_root;
+        pathAdd(fname, argv[i]);
+    }
 
     Isolate* isolate = new Isolate(fname);
     syncCall(isolate, main_fiber, isolate);

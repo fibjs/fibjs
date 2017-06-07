@@ -26,7 +26,7 @@ interface SandBox : object
     SandBox(Object mods, Function require);
 
     /*! @brief 向沙箱中添加一个基础模块
-     @param id 指定要添加的模块名称
+     @param id 指定要添加的模块名称，此路径与当前运行脚本无关，必须为绝对路径或者模块名
      @param mod 指定要添加的模块对象
      */
     add(String id, Value mod);
@@ -44,7 +44,7 @@ interface SandBox : object
     Value addScript(String srcname, Buffer script);
 
     /*! @brief 从沙箱中删除指定的基础模块
-     @param id 指定要删除的模块名称
+     @param id 指定要删除的模块名称，此路径与当前运行脚本无关，必须为绝对路径或者模块名
      */
     remove(String id);
 
@@ -54,7 +54,7 @@ interface SandBox : object
     SandBox clone();
 
     /*! @brief 运行一个脚本
-     @param fname 指定要运行的脚本路径，此路径与当前运行脚本无关，永远从当前工作目录作为起始
+     @param fname 指定要运行的脚本路径，此路径与当前运行脚本无关，必须为绝对路径
      @param argv 指定要运行的参数，此参数可在脚本内使用 argv 获取
      */
     run(String fname, Array argv = []);
