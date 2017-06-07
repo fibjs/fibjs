@@ -32,6 +32,8 @@ void init_sandbox()
 
 SandBox::SandBox()
 {
+    m_cache = new LruCache(0, 3000);
+
     obj_ptr<ExtLoader> loader;
 
     loader = new JsLoader();
@@ -235,11 +237,11 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
 result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 {
     result_t hr;
-    std::map<exlib::string, obj_ptr<Buffer_base>>::iterator it;
+    v8::Local<v8::Value> v;
 
-    it = m_cache.find(fname);
-    if (it != m_cache.end()) {
-        data = it->second;
+    m_cache->get(fname, v);
+    if (!v.IsEmpty()) {
+        data = Buffer_base::getInstance(v);
         return data ? 0 : CALL_E_FILE_NOT_FOUND;
     }
 
@@ -249,7 +251,11 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
         hr = 0;
     }
 
-    m_cache.insert(std::pair<exlib::string, obj_ptr<Buffer_base>>(fname, data));
+    if (data)
+        m_cache->set(fname, data->wrap());
+    else
+        m_cache->set(fname, v8::Null(holder()->m_isolate));
+
     return hr;
 }
 
