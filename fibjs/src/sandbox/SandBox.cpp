@@ -12,6 +12,7 @@
 #include "ifs/test.h"
 #include "ifs/Buffer.h"
 #include "ifs/EventEmitter.h"
+#include "loaders/loaders.h"
 
 namespace fibjs {
 
@@ -50,6 +51,19 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods,
     return 0;
 }
 
+SandBox::SandBox()
+{
+    obj_ptr<ExtLoader> loader;
+
+    loader = new JsLoader();
+    m_loaders.push_back(loader);
+
+    loader = new JscLoader();
+    m_loaders.push_back(loader);
+
+    loader = new JsonLoader();
+    m_loaders.push_back(loader);
+}
 void SandBox::InstallModule(exlib::string fname, v8::Local<v8::Value> o)
 {
     mods()->Set(holder()->NewFromUtf8(fname), o);

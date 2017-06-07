@@ -143,5 +143,9 @@ public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;
 };
 
+#define FILE_ONLY 1
+#define NO_SEARCH 2
+#define FULL_SEARCH 3
+
 } /* namespace fibjs */
 #endif /* SANDBOX_H_ */
