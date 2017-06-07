@@ -124,6 +124,7 @@ public:
     }
 
     result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
+    result_t locateFile(exlib::string& fname, obj_ptr<Buffer_base>& data);
 
 public:
     static const char* script_args;
