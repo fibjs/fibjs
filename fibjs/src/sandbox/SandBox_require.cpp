@@ -13,6 +13,10 @@
 
 namespace fibjs {
 
+#define FILE_ONLY 1
+#define NO_SEARCH 2
+#define FULL_SEARCH 3
+
 exlib::string s_root;
 
 inline exlib::string resolvePath(exlib::string base, exlib::string id)
@@ -72,21 +76,37 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     mod->Set(strRequire, context.m_fnRequest);
 
     InstallModule(id, exports);
+    InstallModule(srcname, exports);
 
     hr = l->run_module(&context, script, srcname, mod, exports);
     if (hr < 0) {
         // delete from modules
         remove(id);
+        remove(srcname);
         return hr;
     }
 
     // use module.exports as result value
     v8::Local<v8::Value> v = mod->Get(strExports);
-    if (!exports->Equals(v))
+    if (!exports->Equals(v)) {
         InstallModule(id, v);
+        InstallModule(srcname, v);
+    }
 
     retVal = v;
     return 0;
+}
+
+result_t SandBox::requireFile(exlib::string id, v8::Local<v8::Value>& retVal)
+{
+    result_t hr;
+    obj_ptr<Buffer_base> bin;
+
+    hr = locateFile(id, bin, &retVal);
+    if (hr < 0 || !IsEmpty(retVal))
+        return hr;
+
+    return addScript(id, bin, retVal);
 }
 
 result_t SandBox::require(exlib::string base, exlib::string id,
@@ -95,7 +115,11 @@ result_t SandBox::require(exlib::string base, exlib::string id,
     exlib::string strId = resolvePath(base, id);
     exlib::string fname;
     Isolate* isolate = holder();
-    bool is_jsc = false;
+    v8::Local<v8::Object> _mods = mods();
+
+    retVal = _mods->Get(isolate->NewFromUtf8(strId));
+    if (!IsEmpty(retVal))
+        return 1;
 
     if (strId.length() > 5 && !qstrcmp(strId.c_str() + strId.length() - 5, ".json")) {
         fname = strId;
@@ -104,16 +128,9 @@ result_t SandBox::require(exlib::string base, exlib::string id,
         fname = strId;
         strId.resize(strId.length() - 3);
     } else if (strId.length() > 4 && !qstrcmp(strId.c_str() + strId.length() - 4, ".jsc")) {
-        is_jsc = true;
         fname = strId;
         strId.resize(strId.length() - 4);
     }
-
-    v8::Local<v8::Object> _mods = mods();
-
-    retVal = _mods->Get(isolate->NewFromUtf8(strId));
-    if (!IsEmpty(retVal))
-        return 1;
 
     exlib::string fullname;
 
@@ -281,10 +298,22 @@ result_t SandBox::require(exlib::string base, exlib::string id,
 
 result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
 {
-    exlib::string sid;
-    path_base::normalize(id, sid);
-    if (base.empty())
-        base = s_root + '/';
-    return require(base, sid, retVal, FULL_SEARCH);
+    const char* c_str = id.c_str();
+
+    if (c_str[0] == '.' && (isPathSlash(c_str[1]) || (c_str[1] == '.' && isPathSlash(c_str[2])))) {
+        exlib::string strPath;
+
+        path_base::dirname(base, strPath);
+        pathAdd(strPath, id);
+        path_base::normalize(strPath, id);
+    } else {
+        bool isAbs;
+
+        path_base::isAbsolute(id, isAbs);
+        if (!isAbs)
+            return require(base, id, retVal, FULL_SEARCH);
+    }
+
+    return requireFile(id, retVal);
 }
 }

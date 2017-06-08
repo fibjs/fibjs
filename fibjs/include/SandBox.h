@@ -100,7 +100,9 @@ public:
 
     void InstallModule(exlib::string fname, v8::Local<v8::Value> o);
 
+    result_t requireFile(exlib::string id, v8::Local<v8::Value>& retVal);
     result_t require(exlib::string base, exlib::string id, v8::Local<v8::Value>& retVal, int32_t mode);
+
     result_t repl(v8::Local<v8::Array> cmds, Stream_base* out = NULL);
 
     result_t run_main(exlib::string fname, v8::Local<v8::Array> argv);
@@ -124,7 +126,8 @@ public:
     }
 
     result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
-    result_t locateFile(exlib::string& fname, obj_ptr<Buffer_base>& data);
+    result_t locateFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
+        v8::Local<v8::Value>* retVal);
 
 public:
     static const char* script_args;
@@ -142,10 +145,6 @@ public:
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;
 };
-
-#define FILE_ONLY 1
-#define NO_SEARCH 2
-#define FULL_SEARCH 3
 
 } /* namespace fibjs */
 #endif /* SANDBOX_H_ */

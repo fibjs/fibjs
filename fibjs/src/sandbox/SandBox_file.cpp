@@ -41,11 +41,16 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     return hr;
 }
 
-result_t SandBox::locateFile(exlib::string& fname, obj_ptr<Buffer_base>& data)
+result_t SandBox::locateFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
+    v8::Local<v8::Value>* retVal)
 {
     Isolate* isolate = holder();
+    v8::Local<v8::Object> _mods;
     size_t cnt = m_loaders.size();
     result_t hr;
+
+    if (retVal)
+        _mods = mods();
 
     for (int32_t step = 0; step < 2; step++) {
         exlib::string fname1;
@@ -62,6 +67,12 @@ result_t SandBox::locateFile(exlib::string& fname, obj_ptr<Buffer_base>& data)
         }
 
         if (bFound) {
+            if (retVal) {
+                *retVal = _mods->Get(isolate->NewFromUtf8(fname));
+                if (!IsEmpty(*retVal))
+                    return 0;
+            }
+
             hr = loadFile(fname, data);
             if (hr >= 0)
                 return 0;
@@ -70,6 +81,12 @@ result_t SandBox::locateFile(exlib::string& fname, obj_ptr<Buffer_base>& data)
         for (size_t i = 0; i < cnt; i++) {
             obj_ptr<ExtLoader>& l = m_loaders[i];
             fname1 = fname + l->m_ext;
+
+            if (retVal) {
+                *retVal = _mods->Get(isolate->NewFromUtf8(fname1));
+                if (!IsEmpty(*retVal))
+                    return 0;
+            }
 
             hr = loadFile(fname1, data);
             if (hr >= 0) {
