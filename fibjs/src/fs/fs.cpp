@@ -164,10 +164,17 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
         if (!bFound)
             return CALL_E_FILE_NOT_FOUND;
 
+        date_t _d;
+
         zi->get_data(data);
         if (data)
             data->toString(strData);
-        retVal = new MemoryStream::CloneStream(strData, _node->m_date);
+
+        zi->get_date(_d);
+        if (_d.empty())
+            _d = _node->m_date;
+
+        retVal = new MemoryStream::CloneStream(strData, _d);
     } else {
         obj_ptr<File> pFile = new File();
         result_t hr;
