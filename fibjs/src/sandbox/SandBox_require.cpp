@@ -13,33 +13,7 @@
 
 namespace fibjs {
 
-#define FILE_ONLY 1
-#define NO_SEARCH 2
-#define FULL_SEARCH 3
-
 exlib::string s_root;
-
-inline exlib::string resolvePath(exlib::string base, exlib::string id)
-{
-    exlib::string fname;
-
-    if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2])))) {
-        if (!base.empty()) {
-            exlib::string strPath;
-
-            path_base::dirname(base, strPath);
-            if (strPath.length())
-                strPath += PATH_SLASH;
-            strPath += id;
-            path_base::normalize(strPath, fname);
-
-            return fname;
-        }
-    }
-
-    path_base::normalize(id, fname);
-    return fname;
-}
 
 result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     v8::Local<v8::Value>& retVal)
@@ -50,7 +24,7 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     exlib::string id(srcname);
 
     obj_ptr<ExtLoader> l;
-    hr = get_loader(id, l);
+    hr = get_loader(srcname, l);
     if (hr < 0)
         return hr;
 
@@ -109,43 +83,28 @@ result_t SandBox::requireFile(exlib::string id, v8::Local<v8::Value>& retVal)
     return addScript(id, bin, retVal);
 }
 
-result_t SandBox::require(exlib::string base, exlib::string id,
-    v8::Local<v8::Value>& retVal, int32_t mode)
+result_t SandBox::requireModule(exlib::string base, exlib::string id, v8::Local<v8::Value>& retVal)
 {
-    exlib::string strId = resolvePath(base, id);
-    exlib::string fname;
     Isolate* isolate = holder();
     v8::Local<v8::Object> _mods = mods();
 
-    retVal = _mods->Get(isolate->NewFromUtf8(strId));
+    retVal = _mods->Get(isolate->NewFromUtf8(id));
     if (!IsEmpty(retVal))
         return 1;
 
-    if (strId.length() > 5 && !qstrcmp(strId.c_str() + strId.length() - 5, ".json")) {
-        fname = strId;
-        strId.resize(strId.length() - 5);
-    } else if (strId.length() > 3 && !qstrcmp(strId.c_str() + strId.length() - 3, ".js")) {
-        fname = strId;
-        strId.resize(strId.length() - 3);
-    } else if (strId.length() > 4 && !qstrcmp(strId.c_str() + strId.length() - 4, ".jsc")) {
-        fname = strId;
-        strId.resize(strId.length() - 4);
-    }
+    result_t hr;
+    exlib::string fname;
 
-    exlib::string fullname;
+    fname = s_root;
+    pathAdd(fname, id);
 
-    fullname = s_root;
-    pathAdd(fullname, strId);
-
-    if (fullname != strId) {
-        retVal = _mods->Get(isolate->NewFromUtf8(fullname));
-        if (!IsEmpty(retVal))
-            return 1;
-    }
+    hr = requireFile(fname, retVal);
+    if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
+        return hr;
 
     v8::Local<v8::Value> func = GetPrivate("require");
     if (!func->IsUndefined()) {
-        v8::Local<v8::Value> arg = isolate->NewFromUtf8(strId);
+        v8::Local<v8::Value> arg = isolate->NewFromUtf8(id);
         retVal = v8::Local<v8::Function>::Cast(func)->Call(wrap(), 1, &arg);
         if (retVal.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -153,113 +112,11 @@ result_t SandBox::require(exlib::string base, exlib::string id,
         if (!IsEmpty(retVal)) {
             if (!retVal->IsProxy() && retVal->IsObject() && !object_base::getInstance(retVal))
                 util_base::clone(retVal, retVal);
-            InstallModule(strId, retVal);
+            InstallModule(id, retVal);
 
             return 0;
         }
     }
-
-    result_t hr;
-    obj_ptr<Buffer_base> bin;
-    exlib::string buf;
-    exlib::string fname1;
-
-    if (!fname.empty()) {
-        fname1 = s_root;
-        pathAdd(fname1, fname);
-        fullname = fname1;
-
-        hr = loadFile(fname1, bin);
-        if (hr >= 0)
-            return addScript(fname1, bin, retVal);
-    } else {
-        fname = fullname + ".js";
-        hr = loadFile(fname, bin);
-        if (hr >= 0)
-            return addScript(fname, bin, retVal);
-
-        fname = fullname + ".jsc";
-        hr = loadFile(fname, bin);
-        if (hr >= 0)
-            return addScript(fname, bin, retVal);
-
-        fname = fullname + ".json";
-        hr = loadFile(fname, bin);
-        if (hr >= 0)
-            return addScript(fname, bin, retVal);
-
-        fname = strId;
-    }
-
-    if (mode <= FILE_ONLY)
-        return hr;
-
-    fname1 = fullname + PATH_SLASH + "package.json";
-    hr = loadFile(fname1, bin);
-    if (hr < 0) {
-        fname1 = fullname + ".zip$" + PATH_SLASH + "package.json";
-        hr = loadFile(fname1, bin);
-        if (hr >= 0)
-            fullname = fullname + ".zip$";
-    }
-
-    if (hr >= 0) {
-        v8::Local<v8::Value> v;
-
-        bin->toString(buf);
-        hr = json_base::decode(buf, v);
-        if (hr < 0)
-            return hr;
-
-        if (v.IsEmpty() || !v->IsObject())
-            return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
-
-        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-        v8::Local<v8::Value> main = o->Get(isolate->NewFromUtf8("main", 4));
-        if (!IsEmpty(main)) {
-            if (!main->IsString() && !main->IsStringObject())
-                return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
-            fname1 = fullname + PATH_SLASH;
-            fname1 += *v8::String::Utf8Value(main);
-
-            if (fname1.length() > 3 && !qstrcmp(fname1.c_str() + fname1.length() - 3, ".js"))
-                fname1.resize(fname1.length() - 3);
-        } else
-            fname1 = fullname + PATH_SLASH + "index";
-
-        hr = require(base, fname1, retVal, NO_SEARCH);
-        if (hr < 0)
-            return hr;
-
-        InstallModule(strId, retVal);
-        return 0;
-    }
-
-    fname1 = fullname + PATH_SLASH + "index";
-    hr = require(base, fname1, retVal, FILE_ONLY);
-    if (hr >= 0) {
-        InstallModule(strId, retVal);
-        return 0;
-    }
-
-    if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
-        return hr;
-
-    fname1 = fullname + ".zip$" + PATH_SLASH + "index";
-    hr = require(base, fname1, retVal, FILE_ONLY);
-    if (hr >= 0) {
-        InstallModule(strId, retVal);
-        return 0;
-    }
-
-    if (mode <= NO_SEARCH)
-        return hr;
-
-    if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
-        return hr;
-
-    if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2]))))
-        return hr;
 
     if (!base.empty()) {
         exlib::string str, str1;
@@ -279,21 +136,15 @@ result_t SandBox::require(exlib::string base, exlib::string id,
                 str1 += PATH_SLASH;
             str1 += "node_modules";
             str1 += PATH_SLASH;
-            str1 += fname;
-            path_base::normalize(str1, fname1);
+            str1 += id;
 
-            hr = require(base, fname1, retVal, NO_SEARCH);
-            if (hr >= 0) {
-                InstallModule(strId, retVal);
-                return 0;
-            }
-
+            hr = requireFile(str1, retVal);
             if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
                 return hr;
         }
     }
 
-    return hr;
+    return CALL_E_FILE_NOT_FOUND;
 }
 
 result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
@@ -311,7 +162,7 @@ result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Va
 
         path_base::isAbsolute(id, isAbs);
         if (!isAbs)
-            return require(base, id, retVal, FULL_SEARCH);
+            return requireModule(base, id, retVal);
     }
 
     return requireFile(id, retVal);

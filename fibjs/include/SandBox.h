@@ -101,7 +101,7 @@ public:
     void InstallModule(exlib::string fname, v8::Local<v8::Value> o);
 
     result_t requireFile(exlib::string id, v8::Local<v8::Value>& retVal);
-    result_t require(exlib::string base, exlib::string id, v8::Local<v8::Value>& retVal, int32_t mode);
+    result_t requireModule(exlib::string base, exlib::string id, v8::Local<v8::Value>& retVal);
 
     result_t repl(v8::Local<v8::Array> cmds, Stream_base* out = NULL);
 

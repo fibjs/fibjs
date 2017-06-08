@@ -125,6 +125,7 @@ result_t SandBox::locateFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
                     if (!main->IsString() && !main->IsStringObject())
                         return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
                     pathAdd(fname, *v8::String::Utf8Value(main));
+                    path_base::normalize(fname, fname);
                 } else
                     fname = fname + PATH_SLASH + "index";
             } else
