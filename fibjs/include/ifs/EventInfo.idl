@@ -1,16 +1,16 @@
 /*! @brief 事件信息对象，用于在事件中传递信息 */
 interface EventInfo : object
 {
-    /* 查询事件错误编码 */
+    /*! 查询事件错误编码 */
     readonly Integer code;
 
-    /* 查询事件错误信息 */
+    /*! 查询事件错误信息 */
     readonly String reason;
 
-    /* 查询事件类型 */
+    /*! 查询事件类型 */
     readonly String type;
 
-    /* 查询触发事件的对象 */
+    /*! 查询触发事件的对象 */
     readonly Object target;
 
     /*! @brief 根据事件类型返回的详细信息 */

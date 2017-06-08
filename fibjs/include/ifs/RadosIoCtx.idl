@@ -1,0 +1,28 @@
+/*! @brief rados 集群读写io上下文对象，用于打开和关闭kv存储
+
+ rados集群读写io上下文对象，可使用 RadosCluster 对象创建
+ @code
+ var rados = require('rados');
+ var cluster = new rados.Rados('clusterName', 'userName', '/path/to/myceph.conf');
+ cluster.connect();
+ var io = cluster.createIoCtx('poolName');
+ var s = io.open('key');
+ s.write('hello key');
+ console.log(s.readAll().toString());
+ @endcode
+ */
+interface RadosIoCtx
+{
+    /*! @brief 打开一个kv对象 
+     @param key 被打开对象的key
+    */
+    RadosStream open(String key);
+
+    /*! @brief 删除一个kv对象 
+     @param key 被删除的对象的key
+    */
+    remove(String key) async;
+    
+    /*! @brief 销毁一个io上下文 */
+    destroy() async;
+};
