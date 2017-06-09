@@ -160,6 +160,7 @@ result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Va
     } else {
         bool isAbs;
 
+        path_base::normalize(id, id);
         path_base::isAbsolute(id, isAbs);
         if (!isAbs)
             return requireModule(base, id, retVal);
