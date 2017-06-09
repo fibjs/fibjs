@@ -14,8 +14,6 @@ public:
     {
     }
 
-    ~RadosStat();
-
 public:
     // RadosStat_base
     virtual result_t get_size(int64_t& retVal);

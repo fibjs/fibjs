@@ -217,16 +217,6 @@ result_t RadosStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEve
 			if (hr < 0)
 				return hr;
 
-			if (m_bytes < 0)
-			{
-				obj_ptr<RadosStat_base> stat;
-				hr = m_pThis->cc_radosStat(stat);
-				if (hr < 0)
-					return hr;
-
-				stat->get_size(m_bytes);
-			}
-
 			m_buf.resize(m_bytes);
 			char* p = &m_buf[0];
 
@@ -268,7 +258,21 @@ result_t RadosStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEve
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
-	return (new asyncRead(bytes, retVal, this, ac, m_lockRead))->call();
+	int64_t lbytes = bytes;
+
+	if (lbytes < 0)
+	{
+		result_t hr;
+
+		obj_ptr<RadosStat_base> stat;
+		hr = cc_radosStat(stat);
+		if (hr < 0)
+			return hr;
+
+		stat->get_size(lbytes);
+	}
+
+	return (new asyncRead(lbytes, retVal, this, ac, m_lockRead))->call();
 }
 
 result_t RadosStream::write(Buffer_base* data, AsyncEvent* ac)
@@ -340,57 +344,33 @@ result_t RadosStream::close(AsyncEvent* ac)
 
 result_t RadosStream::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac)
 {
-	class  asyncCopyTo: public asyncRadosCallback
-	{
-	public:
-		asyncCopyTo(Stream_base* to, int64_t bytes, int64_t& retVal, RadosStream *pThis,
-		            AsyncEvent* ac, exlib::Locker& locker)
-			: asyncRadosCallback(pThis, ac, locker)
-			, m_to(to)
-			, m_bytes(bytes)
-			, m_retVal(retVal)
-		{
-		}
-		virtual result_t process()
-		{
-			obj_ptr<Buffer_base> buf;
-			result_t hr;
-			int64_t offset;
-
-			if (m_bytes < 0)
-				hr = m_pThis->cc_read(-1, buf);
-			else
-				hr = m_pThis->cc_read(m_bytes, buf);
-			if (hr < 0)
-				return hr;
-
-			hr = m_to->cc_write(buf);
-			if (hr < 0)
-				return hr;
-
-			int32_t len;
-			buf->get_length(len);
-			m_retVal = len;
-
-			return 0;
-		}
-		virtual void proc()
-		{
-			ready(0);
-		}
-	public:
-		Stream_base *m_to;
-		int64_t m_bytes;
-		int64_t m_retVal;
-	};
-
 	if (!m_ioctx)
 		return CHECK_ERROR(CALL_E_INVALID_CALL);
 
 	if (!ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
-	return (new asyncCopyTo(stm, bytes, retVal, this, ac, m_lockRead))->call();
+	obj_ptr<Buffer_base> buf;
+	result_t hr;
+	int64_t offset;
+
+	if (bytes < 0)
+		hr = cc_read(-1, buf);
+	else
+		hr = cc_read(bytes, buf);
+	if (hr < 0)
+		return hr;
+
+	hr = stm->cc_write(buf);
+	if (hr < 0)
+		return hr;
+
+	int32_t len;
+	buf->get_length(len);
+	retVal = len;
+
+	return 0;
+
 }
 
 result_t RadosStream::seek(int64_t offset, int32_t whence)
@@ -682,6 +662,12 @@ result_t RadosStream::flush(AsyncEvent* ac)
 
 result_t RadosStream::open(rados_ioctx_t io, exlib::string key)
 {
+	result_t hr;
+
+	hr = load_librados();
+	if (hr < 0)
+		return hr;
+
 	m_off = 0;
 	m_ioctx = io;
 	m_key = key;
