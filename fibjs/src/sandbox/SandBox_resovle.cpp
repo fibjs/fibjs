@@ -17,6 +17,7 @@
 namespace fibjs {
 
 exlib::string s_root;
+extern bool g_root;
 
 result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 {
@@ -168,13 +169,15 @@ result_t SandBox::resovleModule(exlib::string base, exlib::string& id, obj_ptr<B
     result_t hr;
     exlib::string fname;
 
-    fname = s_root;
-    pathAdd(fname, id);
+    if (g_root) {
+        fname = s_root;
+        pathAdd(fname, id);
 
-    hr = resovleFile(fname, data, &retVal);
-    if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND) {
-        id = fname;
-        return hr;
+        hr = resovleFile(fname, data, &retVal);
+        if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND) {
+            id = fname;
+            return hr;
+        }
     }
 
     if (!base.empty()) {
