@@ -11,6 +11,48 @@
 
 namespace fibjs {
 
+void _resovle(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t argc = args.Length();
+    if (argc > 1) {
+        ThrowResult(CALL_E_BADPARAMCOUNT);
+        return;
+    }
+    if (argc < 1) {
+        ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+        return;
+    }
+
+    v8::Isolate* isolate = args.GetIsolate();
+    V8_SCOPE(isolate);
+
+    exlib::string id;
+    result_t hr = GetArgumentValue(args[0], id);
+    if (hr < 0) {
+        ThrowResult(hr);
+        return;
+    }
+
+    v8::Local<v8::Object> _mod = args.Data()->ToObject();
+    v8::Local<v8::Value> path = _mod->Get(v8::String::NewFromUtf8(isolate, "_id"));
+    obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
+        _mod->Get(v8::String::NewFromUtf8(isolate, "_sbox")));
+
+    exlib::string v;
+    hr = sbox->resovle(id, *v8::String::Utf8Value(path), v);
+    if (hr < 0) {
+        if (hr == CALL_E_JAVASCRIPT) {
+            args.GetReturnValue().Set(v8::Local<v8::Value>());
+            return;
+        }
+        ThrowResult(hr);
+        return;
+    }
+
+    args.GetReturnValue().Set(V8_RETURN(v8::String::NewFromUtf8(isolate, v.c_str(),
+        v8::String::kNormalString, (int32_t)v.length())));
+}
+
 void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t argc = args.Length();
@@ -122,6 +164,8 @@ SandBox::Context::Context(SandBox* sb, exlib::string id)
     _mod->Set(isolate->NewFromUtf8("_id"), m_id);
 
     m_fnRequest = isolate->NewFunction("require", _require, _mod);
+    m_fnRequest->Set(isolate->NewFromUtf8("resovle"), isolate->NewFunction("resovle", _resovle, _mod));
+
     m_fnRun = isolate->NewFunction("run", _run, _mod);
 }
 }

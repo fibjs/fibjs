@@ -29,6 +29,7 @@ public:
     virtual result_t remove(exlib::string id);
     virtual result_t clone(obj_ptr<SandBox_base>& retVal);
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv);
+    virtual result_t resovle(exlib::string id, exlib::string base, exlib::string& retVal);
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
 
 public:
@@ -100,8 +101,14 @@ public:
 
     void InstallModule(exlib::string fname, v8::Local<v8::Value> o);
 
-    result_t requireFile(exlib::string id, v8::Local<v8::Value>& retVal);
-    result_t requireModule(exlib::string base, exlib::string id, v8::Local<v8::Value>& retVal);
+    result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
+
+    result_t resovleFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
+        v8::Local<v8::Value>* retVal);
+    result_t resovleModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+        v8::Local<v8::Value>& retVal);
+    result_t resovle(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+        v8::Local<v8::Value>& retVal);
 
     result_t repl(v8::Local<v8::Array> cmds, Stream_base* out = NULL);
 
@@ -124,10 +131,6 @@ public:
 
         return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
     }
-
-    result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
-    result_t locateFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>* retVal);
 
 public:
     static const char* script_args;

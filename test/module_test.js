@@ -2,12 +2,22 @@ var test = require("test");
 test.setup();
 
 var fs = require('fs');
-var coroutine = require('coroutine');
+var path = require('path');
 var a, b;
 
 describe("module", () => {
     it("native module toJSON", () => {
         JSON.stringify(require("os"));
+    });
+
+    it("resovle", () => {
+        assert.equal(require.resovle('./module/a'),
+            path.join(__dirname, './module/a.js'));
+        assert.equal(require.resovle('./module/test.zip$/folder/b'),
+            path.join(__dirname, './module/test.zip$/folder/b.js'));
+        assert.equal(require.resovle('node_mod1'),
+            path.join(__dirname, './node_modules/node_mod1.js'));
+
     });
 
     it("absolute identifiers", () => {

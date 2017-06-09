@@ -59,10 +59,17 @@ interface SandBox : object
      */
     run(String fname, Array argv = []);
 
-    /*! @brief 加载一个模块并返回模块对象，更多信息参阅 @ref module
+    /*! @brief 查询一个模块并返回模块完整文件名
      @param id 指定要加载的模块名称
-     @param base 指定查找路径，不设定则从当前工作路径开始
+     @param base 指定查找路径
+     @return 返回加载的模块完整文件名
+     */
+    String resovle(String id, String base);
+
+    /*! @brief 加载一个模块并返回模块对象
+     @param id 指定要加载的模块名称
+     @param base 指定查找路径
      @return 返回加载的模块对象
      */
-    Value require(String id, String base = "");
+    Value require(String id, String base);
 };

@@ -41,7 +41,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     return hr;
 }
 
-result_t SandBox::locateFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
+result_t SandBox::resovleFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Value>* retVal)
 {
     Isolate* isolate = holder();
