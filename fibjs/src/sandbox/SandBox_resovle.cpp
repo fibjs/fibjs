@@ -178,18 +178,16 @@ result_t SandBox::resovleModule(exlib::string base, exlib::string& id, obj_ptr<B
     }
 
     if (!base.empty()) {
-        exlib::string str;
 
-        str = base;
         while (true) {
-            if (isPathSlash(str[str.length() - 1]))
-                fname = str.substr(0, str.length() - 1);
+            if (isPathSlash(base[base.length() - 1]))
+                fname = base.substr(0, base.length() - 1);
             else
-                path_base::dirname(str, fname);
-            if (str.length() == fname.length())
+                path_base::dirname(base, fname);
+            if (base.length() == fname.length())
                 break;
 
-            str = fname;
+            base = fname;
 
             if (fname.length())
                 fname += PATH_SLASH;
