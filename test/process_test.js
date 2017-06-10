@@ -40,6 +40,12 @@ describe('process', () => {
         assert.equal(process.run(cmd, [__dirname + '/process/exec.js']), 100);
     });
 
+    it("run throw error", () => {
+        assert.throws(() => {
+            process.run("not_exists_exec_file");
+        });
+    });
+
     it("multi run", () => {
         coroutine.parallel([1, 2, 3, 4, 5, 6], (n) => {
             assert.equal(process.run(cmd, [__dirname + '/process/exec6.js', n]), n);

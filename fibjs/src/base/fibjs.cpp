@@ -6,12 +6,14 @@
 #include "object.h"
 #include "ifs/os.h"
 #include "ifs/global.h"
+#include "ifs/zip.h"
 #include "SandBox.h"
 #include "Fiber.h"
 #include "include/libplatform/libplatform.h"
 #include "Stat.h"
 #include "utf8.h"
 #include "path.h"
+#include "unzip/include/unzip.h"
 
 namespace fibjs {
 
@@ -86,9 +88,29 @@ static result_t main_fiber(Isolate* isolate)
 
 void main(int32_t argc, char* argv[])
 {
-    init(argc, argv);
-
+    exlib::string exePath;
+    std::vector<char*> ptrArg;
     int32_t i;
+
+    process_base::get_execPath(exePath);
+
+    unzFile unz;
+    if ((unz = unzOpen64(exePath.c_str())) != NULL) {
+        unzClose(unz);
+
+        exePath.append(1, '$');
+        ptrArg.resize(argc + 1);
+
+        ptrArg[0] = argv[0];
+        ptrArg[1] = exePath.c_buffer();
+        for (i = 1; i < argc; i++)
+            ptrArg[i + 1] = argv[i];
+
+        argv = &ptrArg[0];
+        argc++;
+    }
+
+    init(argc, argv);
 
     for (i = 1; (i < argc) && (argv[i][0] == '-'); i++)
         ;
