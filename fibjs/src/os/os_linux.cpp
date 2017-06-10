@@ -15,6 +15,7 @@
 #include <sys/sysinfo.h>
 #include <sys/param.h>
 #include <string.h>
+#include "path.h"
 
 #ifndef CLOCK_BOOTTIME
 #define CLOCK_BOOTTIME 7
@@ -208,8 +209,8 @@ result_t os_base::get_execPath(exlib::string& retVal)
 
     if (readlink("/proc/self/exe", exeName, linksize) == -1)
         return CHECK_ERROR(LastError());
+    path_base::normalize(exeName, retVal);
 
-    retVal = exeName;
     return 0;
 }
 
