@@ -158,6 +158,31 @@ result_t hex_base::encode(Buffer_base* data, exlib::string& retVal)
     return hexEncode(strData, retVal);
 }
 
+result_t hex_base::encode(Buffer_base* data, exlib::string split, exlib::string& retVal)
+{
+    if (split.length() != 1) {
+        return CHECK_ERROR(Runtime::setError("encoding: invalid split"));
+    }
+    exlib::string strData;
+    data->toString(strData);
+    static char HexChar[] = "0123456789abcdef";
+    int32_t i, pos;
+
+    i = (int32_t)strData.length() * 3;
+    retVal.resize(i);
+
+    pos = 0;
+
+    for (i = 0; i < (int32_t)strData.length(); i++) {
+        retVal[pos * 3] = HexChar[(unsigned char)strData[i] >> 4];
+        retVal[pos * 3 + 1] = HexChar[(unsigned char)strData[i] & 0xf];
+        retVal[pos * 3 + 2] = split[0];
+        pos++;
+    }
+
+    return 0;
+}
+
 result_t hex_base::decode(exlib::string data,
     obj_ptr<Buffer_base>& retVal)
 {

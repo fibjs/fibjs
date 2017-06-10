@@ -468,6 +468,12 @@ interface Buffer : object
      */
     String hex();
 
+    /*! @brief 使用 16 进制编码缓存对象内容
+     @param split 分割字符
+     @return 返回编码字符串
+     */
+    String hex(String split = " ");
+
     /*! @brief 使用 base64 编码缓存对象内容
      @return 返回编码字符串
      */
