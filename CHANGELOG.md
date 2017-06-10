@@ -4,7 +4,7 @@
   * wasm: Add wasm extension demo.Now you can use WebAssembly to write extention of fibjs!
   * util: format support TypedArray.
   * module:
-    - support auto exec selfzip file. Now you can zip your application to a executeable file and deliever it esaly!
+    - support auto exec selfzip file. Now you can zip your application to a executable file and distribute it easily!
     - add --noroot options to disable application root directory. Application root directory will be remove in 0.5.0, so please pay attention to this.
     - add require.resovle
     - implement .ext loader.
