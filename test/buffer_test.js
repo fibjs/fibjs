@@ -101,7 +101,7 @@ describe('Buffer', () => {
         buf1 = new Buffer('');
         bufArray = [buf1];
         assert.doesNotThrow(() => {
-            bufRes = Buffer.concat([() => {}, {}, undefined, '']);
+            bufRes = Buffer.concat([() => { }, {}, undefined, '']);
         });
     });
 
@@ -483,6 +483,8 @@ describe('Buffer', () => {
         var buf = new Buffer(4);
         buf.writeFloatLE(1, 0);
         assert.equal(buf.hex(), "0000803f");
+        assert.equal(buf.hex(' '), "00 00 80 3f");
+        assert.equal(buf.hex('#'), "00#00#80#3f");
 
         var buf = new Buffer(8);
         buf.writeDoubleLE(0.3333333333333333, 0);

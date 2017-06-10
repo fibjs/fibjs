@@ -24,6 +24,7 @@ class hex_base : public object_base {
 public:
     // hex_base
     static result_t encode(Buffer_base* data, exlib::string& retVal);
+    static result_t encode(Buffer_base* data, exlib::string split, exlib::string& retVal);
     static result_t decode(exlib::string data, obj_ptr<Buffer_base>& retVal);
 
 public:
@@ -74,6 +75,13 @@ inline void hex_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Buffer_base>, 0);
 
     hr = encode(v0, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(exlib::string, 1, " ");
+
+    hr = encode(v0, v1, vr);
 
     METHOD_RETURN();
 }

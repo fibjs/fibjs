@@ -94,6 +94,7 @@ public:
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t hex(exlib::string& retVal) = 0;
+    virtual result_t hex(exlib::string split, exlib::string& retVal) = 0;
     virtual result_t base64(exlib::string& retVal) = 0;
     virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal) = 0;
@@ -1244,6 +1245,12 @@ inline void Buffer_base::s_hex(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(0, 0);
 
     hr = pInst->hex(vr);
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, " ");
+
+    hr = pInst->hex(v0, vr);
 
     METHOD_RETURN();
 }
