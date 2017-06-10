@@ -15,9 +15,9 @@ function unlink(pathname) {
 
 describe("profiler", () => {
     after(() => {
-        unlink("test.heapsnapshot" + vmid);
-        unlink("test1.heapsnapshot" + vmid);
-        unlink("test2.heapsnapshot" + vmid);
+        unlink(__dirname + "/test.heapsnapshot" + vmid);
+        unlink(__dirname + "/test1.heapsnapshot" + vmid);
+        unlink(__dirname + "/test2.heapsnapshot" + vmid);
     });
 
     it("take snapshot & dispose", () => {
@@ -43,20 +43,20 @@ describe("profiler", () => {
     });
 
     it("serialize", () => {
-        profiler.saveSnapshot("test.heapsnapshot" + vmid);
+        profiler.saveSnapshot(__dirname + "/test.heapsnapshot" + vmid);
 
-        var ss = profiler.loadSnapshot("test.heapsnapshot" + vmid);
-        ss.save("test1.heapsnapshot" + vmid);
+        var ss = profiler.loadSnapshot(__dirname + "/test.heapsnapshot" + vmid);
+        ss.save(__dirname + "/test1.heapsnapshot" + vmid);
 
-        var ss = profiler.loadSnapshot("test1.heapsnapshot" + vmid);
-        ss.save("test2.heapsnapshot" + vmid);
+        var ss = profiler.loadSnapshot(__dirname + "/test1.heapsnapshot" + vmid);
+        ss.save(__dirname + "/test2.heapsnapshot" + vmid);
 
-        assert.equal(fs.readTextFile("test1.heapsnapshot" + vmid),
-            fs.readTextFile("test2.heapsnapshot" + vmid));
+        assert.equal(fs.readTextFile(__dirname + "/test1.heapsnapshot" + vmid),
+            fs.readTextFile(__dirname + "/test2.heapsnapshot" + vmid));
     });
 
     it("disable change", () => {
-        var ss = profiler.loadSnapshot("test.heapsnapshot" + vmid);
+        var ss = profiler.loadSnapshot(__dirname + "/test.heapsnapshot" + vmid);
         assert.throws(() => {
             ss.nodes[0] = 100;
         });
@@ -68,8 +68,8 @@ describe("profiler", () => {
     });
 
     it("diff", () => {
-        var ss = profiler.loadSnapshot("test.heapsnapshot" + vmid);
-        var ss1 = profiler.loadSnapshot("test.heapsnapshot" + vmid);
+        var ss = profiler.loadSnapshot(__dirname + "/test.heapsnapshot" + vmid);
+        var ss1 = profiler.loadSnapshot(__dirname + "/test.heapsnapshot" + vmid);
 
         assert.deepEqual(ss.diff(ss1).change, {
             "size_bytes": 0,
