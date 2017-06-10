@@ -58,6 +58,8 @@ if (global.full_test) {
     run("./redis_test.js");
 }
 
+run("./selfzip_test.js");
+
 run("./profiler_test.js");
 
 run("./BUG_simple_api_call.js");
