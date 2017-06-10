@@ -1267,7 +1267,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 #define _STR(s) #s
 #define STR(s) _STR(s)
 
-char s_version[] = "0.3.1";
+char s_version[] = "0.4.0";
 
 result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
 {
