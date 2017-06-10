@@ -140,15 +140,24 @@ result_t SandBox::resovleFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
     return CALL_E_FILE_NOT_FOUND;
 }
 
-result_t SandBox::resovleModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+result_t SandBox::resovleId(exlib::string& id, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Object> _mods = mods();
+    size_t cnt = m_loaders.size();
 
     retVal = _mods->Get(isolate->NewFromUtf8(id));
     if (!IsEmpty(retVal))
         return 0;
+
+    for (size_t i = 0; i < cnt; i++) {
+        obj_ptr<ExtLoader>& l = m_loaders[i];
+
+        retVal = _mods->Get(isolate->NewFromUtf8(id + l->m_ext));
+        if (!IsEmpty(retVal))
+            return 0;
+    }
 
     v8::Local<v8::Value> func = GetPrivate("require");
     if (!func->IsUndefined()) {
@@ -166,6 +175,12 @@ result_t SandBox::resovleModule(exlib::string base, exlib::string& id, obj_ptr<B
         }
     }
 
+    return CALL_E_FILE_NOT_FOUND;
+}
+
+result_t SandBox::resovleModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+    v8::Local<v8::Value>& retVal)
+{
     result_t hr;
     exlib::string fname;
 
@@ -225,8 +240,14 @@ result_t SandBox::resovle(exlib::string base, exlib::string& id, obj_ptr<Buffer_
 
         path_base::normalize(id, id);
         path_base::isAbsolute(id, isAbs);
-        if (!isAbs)
+        if (!isAbs) {
+            result_t hr;
+
+            hr = resovleId(id, data, retVal);
+            if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
+                return hr;
             return resovleModule(base, id, data, retVal);
+        }
     }
 
     return resovleFile(id, data, &retVal);

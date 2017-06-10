@@ -16,15 +16,10 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
 {
     result_t hr;
 
-    // add to modules
-    exlib::string id(srcname);
-
     obj_ptr<ExtLoader> l;
     hr = get_loader(srcname, l);
     if (hr < 0)
         return hr;
-
-    id.resize(id.length() - l->m_ext.length());
 
     Isolate* isolate = holder();
     Context context(this, srcname);
@@ -45,23 +40,19 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     mod->Set(strExports, exports);
     mod->Set(strRequire, context.m_fnRequest);
 
-    InstallModule(id, exports);
     InstallModule(srcname, exports);
 
     hr = l->run_module(&context, script, srcname, mod, exports);
     if (hr < 0) {
         // delete from modules
-        remove(id);
         remove(srcname);
         return hr;
     }
 
     // use module.exports as result value
     v8::Local<v8::Value> v = mod->Get(strExports);
-    if (!exports->Equals(v)) {
-        InstallModule(id, v);
+    if (!exports->Equals(v))
         InstallModule(srcname, v);
-    }
 
     retVal = v;
     return 0;
