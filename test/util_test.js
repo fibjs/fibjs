@@ -624,6 +624,11 @@ describe('util', () => {
             assert.equal(util.format([100, 200]), '[\n  100,\n  200\n]');
         });
 
+        it("typedarray", () => {
+            assert.equal(util.format(new Uint8Array([])), '[]');
+            assert.equal(util.format(new Uint8Array([100, 200])), '[\n  100,\n  200\n]');
+        });
+
         it("object", () => {
             assert.equal(util.format({}), '{}');
             assert.equal(util.format({

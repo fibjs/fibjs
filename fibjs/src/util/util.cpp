@@ -82,7 +82,7 @@ exlib::string json_format(v8::Local<v8::Value> obj)
 
     Isolate* isolate = Isolate::current();
     QuickArray<_item> stk;
-    QuickArray<v8::Local<v8::Object> > vals;
+    QuickArray<v8::Local<v8::Object>> vals;
     v8::Local<v8::Value> v = obj;
     int32_t padding = 0;
     const int32_t tab_size = 2;
@@ -188,6 +188,36 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                     if (len == 0)
                         strBuffer.append("[]");
                     else {
+                        if (len == 1 && v->StrictEquals(array->Get(0)))
+                            strBuffer.append("[Circular]");
+                        else {
+                            stk.resize(sz + 1);
+                            it = &stk[sz];
+
+                            it->val = v;
+
+                            it->keys = array;
+                            it->len = len;
+
+                            strBuffer.append('[');
+                            padding += tab_size;
+                        }
+                    }
+                    break;
+                }
+
+                if (v->IsTypedArray()) {
+                    v8::Local<v8::TypedArray> typedarray = v8::Local<v8::TypedArray>::Cast(v);
+                    int32_t len = typedarray->Length();
+
+                    if (len == 0)
+                        strBuffer.append("[]");
+                    else {
+                        v8::Local<v8::Array> array = v8::Array::New(isolate->m_isolate);
+
+                        for (i = 0; i < len; i++)
+                            array->Set(i, typedarray->Get(i));
+
                         if (len == 1 && v->StrictEquals(array->Get(0)))
                             strBuffer.append("[Circular]");
                         else {
@@ -739,7 +769,7 @@ result_t util_base::intersection(const v8::FunctionCallbackInfo<v8::Value>& args
         v8::Local<v8::Array> base = v8::Local<v8::Array>::Cast(args[0]);
         int32_t len = base->Length();
         int32_t left = len;
-        QuickArray<v8::Local<v8::Value> > erase;
+        QuickArray<v8::Local<v8::Value>> erase;
 
         erase.resize(len);
         for (i = 0; i < len; i++)
@@ -899,7 +929,7 @@ result_t util_base::unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Ar
     v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate);
     v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
     int32_t len = arr->Length();
-    QuickArray<v8::Local<v8::Value> > vals;
+    QuickArray<v8::Local<v8::Value>> vals;
     int32_t i, j, n = 0;
 
     vals.resize(len);
@@ -1281,14 +1311,11 @@ result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
             isolate->NewFromUtf8(STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION)));
 
         vender->Set(isolate->NewFromUtf8("gd"), isolate->NewFromUtf8(GD_VERSION_STRING));
-        vender->Set(isolate->NewFromUtf8("jpeg"), isolate->NewFromUtf8(
-                                                      STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR)));
+        vender->Set(isolate->NewFromUtf8("jpeg"), isolate->NewFromUtf8(STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR)));
         sprintf(str, "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
         vender->Set(isolate->NewFromUtf8("leveldb"), isolate->NewFromUtf8(str));
-        vender->Set(isolate->NewFromUtf8("mongo"), isolate->NewFromUtf8(
-                                                       STR(MONGO_MAJOR) "." STR(MONGO_MINOR)));
-        vender->Set(isolate->NewFromUtf8("pcre"), isolate->NewFromUtf8(
-                                                      STR(PCRE_MAJOR) "." STR(PCRE_MINOR)));
+        vender->Set(isolate->NewFromUtf8("mongo"), isolate->NewFromUtf8(STR(MONGO_MAJOR) "." STR(MONGO_MINOR)));
+        vender->Set(isolate->NewFromUtf8("pcre"), isolate->NewFromUtf8(STR(PCRE_MAJOR) "." STR(PCRE_MINOR)));
         vender->Set(isolate->NewFromUtf8("png"), isolate->NewFromUtf8(PNG_LIBPNG_VER_STRING));
         vender->Set(isolate->NewFromUtf8("mbedtls"), isolate->NewFromUtf8(MBEDTLS_VERSION_STRING));
         vender->Set(isolate->NewFromUtf8("snappy"),
@@ -1298,8 +1325,7 @@ result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
         vender->Set(isolate->NewFromUtf8("uuid"), isolate->NewFromUtf8("1.6.2"));
         vender->Set(isolate->NewFromUtf8("v8"), isolate->NewFromUtf8(v8::V8::GetVersion()));
         vender->Set(isolate->NewFromUtf8("zlib"), isolate->NewFromUtf8(ZLIB_VERSION));
-        vender->Set(isolate->NewFromUtf8("zmq"), isolate->NewFromUtf8(
-                                                     STR(ZMQ_VERSION_MAJOR) "." STR(ZMQ_VERSION_MINOR)));
+        vender->Set(isolate->NewFromUtf8("zmq"), isolate->NewFromUtf8(STR(ZMQ_VERSION_MAJOR) "." STR(ZMQ_VERSION_MINOR)));
     }
 
     return 0;
