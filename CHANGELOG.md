@@ -5,7 +5,7 @@
   * util: format support TypedArray.
   * module:
     - support auto exec selfzip file. Now you can zip your application to an executable file and distribute it easily!
-    - add --noroot options to disable application root directory. Application root directory will be remove in 0.5.0, so please pay attention to this.
+    - add --noroot options to disable application root directory. Application root directory will be removed in 0.5.0, so please pay attention to this.
     - add require.resovle
     - implement .ext loader.
   * zlip: date_t support getdate.
