@@ -818,6 +818,12 @@ result_t Buffer::hex(exlib::string& retVal)
     return hex_base::encode(data, retVal);
 }
 
+result_t Buffer::hex(exlib::string split, exlib::string& retVal)
+{
+    obj_ptr<Buffer_base> data = this;
+    return hex_base::encode(data, split, retVal);
+}
+
 result_t Buffer::base64(exlib::string& retVal)
 {
     obj_ptr<Buffer_base> data = this;
@@ -846,7 +852,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exli
     exlib::string str;
     int32_t str_length;
 
-   hr = commonEncode(codec, m_data, str);
+    hr = commonEncode(codec, m_data, str);
 
     if (hr < 0)
         return hr;
