@@ -1,3 +1,160 @@
+## 2017-06-10, Version v0.4.0 @ngot
+
+* **feature** :
+  * wasm: Add wasm extension demo.Now you can use WebAssembly to write extention of fibjs!
+  * util: format support TypedArray.
+  * module:
+    - support auto exec selfzip file. Now you can zip your application to a executeable file and deliever it esaly!
+    - add --noroot options to disable application root directory. Application root directory will be remove in 0.5.0, so please pay attention to this.
+    - add require.resovle
+    - implement .ext loader.
+  * zlip: date_t support getdate.
+  * vm: Sandbox.run support extension search and package.json.
+  * fs: add access, accessSync, appendFile, appendFileSync, chown, chownSync, lchmod, lchmodSync, lchown, lchownSync, link, linkSync, lstat, lstatSync, readlink, readlinkSync, realpath, realpathSync, symlink, symlinkSync, truncate, truncateSync, F_OK, R_OK, W_OK, X_OK & constants
+  * util: util.compile support bash style comment.
+  * path: 
+    - support path.isAbsolute.
+    - enable path.win32 & path.posix both works on win32 & posix
+  * os: 
+    - add os.homedir()
+    - add os.release()
+    - add os.endianness()
+    - add os.userInfo()
+  * events: 
+    now it is possible create EventEmit object just from `require('events')`.
+  * timers: add timers module
+
+* **breakchange** :
+  * os: normalize execPath.
+  * vm: disable relative path in sanbox.run.
+  * global: move global.sync to util.sync.
+  * os: replace os.version with os.release()
+  * os: change os.type to os.type()
+  * os: change os.hostname to os.hostname()
+  * os: rename os.CPUInfo() to os.cpus() & rename os.CPUs() to os.cpuNumbers()
+  * os: change os.arch to os.arch()
+  * os: rename os.networkInfo() to os.networkInterfaces
+  * core: reorder module wrap arguments.
+  * gui: disable drag file to gui webbrowser.
+
+* **bugfix** :
+  * process: fix process on Linux, not throw when process.run failed.
+  * core: fix GLIBC_2.7 not found. disable eventfd.
+  * gui: fix gui windows visible&maxmize bug.
+  * gui: fix maximize mode of gui window not worked in shortcut.
+  * gui: fix windows gui input control ctrl-v delete error.
+  * module: change path .zip?/file to .zip$/file, fix windows gui url error.
+* **internal** :
+  * upgrade V8 to 6.1.64
+
+### Commits
+
+* [[`4cd3e6c7d4`](https://github.com/fibjs/fibjs/commit/4cd3e6c7d4)] - **wasm, feat**: add wasm test (ngot) 
+* [[`80c1837f8b`](https://github.com/fibjs/fibjs/commit/80c1837f8b)] - **util, feat**: format support TypedArray. (xicilion) 
+* [[`e9831314eb`](https://github.com/fibjs/fibjs/commit/e9831314eb)] - **module, refactor**: not register id into module cache. (xicilion) 
+* [[`efec83bfc0`](https://github.com/fibjs/fibjs/commit/efec83bfc0)] - **module, chore**: check module id. (xicilion) 
+* [[`032835643b`](https://github.com/fibjs/fibjs/commit/032835643b)] - **test, chore**: move temp file to test folder. (xicilion) 
+* [[`92fee00865`](https://github.com/fibjs/fibjs/commit/92fee00865)] - **module, feat**: auto exec selfzip file. (xicilion) 
+* [[`f11f666176`](https://github.com/fibjs/fibjs/commit/f11f666176)] - **os, break**: normalize execPath. (xicilion) 
+* [[`bff9a9f33d`](https://github.com/fibjs/fibjs/commit/bff9a9f33d)] - **process, fixbug**: process on Linux, not throw when process.run failed. (xicilion) 
+* [[`a6421df39a`](https://github.com/fibjs/fibjs/commit/a6421df39a)] - **core, fixbug**: GLIBC_2.7 not found. disable eventfd. (xicilion) 
+* [[`dd437b2831`](https://github.com/fibjs/fibjs/commit/dd437b2831)] - **module, break**: add --noroot options to disable application root directory. (xicilion) 
+* [[`ca3951c1b2`](https://github.com/fibjs/fibjs/commit/ca3951c1b2)] - **test, fixbug**: fix module_test, disable absolute identifiers test. (xicilion) 
+* [[`33f800ff08`](https://github.com/fibjs/fibjs/commit/33f800ff08)] - **module, refactor**: reuse variable. (xicilion) 
+* [[`6e6ee02be4`](https://github.com/fibjs/fibjs/commit/6e6ee02be4)] - **module, refactor**: Organize source code. (xicilion) 
+* [[`be1a651d8a`](https://github.com/fibjs/fibjs/commit/be1a651d8a)] - **module, feat**: implement require.resovle (xicilion) 
+* [[`be71bb05ff`](https://github.com/fibjs/fibjs/commit/be71bb05ff)] - **module, fixbug**: normalize id, fix error on windows. (xicilion) 
+* [[`7ac814c7dc`](https://github.com/fibjs/fibjs/commit/7ac814c7dc)] - **module, feat**: implement requireModule. (xicilion) 
+* [[`9bfea8d064`](https://github.com/fibjs/fibjs/commit/9bfea8d064)] - **module, refactor**: use ZipFile.date as the date of zip virtual file. (xicilion) 
+* [[`693b015c01`](https://github.com/fibjs/fibjs/commit/693b015c01)] - **ZipFile**: add date test case. (xicilion) 
+* [[`01cd70605f`](https://github.com/fibjs/fibjs/commit/01cd70605f)] - **ZipFile**: support date while zip a file. (xicilion) 
+* [[`4f6330cda4`](https://github.com/fibjs/fibjs/commit/4f6330cda4)] - **zlip, feat**: date_t support getdate. (xicilion) 
+* [[`fe52e70f6f`](https://github.com/fibjs/fibjs/commit/fe52e70f6f)] - **fs, feat**: enable zip cache timeout. (xicilion) 
+* [[`e85d504ed1`](https://github.com/fibjs/fibjs/commit/e85d504ed1)] - **vm, feat**: implement requireFile, use locateFile to load module file. (xicilion) 
+* [[`ac68fc8432`](https://github.com/fibjs/fibjs/commit/ac68fc8432)] - **vm, refactor**: split source code of SandBox. (xicilion) 
+* [[`c5351420cb`](https://github.com/fibjs/fibjs/commit/c5351420cb)] - **test, fixbug**: fix websocket test on windows. (xicilion) 
+* [[`bf49dcaf5c`](https://github.com/fibjs/fibjs/commit/bf49dcaf5c)] - **vm, feat**: Sandbox.run support extension search and package.json. (xicilion) 
+* [[`d87bcc6960`](https://github.com/fibjs/fibjs/commit/d87bcc6960)] - **vm, break**: disable relative path in sanbox.run. (xicilion) 
+* [[`e3fa7060de`](https://github.com/fibjs/fibjs/commit/e3fa7060de)] - **vm, refactor**: share script cache in isolate. (xicilion) 
+* [[`a155c2133c`](https://github.com/fibjs/fibjs/commit/a155c2133c)] - **vm, refactor**: use LruCache to cache script file. (xicilion) 
+* [[`391b467618`](https://github.com/fibjs/fibjs/commit/391b467618)] - **vm, feat**: enable script file cache. (xicilion) 
+* [[`c5ae89255c`](https://github.com/fibjs/fibjs/commit/c5ae89255c)] - **gui, fixbug**: gui windows visible&maxmize bug. (xicilion) 
+* [[`f56ff6185a`](https://github.com/fibjs/fibjs/commit/f56ff6185a)] - **gui, fixbug**: maximize mode of gui window not worked in shortcut. (xicilion) 
+* [[`e759bf6270`](https://github.com/fibjs/fibjs/commit/e759bf6270)] - **fs, chore**: set fs.constants readonly attribute (asionius) 
+* [[`2e9b597470`](https://github.com/fibjs/fibjs/commit/2e9b597470)] - **fs, chore**: remove method access return value (asionius) 
+* [[`02a9f33024`](https://github.com/fibjs/fibjs/commit/02a9f33024)] - **fs, fixbug**: fix windows compile error (asionius) 
+* [[`aa34b7d23f`](https://github.com/fibjs/fibjs/commit/aa34b7d23f)] - **fs, feat**: some fs apis to compat to node fs api (asionius) 
+* [[`9a864d3773`](https://github.com/fibjs/fibjs/commit/9a864d3773)] - **internal, upgrade**: upgrade v8 to 6.1.64 (xicilion) 
+* [[`b0e003bcee`](https://github.com/fibjs/fibjs/commit/b0e003bcee)] - **iconv, chore**: delete unused variable. (xicilion) 
+* [[`032ccc2a97`](https://github.com/fibjs/fibjs/commit/032ccc2a97)] - **vm, feat**: implement .ext loader. (xicilion) 
+* [[`29717ea64e`](https://github.com/fibjs/fibjs/commit/29717ea64e)] - **os, chore**: simplify os.usereInfo (ngot) 
+* [[`4ce4e3ee73`](https://github.com/fibjs/fibjs/commit/4ce4e3ee73)] - **os, fixbug**: fix crash error (ngot) 
+* [[`e2b2454fa2`](https://github.com/fibjs/fibjs/commit/e2b2454fa2)] - **os, refactor**: remove useless userInfo code (ngot) 
+* [[`d941e05375`](https://github.com/fibjs/fibjs/commit/d941e05375)] - **test, remove**: useless code (ngot) 
+* [[`bca9d01961`](https://github.com/fibjs/fibjs/commit/bca9d01961)] - **Buffer, chore**: format (ngot) 
+* [[`f8732d14a7`](https://github.com/fibjs/fibjs/commit/f8732d14a7)] - **encoding, feat**: iconv.encode & iconv.dcode support binary encoding (ngot) 
+* [[`dc4e7dfca9`](https://github.com/fibjs/fibjs/commit/dc4e7dfca9)] - **encoding, revert**: remove iconv.encode & iconv.dcode support base64 & hex (ngot) 
+* [[`1a833967b8`](https://github.com/fibjs/fibjs/commit/1a833967b8)] - **encoding, feat**: iconv.encode & iconv.dcode support base64 & hex (ngot) 
+* [[`62e1d88cf2`](https://github.com/fibjs/fibjs/commit/62e1d88cf2)] - **os, refactor**: simplify & better performance (ngot) 
+* [[`f9a8f140dc`](https://github.com/fibjs/fibjs/commit/f9a8f140dc)] - **encoding, feat**: add iconv::decode(String) & hex.encode(String) & base64.encode(String) (ngot) 
+* [[`00ef954745`](https://github.com/fibjs/fibjs/commit/00ef954745)] - **os,fixbug**: fix build error (ngot) 
+* [[`303f42d958`](https://github.com/fibjs/fibjs/commit/303f42d958)] - **os, feat**: implement os.userInfo() encoding options (ngot) 
+* [[`d394a179d5`](https://github.com/fibjs/fibjs/commit/d394a179d5)] - **os, feat**: impement os.userInfo on windows (ngot) 
+* [[`016b535735`](https://github.com/fibjs/fibjs/commit/016b535735)] - **os, feat**: add os.userInfo() (ngot) 
+* [[`61fc723cfd`](https://github.com/fibjs/fibjs/commit/61fc723cfd)] - **core, chore**: remove fibjs namespace. (xicilion) 
+* [[`dd0f99f062`](https://github.com/fibjs/fibjs/commit/dd0f99f062)] - **vm, refactor**: rewrite sanbox.run. (xicilion) 
+* [[`ec616ea050`](https://github.com/fibjs/fibjs/commit/ec616ea050)] - **vm, refactor**: rewrite addScript. (xicilion) 
+* [[`c07fd32936`](https://github.com/fibjs/fibjs/commit/c07fd32936)] - **util, feat**: util.compile support bash style comment. (xicilion) 
+* [[`71f5916562`](https://github.com/fibjs/fibjs/commit/71f5916562)] - **global, break**: move global.sync to util.sync. (xicilion) 
+* [[`6bd3ff3f7e`](https://github.com/fibjs/fibjs/commit/6bd3ff3f7e)] - **path, feat**: support path.isAbsolute. (xicilion) 
+* [[`7c5084af38`](https://github.com/fibjs/fibjs/commit/7c5084af38)] - **path, refactor**: use Runtime::setError to report error. (xicilion) 
+* [[`2f1b2a4aef`](https://github.com/fibjs/fibjs/commit/2f1b2a4aef)] - **test, fixbug**: update arm/arm64 jsc test file. (xicilion) 
+* [[`5532d31ec4`](https://github.com/fibjs/fibjs/commit/5532d31ec4)] - **internal, upgrade**: upgrade v8 to 6.1.24 (xicilion) 
+* [[`73088ef4ec`](https://github.com/fibjs/fibjs/commit/73088ef4ec)] - **core, chore**: remove docs folder. (xicilion) 
+* [[`cb7800f342`](https://github.com/fibjs/fibjs/commit/cb7800f342)] - **core, chore**: remove submodule docs. (xicilion) 
+* [[`6ac737f3e9`](https://github.com/fibjs/fibjs/commit/6ac737f3e9)] - **path, refactor**: rewrite path/path.posix/path.win32. (xicilion) 
+* [[`05d344448f`](https://github.com/fibjs/fibjs/commit/05d344448f)] - **path, fixbug**: fix os_win GetVersion2 compile error. (xicilion) 
+* [[`049ebb6ff7`](https://github.com/fibjs/fibjs/commit/049ebb6ff7)] - **core, feat**: support module renaming. (xicilion) 
+* [[`8dd5d5d46c`](https://github.com/fibjs/fibjs/commit/8dd5d5d46c)] - **os, break**: replace os.version with os.release() (ngot) 
+* [[`b4220d94f5`](https://github.com/fibjs/fibjs/commit/b4220d94f5)] - **os, chore**: update comment (ngot) 
+* [[`0381452de3`](https://github.com/fibjs/fibjs/commit/0381452de3)] - **os, fixbug**: fix error check (ngot) 
+* [[`8b08c7e608`](https://github.com/fibjs/fibjs/commit/8b08c7e608)] - **os, fixbug**: throw detail error & mem leak (ngot) 
+* [[`67b594cff9`](https://github.com/fibjs/fibjs/commit/67b594cff9)] - **test, fixbug**: fix vm test on windows (ngot) 
+* [[`d2e908c89e`](https://github.com/fibjs/fibjs/commit/d2e908c89e)] - **test, feat**: add os.homedir() test case (ngot) 
+* [[`955f6e9ab2`](https://github.com/fibjs/fibjs/commit/955f6e9ab2)] - **os, feat**: implememt os.homedir() on windows (ngot) 
+* [[`9196a756f5`](https://github.com/fibjs/fibjs/commit/9196a756f5)] - **os, feat**: add os.homedir() (ngot) 
+* [[`d80e88a0c1`](https://github.com/fibjs/fibjs/commit/d80e88a0c1)] - **test, feat**: add os.release test case (ngot) 
+* [[`c40e82df7a`](https://github.com/fibjs/fibjs/commit/c40e82df7a)] - **os, feat**: add os.release() (ngot) 
+* [[`623bb542a8`](https://github.com/fibjs/fibjs/commit/623bb542a8)] - **os, feat**: add os.endianness() (ngot) 
+* [[`378d0a0fae`](https://github.com/fibjs/fibjs/commit/378d0a0fae)] - **os, break**: change os.type to os.type() (ngot) 
+* [[`bf34081629`](https://github.com/fibjs/fibjs/commit/bf34081629)] - **os, break**: change os.hostname to os.hostname() (ngot) 
+* [[`e2b8983df8`](https://github.com/fibjs/fibjs/commit/e2b8983df8)] - **os, break**: rename os.CPUInfo() to os.cpus() & rename os.CPUs() to os.cpuNumbers() (ngot) 
+* [[`74154a42fb`](https://github.com/fibjs/fibjs/commit/74154a42fb)] - **os, break**: change os.arch to os.arch() (ngot) 
+* [[`f618afa24f`](https://github.com/fibjs/fibjs/commit/f618afa24f)] - **os, break**: rename os.networkInfo() to os.networkInterfaces (ngot) 
+* [[`06fe572b72`](https://github.com/fibjs/fibjs/commit/06fe572b72)] - **test, chore**: fix test on windows (ngot) 
+* [[`1fafaad796`](https://github.com/fibjs/fibjs/commit/1fafaad796)] - **test, chore**: ignore single test runner (ngot) 
+* [[`2145bfdbc0`](https://github.com/fibjs/fibjs/commit/2145bfdbc0)] - **test, feat**: add path.win32 & path.posix test case (ngot) 
+* [[`03820c7680`](https://github.com/fibjs/fibjs/commit/03820c7680)] - **path, feat**: enable path.win32 & path.posix both works on win32 & posix (ngot) 
+* [[`d97c82eb41`](https://github.com/fibjs/fibjs/commit/d97c82eb41)] - **path, fixbug**: fix posix path sep (ngot) 
+* [[`c3e3de463e`](https://github.com/fibjs/fibjs/commit/c3e3de463e)] - **core, fixbug**: fix build error (ngot) 
+* [[`35e715ab48`](https://github.com/fibjs/fibjs/commit/35e715ab48)] - **core, chore**: update vcxproj (ngot) 
+* [[`3b8ba008df`](https://github.com/fibjs/fibjs/commit/3b8ba008df)] - **path, refactor**: simplify path implementation (ngot) 
+* [[`78afbfb026`](https://github.com/fibjs/fibjs/commit/78afbfb026)] - **path, feat**: more compatibility to Node.js path module (ngot) 
+* [[`524a241146`](https://github.com/fibjs/fibjs/commit/524a241146)] - **events, chore**: remove unuseful code. (xicilion) 
+* [[`b7033a6f9d`](https://github.com/fibjs/fibjs/commit/b7033a6f9d)] - **events, feat**: more compatibility to Node.js events module (xicilion) 
+* [[`7c82f03f23`](https://github.com/fibjs/fibjs/commit/7c82f03f23)] - **core, break**: reorder module wrap arguments. (xicilion) 
+* [[`9b5e96e3a8`](https://github.com/fibjs/fibjs/commit/9b5e96e3a8)] - **test, fixbug**: enable ignored test case. (xicilion) 
+* [[`278d44c7ee`](https://github.com/fibjs/fibjs/commit/278d44c7ee)] - **test, chore**: remove single tester (ngot) 
+* [[`f238e16207`](https://github.com/fibjs/fibjs/commit/f238e16207)] - **timers, feat**: add timers module (ngot) 
+* [[`c5cd73a116`](https://github.com/fibjs/fibjs/commit/c5cd73a116)] - **gui, break**: disable drag file to gui webbrowser. (xicilion) 
+* [[`aabebe6f6b`](https://github.com/fibjs/fibjs/commit/aabebe6f6b)] - **gui, fixbug**: windows gui input control ctrl-v delete error. (xicilion) 
+* [[`58c368087f`](https://github.com/fibjs/fibjs/commit/58c368087f)] - **test, chore**: support relative path. (xicilion) 
+* [[`46e30cad9a`](https://github.com/fibjs/fibjs/commit/46e30cad9a)] - **doc, chore**: update download link (ngot) 
+* [[`37ffd771c1`](https://github.com/fibjs/fibjs/commit/37ffd771c1)] - **module, fixbug**: change path .zip?/file to .zip$/file, fix windows gui url error. (xicilion) 
+* [[`5adb9780cf`](https://github.com/fibjs/fibjs/commit/5adb9780cf)] - **ci, fixbug**: ci test (#220) (ngot) 
+* [[`2044869df2`](https://github.com/fibjs/fibjs/commit/2044869df2)] - **doc, chore**: update downloads url (ngot) 
+* [[`087194a32b`](https://github.com/fibjs/fibjs/commit/087194a32b)] - **fs, feat**: cache *.zip?/ file data. (xicilion) 
+
 ## 2017-05-20, Version v0.3.1 @ngot
 
 * **bugfix** :
