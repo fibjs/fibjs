@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "SandBox.h"
+#include "path.h"
 #include "ifs/vm.h"
 #include "ifs/util.h"
 #include "ifs/test.h"
@@ -90,7 +91,14 @@ void SandBox::initRoot()
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
 {
+    const char* c_str = id.c_str();
+
+    if (c_str[0] == '.' && (isPathSlash(c_str[1]) || (c_str[1] == '.' && isPathSlash(c_str[2]))))
+        return CHECK_ERROR(Runtime::setError("SandBox: does not accept relative path."));
+
+    path_base::normalize(id, id);
     util_base::clone(mod, mod);
+
     InstallModule(id, mod);
 
     return 0;
@@ -101,10 +109,13 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
     v8::Local<v8::Array> ks = mods->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
+    result_t hr;
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
-        add(*v8::String::Utf8Value(k), mods->Get(k));
+        hr = add(*v8::String::Utf8Value(k), mods->Get(k));
+        if (hr < 0)
+            return hr;
     }
 
     return 0;
@@ -112,7 +123,9 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
 
 result_t SandBox::remove(exlib::string id)
 {
+    path_base::normalize(id, id);
     mods()->Delete(holder()->NewFromUtf8(id));
+
     return 0;
 }
 

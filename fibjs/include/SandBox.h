@@ -101,10 +101,13 @@ public:
 
     void InstallModule(exlib::string fname, v8::Local<v8::Value> o);
 
+    result_t installScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal);
+
     result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
 
     result_t resovleFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Value>* retVal);
+    result_t resovleId(exlib::string& id, obj_ptr<Buffer_base>& data, v8::Local<v8::Value>& retVal);
     result_t resovleModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Value>& retVal);
     result_t resovle(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,

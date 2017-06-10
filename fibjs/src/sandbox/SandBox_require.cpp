@@ -7,23 +7,19 @@
 
 #include "object.h"
 #include "SandBox.h"
+#include "path.h"
 
 namespace fibjs {
 
-result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
+result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     v8::Local<v8::Value>& retVal)
 {
     result_t hr;
-
-    // add to modules
-    exlib::string id(srcname);
 
     obj_ptr<ExtLoader> l;
     hr = get_loader(srcname, l);
     if (hr < 0)
         return hr;
-
-    id.resize(id.length() - l->m_ext.length());
 
     Isolate* isolate = holder();
     Context context(this, srcname);
@@ -44,26 +40,34 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     mod->Set(strExports, exports);
     mod->Set(strRequire, context.m_fnRequest);
 
-    InstallModule(id, exports);
     InstallModule(srcname, exports);
 
     hr = l->run_module(&context, script, srcname, mod, exports);
     if (hr < 0) {
         // delete from modules
-        remove(id);
         remove(srcname);
         return hr;
     }
 
     // use module.exports as result value
     v8::Local<v8::Value> v = mod->Get(strExports);
-    if (!exports->Equals(v)) {
-        InstallModule(id, v);
+    if (!exports->Equals(v))
         InstallModule(srcname, v);
-    }
 
     retVal = v;
     return 0;
+}
+
+result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
+    v8::Local<v8::Value>& retVal)
+{
+    const char* c_str = srcname.c_str();
+
+    if (c_str[0] == '.' && (isPathSlash(c_str[1]) || (c_str[1] == '.' && isPathSlash(c_str[2]))))
+        return CHECK_ERROR(Runtime::setError("SandBox: AddScript does not accept relative path."));
+
+    path_base::normalize(srcname, srcname);
+    return installScript(srcname, script, retVal);
 }
 
 result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
@@ -74,6 +78,6 @@ result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Va
     hr = resovle(base, id, data, retVal);
     if (hr < 0 || !IsEmpty(retVal))
         return hr;
-    return addScript(id, data, retVal);
+    return installScript(id, data, retVal);
 }
 }
