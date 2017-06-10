@@ -168,15 +168,19 @@ result_t hex_base::encode(Buffer_base* data, exlib::string split, exlib::string&
     static char HexChar[] = "0123456789abcdef";
     int32_t i, pos;
 
-    i = (int32_t)strData.length() * 3;
-    retVal.resize(i);
+    int32_t len = (int32_t)strData.length();
+
+    i = len * 3;
+    retVal.resize(i - 1);
 
     pos = 0;
 
-    for (i = 0; i < (int32_t)strData.length(); i++) {
+    for (i = 0; i < len; i++) {
         retVal[pos * 3] = HexChar[(unsigned char)strData[i] >> 4];
         retVal[pos * 3 + 1] = HexChar[(unsigned char)strData[i] & 0xf];
-        retVal[pos * 3 + 2] = split[0];
+        if (i < len - 1) {
+            retVal[pos * 3 + 2] = split[0];
+        }
         pos++;
     }
 
