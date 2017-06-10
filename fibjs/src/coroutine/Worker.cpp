@@ -10,12 +10,18 @@
 #include "WorkerMessage.h"
 #include "SandBox.h"
 #include "Fiber.h"
+#include "path.h"
 
 namespace fibjs {
 
 result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
     obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This)
 {
+    bool isAbs = false;
+    path_base::isAbsolute(path, isAbs);
+    if (!isAbs)
+        return CHECK_ERROR(Runtime::setError("Worker: only accept absolute path."));
+
     obj_ptr<Worker> worker = new Worker(path, opts);
     worker->wrap(This);
     worker->start();

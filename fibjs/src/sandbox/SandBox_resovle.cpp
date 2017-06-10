@@ -28,7 +28,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     isolate->m_script_cache->get(fname, v);
     if (!v.IsEmpty()) {
         data = Buffer_base::getInstance(v);
-        return data ? 0 : CALL_E_FILE_NOT_FOUND;
+        return data ? 0 : CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
     }
 
     hr = fs_base::cc_readFile(fname, data);
@@ -148,7 +148,7 @@ result_t SandBox::resovleModule(exlib::string base, exlib::string& id, obj_ptr<B
 
     retVal = _mods->Get(isolate->NewFromUtf8(id));
     if (!IsEmpty(retVal))
-        return 1;
+        return 0;
 
     v8::Local<v8::Value> func = GetPrivate("require");
     if (!func->IsUndefined()) {
@@ -206,7 +206,7 @@ result_t SandBox::resovleModule(exlib::string base, exlib::string& id, obj_ptr<B
         }
     }
 
-    return CALL_E_FILE_NOT_FOUND;
+    return CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
 }
 
 result_t SandBox::resovle(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
