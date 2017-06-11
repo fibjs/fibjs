@@ -172,6 +172,31 @@ describe("vm", () => {
         });
     });
 
+    it("standalone global", () => {
+        var sbox1 = new vm.SandBox({}, {
+            var1: 100
+        });
+
+        sbox1.require('./vm_test/hack_global', __filename);
+        sbox1.run(__dirname + '/vm_test/hack_global_1');
+        var a = sbox1.addScript("t1.js", "global.var2 = 200;module.exports={var1:var1,var2:var2,var3:var3,var4:var4};");
+
+        assert.equal(a.var1, 100);
+        assert.equal(a.var2, 200);
+        assert.equal(a.var3, 300);
+        assert.equal(a.var4, 400);
+
+        assert.equal(sbox1.global.var1, 100);
+        assert.equal(sbox1.global.var2, 200);
+        assert.equal(sbox1.global.var3, 300);
+        assert.equal(sbox1.global.var4, 400);
+
+        assert.isUndefined(global.var1);
+        assert.isUndefined(global.var2);
+        assert.isUndefined(global.var3);
+        assert.isUndefined(global.var4);
+    });
+
     xit("block function return", () => {
         sbox = new vm.SandBox({});
         assert.throws(() => {

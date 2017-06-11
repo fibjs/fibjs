@@ -61,6 +61,8 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
 
 result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv)
 {
+    Scope _scope(this);
+
     result_t hr;
     bool isAbs;
 

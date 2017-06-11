@@ -61,6 +61,8 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
 result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     v8::Local<v8::Value>& retVal)
 {
+    Scope _scope(this);
+
     const char* c_str = srcname.c_str();
 
     if (c_str[0] == '.' && (isPathSlash(c_str[1]) || (c_str[1] == '.' && isPathSlash(c_str[2]))))
@@ -72,6 +74,8 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
 
 result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
 {
+    Scope _scope(this);
+
     result_t hr;
     obj_ptr<Buffer_base> data;
 

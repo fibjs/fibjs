@@ -31,6 +31,7 @@ public:
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv);
     virtual result_t resovle(exlib::string id, exlib::string base, exlib::string& retVal);
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
+    virtual result_t get_global(v8::Local<v8::Object>& retVal);
 
 public:
     v8::Local<v8::Object> mods()
@@ -61,6 +62,27 @@ public:
         v8::Local<v8::Value> m_id;
         v8::Local<v8::Function> m_fnRequest;
         v8::Local<v8::Function> m_fnRun;
+    };
+
+    class Scope {
+    public:
+        Scope(SandBox* sb)
+        {
+            if (sb->m_global) {
+                v8::Local<v8::Object> _global = v8::Local<v8::Object>::Cast(sb->GetPrivate("_global"));
+                _context = _global->CreationContext();
+                _context->Enter();
+            }
+        }
+
+        ~Scope()
+        {
+            if (!_context.IsEmpty())
+                _context->Exit();
+        }
+
+    private:
+        v8::Local<v8::Context> _context;
     };
 
 public:
@@ -98,6 +120,8 @@ public:
     {
         SetPrivate("require", func);
     }
+
+    void initGlobal(v8::Local<v8::Object> global);
 
     void InstallModule(exlib::string fname, v8::Local<v8::Value> o);
 
@@ -150,6 +174,7 @@ public:
 
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;
+    bool m_global;
 };
 
 } /* namespace fibjs */
