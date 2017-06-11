@@ -72,10 +72,8 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     return installScript(srcname, script, retVal);
 }
 
-result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
+result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
 {
-    Scope _scope(this);
-
     result_t hr;
     obj_ptr<Buffer_base> data;
 
@@ -83,5 +81,11 @@ result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Va
     if (hr < 0 || !IsEmpty(retVal))
         return hr;
     return installScript(id, data, retVal);
+}
+
+result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
+{
+    Scope _scope(this);
+    return run_module(id, base, retVal);
 }
 }

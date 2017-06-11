@@ -139,6 +139,7 @@ public:
 
     result_t repl(v8::Local<v8::Array> cmds, Stream_base* out = NULL);
 
+    result_t run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
     result_t run_main(exlib::string fname, v8::Local<v8::Array> argv);
     result_t run_worker(exlib::string fname, Worker_base* worker);
 
