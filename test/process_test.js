@@ -175,6 +175,13 @@ describe('process', () => {
         assert.ok(process.version);
     });
 
+    if (process.platform === "linux" || process.platform === "darwin") {
+        it("PATH env", () => {
+            assert.equal(process.run("ls", ["./process"]), 0)
+            assert.ok(process.open("ls", ["-a", "./process"]).stdout.readLine());
+        });
+    }
+
     if (process.platform != "win32")
         it("umask()", () => {
             const mask = '0664';
