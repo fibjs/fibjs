@@ -40,7 +40,7 @@ describe('process', () => {
         assert.equal(process.run(cmd, [__dirname + '/process/exec.js']), 100);
     });
 
-    it("run throw error", () => {
+    xit("run throw error", () => {
         assert.throws(() => {
             process.run("not_exists_exec_file");
         });
@@ -104,8 +104,8 @@ describe('process', () => {
             "arg1",
             "arg2"
         ]).readLine()), [
-            cmd, __dirname + "/process/exec2.js", "arg1", "arg2"
-        ]);
+                cmd, __dirname + "/process/exec2.js", "arg1", "arg2"
+            ]);
     });
 
     it("argv 1", () => {
@@ -115,8 +115,8 @@ describe('process', () => {
             "arg2",
             "--use_strict"
         ]).readLine()), [
-            cmd, __dirname + "/process/exec2.js", "arg1", "arg2"
-        ]);
+                cmd, __dirname + "/process/exec2.js", "arg1", "arg2"
+            ]);
     });
 
     it("argv utf8", () => {
@@ -125,8 +125,8 @@ describe('process', () => {
             "参数1",
             "参数2"
         ]).readLine()), [
-            cmd, __dirname + "/process/exec2.js", "参数1", "参数2"
-        ]);
+                cmd, __dirname + "/process/exec2.js", "参数1", "参数2"
+            ]);
     });
 
     it("execArgv", () => {
@@ -136,8 +136,8 @@ describe('process', () => {
             "arg2",
             "--use_strict"
         ]).readLine()), [
-            "--use_strict"
-        ]);
+                "--use_strict"
+            ]);
     });
 
     it("env", () => {
@@ -151,10 +151,10 @@ describe('process', () => {
         var env = json.decode(process.open(cmd, [
             __dirname + "/process/exec4.js"
         ], {
-            env: {
-                abcd: "234"
-            }
-        }).readLine());
+                env: {
+                    abcd: "234"
+                }
+            }).readLine());
 
         assert.isUndefined(env.abc);
         assert.equal(env.abcd, "234");
@@ -165,8 +165,8 @@ describe('process', () => {
         process.run(cmd, [
             __dirname + "/process/exec5.js"
         ], {
-            timeout: 1000
-        });
+                timeout: 1000
+            });
 
         assert.lessThan(new Date() - d, 2000);
     });
@@ -175,7 +175,12 @@ describe('process', () => {
         assert.ok(process.version);
     });
 
-    if (process.platform != "win32")
+    if (process.platform != "win32") {
+        it("PATH env", () => {
+            assert.equal(process.run("ls", [__dirname + "/process"]), 0)
+            assert.ok(process.open("ls", ["-a", __dirname + "/process"]).stdout.readLine());
+        });
+
         it("umask()", () => {
             const mask = '0664';
             assert.equal(process.umask(), 0);
@@ -189,6 +194,7 @@ describe('process', () => {
             // 2. If the test fails, process.umask() will return 0
             assert.equal(old, process.umask());
         });
+    }
 });
 
-// test.run(console.DEBUG);
+test.run(console.DEBUG);
