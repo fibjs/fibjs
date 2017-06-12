@@ -92,6 +92,7 @@ result_t start_fiber(int32_t n)
 {
     Isolate* isolate = new Isolate(s_start);
     syncCall(isolate, main_fiber, isolate);
+    return 0;
 }
 
 void main(int32_t argc, char* argv[])
