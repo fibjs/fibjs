@@ -80,7 +80,7 @@ result_t MemoryStream::eof(bool& retVal)
 
 result_t MemoryStream::flush(AsyncEvent* ac)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return 0;
 }
 
 result_t MemoryStream::write(Buffer_base* data, AsyncEvent* ac)
