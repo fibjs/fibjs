@@ -86,6 +86,14 @@ static result_t main_fiber(Isolate* isolate)
     return s.m_hr;
 }
 
+static exlib::string s_start;
+
+result_t start_fiber(int32_t n)
+{
+    Isolate* isolate = new Isolate(s_start);
+    syncCall(isolate, main_fiber, isolate);
+}
+
 void main(int32_t argc, char* argv[])
 {
     exlib::string exePath;
@@ -118,14 +126,12 @@ void main(int32_t argc, char* argv[])
     for (i = 1; (i < argc) && (argv[i][0] == '-'); i++)
         ;
 
-    exlib::string fname;
     if (i < argc) {
-        fname = s_root;
-        pathAdd(fname, argv[i]);
+        s_start = s_root;
+        pathAdd(s_start, argv[i]);
     }
 
-    Isolate* isolate = new Isolate(fname);
-    syncCall(isolate, main_fiber, isolate);
+    asyncCall(start_fiber, (int32_t)0);
     exlib::Service::dispatch();
 }
 }

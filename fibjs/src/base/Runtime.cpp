@@ -123,6 +123,20 @@ Isolate::Isolate(exlib::string fname)
 
     static v8::Isolate::CreateParams create_params;
     static ShellArrayBufferAllocator array_buffer_allocator;
+    static v8::StartupData blob;
+
+    if (blob.data == NULL) {
+        v8::SnapshotCreator creator;
+        v8::Isolate* isolate = creator.GetIsolate();
+        {
+            v8::HandleScope handle_scope(isolate);
+            v8::Local<v8::Context> context = v8::Context::New(isolate);
+            creator.SetDefaultContext(context);
+        }
+        blob = creator.CreateBlob(v8::SnapshotCreator::FunctionCodeHandling::kClear);
+    }
+
+    create_params.snapshot_blob = &blob;
     create_params.array_buffer_allocator = &array_buffer_allocator;
 
     m_isolate = v8::Isolate::New(create_params);
