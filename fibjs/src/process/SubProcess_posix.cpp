@@ -153,7 +153,7 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         posix_spawn_file_actions_destroy(&fops);
     }
 
-    if (err != 0 || (err = errno) != 0) {
+    if (err != 0) {
         if (redirect) {
             ::close(cin_pipe[1]);
             ::close(cout_pipe[0]);
