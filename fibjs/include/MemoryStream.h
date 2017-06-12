@@ -41,6 +41,9 @@ public:
         virtual result_t rewind();
         virtual result_t size(int64_t& retVal);
         virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+        virtual result_t truncate(int64_t bytes, AsyncEvent* ac);
+        virtual result_t eof(bool& retVal);
+        virtual result_t flush(AsyncEvent* ac);
         virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
 
     public:
@@ -75,6 +78,9 @@ public:
     virtual result_t rewind();
     virtual result_t size(int64_t& retVal);
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t truncate(int64_t bytes, AsyncEvent* ac);
+    virtual result_t eof(bool& retVal);
+    virtual result_t flush(AsyncEvent* ac);
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
 
 public:
