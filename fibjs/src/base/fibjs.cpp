@@ -112,13 +112,14 @@ void main(int32_t argc, char* argv[])
 
     init(argc, argv);
 
+    if (s_root.empty())
+        process_base::cwd(s_root);
+
     for (i = 1; (i < argc) && (argv[i][0] == '-'); i++)
         ;
 
     exlib::string fname;
     if (i < argc) {
-        if (s_root.empty())
-            process_base::cwd(s_root);
         fname = s_root;
         pathAdd(fname, argv[i]);
     }
