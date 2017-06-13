@@ -8,6 +8,7 @@
 #include "object.h"
 #include "RadosCluster.h"
 #include "RadosIoCtx.h"
+#include "List.h"
 
 #ifndef _WIN32
 #include <dlfcn.h>
@@ -23,6 +24,12 @@ static int (*_rados_create2)(rados_t *, const char *const ,
                              const char * const , uint64_t );
 static int (*_rados_conf_read_file)(rados_t , const char *);
 static int (*_rados_connect)(rados_t );
+static int (*_rados_pool_create)(rados_t, const char *);
+static int (*_rados_pool_create_with_auid)(rados_t, const char *, uint64_t);
+static int (*_rados_pool_create_with_crush_rule)(rados_t, const char *, uint8_t);
+static int (*_rados_pool_create_with_all)(rados_t, const char *, uint64_t, uint8_t);
+static int (*_rados_pool_list)(rados_t, char *, size_t);
+static int (*_rados_pool_delete)(rados_t, const char *);
 static int (*_rados_ioctx_create)(rados_t , const char *, rados_ioctx_t *);
 static void (*_rados_shutdown)(rados_t );
 
@@ -45,11 +52,26 @@ static inline int32_t load_librados()
 	                         const char * const , uint64_t))dlsym(s_handle, "rados_create2");
 	_rados_conf_read_file = (int(*)(rados_t , const char *))dlsym(s_handle, "rados_conf_read_file");
 	_rados_connect = (int(*)(rados_t ))dlsym(s_handle, "rados_connect");
+	_rados_pool_create = (int(*)(rados_t, const char *))dlsym(s_handle, "rados_pool_create");
+	_rados_pool_create_with_auid = (int(*)(rados_t, const char *, uint64_t))dlsym(s_handle, "rados_pool_create_with_auid");
+	_rados_pool_create_with_crush_rule = (int(*)(rados_t, const char *, uint8_t))dlsym(s_handle, "rados_pool_create_with_crush_rule");
+	_rados_pool_create_with_all = (int(*)(rados_t, const char *, uint64_t, uint8_t))dlsym(s_handle, "rados_pool_create_with_all");
+	_rados_pool_list = (int(*)(rados_t, char *, size_t))dlsym(s_handle, "rados_pool_list");
+	_rados_pool_delete = (int(*)(rados_t, const char *))dlsym(s_handle, "rados_pool_delete");
 	_rados_ioctx_create = (int(*)(rados_t , const char *, rados_ioctx_t *))dlsym(s_handle, "rados_ioctx_create");
 	_rados_shutdown = (void(*)(rados_t ))dlsym(s_handle, "rados_shutdown");
 
 
-	if (!_rados_create2 || !_rados_conf_read_file || !_rados_connect || !_rados_ioctx_create)
+	if (!_rados_create2
+	        || !_rados_conf_read_file
+	        || !_rados_connect
+	        || !_rados_pool_create
+	        || !_rados_pool_create_with_auid
+	        || !_rados_pool_create_with_crush_rule
+	        || !_rados_pool_create_with_all
+	        || !_rados_pool_list
+	        || !_rados_pool_delete
+	        || !_rados_ioctx_create)
 		return CHECK_ERROR(CALL_E_SYMBOLNOTFOUND);
 	return 0;
 }
@@ -101,6 +123,64 @@ result_t RadosCluster::connect(AsyncEvent* ac)
 	result_t hr;
 
 	hr = _rados_connect(m_cluster);
+	if (hr < 0)
+		return CHECK_ERROR(hr);
+
+	return 0;
+}
+
+result_t RadosCluster::createPool(exlib::string poolName, int64_t auid, int32_t crushRule, AsyncEvent* ac)
+{
+	if (!ac)
+		return CHECK_ERROR(CALL_E_NOSYNC);
+
+	result_t hr;
+
+	hr = _rados_pool_create_with_all(m_cluster, poolName.c_str(), auid, crushRule);
+	if (hr < 0)
+		return CHECK_ERROR(hr);
+
+	return 0;
+}
+
+result_t RadosCluster::listPool(obj_ptr<List_base>& retVal, AsyncEvent* ac)
+{
+	if (!ac)
+		return CHECK_ERROR(CALL_E_NOSYNC);
+
+	int32_t size;
+	exlib::string str;
+	obj_ptr<List> data = new List();
+	char *c, *t;
+
+	size = _rados_pool_list(m_cluster, NULL, 0);
+
+	str.resize(size);
+	c = &str[0];
+	_rados_pool_list(m_cluster, c, str.length());
+
+	while (c[0] != '\0')
+	{
+		t = c;
+		while (*(++t) != '\0');
+		exlib::string pool(c, t - c);
+		data->append(pool);
+		c = t + 1;
+	}
+
+	retVal = data;
+
+	return 0;
+}
+
+result_t RadosCluster::deletePool(exlib::string poolName, AsyncEvent* ac)
+{
+	if (!ac)
+		return CHECK_ERROR(CALL_E_NOSYNC);
+
+	result_t hr;
+
+	hr = _rados_pool_delete(m_cluster, poolName.c_str());
 	if (hr < 0)
 		return CHECK_ERROR(hr);
 

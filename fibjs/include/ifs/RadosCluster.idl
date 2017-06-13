@@ -24,6 +24,23 @@ interface RadosCluster
     /*! @brief 连接rados服务器集群 */
     connect() async;
 
+    /*! @brief 创建一个pool 
+     @param poolName 新创建的pool的名字
+     @param auid 新创建的pool的拥有者的id, 默认为0
+     @param crushRule 新建的pool的存储规则, 默认为0
+    */
+    createPool(String poolName, Long auid = 0, Integer crushRule = 0) async;
+
+    /*! @brief 列出集群内所有的pool
+     @return 集群内所有pool的名称列表
+    */
+    List listPool() async;
+
+    /*! @brief 删除一个pool 
+     @param poolName 将要删除的pool的名称
+    */
+    deletePool(String poolName) async;
+
     /*! @brief 创建一个io上下文 
      @param poolName 指定在poolName 上创建io上下文
     */

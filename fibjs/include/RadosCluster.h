@@ -18,6 +18,9 @@ public:
 public:
     // RadosCluster_base
     virtual result_t connect(AsyncEvent* ac);
+    virtual result_t createPool(exlib::string poolName, int64_t auid, int32_t crushRule, AsyncEvent* ac);
+    virtual result_t listPool(obj_ptr<List_base>& retVal, AsyncEvent* ac);
+    virtual result_t deletePool(exlib::string poolName, AsyncEvent* ac);
     virtual result_t createIoCtx(exlib::string poolName, obj_ptr<RadosIoCtx_base>& retVal, AsyncEvent* ac);
     virtual result_t shutdown(AsyncEvent* ac);
 

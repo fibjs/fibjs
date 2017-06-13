@@ -8,6 +8,7 @@
 #include "object.h"
 #include "RadosStream.h"
 #include "RadosStat.h"
+#include "Stat.h"
 #include "Buffer.h"
 #include <exlib/include/fiber.h>
 
@@ -449,6 +450,24 @@ result_t RadosStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 
 result_t RadosStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
+	if (!ac)
+		return CHECK_ERROR(CALL_E_NOSYNC);
+
+	result_t hr;
+	obj_ptr<Stat> st = new Stat();
+	obj_ptr<RadosStat_base> stat;
+
+	hr = cc_radosStat(stat);
+	if (hr < 0)
+		return hr;
+
+	st->init();
+	stat->get_size(st->size);
+	stat->get_mtime(st->mtime);
+	st->ctime = st->mtime;
+
+	retVal = st;
+
 	return 0;
 }
 
