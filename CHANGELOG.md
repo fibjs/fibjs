@@ -1,3 +1,15 @@
+## 2017-06-13, Version v0.4.1 @ngot
+
+* **bugfix** :
+  * global: fix require error in repl.
+  * process: fix run error when using PATH environment variable on linux.
+
+### Commits
+
+* [[`877fb216e1`](https://github.com/fibjs/fibjs/commit/877fb216e1)] - **global, fixbug**: fix require error in repl. (ngot)
+* [[`4f55d674d8`](https://github.com/fibjs/fibjs/commit/4f55d674d8)] - **core, chore**: set the vender branch to 0.4.x (ngot)
+* [[`c37c460f94`](https://github.com/fibjs/fibjs/commit/c37c460f94)] - **process, fixbug**: fix run error when using PATH environment variable on linux. (ngot)
+
 ## 2017-06-10, Version v0.4.0 @ngot
 
 * **feature** :
