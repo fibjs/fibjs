@@ -6,7 +6,6 @@ var hash = require("hash");
 var fs = require("fs");
 var os = require("os");
 var encoding = require("encoding");
-var hex = require("hex");
 
 var rsa1024_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
     "MIICXQIBAAKBgQDSbmW8qlarL0lLu1XYcg+ocJgcuq5K7EgLcXyy2shAsko7etmZ\n" +
@@ -176,18 +175,14 @@ describe('crypto', () => {
 
                     if (item.length == 7)
                         c = new crypto.Cipher(provider, mode,
-                            hex.decode(item[3]), hex.decode(item[6]));
-                    else if (item.length == 6) {
-                        var k = hex.decode(item[3]);
-                        console.log(item[3], k)
-
+                            encoding.hex.decode(item[3]), encoding.hex.decode(item[6]));
+                    else if (item.length == 6)
                         c = new crypto.Cipher(provider, mode,
-                            hex.decode(item[3]));
-                    }
+                            encoding.hex.decode(item[3]));
 
                     if (mode == crypto.CBC)
                         c.paddingMode(crypto.NOPADDING);
-                    assert.equal(c[item[1]](hex.decode(item[4])).hex(), item[5], item[0]);
+                    assert.equal(c[item[1]](encoding.hex.decode(item[4])).hex(), item[5], item[0]);
                 });
 
             });
@@ -733,28 +728,28 @@ describe('crypto', () => {
     it('pbkdf1', () => {
         var tests = [
             [hash.SHA1, 'password', 'salt', 1, 20,
-                hex.decode('c88e9c67041a74e0357befdff93f87dde0904214'),
+                encoding.hex.decode('c88e9c67041a74e0357befdff93f87dde0904214'),
                 'sha1'
             ],
             [hash.SHA256, 'password', 'salt', 2, 20,
-                hex.decode('a6b9d96cc74d52749372886896349c07e2137fe8'),
+                encoding.hex.decode('a6b9d96cc74d52749372886896349c07e2137fe8'),
                 'sha256'
             ],
             [hash.MD5, 'password', '', 1, 32,
-                hex.decode('5F4DCC3B5AA765D61D8327DEB882CF992B95990A9151374ABD8FF8C5A7A0FE08'),
+                encoding.hex.decode('5F4DCC3B5AA765D61D8327DEB882CF992B95990A9151374ABD8FF8C5A7A0FE08'),
                 'md5'
             ],
             [hash.MD5, '', '', 1, 32,
-                hex.decode('D41D8CD98F00B204E9800998ECF8427E59ADB24EF3CDBE0297F05B395827453F'),
+                encoding.hex.decode('D41D8CD98F00B204E9800998ECF8427E59ADB24EF3CDBE0297F05B395827453F'),
                 'md5'
             ],
-            [hash.MD5, '', hex.decode('E3936A9A8ACFE9BE'), 1, 32,
-                hex.decode('E9FAB75961E5DE62D6982C3F569114A5652D875150F652F75154666E1FD0E8AC'),
+            [hash.MD5, '', encoding.hex.decode('E3936A9A8ACFE9BE'), 1, 32,
+                encoding.hex.decode('E9FAB75961E5DE62D6982C3F569114A5652D875150F652F75154666E1FD0E8AC'),
                 'md5'
             ],
             [hash.MD5, '012345678910111231415161717',
-                hex.decode('F7560045C70A96DB'), 1, 32,
-                hex.decode('2E14B2EC7E2F8CDC18F15BB773CCD6F25C8AADA268F9B86F960DF0464AE5E981'),
+                encoding.hex.decode('F7560045C70A96DB'), 1, 32,
+                encoding.hex.decode('2E14B2EC7E2F8CDC18F15BB773CCD6F25C8AADA268F9B86F960DF0464AE5E981'),
                 'md5'
             ]
         ];

@@ -45,7 +45,7 @@ var backend = {
 function del(f) {
     try {
         fs.unlink(f);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 describe("net", () => {
@@ -139,8 +139,8 @@ describe("net", () => {
 
                 // c.write(str);
 
-                fs.writeFile(__dirname + '/net_temp_000001' + base_port, str);
-                var f = fs.open(__dirname + '/net_temp_000001' + base_port);
+                fs.writeFile('net_temp_000001' + base_port, str);
+                var f = fs.open('net_temp_000001' + base_port);
                 assert.equal(f.copyTo(c), str.length);
                 f.close();
                 c.close();
@@ -158,12 +158,12 @@ describe("net", () => {
             var c1 = new net.Socket();
             c1.connect('127.0.0.1', 8081 + base_port);
 
-            var f1 = fs.open(__dirname + '/net_temp_000002' + base_port, 'w');
+            var f1 = fs.open('net_temp_000002' + base_port, 'w');
             assert.equal(c1.copyTo(f1), str.length);
             c1.close();
             f1.close();
 
-            assert.equal(str, fs.readTextFile(__dirname + '/net_temp_000002' + base_port));
+            assert.equal(str, fs.readTextFile('net_temp_000002' + base_port));
         }
 
         for (var i = 0; i < 100; i++)
@@ -174,8 +174,8 @@ describe("net", () => {
 
         t_conn();
 
-        del(__dirname + '/net_temp_000001' + base_port);
-        del(__dirname + '/net_temp_000002' + base_port);
+        del('net_temp_000001' + base_port);
+        del('net_temp_000002' + base_port);
     });
 
     it("read & recv", () => {
@@ -393,9 +393,9 @@ describe("net", () => {
     });
 
     it("bind same port", () => {
-        var svr = new net.TcpServer(8811 + base_port, (c) => {});
+        var svr = new net.TcpServer(8811 + base_port, (c) => { });
         assert.throws(() => {
-            new net.TcpServer(8811 + base_port, (c) => {});
+            new net.TcpServer(8811 + base_port, (c) => { });
         });
         ss.push(svr.socket);
     });
@@ -491,7 +491,7 @@ describe("net", () => {
         GC();
         no1 = test_util.countObject('Socket');
 
-        ss = new net.TcpServer(9812, (c) => {});
+        ss = new net.TcpServer(9812, (c) => { });
         coroutine.start(() => {
             ss.run();
         });
@@ -504,7 +504,7 @@ describe("net", () => {
         GC();
         assert.equal(no1, test_util.countObject('Socket'));
 
-        ss = new net.TcpServer(9813, (c) => {});
+        ss = new net.TcpServer(9813, (c) => { });
         ss.asyncRun();
 
         coroutine.sleep(50);
@@ -516,7 +516,7 @@ describe("net", () => {
         assert.equal(no1, test_util.countObject('Socket'));
 
         (() => {
-            var s = new net.TcpServer(9884, () => {});
+            var s = new net.TcpServer(9884, () => { });
         })();
 
         coroutine.sleep(50);

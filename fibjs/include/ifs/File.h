@@ -25,6 +25,9 @@ class File_base : public SeekableStream_base {
 public:
     // File_base
     virtual result_t get_name(exlib::string& retVal) = 0;
+    virtual result_t truncate(int64_t bytes, AsyncEvent* ac) = 0;
+    virtual result_t eof(bool& retVal) = 0;
+    virtual result_t flush(AsyncEvent* ac) = 0;
     virtual result_t chmod(int32_t mode, AsyncEvent* ac) = 0;
 
 public:
@@ -40,9 +43,14 @@ public:
 
 public:
     static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_eof(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
+    ASYNC_MEMBER1(File_base, truncate, int64_t);
+    ASYNC_MEMBER0(File_base, flush);
     ASYNC_MEMBER1(File_base, chmod, int32_t);
 };
 }
@@ -51,6 +59,9 @@ namespace fibjs {
 inline ClassInfo& File_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "truncate", s_truncate, false },
+        { "eof", s_eof, false },
+        { "flush", s_flush, false },
         { "chmod", s_chmod, false }
     };
 
@@ -78,6 +89,54 @@ inline void File_base::s_get_name(v8::Local<v8::String> property, const v8::Prop
     hr = pInst->get_name(vr);
 
     METHOD_RETURN();
+}
+
+inline void File_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(File_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(int64_t, 0);
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_truncate(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_truncate(v0);
+
+    METHOD_VOID();
+}
+
+inline void File_base::s_eof(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(File_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->eof(vr);
+
+    METHOD_RETURN();
+}
+
+inline void File_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(File_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_flush(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_flush();
+
+    METHOD_VOID();
 }
 
 inline void File_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)

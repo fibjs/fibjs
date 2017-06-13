@@ -25,12 +25,6 @@ public:
         _SECOND = 5
     };
 
-    class Part {
-    public:
-        int32_t wYear, wMonth, wHour, wMinute,
-            wSecond, wDayOfWeek, wDay, wMillisecond;
-    };
-
 public:
     date_t(double v = NAN)
         : d(v)
@@ -62,8 +56,6 @@ public:
 
     void create(int32_t Y, int32_t M, int32_t D, int32_t h, int32_t m, int32_t s, int32_t ms);
     void fromDosTime(int32_t tm);
-
-    Part getdate() const;
 
     date_t& operator=(double v)
     {

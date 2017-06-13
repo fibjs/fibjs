@@ -71,7 +71,18 @@ exlib::string getResultMessage(result_t hr)
         // CALL_E_JAVASCRIPT
         "Javascript error.",
         // CALL_E_PERMIT
-        "Permission denied"
+        "Permission denied",
+        // CALL_E_CANNOTLOADLIBRARY
+        "Cannot load library",
+        // CALL_E_INVALIDLIBRARYHANDLE
+        "Invalid library handle",
+        // CALL_E_INVALIDSYMBOLNAME
+        "Invalid symbol name",
+        // CALL_E_SYMBOLNOTFOUND
+        "Symbol not found",
+        // CALL_E_SYMBOLNOTGLOBAL
+        "Symbol is not global"
+
     };
 
     if (hr == CALL_E_EXCEPTION) {

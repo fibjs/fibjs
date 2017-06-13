@@ -1,0 +1,51 @@
+/*! @brief rados集群操作对象，用于创建对rados集群进行读写的ioctx
+
+ rados集群对象，用于创建对rados集群进行存取的ioctx对象，可使用 rados 模块创建
+ @code
+ var rados = require('rados');
+ var cluster = new rados.Rados('clusterName', 'userName', '/path/to/myceph.conf');
+ cluster.connect();
+ var io = cluster.createIoCtx('poolName');
+ var s = io.open('key');
+ s.write('hello key');
+ console.log(s.readAll().toString());
+ @endcode
+ */
+interface RadosCluster
+{
+
+	/*! RadosCluster 构造方法, 创建连接rados集群的客户端
+	 @param clusterName 指定要连接的集群的名称
+	 @param userName 指定连接者的用户名
+	 @param confPath 指定配置文件路径
+	*/
+	RadosCluster(String clusterName, String userName, String confPath);
+
+    /*! @brief 连接rados服务器集群 */
+    connect() async;
+
+    /*! @brief 创建一个pool 
+     @param poolName 新创建的pool的名字
+     @param auid 新创建的pool的拥有者的id, 默认为0
+     @param crushRule 新建的pool的存储规则, 默认为0
+    */
+    createPool(String poolName, Long auid = 0, Integer crushRule = 0) async;
+
+    /*! @brief 列出集群内所有的pool
+     @return 集群内所有pool的名称列表
+    */
+    List listPool() async;
+
+    /*! @brief 删除一个pool 
+     @param poolName 将要删除的pool的名称
+    */
+    deletePool(String poolName) async;
+
+    /*! @brief 创建一个io上下文 
+     @param poolName 指定在poolName 上创建io上下文
+    */
+    RadosIoCtx createIoCtx(String poolName) async;
+
+    /*! @brief 关闭集群连接 */
+    shutdown() async;
+};

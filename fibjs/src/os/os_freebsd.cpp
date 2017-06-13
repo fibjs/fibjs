@@ -21,7 +21,6 @@
 #include <sys/sysctl.h>
 #include <vm/vm_param.h>
 #include <stdlib.h>
-#include "path.h"
 
 #undef NANOSEC
 #define NANOSEC ((uint64_t)1e9)
@@ -235,8 +234,8 @@ result_t os_base::get_execPath(exlib::string& retVal)
 
     if (sysctl(mib, 4, exeName, &size, NULL, 0) < 0)
         return CHECK_ERROR(LastError());
-    path_base::normalize(exeName, retVal);
 
+    retVal = exeName;
     return 0;
 }
 

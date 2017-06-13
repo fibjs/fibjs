@@ -16,7 +16,6 @@
 #include "BufferedStream.h"
 #include "MemoryStream.h"
 #include "Map.h"
-#include "list"
 
 #ifndef _WIN32
 #include <dirent.h>
@@ -43,21 +42,17 @@ namespace fibjs {
 
 DECLARE_MODULE(fs);
 
-class cache_node : public obj_base {
-public:
-    exlib::string m_name;
-    date_t m_date;
-    obj_ptr<List_base> m_list;
-};
-
-static std::list<obj_ptr<cache_node>> s_cache;
 static exlib::spinlock s_cachelock;
+static std::map<exlib::string, obj_ptr<List_base>> s_cache;
+static date_t s_date;
 
 void init_fs()
 {
 #ifndef _WIN32
     ::umask(0);
 #endif
+
+    s_date.now();
 }
 
 result_t fs_base::open(exlib::string fname, exlib::string flags,
@@ -92,43 +87,26 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
         }
 #endif
 
-        obj_ptr<cache_node> _node;
-        std::list<obj_ptr<cache_node>>::iterator it;
-
-        date_t _now;
-        _now.now();
+        obj_ptr<List_base> list;
+        std::map<exlib::string, obj_ptr<List_base>>::iterator it;
 
         s_cachelock.lock();
-        while ((it = s_cache.begin()) != s_cache.end())
-            if (_now.diff((*it)->m_date) > 3000)
-                s_cache.erase(it);
-            else
-                break;
-
-        for (it = s_cache.begin(); it != s_cache.end(); ++it)
-            if ((*it)->m_name == zip_file) {
-                _node = *it;
-                break;
-            }
+        it = s_cache.find(zip_file);
+        if (it != s_cache.end())
+            list = it->second;
         s_cachelock.unlock();
 
-        if (_node == NULL) {
+        if (list == NULL) {
             hr = zip_base::cc_open(zip_file, "r", zip_base::_ZIP_DEFLATED, zfile);
             if (hr < 0)
                 return hr;
 
-            obj_ptr<List_base> list;
             hr = zfile->cc_readAll("", list);
             if (hr < 0)
                 return hr;
 
-            _node = new cache_node();
-            _node->m_name = zip_file;
-            _node->m_list = list;
-            _node->m_date.now();
-
             s_cachelock.lock();
-            s_cache.push_back(_node);
+            s_cache.insert(std::pair<exlib::string, obj_ptr<List_base>>(zip_file, list));
             s_cachelock.unlock();
         }
 
@@ -136,13 +114,13 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
         bool bFound = false;
         obj_ptr<ZipInfo_base> zi;
 
-        _node->m_list->get_length(len);
+        list->get_length(len);
 
         for (i = 0; i < len; i++) {
             Variant v;
             exlib::string s;
 
-            _node->m_list->_indexed_getter(i, v);
+            list->_indexed_getter(i, v);
             zi = ZipInfo_base::getInstance(v.object());
 
             zi->get_filename(s);
@@ -164,17 +142,10 @@ result_t fs_base::open(exlib::string fname, exlib::string flags,
         if (!bFound)
             return CALL_E_FILE_NOT_FOUND;
 
-        date_t _d;
-
         zi->get_data(data);
         if (data)
             data->toString(strData);
-
-        zi->get_date(_d);
-        if (_d.empty())
-            _d = _node->m_date;
-
-        retVal = new MemoryStream::CloneStream(strData, _d);
+        retVal = new MemoryStream::CloneStream(strData, s_date);
     } else {
         obj_ptr<File> pFile = new File();
         result_t hr;
@@ -619,7 +590,9 @@ result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
     if (attr == INVALID_FILE_ATTRIBUTES)
         return CHECK_ERROR(LastError());
 
-    if (mode & W_OK && attr & FILE_ATTRIBUTE_READONLY && !(attr & FILE_ATTRIBUTE_DIRECTORY))
+    if (mode & W_OK &&
+            attr & FILE_ATTRIBUTE_READONLY &&
+            !(attr & FILE_ATTRIBUTE_DIRECTORY))
         return CHECK_ERROR(CALL_E_PERMIT);
 
     return 0;
@@ -726,13 +699,12 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
     HANDLE file;
 
     if ((file = CreateFileW(UTF8_W(path),
-             GENERIC_WRITE,
-             FILE_SHARE_WRITE,
-             NULL,
-             CREATE_NEW | OPEN_EXISTING,
-             FILE_ATTRIBUTE_NORMAL,
-             NULL))
-        == INVALID_HANDLE_VALUE)
+                            GENERIC_WRITE,
+                            FILE_SHARE_WRITE,
+                            NULL,
+                            CREATE_NEW | OPEN_EXISTING,
+                            FILE_ATTRIBUTE_NORMAL,
+                            NULL)) == INVALID_HANDLE_VALUE)
         return CHECK_ERROR(LastError());
 
     if (SetFilePointer(file, (LONG)len, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
@@ -908,4 +880,5 @@ result_t fs_base::appendFileSync(exlib::string fname, Buffer_base* data)
 {
     return ac_appendFile(fname, data);
 }
+
 }

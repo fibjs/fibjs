@@ -1,0 +1,13 @@
+
+/*! @brief rados模块
+
+ 使用方法：
+ @code
+ var rados = require('rados');
+ @endcode
+ */
+module rados
+{
+    /*! 创建一个rados cluster, 用于连接rados服务器集群*/
+    static RadosCluster new Rados();
+};

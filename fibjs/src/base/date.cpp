@@ -270,9 +270,13 @@ void date_t::parse(const char* str, int32_t len)
     const char *monstr, *timstr = NULL, *tzstr = NULL;
     static const int32_t months[12] = {
         ('J' << 16) | ('a' << 8) | 'n', ('F' << 16) | ('e' << 8) | 'b',
-        ('M' << 16) | ('a' << 8) | 'r', ('A' << 16) | ('p' << 8) | 'r', ('M' << 16) | ('a' << 8) | 'y',
+        ('M' << 16) | ('a' << 8) | 'r', ('A' << 16) | ('p' << 8) | 'r', ('M'
+                                                                            << 16)
+            | ('a' << 8) | 'y',
         ('J' << 16) | ('u' << 8) | 'n',
-        ('J' << 16) | ('u' << 8) | 'l', ('A' << 16) | ('u' << 8) | 'g', ('S' << 16) | ('e' << 8) | 'p',
+        ('J' << 16) | ('u' << 8) | 'l', ('A' << 16) | ('u' << 8) | 'g', ('S'
+                                                                            << 16)
+            | ('e' << 8) | 'p',
         ('O' << 16) | ('c' << 8) | 't',
         ('N' << 16) | ('o' << 8) | 'v', ('D' << 16) | ('e' << 8) | 'c'
     };
@@ -482,63 +486,61 @@ void inline putInt(char*& ptrBuf, int32_t v, int32_t n)
     ptrBuf += n1;
 }
 
-inline date_t::Part _getdate(double d)
-{
-    date_t::Part p;
+class _date_split {
+public:
+    _date_split(double d)
+    {
+        wYear = 0;
+        wMonth = 1;
+        wHour = 0;
+        wMinute = 0;
+        wSecond = 0;
+        wDayOfWeek = 0;
 
-    p.wYear = 0;
-    p.wMonth = 1;
-    p.wHour = 0;
-    p.wMinute = 0;
-    p.wSecond = 0;
-    p.wDayOfWeek = 0;
+        int64_t d1 = (int64_t)(d + 62135596800000ll);
+        int32_t NumberOf400s, NumberOf100s, NumberOf4s;
 
-    int64_t d1 = (int64_t)(d + 62135596800000ll);
-    int32_t NumberOf400s, NumberOf100s, NumberOf4s;
+        wDay = (int32_t)(d1 / 86400000);
+        wMillisecond = d1 % 86400000;
 
-    p.wDay = (int32_t)(d1 / 86400000);
-    p.wMillisecond = d1 % 86400000;
+        wDayOfWeek = (int16_t)((wDay + 1) % 7);
 
-    p.wDayOfWeek = (int16_t)((p.wDay + 1) % 7);
+        NumberOf400s = wDay / 146097;
+        wDay -= NumberOf400s * 146097;
 
-    NumberOf400s = p.wDay / 146097;
-    p.wDay -= NumberOf400s * 146097;
+        NumberOf100s = (wDay * 100 + 75) / 3652425;
+        wDay -= NumberOf100s * 36524;
 
-    NumberOf100s = (p.wDay * 100 + 75) / 3652425;
-    p.wDay -= NumberOf100s * 36524;
+        NumberOf4s = wDay / 1461;
+        wDay -= NumberOf4s * 1461;
 
-    NumberOf4s = p.wDay / 1461;
-    p.wDay -= NumberOf4s * 1461;
+        wYear = (NumberOf400s * 400) + (NumberOf100s * 100) + (NumberOf4s * 4)
+            + (wDay * 100 + 75) / 36525 + 1;
 
-    p.wYear = (NumberOf400s * 400) + (NumberOf100s * 100) + (NumberOf4s * 4)
-        + (p.wDay * 100 + 75) / 36525 + 1;
+        wDay = wDay - (wDay * 100 + 75) / 36525 * 365;
 
-    p.wDay = p.wDay - (p.wDay * 100 + 75) / 36525 * 365;
+        if (IsLeapYear(wYear)) {
+            wMonth = LeapYearDayToMonth[wDay];
+            wDay = wDay - LeapYearDaysPrecedingMonth[wMonth];
+        } else {
+            wMonth = NormalYearDayToMonth[wDay];
+            wDay = wDay - NormalYearDaysPrecedingMonth[wMonth];
+        }
 
-    if (IsLeapYear(p.wYear)) {
-        p.wMonth = LeapYearDayToMonth[p.wDay];
-        p.wDay = p.wDay - LeapYearDaysPrecedingMonth[p.wMonth];
-    } else {
-        p.wMonth = NormalYearDayToMonth[p.wDay];
-        p.wDay = p.wDay - NormalYearDaysPrecedingMonth[p.wMonth];
+        wSecond = wMillisecond / 1000;
+        wMillisecond = wMillisecond % 1000;
+
+        wMinute = wSecond / 60;
+        wSecond = wSecond % 60;
+
+        wHour = wMinute / 60;
+        wMinute = wMinute % 60;
     }
 
-    p.wSecond = p.wMillisecond / 1000;
-    p.wMillisecond = p.wMillisecond % 1000;
-
-    p.wMinute = p.wSecond / 60;
-    p.wSecond = p.wSecond % 60;
-
-    p.wHour = p.wMinute / 60;
-    p.wMinute = p.wMinute % 60;
-
-    return p;
-}
-
-date_t::Part date_t::getdate() const
-{
-    return _getdate(d);
-}
+public:
+    int32_t wYear, wMonth, wHour, wMinute,
+        wSecond, wDayOfWeek, wDay, wMillisecond;
+};
 
 void date_t::toGMTString(exlib::string& retVal)
 {
@@ -551,7 +553,7 @@ void date_t::toGMTString(exlib::string& retVal)
     };
     static char szDays[][4] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 
-    Part ds = _getdate(d);
+    _date_split ds(d);
 
     retVal.resize(29);
     char* ptrBuf = &retVal[0];
@@ -577,7 +579,7 @@ void date_t::toX509String(exlib::string& retVal)
     if (isnan(d))
         return;
 
-    Part ds = _getdate(d);
+    _date_split ds(d);
 
     retVal.resize(14);
     char* ptrBuf = &retVal[0];
@@ -595,7 +597,7 @@ void date_t::sqlString(exlib::string& retVal)
     if (isnan(d))
         return;
 
-    Part ds = _getdate((double)s_dc->ToLocal((int64_t)d));
+    _date_split ds((double)s_dc->ToLocal((int64_t)d));
 
     retVal.resize(19);
     char* ptrBuf = &retVal[0];
@@ -618,7 +620,7 @@ void date_t::stamp(exlib::string& retVal)
     if (isnan(d))
         return;
 
-    Part ds = _getdate((double)s_dc->ToLocal((int64_t)d));
+    _date_split ds((double)s_dc->ToLocal((int64_t)d));
 
     retVal.resize(14);
     char* ptrBuf = &retVal[0];
@@ -645,7 +647,7 @@ void date_t::add(int32_t num, int32_t part)
     else if (part == _DAY)
         d += (int64_t)num * 60 * 60 * 24 * 1000;
     else {
-        Part ds = _getdate(d);
+        _date_split ds(d);
         int32_t day = MaxDaysInMonth(ds.wYear, ds.wMonth) - 1;
         bool isLastday = ds.wDay == day;
 
@@ -688,7 +690,7 @@ void date_t::fix(int32_t part)
     else if (part == _DAY)
         d = (double)((int64_t)d / (60 * 60 * 24 * 1000)) * 60 * 60 * 24 * 1000;
     else {
-        Part ds = _getdate(d);
+        _date_split ds(d);
 
         if (part == _MONTH)
             create(ds.wYear, ds.wMonth + 1, 1, 0, 0, 0, 0);

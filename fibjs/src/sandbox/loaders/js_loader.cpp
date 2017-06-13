@@ -27,7 +27,9 @@ result_t JsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
 
         exlib::string strScript;
 
-        src->toString(strScript);
+        if (src)
+            src->toString(strScript);
+
         const char* c_str = strScript.c_str();
 
         if (strScript.length() > 2 && c_str[0] == '#' && c_str[1] == '!') {

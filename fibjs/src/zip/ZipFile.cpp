@@ -729,22 +729,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
             return hr;
     }
 
-    zip_fileinfo zi = { 0 };
-    date_t d;
-    date_t::Part dp;
-
-    d.now();
-    d.toLocal();
-    dp = d.getdate();
-
-    zi.tmz_date.tm_year = dp.wYear;
-    zi.tmz_date.tm_mon = dp.wMonth;
-    zi.tmz_date.tm_mday = dp.wDay + 1;
-    zi.tmz_date.tm_hour = dp.wHour;
-    zi.tmz_date.tm_min = dp.wMinute;
-    zi.tmz_date.tm_sec = dp.wSecond;
-
-    err = zipOpenNewFileInZip3_64(m_zip, filename.c_str(), &zi, NULL,
+    err = zipOpenNewFileInZip3_64(m_zip, filename.c_str(), NULL, NULL,
         0, NULL, 0, NULL, m_compress_type == zip_base::_ZIP_STORED ? 0 : Z_DEFLATED,
         Z_DEFAULT_COMPRESSION, 0, -MAX_WBITS,
         DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,

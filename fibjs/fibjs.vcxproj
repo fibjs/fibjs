@@ -510,10 +510,7 @@
     <ClCompile Include="src\profiler\HeapProxy.cpp" />
     <ClCompile Include="src\profiler\HeapSnapshot.cpp" />
     <ClCompile Include="src\sandbox\SandBox.cpp" />
-    <ClCompile Include="src\sandbox\SandBox_context.cpp" />
     <ClCompile Include="src\sandbox\SandBox_repl.cpp" />
-    <ClCompile Include="src\sandbox\SandBox_require.cpp" />
-    <ClCompile Include="src\sandbox\SandBox_resovle.cpp" />
     <ClCompile Include="src\sandbox\SandBox_run.cpp" />
     <ClCompile Include="src\sandbox\loaders\base_loader.cpp" />
     <ClCompile Include="src\sandbox\loaders\js_loader.cpp" />

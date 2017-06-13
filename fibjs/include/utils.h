@@ -167,6 +167,16 @@ typedef int32_t result_t;
 #define CALL_E_JAVASCRIPT (CALL_E_MAX - 23)
 // Permission denied
 #define CALL_E_PERMIT (CALL_E_MAX - 24)
+// Cannot load library
+#define CALL_E_CANNOTLOADLIBRARY (CALL_E_MAX - 25)
+// Invalid library handle
+#define CALL_E_INVALIDLIBRARYHANDLE (CALL_E_MAX - 26)
+// Invalid symbol name
+#define CALL_E_INVALIDSYMBOLNAME (CALL_E_MAX - 27)
+// Symbol not found
+#define CALL_E_SYMBOLNOTFOUND (CALL_E_MAX - 28)
+// Symbol is not globa
+#define CALL_E_SYMBOLNOTGLOBAL (CALL_E_MAX - 29)
 
 #define CALL_E_MIN -100100
 

@@ -189,8 +189,6 @@ result_t hex_base::decode(exlib::string data,
 
         strBuf[pos++] = (ch1 << 4) + ch2;
     }
-
-    strBuf.resize(pos);
     retVal = new Buffer(strBuf);
 
     return 0;

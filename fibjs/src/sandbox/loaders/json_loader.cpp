@@ -15,9 +15,10 @@ result_t JsonLoader::run_module(SandBox::Context* ctx, Buffer_base* src,
     exlib::string name, v8::Local<v8::Object> module, v8::Local<v8::Object> exports)
 {
     exlib::string strScript;
-    v8::Local<v8::Value> v;
+    if (src)
+        src->toString(strScript);
 
-    src->toString(strScript);
+    v8::Local<v8::Value> v;
     result_t hr = json_base::decode(strScript, v);
     if (hr < 0)
         return hr;

@@ -51,9 +51,10 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
     bool redirect, obj_ptr<SubProcess_base>& retVal)
 {
     int32_t err = 0;
-    pid_t pid = 0;
+    pid_t pid;
     result_t hr;
     posix_spawn_file_actions_t fops;
+    posix_spawnattr_t attr;
     std::vector<exlib::string> argStr;
     std::vector<char*> _args;
     int32_t len = args->Length();
@@ -83,17 +84,26 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
     }
     _args[i + 1] = NULL;
 
+    posix_spawnattr_init(&attr);
+    posix_spawn_file_actions_init(&fops);
+
     if (redirect) {
-        if (pipe(cout_pipe))
+        if (pipe(cout_pipe)) {
+            posix_spawn_file_actions_destroy(&fops);
+            posix_spawnattr_destroy(&attr);
+
             return CHECK_ERROR(LastError());
+        }
 
         if (pipe(cin_pipe)) {
             ::close(cout_pipe[0]);
             ::close(cout_pipe[1]);
+
+            posix_spawn_file_actions_destroy(&fops);
+            posix_spawnattr_destroy(&attr);
+
             return CHECK_ERROR(LastError());
         }
-
-        posix_spawn_file_actions_init(&fops);
 
         posix_spawn_file_actions_adddup2(&fops, cin_pipe[0], 0);
         posix_spawn_file_actions_adddup2(&fops, cout_pipe[1], 1);
@@ -142,16 +152,15 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         envp.push_back(&envstr[i][0]);
     envp.push_back(NULL);
 
-    errno = 0;
-    err = posix_spawnp(&pid, command.c_str(), redirect ? &fops : NULL,
-        NULL, _args.data(), &envp[0]);
+    err = posix_spawnp(&pid, command.c_str(), &fops, &attr, _args.data(), &envp[0]);
 
     if (redirect) {
         ::close(cin_pipe[0]);
         ::close(cout_pipe[1]);
-
-        posix_spawn_file_actions_destroy(&fops);
     }
+
+    posix_spawn_file_actions_destroy(&fops);
+    posix_spawnattr_destroy(&attr);
 
     if (err != 0) {
         if (redirect) {
@@ -159,7 +168,8 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
             ::close(cout_pipe[0]);
         }
 
-        return CHECK_ERROR(-err);
+        errno = err;
+        return CHECK_ERROR(LastError());
     }
 
     obj_ptr<SubProcess> sub = new SubProcess(pid);

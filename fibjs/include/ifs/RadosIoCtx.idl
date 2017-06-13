@@ -1,0 +1,87 @@
+/*! @brief rados 集群读写io上下文对象，用于打开和关闭kv存储
+
+ rados集群读写io上下文对象，可使用 RadosCluster 对象创建
+ @code
+ var rados = require('rados');
+ var cluster = new rados.Rados('clusterName', 'userName', '/path/to/myceph.conf');
+ cluster.connect();
+ var io = cluster.createIoCtx('poolName');
+ var s = io.open('key');
+ s.write('hello key');
+ console.log(s.readAll().toString());
+ @endcode
+ */
+interface RadosIoCtx
+{
+    /*! @brief 打开一个kv对象 
+     @param key 被打开对象的key
+    */
+    RadosStream open(String key);
+
+    /*! @brief 删除一个kv对象 
+     @param key 被删除的对象的key
+    */
+    remove(String key) async;
+    
+    /*! @brief 为一个pool创建一个快照
+     @param snapname 创建的快照的名称
+    */
+    createSnap(String snapname) async;
+
+    /*! @brief 删除一个快照
+     @param snapname 删除的快照的名称
+    */
+    removeSnap(String snapname) async;
+
+    /*! @brief 回滚某个key到指定的快照的状态
+     @param oid 指定的key
+     @param snapname 回滚的快照名称
+    */
+    rollbackSnap(String oid, String snapname) async;
+  
+    /*! @brief 列出当前pool内所有的key
+     @return 列出的所有key的列表
+    */
+    List listOids() async;
+
+    /*! @brief 列出当前pool中匹配reg正则表达式的所有key
+     @param reg 为列出的key指定正则
+     @return 列出的匹配reg的key的列表
+    */
+    List listOids(Regex reg) async;
+
+    /*! @brief 获取指定的key的指定属性值
+     @param oid 指定的key
+     @param attr 指定的属性
+     @return 获取的属性值
+    */
+    String getXattr(String oid, String attr) async;
+  
+    /*! @brief 设置指定key的指定属性的值
+     @param oid 指定的key
+     @param attr 指定的属性
+     @param value 设置的属性的值
+    */
+    setXattr(String oid, String attr, String value) async;
+  
+    /*! @brief 删除指定key的指定属性
+     @param oid 指定的key
+     @param attr 指定的属性
+    */
+    rmXattr(String oid, String attr) async;
+  
+    /*! @brief 获取指定key的所有属性
+     @param oid 指定的key
+     @return 获取的所有属性的集合, 格式如下
+     @code
+     {  
+        'foo': 'bar',
+        'foo1': 'bar1'
+     },
+     @endcode
+    */
+    Object getXattrs(String oid) async;
+
+    /*! @brief 销毁一个io上下文 */
+    destroy() async;
+};

@@ -25,21 +25,8 @@ interface SandBox : object
      */
     SandBox(Object mods, Function require);
 
-    /*! @brief 构造一个独立 Global 新的安全沙箱对象，并初始化基础模块
-     @param mods 指定要添加的模块对象字典
-     @param global 指定初始化的 Global 属性
-     */
-    SandBox(Object mods, Object global);
-
-    /*! @brief 构造一个独立 Global 新的安全沙箱对象，并初始化基础模块
-     @param mods 指定要添加的模块对象字典
-     @param require 自定义 require 函数，当模块不存在时，先调用自定义函数，无返回再从文件中加载
-     @param global 指定初始化的 Global 属性
-     */
-    SandBox(Object mods, Function require, Object global);
-
     /*! @brief 向沙箱中添加一个基础模块
-     @param id 指定要添加的模块名称，此路径与当前运行脚本无关，必须为绝对路径或者模块名
+     @param id 指定要添加的模块名称
      @param mod 指定要添加的模块对象
      */
     add(String id, Value mod);
@@ -57,7 +44,7 @@ interface SandBox : object
     Value addScript(String srcname, Buffer script);
 
     /*! @brief 从沙箱中删除指定的基础模块
-     @param id 指定要删除的模块名称，此路径与当前运行脚本无关，必须为绝对路径或者模块名
+     @param id 指定要删除的模块名称
      */
     remove(String id);
 
@@ -67,25 +54,15 @@ interface SandBox : object
     SandBox clone();
 
     /*! @brief 运行一个脚本
-     @param fname 指定要运行的脚本路径，此路径与当前运行脚本无关，必须为绝对路径
+     @param fname 指定要运行的脚本路径，此路径与当前运行脚本无关，永远从当前工作目录作为起始
      @param argv 指定要运行的参数，此参数可在脚本内使用 argv 获取
      */
     run(String fname, Array argv = []);
 
-    /*! @brief 查询一个模块并返回模块完整文件名
+    /*! @brief 加载一个模块并返回模块对象，更多信息参阅 @ref module
      @param id 指定要加载的模块名称
-     @param base 指定查找路径
-     @return 返回加载的模块完整文件名
-     */
-    String resovle(String id, String base);
-
-    /*! @brief 加载一个模块并返回模块对象
-     @param id 指定要加载的模块名称
-     @param base 指定查找路径
+     @param base 指定查找路径，不设定则从当前工作路径开始
      @return 返回加载的模块对象
      */
-    Value require(String id, String base);
-
-    /*! @brief 查询沙箱的 global 对象 */
-    readonly Object global;
+    Value require(String id, String base = "");
 };

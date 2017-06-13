@@ -455,8 +455,6 @@ WebView::WebView(exlib::string url, Map_base* opt)
     int nHeight = CW_USEDEFAULT;
     bool bSilent = true;
 
-    m_maximize = false;
-
     if (opt) {
         Variant v;
 
@@ -478,10 +476,8 @@ WebView::WebView(exlib::string url, Map_base* opt)
             if (!(opt->get("resizable", v) == 0 && !v.boolVal()))
                 dwStyle ^= WS_THICKFRAME | WS_BORDER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 
-            if (opt->get("maximize", v) == 0 && v.boolVal()) {
-                m_maximize = true;
+            if (opt->get("maximize", v) == 0 && v.boolVal())
                 dwStyle |= WS_MAXIMIZE;
-            }
 
             if (opt->get("visible", v) == 0 && !v.boolVal())
                 m_visible = false;
@@ -520,10 +516,8 @@ WebView::WebView(exlib::string url, Map_base* opt)
 
     hWndParent = CreateWindowExW(0, szWndClassMain, L"", dwStyle, x, y, nWidth, nHeight,
         NULL, NULL, GetModuleHandle(NULL), NULL);
-    if (m_visible) {
-        ShowWindow(hWndParent, m_maximize ? SW_MAXIMIZE : SW_SHOW);
-        m_maximize = false;
-    }
+    if (m_visible)
+        ShowWindow(hWndParent, SW_SHOW);
 
     ::SetRect(&rObject, -300, -300, 300, 300);
 
@@ -825,10 +819,9 @@ result_t WebView::set_visible(bool newVal)
 {
     m_visible = newVal;
 
-    if (m_visible) {
-        ShowWindow(hWndParent, m_maximize ? SW_MAXIMIZE : SW_SHOW);
-        m_maximize = false;
-    } else
+    if (m_visible)
+        ShowWindow(hWndParent, SW_SHOW);
+    else
         ShowWindow(hWndParent, SW_HIDE);
 
     return 0;

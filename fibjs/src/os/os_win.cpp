@@ -547,7 +547,7 @@ result_t os_base::get_execPath(exlib::string& retVal)
     exlib::wchar szFileName[MAX_PATH];
 
     GetModuleFileNameW(NULL, szFileName, MAX_PATH);
-    path_base::normalize(utf16to8String(szFileName), retVal);
+    retVal = utf16to8String(szFileName);
     return 0;
 }
 

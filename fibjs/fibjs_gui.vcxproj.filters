@@ -1337,16 +1337,7 @@
     <ClCompile Include="src\sandbox\SandBox.cpp">
       <Filter>Source Files\sandbox</Filter>
     </ClCompile>
-    <ClCompile Include="src\sandbox\SandBox_context.cpp">
-      <Filter>Source Files\sandbox</Filter>
-    </ClCompile>
     <ClCompile Include="src\sandbox\SandBox_repl.cpp">
-      <Filter>Source Files\sandbox</Filter>
-    </ClCompile>
-    <ClCompile Include="src\sandbox\SandBox_require.cpp">
-      <Filter>Source Files\sandbox</Filter>
-    </ClCompile>
-    <ClCompile Include="src\sandbox\SandBox_resovle.cpp">
       <Filter>Source Files\sandbox</Filter>
     </ClCompile>
     <ClCompile Include="src\sandbox\SandBox_run.cpp">
