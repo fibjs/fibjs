@@ -16,7 +16,7 @@ var poolN = "radospool";
 var oid = "foo";
 var snapshot = "s";
 
-describe('fs', () => {
+describe('rados', () => {
 	it('create cluster', () => {
 		if (win) return;
 		assert.doesNotThrow(() => {
@@ -33,6 +33,11 @@ describe('fs', () => {
 
 	it('create pool', () => {
 		if (win) return;
+		try {
+			radosCluster.deletePool(poolN);
+		} catch (e) {
+			console.error(e.toString());
+		}
 		assert.doesNotThrow(() => {
 			radosCluster.createPool(poolN);
 		})
@@ -54,7 +59,8 @@ describe('fs', () => {
 	it('create ioctx', () => {
 		if (win) return;
 		assert.doesNotThrow(() => {
-			radosIoctx = radosCluster.createIoctx(poolN1);
+			radosCluster.createPool(poolN);
+			radosIoctx = radosCluster.createIoCtx(poolN);
 		});
 	});
 
@@ -65,16 +71,24 @@ describe('fs', () => {
 		});
 	});
 
-
-	it('write & seek & read & readAll', () => {
+	it('write', () => {
 		if (win) return;
 		assert.doesNotThrow(() => {
 			radosStream.write("write test");
 		});
-		assert.equal(radosStream.read(), null);
+	});
 
+	it('seek & read', () => {
+		if (win) return;
+		assert.equal(radosStream.read(), null);
 		radosStream.seek(0, fs.SEEK_SET);
 		assert.equal(radosStream.read().toString(), "write test");
+
+	});
+
+	it('seek & readAll', () => {
+		if (win) return;
+		assert.equal(radosStream.read(), null);
 		radosStream.seek(0, fs.SEEK_SET);
 		assert.equal(radosStream.readAll().toString(), "write test");
 	});
@@ -97,9 +111,9 @@ describe('fs', () => {
 
 	it('rollback snapshot', () => {
 		if (win) return;
-		assert.doesNotThrow(( => {
+		assert.doesNotThrow(() => {
 			radosIoctx.rollbackSnap(oid, snapshot);
-		}))
+		})
 		radosStream.seek(0, fs.SEEK_SET);
 		assert.equal(radosStream.read().toString(), "write test");
 	});
@@ -148,7 +162,7 @@ describe('fs', () => {
 		radosStream.copyTo(stm);
 		stm.seek(0, fs.SEEK_SET);
 		assert.equal(stm.size(), 16);
-		assert.equal(stm.read().toString(), "writeFull te");
+		assert.equal(stm.read().toString(), "writeFull te\u0000\u0000\u0000\u0000");
 		assert.doesNotThrow(() => {
 			stm.close();
 		})
@@ -174,18 +188,9 @@ describe('fs', () => {
 	it('listOids with regexp', () => {
 		if (win) return;
 		var oid1 = "foo1";
-		var reg = re.compile("foo\/d");
+		var reg = re.compile("foo\\d");
 		assert.ok(radosIoctx.listOids(reg).indexOf(oid) == -1);
 		assert.ok(radosIoctx.listOids(reg).indexOf(oid1) > -1);
-	});
-
-	it('remove oid', () => {
-		if (win) return;
-		var oid1 = "foo1";
-		assert.doesNotThrow(() => {
-			radosIoctx.remove(oid1);
-		})
-		assert.ok(radosIoctx.listOids().indexOf(oid1) == -1);
 	});
 
 	it('set xattr', () => {
@@ -193,7 +198,7 @@ describe('fs', () => {
 		var key = "a";
 		var val = "b";
 		assert.doesNotThrow(() => {
-			radosIoctx.setXattr(oid, key, key, val);
+			radosIoctx.setXattr(oid, key, val);
 		})
 	});
 
@@ -210,7 +215,7 @@ describe('fs', () => {
 		assert.doesNotThrow(() => {
 			radosIoctx.rmXattr(oid, key);
 		});
-		assert.throws({
+		assert.throws(() => {
 			radosIoctx.getXattr(oid, key);
 		});
 	});
@@ -219,10 +224,21 @@ describe('fs', () => {
 		if (win) return;
 		radosIoctx.setXattr(oid, 'a', 'A');
 		radosIoctx.setXattr(oid, 'b', 'B');
-		assert.deepEqual(radosIoctx.getXattrs(), {
+		assert.deepEqual(radosIoctx.getXattrs(oid), {
 			a: 'A',
 			b: 'B'
 		})
+	});
+
+	it('remove oid', () => {
+		if (win) return;
+		var oid1 = "foo1";
+		assert.doesNotThrow(() => {
+			radosIoctx.remove(oid1);
+			radosIoctx.remove(oid);
+		})
+		assert.ok(radosIoctx.listOids().indexOf(oid1) == -1);
+		assert.ok(radosIoctx.listOids().indexOf(oid) == -1);
 	});
 
 	it('destroy ioctx', () => {

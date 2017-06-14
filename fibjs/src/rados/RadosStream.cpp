@@ -631,7 +631,7 @@ result_t RadosStream::append(Buffer_base* data, AsyncEvent* ac)
 			}
 			else
 			{
-				m_pThis->seek(0, SEEK_END);
+				m_pThis->m_off.add(m_data.length());
 				ready(0);
 			}
 		}
@@ -646,6 +646,8 @@ result_t RadosStream::append(Buffer_base* data, AsyncEvent* ac)
 		return CHECK_ERROR(CALL_E_NOSYNC);
 
 	exlib::string strBuf;
+
+	seek(0, SEEK_END);
 	data->toString(strBuf);
 
 	return (new asyncAppend(strBuf, this, ac, m_lockWrite))->call();

@@ -150,10 +150,11 @@ result_t RadosIoCtx::listOids(obj_ptr<List_base>& retVal, AsyncEvent* ac)
 	if (hr < 0)
 		return CHECK_ERROR(hr);
 
-	while ((hr = _rados_objects_list_next(m_ioctx, &entry, NULL)) != -ENOENT)
+	while ((hr = _rados_objects_list_next(ctx, &entry, NULL)) != -ENOENT)
 	{
 		if (hr < 0)
 			return CHECK_ERROR(hr);
+
 		oid = entry;
 		data->append(oid);
 	}
@@ -180,7 +181,7 @@ result_t RadosIoCtx::listOids(Regex_base* reg, obj_ptr<List_base>& retVal, Async
 	if (hr < 0)
 		return CHECK_ERROR(hr);
 
-	while ((hr = _rados_objects_list_next(m_ioctx, &entry, NULL)) != -ENOENT)
+	while ((hr = _rados_objects_list_next(ctx, &entry, NULL)) != -ENOENT)
 	{
 		if (hr < 0)
 			return CHECK_ERROR(hr);
