@@ -73,7 +73,7 @@ result_t util_base::sync(v8::Local<v8::Function> func, v8::Local<v8::Function>& 
 {
     Isolate* isolate = Isolate::current();
 
-    retVal = isolate->NewFunction("require", sync_stub, func);
+    retVal = isolate->NewFunction("sync", sync_stub, func);
     retVal->SetPrivate(retVal->CreationContext(),
         v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8("_async")), func);
 
