@@ -34,7 +34,7 @@ var ca_pem = ca.dump()[0];
 function del(f) {
     try {
         fs.unlink(f);
-    } catch (e) { }
+    } catch (e) {}
 }
 
 describe('ssl', () => {
@@ -165,8 +165,8 @@ describe('ssl', () => {
         var svr = new net.TcpServer(9082 + base_port, (s) => {
             var ss = sss.accept(s);
 
-            fs.writeFile('net_temp_000001' + base_port, str);
-            var f = fs.open('net_temp_000001' + base_port);
+            fs.writeFile(__dirname + '/net_temp_000001' + base_port, str);
+            var f = fs.open(__dirname + '/net_temp_000001' + base_port);
             assert.equal(f.copyTo(ss), str.length);
 
             f.close();
@@ -183,14 +183,14 @@ describe('ssl', () => {
             var ss = new ssl.Socket();
             ss.connect(c1);
 
-            var f1 = fs.open('net_temp_000002' + base_port, 'w');
+            var f1 = fs.open(__dirname + '/net_temp_000002' + base_port, 'w');
             assert.equal(ss.copyTo(f1), str.length);
 
             ss.close();
             c1.close();
             f1.close();
 
-            assert.equal(str, fs.readFile('net_temp_000002' + base_port));
+            assert.equal(str, fs.readFile(__dirname + '/net_temp_000002' + base_port));
         }
 
         for (var i = 0; i < 10; i++) {
@@ -198,8 +198,8 @@ describe('ssl', () => {
             t_conn();
         }
 
-        del('net_temp_000001' + base_port);
-        del('net_temp_000002' + base_port);
+        del(__dirname + '/net_temp_000001' + base_port);
+        del(__dirname + '/net_temp_000002' + base_port);
     });
 
     it("Handler", () => {

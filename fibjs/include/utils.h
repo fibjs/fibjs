@@ -165,6 +165,8 @@ typedef int32_t result_t;
 #define CALL_E_EXCEPTION (CALL_E_MAX - 22)
 // Javascript error.
 #define CALL_E_JAVASCRIPT (CALL_E_MAX - 23)
+// Permission denied
+#define CALL_E_PERMIT (CALL_E_MAX - 24)
 
 #define CALL_E_MIN -100100
 

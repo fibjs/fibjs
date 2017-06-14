@@ -40,6 +40,12 @@ describe('process', () => {
         assert.equal(process.run(cmd, [__dirname + '/process/exec.js']), 100);
     });
 
+    xit("run throw error", () => {
+        assert.throws(() => {
+            process.run("not_exists_exec_file");
+        });
+    });
+
     it("multi run", () => {
         coroutine.parallel([1, 2, 3, 4, 5, 6], (n) => {
             assert.equal(process.run(cmd, [__dirname + '/process/exec6.js', n]), n);
@@ -169,7 +175,12 @@ describe('process', () => {
         assert.ok(process.version);
     });
 
-    if (process.platform != "win32")
+    if (process.platform != "win32") {
+        it("PATH env", () => {
+            assert.equal(process.run("ls", [__dirname + "/process"]), 0)
+            assert.ok(process.open("ls", ["-a", __dirname + "/process"]).stdout.readLine());
+        });
+
         it("umask()", () => {
             const mask = '0664';
             assert.equal(process.umask(), 0);
@@ -183,6 +194,7 @@ describe('process', () => {
             // 2. If the test fails, process.umask() will return 0
             assert.equal(old, process.umask());
         });
+    }
 });
 
 // test.run(console.DEBUG);

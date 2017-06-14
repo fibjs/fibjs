@@ -31,6 +31,9 @@ public:
     virtual result_t rewind() = 0;
     virtual result_t size(int64_t& retVal) = 0;
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t truncate(int64_t bytes, AsyncEvent* ac) = 0;
+    virtual result_t eof(bool& retVal) = 0;
+    virtual result_t flush(AsyncEvent* ac) = 0;
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
@@ -50,10 +53,15 @@ public:
     static void s_rewind(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_size(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_eof(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE1(SeekableStream_base, readAll, obj_ptr<Buffer_base>);
+    ASYNC_MEMBER1(SeekableStream_base, truncate, int64_t);
+    ASYNC_MEMBER0(SeekableStream_base, flush);
     ASYNC_MEMBERVALUE1(SeekableStream_base, stat, obj_ptr<Stat_base>);
 };
 }
@@ -70,6 +78,9 @@ inline ClassInfo& SeekableStream_base::class_info()
         { "rewind", s_rewind, false },
         { "size", s_size, false },
         { "readAll", s_readAll, false },
+        { "truncate", s_truncate, false },
+        { "eof", s_eof, false },
+        { "flush", s_flush, false },
         { "stat", s_stat, false }
     };
 
@@ -154,6 +165,54 @@ inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Va
         hr = pInst->ac_readAll(vr);
 
     METHOD_RETURN();
+}
+
+inline void SeekableStream_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(SeekableStream_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(int64_t, 0);
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_truncate(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_truncate(v0);
+
+    METHOD_VOID();
+}
+
+inline void SeekableStream_base::s_eof(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(SeekableStream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->eof(vr);
+
+    METHOD_RETURN();
+}
+
+inline void SeekableStream_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(SeekableStream_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_flush(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_flush();
+
+    METHOD_VOID();
 }
 
 inline void SeekableStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& args)

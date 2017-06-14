@@ -6,11 +6,14 @@
 #include "object.h"
 #include "ifs/os.h"
 #include "ifs/global.h"
+#include "ifs/zip.h"
 #include "SandBox.h"
 #include "Fiber.h"
 #include "include/libplatform/libplatform.h"
 #include "Stat.h"
 #include "utf8.h"
+#include "path.h"
+#include "unzip/include/unzip.h"
 
 namespace fibjs {
 
@@ -26,8 +29,8 @@ void init_logger();
 void init_aio();
 void init_fs();
 void init_fiber();
-void init_sandbox();
 bool options(int32_t* argc, char* argv[]);
+extern exlib::string s_root;
 
 void init(int32_t& argc, char* argv[])
 {
@@ -50,7 +53,6 @@ void init(int32_t& argc, char* argv[])
     init_argv(argc, argv);
     init_date();
     init_rt();
-    init_sandbox();
     init_cipher();
     init_acThread();
     init_gui();
@@ -84,21 +86,53 @@ static result_t main_fiber(Isolate* isolate)
     return s.m_hr;
 }
 
+static exlib::string s_start;
+
+result_t start_fiber(int32_t n)
+{
+    Isolate* isolate = new Isolate(s_start);
+    syncCall(isolate, main_fiber, isolate);
+    return 0;
+}
+
 void main(int32_t argc, char* argv[])
 {
+    exlib::string exePath;
+    std::vector<char*> ptrArg;
+    int32_t i;
+
+    process_base::get_execPath(exePath);
+
+    unzFile unz;
+    if ((unz = unzOpen64(exePath.c_str())) != NULL) {
+        unzClose(unz);
+
+        exePath.append(1, '$');
+        ptrArg.resize(argc + 1);
+
+        ptrArg[0] = argv[0];
+        ptrArg[1] = exePath.c_buffer();
+        for (i = 1; i < argc; i++)
+            ptrArg[i + 1] = argv[i];
+
+        argv = &ptrArg[0];
+        argc++;
+    }
+
     init(argc, argv);
 
-    int32_t i;
+    if (s_root.empty())
+        process_base::cwd(s_root);
 
     for (i = 1; (i < argc) && (argv[i][0] == '-'); i++)
         ;
 
-    exlib::string fname;
-    if (i < argc)
-        fname = argv[i];
+    if (i < argc) {
+        s_start = s_root;
+        pathAdd(s_start, argv[i]);
+    }
 
-    Isolate* isolate = new Isolate(fname);
-    syncCall(isolate, main_fiber, isolate);
+    asyncCall(start_fiber, (int32_t)0);
     exlib::Service::dispatch();
 }
 }

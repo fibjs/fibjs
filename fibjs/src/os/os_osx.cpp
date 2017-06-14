@@ -14,6 +14,7 @@
 #include <mach/mach.h>
 #include <mach-o/dyld.h>
 #include <sys/sysctl.h>
+#include "path.h"
 
 namespace fibjs {
 
@@ -171,8 +172,7 @@ result_t os_base::get_execPath(exlib::string& retVal)
     uint32_t size = sizeof(exeName);
 
     _NSGetExecutablePath(exeName, &size);
-
-    retVal = exeName;
+    path_base::normalize(exeName, retVal);
     return 0;
 }
 

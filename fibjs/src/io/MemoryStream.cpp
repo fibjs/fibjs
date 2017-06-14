@@ -61,6 +61,28 @@ result_t MemoryStream::readAll(obj_ptr<Buffer_base>& retVal,
     return read(-1, retVal, ac);
 }
 
+result_t MemoryStream::truncate(int64_t bytes, AsyncEvent* ac)
+{
+    std::string str = m_buffer.str();
+    str.resize(bytes);
+    m_buffer.str(str);
+
+    m_time.now();
+
+    return 0;
+}
+
+result_t MemoryStream::eof(bool& retVal)
+{
+    retVal = m_buffer.eof();
+    return 0;
+}
+
+result_t MemoryStream::flush(AsyncEvent* ac)
+{
+    return 0;
+}
+
 result_t MemoryStream::write(Buffer_base* data, AsyncEvent* ac)
 {
     exlib::string strBuf;

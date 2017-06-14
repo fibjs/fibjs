@@ -16,6 +16,7 @@ namespace fibjs {
 
 class SandBox;
 class JSFiber;
+class LruCache;
 
 class Isolate : public exlib::linkitem {
 public:
@@ -100,6 +101,7 @@ public:
     v8::Global<v8::Object> m_json;
     v8::Global<v8::Function> m_stringify;
 
+    obj_ptr<LruCache> m_script_cache;
     obj_ptr<SandBox> m_topSandbox;
     obj_ptr<obj_base> m_httpclient;
 

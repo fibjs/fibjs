@@ -129,6 +129,29 @@ void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql)
     }
 }
 
+inline result_t SQL_hex(Buffer_base* bin, exlib::string& retVal)
+{
+    exlib::string data;
+    bin->toString(data);
+
+    static char HexChar[] = "0123456789abcdef";
+    int32_t i, pos;
+    int32_t len = (int32_t)data.length();
+
+    if (len > 0) {
+        retVal.resize(len * 2);
+
+        pos = 0;
+        for (i = 0; i < len; i++) {
+            retVal[pos * 2] = HexChar[(unsigned char)data[i] >> 4];
+            retVal[pos * 2 + 1] = HexChar[(unsigned char)data[i] & 0xf];
+            pos++;
+        }
+    }
+
+    return 0;
+}
+
 result_t _format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args,
     bool mysql, bool mssql, exlib::string& retVal)
 {
@@ -159,11 +182,11 @@ result_t _format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& arg
 
                     if (mssql) {
                         str.append("0x", 2);
-                        bin->hex(s);
+                        SQL_hex(bin, s);
                         str.append(s);
                     } else {
                         str.append("x\'", 2);
-                        bin->hex(s);
+                        SQL_hex(bin, s);
                         str.append(s);
                         str += '\'';
                     }

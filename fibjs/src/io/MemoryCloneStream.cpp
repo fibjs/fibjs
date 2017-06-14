@@ -48,6 +48,22 @@ result_t MemoryStream::CloneStream::readAll(obj_ptr<Buffer_base>& retVal,
     return read(-1, retVal, ac);
 }
 
+result_t MemoryStream::CloneStream::truncate(int64_t bytes, AsyncEvent* ac)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t MemoryStream::CloneStream::eof(bool& retVal)
+{
+    retVal = m_pos == m_buffer.length();
+    return 0;
+}
+
+result_t MemoryStream::CloneStream::flush(AsyncEvent* ac)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
 result_t MemoryStream::CloneStream::write(Buffer_base* data,
     AsyncEvent* ac)
 {

@@ -526,9 +526,16 @@ describe('ws', () => {
             msg.sendTo(s);
 
             var msg = new ws.Message();
+            var closed = false;
 
-            msg.readFrom(s);
-            assert.equal(msg.type, ws.CLOSE);
+            try {
+                msg.readFrom(s);
+            } catch (e) {
+                closed = true;
+            }
+
+            if (!closed)
+                assert.equal(msg.type, ws.CLOSE);
 
             assert.throws(() => {
                 msg.readFrom(s);

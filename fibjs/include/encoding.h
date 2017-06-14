@@ -117,19 +117,20 @@ inline result_t base64Encode(exlib::string data,
 inline result_t hexEncode(exlib::string data, exlib::string& retVal)
 {
     static char HexChar[] = "0123456789abcdef";
-    int32_t i, pos, len1;
+    int32_t i, pos;
+    int32_t len = (int32_t)data.length();
 
-    i = (int32_t)data.length() * 2;
-    retVal.resize(i);
+    if (len > 0) {
+        retVal.resize(len * 3 - 1);
 
-    len1 = 0;
-    pos = 0;
-
-    for (i = 0; i < (int32_t)data.length(); i++) {
-        retVal[pos * 2] = HexChar[(unsigned char)data[i] >> 4];
-        retVal[pos * 2 + 1] = HexChar[(unsigned char)data[i] & 0xf];
-        pos++;
-        len1 += 2;
+        pos = 0;
+        for (i = 0; i < len; i++) {
+            retVal[pos * 3] = HexChar[(unsigned char)data[i] >> 4];
+            retVal[pos * 3 + 1] = HexChar[(unsigned char)data[i] & 0xf];
+            if (i < len)
+                retVal[pos * 3 + 2] = ' ';
+            pos++;
+        }
     }
 
     return 0;

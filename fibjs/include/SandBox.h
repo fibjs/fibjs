@@ -29,7 +29,9 @@ public:
     virtual result_t remove(exlib::string id);
     virtual result_t clone(obj_ptr<SandBox_base>& retVal);
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv);
+    virtual result_t resovle(exlib::string id, exlib::string base, exlib::string& retVal);
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
+    virtual result_t get_global(v8::Local<v8::Object>& retVal);
 
 public:
     v8::Local<v8::Object> mods()
@@ -60,6 +62,27 @@ public:
         v8::Local<v8::Value> m_id;
         v8::Local<v8::Function> m_fnRequest;
         v8::Local<v8::Function> m_fnRun;
+    };
+
+    class Scope {
+    public:
+        Scope(SandBox* sb)
+        {
+            if (sb->m_global) {
+                v8::Local<v8::Object> _global = v8::Local<v8::Object>::Cast(sb->GetPrivate("_global"));
+                _context = _global->CreationContext();
+                _context->Enter();
+            }
+        }
+
+        ~Scope()
+        {
+            if (!_context.IsEmpty())
+                _context->Exit();
+        }
+
+    private:
+        v8::Local<v8::Context> _context;
     };
 
 public:
@@ -98,11 +121,25 @@ public:
         SetPrivate("require", func);
     }
 
+    void initGlobal(v8::Local<v8::Object> global);
+
     void InstallModule(exlib::string fname, v8::Local<v8::Value> o);
 
-    result_t require(exlib::string base, exlib::string id, v8::Local<v8::Value>& retVal, int32_t mode);
+    result_t installScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal);
+
+    result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
+
+    result_t resovleFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
+        v8::Local<v8::Value>* retVal);
+    result_t resovleId(exlib::string& id, obj_ptr<Buffer_base>& data, v8::Local<v8::Value>& retVal);
+    result_t resovleModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+        v8::Local<v8::Value>& retVal);
+    result_t resovle(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+        v8::Local<v8::Value>& retVal);
+
     result_t repl(v8::Local<v8::Array> cmds, Stream_base* out = NULL);
 
+    result_t run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
     result_t run_main(exlib::string fname, v8::Local<v8::Array> argv);
     result_t run_worker(exlib::string fname, Worker_base* worker);
 
@@ -138,6 +175,7 @@ public:
 
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;
+    bool m_global;
 };
 
 } /* namespace fibjs */

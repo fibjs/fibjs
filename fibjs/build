@@ -182,9 +182,16 @@ if [ "${BUILD_TYPE}" = "release" ]; then
 	tar -zcf fibjs.tar.gz fibjs
 	echo '[100%] Built target fibjs.tar.gz'
 	cat fibjs.tar.gz >> installer.sh
-	echo '[100%] Built target install.sh'
 	chmod 777 installer.sh
 	mv js fibjs
+	echo '[100%] Built target install.sh'
+
+	if [ $TARGET_OS = "Linux" ]; then
+		echo ''
+		echo '==== GLIBC ===='
+		${BUILD_PREFIX}objdump fibjs -p | grep GLIBC_[0-9.]* -o | sort | uniq
+	fi
+
 	if [ "${CI}" = "ci" ]; then
 		xz -cz -T2 fibjs > fibjs.xz
 		echo '[100%] Built target fibjs.xz'

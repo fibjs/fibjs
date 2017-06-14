@@ -10,19 +10,6 @@ interface File : SeekableStream
     /*! @brief 查询当前文件名 */
     readonly String name;
 
-    /*! @brief 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
-      @param bytes 新的文件尺寸
-     */
-    truncate(Long bytes) async;
-
-    /*! @brief 查询文件是否到结尾
-     @return 返回 True 表示结尾
-     */
-    Boolean eof();
-
-    /*! @brief 将文件缓冲区内容写入物理设备 */
-    flush() async;
-
     /*! @brief 查询当前文件的访问权限，Windows 不支持此方法
      @param mode 指定设定的访问权限
      */

@@ -69,7 +69,9 @@ exlib::string getResultMessage(result_t hr)
         // CALL_E_EXCEPTION
         "Exception occurred.",
         // CALL_E_JAVASCRIPT
-        "Javascript error."
+        "Javascript error.",
+        // CALL_E_PERMIT
+        "Permission denied"
     };
 
     if (hr == CALL_E_EXCEPTION) {

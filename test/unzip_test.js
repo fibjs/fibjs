@@ -86,7 +86,10 @@ describe("zip", () => {
         assert.equal(infolist[0].compress_type, info.compress_type);
         assert.equal(infolist[0].filename, info.filename);
         assert.equal(infolist[0].file_size, info.file_size);
+        assert.equal(infolist[0].date.getTime(), info.date.getTime());
 
+        assert.notLessThan(new Date().getTime() - info.date.getTime(), 0);
+        assert.lessThan(new Date().getTime() - info.date.getTime(), 60000);
     });
 
     it("open zip file & read", () => {
