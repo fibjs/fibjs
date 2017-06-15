@@ -205,7 +205,6 @@ public:
         v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
 
         v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(_data->Get(isolate->NewFromUtf8("_func")));
-        v8::Local<v8::Function> wrap = v8::Local<v8::Function>::Cast(_data->Get(isolate->NewFromUtf8("_wrap")));
         v8::Local<v8::Value> v = _data->Get(isolate->NewFromUtf8("_ev"));
 
         exlib::string ev;
@@ -220,8 +219,7 @@ public:
 
         v8::Local<v8::Object> vr;
         JSTrigger t(args);
-
-        t.off(ev, wrap, vr);
+        t.off(ev, args.Callee(), vr);
 
         func->Call(args.This(), (int32_t)_args.size(), _args.data());
     }
@@ -234,9 +232,6 @@ public:
         _data->Set(isolate->NewFromUtf8("_ev"), isolate->NewFromUtf8(ev));
 
         v8::Local<v8::Function> wrap = isolate->NewFunction("_onceWrap", _onceWrap, _data);
-
-        _data->Set(isolate->NewFromUtf8("_wrap"), wrap);
-
         putFunction(GetHiddenList(ev, true), wrap);
 
         retVal = o;
