@@ -192,8 +192,12 @@ public:
     // Event
     result_t on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
     result_t on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
+    result_t prependListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
+    result_t prependListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
     result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
     result_t once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
+    result_t prependOnceListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
+    result_t prependOnceListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
     result_t off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
     result_t off(exlib::string ev, v8::Local<v8::Object>& retVal);
     result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
@@ -201,6 +205,7 @@ public:
     result_t setListener(exlib::string ev, v8::Local<v8::Function> func);
     result_t getListener(exlib::string ev, v8::Local<v8::Function> func);
     result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal);
+    result_t listenerCount(exlib::string ev, int32_t& retVal);
     result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args, bool& retVal);
     result_t eventNames(v8::Local<v8::Array>& retVal);
     result_t _emit(exlib::string ev, v8::Local<v8::Value>* args, int32_t argCount, bool& retVal);

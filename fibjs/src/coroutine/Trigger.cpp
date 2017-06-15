@@ -22,12 +22,15 @@ public:
         static ClassData::ClassMethod s_method[] = {
             { "on", JSTrigger::s_on, true },
             { "addListener", JSTrigger::s_on, true },
+            { "prependListener", JSTrigger::s_prependListener, true },
             { "once", JSTrigger::s_once, true },
+            { "prependOnceListener", JSTrigger::s_prependOnceListener, true },
             { "off", JSTrigger::s_off, true },
             { "removeListener", JSTrigger::s_off, true },
             { "removeAllListeners", JSTrigger::s_removeAllListeners, true },
             { "setMaxListeners", JSTrigger::s_setMaxListeners, true },
             { "listeners", JSTrigger::s_listeners, true },
+            { "listenerCount", JSTrigger::s_listenerCount, true },
             { "eventNames", JSTrigger::s_eventNames, true },
             { "emit", JSTrigger::s_emit, true }
         };
@@ -66,6 +69,16 @@ result_t object_base::on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVa
     return JSTrigger(this).on(map, retVal);
 }
 
+result_t object_base::prependListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+{
+    return JSTrigger(this).prependListener(ev, func, retVal);
+}
+
+result_t object_base::prependListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+{
+    return JSTrigger(this).prependListener(map, retVal);
+}
+
 result_t object_base::once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).once(ev, func, retVal);
@@ -74,6 +87,16 @@ result_t object_base::once(exlib::string ev, v8::Local<v8::Function> func, v8::L
 result_t object_base::once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).once(map, retVal);
+}
+
+result_t object_base::prependOnceListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+{
+    return JSTrigger(this).prependOnceListener(ev, func, retVal);
+}
+
+result_t object_base::prependOnceListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+{
+    return JSTrigger(this).prependOnceListener(map, retVal);
 }
 
 result_t object_base::off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
@@ -179,6 +202,11 @@ result_t object_base::emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::
     bool& retVal)
 {
     return JSTrigger(this).emit(ev, args, retVal);
+}
+
+result_t object_base::listenerCount(exlib::string ev, int32_t& retVal)
+{
+    return JSTrigger(this).listenerCount(ev, retVal);
 }
 
 result_t object_base::eventNames(v8::Local<v8::Array>& retVal)

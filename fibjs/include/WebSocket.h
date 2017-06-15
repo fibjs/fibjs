@@ -51,6 +51,18 @@ public:
         return object_base::on(map, retVal);
     }
 
+    virtual result_t prependListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+    {
+        startRecv();
+        return object_base::prependListener(ev, func, retVal);
+    }
+
+    virtual result_t prependListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+    {
+        startRecv();
+        return object_base::prependListener(map, retVal);
+    }
+
     virtual result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
     {
         startRecv();
@@ -61,6 +73,18 @@ public:
     {
         startRecv();
         return object_base::once(map, retVal);
+    }
+
+    virtual result_t prependOnceListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+    {
+        startRecv();
+        return object_base::prependOnceListener(ev, func, retVal);
+    }
+
+    virtual result_t prependOnceListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+    {
+        startRecv();
+        return object_base::prependOnceListener(map, retVal);
     }
 
     result_t setListener(exlib::string ev, v8::Local<v8::Function> func)
@@ -112,6 +136,10 @@ public:
     virtual result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
     {
         return object_base::listeners(ev, retVal);
+    }
+    virtual result_t listenerCount(exlib::string ev, int32_t& retVal)
+    {
+        return object_base::listenerCount(ev, retVal);
     }
     virtual result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args, bool& retVal)
     {
