@@ -214,7 +214,7 @@ public:
         int32_t len = args.Length();
         _args.resize(len);
 
-        for (int32_t i = 1; i < len; i++)
+        for (int32_t i = 0; i < len; i++)
             _args[i] = args[i];
 
         v8::Local<v8::Object> vr;
