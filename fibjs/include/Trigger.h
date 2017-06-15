@@ -101,10 +101,13 @@ public:
 
         for (i = 0; i < len; i++) {
             v8::Local<v8::Value> v = esa->Get(i);
-            if (append == len && v->IsUndefined())
+            if (v->IsUndefined())
+            {
                 append = i;
+                break;
+            }
         }
-        esa->Set(len, func);
+        esa->Set(append, func);
         return 1;
     }
 
@@ -123,10 +126,10 @@ public:
 
     inline void spliceOne(v8::Local<v8::Array> esa, int32_t index)
     {
-        int32_t i, k, n;
+        int32_t i, k;
         int32_t len = esa->Length();
-        for (i = index, k = i + 1, n = len; k < n; i += 1, k += 1)
-            esa->Set(i, esa->Get(k));
+        for (i = index; i < len - 1; i ++)
+            esa->Set(i, esa->Get(i+ 1));
         esa->Delete(len - 1);
     }
 
