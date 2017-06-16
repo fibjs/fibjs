@@ -8,7 +8,6 @@ var coroutine = require('coroutine');
 global.full_test = process.argv.indexOf('full') >= 0;
 
 run("./assert_test.js");
-run("./expect_test.js");
 run("./test_test.js");
 run("./console_test.js");
 run("./collection_test.js");

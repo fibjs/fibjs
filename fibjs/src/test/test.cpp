@@ -9,7 +9,6 @@
 #include "ifs/test.h"
 #include "ifs/assert.h"
 #include "QuickArray.h"
-#include "Expect.h"
 #include "date.h"
 #include "console.h"
 
@@ -391,13 +390,6 @@ result_t test_base::run(int32_t loglevel, int32_t& retVal)
     return _case::run(loglevel, retVal);
 }
 
-result_t test_base::expect(v8::Local<v8::Value> actual, exlib::string msg,
-    obj_ptr<Expect_base>& retVal)
-{
-    retVal = new Expect(actual, msg);
-    return 0;
-}
-
 result_t test_base::setup(int32_t mode)
 {
     Isolate* isolate = Isolate::current();
@@ -408,11 +400,6 @@ result_t test_base::setup(int32_t mode)
     v8::Local<v8::Object> glob = _context->Global();
 
     if (!isolate->m_test_setup_bbd && !isolate->m_test_setup_tdd) {
-        glob->DefineOwnProperty(_context, isolate->NewFromUtf8("expect"),
-                isolate->NewFunction("expect", s_expect),
-                (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
-            .IsJust();
-
         glob->DefineOwnProperty(_context, isolate->NewFromUtf8("assert"),
                 assert_base::class_info().getModule(isolate),
                 (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
