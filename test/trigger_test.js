@@ -4,6 +4,9 @@ test.setup();
 var coroutine = require('coroutine');
 var events = require('events');
 var util = require('util');
+var path = require('path');
+
+var Worker = coroutine.Worker;
 
 function evevt_test(name, e) {
     describe(name, () => {
@@ -387,6 +390,31 @@ describe("Trigger/EventEmitter", () => {
             assert.equal(events.EventEmitter.defaultMaxListeners, 13);
 
             assert.throws(() => events.defaultMaxListeners = -1);
+
+            events.defaultMaxListeners = 10;
+        });
+
+        it('isolate', () => {
+            var worker = new Worker(path.join(__dirname, './event_files/worker.js'));
+            var get_worker_max_listeners = util.sync((done) => {
+                worker.onmessage = (evt) => {
+                    done(null, evt.data);
+                };
+                worker.postMessage('get');
+            });
+
+            var change_worker_max_listeners = util.sync((done) => {
+                worker.onmessage = (evt) => {
+                    done(null, evt.data);
+                };
+                worker.postMessage('');
+            });
+
+            events.defaultMaxListeners = 11;
+            assert.equal(get_worker_max_listeners(), 10);
+
+            assert.equal(change_worker_max_listeners(), 12);
+            assert.equal(events.defaultMaxListeners, 11);
 
             events.defaultMaxListeners = 10;
         });

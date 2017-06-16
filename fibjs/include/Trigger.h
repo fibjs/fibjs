@@ -12,8 +12,6 @@
 
 namespace fibjs {
 
-static int32_t defaultMaxListeners = 10;
-
 class JSTrigger {
 public:
     JSTrigger(v8::Isolate* _iso, v8::Local<v8::Object> _o)
@@ -351,11 +349,12 @@ public:
 
     result_t getMaxListeners(int32_t& retVal)
     {
+        Isolate* _isolate = Isolate::current();
         v8::Local<v8::Value> maxListeners = o->GetPrivate(o->CreationContext(),
                                         v8::Private::ForApi(isolate, NewFromUtf8("_maxListeners")))
                                        .ToLocalChecked();
         if (maxListeners->IsUndefined() || maxListeners->IsNull()) {
-            retVal = defaultMaxListeners;
+            retVal = _isolate->defaultMaxListeners;
         } else {
             GetArgumentValue(maxListeners, retVal, true);
         }
@@ -367,13 +366,15 @@ public:
         if(newVal < 0)
             return Runtime::setError("\"defaultMaxListeners\" must be a positive number");
 
-        defaultMaxListeners = newVal;
+        Isolate* isolate = Isolate::current();
+        isolate->defaultMaxListeners = newVal;
         return 0;
     }
 
     static result_t get_defaultMaxListeners(int32_t& retVal)
     {
-        retVal = defaultMaxListeners;
+        Isolate* isolate = Isolate::current();
+        retVal = isolate->defaultMaxListeners;
         return 0;
     }
 
