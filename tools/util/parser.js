@@ -294,7 +294,7 @@ newToken        = "new"
 var parser = peg.generate(grammar);
 
 module.exports = function (baseFolder) {
-  var defs = [];
+  var defs = {};
 
   fs.readdir(baseFolder).forEach(f => {
     if (path.extname(f) == '.idl') {
@@ -302,4 +302,6 @@ module.exports = function (baseFolder) {
       defs[def.declare.name] = def;
     }
   });
+
+  return defs;
 };
