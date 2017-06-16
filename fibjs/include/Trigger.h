@@ -96,18 +96,8 @@ public:
     inline int32_t putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func)
     {
         int32_t len = esa->Length();
-        int32_t i;
-        int32_t append = len;
 
-        for (i = 0; i < len; i++) {
-            v8::Local<v8::Value> v = esa->Get(i);
-            if (v->IsUndefined())
-            {
-                append = i;
-                break;
-            }
-        }
-        esa->Set(append, func);
+        esa->Set(len, func);
         return 1;
     }
 
@@ -126,11 +116,13 @@ public:
 
     inline void spliceOne(v8::Local<v8::Array> esa, int32_t index)
     {
-        int32_t i, k;
+        int32_t i;
         int32_t len = esa->Length();
         for (i = index; i < len - 1; i ++)
             esa->Set(i, esa->Get(i+ 1));
         esa->Delete(len - 1);
+        esa->Set(NewFromUtf8("length"),
+            v8::Integer::New(isolate, len - 1));
     }
 
     inline int32_t removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func)
@@ -275,16 +267,8 @@ public:
         removeFunction(esa, func);
 
         int32_t len = esa->Length();
-        int32_t n = 0;
-        int32_t i;
 
-        for (i = 0; i < len; i++) {
-            v8::Local<v8::Value> v = esa->Get(i);
-            if (!v->IsUndefined())
-                n++;
-        }
-
-        if (n == 0)
+        if (len == 0)
         {
             GetHiddenList(ev, false, true);
         }
@@ -342,8 +326,7 @@ public:
 
             for (i = 0; i < len; i++) {
                 v8::Local<v8::Value> v = esa->Get(i);
-                if (!v->IsUndefined())
-                    retVal->Set(n++, v);
+                retVal->Set(n++, v);
             }
         }
 
@@ -356,14 +339,7 @@ public:
 
         v8::Local<v8::Array> esa = GetHiddenList(ev);
         if (!esa.IsEmpty()) {
-            int32_t len = esa->Length();
-            int32_t i;
-
-            for (i = 0; i < len; i++) {
-                v8::Local<v8::Value> v = esa->Get(i);
-                if (!v->IsUndefined())
-                    n++;
-            }
+            n = esa->Length();
         }
 
         retVal = n;
