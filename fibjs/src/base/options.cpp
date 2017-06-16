@@ -36,6 +36,8 @@ extern exlib::string s_root;
 #define GUARD_SIZE 16
 #endif
 
+extern char s_version[];
+
 static void printHelp()
 {
     printf("Usage: fibjs [options] [script.js] [arguments] \n"
@@ -45,7 +47,8 @@ static void printHelp()
            "                       fiber's stack infomation\n"
            "  --approot path       set application root directory\n"
            "  --root               enable application root directory\n"
-           "  --help               print fibjs command line options\n"
+           "  -h, --help           print fibjs command line options\n"
+           "  -v, --version        print fibjs version\n"
            "  --v8-options         print v8 command line options\n"
            "\n"
            "Documentation can be found at http://fibjs.org/\n");
@@ -75,8 +78,11 @@ bool options(int32_t* argc, char* argv[])
             df += 2;
             s_root.clear();
             path_base::fullpath(argv[i], s_root);
-        } else if (!qstrcmp(arg, "--help")) {
+        } else if (!qstrcmp(arg, "--help") || !qstrcmp(arg, "-h")) {
             printHelp();
+            return true;
+        } else if (!qstrcmp(arg, "--version") || !qstrcmp(arg, "-v")) {
+            printf("v%s\n", s_version);
             return true;
         } else if (!qstrcmp(arg, "--v8-options")) {
             v8::internal::FlagList::PrintHelp();
