@@ -38,6 +38,20 @@ interface EventEmitter : object
    */
     Object addListener(Object map);
 
+    /*! @brief 绑定一个事件处理函数到对象起始
+    @param ev 指定事件的名称
+    @param func 指定事件处理函数
+    @return 返回成功绑定的数量，如果函数已绑定则返回 0
+   */
+    Object prependListener(String ev, Function func);
+
+    /*! @brief 绑定一个事件处理函数到对象起始
+    @param ev 指定事件的名称
+    @param func 指定事件处理函数
+    @return 返回成功绑定的数量，如果函数已绑定则返回 0
+   */
+    Object prependListener(Object map);
+
     /*! @brief 绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次
     @param ev 指定事件的名称
     @param func 指定事件处理函数
@@ -50,6 +64,20 @@ interface EventEmitter : object
     @return 返回事件对象本身，便于链式调用
    */
     Object once(Object map);
+
+    /*! @brief 绑定一个事件处理函数到对象起始
+    @param ev 指定事件的名称
+    @param func 指定事件处理函数
+    @return 返回成功绑定的数量，如果函数已绑定则返回 0
+   */
+    Object prependOnceListener(String ev, Function func);
+
+    /*! @brief 绑定一个事件处理函数到对象起始
+    @param ev 指定事件的名称
+    @param func 指定事件处理函数
+    @return 返回成功绑定的数量，如果函数已绑定则返回 0
+   */
+    Object prependOnceListener(Object map);
 
     /*! @brief 从对象处理队列中取消指定函数
     @param ev 指定事件的名称
@@ -105,6 +133,17 @@ interface EventEmitter : object
     @return 返回指定事件的监听器数组
    */
     Array listeners(String ev);
+
+    /*! @brief 查询对象指定事件的监听器数量
+    @param ev 指定事件的名称
+    @return 返回指定事件的监听器数量
+   */
+    Integer listenerCount(String ev);
+
+    /*! @brief 查询监听器事件名称
+    @return 返回事件名称数组
+   */
+    Array eventNames();
 
     /*! @brief 主动触发一个事件
     @param ev 事件名称
