@@ -123,6 +123,8 @@ public:
 
     int32_t m_loglevel;
 
+    int32_t m_defaultMaxListeners;
+
     bool m_interrupt;
 };
 

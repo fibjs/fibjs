@@ -4,6 +4,9 @@ test.setup();
 var coroutine = require('coroutine');
 var events = require('events');
 var util = require('util');
+var path = require('path');
+
+var Worker = coroutine.Worker;
 
 function evevt_test(name, e) {
     describe(name, () => {
@@ -204,6 +207,150 @@ function evevt_test(name, e) {
                 "test4",
             ]);
         });
+
+        it("getMaxListeners()", () => {
+            assert.equal(e.getMaxListeners(), 10);
+        });
+
+        it("setMaxListeners()", () => {
+            e.setMaxListeners(1);
+            assert.equal(e.getMaxListeners(), 1);
+        });
+
+        describe("newListener Event", () => {
+            it("once", () => {
+                var type, fn;
+                
+                var _fn1 = () => {};
+                var _fn2 = () => {};
+
+                e.once('newListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.once('a', _fn1);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.once('a', _fn2);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.on('newListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.once('a', _fn2);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn2, fn);
+
+                e.off('newListener');
+            });
+
+            it("on", () => {
+                var type, fn;
+
+                var _fn1 = () => {};
+                var _fn2 = () => {};
+
+                e.once('newListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.on('a', _fn1);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.on('a', _fn2);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.on('newListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.on('a', _fn2);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn2, fn);
+
+                e.off('newListener');
+                e.off('a');
+            });
+        });
+
+        describe("removeListener Event", () => {
+            it("once", () => {
+                var type, fn;
+                
+                var _fn1 = () => {};
+                var _fn2 = () => {};
+
+                e.once('removeListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.once('a', _fn1);
+                e.emit('a');
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.once('a', _fn2);
+                e.emit('a');
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.on('removeListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.once('a', _fn2);
+                e.emit('a');
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn2, fn);
+
+                e.off('removeListener');
+            });
+
+            it("on", () => {
+                var type, fn;
+
+                var _fn1 = () => {};
+                var _fn2 = () => {};
+
+                e.once('removeListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.on('a', _fn1);
+                e.off('a', _fn1);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.on('a', _fn2);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.on('removeListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.on('a', _fn2);
+                e.off('a', _fn2);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn2, fn);
+
+                e.off('removeListener');
+                e.off('a');
+            });
+        });
     });
 }
 
@@ -226,6 +373,52 @@ describe("Trigger/EventEmitter", () => {
     }
 
     evevt_test("events.EventEmitter.call", new MyEmitter2());
+
+    describe("defaultMaxListeners", () => {
+        it('getter', () => {
+            assert.equal(events.defaultMaxListeners, 10);
+            assert.equal(events.EventEmitter.defaultMaxListeners, 10);
+        });
+
+        it('setter', () => {
+            events.defaultMaxListeners = 12;
+            assert.equal(events.defaultMaxListeners, 12);
+            assert.equal(events.EventEmitter.defaultMaxListeners, 12);
+
+            events.EventEmitter.defaultMaxListeners = 13;
+            assert.equal(events.defaultMaxListeners, 13);
+            assert.equal(events.EventEmitter.defaultMaxListeners, 13);
+
+            assert.throws(() => events.defaultMaxListeners = -1);
+
+            events.defaultMaxListeners = 10;
+        });
+
+        it('isolate', () => {
+            var worker = new Worker(path.join(__dirname, './event_files/worker.js'));
+            var get_worker_max_listeners = util.sync((done) => {
+                worker.onmessage = (evt) => {
+                    done(null, evt.data);
+                };
+                worker.postMessage('get');
+            });
+
+            var change_worker_max_listeners = util.sync((done) => {
+                worker.onmessage = (evt) => {
+                    done(null, evt.data);
+                };
+                worker.postMessage('');
+            });
+
+            events.defaultMaxListeners = 11;
+            assert.equal(get_worker_max_listeners(), 10);
+
+            assert.equal(change_worker_max_listeners(), 12);
+            assert.equal(events.defaultMaxListeners, 11);
+
+            events.defaultMaxListeners = 10;
+        });
+    });
 });
 
 // test.run(console.DEBUG);

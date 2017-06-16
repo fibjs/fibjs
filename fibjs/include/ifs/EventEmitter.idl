@@ -12,6 +12,9 @@ interface EventEmitter : object
     /*! @brief 构造函数 */
     EventEmitter();
 
+    /*! @brief 默认全局最大监听器数 */
+    static Integer defaultMaxListeners;
+
     /*! @brief 绑定一个事件处理函数到对象
     @param ev 指定事件的名称
     @param func 指定事件处理函数
@@ -127,6 +130,10 @@ interface EventEmitter : object
     @param n 指定事件的数量
    */
     setMaxListeners(Integer n);
+
+    /* 获取监听器的默认限制的数量，仅用于兼容
+   */
+    Integer getMaxListeners();
 
     /*! @brief 查询对象指定事件的监听器数组
     @param ev 指定事件的名称

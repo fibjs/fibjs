@@ -87,16 +87,43 @@ public:
         return esa;
     }
 
-    inline int32_t putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func)
+    inline result_t emitNewOrRemoveEvent(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
     {
-        int32_t len = esa->Length();
+        std::vector<v8::Local<v8::Value>> _args;
+        _args.resize(2);
+        bool b;
 
-        esa->Set(len, func);
-        return 1;
+        _args[0] = NewFromUtf8(ev);
+
+        v8::Local<v8::Value> _func = func->Get(NewFromUtf8("_func"));
+
+        if (_func->IsUndefined() || _func->IsNull())
+            _args[1] = func;
+        else
+            _args[1] = _func;
+
+        return _emit(type, _args.data(), (int32_t)_args.size(), b);
     }
 
-    inline int32_t prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func)
+    inline int32_t putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
     {
+        result_t hr;
+        hr = emitNewOrRemoveEvent(func, ev, "newListener");
+        if (hr < 0)
+            return hr;
+
+        int32_t len = esa->Length();
+        esa->Set(len, func);
+        return 0;
+    }
+
+    inline int32_t prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
+    {
+        result_t hr;
+        hr = emitNewOrRemoveEvent(func, ev, "newListener");
+        if (hr < 0)
+            return hr;
+
         int32_t len = esa->Length();
         int32_t i;
 
@@ -105,7 +132,7 @@ public:
             esa->Set(i, v);
         }
         esa->Set(0, func);
-        return 1;
+        return 0;
     }
 
     inline void spliceOne(v8::Local<v8::Array> esa, int32_t index)
@@ -119,7 +146,7 @@ public:
             v8::Integer::New(isolate, len - 1));
     }
 
-    inline int32_t removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func)
+    inline int32_t removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
     {
         if (esa.IsEmpty())
             return 0;
@@ -131,7 +158,11 @@ public:
             v8::Local<v8::Value> v = esa->Get(i);
             if (v->Equals(func)) {
                 spliceOne(esa, i);
-                return 1;
+                result_t hr;
+                hr = emitNewOrRemoveEvent(func, ev, "removeListener");
+                if (hr < 0)
+                    return hr;
+                return 0;
             }
         }
 
@@ -166,7 +197,7 @@ public:
 
     result_t on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
     {
-        putFunction(GetHiddenList(ev, true), func);
+        putFunction(GetHiddenList(ev, true), func, ev);
         retVal = o;
         return 0;
     }
@@ -178,7 +209,7 @@ public:
 
     result_t prependListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
     {
-        prependPutFunction(GetHiddenList(ev, true), func);
+        prependPutFunction(GetHiddenList(ev, true), func, ev);
         retVal = o;
         return 0;
     }
@@ -215,13 +246,14 @@ public:
 
     result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
     {
-        Isolate* isolate = Isolate::current();
-        v8::Local<v8::Object> _data = v8::Object::New(isolate->m_isolate);
-        _data->Set(isolate->NewFromUtf8("_func"), func);
-        _data->Set(isolate->NewFromUtf8("_ev"), isolate->NewFromUtf8(ev));
+        Isolate* _isolate = Isolate::current();
+        v8::Local<v8::Object> _data = v8::Object::New(isolate);
+        _data->Set(NewFromUtf8("_func"), func);
+        _data->Set(NewFromUtf8("_ev"), NewFromUtf8(ev));
 
-        v8::Local<v8::Function> wrap = isolate->NewFunction("_onceWrap", _onceWrap, _data);
-        putFunction(GetHiddenList(ev, true), wrap);
+        v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
+        wrap->Set(NewFromUtf8("_func"), func);
+        putFunction(GetHiddenList(ev, true), wrap, ev);
 
         retVal = o;
         return 0;
@@ -234,16 +266,16 @@ public:
 
     result_t prependOnceListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
     {
-        Isolate* isolate = Isolate::current();
-        v8::Local<v8::Object> _data = v8::Object::New(isolate->m_isolate);
-        _data->Set(isolate->NewFromUtf8("_func"), func);
-        _data->Set(isolate->NewFromUtf8("_ev"), isolate->NewFromUtf8(ev));
+        Isolate* _isolate = Isolate::current();
+        v8::Local<v8::Object> _data = v8::Object::New(isolate);
+        _data->Set(NewFromUtf8("_func"), func);
+        _data->Set(NewFromUtf8("_ev"), NewFromUtf8(ev));
 
-        v8::Local<v8::Function> wrap = isolate->NewFunction("_onceWrap", _onceWrap, _data);
+        v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
 
-        _data->Set(isolate->NewFromUtf8("_wrap"), wrap);
+        _data->Set(NewFromUtf8("_wrap"), wrap);
 
-        prependPutFunction(GetHiddenList(ev, true), wrap);
+        prependPutFunction(GetHiddenList(ev, true), wrap, ev);
 
         retVal = o;
         return 0;
@@ -258,7 +290,7 @@ public:
     {
         v8::Local<v8::Array> esa = GetHiddenList(ev);
 
-        removeFunction(esa, func);
+        removeFunction(esa, func, ev);
 
         int32_t len = esa->Length();
 
@@ -302,6 +334,47 @@ public:
         }
 
         retVal = o;
+        return 0;
+    }
+
+    result_t setMaxListeners(int32_t n)
+    {
+        if(n < 0)
+            return Runtime::setError("\"defaultMaxListeners\" must be a positive number");
+
+        o->SetPrivate(o->CreationContext(),
+            v8::Private::ForApi(isolate, NewFromUtf8("_maxListeners")), v8::Integer::New(isolate, n));
+        return 0;
+    }
+
+    result_t getMaxListeners(int32_t& retVal)
+    {
+        Isolate* _isolate = Isolate::current();
+        v8::Local<v8::Value> maxListeners = o->GetPrivate(o->CreationContext(),
+                                        v8::Private::ForApi(isolate, NewFromUtf8("_maxListeners")))
+                                       .ToLocalChecked();
+        if (maxListeners->IsUndefined() || maxListeners->IsNull()) {
+            retVal = _isolate->m_defaultMaxListeners;
+        } else {
+            GetArgumentValue(maxListeners, retVal, true);
+        }
+        return 0;
+    }
+
+    static result_t set_defaultMaxListeners(int32_t newVal)
+    {
+        if(newVal < 0)
+            return Runtime::setError("\"defaultMaxListeners\" must be a positive number");
+
+        Isolate* isolate = Isolate::current();
+        isolate->m_defaultMaxListeners = newVal;
+        return 0;
+    }
+
+    static result_t get_defaultMaxListeners(int32_t& retVal)
+    {
+        Isolate* isolate = Isolate::current();
+        retVal = isolate->m_defaultMaxListeners;
         return 0;
     }
 
@@ -570,6 +643,52 @@ public:
 
     static void s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        JSTrigger t(args);
+
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(int32_t, 0);
+
+        t.setMaxListeners(v0);
+
+        METHOD_VOID();
+    }
+
+    static void s_getMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
+        JSTrigger t(args);
+
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = t.getMaxListeners(vr);
+
+        METHOD_RETURN();
+    }
+
+    static void s_get_defaultMaxListeners(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_defaultMaxListeners(vr);
+
+        METHOD_RETURN();
+    }
+
+    static void s_set_defaultMaxListeners(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = set_defaultMaxListeners(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
     static void s_listeners(const v8::FunctionCallbackInfo<v8::Value>& args)

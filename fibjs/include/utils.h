@@ -461,7 +461,11 @@ public:                                                                         
     }                                                                                                              \
     virtual result_t setMaxListeners(int32_t n)                                                                    \
     {                                                                                                              \
-        return 0;                                                                                                  \
+        return object_base::setMaxListeners(n);                                                                    \
+    }                                                                                                              \
+    virtual result_t getMaxListeners(int32_t& retVal)                                                              \
+    {                                                                                                              \
+        return object_base::getMaxListeners(retVal);                                                               \
     }                                                                                                              \
     virtual result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal)                                     \
     {                                                                                                              \
