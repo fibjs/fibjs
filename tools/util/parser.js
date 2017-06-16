@@ -293,6 +293,87 @@ newToken        = "new"
 
 var parser = peg.generate(grammar);
 
+function parser_comment(comment) {
+  var lines;
+  var doc = {
+    descript: '',
+    detail: [],
+    params: []
+  };
+
+  function check_padding() {
+    var sp = 0;
+    var s;
+
+    lines.forEach(l => {
+      var r = /^\s*/.exec(l)[0];
+      if (r !== '') {
+        if (sp === 0 || sp > r.length) {
+          sp = r.length;
+          s = r;
+        }
+      }
+    });
+
+    if (sp) {
+      lines = lines.map(line => {
+        if (line.substr(0, sp) === s)
+          return line.substr(sp);
+        return line;
+      });
+    }
+  }
+
+  function get_title() {
+    lines = comment.split('\n');
+    lines = lines.map(line => {
+      return line.trimRight();
+    });
+
+    doc.descript = lines[0];
+
+    lines = lines.slice(1);
+    if (lines[0] == '')
+      lines = lines.slice(1);
+  }
+
+  function get_docs() {
+    var now = doc;
+    lines.forEach(l => {
+      var re = /^\s*@((param)\s+([^\s]+)|return)\s*(.*)/g;
+      var r = re.exec(l);
+
+      if (r) {
+        if (r[1] === 'return') {
+          doc["return"] = now = {
+            descript: r[4],
+            detail: []
+          };
+        } else if (r[2] === 'param') {
+          doc.params.push(now = {
+            name: r[3],
+            descript: r[4],
+            detail: []
+          });
+        }
+      } else
+        now.detail.push(l);
+    });
+  }
+
+  comment = comment.replace(/^\s*!?\s*(@brief)?\s*/, '');
+  comment = comment.replace(/\s*$/, '');
+
+  if (comment == '')
+    return doc;
+
+  get_title();
+  check_padding();
+  get_docs();
+
+  return doc;
+}
+
 module.exports = function (baseFolder) {
   var defs = {};
 
@@ -302,6 +383,12 @@ module.exports = function (baseFolder) {
       defs[def.declare.name] = def;
     }
   });
+
+  for (var n in defs) {
+    defs[n].declare.doc = parser_comment(defs[n].declare.comments);
+    for (var m in defs[n].members)
+      defs[n].members[m].doc = parser_comment(defs[n].members[m].comments);
+  }
 
   return defs;
 };

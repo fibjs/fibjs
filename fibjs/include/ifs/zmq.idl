@@ -1,11 +1,11 @@
 
 /*! @brief zeroMQ 消息队列模块
- *
- * 基础模块。提供 zeroMQ 消息队列支撑。
- * \code
- * var zmq = require('zmq');
- * \endcode
- */
+
+  基础模块。提供 zeroMQ 消息队列支撑。
+  \code
+  var zmq = require('zmq');
+  \endcode
+*/
 module zmq
 {
     const PAIR = 0;

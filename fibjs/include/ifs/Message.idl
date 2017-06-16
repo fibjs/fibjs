@@ -6,7 +6,7 @@
  var mq = require("mq");
  var m = new mq.Message();
  @endcode
- *  */
+*/
 interface Message : object
 {
     /*! @brief 指定消息类型 1，代表一个文本类型 */
