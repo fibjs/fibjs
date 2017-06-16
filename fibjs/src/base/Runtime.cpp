@@ -117,6 +117,7 @@ Isolate::Isolate(exlib::string fname)
     , m_flake_host(0)
     , m_flake_count(0)
     , m_loglevel(console_base::_NOTSET)
+    , m_defaultMaxListeners(10)
     , m_interrupt(false)
 {
     m_fname = fname;

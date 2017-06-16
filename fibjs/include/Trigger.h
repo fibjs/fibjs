@@ -354,7 +354,7 @@ public:
                                         v8::Private::ForApi(isolate, NewFromUtf8("_maxListeners")))
                                        .ToLocalChecked();
         if (maxListeners->IsUndefined() || maxListeners->IsNull()) {
-            retVal = _isolate->defaultMaxListeners;
+            retVal = _isolate->m_defaultMaxListeners;
         } else {
             GetArgumentValue(maxListeners, retVal, true);
         }
@@ -367,14 +367,14 @@ public:
             return Runtime::setError("\"defaultMaxListeners\" must be a positive number");
 
         Isolate* isolate = Isolate::current();
-        isolate->defaultMaxListeners = newVal;
+        isolate->m_defaultMaxListeners = newVal;
         return 0;
     }
 
     static result_t get_defaultMaxListeners(int32_t& retVal)
     {
         Isolate* isolate = Isolate::current();
-        retVal = isolate->defaultMaxListeners;
+        retVal = isolate->m_defaultMaxListeners;
         return 0;
     }
 
