@@ -50,9 +50,7 @@ private:
             events = v8::Object::New(isolate);
             o->SetPrivate(o->CreationContext(),
                 v8::Private::ForApi(isolate, NewFromUtf8("_ev")), events);
-        }
-        else
-        {
+        } else {
             events = v8::Local<v8::Object>::Cast(obj);
         }
     }
@@ -73,8 +71,7 @@ public:
         events->Delete(NewFromUtf8(key));
     }
 
-    v8::Local<v8::Array> GetHiddenList(exlib::string k, bool create = false,
-        bool autoDelete = false)
+    v8::Local<v8::Array> GetHiddenList(exlib::string k, bool create = false)
     {
         v8::Local<v8::Value> es = GetPrivate(k);
         v8::Local<v8::Array> esa;
@@ -86,9 +83,6 @@ public:
             }
         } else
             esa = v8::Local<v8::Array>::Cast(es);
-
-        if (autoDelete)
-            DeletePrivate(k);
 
         return esa;
     }
@@ -118,8 +112,8 @@ public:
     {
         int32_t i;
         int32_t len = esa->Length();
-        for (i = index; i < len - 1; i ++)
-            esa->Set(i, esa->Get(i+ 1));
+        for (i = index; i < len - 1; i++)
+            esa->Set(i, esa->Get(i + 1));
         esa->Delete(len - 1);
         esa->Set(NewFromUtf8("length"),
             v8::Integer::New(isolate, len - 1));
@@ -269,9 +263,7 @@ public:
         int32_t len = esa->Length();
 
         if (len == 0)
-        {
-            GetHiddenList(ev, false, true);
-        }
+            DeletePrivate(ev);
 
         retVal = o;
         return 0;
@@ -279,7 +271,7 @@ public:
 
     result_t off(exlib::string ev, v8::Local<v8::Object>& retVal)
     {
-        GetHiddenList(ev, false, true);
+        DeletePrivate(ev);
 
         retVal = o;
         return 0;
