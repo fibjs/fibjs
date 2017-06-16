@@ -213,6 +213,141 @@ function evevt_test(name, e) {
             e.setMaxListeners(1);
             assert.equal(e.getMaxListeners(), 1);
         });
+
+        describe("newListener Event", () => {
+            it("once", () => {
+                var type, fn;
+                
+                var _fn1 = () => {};
+                var _fn2 = () => {};
+
+                e.once('newListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.once('a', _fn1);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.once('a', _fn2);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.on('newListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.once('a', _fn2);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn2, fn);
+
+                e.off('newListener');
+            });
+
+            it("on", () => {
+                var type, fn;
+
+                var _fn1 = () => {};
+                var _fn2 = () => {};
+
+                e.once('newListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.on('a', _fn1);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.on('a', _fn2);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.on('newListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.on('a', _fn2);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn2, fn);
+
+                e.off('newListener');
+                e.off('a');
+            });
+        });
+
+        describe("removeListener Event", () => {
+            it("once", () => {
+                var type, fn;
+                
+                var _fn1 = () => {};
+                var _fn2 = () => {};
+
+                e.once('removeListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.once('a', _fn1);
+                e.emit('a');
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.once('a', _fn2);
+                e.emit('a');
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.on('removeListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.once('a', _fn2);
+                e.emit('a');
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn2, fn);
+
+                e.off('removeListener');
+            });
+
+            it("on", () => {
+                var type, fn;
+
+                var _fn1 = () => {};
+                var _fn2 = () => {};
+
+                e.once('removeListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.on('a', _fn1);
+                e.off('a', _fn1);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.on('a', _fn2);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn1, fn);
+
+                e.on('removeListener', (...argvs) => {
+                    type = argvs[0];
+                    fn = argvs[1];
+                });
+
+                e.on('a', _fn2);
+                e.off('a', _fn2);
+                assert.equal(type, 'a');
+                assert.deepEqual(_fn2, fn);
+
+                e.off('removeListener');
+                e.off('a');
+            });
+        });
     });
 }
 
