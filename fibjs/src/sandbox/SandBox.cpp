@@ -109,8 +109,6 @@ void SandBox::initRoot()
         pModule = pModule->m_next;
     }
 
-    InstallModule("expect", isolate->NewFunction("expect", test_base::s_expect));
-
     v8::Local<v8::Object> _emitter = EventEmitter_base::class_info().getModule(isolate);
     _emitter->Set(isolate->NewFromUtf8("EventEmitter"), _emitter);
 }

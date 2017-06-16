@@ -18,7 +18,6 @@ namespace fibjs {
 
 class console_base;
 class assert_base;
-class Expect_base;
 
 class test_base : public object_base {
     DECLARE_CLASS(test_base);
@@ -40,7 +39,6 @@ public:
     static result_t beforeEach(v8::Local<v8::Function> func);
     static result_t afterEach(v8::Local<v8::Function> func);
     static result_t run(int32_t loglevel, int32_t& retVal);
-    static result_t expect(v8::Local<v8::Value> actual, exlib::string msg, obj_ptr<Expect_base>& retVal);
     static result_t setup(int32_t mode);
     static result_t get_slow(int32_t& retVal);
     static result_t set_slow(int32_t newVal);
@@ -68,7 +66,6 @@ public:
     static void s_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_afterEach(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_expect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setup(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_slow(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
@@ -77,7 +74,6 @@ public:
 
 #include "console.h"
 #include "assert.h"
-#include "Expect.h"
 
 namespace fibjs {
 inline ClassInfo& test_base::class_info()
@@ -92,7 +88,6 @@ inline ClassInfo& test_base::class_info()
         { "beforeEach", s_beforeEach, true },
         { "afterEach", s_afterEach, true },
         { "run", s_run, true },
-        { "expect", s_expect, true },
         { "setup", s_setup, true }
     };
 
@@ -249,22 +244,6 @@ inline void test_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG(int32_t, 0, console_base::_ERROR);
 
     hr = run(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void test_base::s_expect(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Expect_base> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    hr = expect(v0, v1, vr);
 
     METHOD_RETURN();
 }

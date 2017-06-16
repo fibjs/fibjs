@@ -69,13 +69,6 @@ module test
     /*! @brief 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 */
     static assert;
 
-    /*! @brief expect 语法测试引擎
-     @param actual 指定要测试的数值
-     @param msg 断言失败时的提示信息
-     @return 返回 Expect 对象用以链式调用
-     */
-    static Expect expect(Value actual, String msg = "");
-
     /*! @brief 初始化当前脚本的测试环境，将 test 模块方法复制为当前脚本全局变量
      @param mode 指定初始化的模式，缺省为 BDD
      */
