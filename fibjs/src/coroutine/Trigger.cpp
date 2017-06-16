@@ -29,10 +29,15 @@ public:
             { "removeListener", JSTrigger::s_off, true },
             { "removeAllListeners", JSTrigger::s_removeAllListeners, true },
             { "setMaxListeners", JSTrigger::s_setMaxListeners, true },
+            { "getMaxListeners", JSTrigger::s_getMaxListeners, true },
             { "listeners", JSTrigger::s_listeners, true },
             { "listenerCount", JSTrigger::s_listenerCount, true },
             { "eventNames", JSTrigger::s_eventNames, true },
             { "emit", JSTrigger::s_emit, true }
+        };
+
+        static ClassData::ClassProperty s_property[] = {
+            { "defaultMaxListeners", JSTrigger::s_get_defaultMaxListeners, JSTrigger::s_set_defaultMaxListeners, true }
         };
 
         ClassData& cd = EventEmitter_base::class_info().data();
@@ -40,6 +45,8 @@ public:
         cd.cor = JSTrigger::s__new;
         cd.mc = ARRAYSIZE(s_method);
         cd.cms = s_method;
+        cd.pc = ARRAYSIZE(s_property);
+        cd.cps = s_property;
     }
 
     virtual ClassInfo& class_info()
@@ -56,6 +63,16 @@ public:
 result_t EventEmitter_base::_new(obj_ptr<EventEmitter_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new EventEmitter();
+    return 0;
+}
+
+result_t EventEmitter_base::get_defaultMaxListeners(int32_t& retVal)
+{
+    return 0;
+}
+
+result_t EventEmitter_base::set_defaultMaxListeners(int32_t newVal)
+{
     return 0;
 }
 
@@ -117,6 +134,16 @@ result_t object_base::off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retV
 result_t object_base::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).removeAllListeners(evs, retVal);
+}
+
+result_t object_base::setMaxListeners(int32_t n)
+{
+    return JSTrigger(this).setMaxListeners(n);
+}
+
+result_t object_base::getMaxListeners(int32_t& retVal)
+{
+    return JSTrigger(this).getMaxListeners(retVal);
 }
 
 result_t object_base::setListener(exlib::string ev, v8::Local<v8::Function> func)

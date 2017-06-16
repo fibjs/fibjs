@@ -12,6 +12,8 @@
 
 namespace fibjs {
 
+static int32_t defaultMaxListeners = 10;
+
 class JSTrigger {
 public:
     JSTrigger(v8::Isolate* _iso, v8::Local<v8::Object> _o)
@@ -305,6 +307,44 @@ public:
         return 0;
     }
 
+    result_t setMaxListeners(int32_t n)
+    {
+        if(n < 0)
+            return Runtime::setError("\"defaultMaxListeners\" must be a positive number");
+
+        o->SetPrivate(o->CreationContext(),
+            v8::Private::ForApi(isolate, NewFromUtf8("_maxListeners")), v8::Integer::New(isolate, n));
+        return 0;
+    }
+
+    result_t getMaxListeners(int32_t& retVal)
+    {
+        v8::Local<v8::Value> maxListeners = o->GetPrivate(o->CreationContext(),
+                                        v8::Private::ForApi(isolate, NewFromUtf8("_maxListeners")))
+                                       .ToLocalChecked();
+        if (maxListeners->IsUndefined() || maxListeners->IsNull()) {
+            retVal = defaultMaxListeners;
+        } else {
+            GetArgumentValue(maxListeners, retVal, true);
+        }
+        return 0;
+    }
+
+    static result_t set_defaultMaxListeners(int32_t newVal)
+    {
+        if(newVal < 0)
+            return Runtime::setError("\"defaultMaxListeners\" must be a positive number");
+
+        defaultMaxListeners = newVal;
+        return 0;
+    }
+
+    static result_t get_defaultMaxListeners(int32_t& retVal)
+    {
+        retVal = defaultMaxListeners;
+        return 0;
+    }
+
     result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
     {
         int32_t n = 0;
@@ -570,6 +610,52 @@ public:
 
     static void s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
+        JSTrigger t(args);
+
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(int32_t, 0);
+
+        t.setMaxListeners(v0);
+
+        METHOD_VOID();
+    }
+
+    static void s_getMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
+        JSTrigger t(args);
+
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
+
+        hr = t.getMaxListeners(vr);
+
+        METHOD_RETURN();
+    }
+
+    static void s_get_defaultMaxListeners(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+    {
+        int32_t vr;
+
+        PROPERTY_ENTER();
+
+        hr = get_defaultMaxListeners(vr);
+
+        METHOD_RETURN();
+    }
+
+    static void s_set_defaultMaxListeners(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+    {
+        PROPERTY_ENTER();
+        PROPERTY_VAL(int32_t);
+
+        hr = set_defaultMaxListeners(v0);
+
+        PROPERTY_SET_LEAVE();
     }
 
     static void s_listeners(const v8::FunctionCallbackInfo<v8::Value>& args)

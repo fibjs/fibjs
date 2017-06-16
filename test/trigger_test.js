@@ -204,6 +204,15 @@ function evevt_test(name, e) {
                 "test4",
             ]);
         });
+
+        it("getMaxListeners()", () => {
+            assert.equal(e.getMaxListeners(), 10);
+        });
+
+        it("setMaxListeners()", () => {
+            e.setMaxListeners(1);
+            assert.equal(e.getMaxListeners(), 1);
+        });
     });
 }
 
@@ -226,6 +235,27 @@ describe("Trigger/EventEmitter", () => {
     }
 
     evevt_test("events.EventEmitter.call", new MyEmitter2());
+
+    describe("defaultMaxListeners", () => {
+        it('getter', () => {
+            assert.equal(events.defaultMaxListeners, 10);
+            assert.equal(events.EventEmitter.defaultMaxListeners, 10);
+        });
+
+        it('setter', () => {
+            events.defaultMaxListeners = 12;
+            assert.equal(events.defaultMaxListeners, 12);
+            assert.equal(events.EventEmitter.defaultMaxListeners, 12);
+
+            events.EventEmitter.defaultMaxListeners = 13;
+            assert.equal(events.defaultMaxListeners, 13);
+            assert.equal(events.EventEmitter.defaultMaxListeners, 13);
+
+            assert.throws(() => events.defaultMaxListeners = -1);
+
+            events.defaultMaxListeners = 10;
+        });
+    });
 });
 
 // test.run(console.DEBUG);
