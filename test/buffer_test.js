@@ -35,7 +35,7 @@ describe('Buffer', () => {
         var buf = new Buffer(arr);
 
         assert.equal(buf.length, 2);
-        assert.equal(buf.hex(), "88 a0");
+        assert.equal(buf.hex(), "88a0");
     });
 
     it('new Buffer(ArrayBuffer)', () => {
@@ -46,7 +46,7 @@ describe('Buffer', () => {
         var buf = new Buffer(arr.buffer);
 
         assert.equal(buf.length, 4);
-        assert.equal(buf.hex(), "88 13 a0 0f");
+        assert.equal(buf.hex(), "8813a00f");
     });
 
     it('new Buffer(Buffer)', () => {
@@ -122,11 +122,11 @@ describe('Buffer', () => {
         var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
         assert.equal(buf.toString("utf8"), "1234");
         assert.equal(buf.toString(undefined), "1234");
-        assert.equal(buf.toString("hex"), "31 32 33 34");
+        assert.equal(buf.toString("hex"), "31323334");
         assert.equal(buf.toString("base64"), "MTIzNA==");
         assert.equal(buf.toString("utf8", 1), "234");
         assert.equal(buf.toString("utf8", 1, 3), "23");
-        assert.equal(buf.toString("hex", 3), "32 33 34");
+        assert.equal(buf.toString("hex", 2), "323334");
         assert.equal(buf.toString("base64", 2), "IzNA==");
 
         buf = new Buffer(5)
@@ -482,11 +482,11 @@ describe('Buffer', () => {
 
         var buf = new Buffer(4);
         buf.writeFloatLE(1, 0);
-        assert.equal(buf.hex(), "00 00 80 3f");
+        assert.equal(buf.hex(), "0000803f");
 
         var buf = new Buffer(8);
         buf.writeDoubleLE(0.3333333333333333, 0);
-        assert.equal(buf.hex(), "55 55 55 55 55 55 d5 3f");
+        assert.equal(buf.hex(), "555555555555d53f");
     });
 
     it('charset', () => {

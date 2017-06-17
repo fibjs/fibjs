@@ -177,13 +177,9 @@ describe('crypto', () => {
                     if (item.length == 7)
                         c = new crypto.Cipher(provider, mode,
                             hex.decode(item[3]), hex.decode(item[6]));
-                    else if (item.length == 6) {
-                        var k = hex.decode(item[3]);
-                        console.log(item[3], k)
-
+                    else if (item.length == 6)
                         c = new crypto.Cipher(provider, mode,
                             hex.decode(item[3]));
-                    }
 
                     if (mode == crypto.CBC)
                         c.paddingMode(crypto.NOPADDING);
