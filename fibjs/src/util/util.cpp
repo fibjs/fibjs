@@ -513,6 +513,91 @@ result_t util_base::isDate(v8::Local<v8::Value> v, bool& retVal)
     return 0;
 }
 
+result_t util_base::isNativeError(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsNativeError();
+    return 0;
+}
+
+result_t util_base::isPrimitive(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = false;
+    if (v->IsNullOrUndefined()) {
+        retVal = true;
+    } else {
+        result_t hr;
+        Isolate* isolate = Isolate::current();
+        exlib::string type;
+        hr = GetArgumentValue(v->TypeOf(isolate->m_isolate), type);
+        if (hr < 0)
+            return CHECK_ERROR(hr);
+        if (type != "object" && type != "function") {
+            retVal = true;
+        }
+    }
+    return 0;
+}
+
+result_t util_base::isSymbol(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsSymbol();
+    return 0;
+}
+
+result_t util_base::isDataView(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsDataView();
+    return 0;
+}
+
+result_t util_base::isExternal(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsExternal();
+    return 0;
+}
+
+result_t util_base::isMap(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsMap();
+    return 0;
+}
+
+result_t util_base::isMapIterator(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsMapIterator();
+    return 0;
+}
+
+result_t util_base::isPromise(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsPromise();
+    return 0;
+}
+
+result_t util_base::isSet(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsSet();
+    return 0;
+}
+
+result_t util_base::isSetIterator(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsSetIterator();
+    return 0;
+}
+
+result_t util_base::isTypedArray(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsTypedArray();
+    return 0;
+}
+
+result_t util_base::isUint8Array(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsUint8Array();
+    return 0;
+}
+
 result_t util_base::isFunction(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsFunction();
