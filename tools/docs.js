@@ -6,3 +6,6 @@ var docsFolder = "../docs/docs/manual/";
 
 var defs = parser(baseFolder);
 gen_docs(defs, docsFolder);
+
+process.chdir('../docs');
+process.run('npm', ['run', 'build']);
