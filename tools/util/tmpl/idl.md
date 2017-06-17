@@ -2,14 +2,18 @@
 <%=declare.doc.descript%>
 
 <%=declare.doc.detail.join('\n')%>
-<% function member_output(title, test){
+<%var last_member = '';
+function member_output(title, test){
     var has = false;
     members.forEach(function(m){
      if(test(m, declare.name)){ 
          if(!has){
              has = true;%>## <%=title%>
-        <%}%>
-### <%=m.name%>
+        <%}
+        if(last_member != m.name){%>
+### <%=m.name%><%
+last_member = m.name;
+}else{%>--------------------------<%}%>
 <%=m.doc.descript%>
 ```JavaScript
 <%if(m.readonly){%><%=m.readonly%> <%}
@@ -47,10 +51,10 @@ if(m.type){%><%=m.type%> <%}%><%=declare.name == m.name ? ' new ' : declare.name
     }%>(<%-ps%>)<%}%>;
 ```
 <%if(m.params){%>
-**调用参数:**<% m.doc.params.forEach(function(p){%>
+调用参数:<% m.doc.params.forEach(function(p){%>
 * <%=p.name%> - <%=p.descript%><%});%>
 <%}%><%if(m.doc.return){%>
-**返回结果:**
+返回结果:
 * <%=m.doc.return.descript%><%}%>
 
 <%=m.doc.detail.join('\n')%>
