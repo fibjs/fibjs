@@ -47,10 +47,10 @@ if(m.type){%><%=m.type%> <%}%><%=declare.name == m.name ? ' new ' : declare.name
     }%>(<%-ps%>)<%}%>;
 ```
 <%if(m.params){%>
-** 调用参数: **<% m.doc.params.forEach(function(p){%>
+**调用参数:**<% m.doc.params.forEach(function(p){%>
 * <%=p.name%> - <%=p.descript%><%});%>
 <%}%><%if(m.doc.return){%>
-** 返回结果:**
+**返回结果:**
 * <%=m.doc.return.descript%><%}%>
 
 <%=m.doc.detail.join('\n')%>
