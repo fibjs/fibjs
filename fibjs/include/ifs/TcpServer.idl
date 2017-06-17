@@ -2,7 +2,7 @@
 /*! @brief tcp 服务器对象，可方便创建一个标准多纤程 tcp 服务器
 
  使用 TcpServer 对象可以迅速创建一个多纤程并发处理的 tcp 服务器。
- @code
+ ```JavaScript
  function func(conn)
  {
      var data;
@@ -14,7 +14,7 @@
  }
 
  new net.TcpServer(8080, func).run();
- @endcode
+ ```
  */
 interface TcpServer : object
 {
@@ -49,14 +49,14 @@ interface TcpServer : object
     /*! @brief 查询当前服务器运行状态
 
     返回的结果为一个 Stats 对象，初始化计数器如下：
-    @code
+    ```JavaScript
     {
         total : 1000,      // 总计处理的连接
         connections : 100, // 当前正在处理的连接
         accept : 10,       // 上次查询后新建的连接
         close : 10         // 上次查询后关闭的连接
     }
-    @endcode
+    ```
    */
     readonly Stats stats;
 };

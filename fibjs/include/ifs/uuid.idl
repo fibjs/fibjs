@@ -2,9 +2,9 @@
 /*! @brief uuid 唯一 id 模块
 
  基础模块。提供唯一 id 的创建于操作
- \code
+ ```JavaScript
  var uuid = require('uuid');
- \endcode
+ ```
  */
 module uuid
 {

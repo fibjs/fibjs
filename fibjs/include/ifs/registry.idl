@@ -1,9 +1,9 @@
 /*! @brief Windows 注册表访问模块
  引用方式：
- @code
+ ```JavaScript
  var registry = require('registry');
  var value = registry.get(registry.CLASSES_ROOT, "\node1\node2\value");
- @endcode
+ ```
  */
 module registry
 {

@@ -2,9 +2,9 @@
 /*! @brief MongoDB GridFS 分布式文件系统访问对象
 
  使用 MongoDB.fs 获取，创建方式：
- @code
+ ```JavaScript
  var gfs = mdb.fs;
- @endcode
+ ```
  */
 interface GridFS : object
 {

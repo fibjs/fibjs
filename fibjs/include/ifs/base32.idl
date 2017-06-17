@@ -1,13 +1,13 @@
 /*! @brief base32 编码与解码模块
  引用方式：
- @code
+ ```JavaScript
  var encoding = require('encoding');
  var base32 = encoding.base32;
- @endcode
+ ```
  或者
- @code
+ ```JavaScript
  var base32 = require('base32');
- @endcode
+ ```
  */
 module base32
 {

@@ -2,55 +2,59 @@
 /*! @brief ssl 服务器对象，可方便创建一个标准多纤程 ssl 服务器
 
 SslServer 对象是将 TcpServer 和 SslHandler 组合封装的对象，方便快速搭建服务器，逻辑上相当于：
- @code
+ ```JavaScript
  var svr = new net.SslServer(addr, port, new ssl.Handler(crt, key, function(req){
     ...
  }));
- @endcode
+ ```
 
  创建方法：
- @code
+ ```JavaScript
  var ssl = require("ssl");
  var svr = new http.Server(crt, key, function(req){
      ...
  });
- @endcode
+ ```
  */
 interface SslServer : TcpServer
 {
     /*! @brief SslServer 构造函数，在所有本机地址侦听
-    @param certs 服务器证书列表，格式为
-      @code
-      [
-          {
-              crt: [X509Cert object],
-              key: [PKey object]
-          },
-          {
-              crt: [X509Cert object],
-              key: [PKey object]
-          }
-      ]
-      @endcode
+
+    certs 格式为：
+    ```JavaScript
+    [
+        {
+            crt: [X509Cert object],
+            key: [PKey object]
+        },
+        {
+            crt: [X509Cert object],
+            key: [PKey object]
+        }
+    ]
+    ```
+    @param certs 服务器证书列表
     @param port 指定 ssl 服务器侦听端口
     @param listener 指定 ssl 接收到的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    */
     SslServer(Array certs, Integer port, Handler listener);
 
     /*! @brief SslServer 构造函数
-    @param certs 服务器证书列表，格式为
-      @code
-      [
-          {
-              crt: [X509Cert object],
-              key: [PKey object]
-          },
-          {
-              crt: [X509Cert object],
-              key: [PKey object]
-          }
-      ]
-      @endcode
+
+    certs 格式为：
+    ```JavaScript
+    [
+        {
+            crt: [X509Cert object],
+            key: [PKey object]
+        },
+        {
+            crt: [X509Cert object],
+            key: [PKey object]
+        }
+    ]
+    ```
+    @param certs 服务器证书列表
     @param addr 指定 ssl 服务器侦听地址，为 "" 则在本机所有地址侦听
     @param port 指定 ssl 服务器侦听端口
     @param listener 指定 ssl 接收到的连接的内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler

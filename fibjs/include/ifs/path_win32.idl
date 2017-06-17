@@ -2,9 +2,9 @@
 /*! @brief 文件路径处理模块
 
  引用方法：
- @code
+ ```JavaScript
  var path = require('path').win32;
- @endcode
+ ```
  */
 module path_win32
 {

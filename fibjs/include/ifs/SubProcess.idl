@@ -1,10 +1,10 @@
 
 /*! @brief 子进程对象
 
- @code
+ ```JavaScript
  var process = require("process");
  var sub = process.open("ls");
- @endcode
+ ```
  */
 interface SubProcess : BufferedStream
 {

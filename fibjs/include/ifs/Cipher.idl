@@ -2,9 +2,9 @@
 /*! @brief 对称加密算法对象
 
  Cipher 对象属于 crypto 模块，创建：
- @code
+ ```JavaScript
  var c = new crypto.Cipher(crypto.AES, crypto.ECB, ...);
- @endcode
+ ```
  */
 interface Cipher : object
 {

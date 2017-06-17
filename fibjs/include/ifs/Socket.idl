@@ -2,9 +2,9 @@
 /*! @brief 网络套接口对象
 
  Socket 属于 net 模块，创建方法
- \code
+ ```JavaScript
  var s = new net.Socket();
- \endcode
+ ```
  */
 interface Socket : Stream
 {

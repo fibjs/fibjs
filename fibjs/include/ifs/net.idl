@@ -2,9 +2,9 @@
 /*! @brief 网络访问模块
 
  基础模块。可用于创建和操作网络资源，引用方式：
- \code
+ ```JavaScript
  var net = require('net');
- \endcode
+ ```
  */
 module net
 {

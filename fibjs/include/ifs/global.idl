@@ -80,7 +80,7 @@ module global
 
      文件模块也支持 package.json 格式，当模块为目录结构时，require 会先查询 package.json 中的 main，未发现则尝试加载路径下的 index.js 或 index.json。
 
-     若引用路径不是 ./ 或 ../ 开头，并且非基础模块，require 则先在启动路径查找，然后从当前模块所在路径下的 .modules 查找，并上级目录递归。
+     若引用路径不是 ./ 或 ../ 开头，并且非基础模块，require 则先在启动路径查找，然后从当前模块所在路径下的 node_modules 查找，并上级目录递归。
 
      @param id 指定要加载的模块名称
      @return 返回加载模块的引出对象
@@ -91,51 +91,55 @@ module global
     static GC();
 
     /*! @brief 进入交互模式，可以交互执行内部命令和代码，仅在启动 js 可以引用
-     @param cmds 补充命令，格式如下：
-     @code
-        [
-            {
-                cmd: ".test",
-                help: "this is a test",
-                exec: function(argv) {
-                    console.log(argv);
-                }
-            },
-            {
-                cmd: ".test1",
-                help: "this is an other test",
-                exec: function(argv) {
-                    console.log(argv);
-                }
-            }
-        ]
-     @endcode
+
+     参数 cmd 格式如下：
+     ```JavaScript
+     [
+         {
+             cmd: ".test",
+             help: "this is a test",
+             exec: function(argv) {
+                 console.log(argv);
+             }
+         },
+         {
+             cmd: ".test1",
+             help: "this is an other test",
+             exec: function(argv) {
+                 console.log(argv);
+             }
+         }
+     ]
+     ```
+     @param cmds 补充命令
      */
     static repl(Array cmds = []);
 
     /*! @brief 进入交互模式，可以交互执行内部命令和代码，仅在启动 js 可以引用
 
-    同一时刻只允许一个 Stream repl，新建一个 Stream repl 时，前一个 repl 将被关闭。
+     同一时刻只允许一个 Stream repl，新建一个 Stream repl 时，前一个 repl 将被关闭。
+
+     参数 cmd 格式如下：
+     ```JavaScript
+     [
+         {
+             cmd: ".test",
+             help: "this is a test",
+             exec: function(argv) {
+                 console.log(argv);
+             }
+         },
+         {
+             cmd: ".test1",
+             help: "this is an other test",
+             exec: function(argv) {
+                 console.log(argv);
+             }
+         }
+     ]
+     ```
      @param out 输入输出流对象，通常为网络连接
-     @param cmds 补充命令，格式如下：
-     @code
-        [
-            {
-                cmd: ".test",
-                help: "this is a test",
-                exec: function(argv) {
-                    console.log(argv);
-                }
-            },
-            {
-                cmd: ".test1",
-                help: "this is an other test",
-                exec: function(argv) {
-                    console.log(argv);
-                }
-            }
-        ]
-     @endcode
+     @param cmds 补充命令
      */
     static repl(Stream out, Array cmds = []);
 };

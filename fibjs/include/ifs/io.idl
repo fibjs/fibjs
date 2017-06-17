@@ -2,9 +2,9 @@
 /*! @brief 输入输出处理模块
 
  使用方法：
- @code
+ ```JavaScript
  var io = require('io');
- @endcode
+ ```
  */
 module io
 {

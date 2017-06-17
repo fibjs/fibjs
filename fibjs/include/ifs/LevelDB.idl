@@ -2,10 +2,10 @@
 /*! @brief LevelDB 数据库对象
 
  用以创建和管理字典对象，创建方法：
- @code
+ ```JavaScript
  var db = require("db");
  var test = new db.openLevelDB("test.db");
- @endcode
+ ```
  */
 interface LevelDB : object
 {
@@ -48,36 +48,36 @@ interface LevelDB : object
     remove(Buffer key) async;
 
     /*! @brief 枚举数据库中所有的键值对
-     @param func 枚举回调函数
 
      回调函数有两个参数，(value, key)
 
-     @code
+     ```JavaScript
      var db = require("db");
      var test = new db.openLevelDB("test.db");
 
      test.forEach(function(value, key){
         ...
      });
-     @endcode
+     ```
+     @param func 枚举回调函数
      */
     forEach(Function func);
 
     /*! @brief 枚举数据库中键值在 from 和 to 之间的键值对
-     @param from 枚举的最小键值，枚举时包含此键值
-     @param to 枚举的最大键值，枚举时不包含此键值
-     @param func 枚举回调函数
 
      回调函数有两个参数，(value, key)
 
-     @code
+     ```JavaScript
      var db = require("db");
      var test = new db.openLevelDB("test.db");
 
      test.between("aaa", "bbb", function(value, key){
         ...
      });
-     @endcode
+     ```
+     @param from 枚举的最小键值，枚举时包含此键值
+     @param to 枚举的最大键值，枚举时不包含此键值
+     @param func 枚举回调函数
      */
     between(Buffer from, Buffer to, Function func);
 

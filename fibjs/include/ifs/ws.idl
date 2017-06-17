@@ -2,9 +2,9 @@
 /*! @brief websocket 支持模块
 
  使用方法：
- @code
+ ```JavaScript
  var ws = require('ws');
- @endcode
+ ```
  */
 module ws
 {

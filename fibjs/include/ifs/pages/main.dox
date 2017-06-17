@@ -10,116 +10,116 @@
 @b Windows 下需要安装 Visual Studio 2015。
 
 @b unix 下编译fibjs需要依赖以下工具：
-@code
+```JavaScript
 GCC 4.8 or newer
 CMake 2.6 or newer
 GNU Make 3.81 or newer
 libexecinfo (FreeBSD and OpenBSD only)
-@endcode
+```
 
 @b MacOSX 下，除需要安装 xcode 及命令行工具外，以 Brew 为例，准备环境命令如下：
-@code
+```JavaScript
 brew install cmake
 brew install git
-@endcode
+```
 
 @b Ubuntu 准备环境命令如下：
-@code
+```JavaScript
 apt install g++
 apt install make
 apt install cmake
 apt install git
-@endcode
+```
 
 如果要编译 32 位版本，另需要安装 multilib：
-@code
+```JavaScript
 apt install gcc-multilib
 apt install g++-multilib
-@endcode
+```
 
 @b Arm on Ubuntu 准备环境命令如下：
-@code
+```JavaScript
 apt install gcc-arm-linux-gnueabihf
 apt install g++-arm-linux-gnueabihf
-@endcode
+```
 
 如果要在ubuntu上编译arm64位版本，准备环境命令如下：
-@code
+```JavaScript
 apt install gcc-aarch64-linux-gnu
 apt install g++-aarch64-linux-gnu
-@endcode
+```
 
 @b Mips on Ubuntu 准备环境如下：
-@code
+```JavaScript
 apt install gcc-mips-linux-gnu
 apt install g++-mips-linux-gnu
-@endcode
+```
 
 如果要在ubuntu上编译mips 64位版本，准备环境命令如下：
-@code
+```JavaScript
 apt install gcc-mips64-linux-gnuabi64
 apt install g++-mips64-linux-gnuabi64
-@endcode
+```
 
 @b Powerpc on Ubuntu 准备环境命令如下：
-@code
+```JavaScript
 apt install gcc-powerpc-linux-gnu
 apt install g++-powerpc-linux-gnu
-@endcode
+```
 
 如果要在ubuntu上编译powerpc 64位版本，准备环境命令如下：
-@code
+```JavaScript
 apt install gcc-powerpc64-linux-gnu
 apt install g++-powerpc64-linux-gnu
-@endcode
+```
 
 fix：
-@code
+```JavaScript
 rm -f /usr/include/asm
 ln -s x86_64-linux-gnu /usr/include/i386-linux-gnu
 ln -s x86_64-linux-gnu /usr/include/x86_64-linux-gnux32
-@endcode
+```
 
 @b Fedora 准备环境命令如下：
-@code
+```JavaScript
 yum install gcc-c++
 yum install libstdc++-static
 yum install make
 yum install cmake
 yum install git
-@endcode
+```
 
 如果要编译 32 位版本，准备环境命令如下：
-@code
+```JavaScript
 yum install glibc-devel.i686
 yum install libstdc++-static.i686
-@endcode
+```
 
 @b FreeBSD (8,9)准备环境命令如下：
-@code
+```JavaScript
 pkg_add -r cmake
 pkg_add -r libexecinfo
 pkg_add -r git
-@endcode
+```
 
 FreeBSD 10及以上系统准备环境命令如下：
-@code
+```JavaScript
 pkg install cmake
 pkg install libexecinfo
 pkg install git
-@endcode
+```
 
 @subsection install_step2 第二步：获取代码
 
 fibjs 当前 github 地址为：https://github.com/fibjs/fibjs
 
 在合适的位置执行以下命令：
-@code
+```JavaScript
 git clone https://github.com/fibjs/fibjs.git
 cd fibjs
 git submodule init
 git submodule update
-@endcode
+```
 
 @subsection install_step3 第三步：编译命令及说明
 
@@ -128,9 +128,9 @@ git submodule update
 
 @b unix 环境，在 fibjs 项目根目录，有一个 build 的 shell 脚本，可用于 fibjs 编译。 
 执行编译命令：
-@code
+```JavaScript
 sh build [options] [-jn] [-v] [-h]
-@endcode
+```
 
 options：
 @li @c @b clean: 清除编译结果，便于全部重新编译
@@ -154,7 +154,7 @@ sh build Release
 进入 @b test 目录，执行 @b ../bin/{$OS}_Release/fibjs main.js , 即可开始执行 fibjs 全部测试用例。{$OS} 内容自行查阅。
 
 当你看到类似以下结果，表示测试用例全部运行正常：
-@code
+```JavaScript
   .......
   db
     √ escape
@@ -171,7 +171,7 @@ sh build Release
     √ not hungup (109ms) 
 
   √ 312 tests completed (6727ms)
-@endcode
+```
 
 @subsection install_step5 第五步：歇一会，喝点什么
 

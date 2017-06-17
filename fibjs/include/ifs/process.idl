@@ -1,9 +1,9 @@
 /*! @brief 进程处理模块，用以管理当前进程的资源
 
  引用方法：
- @code
+ ```JavaScript
  var process = require('process');
- @endcode
+ ```
  */
 module process : EventEmitter
 {
@@ -66,20 +66,20 @@ module process : EventEmitter
     static Number uptime();
 
     /*! @brief 查询当前进程内存使用报告
-     @return 返回包含内存报告
 
      内存报告生成类似以下结果：
-     @code
+     ```JavaScript
      {
        "rss": 8622080,
        "heapTotal": 4083456,
        "heapUsed": 1621800
      }
-     @endcode
+     ```
      其中：
      - rss 返回进程当前占用物理内存大小
      - heapTotal 返回 v8 引擎堆内存大小
      - heapUsed 返回 v8 引擎正在使用堆内存大小
+     @return 返回包含内存报告
      */
     static Object memoryUsage();
 
@@ -90,82 +90,94 @@ module process : EventEmitter
     static nextTick(Function func, ...);
 
     /*! @brief 运行指定的命令行，接管进程输入输出流，并返回进程对象
+
+     opts 支持的选项如下：
+     ```JavaScript
+     {
+         "timeout": 100, // 单位为 ms
+         "envs": [] // 进程环境变量
+     }
+     ```
      @param command 指定运行的命令行
      @param args 指定运行的参数列表
-     @param opts 指定运行的选项，支持的选项如下：
-     @code
-        {
-            "timeout": 100, // 单位为 ms
-            "envs": [] // 进程环境变量
-        }
-     @endcode
+     @param opts 指定运行的选项
      @return 返回包含运行结果的进程对象
      */
     static SubProcess open(String command, Array args, Object opts = {});
 
     /*! @brief 运行指定的命令行，接管进程输入输出流，并返回进程对象
+
+     opts 支持的选项如下：
+     ```JavaScript
+     {
+         "timeout": 100, // 单位为 ms
+         "envs": [] // 进程环境变量
+     }
+     ```
      @param command 指定运行的命令行
-     @param opts 指定运行的选项，支持的选项如下：
-     @code
-        {
-            "timeout": 100, // 单位为 ms
-            "envs": [] // 进程环境变量
-        }
-     @endcode
+     @param opts 指定运行的选项
      @return 返回包含运行结果的进程对象
      */
     static SubProcess open(String command, Object opts = {});
 
     /*! @brief 运行指定的命令行，并返回进程对象
+
+     opts 支持的选项如下：
+     ```JavaScript
+     {
+         "timeout": 100, // 单位为 ms
+         "envs": [] // 进程环境变量
+     }
+     ```
      @param command 指定运行的命令行
      @param args 指定运行的参数列表
-     @param opts 指定运行的选项，支持的选项如下：
-     @code
-        {
-            "timeout": 100, // 单位为 ms
-            "envs": [] // 进程环境变量
-        }
-     @endcode
+     @param opts 指定运行的选项
      @return 返回包含运行结果的进程对象
      */
     static SubProcess start(String command, Array args, Object opts = {});
 
     /*! @brief 运行指定的命令行，并返回进程对象
+
+     opts 支持的选项如下：
+     ```JavaScript
+     {
+         "timeout": 100, // 单位为 ms
+         "envs": [] // 进程环境变量
+     }
+     ```
      @param command 指定运行的命令行
-     @param opts 指定运行的选项，支持的选项如下：
-     @code
-        {
-            "timeout": 100, // 单位为 ms
-            "envs": [] // 进程环境变量
-        }
-     @endcode
+     @param opts 指定运行的选项
      @return 返回包含运行结果的进程对象
      */
     static SubProcess start(String command, Object opts = {});
 
     /*! @brief 运行指定的命令行，并返回进程的结束代码
+
+     opts 支持的选项如下：
+     ```JavaScript
+     {
+         "timeout": 100, // 单位为 ms
+         "envs": [] // 进程环境变量
+     }
+     ```
      @param command 指定运行的命令行
      @param args 指定运行的参数列表
-     @param opts 指定运行的选项，支持的选项如下：
-     @code
-        {
-            "timeout": 100, // 单位为 ms
-            "envs": [] // 进程环境变量
-        }
-     @endcode
+     @param opts 指定运行的选项
      @return 返回命令的运行结果
      */
     static Integer run(String command, Array args, Object opts = {});
 
     /*! @brief 运行指定的命令行，并返回进程的结束代码
+
+     opts 支持的选项如下：
+     ```JavaScript
+     {
+         "timeout": 100, // 单位为 ms
+         "envs": [] // 进程环境变量
+     }
+     ```
      @param command 指定运行的命令行
-     @param opts 指定运行的选项，支持的选项如下：
-     @code
-        {
-            "timeout": 100, // 单位为 ms
-            "envs": [] // 进程环境变量
-        }
-     @endcode
+     @param opts 指定运行的选项
      @return 返回命令的运行结果
      */
     static Integer run(String command, Object opts = {});

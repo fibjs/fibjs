@@ -2,9 +2,9 @@
 /*! @brief zip 格式文件压缩解压模块
 
  使用方法：
- @code
+ ```JavaScript
  var zip = require('zip');
- @endcode
+ ```
  */
 module zip
 {

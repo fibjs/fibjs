@@ -9,7 +9,7 @@
  通过使用条件变量，可以利用一个条件变量控制一批纤程的开关；
 
  以下是两个纤程调度的实例：
- @code
+ ```JavaScript
  var coroutine = require("coroutine");
  var cond = new coroutine.Condition();
  var ready = false;
@@ -31,12 +31,12 @@
  cond.notify();
  coroutine.sleep();
  console.log(state);
-
+ ```
  will output:
+ ```sh
  ready
  go
- @endcode
-
+ ```
  */
 interface Condition : Lock
 {

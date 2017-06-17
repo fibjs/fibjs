@@ -1,7 +1,7 @@
 # <%=declare.type === 'module' ? '模块' : '对象'%> <%=declare.name%>
 <%=declare.doc.descript%>
 
-<%=declare.doc.detail.join('\n')%>
+<%-declare.doc.detail.join('\n')%>
 <%var last_member = '';
 function member_output(title, test){
     var has = false;
@@ -57,7 +57,7 @@ if(m.type){%><%=m.type%> <%}%><%=declare.name == m.name ? ' new ' : declare.name
 返回结果:
 * <%=m.doc.return.descript%><%}%>
 
-<%=m.doc.detail.join('\n')%>
+<%-m.doc.detail.join('\n')%>
 <%  }});
     }
     member_output('构造函数', function(m, n){

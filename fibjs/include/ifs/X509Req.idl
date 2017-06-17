@@ -2,9 +2,9 @@
 /*! @brief x509 证书请求对象
 
  X509Req 对象属于 crypto 模块，创建：
- @code
+ ```JavaScript
  var k = new crypto.X509Req();
- @endcode
+ ```
  */
 interface X509Req : object
 {
@@ -46,20 +46,20 @@ interface X509Req : object
 
     /*! @brief 签名当前证书请求为正式证书
 
+    opts 接收的字段如下：
+    ```JavaScript
+    {
+        ca: false,      // 证书为 ca，缺省为 false
+        pathlen: -1,    // 证书深度，缺省为 -1
+        notBefore: "",  // 证书生效时间，缺省为当前时间
+        notAfter: "",   // 证书失效时间，缺省为 notBefore 后一年
+        usage: "",      // 证书使用范围，接收：digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign
+        type: ""        // 证书 Netscape 证书类型，接收：client, server, email, objsign, reserved, sslCA, emailCA, objCA
+    }
+    ```
      @param issuer 签名机构的可分辨名称
      @param key 签名机构的私钥
      @param opts 其他可选参数
-        接收的字段如下：
-        @code
-        {
-            ca: false,      // 证书为 ca，缺省为 false
-            pathlen: -1,    // 证书深度，缺省为 -1
-            notBefore: "",  // 证书生效时间，缺省为当前时间
-            notAfter: "",   // 证书失效时间，缺省为 notBefore 后一年
-            usage: "",      // 证书使用范围，接收：digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign
-            type: ""        // 证书 Netscape 证书类型，接收：client, server, email, objsign, reserved, sslCA, emailCA, objCA
-        }
-        @endcode
      @return 返回签名后的正式证书
      */
     X509Cert sign(String issuer, PKey key, Object opts = {}) async;

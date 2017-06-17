@@ -4,14 +4,14 @@ JavaScript 是个单线程编程语言，虽然 fibjs 通过 fiber 将并发引�
 @section basic 基础接口
 fibjs 启用多核运算的方式及其简单，因为多核运算的实现是基于多个 vm 的，而多个 vm 之间并不能共享数据，因此，在 vm 之间便需要通过 rpc 模块交互。示例如下：
 
-@code
+```JavaScript
 var rpc = require("rpc");
 
 var task = rpc.open("path/to.js");
 
 console.log(task.func1(100, 200));
 console.log(task.sub1.func2(100, 200, 300));
-@endcode
+```
 
 示例中，多核运算与普通模块引用的差别，主要是 rpc.open，通过 rpc.open，可以创建一个 RpcTask 代理对象，用于封装发往运算 vm 的请求和返回结果。
 

@@ -2,9 +2,9 @@
 /*! @brief 内存 profiler 模块
 
  使用方法：
- @code
+ ```JavaScript
  var profiler = require('profiler');
- @endcode
+ ```
  */
 module profiler
 {

@@ -2,12 +2,12 @@
 @section web_file 静态文件服务器
 
 使用 fibjs 创建一个简单的 web 服务器是一件很方便的事情。
-@code
+```JavaScript
 var http = require('http');
 
 var svr = new http.Server(80, http.fileHandler('../fibjs/docs'));
 svr.run();
-@endcode
+```
 
 这个 web 服务器已经足够强大，支持自动压缩，支持预压缩，支持更新检查，作为普通的静态文件服务已经足够。
 
@@ -16,20 +16,20 @@ svr.run();
 @section web_script 动态服务器
 
 一个动态服务器，其实并不比静态文件服务器复杂更多：
-@code
+```JavaScript
 var http = require('http');
 
 var svr = new http.Server(80, function(r){
   r.response.write('Hello, World!');
 });
 svr.run();
-@endcode
+```
 
 这里只是一个简单的文本响应，构建更复杂的动态服务器需要进一步修改。
 
 @section web_both 动静合一
 当网站规模不大的时候，我们通常需要在同一台服务器上同时支持静态文件和动态请求：
-@code
+```JavaScript
 var http = require('http');
 var mq = require('mq');
 
@@ -41,7 +41,7 @@ var svr = new http.Server(8080, new mq.Routing({
 	}
 }));
 svr.run();
-@endcode
+```
 
 
 

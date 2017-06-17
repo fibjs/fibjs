@@ -2,7 +2,7 @@
 /*! @brief ssl 协议转换处理器
 
  用以将数据流转换为 ssl 流协议。SslHandler 是对 SslSocket 的封装，用于构建服务器，逻辑上相当于：
- @code
+ ```JavaScript
  var ss = new ssl.Socket(crt, key);
 
  function(s){
@@ -10,26 +10,28 @@
     hdlr.invoke(s1);
     s1.close();
  }
- @endcode
+ ```
  */
 interface SslHandler : Handler
 {
     /*! @brief SslHandler 构造函数，创建一个新的 SslHandler 对象
-      @param certs 服务器证书列表，格式为
-        @code
-        [
-            {
-                crt: [X509Cert object],
-                key: [PKey object]
-            },
-            {
-                crt: [X509Cert object],
-                key: [PKey object]
-            }
-        ]
-        @endcode
-      @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
-     */
+
+    certs 格式为：
+    ```JavaScript
+    [
+        {
+            crt: [X509Cert object],
+            key: [PKey object]
+        },
+        {
+            crt: [X509Cert object],
+            key: [PKey object]
+        }
+    ]
+    ```
+    @param certs 服务器证书列表
+    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+    */
     SslHandler(Array certs, Handler hdlr);
 
     /*! @brief SslHandler 构造函数，创建一个新的 SslHandler 对象

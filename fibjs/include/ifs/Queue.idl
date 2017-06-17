@@ -1,10 +1,10 @@
 /*! @brief FIFO（先进先出）队列对象
 
  用以创建和管理先进先出数据队列，创建方法：
- @code
+ ```JavaScript
  var collection = require("collection");
  var q = new collection.Queue(100);
- @endcode
+ ```
  */
 interface Queue : object
 {

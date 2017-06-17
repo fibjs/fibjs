@@ -356,11 +356,8 @@ function parser_comment(comment) {
             detail: []
           });
         }
-      } else {
-        // if (now !== doc)
-        //   console.log(lines);
+      } else
         now.detail.push(l);
-      }
     });
   }
 

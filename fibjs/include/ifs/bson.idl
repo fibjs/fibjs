@@ -1,13 +1,13 @@
 /*! @brief bson 编码与解码模块
  引用方式：
- @code
+ ```JavaScript
  var encoding = require('encoding');
  var bson = encoding.bson;
- @endcode
+ ```
  或者
- @code
+ ```JavaScript
  var bson = require('bson');
- @endcode
+ ```
  */
 module bson
 {

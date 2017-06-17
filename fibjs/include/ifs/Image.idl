@@ -2,10 +2,10 @@
 /*! @brief 图像处理对象，用以对图像进行转换，绘制，存储等操作
 
  Image 对象属于 gd 模块，创建：
- @code
+ ```JavaScript
  var img = gd.create(640, 480);
  var img1 = gd.load(data);
- @endcode
+ ```
  */
 interface Image : object
 {
@@ -440,7 +440,8 @@ interface Image : object
     copyRotated(Image source, Number dstX, Number dstY, Integer srcX, Integer srcY, Integer width, Integer height, Number angle) async;
 
     /*! @brief 把过滤器 filterType应用到图像上，根据过滤器类型传入所需参数
-     @param filterType 过滤器类型
+
+     参数 filterType 可以为以下数值：
      - MEAN_REMOVAL,    用平均移除法来达到轮廓效果
      - EDGEDETECT,      用边缘检测来突出图像的边缘
      - EMBOSS,          使图像浮雕化
@@ -452,6 +453,7 @@ interface Image : object
      - BRIGHTNESS,      改变图像的亮度，用arg1设定亮度级别，取值范围是-255~255
      - CONTRAST,        改变图像的对比度，用arg1设定对比度级别，取值范围是0~100
      - COLORIZE,        改变图像的色调，用arg1、arg2、arg3分别指定red、blue、green分值，每种颜色范围是0~255，arg4为透明度，取值返回是0~127
+     @param filterType 过滤器类型
      @param arg1 过滤器所需参数: SMOOTH 的平滑级别、BRIGHTNESS 的亮度级别、CONTRAST 的对比度级别、COLORIZE 的 red 分值
      @param arg2 过滤器所需参数: COLORIZE 的 green 分值
      @param arg3 过滤器所需参数: COLORIZE 的 blue 分值
@@ -460,12 +462,14 @@ interface Image : object
     filter(Integer filterType, Number arg1 = 0, Number arg2 = 0, Number arg3 = 0, Number arg4 = 0) async;
 
     /*! @brief 根据给定的矩阵，对当前图像进行仿射
-     @param affine 仿射矩阵，由6个double类型的数字组成
-     @code
+
+     参数 affine 是一个数组：
+     ```JavaScript
         affine = [ a0, a1, b0, b1, a2, b2 ];
         x' = a0x + a1y + a2;
         y' = b0x + b1y + b2;
-     @endcode
+     ```
+     @param affine 仿射矩阵，由  6 个 double 类型的数字组成
      @param x 可选剪切区域的原点 x 坐标
      @param y 可选剪切区域的原点 y 坐标
      @param width 可选剪切区域的的宽度

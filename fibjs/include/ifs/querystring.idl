@@ -1,9 +1,9 @@
 /*! @brief http query 处理模块
 
  引用方法：
- @code
+ ```JavaScript
  var querystring = require('querystring');
- @endcode
+ ```
  */
 module querystring
 {

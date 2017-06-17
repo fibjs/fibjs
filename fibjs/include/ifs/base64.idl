@@ -1,13 +1,13 @@
 /*! @brief base64 编码与解码模块
  引用方式：
- @code
+ ```JavaScript
  var encoding = require('encoding');
  var base64 = encoding.base64;
- @endcode
+ ```
  或者
- @code
+ ```JavaScript
  var base64 = require('base64');
- @endcode
+ ```
  */
 module base64
 {

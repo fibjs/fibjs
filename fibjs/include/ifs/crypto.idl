@@ -2,9 +2,9 @@
 /*! @brief 加密算法模块
 
  使用方法：
- @code
+ ```JavaScript
  var crypto = require('crypto');
- @endcode
+ ```
  */
 module crypto
 {

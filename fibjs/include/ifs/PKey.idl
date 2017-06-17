@@ -2,9 +2,9 @@
 /*! @brief 不对称加密算法对象
 
  PKey 对象属于 crypto 模块，创建：
- @code
+ ```JavaScript
  var k = new crypto.PKey();
- @endcode
+ ```
  */
 interface PKey : object
 {

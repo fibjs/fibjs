@@ -1,10 +1,10 @@
 /*! @brief 阻塞 FIFO（先进先出）队列对象
 
  用以创建和管理阻塞先进先出数据队列，创建方法：
- @code
+ ```JavaScript
  var coroutine = require("coroutine");
  var q = new coroutine.BlockQueue(100);
- @endcode
+ ```
  */
 interface BlockQueue : Queue
 {

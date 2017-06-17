@@ -1,9 +1,9 @@
 /*! @brief 输入输出处理模块
 
- 使用方法：
- @code
- var gui = require('gui');
- @endcode
+使用方法：
+```JavaScript
+var gui = require('gui');
+```
  */
 module gui
 {
@@ -35,24 +35,26 @@ module gui
     static WebView open(String url) async;
 
     /*! @brief 打开一个窗口并访问指定网址
-	 @param url 指定的网址，，可以使用 fs:path 访问本地文件系统
-	 @param opt 打开窗口参数，支持以下参数:
-	 @code
-	    {
-	        "left": 100, // 窗口左上角 x，缺省系统自动设定
-	        "right": 100, // 窗口左上角 y，缺省系统自动设定
-	        "width": 100, // 窗口宽度，缺省系统自动设定
-	        "height": 100, // 窗口高度，缺省系统自动设定
-	        "border": true, // 是否有边框，缺省有边框
-	        "caption": true, // 是否有标题栏，缺省有标题栏
-	        "resizable": true, // 是否可改变尺寸，缺省可以改变
-	        "maximize": false, // 是否最大化显示，缺省不最大化
-	        "visible": true, // 是否显示，缺省显示
-	        "debug": false // 是否提示页面错误，缺省不提示
-	    }
-	 @endcode
-	 当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中
-	 @return 返回打开的窗口对象
-	 */
+
+     支持以下参数:
+     ```JavaScript
+     {
+         "left": 100, // 窗口左上角 x，缺省系统自动设定
+         "right": 100, // 窗口左上角 y，缺省系统自动设定
+         "width": 100, // 窗口宽度，缺省系统自动设定
+         "height": 100, // 窗口高度，缺省系统自动设定
+         "border": true, // 是否有边框，缺省有边框
+         "caption": true, // 是否有标题栏，缺省有标题栏
+         "resizable": true, // 是否可改变尺寸，缺省可以改变
+         "maximize": false, // 是否最大化显示，缺省不最大化
+         "visible": true, // 是否显示，缺省显示
+         "debug": false // 是否提示页面错误，缺省不提示
+     }
+     ```
+     当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中
+     @param url 指定的网址，，可以使用 fs:path 访问本地文件系统
+     @param opt 打开窗口参数
+     @return 返回打开的窗口对象
+	*/
     static WebView open(String url, Map opt) async;
 };

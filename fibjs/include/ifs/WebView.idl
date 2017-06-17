@@ -18,24 +18,27 @@ interface WebView : EventEmitter
     wait() async;
 
     /*! @brief 向 webview 内发送消息
-	 @param msg 要发送的消息
+
+	```JavaScript 
+	// index.js
+	var gui = require('gui');
+	var webview = gui.open('fs:index.html');
+
+	webview.postMessage("hello from fibjs");
+	```
+
+	```JavaScript
+	// index.html
+	<script>
+	window.external.onmessage = function(msg){
+		alert(msg); // 会出现内容为 'hello from fibjs' 的弹窗
+	};
+	</script>
+	```
+
 	 
-	 @code
-	 	// index.js
-		var gui = require('gui');
-		var webview = gui.open('fs:index.html');
-
-		webview.postMessage("hello from fibjs");
-
-		// index.html
-		<script>
-		window.external.onmessage = function(msg){
-			alert(msg); // 会出现内容为 'hello from fibjs' 的弹窗
-		};
-		</script>
-
-	 @endcode
-	 */
+	 @param msg 要发送的消息
+	*/
     postMessage(String msg) async;
 
     /*! @brief 查询和设置窗口是否显示 */
@@ -45,46 +48,50 @@ interface WebView : EventEmitter
     Function onload;
 
     /*! @brief 查询和绑定窗口移动事件，相当于 on("move", func); 
-	@code
+
+		```JavaScript 
 		var gui = require('gui');
 		var webview = gui.open('fs:index.html');
 
 		webview.onmove = function(evt) {
 			console.log(evt.left, evt.top);
 		}
-	 @endcode
+	 	```
 	*/
     Function onmove;
 
     /*! @brief 查询和绑定窗口尺寸改变事件，相当于 on("size", func);
-	@code
+
+		```JavaScript
 		var gui = require('gui');
 		var webview = gui.open('fs:index.html');
 
 		webview.onresize = function(evt) {
 			console.log(evt.width, evt.height);
 		}
-	 @endcode
+		```
 	*/
     Function onresize;
 
     /*! @brief 查询和绑定窗口关闭事件，相当于 on("close", func);
-	@code
+		```JavaScript
 		var gui = require('gui');
 		var webview = gui.open('fs:index.html');
 
 		webview.onclose = function() {}
-	 @endcode
+	 	```
 	*/
     Function onclose;
 
     /*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func);
-	@code
+		```html
 		// index.html
 		<script>
 		window.external.postMessage('hello from html')
 		</script>
+		```
 
+		```JavaScript
 		// index.js
 		var gui = require('gui');
 		var webview = gui.open('fs:index.html');
@@ -92,7 +99,7 @@ interface WebView : EventEmitter
 		webview.onmessage = function(msg) {
 			console.log(msg); // 将会打印 'hello from html'
 		}
-	 @endcode
+		```
 	*/
     Function onmessage;
 };

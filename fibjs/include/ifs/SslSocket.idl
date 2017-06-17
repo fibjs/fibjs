@@ -2,26 +2,28 @@
 /*! @brief ssl 网络套接口对象
 
  SslSocket 属于 ssl 模块，创建方法
- \code
+ ```JavaScript
  var s = new ssl.Socket();
- \endcode
+ ```
  */
 interface SslSocket : Stream
 {
     /*! @brief SslSocket 构造函数，创建一个新的 SslSocket 对象
-    @param certs 服务器证书列表，格式为
-      @code
-      [
-          {
-              crt: [X509Cert object],
-              key: [PKey object]
-          },
-          {
-              crt: [X509Cert object],
-              key: [PKey object]
-          }
-      ]
-      @endcode
+
+    certs 格式为：
+    ```JavaScript
+    [
+        {
+            crt: [X509Cert object],
+            key: [PKey object]
+        },
+        {
+            crt: [X509Cert object],
+            key: [PKey object]
+        }
+    ]
+    ```
+    @param certs 服务器证书列表
    */
     SslSocket(Array certs = []);
 

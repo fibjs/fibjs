@@ -2,9 +2,9 @@
 /*! @brief 图像文件处理模块
 
  基础模块。可用于创建和操作图像文件，引用方式：
- \code
+ ```JavaScript
  var gd = require('gd');
- \endcode
+ ```
  */
 module gd
 {

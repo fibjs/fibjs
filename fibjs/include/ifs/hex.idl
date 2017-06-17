@@ -1,13 +1,13 @@
 /*! @brief hex 编码与解码模块
  引用方式：
- @code
+ ```JavaScript
  var encoding = require('encoding');
  var hex = encoding.hex;
- @endcode
+ ```
  或者
- @code
+ ```JavaScript
  var hex = require('hex');
- @endcode
+ ```
  */
 module hex
 {

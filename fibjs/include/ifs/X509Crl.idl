@@ -2,9 +2,9 @@
 /*! @brief x509 撤销证书对象
 
  X509Crl 对象属于 crypto 模块，创建：
- @code
+ ```JavaScript
  var k = new crypto.X509Crl();
- @endcode
+ ```
  */
 interface X509Crl : object
 {

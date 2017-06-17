@@ -1,9 +1,9 @@
 
 /*! @brief 编码与解码模块，用于处理不同的数据编码格式与二进制之间的转换
  引用方式：
- @code
+ ```JavaScript
  var encoding = require('encoding');
- @endcode
+ ```
  */
 module encoding
 {

@@ -2,9 +2,9 @@
 /*! @brief zlib 压缩解压模块
 
  使用方法：
- @code
+ ```JavaScript
  var zlib = require('zlib');
- @endcode
+ ```
  */
 module zlib
 {

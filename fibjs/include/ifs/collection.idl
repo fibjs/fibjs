@@ -2,9 +2,9 @@
 /*! @brief 基础容器模块
 
  引用方法：
- @code
+ ```JavaScript
  var collection = require("collection");
- @endcode
+ ```
  */
 module collection
 {

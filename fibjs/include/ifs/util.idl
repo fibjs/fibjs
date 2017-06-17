@@ -385,8 +385,7 @@ module util
 
     /*! @brief 查询当前引擎及各组件版本信息
 
-     @return 返回结构如下：
-     @code
+     ```JavaScript
      {
        "fibjs": "0.1.0",
        "svn": 1753,
@@ -408,7 +407,8 @@ module util
          "zmq": "3.1"
        }
      }
-     @endcode
+     ```
+     @return 返回组件版本对象
      */
     static Object buildInfo();
 };

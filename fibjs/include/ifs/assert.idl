@@ -3,18 +3,18 @@
 /*! @brief 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出
 
  引用方法：
- @code
+ ```JavaScript
  var assert = require('assert');
- @endcode
+ ```
  或者通过 test 模块引用：
- @code
+ ```JavaScript
  var test = require('test');
  var assert = test.assert;
- @endcode
+ ```
  或者通过 test.setup 配置：
- @code
+ ```JavaScript
  require("test").setup();
- @endcode
+ ```
  */
 module assert
 {

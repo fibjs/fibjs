@@ -1,13 +1,13 @@
 /*! @brief base64vlq 编码与解码模块
  引用方式：
- @code
+ ```JavaScript
  var encoding = require('encoding');
  var base64vlq = encoding.base64vlq;
- @endcode
+ ```
  或者
- @code
+ ```JavaScript
  var base64vlq = require('base64vlq');
- @endcode
+ ```
  */
 module base64vlq
 {

@@ -2,9 +2,9 @@
 /*! @brief 二进制数据缓存对象，用于 io 读写的数据处理
 
  Buffer 对象为全局基础类，在任何时候都可以直接以 new Buffer(...) 创建：
- @code
+ ```JavaScript
  var buf = new Buffer();
- @endcode
+ ```
  */
 interface Buffer : object
 {

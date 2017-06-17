@@ -1,13 +1,13 @@
 /*! @brief iconv 编码与解码模块
  引用方式：
- @code
+ ```JavaScript
  var encoding = require('encoding');
  var iconv = encoding.iconv;
- @endcode
+ ```
  或者
- @code
+ ```JavaScript
  var iconv = require('iconv');
- @endcode
+ ```
  */
 module iconv
 {

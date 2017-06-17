@@ -2,9 +2,9 @@
 /*! @brief 测试套件模块，用以定义管理测试套件
 
  引用方法：
- @code
+ ```JavaScript
  var test = require('test');
- @endcode
+ ```
  */
 module test
 {
