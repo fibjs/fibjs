@@ -4,6 +4,31 @@ var path = require('path');
 var ejs = require('ejs');
 
 module.exports = function (defs, docsFolder) {
+    function check_docs() {
+        for (var n in defs) {
+            var def = defs[n];
+
+            if (!def.declare.doc.descript)
+                console.error(n, 'not documented.');
+
+            def.members.forEach(m => {
+                if (!m.doc.descript)
+                    console.error(n + '.' + m.name, 'not documented.');
+
+                if (m.params) {
+                    if (m.params.length !== m.doc.params.length)
+                        console.error('params of', n + '.' + m.name, 'not well documented.');
+                    else {
+                        for (var i = 0; i < m.params.length; i++) {
+                            if (m.params[i].name !== m.doc.params[i].name)
+                                console.error('params', m.params[i].name, 'of', n + '.' + m.name, 'not well documented.');
+                        }
+                    }
+                }
+            });
+        }
+    }
+
     function gen_summary() {
         var _summary = ejs.compile(fs.readTextFile(path.join(__dirname, './tmpl/SUMMARY.md')));
 
@@ -92,7 +117,7 @@ module.exports = function (defs, docsFolder) {
     fs.mkdir(path.join(docsFolder, 'object'));
     fs.mkdir(path.join(docsFolder, 'object', 'ifs'));
 
-    // console.log(defs['Buffer']);
+    check_docs();
 
     inherit_method();
 
