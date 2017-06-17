@@ -34,6 +34,42 @@ module.exports = function (defs, docsFolder) {
         }
     }
 
+    function cross_link() {
+        function link_line(t) {
+            t = t.replace(/\w+/g, function (k) {
+                if (defs[k] && defs[k].declare) {
+                    return '[' + k + '](/docs/manual/' +
+                        (defs[k].declare.type === 'module' ? 'module/ifs/' : 'object/ifs/') +
+                        k.toLowerCase() + '.md.html)';
+                }
+
+                return k;
+            });
+
+            return t;
+        }
+
+        function link_doc(doc) {
+            doc.descript = link_line(doc.descript);
+
+            var in_code = false;
+            doc.detail = doc.detail.map(d => {
+                if (d.indexOf('```') !== -1)
+                    in_code = !in_code;
+                return in_code ? d : link_line(d);
+            });
+        }
+
+        for (var n in defs) {
+            var def = defs[n];
+            link_doc(def.declare.doc);
+            def.members.forEach(m => {
+                link_doc(m.doc);
+            });
+
+        }
+    }
+
     function gen_summary() {
         var _summary = ejs.compile(fs.readTextFile(path.join(__dirname, './tmpl/SUMMARY.md')));
 
@@ -69,6 +105,8 @@ module.exports = function (defs, docsFolder) {
     function inherit_method() {
         for (var m in defs) {
             var def = defs[m];
+            def.defs = defs;
+
             if (def.declare.type === 'interface') {
                 var ext = def.declare.extend;
                 while (ext) {
@@ -115,6 +153,8 @@ module.exports = function (defs, docsFolder) {
         });
     }
 
+    console.log(defs['ZmqSocket']);
+
     clean_folder(docsFolder);
 
     fs.mkdir(path.join(docsFolder, 'module'));
@@ -123,6 +163,8 @@ module.exports = function (defs, docsFolder) {
     fs.mkdir(path.join(docsFolder, 'object', 'ifs'));
 
     check_docs();
+
+    cross_link();
 
     inherit_method();
 
