@@ -3,6 +3,24 @@
 
 <%-declare.doc.detail.join('\n')%>
 <%var last_member = '';
+
+function def_value(v)
+{
+    switch(v)
+    {
+    case 'v8::Undefined(isolate)':
+        v = 'undefined';
+        break;
+    case 'v8::Object::New(isolate)':
+        v = '{}';
+        break;
+    case 'v8::Array::New(isolate)':
+        v = '[]';
+        break;
+    }
+    return v;
+}
+
 function member_output(title, test){
     var has = false;
     members.forEach(function(m){
@@ -17,7 +35,9 @@ last_member = m.name;
 --------------------------<%}%>
 <%=m.doc.descript%>
 ```JavaScript
-<%if(m.readonly){%><%=m.readonly%> <%}
+<%if(m.const){%><%=m.const%> <%}
+if(m.static){%><%=m.static%> <%}
+if(m.readonly){%><%=m.readonly%> <%}
 if(m.type){%><%=m.type%> <%}%><%=declare.name == m.name ? ' new ' : declare.name + '.'%><%=m.name%><%if(m.memType == 'method'){
     var ps = '';
 
@@ -31,25 +51,9 @@ if(m.type){%><%=m.type%> <%}%><%=declare.name == m.name ? ' new ' : declare.name
             ps += p.name;
     
             if(p.default)
-            {
-                var defVal = p.default.value;
-
-                switch(defVal)
-                {
-                case 'v8::Undefined(isolate)':
-                    defVal = 'undefined';
-                    break;
-                case 'v8::Object::New(isolate)':
-                    defVal = '{}';
-                    break;
-                case 'v8::Array::New(isolate)':
-                    defVal = '[]';
-                    break;
-                }
-                ps += ' = ' + defVal;
-            }
+                ps += ' = ' + def_value(p.default.value);
         });
-    }%>(<%-ps%>)<%}%>;
+    }%>(<%-ps%>)<% if(m.async){%> async<%}}else if(m.default){%> = <%=def_value(m.default.value)%><%}%>;
 ```
 <%if(m.params){%>
 调用参数:<% m.doc.params.forEach(function(p){%>
@@ -63,6 +67,10 @@ if(m.type){%><%=m.type%> <%}%><%=declare.name == m.name ? ' new ' : declare.name
     }
     member_output('构造函数', function(m, n){
         return m.memType == 'method' && m.name == n;
+    });
+
+    member_output('对象', function(m){
+        return m.memType == 'object';
     });
 
     member_output('函数', function(m, n){
