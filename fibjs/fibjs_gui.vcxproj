@@ -116,7 +116,6 @@
     <ClInclude Include="include\Digest.h" />
     <ClInclude Include="include\Event.h" />
     <ClInclude Include="include\EventInfo.h" />
-    <ClInclude Include="include\Expect.h" />
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\GridFS.h" />
@@ -226,7 +225,6 @@
     <ClInclude Include="include\ifs\Event.h" />
     <ClInclude Include="include\ifs\EventEmitter.h" />
     <ClInclude Include="include\ifs\EventInfo.h" />
-    <ClInclude Include="include\ifs\Expect.h" />
     <ClInclude Include="include\ifs\Fiber.h" />
     <ClInclude Include="include\ifs\File.h" />
     <ClInclude Include="include\ifs\GridFS.h" />
@@ -523,7 +521,6 @@
     <ClCompile Include="src\ssl\SslServer.cpp" />
     <ClCompile Include="src\ssl\SslSocket.cpp" />
     <ClCompile Include="src\ssl\ssl.cpp" />
-    <ClCompile Include="src\test\Expect.cpp" />
     <ClCompile Include="src\test\assert.cpp" />
     <ClCompile Include="src\test\test.cpp" />
     <ClCompile Include="src\util\LruCache.cpp" />

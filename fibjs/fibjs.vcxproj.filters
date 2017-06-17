@@ -168,9 +168,6 @@
     <ClInclude Include="include\EventInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Expect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Fiber.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -496,9 +493,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\EventInfo.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\Expect.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Fiber.h">
@@ -1375,9 +1369,6 @@
     </ClCompile>
     <ClCompile Include="src\ssl\ssl.cpp">
       <Filter>Source Files\ssl</Filter>
-    </ClCompile>
-    <ClCompile Include="src\test\Expect.cpp">
-      <Filter>Source Files\test</Filter>
     </ClCompile>
     <ClCompile Include="src\test\assert.cpp">
       <Filter>Source Files\test</Filter>
