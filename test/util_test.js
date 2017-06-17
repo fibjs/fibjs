@@ -8,7 +8,6 @@ var collection = require("collection");
 var os = require('os');
 
 describe('util', () => {
-
     it("inherits", () => {
         function Child() {
             console.log("in child");
@@ -54,7 +53,7 @@ describe('util', () => {
         assert.isTrue(util.isArray(new Array('with', 'some', 'entries')));
         assert.isFalse(util.isArray({}));
         assert.isFalse(util.isArray({
-            push: () => {}
+            push: () => { }
         }));
         assert.isFalse(util.isArray(/regexp/));
         assert.isFalse(util.isArray(new Error));
@@ -120,7 +119,7 @@ describe('util', () => {
     });
 
     it('isFunction', () => {
-        assert.isTrue(util.isFunction(() => {}));
+        assert.isTrue(util.isFunction(() => { }));
         assert.isFalse(util.isFunction({}));
         assert.isFalse(util.isFunction(5));
     });
@@ -131,10 +130,169 @@ describe('util', () => {
         assert.isFalse(util.isBuffer(5));
     });
 
+    it('isNativeError', () => {
+        assert.ok(util.isNativeError(new Error()));
+        assert.ok(util.isNativeError(new TypeError()));
+        assert.ok(util.isNativeError(new SyntaxError()));
+
+        assert.notOk(util.isNativeError({}));
+        assert.notOk(util.isNativeError({ name: 'Error', message: '' }));
+        assert.notOk(util.isNativeError([]));
+        assert.notOk(util.isNativeError(Object.create(Error.prototype)));
+    });
+
+    it('isDate', () => {
+        assert.ok(util.isDate(new Date()));
+        assert.ok(util.isDate(new Date(0)));
+        assert.notOk(0);
+        assert.notOk(util.isDate(Date()));
+        assert.notOk(util.isDate({}));
+        assert.notOk(util.isDate([]));
+        assert.notOk(util.isDate(new Error()));
+        assert.notOk(util.isDate(Object.create(Date.prototype)));
+    });
+
+    it('isPrimitive', () => {
+        assert.notOk(util.isPrimitive({}));
+        assert.notOk(util.isPrimitive(new Error()));
+        assert.notOk(util.isPrimitive(new Date()));
+        assert.notOk(util.isPrimitive([]));
+        assert.notOk(util.isPrimitive(/regexp/));
+        assert.notOk(util.isPrimitive(function() { }));
+        assert.notOk(util.isPrimitive(new Number(1)));
+        assert.notOk(util.isPrimitive(new String('bla')));
+        assert.notOk(util.isPrimitive(new Boolean(true)));
+        assert.ok(util.isPrimitive(1));
+        assert.ok(util.isPrimitive('bla'));
+        assert.ok(util.isPrimitive(true));
+        assert.ok(util.isPrimitive(undefined));
+        assert.ok(util.isPrimitive(null));
+        assert.ok(util.isPrimitive(Infinity));
+        assert.ok(util.isPrimitive(NaN));
+        assert.ok(util.isPrimitive(Symbol('symbol')));
+    });
+
+    it('isSymbol', () => {
+        assert.ok(util.isSymbol(Symbol()));
+        assert.notOk(util.isSymbol('string'));
+    });
+
+    it('isDataView', () => {
+        var buffer = new ArrayBuffer(2);
+        assert.ok(util.isDataView(new DataView(buffer)));
+        assert.notOk(util.isDataView(buffer));
+    });
+
+    it('isMap', () => {
+        assert.ok(util.isMap(new Map()));
+        assert.notOk(util.isMap(Map));
+        assert.notOk(util.isMap(Map.prototype));
+        assert.notOk(util.isMap(new WeakMap()));
+        class AMap extends Map { }
+
+        assert.ok(util.isMap(new AMap()));
+        assert.notOk(util.isMap(AMap));
+        assert.notOk(util.isMap(AMap.prototype));
+    });
+
+    it('isMapIterator', () => {
+        var m = new Map();
+        assert.ok(util.isMapIterator(m[Symbol.iterator]()));
+        assert.notOk(util.isMapIterator(m));
+        assert.notOk(util.isMapIterator(Map));
+        assert.notOk(util.isMapIterator(Map.prototype));
+    });
+
+    it('isPromise', () => {
+        var p = new Promise(() => { });
+        var p1 = () => { };
+        p1.then = () => { };
+
+        var p2 = () => { };
+        p2.toString = () => '[object Promise]';
+
+        class APromise extends Promise { }
+
+        var p3 = new Promise(() => { });
+
+        assert.ok(util.isPromise(p));
+        assert.notOk(util.isPromise(Promise));
+        assert.notOk(util.isPromise(Promise.prototype));
+        assert.notOk(util.isPromise(p.prototype));
+        assert.notOk(util.isPromise(p1));
+        assert.notOk(util.isPromise(p2));
+        assert.ok(util.isPromise(p3));
+    });
+
+    it('isSet', () => {
+        assert.ok(util.isSet(new Set()));
+        assert.notOk(util.isSet(Set));
+        assert.notOk(util.isSet(Set.prototype));
+        assert.notOk(util.isSet(new WeakSet()));
+        class ASet extends Set { }
+
+        assert.ok(util.isSet(new ASet()));
+        assert.notOk(util.isSet(ASet));
+        assert.notOk(util.isSet(ASet.prototype));
+    });
+
+    it('isSetIterator', () => {
+        var m = new Set();
+        assert.ok(util.isSetIterator(m[Symbol.iterator]()));
+        assert.notOk(util.isSetIterator(m));
+        assert.notOk(util.isSetIterator(Set));
+        assert.notOk(util.isSetIterator(Set.prototype));
+    });
+
+    it('isTypedArray', () => {
+        assert.ok(util.isTypedArray(new Int8Array()));
+        assert.ok(util.isTypedArray(new Uint8Array()));
+        assert.ok(util.isTypedArray(new Uint8ClampedArray()));
+        assert.ok(util.isTypedArray(new Int16Array()));
+        assert.ok(util.isTypedArray(new Uint16Array()));
+        assert.ok(util.isTypedArray(new Int32Array()));
+        assert.ok(util.isTypedArray(new Uint32Array()));
+        assert.ok(util.isTypedArray(new Float32Array()));
+        assert.ok(util.isTypedArray(new Float64Array()));
+
+        assert.notOk(util.isTypedArray(Int8Array));
+        assert.notOk(util.isTypedArray(Uint8Array));
+        assert.notOk(util.isTypedArray(Uint8ClampedArray));
+        assert.notOk(util.isTypedArray(Int16Array));
+        assert.notOk(util.isTypedArray(Uint16Array));
+        assert.notOk(util.isTypedArray(Int32Array));
+        assert.notOk(util.isTypedArray(Uint32Array));
+        assert.notOk(util.isTypedArray(Float32Array));
+        assert.notOk(util.isTypedArray(Float64Array));
+    });
+
+    it('isUint8Array', () => {
+        assert.ok(util.isUint8Array(new Uint8Array()));
+        assert.notOk(util.isUint8Array(Uint8Array));
+
+        assert.notOk(util.isUint8Array(new Int8Array()));
+        assert.notOk(util.isUint8Array(new Uint8ClampedArray()));
+        assert.notOk(util.isUint8Array(new Int16Array()));
+        assert.notOk(util.isUint8Array(new Uint16Array()));
+        assert.notOk(util.isUint8Array(new Int32Array()));
+        assert.notOk(util.isUint8Array(new Uint32Array()));
+        assert.notOk(util.isUint8Array(new Float32Array()));
+        assert.notOk(util.isUint8Array(new Float64Array()));
+
+        assert.notOk(util.isUint8Array(Int8Array));
+        assert.notOk(util.isUint8Array(Uint8ClampedArray));
+        assert.notOk(util.isUint8Array(Int16Array));
+        assert.notOk(util.isUint8Array(Uint16Array));
+        assert.notOk(util.isUint8Array(Int32Array));
+        assert.notOk(util.isUint8Array(Uint32Array));
+        assert.notOk(util.isUint8Array(Float32Array));
+        assert.notOk(util.isUint8Array(Float64Array));
+    });
+
     it('has', () => {
         var obj = {
             foo: 'bar',
-            func: () => {}
+            func: () => { }
         };
         assert.ok(util.has(obj, 'foo'));
         assert.ok(!util.has(obj, 'baz'));
@@ -205,20 +363,20 @@ describe('util', () => {
         assert.equal(util.extend({
             a: 'x'
         }, {
-            a: 'b'
-        }).a, 'b', 'properties in source override destination');
+                a: 'b'
+            }).a, 'b', 'properties in source override destination');
         assert.equal(util.extend({
             x: 'x'
         }, {
-            a: 'b'
-        }).x, 'x', "properties not in source don't get overriden");
+                a: 'b'
+            }).x, 'x', "properties not in source don't get overriden");
         result = util.extend({
             x: 'x'
         }, {
-            a: 'a'
-        }, {
-            b: 'b'
-        });
+                a: 'a'
+            }, {
+                b: 'b'
+            });
         assert.deepEqual(result, {
             x: 'x',
             a: 'a',
@@ -227,11 +385,11 @@ describe('util', () => {
         result = util.extend({
             x: 'x'
         }, {
-            a: 'a',
-            x: 2
-        }, {
-            a: 'b'
-        });
+                a: 'a',
+                x: 2
+            }, {
+                a: 'b'
+            });
         assert.deepEqual(result, {
             x: 2,
             a: 'b'
@@ -247,7 +405,7 @@ describe('util', () => {
             util.extend(result, null, undefined, {
                 a: 1
             });
-        } catch (ex) {}
+        } catch (ex) { }
 
         assert.equal(result.a, 1, 'should not error on `null` or `undefined` sources');
 
@@ -265,7 +423,7 @@ describe('util', () => {
         assert.deepEqual(util.first([1, 2, 3], 2), [1, 2]);
         assert.deepEqual(util.first([1, 2, 3], 5), [1, 2, 3]);
 
-        var result = (function () {
+        var result = (function() {
             return util.first([1, 2, 3], 2);
         }());
         assert.deepEqual(result, [1, 2]);
@@ -333,7 +491,7 @@ describe('util', () => {
                 [4]
             ]
         ]]);
-        var result = (function () {
+        var result = (function() {
             return util.flatten(arguments);
         }(1, [2], [3, [
             [
@@ -356,7 +514,7 @@ describe('util', () => {
         var list = [1, 2, 1, 0, 3, 1, 4];
         assert.deepEqual(util.without(list, 0, 1), [2, 3, 4]);
 
-        var result = (function () {
+        var result = (function() {
             return util.without(arguments, 0, 1);
         }(1, 2, 1, 0, 3, 1, 4));
         assert.deepEqual(result, [2, 3, 4]);
@@ -431,7 +589,7 @@ describe('util', () => {
         assert.deepEqual(util.pick(null, 'a', 'b'), {});
         assert.deepEqual(util.pick(undefined, 'toString'), {});
 
-        var Obj = function () {};
+        var Obj = function() { };
         Obj.prototype = {
             a: 1,
             b: 2,
@@ -479,7 +637,7 @@ describe('util', () => {
         assert.deepEqual(util.omit(null, 'a', 'b'), {});
         assert.deepEqual(util.omit(undefined, 'toString'), {});
 
-        var Obj = function () {};
+        var Obj = function() { };
         Obj.prototype = {
             a: 1,
             b: 2,
@@ -498,11 +656,11 @@ describe('util', () => {
         });
 
         var answers = [];
-        util.each([1, 2, 3], function (num) {
+        util.each([1, 2, 3], function(num) {
             answers.push(num * this.multiplier);
         }, {
-            multiplier: 5
-        });
+                multiplier: 5
+            });
         assert.deepEqual(answers, [5, 10, 15]);
 
         answers = [];
@@ -522,11 +680,11 @@ describe('util', () => {
         });
         assert.equal(answers, 0);
 
-        util.each(false, () => {});
+        util.each(false, () => { });
 
         var a = [1, 2, 3];
-        assert.strictEqual(util.each(a, () => {}), a);
-        assert.strictEqual(util.each(null, () => {}), null);
+        assert.strictEqual(util.each(a, () => { }), a);
+        assert.strictEqual(util.each(null, () => { }), null);
 
         var b = [1, 2, 3];
         b.length = 100;
@@ -544,11 +702,11 @@ describe('util', () => {
         });
         assert.deepEqual(doubled, [2, 4, 6]);
 
-        var tripled = util.map([1, 2, 3], function (num) {
+        var tripled = util.map([1, 2, 3], function(num) {
             return num * this.multiplier;
         }, {
-            multiplier: 3
-        });
+                multiplier: 3
+            });
         assert.deepEqual(tripled, [3, 6, 9]);
 
         doubled = util.map([1, 2, 3], (num) => {
@@ -569,9 +727,9 @@ describe('util', () => {
         });
         assert.deepEqual(ids, ['1', '2']);
 
-        assert.deepEqual(util.map(null, () => {}), []);
+        assert.deepEqual(util.map(null, () => { }), []);
 
-        assert.deepEqual(util.map([1], function () {
+        assert.deepEqual(util.map([1], function() {
             return this.length;
         }, [5]), [1]);
     });
@@ -586,20 +744,20 @@ describe('util', () => {
         var context = {
             multiplier: 3
         };
-        sum = util.reduce([1, 2, 3], function (sum, num) {
+        sum = util.reduce([1, 2, 3], function(sum, num) {
             return sum + num * this.multiplier;
         }, 0, context);
         assert.equal(sum, 18);
 
-        assert.equal(util.reduce(null, () => {}, 138), 138);
-        assert.equal(util.reduce([], () => {}, undefined), undefined);
+        assert.equal(util.reduce(null, () => { }, 138), 138);
+        assert.equal(util.reduce([], () => { }, undefined), undefined);
 
         assert.throws(() => {
-            util.reduce([], () => {});
+            util.reduce([], () => { });
         });
 
         assert.throws(() => {
-            util.reduce(null, () => {});
+            util.reduce(null, () => { });
         });
     });
 
@@ -697,15 +855,15 @@ describe('util', () => {
         });
 
         it("Function", () => {
-            assert.equal(util.format(() => {}), '[Function]');
+            assert.equal(util.format(() => { }), '[Function]');
 
             assert.equal(util.format([
 
-                () => {}
+                () => { }
             ]), '[\n  [Function]\n]');
 
             assert.equal(util.format({
-                a: () => {}
+                a: () => { }
             }), '{\n  "a": [Function]\n}');
         });
 
@@ -972,7 +1130,7 @@ describe('util', () => {
             assert.equal(c.get("a", updater), "a_value");
             assert.equal(call_num, 1);
 
-            assert.isUndefined(c.get("a1", function () {}));
+            assert.isUndefined(c.get("a1", function() { }));
             assert.isFalse(c.has("a1"));
 
             coroutine.start(() => {

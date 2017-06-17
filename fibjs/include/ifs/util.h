@@ -39,6 +39,18 @@ public:
     static result_t isRegExp(v8::Local<v8::Value> v, bool& retVal);
     static result_t isObject(v8::Local<v8::Value> v, bool& retVal);
     static result_t isDate(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isNativeError(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isPrimitive(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isSymbol(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isDataView(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isExternal(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isMap(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isMapIterator(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isPromise(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isSet(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isSetIterator(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isTypedArray(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isUint8Array(v8::Local<v8::Value> v, bool& retVal);
     static result_t isFunction(v8::Local<v8::Value> v, bool& retVal);
     static result_t isBuffer(v8::Local<v8::Value> v, bool& retVal);
     static result_t has(v8::Local<v8::Value> v, exlib::string key, bool& retVal);
@@ -91,6 +103,18 @@ public:
     static void s_isRegExp(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isObject(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isDate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isNativeError(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isPrimitive(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isSymbol(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isDataView(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isExternal(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isMap(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isMapIterator(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isPromise(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isSet(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isSetIterator(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isTypedArray(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isUint8Array(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isFunction(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_has(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -138,6 +162,18 @@ inline ClassInfo& util_base::class_info()
         { "isRegExp", s_isRegExp, true },
         { "isObject", s_isObject, true },
         { "isDate", s_isDate, true },
+        { "isNativeError", s_isNativeError, true },
+        { "isPrimitive", s_isPrimitive, true },
+        { "isSymbol", s_isSymbol, true },
+        { "isDataView", s_isDataView, true },
+        { "isExternal", s_isExternal, true },
+        { "isMap", s_isMap, true },
+        { "isMapIterator", s_isMapIterator, true },
+        { "isPromise", s_isPromise, true },
+        { "isSet", s_isSet, true },
+        { "isSetIterator", s_isSetIterator, true },
+        { "isTypedArray", s_isTypedArray, true },
+        { "isUint8Array", s_isUint8Array, true },
         { "isFunction", s_isFunction, true },
         { "isBuffer", s_isBuffer, true },
         { "has", s_has, true },
@@ -372,6 +408,186 @@ inline void util_base::s_isDate(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(v8::Local<v8::Value>, 0);
 
     hr = isDate(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isNativeError(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isNativeError(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isPrimitive(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isPrimitive(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isSymbol(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isSymbol(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isDataView(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isDataView(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isExternal(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isExternal(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isMap(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isMap(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isMapIterator(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isMapIterator(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isPromise(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isPromise(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isSet(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isSet(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isSetIterator(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isSetIterator(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isTypedArray(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isTypedArray(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isUint8Array(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isUint8Array(v0, vr);
 
     METHOD_RETURN();
 }
