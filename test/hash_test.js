@@ -21,15 +21,15 @@ describe("hash", () => {
         var digest_case = [{
             name: 'MD2',
             text: '',
-            hash: '83 50 e5 a3 e2 4c 15 3d f2 27 5c 9f 80 69 27 73'
+            hash: '8350e5a3e24c153df2275c9f80692773'
         }, {
             name: 'MD2',
             text: 'The quick brown fox jumps over the lazy dog',
-            hash: '03 d8 5a 0d 62 9d 2c 44 2e 98 75 25 31 9f c4 71'
+            hash: '03d85a0d629d2c442e987525319fc471'
         }, {
             name: 'MD2',
             text: 'The quick brown fox jumps over the lazy cog',
-            hash: '6b 89 0c 92 92 66 8c db bf da 00 a4 eb f3 1f 05'
+            hash: '6b890c9292668cdbbfda00a4ebf31f05'
         }];
 
         digest_case.forEach(hash_test);
@@ -39,15 +39,15 @@ describe("hash", () => {
         var digest_case = [{
             name: 'MD4',
             text: '',
-            hash: '31 d6 cf e0 d1 6a e9 31 b7 3c 59 d7 e0 c0 89 c0'
+            hash: '31d6cfe0d16ae931b73c59d7e0c089c0'
         }, {
             name: 'MD4',
             text: 'The quick brown fox jumps over the lazy dog',
-            hash: '1b ee 69 a4 6b a8 11 18 5c 19 47 62 ab ae ae 90'
+            hash: '1bee69a46ba811185c194762abaeae90'
         }, {
             name: 'MD4',
             text: 'The quick brown fox jumps over the lazy cog',
-            hash: 'b8 6e 13 0c e7 02 8d a5 9e 67 2d 56 ad 01 13 df'
+            hash: 'b86e130ce7028da59e672d56ad0113df'
         }];
 
         digest_case.forEach(hash_test);
@@ -57,23 +57,23 @@ describe("hash", () => {
         var digest_case = [{
             name: 'MD5',
             text: '',
-            hash: 'd4 1d 8c d9 8f 00 b2 04 e9 80 09 98 ec f8 42 7e'
+            hash: 'd41d8cd98f00b204e9800998ecf8427e'
         }, {
             name: 'MD5',
             text: 'a',
-            hash: '0c c1 75 b9 c0 f1 b6 a8 31 c3 99 e2 69 77 26 61'
+            hash: '0cc175b9c0f1b6a831c399e269772661'
         }, {
             name: 'MD5',
             text: 'abc',
-            hash: '90 01 50 98 3c d2 4f b0 d6 96 3f 7d 28 e1 7f 72'
+            hash: '900150983cd24fb0d6963f7d28e17f72'
         }, {
             name: 'MD5',
             text: 'abcdefghijklmnopqrstuvwxyz',
-            hash: 'c3 fc d3 d7 61 92 e4 00 7d fb 49 6c ca 67 e1 3b'
+            hash: 'c3fcd3d76192e4007dfb496cca67e13b'
         }, {
             name: 'MD5',
             text: 'message digest',
-            hash: 'f9 6b 69 7d 7c b7 93 8d 52 5a 2f 31 aa f1 61 d0'
+            hash: 'f96b697d7cb7938d525a2f31aaf161d0'
         }];
 
         digest_case.forEach(hash_test);
@@ -83,15 +83,15 @@ describe("hash", () => {
         var digest_case = [{
             name: 'SHA1',
             text: '',
-            hash: 'da 39 a3 ee 5e 6b 4b 0d 32 55 bf ef 95 60 18 90 af d8 07 09'
+            hash: 'da39a3ee5e6b4b0d3255bfef95601890afd80709'
         }, {
             name: 'SHA1',
             text: 'The quick brown fox jumps over the lazy dog',
-            hash: '2f d4 e1 c6 7a 2d 28 fc ed 84 9e e1 bb 76 e7 39 1b 93 eb 12'
+            hash: '2fd4e1c67a2d28fced849ee1bb76e7391b93eb12'
         }, {
             name: 'SHA1',
             text: 'The quick brown fox jumps over the lazy cog',
-            hash: 'de 9f 2c 7f d2 5e 1b 3a fa d3 e8 5a 0b d1 7d 9b 10 0d b4 b3'
+            hash: 'de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3'
         }];
 
         digest_case.forEach(hash_test);
@@ -101,15 +101,15 @@ describe("hash", () => {
         var digest_case = [{
             name: 'SHA224',
             text: '',
-            hash: 'd1 4a 02 8c 2a 3a 2b c9 47 61 02 bb 28 82 34 c4 15 a2 b0 1f 82 8e a6 2a c5 b3 e4 2f'
+            hash: 'd14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f'
         }, {
             name: 'SHA224',
             text: 'The quick brown fox jumps over the lazy dog',
-            hash: '73 0e 10 9b d7 a8 a3 2b 1c b9 d9 a0 9a a2 32 5d 24 30 58 7d db c0 c3 8b ad 91 15 25'
+            hash: '730e109bd7a8a32b1cb9d9a09aa2325d2430587ddbc0c38bad911525'
         }, {
             name: 'SHA224',
             text: 'The quick brown fox jumps over the lazy dog.',
-            hash: '61 9c ba 8e 8e 05 82 6e 9b 8c 51 9c 0a 5c 68 f4 fb 65 3e 8a 3d 8a a0 4b b2 c8 cd 4c'
+            hash: '619cba8e8e05826e9b8c519c0a5c68f4fb653e8a3d8aa04bb2c8cd4c'
         }];
 
         digest_case.forEach(hash_test);
@@ -119,15 +119,15 @@ describe("hash", () => {
         var digest_case = [{
             name: 'SHA256',
             text: '',
-            hash: 'e3 b0 c4 42 98 fc 1c 14 9a fb f4 c8 99 6f b9 24 27 ae 41 e4 64 9b 93 4c a4 95 99 1b 78 52 b8 55'
+            hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
         }, {
             name: 'SHA256',
             text: 'The quick brown fox jumps over the lazy dog',
-            hash: 'd7 a8 fb b3 07 d7 80 94 69 ca 9a bc b0 08 2e 4f 8d 56 51 e4 6d 3c db 76 2d 02 d0 bf 37 c9 e5 92'
+            hash: 'd7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592'
         }, {
             name: 'SHA256',
             text: 'The quick brown fox jumps over the lazy dog.',
-            hash: 'ef 53 7f 25 c8 95 bf a7 82 52 65 29 a9 b6 3d 97 aa 63 15 64 d5 d7 89 c2 b7 65 44 8c 86 35 fb 6c'
+            hash: 'ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c'
         }];
 
         digest_case.forEach(hash_test);
@@ -137,15 +137,15 @@ describe("hash", () => {
         var digest_case = [{
             name: 'SHA384',
             text: '',
-            hash: '38 b0 60 a7 51 ac 96 38 4c d9 32 7e b1 b1 e3 6a 21 fd b7 11 14 be 07 43 4c 0c c7 bf 63 f6 e1 da 27 4e de bf e7 6f 65 fb d5 1a d2 f1 48 98 b9 5b'
+            hash: '38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b'
         }, {
             name: 'SHA384',
             text: 'The quick brown fox jumps over the lazy dog',
-            hash: 'ca 73 7f 10 14 a4 8f 4c 0b 6d d4 3c b1 77 b0 af d9 e5 16 93 67 54 4c 49 40 11 e3 31 7d bf 9a 50 9c b1 e5 dc 1e 85 a9 41 bb ee 3d 7f 2a fb c9 b1'
+            hash: 'ca737f1014a48f4c0b6dd43cb177b0afd9e5169367544c494011e3317dbf9a509cb1e5dc1e85a941bbee3d7f2afbc9b1'
         }, {
             name: 'SHA384',
             text: 'The quick brown fox jumps over the lazy dog.',
-            hash: 'ed 89 24 81 d8 27 2c a6 df 37 0b f7 06 e4 d7 bc 1b 57 39 fa 21 77 aa e6 c5 0e 94 66 78 71 8f c6 7a 7a f2 81 9a 02 1c 2f c3 4e 91 bd b6 34 09 d7'
+            hash: 'ed892481d8272ca6df370bf706e4d7bc1b5739fa2177aae6c50e946678718fc67a7af2819a021c2fc34e91bdb63409d7'
         }];
 
         digest_case.forEach(hash_test);
@@ -155,15 +155,15 @@ describe("hash", () => {
         var digest_case = [{
             name: 'SHA512',
             text: '',
-            hash: 'cf 83 e1 35 7e ef b8 bd f1 54 28 50 d6 6d 80 07 d6 20 e4 05 0b 57 15 dc 83 f4 a9 21 d3 6c e9 ce 47 d0 d1 3c 5d 85 f2 b0 ff 83 18 d2 87 7e ec 2f 63 b9 31 bd 47 41 7a 81 a5 38 32 7a f9 27 da 3e'
+            hash: 'cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e'
         }, {
             name: 'SHA512',
             text: 'The quick brown fox jumps over the lazy dog',
-            hash: '07 e5 47 d9 58 6f 6a 73 f7 3f ba c0 43 5e d7 69 51 21 8f b7 d0 c8 d7 88 a3 09 d7 85 43 6b bb 64 2e 93 a2 52 a9 54 f2 39 12 54 7d 1e 8a 3b 5e d6 e1 bf d7 09 78 21 23 3f a0 53 8f 3d b8 54 fe e6'
+            hash: '07e547d9586f6a73f73fbac0435ed76951218fb7d0c8d788a309d785436bbb642e93a252a954f23912547d1e8a3b5ed6e1bfd7097821233fa0538f3db854fee6'
         }, {
             name: 'SHA512',
             text: 'The quick brown fox jumps over the lazy dog.',
-            hash: '91 ea 12 45 f2 0d 46 ae 9a 03 7a 98 9f 54 f1 f7 90 f0 a4 76 07 ee b8 a1 4d 12 89 0c ea 77 a1 bb c6 c7 ed 9c f2 05 e6 7b 7f 2b 8f d4 c7 df d3 a7 a8 61 7e 45 f3 c4 63 d4 81 c7 e5 86 c3 9a c1 ed'
+            hash: '91ea1245f20d46ae9a037a989f54f1f790f0a47607eeb8a14d12890cea77a1bbc6c7ed9cf205e67b7f2b8fd4c7dfd3a7a8617e45f3c463d481c7e586c39ac1ed'
         }];
 
         digest_case.forEach(hash_test);
@@ -173,15 +173,15 @@ describe("hash", () => {
         var digest_case = [{
             name: 'RIPEMD160',
             text: '',
-            hash: '9c 11 85 a5 c5 e9 fc 54 61 28 08 97 7e e8 f5 48 b2 25 8d 31'
+            hash: '9c1185a5c5e9fc54612808977ee8f548b2258d31'
         }, {
             name: 'RIPEMD160',
             text: 'The quick brown fox jumps over the lazy dog',
-            hash: '37 f3 32 f6 8d b7 7b d9 d7 ed d4 96 95 71 ad 67 1c f9 dd 3b'
+            hash: '37f332f68db77bd9d7edd4969571ad671cf9dd3b'
         }, {
             name: 'RIPEMD160',
             text: 'The quick brown fox jumps over the lazy cog',
-            hash: '13 20 72 df 69 09 33 83 5e b8 b6 ad 0b 77 e7 b6 f1 4a ca d7'
+            hash: '132072df690933835eb8b6ad0b77e7b6f14acad7'
         }];
 
         digest_case.forEach(hash_test);
@@ -192,12 +192,12 @@ describe("hash", () => {
             name: 'MD5',
             key: '',
             text: '',
-            hmac: '74 e6 f7 29 8a 9c 2d 16 89 35 f5 8c 00 1b ad 88'
+            hmac: '74e6f7298a9c2d168935f58c001bad88'
         }, {
             name: 'MD5',
             key: 'key',
             text: 'The quick brown fox jumps over the lazy dog',
-            hmac: '80 07 07 13 46 3e 77 49 b9 0c 2d c2 49 11 e2 75'
+            hmac: '80070713463e7749b90c2dc24911e275'
         }];
 
         hmac_case.forEach(hmac_test);
@@ -208,12 +208,12 @@ describe("hash", () => {
             name: 'SHA1',
             key: '',
             text: '',
-            hmac: 'fb db 1d 1b 18 aa 6c 08 32 4b 7d 64 b7 1f b7 63 70 69 0e 1d'
+            hmac: 'fbdb1d1b18aa6c08324b7d64b71fb76370690e1d'
         }, {
             name: 'SHA1',
             key: 'key',
             text: 'The quick brown fox jumps over the lazy dog',
-            hmac: 'de 7c 9b 85 b8 b7 8a a6 bc 8a 7a 36 f7 0a 90 70 1c 9d b4 d9'
+            hmac: 'de7c9b85b8b78aa6bc8a7a36f70a90701c9db4d9'
         }];
 
         hmac_case.forEach(hmac_test);
@@ -224,12 +224,12 @@ describe("hash", () => {
             name: 'SHA256',
             key: '',
             text: '',
-            hmac: 'b6 13 67 9a 08 14 d9 ec 77 2f 95 d7 78 c3 5f c5 ff 16 97 c4 93 71 56 53 c6 c7 12 14 42 92 c5 ad'
+            hmac: 'b613679a0814d9ec772f95d778c35fc5ff1697c493715653c6c712144292c5ad'
         }, {
             name: 'SHA256',
             key: 'key',
             text: 'The quick brown fox jumps over the lazy dog',
-            hmac: 'f7 bc 83 f4 30 53 84 24 b1 32 98 e6 aa 6f b1 43 ef 4d 59 a1 49 46 17 59 97 47 9d bc 2d 1a 3c d8'
+            hmac: 'f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8'
         }];
 
         hmac_case.forEach(hmac_test);
@@ -240,7 +240,7 @@ describe("hash", () => {
             name: 'RIPEMD160',
             key: 'Jefe',
             text: 'what do ya want for nothing?',
-            hmac: 'dd a6 c0 21 3a 48 5a 9e 24 f4 74 20 64 a7 f0 33 b4 3c 40 69'
+            hmac: 'dda6c0213a485a9e24f4742064a7f033b43c4069'
         }];
 
         hmac_case.forEach(hmac_test);
