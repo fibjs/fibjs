@@ -4,21 +4,31 @@
 <%-declare.doc.detail.join('\n')%>
 <%var last_member = '';
 
-function def_value(v)
+function def_value(v, o)
 {
-    switch(v)
+    if(v.value)
     {
-    case 'v8::Undefined(isolate)':
-        v = 'undefined';
-        break;
-    case 'v8::Object::New(isolate)':
-        v = '{}';
-        break;
-    case 'v8::Array::New(isolate)':
-        v = '[]';
-        break;
+        v = v.value;
+
+        switch(v)
+        {
+        case 'v8::Undefined(isolate)':
+            v = 'undefined';
+            break;
+        case 'v8::Object::New(isolate)':
+            v = '{}';
+            break;
+        case 'v8::Array::New(isolate)':
+            v = '[]';
+            break;
+        }
+        return v;
     }
-    return v;
+
+    if(Array.isArray(v.const))
+        return v.const.join('.');
+
+    return v.const;
 }
 
 function member_output(title, test){
@@ -51,9 +61,9 @@ if(m.type){%><%-m.type%> <%}%><%-declare.name == m.name ? ' new ' : declare.name
             ps += p.name;
     
             if(p.default)
-                ps += ' = ' + def_value(p.default.value);
+                ps += ' = ' + def_value(p.default, p);
         });
-    }%>(<%-ps%>)<% if(m.async){%> async<%}}else if(m.default){%> = <%-def_value(m.default.value)%><%}%>;
+    }%>(<%-ps%>)<% if(m.async){%> async<%}}else if(m.default){%> = <%-def_value(m.default, m)%><%}%>;
 ```
 <%if(m.params){%>
 调用参数:<% m.doc.params.forEach(function(p){%>
