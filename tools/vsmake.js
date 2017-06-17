@@ -2,6 +2,9 @@
 
 var fs = require("fs");
 var hash = require("hash");
+var path = require("path");
+
+var baseDir = path.join(__dirname, '../fibjs');
 
 var Includes = {};
 var Compiles = {};
@@ -14,25 +17,25 @@ var dis_archs = {
     mips64: 1
 };
 
-function do_folder(path, base) {
+function do_folder(p, base) {
     filters.push(base);
 
-    var dir = fs.readdir(path.replace(/\\/g, '/'));
+    var dir = fs.readdir(path.join(baseDir, p.replace(/\\/g, '/')));
 
     dir.forEach(function (name) {
-        var f = fs.stat(path.replace(/\\/g, '/') + '/' + name);
+        var f = fs.stat(path.join(baseDir, p.replace(/\\/g, '/') + '/' + name));
         if (f.isDirectory()) {
             if (!dis_archs[name])
-                do_folder(path + '\\' + name, base + '\\' + name);
+                do_folder(p + '\\' + name, base + '\\' + name);
         } else {
             var len = name.length;
             var bInc = name.substr(len - 2, 2) === '.h';
             var bCc = name.substr(len - 3, 3) === '.cc' || name.substr(len - 4, 4) === '.cpp' || name.substr(len - 2, 2) === '.c';
 
             if (bInc)
-                Includes[path + '\\' + name] = base;
+                Includes[p + '\\' + name] = base;
             else if (bCc)
-                Compiles[path + '\\' + name] = base;
+                Compiles[p + '\\' + name] = base;
         }
     });
 }
@@ -40,8 +43,8 @@ function do_folder(path, base) {
 do_folder("include", "Header Files");
 do_folder("src", "Source Files");
 
-var proj = fs.readTextFile('tools/proj.txt');
-var filter = fs.readTextFile('tools/filter.txt');
+var proj = fs.readTextFile(path.join(__dirname, './tpls/proj.txt'));
+var filter = fs.readTextFile(path.join(__dirname, './tpls/filter.txt'));
 
 var txts, f, s, h;
 
@@ -61,7 +64,7 @@ txts.sort();
 proj = proj.replace('<ClCompiles />', txts.join('\r\n'));
 
 
-fs.writeFile("fibjs.vcxproj", proj);
+fs.writeFile(path.join(baseDir, "fibjs.vcxproj"), proj);
 
 
 proj = proj.replace(/_CONSOLE/g, '_WINDOWS');
@@ -69,7 +72,7 @@ proj = proj.replace(/\\fibjs\\/g, '\\fibjs_gui\\');
 proj = proj.replace(/>fibjs</g, '>fibjs_gui<');
 proj = proj.replace(/<SubSystem>Console<\/SubSystem>/g, '<SubSystem>Windows<\/SubSystem>');
 
-fs.writeFile("fibjs_gui.vcxproj", proj);
+fs.writeFile(path.join(baseDir, "fibjs_gui.vcxproj"), proj);
 
 filters.sort();
 
@@ -99,5 +102,5 @@ for (f in Compiles) {
 txts.sort();
 filter = filter.replace('<ClCompiles />', txts.join('\r\n'));
 
-fs.writeFile("fibjs.vcxproj.filters", filter);
-fs.writeFile("fibjs_gui.vcxproj.filters", filter);
+fs.writeFile(path.join(baseDir, "fibjs.vcxproj.filters"), filter);
+fs.writeFile(path.join(baseDir, "fibjs_gui.vcxproj.filters"), filter);
