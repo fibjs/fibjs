@@ -13,7 +13,8 @@ function member_output(title, test){
         if(last_member != m.name){%>
 ### <%=m.name%><%
 last_member = m.name;
-}else{%>--------------------------<%}%>
+}else{%>
+--------------------------<%}%>
 <%=m.doc.descript%>
 ```JavaScript
 <%if(m.readonly){%><%=m.readonly%> <%}
