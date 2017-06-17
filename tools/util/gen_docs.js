@@ -25,6 +25,11 @@ module.exports = function (defs, docsFolder) {
                         }
                     }
                 }
+
+                if (m.type && m.memType == 'method') {
+                    if (!m.doc.return)
+                        console.error('return of', n + '.' + m.name, 'not well documented.');
+                }
             });
         }
     }
