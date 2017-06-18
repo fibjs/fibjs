@@ -32,10 +32,9 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then # linux
 
   if [[ $TARGET_ARCH == 'x64' ]]; then
     echo "zip fullsrc..."
-
-    mkdir fullsrc
-    cp -rf vender fibjs build fibjs.sln README.md LICENSE.md CHANGELOG.md ./fullsrc
-    zip -r ./${TRAVIS_TAG}/fullsrc.zip ./fullsrc
+    rm -rf .git
+    sh build clean
+    zip -r ./${TRAVIS_TAG}/fullsrc.zip ./
   fi
 
 else # darwin

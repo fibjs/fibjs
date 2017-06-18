@@ -133,11 +133,16 @@ fi
 
 FIBJS_PATH=`pwd`
 OUT_PATH=${FIBJS_PATH}/../out
+BIN_ROOT=${FIBJS_PATH}/../out
 BIN_PATH=${FIBJS_PATH}/../bin/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
 
 if [ ${BUILD_TYPE} = 'clean' ]; then
 	if [ -e "${OUT_PATH}" ]; then
-		rm -rf ${OUT_PATH}/${TARGET_OS}_*
+		rm -rf ${OUT_PATH}
+	fi
+
+	if [ -e "${BIN_ROOT}" ]; then
+		rm -rf ${BIN_ROOT}
 	fi
 
 	exit 0
