@@ -47,10 +47,9 @@ inline int32_t ftruncate64(int32_t fd, __int64 where)
 #define _close close
 
 #ifndef Linux
-#ifndef Darwin
 #define stat64 stat
 #define fstat64 fstat
-#endif
+#define lstat64 lstat
 #define ftruncate64 ftruncate
 #endif
 
