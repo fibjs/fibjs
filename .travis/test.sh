@@ -8,8 +8,10 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
       ../bin/Linux_amd64_release/fibjs main.js
     fi
 else # darwin
-    cd test
-    ../bin/Darwin_amd64_release/fibjs main.js
+    if [[ $ARCH == "amd64" ]]; then
+        cd test
+        ../bin/Darwin_amd64_release/fibjs main.js
+    fi
 fi
 
 exit 0;
