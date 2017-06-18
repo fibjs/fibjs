@@ -37,12 +37,11 @@ function member_output(title, test){
      if(test(m, declare.name)){
          if(!has){
              has = true;%>## <%-title%>
-        <%}
+        <%}else{%>--------------------------<%}
         if(last_member != m.name && m.memType !== 'operator'){%>
 ### <%-m.name%><%
 last_member = m.name;
-}else{%>
---------------------------<%}%>
+}%>
 <%-m.doc.descript%>
 ```JavaScript
 <%if(m.const){%><%-m.const%> <%}
