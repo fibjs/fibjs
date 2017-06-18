@@ -31,17 +31,17 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then # linux
   cp ${GZ_FILE} ${TRAVIS_TAG}/fibjs-${TRAVIS_TAG}-linux-${TARGET_ARCH}.tar.gz
 
 else # darwin
-  DIST_FILE=bin/Darwin_amd64_release
+  DIST_FILE=bin/Darwin_${ARCH}_release
 
   FIBJS_FILE=${DIST_FILE}/fibjs
   INSTALLER_FILE=${DIST_FILE}/installer.sh
   XZ_FILE=${DIST_FILE}/fibjs.xz
   GZ_FILE=${DIST_FILE}/fibjs.tar.gz
 
-  cp ${FIBJS_FILE} ${TRAVIS_TAG}/fibjs-${TRAVIS_TAG}-darwin-x64
-  cp ${INSTALLER_FILE} ${TRAVIS_TAG}/installer-${TRAVIS_TAG}-darwin-x64.sh
-  cp ${XZ_FILE} ${TRAVIS_TAG}/fibjs-${TRAVIS_TAG}-darwin-x64.xz
-  cp ${GZ_FILE} ${TRAVIS_TAG}/fibjs-${TRAVIS_TAG}-darwin-x64.tar.gz
+  cp ${FIBJS_FILE} ${TRAVIS_TAG}/fibjs-${TRAVIS_TAG}-darwin-${TARGET_ARCH}
+  cp ${INSTALLER_FILE} ${TRAVIS_TAG}/installer-${TRAVIS_TAG}-darwin-${TARGET_ARCH}.sh
+  cp ${XZ_FILE} ${TRAVIS_TAG}/fibjs-${TRAVIS_TAG}-darwin-${TARGET_ARCH}.xz
+  cp ${GZ_FILE} ${TRAVIS_TAG}/fibjs-${TRAVIS_TAG}-darwin-${TARGET_ARCH}.tar.gz
 fi
 
 exit 0;

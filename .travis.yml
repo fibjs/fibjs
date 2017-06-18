@@ -19,6 +19,10 @@ matrix:
       osx_image: xcode8.2
       env:
         - ARCH=amd64
+    - os: osx
+      osx_image: xcode8.2
+      env:
+        - ARCH=i386
     - os: linux
       env:
         - ARCH=amd64
