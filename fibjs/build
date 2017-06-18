@@ -133,7 +133,7 @@ fi
 
 FIBJS_PATH=`pwd`
 OUT_PATH=${FIBJS_PATH}/../out
-BIN_ROOT=${FIBJS_PATH}/../out
+BIN_ROOT=${FIBJS_PATH}/../bin
 BIN_PATH=${FIBJS_PATH}/../bin/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
 
 if [ ${BUILD_TYPE} = 'clean' ]; then
