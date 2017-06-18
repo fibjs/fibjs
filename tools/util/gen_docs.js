@@ -170,11 +170,11 @@ module.exports = function (defs, docsFolder) {
 
     check_docs();
 
-    cross_link();
-
-    inherit_method();
-
     gen_summary();
     gen_readme();
+
+    cross_link();
+    inherit_method();
+
     gen_idl();
 }
