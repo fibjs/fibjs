@@ -34,11 +34,11 @@ function def_value(v, o)
 function member_output(title, test){
     var has = false;
     members.forEach(function(m){
-     if(test(m, declare.name)){ 
+     if(test(m, declare.name)){
          if(!has){
              has = true;%>## <%-title%>
         <%}
-        if(last_member != m.name){%>
+        if(last_member != m.name && m.memType !== 'operator'){%>
 ### <%-m.name%><%
 last_member = m.name;
 }else{%>
@@ -48,7 +48,9 @@ last_member = m.name;
 <%if(m.const){%><%-m.const%> <%}
 if(m.static){%><%-m.static%> <%}
 if(m.readonly){%><%-m.readonly%> <%}
-if(m.type){%><%-m.type%> <%}%><%-declare.name == m.name ? ' new ' : declare.name + '.'%><%-m.name%><%if(m.memType == 'method'){
+if(m.type){%><%-m.type%> <%}
+%><%-declare.name == m.name ? ' new ' : declare.name + (m.memType !== 'operator' ? '.' : '')%><%-m.name%><%
+if(m.memType == 'method'){
     var ps = '';
 
     if(m.params){
@@ -77,6 +79,10 @@ if(m.type){%><%-m.type%> <%}%><%-declare.name == m.name ? ' new ' : declare.name
     }
     member_output('构造函数', function(m, n){
         return m.memType == 'method' && m.name == n;
+    });
+
+    member_output('下标操作', function(m){
+        return m.memType == 'operator';
     });
 
     member_output('对象', function(m){
