@@ -729,7 +729,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
             return hr;
     }
 
-    zip_fileinfo zi = { 0 };
+    zip_fileinfo zi = { { 0 } };
     date_t d;
     date_t::Part dp;
 
