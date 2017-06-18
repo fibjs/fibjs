@@ -74,6 +74,7 @@ if(m.memType == 'method'){
 * <%-m.doc.return.descript%><%}%>
 
 <%-m.doc.detail.join('\n')%>
+
 <%  }});
     }
     member_output('构造函数', function(m, n){
