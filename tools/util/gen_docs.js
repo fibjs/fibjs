@@ -35,12 +35,18 @@ module.exports = function (defs, docsFolder) {
     }
 
     function cross_link() {
+        var def;
+
         function link_line(t) {
             t = t.replace(/\w+/g, function (k) {
-                if (defs[k] && defs[k].declare) {
-                    return '[' + k + '](/docs/manual/' +
-                        (defs[k].declare.type === 'module' ? 'module/ifs/' : 'object/ifs/') +
-                        k.toLowerCase() + '.md.html)';
+                var def1 = defs[k];
+                if (def1 && def1.declare && def1 != def) {
+                    var k1 = '[' + k + '](';
+                    if (def1.declare.type != def.declare.type)
+                        k1 += (def1.declare.type === 'module' ? '../../module/ifs/' : '../../object/ifs/');
+
+                    k1 += k + '.md)';
+                    return k1;
                 }
 
                 return k;
@@ -61,7 +67,7 @@ module.exports = function (defs, docsFolder) {
         }
 
         for (var n in defs) {
-            var def = defs[n];
+            def = defs[n];
             link_doc(def.declare.doc);
             def.members.forEach(m => {
                 link_doc(m.doc);
