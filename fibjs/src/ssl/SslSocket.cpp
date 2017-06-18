@@ -334,6 +334,8 @@ result_t SslSocket::get_peerCert(obj_ptr<X509Cert_base>& retVal)
 
 result_t SslSocket::get_stream(obj_ptr<Stream_base>& retVal)
 {
+    if (!m_s)
+        return CALL_RETURN_NULL;
     retVal = m_s;
     return 0;
 }
