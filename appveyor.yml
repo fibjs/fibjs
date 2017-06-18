@@ -51,13 +51,4 @@ deploy:
     prerelease: false
     on:
       appveyor_repo_tag: true
-  - provider: FTP
-    protocol: sftp
-    host: fibjs.org
-    username: ngot
-    password:
-      secure: LQmnsIyjjG2yWTuslQQgLw==
-    folder: downloads/
-    on:
-      appveyor_repo_tag: true
 build: off
