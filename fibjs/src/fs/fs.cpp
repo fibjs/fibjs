@@ -501,7 +501,11 @@ result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+#ifdef Linux
+    if (::fchmodat(AT_FDCWD, path.c_str(), mode, AT_SYMLINK_NOFOLLOW))
+#else
     if (::lchmod(path.c_str(), mode))
+#endif
         return CHECK_ERROR(LastError());
 
     return 0;
