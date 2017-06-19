@@ -89,12 +89,20 @@ if(m.memType == 'method'){
         return m.memType == 'object';
     });
 
-    member_output('函数', function(m, n){
-        return m.memType == 'method' && m.name !== n;
+    member_output('静态函数', function(m, n){
+        return m.memType == 'method' && m.name !== n && m.static;
     });
 
-    member_output('属性', function(m){
-        return m.memType == 'prop';
+    member_output('静态属性', function(m){
+        return m.memType == 'prop' && m.static;
+    });
+
+    member_output('成员函数', function(m, n){
+        return m.memType == 'method' && m.name !== n && !m.static;
+    });
+
+    member_output('成员属性', function(m){
+        return m.memType == 'prop' && !m.static;
     });
 
     member_output('常量', function(m){
