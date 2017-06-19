@@ -72,6 +72,8 @@ public:
 protected:
     exlib::string name;
     FILE* m_pipe;
+
+public:
     int32_t m_fd;
 };
 }
