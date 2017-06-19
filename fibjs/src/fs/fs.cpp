@@ -893,11 +893,6 @@ result_t fs_base::readdirSync(exlib::string path, obj_ptr<List_base>& retVal)
     return ac_readdir(path, retVal);
 }
 
-result_t fs_base::openSync(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal)
-{
-    return ac_openFile(fname, flags, retVal);
-}
-
 result_t fs_base::readFileSync(exlib::string fname, obj_ptr<Buffer_base>& retVal)
 {
     return ac_readFile(fname, retVal);
