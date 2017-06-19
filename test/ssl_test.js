@@ -34,7 +34,7 @@ var ca_pem = ca.dump()[0];
 function del(f) {
     try {
         fs.unlink(f);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 describe('ssl', () => {
@@ -166,7 +166,7 @@ describe('ssl', () => {
             var ss = sss.accept(s);
 
             fs.writeFile(__dirname + '/net_temp_000001' + base_port, str);
-            var f = fs.open(__dirname + '/net_temp_000001' + base_port);
+            var f = fs.openFile(__dirname + '/net_temp_000001' + base_port);
             assert.equal(f.copyTo(ss), str.length);
 
             f.close();
@@ -183,7 +183,7 @@ describe('ssl', () => {
             var ss = new ssl.Socket();
             ss.connect(c1);
 
-            var f1 = fs.open(__dirname + '/net_temp_000002' + base_port, 'w');
+            var f1 = fs.openFile(__dirname + '/net_temp_000002' + base_port, 'w');
             assert.equal(ss.copyTo(f1), str.length);
 
             ss.close();

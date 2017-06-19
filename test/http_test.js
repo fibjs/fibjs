@@ -901,10 +901,10 @@ describe("http", () => {
         function clean() {
             try {
                 fs.unlink(url);
-            } catch (e) {};
+            } catch (e) { };
             try {
                 fs.unlink(base_port + 'test.html.gz');
-            } catch (e) {};
+            } catch (e) { };
         }
 
         before(clean);
@@ -953,7 +953,7 @@ describe("http", () => {
 
         it("pre-gzip", () => {
             var sgz = 'gz test file';
-            var gz = fs.open(base_port + 'test.html.gz', 'w');
+            var gz = fs.openFile(base_port + 'test.html.gz', 'w');
             gz.write(zlib.gzip(new Buffer(sgz)));
             gz.close();
 
@@ -992,7 +992,7 @@ describe("http", () => {
             after(() => {
                 try {
                     fs.unlink(base_port + 'test.html.zip');
-                } catch (e) {};
+                } catch (e) { };
             });
 
             it("normal", () => {
@@ -1220,7 +1220,7 @@ describe("http", () => {
         describe("post", () => {
             it("body", () => {
                 assert.equal(http.post(
-                        "https://localhost:" + (8883 + base_port) + "/request:", "body").body
+                    "https://localhost:" + (8883 + base_port) + "/request:", "body").body
                     .read().toString(), "/request:body");
             });
 
