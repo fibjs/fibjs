@@ -255,7 +255,7 @@ module fs
      @param flags 指定文件打开方式，缺省为 "r"，只读方式
      @return 返回打开的文件对象
      */
-    static SeekableStream open(String fname, String flags = "r") async;
+    static SeekableStream openFile(String fname, String flags = "r") async;
 
     /*! @brief 打开文件，用于读取，写入，或者同时读写，是 open 的同步版兼容接口
 

@@ -72,7 +72,7 @@ public:
     static result_t truncateSync(exlib::string path, int32_t len);
     static result_t readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
     static result_t readdirSync(exlib::string path, obj_ptr<List_base>& retVal);
-    static result_t open(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
+    static result_t openFile(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t openSync(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal);
     static result_t openTextStream(exlib::string fname, exlib::string flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
     static result_t readTextFile(exlib::string fname, exlib::string& retVal, AsyncEvent* ac);
@@ -138,7 +138,7 @@ public:
     static void s_truncateSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_openFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -171,7 +171,7 @@ public:
     ASYNC_STATIC2(fs_base, symlink, exlib::string, exlib::string);
     ASYNC_STATIC2(fs_base, truncate, exlib::string, int32_t);
     ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<List_base>);
-    ASYNC_STATICVALUE3(fs_base, open, exlib::string, exlib::string, obj_ptr<SeekableStream_base>);
+    ASYNC_STATICVALUE3(fs_base, openFile, exlib::string, exlib::string, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE3(fs_base, openTextStream, exlib::string, exlib::string, obj_ptr<BufferedStream_base>);
     ASYNC_STATICVALUE2(fs_base, readTextFile, exlib::string, exlib::string);
     ASYNC_STATICVALUE2(fs_base, readFile, exlib::string, obj_ptr<Buffer_base>);
@@ -228,7 +228,7 @@ inline ClassInfo& fs_base::class_info()
         { "truncateSync", s_truncateSync, true },
         { "readdir", s_readdir, true },
         { "readdirSync", s_readdirSync, true },
-        { "open", s_open, true },
+        { "openFile", s_openFile, true },
         { "openSync", s_openSync, true },
         { "openTextStream", s_openTextStream, true },
         { "readTextFile", s_readTextFile, true },
@@ -897,7 +897,7 @@ inline void fs_base::s_readdirSync(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void fs_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_openFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<SeekableStream_base> vr;
 
@@ -909,10 +909,10 @@ inline void fs_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG(exlib::string, 1, "r");
 
     if (!cb.IsEmpty()) {
-        acb_open(v0, v1, cb);
+        acb_openFile(v0, v1, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = ac_open(v0, v1, vr);
+        hr = ac_openFile(v0, v1, vr);
 
     METHOD_RETURN();
 }

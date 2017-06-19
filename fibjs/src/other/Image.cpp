@@ -142,7 +142,7 @@ result_t gd_base::load(exlib::string fname, obj_ptr<Image_base>& retVal,
             asyncLoad* pThis = (asyncLoad*)pState;
 
             pThis->set(read);
-            return fs_base::open(pThis->m_fname, "r", pThis->m_file, pThis);
+            return fs_base::openFile(pThis->m_fname, "r", pThis->m_file, pThis);
         }
 
         static int32_t read(AsyncState* pState, int32_t n)
@@ -617,7 +617,7 @@ result_t Image::save(exlib::string fname, int32_t format, int32_t quality,
             asyncSave* pThis = (asyncSave*)pState;
 
             pThis->set(save);
-            return fs_base::open(pThis->m_fname, "w", pThis->m_file, pThis);
+            return fs_base::openFile(pThis->m_fname, "w", pThis->m_file, pThis);
         }
 
         static int32_t save(AsyncState* pState, int32_t n)

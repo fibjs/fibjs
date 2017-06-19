@@ -98,7 +98,7 @@ private:
             m_pProtSink = pIProtSink;
             m_pProtSink->AddRef();
 
-            result_t hr = fs_base::cc_open(UTF8_A(szUrl + 3), "r", m_file);
+            result_t hr = fs_base::cc_openFile(UTF8_A(szUrl + 3), "r", m_file);
             if (hr < 0)
                 return INET_E_OBJECT_NOT_FOUND;
 
