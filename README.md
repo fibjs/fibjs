@@ -15,16 +15,15 @@ fibjs is a JavaScript runtime built on Chrome's V8 JavaScript engine.  fibjs use
 
 ## Get Started
 
-- [Beginning](http://fibjs.org/en/d2/de8/start_prog.html)
-- [Server Programming](http://fibjs.org/en/da/db3/server.html)
+- [Beginning](http://fibjs.org/docs/guide/readme.md.html)
 
 ## Download
 
-- [http://fibjs.org/downloads/](http://fibjs.org/downloads/)
+- [http://fibjs.org/download/](http://fibjs.org/download/)
 
 ## Documentation
 
-- [http://fibjs.org/en/](http://fibjs.org/en/)
+- [http://fibjs.org](http://fibjs.org/docs/manual/module/readme.md.html)
 
 - [https://github.com/fibjs/fibjs_docs](https://github.com/fibjs/fibjs_docs)
 
