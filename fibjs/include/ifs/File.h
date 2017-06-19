@@ -25,6 +25,7 @@ class File_base : public SeekableStream_base {
 public:
     // File_base
     virtual result_t get_name(exlib::string& retVal) = 0;
+    virtual result_t get_fd(int32_t& retVal) = 0;
     virtual result_t chmod(int32_t mode, AsyncEvent* ac) = 0;
 
 public:
@@ -40,6 +41,7 @@ public:
 
 public:
     static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_fd(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -55,7 +57,8 @@ inline ClassInfo& File_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "name", s_get_name, block_set, false }
+        { "name", s_get_name, block_set, false },
+        { "fd", s_get_fd, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -76,6 +79,18 @@ inline void File_base::s_get_name(v8::Local<v8::String> property, const v8::Prop
     PROPERTY_ENTER();
 
     hr = pInst->get_name(vr);
+
+    METHOD_RETURN();
+}
+
+inline void File_base::s_get_fd(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(File_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_fd(vr);
 
     METHOD_RETURN();
 }

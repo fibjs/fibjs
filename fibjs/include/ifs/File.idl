@@ -10,6 +10,9 @@ interface File : SeekableStream
     /*! @brief 查询当前文件名 */
     readonly String name;
 
+    /*! @brief 查询当前文件描述符 */
+    readonly Integer fd;
+
     /*! @brief 查询当前文件的访问权限，Windows 不支持此方法
      @param mode 指定设定的访问权限
      */

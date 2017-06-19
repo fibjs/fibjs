@@ -50,6 +50,7 @@ public:
 public:
     // File_base
     virtual result_t get_name(exlib::string& retVal);
+    virtual result_t get_fd(int32_t& retVal);
     virtual result_t chmod(int32_t mode, AsyncEvent* ac);
 
 public:

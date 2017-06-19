@@ -252,6 +252,15 @@ result_t File::get_name(exlib::string& retVal)
     return 0;
 }
 
+result_t File::get_fd(int32_t& retVal)
+{
+    if (m_fd == -1)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal = m_fd;
+    return 0;
+}
+
 #ifdef _WIN32
 
 result_t File::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
