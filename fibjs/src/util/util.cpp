@@ -208,7 +208,7 @@ exlib::string json_format(v8::Local<v8::Value> obj)
 
                 if (v->IsTypedArray()) {
                     v8::Local<v8::TypedArray> typedarray = v8::Local<v8::TypedArray>::Cast(v);
-                    int32_t len = typedarray->Length();
+                    int32_t len = (int32_t)typedarray->Length();
 
                     if (len == 0)
                         strBuffer.append("[]");
@@ -512,7 +512,6 @@ result_t util_base::isDate(v8::Local<v8::Value> v, bool& retVal)
     retVal = v->IsDate();
     return 0;
 }
-
 
 result_t util_base::isNativeError(v8::Local<v8::Value> v, bool& retVal)
 {
