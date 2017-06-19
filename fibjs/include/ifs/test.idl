@@ -1,18 +1,86 @@
 
 /*! @brief 测试套件模块，用以定义管理测试套件
 
- 引用方法：
- ```JavaScript
- var test = require('test');
- ```
+使用方法 ：
+
+```JavaScript
+var test = require('test');
+test.setup();
+
+describe('test', () => {
+    before(() => {
+        // setup before the whole test
+    });
+
+    beforeEach(() => {
+        // setup before each test
+    });
+
+    after(() => {
+        // cleanup after the whole test
+    });
+
+    afterEach(() => {
+        // cleanup after each test
+    });
+
+    it('case', () => {
+        assert.ok(true);
+    });
+
+    // ignored test case
+    xit('case', () => {
+        assert.ok(true);
+    });
+});
+
+process.exit(-test.run(console.DEBUG));
+```
+
+如果需要测试异步逻辑，可以像这样编写测试代码：
+
+```JavaScript
+var test = require('test');
+var sync = require('util').sync;
+
+test.setup();
+
+describe('test', () => {
+  it('pass case', sync(done => {
+    setTimeout(() => {
+      assert.ok(true);
+      done();
+    }, 0);
+  }));
+
+  it('error case', sync(done => {
+    setTimeout(() => {
+      done(new Error('some thing wrong!'));
+    }, 0);
+  }));
+});
+
+process.exit(-test.run(console.DEBUG));
+```
  */
 module test
 {
-    /*! @brief 定义 BDD(Behavior Drive Development) 测试环境，支持 describe, xdescribe, it, xit, before, after, beforeEach 和 afterEach，同时初始化 assert 和expect
+    /*! @brief 定义 BDD(Behavior Drive Development) 测试环境，支持 describe, xdescribe, it, xit, before, after, beforeEach 和 afterEach，同时初始化 assert
      */
     const BDD = 0;
 
-    /*! @brief 定义 TDD(Test Drive Development) 测试环境，支持 suite, xsuite, test, xtest, setup, teardown, suiteSetup 和 suiteTeardown，同时初始化 assert 和expect
+    /*! @brief 定义 TDD(Test Drive Development) 测试环境，支持 suite, xsuite, test, xtest, setup, teardown, suiteSetup 和 suiteTeardown，同时初始化 assert
+        同 BDD 的映射关系：
+        ```
+        suite -> describe
+        xsuite -> xdescribe
+        test -> it
+        xtest -> xit
+        suiteSetup -> before
+        suiteTeardown -> after
+        setup -> beforeEach
+        teardown -> afterEach
+        ```
      */
     const TDD = 1;
 
