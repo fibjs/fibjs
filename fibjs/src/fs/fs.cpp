@@ -60,7 +60,7 @@ void init_fs()
 #endif
 }
 
-result_t fs_base::open(exlib::string fname, exlib::string flags,
+result_t fs_base::openFile(exlib::string fname, exlib::string flags,
     obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
 {
     if (!ac)
@@ -210,7 +210,7 @@ result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> pFile;
-    result_t hr = cc_open(fname, flags, pFile);
+    result_t hr = cc_openFile(fname, flags, pFile);
     if (hr < 0)
         return hr;
 
@@ -227,7 +227,7 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
     obj_ptr<Buffer_base> buf;
     result_t hr;
 
-    hr = cc_open(fname, "r", f);
+    hr = cc_openFile(fname, "r", f);
     if (hr < 0)
         return hr;
 
@@ -250,7 +250,7 @@ result_t fs_base::readFile(exlib::string fname, obj_ptr<Buffer_base>& retVal,
     obj_ptr<Buffer_base> buf;
     result_t hr;
 
-    hr = cc_open(fname, "r", f);
+    hr = cc_openFile(fname, "r", f);
     if (hr < 0)
         return hr;
 
@@ -287,7 +287,7 @@ result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt,
     obj_ptr<SeekableStream_base> f;
     result_t hr;
 
-    hr = cc_open(fname, "w", f);
+    hr = cc_openFile(fname, "w", f);
     if (hr < 0)
         return hr;
 
@@ -307,7 +307,7 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* 
     obj_ptr<SeekableStream_base> f;
     result_t hr;
 
-    hr = cc_open(fname, "w", f);
+    hr = cc_openFile(fname, "w", f);
     if (hr < 0)
         return hr;
 
@@ -324,7 +324,7 @@ result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, AsyncEvent*
     obj_ptr<SeekableStream_base> f;
     result_t hr;
 
-    hr = cc_open(fname, "a", f);
+    hr = cc_openFile(fname, "a", f);
     if (hr < 0)
         return hr;
 
@@ -895,7 +895,7 @@ result_t fs_base::readdirSync(exlib::string path, obj_ptr<List_base>& retVal)
 
 result_t fs_base::openSync(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal)
 {
-    return ac_open(fname, flags, retVal);
+    return ac_openFile(fname, flags, retVal);
 }
 
 result_t fs_base::readFileSync(exlib::string fname, obj_ptr<Buffer_base>& retVal)

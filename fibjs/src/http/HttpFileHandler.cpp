@@ -191,7 +191,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 pThis->m_path.append(".gz", 3);
 
             pThis->set(open);
-            return fs_base::open(pThis->m_path, "r", pThis->m_file,
+            return fs_base::openFile(pThis->m_path, "r", pThis->m_file,
                 pThis);
         }
 

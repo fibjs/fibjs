@@ -20,7 +20,7 @@ describe("buffered stream", () => {
         for (var i = 0; i < 13; i++)
             s = s + s;
 
-        var f = fs.open(__dirname + "/test0000" + base_port, 'w');
+        var f = fs.openFile(__dirname + "/test0000" + base_port, 'w');
         f.write(s);
         f.close();
     });
@@ -48,14 +48,14 @@ describe("buffered stream", () => {
 
     it("block size", () => {
         for (var i = 3; i < 100000; i *= 3)
-            t_read(fs.open(__dirname + "/test0000" + base_port), i);
+            t_read(fs.openFile(__dirname + "/test0000" + base_port), i);
     });
 
     it("buffered tcp stream", () => {
         function accept1(s) {
             while (true) {
                 var c = s.accept();
-                var f = fs.open(__dirname + "/test0000" + base_port);
+                var f = fs.openFile(__dirname + "/test0000" + base_port);
                 f.copyTo(c);
                 f.close();
                 c.close();
@@ -75,7 +75,7 @@ describe("buffered stream", () => {
     });
 
     it("readline", () => {
-        f = fs.open(__dirname + "/test0000" + base_port);
+        f = fs.openFile(__dirname + "/test0000" + base_port);
         var r = new io.BufferedStream(f);
         r.EOL = '\r\n';
 
@@ -89,7 +89,7 @@ describe("buffered stream", () => {
         assert.equal(8192, n);
         f.close();
 
-        f = fs.open(__dirname + "/test0000" + base_port);
+        f = fs.openFile(__dirname + "/test0000" + base_port);
         var r = new io.BufferedStream(f);
         r.EOL = '\r\n';
 
@@ -104,7 +104,7 @@ describe("buffered stream", () => {
     it("charset", () => {
         fs.unlink(__dirname + "/test0000" + base_port);
 
-        f = fs.open(__dirname + "/test0000" + base_port, "w+");
+        f = fs.openFile(__dirname + "/test0000" + base_port, "w+");
         var r = new io.BufferedStream(f);
         r.EOL = '\r\n';
 

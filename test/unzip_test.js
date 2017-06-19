@@ -96,28 +96,28 @@ describe("zip", () => {
         zipfile = zip.open(__dirname + '/unzip_test.zip' + vmid);
         var buf = zipfile.read('unzip_test.js');
 
-        file = fs.open(__dirname + '/unzip_test.js');
+        file = fs.openFile(__dirname + '/unzip_test.js');
         var buf1 = file.readAll();
 
         assert.deepEqual(buf, buf1);
     });
 
     it("open zip buffer & read", () => {
-        file = fs.open(__dirname + '/unzip_test.zip' + vmid);
+        file = fs.openFile(__dirname + '/unzip_test.zip' + vmid);
         var buf = file.readAll();
         file.close();
 
         zipfile = zip.open(buf);
         buf = zipfile.read('unzip_test.js');
 
-        file = fs.open(__dirname + '/unzip_test.js');
+        file = fs.openFile(__dirname + '/unzip_test.js');
         var buf1 = file.readAll();
 
         assert.deepEqual(buf, buf1);
     });
 
     it("open zip stream & read", () => {
-        file = fs.open(__dirname + '/unzip_test.zip' + vmid);
+        file = fs.openFile(__dirname + '/unzip_test.zip' + vmid);
         var buf = file.readAll();
         ms.write(buf);
         ms.rewind();
@@ -126,7 +126,7 @@ describe("zip", () => {
         zipfile = zip.open(ms);
         buf = zipfile.read('unzip_test.js');
 
-        file = fs.open(__dirname + '/unzip_test.js');
+        file = fs.openFile(__dirname + '/unzip_test.js');
         var buf1 = file.readAll();
 
         assert.deepEqual(buf, buf1);
@@ -134,7 +134,7 @@ describe("zip", () => {
 
     it("write buffer & stream to zip", () => {
         zipfile = zip.open(__dirname + '/unzip_test.zip' + vmid, "w");
-        file = fs.open(__dirname + '/unzip_test.js');
+        file = fs.openFile(__dirname + '/unzip_test.js');
 
         var buf = file.readAll();
         zipfile.write(buf, 'unzip_test.js.bak');
@@ -161,7 +161,7 @@ describe("zip", () => {
         zipfile = zip.open(__dirname + '/unzip_test.zip' + vmid);
         var datas = zipfile.readAll();
 
-        file = fs.open(__dirname + '/unzip_test.js');
+        file = fs.openFile(__dirname + '/unzip_test.js');
         var buf = file.readAll();
 
         assert.equal(datas[0].data.length, buf.length);
@@ -180,10 +180,10 @@ describe("zip", () => {
         zipfile = zip.open(__dirname + '/unzip_test.zip' + vmid);
         zipfile.extract('unzip_test.js.bak', __dirname + '/unzip_test.js.extract');
 
-        file = fs.open(__dirname + '/unzip_test.js.extract');
+        file = fs.openFile(__dirname + '/unzip_test.js.extract');
         var buf = file.readAll();
         file.close();
-        file = fs.open(__dirname + '/unzip_test.js');
+        file = fs.openFile(__dirname + '/unzip_test.js');
         var buf1 = file.readAll();
 
         assert.deepEqual(buf, buf1);
@@ -195,7 +195,7 @@ describe("zip", () => {
         zipfile.extract('unzip_test.js.bak', stream);
 
         stream.rewind();
-        file = fs.open(__dirname + '/unzip_test.js');
+        file = fs.openFile(__dirname + '/unzip_test.js');
         var buf = file.readAll();
         var buf1 = stream.read();
 
