@@ -73,7 +73,6 @@ public:
     static result_t readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
     static result_t readdirSync(exlib::string path, obj_ptr<List_base>& retVal);
     static result_t openFile(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
-    static result_t openSync(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal);
     static result_t openTextStream(exlib::string fname, exlib::string flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
     static result_t readTextFile(exlib::string fname, exlib::string& retVal, AsyncEvent* ac);
     static result_t readFile(exlib::string fname, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
@@ -139,7 +138,6 @@ public:
     static void s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_openSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -229,7 +227,6 @@ inline ClassInfo& fs_base::class_info()
         { "readdir", s_readdir, true },
         { "readdirSync", s_readdirSync, true },
         { "openFile", s_openFile, true },
-        { "openSync", s_openSync, true },
         { "openTextStream", s_openTextStream, true },
         { "readTextFile", s_readTextFile, true },
         { "readFile", s_readFile, true },
@@ -913,22 +910,6 @@ inline void fs_base::s_openFile(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_openFile(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
-inline void fs_base::s_openSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<SeekableStream_base> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "r");
-
-    hr = openSync(v0, v1, vr);
 
     METHOD_RETURN();
 }
