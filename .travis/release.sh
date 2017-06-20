@@ -32,8 +32,8 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then # linux
 
   if [[ $TARGET_ARCH == 'x64' ]]; then
     echo "zip fullsrc..."
-    rm -rf .git
-    sh build clean
+    sudo rm -rf .git
+    sudo sh build clean
     zip -r ./${TRAVIS_TAG}/fullsrc.zip ./
   fi
 
