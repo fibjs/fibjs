@@ -106,4 +106,4 @@ describe("zlib", () => {
     });
 });
 
-//test.run();
+argv.length && test.run(console.DEBUG);

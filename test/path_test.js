@@ -354,7 +354,7 @@ describe('path', () => {
         assert.equal(path.win32.join('c:/path1', 'd:path2'), 'd:path2');
     });
 
-    it("resolve", function () {
+    it("resolve", function() {
         var resolveTestsWin32 =
             // arguments                                    result
             [
@@ -414,7 +414,7 @@ describe('path', () => {
         var resolveTests = isWindows ? resolveTestsWin32 : resolveTestsPosix;
 
         // path.resolve
-        resolveTests.forEach(function (test) {
+        resolveTests.forEach(function(test) {
             var actual = path.resolve.apply(path, test[0]);
             var expected = test[1];
             var message = 'path.resolve(' + test[0].map(JSON.stringify).join(',') + ')' +
@@ -432,7 +432,7 @@ describe('path', () => {
         assert.equal(failures.length, 0, failures.join(''));
 
         // path.posix.resolve
-        resolveTestsPosix.forEach(function (test) {
+        resolveTestsPosix.forEach(function(test) {
             var actual = path.posix.resolve.apply(path.posix, test[0]);
             var expected = test[1];
             var message = 'path.posix.resolve(' + test[0].map(JSON.stringify).join(',') + ')' +
@@ -445,7 +445,7 @@ describe('path', () => {
         assert.equal(failures.length, 0, failures.join(''));
 
         // path.win32.resolve
-        resolveTestsWin32.forEach(function (test) {
+        resolveTestsWin32.forEach(function(test) {
             var actual = path.win32.resolve.apply(path.win32, test[0]);
             var expected = test[1];
             var message = 'path.win32.resolve(' + test[0].map(JSON.stringify).join(',') + ')' +
@@ -470,4 +470,4 @@ describe('path', () => {
     });
 });
 
-// test.run(console.DEBUG);
+argv.length && test.run(console.DEBUG);

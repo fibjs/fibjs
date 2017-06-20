@@ -10,7 +10,7 @@ var vmid = require('coroutine').vmid;
 function unlink(pathname) {
     try {
         fs.unlink(pathname);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 describe("profiler", () => {
@@ -81,4 +81,4 @@ describe("profiler", () => {
     });
 });
 
-//test.run(console.DEBUG);
+argv.length && test.run(console.DEBUG);

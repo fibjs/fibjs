@@ -90,4 +90,4 @@ describe('ms', () => {
 
 });
 
-//test.run();
+argv.length && test.run(console.DEBUG);

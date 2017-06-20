@@ -104,8 +104,8 @@ describe('process', () => {
             "arg1",
             "arg2"
         ]).readLine()), [
-            cmd, __dirname + "/process/exec2.js", "arg1", "arg2"
-        ]);
+                cmd, __dirname + "/process/exec2.js", "arg1", "arg2"
+            ]);
     });
 
     it("argv 1", () => {
@@ -115,8 +115,8 @@ describe('process', () => {
             "arg2",
             "--use_strict"
         ]).readLine()), [
-            cmd, __dirname + "/process/exec2.js", "arg1", "arg2"
-        ]);
+                cmd, __dirname + "/process/exec2.js", "arg1", "arg2"
+            ]);
     });
 
     it("argv utf8", () => {
@@ -125,8 +125,8 @@ describe('process', () => {
             "参数1",
             "参数2"
         ]).readLine()), [
-            cmd, __dirname + "/process/exec2.js", "参数1", "参数2"
-        ]);
+                cmd, __dirname + "/process/exec2.js", "参数1", "参数2"
+            ]);
     });
 
     it("execArgv", () => {
@@ -136,8 +136,8 @@ describe('process', () => {
             "arg2",
             "--use_strict"
         ]).readLine()), [
-            "--use_strict"
-        ]);
+                "--use_strict"
+            ]);
     });
 
     it("env", () => {
@@ -151,10 +151,10 @@ describe('process', () => {
         var env = json.decode(process.open(cmd, [
             __dirname + "/process/exec4.js"
         ], {
-            env: {
-                abcd: "234"
-            }
-        }).readLine());
+                env: {
+                    abcd: "234"
+                }
+            }).readLine());
 
         assert.isUndefined(env.abc);
         assert.equal(env.abcd, "234");
@@ -165,8 +165,8 @@ describe('process', () => {
         process.run(cmd, [
             __dirname + "/process/exec5.js"
         ], {
-            timeout: 1000
-        });
+                timeout: 1000
+            });
 
         assert.lessThan(new Date() - d, 2000);
     });
@@ -197,4 +197,4 @@ describe('process', () => {
     }
 });
 
-// test.run(console.DEBUG);
+argv.length && test.run(console.DEBUG);

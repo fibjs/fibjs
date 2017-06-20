@@ -34,7 +34,7 @@ var ca_pem = ca.dump()[0];
 function del(f) {
     try {
         fs.unlink(f);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 describe('ssl', () => {
@@ -266,4 +266,4 @@ describe('ssl', () => {
     });
 });
 
-// test.run(console.DEBUG);
+argv.length && test.run(console.DEBUG);
