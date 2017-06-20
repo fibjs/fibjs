@@ -10,4 +10,4 @@ describe("BUG:simple_api_call", () => {
     });
 });
 
-//test.run();
+argv.length && test.run(console.DEBUG);

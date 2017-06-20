@@ -364,4 +364,4 @@ describe("collection", () => {
     });
 });
 
-// test.run(console.DEBUG);
+argv.length && test.run(console.DEBUG);

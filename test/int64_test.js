@@ -169,4 +169,4 @@ describe('Int64', () => {
     });
 });
 
-//test.run(console.DEBUG);
+argv.length && test.run(console.DEBUG);

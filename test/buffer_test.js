@@ -107,7 +107,7 @@ describe('Buffer', () => {
         buf1 = new Buffer('');
         bufArray = [buf1];
         assert.doesNotThrow(() => {
-            bufRes = Buffer.concat([() => {}, {}, undefined, '']);
+            bufRes = Buffer.concat([() => { }, {}, undefined, '']);
         });
     });
 
@@ -554,4 +554,4 @@ describe('Buffer', () => {
     });
 });
 
-// test.run(console.DEBUG);
+argv.length && test.run(console.DEBUG);

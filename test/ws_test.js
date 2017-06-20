@@ -164,7 +164,7 @@ describe('ws', () => {
                 v.response.body = v.body;
             }));
             ss.push(httpd.socket);
-            httpd.run(() => {});
+            httpd.run(() => { });
 
             var rep = http.get("http://127.0.0.1:" + (8810 + base_port) + "/", {
                 "Upgrade": "websocket",
@@ -335,7 +335,7 @@ describe('ws', () => {
                 v.stream.close();
             }));
             ss.push(httpd.socket);
-            httpd.run(() => {});
+            httpd.run(() => { });
 
             var s = ws.connect("ws://127.0.0.1:" + (8811 + base_port) + "/");
 
@@ -368,7 +368,7 @@ describe('ws', () => {
 
             var httpd = new http.Server(8812 + base_port, hdlr);
             ss.push(httpd.socket);
-            httpd.run(() => {});
+            httpd.run(() => { });
 
             var s = ws.connect("ws://127.0.0.1:" + (8812 + base_port) + "/");
 
@@ -425,7 +425,7 @@ describe('ws', () => {
         it("server", () => {
             var httpd = new http.Server(8813 + base_port, new mq.Routing({
                 "^/ws$": ws.upgrade((s) => {
-                    s.onmessage = function (msg) {
+                    s.onmessage = function(msg) {
                         if (msg.data === "Going Away")
                             msg.stream.close();
                         else if (msg.data === "close")
@@ -436,7 +436,7 @@ describe('ws', () => {
                 })
             }));
             ss.push(httpd.socket);
-            httpd.run(() => {});
+            httpd.run(() => { });
         });
 
         describe("handshake", () => {
@@ -594,7 +594,7 @@ describe('ws', () => {
         it("server", () => {
             var httpd = new http.Server(8814 + base_port, new mq.Routing({
                 "^/ws$": ws.upgrade((s) => {
-                    s.onmessage = function (msg) {
+                    s.onmessage = function(msg) {
                         if (msg.data === "Going Away")
                             msg.stream.close();
                         else if (msg.data === "close")
@@ -605,7 +605,7 @@ describe('ws', () => {
                 })
             }));
             ss.push(httpd.socket);
-            httpd.run(() => {});
+            httpd.run(() => { });
         });
 
         it('init property', () => {
@@ -806,4 +806,4 @@ describe('ws', () => {
     });
 });
 
-// test.run(console.DEBUG);
+argv.length && test.run(console.DEBUG);

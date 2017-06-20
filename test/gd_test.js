@@ -116,11 +116,11 @@ describe("gd", () => {
             [10, 20]
         ], b);
         img.polygon([
-                [101, 101],
-                [101, 110],
-                [110, 115],
-                [110, 100]
-            ],
+            [101, 101],
+            [101, 110],
+            [110, 115],
+            [110, 100]
+        ],
             b);
         img.filledPolygon(
             [
@@ -262,4 +262,4 @@ describe("gd", () => {
     });
 });
 
-// test.run(console.DEBUG);
+argv.length && test.run(console.DEBUG);

@@ -9,7 +9,7 @@ describe("mongodb", () => {
     function clear(mdb) {
         try {
             mdb.test.drop();
-        } catch (e) {}
+        } catch (e) { }
     }
 
     it("open/close", () => {
@@ -167,15 +167,15 @@ describe("mongodb", () => {
             files_id: 1,
             n: 1
         }, {
-            unique: true
-        });
+                unique: true
+            });
         mdb.fs.chunks.reIndex();
 
         mdb.fs.files.ensureIndex({
             filename: 1
         }, {
-            unique: true
-        });
+                unique: true
+            });
 
         mdb.fs.files.reIndex();
 
@@ -195,4 +195,4 @@ describe("mongodb", () => {
     //assert.equal(fs.retrieve("test.txt").readAll(), data);
 })
 
-// test.run(console.DEBUG);
+argv.length && test.run(console.DEBUG);

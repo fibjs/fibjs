@@ -85,4 +85,4 @@ describe('xml', () => {
         _test(i);
 });
 
-// test.run(console.DEBUG);
+argv.length && test.run(console.DEBUG);

@@ -10,7 +10,7 @@ if (win) {
         before(() => {
             try {
                 registry.del(registry.CURRENT_USER, "Software\\fibjs_test");
-            } catch (e) {}
+            } catch (e) { }
         });
 
         it("get", () => {
@@ -72,4 +72,4 @@ if (win) {
     });
 }
 
-// test.run(console.DEBUG);
+argv.length && test.run(console.DEBUG);
