@@ -237,6 +237,10 @@ describe("zip", () => {
         zipfile = zip.open(__dirname + '/unzip_test.zip' + vmid);
         assert.equal(zipfile.read('password.txt', password).toString(), 'password test');
     })
+
+    it("bugfix: read from empty file", () => {
+        zip.open(new io.MemoryStream());
+    });
 });
 
 // test.run(console.DEBUG);

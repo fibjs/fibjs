@@ -46,7 +46,7 @@ private:
         obj_ptr<Buffer_base> data;
 
         hr = strm->cc_read((int32_t)size, data);
-        if (hr < 0)
+        if (hr < 0 || hr == CALL_RETURN_NULL)
             return 0;
 
         exlib::string strData;
