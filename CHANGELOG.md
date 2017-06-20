@@ -1,3 +1,114 @@
+## 2017-06-21, Version v0.5.0 @ngot
+
+* **feature** :
+  * ssl: add ssl.loadRootCerts.
+  * fs: File add fd property.
+  * util: add isNativeError, isPrimitive, isSymbol, isDataView, isExternal, isMap, isMapIterator, isPromise, isSet, isSetIterator, isTypedArray, isUint8Array.
+  * events: add setMaxListeners & getMaxListeners & defaultMaxListers support.
+  * core: add -v, --version, -h command line option.
+  * SandBox: use snapshot to speed up the creation of context.
+  * SandBox: support standalone global.
+
+* **breakchange** :
+   * fs: remove the fs.openSync method.
+   * fs: rename fs.open to fs.openFile.
+   * expect: remove expect module.If you still want to use these module, you can find some similar module on npm.
+   * Sandbox: disable --noroot option, enable --root option.The root directly feature has been disabled by default now. You can use --root to enable it.
+   * events: more compatible with nodejs events module.
+
+* **bugfix** :
+  * zip: fix crash when read a empty file.
+  * fs: fix lchmod warning on linux.
+  * ssl: fix crash when get stream.
+  * zip: fix compile warning.
+
+### Commits
+
+* [[`1171c9376`](https://github.com/fibjs/fibjs/commit/1171c9376)] - **console, feat**:console.add support s%. (xicilion)
+* [[`56f836e61b`](https://github.com/fibjs/fibjs/commit/56f836e61b)] - **ci, fixbug**: move fullsrc to darwin (#266) (ngot)
+* [[`a5d1ce9d40`](https://github.com/fibjs/fibjs/commit/a5d1ce9d40)] - **ci, fixbug**: fix Permission error (#265) (ngot)
+* [[`176969d599`](https://github.com/fibjs/fibjs/commit/176969d599)] - **test, feat**: enable single run directly (#264) (ngot)
+* [[`ef7beeb13c`](https://github.com/fibjs/fibjs/commit/ef7beeb13c)] - **test, feat**: enable single run directly (ngot)
+* [[`eb92d481ff`](https://github.com/fibjs/fibjs/commit/eb92d481ff)] - **doc, feats**: add type. (xicilion)
+* [[`da643dc4a9`](https://github.com/fibjs/fibjs/commit/da643dc4a9)] - **ssl, feat**: add ssl.loadRootCerts. (xicilion)
+* [[`af1f95e389`](https://github.com/fibjs/fibjs/commit/af1f95e389)] - **ci, chore**: bring forward the x64 ci (#263) (ngot)
+* [[`f48354b22c`](https://github.com/fibjs/fibjs/commit/f48354b22c)] - **ci, chore**: only run x64 test on linux (#262) (ngot)
+* [[`31953e5682`](https://github.com/fibjs/fibjs/commit/31953e5682)] - **zip, fixbug**: fix crash when read a empty file. (xicilion)
+* [[`1fa88f43bb`](https://github.com/fibjs/fibjs/commit/1fa88f43bb)] - **core, feat**: utils.h check optional parameter. (xicilion)
+* [[`f49f184c7d`](https://github.com/fibjs/fibjs/commit/f49f184c7d)] - **core, feat**: util.h ignore extra undefined in parameters. (xicilion)
+* [[`46e4e48086`](https://github.com/fibjs/fibjs/commit/46e4e48086)] - **core, fixbug**: fix gen windows installer.exe (#261) (ngot)
+* [[`276fc52ef8`](https://github.com/fibjs/fibjs/commit/276fc52ef8)] - **fs, break**: remove the fs.openSync method (#260) (ngot)
+* [[`2759406fc6`](https://github.com/fibjs/fibjs/commit/2759406fc6)] - **test, doc**: add test docs (#259) (ngot)
+* [[`9ed5946b51`](https://github.com/fibjs/fibjs/commit/9ed5946b51)] - **fs, feat**: File add fd property (#256) (ngot)
+* [[`18cad502f0`](https://github.com/fibjs/fibjs/commit/18cad502f0)] - **fs, break**: rename fs.open to fs.openFile (#258) (ngot)
+* [[`021560eedd`](https://github.com/fibjs/fibjs/commit/021560eedd)] - **docs, feat**: group static function and property. (xicilion)
+* [[`eb04aaed5d`](https://github.com/fibjs/fibjs/commit/eb04aaed5d)] - **doc, chore**: update links (#255) (ngot)
+* [[`9d2faf03a8`](https://github.com/fibjs/fibjs/commit/9d2faf03a8)] - **fs, fixbug**: fix lchmod warning on linux. (xicilion)
+* [[`f44cfe2f54`](https://github.com/fibjs/fibjs/commit/f44cfe2f54)] - **util, fixbug**: fix warning on windows. (xicilion)
+* [[`b5f8cca194`](https://github.com/fibjs/fibjs/commit/b5f8cca194)] - **internal, upgrade**: upgrade v8 to 6.1.201. (xicilion)
+* [[`5dd2ca75de`](https://github.com/fibjs/fibjs/commit/5dd2ca75de)] - **ci, chore**: remove then windows ssh release (#253) (ngot)
+* [[`40bcea3ee5`](https://github.com/fibjs/fibjs/commit/40bcea3ee5)] - **test, feat**: add i386 test runner (#252) (ngot)
+* [[`26e2f98b51`](https://github.com/fibjs/fibjs/commit/26e2f98b51)] - **ci, feat**: add fullsrc.zip release (#250) (ngot)
+* [[`f65738cd54`](https://github.com/fibjs/fibjs/commit/f65738cd54)] - **ci, feat**: add osx x86  build & release (#249) (ngot)
+* [[`2505a5f753`](https://github.com/fibjs/fibjs/commit/2505a5f753)] - **ci, chore**: remove ssh deploy (#248) (ngot)
+* [[`912fe25a2f`](https://github.com/fibjs/fibjs/commit/912fe25a2f)] - **encodin, fixbugg**: fix: hex_decode length error. (xicilion)
+* [[`0c25a611a2`](https://github.com/fibjs/fibjs/commit/0c25a611a2)] - **ssl, fixbug**: fix crash when get stream. (xicilion)
+* [[`5955c033a4`](https://github.com/fibjs/fibjs/commit/5955c033a4)] - **zip, fixbug**: fix compile warning. (xicilion)
+* [[`06a3efbce2`](https://github.com/fibjs/fibjs/commit/06a3efbce2)] - **fs, , fixbug**: fix compile warning on mac. (xicilion)
+* [[`5787c34ab0`](https://github.com/fibjs/fibjs/commit/5787c34ab0)] - **docs, fixbug**: fix style. (xicilion)
+* [[`ae185dfa9c`](https://github.com/fibjs/fibjs/commit/ae185dfa9c)] - **docs, feat**: insert hr between methods. (xicilion)
+* [[`9c9b6ee7ae`](https://github.com/fibjs/fibjs/commit/9c9b6ee7ae)] - **docs, feat**: generate operator method. (xicilion)
+* [[`70d39f9fdc`](https://github.com/fibjs/fibjs/commit/70d39f9fdc)] - **docs, fixbug**: fix readme link error. (xicilion)
+* [[`cbdc55f95d`](https://github.com/fibjs/fibjs/commit/cbdc55f95d)] - **docs, fixbug**: fix markdown link error. (xicilion)
+* [[`ddfe959ceb`](https://github.com/fibjs/fibjs/commit/ddfe959ceb)] - **core, chore**: util.h format code. (xicilion)
+* [[`5a645ae1d4`](https://github.com/fibjs/fibjs/commit/5a645ae1d4)] - **docs, feat**: auto link to other module. (xicilion)
+* [[`c30ef7a3e7`](https://github.com/fibjs/fibjs/commit/c30ef7a3e7)] - **docs, fixbug**: fix const default value; (xicilion)
+* [[`4b5dede844`](https://github.com/fibjs/fibjs/commit/4b5dede844)] - **docs, feat**: not encode message. (xicilion)
+* [[`5d8fd217e2`](https://github.com/fibjs/fibjs/commit/5d8fd217e2)] - **docs, feat**: readme (xicilion)
+* [[`eca569b8ea`](https://github.com/fibjs/fibjs/commit/eca569b8ea)] - **docs, feat**: check  document  of return. (xicilion)
+* [[`7528fed61f`](https://github.com/fibjs/fibjs/commit/7528fed61f)] - **docs, feat**: check the comment. (xicilion)
+* [[`cd44aa977d`](https://github.com/fibjs/fibjs/commit/cd44aa977d)] - 文档输出修饰，输出对象 (xicilion)
+* [[`9aacc04bad`](https://github.com/fibjs/fibjs/commit/9aacc04bad)] - **docs, fixbug**: fix style. (xicilion)
+* [[`1d2f525021`](https://github.com/fibjs/fibjs/commit/1d2f525021)] - **docs, feat**: rewrite with markdown. (xicilion)
+* [[`1f7bf9a673`](https://github.com/fibjs/fibjs/commit/1f7bf9a673)] - **docs, feat**: group members of the same name (xicilion)
+* [[`da7c05105e`](https://github.com/fibjs/fibjs/commit/da7c05105e)] - **idlc, fixbug**: fix bold style in github. (xicilion)
+* [[`eb3ad4699c`](https://github.com/fibjs/fibjs/commit/eb3ad4699c)] - **encoding, revert**: revert the hex modify (#247) (ngot)
+* [[`b1da4a35b0`](https://github.com/fibjs/fibjs/commit/b1da4a35b0)] - **core, fixbug**: remove unused files (#246) (ngot)
+* [[`b97fa6d7c1`](https://github.com/fibjs/fibjs/commit/b97fa6d7c1)] - **core, refactor**: move vsmake.js to tools dir (#245) (ngot)
+* [[`0a30826889`](https://github.com/fibjs/fibjs/commit/0a30826889)] - **idlc, feat**: generate markdown manual. (xicilion)
+* [[`7b198566a2`](https://github.com/fibjs/fibjs/commit/7b198566a2)] - **util, feat**: add isNativeError, isPrimitive, isSymbol, isDataView, isExternal, isMap, isMapIterator, isPromise, isSet, isSetIterator, isTypedArray, isUint8Array (#243) (ngot)
+* [[`bc58e63620`](https://github.com/fibjs/fibjs/commit/bc58e63620)] - **idlc, feat**: parser doxygen comment. (xicilion)
+* [[`5aa4d7a64e`](https://github.com/fibjs/fibjs/commit/5aa4d7a64e)] - **events, feat**: add setMaxListeners & getMaxListeners & defaultMaxListers support (#240) (ngot)
+* [[`a88f9f8c67`](https://github.com/fibjs/fibjs/commit/a88f9f8c67)] - **idlc, fixbug**: fix parser error. (xicilion)
+* [[`f0941d7f11`](https://github.com/fibjs/fibjs/commit/f0941d7f11)] - **core, feat**: add -v, --version, -h command line option (#241) (ngot)
+* [[`8e870a8154`](https://github.com/fibjs/fibjs/commit/8e870a8154)] - **expect, break**: remove expect module (#242) (ngot)
+* [[`31f285fe5b`](https://github.com/fibjs/fibjs/commit/31f285fe5b)] - **idlc, reactor**: split code. (xicilion)
+* [[`64f775b7bb`](https://github.com/fibjs/fibjs/commit/64f775b7bb)] - **Sandbox, break**: disable root option. (xicilion)
+* [[`62bfd01362`](https://github.com/fibjs/fibjs/commit/62bfd01362)] - **event, refactor**: remove ev list directly. (xicilion)
+* [[`47369bda81`](https://github.com/fibjs/fibjs/commit/47369bda81)] - **events, break**: more compatible with nodejs events module (#232) (ngot)
+* [[`a3e044b2e`](https://github.com/fibjs/fibjs/commit/a3e044b2e)] - **util, fixbug**: typo. (xicilion)
+* [[`6b606fa7b`](https://github.com/fibjs/fibjs/commit/6b606fa7b)] - **ci, fixbug**:: windows build error. (xicilion)
+* [[`188ba79ae`](https://github.com/fibjs/fibjs/commit/188ba79ae)] - **test, process****: using PATH environment variable viemacs (emacguo)
+* [[`9ae359a14`](https://github.com/fibjs/fibjs/commit/9ae359a14)] - **SandBox, feat**: use snapshot to speed up the creation of context. (xicilion)
+* [[`1c839c416`](https://github.com/fibjs/fibjs/commit/1c839c416)] - **memorystream, refactor**: flush is always success asionius (asionius)
+* [[`d5ed8a8e7`](https://github.com/fibjs/fibjs/commit/d5ed8a8e7)] - **seekableStream, refactor**: move 'truncate' 'eof' and 'flush' interface from File to seekableStream asionius (asionius)
+* [[`d9119beec`](https://github.com/fibjs/fibjs/commit/d9119beec)] - **SandBox, refactor**: Enhance the performance of require in standalone global. (xicilion)
+* [[`8485dca41`](https://github.com/fibjs/fibjs/commit/8485dca41)] - **SandBox, feat**: support standalone global. (xicilion)
+* [[`9a98eb117`](https://github.com/fibjs/fibjs/commit/9a98eb117)] - **test, selfzip**: add jsc test case. (xicilion)
+* [[`950e996b1`](https://github.com/fibjs/fibjs/commit/950e996b1)] - **Buffer, break**: Compatible with nodejs hex encode format. (xicilion)
+
+## 2017-06-13, Version v0.4.1 @ngot
+
+* **bugfix** :
+  * global: fix require error in repl.
+  * process: fix run error when using PATH environment variable on linux.
+
+### Commits
+
+* [[`877fb216e1`](https://github.com/fibjs/fibjs/commit/877fb216e1)] - **global, fixbug**: fix require error in repl. (ngot)
+* [[`4f55d674d8`](https://github.com/fibjs/fibjs/commit/4f55d674d8)] - **core, chore**: set the vender branch to 0.4.x (ngot)
+* [[`c37c460f94`](https://github.com/fibjs/fibjs/commit/c37c460f94)] - **process, fixbug**: fix run error when using PATH environment variable on linux. (ngot)
+
 ## 2017-06-10, Version v0.4.0 @ngot
 
 * **feature** :
