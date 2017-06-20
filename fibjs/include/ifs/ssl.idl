@@ -63,6 +63,10 @@ module ssl
    */
     static loadClientCertFile(String crtFile, String keyFile, String password = "");
 
+    /*! @brief 加载自带的缺省根证书，等同于 ssl.ca.loadRootCerts
+    此证书内容源自：http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt */
+    static loadRootCerts();
+
     /*! @brief 全局证书，用于 ssl 客户端模式验证服务器证书 */
     static readonly X509Cert ca;
 

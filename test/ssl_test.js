@@ -34,7 +34,7 @@ var ca_pem = ca.dump()[0];
 function del(f) {
     try {
         fs.unlink(f);
-    } catch (e) { }
+    } catch (e) {}
 }
 
 describe('ssl', () => {
@@ -47,6 +47,19 @@ describe('ssl', () => {
             s.close();
         });
     });
+
+    it("root ca", () => {
+        var cert = new crypto.X509Cert();
+
+        cert.load(fs.readTextFile(__dirname + '/cert_files/ca-bundle.crt'));
+        var s = cert.dump();
+
+        ssl.loadRootCerts();
+        var s1 = ssl.ca.dump();
+
+        assert.deepEqual(s, s1.slice(s1.length - s.length));
+    });
+
 
     it("echo server", () => {
         sss = new ssl.Socket(crt, pk);
@@ -253,4 +266,4 @@ describe('ssl', () => {
     });
 });
 
-//test.run(console.DEBUG);
+// test.run(console.DEBUG);

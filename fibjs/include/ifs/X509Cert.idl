@@ -30,7 +30,8 @@ interface X509Cert : object
     */
     loadFile(String filename);
 
-    /*! @brief 加载自带的缺省根证书，此证书内容源自：http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt */
+    /*! @brief 加载自带的缺省根证书
+    此证书内容源自：http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt */
     loadRootCerts();
 
     /*! @brief 使用当前证书链验证给定的证书
