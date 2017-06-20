@@ -2,6 +2,7 @@
 <%-declare.doc.descript%>
 
 <%-declare.doc.detail.join('\n')%>
+
 <%var last_member = '';
 
 function def_value(v, o)
