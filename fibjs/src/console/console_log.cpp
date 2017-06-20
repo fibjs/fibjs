@@ -93,7 +93,16 @@ result_t console_base::get_colors(obj_ptr<TextColor_base>& retVal)
     return 0;
 }
 
-result_t console_base::add(v8::Local<v8::Value> cfg)
+result_t console_base::add(exlib::string type)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+
+    o->Set(isolate->NewFromUtf8("type", 4), isolate->NewFromUtf8(type));
+    return add(o);
+}
+
+result_t console_base::add(v8::Local<v8::Object> cfg)
 {
     int32_t n = 0;
 
@@ -104,20 +113,11 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
         return CHECK_ERROR(Runtime::setError("Too many items."));
 
     v8::Local<v8::Value> type;
-    v8::Local<v8::Object> o;
     Isolate* isolate = Isolate::current();
 
-    if (cfg->IsString() || cfg->IsStringObject()) {
-        type = cfg;
-        o = v8::Object::New(isolate->m_isolate);
-    } else if (cfg->IsObject()) {
-        o = v8::Local<v8::Object>::Cast(cfg);
-        type = o->Get(isolate->NewFromUtf8("type", 4));
-
-        if (IsEmpty(type))
-            return CHECK_ERROR(Runtime::setError("Missing log type."));
-    } else
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+    type = cfg->Get(isolate->NewFromUtf8("type", 4));
+    if (IsEmpty(type))
+        return CHECK_ERROR(Runtime::setError("Missing log type."));
 
     v8::String::Utf8Value s(type);
     if (!*s)
@@ -142,7 +142,7 @@ result_t console_base::add(v8::Local<v8::Value> cfg)
         return CHECK_ERROR(Runtime::setError("Unknown log type."));
 
     if (lgr) {
-        result_t hr = lgr->config(isolate, o);
+        result_t hr = lgr->config(isolate, cfg);
         if (hr < 0) {
             lgr->stop();
             return hr;
@@ -161,7 +161,20 @@ result_t console_base::add(v8::Local<v8::Array> cfg)
     result_t hr;
 
     for (i = 0; i < sz; i++) {
-        hr = add(cfg->Get(i));
+        v8::Local<v8::Value> v = cfg->Get(i);
+        exlib::string s;
+
+        hr = GetArgumentValue(v, s, true);
+        if (hr != CALL_E_TYPEMISMATCH)
+            hr = add(s);
+        else {
+            v8::Local<v8::Object> o;
+            hr = GetArgumentValue(v, o, true);
+            if (hr != CALL_E_TYPEMISMATCH)
+                hr = add(o);
+            else
+                return CALL_E_TYPEMISMATCH;
+        }
         if (hr < 0)
             return hr;
     }
