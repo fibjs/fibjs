@@ -34,6 +34,32 @@ module.exports = function (defs, docsFolder) {
         }
     }
 
+    function add_types() {
+        for (var n in defs) {
+            var def = defs[n];
+
+            def.members.forEach(m => {
+                if (m.params) {
+                    for (var i = 0; i < m.params.length && i < m.doc.params.length; i++) {
+                        if (m.params[i].type && m.params[i].name === m.doc.params[i].name) {
+                            m.doc.params[i].descript = m.params[i].type + ", " + m.doc.params[i].descript;
+                        }
+                    }
+                }
+
+                if (m.type) {
+                    if (m.memType == 'method' && m.doc.return && m.doc.return.descript) {
+                        m.doc.return.descript = m.type + ", " + m.doc.return.descript;
+                    }
+
+                    if (m.memType == 'prop' && m.doc.descript) {
+                        m.doc.descript = m.type + ", " + m.doc.descript;
+                    }
+                }
+            });
+        }
+    }
+
     function cross_link() {
         var def;
 
@@ -64,6 +90,14 @@ module.exports = function (defs, docsFolder) {
                     in_code = !in_code;
                 return in_code ? d : link_line(d);
             });
+
+            if (doc.return)
+                doc.return.descript = link_line(doc.return.descript);
+
+            if (doc.params)
+                doc.params.forEach(p => {
+                    p.descript = link_line(p.descript);
+                });
         }
 
         for (var n in defs) {
@@ -169,6 +203,8 @@ module.exports = function (defs, docsFolder) {
     fs.mkdir(path.join(docsFolder, 'object', 'ifs'));
 
     check_docs();
+
+    add_types();
 
     gen_summary();
     gen_readme();
