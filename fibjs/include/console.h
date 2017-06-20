@@ -264,8 +264,10 @@ private:
     result_t initFile();
 
 private:
-    exlib::string m_path;
     exlib::string m_folder;
+    exlib::string m_name1;
+    exlib::string m_name2;
+
     int32_t m_split_mode;
     int64_t m_split_size;
     int32_t m_count;

@@ -27,15 +27,22 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
     if (hr < 0)
         return hr;
 
-    path_base::normalize(path, m_path);
-    path_base::dirname(m_path, m_folder);
+    path_base::normalize(path, path);
+    path_base::dirname(path, m_folder);
     if (m_folder.length())
         m_folder += PATH_SLASH;
+
+    path_base::basename(path, "", m_name1);
+    size_t idx = m_name1.find("%s", 0, 2);
+    if (idx != exlib::string::npos) {
+        m_name2 = m_name1.substr(idx + 2);
+        m_name1 = m_name1.substr(0, idx);
+    }
 
     m_split_size = 0;
     m_split_mode = 0;
 
-    exlib::string split;
+    exlib::string split("1m");
     hr = GetConfigValue(isolate->m_isolate, o, "split", split);
     if (hr >= 0) {
         if ((split == "day"))
@@ -71,7 +78,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
 
     hr = GetConfigValue(isolate->m_isolate, o, "count", m_count);
     if (hr == CALL_E_PARAMNOTOPTIONAL)
-        m_count = MAX_COUNT + 100;
+        m_count = MAX_COUNT;
     else if (hr < 0)
         return hr;
     else {
@@ -92,7 +99,6 @@ void file_logger::clearFile()
     result_t hr;
 
     exlib::string name;
-    exlib::string fullname;
 
     if (m_folder.empty())
         hr = fs_base::readdir(".", fd, &ac);
@@ -112,17 +118,21 @@ void file_logger::clearFile()
         fd->_indexed_getter(i, v);
         name = v.string();
 
-        fullname = m_folder + name;
-
-        if ((fullname.length() == m_path.length() + 14) && !qstrcmp(fullname.c_str(), m_path.c_str(), (int32_t)m_path.length())) {
+        const char* c_str = name.c_str();
+        if ((name.length() == m_name1.length() + m_name2.length() + 14)
+            && !qstrcmp(c_str, m_name1.c_str(), (int32_t)m_name1.length())
+            && !qstrcmp(c_str + m_name1.length() + 14, m_name2.c_str(), (int32_t)m_name2.length())) {
             int32_t p, l;
 
-            l = (int32_t)fullname.length();
-            for (p = (int32_t)m_path.length(); p < l && qisdigit(fullname[p]); p++)
+            l = (int32_t)m_name1.length() + 14;
+            for (p = (int32_t)m_name1.length(); p < l && qisdigit(c_str[p]); p++)
                 ;
 
-            if (p == l)
-                files.push_back(fullname);
+            if (p == l) {
+                exlib::string p(m_folder);
+                pathAdd(p, name);
+                files.push_back(p);
+            }
         }
     }
 
@@ -150,7 +160,8 @@ result_t file_logger::initFile()
 
     if (!m_file) {
         obj_ptr<File> f = new File();
-        exlib::string name(m_path);
+        exlib::string name(m_folder);
+        pathAdd(name, m_name1);
 
         if (m_count > 1) {
             exlib::string tm;
@@ -166,6 +177,7 @@ result_t file_logger::initFile()
             if (m_count <= MAX_COUNT)
                 clearFile();
         }
+        name.append(m_name2);
 
         hr = f->open(name, "a+");
         if (hr < 0)

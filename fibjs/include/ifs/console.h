@@ -42,8 +42,9 @@ public:
     static result_t get_colors(obj_ptr<TextColor_base>& retVal);
     static result_t get_width(int32_t& retVal);
     static result_t get_height(int32_t& retVal);
+    static result_t add(exlib::string type);
+    static result_t add(v8::Local<v8::Object> cfg);
     static result_t add(v8::Local<v8::Array> cfg);
-    static result_t add(v8::Local<v8::Value> cfg);
     static result_t reset();
     static result_t log(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
     static result_t log(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -341,13 +342,19 @@ inline void console_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG(exlib::string, 0);
 
     hr = add(v0);
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = add(v0);
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Array>, 0);
 
     hr = add(v0);
 
