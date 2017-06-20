@@ -47,7 +47,7 @@ else # darwin
     echo "zip fullsrc..."
     sudo rm -rf .git
     sudo sh build clean
-    zip -r ./${TRAVIS_TAG}/fullsrc.zip ./
+    zip -r ./${TRAVIS_TAG}/fullsrc.zip ./ -x ${TRAVIS_TAG}/*
   fi
 fi
 
