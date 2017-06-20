@@ -2,7 +2,7 @@
 
  文件操作对象用于对二进制文件进行操作，可使用 fs 模块打开和创建文件：
  ```JavaScript
- var f = fs.open('test.txt');
+ var f = fs.openFile('test.txt');
  ```
  */
 interface File : SeekableStream
