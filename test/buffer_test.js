@@ -27,6 +27,12 @@ describe('Buffer', () => {
         assert.equal(buf.toString(), "1234");
     });
 
+    it('new Buffer(Array) with undefined encoding', () => {
+        var buf = new Buffer([0x31, 0x32, 0x33, 0x34], undefined);
+        assert.equal(buf.length, 4);
+        assert.equal(buf.toString(), "1234");
+    });
+
     it('new Buffer(TypedArray)', () => {
         var arr = new Uint16Array(2);
         arr[0] = 5000;
