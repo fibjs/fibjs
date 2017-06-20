@@ -30,13 +30,6 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then # linux
   cp ${XZ_FILE} ${TRAVIS_TAG}/fibjs-${TRAVIS_TAG}-linux-${TARGET_ARCH}.xz
   cp ${GZ_FILE} ${TRAVIS_TAG}/fibjs-${TRAVIS_TAG}-linux-${TARGET_ARCH}.tar.gz
 
-  if [[ $TARGET_ARCH == 'x64' ]]; then
-    echo "zip fullsrc..."
-    sudo rm -rf .git
-    sudo sh build clean
-    zip -r ./${TRAVIS_TAG}/fullsrc.zip ./
-  fi
-
 else # darwin
   DIST_FILE=bin/Darwin_${ARCH}_release
 
@@ -49,6 +42,13 @@ else # darwin
   cp ${INSTALLER_FILE} ${TRAVIS_TAG}/installer-${TRAVIS_TAG}-darwin-${TARGET_ARCH}.sh
   cp ${XZ_FILE} ${TRAVIS_TAG}/fibjs-${TRAVIS_TAG}-darwin-${TARGET_ARCH}.xz
   cp ${GZ_FILE} ${TRAVIS_TAG}/fibjs-${TRAVIS_TAG}-darwin-${TARGET_ARCH}.tar.gz
+
+  if [[ $TARGET_ARCH == 'x64' ]]; then
+    echo "zip fullsrc..."
+    sudo rm -rf .git
+    sudo sh build clean
+    zip -r ./${TRAVIS_TAG}/fullsrc.zip ./
+  fi
 fi
 
 exit 0;
