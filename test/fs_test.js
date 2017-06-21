@@ -16,6 +16,7 @@ var pathname = 'test_dir' + vmid;
 var pathname1 = 'test1_dir' + vmid;
 
 var win = require("os").type() == "Windows";
+var linux = require("os").type() == "Linux";
 
 describe('fs', () => {
     before(() => {
@@ -111,6 +112,8 @@ describe('fs', () => {
         });
 
         it("fs.lchmod", () => {
+            if (linux)
+                return;
             var fn = __dirname + '/fs_test.js.symlink';
 
             fs.symlink(__dirname + '/fs_test.js', fn);
@@ -147,6 +150,8 @@ describe('fs', () => {
         it("fs.lchown", () => {
             var fn = __dirname + '/fs_test.js.symlink';
 
+            if (fs.exists(fn))
+                fs.unlink(fn);
             fs.symlink(__dirname + '/fs_test.js', fn);
             if (require('os').userInfo().username != 'root')
                 assert.throws(() => {
