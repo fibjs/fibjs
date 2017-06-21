@@ -23,6 +23,12 @@ interface Stat : object
     /*! @brief 文件创建时间 */
     readonly Date ctime;
 
+    /*! @brief 文件拥有者的id */
+    readonly Integer uid;
+    
+    /*! @brief 文件所属的组id */
+    readonly Integer gid;
+
     /*! @brief 查询文件是否有写入权限
      @return 为 true 则有写入权限
      */

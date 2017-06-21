@@ -27,6 +27,8 @@ public:
     virtual result_t get_mtime(date_t& retVal) = 0;
     virtual result_t get_atime(date_t& retVal) = 0;
     virtual result_t get_ctime(date_t& retVal) = 0;
+    virtual result_t get_uid(int32_t& retVal) = 0;
+    virtual result_t get_gid(int32_t& retVal) = 0;
     virtual result_t isWritable(bool& retVal) = 0;
     virtual result_t isReadable(bool& retVal) = 0;
     virtual result_t isExecutable(bool& retVal) = 0;
@@ -55,6 +57,8 @@ public:
     static void s_get_mtime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_atime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_ctime(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_gid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_uid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_isWritable(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isReadable(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isExecutable(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -88,7 +92,9 @@ inline ClassInfo& Stat_base::class_info()
         { "mode", s_get_mode, block_set, false },
         { "mtime", s_get_mtime, block_set, false },
         { "atime", s_get_atime, block_set, false },
-        { "ctime", s_get_ctime, block_set, false }
+        { "ctime", s_get_ctime, block_set, false },
+        { "gid", s_get_gid, block_set, false },
+        { "uid", s_get_uid, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -169,6 +175,30 @@ inline void Stat_base::s_get_ctime(v8::Local<v8::String> property, const v8::Pro
     PROPERTY_ENTER();
 
     hr = pInst->get_ctime(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_gid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_gid(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_uid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_uid(vr);
 
     METHOD_RETURN();
 }
