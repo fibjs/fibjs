@@ -29,6 +29,8 @@ void Stat::fill(WIN32_FIND_DATAW& fd)
     mtime = FileTimeToJSTime(fd.ftLastWriteTime);
     atime = FileTimeToJSTime(fd.ftLastAccessTime);
     ctime = FileTimeToJSTime(fd.ftCreationTime);
+    uid = 0;
+    gid = 0;
 
     if ((m_isDirectory = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) != 0) == true)
         mode |= S_IFDIR;
@@ -56,6 +58,8 @@ void Stat::fill(exlib::string path, BY_HANDLE_FILE_INFORMATION& fd)
     mtime = FileTimeToJSTime(fd.ftLastWriteTime);
     atime = FileTimeToJSTime(fd.ftLastAccessTime);
     ctime = FileTimeToJSTime(fd.ftCreationTime);
+    uid = 0;
+    gid = 0;
 
     if ((m_isDirectory = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) != 0) == true)
         mode |= S_IFDIR;
@@ -128,6 +132,8 @@ void Stat::fill(exlib::string path, struct stat64& st)
     mtime = (double)st.st_mtime * 1000ll;
     atime = (double)st.st_atime * 1000ll;
     ctime = (double)st.st_ctime * 1000ll;
+    uid = st.st_uid;
+    gid = st.st_gid;
 
     m_isReadable = (S_IRUSR & st.st_mode) != 0;
     m_isWritable = (S_IWUSR & st.st_mode) != 0;
@@ -151,6 +157,9 @@ void Stat::init()
     mtime = 0;
     atime = 0;
     ctime = 0;
+
+    gid = 0;
+    uid = 0;
 
     m_isReadable = false;
     m_isWritable = false;
@@ -198,6 +207,18 @@ result_t Stat::get_atime(date_t& retVal)
 result_t Stat::get_ctime(date_t& retVal)
 {
     retVal = ctime;
+    return 0;
+}
+
+result_t Stat::get_uid(int32_t& retVal)
+{
+    retVal = uid;
+    return 0;
+}
+
+result_t Stat::get_gid(int32_t& retVal)
+{
+    retVal = gid;
     return 0;
 }
 
