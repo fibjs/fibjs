@@ -9,13 +9,14 @@ var vmid = coroutine.vmid;
 function unlink(pathname) {
     try {
         fs.rmdir(pathname);
-    } catch (e) { }
+    } catch (e) {}
 }
 
 var pathname = 'test_dir' + vmid;
 var pathname1 = 'test1_dir' + vmid;
 
 var win = require("os").type() == "Windows";
+var linux = require("os").type() == "Linux";
 
 describe('fs', () => {
     before(() => {
@@ -110,6 +111,24 @@ describe('fs', () => {
             f.close();
         });
 
+        it("fs.lchmod", () => {
+            if (linux)
+                return;
+            var fn = __dirname + '/fs_test.js.symlink';
+
+            fs.symlink(__dirname + '/fs_test.js', fn);
+            fs.lchmod(fn, 511);
+
+            var st = fs.stat(__dirname + '/fs_test.js');
+            var oldm = st.mode;
+            var st = fs.lstat(fn);
+
+            assert.notEqual(st.mode & 511, oldm & 511);
+            assert.equal(st.mode & 511, 511);
+
+            fs.unlink(fn);
+        });
+
         it("fs.chown", () => {
             var fn = __dirname + '/fs_test.js' + vmid;
             fs.writeFile(fn, 'chown test');
@@ -117,10 +136,38 @@ describe('fs', () => {
                 assert.throws(() => {
                     fs.chown(fn, 23, 45)
                 });
-            else
+            else {
                 assert.doesNotThrow(function() {
                     fs.chown(fn, 23, 45)
                 });
+                var st = fs.stat(fn);
+                assert.equal(st.uid, 23);
+                assert.equal(st.gid, 45);
+            }
+            fs.unlink(fn);
+        });
+
+        it("fs.lchown", () => {
+            var fn = __dirname + '/fs_test.js.symlink';
+
+            if (fs.exists(fn))
+                fs.unlink(fn);
+            fs.symlink(__dirname + '/fs_test.js', fn);
+            if (require('os').userInfo().username != 'root')
+                assert.throws(() => {
+                    fs.lchown(fn, 23, 45)
+                });
+            else {
+                assert.doesNotThrow(function() {
+                    fs.lchown(fn, 23, 45)
+                });
+                var st = fs.stat(__dirname + '/fs_test.js');
+                var lst = fs.lstat(fn);
+                assert.notEqual(st.uid, 23);
+                assert.notEqual(st.gid, 45);
+                assert.equal(lst.uid, 23);
+                assert.equal(lst.gid, 45);
+            }
             fs.unlink(fn);
         });
     }

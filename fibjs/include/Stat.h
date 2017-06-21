@@ -66,6 +66,8 @@ public:
     virtual result_t get_mtime(date_t& retVal);
     virtual result_t get_atime(date_t& retVal);
     virtual result_t get_ctime(date_t& retVal);
+    virtual result_t get_uid(int32_t& retVal);
+    virtual result_t get_gid(int32_t& retVal);
     virtual result_t isWritable(bool& retVal);
     virtual result_t isReadable(bool& retVal);
     virtual result_t isExecutable(bool& retVal);
@@ -93,6 +95,8 @@ public:
     int64_t size;
     int32_t mode;
     date_t mtime, atime, ctime;
+    int32_t uid;
+    int32_t gid;
     bool m_isWritable, m_isReadable, m_isExecutable, m_isHidden;
     bool m_isDirectory, m_isFile, m_isSymbolicLink;
     bool m_isMemory, m_isSocket;
