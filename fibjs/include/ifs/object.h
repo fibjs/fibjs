@@ -16,7 +16,7 @@
 
 namespace fibjs {
 
-class object_base : public object_base {
+class object_base {
     DECLARE_CLASS(object_base);
 
 public:
@@ -61,7 +61,7 @@ inline ClassInfo& object_base::class_info()
     static ClassData s_cd = {
         "object", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
-        &object_base::class_info()
+        NULL
     };
 
     static ClassInfo s_ci(s_cd);
