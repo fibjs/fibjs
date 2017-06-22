@@ -8,6 +8,7 @@
 #include "object.h"
 #include "ifs/fs.h"
 #include "ifs/zip.h"
+#include "ifs/iconv.h"
 #include "path.h"
 #include "utf8.h"
 #include "Stat.h"
@@ -240,8 +241,8 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
     return buf->toString(retVal);
 }
 
-result_t fs_base::readFile(exlib::string fname, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+result_t fs_base::readFile(exlib::string fname, exlib::string encoding,
+    Variant& retVal, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -257,7 +258,14 @@ result_t fs_base::readFile(exlib::string fname, obj_ptr<Buffer_base>& retVal,
     hr = f->cc_readAll(buf);
     f->cc_close();
 
-    retVal = buf;
+    if (encoding != "") {
+        exlib::string str;
+        hr = iconv_base::decode(encoding, buf, str);
+        if (hr < 0)
+            return hr;
+        retVal = str;
+    } else
+        retVal = buf;
 
     if (hr < 0 || hr == CALL_RETURN_NULL)
         return hr;
@@ -893,9 +901,9 @@ result_t fs_base::readdirSync(exlib::string path, obj_ptr<List_base>& retVal)
     return ac_readdir(path, retVal);
 }
 
-result_t fs_base::readFileSync(exlib::string fname, obj_ptr<Buffer_base>& retVal)
+result_t fs_base::readFileSync(exlib::string fname, exlib::string encoding, Variant& retVal)
 {
-    return ac_readFile(fname, retVal);
+    return ac_readFile(fname, encoding, retVal);
 }
 
 result_t fs_base::writeFileSync(exlib::string fname, Buffer_base* data)

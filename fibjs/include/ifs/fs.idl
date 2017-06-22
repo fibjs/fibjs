@@ -282,15 +282,17 @@ module fs
 
     /*! @brief 打开二进制文件，并读取内容
      @param fname 指定文件名
+     @param encoding 指定解码方式，缺省不解码
      @return 返回文件文本内容
      */
-    static Buffer readFile(String fname) async;
+    static Variant readFile(String fname, String encoding = "") async;
 
     /*! @brief 打开二进制文件，并读取内容，是 readFile 的同步版兼容接口
      @param fname 指定文件名
+     @param encoding 指定解码方式，缺省不解码
      @return 返回文件文本内容
      */
-    static Buffer readFileSync(String fname);
+    static Variant readFileSync(String fname, String encoding = "");
 
     /*! @brief 打开文件，以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:"\n"；windows:"\r\n"
      @param fname 指定文件名

@@ -137,7 +137,7 @@ describe('fs', () => {
                     fs.chown(fn, 23, 45)
                 });
             else {
-                assert.doesNotThrow(function() {
+                assert.doesNotThrow(function () {
                     fs.chown(fn, 23, 45)
                 });
                 var st = fs.stat(fn);
@@ -158,7 +158,7 @@ describe('fs', () => {
                     fs.lchown(fn, 23, 45)
                 });
             else {
-                assert.doesNotThrow(function() {
+                assert.doesNotThrow(function () {
                     fs.lchown(fn, 23, 45)
                 });
                 var st = fs.stat(__dirname + '/fs_test.js');
@@ -190,9 +190,13 @@ describe('fs', () => {
 
     it("readFile", () => {
         var f = fs.openFile(__dirname + '/fs_test.js');
+        var d = f.readAll();
 
         var s = fs.readFile(__dirname + "/fs_test.js");
-        assert.deepEqual(s, f.read(f.size()));
+        assert.deepEqual(s, d);
+
+        s = fs.readFile(__dirname + "/fs_test.js", "utf8");
+        assert.deepEqual(s, d.toString());
 
         f.close();
     });

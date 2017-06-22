@@ -75,8 +75,8 @@ public:
     static result_t openFile(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t openTextStream(exlib::string fname, exlib::string flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
     static result_t readTextFile(exlib::string fname, exlib::string& retVal, AsyncEvent* ac);
-    static result_t readFile(exlib::string fname, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t readFileSync(exlib::string fname, obj_ptr<Buffer_base>& retVal);
+    static result_t readFile(exlib::string fname, exlib::string encoding, Variant& retVal, AsyncEvent* ac);
+    static result_t readFileSync(exlib::string fname, exlib::string encoding, Variant& retVal);
     static result_t readLines(exlib::string fname, int32_t maxlines, v8::Local<v8::Array>& retVal);
     static result_t writeTextFile(exlib::string fname, exlib::string txt, AsyncEvent* ac);
     static result_t writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac);
@@ -172,7 +172,7 @@ public:
     ASYNC_STATICVALUE3(fs_base, openFile, exlib::string, exlib::string, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE3(fs_base, openTextStream, exlib::string, exlib::string, obj_ptr<BufferedStream_base>);
     ASYNC_STATICVALUE2(fs_base, readTextFile, exlib::string, exlib::string);
-    ASYNC_STATICVALUE2(fs_base, readFile, exlib::string, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE3(fs_base, readFile, exlib::string, exlib::string, Variant);
     ASYNC_STATIC2(fs_base, writeTextFile, exlib::string, exlib::string);
     ASYNC_STATIC2(fs_base, writeFile, exlib::string, Buffer_base*);
     ASYNC_STATIC2(fs_base, appendFile, exlib::string, Buffer_base*);
@@ -955,34 +955,36 @@ inline void fs_base::s_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void fs_base::s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<Buffer_base> vr;
+    Variant vr;
 
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
 
     if (!cb.IsEmpty()) {
-        acb_readFile(v0, cb);
+        acb_readFile(v0, v1, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = ac_readFile(v0, vr);
+        hr = ac_readFile(v0, v1, vr);
 
     METHOD_RETURN();
 }
 
 inline void fs_base::s_readFileSync(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<Buffer_base> vr;
+    Variant vr;
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
 
-    hr = readFileSync(v0, vr);
+    hr = readFileSync(v0, v1, vr);
 
     METHOD_RETURN();
 }

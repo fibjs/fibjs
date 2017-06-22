@@ -31,11 +31,13 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
         return data ? 0 : CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
     }
 
-    hr = fs_base::cc_readFile(fname, data);
+    Variant var;
+    hr = fs_base::cc_readFile(fname, "", var);
     if (hr == CALL_RETURN_NULL) {
         data = new Buffer();
         hr = 0;
-    }
+    } else
+        data = Buffer_base::getInstance(var);
 
     if (data)
         isolate->m_script_cache->set(fname, data->wrap());
