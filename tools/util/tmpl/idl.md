@@ -3,6 +3,13 @@
 
 <%-declare.doc.detail.join('\n')%>
 
+<%if(declare.type === 'interface'){%>
+
+## 继承关系
+<div style="text-align: center;"><%-svg%></div>
+
+<%}%>
+
 <%var last_member = '';
 
 function def_value(v, o)
@@ -98,16 +105,16 @@ if(m.memType == 'method'){
         return m.memType == 'prop' && m.static;
     });
 
-    member_output('成员函数', function(m, n){
-        return m.memType == 'method' && m.name !== n && !m.static;
+    member_output('常量', function(m){
+        return m.memType == 'const';
     });
 
     member_output('成员属性', function(m){
         return m.memType == 'prop' && !m.static;
     });
 
-    member_output('常量', function(m){
-        return m.memType == 'const';
+    member_output('成员函数', function(m, n){
+        return m.memType == 'method' && m.name !== n && !m.static;
     });
 
 %>

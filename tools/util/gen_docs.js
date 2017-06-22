@@ -2,6 +2,10 @@ var fs = require("fs");
 var util = require("util");
 var path = require('path');
 var ejs = require('ejs');
+var Viz = require('viz.js')
+var xml = require('xml')
+
+global.cwrap = 0;
 
 module.exports = function (defs, docsFolder) {
     function check_docs() {
@@ -142,6 +146,140 @@ module.exports = function (defs, docsFolder) {
         }));
     }
 
+    function gen_svg() {
+        function get_node(def, me) {
+            var txts = [];
+
+            function member_output(name, test) {
+                var first = true;
+                var last_member;
+
+                def.members.forEach(m => {
+                    if (test(m, def.declare.name)) {
+                        if (first) {
+                            first = false;
+                            txts.push('<TR><TD ALIGN="LEFT" BALIGN="LEFT">');
+                        }
+
+                        if (last_member !== m.name) {
+                            last_member = m.name;
+                            if (m.name == def.declare.name)
+                                txts.push('&nbsp; new ' + m.name + '()<BR />');
+                            else if (m.memType == 'operator')
+                                txts.push('&nbsp;operator' + m.name + '<BR />');
+                            else
+                                txts.push('&nbsp;' + m.name + (m.memType == 'method' ? '()' : '') + '<BR />');
+                        }
+                    }
+                });
+
+                if (!first)
+                    txts.push('</TD></TR>');
+            }
+
+            txts.push(def.declare.name);
+            txts.push('[shape=none, margin=0, fontname="Helvetica,sans-Serif", fontsize=10, tooltip="' + def.declare.name + '", ');
+            if (!me)
+                txts.push('URL="' + def.declare.name + '.md", ');
+            txts.push('label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="' + (me ? 'LIGHTGRAY' : 'WHITE') + '">');
+            txts.push('<TR><TD>' + def.declare.name + '</TD></TR>');
+
+            member_output('构造函数', function (m, n) {
+                return m.memType == 'method' && m.name == n;
+            });
+
+            member_output('下标操作', function (m) {
+                return m.memType == 'operator';
+            });
+
+            member_output('对象', function (m) {
+                return m.memType == 'object';
+            });
+
+            member_output('静态函数', function (m, n) {
+                return m.memType == 'method' && m.name !== n && m.static;
+            });
+
+            member_output('静态属性', function (m) {
+                return m.memType == 'prop' && m.static;
+            });
+
+            member_output('常量', function (m) {
+                return m.memType == 'const';
+            });
+
+            member_output('成员属性', function (m) {
+                return m.memType == 'prop' && !m.static;
+            });
+
+            member_output('成员函数', function (m, n) {
+                return m.memType == 'method' && m.name !== n && !m.static;
+            });
+
+            txts.push('</TABLE>>]');
+
+            return txts.join('\n');
+
+        }
+
+        function get_inherits(def, nodes, arrows) {
+            if (def.inherits)
+                def.inherits.forEach(i => {
+                    nodes.push(get_node(defs[i]));
+                    arrows.push(def.declare.name + " -> " + i + ' [dir=back]');
+                    get_inherits(defs[i], nodes, arrows);
+                });
+        }
+
+        function get_dot(def) {
+            var n = def;
+            var n1;
+            var nodes = [];
+            var arrows = [];
+
+            while (n.declare.extend) {
+                n1 = n;
+                n = defs[n1.declare.extend];
+                nodes.unshift(get_node(n));
+                arrows.unshift(n.declare.name + " -> " + n1.declare.name + ' [dir=back]');
+            }
+
+            nodes.push(get_node(def, true));
+            get_inherits(def, nodes, arrows);
+
+            return "digraph {\n" + nodes.join('\n') + '\n' + arrows.join('\n') + '\n}';
+        }
+
+        for (var m in defs) {
+            var def = defs[m];
+
+            if (def.declare.type == 'interface') {
+                var e = def.declare.extend;
+                if (e) {
+                    var ext = defs[e];
+                    if (!ext.inherits)
+                        ext.inherits = [m];
+                    else
+                        ext.inherits.push(m);
+                }
+            }
+        }
+
+        for (var m in defs) {
+            var def = defs[m];
+
+            if (def.declare.type == 'interface') {
+                def.dot = get_dot(def);
+                def.svg = Viz(def.dot);
+
+                fs.writeFile(path.join(docsFolder, "object", "ifs", m + ".svg"), def.svg);
+
+                var dom = xml.parse(def.svg);
+                def.svg = dom.documentElement.toString();
+            }
+        }
+    }
+
     function inherit_method() {
         for (var m in defs) {
             var def = defs[m];
@@ -210,6 +348,9 @@ module.exports = function (defs, docsFolder) {
     gen_readme();
 
     cross_link();
+
+    gen_svg();
+
     inherit_method();
 
     gen_idl();

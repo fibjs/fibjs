@@ -385,7 +385,7 @@ module.exports = function (defs, baseFolder) {
             txts.push("/**\n @author Leo Hoo <lion@9465.net>\n */\n");
 
             txts.push('#include "../object.h"');
-            if (def.declare.extend !== 'object')
+            if (def.declare.extend && def.declare.extend !== 'object')
                 txts.push('#include "' + def.declare.extend + '.h"');
 
             txts.push('\nnamespace fibjs {\n');
@@ -398,7 +398,7 @@ module.exports = function (defs, baseFolder) {
         function gen_refer_cls() {
             var has_refer = false;
 
-            if (def.declare.extend !== 'object') {
+            if (def.declare.extend && def.declare.extend !== 'object') {
                 txts.push('class ' + def.declare.extend + '_base;');
                 has_refer = true;
             }
@@ -414,7 +414,10 @@ module.exports = function (defs, baseFolder) {
 
         function gen_cls() {
             function gen_cls_declare() {
-                txts.push("class " + cls + "_base : public " + def.declare.extend + "_base {");
+                if (def.declare.extend)
+                    txts.push("class " + cls + "_base : public " + def.declare.extend + "_base {");
+                else
+                    txts.push("class " + cls + "_base {");
                 txts.push("    DECLARE_CLASS(" + cls + "_base);");
             }
 

@@ -390,5 +390,7 @@ module.exports = function (baseFolder) {
       defs[n].members[m].doc = parser_comment(defs[n].members[m].comments);
   }
 
+  delete defs['object'].declare.extend;
+
   return defs;
 };

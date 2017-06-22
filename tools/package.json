@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "dependencies": {
     "ejs": "^2.5.6",
-    "pegjs": "^0.10.0"
+    "pegjs": "^0.10.0",
+    "viz.js": "^1.8.0"
   }
 }
