@@ -195,52 +195,9 @@ result_t File::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal,
 
 result_t File::open(exlib::string fname, exlib::string flags)
 {
-#ifdef _WIN32
-    int32_t _flags = _O_BINARY;
-#else
-    int32_t _flags = 0;
-#endif
-
-    if (flags == "r")
-        _flags |= O_RDONLY;
-    else if (flags == "r+")
-        _flags |= O_RDWR;
-    else if (flags == "w")
-        _flags |= O_TRUNC | O_CREAT | O_WRONLY;
-    else if (flags == "w+")
-        _flags |= O_TRUNC | O_CREAT | O_RDWR;
-    else if (flags == "a")
-        _flags |= O_APPEND | O_CREAT | O_WRONLY;
-    else if (flags == "a+")
-        _flags |= O_APPEND | O_CREAT | O_RDWR;
-
     close();
-
-#ifdef _WIN32
-    m_fd = _wopen(UTF8_W(fname), _flags, _S_IREAD | _S_IWRITE);
-#else
-    m_fd = ::open(fname.c_str(), _flags, 0666);
-#endif
-    if (m_fd < 0)
-        return CHECK_ERROR(LastError());
-
-#ifndef _WIN32
-    struct stat64 st;
-    fstat64(m_fd, &st);
-
-    if (S_IFDIR & st.st_mode) {
-        ::_close(m_fd);
-        m_fd = -1;
-        return CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
-    }
-
-    if (::fcntl(m_fd, F_SETFD, FD_CLOEXEC))
-        return CHECK_ERROR(LastError());
-#endif
-
     name = fname;
-
-    return 0;
+    return file_open(fname, flags, 0666, m_fd);
 }
 
 result_t File::get_name(exlib::string& retVal)
