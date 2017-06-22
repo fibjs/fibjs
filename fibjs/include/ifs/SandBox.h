@@ -33,7 +33,7 @@ public:
     virtual result_t remove(exlib::string id) = 0;
     virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv) = 0;
-    virtual result_t resovle(exlib::string id, exlib::string base, exlib::string& retVal) = 0;
+    virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal) = 0;
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get_global(v8::Local<v8::Object>& retVal) = 0;
 
@@ -48,7 +48,7 @@ public:
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_resovle(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_global(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
@@ -65,7 +65,7 @@ inline ClassInfo& SandBox_base::class_info()
         { "remove", s_remove, false },
         { "clone", s_clone, false },
         { "run", s_run, false },
-        { "resovle", s_resovle, false },
+        { "resolve", s_resolve, false },
         { "require", s_require, false }
     };
 
@@ -208,7 +208,7 @@ inline void SandBox_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void SandBox_base::s_resovle(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void SandBox_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -220,7 +220,7 @@ inline void SandBox_base::s_resovle(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
 
-    hr = pInst->resovle(v0, v1, vr);
+    hr = pInst->resolve(v0, v1, vr);
 
     METHOD_RETURN();
 }

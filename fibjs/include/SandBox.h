@@ -29,7 +29,7 @@ public:
     virtual result_t remove(exlib::string id);
     virtual result_t clone(obj_ptr<SandBox_base>& retVal);
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv);
-    virtual result_t resovle(exlib::string id, exlib::string base, exlib::string& retVal);
+    virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal);
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
     virtual result_t get_global(v8::Local<v8::Object>& retVal);
 
@@ -129,12 +129,12 @@ public:
 
     result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
 
-    result_t resovleFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
+    result_t resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Value>* retVal);
-    result_t resovleId(exlib::string& id, obj_ptr<Buffer_base>& data, v8::Local<v8::Value>& retVal);
-    result_t resovleModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+    result_t resolveId(exlib::string& id, obj_ptr<Buffer_base>& data, v8::Local<v8::Value>& retVal);
+    result_t resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Value>& retVal);
-    result_t resovle(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+    result_t resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Value>& retVal);
 
     result_t repl(v8::Local<v8::Array> cmds, Stream_base* out = NULL);

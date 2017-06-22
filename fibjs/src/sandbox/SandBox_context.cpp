@@ -11,7 +11,7 @@
 
 namespace fibjs {
 
-void _resovle(const v8::FunctionCallbackInfo<v8::Value>& args)
+void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t argc = args.Length();
     if (argc > 1) {
@@ -39,7 +39,7 @@ void _resovle(const v8::FunctionCallbackInfo<v8::Value>& args)
         _mod->Get(v8::String::NewFromUtf8(isolate, "_sbox")));
 
     exlib::string v;
-    hr = sbox->resovle(id, *v8::String::Utf8Value(path), v);
+    hr = sbox->resolve(id, *v8::String::Utf8Value(path), v);
     if (hr < 0) {
         if (hr == CALL_E_JAVASCRIPT) {
             args.GetReturnValue().Set(v8::Local<v8::Value>());
@@ -164,7 +164,7 @@ SandBox::Context::Context(SandBox* sb, exlib::string id)
     _mod->Set(isolate->NewFromUtf8("_id"), m_id);
 
     m_fnRequest = isolate->NewFunction("require", _require, _mod);
-    m_fnRequest->Set(isolate->NewFromUtf8("resovle"), isolate->NewFunction("resovle", _resovle, _mod));
+    m_fnRequest->Set(isolate->NewFromUtf8("resolve"), isolate->NewFunction("resolve", _resolve, _mod));
 
     m_fnRun = isolate->NewFunction("run", _run, _mod);
 }

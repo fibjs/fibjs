@@ -22,7 +22,7 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
     path_base::normalize(fname, fname);
 
     obj_ptr<Buffer_base> bin;
-    hr = resovleFile(fname, bin, NULL);
+    hr = resolveFile(fname, bin, NULL);
     if (hr < 0)
         return hr;
 
@@ -46,7 +46,7 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
     path_base::normalize(fname, fname);
 
     obj_ptr<Buffer_base> bin;
-    hr = resovleFile(fname, bin, NULL);
+    hr = resolveFile(fname, bin, NULL);
     if (hr < 0)
         return hr;
 
@@ -72,7 +72,7 @@ result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv)
     path_base::normalize(fname, fname);
 
     obj_ptr<Buffer_base> bin;
-    hr = resovleFile(fname, bin, NULL);
+    hr = resolveFile(fname, bin, NULL);
     if (hr < 0)
         return hr;
 

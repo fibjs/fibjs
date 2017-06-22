@@ -10,12 +10,12 @@ describe("module", () => {
         JSON.stringify(require("os"));
     });
 
-    it("resovle", () => {
-        assert.equal(require.resovle('./module/a'),
+    it("resolve", () => {
+        assert.equal(require.resolve('./module/a'),
             path.join(__dirname, './module/a.js'));
-        assert.equal(require.resovle('./module/test.zip$/folder/b'),
+        assert.equal(require.resolve('./module/test.zip$/folder/b'),
             path.join(__dirname, './module/test.zip$/folder/b.js'));
-        assert.equal(require.resovle('node_mod1'),
+        assert.equal(require.resolve('node_mod1'),
             path.join(__dirname, './node_modules/node_mod1.js'));
 
     });

@@ -77,7 +77,7 @@ result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8:
     result_t hr;
     obj_ptr<Buffer_base> data;
 
-    hr = resovle(base, id, data, retVal);
+    hr = resolve(base, id, data, retVal);
     if (hr < 0 || !IsEmpty(retVal))
         return hr;
     return installScript(id, data, retVal);

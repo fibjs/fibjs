@@ -45,7 +45,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     return hr;
 }
 
-result_t SandBox::resovleFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
+result_t SandBox::resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Value>* retVal)
 {
     Isolate* isolate = holder();
@@ -140,7 +140,7 @@ result_t SandBox::resovleFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
     return CALL_E_FILE_NOT_FOUND;
 }
 
-result_t SandBox::resovleId(exlib::string& id, obj_ptr<Buffer_base>& data,
+result_t SandBox::resolveId(exlib::string& id, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = holder();
@@ -178,7 +178,7 @@ result_t SandBox::resovleId(exlib::string& id, obj_ptr<Buffer_base>& data,
     return CALL_E_FILE_NOT_FOUND;
 }
 
-result_t SandBox::resovleModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Value>& retVal)
 {
     result_t hr;
@@ -188,7 +188,7 @@ result_t SandBox::resovleModule(exlib::string base, exlib::string& id, obj_ptr<B
         fname = s_root;
         pathAdd(fname, id);
 
-        hr = resovleFile(fname, data, &retVal);
+        hr = resolveFile(fname, data, &retVal);
         if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND) {
             id = fname;
             return hr;
@@ -213,7 +213,7 @@ result_t SandBox::resovleModule(exlib::string base, exlib::string& id, obj_ptr<B
             fname += PATH_SLASH;
             fname += id;
 
-            hr = resovleFile(fname, data, &retVal);
+            hr = resolveFile(fname, data, &retVal);
             if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND) {
                 id = fname;
                 return hr;
@@ -224,7 +224,7 @@ result_t SandBox::resovleModule(exlib::string base, exlib::string& id, obj_ptr<B
     return CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
 }
 
-result_t SandBox::resovle(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Value>& retVal)
 {
     const char* c_str = id.c_str();
@@ -243,23 +243,23 @@ result_t SandBox::resovle(exlib::string base, exlib::string& id, obj_ptr<Buffer_
         if (!isAbs) {
             result_t hr;
 
-            hr = resovleId(id, data, retVal);
+            hr = resolveId(id, data, retVal);
             if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
                 return hr;
-            return resovleModule(base, id, data, retVal);
+            return resolveModule(base, id, data, retVal);
         }
     }
 
-    return resovleFile(id, data, &retVal);
+    return resolveFile(id, data, &retVal);
 }
 
-result_t SandBox::resovle(exlib::string id, exlib::string base, exlib::string& retVal)
+result_t SandBox::resolve(exlib::string id, exlib::string base, exlib::string& retVal)
 {
     result_t hr;
     obj_ptr<Buffer_base> data;
     v8::Local<v8::Value> v;
 
-    hr = resovle(base, id, data, v);
+    hr = resolve(base, id, data, v);
     if (hr < 0)
         return hr;
 

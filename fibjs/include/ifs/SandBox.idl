@@ -77,7 +77,7 @@ interface SandBox : object
      @param base 指定查找路径
      @return 返回加载的模块完整文件名
      */
-    String resovle(String id, String base);
+    String resolve(String id, String base);
 
     /*! @brief 加载一个模块并返回模块对象
      @param id 指定要加载的模块名称

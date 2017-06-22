@@ -511,7 +511,7 @@
     <ClCompile Include="src\sandbox\SandBox_context.cpp" />
     <ClCompile Include="src\sandbox\SandBox_repl.cpp" />
     <ClCompile Include="src\sandbox\SandBox_require.cpp" />
-    <ClCompile Include="src\sandbox\SandBox_resovle.cpp" />
+    <ClCompile Include="src\sandbox\SandBox_resolve.cpp" />
     <ClCompile Include="src\sandbox\SandBox_run.cpp" />
     <ClCompile Include="src\sandbox\loaders\base_loader.cpp" />
     <ClCompile Include="src\sandbox\loaders\js_loader.cpp" />

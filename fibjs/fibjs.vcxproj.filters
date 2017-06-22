@@ -1340,7 +1340,7 @@
     <ClCompile Include="src\sandbox\SandBox_require.cpp">
       <Filter>Source Files\sandbox</Filter>
     </ClCompile>
-    <ClCompile Include="src\sandbox\SandBox_resovle.cpp">
+    <ClCompile Include="src\sandbox\SandBox_resolve.cpp">
       <Filter>Source Files\sandbox</Filter>
     </ClCompile>
     <ClCompile Include="src\sandbox\SandBox_run.cpp">
