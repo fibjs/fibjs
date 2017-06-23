@@ -4,6 +4,7 @@ var path = require('path');
 var ejs = require('ejs');
 var Viz = require('viz.js')
 var xml = require('xml')
+var beautify = require('js-beautify');
 
 global.cwrap = 0;
 
@@ -312,7 +313,15 @@ module.exports = function (defs, docsFolder) {
         for (var m in defs) {
             var p = path.join(docsFolder, defs[m].declare.type == 'module' ? "module" : "object", "ifs", m + ".md");
             var md = _idl(defs[m]);
+            md = md.replace(/\n\s+```/g, '\n```');
+
+            md = md.replace(/\n```JavaScript\s+((.|\n)*?)\s+```\s+/gi, function (s, p1, p2, p3) {
+                return '\n\n```JavaScript\n' + beautify(p1.replace(/\n( |\t)*/g, '\n')) + '\n```\n\n';
+
+            });
+
             md = md.replace(/\n\n+/g, '\n\n');
+
             fs.writeFile(p, md);
         }
     }
@@ -330,8 +339,6 @@ module.exports = function (defs, docsFolder) {
                 fs.unlink(fname);
         });
     }
-
-    console.log(defs['ZmqSocket']);
 
     clean_folder(docsFolder);
 
