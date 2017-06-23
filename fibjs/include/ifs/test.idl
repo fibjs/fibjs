@@ -65,25 +65,6 @@ process.exit(-test.run(console.DEBUG));
  */
 module test
 {
-    /*! @brief 定义 BDD(Behavior Drive Development) 测试环境，支持 describe, xdescribe, it, xit, before, after, beforeEach 和 afterEach，同时初始化 assert
-     */
-    const BDD = 0;
-
-    /*! @brief 定义 TDD(Test Drive Development) 测试环境，支持 suite, xsuite, test, xtest, setup, teardown, suiteSetup 和 suiteTeardown，同时初始化 assert
-        同 BDD 的映射关系：
-        ```
-        suite -> describe
-        xsuite -> xdescribe
-        test -> it
-        xtest -> xit
-        suiteSetup -> before
-        suiteTeardown -> after
-        setup -> beforeEach
-        teardown -> afterEach
-        ```
-     */
-    const TDD = 1;
-
     /*! @brief 定义一个测试模块，可嵌套定义
      @param name 定义模块名称
      @param block 模块初始化代码
@@ -137,10 +118,8 @@ module test
     /*! @brief 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 */
     static assert;
 
-    /*! @brief 初始化当前脚本的测试环境，将 test 模块方法复制为当前脚本全局变量
-     @param mode 指定初始化的模式，缺省为 BDD
-     */
-    static setup(Integer mode = BDD);
+    /*! @brief 初始化当前脚本的测试环境，将 test 模块方法复制为当前脚本全局变量 */
+    static setup();
 
     /*! @brief 设置和查询慢速测试警告阀值，以 ms 为单位，缺省为 75
      */

@@ -107,7 +107,6 @@ public:
 
     exlib::List<exlib::linkitem> m_fibers;
 
-    bool m_test_setup_bbd, m_test_setup_tdd;
     void* m_test;
 
     exlib::Semaphore m_sem;

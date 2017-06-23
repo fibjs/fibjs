@@ -108,8 +108,6 @@ void* init_proc(void* p)
 
 Isolate::Isolate(exlib::string fname)
     : m_id((int32_t)s_iso_id.inc())
-    , m_test_setup_bbd(false)
-    , m_test_setup_tdd(false)
     , m_test(NULL)
     , m_currentFibers(0)
     , m_idleFibers(0)

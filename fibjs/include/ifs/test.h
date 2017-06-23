@@ -23,12 +23,6 @@ class test_base : public object_base {
     DECLARE_CLASS(test_base);
 
 public:
-    enum {
-        _BDD = 0,
-        _TDD = 1
-    };
-
-public:
     // test_base
     static result_t describe(exlib::string name, v8::Local<v8::Function> block);
     static result_t xdescribe(exlib::string name, v8::Local<v8::Function> block);
@@ -39,7 +33,7 @@ public:
     static result_t beforeEach(v8::Local<v8::Function> func);
     static result_t afterEach(v8::Local<v8::Function> func);
     static result_t run(int32_t loglevel, int32_t& retVal);
-    static result_t setup(int32_t mode);
+    static result_t setup();
     static result_t get_slow(int32_t& retVal);
     static result_t set_slow(int32_t newVal);
 
@@ -55,8 +49,6 @@ public:
     }
 
 public:
-    static void s_get_BDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_TDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_describe(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_it(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -96,8 +88,6 @@ inline ClassInfo& test_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "BDD", s_get_BDD, block_set, true },
-        { "TDD", s_get_TDD, block_set, true },
         { "slow", s_get_slow, s_set_slow, true }
     };
 
@@ -109,20 +99,6 @@ inline ClassInfo& test_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void test_base::s_get_BDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    int32_t vr = _BDD;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void test_base::s_get_TDD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    int32_t vr = _TDD;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void test_base::s_describe(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -252,11 +228,9 @@ inline void test_base::s_setup(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 0);
+    METHOD_OVER(0, 0);
 
-    OPT_ARG(int32_t, 0, _BDD);
-
-    hr = setup(v0);
+    hr = setup();
 
     METHOD_VOID();
 }
