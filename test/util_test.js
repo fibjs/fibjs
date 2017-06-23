@@ -998,12 +998,16 @@ describe('util', () => {
             assert.equal(t1, 2);
             assert.equal(t, 2);
 
-            assert.throws(function () {
+            var t2 = 0;
+            try {
                 util.sync((done) => {
-                    done(100);
+                    done(500);
                 })();
-            });
+            } catch (e) {
+                t2 = e;
+            }
 
+            assert.equal(t2, 500);
         });
 
         it('promise', () => {
