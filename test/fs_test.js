@@ -1,10 +1,12 @@
 var test = require("test");
 var coroutine = require('coroutine');
+var path = require('path');
 test.setup();
 
 var fs = require('fs');
 
 var vmid = coroutine.vmid;
+var isWin32 = process.platform === 'win32';
 
 function unlink(pathname) {
     try {
@@ -35,18 +37,22 @@ describe('fs', () => {
     });
 
     it("file open & close", () => {
-        var fd = fs.open(__dirname + '/fs_test.js');
+        var fd = fs.open(path.join(__dirname, 'fs_test.js'));
+
         assert.isNumber(fd);
         assert.greaterThan(fd, -1);
         assert.doesNotThrow(() => {
             fs.close(fd);
         });
-        assert.doesNotThrow(() => {
-            fs.close(fd);
-        });
 
-        var fd1 = fs.open(__dirname + '/fs_test.js');
-        var fd2 = fs.open(__dirname + '/fs_test.js');
+        if (!isWin32) {
+            assert.doesNotThrow(() => {
+                fs.close(fd);
+            });
+        }
+
+        var fd1 = fs.open(path.join(__dirname, 'fs_test.js'));
+        var fd2 = fs.open(path.join(__dirname, 'fs_test.js'));
 
         assert.greaterThan(fd2, fd1);
         fs.close(fd1);
@@ -60,9 +66,11 @@ describe('fs', () => {
         assert.doesNotThrow(() => {
             fs.closeSync(fd);
         });
-        assert.doesNotThrow(() => {
-            fs.closeSync(fd);
-        });
+        if (!isWin32) {
+            assert.doesNotThrow(() => {
+                fs.closeSync(fd);
+            });
+        }
 
         var fd1 = fs.openSync(__dirname + '/fs_test.js');
         var fd2 = fs.openSync(__dirname + '/fs_test.js');

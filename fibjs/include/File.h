@@ -1,5 +1,6 @@
 #include "ifs/File.h"
 #include "Stat.h"
+#include "utf8.h"
 
 #include <fcntl.h>
 
