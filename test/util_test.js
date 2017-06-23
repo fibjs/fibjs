@@ -997,6 +997,13 @@ describe('util', () => {
             var t1 = util.sync(cb_test)();
             assert.equal(t1, 2);
             assert.equal(t, 2);
+
+            assert.throws(function () {
+                util.sync((done) => {
+                    done(100);
+                })();
+            });
+
         });
 
         it('promise', () => {
