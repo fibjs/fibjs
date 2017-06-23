@@ -27,7 +27,7 @@ interface WebView : EventEmitter
 	webview.postMessage("hello from fibjs");
 	```
 
-	```JavaScript
+	```html
 	// index.html
 	<script>
 	window.external.onmessage = function(msg){
