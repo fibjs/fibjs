@@ -70,9 +70,54 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
         args.GetReturnValue().Set(_data->Get(isolate->NewFromUtf8("_result")));
 }
 
+static void promise_then(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
+    v8::Local<v8::Value> argv[2] = {
+        v8::Null(args.GetIsolate()), args[0]
+    };
+
+    func->Call(args.This(), 2, argv);
+}
+
+static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
+    v8::Local<v8::Value> argv[2] = {
+        args[0], v8::Null(args.GetIsolate())
+    };
+
+    func->Call(args.This(), 2, argv);
+}
+
+static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current();
+    std::vector<v8::Local<v8::Value>> argv;
+
+    int32_t len = args.Length();
+    int32_t i;
+
+    argv.resize(len - 1);
+    for (i = 0; i < len - 1; i++)
+        argv[i] = args[i];
+
+    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
+    v8::Local<v8::Value> result = func->Call(args.This(), (int32_t)argv.size(), argv.data());
+
+    v8::Local<v8::Promise> p = v8::Local<v8::Promise>::Cast(result);
+    v8::Local<v8::Context> _context = p->CreationContext();
+
+    p->Then(_context, isolate->NewFunction("promise_then", promise_then, args[len - 1]));
+    p->Catch(_context, isolate->NewFunction("promise_catch", promise_catch, args[len - 1]));
+}
+
 result_t util_base::sync(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
 {
     Isolate* isolate = Isolate::current();
+
+    if (func->IsAsyncFunction())
+        func = isolate->NewFunction("async_promise", async_promise, func);
 
     retVal = isolate->NewFunction("sync", sync_stub, func);
     retVal->SetPrivate(retVal->CreationContext(),

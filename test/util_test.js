@@ -1024,6 +1024,32 @@ describe('util', () => {
             var t1 = util.sync(cb_test)();
             assert.equal(t1, 100);
         });
+
+        it('async/await', () => {
+            function async_proc(a, b) {
+                return new Promise(function (resolve, reject) {
+                    resolve(a + b);
+                });
+            }
+
+            async function cb_test(a, b) {
+                return await async_proc(a, b);
+            }
+
+            var t1 = util.sync(cb_test)(100, 200);
+            assert.equal(t1, 300);
+
+            var t2 = 0;
+            try {
+                util.sync(async() => {
+                    throw 500;
+                })();
+            } catch (e) {
+                t2 = e;
+            }
+
+            assert.equal(t2, 500);
+        });
     });
 
     describe('LruCache', () => {
