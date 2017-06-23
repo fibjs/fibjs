@@ -1,6 +1,12 @@
 #include "ifs/File.h"
 #include "Stat.h"
 
+#include <fcntl.h>
+
+#ifndef _WIN32
+#include <sys/ioctl.h>
+#endif
+
 #ifndef _fj_FILE_H
 #define _fj_FILE_H
 

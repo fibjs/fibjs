@@ -48,7 +48,7 @@ describe('fs', () => {
         var fd1 = fs.open(__dirname + '/fs_test.js');
         var fd2 = fs.open(__dirname + '/fs_test.js');
 
-        assert.equal(fd1 + 1, fd2);
+        assert.greaterThan(fd2, fd1);
         fs.close(fd1);
         fs.close(fd2);
     });
@@ -67,7 +67,7 @@ describe('fs', () => {
         var fd1 = fs.openSync(__dirname + '/fs_test.js');
         var fd2 = fs.openSync(__dirname + '/fs_test.js');
 
-        assert.equal(fd1 + 1, fd2);
+        assert.greaterThan(fd2, fd1);
         fs.closeSync(fd1);
         fs.closeSync(fd2);
     });
@@ -175,7 +175,7 @@ describe('fs', () => {
                     fs.chown(fn, 23, 45)
                 });
             else {
-                assert.doesNotThrow(function () {
+                assert.doesNotThrow(function() {
                     fs.chown(fn, 23, 45)
                 });
                 var st = fs.stat(fn);
@@ -196,7 +196,7 @@ describe('fs', () => {
                     fs.lchown(fn, 23, 45)
                 });
             else {
-                assert.doesNotThrow(function () {
+                assert.doesNotThrow(function() {
                     fs.lchown(fn, 23, 45)
                 });
                 var st = fs.stat(__dirname + '/fs_test.js');
