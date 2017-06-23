@@ -34,5 +34,6 @@ module zmq
     const XPUB = 9;
     const XSUB = 10;
 
+    /*! @brief ZmqSocket 对象，参见 ZmqSocket */
     static ZmqSocket new Socket();
 };

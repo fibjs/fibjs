@@ -26,9 +26,16 @@ module ws
     /*! @brief 指定 websocket 消息类型 10，代表一个 pong 帧 */
     const PONG = 10;
 
+    /*! @brief 指定 WebSocket 状态，表示正在连接中*/
     const CONNECTING = 0;
+
+    /*! @brief 指定 WebSocket 状态，表示打开状态*/
     const OPEN = 1;
+
+    /*! @brief 指定 WebSocket 状态，表示已发送 CLOSE 消息，等待关闭中*/
     const CLOSING = 2;
+
+    /*! @brief 指定 WebSocket 状态，表示已经关闭*/
     const CLOSED = 3;
 
     /*! @brief 创建一个 websocket 消息对象，参见 WebSocketMessage */
@@ -37,6 +44,7 @@ module ws
     /*! @brief 创建一个 websocket 包协议转换处理器，参见 WebSocketHandler */
     static WebSocketHandler new Handler();
 
+    /*! @brief WebSocket 对象，参见 WebSocket */
     static WebSocket new Socket();
 
     /*! @brief 创建一个 websocket 连接，并返回握手成功的 Stream 对象
