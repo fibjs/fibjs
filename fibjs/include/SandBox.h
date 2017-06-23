@@ -164,9 +164,6 @@ public:
     static const char* script_args;
     static const int32_t script_args_count;
 
-    static const char* main_args;
-    static const int32_t main_args_count;
-
     static const char* worker_args;
     static const int32_t worker_args_count;
 

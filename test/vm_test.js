@@ -163,9 +163,8 @@ describe("vm", () => {
 
     it("block global repl&argv", () => {
         sbox = new vm.SandBox({});
-        assert.throws(() => {
-            repl;
-        });
+
+        assert.isUndefined(repl);
 
         assert.throws(() => {
             sbox.addScript("t2.js", "argv[0];");

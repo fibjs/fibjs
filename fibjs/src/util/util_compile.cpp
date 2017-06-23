@@ -44,12 +44,9 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
 
         switch (mode) {
         case 1:
-            args = SandBox::main_args;
-            break;
-        case 2:
             args = SandBox::script_args;
             break;
-        case 3:
+        case 2:
             args = SandBox::worker_args;
             break;
         default:

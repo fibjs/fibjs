@@ -11,11 +11,8 @@
 
 namespace fibjs {
 
-const char* SandBox::script_args = "(function(__filename,__dirname,require,run,argv){";
-const int32_t SandBox::script_args_count = 5;
-
-const char* SandBox::main_args = "(function(__filename,__dirname,require,run,argv,repl){";
-const int32_t SandBox::main_args_count = 6;
+const char* SandBox::script_args = "(function(__filename,__dirname,require,run,argv,repl){";
+const int32_t SandBox::script_args_count = 6;
 
 const char* SandBox::worker_args = "(function(__filename,__dirname,require,run,Master){";
 const int32_t SandBox::worker_args_count = 5;
@@ -30,7 +27,8 @@ result_t SandBox::ExtLoader::run_script(Context* ctx, Buffer_base* src,
         v8::Local<v8::Value>(), v8::Local<v8::Value>(),
         ctx->m_fnRequest,
         ctx->m_fnRun,
-        argv
+        argv,
+        v8::Undefined(ctx->m_sb->holder()->m_isolate)
     };
 
     return run(ctx, src, name, script_args, args, script_args_count);
@@ -51,7 +49,7 @@ result_t SandBox::ExtLoader::run_main(Context* ctx, Buffer_base* src,
         argv,
         replFunc
     };
-    return run(ctx, src, name, main_args, args, main_args_count);
+    return run(ctx, src, name, script_args, args, script_args_count);
 }
 
 result_t SandBox::ExtLoader::run_worker(Context* ctx, Buffer_base* src,
