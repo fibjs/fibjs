@@ -49,8 +49,7 @@ interface EventEmitter : object
     Object prependListener(String ev, Function func);
 
     /*! @brief 绑定一个事件处理函数到对象起始
-    @param ev 指定事件的名称
-    @param func 指定事件处理函数
+    @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
     @return 返回成功绑定的数量，如果函数已绑定则返回 0
    */
     Object prependListener(Object map);
@@ -76,8 +75,7 @@ interface EventEmitter : object
     Object prependOnceListener(String ev, Function func);
 
     /*! @brief 绑定一个事件处理函数到对象起始
-    @param ev 指定事件的名称
-    @param func 指定事件处理函数
+    @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
     @return 返回成功绑定的数量，如果函数已绑定则返回 0
    */
     Object prependOnceListener(Object map);
@@ -132,6 +130,7 @@ interface EventEmitter : object
     setMaxListeners(Integer n);
 
     /* 获取监听器的默认限制的数量，仅用于兼容
+    @return 返回默认限制数量
    */
     Integer getMaxListeners();
 

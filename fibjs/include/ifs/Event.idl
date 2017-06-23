@@ -10,7 +10,9 @@ interface Event : Lock
      */
     Event(Boolean value = false);
 
-    /*! @brief 判断事件对象是否为true */
+    /*! @brief 判断事件对象是否为真
+     @return 如果事件为真，返回 true
+     */
     Boolean isSet();
 
     /*! @brief 激活事件（将事件状态改为true），并调用pulse() */

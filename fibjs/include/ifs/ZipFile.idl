@@ -1,14 +1,19 @@
 /*! @brief zip 文件访问对象 */
 interface ZipFile : object
 {
-    /*! @brief 获取文件名列表 */
+    /*! @brief 获取文件名列表
+	 @return 返回包含文件名的列表对象
+	 */
     List namelist() async;
 
-    /*! @brief 获取文件信息列表 */
+    /*! @brief 获取文件信息列表 
+	 @return 返回包含文件信息的列表对象
+	 */
     List infolist() async;
 
     /*! @brief 获取文件信息
 	 @param member 指定要获取信息的文件名
+	 @return 返回文件信息对象
 	*/
     ZipInfo getinfo(String member) async;
 

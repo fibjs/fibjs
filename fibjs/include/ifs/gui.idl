@@ -25,7 +25,9 @@ module gui
     /*! @brief WebView ie 模拟版本，指定 edge */
     const EDGE = 11001;
 
-    /* 设置 WebView 内 ie 模拟版本 */
+    /* 设置 WebView 内 ie 模拟版本 
+     @param ver 指定 ie 模拟版本
+    */
     static setVersion(Integer ver);
 
     /*! @brief 打开一个窗口并访问指定网址

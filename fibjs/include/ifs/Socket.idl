@@ -70,6 +70,10 @@ interface Socket : Stream
      */
     Buffer recv(Integer bytes = -1) async;
 
+    /*! @brief 读取一个 UDP 包
+     @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
+     @return 返回从连接读取的数据包
+     */
     DatagramPacket recvfrom(Integer bytes = -1) async;
 
     /*! @brief 将给定的数据写入连接，此方法等效于 write 方法
@@ -77,5 +81,10 @@ interface Socket : Stream
      */
     send(Buffer data) async;
 
+    /*! @brief 向给定 ip:port 发送一个 UDP 包
+     @param data 给定要写入的数据
+     @param host 指定目标 ip 或主机名
+     @param port 指定目标端口
+     */
     sendto(Buffer data, String host, Integer port) async;
 };

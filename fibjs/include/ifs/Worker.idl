@@ -2,9 +2,17 @@
  */
 interface Worker : EventEmitter
 {
+    /*! @brief Worker 对象构造函数
+     @param path 指定 Worker 入口脚本，只接受绝对路径
+     @param opts 构造选项，暂未支持
+     */
     Worker(String path, Object opts = {});
 
+    /*! @brief 向 Master 或 Worker 发送消息，
+     @param data 指定发送的消息内容
+     */
     postMessage(Value data);
 
+    /*! @brief 查询和绑定接受 postMessage 消息事件，相当于 on("message", func); */
     Function onmessage;
 };

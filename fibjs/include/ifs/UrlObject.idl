@@ -32,6 +32,7 @@ interface UrlObject : object
 
     /*! @brief 重定位 url 路径，自动识别新路径为相对路径还是绝对路径
      @param url 指定新的路径
+     @return 返回包含重定位数据的对象
      */
     UrlObject resolve(String url);
 

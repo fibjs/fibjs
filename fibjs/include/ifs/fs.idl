@@ -274,6 +274,18 @@ module fs
     static Integer open(String fname, String flags = "r", Integer mode = 0666) async;
 
     /*! @brief fs.open() 的阻塞版本
+
+     参数 flags 支持的方式如下：
+     - 'r' 只读方式，文件不存在则抛出错误。
+     - 'r+' 读写方式，文件不存在则抛出错误。
+     - 'w' 只写方式，文件不存在则自动创建，存在则将被清空。
+     - 'w+' 读写方式，文件不存在则自动创建。
+     - 'a' 只写添加方式，文件不存在则自动创建。
+     - 'a+' 读写添加方式，文件不存在则自动创建。
+     @param fname 指定文件名
+     @param flags 指定文件打开方式，缺省为 "r"，只读方式
+     @param mode 当创建文件的时候，指定文件的模式，默认 0666
+     @return 返回打开的文件描述符
      */
     static Integer openSync(String fname, String flags = "r", Integer mode = 0666);
 
@@ -283,6 +295,7 @@ module fs
     static close(Integer fd) async;
 
     /*! @brief fs.close() 的阻塞版本
+     @param fd 文件描述符
      */
     static closeSync(Integer fd);
 

@@ -16,6 +16,7 @@ interface XmlCharacterData : XmlNode
     /*! @brief 从节点中提取子串
      @param offset 要返回的第一个字符的位置
      @param count 要返回的子串中的字符数
+     @return 返回提取的字符串
     */
     String substringData(Integer offset, Integer count);
 

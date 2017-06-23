@@ -89,6 +89,7 @@ module crypto
     /*! @brief 加载一个 PEM/DER 格式的密钥文件
      @param filename 密钥文件名
      @param password 解密密码
+     @return 返回包含密钥的对象
     */
     static PKey loadPKey(String filename, String password = "");
 
@@ -96,16 +97,19 @@ module crypto
 
     loadFile 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
      @param filename 证书文件名
+     @return 返回包含证书的对象
     */
     static X509Cert loadCert(String filename);
 
     /*! @brief 加载一个 PEM/DER 格式的撤销证书，可多次调用
      @param filename 撤销证书文件名
+     @return 返回包含撤销证书的对象
     */
     static X509Crl loadCrl(String filename);
 
     /*! @brief 加载一个 PEM/DER 格式的证书请求，可多次调用
      @param filename 证书请求文件名
+     @return 返回包含请求证书的对象
     */
     static X509Req loadReq(String filename);
 

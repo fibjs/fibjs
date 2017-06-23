@@ -11,22 +11,34 @@ module os
     /*! @brief Service 构造函数，参见 Service */
     static Service;
 
-    /*! @brief 查询当前运行环境主机名 */
+    /*! @brief 查询当前运行环境主机名 
+     @return 返回主机名
+    */
     static String hostname();
 
-    /*! @brief the endianness of the CPU for which the fibjs binary was compiled. */
+    /*! @brief 查询当前 CPU 的字节顺序
+     @return 返回字节顺序
+    */
     static String endianness();
 
-    /*! @brief 查询当前运行环境操作系统名称 */
+    /*! @brief 查询当前运行环境操作系统名称 
+     @return 返回系统名称
+    */
     static String type();
 
-    /*! @brief 查询当前运行环境操作系统版本 */
+    /*! @brief 查询当前运行环境操作系统版本
+     @return 返回版本信息
+     */
     static String release();
 
-    /*! @brief 查询当前用户目录 */
+    /*! @brief 查询当前用户目录 
+     @return 返回目录字符串
+    */
     static String homedir();
 
-    /*! @brief 查询当前 cpu 环境，可能的结果为 'amd64', 'arm', 'arm64', 'ia32' */
+    /*! @brief 查询当前 cpu 环境
+     @return 返回 cpu 类型，可能的结果为 'amd64', 'arm', 'arm64', 'ia32' 
+    */
     static String arch();
 
     /*! @brief 查询运行环境当前时区 */
@@ -71,7 +83,8 @@ module os
     static String tmpdir();
 
     /*! @brief 返回当前有效执行用户信息
-      @return 当前有效执行用户信息
+     @param options 用于解释结果字符串的字符编码
+     @return 当前有效执行用户信息
     */
     static Object userInfo(Object options = {});
 
@@ -91,7 +104,9 @@ module os
     */
     static BufferedStream openPrinter(String name) async;
 
-    /*! @brief 查询当前平台名称，可能的结果为 'darwin', 'freebsd', 'linux', 或 'win32' */
+    /*! @brief 查询当前平台名称
+     @return 返回平台名称，可能的结果为 'darwin', 'freebsd', 'linux', 或 'win32' 
+     */
     static String platform();
 
     /*! @brief 解析时间字符串或查询运行环境当前时间

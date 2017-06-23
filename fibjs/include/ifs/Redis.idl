@@ -250,6 +250,7 @@ interface Redis : object
     /*! @brief 将信息 message 发送到指定的频道 channel
      @param channel 指定发布的频道
      @param message 指定发布的消息
+     @return 接收此消息的客户端数量
     */
     Integer pub(Buffer channel, Buffer message);
 

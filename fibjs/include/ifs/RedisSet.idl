@@ -35,6 +35,7 @@ interface RedisSet : object
     Integer len();
 
     /*! @brief 判断 member 元素是否集合的成员
+     @param member 指定检查的 member
      @return 如果 member 元素是集合的成员，返回 true */
     Boolean exists(Buffer member);
 

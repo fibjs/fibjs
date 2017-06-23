@@ -23,6 +23,7 @@ interface LevelDB : object
 
     /*! @brief 查询一组指定键值的值
      @param keys 指定要查询的键值数组
+     @return 返回包含键值得数组
      */
     List mget(Array keys);
 

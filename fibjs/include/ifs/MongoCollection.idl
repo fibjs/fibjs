@@ -65,12 +65,14 @@ interface MongoCollection : object
 
     /*! @brief 执行数据库命令
     @param cmd 给定命令对象
+    @return 返回命令返回结果
    */
     Object runCommand(Object cmd);
 
     /*! @brief 执行数据库命令
     @param cmd 给定命令名称
     @param arg 给定命令参数选项
+    @return 返回命令返回结果
    */
     Object runCommand(String cmd, Object arg = {});
 
