@@ -379,7 +379,8 @@ module.exports = function (baseFolder) {
 
   fs.readdir(baseFolder).forEach(f => {
     if (path.extname(f) == '.idl') {
-      var def = parser.parse(fs.readTextFile(baseFolder + f));
+      f = path.join(baseFolder, f);
+      var def = parser.parse(fs.readTextFile(f));
       defs[def.declare.name] = def;
     }
   });

@@ -726,7 +726,7 @@ module.exports = function (defs, baseFolder) {
         txt = txt.replace(/};\n\n}/g, '};\n}');
         txt = txt.replace(/}\n\n}/g, '}\n}');
 
-        var fname = baseFolder + cls + ".h";
+        var fname = path.join(baseFolder, cls + ".h");
 
         if (!fs.exists(fname) || txt !== fs.readTextFile(fname)) {
             console.log(cls + ".h");
