@@ -73,6 +73,10 @@ public:
     static result_t readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
     static result_t readdirSync(exlib::string path, obj_ptr<List_base>& retVal);
     static result_t openFile(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
+    static result_t open(exlib::string fname, exlib::string flags, int32_t mode, int32_t& retVal, AsyncEvent* ac);
+    static result_t openSync(exlib::string fname, exlib::string flags, int32_t mode, int32_t& retVal);
+    static result_t close(int32_t fd, AsyncEvent* ac);
+    static result_t closeSync(int32_t fd);
     static result_t openTextStream(exlib::string fname, exlib::string flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
     static result_t readTextFile(exlib::string fname, exlib::string& retVal, AsyncEvent* ac);
     static result_t readFile(exlib::string fname, exlib::string encoding, Variant& retVal, AsyncEvent* ac);
@@ -138,6 +142,10 @@ public:
     static void s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_openSync(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_closeSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -170,6 +178,8 @@ public:
     ASYNC_STATIC2(fs_base, truncate, exlib::string, int32_t);
     ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<List_base>);
     ASYNC_STATICVALUE3(fs_base, openFile, exlib::string, exlib::string, obj_ptr<SeekableStream_base>);
+    ASYNC_STATICVALUE4(fs_base, open, exlib::string, exlib::string, int32_t, int32_t);
+    ASYNC_STATIC1(fs_base, close, int32_t);
     ASYNC_STATICVALUE3(fs_base, openTextStream, exlib::string, exlib::string, obj_ptr<BufferedStream_base>);
     ASYNC_STATICVALUE2(fs_base, readTextFile, exlib::string, exlib::string);
     ASYNC_STATICVALUE3(fs_base, readFile, exlib::string, exlib::string, Variant);
@@ -227,6 +237,10 @@ inline ClassInfo& fs_base::class_info()
         { "readdir", s_readdir, true },
         { "readdirSync", s_readdirSync, true },
         { "openFile", s_openFile, true },
+        { "open", s_open, true },
+        { "openSync", s_openSync, true },
+        { "close", s_close, true },
+        { "closeSync", s_closeSync, true },
         { "openTextStream", s_openTextStream, true },
         { "readTextFile", s_readTextFile, true },
         { "readFile", s_readFile, true },
@@ -912,6 +926,74 @@ inline void fs_base::s_openFile(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = ac_openFile(v0, v1, vr);
 
     METHOD_RETURN();
+}
+
+inline void fs_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(3, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "r");
+    OPT_ARG(int32_t, 2, 0666);
+
+    if (!cb.IsEmpty()) {
+        acb_open(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_open(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void fs_base::s_openSync(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "r");
+    OPT_ARG(int32_t, 2, 0666);
+
+    hr = openSync(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void fs_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    if (!cb.IsEmpty()) {
+        acb_close(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_close(v0);
+
+    METHOD_VOID();
+}
+
+inline void fs_base::s_closeSync(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = closeSync(v0);
+
+    METHOD_VOID();
 }
 
 inline void fs_base::s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -75,6 +75,51 @@ protected:
     FILE* m_pipe;
     int32_t m_fd;
 };
+
+inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode, int32_t& fd)
+{
+#ifdef _WIN32
+    int32_t _flags = _O_BINARY;
+#else
+    int32_t _flags = 0;
+#endif
+
+    if (flags == "r")
+        _flags |= O_RDONLY;
+    else if (flags == "r+")
+        _flags |= O_RDWR;
+    else if (flags == "w")
+        _flags |= O_TRUNC | O_CREAT | O_WRONLY;
+    else if (flags == "w+")
+        _flags |= O_TRUNC | O_CREAT | O_RDWR;
+    else if (flags == "a")
+        _flags |= O_APPEND | O_CREAT | O_WRONLY;
+    else if (flags == "a+")
+        _flags |= O_APPEND | O_CREAT | O_RDWR;
+
+#ifdef _WIN32
+    fd = _wopen(UTF8_W(fname), _flags, _S_IREAD | _S_IWRITE);
+#else
+    fd = ::open(fname.c_str(), _flags, mode);
+#endif
+    if (fd < 0)
+        return CHECK_ERROR(LastError());
+
+#ifndef _WIN32
+    struct stat64 st;
+    fstat64(fd, &st);
+
+    if (S_IFDIR & st.st_mode) {
+        ::_close(fd);
+        fd = -1;
+        return CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
+    }
+
+    if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
+        return CHECK_ERROR(LastError());
+#endif
+    return 0;
+}
 }
 
 #endif // FILE_H

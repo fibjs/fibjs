@@ -9,7 +9,7 @@ var vmid = coroutine.vmid;
 function unlink(pathname) {
     try {
         fs.rmdir(pathname);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 var pathname = 'test_dir' + vmid;
@@ -35,6 +35,44 @@ describe('fs', () => {
     });
 
     it("file open & close", () => {
+        var fd = fs.open(__dirname + '/fs_test.js');
+        assert.isNumber(fd);
+        assert.greaterThan(fd, -1);
+        assert.doesNotThrow(() => {
+            fs.close(fd);
+        });
+        assert.doesNotThrow(() => {
+            fs.close(fd);
+        });
+
+        var fd1 = fs.open(__dirname + '/fs_test.js');
+        var fd2 = fs.open(__dirname + '/fs_test.js');
+
+        assert.equal(fd1 + 1, fd2);
+        fs.close(fd1);
+        fs.close(fd2);
+    });
+
+    it("file openSync & closeSync", () => {
+        var fd = fs.openSync(__dirname + '/fs_test.js');
+        assert.isNumber(fd);
+        assert.greaterThan(fd, -1);
+        assert.doesNotThrow(() => {
+            fs.closeSync(fd);
+        });
+        assert.doesNotThrow(() => {
+            fs.closeSync(fd);
+        });
+
+        var fd1 = fs.openSync(__dirname + '/fs_test.js');
+        var fd2 = fs.openSync(__dirname + '/fs_test.js');
+
+        assert.equal(fd1 + 1, fd2);
+        fs.closeSync(fd1);
+        fs.closeSync(fd2);
+    });
+
+    it("file openFile & close", () => {
         var f = fs.openFile(__dirname + '/fs_test.js');
         assert.doesNotThrow(() => {
             f.read(100);

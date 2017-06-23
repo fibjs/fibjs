@@ -203,6 +203,39 @@ result_t fs_base::get_constants(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
+result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
+    int32_t& retVal, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return file_open(fname, flags, mode, retVal);
+}
+
+result_t fs_base::openSync(exlib::string fname, exlib::string flags, int32_t mode, int32_t& retVal)
+{
+    return ac_open(fname, flags, mode, retVal);
+}
+
+result_t fs_base::close(int32_t fd, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (fd != -1) {
+        ::_close(fd);
+
+        fd = -1;
+    }
+
+    return 0;
+}
+
+result_t fs_base::closeSync(int32_t fd)
+{
+    return ac_close(fd);
+}
+
 result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
     obj_ptr<BufferedStream_base>& retVal,
     AsyncEvent* ac)
