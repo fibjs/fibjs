@@ -1,10 +1,12 @@
 var test = require("test");
 var coroutine = require('coroutine');
+var path = require('path');
 test.setup();
 
 var fs = require('fs');
 
 var vmid = coroutine.vmid;
+var isWin32 = process.platform === 'win32';
 
 function unlink(pathname) {
     try {
@@ -35,20 +37,24 @@ describe('fs', () => {
     });
 
     it("file open & close", () => {
-        var fd = fs.open(__dirname + '/fs_test.js');
+        var fd = fs.open(path.join(__dirname, 'fs_test.js'));
+
         assert.isNumber(fd);
         assert.greaterThan(fd, -1);
         assert.doesNotThrow(() => {
             fs.close(fd);
         });
-        assert.doesNotThrow(() => {
-            fs.close(fd);
-        });
 
-        var fd1 = fs.open(__dirname + '/fs_test.js');
-        var fd2 = fs.open(__dirname + '/fs_test.js');
+        if (!isWin32) {
+            assert.doesNotThrow(() => {
+                fs.close(fd);
+            });
+        }
 
-        assert.equal(fd1 + 1, fd2);
+        var fd1 = fs.open(path.join(__dirname, 'fs_test.js'));
+        var fd2 = fs.open(path.join(__dirname, 'fs_test.js'));
+
+        assert.greaterThan(fd2, fd1);
         fs.close(fd1);
         fs.close(fd2);
     });
@@ -60,14 +66,16 @@ describe('fs', () => {
         assert.doesNotThrow(() => {
             fs.closeSync(fd);
         });
-        assert.doesNotThrow(() => {
-            fs.closeSync(fd);
-        });
+        if (!isWin32) {
+            assert.doesNotThrow(() => {
+                fs.closeSync(fd);
+            });
+        }
 
         var fd1 = fs.openSync(__dirname + '/fs_test.js');
         var fd2 = fs.openSync(__dirname + '/fs_test.js');
 
-        assert.equal(fd1 + 1, fd2);
+        assert.greaterThan(fd2, fd1);
         fs.closeSync(fd1);
         fs.closeSync(fd2);
     });
@@ -175,7 +183,7 @@ describe('fs', () => {
                     fs.chown(fn, 23, 45)
                 });
             else {
-                assert.doesNotThrow(function () {
+                assert.doesNotThrow(function() {
                     fs.chown(fn, 23, 45)
                 });
                 var st = fs.stat(fn);
@@ -196,7 +204,7 @@ describe('fs', () => {
                     fs.lchown(fn, 23, 45)
                 });
             else {
-                assert.doesNotThrow(function () {
+                assert.doesNotThrow(function() {
                     fs.lchown(fn, 23, 45)
                 });
                 var st = fs.stat(__dirname + '/fs_test.js');

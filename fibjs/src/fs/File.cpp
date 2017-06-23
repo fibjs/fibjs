@@ -7,17 +7,10 @@
 
 #include "object.h"
 
-#ifndef _WIN32
-#include <sys/ioctl.h>
-#endif
-
-#include <fcntl.h>
-
 #include "ifs/io.h"
 #include "File.h"
 #include "Buffer.h"
 #include "Stat.h"
-#include "utf8.h"
 
 #ifdef _WIN32
 #define pclose _pclose
