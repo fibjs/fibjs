@@ -160,7 +160,9 @@ describe('os', () => {
 
     it('userInfo', () => {
         const userInfo = os.userInfo();
-        const userInfoBuffer = os.userInfo({ encoding: 'buffer' });
+        const userInfoBuffer = os.userInfo({
+            encoding: 'buffer'
+        });
         assert.isObject(userInfo);
 
         if (isWindows) {
@@ -186,4 +188,4 @@ describe('os', () => {
     });
 });
 
-argv.length && test.run(console.DEBUG);
+repl && test.run(console.DEBUG);

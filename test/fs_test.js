@@ -9,7 +9,7 @@ var vmid = coroutine.vmid;
 function unlink(pathname) {
     try {
         fs.rmdir(pathname);
-    } catch (e) { }
+    } catch (e) {}
 }
 
 var pathname = 'test_dir' + vmid;
@@ -382,4 +382,4 @@ describe('fs', () => {
     })
 });
 
-argv.length && test.run(console.DEBUG);
+repl && test.run(console.DEBUG);

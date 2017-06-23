@@ -221,8 +221,8 @@ function evevt_test(name, e) {
             it("once", () => {
                 var type, fn;
 
-                var _fn1 = () => { };
-                var _fn2 = () => { };
+                var _fn1 = () => {};
+                var _fn2 = () => {};
 
                 e.once('newListener', (...argvs) => {
                     type = argvs[0];
@@ -252,8 +252,8 @@ function evevt_test(name, e) {
             it("on", () => {
                 var type, fn;
 
-                var _fn1 = () => { };
-                var _fn2 = () => { };
+                var _fn1 = () => {};
+                var _fn2 = () => {};
 
                 e.once('newListener', (...argvs) => {
                     type = argvs[0];
@@ -286,8 +286,8 @@ function evevt_test(name, e) {
             it("once", () => {
                 var type, fn;
 
-                var _fn1 = () => { };
-                var _fn2 = () => { };
+                var _fn1 = () => {};
+                var _fn2 = () => {};
 
                 e.once('removeListener', (...argvs) => {
                     type = argvs[0];
@@ -320,8 +320,8 @@ function evevt_test(name, e) {
             it("on", () => {
                 var type, fn;
 
-                var _fn1 = () => { };
-                var _fn2 = () => { };
+                var _fn1 = () => {};
+                var _fn2 = () => {};
 
                 e.once('removeListener', (...argvs) => {
                     type = argvs[0];
@@ -358,12 +358,12 @@ describe("Trigger/EventEmitter", () => {
     evevt_test("events", new events());
     evevt_test("events.EventEmitter", new events.EventEmitter());
 
-    function MyEmitter() { }
+    function MyEmitter() {}
 
     util.inherits(MyEmitter, events.EventEmitter);
     evevt_test("util.inherits(EventEmitter)", new MyEmitter());
 
-    function MyEmitter1() { }
+    function MyEmitter1() {}
 
     util.inherits(MyEmitter1, events);
     evevt_test("util.inherits(events)", new MyEmitter1());
@@ -421,4 +421,4 @@ describe("Trigger/EventEmitter", () => {
     });
 });
 
-argv.length && test.run(console.DEBUG);
+repl && test.run(console.DEBUG);

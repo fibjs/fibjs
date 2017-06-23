@@ -15,7 +15,7 @@ describe("db", () => {
 
     it("formatMySQL", () => {
         assert.equal(db.formatMySQL("test?, ?, ?, ?", 123, 'ds\r\na',
-            new Date('1998-4-14 12:12:12')),
+                new Date('1998-4-14 12:12:12')),
             "test123, 'ds\\r\\na', '1998-04-14 12:12:12', ''");
 
         assert.equal(db.formatMySQL("test?", [1, 2, 3, 4]),
@@ -29,14 +29,14 @@ describe("db", () => {
             conn = db.open(conn_str);
             try {
                 conn.execute('drop table test;');
-            } catch (e) { }
+            } catch (e) {}
         });
 
         after(() => {
             try {
                 conn.execute('drop table test;');
                 conn.close();
-            } catch (e) { }
+            } catch (e) {}
         });
 
         it("empty sql", () => {
@@ -123,7 +123,7 @@ describe("db", () => {
                 try {
                     var b = new Buffer();
                     conn.execute("insert into test values(?,?,?,?);", 101, 'test101', b, new Date());
-                } catch (e) { }
+                } catch (e) {}
             });
 
             it("begin/commit", () => {
@@ -215,7 +215,7 @@ describe("db", () => {
                 });
 
                 fs.rmdir(__dirname + "/testdb" + vmid);
-            } catch (e) { };
+            } catch (e) {};
         }
 
         it('open/close', () => {
@@ -438,4 +438,4 @@ describe("db", () => {
     });
 });
 
-argv.length && test.run(console.DEBUG);
+repl && test.run(console.DEBUG);

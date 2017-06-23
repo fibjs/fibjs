@@ -747,4 +747,4 @@ describe('xml', () => {
     });
 });
 
-argv.length && test.run(console.DEBUG);
+repl && test.run(console.DEBUG);

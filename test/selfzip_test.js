@@ -15,7 +15,7 @@ describe("selfzip", () => {
     after(() => {
         try {
             fs.unlink(testPath);
-        } catch (e) { }
+        } catch (e) {}
     });
 
     describe("js", () => {
@@ -37,7 +37,7 @@ describe("selfzip", () => {
 
             try {
                 fs.unlink(testPath);
-            } catch (e) { }
+            } catch (e) {}
 
             return r;
         }
@@ -78,7 +78,7 @@ describe("selfzip", () => {
 
             try {
                 fs.unlink(testPath);
-            } catch (e) { }
+            } catch (e) {}
 
             return r;
         }
@@ -101,4 +101,4 @@ describe("selfzip", () => {
     });
 });
 
-argv.length && test.run(console.DEBUG);
+repl && test.run(console.DEBUG);

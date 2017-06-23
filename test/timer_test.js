@@ -223,7 +223,7 @@ describe("timer", () => {
             GC();
             var no1 = test_util.countObject('Timer');
 
-            setInterval(function() {
+            setInterval(function () {
                 n++;
                 clearInterval(this);
             }, 1);
@@ -252,4 +252,4 @@ describe("timer", () => {
     });
 });
 
-argv.length && test.run(console.DEBUG);
+repl && test.run(console.DEBUG);

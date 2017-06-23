@@ -901,10 +901,10 @@ describe("http", () => {
         function clean() {
             try {
                 fs.unlink(url);
-            } catch (e) { };
+            } catch (e) {};
             try {
                 fs.unlink(base_port + 'test.html.gz');
-            } catch (e) { };
+            } catch (e) {};
         }
 
         before(clean);
@@ -992,7 +992,7 @@ describe("http", () => {
             after(() => {
                 try {
                     fs.unlink(base_port + 'test.html.zip');
-                } catch (e) { };
+                } catch (e) {};
             });
 
             it("normal", () => {
@@ -1220,7 +1220,7 @@ describe("http", () => {
         describe("post", () => {
             it("body", () => {
                 assert.equal(http.post(
-                    "https://localhost:" + (8883 + base_port) + "/request:", "body").body
+                        "https://localhost:" + (8883 + base_port) + "/request:", "body").body
                     .read().toString(), "/request:body");
             });
 
@@ -1410,4 +1410,4 @@ describe("http", () => {
     });
 });
 
-argv.length && test.run(console.DEBUG);
+repl && test.run(console.DEBUG);

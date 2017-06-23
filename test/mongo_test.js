@@ -9,7 +9,7 @@ describe("mongodb", () => {
     function clear(mdb) {
         try {
             mdb.test.drop();
-        } catch (e) { }
+        } catch (e) {}
     }
 
     it("open/close", () => {
@@ -119,14 +119,14 @@ describe("mongodb", () => {
 
         mdb.test.insert(datas);
 
-        var res = mdb.test.find().map(function(elem) {
+        var res = mdb.test.find().map(function (elem) {
             return elem["data"];
         })
 
         assert.deepEqual(res, conts);
 
         i = 0;
-        mdb.test.find().forEach(function(elem) {
+        mdb.test.find().forEach(function (elem) {
             assert.equal(elem["data"], 'data_' + i++);
         })
     })
@@ -167,15 +167,15 @@ describe("mongodb", () => {
             files_id: 1,
             n: 1
         }, {
-                unique: true
-            });
+            unique: true
+        });
         mdb.fs.chunks.reIndex();
 
         mdb.fs.files.ensureIndex({
             filename: 1
         }, {
-                unique: true
-            });
+            unique: true
+        });
 
         mdb.fs.files.reIndex();
 
@@ -195,4 +195,4 @@ describe("mongodb", () => {
     //assert.equal(fs.retrieve("test.txt").readAll(), data);
 })
 
-argv.length && test.run(console.DEBUG);
+repl && test.run(console.DEBUG);

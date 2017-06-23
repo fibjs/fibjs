@@ -45,7 +45,7 @@ var backend = {
 function del(f) {
     try {
         fs.unlink(f);
-    } catch (e) { }
+    } catch (e) {}
 }
 
 describe("net", () => {
@@ -393,9 +393,9 @@ describe("net", () => {
     });
 
     it("bind same port", () => {
-        var svr = new net.TcpServer(8811 + base_port, (c) => { });
+        var svr = new net.TcpServer(8811 + base_port, (c) => {});
         assert.throws(() => {
-            new net.TcpServer(8811 + base_port, (c) => { });
+            new net.TcpServer(8811 + base_port, (c) => {});
         });
         ss.push(svr.socket);
     });
@@ -491,7 +491,7 @@ describe("net", () => {
         GC();
         no1 = test_util.countObject('Socket');
 
-        ss = new net.TcpServer(9812, (c) => { });
+        ss = new net.TcpServer(9812, (c) => {});
         coroutine.start(() => {
             ss.run();
         });
@@ -504,7 +504,7 @@ describe("net", () => {
         GC();
         assert.equal(no1, test_util.countObject('Socket'));
 
-        ss = new net.TcpServer(9813, (c) => { });
+        ss = new net.TcpServer(9813, (c) => {});
         ss.asyncRun();
 
         coroutine.sleep(50);
@@ -516,7 +516,7 @@ describe("net", () => {
         assert.equal(no1, test_util.countObject('Socket'));
 
         (() => {
-            var s = new net.TcpServer(9884, () => { });
+            var s = new net.TcpServer(9884, () => {});
         })();
 
         coroutine.sleep(50);
@@ -576,4 +576,4 @@ describe("net", () => {
         });
 });
 
-argv.length && test.run(console.DEBUG);
+repl && test.run(console.DEBUG);

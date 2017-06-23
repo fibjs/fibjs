@@ -77,7 +77,7 @@ describe('assert', () => {
     });
 
     it('isObject', () => {
-        function Foo() { }
+        function Foo() {}
         assert.isObject({});
         assert.isObject(new Foo());
 
@@ -91,7 +91,7 @@ describe('assert', () => {
     });
 
     it('isNotObject', () => {
-        function Foo() { }
+        function Foo() {}
         assert.isNotObject(5);
 
         assert.throws(() => {
@@ -127,21 +127,21 @@ describe('assert', () => {
         assert.deepEqual({
             tea: 'chai'
         }, {
-                tea: 'chai'
-            });
+            tea: 'chai'
+        });
 
         assert.throws(() => {
-            assert.deepEqual({
-                tea: 'chai'
-            }, {
+                assert.deepEqual({
+                    tea: 'chai'
+                }, {
                     tea: 'black'
                 });
-        },
+            },
             "expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
 
         var obja = Object.create({
-            tea: 'chai'
-        }),
+                tea: 'chai'
+            }),
             objb = Object.create({
                 tea: 'chai'
             });
@@ -149,15 +149,15 @@ describe('assert', () => {
         assert.deepEqual(obja, objb);
 
         var obj1 = Object.create({
-            tea: 'chai'
-        }),
+                tea: 'chai'
+            }),
             obj2 = Object.create({
                 tea: 'black'
             });
 
         assert.throws(() => {
-            assert.deepEqual(obj1, obj2);
-        },
+                assert.deepEqual(obj1, obj2);
+            },
             "expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
 
         assert.throws(() => {
@@ -165,9 +165,9 @@ describe('assert', () => {
                 "100": 2,
                 "5": 2
             }, {
-                    "100": 2,
-                    "5": 4
-                });
+                "100": 2,
+                "5": 4
+            });
         });
 
         assert.throws(() => {
@@ -175,35 +175,35 @@ describe('assert', () => {
                 "100": 2,
                 "5": 2
             }, {
-                    "1": 2,
-                    "5": 2
-                });
+                "1": 2,
+                "5": 2
+            });
         });
 
         assert.notDeepEqual({
             "100": 2,
             "5": 2
         }, {
-                "1": 2,
-                "5": 4
-            });
+            "1": 2,
+            "5": 4
+        });
 
         assert.throws(() => {
             assert.notDeepEqual({
                 "100": 2,
                 "5": 2
             }, {
-                    "100": 2,
-                    "5": 2
-                });
+                "100": 2,
+                "5": 2
+            });
         });
     });
 
     it('deepEqual (ordering)', () => {
         var a = {
-            a: 'b',
-            c: 'd'
-        },
+                a: 'b',
+                c: 'd'
+            },
             b = {
                 c: 'd',
                 a: 'b'
@@ -248,10 +248,10 @@ describe('assert', () => {
         assert.deepEqual(circularObject, secondCircularObject);
 
         assert.throws(() => {
-            secondCircularObject.field2 = secondCircularObject;
-            assert.deepEqual(circularObject,
-                secondCircularObject);
-        },
+                secondCircularObject.field2 = secondCircularObject;
+                assert.deepEqual(circularObject,
+                    secondCircularObject);
+            },
             "expected { field: [Circular] } to deeply equal { Object (field, field2) }");
     });
 
@@ -259,16 +259,16 @@ describe('assert', () => {
         assert.notDeepEqual({
             tea: 'jasmine'
         }, {
-                tea: 'chai'
-            });
+            tea: 'chai'
+        });
 
         assert.throws(() => {
-            assert.notDeepEqual({
-                tea: 'chai'
-            }, {
+                assert.notDeepEqual({
+                    tea: 'chai'
+                }, {
                     tea: 'chai'
                 });
-        },
+            },
             "expected { tea: \'chai\' } to not deeply equal { tea: \'chai\' }");
     });
 
@@ -284,10 +284,10 @@ describe('assert', () => {
             secondCircularObject);
 
         assert.throws(() => {
-            delete secondCircularObject.tea;
-            assert.notDeepEqual(circularObject,
-                secondCircularObject);
-        },
+                delete secondCircularObject.tea;
+                assert.notDeepEqual(circularObject,
+                    secondCircularObject);
+            },
             "expected { field: [Circular] } to not deeply equal { field: [Circular] }");
     });
 
@@ -324,7 +324,7 @@ describe('assert', () => {
     });
 
     it('isFunction', () => {
-        var func = () => { };
+        var func = () => {};
         assert.isFunction(func);
 
         assert.throws(() => {
@@ -336,7 +336,7 @@ describe('assert', () => {
         assert.isNotFunction(5);
 
         assert.throws(() => {
-            assert.isNotFunction(() => { });
+            assert.isNotFunction(() => {});
         }, "expected [Function] not to be a function");
     });
 
@@ -480,19 +480,19 @@ describe('assert', () => {
         }, /bar/);
 
         assert.throws(() => {
-            assert.throws(() => { });
+            assert.throws(() => {});
         }, "expected [Function] to throw an error");
     });
 
     it('doesNotThrow', () => {
-        assert.doesNotThrow(() => { });
-        assert.doesNotThrow(() => { }, 'foo');
+        assert.doesNotThrow(() => {});
+        assert.doesNotThrow(() => {}, 'foo');
 
         assert.throws(() => {
-            assert.doesNotThrow(() => {
-                throw new Error('foo');
-            });
-        },
+                assert.doesNotThrow(() => {
+                    throw new Error('foo');
+                });
+            },
             'expected [Function] to not throw an error but [Error: foo] was thrown');
     });
 
@@ -511,4 +511,4 @@ describe('assert', () => {
     });
 });
 
-argv.length && test.run(console.DEBUG);
+repl && test.run(console.DEBUG);
