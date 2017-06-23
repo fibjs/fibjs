@@ -58,6 +58,7 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
+    isolate->m_isolate->RunMicrotasks();
     ev->wait();
 
     v8::Local<v8::Value> error = _data->Get(isolate->NewFromUtf8("_error"));

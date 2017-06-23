@@ -982,6 +982,39 @@ describe('util', () => {
         });
     });
 
+    describe('sync', () => {
+        it('callback', () => {
+            var t = 0;
+
+            function cb_test(cb) {
+                setTimeout(function () {
+                    t = 2;
+                    cb(null, t);
+                }, 100);
+                t = 1;
+            }
+
+            var t1 = util.sync(cb_test)();
+            assert.equal(t1, 2);
+            assert.equal(t, 2);
+        });
+
+        it('promise', () => {
+            var promise = new Promise(function (resolve, reject) {
+                resolve(100);
+            });
+
+            function cb_test(cb) {
+                promise.then(function (value) {
+                    cb(null, value);
+                });
+            }
+
+            var t1 = util.sync(cb_test)();
+            assert.equal(t1, 100);
+        });
+    });
+
     describe('LruCache', () => {
         var c;
 
