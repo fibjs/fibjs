@@ -526,9 +526,6 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
         if (sz < 0)
             return CHECK_ERROR(LastError());
 
-        if (sz > STREAM_BUFF_SIZE)
-            sz = STREAM_BUFF_SIZE;
-
         length = (int32_t)sz;
     }
 
