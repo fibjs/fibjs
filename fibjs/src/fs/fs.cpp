@@ -519,10 +519,6 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     if (offset >= bufLength)
         return Runtime::setError("Offset is out of bounds");
 
-    if (offset + length > bufLength) {
-        return Runtime::setError("Length extends beyond buffer");
-    }
-
     exlib::string strBuf;
 
     if (length < 0) {
@@ -568,6 +564,10 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
 
     result_t hr;
     int32_t sz = offset + strBuf.length();
+
+    if (sz > bufLength) {
+        return Runtime::setError("Length extends beyond buffer");
+    }
 
     buffer->write(strBuf, offset, strBuf.length(), "utf8", hr);
     retVal = strBuf.length();

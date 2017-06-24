@@ -349,13 +349,14 @@ describe('fs', () => {
                 const buf = new Buffer(1);
                 assert.throws(() => fs.read(fd, buf, 1, -1, 0));
                 assert.throws(() => fs.read(fd, buf, 2, -1, 0));
-                assert.doesNotThrow(() => fs.read(fd, buf, 0, -1, 0));
+                assert.doesNotThrow(() => fs.read(fd, buf, 0, 1, 0));
             });
 
             it('beyond buffer error read', () => {
                 const buf = new Buffer(4);
                 assert.throws(() => fs.read(fd, buf, 2, 3, 0));
                 assert.throws(() => fs.read(fd, buf, 3, 2, 0));
+                assert.throws(() => fs.read(fd, buf, 0, -1, 0));
                 assert.doesNotThrow(() => fs.read(fd, buf, 2, 2, 0));
             });
 
@@ -405,7 +406,7 @@ describe('fs', () => {
                 const buf = new Buffer(1);
                 assert.throws(() => fs.readSync(fd, buf, 1, -1, 0));
                 assert.throws(() => fs.readSync(fd, buf, 2, -1, 0));
-                assert.doesNotThrow(() => fs.readSync(fd, buf, 0, -1, 0));
+                assert.doesNotThrow(() => fs.readSync(fd, buf, 0, 1, 0));
             });
 
             it('beyond buffer error read', () => {
@@ -482,7 +483,7 @@ describe('fs', () => {
                     if (err) {
                         fs.read(fd, buf, 2, -1, 0, (err, bytes) => {
                             if (err) {
-                                fs.read(fd, buf, 0, -1, 0, (err, byts) => {
+                                fs.read(fd, buf, 0, 1, 0, (err, byts) => {
                                     if (err) done(err)
                                     else
                                         done();
