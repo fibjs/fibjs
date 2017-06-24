@@ -540,7 +540,7 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     }
 
     if (currentPosition != -1) {
-        if (_lseeki64(fd, position, SEEK_SET) < 0)
+        if (_lseeki64(fd, currentPosition, SEEK_SET) < 0)
             return CHECK_ERROR(LastError());
     }
 
