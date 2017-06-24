@@ -224,6 +224,26 @@ module fs
      */
     static truncate(String path, Integer len) async;
 
+    /*! @brief 根据文件描述符，读取文件内容
+     @param fd 文件描述符
+     @param buffer 读取结果写入的 Buffer 对象
+     @param offset Buffer 写入偏移量， 默认为 0
+     @param length 文件读取字节数，默认为全部读取
+     @param position 文件读取位置，默认为 0
+     @return 实际读取的字节数
+     */
+    static Integer read(Integer fd, Buffer buffer, Integer offset = 0, Integer length = -1, Integer position = 0) async;
+
+    /*! @brief 根据文件描述符，读取文件内容
+     @param fd 文件描述符
+     @param buffer 读取结果写入的 Buffer 对象
+     @param offset Buffer 写入偏移量， 默认为 0
+     @param length 文件读取字节数，默认为全部读取
+     @param position 文件读取位置，默认为 0
+     @return 实际读取的字节数
+     */
+    static Integer readSync(Integer fd, Buffer buffer, Integer offset = 0, Integer length = -1, Integer position = 0);
+
     /*! @brief 修改文件尺寸,如果指定的长度大于源文件大小则用'\0'填充，否则多于的文件内容将丢失，是 truncate 的同步版兼容接口
      @param path 指定被修改文件的路径
      @param len 指定修改后文件的大小

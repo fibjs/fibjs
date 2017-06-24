@@ -504,6 +504,92 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
     return 0;
 }
 
+result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length,
+    int32_t position, int32_t& retVal, AsyncEvent* ac)
+{
+    if (fd < 0)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int32_t bufLength;
+    buffer->get_length(bufLength);
+
+    if (offset >= bufLength)
+        return Runtime::setError("Offset is out of bounds");
+
+    if (offset + length > bufLength) {
+        return Runtime::setError("Length extends beyond buffer");
+    }
+
+    exlib::string strBuf;
+
+    if (length < 0) {
+        int64_t p = _lseeki64(fd, 0, SEEK_CUR);
+        if (p < 0)
+            return CHECK_ERROR(LastError());
+
+        int64_t sz = _lseeki64(fd, 0, SEEK_END);
+        if (sz < 0)
+            return CHECK_ERROR(LastError());
+
+        if (_lseeki64(fd, p, SEEK_SET) < 0)
+            return CHECK_ERROR(LastError());
+
+        sz -= p;
+
+        if (sz > STREAM_BUFF_SIZE)
+            sz = STREAM_BUFF_SIZE;
+
+        length = (int32_t)sz;
+    }
+
+    if (length > 0) {
+        strBuf.resize(length);
+        int32_t sz = length;
+        char* p = &strBuf[0];
+
+        while (sz) {
+            int32_t n = (int32_t)::_read(fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
+            if (n < 0)
+                return CHECK_ERROR(LastError());
+            if (n == 0)
+                break;
+
+            sz -= n;
+            p += n;
+        }
+
+        if (_lseeki64(fd, 0, SEEK_SET) < 0)
+            return CHECK_ERROR(LastError());
+
+        strBuf.resize(length - sz);
+    }
+
+    if (strBuf.length() == 0) {
+        retVal = 0;
+        return 0;
+    }
+
+    result_t hr;
+    int32_t sz = offset + strBuf.length();
+
+    buffer->write(strBuf, offset, strBuf.length(), "utf8", hr);
+    retVal = strBuf.length();
+
+    if (hr < 0)
+        return hr;
+
+    return 0;
+}
+
+result_t fs_base::readSync(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length,
+    int32_t position, int32_t& retVal)
+{
+    return ac_read(fd, buffer, offset, length, position, retVal);
+}
+
 result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
     if (!ac)

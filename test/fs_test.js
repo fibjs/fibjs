@@ -1,9 +1,10 @@
 var test = require("test");
 var coroutine = require('coroutine');
 var path = require('path');
-test.setup();
-
+var util = require('util');
 var fs = require('fs');
+
+test.setup();
 
 var vmid = coroutine.vmid;
 var isWin32 = process.platform === 'win32';
@@ -11,7 +12,7 @@ var isWin32 = process.platform === 'win32';
 function unlink(pathname) {
     try {
         fs.rmdir(pathname);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 var pathname = 'test_dir' + vmid;
@@ -311,6 +312,207 @@ describe('fs', () => {
         f1.close();
 
         fs.unlink(__dirname + '/fs_test.js.bak' + vmid);
+    });
+
+    describe('read', () => {
+        var fd;
+        before(() => fd = fs.open(path.join(__dirname, 'fs_files/read.txt')));
+        after(() => fs.close(fd));
+
+        describe('fiber sync', () => {
+            it('zero read', () => {
+                const buf = new Buffer(1);
+                let bytes = fs.read(fd, buf, 0, 0, 0);
+                assert.equal(bytes, 0);
+                assert.deepEqual(buf, new Buffer(1));
+            });
+
+            it('full read', () => {
+                const buf = new Buffer(15);
+                const bytes = fs.read(fd, buf, 0, -1, 0);
+                assert.equal(bytes, 15);
+                assert.deepEqual(buf, new Buffer('abcdefg\nhijklmn'));
+            });
+
+            it('repeat read', () => {
+                const buf1 = new Buffer(15);
+                const buf2 = new Buffer(15);
+                const bytes1 = fs.read(fd, buf1, 0, -1, 0);
+                const bytes2 = fs.read(fd, buf2, 0, -1, 0);
+                assert.equal(bytes1, 15);
+                assert.equal(bytes2, 15);
+                assert.deepEqual(buf1, new Buffer('abcdefg\nhijklmn'));
+                assert.deepEqual(buf2, new Buffer('abcdefg\nhijklmn'));
+            });
+
+            it('offset error read', () => {
+                const buf = new Buffer(1);
+                assert.throws(() => fs.read(fd, buf, 1, -1, 0));
+                assert.throws(() => fs.read(fd, buf, 2, -1, 0));
+                assert.doesNotThrow(() => fs.read(fd, buf, 0, -1, 0));
+            });
+
+            it('beyond buffer error read', () => {
+                const buf = new Buffer(4);
+                assert.throws(() => fs.read(fd, buf, 2, 3, 0));
+                assert.throws(() => fs.read(fd, buf, 3, 2, 0));
+                assert.doesNotThrow(() => fs.read(fd, buf, 2, 2, 0));
+            });
+
+            it('spec offset read', () => {
+                const buf = new Buffer(16);
+                buf.write('x');
+                let bytes = fs.read(fd, buf, 1, -1, 0);
+                assert.equal(bytes, 15);
+                assert.deepEqual(buf, new Buffer('xabcdefg\nhijklmn'));
+            });
+        });
+
+        describe('block sync', () => {
+            it('zero read', () => {
+                const buf = new Buffer(1);
+                let bytes = fs.readSync(fd, buf, 0, 0, 0);
+                assert.equal(bytes, 0);
+                assert.deepEqual(buf, new Buffer(1));
+            });
+
+            it('full read', () => {
+                const buf = new Buffer(15);
+                const bytes = fs.readSync(fd, buf, 0, -1, 0);
+                assert.equal(bytes, 15);
+                assert.deepEqual(buf, new Buffer('abcdefg\nhijklmn'));
+            });
+
+            it('repeat read', () => {
+                const buf1 = new Buffer(15);
+                const buf2 = new Buffer(15);
+                const bytes1 = fs.readSync(fd, buf1, 0, -1, 0);
+                const bytes2 = fs.readSync(fd, buf2, 0, -1, 0);
+                assert.equal(bytes1, 15);
+                assert.equal(bytes2, 15);
+                assert.deepEqual(buf1, new Buffer('abcdefg\nhijklmn'));
+                assert.deepEqual(buf2, new Buffer('abcdefg\nhijklmn'));
+            });
+
+            it('offset error read', () => {
+                const buf = new Buffer(1);
+                assert.throws(() => fs.readSync(fd, buf, 1, -1, 0));
+                assert.throws(() => fs.readSync(fd, buf, 2, -1, 0));
+                assert.doesNotThrow(() => fs.readSync(fd, buf, 0, -1, 0));
+            });
+
+            it('beyond buffer error read', () => {
+                const buf = new Buffer(4);
+                assert.throws(() => fs.readSync(fd, buf, 2, 3, 0));
+                assert.throws(() => fs.readSync(fd, buf, 3, 2, 0));
+                assert.doesNotThrow(() => fs.readSync(fd, buf, 2, 2, 0));
+            });
+
+            it('spec offset read', () => {
+                const buf = new Buffer(16);
+                buf.write('x');
+                let bytes = fs.readSync(fd, buf, 1, -1, 0);
+                assert.equal(bytes, 15);
+                assert.deepEqual(buf, new Buffer('xabcdefg\nhijklmn'));
+            });
+        });
+
+        describe('event callback', () => {
+            it('zero read', util.sync(done => {
+                const buf = new Buffer(1);
+                fs.read(fd, buf, 0, 0, 0, (err, bytes) => {
+                    if (err) done(err)
+                    else {
+                        assert.equal(bytes, 0);
+                        assert.deepEqual(buf, new Buffer(1));
+                        done();
+                    }
+                });
+            }));
+
+            it('full read', util.sync(done => {
+                const buf = new Buffer(15);
+                fs.read(fd, buf, 0, -1, 0, (err, bytes) => {
+                    if (err) done(err)
+                    else {
+                        assert.equal(bytes, 15);
+                        assert.deepEqual(buf, new Buffer('abcdefg\nhijklmn'));
+                        done();
+                    }
+                });
+            }));
+
+            it('repeat read', util.sync(done => {
+                const buf1 = new Buffer(15);
+                const buf2 = new Buffer(15);
+                fs.read(fd, buf1, 0, -1, 0, (err, bytes1) => {
+                    if (err) done(err)
+                    else {
+                        fs.read(fd, buf2, 0, -1, 0, (err, bytes2) => {
+                            if (err) done(err)
+                            else {
+                                assert.equal(bytes1, 15);
+                                assert.equal(bytes2, 15);
+                                assert.deepEqual(buf1, new Buffer('abcdefg\nhijklmn'));
+                                assert.deepEqual(buf2, new Buffer('abcdefg\nhijklmn'));
+                                done();
+                            }
+                        });
+                    }
+                });
+            }));
+
+            it('offset error read', util.sync(done => {
+                const buf = new Buffer(1);
+                fs.read(fd, buf, 1, -1, 0, (err, bytes) => {
+                    if (err) {
+                        fs.read(fd, buf, 2, -1, 0, (err, bytes) => {
+                            if (err) {
+                                fs.read(fd, buf, 0, -1, 0, (err, byts) => {
+                                    if (err) done(err)
+                                    else
+                                        done();
+                                });
+                            }
+                            else done(new Error('should throws'));
+                        });
+                    }
+                    else done(new Error('should throws'));
+                });
+            }));
+
+            it('beyond buffer error read', util.sync(done => {
+                const buf = new Buffer(4);
+                fs.read(fd, buf, 2, 3, 0, (err, bytes) => {
+                    if (err) {
+                        fs.read(fd, buf, 3, 2, 0, (err, bytes) => {
+                            if (err) {
+                                fs.read(fd, buf, 2, 2, 0, (err, byts) => {
+                                    if (err) done(err)
+                                    else
+                                        done();
+                                });
+                            }
+                            else done(new Error('should throws'));
+                        });
+                    }
+                    else done(new Error('should throws'));
+                });
+            }));
+
+            it('spec offset read', util.sync(done => {
+                const buf = new Buffer(16);
+                buf.write('x');
+                fs.read(fd, buf, 1, -1, 0, (err, bytes) => {
+                    if (err) done(err)
+                    else {
+                        assert.equal(bytes, 15);
+                        assert.deepEqual(buf, new Buffer('xabcdefg\nhijklmn'));
+                        done();
+                    }
+                });
+            }));
+        });
     });
 
     it("readdir", () => {
