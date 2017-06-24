@@ -77,9 +77,4 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
 
     return 0;
 }
-
-result_t util_base::compile(exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal)
-{
-    return compile("", script, mode, retVal);
-}
 }

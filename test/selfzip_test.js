@@ -63,7 +63,7 @@ describe("selfzip", () => {
         function test_selfzip(script, argv) {
             var ms = new io.MemoryStream();
             var zf = zip.open(ms, 'w');
-            zf.write(util.compile(script, 1), 'index.jsc');
+            zf.write(util.compile('test.js', script, 1), 'index.jsc');
             zf.close();
 
             ms.rewind();

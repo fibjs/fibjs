@@ -370,13 +370,6 @@ module util
      */
     static Buffer compile(String srcname, String script, Integer mode = 0);
 
-    /*! @brief 编译脚本为二进制代码
-     @param script 指定要编译的脚本代码
-     @param mode 编译模式，0: module, 1: main, 2: script, 3: worker，缺省为 0
-     @return 返回编译出的二进制代码
-     */
-    static Buffer compile(String script, Integer mode = 0);
-
     /*! @brief 包裹 callback 或 async 方法为同步调用
 
      util.sync 将 callback 方法或者 async 方法处理为 sync 方法，以方便调用。
