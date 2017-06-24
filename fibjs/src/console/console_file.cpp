@@ -130,7 +130,7 @@ void file_logger::clearFile()
 
             if (p == l) {
                 exlib::string p(m_folder);
-                pathAdd(p, name);
+                resolvePath(p, name);
                 files.push_back(p);
             }
         }
@@ -161,7 +161,7 @@ result_t file_logger::initFile()
     if (!m_file) {
         obj_ptr<File> f = new File();
         exlib::string name(m_folder);
-        pathAdd(name, m_name1);
+        resolvePath(name, m_name1);
 
         if (m_count > 1) {
             exlib::string tm;

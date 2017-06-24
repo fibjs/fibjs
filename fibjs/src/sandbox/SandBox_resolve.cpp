@@ -130,7 +130,7 @@ result_t SandBox::resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
                 if (!IsEmpty(main)) {
                     if (!main->IsString() && !main->IsStringObject())
                         return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
-                    pathAdd(fname, *v8::String::Utf8Value(main));
+                    resolvePath(fname, *v8::String::Utf8Value(main));
                     path_base::normalize(fname, fname);
                 } else
                     fname = fname + PATH_SLASH + "index";
@@ -188,7 +188,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
 
     if (g_root) {
         fname = s_root;
-        pathAdd(fname, id);
+        resolvePath(fname, id);
 
         hr = resolveFile(fname, data, &retVal);
         if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND) {
@@ -235,7 +235,7 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
         exlib::string strPath;
 
         path_base::dirname(base, strPath);
-        pathAdd(strPath, id);
+        resolvePath(strPath, id);
         path_base::normalize(strPath, id);
     } else {
         bool isAbs;

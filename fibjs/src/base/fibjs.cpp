@@ -129,7 +129,7 @@ void main(int32_t argc, char* argv[])
 
     if (i < argc) {
         s_start = s_root;
-        pathAdd(s_start, argv[i]);
+        resolvePath(s_start, argv[i]);
     }
 
     asyncCall(start_fiber, (int32_t)0);

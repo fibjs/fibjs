@@ -5,6 +5,13 @@ var path = require('path');
 var isWindows = process.platform === 'win32';
 
 describe('path', () => {
+    it('win32/posix', () => {
+        if (isWindows)
+            assert.equal(path, path.win32);
+        else
+            assert.equal(path, path.posix);
+    });
+
     it('basename', () => {
         function test(fn) {
             assert.equal(fn('./test.js'), 'test.js');
@@ -140,6 +147,14 @@ describe('path', () => {
 
     it('normalize', () => {
         function testWin32(fn) {
+            assert.equal(fn(''), '.');
+            assert.equal(fn('.'), '.');
+            assert.equal(fn('.\\'), '.\\');
+            assert.equal(fn('..\\'), '..\\');
+            assert.equal(fn('\\.\\'), '\\');
+            assert.equal(fn('\\.'), '\\');
+            assert.equal(fn('\\aaa\\.\\'), '\\aaa\\');
+            assert.equal(fn('\\aaa\\.'), '\\aaa');
             assert.equal(fn('./fixtures///b/../b/c.js'),
                 'fixtures\\b\\c.js');
             assert.equal(fn('/foo/../../../bar'), '\\bar');
@@ -151,13 +166,22 @@ describe('path', () => {
             assert.equal(fn('f:path/to/../../../../path1'),
                 'f:..\\..\\path1');
             assert.equal(fn('\\\\unc\\share\/foo/..//.///../../bar\\'),
-                '\\\\unc\\share\\bar');
+                '\\\\unc\\share\\bar\\');
             assert.equal(fn('\\\\unc\\share\\'), '\\\\unc\\share\\');
+            assert.equal(fn('\\\\unc\\share'), '\\\\unc\\share\\');
         }
 
         testWin32(path.win32.normalize.bind(path.win32));
 
         function testPosix(fn) {
+            assert.equal(fn(''), '.');
+            assert.equal(fn('.'), '.');
+            assert.equal(fn('./'), './');
+            assert.equal(fn('../'), '../');
+            assert.equal(fn('/./'), '/');
+            assert.equal(fn('/.'), '/');
+            assert.equal(fn('/aaa/./'), '/aaa/');
+            assert.equal(fn('/aaa/.'), '/aaa');
             assert.equal(fn('./fixtures///b/../b/c.js'), 'fixtures/b/c.js');
             assert.equal(fn('/foo/../../../bar'), '/bar');
             assert.equal(fn('foo/../../../bar'), '../../bar');
@@ -200,7 +224,7 @@ describe('path', () => {
                 ['/.', 'x/b', '..', 'b/c.js'], '/x/b/c.js'
             ],
             [
-                ['/.', 'x/b', '..', '/b/c.js'], '/b/c.js'
+                ['/.', 'x/b', '..', '/b/c.js'], '/x/b/c.js'
             ],
             [
                 ['/foo', '../../../bar'], '/bar'
@@ -224,31 +248,31 @@ describe('path', () => {
                 ['foo/x/', '.', 'bar'], 'foo/x/bar'
             ],
             [
-                ['./'], ''
+                ['./'], './'
             ],
             [
-                ['.', './'], ''
+                ['.', './'], './'
             ],
             [
-                ['.', '.', '.'], ''
+                ['.', '.', '.'], '.'
             ],
             [
-                ['.', './', '.'], ''
+                ['.', './', '.'], '.'
             ],
             [
-                ['.', '/./', '.'], '/'
+                ['.', '/./', '.'], '.'
             ],
             [
-                ['.'], ''
+                ['.'], '.'
             ],
             [
-                ['', '.'], ''
+                ['', '.'], '.'
             ],
             [
                 ['', 'foo'], 'foo'
             ],
             [
-                ['foo', '/bar'], '/bar'
+                ['foo', '/bar'], 'foo/bar'
             ],
             [
                 ['', '/foo'], '/foo'
@@ -263,13 +287,13 @@ describe('path', () => {
                 ['foo', ''], 'foo'
             ],
             [
-                ['foo/', ''], 'foo'
+                ['foo/', ''], 'foo/'
             ],
             [
-                ['foo', '', '/bar'], '/bar'
+                ['foo', '', '/bar'], 'foo/bar'
             ],
             [
-                ['./', '..', '/foo'], '/foo'
+                ['./', '..', '/foo'], '../foo'
             ],
             [
                 ['./', '..', '..', 'foo'], '../../foo'
@@ -293,10 +317,10 @@ describe('path', () => {
                 ['/', '..', '..'], '/'
             ],
             [
-                [''], ''
+                [''], '.'
             ],
             [
-                ['', ''], ''
+                ['', ''], '.'
             ],
             [
                 [' /foo'], ' /foo'
@@ -308,7 +332,7 @@ describe('path', () => {
                 [' ', '.'], ' '
             ],
             [
-                [' ', '/'], '/'
+                [' ', '/'], ' /'
             ],
             [
                 [' ', ''], ' '
@@ -346,20 +370,24 @@ describe('path', () => {
         assert.equal(failures.length, 0, failures.join(''));
 
         if (isWindows) {
-            assert.equal(path.join('c:/path1', 'c:path2'), 'c:\\path1\\path2');
-            assert.equal(path.join('c:/path1', 'd:path2'), 'd:path2');
+            assert.equal(path.join('c:/path1', 'c:path2'), 'c:\\path1\\c:path2');
+            assert.equal(path.join('c:/path1', 'd:path2'), 'c:\\path1\\d:path2');
         }
 
-        assert.equal(path.win32.join('c:/path1', 'c:path2'), 'c:\\path1\\path2');
-        assert.equal(path.win32.join('c:/path1', 'd:path2'), 'd:path2');
+        assert.equal(path.win32.join('c:/path1', 'c:path2'), 'c:\\path1\\c:path2');
+        assert.equal(path.win32.join('c:/path1', 'd:path2'), 'c:\\path1\\d:path2');
     });
 
     it("resolve", function () {
+
         var resolveTestsWin32 =
             // arguments                                    result
             [
                 [
                     ['c:/blah\\blah', 'd:/games', 'c:../a'], 'c:\\blah\\a'
+                ],
+                [
+                    ['c:blah\\blah', '/path'], 'c:\\path'
                 ],
                 [
                     ['c:/ignore', 'd:\\a/b\\c/d', '\\e.exe'], 'd:\\e.exe'
@@ -379,10 +407,13 @@ describe('path', () => {
                 // [[‘c:/‘, '//'], 'c:\\'],
                 // [[‘c:/‘, '//dir'], 'c:\\dir'],
                 [
-                    ['c:/', '//server/share'], '\\\\server\\share'
+                    ['c:/', '//server/share'], '\\\\server\\share\\'
                 ],
                 [
-                    ['c:/', '//server//share'], '\\\\server\\share'
+                    ['c:/', '//server/share/file'], '\\\\server\\share\\file'
+                ],
+                [
+                    ['c:/', '//server//share'], '\\\\server\\share\\'
                 ],
                 [
                     ['c:/', '/some//dir'], 'c:\\some\\dir'

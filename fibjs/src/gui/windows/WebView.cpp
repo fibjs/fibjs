@@ -238,7 +238,7 @@ private:
             exlib::string out;
 
             path_base::dirname(base, path);
-            pathAdd(path, utf16to8String(pwzRelativeUrl));
+            resolvePath(path, utf16to8String(pwzRelativeUrl));
             path_base::normalize(path, out);
 
             exlib::wstring outw = utf8to16String("fs:" + out);
