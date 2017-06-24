@@ -526,18 +526,9 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     exlib::string strBuf;
 
     if (length < 0) {
-        int64_t p = _lseeki64(fd, 0, SEEK_CUR);
-        if (p < 0)
-            return CHECK_ERROR(LastError());
-
         int64_t sz = _lseeki64(fd, 0, SEEK_END);
         if (sz < 0)
             return CHECK_ERROR(LastError());
-
-        if (_lseeki64(fd, p, SEEK_SET) < 0)
-            return CHECK_ERROR(LastError());
-
-        sz -= p;
 
         if (sz > STREAM_BUFF_SIZE)
             sz = STREAM_BUFF_SIZE;
@@ -546,6 +537,9 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     }
 
     if (length > 0) {
+        if (_lseeki64(fd, position, SEEK_SET) < 0)
+            return CHECK_ERROR(LastError());
+
         strBuf.resize(length);
         int32_t sz = length;
         char* p = &strBuf[0];

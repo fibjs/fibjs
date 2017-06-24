@@ -366,6 +366,13 @@ describe('fs', () => {
                 assert.equal(bytes, 15);
                 assert.deepEqual(buf, new Buffer('xabcdefg\nhijklmn'));
             });
+
+            it('spec position read', () => {
+                const buf = new Buffer(14);
+                let bytes = fs.read(fd, buf, 0, -1, 1);
+                assert.equal(bytes, 14);
+                assert.deepEqual(buf, new Buffer('bcdefg\nhijklmn'));
+            });
         });
 
         describe('block sync', () => {
@@ -414,6 +421,13 @@ describe('fs', () => {
                 let bytes = fs.readSync(fd, buf, 1, -1, 0);
                 assert.equal(bytes, 15);
                 assert.deepEqual(buf, new Buffer('xabcdefg\nhijklmn'));
+            });
+
+            it('spec position read', () => {
+                const buf = new Buffer(14);
+                let bytes = fs.readSync(fd, buf, 0, -1, 1);
+                assert.equal(bytes, 14);
+                assert.deepEqual(buf, new Buffer('bcdefg\nhijklmn'));
             });
         });
 
@@ -508,6 +522,18 @@ describe('fs', () => {
                     else {
                         assert.equal(bytes, 15);
                         assert.deepEqual(buf, new Buffer('xabcdefg\nhijklmn'));
+                        done();
+                    }
+                });
+            }));
+
+            it('spec position read', util.sync(done => {
+                const buf = new Buffer(14);
+                fs.read(fd, buf, 0, -1, 1, (err, bytes) => {
+                    if (err) done(err)
+                    else {
+                        assert.equal(bytes, 14);
+                        assert.deepEqual(buf, new Buffer('bcdefg\nhijklmn'));
                         done();
                     }
                 });
