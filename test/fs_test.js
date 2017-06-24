@@ -370,7 +370,7 @@ describe('fs', () => {
 
             it('spec position read', () => {
                 const buf = new Buffer(14);
-                let bytes = fs.read(fd, buf, 0, -1, 1);
+                let bytes = fs.read(fd, buf, 0, 14, 1);
                 assert.equal(bytes, 14);
                 assert.deepEqual(buf, new Buffer('bcdefg\nhijklmn'));
             });
@@ -426,7 +426,7 @@ describe('fs', () => {
 
             it('spec position read', () => {
                 const buf = new Buffer(14);
-                let bytes = fs.readSync(fd, buf, 0, -1, 1);
+                let bytes = fs.readSync(fd, buf, 0, 14, 1);
                 assert.equal(bytes, 14);
                 assert.deepEqual(buf, new Buffer('bcdefg\nhijklmn'));
             });
@@ -530,7 +530,7 @@ describe('fs', () => {
 
             it('spec position read', util.sync(done => {
                 const buf = new Buffer(14);
-                fs.read(fd, buf, 0, -1, 1, (err, bytes) => {
+                fs.read(fd, buf, 0, 14, 1, (err, bytes) => {
                     if (err) done(err)
                     else {
                         assert.equal(bytes, 14);

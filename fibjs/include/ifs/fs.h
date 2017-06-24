@@ -879,7 +879,7 @@ inline void fs_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Buffer_base>, 1);
     OPT_ARG(int32_t, 2, 0);
     OPT_ARG(int32_t, 3, -1);
-    OPT_ARG(int32_t, 4, 0);
+    OPT_ARG(int32_t, 4, -1);
 
     if (!cb.IsEmpty()) {
         acb_read(v0, v1, v2, v3, v4, cb);
@@ -902,7 +902,7 @@ inline void fs_base::s_readSync(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Buffer_base>, 1);
     OPT_ARG(int32_t, 2, 0);
     OPT_ARG(int32_t, 3, -1);
-    OPT_ARG(int32_t, 4, 0);
+    OPT_ARG(int32_t, 4, -1);
 
     hr = readSync(v0, v1, v2, v3, v4, vr);
 

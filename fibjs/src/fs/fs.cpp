@@ -521,7 +521,13 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
 
     exlib::string strBuf;
 
+    int32_t currentPosition = -1;
+
     if (length < 0) {
+        currentPosition = _lseeki64(fd, 0, SEEK_CUR);
+        if (currentPosition < 0)
+            return CHECK_ERROR(LastError());
+
         int64_t sz = _lseeki64(fd, 0, SEEK_END);
         if (sz < 0)
             return CHECK_ERROR(LastError());
@@ -529,10 +535,20 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
         length = (int32_t)sz;
     }
 
-    if (length > 0) {
+    if (position != -1) {
+        currentPosition = position;
+    }
+
+    if (currentPosition != -1) {
         if (_lseeki64(fd, position, SEEK_SET) < 0)
             return CHECK_ERROR(LastError());
+    }
 
+    if (offset + length > bufLength) {
+        return Runtime::setError("Length extends beyond buffer");
+    }
+
+    if (length > 0) {
         strBuf.resize(length);
         int32_t sz = length;
         char* p = &strBuf[0];
@@ -561,10 +577,6 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
 
     result_t hr;
     int32_t sz = offset + strBuf.length();
-
-    if (sz > bufLength) {
-        return Runtime::setError("Length extends beyond buffer");
-    }
 
     buffer->write(strBuf, offset, strBuf.length(), "utf8", hr);
     retVal = strBuf.length();
