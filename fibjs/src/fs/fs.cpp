@@ -557,13 +557,7 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     result_t hr;
     int32_t sz = offset + strBuf.length();
 
-    buffer->write(strBuf, offset, strBuf.length(), "utf8", hr);
-    retVal = strBuf.length();
-
-    if (hr < 0)
-        return hr;
-
-    return 0;
+    return buffer->write(strBuf, offset, strBuf.length(), "utf8", retVal);
 }
 
 result_t fs_base::readSync(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length,
