@@ -554,9 +554,6 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
         return 0;
     }
 
-    result_t hr;
-    int32_t sz = offset + strBuf.length();
-
     return buffer->write(strBuf, offset, strBuf.length(), "utf8", retVal);
 }
 
