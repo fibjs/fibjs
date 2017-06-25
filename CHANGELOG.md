@@ -1,3 +1,80 @@
+## 2017-06-26, Version v0.6.0 @ngot
+
+* **feature** :
+  * test: 
+    - support async or callback case.
+    - support it.only, it.skip, describe.skip, describe.only.
+  * util: 
+    - util.sync support async/await.
+    - util.sync support promise microtask.
+    - util.sync support specify async mode function manually.
+  * fs: 
+    - add fs.open & fs.openSync & fs.close & fs.closeSync to open and close the file descriptor.
+    - readFile support encoding.
+    - Stat add uid and gid property, add fs test case.
+    - add fs.read & fs.readSync to read content from the file descriptor.
+  * path: more compatible with nodejs path module.
+
+* **breakchange** :
+  * util: util.compile must specify srcname.
+  * test: deprecate setup TDD mode.
+  * vm: sandbox remove main script mode.
+  * module: fix resolve typo from resovle to resolve.
+
+* **bugfix** :
+  * module: fix require error when entry of package.json is a folder.
+  * fs: fix compile error on windows.
+  * io: fix build warning on windows x86.
+  * util: util.sync throw error.
+
+* **deps** :
+    - upgrade v8 to v6.1.266
+    - upgrade sqlite to v3.19.3
+
+### Commits
+* [[`68142c7250`](https://github.com/fibjs/fibjs/commit/68142c7250)] - **fs, fixbug**: fix compile error on windows. (xicilion) 
+* [[`496a5648c8`](https://github.com/fibjs/fibjs/commit/496a5648c8)] - **fs, feat**: add fs.read to read content from the file descriptor (#274) (ngot) 
+* [[`6a00f0f413`](https://github.com/fibjs/fibjs/commit/6a00f0f413)] - **core, refactor**: use header file to define version information. (xicilion) 
+* [[`3ce5162f5c`](https://github.com/fibjs/fibjs/commit/3ce5162f5c)] - **test, feat**: support async or callback case. (xicilion) 
+* [[`f51019f869`](https://github.com/fibjs/fibjs/commit/f51019f869)] - **internal, downgrade**: downgrade expat. (xicilion) 
+* [[`22710a7eff`](https://github.com/fibjs/fibjs/commit/22710a7eff)] - **module, fixbug**: fix require error when entry of package.json is a folder. (xicilion) 
+* [[`2c59dd5be7`](https://github.com/fibjs/fibjs/commit/2c59dd5be7)] - **docs, feat**: update util.sync manual. (xicilion) 
+* [[`32c151a4b2`](https://github.com/fibjs/fibjs/commit/32c151a4b2)] - **test, refactor**: rewrite wasm test case. (xicilion) 
+* [[`419f63ea27`](https://github.com/fibjs/fibjs/commit/419f63ea27)] - **util, test**: util.sync test case. (xicilion) 
+* [[`3b47b19bac`](https://github.com/fibjs/fibjs/commit/3b47b19bac)] - **util, feat**: util.sync: support specify async mode function manually. (xicilion) 
+* [[`fc429016a8`](https://github.com/fibjs/fibjs/commit/fc429016a8)] - **test, refactor**: rewrite wasm case using util.sync. (xicilion) 
+* [[`d31e484a1a`](https://github.com/fibjs/fibjs/commit/d31e484a1a)] - **test, feat**: support it.only, it.skip, describe.skip, describe.only. (xicilion) 
+* [[`1856e6eade`](https://github.com/fibjs/fibjs/commit/1856e6eade)] - **internal, upgrade**: upgrade v8&sqlite&expart. (xicilion) 
+* [[`7bd0fd3c15`](https://github.com/fibjs/fibjs/commit/7bd0fd3c15)] - **io, fixbug**: fix build warning on windows x86. (xicilion) 
+* [[`4e3cf824fa`](https://github.com/fibjs/fibjs/commit/4e3cf824fa)] - **core, bug**: v8 x86 bug test. (xicilion) 
+* [[`c7d91f6608`](https://github.com/fibjs/fibjs/commit/c7d91f6608)] - **path, feat**: more compatible with nodejs path module. (xicilion) 
+* [[`301164a3ed`](https://github.com/fibjs/fibjs/commit/301164a3ed)] - **util, break**: util.compile must specify srcname. (xicilion) 
+* [[`65c727f07b`](https://github.com/fibjs/fibjs/commit/65c727f07b)] - **docs, refactor**: use relative path. (xicilion) 
+* [[`363527274b`](https://github.com/fibjs/fibjs/commit/363527274b)] - **test, break**: deprecate setup TDD mode. (xicilion) 
+* [[`19c4e4134a`](https://github.com/fibjs/fibjs/commit/19c4e4134a)] - **docs, fixbug**: typo. (xicilion) 
+* [[`4cf9687691`](https://github.com/fibjs/fibjs/commit/4cf9687691)] - **fs, fixbug**: fix build error in windows & linux (#272) (ngot) 
+* [[`e634d4fe94`](https://github.com/fibjs/fibjs/commit/e634d4fe94)] - **docs, feat**: utils.sync demo. (xicilion) 
+* [[`95a87427ba`](https://github.com/fibjs/fibjs/commit/95a87427ba)] - **util, feat**: util.sync: support async/await. (xicilion) 
+* [[`c7bf148657`](https://github.com/fibjs/fibjs/commit/c7bf148657)] - **util, test**: test error in callback (xicilion) 
+* [[`fa47702585`](https://github.com/fibjs/fibjs/commit/fa47702585)] - **util, fixbug**: util.sync: throw error test. (xicilion) 
+* [[`68cdaf838f`](https://github.com/fibjs/fibjs/commit/68cdaf838f)] - **util, feat**: sync support promise microtask. (xicilion) 
+* [[`5eb83d5559`](https://github.com/fibjs/fibjs/commit/5eb83d5559)] - **test, feat**: use repl to test main script. (xicilion) 
+* [[`dbc3257993`](https://github.com/fibjs/fibjs/commit/dbc3257993)] - **vm, break**: sandbox remove main script mode. (xicilion) 
+* [[`c6be2fc750`](https://github.com/fibjs/fibjs/commit/c6be2fc750)] - **docs, feat**: missing docs. (xicilion) 
+* [[`0497ee39b4`](https://github.com/fibjs/fibjs/commit/0497ee39b4)] - **docs, feat**: missing docs. (xicilion) 
+* [[`1db39afa01`](https://github.com/fibjs/fibjs/commit/1db39afa01)] - **fs, feat**: add fs.open & fs.openSync & fs.close & fs.closeSync to open and close the file descriptor (#271) (ngot) 
+* [[`03bc345e07`](https://github.com/fibjs/fibjs/commit/03bc345e07)] - **docs, feat**: auto format javascript code. (xicilion) 
+* [[`8acd9a649c`](https://github.com/fibjs/fibjs/commit/8acd9a649c)] - **docs, feat**: fix language. (xicilion) 
+* [[`9899967fad`](https://github.com/fibjs/fibjs/commit/9899967fad)] - **fs, feat**: readFile support encoding. (xicilion) 
+* [[`ebe3d5e802`](https://github.com/fibjs/fibjs/commit/ebe3d5e802)] - **module, break**: fix resolve typo. (xicilion) 
+* [[`7fc08a4a52`](https://github.com/fibjs/fibjs/commit/7fc08a4a52)] - **docs, feat**: use css. (xicilion)
+* [[`84f7576d83`](https://github.com/fibjs/fibjs/commit/84f7576d83)] - **docs, feat**: gegerate inherit graph. (xicilion) 
+* [[`33388b8be2`](https://github.com/fibjs/fibjs/commit/33388b8be2)] - **idlc, feat**: not generate extend of object. (xicilion) 
+* [[`54608ce37b`](https://github.com/fibjs/fibjs/commit/54608ce37b)] - **deps, chore**: set to master (#269) (ngot) 
+* [[`b539f109a5`](https://github.com/fibjs/fibjs/commit/b539f109a5)] - **fs, chore**: regenerate Stat.h (#270) (ngot) 
+* [[`928bccfe5f`](https://github.com/fibjs/fibjs/commit/928bccfe5f)] - **fs, feat**: Stat add uid and gid property, add fs test case (#268) (asionius) 
+* [[`b5ac68161c`](https://github.com/fibjs/fibjs/commit/b5ac68161c)] - **docs, feat**: change style of method descript. (xicilion) 
+
 ## 2017-06-21, Version v0.5.0 @ngot
 
 * **feature** :
