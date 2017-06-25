@@ -352,6 +352,7 @@ describe('fs', () => {
                 const buf = new Buffer(1);
                 assert.throws(() => fs.read(fd, buf, 1, 1, 0));
                 assert.throws(() => fs.read(fd, buf, 2, 1, 0));
+                assert.throws(() => fs.read(fd, buf, -1, 1, 0));
                 assert.doesNotThrow(() => fs.read(fd, buf, 0, 1, 0));
             });
 
@@ -413,6 +414,7 @@ describe('fs', () => {
                 const buf = new Buffer(1);
                 assert.throws(() => fs.readSync(fd, buf, 1, 15, 0));
                 assert.throws(() => fs.readSync(fd, buf, 2, 15, 0));
+                assert.throws(() => fs.readSync(fd, buf, -1, 1, 0));
                 assert.doesNotThrow(() => fs.readSync(fd, buf, 0, 1, 0));
             });
 
@@ -498,10 +500,15 @@ describe('fs', () => {
                     if (err) {
                         fs.read(fd, buf, 2, 1, 0, (err, bytes) => {
                             if (err) {
-                                fs.read(fd, buf, 0, 1, 0, (err, byts) => {
-                                    if (err) done(err)
-                                    else
-                                        done();
+                                fs.read(fd, buf, -1, 1, 0, (err, byts) => {
+                                    if (err) {
+                                        fs.read(fd, buf, 0, 1, 0, (err, byts) => {
+                                            if (err) done(err)
+                                            else
+                                                done();
+                                        });
+                                    }
+                                    else done(new Error('should throws'));
                                 });
                             }
                             else done(new Error('should throws'));
