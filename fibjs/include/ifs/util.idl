@@ -402,9 +402,10 @@ module util
      ```
 
      @param func 给定需要包裹的方法
+     @param async_func 指定以 async 函数方式处理 func，为 false 则自动判断
      @return 返回同步运行的方法
      */
-    static Function sync(Function func);
+    static Function sync(Function func, Boolean async_func = false);
 
     /*! @brief 查询当前引擎及各组件版本信息
 

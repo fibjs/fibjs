@@ -74,7 +74,7 @@ public:
     static result_t map(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Array>& retVal);
     static result_t reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> memo, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
     static result_t compile(exlib::string srcname, exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal);
-    static result_t sync(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
+    static result_t sync(v8::Local<v8::Function> func, bool async_func, v8::Local<v8::Function>& retVal);
     static result_t buildInfo(v8::Local<v8::Object>& retVal);
 
 public:
@@ -934,11 +934,12 @@ inline void util_base::s_sync(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Function>, 0);
+    OPT_ARG(bool, 1, false);
 
-    hr = sync(v0, vr);
+    hr = sync(v0, v1, vr);
 
     METHOD_RETURN();
 }
