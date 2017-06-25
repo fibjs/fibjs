@@ -1,6 +1,10 @@
 var test = require("test");
 test.setup();
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 describe("test", () => {
     it("skip & only", () => {
         assert.equal(describe.skip, xdescribe);
@@ -160,6 +164,71 @@ describe("test", () => {
                 'step2',
                 'step4'
             ])
+        });
+    });
+
+    describe("async case", () => {
+        var t = false;
+        it("case", async() => {
+            await sleep(100);
+            t = true;
+        });
+
+        it("check", () => {
+            assert.equal(t, true);
+        });
+    });
+
+    describe("callback case", () => {
+        var t;
+
+        it("function(done)", function (done) {
+            t = false;
+            setTimeout(() => {
+                t = true;
+                done();
+            }, 100);
+        });
+
+        it("function(done) check", () => {
+            assert.equal(t, true);
+        });
+
+        it("function name(done)", function name(done) {
+            t = false;
+            setTimeout(() => {
+                t = true;
+                done();
+            }, 100);
+        });
+
+        it("function name(done) check", () => {
+            assert.equal(t, true);
+        });
+
+        it("done =>", done => {
+            t = false;
+            setTimeout(() => {
+                t = true;
+                done();
+            }, 100);
+        });
+
+        it("done => check", () => {
+            assert.equal(t, true);
+        });
+
+
+        it("(done) =>", (done) => {
+            t = false;
+            setTimeout(() => {
+                t = true;
+                done();
+            }, 100);
+        });
+
+        it("(done) => check", () => {
+            assert.equal(t, true);
         });
     });
 });
