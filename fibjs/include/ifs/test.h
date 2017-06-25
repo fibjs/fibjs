@@ -26,8 +26,10 @@ public:
     // test_base
     static result_t describe(exlib::string name, v8::Local<v8::Function> block);
     static result_t xdescribe(exlib::string name, v8::Local<v8::Function> block);
+    static result_t odescribe(exlib::string name, v8::Local<v8::Function> block);
     static result_t it(exlib::string name, v8::Local<v8::Function> block);
     static result_t xit(exlib::string name, v8::Local<v8::Function> block);
+    static result_t oit(exlib::string name, v8::Local<v8::Function> block);
     static result_t before(v8::Local<v8::Function> func);
     static result_t after(v8::Local<v8::Function> func);
     static result_t beforeEach(v8::Local<v8::Function> func);
@@ -51,8 +53,10 @@ public:
 public:
     static void s_describe(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_odescribe(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_it(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_xit(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_oit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_before(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_after(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -73,8 +77,10 @@ inline ClassInfo& test_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "describe", s_describe, true },
         { "xdescribe", s_xdescribe, true },
+        { "odescribe", s_odescribe, true },
         { "it", s_it, true },
         { "xit", s_xit, true },
+        { "oit", s_oit, true },
         { "before", s_before, true },
         { "after", s_after, true },
         { "beforeEach", s_beforeEach, true },
@@ -129,6 +135,20 @@ inline void test_base::s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_VOID();
 }
 
+inline void test_base::s_odescribe(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = odescribe(v0, v1);
+
+    METHOD_VOID();
+}
+
 inline void test_base::s_it(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
@@ -153,6 +173,20 @@ inline void test_base::s_xit(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(v8::Local<v8::Function>, 1);
 
     hr = xit(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void test_base::s_oit(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = oit(v0, v1);
 
     METHOD_VOID();
 }
