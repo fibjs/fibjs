@@ -1,7 +1,6 @@
 var test = require("test");
 var coroutine = require('coroutine');
 var path = require('path');
-var util = require('util');
 var fs = require('fs');
 
 test.setup();
@@ -441,7 +440,7 @@ describe('fs', () => {
         });
 
         describe('event callback', () => {
-            it('zero read', util.sync(done => {
+            it('zero read', done => {
                 const buf = new Buffer(1);
                 fs.read(fd, buf, 0, 0, 0, (err, bytes) => {
                     if (err) done(err)
@@ -451,9 +450,9 @@ describe('fs', () => {
                         done();
                     }
                 });
-            }));
+            });
 
-            it('full read', util.sync(done => {
+            it('full read', done => {
                 const buf = new Buffer(15);
                 fs.read(fd, buf, 0, 15, 0, (err, bytes) => {
                     if (err) done(err)
@@ -463,9 +462,9 @@ describe('fs', () => {
                         done();
                     }
                 });
-            }));
+            });
 
-            it('repeat read', util.sync(done => {
+            it('repeat read', done => {
                 const buf1 = new Buffer(15);
                 const buf2 = new Buffer(15);
                 const buf3 = new Buffer(1);
@@ -491,9 +490,9 @@ describe('fs', () => {
                         });
                     }
                 });
-            }));
+            });
 
-            it('offset error read', util.sync(done => {
+            it('offset error read', done => {
                 const buf = new Buffer(1);
                 fs.read(fd, buf, 1, 1, 0, (err, bytes) => {
                     if (err) {
@@ -510,9 +509,9 @@ describe('fs', () => {
                     }
                     else done(new Error('should throws'));
                 });
-            }));
+            });
 
-            it('beyond buffer error read', util.sync(done => {
+            it('beyond buffer error read', done => {
                 const buf = new Buffer(4);
                 fs.read(fd, buf, 2, 3, 0, (err, bytes) => {
                     if (err) {
@@ -529,9 +528,9 @@ describe('fs', () => {
                     }
                     else done(new Error('should throws'));
                 });
-            }));
+            });
 
-            it('spec offset read', util.sync(done => {
+            it('spec offset read', done => {
                 const buf = new Buffer(16);
                 buf.write('x');
                 fs.read(fd, buf, 1, 15, 0, (err, bytes) => {
@@ -542,9 +541,9 @@ describe('fs', () => {
                         done();
                     }
                 });
-            }));
+            });
 
-            it('spec position read', util.sync(done => {
+            it('spec position read', done => {
                 const buf = new Buffer(14);
                 fs.read(fd, buf, 0, 14, 1, (err, bytes) => {
                     if (err) done(err)
@@ -554,7 +553,7 @@ describe('fs', () => {
                         done();
                     }
                 });
-            }));
+            });
         });
     });
 
