@@ -313,7 +313,7 @@ describe('fs', () => {
         fs.unlink(__dirname + '/fs_test.js.bak' + vmid);
     });
 
-    odescribe('read', () => {
+    describe('read', () => {
         var fd;
         before(() => fd = fs.open(path.join(__dirname, 'fs_files/read.txt')));
         after(() => fs.close(fd));
