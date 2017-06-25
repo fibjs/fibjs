@@ -337,12 +337,16 @@ describe('fs', () => {
             it('repeat read', () => {
                 const buf1 = new Buffer(15);
                 const buf2 = new Buffer(15);
+                const buf3 = new Buffer(1);
                 const bytes1 = fs.read(fd, buf1, 0, -1, 0);
                 const bytes2 = fs.read(fd, buf2, 0, -1, 0);
+                const bytes3 = fs.read(fd, buf3, 0, 1);
                 assert.equal(bytes1, 15);
                 assert.equal(bytes2, 15);
+                assert.equal(bytes3, 0);
                 assert.deepEqual(buf1, new Buffer('abcdefg\nhijklmn'));
                 assert.deepEqual(buf2, new Buffer('abcdefg\nhijklmn'));
+                assert.deepEqual(buf3, new Buffer(1));
             });
 
             it('offset error read', () => {
@@ -394,12 +398,16 @@ describe('fs', () => {
             it('repeat read', () => {
                 const buf1 = new Buffer(15);
                 const buf2 = new Buffer(15);
+                const buf3 = new Buffer(1);
                 const bytes1 = fs.readSync(fd, buf1, 0, -1, 0);
                 const bytes2 = fs.readSync(fd, buf2, 0, -1, 0);
+                const bytes3 = fs.readSync(fd, buf3, 0, 1);
                 assert.equal(bytes1, 15);
                 assert.equal(bytes2, 15);
+                assert.equal(bytes3, 0);
                 assert.deepEqual(buf1, new Buffer('abcdefg\nhijklmn'));
                 assert.deepEqual(buf2, new Buffer('abcdefg\nhijklmn'));
+                assert.deepEqual(buf3, new Buffer(1));
             });
 
             it('offset error read', () => {
@@ -460,17 +468,25 @@ describe('fs', () => {
             it('repeat read', util.sync(done => {
                 const buf1 = new Buffer(15);
                 const buf2 = new Buffer(15);
+                const buf3 = new Buffer(1);
                 fs.read(fd, buf1, 0, -1, 0, (err, bytes1) => {
                     if (err) done(err)
                     else {
                         fs.read(fd, buf2, 0, -1, 0, (err, bytes2) => {
                             if (err) done(err)
                             else {
-                                assert.equal(bytes1, 15);
-                                assert.equal(bytes2, 15);
-                                assert.deepEqual(buf1, new Buffer('abcdefg\nhijklmn'));
-                                assert.deepEqual(buf2, new Buffer('abcdefg\nhijklmn'));
-                                done();
+                                fs.read(fd, buf2, 3, 1, (err, bytes3) => {
+                                    if (err) done(err)
+                                    else {
+                                        assert.equal(bytes1, 15);
+                                        assert.equal(bytes2, 15);
+                                        assert.equal(bytes3, 0);
+                                        assert.deepEqual(buf1, new Buffer('abcdefg\nhijklmn'));
+                                        assert.deepEqual(buf2, new Buffer('abcdefg\nhijklmn'));
+                                        assert.deepEqual(buf3, new Buffer(1));
+                                        done();
+                                    }
+                                });
                             }
                         });
                     }

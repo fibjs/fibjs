@@ -564,9 +564,6 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
             p += n;
         }
 
-        if (_lseeki64(fd, 0, SEEK_SET) < 0)
-            return CHECK_ERROR(LastError());
-
         strBuf.resize(length - sz);
     }
 
