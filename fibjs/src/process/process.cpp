@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include "version.h"
 #include "ifs/process.h"
 #include "ifs/os.h"
 #include "ifs/global.h"
@@ -102,11 +103,9 @@ result_t process_base::get_execArgv(v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-extern char s_version[];
-
 result_t process_base::get_version(exlib::string& retVal)
 {
-    retVal = s_version;
+    retVal = fibjs_version;
     return 0;
 }
 

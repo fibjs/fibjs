@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include "version.h"
 #include "ifs/util.h"
 #include "ifs/encoding.h"
 #include "ifs/Int64.h"
@@ -1352,14 +1353,12 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 #define _STR(s) #s
 #define STR(s) _STR(s)
 
-char s_version[] = "0.5.0";
-
 result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
     retVal = v8::Object::New(isolate->m_isolate);
 
-    retVal->Set(isolate->NewFromUtf8("fibjs"), isolate->NewFromUtf8(s_version));
+    retVal->Set(isolate->NewFromUtf8("fibjs"), isolate->NewFromUtf8(fibjs_version));
 
 #ifdef GIT_INFO
     retVal->Set(isolate->NewFromUtf8("git"), isolate->NewFromUtf8(GIT_INFO));
