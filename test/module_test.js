@@ -20,13 +20,6 @@ describe("module", () => {
 
     });
 
-    xit("absolute identifiers", () => {
-        a = require('module/a');
-        b = require('b.js');
-        assert.strictEqual(a.foo().foo, b.foo,
-            'require works with absolute identifiers');
-    });
-
     it("circular dependency", () => {
         a = require('./module/a1');
         b = require('./module/b1');
@@ -104,6 +97,17 @@ describe("module", () => {
 
             assert.equal(a, require('./module/p3'));
             assert.equal(a, require('./module/p3/index'));
+        });
+
+        it("entry is folder", () => {
+            var a = require('./module/p5');
+            assert.deepEqual(a, {
+                "a": 500
+            });
+
+            assert.equal(a, require('./module/p5'));
+            assert.equal(a, require('./module/p5/lib'));
+            assert.equal(a, require('./module/p5/lib/index'));
         });
     });
 

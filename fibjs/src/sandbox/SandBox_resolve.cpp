@@ -47,96 +47,141 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     return hr;
 }
 
+result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
+    v8::Local<v8::Value>* retVal)
+{
+    Isolate* isolate = holder();
+    size_t cnt = m_loaders.size();
+    result_t hr;
+    exlib::string fname1;
+    bool bFound = false;
+
+    for (size_t i = 0; i < cnt; i++) {
+        obj_ptr<ExtLoader>& l = m_loaders[i];
+
+        if ((fname.length() > l->m_ext.length())
+            && !qstrcmp(fname.c_str() + fname.length() - l->m_ext.length(), l->m_ext.c_str())) {
+            bFound = true;
+            break;
+        }
+    }
+
+    if (bFound) {
+        if (retVal) {
+            *retVal = mods->Get(isolate->NewFromUtf8(fname));
+            if (!IsEmpty(*retVal))
+                return 0;
+        }
+
+        hr = loadFile(fname, data);
+        if (hr >= 0)
+            return 0;
+    }
+
+    for (size_t i = 0; i < cnt; i++) {
+        obj_ptr<ExtLoader>& l = m_loaders[i];
+        fname1 = fname + l->m_ext;
+
+        if (retVal) {
+            *retVal = mods->Get(isolate->NewFromUtf8(fname1));
+            if (!IsEmpty(*retVal))
+                return 0;
+        }
+
+        hr = loadFile(fname1, data);
+        if (hr >= 0) {
+            fname = fname1;
+            return 0;
+        }
+    }
+
+    return CALL_E_FILE_NOT_FOUND;
+}
+
+result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fname,
+    obj_ptr<Buffer_base>& data, v8::Local<v8::Value>* retVal)
+{
+    Isolate* isolate = holder();
+    exlib::string fname1;
+    result_t hr;
+    v8::Local<v8::Value> v;
+    exlib::string buf;
+    obj_ptr<Buffer_base> bin;
+
+    fname1 = fname + PATH_SLASH + "package.json";
+    hr = loadFile(fname1, bin);
+    if (hr < 0)
+        return CALL_E_FILE_NOT_FOUND;
+
+    bin->toString(buf);
+    hr = json_base::decode(buf, v);
+    if (hr < 0)
+        return hr;
+
+    if (v.IsEmpty() || !v->IsObject())
+        return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
+
+    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+    v8::Local<v8::Value> main = o->Get(isolate->NewFromUtf8("main", 4));
+    if (IsEmpty(main))
+        return CALL_E_FILE_NOT_FOUND;
+
+    if (!main->IsString() && !main->IsStringObject())
+        return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
+
+    resolvePath(fname, *v8::String::Utf8Value(main));
+    path_base::normalize(fname, fname);
+
+    hr = resolveFile(mods, fname, data, retVal);
+    if (hr >= 0)
+        return hr;
+
+    resolvePath(fname, "index");
+    hr = resolveFile(mods, fname, data, retVal);
+    if (hr >= 0)
+        return hr;
+
+    return CHECK_ERROR(Runtime::setError("SandBox: main script in package.json not found"));
+}
+
 result_t SandBox::resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Value>* retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Object> _mods;
-    size_t cnt = m_loaders.size();
+    exlib::string fname1;
     result_t hr;
 
     if (retVal)
         _mods = mods();
 
-    for (int32_t step = 0; step < 2; step++) {
-        exlib::string fname1;
-        bool bFound = false;
+    hr = resolveFile(_mods, fname, data, retVal);
+    if (hr >= 0)
+        return hr;
 
-        for (size_t i = 0; i < cnt; i++) {
-            obj_ptr<ExtLoader>& l = m_loaders[i];
+    hr = resolvePackage(_mods, fname, data, retVal);
+    if (hr != CALL_E_FILE_NOT_FOUND)
+        return hr;
 
-            if ((fname.length() > l->m_ext.length())
-                && !qstrcmp(fname.c_str() + fname.length() - l->m_ext.length(), l->m_ext.c_str())) {
-                bFound = true;
-                break;
-            }
-        }
+    fname1 = fname + PATH_SLASH + "index";
+    hr = resolveFile(_mods, fname1, data, retVal);
+    if (hr >= 0) {
+        fname = fname1;
+        return hr;
+    }
 
-        if (bFound) {
-            if (retVal) {
-                *retVal = _mods->Get(isolate->NewFromUtf8(fname));
-                if (!IsEmpty(*retVal))
-                    return 0;
-            }
+    fname1 = fname + ".zip$";
+    hr = resolvePackage(_mods, fname1, data, retVal);
+    if (hr != CALL_E_FILE_NOT_FOUND) {
+        fname = fname1;
+        return hr;
+    }
 
-            hr = loadFile(fname, data);
-            if (hr >= 0)
-                return 0;
-        }
-
-        for (size_t i = 0; i < cnt; i++) {
-            obj_ptr<ExtLoader>& l = m_loaders[i];
-            fname1 = fname + l->m_ext;
-
-            if (retVal) {
-                *retVal = _mods->Get(isolate->NewFromUtf8(fname1));
-                if (!IsEmpty(*retVal))
-                    return 0;
-            }
-
-            hr = loadFile(fname1, data);
-            if (hr >= 0) {
-                fname = fname1;
-                return 0;
-            }
-        }
-
-        if (step == 0) {
-            obj_ptr<Buffer_base> bin;
-
-            fname1 = fname + PATH_SLASH + "package.json";
-            hr = loadFile(fname1, bin);
-            if (hr < 0) {
-                fname1 = fname + ".zip$" + PATH_SLASH + "package.json";
-                hr = loadFile(fname1, bin);
-                if (hr >= 0)
-                    fname = fname + ".zip$";
-            }
-
-            if (hr >= 0) {
-                v8::Local<v8::Value> v;
-                exlib::string buf;
-
-                bin->toString(buf);
-                hr = json_base::decode(buf, v);
-                if (hr < 0)
-                    return hr;
-
-                if (v.IsEmpty() || !v->IsObject())
-                    return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
-
-                v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-                v8::Local<v8::Value> main = o->Get(isolate->NewFromUtf8("main", 4));
-                if (!IsEmpty(main)) {
-                    if (!main->IsString() && !main->IsStringObject())
-                        return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
-                    resolvePath(fname, *v8::String::Utf8Value(main));
-                    path_base::normalize(fname, fname);
-                } else
-                    fname = fname + PATH_SLASH + "index";
-            } else
-                fname = fname + PATH_SLASH + "index";
-        }
+    fname1 = fname1 + PATH_SLASH + "index";
+    hr = resolveFile(_mods, fname1, data, retVal);
+    if (hr >= 0) {
+        fname = fname1;
+        return hr;
     }
 
     return CALL_E_FILE_NOT_FOUND;
