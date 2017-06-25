@@ -53,20 +53,17 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
 
     v8::Local<v8::Value> result = func->Call(args.This(), (int32_t)argv.size(), argv.data());
-    if (result.IsEmpty()) {
-        args.GetReturnValue().Set(V8_RETURN(v8::Local<v8::Value>()));
+    if (result.IsEmpty())
         return;
-    }
 
     isolate->m_isolate->RunMicrotasks();
     ev->wait();
 
     v8::Local<v8::Value> error = _data->Get(isolate->NewFromUtf8("_error"));
 
-    if (!error.IsEmpty() && !error->IsUndefined() && !error->IsNull()) {
-        args.GetReturnValue().Set(v8::Local<v8::Value>());
+    if (!error.IsEmpty() && !error->IsUndefined() && !error->IsNull())
         isolate->m_isolate->ThrowException(error);
-    } else
+    else
         args.GetReturnValue().Set(_data->Get(isolate->NewFromUtf8("_result")));
 }
 
@@ -104,6 +101,13 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
     v8::Local<v8::Value> result = func->Call(args.This(), (int32_t)argv.size(), argv.data());
+    if (result.IsEmpty())
+        return;
+
+    if (!result->IsPromise()) {
+        ThrowError("not async function.");
+        return;
+    }
 
     v8::Local<v8::Promise> p = v8::Local<v8::Promise>::Cast(result);
     v8::Local<v8::Context> _context = p->CreationContext();
@@ -112,11 +116,11 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
     p->Catch(_context, isolate->NewFunction("promise_catch", promise_catch, args[len - 1]));
 }
 
-result_t util_base::sync(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
+result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Local<v8::Function>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
-    if (func->IsAsyncFunction())
+    if (async_func || func->IsAsyncFunction())
         func = isolate->NewFunction("async_promise", async_promise, func);
 
     retVal = isolate->NewFunction("sync", sync_stub, func);

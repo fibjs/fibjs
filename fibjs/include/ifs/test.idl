@@ -32,6 +32,21 @@ describe('test', () => {
     xit('case', () => {
         assert.ok(true);
     });
+
+    // ignored test case
+    it.skip('case', () => {
+        assert.ok(true);
+    });
+
+    // only test case
+    oit('case', () => {
+        assert.ok(true);
+    });
+
+    // only test case
+    it.only('case', () => {
+        assert.ok(true);
+    });
 });
 
 process.exit(-test.run(console.DEBUG));
@@ -71,11 +86,17 @@ module test
      */
     static describe(String name, Function block);
 
-    /*! @brief 停止测试的模块定义
+    /*! @brief 暂停测试的模块定义，test.setup 后可使用 describe.skip 调用
      @param name 定义模块名称
      @param block 模块初始化代码
      */
     static xdescribe(String name, Function block);
+
+    /*! @brief 独立测试的模块定义，test.setup 后可使用 describe.only 调用
+     @param name 定义模块名称
+     @param block 模块初始化代码
+     */
+    static odescribe(String name, Function block);
 
     /*! @brief 定义一个测试项目
      @param name 定义项目名称
@@ -83,11 +104,17 @@ module test
      */
     static it(String name, Function block);
 
-    /*! @brief 禁止测试的项目定义
+    /*! @brief 暂停测试的项目定义，test.setup 后可使用 it.skip 调用
      @param name 定义项目名称
      @param block 测试内容
      */
     static xit(String name, Function block);
+
+    /*! @brief 独立测试的项目定义，test.setup 后可使用 it.only 调用
+     @param name 定义项目名称
+     @param block 测试内容
+     */
+    static oit(String name, Function block);
 
     /*! @brief 定义当前测试模块进入事件
      @param func 事件函数

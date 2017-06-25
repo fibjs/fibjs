@@ -129,6 +129,11 @@ public:
 
     result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
 
+    result_t resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
+        v8::Local<v8::Value>* retVal);
+    result_t resolvePackage(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
+        v8::Local<v8::Value>* retVal);
+
     result_t resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Value>* retVal);
     result_t resolveId(exlib::string& id, obj_ptr<Buffer_base>& data, v8::Local<v8::Value>& retVal);

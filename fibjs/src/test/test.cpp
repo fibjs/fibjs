@@ -46,8 +46,10 @@ enum {
 };
 
 class _case : public obj_base {
-    _case(exlib::string name = "")
-        : m_pos(0)
+    _case(exlib::string name = "", int32_t level = TEST_NORMAL)
+        : m_level(level)
+        , m_run_level(TEST_NORMAL)
+        , m_pos(0)
         , m_error(false)
     {
         m_name = name;
@@ -64,6 +66,21 @@ class _case : public obj_base {
     }
 
 public:
+    enum {
+        TEST_SKIP = 0,
+        TEST_NORMAL = 1,
+        TEST_ONLY = 2
+    };
+
+public:
+    void append(_case* c)
+    {
+        m_subs.append(c);
+        if (c->m_level > m_run_level)
+            m_run_level = c->m_level;
+    }
+
+public:
     static void init()
     {
         TestData* td = TestData::current();
@@ -72,20 +89,27 @@ public:
             td->m_root = td->m_now = new _case();
     }
 
-    static result_t enter(exlib::string name)
+    static result_t describe(exlib::string name, v8::Local<v8::Function> block, int32_t level)
     {
         TestData* td = TestData::current();
 
+        _case::init();
+
         _case* now = td->m_now;
-        if (!td->m_now)
+        if (!now)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-        td->m_now = new _case(name);
-        now->m_subs.append(td->m_now);
+        _case* p = new _case(name, level);
+        now->append(p);
+
+        td->m_now = p;
+        block->Call(v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
+        td->m_now = now;
+
         return 0;
     }
 
-    static result_t it(exlib::string name, v8::Local<v8::Function> block)
+    static result_t it(exlib::string name, v8::Local<v8::Function> block, int32_t level)
     {
         TestData* td = TestData::current();
 
@@ -93,10 +117,10 @@ public:
         if (!now || td->m_now == td->m_root)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-        _case* p = new _case(name);
+        _case* p = new _case(name, level);
         p->m_block.Reset(Isolate::current()->m_isolate, block);
 
-        now->m_subs.append(p);
+        now->append(p);
         return 0;
     }
 
@@ -169,6 +193,8 @@ public:
                 exlib::string str(stack.size() * 2, ' ');
 
                 p1 = p->m_subs[p->m_pos++];
+                if (p->m_run_level > p1->m_level)
+                    continue;
 
                 if (p1->m_block.IsEmpty()) {
                     coroutine_base::set_loglevel(oldlevel);
@@ -326,6 +352,8 @@ public:
 private:
     exlib::string m_name;
     v8::Global<v8::Function> m_block;
+    int32_t m_level;
+    int32_t m_run_level;
     QuickArray<obj_ptr<_case>> m_subs;
     QuickArray<v8::Global<v8::Function>> m_hooks[4];
     int32_t m_pos;
@@ -334,35 +362,32 @@ private:
 
 result_t test_base::describe(exlib::string name, v8::Local<v8::Function> block)
 {
-    TestData* td = TestData::current();
-
-    _case::init();
-
-    _case* last = td->m_now;
-
-    result_t hr = _case::enter(name);
-    if (hr < 0)
-        return hr;
-
-    block->Call(v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
-
-    td->m_now = last;
-    return 0;
+    return _case::describe(name, block, _case::TEST_NORMAL);
 }
 
 result_t test_base::xdescribe(exlib::string name, v8::Local<v8::Function> block)
 {
-    return 0;
+    return _case::describe(name, block, _case::TEST_SKIP);
+}
+
+result_t test_base::odescribe(exlib::string name, v8::Local<v8::Function> block)
+{
+    return _case::describe(name, block, _case::TEST_ONLY);
 }
 
 result_t test_base::it(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::it(name, block);
+    return _case::it(name, block, _case::TEST_NORMAL);
 }
 
 result_t test_base::xit(exlib::string name, v8::Local<v8::Function> block)
 {
-    return 0;
+    return _case::it(name, block, _case::TEST_SKIP);
+}
+
+result_t test_base::oit(exlib::string name, v8::Local<v8::Function> block)
+{
+    return _case::it(name, block, _case::TEST_ONLY);
 }
 
 result_t test_base::before(v8::Local<v8::Function> func)
@@ -396,28 +421,55 @@ result_t test_base::setup()
 
     v8::Local<v8::Context> _context = isolate->context();
     v8::Local<v8::Object> glob = _context->Global();
+    v8::Local<v8::Function> func, func1;
 
     glob->DefineOwnProperty(_context, isolate->NewFromUtf8("assert"),
             assert_base::class_info().getModule(isolate),
             (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
         .IsJust();
 
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("describe"),
-            isolate->NewFunction("describe", s_describe),
+    func = isolate->NewFunction("describe", s_describe);
+    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("describe"), func,
             (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
         .IsJust();
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xdescribe"),
-            isolate->NewFunction("xdescribe", s_xdescribe),
+
+    func1 = isolate->NewFunction("xdescribe", s_xdescribe);
+    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xdescribe"), func1,
             (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
         .IsJust();
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("it"),
-            isolate->NewFunction("it", s_it),
+    func->DefineOwnProperty(_context, isolate->NewFromUtf8("skip"), func1,
             (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
         .IsJust();
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xit"),
-            isolate->NewFunction("xit", s_xit),
+
+    func1 = isolate->NewFunction("odescribe", s_odescribe);
+    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("odescribe"), func1,
             (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
         .IsJust();
+    func->DefineOwnProperty(_context, isolate->NewFromUtf8("only"), func1,
+            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+        .IsJust();
+
+    func = isolate->NewFunction("it", s_it);
+    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("it"), func,
+            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+        .IsJust();
+
+    func1 = isolate->NewFunction("xit", s_xit);
+    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xit"), func1,
+            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+        .IsJust();
+    func->DefineOwnProperty(_context, isolate->NewFromUtf8("skip"), func1,
+            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+        .IsJust();
+
+    func1 = isolate->NewFunction("oit", s_oit);
+    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("oit"), func1,
+            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+        .IsJust();
+    func->DefineOwnProperty(_context, isolate->NewFromUtf8("only"), func1,
+            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+        .IsJust();
+
     glob->DefineOwnProperty(_context, isolate->NewFromUtf8("before"),
             isolate->NewFunction("before", s_before),
             (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))

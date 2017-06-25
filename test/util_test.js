@@ -1032,11 +1032,11 @@ describe('util', () => {
                 });
             }
 
-            async function cb_test(a, b) {
+            async function async_test(a, b) {
                 return await async_proc(a, b);
             }
 
-            var t1 = util.sync(cb_test)(100, 200);
+            var t1 = util.sync(async_test)(100, 200);
             assert.equal(t1, 300);
 
             var t2 = 0;
@@ -1049,6 +1049,35 @@ describe('util', () => {
             }
 
             assert.equal(t2, 500);
+        });
+
+        it('custom async/await', () => {
+            function async_test(a, b) {
+                return new Promise(function (resolve, reject) {
+                    resolve(a + b);
+                });
+            }
+
+            var t1 = util.sync(async_test, true)(100, 200);
+            assert.equal(t1, 300);
+        });
+
+        it("err func", () => {
+            function async_test(a, b) {
+                return 100;
+            }
+
+            assert.throws(() => {
+                util.sync(async_test, true)(100, 200);
+            });
+
+            function async_test1(a, b) {
+                throw 100;
+            }
+
+            assert.throws(() => {
+                util.sync(async_test1, true)(100, 200);
+            });
         });
     });
 

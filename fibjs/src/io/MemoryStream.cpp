@@ -64,7 +64,7 @@ result_t MemoryStream::readAll(obj_ptr<Buffer_base>& retVal,
 result_t MemoryStream::truncate(int64_t bytes, AsyncEvent* ac)
 {
     std::string str = m_buffer.str();
-    str.resize(bytes);
+    str.resize((size_t)bytes);
     m_buffer.str(str);
 
     m_time.now();
