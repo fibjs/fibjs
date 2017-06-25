@@ -314,7 +314,7 @@ describe('fs', () => {
         fs.unlink(__dirname + '/fs_test.js.bak' + vmid);
     });
 
-    describe('read', () => {
+    odescribe('read', () => {
         var fd;
         before(() => fd = fs.open(path.join(__dirname, 'fs_files/read.txt')));
         after(() => fs.close(fd));
@@ -329,7 +329,7 @@ describe('fs', () => {
 
             it('full read', () => {
                 const buf = new Buffer(15);
-                const bytes = fs.read(fd, buf, 0, -1, 0);
+                const bytes = fs.read(fd, buf, 0, 15, 0);
                 assert.equal(bytes, 15);
                 assert.deepEqual(buf, new Buffer('abcdefg\nhijklmn'));
             });
@@ -338,8 +338,8 @@ describe('fs', () => {
                 const buf1 = new Buffer(15);
                 const buf2 = new Buffer(15);
                 const buf3 = new Buffer(1);
-                const bytes1 = fs.read(fd, buf1, 0, -1, 0);
-                const bytes2 = fs.read(fd, buf2, 0, -1, 0);
+                const bytes1 = fs.read(fd, buf1, 0, 15, 0);
+                const bytes2 = fs.read(fd, buf2, 0, 15, 0);
                 const bytes3 = fs.read(fd, buf3, 0, 1);
                 assert.equal(bytes1, 15);
                 assert.equal(bytes2, 15);
@@ -351,8 +351,8 @@ describe('fs', () => {
 
             it('offset error read', () => {
                 const buf = new Buffer(1);
-                assert.throws(() => fs.read(fd, buf, 1, -1, 0));
-                assert.throws(() => fs.read(fd, buf, 2, -1, 0));
+                assert.throws(() => fs.read(fd, buf, 1, 1, 0));
+                assert.throws(() => fs.read(fd, buf, 2, 1, 0));
                 assert.doesNotThrow(() => fs.read(fd, buf, 0, 1, 0));
             });
 
@@ -367,7 +367,7 @@ describe('fs', () => {
             it('spec offset read', () => {
                 const buf = new Buffer(16);
                 buf.write('x');
-                let bytes = fs.read(fd, buf, 1, -1, 0);
+                let bytes = fs.read(fd, buf, 1, 15, 0);
                 assert.equal(bytes, 15);
                 assert.deepEqual(buf, new Buffer('xabcdefg\nhijklmn'));
             });
@@ -390,7 +390,7 @@ describe('fs', () => {
 
             it('full read', () => {
                 const buf = new Buffer(15);
-                const bytes = fs.readSync(fd, buf, 0, -1, 0);
+                const bytes = fs.readSync(fd, buf, 0, 15, 0);
                 assert.equal(bytes, 15);
                 assert.deepEqual(buf, new Buffer('abcdefg\nhijklmn'));
             });
@@ -399,8 +399,8 @@ describe('fs', () => {
                 const buf1 = new Buffer(15);
                 const buf2 = new Buffer(15);
                 const buf3 = new Buffer(1);
-                const bytes1 = fs.readSync(fd, buf1, 0, -1, 0);
-                const bytes2 = fs.readSync(fd, buf2, 0, -1, 0);
+                const bytes1 = fs.readSync(fd, buf1, 0, 15, 0);
+                const bytes2 = fs.readSync(fd, buf2, 0, 15, 0);
                 const bytes3 = fs.readSync(fd, buf3, 0, 1);
                 assert.equal(bytes1, 15);
                 assert.equal(bytes2, 15);
@@ -412,8 +412,8 @@ describe('fs', () => {
 
             it('offset error read', () => {
                 const buf = new Buffer(1);
-                assert.throws(() => fs.readSync(fd, buf, 1, -1, 0));
-                assert.throws(() => fs.readSync(fd, buf, 2, -1, 0));
+                assert.throws(() => fs.readSync(fd, buf, 1, 15, 0));
+                assert.throws(() => fs.readSync(fd, buf, 2, 15, 0));
                 assert.doesNotThrow(() => fs.readSync(fd, buf, 0, 1, 0));
             });
 
@@ -427,7 +427,7 @@ describe('fs', () => {
             it('spec offset read', () => {
                 const buf = new Buffer(16);
                 buf.write('x');
-                let bytes = fs.readSync(fd, buf, 1, -1, 0);
+                let bytes = fs.readSync(fd, buf, 1, 15, 0);
                 assert.equal(bytes, 15);
                 assert.deepEqual(buf, new Buffer('xabcdefg\nhijklmn'));
             });
@@ -455,7 +455,7 @@ describe('fs', () => {
 
             it('full read', util.sync(done => {
                 const buf = new Buffer(15);
-                fs.read(fd, buf, 0, -1, 0, (err, bytes) => {
+                fs.read(fd, buf, 0, 15, 0, (err, bytes) => {
                     if (err) done(err)
                     else {
                         assert.equal(bytes, 15);
@@ -469,10 +469,10 @@ describe('fs', () => {
                 const buf1 = new Buffer(15);
                 const buf2 = new Buffer(15);
                 const buf3 = new Buffer(1);
-                fs.read(fd, buf1, 0, -1, 0, (err, bytes1) => {
+                fs.read(fd, buf1, 0, 15, 0, (err, bytes1) => {
                     if (err) done(err)
                     else {
-                        fs.read(fd, buf2, 0, -1, 0, (err, bytes2) => {
+                        fs.read(fd, buf2, 0, 15, 0, (err, bytes2) => {
                             if (err) done(err)
                             else {
                                 fs.read(fd, buf2, 3, 1, (err, bytes3) => {
@@ -495,9 +495,9 @@ describe('fs', () => {
 
             it('offset error read', util.sync(done => {
                 const buf = new Buffer(1);
-                fs.read(fd, buf, 1, -1, 0, (err, bytes) => {
+                fs.read(fd, buf, 1, 1, 0, (err, bytes) => {
                     if (err) {
-                        fs.read(fd, buf, 2, -1, 0, (err, bytes) => {
+                        fs.read(fd, buf, 2, 1, 0, (err, bytes) => {
                             if (err) {
                                 fs.read(fd, buf, 0, 1, 0, (err, byts) => {
                                     if (err) done(err)
@@ -534,7 +534,7 @@ describe('fs', () => {
             it('spec offset read', util.sync(done => {
                 const buf = new Buffer(16);
                 buf.write('x');
-                fs.read(fd, buf, 1, -1, 0, (err, bytes) => {
+                fs.read(fd, buf, 1, 15, 0, (err, bytes) => {
                     if (err) done(err)
                     else {
                         assert.equal(bytes, 15);
