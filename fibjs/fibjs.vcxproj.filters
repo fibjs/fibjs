@@ -912,6 +912,9 @@
     <ClInclude Include="include\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\gui\windows\WebView.h">
       <Filter>Source Files\gui\windows</Filter>
     </ClInclude>

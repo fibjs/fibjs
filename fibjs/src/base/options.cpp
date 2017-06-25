@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "version.h"
 #include "console.h"
 #include "path.h"
 #include "Fiber.h"
@@ -35,8 +36,6 @@ extern exlib::string s_root;
 #else
 #define GUARD_SIZE 16
 #endif
-
-extern char s_version[];
 
 static void printHelp()
 {
@@ -82,7 +81,7 @@ bool options(int32_t* argc, char* argv[])
             printHelp();
             return true;
         } else if (!qstrcmp(arg, "--version") || !qstrcmp(arg, "-v")) {
-            printf("v%s\n", s_version);
+            printf("v%s\n", fibjs_version);
             return true;
         } else if (!qstrcmp(arg, "--v8-options")) {
             v8::internal::FlagList::PrintHelp();

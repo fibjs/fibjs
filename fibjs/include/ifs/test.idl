@@ -49,30 +49,31 @@ describe('test', () => {
     });
 });
 
-process.exit(-test.run(console.DEBUG));
-```
+// async function test
+describe('test async', () => {
+  it('pass case', async() => {
+    assert.ok(true);
+  });
 
-如果需要测试异步逻辑，可以像这样编写测试代码：
+  it('error case', async() => {
+      throw new Error('some thing wrong!');
+  });
+});
 
-```JavaScript
-var test = require('test');
-var sync = require('util').sync;
-
-test.setup();
-
-describe('test', () => {
-  it('pass case', sync(done => {
+// callback function test
+describe('test callback', () => {
+  it('pass case', done => {
     setTimeout(() => {
       assert.ok(true);
       done();
     }, 0);
-  }));
+  });
 
-  it('error case', sync(done => {
+  it('error case', done => {
     setTimeout(() => {
       done(new Error('some thing wrong!'));
     }, 0);
-  }));
+  });
 });
 
 process.exit(-test.run(console.DEBUG));

@@ -8,9 +8,11 @@
 #include "object.h"
 #include "ifs/test.h"
 #include "ifs/assert.h"
+#include "ifs/util.h"
 #include "QuickArray.h"
 #include "date.h"
 #include "console.h"
+#include "parse.h"
 
 namespace fibjs {
 
@@ -360,54 +362,93 @@ private:
     bool m_error;
 };
 
+inline bool checkCallback(const char* src)
+{
+    _parser p(src);
+    exlib::string s;
+
+    p.skipSpace();
+    p.getWord(s, '(', '=');
+    if (!s.empty()) {
+        if (s != "function")
+            return true;
+
+        p.skipSpace();
+        p.getWord(s, '(');
+        p.skipSpace();
+    }
+
+    p.skipSpace();
+    if (p.getChar() != '(')
+        return false;
+
+    p.skipSpace();
+    p.getWord(s, ')', ',');
+    return !s.empty();
+}
+
+inline v8::Local<v8::Function> wrapFunction(v8::Local<v8::Function> func)
+{
+    if (func->IsAsyncFunction())
+        util_base::sync(func, true, func);
+    {
+        v8::Local<v8::String> src = func->ToString();
+        v8::String::Utf8Value tmp(src);
+        if (checkCallback(*tmp))
+            util_base::sync(func, false, func);
+    }
+
+    return func;
+}
+
 result_t test_base::describe(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::describe(name, block, _case::TEST_NORMAL);
+    return _case::describe(name, wrapFunction(block), _case::TEST_NORMAL);
 }
 
 result_t test_base::xdescribe(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::describe(name, block, _case::TEST_SKIP);
+    return _case::describe(name, wrapFunction(block), _case::TEST_SKIP);
 }
 
 result_t test_base::odescribe(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::describe(name, block, _case::TEST_ONLY);
+    return _case::describe(name, wrapFunction(block), _case::TEST_ONLY);
 }
 
 result_t test_base::it(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::it(name, block, _case::TEST_NORMAL);
+    return _case::it(name, wrapFunction(block), _case::TEST_NORMAL);
 }
 
 result_t test_base::xit(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::it(name, block, _case::TEST_SKIP);
+    return _case::it(name, wrapFunction(block), _case::TEST_SKIP);
 }
 
 result_t test_base::oit(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::it(name, block, _case::TEST_ONLY);
+    return _case::it(name, wrapFunction(block), _case::TEST_ONLY);
 }
 
 result_t test_base::before(v8::Local<v8::Function> func)
 {
-    return _case::set_hook(HOOK_BEFORE, func);
+    return _case::set_hook(HOOK_BEFORE, wrapFunction(func));
 }
 
 result_t test_base::after(v8::Local<v8::Function> func)
 {
-    return _case::set_hook(HOOK_AFTER, func);
+    return _case::set_hook(HOOK_AFTER, wrapFunction(func));
 }
 
 result_t test_base::beforeEach(v8::Local<v8::Function> func)
 {
-    return _case::set_hook(HOOK_BEFORECASE, func);
+    return _case::set_hook(HOOK_BEFORECASE, wrapFunction(func));
 }
 
 result_t test_base::afterEach(v8::Local<v8::Function> func)
 {
-    return _case::set_hook(HOOK_AFTERCASE, func);
+    return _case::set_hook(HOOK_AFTERCASE, wrapFunction(func));
 }
 
 result_t test_base::run(int32_t loglevel, int32_t& retVal)

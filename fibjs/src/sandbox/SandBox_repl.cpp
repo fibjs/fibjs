@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include "version.h"
 #include "SandBox.h"
 #include "ifs/process.h"
 #include "ifs/console.h"
@@ -135,7 +136,6 @@ result_t SandBox::repl(v8::Local<v8::Array> cmds, Stream_base* out)
 
 extern stream_logger* s_stream;
 extern std_logger* s_std;
-extern char s_version[];
 
 result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
 {
@@ -159,7 +159,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
 
     exlib::string str_ver("Welcome to fibjs ");
 
-    str_ver += s_version;
+    str_ver += fibjs_version;
     str_ver += '.';
     output(console_base::_INFO, str_ver);
     output(console_base::_INFO, "Type \".help\" for more information.");
