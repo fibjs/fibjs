@@ -521,31 +521,13 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
 
     exlib::string strBuf;
 
-    int32_t currentPosition = -1;
-
-    if (length < 0) {
-        currentPosition = _lseeki64(fd, 0, SEEK_CUR);
-        if (currentPosition < 0)
-            return CHECK_ERROR(LastError());
-
-        int64_t sz = _lseeki64(fd, 0, SEEK_END);
-        if (sz < 0)
-            return CHECK_ERROR(LastError());
-
-        length = (int32_t)sz;
-    }
-
-    if (position != -1) {
-        currentPosition = position;
-    }
-
-    if (currentPosition != -1) {
-        if (_lseeki64(fd, currentPosition, SEEK_SET) < 0)
-            return CHECK_ERROR(LastError());
-    }
-
-    if (offset + length > bufLength) {
+    if (length < 0 || (offset + length > bufLength)) {
         return Runtime::setError("Length extends beyond buffer");
+    }
+
+    if (position > -1) {
+        if (_lseeki64(fd, position, SEEK_SET) < 0)
+            return CHECK_ERROR(LastError());
     }
 
     if (length > 0) {
