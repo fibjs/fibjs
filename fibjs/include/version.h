@@ -8,6 +8,6 @@
 #ifndef VERSION_H_
 #define VERSION_H_
 
-static const char fibjs_version[] = "0.6.0";
+static const char fibjs_version[] = "0.7.0-dev";
 
 #endif
