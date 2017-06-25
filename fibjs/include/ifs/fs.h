@@ -17,10 +17,10 @@
 namespace fibjs {
 
 class Stat_base;
+class Buffer_base;
 class List_base;
 class SeekableStream_base;
 class BufferedStream_base;
-class Buffer_base;
 
 class fs_base : public object_base {
     DECLARE_CLASS(fs_base);
@@ -69,6 +69,8 @@ public:
     static result_t symlink(exlib::string target, exlib::string linkpath, AsyncEvent* ac);
     static result_t symlinkSync(exlib::string target, exlib::string linkpath);
     static result_t truncate(exlib::string path, int32_t len, AsyncEvent* ac);
+    static result_t read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac);
+    static result_t readSync(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal);
     static result_t truncateSync(exlib::string path, int32_t len);
     static result_t readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
     static result_t readdirSync(exlib::string path, obj_ptr<List_base>& retVal);
@@ -138,6 +140,8 @@ public:
     static void s_symlink(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_symlinkSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_readSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_truncateSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -176,6 +180,7 @@ public:
     ASYNC_STATICVALUE2(fs_base, realpath, exlib::string, exlib::string);
     ASYNC_STATIC2(fs_base, symlink, exlib::string, exlib::string);
     ASYNC_STATIC2(fs_base, truncate, exlib::string, int32_t);
+    ASYNC_STATICVALUE6(fs_base, read, int32_t, Buffer_base*, int32_t, int32_t, int32_t, int32_t);
     ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<List_base>);
     ASYNC_STATICVALUE3(fs_base, openFile, exlib::string, exlib::string, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE4(fs_base, open, exlib::string, exlib::string, int32_t, int32_t);
@@ -190,10 +195,10 @@ public:
 }
 
 #include "Stat.h"
+#include "Buffer.h"
 #include "List.h"
 #include "SeekableStream.h"
 #include "BufferedStream.h"
-#include "Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& fs_base::class_info()
@@ -233,6 +238,8 @@ inline ClassInfo& fs_base::class_info()
         { "symlink", s_symlink, true },
         { "symlinkSync", s_symlinkSync, true },
         { "truncate", s_truncate, true },
+        { "read", s_read, true },
+        { "readSync", s_readSync, true },
         { "truncateSync", s_truncateSync, true },
         { "readdir", s_readdir, true },
         { "readdirSync", s_readdirSync, true },
@@ -858,6 +865,48 @@ inline void fs_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = ac_truncate(v0, v1);
 
     METHOD_VOID();
+}
+
+inline void fs_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(5, 2);
+
+    ARG(int32_t, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(int32_t, 2, 0);
+    OPT_ARG(int32_t, 3, -1);
+    OPT_ARG(int32_t, 4, -1);
+
+    if (!cb.IsEmpty()) {
+        acb_read(v0, v1, v2, v3, v4, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_read(v0, v1, v2, v3, v4, vr);
+
+    METHOD_RETURN();
+}
+
+inline void fs_base::s_readSync(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(5, 2);
+
+    ARG(int32_t, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(int32_t, 2, 0);
+    OPT_ARG(int32_t, 3, -1);
+    OPT_ARG(int32_t, 4, -1);
+
+    hr = readSync(v0, v1, v2, v3, v4, vr);
+
+    METHOD_RETURN();
 }
 
 inline void fs_base::s_truncateSync(const v8::FunctionCallbackInfo<v8::Value>& args)
