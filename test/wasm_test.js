@@ -3,14 +3,11 @@ test.setup();
 
 const fs = require('fs');
 const path = require('path');
-const coroutine = require('coroutine');
 const util = require('util');
 
 const wasmDir = path.join(__dirname, 'wasm');
 
-WebAssembly.compileSync = util.sync(async function (buf) {
-    return await WebAssembly.compile(buf);
-})
+WebAssembly.compileSync = util.sync(WebAssembly.compile, true);
 
 function loadWebAssembly(name) {
     var imports = {};
