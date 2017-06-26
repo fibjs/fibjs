@@ -878,7 +878,7 @@ inline void fs_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(int32_t, 0);
     ARG(obj_ptr<Buffer_base>, 1);
     OPT_ARG(int32_t, 2, 0);
-    OPT_ARG(int32_t, 3, -1);
+    OPT_ARG(int32_t, 3, 0);
     OPT_ARG(int32_t, 4, -1);
 
     if (!cb.IsEmpty()) {

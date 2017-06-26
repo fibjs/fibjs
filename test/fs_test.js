@@ -321,7 +321,19 @@ describe('fs', () => {
         describe('fiber sync', () => {
             it('zero read', () => {
                 const buf = new Buffer(1);
-                let bytes = fs.read(fd, buf, 0, 0, 0);
+                let bytes = fs.read(fd, buf);
+                assert.equal(bytes, 0);
+                assert.deepEqual(buf, new Buffer(1));
+
+                bytes = fs.read(fd, buf, 0);
+                assert.equal(bytes, 0);
+                assert.deepEqual(buf, new Buffer(1));
+
+                bytes = fs.read(fd, buf, 0, 0);
+                assert.equal(bytes, 0);
+                assert.deepEqual(buf, new Buffer(1));
+
+                bytes = fs.read(fd, buf, 0, 0, 0);
                 assert.equal(bytes, 0);
                 assert.deepEqual(buf, new Buffer(1));
             });
@@ -383,7 +395,19 @@ describe('fs', () => {
         describe('block sync', () => {
             it('zero read', () => {
                 const buf = new Buffer(1);
-                let bytes = fs.readSync(fd, buf, 0, 0, 0);
+                let bytes = fs.read(fd, buf);
+                assert.equal(bytes, 0);
+                assert.deepEqual(buf, new Buffer(1));
+
+                bytes = fs.read(fd, buf, 0);
+                assert.equal(bytes, 0);
+                assert.deepEqual(buf, new Buffer(1));
+
+                bytes = fs.read(fd, buf, 0, 0);
+                assert.equal(bytes, 0);
+                assert.deepEqual(buf, new Buffer(1));
+
+                bytes = fs.read(fd, buf, 0, 0, 0);
                 assert.equal(bytes, 0);
                 assert.deepEqual(buf, new Buffer(1));
             });
@@ -444,12 +468,33 @@ describe('fs', () => {
         describe('event callback', () => {
             it('zero read', done => {
                 const buf = new Buffer(1);
-                fs.read(fd, buf, 0, 0, 0, (err, bytes) => {
+                fs.read(fd, buf, (err, bytes) => {
                     if (err) done(err)
                     else {
                         assert.equal(bytes, 0);
                         assert.deepEqual(buf, new Buffer(1));
-                        done();
+                        fs.read(fd, buf, 0, (err, bytes) => {
+                            if (err) done(err)
+                            else {
+                                assert.equal(bytes, 0);
+                                assert.deepEqual(buf, new Buffer(1));
+                                fs.read(fd, buf, 0, 0, (err, bytes) => {
+                                    if (err) done(err)
+                                    else {
+                                        assert.equal(bytes, 0);
+                                        assert.deepEqual(buf, new Buffer(1));
+                                        fs.read(fd, buf, 0, 0, 0, (err, bytes) => {
+                                            if (err) done(err)
+                                            else {
+                                                assert.equal(bytes, 0);
+                                                assert.deepEqual(buf, new Buffer(1));
+                                                done();
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
                     }
                 });
             });
