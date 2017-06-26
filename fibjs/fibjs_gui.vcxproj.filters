@@ -7,9 +7,6 @@
     <Filter Include="Header Files\ifs">
       <UniqueIdentifier>{f4153d16-ab92-bff3-c330-2740a5c87d69}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\ifs\pages">
-      <UniqueIdentifier>{22543068-6899-e0b1-71e6-42242692bed2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{ba03e055-4fa2-fce3-8a1c-d348547d379c}</UniqueIdentifier>
     </Filter>
@@ -1391,7 +1388,16 @@
     <ClCompile Include="src\util\util_compile.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
+    <ClCompile Include="src\util\util_format.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util\util_info.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
     <ClCompile Include="src\util\util_sync.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util\util_test.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="src\websocket\WebSocket.cpp">
