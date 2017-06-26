@@ -1,3 +1,12 @@
+## 2017-06-26, Version v0.6.1 @ngot
+
+* **bugfix** :
+  * fs: fix the fs.read zero.
+
+### Commits
+
+* [[`a34b53c4bb`](https://github.com/fibjs/fibjs/commit/a34b53c4bb)] - **fs, fixbug**: fix the fs.read zero (#277) (ngot) 
+
 ## 2017-06-26, Version v0.6.0 @ngot
 
 * **feature** :
