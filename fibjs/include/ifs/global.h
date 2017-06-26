@@ -32,6 +32,7 @@ public:
     static result_t get_Master(obj_ptr<Worker_base>& retVal);
     static result_t get_global(v8::Local<v8::Object>& retVal);
     static result_t run(exlib::string fname, v8::Local<v8::Array> argv);
+    static result_t require(exlib::string id, v8::Local<v8::Value>& retVal);
     static result_t get_argv(v8::Local<v8::Array>& retVal);
     static result_t get___filename(exlib::string& retVal);
     static result_t get___dirname(exlib::string& retVal);
@@ -41,7 +42,6 @@ public:
     static result_t setInterval(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal);
     static result_t setTimeout(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal);
     static result_t setImmediate(v8::Local<v8::Function> callback, obj_ptr<Timer_base>& retVal);
-    static result_t require(exlib::string id, v8::Local<v8::Value>& retVal);
     static result_t GC();
     static result_t repl(v8::Local<v8::Array> cmds);
     static result_t repl(Stream_base* out, v8::Local<v8::Array> cmds);
@@ -61,6 +61,7 @@ public:
     static void s_get_Master(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_global(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get___filename(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get___dirname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -70,7 +71,6 @@ public:
     static void s_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_GC(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_repl(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -89,13 +89,13 @@ inline ClassInfo& global_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "run", s_run, true },
+        { "require", s_require, true },
         { "clearInterval", s_clearInterval, true },
         { "clearTimeout", s_clearTimeout, true },
         { "clearImmediate", s_clearImmediate, true },
         { "setInterval", s_setInterval, true },
         { "setTimeout", s_setTimeout, true },
         { "setImmediate", s_setImmediate, true },
-        { "require", s_require, true },
         { "GC", s_GC, true },
         { "repl", s_repl, true }
     };
@@ -159,6 +159,21 @@ inline void global_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     hr = run(v0, v1);
 
     METHOD_VOID();
+}
+
+inline void global_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = require(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void global_base::s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
@@ -276,21 +291,6 @@ inline void global_base::s_setImmediate(const v8::FunctionCallbackInfo<v8::Value
     ARG(v8::Local<v8::Function>, 0);
 
     hr = setImmediate(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void global_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Value> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = require(v0, vr);
 
     METHOD_RETURN();
 }
