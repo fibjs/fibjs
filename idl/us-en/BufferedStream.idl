@@ -1,0 +1,59 @@
+/*! @brief Buffer reader object
+
+ BufferedReader object is used for caching the binary data stream object. It also provides text reading
+function which only support utf-8 format conversion. Create method:
+ @code
+ var reader = new io.BufferedStream(stream);
+ @endcode
+ */
+interface BufferedStream : Stream
+{
+    /*! @brief BufferedStream Constructor
+      @param stm The binary base stream of the bufferedStream
+     */
+    BufferedStream(Stream stm);
+
+    /*! @brief Read the text by the specified size
+     @param size The size of the text to read. The size is measured in utf8 format or another specified code format.
+     @return The text to read. If no data to read or the connection is interrupted, return null.
+     */
+    String readText(Integer size) async;
+
+    /*! @brief Read a line of text which ends with EOL, by default it ends with, posix:\"\\n\"；windows:\"\\r\\n\"
+     @param maxlen The maximum length of the string to read, measured in utf8 format, by default it is unlimited.
+     @return The text to read. If no data to read or the connection is interrupted, return null.
+     */
+    String readLine(Integer maxlen = -1) async;
+
+    /*! @brief Read a line of text which ends with EOL, by default it ends with, posix:\"\\n\"；windows:\"\\r\\n\"
+     @param maxlines The maximum lines of the text to read, by default it reads all of the lines.
+     @return The array of the lines to read. If no data to read or the connection is interrupted, return an empty array.
+     */
+    Array readLines(Integer maxlines = -1);
+
+    /*! @brief Read a text string which ends with specified string
+     @param mk The specified string with which the text string to read ends
+     @param maxlen The maximum length of the string to read, measured in utf8 format, by default it is unlimited.
+     @return The string to read. If no data to read or the connection is interrupted, return null.
+     */
+    String readUntil(String mk, Integer maxlen = -1) async;
+
+    /*! @brief Write a string
+     @param txt The string to write
+     */
+    deprecated writeText(String txt) async;
+
+    /*! @brief Write a string and a line break
+     @param txt The string to write
+     */
+    writeLine(String txt) async;
+
+    /*! @brief Query the stream object when creating the buffer object */
+    readonly Stream stream;
+
+    /*! @brief Query and set the character set of the text being handled, by default it is utf-8 */
+    String charset;
+
+    /*! @brief Query and set the EOL syntax, by default it is posix:\"\\n\"；windows:\"\\r\\n\"   */
+    String EOL;
+};

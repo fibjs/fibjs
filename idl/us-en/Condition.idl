@@ -1,0 +1,60 @@
+/*! @brief Condition variable object
+
+ Condition variable that used the global variables is a synchronization mechanism between fiber, always including two actions:
+  1) one fiber waiting for a condition be set, at the same time will hang themselves;
+  2) another fiber set the condition, and notify the waiting fiber continue.
+
+
+ To avoid competition, each condition variable requires a Lock which can be created and passed in or created by fibjs.
+
+ By using the condition variable, you can use it to control group of fiber switch;
+
+ Here are an examples of two fiber switch:：
+ @code
+ var coroutine = require("coroutine");
+ var cond = new coroutine.Condition();
+ var ready = false;
+ var state = "ready";
+
+ function funcwait() {
+	cond.acquire();
+	while (!ready)
+		cond.wait();
+	state = "go"
+	cond.release();
+ }
+
+ coroutine.start(funcwait);
+
+ cond.acquire();
+ console.log(state)
+ ready = true;
+ cond.notify();
+ coroutine.sleep();
+ console.log(state);
+
+ will output:
+ ready
+ go
+ @endcode
+
+ */
+interface Condition : Lock
+{
+    /*! @brief Condition variable Constructor (the required lock created by fibjs) */
+    Condition();
+
+    /*! @brief Condition variable Constructor
+     @param lock Use lock created by yourself.
+     */
+    Condition(Lock lock);
+
+    /*! @brief Make the fiber enter the blocked state  */
+    wait();
+
+    /*! @brief Notify one blocked fiber proceed continue (the last one which created in fiber pool) */
+    notify();
+
+    /*! @brief Notify all blocked fiber proceed continue */
+    notifyAll();
+};

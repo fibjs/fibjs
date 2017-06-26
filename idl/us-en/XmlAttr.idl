@@ -1,0 +1,32 @@
+
+/*! @brief XmlAttr is a property of XmlElement */
+interface XmlAttr
+{
+    /*! @brief Get element local name, it is same as nodeName when no namespace for node
+    */
+    readonly String localName;
+
+    /*! @brief Property value
+    */
+    String value;
+
+    /*! @brief Property name
+    */
+    readonly String name;
+
+    /*! @brief Get URI of element's namespace, returns NULL when no namespace
+    */
+    readonly String namespaceURI;
+
+    /*! @brief Ger and ser prefix of element's namespace, returns NULL when no namespace
+    */
+    String prefix;
+
+    /*! @brief Property name, for compatible purpose
+    */
+    readonly String nodeName;
+
+    /*! @brief Property value, for compatible purpose
+    */
+    String nodeValue;
+};

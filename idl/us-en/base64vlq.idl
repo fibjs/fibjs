@@ -1,0 +1,31 @@
+/*! @brief base64vlq module with encode and decode operations.
+ to use:
+ @code
+ var encoding = require('encoding');
+ var base64vlq = encoding.base64vlq;
+ @endcode
+ or:
+ @code
+ var base64vlq = require('base64vlq');
+ @endcode
+ */
+module base64vlq
+{
+	/*! @brief Encode int data to string with base64vlq format.
+	 @param data Int data to be encoded.
+	 @return The encoded result string.
+	 */
+	static String encode(Integer data);
+
+	/*! @brief Encode array data to string with base64vlq format.
+	 @param data Array data to be encoded.
+	 @return The encoded result string.
+	 */
+	static String encode(Array data);
+
+	/*! @brief Decode string to binary data with base64vlq format.
+	 @param data String data to be decoded.
+	 @return The decoded result binary data.
+	 */
+	static Array decode(String data);
+};

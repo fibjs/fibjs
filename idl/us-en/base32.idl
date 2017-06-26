@@ -1,0 +1,25 @@
+/*! @brief base32 module with encode and decode operations.
+ to use:
+ @code
+ var encoding = require('encoding');
+ var base32 = encoding.base32;
+ @endcode
+ or:
+ @code
+ var base32 = require('base32');
+ @endcode
+ */
+module base32
+{
+	/*! @brief Encode buffer data to string with base32 format.
+	 @param data Buffer data to be encoded.
+	 @return The encoded result string.
+	 */
+	static String encode(Buffer data);
+
+	/*! @brief Decode string to binary data with base32 format.
+	 @param data String to be decoded.
+	 @return The decoded result binary data.
+	 */
+	static Buffer decode(String data);
+};

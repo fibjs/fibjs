@@ -1,0 +1,16 @@
+
+/*! @brief IO module
+
+To use it:
+ @code
+ var io = require('io');
+ @endcode
+ */
+module io
+{
+    /*! @brief Create a memory stream, see MemoryStream */
+    static MemoryStream new MemoryStream();
+
+    /*! @brief Create a buffered read stream, see BufferedStream */
+    static BufferedStream new BufferedStream();
+};

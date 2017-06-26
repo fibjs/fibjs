@@ -1,0 +1,20 @@
+/*! @brief rpc Object of Task agent
+
+ To create and manage rpc json object, use:
+ @code
+ var rpc = require("rpc");
+ var t = rpc.open('apps/something.js');
+ t.func1(100);
+ t.mod2.func2(100);
+ @endcode
+ */
+interface RpcTask : object
+{
+	/*! @brief Call current agent function, and return result.
+	 @param ... 
+	 */
+	Value Function(...);
+
+	/*! @brief return Subordinate agent of current agent. */
+	readonly RpcTask operator[String];
+};

@@ -1,0 +1,36 @@
+/*! @brief Expand Meassage Handler Interface */
+interface HandlerEx : Handler
+{
+    /*! @brief Set error handler
+     @param hdlrs Different errors handler, key is error number, value is handler, which can be  internal message handler, function or javascript message mapping object. You can reffer to mq.jsHandler for detail.
+     way to use:
+     @code
+         hdlr.onerror({
+             "404": function(v)
+                    {
+                        ...
+                    },
+             "500": new mq.Routing(...)
+         })
+     @endcode
+     */
+    onerror(Object hdlrs);
+
+    /*! @brief  Current event-handler-interface object of WebSocket Packet protocol conversion handler */
+    Handler handler;
+
+    /*! @brief Get webSocket work state of packet protocol conversion handler
+
+      return Stats object, the structure is as follow:
+      @code
+      {
+          total : 1000,    // count of all request handled.
+          pendding : 100,  // count of request currently handling.
+          request : 10,    // count of request created.
+          response : 10,   // count of response sent.
+          error : 100      // count of wrongs.
+      }
+      @endcode
+     */
+    readonly Stats stats;
+};

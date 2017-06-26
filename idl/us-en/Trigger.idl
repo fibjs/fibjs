@@ -1,0 +1,114 @@
+
+/*! @brief Event trigger object can be used to establish the observer mode, the object supports event-triggered inherit this same function in the same event will generate a callback
+
+ Event Objects can be created independently, for the formation of a custom event system:
+ @code
+ var e = new coroutine.Trigger();
+ @endcode
+ */
+interface Trigger : object
+{
+    /*! @brief Constructor */
+    Trigger();
+
+    /*! @brief Bind an event handler to an object
+      @param ev Event name
+      @param func Event handler
+      @return Return binded number, reruen 0 it's already binded
+     */
+    Integer on(String ev, Function func);
+
+    /*! @brief Bind an event handler to an object
+      @param map Mapping between the specified event, the object attribute name as the event name, value of the property as an event handler
+      @return Return binded number
+     */
+    Integer on(Object map);
+
+    /*! @brief Bind an event handler to an object. Alias for on.
+      @param ev Event name
+      @param func Event handler
+      @return Return binded number, reruen 0 it's already binded
+     */
+    Integer addListener(String ev, Function func);
+
+    /*! @brief Bind an event handler to an object. Alias for on.
+      @param map Mapping between the specified event, the object attribute name as the event name, value of the property as an event handler
+      @return Return binded number
+     */
+    Integer addListener(Object map);
+
+    /*! @brief Bind a one-time event handler to an object, a one-time handler is triggered only once
+      @param ev Event name
+      @param func Event handler
+      @return Return binded number, reruen 0 it's already binded
+     */
+    Integer once(String ev, Function func);
+
+    /*! @brief Bind a one-time event handler to an object, a one-time handler is triggered only once
+      @param map Mapping between the specified event, the object attribute name as the event name, value of the property as an event handler
+      @return Return binded number
+     */
+    Integer once(Object map);
+
+    /*! @brief Cancel the specified function from the object processing queue
+      @param ev Event name
+      @param func Event handler
+      @return Return unbinded number, reruen 0 it's not binded
+     */
+    Integer off(String ev, Function func);
+
+    /*! @brief Cancel object handles all the functions in the queue
+      @param ev Event name
+      @return Always return 0
+     */
+    Integer off(String ev);
+
+    /*! @brief Cancel the specified function from the object processing queue
+      @param map Mapping between the specified event, the object attribute name as the event name, value of the property as an event handler
+      @return Return unbinded number, reruen 0 it's not binded
+     */
+    Integer off(Object map);
+
+    /*! @brief Cancel the specified function from the object processing queue
+      @param ev Event name
+      @param func Event handler
+      @return Return unbinded number, reruen 0 it's not binded
+     */
+    Integer removeListener(String ev, Function func);
+
+    /*! @brief Cancel object handles all the functions in the queue
+      @param ev Event name
+      @return Always return 0
+     */
+    Integer removeListener(String ev);
+
+    /*! @brief 从对象处理队列中取消指定函数
+      @param map 指定事件映射关系，对象属性名称作为事件名称，属性的值作为事件处理函数
+      @return 返回成功取消的数量
+    */
+    Integer removeListener(Object map);
+
+    /*! @brief Cancel the specified function from the object processing queue
+      @param map Mapping between the specified event, the object attribute name as the event name, value of the property as an event handler
+      @return Return unbinded number, reruen 0 it's not binded
+     */
+    Integer removeAllListeners(Array evs = []);
+
+    /* @briefset default listener number，only use for compatibility
+      @param n event number
+    */
+    setMaxListeners(Integer n);
+
+    /*! @brief Returns a copy of the array of listeners for the event named ev.
+      @param ev event name
+      @return listeners array
+    */
+    Array listeners(String ev);
+
+    /*! @brief Trigger an event
+      @param ev Event name
+      @param ... Event parameters will be passed to the event handler
+     */
+    trigger(String ev, ...);
+};
+

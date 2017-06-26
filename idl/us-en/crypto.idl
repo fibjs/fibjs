@@ -1,0 +1,148 @@
+
+/*! @brief Encryption algorithm module
+
+ The way to use:
+ @code
+ var crypto = require('crypto');
+ @endcode
+ */
+module crypto
+{
+    /*! @brief Specifies the symmetric encryption algorithm as AES, which support 128, 192, 256 bit key, and block cipher mode support ECB, CBC, CFB128, CTR, GCM */
+    /*! @brief assign symmetric encryption algorithms, AES, support 128, 192, 256 keies. Block cipher mode of operation support ECB, CBC, CFB128, CTR, GCM */
+    const Integer AES = 1;
+
+    /*! @brief Specifies the symmetric encryption algorithm as CAMELLIA, which support 128, 192, 256 bit key, and block cipher mode support ECB, CBC, CFB128, CTR, GCM */
+    /*! @brief assign symmetric encryption algorithms, AES, support 128, 192, 256 keies. Block cipher mode of operation support ECB, CBC, CFB128, CTR, GCM */
+    const Integer CAMELLIA = 2;
+
+    /*! @brief Specifies the symmetric encryption algorithm as DES, which support 64 bit key, and block cipher mode support ECB, CBC */
+    /*! @brief assign symmetric encryption algorithms, AES, support 64 key. Block cipher mode of operation support ECB, CBC */
+    const Integer DES = 3;
+
+    /*! @brief Specifies the symmetric encryption algorithm as DES-EDE, which support 128 bit key, and block cipher mode support ECB, CBC */
+    /*! @brief assign symmetric encryption algorithms, DES-EDE, support 128 key. Block cipher mode of operation support ECB, CBC */
+    const Integer DES_EDE = 4;
+
+    /*! @brief Specifies the symmetric encryption algorithm as DES-EDE3, which support 192 bit key, and block cipher mode support ECB, CBC */
+    /*! @brief assign symmetric encryption algorithms, DES-EDE3, support 128 key. Block cipher mode of operation support ECB, CBC */
+    const Integer DES_EDE3 = 5;
+
+    /*! @brief Specifies the symmetric encryption algorithm as BLOWFISH, which support 192 bit key, and block cipher mode support ECB, CBC, CFB64, CTR */
+    /*! @brief assign symmetric encryption algorithms, BLOWFISH, support 128 key. Block cipher mode of operation support ECB, CBC CFB64, CTR*/
+    const Integer BLOWFISH = 6;
+
+    /*! @brief Specifies the symmetric encryption algorithm as ARC4, which support 40, 56, 64, 128 bit key */
+    /*! @brief assign Block cipher mode of operation, ARC4, support 40, 56, 64, 128 key.*/
+    const Integer ARC4 = 7;
+
+    /*! @brief Specify the block cipher mode that support ECB */
+    /*! @brief Block cipher mode of operation ECB */
+    const Integer ECB = 1;
+
+    /*! @brief Specify the block cipher mode that support CBC */
+    /*! @brief Block cipher mode of operation CBC */
+    const Integer CBC = 2;
+
+    /*! @brief Specify the block cipher mode that support CFB64 */
+    /*! @brief Block cipher mode of operation CFB64 */
+    const Integer CFB64 = 3;
+
+    /*! @brief Specify the block cipher mode that support CFB128 */
+    /*! @brief Block cipher mode of operation CFB128 */
+    const Integer CFB128 = 4;
+
+    /*! @brief Specify the block cipher mode that support OFB */
+    /*! @brief Block cipher mode of operation OFB */
+    const Integer OFB = 5;
+
+    /*! @brief Specify the block cipher mode that support CTR */
+    /*! @brief Block cipher mode of operation CTR */
+    const Integer CTR = 6;
+
+    /*! @brief Specify the block cipher mode that support GCM */
+    /*! @brief Block cipher mode of operation GCM */
+    const Integer GCM = 7;
+
+    /*! @brief Specifies the stream cipher mode. */
+    /*! @brief Stream cipher mode*/
+    const Integer STREAM = 8;
+
+    /*! @brief Specify the block cipher mode that support CCM */
+    /*! @brief Block cipher mode of operation CCM */
+    const Integer CCM = 9;
+
+    /*! @brief pecifies the fill mode as PKCS7 */
+    const Integer PKCS7 = 0;
+
+    /*! @brief Specifies the fill mode as ONE_AND_ZEROS */
+    const Integer ONE_AND_ZEROS = 1;
+
+    /*! @brief pecifies the fill mode as ZEROS_AND_LEN */
+    const Integer ZEROS_AND_LEN = 2;
+
+    /*! @brief pecifies the fill mode as ZEROS */
+    const Integer ZEROS = 3;
+
+    /*! @brief pecifies the fill mode as NOPADDING */
+    const Integer NOPADDING = 4;
+
+    /*! @brief Cipher Constructor, reference Cipher */
+    static Cipher;
+
+    /*! @brief PKey Constructor, reference PKey */
+    static PKey;
+
+    /*! @brief X509Cert Constructor, reference X509Cert */
+    static X509Cert;
+
+    /*! @brief X509Crl Constructor, reference X509Crl */
+    static X509Crl;
+
+    /*! @brief X509Req Constructor, reference X509Req */
+    static X509Req;
+
+    /*! @brief Load a PEM/DER format key file. 
+    @param filename Key file name.
+    @param password Decryption password.
+    */
+    static PKey loadPKey(String filename, String password = "");
+
+    /*! @brief Load a CRT/PEM/DER/TXT format certificate can be called multiple times.
+
+    LoadFile load mozilla certdata.txt, which can be download from http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt
+
+    @param filename Certificate file name.
+    */
+    static X509Cert loadCert(String filename);  
+
+    /*! @brief Load a PEM/DER format revoked certificate can be called multiple times.
+    @param filename The cancellation certificate file name.
+    */
+    static X509Crl loadCrl(String filename);
+
+    /*! @brief Load a PEM/DER format requested certificate can be called multiple times.
+    @param filename The requested certificate file name.
+    */
+    static X509Req loadReq(String filename);
+
+    /*! @brief Generate the specified size of the random number, which use the havege generator.
+     @param size Specify the size of the generated random number.
+     @return Return the generated random number.
+     */
+    static Buffer randomBytes(Integer size) async;
+
+    /*! @brief Generate the specified size of the pseudo-random number, which use the entropy generator.
+     @param size Specify the size of the generated random number.
+     @return Return the generated random number.
+     */
+    static Buffer pseudoRandomBytes(Integer size) async;
+
+    /*! @brief Generate a visual character image by use given data.
+     @param data Specifies the data to display.
+     @param title The title of the specified character image, multibyte characters can cause width error.
+     @param size The character image size.
+     @return Return the generated visual string image.
+     */
+    static String randomArt(Buffer data, String title, Integer size = 8);
+};

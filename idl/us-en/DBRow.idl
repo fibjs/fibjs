@@ -1,0 +1,9 @@
+/*! @brief Database record object */
+interface DBRow : object
+{
+    /*! @brief The element of the object array can be accessed by using subscript*/
+    readonly Value operator[];
+
+    /*! @brief The subscript can be a string of the record name*/
+    readonly Value operator[String];
+};

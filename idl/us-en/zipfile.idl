@@ -1,0 +1,71 @@
+/*! @brief Zip file object with read and write operations. */
+interface ZipFile : object
+{
+	/*! @brief Get list of file name in zip file. */
+	List namelist() async;
+
+	/*! @brief Get list of file info in zip file. */
+	List infolist() async;
+
+	/*! @brief Get file info.
+	 @param member Name of file
+	*/
+	ZipInfo getinfo(String member) async;
+
+	/*! @brief Read file data in zip file.
+     @param member Name of the specific file.
+     @param password password of the zip file, default with null.
+     @return Data of file read from the zip file.
+     */
+	Buffer read(String member, String password = "") async;
+
+	/*! @brief Read data of all file in zip file.
+     @param password password of the zip file, default with null.
+     @return List of file data.
+     */
+	List readAll(String password = "") async;
+
+	/*! @brief Extract a specific file in zip file.
+     @param member The specific file name.
+     @param path The file path to store the decompressed file.
+     @param password password of the zip file, default with null.
+     */
+	extract(String member, String path, String password = "") async;
+
+	/*! @brief Extract a specific file from zip file into stream.
+     @param member The specific file name.
+     @param strm The stream to store file data.
+     @param password password of the zip file, default with null.
+     */
+	extract(String member, SeekableStream strm, String password = "") async;
+
+	/*! @brief Extract all files
+     @param path Path to store all files extracted from zip file.
+     @param password password of the zip file, default with null.
+     */
+	extractAll(String path, String password = "") async;
+
+	/*! @brief Write specific a file into zip file.
+     @param filename Name of the specific file.
+     @param inZipName File name in zip file.
+     @param password password of the zip file, default with null.
+     */
+	write(String filename, String inZipName, String password = "") async;
+
+	/*! @brief Write buffer data into zip file.
+     @param data Buffer data.
+     @param inZipName File name in zip file.
+     @param password password of the zip file, default with null.
+     */
+	write(Buffer data, String inZipName, String password = "") async;
+
+	/*! @brief Write stream data into zip file.
+     @param strm Stream data.
+     @param inZipName File name in zip file.
+     @param password password of the zip file, default with null.
+     */
+	write(SeekableStream strm, String inZipName, String password = "") async;
+
+	/*! @brief Close zip file */
+	close() async;
+};

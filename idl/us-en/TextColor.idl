@@ -1,0 +1,17 @@
+
+/*! @brief Terminal color output config object
+ */
+interface TextColor : object
+{
+    /*! @brief Set console.notice color */
+    String notice;
+
+    /*! @brief Set console.warn color */
+    String warn;
+
+    /*! @brief Set console.error color */
+    String error;
+
+    /*! @brief Set highLight color */
+    String highLight;
+};

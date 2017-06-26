@@ -1,0 +1,57 @@
+
+/*! @brief Redis database client Set object, it contains client of given key and has to operate it with database
+
+ Used for Redis Set object, to create it:
+ @code
+ var db = require("db");
+ var rdb = new db.openRedis("redis-server");
+ var set = rdb.getSet("test");
+ @endcode
+ */
+interface RedisSet : object
+{
+    /*! @brief Add one or more member to collection key, duplicates will be ignored
+     @param members Members to add
+     @return Return number of elements added, exclusive ignores */
+    Integer add(Array members);
+
+    /*! @brief Add multiple field-value to hash table, overwrite when exist
+     @param ... List of elements
+     @return Return number of elements added, exclusive ignores */
+    Integer add(...);
+
+    /*! @brief Remove one or more elements
+     @param members Members to remove
+     @return Return number of elements removed, exclusive ignores */
+    Integer remove(Array members);
+
+    /*! @brief Remove one or more elements
+     @param ... List of elements to remove
+     @return Return number of elements removed, exclusive ignores */
+    Integer remove(...);
+
+    /*! @brief Get number of elements in collection
+     @return Return length of collection */
+    Integer len();
+
+    /*! @brief Chekc if member is in collection
+     @return Return true when member is in collection */
+    Boolean exists(Buffer member);
+
+    /*! @brief Return all elements
+     @return Return list of members */
+    List members();
+
+    /*! @brief Remove and return a random element
+     @return Return removed element, null when collection is empty */
+    Buffer pop();
+
+    /*! @brief Return a random element
+     @return Return a element, null when collection is empty */
+    Value randMember();
+
+    /*! @brief Get number of random elements
+     @param count Number of elements to return. Positive, return a array with given elements; negative, may have duplicated elements and length is the absolute value of count
+     @return Return a list with elements or empty list */
+    Value randMember(Integer count);
+};

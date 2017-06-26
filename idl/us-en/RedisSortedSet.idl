@@ -1,0 +1,77 @@
+
+/*! @brief Redis database SortedSet object, it contains client of given key and has to operate it with database
+
+ Used for Redis SortedSet object, to use it:
+ @code
+ var db = require("db");
+ var rdb = new db.openRedis("redis-server");
+ var set = rdb.getSortedSet("test");
+ @endcode
+ */
+interface RedisSortedSet : object
+{
+    /*! @brief Add one or more element to ordered collection
+     @param sms Member/score to add
+     @return Return number of newly added elements, exclusive updated elements */
+    Integer add(Object sms);
+
+    /*! @brief Add one or more elements to ordered collection
+     @param ... Member/scores to add
+     @return Return number of newly added elements, exclusive updated elements */
+    Integer add(...);
+
+    /*! @brief Query score of member
+     @param member Member to query
+     @return Return score of member in string format */
+    Buffer score(Buffer member);
+
+    /*! @brief Increase number to score of member
+     @param member Member to change
+     @param num Number to increase
+     @return Return new score value in string format */
+    Buffer incr(Buffer member, Long num = 1);
+
+    /*! @brief Remove one or more members
+     @param members Array of elements
+     @return Return removed elements, exlusive ignored elements */
+    Integer remove(Array members);
+
+    /*! @brief Remove one or more members
+     @param ... List of elements
+     @return Return removed elements, exlusive ignored elements */
+    Integer remove(...);
+
+    /*! @brief Return number of elements
+     @return Return length of collection */
+    Integer len();
+
+    /*! @brief Count number of elements whose score between min and max inclusively
+     @param min Minimum value of score
+     @param max Maximum value of score
+     @return Return number of elements */
+    Integer count(Integer min, Integer max);
+
+    /*! @brief Returs elements in given range and ordered increasingly
+     @param start Start index, 0 is the first one, -1 is the last one
+     @param stop End index, 0 is the first one, -1 is the last one
+     @param withScores Indicates whether inclusive or not
+     @return Return range of elements */
+    List range(Integer start, Integer stop, Boolean withScores = false);
+
+    /*! @brief Returs elements in given range and ordered decreasingly
+     @param start Start index, 0 is the first one, -1 is the last one
+     @param stop End index, 0 is the first one, -1 is the last one
+     @param withScores Indicates whether inclusive or not
+     @return Return range of elements */
+    List rangeRev(Integer start, Integer stop, Boolean withScores = false);
+
+    /*! @brief Rank for member by score and ordered increasingly
+     @param member Member to query
+     @return Return ranked member, return nil if memeber is in ordered collection */
+    Integer rank(Buffer member);
+
+    /*! @brief Rank for member by score and ordered decreasingly
+     @param member Member to query
+     @return Return ranked member, return nil if memeber is in ordered collection */
+    Integer rankRev(Buffer member);
+};

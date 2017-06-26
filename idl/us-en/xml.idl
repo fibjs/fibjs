@@ -1,0 +1,60 @@
+
+/*! @brief xml module
+*/
+module xml
+{
+    /*! @brief XmlNode's nodeType property, represents XmlElement node object
+    */
+    const Integer ELEMENT_NODE = 1;
+
+    /*! @brief XmlNode's nodeType property, represents XmlAttr node object
+    */
+    const Integer ATTRIBUTE_NODE = 2;
+
+    /*! @brief XmlNode's nodeType property, represents XmlText node object
+    */
+    const Integer TEXT_NODE = 3;
+
+    /*! @brief XmlNode's nodeType property, represents XmlCDATASection node object
+    */
+    const Integer CDATA_SECTION_NODE = 4;
+
+    /*! @brief XmlNode's nodeType property, represents XmlProcessingInstruction node object
+    */
+    const Integer PROCESSING_INSTRUCTION_NODE = 7;
+
+    /*! @brief XmlNode's nodeType property, represents XmlComment node object
+    */
+    const Integer COMMENT_NODE = 8;
+
+    /*! @brief XmlNode's nodeType property, represents XmlDocument node object
+    */
+    const Integer DOCUMENT_NODE = 9;
+
+    /*! @brief XmlNode's nodeType property, represents XmlDocumentType node object
+    */
+    const Integer DOCUMENT_TYPE_NODE = 10;
+
+    /*! @brief xml document object, see XmlDocument object*/
+    static XmlDocument new Document();
+
+    /*! @brief Parse xml/html text and create XmlDocument object, does not support multiple languages
+     @param source xml/html text to parse
+     @param type Indicates text type, default is text/xml, and can be text/html as well
+     @return Return created XmlDocument object
+    */
+    static XmlDocument parse(String source, String type = "text/xml");
+
+    /*! @brief Parse xml/html and create XmlDocument object, convert by given language
+     @param source xml/html text to parse
+     @param type Indicates text type, default is text/xml, and can be text/html as well
+     @return Return created XmlDocument object
+    */
+    static XmlDocument parse(Buffer source, String type = "text/xml");
+
+    /*! @brief Serialize XmlNode to string
+     @param node XmlNode to serialize
+     @return Return serialized string
+    */
+    static String serialize(XmlNode node);
+};

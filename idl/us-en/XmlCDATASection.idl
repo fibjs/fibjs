@@ -1,0 +1,16 @@
+
+/*! @brief CDATA section for XmlCDATASection
+
+XmlCDATASection is a child-interface of XmlText who does not have any own properties and methods. Use XmlNode to inherit nodeValue property or use XmlCharacterData to inherit data property. Access CDATA Section to get text content.
+
+Generally you can use XmlCDATASection node as XmlText, but noted that XmlNode's normalize method does not belong to adjacent CDATA part.
+
+Use XmlDocument's createXmlCDATASection method to create a XmlCDATASection.
+
+CDATA section contains raw content that will not be parsed. CDATA section of the label will not be regarded as markup and entities will not be expanded. The main purpose is to contain information such as XML fragments like material, without needing to escape all the delimiters.
+
+In a CDATA, the only identified separator is "]]>". It may mark the end of a CDATA section. CDATA sections can not be nested.
+*/
+interface XmlCDATASection : XmlText
+{
+};

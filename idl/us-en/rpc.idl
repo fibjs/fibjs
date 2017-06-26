@@ -1,0 +1,16 @@
+
+/*! @brief RPC module
+
+ To use it:
+ @code
+ var rpc = require('rpc');
+ @endcode
+ */
+module rpc
+{
+    /*! @brief Generate a json-rpc message converter
+     @param hdlr Built-in handler, handle function or javascript message mapping object, see mq.jsHandler
+     @return Return handler
+     */
+    static Handler json(Value hdlr);
+};

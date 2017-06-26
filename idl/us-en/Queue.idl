@@ -1,0 +1,59 @@
+/*! @brief FIFO queue
+
+ Used create and manage FIFO queue, to create it:
+ @code
+ var collection = require("collection");
+ var q = new collection.Queue(100);
+ @endcode
+ */
+interface Queue : object
+{
+    /*! @brief Constructor
+     @param size Size of queue
+     */
+    Queue(Integer size);
+
+    /*! @brief Insert new elemenet to queue
+     @param e Element to insert
+     @return Return true when success, throw error when queue is full
+     */
+    Boolean add(Value e);
+
+    /*! @brief Insert new elemenet to queue
+     @param e Element to insert
+     @return Return true when success, false when queue is full
+     */
+    Boolean offer(Value e);
+
+    /*! @brief Remove and return element from queue
+     @return Return element, throw error when queue is empty
+     */
+    Value remove();
+
+    /*! @brief Remove and return element from queue
+     @return Return element, null when queue is empty
+     */
+    Value poll();
+
+    /*! @brief Get element from queue
+     @return Return element, throw error when queue is empty
+     */
+    Value element();
+
+    /*! @brief Get element from queue
+     @return Return element, null when queue is empty
+     */
+    Value peek();
+
+    /*! @brief Clear queue */
+    clear();
+
+    /*! @brief Get queue in js array
+      @return Return queue in js array
+     */
+    Array toArray();
+
+    /*! @brief Get length of queue */
+    readonly Integer length;
+};
+

@@ -1,0 +1,183 @@
+
+/*! @brief Image processing module
+
+ Base module. It can be used to create and manipulate image files. The way to use：
+ \code
+ var gd = require('gd');
+ \endcode
+ */
+module gd
+{
+    /*! @brief Image type constants, marking the current image source is unknown. */
+    const Integer NONE = 0;
+
+    /*! @brief Image type constant, marking the current image data source is jpeg. */
+    const Integer JPEG = 1;
+
+    /*! @brief Image type constant, marking the current image data source is gif. */
+    const Integer GIF = 2;
+
+    /*! @brief Image type constant, marking the current image data source is png. */
+    const Integer PNG = 3;
+
+    /*! @brief Image type constant, marking the current image data source is tiff. */
+    const Integer TIFF = 4;
+
+    /*! @brief Image type constant, marking the current image data source is bmp. */
+    const Integer BMP = 5;
+
+    /*! @brief Image type constant, marking the current image data source is gd. */
+    const Integer GD = 6;
+
+    /*! @brief Image type constant, marking the current image data source is gd2. */
+    const Integer GD2 = 7;
+
+    /*! @brief Image type constants, labeled the current image as true color image. */
+    const Integer TRUECOLOR = 0;
+
+    /*! @brief Image type constants, labeled the current image to a palette image. */
+    const Integer PALETTE = 1;
+
+    /*! @brief Fan-shaped drawing style, draw a line connecting the start and end points of the arc. */
+    const Integer ARC = 0;
+
+    /*! @brief Fan-shaped drawing style, draw a straight line connecting the origin, the beginning and ending points */
+    const Integer CHORD = 1;
+
+    /*! @brief Fan-shaped drawing style, drawing not filled fan */
+    const Integer NOFILL = 2;
+
+    /*! @brief Fan-shaped drawing styles, draw a line connecting the start and end points of the arc and the straight line connecting the origin. */
+    const Integer EDGED = 4;
+
+    /*! @brief Mirroring direction, processing transverse */
+    const Integer HORIZONTAL = 1;
+
+    /*! @brief Mirroring direction, processing longitudinal */
+    const Integer VERTICAL = 2;
+
+    /*! @brief Mirroring direction, processing transverse and longitudinal */
+    const Integer BOTH = 3;
+
+    /*! @brief Direction of rotation, left rotation */
+    const Integer LEFT = 1;
+
+    /*! @brief Direction of rotation, right rotation */
+    const Integer RIGHT = 2;
+
+    /*! @brief Filter Type: Uses mean removal to achieve a "sketchy" effect. */
+    const Integer MEAN_REMOVAL = 0;
+
+    /*! @brief Filter Type: Uses edge detection to highlight the edges in the image. */
+    const Integer EDGEDETECT = 1;
+
+    /*! @brief Filter Type: Embosses the image. */
+    const Integer EMBOSS = 2;
+
+    /*! @brief Filter Type: Blurs the image. */
+    const Integer SELECTIVE_BLUR = 3;
+
+    /*! @brief Filter Type: Blurs the image using the Gaussian method. */
+    const Integer GAUSSIAN_BLUR = 4;
+
+    /*! @brief Filter Type: Reverses all colors of the image. */
+    const Integer NEGATE = 5;
+
+    /*! @brief Filter Type: Converts the image into grayscale. */
+    const Integer GRAYSCALE = 6;
+
+    /*! @brief Filter Type: Makes the image smoother. Use arg1 to set the level of smoothness. */
+    const Integer SMOOTH = 7;
+
+    /*! @brief Filter Type: Changes the brightness of the image. Use arg1 to set the level of brightness. The range for the brightness is -255 to 255. */
+    const Integer BRIGHTNESS = 8;
+
+    /*! @brief Filter Type: Changes the contrast of the image. Use arg1 to set the level of contrast, The range for the contrast is 0~100. */
+    const Integer CONTRAST = 9;
+
+    /*! @brief Filter Type: Changes the hue of the image, Use arg1, arg2 and arg3 in the form of red, green, blue and arg4 for the alpha channel.The range for each color is 0 to 255. */
+    const Integer COLORIZE = 10;
+
+    /*! @brief Create a new image
+     @param width Specifies the width of the image.
+     @param height Specifies the height of the image.
+     @param color Specify the image type, the allowable value is gd.TRUECOLOR or gd.PALETTE
+     @return Returns the created image object of success.
+     */
+    static Image create(Integer width, Integer height, Integer color = gd.TRUECOLOR) async;
+
+    /*! @brief Decoded image from the format data.
+     @param data The image data need decoded.
+     @return Return successfully decoded image object.
+     */
+    static Image load(Buffer data) async;
+
+    /*! @brief Decoded image from the stream object.
+     @param stm The stream object of the specified image data.
+     @return Return successfully decoded image object.
+     */
+    static Image load(SeekableStream stm) async;
+
+    /*! @brief Decoded image from the specified file.
+     @param fname Specify the file name.
+     @return Return successfully decoded image object.
+     */
+    static Image load(String fname) async;
+
+    /*! @brief Generating a combined color through rgb color components.
+     @param red Red component in the range of 0-255
+     @param green Green component in the range of 0-255
+     @param blue Blue component in the range of 0-255
+     @return Returns the combined color.
+     */
+    static Integer rgb(Integer red, Integer green, Integer blue);
+
+    /*! @brief Generating a combined color through rgba color components.
+     @param red Red component in the range of 0-255
+     @param green Green component in the range of 0-255
+     @param blue Blue component in the range of 0-255
+     @param alpha Transparent component in the range of 0.0-1.0
+     @return Returns the combined color.
+     */
+    static Integer rgba(Integer red, Integer green, Integer blue, Number alpha);
+
+    /*! @brief Generating a combined color through hsl color components.
+     @param hue Hue component in the range of 0-360.
+     @param saturation Saturation components in the range of 0.0-1.0
+     @param lightness Lightness component in the range of 0.0-1.0
+     @return Returns the combined color.
+     */
+    static Integer hsl(Number hue, Number saturation, Number lightness);
+
+    /*! @brief Generating a combined color through hsla color components.
+     @param hue Hue component in the range of 0-360.
+     @param saturation Saturation components in the range of 0.0-1.0
+     @param lightness Lightness component in the range of 0.0-1.0
+     @param alpha Transparent component in the range of 0.0-1.0
+     @return Returns the combined color.
+     */
+    static Integer hsla(Number hue, Number saturation, Number lightness, Number alpha);
+
+    /*! @brief Generating a combined color through hsb color components.
+      @param hue Hue component in the range of 0-360.
+      @param saturation Saturation components in the range of 0.0-1.0
+      @param brightness Brightness component in the range of 0.0-1.0
+      @return Returns the combined color.
+      */
+    static Integer hsb(Number hue, Number saturation, Number brightness);
+ 
+     /*! @brief Generating a combined color through hsba color components.
+      @param hue Hue component in the range of 0-360.
+      @param saturation Saturation components in the range of 0.0-1.0
+      @param brightness Brightness component in the range of 0.0-1.0
+      @param alpha Transparent component in the range of 0.0-1.0
+      @return Returns the combined color.
+      */
+     static Integer hsba(Number hue, Number saturation, Number brightness, Number alpha);
+
+    /*! @brief Generating a combined color by string
+     @param color The specified color string, e.g: "#ff0000", "ff0000", "#f00", "f00"
+     @return Returns the combined color.
+     */
+    static Integer color(String color);
+};

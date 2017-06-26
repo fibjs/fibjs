@@ -1,0 +1,17 @@
+
+/*! @brief XmlDocumentType object has access to XML actual body
+*/
+interface XmlDocumentType : XmlNode
+{
+    /*! @brief Get DTD name
+    */
+    readonly String name;
+
+    /*! @brief Get public ID of DTD
+    */
+    readonly String publicId;
+
+    /*! @brief Get system ID of DTD
+    */
+    readonly String systemId;
+};

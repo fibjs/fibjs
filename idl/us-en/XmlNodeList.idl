@@ -1,0 +1,19 @@
+
+/*! @brief XmlNodeList object represents an ordered node list
+*/
+interface XmlNodeList : object
+{
+    /*! @brief Get number of nodes
+    */
+    readonly Integer length;
+
+    /*! @brief Get node by given index
+     @param index Index of node
+     @return Return node with given index
+    */
+    XmlNode item(Integer index);
+
+    /*! @brief Able to access data by index
+    */
+    readonly XmlNode operator[];
+};

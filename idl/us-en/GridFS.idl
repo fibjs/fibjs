@@ -1,0 +1,45 @@
+
+/*! @brief MongoDB GridFS Distributed File System Access Object
+
+ You can create the object by:
+ @code
+ var gfs = mdb.fs;
+ @endcode
+ */
+interface GridFS : object
+{
+    /*! @brief get a file
+      @param name specify the file's name
+      @return the file you get
+     */
+    MemoryStream retrieve(String name);
+
+    /*! @brief save a stream to the file system
+      @param name specify the name the file will be save as
+      @param src the stream object that stores the source data
+     */
+    store(String name, Stream src);
+
+    /*! @brief save a binary data block to the file system
+      @param name specify the name the file will be save as
+      @param data specify the data block that will be saved
+     */
+    store(String name, Buffer data);
+
+    /*! @brief detect whether the specified file exists
+      @param name specify the name of the file to be detected
+      @return return true if the file exists
+     */
+    Boolean exists(String name);
+
+    /*! @brief delete the specified file
+      @param name specify the name of the file to be deleted
+     */
+    remove(String name);
+
+    /*! @brief query the metadata table of GridFS */
+    readonly MongoCollection files;
+
+    /*! @brief query the partitioned data table of GridFS */
+    readonly MongoCollection chunks;
+};

@@ -1,0 +1,27 @@
+
+/*! @brief XmlText object represents element or attribute text content
+
+XmlText node represents a serial raw text of XML document. Due to raw text only appear in elements and attributes, XmlText is the common child node of XmlElement and XmlAttr.
+
+XmlText node inherited XmlCharacterData interface, by using data property from XmlCharacterData or nodeValue property from XmlNode, you can access XmlText raw text.
+
+Use inherited methods of XmlCharacterData or XmlText's splitText() to operate XmlText node. Use XmlDocument's createTextNode to create a new XmlText node.
+
+XmlText does not have child node.
+
+Please see XmlNode.normalize to remove empty child nodes and merge adjacent nodes.
+*/
+interface XmlText : XmlCharacterData
+{
+    /*! @brief Split text by given offset
+
+     This method splits XmlText into two parts by given offset. Original XmlText will be modified with content before offset(exclusive).
+     New XmlText node contains content after offset(inclusive), which will also be the return value.
+     Besides, if original node has parentNode, then the new XmlText will has it, too.
+
+     XmlCDATASection inherited XmlText interface, so it can use this method as well. The only different is that the new node type will be XmlCDATASection instead of XmlText.
+     @param offset Offset to split, start at 0
+     @return Text of new node
+    */
+    XmlText splitText(Integer offset);
+};

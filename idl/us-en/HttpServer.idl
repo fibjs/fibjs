@@ -1,0 +1,62 @@
+/*! @brief http server object
+
+ http server object is the object that wrap TcpServer and HttpHandler as a combination, which makes it convenient to build a server, logically equivalent to:
+ @code
+ var svr = new net.TcpServer(addr, port, new http.Handler(function(req){
+    ...
+ }));
+ @endcode
+
+ How to create:
+ @code
+ var http = require("http");
+ var svr = new http.Server(80, function(req){
+     ...
+ });
+ @endcode
+ */
+interface HttpServer: TcpServer
+{
+    /*! @brief HttpServer constructor, listen on all local addresses
+      @param port spcify http server listen port
+      @param hdlr http built-in message handler, manipulation function or javascript message mapping object. See mq.jsHandler:
+     */
+    HttpServer(Integer port, Value hdlr);
+
+    /*! @brief HttpServer constructor
+      @param addr specify http server listening address, listen on all local addressed if the param is ""
+      @param port specify http server listen port
+      @param hdlr http built-in message handler, manipulation function or javascript message mapping object. See mq.jsHandler
+     */
+    HttpServer(String addr, Integer port, Value hdlr);
+
+    /*! @brief querying and setting whether cross-domain request is permitted, defaults to false */
+    Boolean crossDomain;
+
+    /*! @brief querying and setting whether the output is compressed by gzip, defaults to false */
+    Boolean forceGZIP;
+
+    /*! @brief querying and setting the max number of request headers, defaults to 128 */
+    Integer maxHeadersCount;
+
+    /*! @brief querying and setting the max size of the uploading file in MB, defults to 64MB */
+    Integer maxUploadSize;
+
+    /*! @brief querying working status of the http protocol conversion processor
+
+      returning a stats object, see the structure:
+      @code
+      {
+          total : 1000,    // total requests number that been handled
+          pendding : 100,  // current request being handled
+          request : 10,    // the new created request
+          response : 10,   // sended response
+          error : 100,     // errors, not including 404
+          error_400 : 10,  // request errors
+          error_404 : 12,  // 404 errors number
+          error_500 : 2    // internal processor error
+      }
+      @endcode
+     */
+    readonly Stats httpStats;
+};

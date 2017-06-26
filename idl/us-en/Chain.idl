@@ -1,0 +1,27 @@
+/*! @brief The handler of the message handler chain object 
+
+The handler of the message handler chain object is used for linking a series of message handlers and 
+chained processing them according to the specified order. Create method:
+ @code
+ var chain = new mq.Chain([
+   func1, func2
+ ]);
+ @endcode
+ */
+interface Chain: Handler
+{
+    /*!	@brief Constructor
+     @param hdlrs The array of the handlers
+     */
+    Chain(Array hdlrs);
+
+    /*!	@brief Append an array of the handlers
+     @param hdlrs The array of the handlers
+     */
+    append(Array hdlrs);
+
+    /*!	@brief Append a handler
+     @param hdlr Built-in message handler, processing function, or javascript message mapping object. See details in mq.jsHandler 
+     */
+    append(Value hdlr);
+};

@@ -1,0 +1,27 @@
+
+/*! @brief websocket message object
+
+To create it：
+ @code
+ var websocket = require("websocket");
+
+ var msg = new websocket.Message();
+ @endcode */
+interface WebSocketMessage: Message
+{
+	/*! @brief Packet processing message object constructor
+	@param type Websocket message type, default websocket.BINARY
+	@param masked Websocket message mask, default true
+	@param maxSize The maximum packet size in MB, default 67108864(64M)
+	 */
+	WebSocketMessage(Integer type = websocket.BINARY, Boolean masked = true, Integer maxSize = 67108864);
+
+	/*! @brief websocket message type */
+	Integer type;
+
+	/*! @brief Query and retrieve websocket's mask, default true */
+	Boolean masked;
+
+	/*! @brief Query and set the maximum packet size in byte, default 67108864(64M) */
+	Integer maxSize;
+};

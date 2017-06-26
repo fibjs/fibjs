@@ -1,0 +1,93 @@
+
+/*! @brief Memory profiler module
+
+ The way to use:
+ @code
+ var profiler = require('profiler');
+ @endcode
+ */
+module profiler
+{
+	/*! @brief Hidden node, may be filtered when shown to user. */
+	const Integer Node_Hidden = 0;
+
+	/*! @brief An array of elements. */
+	const Integer Node_Array = 1;
+
+	/*! @brief A string. */
+	const Integer Node_String = 2;
+
+	/*! @brief A JS object (except for arrays and strings). */
+	const Integer Node_Object = 3;
+
+	/*! @brief Compiled code. */
+	const Integer Node_Code = 4;
+
+	/*! @brief Function closure. */
+	const Integer Node_Closure = 5;
+
+	/*! @brief RegExp. */
+	const Integer Node_RegExp = 6;
+
+	/*! @brief Number stored in the heap. */
+	const Integer Node_HeapNumber = 7;
+
+	/*! @brief Native object (not from V8 heap). */
+	const Integer Node_Native = 8;
+
+	/*! @brief Synthetic object, usualy used for grouping snapshot items together. */
+	const Integer Node_Synthetic = 9;
+
+	/*! @brief Concatenated string. A pair of pointers to strings. */
+	const Integer Node_ConsString = 10;
+
+	/*! @brief Sliced string. A fragment of another string. */
+	const Integer Node_SlicedString = 11;
+
+	/*! @brief A Symbol (ES6). */
+	const Integer Node_Symbol = 12;
+
+	/*! @brief A SIMD value stored in the heap (Proposed ES7). */
+	const Integer Node_SimdValue = 13;
+
+	/*! @brief A variable from a function context. */
+	const Integer Edge_ContextVariable = 0;
+
+	/*! @brief An element of an array. */
+	const Integer Edge_Element = 1;
+
+	/*! @brief A named object property. */
+	const Integer Edge_Property = 2;
+
+	/*! @brief A link that can't be accessed from JS. */
+	const Integer Edge_Internal = 3;
+
+	/*! @brief A link that is needed for proper sizes calculation. */
+	const Integer Edge_Hidden = 4;
+
+	/*! @brief A link that must not be followed during sizes calculation. */
+	const Integer Edge_Shortcut = 5;
+
+	/*! @brief A weak reference (ignored by the GC). */
+	const Integer Edge_Weak = 6;
+
+	/*! @brief Save a HeapSnapshot with the specified name.
+	 @param fname HeapSnapshot name.
+	 */
+	static saveSnapshot(String fname);
+
+	/*! @brief Load a HeapSnapshot with the specified name.
+	 @param fname HeapSnapshot name.
+	 @return Return the HeapSnapshot loaded.
+	 */
+	static HeapSnapshot loadSnapshot(String fname);
+
+    /*! @brief Get the current HeapSnapshot, HeapSnapshots record the state of the JS heap at some moment.
+     @return Returns the acquired HeapSnapshots.
+     */
+	static HeapSnapshot takeSnapshot();
+
+	/*! @brief Delete all HeapSnapshots.
+    */
+	static DeleteAllHeapSnapshots();
+};

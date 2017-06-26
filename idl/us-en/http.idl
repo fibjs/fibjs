@@ -1,0 +1,98 @@
+
+/*! @brief HTTP transfer protocol module, handels http protocol*/
+module http
+{
+    /*! @brief create a http request object，reference HttpRequest */
+    static HttpRequest new Request();
+
+    /*! @brief create a http response object，reference HttpResponse */
+    static HttpResponse new Response();
+
+    /*! @brief create a http cookie object，reference HttpCookie */
+    static HttpCookie new Cookie();
+
+    /*! @brief create a http server，reference HttpServer */
+    static HttpServer new Server();
+
+    /*! @brief create a https server, reference HttpsServer */
+    static HttpsServer new HttpsServer();
+
+    /*! @brief create a http protocol handler，reference HttpHandler */
+    static HttpHandler new Handler();
+
+    /*! @brief create a http static file processor, in case of using static file to respond http request
+     @param root file root folder
+     @param mimes extends mime settings
+     @param mimes extedns mime settings
+     @return return a static file processor to handle http request
+
+     fileHandler support gzip pre-compression，when accept gzip in content-typeand filename.ext.gz exists under same root，then return the file directly，
+     to avoid extra load on server.
+     */
+    static Handler fileHandler(String root, Object mimes = {});
+
+    /*! @brief send http request to connection object，return response
+     @param conn assign requested connection object
+     @param req the HttpRequest obejct need to be sent
+     @return return server response
+     */
+    static HttpResponse request(Stream conn, HttpRequest req) async;
+
+    /*! @brief assign requested url, and return
+     @param method define http request method, such as: GET, POST
+     @param url assigned url，has to be full url with root path
+     @param headers  define http request header，default is None
+     @return reutrn server response
+     */
+    static HttpResponse request(String method, String url, Object headers = {});
+
+    /*! @brief Request the specified url, and get the response
+     @param method define http method, such as: GET, POST
+     @param url assigned url，has to be full url with root path
+     @param body define http body content
+     @param headers  define http request header，default is None
+     @return reutrn server response
+     */
+    static HttpResponse request(String method, String url, SeekableStream body, Object headers = {});
+
+    /*! @brief Request the specified url, and get the response
+     @param method define http method, such as: GET, POST
+     @param url assigned url，has to be full url with root path
+     @param body define http body content
+     @param headers define http request header, default is None
+     @return reutrn server response
+     */
+    static HttpResponse request(String method, String url, SeekableStream body, Map headers) async;
+
+    /*! @brief Request the specified url, and get the response
+     @param method define http method, such as: GET, POST
+     @param url assigned url，has to be full url with root path
+     @param body define http body content
+     @param headers  define http request header, default is None
+     @return reutrn server response
+     */
+    static HttpResponse request(String method, String url, Buffer body, Object headers = {});
+
+    /*! @brief reuqest url with GET method，and return response，same as request("GET", ...)
+     @param url assigned url，has to be full url with root path
+     @param headers  define http request header，default is None
+     @return reutrn server response
+     */
+    static HttpResponse get(String url, Object headers = {});
+
+    /*! @brief reuqest url with POST method，and return response，same as request("POST", ...)
+     @param url assigned url，has to be full url with root path
+     @param body define http body content
+     @param headers  define http request header，default is None
+     @return reutrn server response
+     */
+    static HttpResponse post(String url, SeekableStream body, Object headers = {});
+
+    /*! @brief reuqest url with POST method，and return response，same as request("POST", ...)
+     @param url assigned url，has to be full url with root path
+     @param body define http body content
+     @param headers  define http request header，default is None
+     @return reutrn server response
+     */
+    static HttpResponse post(String url, Buffer body, Object headers = {});
+};

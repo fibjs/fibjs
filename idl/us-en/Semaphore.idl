@@ -1,0 +1,43 @@
+
+/*! @brief Semaphore object
+
+ Semaphore has a counter inside, descrease one after calling acquire and wait, increase one after calling release and post.
+ Counter will be not negative because thread will in sleep when counter is 0, until other threads use release or post to increase counter.
+
+ Semaphore is commonly used limited resource usage and producer/consumer model application.
+
+ Use database as an example to limit concurrency:
+ @code
+ var maxconnections = 5;
+ var l = new coroutine.Semaphore(maxconnections);
+
+ ......
+
+ l.acquire();
+ var conn = connectdb()
+ .....
+ conn.close();
+ l.release();
+ @endcode
+
+ Producer/consumer model usually use with semaphore and queue together. Producer post data and consumer wait for it.
+
+ */
+interface Semaphore : Lock
+{
+    /*! @brief Constructor
+     @param value Counter initial value
+     */
+    Semaphore(Integer value = 1);
+
+    /*! @brief Wait for semaphore, same as acquire(true) */
+    wait();
+
+    /*! @brief Post a semaphore, same as release() */
+    post();
+
+    /*! @brief Try to get a signal, return false when not possible, same as acquire(false)
+     @return Return true when successful
+     */
+    Boolean trywait();
+};

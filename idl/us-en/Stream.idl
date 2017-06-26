@@ -1,0 +1,27 @@
+
+/*! @brief Stream object for binary data
+
+Stream is a fundamental object to define interface, which cannot be created */
+interface Stream : object
+{
+    /*! @brief Read data from stram
+     @param bytes Data size to read, default is a random size depends on device
+     @return Return data, null if no data or connection lost
+     */
+    Buffer read(Integer bytes = -1) async;
+
+    /*! @brief Write data to stream
+     @param data Data to write
+     */
+    write(Buffer data) async;
+
+    /*! @brief Close stream */
+    close() async;
+
+    /*! @brief Copy data to target stream
+     @param stm Target stream
+     @param bytes Number of data to copy
+     @return Return number of data copied
+     */
+    Long copyTo(Stream stm, Long bytes = -1) async;
+};

@@ -1,0 +1,91 @@
+
+/*! @brief x509 certificate object
+
+ X509Cert object belongs to crypto module, to create it:
+ @code
+ var k = new crypto.X509Cert();
+ @endcode
+ */
+interface X509Cert : object
+{
+    /*! @brief X509Cert constructor */
+    X509Cert();
+
+    /*! @brief Load a DER format certificate, can be called multiple times.
+     @param derCert DER format certificate
+    */
+    load(Buffer derCert);
+
+    /*! @brief Load a CRT/PEM/TXT format certificate, can be called multiple times.
+
+    load loads mozilla's certdata,txt, can be downloaded from http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt
+     @param txtCert PEM format certificate
+    */
+    load(String txtCert);
+
+    /*! @brief Load a CRT/PEM/DER/TXT format certificate, can be called multiple times.
+
+    loadFile loads mozilla's certdata,txt, can be downloaded from http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt
+     @param filename Certificate file name
+    */
+    loadFile(String filename);
+
+    /*! @brief Load default root certificates from http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt */
+    loadRootCerts();
+
+    /*! @brief Verify current certificate
+     @param cert Certificate to verify
+     @return Return True when verified
+    */
+    Boolean verify(X509Cert cert) async;
+
+    /*! @brief Dump loaded certificates
+     @return Array of certificates
+    */
+    Array dump();
+
+    /*! @brief Clear loaded certificates */
+    clear();
+
+    /*! @brief Get version of certificate */
+    readonly Integer version;
+
+    /*! @brief Get serial number of certificate */
+    readonly String serial;
+
+    /*! @brief Get issuer of certificate */
+    readonly String issuer;
+
+    /*! @brief Get subject of certificate */
+    readonly String subject;
+
+    /*! @brief Get start time of certificate */
+    readonly Date notBefore;
+
+    /*! @brief Get expired time of certificate */
+    readonly Date notAfter;
+
+    /*! @brief Check if certificate is from CA */
+    readonly Boolean ca;
+
+    /*! @brief Get pathlen of certificate */
+    readonly Integer pathlen;
+
+    /*! @brief Get usage of certificate
+
+    Result will be one or more of digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, and cRLSign
+    */
+    readonly String usage;
+
+    /*! @brief Get Netscape type of certificate
+
+    Result will be one or more ofclient, server, email, objsign, reserved, sslCA, emailCA, and objCA
+     */
+    readonly String type;
+
+    /*! @brief Get public key of certificate */
+    readonly PKey publicKey;
+
+    /*! @brief Get next certificate in chian */
+    readonly X509Cert next;
+};

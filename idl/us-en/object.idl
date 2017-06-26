@@ -1,0 +1,23 @@
+/*! @brief All objects inherit from this */
+interface object
+{
+    /*! @brief Force dispose object immediately */
+    dispose();
+
+    /*! @brief Return string representation of object, normally is "[Native Object]" and can be implemented by object itself
+     @return Return string representation
+    */
+    String toString();
+
+    /*! @brief Return JSON representation of object, normally is readable attributes collection
+     @param key Not used
+     @return Return JSON representation
+     */
+    Value toJSON(String key = "");
+
+    /*! @brief Return JSON representation of object
+     @return Return JSON representation of object
+    */
+    Value valueOf();
+};
+

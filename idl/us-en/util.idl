@@ -1,0 +1,301 @@
+
+/*! @brief Common tools module */
+module util
+{
+    /*! @brief Format string with variables
+
+     @param fmt Format string
+     @param ... Aeguments
+     @return Return formatted string
+     */
+    static String format(String fmt, ...);
+
+    /*! @brief Format variables
+
+     @param ... Aeguments
+     @return Return formatted string
+     */
+    static String format(...);
+
+    /*! @brief Check if variable is empty(no enumerable property)
+
+     @param v Variable to check
+     @return Return true when it's empty
+     */
+    static Boolean isEmpty(Value v);
+
+    /*! @brief Check if variable is an array
+
+     @param v Variable to check
+     @return Return true when it's an array
+     */
+    static Boolean isArray(Value v);
+
+    /*! @brief Check if variable is Boolean
+
+     @param v Variable to check
+     @return Return true when it's a Boolean
+     */
+    static Boolean isBoolean(Value v);
+
+    /*! @brief Check if variable is Null
+
+     @param v Variable to check
+     @return Return true when it's Null
+     */
+    static Boolean isNull(Value v);
+
+    /*! @brief Check if variable is Null or Undefined
+
+     @param v Variable to check
+     @return Return true when it's Null or Undefined
+     */
+    static Boolean isNullOrUndefined(Value v);
+
+    /*! @brief Check if variable is a number
+
+     @param v Variable to check
+     @return Return true when it's a number
+     */
+    static Boolean isNumber(Value v);
+
+    /*! @brief Check if variable is a string
+
+     @param v Variable to check
+     @return Return true when it's a string
+     */
+    static Boolean isString(Value v);
+
+    /*! @brief Check if variable is Undefined
+
+     @param v Variable to check
+     @return Return true when it's Undefined
+     */
+    static Boolean isUndefined(Value v);
+
+    /*! @brief Check if variable is a regexp object
+
+     @param v Variable to check
+     @return Return true when it's a regexp object
+     */
+    static Boolean isRegExp(Value v);
+
+    /*! @brief Check if variable is an object
+
+     @param v Variable to check
+     @return Return true when it's an object
+     */
+    static Boolean isObject(Value v);
+
+    /*! @brief Check if variable is date object
+
+     @param v Variable to check
+     @return Return true when it's date object
+     */
+    static Boolean isDate(Value v);
+
+    /*! @brief Check if variable is a function
+
+     @param v Variable to check
+     @return Return true when it's a function
+     */
+    static Boolean isFunction(Value v);
+
+    /*! @brief Check if variable is a Buffer object
+
+     @param v Variable to check
+     @return Return true when it's a Buffer object
+     */
+    static Boolean isBuffer(Value v);
+
+    /*! @brief Check if object contains given key
+
+     @param v Object to check
+     @param key Key to query
+     @return Return true when it contains key
+     */
+    static Boolean has(Value v, String key);
+
+    /*! @brief Get an array of all keys
+
+     @param v Object to check
+     @return Return an array of all keys
+     */
+    static Array keys(Value v);
+
+    /*! @brief Get an array of all values
+
+     @param v Object to check
+     @return Return an array of all keys
+     */
+    static Array values(Value v);
+
+    /*! @brief Clone a variable, copy internal content if it's an object or array
+
+     @param v Variable to clone
+     @return Return cloned result
+     */
+    static Value clone(Value v);
+
+    /*! @brief Extend one or more values of objects to given object
+
+     @param v Object to be extended
+     @param ... One or more objects to extend
+     @return Return extended object
+     */
+    static Value extend(Value v, ...);
+
+    /*! @brief Return a copy of object with filtered attributes
+
+     @param v Object to filter
+     @param ... One or more attributes
+     @return Return copy of object
+     */
+    static Object pick(Value v, ...);
+
+    /*! @brief Return a copy of object, exclude given attributes
+
+     @param v Object to filter
+     @param ... One or more attributes to exclude
+     @return Return copy of object
+     */
+    static Object omit(Value v, ...);
+
+    /*! @brief Get first element in array
+
+     @param v Array to access
+     @return Return element
+     */
+    static Value first(Value v);
+
+    /*! @brief Get first number of elements in array
+
+     @param v Array to access
+     @param n Number of elements to get
+     @return Return array of elements
+     */
+    static Value first(Value v, Integer n);
+
+    /*! @brief Get last element in array
+
+     @param v Array to access
+     @return Return element
+     */
+    static Value last(Value v);
+
+    /*! @brief Get number of element in the end of array
+
+     @param v Array to access
+     @param n Number of elements to get
+     @return Return array of elements
+     */
+    static Value last(Value v, Integer n);
+
+    /*! @brief Get array without duplicates
+
+     @param v Array to access
+     @param sorted Indicates whether to sort or not, will use quick sort
+     @return Return unique array
+     */
+    static Array unique(Value v, Boolean sorted = false);
+
+    /*! @brief Union one or more arrays into one unique array
+
+     @param ... Arrays to union
+     @return Return unioned array
+     */
+    static Array union(...);
+
+    /*! @brief Return intersections of arrays
+
+     @param ... Arrays to check
+     @return Return intersections
+     */
+    static Array intersection(...);
+
+    /*! @brief Convert multi-dimension arrays into one-dimension, only reduce one dimension if you pass shallow argument
+
+     @param arr Array to convert
+     @param shallow Indicates whether to reduce only one dimension or not, default is false
+     @return Return converted array
+     */
+    static Array flatten(Value arr, Boolean shallow = false);
+
+    /*! @brief Return an array without given elements
+
+     @param arr Array to access
+     @param ... Elements to exclude
+     @return Return result array
+     */
+    static Array without(Value arr, ...);
+
+    /*! @brief Return differences of arrays
+
+     @param list Arrays to check
+     @return Return differences
+     */
+    static Array difference(Array list, ...);
+
+    /*! @brief Iterate list in order. If context is passed, then bind iterator to context. Each iteration will pass three arguments to context: element, index and list
+
+     @param list List or object to iterate
+     @param iterator Iterator callback
+     @param context Context object for binding
+     @return Return list itself
+     */
+    static Value each(Value list, Function iterator, Value context = undefined);
+
+    /*! @brief Use iterator to map values to new array. If context is passed, then bind iterator to context. Each iteration will pass three arguments to context: element, index and list
+
+     @param list List or object to iterate
+     @param iterator Iterator callback
+     @param context Context object for binding
+     @return Return result array
+     */
+    static Array map(Value list, Function iterator, Value context = undefined);
+
+    /*! @brief Reduce every element in list to a single number. If context is passed, then bind iterator to context. Each iteration will pass four arguments to context: memo, element, index and list
+
+     @param list List or object to iterate
+     @param iterator Iterator callback
+     @param memo Initial value
+     @param context Context object for binding
+     @return Return result array
+     */
+    static Value reduce(Value list, Function iterator, Value memo, Value context = undefined);
+
+    /*! @brief Data statistic object for app runtime data collection, see Stats object */
+    static Stats;
+
+    /*! @brief LRU(least recently used) cache object, see LruCache object */
+    static LruCache;
+
+    /*! @brief Get current engine and components information
+
+     @return Struct info:
+     @code
+     {
+       "fibjs": "0.1.0",
+       "svn": 1753,
+       "build": "Dec 10 2013 21:44:17",
+       "vender": {
+         "ev": "4.11",
+         "exif": "0.6.21",
+         "gd": "2.1.0-alpha",
+         "jpeg": "8.3",
+         "log4cpp": "1.0",
+         "mongo": "0.7",
+         "pcre": "8.21",
+         "png": "1.5.4",
+         "sqlite": "3.8.1",
+         "tiff": "3.9.5",
+         "uuid": "1.6.2",
+         "v8": "3.23.17 (candidate)",
+         "zlib": "1.2.7",
+         "zmq": "3.1"
+       }
+     }
+     @endcode
+     */
+    static Object buildInfo();
+};

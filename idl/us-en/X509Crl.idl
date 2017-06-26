@@ -1,0 +1,37 @@
+
+/*! @brief x509 revoked certificate object
+
+ X509Crl object belongs to crypto module, to create it:
+ @code
+ var k = new crypto.X509Crl();
+ @endcode
+ */
+interface X509Crl : object
+{
+    /*! @brief X509Crl constructor */
+    X509Crl();
+
+    /*! @brief Load a DER revoked certificate, can be called multiple times
+     @param derCrl DER format revoked certificate
+    */
+    load(Buffer derCrl);
+
+    /*! @brief Load a PEM revoked certificate, can be called multiple times
+     @param pemCrl PEM format revoked certificate
+    */
+    load(String pemCrl);
+
+    /*! @brief Load a PEM revoked certificate, can be called multiple times
+     @param filename Revoked certificate file name
+    */
+    loadFile(String filename);
+
+    /*! @brief Dump loaded revoked certificate chain
+     @return Array of revoked certificates
+    */
+    Array dump();
+
+    /*! @brief Clear all loaded revoked certificates
+    */
+    clear();
+};

@@ -1,0 +1,172 @@
+/*! @brief Process handle module, to manage current process resources
+
+ To use it:
+ @code
+ var process = require('process');
+ @endcode
+ */
+module process
+{
+    /*! @brief Get commnad line arguments */
+    static readonly Array argv;
+
+    /*! @brief Get full execution path */
+    static readonly String execPath;
+
+    /*! @brief get the fibjs version string */
+    static readonly String version;
+
+   /*! @brief The full path of current executable file */
+    static readonly String execPath;
+
+    /*! @brief The environment variable object of current executable file */
+    static readonly Object env;
+
+    /*! @brief query current cpu's architecture，possible value can be: 'amd64', 'arm', 'arm64', or 'ia32' */
+    static readonly String arch;
+
+    /*! @brief query current platform，possible value can be: 'darwin', 'freebsd', 'linux', or 'win32' */
+    static readonly String platform;
+
+    /*! @brief change the current umask，Windows does't support this.
+     @param mask the mask to set
+     @return the previous mask
+    */
+    static Integer umask(Integer mask);
+
+    /*! @brief change the current umask，Windows does't support this.
+     @param mask octonary string(e.g: "0664")
+     @return the previous mask
+    */
+    static Integer umask(String mask);
+
+    /*! @brief return the current umask，Windows does't support this.
+     @return the current mask
+    */
+    static Integer umask();
+
+    /*! @brief Exit current process, and return result.
+     @param code result of process.
+     */
+    static exit(Integer code);
+
+    /*! @brief Return current work path of the operating system.
+     @return Work path.
+     */
+    static String cwd();
+
+    /*! @brief Change the current work path of operating system.
+     @param directory The new work path.
+     */
+    static chdir(String directory);
+
+    /*! @brief returns the system uptime in number of seconds.
+     @return seconds
+    */
+    static Number uptime();
+
+    /*! @brief Get report of memory the current process consumpt.
+     @return Memory report object.
+
+     Memory report like this:
+     @code
+     {
+       "rss": 8622080,
+       "heapTotal": 4083456,
+       "heapUsed": 1621800
+     }
+     @endcode
+     among the report：
+     - rss Occupation of physical memory.
+     - heapTotal Total heap memory of v8.
+     - heapUsed Heap memory occupied by v8.
+     */
+    static Object memoryUsage();
+
+    /*! @brief start a fiber
+     @param func function to be executed in the new fiber.
+     @param ... params which will be passed to the func.
+     */
+    static nextTick(Function func, ...);
+
+    /*! @brief Create chlid process taking charge of stdin and stdout and run bash command.
+     @param command Bash command to be executed.
+     @param args Arguments for bash command.
+     @param opts Option of child process, such as:
+     @code
+        {
+            "timeout": 100, // unit ms
+            "envs": [] // Enviroment variable of child process.
+        }
+     @endcode
+     @return Child process object containing result of command.
+     */
+    static SubProcess open(String command, Array args, Object opts = {});
+
+    /*! @brief Create chlid process taking charge of stdin and stdout and run bash command.
+     @param command Bash command.
+     @param opts Option of child process, such as:
+     @code
+        {
+            "timeout": 100, // unit ms
+            "envs": [] // Environment variable of child process.
+        }
+     @endcode
+     @return Child process object containing result of command.
+     */
+    static SubProcess open(String command, Object opts = {});
+
+    /*! @brief Create chlid process and run bash command.
+     @param command Bash command.
+     @param args Arguments of bash command.
+     @param opts Option of child process, such as:
+     @code
+        {
+            "timeout": 100, // unit ms
+            "envs": [] // Environment variable of child process.
+        }
+     @endcode
+     @return Child process object containing result of the command.
+     */
+    static SubProcess start(String command, Array args, Object opts = {});
+
+    /*! @brief Create chlid process and run bash command.
+     @param command Bash command.
+     @param opts Option of child process, such as:
+     @code
+        {
+            "timeout": 100, // unit ms
+            "envs": [] // Environment variable of child process.
+        }
+     @endcode
+     @return Child process object containing result of the command.
+     */
+    static SubProcess start(String command, Object opts = {});
+
+    /*! @brief Run bash command and return result code.
+     @param command Bash command.
+     @param args Arguments of bash command.
+     @param opts Option of child process, such as:
+     @code
+        {
+            "timeout": 100, // unit ms
+            "envs": [] // Environment variable of child process.
+        }
+     @endcode
+     @return Result code of bash command.
+     */
+    static Integer run(String command, Array args, Object opts = {});
+
+    /*! @brief Run bash command and return result code.
+     @param command Bash command.
+     @param opts Option of child process, such as:
+     @code
+        {
+            "timeout": 100, // unit ms
+            "envs": [] // Environment variable of child process.
+        }
+     @endcode
+     @return Result code of bash command.
+     */
+    static Integer run(String command, Object opts = {});
+};

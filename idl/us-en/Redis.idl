@@ -1,0 +1,290 @@
+
+/*! @brief Redis database client object
+
+ Used for create and manage Redis, to use it:
+ @code
+ var db = require("db");
+ var test = new db.openRedis("redis-server");
+ @endcode
+ */
+interface Redis : object
+{
+    /*! @brief redis basic command method
+     @param cmd Command to execute
+     @param ... Arguments
+     @return Return results */
+    Value command(String cmd, ...);
+
+    /*! @brief Set value of key, overwrite when exists, ignore types
+     @param key Key to set
+     @param value Value to set
+     @param ttl Live time in ms, 0 for not setting */
+    set(Buffer key, Buffer value, Long ttl = 0);
+
+    /*! @brief Set value of key, ignore when exists
+     @param key Key to set
+     @param value Value to set
+     @param ttl Live time in ms, 0 for not setting */
+    setNX(Buffer key, Buffer value, Long ttl = 0);
+
+    /*! @brief Set value of key, only set when key exists
+     @param key Key to set
+     @param value Value to set
+     @param ttl Live time in ms, 0 for not setting */
+    setXX(Buffer key, Buffer value, Long ttl = 0);
+
+    /*! @brief Set one or more kay-value pairs, overwrite when keys exist
+     @param kvs List of key/value pairs*/
+    mset(Object kvs);
+
+    /*! @brief Set one or more kay-value pairs, overwrite when keys exist
+     @param ... List of key/value pairs*/
+    mset(...);
+
+    /*! @brief Set one or more kay-value pairs, ignore when keys not exist
+     @param kvs List of key/value pairs*/
+    msetNX(Object kvs);
+
+    /*! @brief Set one or more kay-value pairs, ignore when keys not exist
+     @param ... List of key/value pairs*/
+    msetNX(...);
+
+    /*! @brief Apeend new value to the end when key has a value, directly set when key not exists
+     @param key Key to append
+     @param value Value to append
+     @return Return length of new value */
+    Integer append(Buffer key, Buffer value);
+
+    /*! @brief Set value of key with offset
+     @param key Key to set
+     @param offset Offset of set
+     @param value Value to set
+     @return Return length of new value */
+    Integer setRange(Buffer key, Integer offset, Buffer value);
+
+    /*! @brief Get value range of key from start to end inclusively
+     @param key Key to query
+     @param start Start index
+     @param end End index
+     @return Return result value */
+    Buffer getRange(Buffer key, Integer start, Integer end);
+
+    /*! @brief Get length of value, return error when value is not a string
+     @param key Key to check
+     @return Return length of value */
+    Integer strlen(Buffer key);
+
+    /*! @brief Count number of bits whose value is 1
+     @param key Key to count
+     @param start Start index, -1 is last byte, -2 the last 2 byte, and so on
+     @param end End index, -1 is last byte, -2 the last 2 byte, and so on
+     @return Return number of 1s */
+    Integer bitcount(Buffer key, Integer start = 0, Integer end = -1);
+
+    /*! @brief Get value of key
+     @param key Key to query
+     @return Return value, null when key not exists */
+    Buffer get(Buffer key);
+
+    /*! @brief Return one or more values of keys, return null for keys not exist
+     @param keys Array of keys
+     @return Return list of values */
+    List mget(Array keys);
+
+    /*! @brief Return one or more values of keys, return null for keys not exist
+     @param ... List of keys
+     @return Return list of values */
+    List mget(...);
+
+    /*! @brief Set new value and return old value
+     @param key Key to set
+     @param value Value to set
+     @return Return old value */
+    Buffer getset(Buffer key, Buffer value);
+
+    /*! @brief Descrease value of key
+     @param key Key to set
+     @param num Number to change
+     @return Return new value */
+    Long decr(Buffer key, Long num = 1);
+
+    /*! @brief Increase value of key
+     @param key Key to set
+     @param num Number to change
+     @return Return new value */
+    Long incr(Buffer key, Long num = 1);
+
+    /*! @brief Set offset of value
+     @param key Key to set
+     @param offset Offset of bit
+     @param value Bit value, 0 or 1
+     @return Return old bit value */
+    Integer setBit(Buffer key, Integer offset, Integer value);
+
+    /*! @brief Get offset of value
+     @param key Key to query
+     @param offset Offset of bit
+     @return Return bit value */
+    Integer getBit(Buffer key, Integer offset);
+
+    /*! @brief Check if key exists
+     @param key Key to query
+     @return Return true when key exists */
+    Boolean exists(Buffer key);
+
+    /*! @brief Return value type of key
+     @param key Key to query
+     @return Return value type, can be none(key not exists), string, list, set, zset, hash */
+    String type(Buffer key);
+
+    /*! @brief Find all keys match pattern=
+     @param pattern Match pattern
+     @return Return list of keys */
+    List keys(String pattern);
+
+    /*! @brief Delete one or more keys
+     @param keys Keys to delete
+     @return Return number of deletions */
+    Integer del(Array keys);
+
+    /*! @brief Delete one or more keys
+     @param ... Keys to delete
+     @return Return number of deletions */
+    Integer del(...);
+
+    /*! @brief Set expiration to key
+     @param key Key to set
+     @param ttl Expiration in ms
+     @return Return true when key exists */
+    Boolean expire(Buffer key, Long ttl);
+
+    /*! @brief Get expiration of key
+     @param key Key to query
+     @return Return expiration in ms, -2 when key not exists, -1 when key does not have expiration */
+    Long ttl(Buffer key);
+
+    /*! @brief Remove expiration of key
+     @param key Key to set
+     @return Return true when key exists */
+    Boolean persist(Buffer key);
+
+    /*! @brief Rename key, return error when names are same key not exists
+     @param key Key to set
+     @param newkey New name */
+    rename(Buffer key, Buffer newkey);
+
+    /*! @brief Rename key, return error when key not exists
+     @param key Key to set
+     @param newkey New name
+     @return Return true when renamed, false when new name is used */
+    Boolean renameNX(Buffer key, Buffer newkey);
+
+    /*! @brief Subscribe a channel and call func with every new message, func has two arguments, which are channel and message, only be called once for one channel
+     @param channel Name of channel
+     @param func Callback function
+     */
+    sub(Buffer channel, Function func);
+
+    /*! @brief Subscribe a list of channels and call func with every new message, func has two arguments, which are channel and message, only be called once for one channel
+     @param map Mapping for channel name and callback function
+     */
+    sub(Object map);
+
+    /*! @brief Unsubscribe all callback functions
+     @param channel Name of channel
+    */
+    unsub(Buffer channel);
+
+    /*! @brief Unsubscribe a callback function
+     @param channel Name of channel
+     @param func Callback function
+    */
+    unsub(Buffer channel, Function func);
+
+    /*! @brief Unsubscribe all callback functions of a list of channels
+     @param channels List of channels
+    */
+    unsub(Array channels);
+
+    /*! @brief Unsubscribe callback functions of a list of channels
+     @param map Mapping for channel name and callback function
+     */
+    unsub(Object map);
+
+    /*! @brief Subscribe a channel with pattern and call func with every new message, func has three arguments, which are channel, message and pattern, only be called once for one channel
+     @param pattern Subscription pattern
+     @param func Callback function
+     */
+    psub(String pattern, Function func);
+
+    /*! @brief Subscribe a list of channels with pattern and call func with every new message, func has three arguments, which are channel, message and pattern, only be called once for one channel
+     @param map Mapping for channel name and callback function
+     */
+    psub(Object map);
+
+    /*! @brief Unsubscribe all callback functions with pattern
+     @param pattern Unsubscription pattern
+    */
+    unpsub(String pattern);
+
+    /*! @brief Unsubscribe a callback function with pattern
+     @param pattern Unsubscription pattern
+     @param func Callback function
+    */
+    unpsub(String pattern, Function func);
+
+    /*! @brief Unsubscribe all callback functions of a list of channels with pattern
+     @param patterns Unsubscription pattern
+    */
+    unpsub(Array patterns);
+
+    /*! @brief Unsubscribe callback functions of a list of channels with pattern
+     @param map Mapping for channel name and callback function
+     */
+    unpsub(Object map);
+
+    /*! @brief Regiter a error handle function, all sub stop when call it
+     @param func Callback function
+     */
+    onsuberror(Function func);
+
+    /*! @brief Send message to a channel
+     @param channel Channel to send
+     @param message Message to send
+    */
+    Integer pub(Buffer channel, Buffer message);
+
+    /*! @brief Get Hash object by key which contains a client can operate database
+     @param key Key to query
+     @return Return Hash object contains given key */
+    RedisHash getHash(Buffer key);
+
+    /*! @brief Get List object by key which contains a client can operate database
+     @param key Key to query
+     @return Return List object contains given key */
+    RedisList getList(Buffer key);
+
+    /*! @brief Get Set object by key which contains a client can operate database
+     @param key Key to query
+     @return Return Set object contains given key */
+    RedisSet getSet(Buffer key);
+
+    /*! @brief Get SortedSet object by key which contains a client can operate database
+     @param key Key to query
+     @return Return SortedSet object contains given key */
+    RedisSortedSet getSortedSet(Buffer key);
+
+    /*! @brief Serialization key and can be deserialization to Redis key
+     @param key Key to dump
+     @return Return serialization value, null when key no exits */
+    Buffer dump(Buffer key);
+
+    /*! @brief Deserialization key and combine data
+     @param key Key to restore
+     @param data Data to combine
+     @param ttl Expiration in ms, 0 means not set */
+    restore(Buffer key, Buffer data, Long ttl = 0);
+
+    /*! @brief Close connection */
+    close();
+};

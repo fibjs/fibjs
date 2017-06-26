@@ -1,0 +1,27 @@
+/*! @brief Event Object
+
+ Controll a group of fibers by use an event (the type of event object status is Boolean).
+
+ */
+interface Event : Lock
+{
+    /*! @brief Event object constructor
+     @param value Specifies whether to wait, waiting if true, the default is false
+     */
+    Event(Boolean value = false);
+
+    /*! @brief To determine whether the event object is true */
+    Boolean isSet();
+
+    /*! @brief Activate event (set the event status as true), and call the pulse(). */
+    set();
+
+    /*! @brief Activate all fiber which waiting for this event. */
+    pulse();
+
+    /*! @brief Reset event (set the event status as false) */
+    clear();
+
+    /*! @brief Waiting for an event */
+    wait();
+};

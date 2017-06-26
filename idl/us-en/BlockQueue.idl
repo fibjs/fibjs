@@ -1,0 +1,25 @@
+/*! @brief Blocking FIFO-queue Object
+    
+ It's used for the creation and management of the blocking FIFO-queue. Create method:
+ @code
+ var coroutine = require("coroutine");
+ var q = new coroutine.BlockQueue(100);
+ @endcode
+ */
+interface BlockQueue : Queue
+{
+    /*! @brief Queue object constructor
+     @param size The queque size
+     */
+    BlockQueue(Integer size);
+
+    /*! @brief Insert a new element to the queue. Return true when successes, or wait if the queue is full.
+     @param e The inserted element
+     */
+    put(Value e);
+
+    /*! @brief Remove an element from the queue and return the removed element, wait if the queue is empty.
+     @return The removed element
+     */
+    Value take();
+};

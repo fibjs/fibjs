@@ -1,0 +1,24 @@
+/*! @brief Object of file info whithin zip file  */
+interface ZipInfo : object
+{
+	/*! @brief Readonly member, filename */
+	readonly String filename;
+
+	/*! @brief Readonly member, date of the file */
+	readonly Date date;
+
+	/*! @brief Readonly member, compress type of the file */
+	readonly String compress_type;
+
+	/*! @brief Readonly member, file size after compressed */
+	readonly Long compress_size;
+
+	/*! @brief Readonly member, file size */
+	readonly Long file_size;
+
+	/*! @brief Readonly member, the compress password */
+	readonly Boolean password;
+
+	/*! @brief Readonly member, file data read from the zip file */
+	readonly Buffer data;
+};

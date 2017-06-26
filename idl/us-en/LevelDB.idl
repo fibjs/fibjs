@@ -1,0 +1,93 @@
+
+/*! @brief LevelDB database object
+
+Used for create and manage dictionary, to create:
+ @code
+ var db = require("db");
+ var test = new db.openLevelDB("test.db");
+ @endcode
+ */
+interface LevelDB : object
+{
+    /*! @brief Check if database has given key
+     @param key Key to check
+     @return Return true when key exists
+     */
+    Boolean has(Buffer key) async;
+
+    /*! @brief Get value of key
+     @param key Key to query
+     @return Return value of key, null otherwise
+     */
+    Buffer get(Buffer key) async;
+
+    /*! @brief Get a list value of keys
+     @param keys Keys to query
+     */
+    List mget(Array keys);
+
+    /*! @brief Insert key-value pair if it does not exist
+     @param key Key name
+     @param value Key value
+     */
+    set(Buffer key, Buffer value) async;
+
+    /*! @brief Insert a list of key-value pairs if any element does not exist
+     @param map Key-valye pairs
+     */
+    mset(Object map);
+
+    /*! @brief Delete a list of key-value pairs
+     @param keys Key-value pairs
+     */
+    remove(Array keys);
+
+    /*! @brief Delete all values of key
+     @param key Key name
+     */
+    remove(Buffer key) async;
+
+    /*! @brief List all key-value pairs
+     @param func Callback function
+
+     Two arguments in callback function (value, key)
+
+     @code
+     var db = require("db");
+     var test = new db.openLevelDB("test.db");
+
+     test.forEach(function(value, key){
+        ...
+     });
+     @endcode
+     */
+    forEach(Function func);
+
+    /*! @brief List key-value pairs in a range
+     @param from Minimum value of key, inclusive
+     @param to Maximum value of key, exclusive
+     @param func Callback function
+
+     Two arguments in callback function (value, key)
+
+     @code
+     var db = require("db");
+     var test = new db.openLevelDB("test.db");
+
+     test.between("aaa", "bbb", function(value, key){
+        ...
+     });
+     @endcode
+     */
+    between(Buffer from, Buffer to, Function func);
+
+    /*! @brief Begin a transcation
+     @return Return a transcation object */
+    LevelDB begin();
+
+    /*! @brief Commit transcation */
+    commit();
+
+    /*! @brief Close transcation */
+    close() async;
+};

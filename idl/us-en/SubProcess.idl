@@ -1,0 +1,32 @@
+
+/*! @brief Child process object
+
+ @code
+ var process = require("process");
+ var sub = process.open("ls");
+ @endcode
+ */
+interface SubProcess : BufferedStream
+{
+	/*! @brief Send signal to process reffered by current child process object.
+	  @param signal Signal to be sent.
+	 */
+	kill(Integer signal);
+
+	/*! @brief Wait for the exit of process reffered by current child process object, and return exit code.
+	  @return Exit code.
+	 */
+	Integer wait() async;
+
+	/*! @brief The readonly id of process reffered by current chid process object.
+	 */
+	readonly Integer pid;
+
+	/*! @brief The readonly stdin object of process reffered by current child process object.
+	 */
+	readonly BufferedStream stdin;
+
+	/*! @brief The readonly stdout object of process reffered by current child process object.
+	 */
+	readonly BufferedStream stdout;
+};

@@ -1,0 +1,67 @@
+
+/*! @brief http basic message objec */
+interface HttpMessage: Message
+{
+    /*! @brief protocol version information, the format is: HTTP/#.# */
+    String protocol;
+
+    /*! @brief container that contains the http meassge header, readonly */
+    readonly HttpCollection headers;
+
+    /*! @brief query and set whether the connection keeps alive */
+    Boolean keepAlive;
+
+    /*! @brief query and set whether to upgrade protocol */
+    Boolean upgrade;
+
+    /*! @brief query and set the max number of request headers, defaults to 128 */
+    Integer maxHeadersCount;
+
+    /*! @brief query and set the max size of the uploading file in bytes, defaults to 67108864(64M) */
+    Integer maxUploadSize;
+
+    /*! @brief detect whether there is a message header that has the given key
+     @param name specify the key to be detected
+     @return whether the key exists
+     */
+    Boolean hasHeader(String name);
+
+    /*! @brief querying the first message header of the given key
+     @param name specify the key to be queried
+     @return return the value of the key, if the key doesn't exist, return undefined
+     */
+    Variant firstHeader(String name);
+
+    /*! @brief querying all message headers of the specified key
+     @param name specify the key to be queried
+     @return return an array of all values of the key, if data doesn't exists, return null
+     */
+    List allHeader(String name);
+
+    /*! @brief add a message header, add data without modifying headers of the existing keys
+     @param map specify the data dictionary of the key and value that need to be added
+     */
+    addHeader(Map map);
+
+    /*! @brief add a message header, add data without modifying headers of the existing keys
+     @param name specify the key need to be added
+     @param value specify the data need to be added
+     */
+    addHeader(String name, Variant value);
+
+    /*! @brief set a message header, modify the first value of the key as the spcified data and remove other message headers of the same key
+     @param map specify the data dictionary of the key and value that need to be modified
+     */
+    setHeader(Map map);
+
+    /*! @brief set a message header, modify the first value of the key as the spcified data and remove other message headers of the same key
+     @param name specify the key need to be added
+     @param value spcify the data need to be added
+     */
+    setHeader(String name, Variant value);
+
+    /*! @brief remove all meassage headers of the specified key
+     @param name specify the key to be removed
+     */
+    removeHeader(String name);
+};

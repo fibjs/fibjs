@@ -1,0 +1,81 @@
+/*! @brief https server object
+
+ http server object is the object that wrap SslServer and HttpHandler as a combination, which makes it convenient to build a server, logically equivalent to:
+ @code
+ var svr = new net.SslServer(crt, key, addr, port, new http.Handler(function(req){
+    ...
+ }));
+ @endcode
+
+ How to create:
+ @code
+ var http = require("http");
+ var svr = new http.HttpsServer(crt, key, 443, function(req){
+     ...
+ });
+ @endcode
+ */
+interface HttpsServer: HttpServer
+{
+    /*! @brief HttpsServer constructor, listen on all local addresses
+      @param certs server certificate list, the format is:
+        @code
+        [
+            {
+                crt: [X509Cert object],
+                key: [PKey object]
+            },
+            {
+                crt: [X509Cert object],
+                key: [PKey object]
+            }
+        ]
+        @endcode
+      @param port spcify http server listen port
+      @param hdlr http built-in message handler, manipulation function or javascript message mapping object. See mq.jsHandler:
+     */
+    HttpsServer(Array certs, Integer port, Value hdlr);
+
+    /*! @brief HttpsServer constructor, listen on all local addresses
+      @param certs server certificate list, the format is:
+        @code
+        [
+            {
+                crt: [X509Cert object],
+                key: [PKey object]
+            },
+            {
+                crt: [X509Cert object],
+                key: [PKey object]
+            }
+        ]
+        @endcode
+      @param addr specify http server listening address, listen on all local addressed if the param is ""
+      @param port specify http server listen port
+      @param hdlr http built-in message handler, manipulation function or javascript message mapping object. See mq.jsHandler
+     */
+    HttpsServer(Array certs, String addr, Integer port, Value hdlr);
+
+    /*! @brief HttpsServer constructor, listen on all local addresses
+      @param crt X509Cert certificate, used to verify the server on the client
+      @param key PKey private key, used to get session with the client
+      @param port spcify http server listen port
+      @param hdlr http built-in message handler, manipulation function or javascript message mapping object. See mq.jsHandler:
+     */
+    HttpsServer(X509Cert crt, PKey key, Integer port, Value hdlr);
+
+    /*! @brief HttpsServer constructor, listen on all local addresses
+      @param crt X509Cert certificate, used to verify the server on the client
+      @param key PKey private key, used to get session with the client
+      @param addr specify http server listening address, listen on all local addressed if the param is ""
+      @param port specify http server listen port
+      @param hdlr http built-in message handler, manipulation function or javascript message mapping object. See mq.jsHandler:
+     */
+    HttpsServer(X509Cert crt, PKey key, String addr, Integer port, Value hdlr);
+
+    /*! @brief set the certificate verify mode, defaults to VERIFY_REQUIRED */
+    Integer verification;
+
+    /*! @brief client certificate verify ca */
+    readonly X509Cert ca;
+};

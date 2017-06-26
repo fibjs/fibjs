@@ -1,0 +1,70 @@
+/*! @brief Sandbox, to manage a separate running space
+
+  All code is running inside sandbox, global require uses current sandbox to load modules.
+  Following example limits access to assert modules and add a and b two custom modules.
+ @code
+ var vm = require('vm');
+ var sbox = new vm.SandBox({
+   a: 100,
+   b: 200,
+   assert: require('assert')
+ });
+
+ var mod_in_sbox = sbox.require('./path/to/mod');
+ @endcode
+ */
+interface SandBox : object
+{
+    /*! @brief Constructor, initializes basic modules
+     @param mods Dictionary of modules
+     @param name Name of sandbox, used for error logging
+     */
+    SandBox(Object mods, String name = "");
+
+    /*! @brief Constructor, initializes basic modules
+     @param mods Dictionary of modules
+     @param require Custom require function, call it first when no module exists
+     @param name Name of sandbox, used for error logging
+     */
+    SandBox(Object mods, Function require, String name = "");
+
+    /*! @brief Add a module to sandbox
+     @param id Module name
+     @param mod Module object
+     */
+    add(String id, Value mod);
+
+    /*! @brief Add a list of modules
+     @param mods Dictionary of modules, will generate a copy of javascript modules to prevent conflicts
+     */
+    add(Object mods);
+
+    /*! @brief Add a script to sandbox
+     @param srcname Script name, must include extension, such as json or js
+     @param script Content of script
+     @return Return loaded module
+     */
+    Value addScript(String srcname, String script);
+
+    /*! @brief Remove a module from sandbox
+     @param id Module name
+     */
+    remove(String id);
+
+    /*! @brief clone current sandbox, the cloned sandbox contains all current sandbox module, same name and same require function.
+     @return cloned sanbox
+     */
+    SandBox clone();
+
+    /*! @brief Run a script
+     @param fname Script path, always relative to current work directory
+     @param argv Specify the run parameters, which can be caught in script by argv.
+     */
+    run(String fname, Array argv = []);
+
+    /*! @brief Load and return a modules, see @ref module for details
+     @param id Module name, always relative to current work directory
+     @return Return loaded module
+     */
+    Value require(String id);
+};

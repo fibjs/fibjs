@@ -1,0 +1,21 @@
+
+/*! @brief mysql database connection object
+
+Used for db.open or db.openMySQL, to create:
+ @code
+ var msql = db.openSQLite("mysql://user:pass@host/db");
+ @endcode
+*/
+interface MySQL : DbConnection
+{
+    /*! @brief Choose default database for connection
+     @param dbName Database name
+     */
+    use(String dbName) async;
+
+    /*! @brief Connection buffer size */
+    Integer rxBufferSize;
+
+    /*! @brief Connection send buffer size */
+    Integer txBufferSize;
+};

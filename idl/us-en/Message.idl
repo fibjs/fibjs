@@ -1,0 +1,64 @@
+
+/*! @brief Basic message object
+
+ Message object compatible with all mq modules, used for custom messaging system, to create:
+ @code
+ var mq = require("mq");
+ var m = new mq.Message();
+ @endcode
+ *  */
+interface Message : object
+{
+    /*! @brief Constructor */
+    Message();
+
+    /*! @brief Content */
+    String value;
+
+    /*! @brief Basic paramenters */
+    List params;
+
+    /*! @brief Return value */
+    Variant result;
+
+    /*! @brief Stream that contains partial data */
+    SeekableStream body;
+
+    /*! @brief Read given size of data from stream, this is a alias to body method
+     @param bytes Size of data to read, default is random size which depends on your device
+     @return Return data from stream, null when nothing to read
+     */
+    Buffer read(Integer bytes = -1) async;
+
+    /*! @brief Read rest of data from stream, this is a alias to body method
+     @return Return data from stream, null when nothing to read
+     */
+    Buffer readAll() async;
+
+    /*! @brief Write data to stream, this is a alias to body method
+     @param data Data to write
+     */
+    write(Buffer data) async;
+
+    /*! @brief Length of message */
+    readonly Long length;
+
+    /*! @brief Clear message content */
+    clear();
+
+    /*! @brief Send formatted data to given stream
+     @param stm Stream to send data
+     */
+    sendTo(Stream stm) async;
+
+    /*! @brief Read formatted data from given stream, parse and assgin values to object
+     @param stm Stream to receive data
+     */
+    readFrom(BufferedStream stm) async;
+
+    /*! @brief Query stream object for readFrom */
+    readonly Stream stream;
+
+    /*! @brief Get response body of message*/
+    readonly Message response;
+};

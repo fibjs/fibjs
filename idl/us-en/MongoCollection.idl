@@ -1,0 +1,117 @@
+/*! @brief mongodb database dataset object
+
+ Used for MongoDB.getCollection, to create:
+ @code
+ var col1 = mdb.getCollection('test');
+ var col = mdb.test;
+ @endcode
+ */
+interface MongoCollection : object
+{
+    /*! @brief Create cursor by given conditions and return fields
+      @param query Query conditions
+      @param projection Return fields
+      @return Return cursor
+     */
+    MongoCursor find(Object query = {}, Object projection = {});
+
+    /*! @brief Return one record by given conditions and return fields
+      @param query Query conditions
+      @param projection Return fields
+      @return Return first result
+     */
+    Object findOne(Object query = {}, Object projection = {});
+
+    /*! @brief Query and modify
+      @param query Condition to modify data
+      @return Return data before modification and other information
+     */
+    Object findAndModify(Object query);
+
+    /*! @brief Insert a list of data
+      @param documents Data to insert
+     */
+    insert(Array documents);
+
+    /*! @brief Insert single record
+      @param document Data to insert
+     */
+    insert(Object document);
+
+    /*! @brief Insert a record, update of it has value on _id field
+      @param document Data to save
+     */
+    save(Object document);
+
+    /*! @brief Update data by given conditions
+      @param query Query conditions
+      @param document Data to update
+      @param upsert Indicates whether insert new record when not exists, default is false
+      @param multi Indicates whether update all records when more than one record match the condition, defualt is false
+     */
+    update(Object query, Object document, Boolean upsert = false, Boolean multi = false);
+
+    /*! @brief Update data by given conditions
+      @param query Query conditions
+      @param document Data to update
+      @param options Set upsert and multi option as field
+     */
+    update(Object query, Object document, Object options);
+
+    /*! @brief Delete data by given conditions
+      @param query Query conditions
+     */
+    remove(Object query);
+
+    /*! @brief Execute database commands
+      @param cmd Commands to execute
+     */
+    Object runCommand(Object cmd);
+
+    /*! @brief Execute database commands
+      @param cmd Command name
+      @param arg Command paramenters
+     */
+    Object runCommand(String cmd, Object arg = {});
+
+    /*! @brief Delete current collection */
+    drop();
+
+    /*! @brief Create index in current collection
+      @param keys Index field, order and direction
+      @param options Option of index
+     */
+    ensureIndex(Object keys, Object options = {});
+
+    /*! @brief Rebuild index of current collection
+      @return Return results of execution
+     */
+    Object reIndex();
+
+    /*! @brief Delete given index in current collection
+      @param name Index name
+      @return Return results of execution
+     */
+    Object dropIndex(String name);
+
+    /*! @brief Delete all indexes of current collection
+      @return Return results of execution
+     */
+    Object dropIndexes();
+
+    /*! @brief Query all indexes in current collection
+      @return Return result set 
+     */
+    MongoCursor getIndexes();
+
+    /*! @brief Get obejct of collection
+      @param name Name of collection
+      @return Return new collection object
+     */
+    MongoCollection getCollection(String name);
+
+    /*! @brief Get collection by attributes
+      @return Return new collection object
+     */
+    readonly MongoCollection operator[String];
+};

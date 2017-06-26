@@ -1,0 +1,97 @@
+
+/*! @brief Asymmetric encryption algorithm object
+
+ PKey belongs to crypto module, to create:
+ @code
+ var k = new crypto.PKey();
+ @endcode
+ */
+interface PKey : object
+{
+    /*! @brief PKey constructor */
+    PKey();
+
+    /*! @brief Get algorithm name */
+    readonly String name;
+
+    /*! @brief Get password length in bit */
+    readonly Integer keySize;
+
+    /*! @brief Get public key
+     @return Return public key
+    */
+    readonly PKey publicKey;
+
+    /*! @brief Generate a RSA private key
+     @param size Indicate length of RSA key in bit
+    */
+    genRsaKey(Integer size) async;
+
+    /*! @brief Generate a EC private key
+     @param curve Can be: "secp521r1", "brainpoolP512r1", "secp384r1", "brainpoolP384r1", "secp256r1", "secp256k1", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1"
+    */
+    genEcKey(String curve = "secp521r1") async;
+
+    /*! @brief Check if key is a private key
+     @return Return true when it's a private key
+    */
+    Boolean isPrivate();
+
+    /*! @brief Clone current key
+     @return Return cloned key
+    */
+    PKey clone();
+
+    /*! @brief Import a DER format key
+     @param DerKey DER format key
+     @param password Decrypt password
+    */
+    importKey(Buffer DerKey, String password = "");
+
+    /*! @brief Import a PEM format key
+     @param pemKey PEM format key
+     @param password Decrypt password
+    */
+    importKey(String pemKey, String password = "");
+
+    /*! @brief Load a keyfile of PEM / DER format
+     @param filename The filename of the key
+     @param password Decrypt password
+    */
+    importFile(String filename, String password = "");
+
+    /*! @brief Get encoding of key in PEM format
+     @return Return key in PEM encoding
+    */
+    String exportPem();
+
+    /*! @brief Get encoding of key in PEM format
+     @return Return key in PEM encoding
+    */
+    Buffer exportDer();
+
+    /*! @brief Encrypt data with public key
+     @param data Data to encrypt
+     @return Return encrypted data
+     */
+    Buffer encrypt(Buffer data) async;
+
+    /*! @brief Decrypt data with private key
+     @param data Data to decrypt
+     @return Return decrypted data
+     */
+    Buffer decrypt(Buffer data) async;
+
+    /*! @brief Sign data with private key
+     @param data Data to sign
+     @return Return signed data
+     */
+    Buffer sign(Buffer data) async;
+
+    /*! @brief Verify data with public key
+     @param sign Signature to verify
+     @param data Data to verify
+     @return Return verified data
+     */
+    Boolean verify(Buffer sign, Buffer data) async;
+};

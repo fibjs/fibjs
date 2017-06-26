@@ -1,0 +1,20 @@
+
+/*! @brief sqlite database connection object
+
+ Used for db.open or db.openSQLite, to create it:
+ @code
+ var slite = db.openSQLite("sqlite:/path/to/db");
+ @endcode
+*/
+interface SQLite : DbConnection
+{
+    /*! @brief Database file name */
+    readonly String fileName;
+
+    /*! @brief Get and set connection timeout in ms */
+    Integer timeout;
+
+    /*! @brief Backup current database to new location
+     @param fileName New location */
+    backup(String fileName) async;
+};

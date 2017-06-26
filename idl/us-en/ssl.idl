@@ -1,0 +1,76 @@
+/*! @brief ssl/tls module */
+module ssl
+{
+    /*! @brief Verification mode, no verification */
+    const Integer VERIFY_NONE = 0;
+
+    /*! @brief Verification mode, optional verification, can be failed */
+    const Integer VERIFY_OPTIONAL = 1;
+
+    /*! @brief Verification mode, abort when fail to verify */
+    const Integer VERIFY_REQUIRED = 2;
+
+    /*! @brief Verification result, certificate expired */
+    const Integer BADCERT_EXPIRED = 1;
+
+    /*! @brief Verification result, certificate revoked */
+    const Integer BADCERT_REVOKED = 2;
+
+    /*! @brief Verification result, certificate mismatch */
+    const Integer BADCERT_CN_MISMATCH = 4;
+
+    /*! @brief Verification result, certificate is not trusted */
+    const Integer BADCERT_NOT_TRUSTED = 8;
+
+    /*! @brief ssl Protocol Version ssl 3.0 */
+    const Integer ssl3 = 0;
+
+    /*! @brief ssl Protocol Version tls 1.0 */
+    const Integer tls1 = 1;
+
+    /*! @brief ssl Protocol Version tls 1.1 */
+    const Integer tls1_1 = 2;
+
+    /*! @brief ssl Protocol Version tls 1.2 */
+    const Integer tls1_2 = 3;
+
+    /*! @brief Create a SslSocket object, see SslSocket */
+    static SslSocket new Socket();
+
+    /*! @brief Create a SslHandler object, see SslHandler */
+    static SslHandler new Handler();
+
+    /*! @brief Create a SslServer object, see SslServer */
+    static SslServer new Server();
+
+    /*! @brief Create a SslSocket and make connection
+     @param url Specify URL and protocol, e.g.: ssl://host:port
+     @return Return SslSocket when succeed
+     */
+    static Stream connect(String url) async;
+
+    /*! @brief Set the default client certificate.
+     @param crt 509Cert certificate for client authentication server.
+     @param key PKey The private key for the client session.
+     */
+    static setClientCert(X509Cert crt,PKey key);
+
+    /*! @brief Load the default client certificate from a file.
+     @param crtFile X509Cert certificate file for client authentication server.
+     @param keyFile PKey private key file for the client session.
+     @param password Decryption password
+     */
+    static loadClientCertFile(String crtFile,String keyFile,String password = "");    
+
+    /*! @brief Global cretificate, used for ssl client mode */
+    static readonly X509Cert ca;
+
+    /*! @brief Set verification mode, default is VERIFY_REQUIRED */
+    static Integer verification;
+
+    /*! @brief Set the minimum version support, default ssl3 */
+    static Integer min_version;
+
+    /*! @brief Set the maximum version support, default tls1_1 */
+    static Integer max_version;
+};

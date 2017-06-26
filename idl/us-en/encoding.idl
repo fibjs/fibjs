@@ -1,0 +1,55 @@
+
+/*! @brief module with encode and decode operations between hex and other format data.
+ to use:
+ @code
+ var encoding = require('encoding');
+ @endcode
+ */
+module encoding
+{
+    /*! @brief base32 encode and decode module */
+    static base32;
+
+    /*! @brief base64 encode and decode module */
+    static base64;
+
+    /*! @brief base64vlq encode and decode module */
+    static base64vlq;
+
+    /*! @brief hex encode and decode module */
+    static hex;
+
+    /*! @brief iconv encode and decode module */
+    static iconv;
+
+    /*! @brief json encode and decode module */
+    static json;
+
+    /*! @brief bson encode and decode module */
+    static bson;
+
+    /*! @brief Encode the string to Javascript escaped string that can be contained in the javascript code.
+     @param str The string to encode
+     @param json Specifies generate the string json compatible.
+     @return Returns the encoded string.
+     */
+    static String jsstr(String str, Boolean json = false);
+
+    /*! @brief Url encoding.
+     @param url Url to be encoded.
+     @return The encoded result string.
+     */
+    static String encodeURI(String url);
+
+    /*! @brief Url component encoding.
+     @param url Url to be encoded.
+     @return The encoded result string.
+     */
+    static String encodeURIComponent(String url);
+
+    /*! @brief Url decoding.
+     @param url Url to be decoded.
+     @return The decoded result string.
+     */
+    static String decodeURI(String url);
+};

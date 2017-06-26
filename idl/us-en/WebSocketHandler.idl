@@ -1,0 +1,38 @@
+
+/*! @brief WebSocket packet protocol conversion processor
+
+  Convert the Http protocol message to the WebSocket protocol messages. To create it:
+  @code
+  var websocket = require("websocket");
+
+  var pkghdlr = new websocket.WebSocketHandler(...);
+  @endcode
+ */
+interface WebSocketHandler: Handler
+{
+  /*! @brief WebSocket package processor constructor
+   @param hdlr Built-in message handler, or handler function, or javascript message mapping object, refer mq.jsHandler
+   */
+  WebSocketHandler(Value hdlr);
+
+  /*! @brief uery and set the maximum packet size in MB, default 64 */
+  Integer maxSize;
+
+  /*! @brief The current event processing interface object webSocket protocol conversion processor */
+  Handler handler;
+
+  /*! @brief Query the state of WebSocket packet protocol conversion processor.
+
+    The result is returned as a Stats object, which structure as follows: 
+    @code
+    {
+        total : 1000,    // Total processing request
+        pendding : 100,  // Currently processed request
+        request : 10,    // New request
+        response : 10,   // Sent response
+        error : 100      // Error occurred
+    }
+    @endcode
+   */
+  readonly Stats stats;
+};

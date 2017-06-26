@@ -1,0 +1,102 @@
+/*! @brief 64-bit integer
+
+To create:
+ @code
+ var n = new Int64(123);
+ @endcode
+ */
+interface Int64 : object
+{
+    /*! @brief Int64 constructor
+     @param num Initial value
+    */
+    Int64(Long num = 0);
+
+    /*! @brief Int64 constructor
+     @param hi High 32-bit number
+     @param lo Low 32-bit number
+    */
+    Int64(Long hi, Long lo);
+
+    /*! @brief Int64 constructor
+     @param num Initial value
+    */
+    Int64(Int64 num);
+
+    /*! @brief Int64 constructor
+     @param num Number in string format
+     @param base Encoding, can be 2-16, 32, 64, default is 10 and when it's 10, it recognizes 0x encoding
+    */
+    Int64(String num, Integer base = 10);
+
+    /*! @brief Hight 32-bit number */
+    Long hi;
+
+    /*! @brief Low 32-bit number */
+    Long lo;
+
+    /*! @brief Compare a Int64 to another
+     @param num Number to compare
+     @return Return true when equal
+    */
+    Boolean equal(Int64 num);
+
+    /*! @brief Compare Int64 to another
+     @param num Number to compare
+     @return Return 1 when original one is larger, 0 when equal, -1 otherwise
+    */
+    Integer compare(Int64 num);
+
+    /*! @brief Left shift Int64, this doesn't affect original number
+     @param bits Number to shift
+     @return Return shifted number
+    */
+    Int64 shiftLeft(Integer bits);
+
+    /*! @brief Right shift Int64, this doesn't affect original number
+     @param bits Number to shift
+     @return Return shifted number
+    */
+    Int64 shiftRight(Integer bits);
+
+    /*! @brief And operation, this doesn't affect original number
+     @param num Number to operate
+     @return Return result number
+    */
+    Int64 and (Int64 num);
+
+    /*! @brief Or operation, this doesn't affect original number
+     @param num Number to operate
+     @return Return result number
+    */
+    Int64 or (Int64 num);
+
+    /*! @brief Xor operation, this doesn't affect original number
+     @param num Number to operate
+     @return Return result number
+    */
+    Int64 xor(Int64 num);
+
+    /*! @brief Add operation, this doesn't affect original number
+     @param num Number to operate
+     @return Return result number
+    */
+    Int64 add(Int64 num);
+
+    /*! @brief Sub operation, this doesn't affect original number
+     @param num Number to operate
+     @return Return result number
+    */
+    Int64 sub(Int64 num);
+
+    /*! @brief Convert to integer
+      @return Return a integer
+     */
+    Number toNumber();
+
+    /*! @brief Convert to string
+      @param base String encoding, can be 2-16, 32, 64, default is 10
+      @return Return a string
+     */
+    String toString(Integer base = 10);
+};

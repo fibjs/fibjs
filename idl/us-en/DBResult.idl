@@ -1,0 +1,12 @@
+/*! @brief The collection of the database records object */
+interface DBResult : List
+{
+    /*! @brief Query the rowid of the record currently being inserted into database */
+    readonly Long insertId;
+
+    /*! @brief Query the number of the records being affected by the current operation */
+    readonly Long affected;
+
+    /*! @brief Query the array of the fields in the current result */
+    readonly Array fields;
+};

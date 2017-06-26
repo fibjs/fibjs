@@ -1,0 +1,82 @@
+
+/*! @brief ssl server object, easily create mutil-thread ssl server
+
+SslServer can be used for TcpServer and SslHandler, same as follows in logic:
+ @code
+ var svr = new net.SslServer(addr, port, new ssl.Handler(crt, key, function(req){
+    ...
+ }));
+ @endcode
+
+ 创建方法：
+ @code
+ var ssl = require("ssl");
+ var svr = new http.Server(crt, key, function(req){
+     ...
+ });
+ @endcode
+ */
+interface SslServer : TcpServer
+{
+    /*! @brief SslServer constructor, listen on all local addresses
+      @param certs Server certificate list
+        @code
+        [
+            {
+                crt: [X509Cert object],
+                key: [PKey object]
+            },
+            {
+                crt: [X509Cert object],
+                key: [PKey object]
+            }
+        ]
+        @endcode
+      @param port Port of ssl server
+      @param listener Built-in handler, handle function or javascript message mapping object, see mq.jsHandler
+     */
+    SslServer(Array certs, Integer port, Value listener);
+
+    /*! @brief SslServer constructor
+      @param certs Server certificate list
+        @code
+        [
+            {
+                crt: [X509Cert object],
+                key: [PKey object]
+            },
+            {
+                crt: [X509Cert object],
+                key: [PKey object]
+            }
+        ]
+        @endcode
+      @param addr Address of ssl, empty string means listen on all local addresses
+      @param port Port of ssl server
+      @param listener Built-in handler, handle function or javascript message mapping object, see mq.jsHandler
+     */
+    SslServer(Array certs, String addr, Integer port, Value listener);
+
+    /*! @brief SslServer constructor, listen on all local addresses
+      @param crt X509Cert Cretificate
+      @param key PKey Private key
+      @param port Port of ssl server
+      @param listener Built-in handler, handle function or javascript message mapping object, see mq.jsHandler
+     */
+    SslServer(X509Cert crt, PKey key, Integer port, Value listener);
+
+    /*! @brief SslServer constructor
+      @param crt X509Cert Cretificate
+      @param key PKey Private key
+      @param addr Address of ssl, empty string means listen on all local addresses
+      @param port Port of ssl server
+      @param listener Built-in handler, handle function or javascript message mapping object, see mq.jsHandler
+     */
+    SslServer(X509Cert crt, PKey key, String addr, Integer port, Value listener);
+
+    /*! @brief Verification mode, default is VERIFY_REQUIRED */
+    Integer verification;
+
+    /*! @brief Client certificates */
+    readonly X509Cert ca;
+};

@@ -1,0 +1,38 @@
+/*! @brief Database connection object which is used for creation and maintenance of the database connection session */
+interface DbConnection : object
+{
+    /*! @brief Close the database connection currenctly being used */
+    close() async;
+
+    /*! @brief Begin a transaction on current database connection */
+    begin() async;
+
+    /*! @brief Commit the transaction on current database connection */
+    commit() async;
+
+    /*! @brief Rollback the transaction on current database connection */
+    rollback() async;
+
+    /*!	@brief Execute a SQL statement and return the results
+
+     @param sql Formatted string. Use question mark to mark variables. E.g. 'SELECT FROM TEST WHERE [id]=?'  
+     @return The query results
+     */
+    DBResult execute(String sql) async;
+
+    /*!	@brief Execute a  SQL statement and return the results
+
+     @param sql Formatted string. Use question mark to mark variables. E.g. 'SELECT FROM TEST WHERE [id]=?'
+     @param ... The optional variables 
+     @return The query results     
+     */
+    DBResult execute(String sql, ...);
+
+    /*!	@brief Format a SQL statement, and return the formatted statement
+
+     @param sql Formatted string. Use question mark to mark variables. E.g. 'SELECT FROM TEST WHERE [id]=?'
+     @param ... The optional variables
+     @return The formatted SQL statement
+     */
+    String format(String sql, ...);
+};

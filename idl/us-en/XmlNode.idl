@@ -1,0 +1,147 @@
+
+/*! @brief XmlNode object is fundamental data type of entire DOM
+ */
+interface XmlNode : object
+{
+    /*! @brief Get node type
+
+     Different nodeType returns different values:
+     - XmlElement: ELEMENT_NODE(1)
+     - XmlAttr: ATTRIBUTE_NODE(2)
+     - XmlText: TEXT_NODE(3)
+     - XmlCDATASection: CDATA_SECTION_NODE(4)
+     - XmlProcessingInstruction: PROCESSING_INSTRUCTION_NODE(7)
+     - XmlComment: COMMENT_NODE(8)
+     - XmlDocument: DOCUMENT_NODE(9)
+     - XmlDocumentType: DOCUMENT_TYPE_NODE(10)
+    */
+    readonly Integer nodeType;
+
+    /*! @brief Get node name based on its type
+
+     Different nodeName returns different values:
+     - XmlElement: element name
+     - XmlAttr: Attribute name
+     - XmlText: \#text
+     - XmlCDATASection: \#cdata-section
+     - XmlProcessingInstruction: Get specified target
+     - XmlComment: \#comment
+     - XmlDocument: \#document
+     - XmlDocumentType: doctype name
+    */
+    readonly String nodeName;
+
+    /*! @brief Get node name based on its type
+
+     Different nodeName returns different values:
+     - XmlElement: null
+     - XmlAttr: Attribute value
+     - XmlText: Node content
+     - XmlCDATASection: Node content
+     - XmlProcessingInstruction: Get specified data
+     - XmlComment: Comment
+     - XmlDocument: null
+     - XmlDocumentType: null
+    */
+    String nodeValue;
+
+    /*! @brief Get root element(XmlDocument)
+    */
+    readonly XmlDocument ownerDocument;
+
+    /*! @brief Get parent node
+    */
+    readonly XmlNode parentNode;
+
+    /*! @brief Check if node has child nodes
+     @return Return true if there are child nodes, false otherwise
+    */
+    Boolean hasChildNodes();
+
+    /*! @brief Get child node list
+    */
+    readonly XmlNodeList childNodes;
+
+    /*! @brief Get first child node
+    */
+    readonly XmlNode firstChild;
+
+    /*! @brief Get last child node
+    */
+    readonly XmlNode lastChild;
+
+    /*! @brief Get previous sibling node, null if not exists
+    */
+    readonly XmlNode previousSibling;
+
+    /*! @brief Get next sibling node, null if not exists
+    */
+    readonly XmlNode nextSibling;
+
+    /*! @brief Normalize adjacent node text and delete nodes with empty text
+
+    This method iterates all child nodes of current node, and deletes all empty text nodes. It's very good for simplify document tree.
+    */
+    normalize();
+
+    /*! @brief Create clone of node
+
+     This method clone if calling node, it clones all child nodes if pass with true. Otherwise, it only clones current node. Returned node does not belong to any document tree, which means its parentNode is NULL. When cloned node is an Element, all of it attributes will be cloned as well.
+     @param deep Indicates whether to clone all child nodes or not
+     @return Return cloned node
+    */
+    XmlNode cloneNode(Boolean deep = true);
+
+    /*! @brief Lookup prefix of given namespace URI
+     @param namespaceURI Namespace URI
+     @return Return prefix, NULL when not found
+    */
+    String lookupPrefix(String namespaceURI);
+
+    /*! @brief Lookup namespace URI of given prefix
+     @param prefix Prefix to lookup
+     @return Return namespace URI, NULL when not found
+    */
+    String lookupNamespaceURI(String prefix);
+
+    /*! @brief Insert a child node before current ones
+
+     If document tree already has newChild, it will be replaced. Node from(or created b) a document cannot be inserted to another document. In other words, newChild's ownerDocument must be sames as current node.
+     @param newChild New child node
+     @param refChild Reference child node
+     @return Return new child node
+    */
+    XmlNode insertBefore(XmlNode newChild, XmlNode refChild);
+
+    /*! @brief Insert a child node after current ones
+
+     If document tree already has newChild, it will be replaced. Node from(or created b) a document cannot be inserted to another document. In other words, newChild's ownerDocument must be sames as current node.
+     @param newChild New child node
+     @param refChild Reference child node
+     @return Return new child node
+    */
+    XmlNode insertAfter(XmlNode newChild, XmlNode refChild);
+
+    /*! @brief Append a child node
+
+     If document tree already has newChild, it will be replaced. Node from(or created b) a document cannot be inserted to another document. In other words, newChild's ownerDocument must be sames as current node.
+     @param newChild New child node
+     @return Return new child node
+    */
+    XmlNode appendChild(XmlNode newChild);
+
+    /*! @brief Replace a child node to another
+
+     If document tree already has newChild, it will be replaced. Node from(or created b) a document cannot be inserted to another document. In other words, newChild's ownerDocument must be sames as current node.
+     @param newChild New child node
+     @param oldChild Old child node
+     @return Return new child node when succeed, NULL otherwise
+    */
+    XmlNode replaceChild(XmlNode newChild, XmlNode oldChild);
+
+    /*! @brief Remove a child node
+     @param oldChild Child node to remove
+     @return Return removed child node when succeed, NULL otherwise
+    */
+    XmlNode removeChild(XmlNode oldChild);
+};
