@@ -50,7 +50,7 @@ function member_output(title, test){
 ### <%-m.name%><%
 last_member = m.name;
 }%>
-** <%-m.doc.descript%> **
+**<%-m.doc.descript%>**
 ```JavaScript
 <%if(m.const){%><%-m.const%> <%}
 if(m.static){%><%-m.static%> <%}
