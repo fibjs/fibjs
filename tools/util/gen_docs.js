@@ -159,31 +159,28 @@ module.exports = function (defs, docsFolder) {
                     if (test(m, def.declare.name)) {
                         if (first) {
                             first = false;
-                            txts.push('<TR><TD ALIGN="LEFT" BALIGN="LEFT">');
+                            txts.push('|');
                         }
 
                         if (last_member !== m.name) {
                             last_member = m.name;
                             if (m.name == def.declare.name)
-                                txts.push('&nbsp; new ' + m.name + '()<BR />');
+                                txts.push('new ' + m.name + '()\\l');
                             else if (m.memType == 'operator')
-                                txts.push('&nbsp;operator' + m.name + '<BR />');
+                                txts.push('operator' + m.name + '\\l');
                             else
-                                txts.push('&nbsp;' + m.name + (m.memType == 'method' ? '()' : '') + '<BR />');
+                                txts.push(m.name + (m.memType == 'method' ? '()' : '') + '\\l');
                         }
                     }
                 });
-
-                if (!first)
-                    txts.push('</TD></TR>');
             }
 
             txts.push(def.declare.name);
-            txts.push('[shape=none, margin=0, fontname="Helvetica,sans-Serif", fontsize=10, tooltip="' + def.declare.name + '", ');
+            txts.push('[tooltip="' + def.declare.name + '", style="filled", fillcolor="' + (me ? 'lightgray' : 'white') + '", ');
             if (!me)
                 txts.push('URL="' + def.declare.name + '.md", ');
-            txts.push('label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="' + (me ? 'LIGHTGRAY' : 'WHITE') + '">');
-            txts.push('<TR><TD>' + def.declare.name + '</TD></TR>');
+            txts.push('label="{');
+            txts.push(def.declare.name);
 
             member_output('构造函数', function (m, n) {
                 return m.memType == 'method' && m.name == n;
@@ -217,9 +214,9 @@ module.exports = function (defs, docsFolder) {
                 return m.memType == 'method' && m.name !== n && !m.static;
             });
 
-            txts.push('</TABLE>>]');
+            txts.push('}"]');
 
-            return txts.join('\n');
+            return txts.join('');
 
         }
 
@@ -248,7 +245,8 @@ module.exports = function (defs, docsFolder) {
             nodes.push(get_node(def, true));
             get_inherits(def, nodes, arrows);
 
-            return "digraph {\n" + nodes.join('\n') + '\n' + arrows.join('\n') + '\n}';
+            return 'digraph {node [ fontname = "Helvetica,sans-Serif", fontsize = 10, shape = "record" ];\n' +
+                nodes.join('\n') + '\n' + arrows.join('\n') + '\n}';
         }
 
         for (var m in defs) {
