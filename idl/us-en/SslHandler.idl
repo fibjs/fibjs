@@ -1,0 +1,50 @@
+
+/*! @brief ssl protocol converter 
+
+ Used for converting data stream into ssl protocol. SslHandler is a encapsulation of SslSocket, same as follows in logic:
+ @code
+ var ss = new ssl.Socket(crt, key);
+
+ function(s){
+    var s1 = ss.accept(s);
+    hdlr.invoke(s1);
+    s1.close();
+ }
+ @endcode
+ */
+interface SslHandler: Handler
+{
+    /*! @brief SslHandler constructor
+      @param certs Certificates server list with format:
+        @code
+        [
+            {
+                crt: [X509Cert object],
+                key: [PKey object]
+            },
+            {
+                crt: [X509Cert object],
+                key: [PKey object]
+            }
+        ]
+        @endcode
+      @param hdlr Built-in handler, handle function or javascript message mapping object, see mq.jsHandler
+     */
+    SslHandler(Array certs, Value hdlr);
+
+    /*! @brief SslHandler constructor
+      @param crt X509Cert Certificate
+      @param key PKey Private key
+      @param hdlr Built-in handler, handle function or javascript message mapping object, see mq.jsHandler
+     */
+    SslHandler(X509Cert crt, PKey key, Value hdlr);
+
+    /*! @brief Verification mode, default is VERIFY_REQUIRED */
+    Integer verification;
+
+    /*! @brief Client certificates */
+    readonly X509Cert ca;
+
+    /*! @brief ssl protocol event handler */
+    Handler handler;
+};

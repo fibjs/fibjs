@@ -1,0 +1,87 @@
+
+/*! @brief Test Suite module that defines the test suite management
+
+ To use it:
+ @code
+ var test = require('test');
+ @endcode
+ */
+module test
+{
+    /*! @brief Definition of BDD (Behavior Drive Development) test environment that supports describe, xdescribe, it, xit, before, after, beforeEach and afterEach, while initializing assert and expect
+     */
+    const Integer BDD = 0;
+
+    /*! @brief Definition of TDD (Test Drive Development) test environment to support suite, xsuite, test, xtest, setup, teardown, suiteSetup and suiteTeardown, while initializing assert and expect
+     */
+    const Integer TDD = 1;
+
+    /*! @brief The definition of a test module and can be nested definition
+     @param name Module name
+     @param block Initial code
+     */
+    static describe(String name, Function block);
+
+    /*! @brief The definition of a test module to be stopped
+     @param name Module name
+     @param block Initial code
+     */
+    static xdescribe(String name, Function block);
+
+    /*! @brief Define a test project
+     @param name Project name
+     @param block Test block
+     */
+    static it(String name, Function block);
+
+    /*! @brief Prohibit test project definition
+     @param name Project name
+     @param block Test block
+     */
+    static xit(String name, Function block);
+
+    /*! @brief Define the incident event for current test module
+     @param func Event handler
+     */
+    static before(Function func);
+
+    /*! @brief Define the exit event for current test module
+     @param func Event handler
+     */
+    static after(Function func);
+
+    /*! @brief Define the incident event for current test project
+     @param func Event handler
+     */
+    static beforeEach(Function func);
+
+    /*! @brief Define the exit event for current test project
+     @param func Event handler
+     */
+    static afterEach(Function func);
+
+    /*! @brief Module to start executing definition
+     @param loglevel Log output level is specified when tested, ERROR, the project focused on the report the error message is displayed, below ERROR, output information displayed at any time, while higher than ERROR, display only reports
+     @return Return the statistical result of test case, return 0 when meet no error, return the error number of errors.
+     */
+    static Integer run(Integer loglevel = console.ERROR);
+
+    /*! @brief Assertion test module, if the test is false, then the error, error behavior can be set to continue to run or throw an error */
+    static assert;
+
+    /*! @brief expect Grammar test engine
+     @param actual Value to test
+     @param msg Message when error occurs
+     @return Return Expect for chain operations
+     */
+    static Expect expect(Value actual, String msg = "");
+
+    /*! @brief The current test environment initialization script, the test module method to copy a global variable for the current script
+     @param mode Indicates initial mode, default is BDD
+     */
+    static setup(Integer mode = BDD);
+
+    /*! @brief Set and get slow test warning threshold in ms, default is 75
+     */
+    static Integer slow;
+};

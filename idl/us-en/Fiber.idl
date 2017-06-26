@@ -1,0 +1,60 @@
+
+/*! @brief Fiber operation object, this object cannot be created directly.
+
+ This object, which is used to issue fibers and communications between fibers, will be returned after the fiber is created by coroutine.start.
+ Fiber's main function can access the fiber by this, or get the fiber by coroutine.current.
+ @code
+ function func(v1)
+ {
+   console.log(v1 + this.v);
+ }
+
+ var fb = coroutine.start(func,100);
+
+ fb.v = 123;
+
+ fb.join();
+ @endcode
+
+ Fiber Local Storage is done by the shared Fiber object. Current fiber can be accessed by coroutine.current, and the data can be shared by querying and modifying the fiber's variables.
+
+ @code
+ function func()
+ {
+   console.log(coroutine.current().v);
+ }
+
+ coroutine.current().v = 100;
+
+ func();
+ @endcode
+
+ When a new fiber is created, the current fiber's local variables will be copied to the new fiber.
+ After that, each fiber's local variables won't have any effect on other's, unless the variable is referenced by other objects.
+
+ @code
+ function func()
+ {
+   console.log(coroutine.current().v);
+ }
+
+ coroutine.current().v = 100;
+
+ var fb = coroutine.start(func);
+
+ coroutine.current().v = 200;
+
+ fb.join();
+ @endcode
+ */
+interface Fiber : object
+{
+    /*! @brief waiting until the end of the fiber */
+    join();
+
+    /*! @brief Query the fiber's caller */
+    readonly Fiber caller;
+
+    /*! @brief Query the call stack of the fiber, to get the non-current one can specified the parameters: - trace_fiber.*/
+	readonly String traceInfo;
+};

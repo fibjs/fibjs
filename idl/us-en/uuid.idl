@@ -1,0 +1,58 @@
+
+/*! @brief uuid unique id module
+
+ Fundamental module, used for create uuid
+ \code
+ var uuid = require('uuid');
+ \endcode
+ */
+module uuid
+{
+    /*! @brief Use name as DNS when create uuid by md5 and sha1 */
+    const Integer DNS = 0;
+
+    /*! @brief Use name as URL when create uuid by md5 and sha1 */
+    const Integer URL = 1;
+
+    /*! @brief Use name as ISO OID when create uuid by md5 and sha1 */
+    const Integer OID = 2;
+
+    /*! @brief Use name as X.500 DN when create uuid by md5 and sha1 */
+    const Integer X509 = 3;
+
+    /*! @brief Generate uuid by given string
+     @param s String to describe uuid
+     @return Return uuidValue object
+     */
+    static uuidValue uuid(String s);
+
+    /*! @brief Generate uuid by given binary data
+     @param data Data to describe uuid
+     @return Return uuidValue object
+     */
+    static uuidValue uuid(Buffer data);
+
+    /*! @brief Generate uuid by time and host name
+     @return Return uuidValue object
+     */
+    static uuidValue node();
+
+    /*! @brief Generate uuid by given md5
+     @param ns Namespace, can be uuid.DNS, uuid.URL, uuid.OID, and uuid.X509
+     @param name Name of uuid
+     @return Return uuidValue object
+     */
+    static uuidValue md5(Integer ns, String name);
+
+    /*! @brief Generate uuid randomly
+     @return Return uuidValue object
+     */
+    static uuidValue random();
+
+    /*! @brief Generate uuid by given sha1
+     @param ns Namespace, can be uuid.DNS, uuid.URL, uuid.OID, and uuid.X509
+     @param name Name of uuid
+     @return Return uuidValue object
+     */
+    static uuidValue sha1(Integer ns, String name);
+};

@@ -1,0 +1,80 @@
+
+/*! @brief Network module
+
+ Used for create and operate netwrok resource, to use it:
+ \code
+ var net = require('net');
+ \endcode
+ */
+module net
+{
+    /*! @brief ipv4 address constant */
+    const Integer AF_INET = 2;
+
+    /*! @brief ipv6 address constant*/
+    const Integer AF_INET6 = 10;
+
+    /*! @brief tcp protocol suite constant */
+    const Integer SOCK_STREAM = 1;
+
+    /*! @brief udp protocol suite constant*/
+    const Integer SOCK_DGRAM = 2;
+
+    /*! @brief Resolve address of given host
+     @param name Home name
+     @param family Return type, default is AF_INET
+     @return Return IP result string
+     */
+    static String resolve(String name, Integer family = AF_INET) async;
+
+    /*! @brief Quick query host address, same as resolve(name)
+     @param name Host name
+     @return Return IP result string
+     */
+    static String ip(String name) async;
+
+    /*! @brief Quick query host ipv6 address, same as resolve(name, net.AF_INET6)
+     @param name Host name
+     @return Return IPv6 result string
+     */
+    static String ipv6(String name) async;
+
+    /*! @brief Create a Socket object, see Socket */
+    static Socket;
+
+    /*! @brief Create a Socket object and make connection, see Socket
+     @param host Target address or host name
+     @param port Target port number
+     @param family Addree type, default is AF_INE, ipv4
+     @return Return connected Socket object
+     */
+    static Stream connect(String host, Integer port, Integer family = net.AF_INET) async;
+
+    /*! @brief Create a Socket or SslSocket and make connection
+     @param url URL with protocol, can be tcp://host:port or ssl://host:port
+     @return Return connected Socket or SslSocket object
+     */
+    static Stream connect(String url) async;
+
+    /*! @brief Create a Smtp object, see Smtp */
+    static Smtp;
+
+    /*! @brief Create a Smtp object and make connection, see Smtp
+     @param host Target address or host name
+     @param port Target port number
+     @param family Addree type, default is AF_INE, ipv4
+     @return Return connected Smtp object
+     */
+    static Smtp openSmtp(String host, Integer port, Integer family = net.AF_INET) async;
+
+    /*! @brief Create a TcpServer object, see TcpServer */
+    static TcpServer;
+
+    /*! @brief Create a Url object, see Url */
+    static Url;
+
+    /*! @brief Get system backend async network engine
+     @return Return network engine name
+    */
+    static String backend();
+};

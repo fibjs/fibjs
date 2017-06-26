@@ -1,0 +1,40 @@
+
+/*! @brief websocket support module
+
+ To use it:
+ @code
+ var websocket = require('websocket');
+ @endcode
+ */
+module websocket
+{
+    /*! @brief Specifies the message type 0 of websocket, which is a continue frame */
+    const Integer CONTINUE = 0;
+
+    /*! @brief Specifies the message type 1 of websocket, which is a text frame */
+    const Integer TEXT = 1;
+
+    /*! @brief Specifies the message type 2 of websocket, which is a binary frame */
+    const Integer BINARY = 2;
+
+    /*! @brief Specifies the message type 8 of websocket, which means connection closed */
+    const Integer CLOSE = 8;
+
+    /*! @brief Specifies the message type 9 of websocket, which is a ping frame */
+    const Integer PING = 9;
+
+    /*! @brief Specifies the message type 10 of websocket, which is a pong frame */
+    const Integer PONG = 10;
+
+    /*! @brief Create one websocket message object, refer WebSocketMessage */
+    static WebSocketMessage new Message();
+
+    /*! @brief Create one websocket packet protocol conversion processor, refer WebSocketHandler */
+    static WebSocketHandler new Handler();
+
+    /*! @brief Create one websocket connection, and return a completed connection Stream object
+     @param url Specifies the connection url，support ws:// and wss:// protocol
+     @return Return a completed connection Stream object, which can be Socket or SslSocket
+     */
+    static Stream connect(String url) async;
+};

@@ -1,0 +1,11 @@
+
+/*! @brief XmlComment represents comment of node
+
+XmlComment is comment object in XML document.
+Use data property that is inherit from XmlCharacterData interface, or use nodeValue from XmlNode interface, comments are between <!-- and -->. You can use all methods that are inherit from XmlCharacterData interface.
+
+Use XmlDocument.createComment() to create a comment object.
+*/
+interface XmlComment : XmlCharacterData
+{
+};

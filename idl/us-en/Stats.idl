@@ -1,0 +1,51 @@
+
+/*! @brief Data statistic object, to collection data at runtime
+
+ To create it:
+ @code
+ var util = require("util");
+ var stats = new util.Stats(["begin", "end", "error"]);
+ @endcode
+ Some internal objects provices predefined statistic objects.
+ */
+interface Stats : object
+{
+    /*! @brief Constructor
+     @param keys Counter name
+     */
+    Stats(Array keys);
+
+    /*! @brief Constructor
+     @param staticKeys Name of static counter that cannot be reset
+     @param keys Counter name
+     */
+    Stats(Array staticKeys, Array keys);
+
+    /*! @brief Increase one
+     @param key Counter name
+     */
+    inc(String key);
+
+    /*! @brief Descrease one
+     @param key Counter name
+     */
+    dec(String key);
+
+    /*! @brief Add given value
+     @param key Counter name
+     @param value Value to add
+     */
+    add(String key, Integer value);
+
+    /*! @brief Reset counter excepts staticKeys */
+    reset();
+
+    /*! @brief Get time from last reset
+     @return Return time
+    */
+    Integer uptime();
+
+    /*! @brief Allow use index to visit elements */
+    readonly Integer operator[String];
+};
+

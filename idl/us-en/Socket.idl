@@ -1,0 +1,78 @@
+
+/*! @brief Network socket interface
+
+ Socket belongs to net, to create it:
+ \code
+ var s = new net.Socket();
+ \endcode
+ */
+interface Socket : Stream
+{
+    /*! @brief Socket constructor
+     @param family Family address, default is AF_INET, ipv4
+     @param type Protocol type, default is SOCK_STREAM, tcp
+     */
+    Socket(Integer family = net.AF_INET, Integer type = net.SOCK_STREAM);
+
+    /*! @brief Get current family address */
+    readonly Integer family;
+
+    /*! @brief Get current protocol type */
+    readonly Integer type;
+
+    /*! @brief Get remote address */
+    readonly String remoteAddress;
+
+    /*! @brief Get remote port */
+    readonly Integer remotePort;
+
+    /*! @brief Ger local address */
+    readonly String localAddress;
+
+    /*! @brief Get local port */
+    readonly Integer localPort;
+
+    /*! @brief Connect to a host with TCP
+     @param host Host address or name
+     @param port Host port
+     */
+    connect(String host, Integer port) async;
+
+    /*! @brief Bind current Socket to all local addresses on given port
+     @param port Port to bind
+     @param allowIPv4 Indicates whether allow ipv4 or not, default is true
+     */
+    bind(Integer port, Boolean allowIPv4 = true);
+
+    /*! @brief Bind current Socket to given address and port
+     @param addr Address to bind
+     @param port Port to bind
+     @param allowIPv4 Indicates whether allow ipv4 or not, default is true
+     */
+    bind(String addr, Integer port, Boolean allowIPv4 = true);
+
+    /*! @brief Start listening
+     @param backlog Queue size, overflows will be discarded, default is 120
+     */
+    listen(Integer backlog = 120) async;
+
+    /*! @brief Wait and accept a request
+     @return Return accepted connection
+     */
+    Socket accept() async;
+
+    /*! @brief Receive given size of data from connection, unlike read, revc does not promise read all required data but return immediately
+     @param bytes Bytes to read, default is random size of data
+     @return Return data received
+     */
+    Buffer recv(Integer bytes = -1) async;
+
+    Buffer recvFrom(Integer bytes = -1);
+
+    /*! @brief Write data to connection, same as write
+     @param data Data to send
+     */
+    send(Buffer data) async;
+
+    sendto(Buffer data, String host, Integer port);
+};

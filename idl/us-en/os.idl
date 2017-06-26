@@ -1,0 +1,97 @@
+
+/*! @brief Operating system and file system module
+
+To use it:
+ @code
+ var os = require('os');
+ @endcode
+ */
+module os
+{
+    /*! @brief Get environment host name */
+    static readonly String hostname;
+
+    /*! @brief Get operating system name */
+    static readonly String type;
+
+    /*! @brief Get operating system version */
+    static readonly String version;
+
+    /*! @brief Get operating system architecture */
+    static readonly String arch;
+
+    /*! @brief Get operating system time zone */
+    static readonly Integer timezone;
+
+    /*! @brief Get operating system time in seconds
+     @return Return time in integer
+    */
+    static Number uptime();
+
+    /*! @brief Get system load average, 1, 5 and 15 minutes
+     @return Return results array
+    */
+    static Array loadavg();
+
+    /*! @brief Get system total memory in bytes
+     @return Return total memory
+    */
+    static Long totalmem();
+
+    /*! @brief Get system free memory in bytes
+     @return Return free memory
+    */
+    static Long freemem();
+
+    /*! @brief Get system CPU number and information
+     @return Return CPU information array
+    */
+    static Array CPUInfo();
+
+    /*! @brief Get system CPU number
+     @return Return CPU number
+    */
+    static Integer CPUs();
+
+    /*! @brief Get system network information
+     @return Return network information
+    */
+    static Object networkInfo();
+
+    /*! @brief Parse or get system time
+     @param tmString Time format, default is query current time
+     @return Return javascript Date object
+     */
+    static Date time(String tmString = "");
+
+    /*! @brief Time calculation function, use part to indicate time
+     @param d Date object to calculate on
+     @param num Number to calculate
+     @param part Type to calculate, can be "year", "month", "day", "hour", "minute", "second"
+     @return Return javascript Date object
+     */
+    static Date dateAdd(Date d, Integer num, String part);
+
+    /*! @brief Get full path of current execution path */
+    static readonly String execPath;
+
+    /*! @brief Get current memory usage
+     @return Return memory usage
+
+     Usage includes:
+     @code
+     {
+       "rss": 8622080,
+       "heapTotal": 4083456,
+       "heapUsed": 1621800,
+       "nativeObjects": 122
+     }
+     @endcode
+     Notes:
+     - rss Physical memory being occupied by current process
+     - heapTotal Return v8 engine heap memory size
+     - heapUsed Return v8 engine heap memory size in use
+     - nativeObjects Return number of memory objects
+     */
+    static Object memoryUsage();
+};

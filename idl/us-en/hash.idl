@@ -1,0 +1,159 @@
+/*! @brief Message digest calculation module, can be used to calculate the message digest and summary Signature. */
+module hash
+{
+    /*! @brief MD2 Constant identifying the message digest algorithm. */
+    const Integer MD2 = 1;
+
+    /*! @brief MD4 Constant identifying the message digest algorithm. */
+    const Integer MD4 = 2;
+
+    /*! @brief MD5 Constant identifying the message digest algorithm. */
+    const Integer MD5 = 3;
+
+    /*! @brief SHA1 Constant identifying the message digest algorithm. */
+    const Integer SHA1 = 4;
+
+    /*! @brief SHA224 Constant identifying the message digest algorithm. */
+    const Integer SHA224 = 5;
+
+    /*! @brief SHA256 Constant identifying the message digest algorithm. */
+    const Integer SHA256 = 6;
+
+    /*! @brief SHA384 Constant identifying the message digest algorithm. */
+    const Integer SHA384 = 7;
+
+    /*! @brief SHA512 Constant identifying the message digest algorithm. */
+    const Integer SHA512 = 8;
+
+    /*! @brief RIPEMD160 Constant identifying the message digest algorithm. */
+    const Integer RIPEMD160 = 9;
+
+    /*! @brief Create a message digest object with the specified algorithm.
+     @param algo Specifies the digest algorithm.
+     @param data Binary data needs to be updated.
+     @return Returns the message digest object.
+     */
+    static Digest digest(Integer algo, Buffer data);
+
+    /*! @brief Create a message digest object with the specified algorithm.
+     @param algo Specifies the digest algorithm.
+     @return Returns the message digest object.
+     */
+    static Digest digest(Integer algo);
+
+    /*! @brief Create a MD2 message digest object.
+     @param data Binary data needs to be updated.
+     @return Returns the message digest object.
+     */
+    static Digest md2(Buffer data);
+
+    /*! @brief Create a MD4 message digest object.
+     @param data Binary data needs to be updated.
+     @return Returns the message digest object.
+     */
+    static Digest md4(Buffer data);
+
+    /*! @brief Create a MD5 message digest object.
+     @param data Binary data needs to be updated.
+     @return Returns the message digest object.
+     */
+    static Digest md5(Buffer data);
+
+    /*! @brief Create a SHA1 message digest object.
+     @param data Binary data needs to be updated.
+     @return Returns the message digest object.
+     */
+    static Digest sha1(Buffer data);
+
+    /*! @brief Create a SHA224 message digest object.
+     @param data Binary data needs to be updated.
+     @return Returns the message digest object.
+     */
+    static Digest sha224(Buffer data);
+
+    /*! @brief Create a SHA256 message digest object.
+     @param data Binary data needs to be updated.
+     @return Returns the message digest object.
+     */
+    static Digest sha256(Buffer data);
+
+    /*! @brief Create a SHA384 message digest object.
+     @param data Binary data needs to be updated.
+     @return Returns the message digest object.
+     */
+    static Digest sha384(Buffer data);
+
+    /*! @brief Create a SHA512 message digest object.
+     @param data Binary data needs to be updated.
+     @return Returns the message digest object.
+     */
+    static Digest sha512(Buffer data);
+
+    /*! @brief Create a RIPEMD160 message digest object.
+     @param data Binary data needs to be updated.
+     @return Returns the message digest object.
+     */
+    static Digest ripemd160(Buffer data);
+
+    /*! @brief Create a message signature digest object with the specified algorithm.
+     @param algo Specifies the digest algorithm.
+     @param key Binary signature key.
+     @return Returns the message digest object.
+     */
+    static Digest hmac(Integer algo, Buffer key);
+
+    /*! @brief Create a MD2 message digest signature object.
+     @param key Binary signature key.
+     @return Returns the message digest object.
+     */
+    static Digest hmac_md2(Buffer key);
+
+    /*! @brief Create a MD4 message digest signature object.
+     @param key Binary signature key.
+     @return Returns the message digest object.
+     */
+    static Digest hmac_md4(Buffer key);
+
+    /*! @brief Create a MD5 message digest signature object.
+     @param key Binary signature key.
+     @return Returns the message digest object.
+     */
+    static Digest hmac_md5(Buffer key);
+
+    /*! @brief Create a SHA1 message digest signature object.
+     @param key Binary signature key.
+     @return Returns the message digest object.
+     */
+    static Digest hmac_sha1(Buffer key);
+
+    /*! @brief Create a SHA224 message digest signature object.
+     @param key Binary signature key.
+     @return Returns the message digest object.
+     */
+    static Digest hmac_sha224(Buffer key);
+
+    /*! @brief Create a SHA256 message digest signature object.
+     @param key Binary signature key.
+     @return Returns the message digest object.
+     */
+    static Digest hmac_sha256(Buffer key);
+
+    /*! @brief Create a SHA384 message digest signature object.
+     @param key Binary signature key.
+     @return Returns the message digest object.
+     */
+    static Digest hmac_sha384(Buffer key);
+
+    /*! @brief Create a SHA512 message digest signature object.
+     @param key Binary signature key.
+     @return Returns the message digest object.
+     */
+    static Digest hmac_sha512(Buffer key);
+
+    /*! @brief Create a RIPEMD160 message digest signature object.
+     @param key Binary signature key.
+     @return Returns the message digest object.
+     */
+    static Digest hmac_ripemd160(Buffer key);
+};
+

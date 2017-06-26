@@ -1,0 +1,21 @@
+
+/*! @brief uuid object
+
+ Used for save and operate uuid data, it must be created by uuid module
+ \code
+ var uuid = require('uuid');
+ var id = uuid.uuid1();
+ \endcode
+ */
+interface uuidValue : object
+{
+    /*! @brief Return uuid binary data
+     @return Return data
+     */
+    Buffer data();
+
+    /*! @brief Return uuid detail
+     @return Return detail in string
+     */
+    String detail();
+};

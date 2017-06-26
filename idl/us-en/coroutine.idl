@@ -1,0 +1,69 @@
+
+/*! @brief Concurrency control module
+
+ The way to use: var coroutine = require('coroutine');
+ */
+module coroutine
+{
+    /*! @brief Lock Object, reference Lock */
+    static Lock;
+
+    /*! @brief Semaphore Object, reference Semaphore */
+    static Semaphore;
+
+    /*! @brief Condition Object, reference Condition */
+    static Condition;
+
+    /*! @brief Event Object, reference Event */
+    static Event;
+
+    /*! @brief Event Trigger Object, which can be used to establish the observer pattern. The object support event triggers were inherited from this, reference Trigger */
+    static Trigger;
+
+    /*! @brief BlockQueue Object, reference BlockQueue */
+    static BlockQueue;
+
+    /*! @brief Start a fibers and return the fiber Object
+     @param func Set a function to be executed by the fibers.
+     @param ... Variable parameter sequence, the sequence will pass to function in fiber.
+     @return Returns the fiber object.
+     */
+    static Fiber start(Function func, ...);
+
+    /*! @brief Execute a set of functions parallel, and wait for the return.
+     @param funcs An array of function to be executed parallel
+     @param fibers Limit the number of concurrent fiber, default -1 (the number of funcs size).
+     @return Returns the array of functions execute results
+     */
+    static Array parallel(Array funcs, Integer fibers = -1);
+
+    /*! @brief Execute a function deal with a set of data parallel, and wait for the return.
+     @param datas An array of params to be executed by function parallel.
+     @param func The function executed parallel
+     @param fibers Limit the number of concurrent fiber, default -1 (the number of datas size).
+     @return Returns the array of function execute results
+     */
+    static Array parallel(Array datas, Function func, Integer fibers = -1);
+
+    /*! @brief Execute a set of functions parallel, and wait for the return.
+     @param ... A set of function to be execute parallel
+     @return Returns the array of functions execute results
+     */
+    static Array parallel(...);
+
+    /*! @brief Returns the current fiber.
+     @return Returns the current fiber object.
+     */
+    static Fiber current();
+
+    /*! @brief Pause the current fiber specified time.
+     @param ms Specify the suspend time in milliseconds, the default value is 0, which back to resume immediately.
+     */
+    static sleep(Integer ms = 0);
+
+    /*! @brief Returns the array of currently running fiber */
+    static readonly Array fibers;
+
+    /*! @brief Query or set the number of idle Fiber, suggest moderate increasing this value when server meet a bug shake. The default value is 256 */
+    static Integer spareFibers;
+};

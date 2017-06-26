@@ -1,0 +1,11 @@
+
+/*! @brief Regexp module */
+module re
+{
+    /*! @brief Compile and return a template of regexp
+     @param pattern Regexp pattern
+     @param opt Match type, can be "g", "i" or "gi" 
+     @return Return regexp object
+     */
+    static Regex compile(String pattern, String opt = "");
+};

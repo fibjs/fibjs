@@ -1,0 +1,25 @@
+
+/*! @brief XmlNamedNodeMap object represents a unordered properties list
+*/
+interface XmlNamedNodeMap
+{
+    /*! @brief Get number of properties
+    */
+    readonly Integer length;
+
+    /*! @brief Get property by index
+     @param index Property index
+     @return Return property with given index
+    */
+    XmlAttr item(Integer index);
+
+    /*! @brief Allow use index to access data
+    */
+    readonly XmlAttr operator[];
+
+    /*! @brief Get property by name
+     @param name Property name
+     @return Return property with given name
+    */
+    XmlAttr getNamedItem(String name);
+};

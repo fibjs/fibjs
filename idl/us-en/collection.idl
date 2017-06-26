@@ -1,0 +1,19 @@
+
+/*! @brief base container module
+
+ How to use:
+ @code
+ var collection = require("collection");
+ @endcode
+ */
+module collection
+{
+    /*! @brief creates a Map container, (ref: Map) */
+    static Map;
+
+    /*! @brief creates a List container, (ref: List) */
+    static List;
+
+    /*! @brief creates a Queue container, (ref: Queue ) */
+    static Queue;
+};

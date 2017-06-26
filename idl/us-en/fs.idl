@@ -1,0 +1,200 @@
+
+/*! @brief file system module
+
+ how to use
+ @code
+ var fs = require('fs');
+ @endcode
+ */
+module fs
+{
+    /*! @brief seek methods const move to absolute position */
+    const Integer SEEK_SET = 0;
+
+    /*! @brief seek methods const move to current relative position */
+    const Integer SEEK_CUR = 1;
+
+    /*! @brief seek methods const，move to the end of file */
+    const Integer SEEK_END = 2;
+
+    /*! @brief search if the file or directory exists
+     @param path assign the search path
+     @return return True indicates the file or directory exists
+     */
+    static Boolean exists(String path) async;
+
+    /*! @brief search if the file or directory exists. Sync version of fs.exists().
+     @param path assign the search path
+     @return return True indicates the file or directory exists
+     */
+    static Boolean existsSync(String path);
+
+    /*! @brief the file you want to delete
+     @param path the path you want to delete
+     */
+    static unlink(String path) async;
+
+    /*! @brief the file you want to delete. Sync version of fs.unlink().
+     @param path the path you want to delete
+     */
+    static unlinkSync(String path);
+
+    /*! @brief create a directory 
+     @param path assign the name of directory
+     @param mode assign file ownership, Windows user ignore this
+     */
+    static mkdir(String path, Integer mode = 0777) async;
+
+    /*! @brief create a directory. Sync version of fs.mkdir().
+     @param path assign the name of directory
+     @param mode assign file ownership, Windows user ignore this
+     */
+    static mkdirSync(String path, Integer mode = 0777);
+
+    /*! @brief delete a directory
+     @param path the name of targeting directory
+     */
+    static rmdir(String path) async;
+
+    /*! @brief delete a directory. Sync version of fs.rmdir().
+     @param path the name of targeting directory
+     */
+    static rmdirSync(String path);
+
+    /*! @brief rename a file
+     @param from the targeting file name
+     @param to the name you want to change to
+     */
+    static rename(String from, String to) async;
+
+    /*! @brief rename a file
+     @param from the targeting file name. Sync version of fs.rename().
+     @param to the name you want to change to
+     */
+    static renameSync(String from, String to);
+
+    /*! @brief copy file
+     @param from file path 
+     @param to new file path
+     */
+    static copy(String from, String to) async;
+
+    /*! @brief check the permission of targeting file, Windows does not support this
+     @param path the path to the targeting file
+     @param mode targeting file permission
+     */
+    static chmod(String path, Integer mode) async;
+
+    /*! @brief check the permission of targeting file, Windows does not support this.
+         Sync version of fs.chmod().
+     @param path the path to the targeting file
+     @param mode targeting file permission
+     */
+    static chmodSync(String path, Integer mode);
+
+    /*! @brief check file basic infomation/stat
+     @param path the path to the targeting file
+     @return return file basic infomation/stat
+     */
+    static Stat stat(String path) async;
+
+    /*! @brief check file basic infomation/stat. Sync version of fs.stat().
+     @param path the path to the targeting file
+     @return return file basic infomation/stat
+     */
+    static Stat statSync(String path);
+
+    /*! @brief read fileinfo inside target directory 
+     @param path the path to the directory
+     @return return a array of files' info in target directory
+     */
+    static List readdir(String path) async;
+
+    /*! @brief read fileinfo inside target directory. Sync version of fs.readdir().
+     @param path the path to the directory
+     @return return a array of files' info in target directory
+     */
+    static List readdirSync(String path);
+
+    /*! @brief open text file to read, write, or read and write
+     @param fname the name of file
+     @param flags define the method for opening file, default is 'r', read only, other supported methods see below:
+     - 'r' ready only, throw excption if file dose not exists
+     - 'r+' read and write, throw excption if file dose not exists
+     - 'w' write only, create new if file dose not exist, othewise overwrite
+     - 'w+' ready and write, create new if file dose not exist, othewise overwrite
+     - 'a' write only add file, create new if file dose not exist, othewise overwrite
+     - 'a+' read and write to add file, create new if file dose not exist, othewise overwrite
+     @return return opened file object
+     */
+    static SeekableStream open(String fname, String flags = "r") async;
+
+    /*! @brief open text file to read, write, or read and write. Sync version of fs.open().
+     @param fname the name of file
+     @param flags define the method for opening file, default is 'r', read only, other supported methods see below:
+     - 'r' ready only, throw excption if file dose not exists
+     - 'r+' read and write, throw excption if file dose not exists
+     - 'w' write only, create new if file dose not exist, othewise overwrite
+     - 'w+' ready and write, create new if file dose not exist, othewise overwrite
+     - 'a' write only add file, create new if file dose not exist, othewise overwrite
+     - 'a+' read and write to add file, create new if file dose not exist, othewise overwrite
+     @return return opened file object
+     */
+    static SeekableStream openSync(String fname, String flags = "r");
+
+    /*! @brief open text file to read, write, or read and write
+     @param fname the name of file
+     @param flags define the method for opening file, default is 'r', read only, other supported methods see below:
+     - 'r' ready only, throw excption if file dose not exists
+     - 'r+' read and write, throw excption if file dose not exists
+     - 'w' write only, create new if file dose not exist, othewise overwrite
+     - 'w+' ready and write, create new if file dose not exist, othewise overwrite
+     - 'a' write only add file, create new if file dose not exist, othewise overwrite
+     - 'a+' read and write to add file, create new if file dose not exist, othewise overwrite
+     @return return opened file object
+     */
+    static BufferedStream openTextStream(String fname, String flags = "r") async;
+
+    /*! @brief open file and read the conent.
+     @param fname the name of file
+     @return file content
+     */
+    static String readTextFile(String fname) async;
+
+    /*! @brief open a file, read the content
+     @param fname assign file name
+     @return return content of opened file
+     */
+    static String readFile(String fname) async;
+
+    /*! @brief open a file, read the content. Sync version of fs.readFile().
+     @param fname assign file name
+     @return return content of opened file
+     */
+    static Buffer readFileSync(String fname);
+
+    /*! @brief open file, ready each line of text content intot an array, end of line is recognized based on EOL definition, by default, posix system: "\n"; windows system: "\r\n"
+     @param fname assign file name
+     @param maxlines define the maximum number of line to read, read all lines by default
+     @return return the array containing every line of file content, if no content or connection is lost, then return an empty array
+     */
+    static Array readLines(String fname, Integer maxlines = -1);
+
+    /*! @brief create text file and write to file 创建文本文件，并写入内容
+     @param fname assign file name
+     @param txt sting to be written
+     */
+    static writeTextFile(String fname, String txt) async;
+
+    /*! @brief create file, and write new content
+     @param fname assign file name
+     @param txt the content you are going to write into file
+     */
+    static writeFile(String fname, String txt) async;
+
+    /*! @brief create file, and write new content. Sync version of fs.writeFile().
+     @param fname assign file name
+     @param txt the content you are going to write into file
+     */
+    static writeFileSync(String fname, Buffer data);
+};

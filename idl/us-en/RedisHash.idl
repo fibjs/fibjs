@@ -1,0 +1,77 @@
+/*! @brief Redis database client Hash object, it contains client with given key, and has to call its methods to operate database
+
+ Used for Redis Hash object, to create it:
+ @code
+ var db = require("db");
+ var rdb = new db.openRedis("redis-server");
+ var hash = rdb.getHash("test");
+ @endcode
+ */
+interface RedisHash : object
+{
+    /*! @brief Set value of field, overwrite when field exists
+     @param field Field to set
+     @param value Value to set */
+    set(Buffer field, Buffer value);
+
+    /*! @brief Set value of field, ignore when field exists
+     @param field Field to set
+     @param value Value to set */
+    setNX(Buffer field, Buffer value);
+
+    /*! @brief Set multiple field-value pairs,  overwrite when fields exist
+     @param kvs List of field/value Pairs*/
+    mset(Object kvs);
+
+    /*! @brief Set multiple field-value pairs,  overwrite when fields exist
+     @param ... List of field/value Pairs*/
+    mset(...);
+
+    /*! @brief Get value of field
+     @param field Field to query
+     @return Return valud, null when field not exists */
+    Buffer get(Buffer field);
+
+    /*! @brief Get one or more values of fields
+     @param fields Array of fields to query
+     @return Return a list of values */
+    List mget(Array fields);
+
+    /*! @brief Get one or more values of fields
+     @param ... Array of fields to query
+     @return Return a list of values */
+    List mget(...);
+
+    /*! @brief Increase value of field
+     @param field Field to change
+     @param num Number to increase
+     @return Return result value */
+    Long incr(Buffer field, Long num = 1);
+
+    /*! @brief Get all fields
+     @return Return a list of fields */
+    List getAll();
+
+    /*! @brief Get all fields
+     @return Return field-value pairs in one list, which size will be twice larger than original one */
+    List keys();
+
+    /*! @brief Get number of fields
+     @return Return length of list */
+    Integer len();
+
+    /*! @brief Check if given field exists
+     @param field Field to query
+     @return Return true when field exists, false when field or key not exists */
+    Boolean exists(Buffer field);
+
+    /*! @brief Delete one or more fields, ignore when not exists
+     @param fields List of field to delete
+     @return Return number of deletions */
+    Integer del(Array fields);
+
+    /*! @brief Delete one or more fields, ignore when not exists
+     @param ... List of field to delete
+     @return Return number of deletions */
+    Integer del(...);
+};

@@ -1,0 +1,82 @@
+/*! @brief Redis database List objectm, it contains client with given key, and has to call its methods to operate database
+
+ Used for Redis List object, to create it:
+ @code
+ var db = require("db");
+ var rdb = new db.openRedis("redis-server");
+ var list = rdb.getList("test");
+ @endcode
+ */
+interface RedisList : object
+{
+    /*! @brief Insert one or more value to head of list
+     @param values Values to insert
+     @return Return length of list after insertion */
+    Integer push(Array values);
+
+    /*! @brief Insert one or more value to head of list
+     @param ... Values to insert
+     @return Return length of list after insertion */
+    Integer push(...);
+
+    /*! @brief Remove and return head element
+     @return Return head element, null if list is empty */
+    Buffer pop();
+
+    /*! @brief Insert one or more value to rear of list
+     @param values Values to insert
+     @return Return length of list after insertion */
+    Integer rpush(Array values);
+
+    /*! @brief Insert one or more value to rear of list
+     @param ... Data to insert
+     @return Return length of list after insertion */
+    Integer rpush(...);
+
+    /*! @brief Remove and return rear element
+     @return Return rear element, null if list is empty */
+    Buffer rpop();
+
+    /*! @brief Set element value by index
+     @param index Index to set
+     @param value Data to set*/
+    set(Integer index, Buffer value);
+
+    /*! @brief Get element value by index
+     @param index Index to get
+     @return Return element*/
+    Buffer get(Integer index);
+
+    /*! @brief Insert value before pivot
+     @param pivot Pivot element
+     @param value Value to insert
+     @return Return length of list after insertion */
+    Integer insertBefore(Buffer pivot, Buffer value);
+
+    /*! @brief Insert value after pivot
+     @param pivot Pivot element
+     @param value Value to insert
+     @return Return length of list after insertion */
+    Integer insertAfter(Buffer pivot, Buffer value);
+
+    /*! @brief Remove number of count elements by value
+     @param count Number to remove
+     @param value Value to remove
+     @return Return number of elements removed */
+    Integer remove(Integer count, Buffer value);
+
+    /*! @brief Trim list and keeps elements in the range
+     @param start Start index, 0 is first element, -1 is last element
+     @param stop Stop index, 0 is first element, -1 is last element */
+    trim(Integer start, Integer stop);
+
+    /*! @brief Get length of list
+     @return Return length of list */
+    Integer len();
+
+    /*! @brief Get elements in given range inclusively
+     @param start Start index, 0 is first element, -1 is last element
+     @param stop Stop index, 0 is first element, -1 is last element
+     @return Return array of elements */
+    List range(Integer start, Integer stop);
+};

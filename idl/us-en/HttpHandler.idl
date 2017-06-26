@@ -1,0 +1,52 @@
+
+/*! @brief http Protocol Conversion Processor
+
+  conversing data stream to http protocol message, how to create:
+  @code
+  var hdlr = new mq.HttpHandler(...);
+  @endcode
+  or:
+  @code
+  var hdlr = new http.Handler(...);
+  @endcode
+ */
+interface HttpHandler: Handler
+{
+    /*! @brief creating a http protocal processor object, conversing stream object's data to http message object
+     @param hdlr built-in message processor, handling functions or javascript message mapping object, see mq.jsHandler
+     */
+    HttpHandler(Value hdlr);
+
+    /*! @brief querying and setting whether cross-domain request is permitted, defaults to false */
+    Boolean crossDomain;
+
+    /*! @brief querying and setting whether to compress the output by gzip, defaults to false */
+    Boolean forceGZIP;
+
+    /*! @brief querying and setting the max number of the header of requests, defaults to 128 */
+    Integer maxHeadersCount;
+
+    /*! @brief querying and setting the max uploading size in bytes, defaults to 67108864(64M) */
+    Integer maxUploadSize;
+
+    /*! @brief http current event processor interface object of the protocol conversion processor */
+    Handler handler;
+
+    /*! @brief querying the working state of the http protocol conversion processor
+
+      returning a Stats object, with the following structure:
+      @code
+      {
+          total : 1000,    // total number of the requests that have been handled
+          pendding : 100,  // current request being handled
+          request : 10,    // the new request
+          response : 10,   // response sent
+          error : 100,     // errors, not including 404
+          error_400 : 10,  // errors of request
+          error_404 : 12,  // missing files number
+          error_500 : 2    // internal processor error
+      }
+      @endcode
+     */
+    readonly Stats stats;
+};

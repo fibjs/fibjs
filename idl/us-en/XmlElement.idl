@@ -1,0 +1,115 @@
+
+/*! @brief XmlElement object represents XML element in document
+*/
+interface XmlElement : XmlNode
+{
+    /*! @brief Get URI of namespace, returns NULL if no namespace for selected node
+    */
+    readonly String namespaceURI;
+
+    /*! @brief Get and set prefix of namespace, returns NULL no namespace for selected node
+    */
+    String prefix;
+
+    /*! @brief Get local name, returns nodeName if no namespace for selected node
+    */
+    readonly String localName;
+
+    /*! @brief Get tag name
+    */
+    readonly String tagName;
+
+    /*! Get and set ID
+    */
+    String id;
+
+    /*! Get and set text content, it returns all nodes' content when get, and deletes all child nodes when set
+    */
+    String textContent;
+
+    /*! Get and set HTML content, only valid in HTML mode. it returns all nodes' content in HTML when get, and delete all child nodes when set
+    */
+    String innerHTML;
+
+    /*! Get and set class, only valid in HTML mode
+    */
+    String className;
+
+    /*! @brief Get NamedNodeMap, returns NULL when selected node is not an element
+    */
+    readonly XmlNamedNodeMap attributes;
+
+    /*! @brief Get attribute value by name
+     @param name Attribute name
+     @return Return attribute value
+    */
+    String getAttribute(String name);
+
+    /*! @brief Get attribute value by namespace URI and name
+     @param namespaceURI Namespace URI
+     @param localName Local name
+     @return Return attribute value
+    */
+    String getAttributeNS(String namespaceURI, String localName);
+
+    /*! @brief Create or change an attribute
+
+     This method will create a new attribute when necessary
+     @param name Attribute name
+     @param value Attribute value
+    */
+    setAttribute(String name, String value);
+
+    /*! @brief Create or change namespace URI
+
+     This method is similiar to setAttribute, but needs namespace URI and qualified name(prefix, colon and local name), it can change namespace value and prefix
+     @param namespaceURI Namespace URI
+     @param qualifiedName Qualified name
+     @param value Attribute value
+    */
+    setAttributeNS(String namespaceURI, String qualifiedName, String value);
+
+    /*! @brief Remove attribute by name
+     @param name Attribute name
+    */
+    removeAttribute(String name);
+
+    /*! @brief Remove attribute by namespace and name
+     @param namespaceURI Namespace URI
+     @param localName Attribute name
+    */
+    removeAttributeNS(String namespaceURI, String localName);
+
+    /*! @brief Check if selected node has given attribute
+     @param name Attribute name
+     @return Return ture if it contains, false otherwise
+    */
+    Boolean hasAttribute(String name);
+
+    /*! @brief Check if selected node has given namespace and attribute
+     @param namespaceURI Namespace URI
+     @param localName Attribute name
+     @return Return ture if it contains, false otherwise
+    */
+    Boolean hasAttributeNS(String namespaceURI, String localName);
+
+    /*! @brief Get all XmlNodeList with given tag name
+
+     This method iterates all child nodes of given element, and returns an XmlNodeList of XmlElement, which represents all document elements with given tag name.
+     They have same order as they appear in the document.
+
+     XmlDocument interface also defines getElementsByTagName method that iterates entire document
+     @param tagName Tag name to match, "*" matches all tag name
+     @return Return collection of XmlNodeList
+    */
+    XmlNodeList getElementsByTagName(String tagName);
+
+    /*! @brief Get all XmlNodeList with given namespace and tag name
+
+     This method is similiar to getElementsByTagName, but uses namespace URI and local name.
+     @param namespaceURI Namespace URI
+     @param localName Tag name to match, "*" matches all tag name
+     @return Return collection of XmlNodeList
+    */
+    XmlNodeList getElementsByTagNameNS(String namespaceURI, String localName);
+};

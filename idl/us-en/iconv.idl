@@ -1,0 +1,27 @@
+/*! @brief iconv Module with encode and decode operations between text and binary.
+ to use:
+ @code
+ var encoding = require('encoding');
+ var iconv = encoding.iconv;
+ @endcode
+ or:
+ @code
+ var iconv = require('iconv');
+ @endcode
+ */
+module iconv
+{
+	/*! @brief Convert text to binary with iconv.
+	 @param charset The charset to be use.
+	 @param data The text to be converted.
+	 @return The binary encoded result.
+	 */
+	static Buffer encode(String charset, String data);
+
+	/*! @brief Convert binary to text with iconv.
+	 @param charset The charset to be use.
+	 @param data Binary to be converted.
+	 @return The text decoded result.
+	 */
+	static String decode(String charset, Buffer data);
+};

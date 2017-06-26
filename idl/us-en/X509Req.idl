@@ -1,0 +1,72 @@
+
+/*! @brief x509 certificate request object
+
+ X509Req object belongs to crypto module, to create it:
+ @code
+ var k = new crypto.X509Req();
+ @endcode
+ */
+interface X509Req : object
+{
+    /*! @brief X509Req constructor */
+    X509Req();
+
+    /*! @brief X509Req constructor with given information
+
+     @param subject Subject of certificate
+     @param key Public key
+     @param hash Hash algorithm, default is hash.SHA1
+    */
+    X509Req(String subject, PKey key, Integer hash = hash.SHA1);
+
+    /*! @brief Load a DER format certificate
+     @param derReq DER format certificate
+    */
+    load(Buffer derReq);
+
+    /*! @brief Load a PEM format certificate
+     @param pemReq PEM format certificate
+    */
+    load(String pemReq);
+
+    /*! @brief Load a PEM format certificate, can be called multiple times
+     @param filename Certificate file name
+    */
+    loadFile(String filename);
+
+    /*! @brief Export current certificate in PRM format
+     @return Return current certificate in PRM format
+    */
+    String exportPem();
+
+    /*! @brief Export current certificate in DER format
+     @return Return current certificate in DER format
+    */
+    Buffer exportDer();
+
+    /*! @brief Sign current certificate
+
+     @param issuer Issuer of certificate
+     @param key Private key
+     @param opts Other options
+        It contains following fields:
+        @code
+        {
+            ca: false,      // Use CA certificate, default is false
+            pathlen: -1,    // Path length, default is -1
+            notBefore: "",  // Start time, default is now
+            notAfter: "",   // Expired time, default is a year
+            usage: "",      // Usage, can be one or more of digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, or cRLSign
+            type: ""        // Netscape type, either client, server, email, objsign, reserved, sslCA, emailCA, or objCA
+        }
+        @endcode
+     @return Return signed certificate
+     */
+    X509Cert sign(String issuer, PKey key, Object opts = {}) async;
+
+    /*! @brief Get subject of certificate */
+    readonly String subject;
+
+    /*! @brief Get public key of certificate */
+    readonly PKey publicKey;
+};

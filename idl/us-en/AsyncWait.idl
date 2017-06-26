@@ -1,0 +1,6 @@
+/*!  @brief Message Handler object for asynchronous waiting */
+interface AsyncWait: Handler
+{
+    /*! @brief Finish waiting, moving on to handle the message */
+    end();
+};

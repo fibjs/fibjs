@@ -1,0 +1,59 @@
+/*! @brief Message handler router
+
+ Match router object by rules, and pass a handler to it. Newer rules match first. To create it:
+ @code
+ var routing = new mq.Routing({
+   "^/func1(/.*)$": func1,
+   "^/func2(/.*)$": func2
+ });
+ @endcode
+ Match with regular expression in value, and sub-item save to params:
+ @code
+ var routing = new mq.Routing({
+   "^/func1(/([0-9]+)/([0-9]+)\.html)$": func1,
+ });
+ @endcode
+ To match "/func1/123/456.html", value == "/123/456.html", params == ["123", "456"];
+
+ If no sub-item in result, value and params are empty:
+ @code
+ var routing = new mq.Routing({
+   "^/func1/[0-9]+/[0-9]+\.html$": func1,
+ });
+ @endcode
+ To match "/func1/123/456.html", value == "", params == [];
+
+ If result has more than one first-level sub-items, value is empty, and params are first-level sub-items:
+ @code
+ var routing = new mq.Routing({
+   "^/func1/([0-9]+)/([0-9]+)\.html$": func1,
+ });
+ @endcode
+ To match "/func1/123/456.html", value == "", params == ["123", "456"];
+
+ If there is only one sub-item and no more lower level items, value and params both become sub-items of this item:
+ @code
+ var routing = new mq.Routing({
+   "^/func1/([0-9]+)/[0-9]+\.html$": func1,
+ });
+ @endcode
+ To match "/func1/123/456.html", value == "123", params == ["123"];
+ */
+interface Routing: Handler
+{
+    /*! @brief Create a routing handler
+     @param map Initial params
+     */
+    Routing(Object map);
+
+    /*! @brief Append a group of rules
+     @param map Rules
+     */
+    append(Object map);
+
+    /*! @brief Append a rule
+     @param pattern Routing pattern
+     @param hdlr Built-in handler, handle function or javascript message mapping object, see mq.jsHandler
+     */
+    append(String pattern, Value hdlr);
+};

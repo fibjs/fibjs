@@ -1,0 +1,70 @@
+
+/*! @brief File info object
+
+  Stat uses fs.stat, File.stat, fs.readdir to query and cannot be created
+ */
+interface Stat : object
+{
+    /*! @brief File name */
+    readonly String name;
+
+    /*! @brief File size */
+    readonly Long size;
+
+    /*! @brief File permission, Windows does not support this */
+    readonly Integer mode;
+
+    /*! @brief File last modified time */
+    readonly Date mtime;
+
+    /*! @brief File last access time */
+    readonly Date atime;
+
+    /*! @brief File create time */
+    readonly Date ctime;
+
+    /*! @brief Check if has write permission
+     @return Return true when has write permission to file
+     */
+    Boolean isWritable();
+
+    /*! @brief Check if has read permission
+     @return Return true when has read permission to file
+     */
+    Boolean isReadable();
+
+    /*! @brief Check if has execute permission
+     @return Return true when has execute permission to file
+     */
+    Boolean isExecutable();
+
+    /*! @brief Check if file is hidden
+     @return Return true when file is hidden
+     */
+    Boolean isHidden();
+
+    /*! @brief Check if file is a directory
+     @return Return true when file is a directory
+     */
+    Boolean isDirectory();
+
+    /*! @brief Check if file is a file
+     @return Return true when file is a file
+     */
+    Boolean isFile();
+
+    /*! @brief Check if file is a symbolic link
+     @return Return true when file is a symbolic link
+     */
+    Boolean isSymbolicLink();
+
+    /*! @brief Check if file is a memory file
+     @return Return true when file is a memory file
+     */
+    Boolean isMemory();
+
+    /*! @brief Check if file is Socket
+     @return Return true when file is Socket
+     */
+    Boolean isSocket();
+};

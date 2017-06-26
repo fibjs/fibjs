@@ -1,0 +1,69 @@
+
+/*! @brief Database access module
+
+ Basic module for create database and database operation, The way to use::
+ \code
+ var db = require('db');
+ \endcode
+ */
+module db
+{
+    /*! @brief This method offer a general entrance to open a database, call different engines according to the providing connString.
+     @param connString Database Description, For example: mysql://user:pass\@host/db
+     @return Returns the database connection object.
+     */
+    static object open(String connString) async;
+
+    /*! @brief Open a mysql database.
+     @param connString Database Description, For example: mysql://user:pass\@host/db
+     @return Returns the database connection object.
+     */
+    static MySQL openMySQL(String connString) async;
+
+    /*! @brief Open a sqlite database.
+     @param connString Database Description, For example: sqlite:test.db or test.db
+     @return Returns the database connection object.
+     */
+    static SQLite openSQLite(String connString) async;
+
+    /*! @brief Open a mongodb database.
+     @param connString Database Description
+     @return Returns the database connection object.
+     */
+    static MongoDB openMongoDB(String connString) async;
+
+    /*! @brief Open a leveldb database.
+     @param connString Database Description, For example: level:test.db or test.db
+     @return Returns the database connection object.
+     */
+    static LevelDB openLevelDB(String connString) async;
+
+    /*! @brief Open a Redis database.
+     @param connString Database Description, For example: redis://server:port or "server"
+     @return Returns the database connection object.
+     */
+    static Redis openRedis(String connString) async;
+
+    /*! @brief Formatting a sql command, and returns the formatted results
+
+     @param sql Format string, optional parameters can be specified as '?', for example: 'SELECT FROM TEST WHERE [id]=?'
+     @param ... Optional parameter list
+     @return Return the formatted sql command.
+     */
+    static String format(String sql, ...);
+
+    /*! @brief Formatting a sql command, and returns the formatted results
+
+     @param sql Format string, optional parameters can be specified as '?', for example: 'SELECT FROM TEST WHERE [id]=?'
+     @param ... Optional parameter list
+     @return Return the formatted sql command.
+     */
+    static String formatMySQL(String sql, ...);
+
+    /*! @brief String encoded as security coded SQL strings
+     @param str The string that need to be encoded
+     @param mysql Specify the Mysql encoding, the default value is false
+     @return Returns the encoded string
+     */
+    static String escape(String str, Boolean mysql = false);
+};

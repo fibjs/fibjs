@@ -1,0 +1,64 @@
+/*! @brief mongodb database cursor object */
+interface MongoCursor : object
+{
+    /*! @brief Number to skip when return results
+      @param num Number to skip
+      @return Return cursor self for chain operation
+     */
+    MongoCursor skip(Integer num);
+
+    /*! @brief Maximum size of results
+      @param size Maximum size
+      @return Return cursor self for chain operation
+     */
+    MongoCursor limit(Integer size);
+
+    /*! @brief Set order of results
+      @param opts Order option
+      @return Return cursor self for chain operation
+     */
+    MongoCursor sort(Object opts);
+
+    /*! @brief Check if cursor has next record
+      @return Return true there is next record
+     */
+    Boolean hasNext();
+
+    /*! @brief Return next record of cursor
+      @return Return record obejct, null when not exists
+     */
+    Object next();
+
+    /*! @brief Count total number of records
+      @param applySkipLimit Indicates whtehter to query records affect by skip and limit, default is false
+      @return Return total number of records
+     */
+    Integer count(Boolean applySkipLimit = false);
+
+    /*! @brief Get size of cursor record, same as count(true)
+      @return Return size of records
+     */
+    Integer size();
+
+    /*! @brief Iterate all records and execute callback function
+      @param func Callback function
+     */
+    forEach(Function func);
+
+    /*! @brief Iterate all records and return results
+      @param func Handle function
+      @return Return results
+     */
+    Array map(Function func);
+
+    /*! @brief Return all records as array
+     @return Return all records in Javascript array
+    */
+    Array toArray();
+
+    /*! @brief Change mongodb server default index policy for query
+      @param opts Index option
+      @return Return cursor self for chain operation
+     */
+    MongoCursor hint(Object opts);
+};

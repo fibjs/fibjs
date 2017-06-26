@@ -1,0 +1,91 @@
+
+/*! @brief Global object, which can be accessed by all scripts*/
+module global
+{
+    /*! @brief Binary data cache object, which used for IO reading and writing, reference Buffer object.*/
+    static Buffer;
+
+    /*! @brief A 64-bit integer object，reference Int64 object.*/
+    static Int64;
+
+    /*! @brief Console Access Objects */
+    static console;
+
+    /*! @brief Run a script
+     @param fname Specifies the running path for script
+     @param argv Specify the run parameters, which can be caught in script by argv.
+     */
+    static run(String fname, Array argv = []);
+
+    /*! @brief Get the current script's run parameters, start js for process start parameter, and run script to obtain parameters passed */
+    static readonly Array argv;
+
+    /*! @brief Load a module and return module object, reference @ref module
+
+     require can be used to load the base module, such as file module.
+
+     Base module is initializing when the sandbox created, only need pass the id when referencing, e.g: require("net")。
+
+     File module is user-defined modules which required by the relative path beginning with './' or '../'. File module supports .js and .json file.
+
+     File module also supports the format package.json, system will first require the main in package.json when the module is a directory, then will try to load index.js or index.json in the path if failed.
+
+     If the path is not a reference beginning with ./ or ../, and the module is not non-base module, system will first require the match one in startup path, and then look for the .modules in current path, then try the parent directory.
+
+     @param id Specifies the name of module to load
+     @return Returns the derivation of the load module
+     */
+    static Value require(String id);
+
+    /*! @brief Mandatory for garbage collection*/
+    static GC();
+
+    /*! @brief Enter the interactive mode, you can interactively execute the internal commands and code which can only be referenced when js start.
+     @param cmds Add commands in the following format:
+     @code
+        [
+            {
+                cmd: ".test",
+                help: "this is a test",
+                exec: function(argv) {
+                    console.log(argv);
+                }
+            },
+            {
+                cmd: ".test1",
+                help: "this is an other test",
+                exec: function(argv) {
+                    console.log(argv);
+                }
+            }
+        ]
+     @endcode
+     */
+    static repl(Array cmds = []);
+
+    /*! @brief Enter the interactive mode, you can interactively execute the internal commands and code which can only be referenced when js start.
+
+     At the same time allowed only a Stream repl, close the previous one when create a new Stream repl.
+     @param out Input/output stream object, usually for a network connection
+     @param cmds Add commands in the following format:
+     @code
+        [
+            {
+                cmd: ".test",
+                help: "this is a test",
+                exec: function(argv) {
+                    console.log(argv);
+                }
+            },
+            {
+                cmd: ".test1",
+                help: "this is an other test",
+                exec: function(argv) {
+                    console.log(argv);
+                }
+            }
+        ]
+     @endcode
+     */
+    static repl(Stream out, Array cmds = []);
+};

@@ -1,0 +1,34 @@
+
+/*! @brief Thread lock object
+
+Unlike system lock, thread lock cost use logic lock and very cheap.
+ @code
+ var l = new coroutine.Lock();
+ l.acquire();
+ .....
+ l.release();
+ @endcode
+ */
+interface Lock : object
+{
+    /*! @brief Constructor*/
+    Lock();
+
+    /*! @brief Acquire 
+     @param blocking Indicates whether to wait, default is true
+     @return Return true when acquired successfully
+
+     acquire returns true immediately when lock if acquirable.
+
+     When is not available and blocking is true, will wait and return true.
+
+     When is not available and blocking is false, returns false immediately.
+     */
+    Boolean acquire(Boolean blocking = true);
+
+    /*! @brief Release ownership
+
+     This method releases ownership of lock, and throw an error when ownership is invalid.
+     */
+    release();
+};

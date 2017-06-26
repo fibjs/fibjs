@@ -1,0 +1,56 @@
+
+/*! @brief http container object, used to store and organize data like http header, cookie, query, form and so on */
+interface HttpCollection : object
+{
+    /*! @brief clear the data in the container
+    */
+    clear();
+
+    /*! @brief detect whether there is the data that has the specified key value
+     @param name specify the key to be detected
+     @return return whether the key exists
+     */
+    Boolean has(String name);
+
+    /*! @brief query the first value of the specified key
+     @param name specify the key to be queried
+     @return return the key's corresponding value, if the value doesn't exists, return undefined
+     */
+    Variant first(String name);
+
+    /*! @brief query all value of the specified key
+     @param name specify the key to be queried
+     @return return an array that contains all value of the key corresponded. If the data doesn't exists, return null.
+     */
+    List all(String name);
+
+    /*! @brief add a key and data and it won't modify the key and it's value that already exist.
+     @param map specify the key and value to be added.
+     */
+    add(Map map);
+
+    /*! @brief add a key and data and it won't modify the key and it's value that already exist.
+     @param name specify the key to be added
+     @param value specify the value to be added
+     */
+    add(String name, Variant value);
+
+    /*! @brief set a key's value, the first value of the key will be modified and other data of the same key will be cleared.
+     @param map specify the key-value to be modified.
+     */
+    set(Map map);
+
+    /*! @brief set a key's value, the first value of the key will be modified and other data of the same key will be cleared.
+     @param name specify the key to be modified
+     @param value spacify the value to be modified
+     */
+    set(String name, Variant value);
+
+    /*! @brief delete all value of the specified key
+     @param name specify the key to be deleted
+     */
+    remove(String name);
+
+    /*! @brief allowing access to data by key index */
+    Variant operator[String];
+};

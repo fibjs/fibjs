@@ -1,0 +1,45 @@
+
+/*! @brief XmlCharacterData provides common features to XmlText and XmlComment
+
+XmlCharacterData is super-interface of XmlText and XmlComment. Documents will only contain content about XmlText and XmlComment, but those two nodes are similiar, so here we define these functions for both of them.
+*/
+interface XmlCharacterData : XmlNode
+{
+    /*! @brief Get content of node
+    */
+    String data;
+
+    /*! @brief Get length of content
+    */
+    readonly Integer length;
+
+    /*! @brief Get substring of content
+     @param offset Start position
+     @param count Number of characters to get
+    */
+    String substringData(Integer offset, Integer count);
+
+    /*! @brief Append content to node
+     @param arg Content to append
+    */
+    appendData(String arg);
+
+    /*! @brief Insert content to node
+     @param offset Start insert position
+     @param arg Content to insert
+    */
+    insertData(Integer offset, String arg);
+
+    /*! @brief Delete content form node
+     @param offset Start delete position
+     @param count Number of characters to delete
+    */
+    deleteData(Integer offset, Integer count);
+
+    /*! @brief Replace content in node
+     @param offset Start replace position
+     @param count Number of characters to replace
+     @param arg Content to insert
+    */
+    replaceData(Integer offset, Integer count, String arg);
+};

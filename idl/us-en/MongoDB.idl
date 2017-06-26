@@ -1,0 +1,50 @@
+
+/*! @brief mongodb database connection object
+
+Used for db.open or db.openMongoDB, to create:
+ @code
+ var mdb = db.openMongoDB("mongodb://host/db");
+ @endcode
+ */
+interface MongoDB : object
+{
+    /*! @brief Get collection by name
+      @param name Collection name
+      @return Return collection object
+     */
+    MongoCollection getCollection(String name);
+
+    /*! @brief Run MongoDB command
+      @param cmd Command to run
+      @return Return execution result
+     */
+    Object runCommand(Object cmd);
+
+    /*! @brief Run a simple MongoDB commnad
+      @param cmd Command name
+      @param arg Commnad parameter
+      @return Return execution result
+     */
+    Object runCommand(String cmd, Value arg);
+
+    /*! @brief Get readonly collection obejct
+
+     To use it:
+     @code
+     var test = mdb.test;
+     @endcode
+     */
+    readonly MongoCollection operator[String];
+
+    /*! @brief Get GridFS object */
+    readonly GridFS fs;
+
+    /*! @brief Generate mongodb _objectid object
+      @param hexStr Initial Hex string as new id
+      @return Return new _objectid object
+     */
+    MongoID oid(String hexStr = "");
+
+    /*! @brief Close connection */
+    close();
+};

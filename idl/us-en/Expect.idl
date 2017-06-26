@@ -1,0 +1,194 @@
+
+/*! @brief assertion expect object
+ Expect object is an inner object of assert object,
+ which can be used to create expect-style assertions, examples:
+ @code
+ var test = require("test");
+ var obj = test.expect(exp);
+ @endcode
+ or referring directly:
+ @code
+ var expect = require("expect");
+ var obj = expect(exp);
+ @endcode
+ or configuring by test.setup
+ @code
+ require("test").setup();
+ var obj = expect(exp);
+ @endcode
+  */
+interface Expect : object
+{
+    /*! @brief no difference, only to build semantics
+     @return the object itself
+     */
+    readonly Expect to;
+
+    /*! @brief no difference, only to build semantics
+     @return the object itself
+     */
+    readonly Expect be;
+
+    /*! @brief no difference, only to build semantics
+     @return the obect itself
+     */
+    readonly Expect been;
+
+    /*! @brief no difference, only to build semantics
+     @return the object itself
+     */
+    readonly Expect is;
+
+    /*! @brief no difference, only to build semantics
+     @return the object itself
+     */
+    readonly Expect that;
+
+    /*! @brief no difference, only to build semantics
+     @return the object itself
+     */
+    readonly Expect and;
+
+    /*! @brief no difference, only to build semantics
+     @return the object itself
+     */
+    readonly Expect have;
+
+    /*! @brief no difference, only to build semantics
+     @return the object itself
+     */
+    readonly Expect with;
+
+    /*! @brief no difference, only to build semantics
+     @return the object itself
+     */
+    readonly Expect at;
+
+    /*! @brief no difference, only to build semantics
+     @return the object itself
+     */
+    readonly Expect of;
+
+    /*! @brief no difference, only to build semantics
+     @return the object itself
+     */
+    readonly Expect same;
+
+    /*! @brief invert the current comparison
+     @return the object itself
+     */
+    readonly Expect not;
+
+    /*! @brief mark the current comparison as deep comparison
+     @return the object itself
+     */
+    readonly Expect deep;
+
+    /*! @brief assert the given value as a specific type and throw an error when the assertion fails
+     @param type String assign the assertion's data type
+     */
+    a(String type);
+
+    /*! @brief assert the given value as a specific type and throw an error when the assertion fails
+     @param type String assign the assertion's data type
+     */
+    an(String type);
+
+    /*! @brief assert the given value as true and throw an error when the assertion fails */
+    readonly Boolean ok;
+
+    /*! @brief assert the given value as true and throw an error when the assertion fails */
+    readonly Boolean true;
+
+    /*! @brief assert the given value as false and throw an error when the assertion fails */
+    readonly Boolean false;
+
+    /*! @brief assert the given value as null and throw an error when the assertion fails */
+    readonly Boolean null;
+
+    /*! @brief assert the given value as undefined and throw an error when the assertion fails */
+    readonly Boolean undefined;
+
+    /*! @brief assert the given value as function and throw an error when the assertion fails */
+    readonly Boolean function;
+
+    /*! @brief assert the given value as object and throw an error when the assertion fails */
+    readonly Boolean object;
+
+    /*! @brief assert the given value as array and throw an error when the assertion fails */
+    readonly Boolean array;
+
+    /*! @brief assert the given value as string and throw an error when the assertion fails */
+    readonly Boolean string;
+
+    /*! @brief assert the given value as number and throw an error when the assertion fails */
+    readonly Boolean number;
+
+    /*! @brief assert the given value as Boolean and throw an error when the assertion fails */
+    readonly Boolean boolean;
+
+    /*! @brief assert that the given value exists and throw an error when the assertion fails */
+    readonly Boolean exist;
+
+    /*! @brief assert the given value as true and throw an error when the assertion fails
+     @param expected expected value
+     */
+    equal(Value expected);
+
+    /*! @brief assert that the given value is strict equal to the given value,
+        do deep comparison if deep is marked, throw an error when the assertion fails
+     @param expected expected value
+     */
+    eql(Value expected);
+
+    /*! @brief assert that the given value is larger than the expected value, throw an error when the assertion fails
+     @param expected expected value
+     */
+    above(Value expected);
+
+    /*! @brief assert that the given value is larger than the expected value, throw an error when the assertion fails
+     @param expected expected value
+     */
+    greaterThan(Value expected);
+
+    /*! @brief assert that the given value is no less than the expected value, throw an error when the assertion fails
+     @param expected expected value
+     */
+    least(Value expected);
+
+    /*! @brief assert that the given value is less than the expected value, throw an error when the assertion fails
+     @param expected expected value
+     */
+    below(Value expected);
+
+    /*! @brief assert that the given value is less than the expected value, throw an error when the assertion fails
+     @param expected expected value
+     */
+    lessThan(Value expected);
+
+    /*! @brief assert that the given value is no larger than the expected value, throw an error when the assertion fails
+     @param expected expected value
+     */
+    most(Value expected);
+
+    /*! @brief assert that the given value contains specific property,
+        do deep comparison if deep is marked, throw an error when the assertion fails
+     @param prop property to be tested
+     */
+    property(Value prop);
+
+    /*! @brief assert that the given property of the given value is a specific value,
+        do deep comparison if deep is marked, throw an error when the assertion fails
+     @param prop property to be tested
+     @param value specific value
+     */
+    property(Value prop, Value value);
+
+    /*! @brief assert that the given value is close to the expected value,
+        do deep comparison if deep is marked, throw an error when the assertion fails
+     @param expected value
+     @param delta approximate decimal precision
+     */
+    closeTo(Value expected, Value delta);
+};
+

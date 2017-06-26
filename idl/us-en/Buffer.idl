@@ -1,0 +1,376 @@
+/*! @brief Binary buffer used in dealing with I/O reading and writing.
+
+ Buffer object is a global basic class which can be created by "new Buffer(...)" at anytime:
+ @code
+ var buf = new Buffer();
+ @endcode
+ */
+interface Buffer : object
+{
+    /*! @brief Buffer constructor
+     @param datas Initial data array
+     */
+    Buffer(Array datas);
+
+    /*! @brief Buffer constructor
+     @param buffer otherBuffer
+     */
+    Buffer(Buffer buffer);
+    
+    /*! @brief Buffer constructor
+     @param str Initial string encoded in UTF-8, by default it will create an empty object.
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     */
+    Buffer(String str, String codec = "utf8");
+
+    /*! @brief Check if variable is a Buffer object
+     @param v Variable to check
+     @return Return true when it's a Buffer object
+     */
+    static Boolean isBuffer(Value v);
+
+    /*! @brief Returns a buffer which is the result of concatenating the buffers in the list.
+     @param buflist Array List of Buffer objects to concat
+     @param cutLength Number Total length of the buffers when concatenated
+     @return Returns a buffer which is the result of concatenating the buffers in the list.
+    */
+    static Buffer concat(Array buflist, Integer cutLength = -1);
+
+    /*! @brief Buffer constructor
+     @param size Initial cache size
+     */
+    Buffer(Integer size = 0);
+
+    /*! @brief The binary data in the buffer can be accessed by using subscript*/ 
+    Integer operator[];
+
+    /*! @brief The buffer size */
+    readonly Integer length;
+
+    /*! @brief Resize the buffer
+     @param sz New size
+     */
+    resize(Integer sz);
+
+    /*! @brief Write an array into the buffer
+     @param datas Initial data array
+     */
+    append(Array datas);
+
+    /*! @brief Write a set of binary data into the buffer
+     @param data Initial binary data
+     */
+    append(Buffer data);
+
+    /*! @brief Write a string encoded in utf-8 into buffer
+     @param str String to write
+     @param codec Coded format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     */
+    append(String str, String codec = "utf8");
+
+    /*! @brief Writes string to the buffer at offset using the given encoding. 
+     @param str String - data to be written to buffer
+     @param offset Number, Optional, Default 0
+     @param length Number, Optional, Default -1
+     @param codec Coded format, can be "hex", “base64”, "utf8" or any other character sets supported
+     @return Returns number of octets written.
+     */
+    Integer write(String str, Integer offset = 0, Integer length = -1, String codec = "utf8");
+
+    /*! @brief Fill the buffer with the specified objects.
+     @param v Data intend to be filled, and will fill the entire buffer when the offset and end is not specified.
+     @param offset Number, Optional, Default 0
+     @param end Number, Optional, Default -1
+     */
+    fill(Integer v, Integer offset = 0, Integer end = -1);
+
+    /*! @brief Fill the buffer with the specified objects.
+     @param v Data intend to be filled, and will fill the entire buffer when the offset and end is not specified.
+     @param offset Number, Optional, Default 0
+     @param end Number, Optional, Default -1
+     */
+    fill(Buffer v, Integer offset = 0, Integer end = -1);
+
+    /*! @brief Fill the buffer with the specified objects.
+     @param v Data intend to be filled, and will fill the entire buffer when the offset and end is not specified.
+     @param offset Number, Optional, Default 0
+     @param end Number, Optional, Default -1
+     */
+    fill(String v, Integer offset = 0, Integer end = -1);
+
+    /*! @brief Whether this and otherBuffer have the same bytes.
+     @param buf otherBuffer
+     @return Returns a boolean of whether this and otherBuffer have the same bytes.
+     */
+    Boolean equals(Buffer buf);
+
+    /*! @brief Compare the contents of the buffer
+     @param buf otherBuffer
+     @return Returns a number indicating whether this comes before or after or is the same as the otherBuffer in sort order.
+     */
+    Integer compare(Buffer buf);
+
+    /*! @brief Copies data from a region of this buffer to a region in the target buffer even if the target memory region overlaps with the source. If undefined the targetStart and sourceStart parameters default to 0 while sourceEnd defaults to buffer.length.
+     @param targetBuffer Buffer object - Buffer to copy into
+     @param targetStart Number, Optional, Default: 0
+     @param sourceStart Number, Optional, Default: 0
+     @param sourceEnd Number, Optional, Default: -1, represent buffer.length
+     @return Copied data byte length
+     */
+    Integer copy(Buffer targetBuffer, Integer targetStart = 0, Integer sourceStart = 0, Integer sourceEnd = -1);
+
+    /*!	@brief Read an unsigned 8-bit integer from the buffer
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted integer
+     */
+    Integer readUInt8(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Read an unsigned 16-bit integer from the buffer and use the little-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted integer
+     */
+    Integer readUInt16LE(Integer offset, Boolean noAssert = false);
+   
+    /*!	@brief Read an unsigned 16-bit integer from the buffer and use the big-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted integer
+     */
+    Integer readUInt16BE(Integer offset, Boolean noAssert = false);
+    
+    /*!	@brief Read an unsigned 32-bit integer from the buffer and use the little-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted integer
+     */
+    Long readUInt32LE(Integer offset, Boolean noAssert = false);
+    	
+    /*!	@brief Read an unsigned 32-bit integer from the buffer and use the big-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted integer
+     */
+    Long readUInt32BE(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Read an 8-bit integer from the buffer
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted integer
+     */
+    Integer readInt8(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Read an 16-bit integer from the buffer and use the little-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted integer
+     */
+    Integer readInt16LE(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Read an 16-bit integer from the buffer and use the big-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted integer
+     */
+    Integer readInt16BE(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Read an 32-bit integer from the buffer and use the little-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted integer
+     */
+    Integer readInt32LE(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Read an 32-bit integer from the buffer and use the big-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted integer
+     */
+    Integer readInt32BE(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Read an 64-bit integer from the buffer and use the little-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted integer
+     */
+    Int64 readInt64LE(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Read an 64-bit integer from the buffer and use the big-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted integer
+     */
+    Int64 readInt64BE(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Read a float from the buffer and use the little-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted float
+     */
+    Number readFloatLE(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Read a float from the buffer and use the big-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted float
+     */
+    Number readFloatBE(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Read a double from the buffer and use the little-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted double
+     */
+     Number readDoubleLE(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Read a double from the buffer and use the big-endian format for storage
+     @param offset The beginning of the address to read
+     @param noAssert If true, then do not throw an error when overread. By default it's false.
+     @return The targeted double
+     */
+    Number readDoubleBE(Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write an unsigned 8-bit integer into the buffer
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeUInt8(Integer value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write an unsigned 16-bit integer into the buffer and use the little-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeUInt16LE(Integer value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write an unsigned 16-bit integer into the buffer and use the big-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeUInt16BE(Integer value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write an unsigned 32-bit integer into the buffer and use the little-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeUInt32LE(Long value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write an unsigned 32-bit integer into the buffer and use the big-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeUInt32BE(Long value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write an 8-bit integer into the buffer
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeInt8(Integer value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write a 16-bit integer into the buffer and use the little-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeInt16LE(Integer value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write a 16-bit integer into the buffer and use the big-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeInt16BE(Integer value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write a 32-bit integer into the buffer and use the little-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeInt32LE(Integer value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write a 32-bit integer into the buffer and use the big-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeInt32BE(Integer value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write a 64-bit integer into the buffer and use the little-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeInt64LE(Int64 value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write a 64-bit integer into the buffer and use the big-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeInt64BE(Int64 value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write a float into the buffer and use the little-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeFloatLE(Number value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write a float into the buffer and use the big-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeFloatBE(Number value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief Write a double into the buffer and use the little-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeDoubleLE(Number value, Integer offset, Boolean noAssert = false);
+
+    /*! @brief Write a double into the buffer and use the big-endian format for storage
+     @param value The value to write
+     @param offset The beginning of the address to write
+     @param noAssert If true, then do not throw an error when overwrite. By default it's false.
+     */
+    writeDoubleBE(Number value, Integer offset, Boolean noAssert = false);
+
+    /*!	@brief return a new buffer that contains data in the specified range. If the data is out of range of the buffer, return the available part of the data.
+
+     @param start The start of the specified range, by default it's the beginning of the buffer
+     @param end The end of the specified range, by default it's the end of the buffer 
+     */
+    Buffer slice(Integer start = 0, Integer end = -1);
+
+    /*! @brief Store the data in the buffer with hexadecimal encoding?
+     @return The encoded string
+     */
+    String hex();
+
+    /*! @brief Store the data in the buffer with base64 encoding?
+     @return The encoded string
+     */
+    String base64();
+
+    /*! @brief return the encoded string of the binary data 
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system.
+     @param offset The start position of string, Default: 0
+     @param end The end position of string, Default: -1
+     @return The string representing the value of the buffer.
+    */
+    String toString(String codec, Integer offset = 0, Integer end = -1);
+
+   /*! @brief return the utf8-encoded string of the binary data
+     @return The string representing the value of the buffer.
+    */
+    String toString();
+};
+

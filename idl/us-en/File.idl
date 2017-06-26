@@ -1,0 +1,30 @@
+/*! @brief file operands, used to operate the reading and writing of binary files.
+
+ The file operand is used to do operations on binary files. Files can be opened and created by the fs module.
+ @code
+ var f = fs.open('test.txt');
+ @endcode
+ */
+interface File: SeekableStream
+{
+    /*! @brief querying the name of the current file */
+    readonly String name;
+
+    /*! @brief modify the file size. The file will be truncated if the new size is less than before.
+      @param bytes new size of the file
+     */
+    truncate(Long bytes) async;
+
+    /*! @brief specifies if the query will get to the end of the file
+     @return query to the end of the file if true is returned
+     */
+    Boolean eof();
+
+    /*! @brief write file buffers to physical device */
+    flush() async;
+
+    /*! @brief query the access authority of the current file. This method is not supportes in Windows.
+     @param mode specify the access authority
+     */
+    chmod(Integer mode) async;
+};

@@ -1,0 +1,63 @@
+
+/*! @brief Dictionary object
+
+Used for craete and manage Dictionary object, to create:
+ @code
+ var collection = require("collection");
+ var m = new collection.Map();
+ @endcode
+ */
+interface Map : object
+{
+    /*! @brief Map constructor */
+    Map();
+
+    /*! @brief Map constructor
+     @param map used to initialize the js dictionary object
+    */
+    Map(Object map);
+
+    /*! @brief Get number of elements in container
+     */
+    readonly Integer size;
+
+    /*! @brief Clear all container elements */
+    clear();
+
+    /*! @brief Check if container contains given key
+     @param name Key name
+     @return Return true if contains
+     */
+    Boolean has(String name);
+
+    /*! @brief Query value of key
+     @param name Key name
+     @return Return value of key, null otherwise
+     */
+    Variant get(String name);
+
+    /*! @brief Set key-value pairs, insert when not exist
+     @param map Key-value pairs to insert
+     */
+    put(Object map);
+
+    /*! @brief Set value of a key, insert when not exists
+     @param name Key name
+     @param value Value to set
+     */
+    put(String name, Variant value);
+
+    /*! @brief Delete all values of key
+     @param name Key name
+     */
+    remove(String name);
+
+    /*! @brief Check if container is empty
+     @return Return true when container is empty
+     */
+    Boolean isEmpty();
+
+    /*! @brief Able to use index */
+    Variant operator[String];
+
+};

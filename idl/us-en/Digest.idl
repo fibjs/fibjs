@@ -1,0 +1,22 @@
+/*! @brief Message digest object */
+interface Digest : object
+{
+    /*! @brief Update the binary digest
+     @param data The binary data blocks
+     */
+    update(Buffer data);
+
+    /*!	@brief Compute and return the digest
+     @param data Binary data packet which will be updated into the digest before computing
+     @return The binary digest
+     */
+    Buffer digest(Buffer data);
+
+    /*!	@brief Compute and return the digest
+     @return The binary digest	
+     */
+    Buffer digest();
+
+    /*! @brief Query the number of bytes of the digest of the digest algorithm currently being used */
+    readonly Integer size;
+};

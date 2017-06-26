@@ -1,0 +1,26 @@
+
+/*! @brief Memory stream object
+
+ MemoryStream creates a memory stream object, to create:
+ @code
+ var ms = new io.MemoryStream();
+ @endcode
+ */
+interface MemoryStream : SeekableStream
+{
+    /*! @brief MemoryStream constructor */
+    MemoryStream();
+
+    /*! @brief Set last updated time
+     @param d Time to set
+     */
+    setTime(Date d);
+
+    /*! @brief Create a readonly copy of stream
+     @return Return readonly copy
+     */
+    MemoryStream clone();
+
+    /*! @brief Clear data and reset pointer */
+    clear();
+};

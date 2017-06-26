@@ -1,0 +1,55 @@
+
+/*! @brief ssl netwrok socket interface
+
+ SslSocket belongs to ssl module, to create it:
+ \code
+ var s = new ssl.Socket();
+ \endcode
+ */
+interface SslSocket : Stream
+{
+    /*! @brief SslSocket constructor
+      @param certs CA list with following format:
+        @code
+        [
+            {
+                crt: [X509Cert object],
+                key: [PKey object]
+            },
+            {
+                crt: [X509Cert object],
+                key: [PKey object]
+            }
+        ]
+        @endcode
+     */
+    SslSocket(Array certs = []);
+
+    /*! @brief SslSocket constructor
+      @param crt X509Cert certificate
+      @param key PKey private key
+     */
+    SslSocket(X509Cert crt, PKey key);
+
+    /*! @brief Set verification mode, default is VERIFY_REQUIRED */
+    Integer verification;
+
+    /*! @brief Certificate chain, when client mode is connect calls ssl.ca, server mode accept generate SslSocket uses SslSocket's ca*/
+    readonly X509Cert ca;
+
+    /*! @brief Peer certificate */
+    readonly X509Cert peerCert;
+
+    /*! @brief Connect with ssl in client mode in existence connection
+      @param s Given connection
+      @param server_name Server name, empty to use default
+      @return Return 0 and connected, and non-zero when fail to verify certificate, see ssl module for error details
+    */
+    Integer connect(Stream s, String server_name = "") async;
+
+    /*! @brief Connect with ssl and generate new SslSocket connection
+      @param s Given connection
+      @return Return new SslSocket
+     */
+    SslSocket accept(Stream s) async;
+};

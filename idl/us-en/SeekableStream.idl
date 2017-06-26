@@ -1,0 +1,33 @@
+
+/*! @brief Seekable stream interface */
+interface SeekableStream : Stream
+{
+    /*! @brief Seek current position
+      @param offset New position
+      @param whence baseline, can be SEEK_SET, SEEK_CUR, SEEK_END
+     */
+    seek(Long offset, Integer whence);
+
+    /*! @brief Get current position
+     @return Return current position
+     */
+    Long tell();
+
+    /*! @brief Move position to start */
+    rewind();
+
+    /*! @brief Get size of stream
+     @return Return size of stream
+     */
+    Long size();
+
+    /*! @brief Read all left data from stream
+     @return Return all left data, null when connection lost or no more data
+     */
+    Buffer readAll() async;
+
+    /*! @brief Get file info
+     @return Return file info
+     */
+    Stat stat() async;
+};

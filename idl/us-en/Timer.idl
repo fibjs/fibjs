@@ -1,0 +1,6 @@
+/*! @brief Object of timer */
+interface Timer : object
+{
+	/*! @brief Cancel current timer	 */
+	clear();
+};

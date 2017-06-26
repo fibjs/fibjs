@@ -1,0 +1,59 @@
+/*! @brief Symmetric cryptography object 
+
+ Cipher object belongs to crypto module, create:
+ @code
+ var c = new crypto.Cipher(crypto.AES, crypto.ECB, ...);
+ @endcode
+ */
+interface Cipher : object
+{
+    /*!	@brief Cipher constructor, only be used for ARC4 initialization
+     @param provider The cryptography
+     @param key The key for encryption and decryption 
+     */
+    Cipher(Integer provider, Buffer key);
+
+    /*!	@brief Cipher Constructor
+     @param provider The cryptography
+     @param mode The mode of the block cipher
+     @param key The key for encryption and decryption
+     */
+    Cipher(Integer provider, Integer mode, Buffer key);
+
+    /*!	@brief Cipher Constructor
+     @param provider The cryptography
+     @param mode The mode of the block cipher
+     @param key The key for encryption and decryption
+     @param iv The initialization vector
+     */
+    Cipher(Integer provider, Integer mode, Buffer key, Buffer iv);
+
+    /*! @brief Return the name of the current cryptography */
+    readonly String name;
+
+    /*! @brief Return the length of the key of the current cryptography, measured in bit */
+    readonly Integer keySize;
+
+    /*! @brief Return the length of the initialization vector of the current cryptography, measured in byte */
+    readonly Integer ivSize;
+
+    /*! @brief Return the length of the data packet of the current cryptography, measured in byte */
+    readonly Integer blockSize;
+
+    /*!	@brief Use padding mode
+     @param mode The padding mode, by default it is PADDING_PKCS7
+     */
+    paddingMode(Integer mode);
+
+    /*!	@brief Use the current cryptography to encrypt the data
+     @param data The data to encrypt
+     @return The encrypted data
+     */
+    Buffer encrypt(Buffer data) async;
+
+    /*!	@brief Use the current cryptography to decrypt the data
+     @param data The data to decrypt
+     @return The encrypted data
+     */
+    Buffer decrypt(Buffer data) async;
+};

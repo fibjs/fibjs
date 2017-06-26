@@ -1,0 +1,185 @@
+/*! @mainpage Quick Start
+@tableofcontents
+@section intro_sec What’s fibjs
+
+Fibjs is an application server framework bassed on Google V8 Javascript engine. Fibjs, as distinct from node.js, uses fiber to deal with multiplex of V8 engine. By reconstruct with lots of C++ components, heavy operations of consume much CPU time are devolved to background threads, which will release threads of V8 engine and compete for concurrent time.
+
+@section install_sec Build release
+
+@subsection install_step1 Step 1: Preparation for Building
+
+@b For Windows, installing Visual Studio 2015
+
+@b For unix, dependency tools for building:
+@code
+GCC 4.8 or newer
+CMake 2.6 or newer
+GNU Make 3.81 or newer
+libexecinfo (FreeBSD and OpenBSD only)
+@endcode
+
+@b For MacOSX，take Brew for example, besides XCode and command line tools, cmake is needed:
+@code
+brew install cmake
+brew install git
+@endcode
+
+@b For Ubuntu:
+@code
+apt install g++
+apt install make
+apt install cmake
+apt install git
+@endcode
+
+For 32-bit binary, additionally, multilib needs to be installed:
+@code
+apt install gcc-multilib
+apt install g++-multilib
+@endcode
+
+@b For 32bit-Arm on Ubuntu:
+@code
+apt install gcc-arm-linux-gnueabihf
+apt install g++-arm-linux-gnueabihf
+@endcode
+
+For 64bit-Arm on Ubuntu:
+@code
+apt install gcc-aarch64-linux-gnu
+apt install g++-aarch64-linux-gnu
+@endcode
+
+@b For 32bit-mips on Ubuntu:
+@code
+apt install gcc-mips-linux-gnu
+apt install g++-mips-linux-gnu
+@endcode
+
+For 64bit-mips on Ubuntu:
+@code
+apt install gcc-mips64-linux-gnuabi64
+apt install g++-mips64-linux-gnuabi64
+@endcode
+
+@b For 32bit-powerpc on Ubuntu:
+@code
+apt install gcc-powerpc-linux-gnu
+apt install g++-powerpc-linux-gnu
+@endcode
+
+For 64bit-powerpc on Ubuntu:
+@code
+apt install gcc-powerpc64-linux-gnu
+apt install g++-powerpc64-linux-gnu
+@endcode
+
+fix:
+@code
+rm -f /usr/include/asm
+ln -s x86_64-linux-gnu /usr/include/i386-linux-gnu
+ln -s x86_64-linux-gnu /usr/include/x86_64-linux-gnux32
+@endcode
+
+@b For Fedora:
+@code
+yum install gcc-c++
+yum install libstdc++-static
+yum install make
+yum install cmake
+yum install git
+@endcode
+
+For 32bit-Fedora:
+@code
+yum install glibc-devel.i686
+yum install libstdc++-static.i686
+@endcode
+
+@b For FreeBSD(8, 9):
+@code
+pkg_add -r cmake
+pkg_add -r libexecinfo
+pkg_add -r git
+@endcode
+
+For FreeBSD10 and higher:
+@code
+pkg install cmake
+pkg install libexecinfo
+pkg install git
+@endcode
+
+@subsection install_step2 Step 2: Fetch source code
+
+current fibjs project github address: https://github.com/fibjs/fibjs
+
+Under appropriate directory run commands below:
+@code
+git clone https://github.com/fibjs/fibjs.git
+cd fibjs
+git submodule init
+git submodule update
+@endcode
+
+@subsection install_step3 Step 3: Building
+
+@b For Windows, click Windows Start then select All program then select Visual Studio 2015 then select Visual Studio Tools then select Developer Command Prompt for VS2015.
+You will open a terminal, find the fibjs root directory and run 'build'
+
+For \*nix/linux, run buil (shell file) to build.
+run command:
+@code
+sh build [options] [-jn] [-v] [-h]
+@endcode
+
+options：
+@li @c @b clean: Clear building result for re-build cleanly.
+@li @c @b Release: Build Release version
+@li @c @b Debug: Build Debug version
+@li @c @b i386: Build 32-bit version
+@li @c @b amd64: Build 64-bit version
+@li @c @b arm: Cross compile 32-bit arm version
+@li @c @b arm64: Cross compile 64-bit arm version
+@li @c @b mips: Cross compile 32-bit mips version
+@li @c @b mips64: Cross compile 64-bit mips version
+@li @c @b ppc: Cross compile 32-bit powerpc version
+@li @c @b ppc64: Cross compile 64-bit powerpc version
+
+@b For example, building Release as follows:
+@code
+sh build Release
+@endcode
+
+@subsection install_step4 Step 4: Test cases
+
+Enter directory @b test, and then run @b ../bin/{$OS}_Release/fibjs main.js, which will go through all test cases .
+
+All test cases pass, if output looks like as follows:
+@code
+  .......
+  db
+    √ escape
+    √ formatMySQL
+    sqlite
+      √ empty sql
+      √ create table
+      √ intert
+      √ select
+      √ callback
+      √ binary (835ms) 
+
+  BUG:simple_api_call
+    √ not hungup (109ms) 
+
+  √ 312 tests completed (6727ms)
+@endcode
+
+@subsection install_step5 Step 5: Have a rest and drinking
+
+Now a executable fibjs is ready. Let’s celebrate! Coffee, beer, cola are all OK.
+
+Finally, Lion leave some extra trivial words here. It looks interesting but bullshit! I’m so sure that these words make no sense and stray away from the main subject of this article definitely. If you still persist to know what he said, go on with Google translator. I keep the original sentence leaving as follows. ^_^
+我一般会喝点可乐，不乱神，不乱性，又能补充能量。天冷的时候就喝点热的果珍，虽然里面什么水果成分都没有。:<
+
+*/

@@ -1,0 +1,46 @@
+
+/*! @brief Zip file processing module.
+
+ It can be used to compress and decompress file into or from zip file. The way to use：
+ @code
+ var zip = require('zip');
+ @endcode
+ */
+module zip
+{
+	/*! @brief Constants of compress type, no compress and only store for this. */
+	const Integer ZIP_STORED = 0;
+
+	/*! @brief Constants of compress type, library zlib is needed. */
+	const Integer ZIP_DEFLATED = 1;
+	
+	/*! @brief  Judge if the file is zip file. 
+	 @param filename to be judged.
+     @return Judge result, true means yes.
+     */
+	static Boolean isZipFile(String filename) async;
+
+	/*! @brief Open a zip file.
+	 @param path The path of file to be opened.
+	 @param mod File open mode, "r" means read only, "w" means create and overwrite if the file exists, "a" means append after the zip file.
+	 @param compress_type Compress type, ZIP_STORED means no compress and for storage only.  The default parameter is ZIP_DEFLATED, it depends on library zlib in compressing.
+     @return The zip file object.
+     */
+	static ZipFile open(String path, String mod = "r", Integer compress_type = ZIP_DEFLATED) async;
+
+	/*! @brief Open buffer of zip file data.
+	 @param data Buffer of zip file data.
+	 @param mod File open mode, "r" means read only, "w" means create and overwrite if the file exists, "a" means append after the zip file.
+	 @param compress_type Compress type, ZIP_STORED means no compress and for storage only.  The default parameter is ZIP_DEFLATED, it depends on library zlib in compressing.
+     @return The zip file object.
+     */
+	static ZipFile open(Buffer data, String mod = "r", Integer compress_type = ZIP_DEFLATED) async;
+
+	/*! @brief Open stream of zip file data.
+	 @param strm Stream of zip file data.
+	 @param mod File open mode, "r" means read only, "w" means create and overwrite if the file exists, "a" means append after the zip file.
+	 @param compress_type Compress type, ZIP_STORED means no compress and for storage only.  The default parameter is ZIP_DEFLATED, it depends on library zlib in compressing.
+     @return The zip file object.
+     */
+	static ZipFile open(SeekableStream strm, String mod = "r", Integer compress_type = ZIP_DEFLATED) async;
+};

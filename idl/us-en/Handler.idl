@@ -1,0 +1,9 @@
+/*! @brief Meassage Handler Interface */
+interface Handler : object
+{
+    /*! @brief handle a message or an object
+     @param v specify the message or object to be handled
+     @return return the handler of the next step
+     */
+    Handler invoke(object v) async;
+};

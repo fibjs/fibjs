@@ -1,0 +1,68 @@
+
+/*! @brief File path module
+
+ To use it:
+ @code
+ var path = require('path');
+ @endcode
+ */
+module path
+{
+    /*! @brief Normalize path
+
+     @param path Original path
+     @return Return normalized path
+     */
+    static String normalize(String path);
+
+    /*! @brief Get file name in path, ignore extension with file has it
+
+     @param path Original path
+     @param ext Given extension
+     @return Return file name
+     */
+    static String basename(String path, String ext = "");
+
+    /*! @brief Get file extension
+
+     @param path Original path
+     @return Return file extension
+     */
+    static String extname(String path);
+
+    /*! @brief Get directory in path
+
+     @param path Original path
+     @return Return directory
+     */
+    static String dirname(String path);
+
+    /*! @brief Get full path
+
+     @param path Original path
+     @return Return full path
+     */
+    static String fullpath(String path);
+
+    /*! @brief Merge multiple paths to a single relative path
+
+     @param ... One or more relative paths
+     @return Return new relative path
+     */
+    static String join(...);
+
+    /*! @brief Merge multiple paths to a single absolute path
+
+     @param ... One or more relative paths
+     @return Return new absolute path
+     */
+    static String resolve(...);
+
+    /*! @brief Get system directory separator, posix returns '/', windows returns  '\\'
+     */
+    static readonly String sep;
+
+    /*! @brief Get system path delimiter, posix returns ':', windows returns ';'
+     */
+    static readonly String delimiter;
+};

@@ -1,0 +1,47 @@
+
+/*! @brief http Cookie Object, used to add and handle cookies */
+interface HttpCookie : object
+{
+    /*! @brief HttpCookie constructor, creating a new HttpCookie Object
+     @param opts specify the properties of the cookie
+    */
+    HttpCookie(Object opts = {});
+
+    /*! @brief HttpCookie constructor, creating a new HttpCookie Object
+     @param name specify the name of the cookie
+     @param value specify the value of the cookie
+     @param opts specify other properties of the cookie
+    */
+    HttpCookie(String name, String value, Object opts = {});
+
+    /*! @brief parsing the given string, filling out the object
+     @param header specify the header string that need to be parsed
+    */
+    parse(String header);
+
+    /*! @brief detecting whether the given url and the current configuration are matched
+     @param url specify the url to be detected
+    */
+    Boolean match(String url);
+
+    /*! @brief querying and setting the name of the cookie */
+    String name;
+
+    /*! @brief querying and setting the value of the cookie */
+    String value;
+
+    /*! @brief querying and setting the damain scope of the cookie */
+    String domain;
+
+    /*! @brief querying and setting the path scope of the cookie */
+    String path;
+
+    /*! @brief querying and setting the expire time of the cookie */
+    Date expires;
+
+    /*! @brief querying and settinng whether the cookie allows http request, defaults to false */
+    Boolean httpOnly;
+
+    /*! @brief querying and setting whether the cookie is only passed by https, defaults to false */
+    Boolean secure;
+};

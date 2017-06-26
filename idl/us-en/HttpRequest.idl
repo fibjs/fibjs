@@ -1,0 +1,25 @@
+
+/*! @brief http request message object */
+interface HttpRequest : HttpMessage
+{
+    /*! @brief HttpRequest constructor, creating a new HttpRequest object */
+    HttpRequest();
+
+    /*! @brief method of querying and setting the request */
+    String method;
+
+    /*! @brief querying and setting the address of the request */
+    String address;
+
+    /*! @brief querying and setting the query string of the request */
+    String queryString;
+
+    /*! @brief get the container of the message's cookies */
+    readonly HttpCollection cookies;
+
+    /*! @brief get the container of the message's form */
+    readonly HttpCollection form;
+
+    /*! @brief get the container of the message's query */
+    readonly HttpCollection query;
+};

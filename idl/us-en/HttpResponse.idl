@@ -1,0 +1,23 @@
+
+/*! @brief http response message object */
+interface HttpResponse : HttpMessage
+{
+    /*! @brief HttpResponse constructor, creating a new HttpResponse object */
+    HttpResponse();
+
+    /*! @brief querying and setting the status of the response message */
+    Integer status;
+
+    /*! @brief returning the HttpCookie object list of the current message */
+    readonly List cookies;
+
+    /*! @brief add a HttpCookie object to cookies
+     @param cookie spcify the HttpCookie object to be added
+     */
+    addCookie(HttpCookie cookie);
+
+    /*! @brief send a redirect url to the client
+     @param url url to the redirected address
+     */
+    redirect(String url);
+};

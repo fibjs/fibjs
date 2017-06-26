@@ -1,0 +1,25 @@
+/*! @brief bson module with encode and decode operations.
+ to use:
+ @code
+ var encoding = require('encoding');
+ var bson = encoding.bson;
+ @endcode
+ or:
+ @code
+ var bson = require('bson');
+ @endcode
+ */
+module bson
+{
+	/*! @brief Encode object to binary data with bson format.
+	 @param data Object to be encoded.
+	 @return The encoded result binary data.
+	 */
+	static Buffer encode(Object data);
+
+	/*! @brief Decode binary data to object with bson format.
+	 @param data Binary data to be decoded.
+	 @return The decoded result object.
+	 */
+	static Object decode(Buffer data);
+};

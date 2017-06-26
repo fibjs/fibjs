@@ -1,0 +1,62 @@
+
+/*! @brief tcp server object for creating a multi-thread tcp server
+
+ Use TcpServer to create a multi-thread tcp server.
+ @code
+ function func(conn)
+ {
+     var data;
+
+     while(data = conn.read())
+         conn.write(data);
+
+     conn.close();
+ }
+
+ new net.TcpServer(8080, func).run();
+ @endcode
+ */
+interface TcpServer : object
+{
+    /*! @brief TcpServer constructor, listen all localhost addresses
+      @param port Port to listen
+      @param listener Built-in handler, handle function or javascript message mapping object, see mq.jsHandler
+     */
+    TcpServer(Integer port, Value listener);
+
+    /*! @brief TcpServer constructor
+      @param addr Address to listen, empty means listen all local addresses
+      @param port Port to listen
+      @param listener Built-in handler, handle function or javascript message mapping object, see mq.jsHandler
+     */
+    TcpServer(String addr, Integer port, Value listener);
+
+    /*! @brief Run and serve connetions, this function does not return */
+    run() async;
+
+    /*! @brief Run and serve connections async, it returns immediately and runs in background */
+    asyncRun();
+
+    /*! @brief Close socket and stop server */
+    stop() async;
+
+    /*! @brief Get current socket object */
+    readonly Socket socket;
+
+    /*! @brief Get current event handler */
+    Handler handler;
+
+    /*! @brief Get current serer status
+
+      Return a Stats object as follows:
+      @code
+      {
+          total : 1000,      // Total connections handled
+          connections : 100, // Connections are handling
+          accept : 10,       // New connections since last query
+          close : 10         // Closed connections since last query
+      }
+      @endcode
+     */
+    readonly Stats stats;
+};

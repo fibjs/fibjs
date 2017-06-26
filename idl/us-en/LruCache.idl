@@ -1,0 +1,68 @@
+/*! @brief LRU(least recently used) cache object
+
+ LruCache maintains LRU cache, to create:
+ @code
+ var util = require("util");
+ var c = new util.LruCache(10, 100);
+ @endcode
+ */
+interface LruCache : object
+{
+    /*! @brief LruCache constructor
+     @param size Maximum size
+     @param timeout Timeout in ms, less or equal to 0 mean no timeout, default is 0
+     */
+    LruCache(Integer size, Integer timeout = 0);
+
+    /*! @brief Return container size */
+    readonly Integer size;
+
+    /*! @brief Clear container elements */
+    clear();
+
+    /*! @brief Check if container contains given key
+     @param name Key name
+     @return Return true when contains key
+     */
+    Boolean has(String name);
+
+    /*! @brief Get value of key
+     @param name Key name
+     @return Return value of key when exists, undefined otherwise
+     */
+    Value get(String name);
+
+    /*! @brief Get value of key, call callback function when not exist or expired
+     @param name Key name
+     @param updater Callback function
+     @return Return value of key
+     */
+    Value get(String name, Function updater);
+
+    /*! @brief Set value of key, do nothing when not exist
+     @param name Key name
+     @param value New value
+     */
+    set(String name, Value value);
+
+    /*! @brief Put value of key, insert when not exist
+     @param name Key name
+     @param value New value
+     */
+    put(String name, Value value);
+
+    /*! @brief Put key-value pair, insert when not exist
+     @param map Key-value pair
+     */
+    put(Object map);
+
+    /*! @brief Delete all values of key
+     @param name Key name
+     */
+    remove(String name);
+
+    /*! @brief Check if container is empty
+     @return Return true when container does not have any element
+     */
+    Boolean isEmpty();
+};
