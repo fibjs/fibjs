@@ -62,6 +62,10 @@ describe("vm", () => {
         var bin2 = util.compile("tc3.js", "module.exports = function(v) {return v;}");
         var b = sbox.addScript("tc3.jsc", bin2);
         assert.equal(100, b(100));
+
+        var bin3 = util.compile("tc4.js", "\n\n\nmodule.exports = \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nfunction() {\nreturn new Error().stack;}");
+        var b = sbox.addScript("tc4.jsc", bin3);
+        assert.equal(b().split('\n')[1].trim(), "at module.exports (tc4.js:26:8)");
     });
 
     it("require jsc", () => {
@@ -72,7 +76,6 @@ describe("vm", () => {
     });
 
     it("require jsc arch test", () => {
-        console.log("vm_test/jsc_test_" + os.arch());
         var a = sbox.require("./vm_test/jsc_test_" + os.arch(), __filename);
         assert.equal(100, a.a);
     });

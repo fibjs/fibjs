@@ -10,6 +10,8 @@
 #include "ifs/zlib.h"
 #include "Buffer.h"
 #include "SandBox.h"
+#include "utf8.h"
+#include "QuickArray.h"
 
 namespace fibjs {
 
@@ -55,8 +57,12 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
         }
         script = args + script + "\n});";
 
+        exlib::wstring wscript(utf8to16String(script));
+
         v8::ScriptCompiler::Source script_source(
-            isolate->NewFromUtf8(script), v8::ScriptOrigin(soname));
+            v8::String::NewFromTwoByte(isolate->m_isolate, (const uint16_t*)wscript.c_str(),
+                v8::String::kNormalString, (int32_t)wscript.length()),
+            v8::ScriptOrigin(soname));
 
         if (v8::ScriptCompiler::CompileUnbound(
                 isolate->m_isolate, &script_source,
@@ -68,8 +74,40 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
 
         exlib::string buf((const char*)cache->data, cache->length);
 
-        int32_t len = (int32_t)script.length();
-        buf.append((const char*)&len, sizeof(len));
+        int32_t len = (int32_t)wscript.length();
+        QuickArray<int32_t> lines;
+        int32_t pos, n;
+        const exlib::wchar* c_str = wscript.c_str();
+
+        pos = 0;
+        while (pos < len) {
+            n = 0;
+            while (pos < len && c_str[pos] != '\n') {
+                pos++;
+                n++;
+            }
+
+            if (pos < len) {
+                pos++;
+                lines.append(n);
+                n = 0;
+            }
+        }
+
+        n = (int32_t)lines.size();
+        pos = (int32_t)buf.length();
+
+        buf.resize(pos + (n + 2) * sizeof(int32_t));
+        int32_t* p = (int32_t*)&buf[pos];
+        int32_t i;
+
+        for (i = 0; i < n; i++) {
+            *p = lines[i];
+            p++;
+        }
+
+        p[0] = n;
+        p[1] = len;
 
         obj_ptr<Buffer_base> unz = new Buffer(buf);
         return zlib_base::cc_gzip(unz, retVal);

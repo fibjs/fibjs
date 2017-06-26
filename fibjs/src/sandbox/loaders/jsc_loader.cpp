@@ -36,18 +36,35 @@ result_t JscLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
         exlib::string code;
         unz->toString(code);
 
-        v8::ScriptCompiler::CachedData* cache;
-        cache = new v8::ScriptCompiler::CachedData((const uint8_t*)code.c_str(),
-            (int32_t)(code.length() - sizeof(int32_t)));
+        int32_t code_len = (int32_t)code.length() - sizeof(int32_t);
 
         exlib::string s_temp_source;
-        int32_t len = *(int32_t*)(code.c_str() + code.length() - sizeof(int32_t));
+        int32_t src_len = *(int32_t*)(code.c_str() + code_len);
         int32_t i;
 
-        s_temp_source.resize(len);
+        s_temp_source.resize(src_len);
 
-        for (i = 0; i < len; i++)
+        for (i = 0; i < src_len; i++)
             s_temp_source[i] = '.';
+
+        code_len -= sizeof(int32_t);
+        int32_t line_count = *(int32_t*)(code.c_str() + code_len);
+
+        code_len -= sizeof(int32_t) * line_count;
+
+        int32_t pos = 0;
+        int32_t* p = (int32_t*)(code.c_str() + code_len);
+
+        for (i = 0; i < line_count; i++) {
+            pos += p[i];
+            if (pos >= src_len)
+                break;
+            s_temp_source[pos] = '\n';
+            pos++;
+        }
+
+        v8::ScriptCompiler::CachedData* cache;
+        cache = new v8::ScriptCompiler::CachedData((const uint8_t*)code.c_str(), code_len);
 
         v8::ScriptCompiler::Source source(isolate->NewFromUtf8(s_temp_source),
             v8::ScriptOrigin(soname), cache);
