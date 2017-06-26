@@ -212,7 +212,7 @@ module.exports = function (defs, docsFolder) {
                 return m.memType == 'method' && m.name !== n && !m.static;
             });
 
-            txts.push('}"]');
+            txts.push('}"];');
 
             return txts.join('');
 
