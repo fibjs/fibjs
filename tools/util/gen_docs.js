@@ -2,8 +2,6 @@ var fs = require("fs");
 var util = require("util");
 var path = require('path');
 var ejs = require('ejs');
-var Viz = require('viz.js')
-var xml = require('xml')
 var beautify = require('js-beautify');
 
 global.cwrap = 0;
@@ -267,15 +265,8 @@ module.exports = function (defs, docsFolder) {
         for (var m in defs) {
             var def = defs[m];
 
-            if (def.declare.type == 'interface') {
+            if (def.declare.type == 'interface')
                 def.dot = get_dot(def);
-                def.svg = Viz(def.dot);
-
-                fs.writeFile(path.join(docsFolder, "object", "ifs", m + ".svg"), def.svg);
-
-                var dom = xml.parse(def.svg);
-                def.svg = dom.documentElement.toString();
-            }
         }
     }
 

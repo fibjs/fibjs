@@ -6,7 +6,7 @@
 <%if(declare.type === 'interface'){%>
 
 ## 继承关系
-<div class="inherits"><%-svg%></div>
+<dot><%-dot%></dot>
 
 <%}%>
 
