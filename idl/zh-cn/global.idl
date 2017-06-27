@@ -40,7 +40,7 @@ module global
 
      基础流程如下:
 
-     <dot>
+     ```dot
         digraph{
             node [fontname = "Helvetica,sans-Serif", fontsize = 10];
             edge [fontname = "Helvetica,sans-Serif", fontsize = 10];
@@ -81,7 +81,7 @@ module global
             has_index -> end [label="否"];
             load -> end;
         }
-     </dot>
+     ```
 
      @param id 指定要加载的模块名称
      @return 返回加载模块的引出对象
