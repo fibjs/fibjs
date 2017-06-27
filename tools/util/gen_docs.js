@@ -173,8 +173,8 @@ module.exports = function (defs, docsFolder) {
                 });
             }
 
-            txts.push(def.declare.name);
-            txts.push('[tooltip="' + def.declare.name + '", style="filled", fillcolor="' + (me ? 'lightgray' : 'white') + '", ');
+            txts.push("    " + def.declare.name);
+            txts.push(' [tooltip="' + def.declare.name + '"' + (me ? ', fillcolor="lightgray"' : '') + ', ');
             if (!me)
                 txts.push('URL="' + def.declare.name + '.md", ');
             txts.push('label="{');
@@ -222,7 +222,7 @@ module.exports = function (defs, docsFolder) {
             if (def.inherits)
                 def.inherits.forEach(i => {
                     nodes.push(get_node(defs[i]));
-                    arrows.push(def.declare.name + " -> " + i + ' [dir=back];');
+                    arrows.push("    " + def.declare.name + " -> " + i + ' [dir=back];');
                     get_inherits(defs[i], nodes, arrows);
                 });
         }
@@ -237,13 +237,13 @@ module.exports = function (defs, docsFolder) {
                 n1 = n;
                 n = defs[n1.declare.extend];
                 nodes.unshift(get_node(n));
-                arrows.unshift(n.declare.name + " -> " + n1.declare.name + ' [dir=back];');
+                arrows.unshift("    " + n.declare.name + " -> " + n1.declare.name + ' [dir=back];');
             }
 
             nodes.push(get_node(def, true));
             get_inherits(def, nodes, arrows);
 
-            return 'digraph {node [ fontname = "Helvetica,sans-Serif", fontsize = 10, shape = "record" ];\n' +
+            return 'digraph {\n    node [fontname="Helvetica,sans-Serif", fontsize=10, shape="record", style="filled", fillcolor="white"];\n\n' +
                 nodes.join('\n') + '\n\n' + arrows.join('\n') + '\n}';
         }
 
