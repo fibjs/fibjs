@@ -6,7 +6,9 @@
 <%if(declare.type === 'interface'){%>
 
 ## 继承关系
-<dot><%-dot%></dot>
+```dot
+<%-dot%>
+```
 
 <%}%>
 
