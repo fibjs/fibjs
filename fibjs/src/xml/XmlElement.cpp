@@ -354,6 +354,9 @@ result_t XmlElement::getElementsByTagNameNS(exlib::string namespaceURI, exlib::s
 
 result_t XmlElement::getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal)
 {
+    if (id.empty())
+        return CHECK_ERROR(CALL_RETURN_NULL);
+
     QuickArray<XmlNodeImpl*>& childs = m_childs->m_childs;
     int32_t sz = (int32_t)childs.size();
     int32_t i;

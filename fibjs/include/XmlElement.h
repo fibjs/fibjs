@@ -223,13 +223,9 @@ public:
 
     result_t getElementByIdFromThis(exlib::string id, obj_ptr<XmlElement_base>& retVal)
     {
-        if (id.empty())
-            return CHECK_ERROR(CALL_RETURN_NULL);
-
-        result_t hr;
         exlib::string _id;
+        get_id(_id);
 
-        hr = getAttribute("id", _id);
         if (_id == id) {
             retVal = this;
             return 0;
