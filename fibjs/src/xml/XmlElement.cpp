@@ -12,6 +12,7 @@
 #include "XmlText.h"
 #include "XmlDocument.h"
 #include "StringBuffer.h"
+#include "parse.h"
 
 namespace fibjs {
 
@@ -371,6 +372,27 @@ result_t XmlElement::getElementById(exlib::string id, obj_ptr<XmlElement_base>& 
         }
 
     return CHECK_ERROR(CALL_RETURN_NULL);
+}
+
+result_t XmlElement::getElementsByClassName(exlib::string className, obj_ptr<XmlNodeList_base>& retVal)
+{
+    QuickArray<exlib::string> classNames;
+    _parser p(className);
+    exlib::string str;
+
+    p.skipSpace();
+    while (p.getWord(str)) {
+        classNames.append(str);
+        p.skipSpace();
+    }
+
+    obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
+
+    if (classNames.size() > 0)
+        getElementsByClassName(classNames, ret);
+
+    retVal = ret;
+    return 0;
 }
 
 result_t XmlElement::hasAttribute(exlib::string name, bool& retVal)

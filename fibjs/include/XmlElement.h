@@ -10,6 +10,7 @@
 #include "XmlNodeList.h"
 #include "XmlNamedNodeMap.h"
 #include "StringBuffer.h"
+#include "parse.h"
 
 #ifndef XMLELEMENT_H_
 #define XMLELEMENT_H_
@@ -115,6 +116,7 @@ public:
     virtual result_t getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal);
     virtual result_t getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlNodeList_base>& retVal);
     virtual result_t getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal);
+    virtual result_t getElementsByClassName(exlib::string className, obj_ptr<XmlNodeList_base>& retVal);
 
 public:
     result_t get_defaultNamespace(exlib::string& def_ns)
@@ -232,6 +234,55 @@ public:
         }
 
         return getElementById(id, retVal);
+    }
+
+    void getElementsByClassNameFromThis(QuickArray<exlib::string>& classNames, obj_ptr<XmlNodeList>& retVal)
+    {
+        exlib::string _class;
+        get_className(_class);
+
+        if (!_class.empty()) {
+            QuickArray<exlib::string> _classNames;
+            _parser p(_class);
+            exlib::string str;
+
+            p.skipSpace();
+            while (p.getWord(str)) {
+                _classNames.append(str);
+                p.skipSpace();
+            }
+
+            int32_t i, j, cnt = 0;
+
+            for (i = 0; i < (int32_t)classNames.size(); i++) {
+                for (j = 0; j < (int32_t)_classNames.size(); j++) {
+                    if (_classNames[j] == classNames[i]) {
+                        cnt++;
+                        break;
+                    }
+                }
+            }
+
+            if (cnt == (int32_t)classNames.size()) {
+                retVal->appendChild(this);
+                Ref();
+            }
+        }
+
+        getElementsByClassName(classNames, retVal);
+    }
+
+    void getElementsByClassName(QuickArray<exlib::string>& classNames, obj_ptr<XmlNodeList>& retVal)
+    {
+        QuickArray<XmlNodeImpl*>& childs = m_childs->m_childs;
+        int32_t sz = (int32_t)childs.size();
+        int32_t i;
+
+        for (i = 0; i < sz; i++)
+            if (childs[i]->m_type == xml_base::_ELEMENT_NODE) {
+                XmlElement* pEl = (XmlElement*)(childs[i]->m_node);
+                pEl->getElementsByClassNameFromThis(classNames, retVal);
+            }
     }
 
     void fix_prefix(exlib::string namespaceURI, exlib::string& prefix);

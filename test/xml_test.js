@@ -200,6 +200,48 @@ describe('xml', () => {
 
             var e3 = xdoc.getElementById("id_2");
             assert.equal(e3, e2);
+
+            var e3 = xdoc.getElementById("id_3");
+            assert.equal(e3, null);
+        });
+
+
+        it("getElementsByClassName", () => {
+            var xdoc = newDoc();
+            var root = xdoc.createElement("aaa");
+            xdoc.appendChild(root);
+
+            var e = xdoc.createElement("aaa");
+            root.appendChild(e);
+            e.className = 'cls_aaa cls_ddd';
+            var e1 = xdoc.createElement("aaa");
+            e1.className = 'cls_ddd cls_aaa';
+            e.appendChild(e1);
+            var e2 = xdoc.createElement("bbb");
+            e2.className = 'cls_bbb cls_ddd';
+            e.appendChild(e2);
+
+            var e3 = xdoc.createElement("bbb");
+            e3.className = ' ';
+            e.appendChild(e3);
+
+            var l = xdoc.getElementsByClassName("cls_aaa");
+            assert.equal(l.length, 2);
+            var l1 = xdoc.getElementsByClassName("cls_bbb");
+            assert.equal(l1.length, 1);
+            var l2 = xdoc.getElementsByClassName("cls_ccc");
+            assert.equal(l2.length, 0);
+            var l2 = xdoc.getElementsByClassName("cls_ddd");
+            assert.equal(l2.length, 3);
+
+            var l = xdoc.getElementsByClassName("cls_aaa cls_ddd");
+            assert.equal(l.length, 2);
+
+            var l2 = xdoc.getElementsByClassName("cls_ddd cls_bbb");
+            assert.equal(l2.length, 1);
+
+            var l2 = xdoc.getElementsByClassName("cls_aaa cls_aaa cls_ddd");
+            assert.equal(l2.length, 2);
         });
     });
 
@@ -290,6 +332,41 @@ describe('xml', () => {
 
             var e3 = root.getElementById("id_2");
             assert.equal(e3, e2);
+
+            var e3 = root.getElementById("id_3");
+            assert.equal(e3, null);
+        });
+
+        it("getElementsByClassName", () => {
+            var xdoc = newDoc();
+            var root = xdoc.createElement("aaa");
+            var e = xdoc.createElement("aaa");
+            root.appendChild(e);
+            e.className = 'cls_aaa cls_ddd';
+            var e1 = xdoc.createElement("aaa");
+            e1.className = 'cls_ddd cls_aaa';
+            e.appendChild(e1);
+            var e2 = xdoc.createElement("bbb");
+            e2.className = 'cls_bbb cls_ddd';
+            e.appendChild(e2);
+
+            var l = root.getElementsByClassName("cls_aaa");
+            assert.equal(l.length, 2);
+            var l1 = root.getElementsByClassName("cls_bbb");
+            assert.equal(l1.length, 1);
+            var l2 = root.getElementsByClassName("cls_ccc");
+            assert.equal(l2.length, 0);
+            var l2 = root.getElementsByClassName("cls_ddd");
+            assert.equal(l2.length, 3);
+
+            var l = root.getElementsByClassName("cls_aaa cls_ddd");
+            assert.equal(l.length, 2);
+
+            var l2 = root.getElementsByClassName("cls_ddd cls_bbb");
+            assert.equal(l2.length, 1);
+
+            var l2 = root.getElementsByClassName("cls_aaa cls_aaa cls_ddd");
+            assert.equal(l2.length, 2);
         });
 
     });

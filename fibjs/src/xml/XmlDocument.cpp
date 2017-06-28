@@ -15,7 +15,6 @@
 #include "XmlCDATASection.h"
 #include "XmlProcessingInstruction.h"
 #include "XmlParser.h"
-#include "parse.h"
 #include "encoding_iconv.h"
 
 namespace fibjs {
@@ -459,6 +458,30 @@ result_t XmlDocument::getElementById(exlib::string id, obj_ptr<XmlElement_base>&
         return CHECK_ERROR(CALL_RETURN_NULL);
 
     return pEl->getElementByIdFromThis(id, retVal);
+}
+
+result_t XmlDocument::getElementsByClassName(exlib::string className, obj_ptr<XmlNodeList_base>& retVal)
+{
+    obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
+    XmlElement* pEl = (XmlElement*)(XmlElement_base*)m_element;
+
+    if (pEl) {
+        QuickArray<exlib::string> classNames;
+        _parser p(className);
+        exlib::string str;
+
+        p.skipSpace();
+        while (p.getWord(str)) {
+            classNames.append(str);
+            p.skipSpace();
+        }
+
+        if (classNames.size() > 0)
+            pEl->getElementsByClassNameFromThis(classNames, ret);
+    }
+
+    retVal = ret;
+    return 0;
 }
 
 result_t XmlDocument::get_inputEncoding(exlib::string& retVal)
