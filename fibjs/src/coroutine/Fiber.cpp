@@ -30,52 +30,56 @@ void* FiberBase::fiber_proc(void* p)
     result_t hr = 0;
     Isolate* isolate = (Isolate*)p;
 
-    Runtime rt(isolate);
-    v8::Locker locker(isolate->m_isolate);
-    v8::Isolate::Scope isolate_scope(isolate->m_isolate);
+    {
+        Runtime rt(isolate);
+        v8::Locker locker(isolate->m_isolate);
+        v8::Isolate::Scope isolate_scope(isolate->m_isolate);
 
-    v8::HandleScope handle_scope(isolate->m_isolate);
-    v8::Context::Scope context_scope(
-        v8::Local<v8::Context>::New(isolate->m_isolate, isolate->m_context));
+        v8::HandleScope handle_scope(isolate->m_isolate);
+        v8::Context::Scope context_scope(
+            v8::Local<v8::Context>::New(isolate->m_isolate, isolate->m_context));
 
-    isolate->m_idleFibers--;
-    while (1) {
-        if (!isolate->m_sem.trywait()) {
-            isolate->m_idleFibers++;
-            if (isolate->m_idleFibers > g_spareFibers) {
+        isolate->m_idleFibers--;
+        while (1) {
+            if (!isolate->m_sem.trywait()) {
+                isolate->m_idleFibers++;
+                if (isolate->m_idleFibers > g_spareFibers) {
+                    isolate->m_idleFibers--;
+                    break;
+                }
+
+                {
+                    v8::Unlocker unlocker(isolate->m_isolate);
+                    isolate->m_sem.wait();
+                }
+
                 isolate->m_idleFibers--;
-                break;
+            }
+
+            if (isolate->m_idleFibers == 0) {
+                isolate->m_currentFibers++;
+                isolate->m_idleFibers++;
+
+                exlib::Service::Create(fiber_proc, isolate, stack_size * 1024, "JSFiber");
             }
 
             {
-                v8::Unlocker unlocker(isolate->m_isolate);
-                isolate->m_sem.wait();
+                v8::HandleScope handle_scope(isolate->m_isolate);
+                AsyncEvent* ae = (AsyncEvent*)isolate->m_jobs.getHead();
+                hr = ae->js_invoke();
             }
 
-            isolate->m_idleFibers--;
+            if (isolate->m_pendding.dec() == 0)
+                if (isolate->m_id == 1) {
+                    JSFiber::scope s;
+                    process_base::exit(hr);
+                }
         }
 
-        if (isolate->m_idleFibers == 0) {
-            isolate->m_currentFibers++;
-            isolate->m_idleFibers++;
-
-            exlib::Service::Create(fiber_proc, isolate, stack_size * 1024, "JSFiber");
-        }
-
-        {
-            v8::HandleScope handle_scope(isolate->m_isolate);
-            AsyncEvent* ae = (AsyncEvent*)isolate->m_jobs.getHead();
-            hr = ae->js_invoke();
-        }
-
-        if (isolate->m_pendding.dec() == 0)
-            if (isolate->m_id == 1) {
-                JSFiber::scope s;
-                process_base::exit(hr);
-            }
+        isolate->m_currentFibers--;
     }
 
-    isolate->m_currentFibers--;
+    isolate->m_isolate->DiscardThreadSpecificMetadata();
 
     return NULL;
 }
@@ -153,7 +157,7 @@ result_t JSFiber::js_invoke()
 
     size_t i;
     Isolate* isolate = holder();
-    std::vector<v8::Local<v8::Value> > argv;
+    std::vector<v8::Local<v8::Value>> argv;
     v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, m_func);
     v8::Local<v8::Object> pThis = v8::Local<v8::Object>::New(isolate->m_isolate, m_this);
 
