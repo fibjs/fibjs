@@ -114,6 +114,7 @@ public:
     virtual result_t hasAttributeNS(exlib::string namespaceURI, exlib::string localName, bool& retVal);
     virtual result_t getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal);
     virtual result_t getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlNodeList_base>& retVal);
+    virtual result_t getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal);
 
 public:
     result_t get_defaultNamespace(exlib::string& def_ns)
@@ -218,6 +219,23 @@ public:
                 XmlElement* pEl = (XmlElement*)(childs[i]->m_node);
                 pEl->getElementsByTagNameNSFromThis(namespaceURI, localName, retVal);
             }
+    }
+
+    result_t getElementByIdFromThis(exlib::string id, obj_ptr<XmlElement_base>& retVal)
+    {
+        if (id.empty())
+            return CHECK_ERROR(CALL_RETURN_NULL);
+
+        result_t hr;
+        exlib::string _id;
+
+        hr = getAttribute("id", _id);
+        if (_id == id) {
+            retVal = this;
+            return 0;
+        }
+
+        return getElementById(id, retVal);
     }
 
     void fix_prefix(exlib::string namespaceURI, exlib::string& prefix);

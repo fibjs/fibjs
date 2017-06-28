@@ -111,4 +111,14 @@ interface XmlElement : XmlNode
      @return 节点树中具有指定标记的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
     */
     XmlNodeList getElementsByTagNameNS(String namespaceURI, String localName);
+
+    /*! @brief 返回拥有指定 id 属性的元素
+
+     该方法将遍历指定元素的子孙节点，返回一个 XmlElement 节点对象，表示第一个具有指定 id 属性的文档元素。。
+
+     XmlDocument 接口也定义了 getElementsByTagName 方法，它与该方法相似，但遍历整个文档，而不是遍历某个元素的子孙节点。
+     @param id 需检索的标签名
+     @return 节点树中具有指定 id 属性的 XmlElement 节点
+    */
+    XmlElement getElementById(String id);
 };

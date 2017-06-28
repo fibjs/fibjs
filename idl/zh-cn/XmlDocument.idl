@@ -72,6 +72,14 @@ interface XmlDocument : XmlNode
     */
     XmlNodeList getElementsByTagNameNS(String namespaceURI, String localName);
 
+    /*! @brief 返回拥有指定 id 属性的元素
+
+     该方法将遍历文档的子孙节点，返回一个 XmlElement 节点对象，表示第一个具有指定 id 属性的文档元素。。
+     @param id 需检索的标签名
+     @return 节点树中具有指定 id 属性的 XmlElement 节点
+    */
+    XmlElement getElementById(String id);
+
     /*! @brief 创建元素节点
      @param tagName 指定元素节点规定名称
      @return 返回新创建的 XmlElement 节点，具有指定的标签名

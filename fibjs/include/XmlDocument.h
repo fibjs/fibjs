@@ -75,6 +75,7 @@ public:
     virtual result_t get_documentElement(obj_ptr<XmlElement_base>& retVal);
     virtual result_t getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal);
     virtual result_t getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlNodeList_base>& retVal);
+    virtual result_t getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal);
     virtual result_t createElement(exlib::string tagName, obj_ptr<XmlElement_base>& retVal);
     virtual result_t createElementNS(exlib::string namespaceURI, exlib::string qualifiedName, obj_ptr<XmlElement_base>& retVal);
     virtual result_t createTextNode(exlib::string data, obj_ptr<XmlText_base>& retVal);

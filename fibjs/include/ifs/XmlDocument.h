@@ -47,6 +47,7 @@ public:
     virtual result_t get_body(obj_ptr<XmlElement_base>& retVal) = 0;
     virtual result_t getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal) = 0;
     virtual result_t getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlNodeList_base>& retVal) = 0;
+    virtual result_t getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal) = 0;
     virtual result_t createElement(exlib::string tagName, obj_ptr<XmlElement_base>& retVal) = 0;
     virtual result_t createElementNS(exlib::string namespaceURI, exlib::string qualifiedName, obj_ptr<XmlElement_base>& retVal) = 0;
     virtual result_t createTextNode(exlib::string data, obj_ptr<XmlText_base>& retVal) = 0;
@@ -73,6 +74,7 @@ public:
     static void s_get_body(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_getElementsByTagName(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getElementsByTagNameNS(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getElementById(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_createElement(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_createElementNS(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_createTextNode(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -98,6 +100,7 @@ inline ClassInfo& XmlDocument_base::class_info()
         { "load", s_load, false },
         { "getElementsByTagName", s_getElementsByTagName, false },
         { "getElementsByTagNameNS", s_getElementsByTagNameNS, false },
+        { "getElementById", s_getElementById, false },
         { "createElement", s_createElement, false },
         { "createElementNS", s_createElementNS, false },
         { "createTextNode", s_createTextNode, false },
@@ -316,6 +319,22 @@ inline void XmlDocument_base::s_getElementsByTagNameNS(const v8::FunctionCallbac
     ARG(exlib::string, 1);
 
     hr = pInst->getElementsByTagNameNS(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlDocument_base::s_getElementById(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlElement_base> vr;
+
+    METHOD_INSTANCE(XmlDocument_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->getElementById(v0, vr);
 
     METHOD_RETURN();
 }

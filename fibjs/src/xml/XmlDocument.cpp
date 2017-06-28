@@ -449,6 +449,15 @@ result_t XmlDocument::getElementsByTagNameNS(exlib::string namespaceURI, exlib::
     return 0;
 }
 
+result_t XmlDocument::getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal)
+{
+    XmlElement* pEl = (XmlElement*)(XmlElement_base*)m_element;
+
+    if (!pEl)
+        return CHECK_ERROR(CALL_RETURN_NULL);
+    return pEl->getElementByIdFromThis(id, retVal);
+}
+
 result_t XmlDocument::get_inputEncoding(exlib::string& retVal)
 {
     if (m_encoding.empty())

@@ -50,6 +50,7 @@ public:
     virtual result_t hasAttributeNS(exlib::string namespaceURI, exlib::string localName, bool& retVal) = 0;
     virtual result_t getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal) = 0;
     virtual result_t getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName, obj_ptr<XmlNodeList_base>& retVal) = 0;
+    virtual result_t getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -87,6 +88,7 @@ public:
     static void s_hasAttributeNS(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getElementsByTagName(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getElementsByTagNameNS(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getElementById(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -106,7 +108,8 @@ inline ClassInfo& XmlElement_base::class_info()
         { "hasAttribute", s_hasAttribute, false },
         { "hasAttributeNS", s_hasAttributeNS, false },
         { "getElementsByTagName", s_getElementsByTagName, false },
-        { "getElementsByTagNameNS", s_getElementsByTagNameNS, false }
+        { "getElementsByTagNameNS", s_getElementsByTagNameNS, false },
+        { "getElementById", s_getElementById, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -449,6 +452,22 @@ inline void XmlElement_base::s_getElementsByTagNameNS(const v8::FunctionCallback
     ARG(exlib::string, 1);
 
     hr = pInst->getElementsByTagNameNS(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlElement_base::s_getElementById(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlElement_base> vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->getElementById(v0, vr);
 
     METHOD_RETURN();
 }

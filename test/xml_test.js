@@ -176,6 +176,31 @@ describe('xml', () => {
             var l2 = xdoc.getElementsByTagName("ccc");
             assert.equal(l2.length, 0);
         });
+
+        it("getElementByTagId", () => {
+            var xdoc = newDoc();
+            var root = xdoc.createElement("root");
+            xdoc.appendChild(root);
+            var e = xdoc.createElement("aaa");
+            e.setAttribute("id", "id_1");
+            root.appendChild(e);
+
+            e.appendChild(xdoc.createElement("bbb"));
+
+            var e1 = xdoc.createElement("ccc");
+            e1.setAttribute("id", "id_1");
+            e.appendChild(e1);
+
+            var e2 = xdoc.createElement("ddd");
+            e2.setAttribute("id", "id_2");
+            e.appendChild(e2);
+
+            var e3 = xdoc.getElementById("id_1");
+            assert.equal(e3, e);
+
+            var e3 = xdoc.getElementById("id_2");
+            assert.equal(e3, e2);
+        });
     });
 
     describe('Element', () => {
@@ -233,6 +258,34 @@ describe('xml', () => {
             assert.equal(node.lookupNamespaceURI("ns1"), "nsr:xns1");
             assert.equal(node.lookupPrefix("nsr:xns1"), "ns1");
         });
+
+        it("getElementByTagId", () => {
+            var xdoc = newDoc();
+            var root = xdoc.createElement("aaa");
+            var e = xdoc.createElement("aaa");
+            e.setAttribute("id", "id_1");
+            root.appendChild(e);
+
+            e.appendChild(xdoc.createElement("aaa"));
+
+            var e1 = xdoc.createElement("aaa");
+            e1.setAttribute("id", "id_1");
+            e.appendChild(e1);
+
+            var e2 = xdoc.createElement("aaa");
+            e2.setAttribute("id", "id_2");
+            e.appendChild(e2);
+
+            var e3 = root.getElementById("id_1");
+            assert.equal(e3, e);
+
+            var e3 = e.getElementById("id_1");
+            assert.equal(e3, e1);
+
+            var e3 = root.getElementById("id_2");
+            assert.equal(e3, e2);
+        });
+
     });
 
     describe('ProcessingInstruction', () => {

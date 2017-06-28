@@ -358,6 +358,24 @@ result_t XmlElement::getElementsByTagNameNS(exlib::string namespaceURI, exlib::s
     return 0;
 }
 
+result_t XmlElement::getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal)
+{
+    QuickArray<XmlNodeImpl*>& childs = m_childs->m_childs;
+    int32_t sz = (int32_t)childs.size();
+    int32_t i;
+    result_t hr;
+
+    for (i = 0; i < sz; i++)
+        if (childs[i]->m_type == xml_base::_ELEMENT_NODE) {
+            XmlElement* pEl = (XmlElement*)(childs[i]->m_node);
+            hr = pEl->getElementByIdFromThis(id, retVal);
+            if (hr != CALL_RETURN_NULL)
+                return hr;
+        }
+
+    return CHECK_ERROR(CALL_RETURN_NULL);
+}
+
 result_t XmlElement::hasAttribute(exlib::string name, bool& retVal)
 {
     result_t hr;
