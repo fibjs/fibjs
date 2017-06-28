@@ -26,23 +26,11 @@ module fs
      */
     static Boolean exists(String path) async;
 
-    /*! @brief 查询指定的文件或目录是否存在，是 exists 的同步版兼容接口
-     @param path 指定要查询的路径
-     @return 返回 True 表示文件或目录存在
-     */
-    static Boolean existsSync(String path);
-
     /*! @brief 查询用户对指定的文件的权限
      @param path 指定要查询的路径
      @param mode 指定查询的权限,默认为文件是否存在
      */
     static access(String path, Integer mode = 0) async;
-
-    /*! @brief 查询用户对指定的文件的权限, accesss同步兼容版本
-     @param path 指定要查询的路径
-     @param mode 指定查询的权限,默认为文件是否存在
-     */
-    static accessSync(String path, Integer mode = 0);
 
     /*! @brief 创建硬链接文件, windows 下不支持此方法
      @param oldPath 源文件
@@ -50,21 +38,10 @@ module fs
      */
     static link(String oldPath, String newPath) async;
 
-    /*! @brief 创建硬链接文件，windows 下不支持此方法，是 link 的同步版兼容接口
-     @param oldPath 源文件
-     @param newPath 将要被创建的文件
-     */
-    static linkSync(String oldPath, String newPath);
-
     /*! @brief 删除指定的文件
      @param path 指定要删除的路径
      */
     static unlink(String path) async;
-
-    /*! @brief 删除指定的文件，是 unlink 的同步版兼容接口
-     @param path 指定要删除的路径
-     */
-    static unlinkSync(String path);
 
     /*! @brief 创建一个目录
      @param path 指定要创建的目录名
@@ -72,33 +49,16 @@ module fs
      */
     static mkdir(String path, Integer mode = 0777) async;
 
-    /*! @brief 创建一个目录，是 mkdir 的同步版兼容接口
-     @param path 指定要创建的目录名
-     @param mode 指定文件权限，Windows 忽略此参数
-     */
-    static mkdirSync(String path, Integer mode = 0777);
-
     /*! @brief 删除一个目录
      @param path 指定要删除的目录名
      */
     static rmdir(String path) async;
-
-    /*! @brief 删除一个目录，是 rmdir 的同步版兼容接口
-     @param path 指定要删除的目录名
-     */
-    static rmdirSync(String path);
 
     /*! @brief 重新命名一个文件
      @param from 指定更名的文件
      @param to 指定要修改的新文件名
      */
     static rename(String from, String to) async;
-
-    /*! @brief 重新命名一个文件，是 rename 的同步版兼容接口
-     @param from 指定更名的文件
-     @param to 指定要修改的新文件名
-     */
-    static renameSync(String from, String to);
 
     /*! @brief 复制一个文件
      @param from 指定更名的文件
@@ -112,23 +72,11 @@ module fs
      */
     static chmod(String path, Integer mode) async;
 
-    /*! @brief 设置指定文件的访问权限，是 chmod 的同步版兼容接口
-     @param path 指定操作的文件
-     @param mode 指定设定的访问权限
-     */
-    static chmodSync(String path, Integer mode);
-
     /*! @brief 设置指定文件的访问权限，若文件是软连接则不改变指向文件的权限，只在macOS、BSD 系列平台上可用
      @param path 指定操作的文件
      @param mode 指定设定的访问权限
      */
     static lchmod(String path, Integer mode) async;
-
-    /*! @brief 设置指定文件的访问权限，若文件是软连接则不改变指向文件的权限，是 lchmod 的同步版兼容接口
-     @param path 指定操作的文件
-     @param mode 指定设定的访问权限
-     */
-    static lchmodSync(String path, Integer mode);
 
     /*! @brief 设置指定文件的拥有者，Windows 不支持此方法
      @param path 指定设置的文件
@@ -137,13 +85,6 @@ module fs
      */
     static chown(String path, Integer uid, Integer gid) async;
 
-    /*! @brief 设置指定文件的拥有者，Windows 不支持此方法, 是 chown 的同步版兼容接口
-     @param path 指定设置的文件
-     @param uid 文件拥有者用户id
-     @param gid 文件拥有者组id
-     */
-    static chownSync(String path, Integer uid, Integer gid);
-
     /*! @brief 设置指定文件的拥有者，如果指定的文件是软连接则不会改变其指向文件的拥有者，Windows 不支持此方法
      @param path 指定设置的文件
      @param uid 文件拥有者用户id
@@ -151,24 +92,11 @@ module fs
      */
     static lchown(String path, Integer uid, Integer gid) async;
 
-    /*! @brief 设置指定文件的拥有者，如果指定的文件是软连接则不会改变其指向文件的拥有者，Windows 不支持此方法, 是 lchown 的同步版兼容接口
-     @param path 指定设置的文件
-     @param uid 文件拥有者用户id
-     @param gid 文件拥有者组id
-     */
-    static lchownSync(String path, Integer uid, Integer gid);
-
     /*! @brief 查询指定文件的基础信息
      @param path 指定查询的文件
      @return 返回文件的基础信息
      */
     static Stat stat(String path) async;
-
-    /*! @brief 查询指定文件的基础信息，是 stat 的同步版兼容接口
-     @param path 指定查询的文件
-     @return 返回文件的基础信息
-     */
-    static Stat statSync(String path);
 
     /*! @brief 查询指定文件的基础信息, 和stat不同的是, 当path是一个软连接的时候，返回的将是这个软连接的信息而不是指向的文件的信息
      @param path 指定查询的文件
@@ -176,23 +104,11 @@ module fs
      */
     static Stat lstat(String path) async;
 
-    /*! @brief 查询指定文件的基础信息，是 lstat 的同步版兼容接口
-     @param path 指定查询的文件
-     @return 返回文件的基础信息
-     */
-    static Stat lstatSync(String path);
-
     /*! @brief 读取指定的软连接文件, windows 下不支持此方法
      @param path 指定读取的软连接文件
      @return 返回软连接指向的文件名
      */
     static String readlink(String path) async;
-
-    /*! @brief 读取指定的软连接文件，windows 下不支持此方法，是 readlink 的同步版兼容接口
-     @param path 指定读取的软连接文件
-     @return 返回软连接指向的文件名
-     */
-    static String readlinkSync(String path);
 
     /*! @brief 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开
      @param path 指定读取的路径
@@ -200,23 +116,11 @@ module fs
      */
     static String realpath(String path) async;
 
-    /*! @brief 返回指定路径的绝对路径，如果指定路径中包含相对路径也会被展开，是 realpath 的同步版兼容接口
-     @param path 指定读取的路径
-     @return 返回处理后的绝对路径
-     */
-    static String realpathSync(String path);
-
     /*! @brief 创建软连接文件
      @param target 目标文件，可以是文件、目录、或不存在的路径
      @param linkpath 将被创建的软连接文件
      */
     static symlink(String target, String linkpath) async;
-
-    /*! @brief 创建软连接文件, 是 symlink 的同步版兼容接口
-     @param target 目标文件，可以是文件、目录、或不存在的路径
-     @param linkpath 将被创建的软连接文件
-     */
-    static symlinkSync(String target, String linkpath);
 
     /*! @brief 修改文件尺寸,如果指定的长度大于源文件大小则用'\0'填充，否则多于的文件内容将丢失
      @param path 指定被修改文件的路径
@@ -234,33 +138,11 @@ module fs
      */
     static Integer read(Integer fd, Buffer buffer, Integer offset = 0, Integer length = 0, Integer position = -1) async;
 
-    /*! @brief 根据文件描述符，读取文件内容
-     @param fd 文件描述符
-     @param buffer 读取结果写入的 Buffer 对象
-     @param offset Buffer 写入偏移量， 默认为 0
-     @param length 文件读取字节数，默认为 0
-     @param position 文件读取位置，默认为当前文件位置
-     @return 实际读取的字节数
-     */
-    static Integer readSync(Integer fd, Buffer buffer, Integer offset = 0, Integer length = -1, Integer position = -1);
-
-    /*! @brief 修改文件尺寸,如果指定的长度大于源文件大小则用'\0'填充，否则多于的文件内容将丢失，是 truncate 的同步版兼容接口
-     @param path 指定被修改文件的路径
-     @param len 指定修改后文件的大小
-     */
-    static truncateSync(String path, Integer len);
-
     /*! @brief 读取指定目录的文件信息
      @param path 指定查询的目录
      @return 返回目录的文件信息数组
      */
     static List readdir(String path) async;
-
-    /*! @brief 读取指定目录的文件信息，是 readdir 的同步版兼容接口
-     @param path 指定查询的目录
-     @return 返回目录的文件信息数组
-     */
-    static List readdirSync(String path);
 
     /*! @brief 打开文件，用于读取，写入，或者同时读写
 
@@ -293,33 +175,10 @@ module fs
      */
     static Integer open(String fname, String flags = "r", Integer mode = 0666) async;
 
-    /*! @brief fs.open() 的阻塞版本
-
-     参数 flags 支持的方式如下：
-     - 'r' 只读方式，文件不存在则抛出错误。
-     - 'r+' 读写方式，文件不存在则抛出错误。
-     - 'w' 只写方式，文件不存在则自动创建，存在则将被清空。
-     - 'w+' 读写方式，文件不存在则自动创建。
-     - 'a' 只写添加方式，文件不存在则自动创建。
-     - 'a+' 读写添加方式，文件不存在则自动创建。
-     @param fname 指定文件名
-     @param flags 指定文件打开方式，缺省为 "r"，只读方式
-     @param mode 当创建文件的时候，指定文件的模式，默认 0666
-     @return 返回打开的文件描述符
-     */
-    static Integer openSync(String fname, String flags = "r", Integer mode = 0666);
-
     /*! @brief 关闭文件描述符
      @param fd 文件描述符
      */
     static close(Integer fd) async;
-
-    /*! @brief fs.close() 的阻塞版本
-     @param fd 文件描述符
-     */
-    static closeSync(Integer fd);
-
-    /*! @brief 打开文件，用于读取，写入，或者同时读写，是 open 的同步版兼容接口
 
     /*! @brief 打开文本文件，用于读取，写入，或者同时读写
 
@@ -349,13 +208,6 @@ module fs
      */
     static Variant readFile(String fname, String encoding = "") async;
 
-    /*! @brief 打开二进制文件，并读取内容，是 readFile 的同步版兼容接口
-     @param fname 指定文件名
-     @param encoding 指定解码方式，缺省不解码
-     @return 返回文件文本内容
-     */
-    static Variant readFileSync(String fname, String encoding = "");
-
     /*! @brief 打开文件，以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:"\n"；windows:"\r\n"
      @param fname 指定文件名
      @param maxlines 指定此次读取的最大行数，缺省读取全部文本行
@@ -375,12 +227,6 @@ module fs
      */
     static writeFile(String fname, Buffer data) async;
 
-    /*! @brief 创建二进制文件，并写入内容，是 writeFile 的同步版兼容接口
-     @param fname 指定文件名
-     @param data 指定要写入的二进制数据
-     */
-    static writeFileSync(String fname, Buffer data);
-
     /*! @brief 创建二进制文件，并写入内容
      @param fname 指定文件名
      @param data 指定要写入的二进制数据
@@ -391,5 +237,4 @@ module fs
      @param fname 指定文件名
      @param data 指定要写入的二进制数据
      */
-    static appendFileSync(String fname, Buffer data);
 };

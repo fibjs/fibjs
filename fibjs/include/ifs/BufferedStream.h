@@ -69,11 +69,16 @@ inline ClassInfo& BufferedStream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "readText", s_readText, false },
+        { "readTextSync", s_readText, false },
         { "readLine", s_readLine, false },
+        { "readLineSync", s_readLine, false },
         { "readLines", s_readLines, false },
         { "readUntil", s_readUntil, false },
+        { "readUntilSync", s_readUntil, false },
         { "writeText", s_writeText, false },
-        { "writeLine", s_writeLine, false }
+        { "writeTextSync", s_writeText, false },
+        { "writeLine", s_writeLine, false },
+        { "writeLineSync", s_writeLine, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

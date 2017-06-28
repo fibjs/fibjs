@@ -64,7 +64,8 @@ inline ClassInfo& mq_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "await", s_await, true },
         { "nullHandler", s_nullHandler, true },
-        { "invoke", s_invoke, true }
+        { "invoke", s_invoke, true },
+        { "invokeSync", s_invoke, true }
     };
 
     static ClassData::ClassObject s_object[] = {

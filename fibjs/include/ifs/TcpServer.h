@@ -64,8 +64,10 @@ inline ClassInfo& TcpServer_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "run", s_run, false },
+        { "runSync", s_run, false },
         { "asyncRun", s_asyncRun, false },
-        { "stop", s_stop, false }
+        { "stop", s_stop, false },
+        { "stopSync", s_stop, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

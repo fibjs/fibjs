@@ -2,7 +2,7 @@ var fs = require("fs");
 var util = require("util");
 var path = require('path');
 
-module.exports = function (defs, baseFolder) {
+module.exports = function(defs, baseFolder) {
     function gen_code(cls, def) {
         var typeMap = {
             "Integer": "int32_t",
@@ -282,12 +282,12 @@ module.exports = function (defs, baseFolder) {
                 }
             },
             "object": {
-                "declare": () => {},
-                "stub": () => {},
-                "stub_func": () => {}
+                "declare": () => { },
+                "stub": () => { },
+                "stub_func": () => { }
             },
             "const": {
-                "declare": () => {},
+                "declare": () => { },
                 "stub": fn => {
                     var fname = fn.name;
                     txts.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
@@ -548,8 +548,11 @@ module.exports = function (defs, baseFolder) {
                     if (fname == "Function")
                         return;
 
-                    if (fn.memType == "method")
+                    if (fn.memType == "method") {
                         deflist.push('        { "' + fname + '", s_' + fname + ', ' + (fstatic ? 'true' : 'false') + ' }');
+                        if (fn.async)
+                            deflist.push('        { "' + `${fname}Sync` + '", s_' + fname + ', ' + (fstatic ? 'true' : 'false') + ' }');
+                    }
                 });
 
                 if (deflist.length) {

@@ -73,13 +73,21 @@ inline ClassInfo& Smtp_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "connect", s_connect, false },
+        { "connectSync", s_connect, false },
         { "command", s_command, false },
+        { "commandSync", s_command, false },
         { "hello", s_hello, false },
+        { "helloSync", s_hello, false },
         { "login", s_login, false },
+        { "loginSync", s_login, false },
         { "from", s_from, false },
+        { "fromSync", s_from, false },
         { "to", s_to, false },
+        { "toSync", s_to, false },
         { "data", s_data, false },
-        { "quit", s_quit, false }
+        { "dataSync", s_data, false },
+        { "quit", s_quit, false },
+        { "quitSync", s_quit, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

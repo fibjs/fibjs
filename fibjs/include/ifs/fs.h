@@ -36,59 +36,35 @@ public:
     // fs_base
     static result_t get_constants(v8::Local<v8::Object>& retVal);
     static result_t exists(exlib::string path, bool& retVal, AsyncEvent* ac);
-    static result_t existsSync(exlib::string path, bool& retVal);
     static result_t access(exlib::string path, int32_t mode, AsyncEvent* ac);
-    static result_t accessSync(exlib::string path, int32_t mode);
     static result_t link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac);
-    static result_t linkSync(exlib::string oldPath, exlib::string newPath);
     static result_t unlink(exlib::string path, AsyncEvent* ac);
-    static result_t unlinkSync(exlib::string path);
     static result_t mkdir(exlib::string path, int32_t mode, AsyncEvent* ac);
-    static result_t mkdirSync(exlib::string path, int32_t mode);
     static result_t rmdir(exlib::string path, AsyncEvent* ac);
-    static result_t rmdirSync(exlib::string path);
     static result_t rename(exlib::string from, exlib::string to, AsyncEvent* ac);
-    static result_t renameSync(exlib::string from, exlib::string to);
     static result_t copy(exlib::string from, exlib::string to, AsyncEvent* ac);
     static result_t chmod(exlib::string path, int32_t mode, AsyncEvent* ac);
-    static result_t chmodSync(exlib::string path, int32_t mode);
     static result_t lchmod(exlib::string path, int32_t mode, AsyncEvent* ac);
-    static result_t lchmodSync(exlib::string path, int32_t mode);
     static result_t chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac);
-    static result_t chownSync(exlib::string path, int32_t uid, int32_t gid);
     static result_t lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac);
-    static result_t lchownSync(exlib::string path, int32_t uid, int32_t gid);
     static result_t stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
-    static result_t statSync(exlib::string path, obj_ptr<Stat_base>& retVal);
     static result_t lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
-    static result_t lstatSync(exlib::string path, obj_ptr<Stat_base>& retVal);
     static result_t readlink(exlib::string path, exlib::string& retVal, AsyncEvent* ac);
-    static result_t readlinkSync(exlib::string path, exlib::string& retVal);
     static result_t realpath(exlib::string path, exlib::string& retVal, AsyncEvent* ac);
-    static result_t realpathSync(exlib::string path, exlib::string& retVal);
     static result_t symlink(exlib::string target, exlib::string linkpath, AsyncEvent* ac);
-    static result_t symlinkSync(exlib::string target, exlib::string linkpath);
     static result_t truncate(exlib::string path, int32_t len, AsyncEvent* ac);
     static result_t read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac);
-    static result_t readSync(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal);
-    static result_t truncateSync(exlib::string path, int32_t len);
     static result_t readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
-    static result_t readdirSync(exlib::string path, obj_ptr<List_base>& retVal);
     static result_t openFile(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t open(exlib::string fname, exlib::string flags, int32_t mode, int32_t& retVal, AsyncEvent* ac);
-    static result_t openSync(exlib::string fname, exlib::string flags, int32_t mode, int32_t& retVal);
     static result_t close(int32_t fd, AsyncEvent* ac);
-    static result_t closeSync(int32_t fd);
     static result_t openTextStream(exlib::string fname, exlib::string flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
     static result_t readTextFile(exlib::string fname, exlib::string& retVal, AsyncEvent* ac);
     static result_t readFile(exlib::string fname, exlib::string encoding, Variant& retVal, AsyncEvent* ac);
-    static result_t readFileSync(exlib::string fname, exlib::string encoding, Variant& retVal);
     static result_t readLines(exlib::string fname, int32_t maxlines, v8::Local<v8::Array>& retVal);
     static result_t writeTextFile(exlib::string fname, exlib::string txt, AsyncEvent* ac);
     static result_t writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac);
-    static result_t writeFileSync(exlib::string fname, Buffer_base* data);
     static result_t appendFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac);
-    static result_t appendFileSync(exlib::string fname, Buffer_base* data);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -107,59 +83,35 @@ public:
     static void s_get_SEEK_END(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_constants(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_existsSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_access(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_accessSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_link(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_linkSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_unlinkSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_mkdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_rmdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_renameSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_chmodSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_lchmodSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_chown(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_chownSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_lchown(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_lchownSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_statSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_lstat(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_lstatSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readlink(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readlinkSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_realpath(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_realpathSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_symlink(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_symlinkSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readSync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_truncateSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_openSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_closeSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readFileSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readLines(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_writeFileSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_appendFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_appendFileSync(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(fs_base, exists, exlib::string, bool);
@@ -205,59 +157,64 @@ inline ClassInfo& fs_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "exists", s_exists, true },
-        { "existsSync", s_existsSync, true },
+        { "existsSync", s_exists, true },
         { "access", s_access, true },
-        { "accessSync", s_accessSync, true },
+        { "accessSync", s_access, true },
         { "link", s_link, true },
-        { "linkSync", s_linkSync, true },
+        { "linkSync", s_link, true },
         { "unlink", s_unlink, true },
-        { "unlinkSync", s_unlinkSync, true },
+        { "unlinkSync", s_unlink, true },
         { "mkdir", s_mkdir, true },
-        { "mkdirSync", s_mkdirSync, true },
+        { "mkdirSync", s_mkdir, true },
         { "rmdir", s_rmdir, true },
-        { "rmdirSync", s_rmdirSync, true },
+        { "rmdirSync", s_rmdir, true },
         { "rename", s_rename, true },
-        { "renameSync", s_renameSync, true },
+        { "renameSync", s_rename, true },
         { "copy", s_copy, true },
+        { "copySync", s_copy, true },
         { "chmod", s_chmod, true },
-        { "chmodSync", s_chmodSync, true },
+        { "chmodSync", s_chmod, true },
         { "lchmod", s_lchmod, true },
-        { "lchmodSync", s_lchmodSync, true },
+        { "lchmodSync", s_lchmod, true },
         { "chown", s_chown, true },
-        { "chownSync", s_chownSync, true },
+        { "chownSync", s_chown, true },
         { "lchown", s_lchown, true },
-        { "lchownSync", s_lchownSync, true },
+        { "lchownSync", s_lchown, true },
         { "stat", s_stat, true },
-        { "statSync", s_statSync, true },
+        { "statSync", s_stat, true },
         { "lstat", s_lstat, true },
-        { "lstatSync", s_lstatSync, true },
+        { "lstatSync", s_lstat, true },
         { "readlink", s_readlink, true },
-        { "readlinkSync", s_readlinkSync, true },
+        { "readlinkSync", s_readlink, true },
         { "realpath", s_realpath, true },
-        { "realpathSync", s_realpathSync, true },
+        { "realpathSync", s_realpath, true },
         { "symlink", s_symlink, true },
-        { "symlinkSync", s_symlinkSync, true },
+        { "symlinkSync", s_symlink, true },
         { "truncate", s_truncate, true },
+        { "truncateSync", s_truncate, true },
         { "read", s_read, true },
-        { "readSync", s_readSync, true },
-        { "truncateSync", s_truncateSync, true },
+        { "readSync", s_read, true },
         { "readdir", s_readdir, true },
-        { "readdirSync", s_readdirSync, true },
+        { "readdirSync", s_readdir, true },
         { "openFile", s_openFile, true },
+        { "openFileSync", s_openFile, true },
         { "open", s_open, true },
-        { "openSync", s_openSync, true },
+        { "openSync", s_open, true },
         { "close", s_close, true },
-        { "closeSync", s_closeSync, true },
+        { "closeSync", s_close, true },
         { "openTextStream", s_openTextStream, true },
+        { "openTextStreamSync", s_openTextStream, true },
         { "readTextFile", s_readTextFile, true },
+        { "readTextFileSync", s_readTextFile, true },
         { "readFile", s_readFile, true },
-        { "readFileSync", s_readFileSync, true },
+        { "readFileSync", s_readFile, true },
         { "readLines", s_readLines, true },
         { "writeTextFile", s_writeTextFile, true },
+        { "writeTextFileSync", s_writeTextFile, true },
         { "writeFile", s_writeFile, true },
-        { "writeFileSync", s_writeFileSync, true },
+        { "writeFileSync", s_writeFile, true },
         { "appendFile", s_appendFile, true },
-        { "appendFileSync", s_appendFileSync, true }
+        { "appendFileSync", s_appendFile, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -328,21 +285,6 @@ inline void fs_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_existsSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    bool vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = existsSync(v0, vr);
-
-    METHOD_RETURN();
-}
-
 inline void fs_base::s_access(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
@@ -357,20 +299,6 @@ inline void fs_base::s_access(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_access(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void fs_base::s_accessSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
-
-    hr = accessSync(v0, v1);
 
     METHOD_VOID();
 }
@@ -393,20 +321,6 @@ inline void fs_base::s_link(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_linkSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-
-    hr = linkSync(v0, v1);
-
-    METHOD_VOID();
-}
-
 inline void fs_base::s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
@@ -420,19 +334,6 @@ inline void fs_base::s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_unlink(v0);
-
-    METHOD_VOID();
-}
-
-inline void fs_base::s_unlinkSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = unlinkSync(v0);
 
     METHOD_VOID();
 }
@@ -455,20 +356,6 @@ inline void fs_base::s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_mkdirSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0777);
-
-    hr = mkdirSync(v0, v1);
-
-    METHOD_VOID();
-}
-
 inline void fs_base::s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
@@ -482,19 +369,6 @@ inline void fs_base::s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_rmdir(v0);
-
-    METHOD_VOID();
-}
-
-inline void fs_base::s_rmdirSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = rmdirSync(v0);
 
     METHOD_VOID();
 }
@@ -513,20 +387,6 @@ inline void fs_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_rename(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void fs_base::s_renameSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-
-    hr = renameSync(v0, v1);
 
     METHOD_VOID();
 }
@@ -567,20 +427,6 @@ inline void fs_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_chmodSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-
-    hr = chmodSync(v0, v1);
-
-    METHOD_VOID();
-}
-
 inline void fs_base::s_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
@@ -595,20 +441,6 @@ inline void fs_base::s_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_lchmod(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void fs_base::s_lchmodSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-
-    hr = lchmodSync(v0, v1);
 
     METHOD_VOID();
 }
@@ -632,21 +464,6 @@ inline void fs_base::s_chown(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_chownSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(3, 3);
-
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-    ARG(int32_t, 2);
-
-    hr = chownSync(v0, v1, v2);
-
-    METHOD_VOID();
-}
-
 inline void fs_base::s_lchown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
@@ -662,21 +479,6 @@ inline void fs_base::s_lchown(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_lchown(v0, v1, v2);
-
-    METHOD_VOID();
-}
-
-inline void fs_base::s_lchownSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(3, 3);
-
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-    ARG(int32_t, 2);
-
-    hr = lchownSync(v0, v1, v2);
 
     METHOD_VOID();
 }
@@ -700,21 +502,6 @@ inline void fs_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_statSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Stat_base> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = statSync(v0, vr);
-
-    METHOD_RETURN();
-}
-
 inline void fs_base::s_lstat(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stat_base> vr;
@@ -730,21 +517,6 @@ inline void fs_base::s_lstat(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_lstat(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void fs_base::s_lstatSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Stat_base> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = lstatSync(v0, vr);
 
     METHOD_RETURN();
 }
@@ -768,21 +540,6 @@ inline void fs_base::s_readlink(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_readlinkSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = readlinkSync(v0, vr);
-
-    METHOD_RETURN();
-}
-
 inline void fs_base::s_realpath(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
@@ -802,21 +559,6 @@ inline void fs_base::s_realpath(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_realpathSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = realpathSync(v0, vr);
-
-    METHOD_RETURN();
-}
-
 inline void fs_base::s_symlink(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
@@ -831,20 +573,6 @@ inline void fs_base::s_symlink(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_symlink(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void fs_base::s_symlinkSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-
-    hr = symlinkSync(v0, v1);
 
     METHOD_VOID();
 }
@@ -890,39 +618,6 @@ inline void fs_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_readSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(5, 2);
-
-    ARG(int32_t, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-    OPT_ARG(int32_t, 2, 0);
-    OPT_ARG(int32_t, 3, -1);
-    OPT_ARG(int32_t, 4, -1);
-
-    hr = readSync(v0, v1, v2, v3, v4, vr);
-
-    METHOD_RETURN();
-}
-
-inline void fs_base::s_truncateSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-
-    hr = truncateSync(v0, v1);
-
-    METHOD_VOID();
-}
-
 inline void fs_base::s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<List_base> vr;
@@ -938,21 +633,6 @@ inline void fs_base::s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_readdir(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void fs_base::s_readdirSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<List_base> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = readdirSync(v0, vr);
 
     METHOD_RETURN();
 }
@@ -998,23 +678,6 @@ inline void fs_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_openSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(3, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "r");
-    OPT_ARG(int32_t, 2, 0666);
-
-    hr = openSync(v0, v1, v2, vr);
-
-    METHOD_RETURN();
-}
-
 inline void fs_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
@@ -1028,19 +691,6 @@ inline void fs_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_close(v0);
-
-    METHOD_VOID();
-}
-
-inline void fs_base::s_closeSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(int32_t, 0);
-
-    hr = closeSync(v0);
 
     METHOD_VOID();
 }
@@ -1104,22 +754,6 @@ inline void fs_base::s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_readFileSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    Variant vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    hr = readFileSync(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
 inline void fs_base::s_readLines(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
@@ -1172,20 +806,6 @@ inline void fs_base::s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void fs_base::s_writeFileSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-
-    hr = writeFileSync(v0, v1);
-
-    METHOD_VOID();
-}
-
 inline void fs_base::s_appendFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
@@ -1200,20 +820,6 @@ inline void fs_base::s_appendFile(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_appendFile(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void fs_base::s_appendFileSync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-
-    hr = appendFileSync(v0, v1);
 
     METHOD_VOID();
 }

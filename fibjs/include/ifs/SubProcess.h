@@ -61,6 +61,7 @@ inline ClassInfo& SubProcess_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "kill", s_kill, false },
         { "wait", s_wait, false },
+        { "waitSync", s_wait, false },
         { "findWindow", s_findWindow, false }
     };
 

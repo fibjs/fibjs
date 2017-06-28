@@ -60,6 +60,7 @@ inline ClassInfo& ZmqSocket_base::class_info()
         { "bind", s_bind, false },
         { "connect", s_connect, false },
         { "recv", s_recv, false },
+        { "recvSync", s_recv, false },
         { "send", s_send, false },
         { "close", s_close, false }
     };

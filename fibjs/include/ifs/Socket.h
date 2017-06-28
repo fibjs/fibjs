@@ -91,13 +91,21 @@ inline ClassInfo& Socket_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "connect", s_connect, false },
+        { "connectSync", s_connect, false },
         { "bind", s_bind, false },
+        { "bindSync", s_bind, false },
         { "listen", s_listen, false },
+        { "listenSync", s_listen, false },
         { "accept", s_accept, false },
+        { "acceptSync", s_accept, false },
         { "recv", s_recv, false },
+        { "recvSync", s_recv, false },
         { "recvfrom", s_recvfrom, false },
+        { "recvfromSync", s_recvfrom, false },
         { "send", s_send, false },
-        { "sendto", s_sendto, false }
+        { "sendSync", s_send, false },
+        { "sendto", s_sendto, false },
+        { "sendtoSync", s_sendto, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

@@ -85,6 +85,7 @@ inline ClassInfo& ws_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "connect", s_connect, true },
+        { "connectSync", s_connect, true },
         { "upgrade", s_upgrade, true }
     };
 

@@ -192,7 +192,9 @@ inline ClassInfo& Image_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "getData", s_getData, false },
+        { "getDataSync", s_getData, false },
         { "save", s_save, false },
+        { "saveSync", s_save, false },
         { "colorAllocate", s_colorAllocate, false },
         { "colorAllocateAlpha", s_colorAllocateAlpha, false },
         { "colorClosest", s_colorClosest, false },
@@ -221,21 +223,36 @@ inline ClassInfo& Image_base::class_info()
         { "fill", s_fill, false },
         { "fillToBorder", s_fillToBorder, false },
         { "colorReplace", s_colorReplace, false },
+        { "colorReplaceSync", s_colorReplace, false },
         { "clone", s_clone, false },
+        { "cloneSync", s_clone, false },
         { "resample", s_resample, false },
+        { "resampleSync", s_resample, false },
         { "crop", s_crop, false },
+        { "cropSync", s_crop, false },
         { "flip", s_flip, false },
+        { "flipSync", s_flip, false },
         { "rotate", s_rotate, false },
+        { "rotateSync", s_rotate, false },
         { "convert", s_convert, false },
+        { "convertSync", s_convert, false },
         { "copy", s_copy, false },
+        { "copySync", s_copy, false },
         { "copyMerge", s_copyMerge, false },
+        { "copyMergeSync", s_copyMerge, false },
         { "copyMergeGray", s_copyMergeGray, false },
+        { "copyMergeGraySync", s_copyMergeGray, false },
         { "copyResized", s_copyResized, false },
+        { "copyResizedSync", s_copyResized, false },
         { "copyResampled", s_copyResampled, false },
+        { "copyResampledSync", s_copyResampled, false },
         { "copyRotated", s_copyRotated, false },
+        { "copyRotatedSync", s_copyRotated, false },
         { "filter", s_filter, false },
+        { "filterSync", s_filter, false },
         { "affine", s_affine, false },
-        { "gaussianBlur", s_gaussianBlur, false }
+        { "gaussianBlur", s_gaussianBlur, false },
+        { "gaussianBlurSync", s_gaussianBlur, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

@@ -80,6 +80,7 @@ inline ClassInfo& Service_base::class_info()
         { "stop", s_stop, false },
         { "restart", s_restart, false },
         { "run", s_run, false },
+        { "runSync", s_run, false },
         { "isInstalled", s_isInstalled, false },
         { "isRunning", s_isRunning, false }
     };

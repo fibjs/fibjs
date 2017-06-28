@@ -64,7 +64,8 @@ inline ClassInfo& HeapSnapshot_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "diff", s_diff, false },
         { "getNodeById", s_getNodeById, false },
-        { "save", s_save, false }
+        { "save", s_save, false },
+        { "saveSync", s_save, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

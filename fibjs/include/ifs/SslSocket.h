@@ -64,7 +64,9 @@ inline ClassInfo& SslSocket_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "connect", s_connect, false },
-        { "accept", s_accept, false }
+        { "connectSync", s_connect, false },
+        { "accept", s_accept, false },
+        { "acceptSync", s_accept, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

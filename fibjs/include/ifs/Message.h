@@ -106,13 +106,18 @@ inline ClassInfo& Message_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "read", s_read, false },
+        { "readSync", s_read, false },
         { "readAll", s_readAll, false },
+        { "readAllSync", s_readAll, false },
         { "write", s_write, false },
+        { "writeSync", s_write, false },
         { "end", s_end, false },
         { "isEnded", s_isEnded, false },
         { "clear", s_clear, false },
         { "sendTo", s_sendTo, false },
-        { "readFrom", s_readFrom, false }
+        { "sendToSync", s_sendTo, false },
+        { "readFrom", s_readFrom, false },
+        { "readFromSync", s_readFrom, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

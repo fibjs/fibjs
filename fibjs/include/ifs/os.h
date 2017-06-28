@@ -115,6 +115,7 @@ inline ClassInfo& os_base::class_info()
         { "networkInterfaces", s_networkInterfaces, true },
         { "printerInfo", s_printerInfo, true },
         { "openPrinter", s_openPrinter, true },
+        { "openPrinterSync", s_openPrinter, true },
         { "platform", s_platform, true },
         { "time", s_time, true },
         { "dateAdd", s_dateAdd, true },

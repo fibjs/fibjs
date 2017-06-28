@@ -97,6 +97,7 @@ inline ClassInfo& HttpClient_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "request", s_request, false },
+        { "requestSync", s_request, false },
         { "get", s_get, false },
         { "post", s_post, false },
         { "del", s_del, false },

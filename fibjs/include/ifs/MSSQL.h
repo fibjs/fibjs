@@ -49,7 +49,8 @@ namespace fibjs {
 inline ClassInfo& MSSQL_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "use", s_use, false }
+        { "use", s_use, false },
+        { "useSync", s_use, false }
     };
 
     static ClassData s_cd = {

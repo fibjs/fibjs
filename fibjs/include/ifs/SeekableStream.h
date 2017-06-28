@@ -78,10 +78,14 @@ inline ClassInfo& SeekableStream_base::class_info()
         { "rewind", s_rewind, false },
         { "size", s_size, false },
         { "readAll", s_readAll, false },
+        { "readAllSync", s_readAll, false },
         { "truncate", s_truncate, false },
+        { "truncateSync", s_truncate, false },
         { "eof", s_eof, false },
         { "flush", s_flush, false },
-        { "stat", s_stat, false }
+        { "flushSync", s_flush, false },
+        { "stat", s_stat, false },
+        { "statSync", s_stat, false }
     };
 
     static ClassData s_cd = {

@@ -58,7 +58,9 @@ inline ClassInfo& io_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "copyStream", s_copyStream, true },
-        { "bridge", s_bridge, true }
+        { "copyStreamSync", s_copyStream, true },
+        { "bridge", s_bridge, true },
+        { "bridgeSync", s_bridge, true }
     };
 
     static ClassData::ClassObject s_object[] = {
