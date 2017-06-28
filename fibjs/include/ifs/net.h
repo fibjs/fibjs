@@ -90,10 +90,15 @@ inline ClassInfo& net_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "info", s_info, true },
         { "resolve", s_resolve, true },
+        { "resolveSync", s_resolve, true },
         { "ip", s_ip, true },
+        { "ipSync", s_ip, true },
         { "ipv6", s_ipv6, true },
+        { "ipv6Sync", s_ipv6, true },
         { "connect", s_connect, true },
+        { "connectSync", s_connect, true },
         { "openSmtp", s_openSmtp, true },
+        { "openSmtpSync", s_openSmtp, true },
         { "backend", s_backend, true }
     };
 

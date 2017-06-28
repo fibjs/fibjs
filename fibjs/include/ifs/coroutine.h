@@ -86,7 +86,8 @@ inline ClassInfo& coroutine_base::class_info()
         { "start", s_start, true },
         { "parallel", s_parallel, true },
         { "current", s_current, true },
-        { "sleep", s_sleep, true }
+        { "sleep", s_sleep, true },
+        { "sleepSync", s_sleep, true }
     };
 
     static ClassData::ClassObject s_object[] = {

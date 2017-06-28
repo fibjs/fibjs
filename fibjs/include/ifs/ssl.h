@@ -107,6 +107,7 @@ inline ClassInfo& ssl_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "connect", s_connect, true },
+        { "connectSync", s_connect, true },
         { "setClientCert", s_setClientCert, true },
         { "loadClientCertFile", s_loadClientCertFile, true },
         { "loadRootCerts", s_loadRootCerts, true }

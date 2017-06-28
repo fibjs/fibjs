@@ -62,7 +62,9 @@ inline ClassInfo& Cipher_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "paddingMode", s_paddingMode, false },
         { "encrypt", s_encrypt, false },
-        { "decrypt", s_decrypt, false }
+        { "encryptSync", s_encrypt, false },
+        { "decrypt", s_decrypt, false },
+        { "decryptSync", s_decrypt, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

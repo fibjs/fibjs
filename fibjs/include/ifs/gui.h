@@ -73,7 +73,8 @@ inline ClassInfo& gui_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "setVersion", s_setVersion, true },
-        { "open", s_open, true }
+        { "open", s_open, true },
+        { "openSync", s_open, true }
     };
 
     static ClassData::ClassProperty s_property[] = {

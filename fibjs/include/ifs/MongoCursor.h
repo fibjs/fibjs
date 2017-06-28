@@ -68,7 +68,9 @@ inline ClassInfo& MongoCursor_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "skip", s_skip, false },
+        { "skipSync", s_skip, false },
         { "limit", s_limit, false },
+        { "limitSync", s_limit, false },
         { "sort", s_sort, false },
         { "hasNext", s_hasNext, false },
         { "next", s_next, false },

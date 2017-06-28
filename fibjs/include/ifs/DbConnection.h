@@ -68,10 +68,15 @@ inline ClassInfo& DbConnection_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "close", s_close, false },
+        { "closeSync", s_close, false },
         { "begin", s_begin, false },
+        { "beginSync", s_begin, false },
         { "commit", s_commit, false },
+        { "commitSync", s_commit, false },
         { "rollback", s_rollback, false },
+        { "rollbackSync", s_rollback, false },
         { "execute", s_execute, false },
+        { "executeSync", s_execute, false },
         { "format", s_format, false }
     };
 

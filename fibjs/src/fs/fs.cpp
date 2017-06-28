@@ -212,11 +212,6 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
     return file_open(fname, flags, mode, retVal);
 }
 
-result_t fs_base::openSync(exlib::string fname, exlib::string flags, int32_t mode, int32_t& retVal)
-{
-    return ac_open(fname, flags, mode, retVal);
-}
-
 result_t fs_base::close(int32_t fd, AsyncEvent* ac)
 {
     if (!ac)
@@ -229,11 +224,6 @@ result_t fs_base::close(int32_t fd, AsyncEvent* ac)
     }
 
     return 0;
-}
-
-result_t fs_base::closeSync(int32_t fd)
-{
-    return ac_close(fd);
 }
 
 result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
@@ -459,12 +449,6 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     }
 
     return buffer->write(strBuf, offset, (int32_t)strBuf.length(), "utf8", retVal);
-}
-
-result_t fs_base::readSync(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length,
-    int32_t position, int32_t& retVal)
-{
-    return ac_read(fd, buffer, offset, length, position, retVal);
 }
 
 #ifndef _WIN32
@@ -902,109 +886,4 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncE
 }
 
 #endif
-
-result_t fs_base::existsSync(exlib::string path, bool& retVal)
-{
-    return ac_exists(path, retVal);
-}
-
-result_t fs_base::accessSync(exlib::string path, int32_t mode)
-{
-    return ac_access(path, mode);
-}
-
-result_t fs_base::linkSync(exlib::string oldPath, exlib::string newPath)
-{
-    return ac_link(oldPath, newPath);
-}
-
-result_t fs_base::unlinkSync(exlib::string path)
-{
-    return ac_unlink(path);
-}
-
-result_t fs_base::readlinkSync(exlib::string path, exlib::string& retVal)
-{
-    return ac_readlink(path, retVal);
-}
-
-result_t fs_base::realpathSync(exlib::string path, exlib::string& retVal)
-{
-    return ac_realpath(path, retVal);
-}
-
-result_t fs_base::symlinkSync(exlib::string target, exlib::string linkpath)
-{
-    return ac_symlink(target, linkpath);
-}
-
-result_t fs_base::truncateSync(exlib::string path, int32_t len)
-{
-    return ac_truncate(path, len);
-}
-
-result_t fs_base::mkdirSync(exlib::string path, int32_t mode)
-{
-    return ac_mkdir(path, mode);
-}
-
-result_t fs_base::rmdirSync(exlib::string path)
-{
-    return ac_rmdir(path);
-}
-
-result_t fs_base::renameSync(exlib::string from, exlib::string to)
-{
-    return ac_rename(from, to);
-}
-
-result_t fs_base::chmodSync(exlib::string path, int32_t mode)
-{
-    return ac_chmod(path, mode);
-}
-
-result_t fs_base::lchmodSync(exlib::string path, int32_t mode)
-{
-    return ac_lchmod(path, mode);
-}
-
-result_t fs_base::chownSync(exlib::string path, int32_t uid, int32_t gid)
-{
-    return ac_chown(path, uid, gid);
-}
-
-result_t fs_base::lchownSync(exlib::string path, int32_t uid, int32_t gid)
-{
-    return ac_lchown(path, uid, gid);
-}
-
-result_t fs_base::statSync(exlib::string path, obj_ptr<Stat_base>& retVal)
-{
-    return ac_stat(path, retVal);
-}
-
-result_t fs_base::lstatSync(exlib::string path, obj_ptr<Stat_base>& retVal)
-{
-    return ac_lstat(path, retVal);
-}
-
-result_t fs_base::readdirSync(exlib::string path, obj_ptr<List_base>& retVal)
-{
-    return ac_readdir(path, retVal);
-}
-
-result_t fs_base::readFileSync(exlib::string fname, exlib::string encoding, Variant& retVal)
-{
-    return ac_readFile(fname, encoding, retVal);
-}
-
-result_t fs_base::writeFileSync(exlib::string fname, Buffer_base* data)
-{
-    return ac_writeFile(fname, data);
-}
-
-result_t fs_base::appendFileSync(exlib::string fname, Buffer_base* data)
-{
-    return ac_appendFile(fname, data);
-}
 }

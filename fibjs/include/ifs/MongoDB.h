@@ -70,7 +70,8 @@ inline ClassInfo& MongoDB_base::class_info()
         { "getCollection", s_getCollection, false },
         { "runCommand", s_runCommand, false },
         { "oid", s_oid, false },
-        { "close", s_close, false }
+        { "close", s_close, false },
+        { "closeSync", s_close, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

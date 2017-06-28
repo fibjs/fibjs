@@ -70,7 +70,9 @@ inline ClassInfo& zip_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "isZipFile", s_isZipFile, true },
-        { "open", s_open, true }
+        { "isZipFileSync", s_isZipFile, true },
+        { "open", s_open, true },
+        { "openSync", s_open, true }
     };
 
     static ClassData::ClassProperty s_property[] = {

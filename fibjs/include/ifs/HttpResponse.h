@@ -63,7 +63,8 @@ inline ClassInfo& HttpResponse_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "addCookie", s_addCookie, false },
         { "redirect", s_redirect, false },
-        { "sendHeader", s_sendHeader, false }
+        { "sendHeader", s_sendHeader, false },
+        { "sendHeaderSync", s_sendHeader, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

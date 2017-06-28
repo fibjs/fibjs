@@ -182,7 +182,8 @@ inline ClassInfo& console_base::class_info()
         { "mouseUp", s_mouseUp, true },
         { "mouseDown", s_mouseDown, true },
         { "clickMouse", s_clickMouse, true },
-        { "readLine", s_readLine, true }
+        { "readLine", s_readLine, true },
+        { "readLineSync", s_readLine, true }
     };
 
     static ClassData::ClassProperty s_property[] = {

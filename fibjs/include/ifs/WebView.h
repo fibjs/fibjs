@@ -86,10 +86,15 @@ inline ClassInfo& WebView_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "setHtml", s_setHtml, false },
+        { "setHtmlSync", s_setHtml, false },
         { "print", s_print, false },
+        { "printSync", s_print, false },
         { "close", s_close, false },
+        { "closeSync", s_close, false },
         { "wait", s_wait, false },
-        { "postMessage", s_postMessage, false }
+        { "waitSync", s_wait, false },
+        { "postMessage", s_postMessage, false },
+        { "postMessageSync", s_postMessage, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

@@ -110,17 +110,29 @@ inline ClassInfo& zlib_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "deflate", s_deflate, true },
+        { "deflateSync", s_deflate, true },
         { "deflateTo", s_deflateTo, true },
+        { "deflateToSync", s_deflateTo, true },
         { "inflate", s_inflate, true },
+        { "inflateSync", s_inflate, true },
         { "inflateTo", s_inflateTo, true },
+        { "inflateToSync", s_inflateTo, true },
         { "gzip", s_gzip, true },
+        { "gzipSync", s_gzip, true },
         { "gzipTo", s_gzipTo, true },
+        { "gzipToSync", s_gzipTo, true },
         { "gunzip", s_gunzip, true },
+        { "gunzipSync", s_gunzip, true },
         { "gunzipTo", s_gunzipTo, true },
+        { "gunzipToSync", s_gunzipTo, true },
         { "deflateRaw", s_deflateRaw, true },
+        { "deflateRawSync", s_deflateRaw, true },
         { "deflateRawTo", s_deflateRawTo, true },
+        { "deflateRawToSync", s_deflateRawTo, true },
         { "inflateRaw", s_inflateRaw, true },
-        { "inflateRawTo", s_inflateRawTo, true }
+        { "inflateRawSync", s_inflateRaw, true },
+        { "inflateRawTo", s_inflateRawTo, true },
+        { "inflateRawToSync", s_inflateRawTo, true }
     };
 
     static ClassData::ClassProperty s_property[] = {

@@ -55,7 +55,8 @@ namespace fibjs {
 inline ClassInfo& SQLite_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "backup", s_backup, false }
+        { "backup", s_backup, false },
+        { "backupSync", s_backup, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

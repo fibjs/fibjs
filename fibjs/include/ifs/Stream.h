@@ -60,9 +60,13 @@ inline ClassInfo& Stream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "read", s_read, false },
+        { "readSync", s_read, false },
         { "write", s_write, false },
+        { "writeSync", s_write, false },
         { "close", s_close, false },
-        { "copyTo", s_copyTo, false }
+        { "closeSync", s_close, false },
+        { "copyTo", s_copyTo, false },
+        { "copyToSync", s_copyTo, false }
     };
 
     static ClassData s_cd = {

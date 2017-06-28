@@ -117,6 +117,7 @@ inline ClassInfo& http_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "fileHandler", s_fileHandler, true },
         { "request", s_request, true },
+        { "requestSync", s_request, true },
         { "get", s_get, true },
         { "post", s_post, true },
         { "del", s_del, true },

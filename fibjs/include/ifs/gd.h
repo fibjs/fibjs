@@ -138,7 +138,9 @@ inline ClassInfo& gd_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "create", s_create, true },
+        { "createSync", s_create, true },
         { "load", s_load, true },
+        { "loadSync", s_load, true },
         { "rgb", s_rgb, true },
         { "rgba", s_rgba, true },
         { "hsl", s_hsl, true },

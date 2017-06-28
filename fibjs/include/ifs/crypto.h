@@ -139,11 +139,16 @@ inline ClassInfo& crypto_base::class_info()
         { "loadCrl", s_loadCrl, true },
         { "loadReq", s_loadReq, true },
         { "randomBytes", s_randomBytes, true },
+        { "randomBytesSync", s_randomBytes, true },
         { "simpleRandomBytes", s_simpleRandomBytes, true },
+        { "simpleRandomBytesSync", s_simpleRandomBytes, true },
         { "pseudoRandomBytes", s_pseudoRandomBytes, true },
+        { "pseudoRandomBytesSync", s_pseudoRandomBytes, true },
         { "randomArt", s_randomArt, true },
         { "pbkdf1", s_pbkdf1, true },
+        { "pbkdf1Sync", s_pbkdf1, true },
         { "pbkdf2", s_pbkdf2, true },
+        { "pbkdf2Sync", s_pbkdf2, true },
         { "pbkdf2Sync", s_pbkdf2Sync, true }
     };
 

@@ -86,6 +86,7 @@ inline ClassInfo& X509Cert_base::class_info()
         { "loadFile", s_loadFile, false },
         { "loadRootCerts", s_loadRootCerts, false },
         { "verify", s_verify, false },
+        { "verifySync", s_verify, false },
         { "dump", s_dump, false },
         { "clear", s_clear, false }
     };

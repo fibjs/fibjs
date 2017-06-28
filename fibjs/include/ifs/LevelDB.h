@@ -79,17 +79,22 @@ inline ClassInfo& LevelDB_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "has", s_has, false },
+        { "hasSync", s_has, false },
         { "get", s_get, false },
+        { "getSync", s_get, false },
         { "mget", s_mget, false },
         { "set", s_set, false },
+        { "setSync", s_set, false },
         { "mset", s_mset, false },
         { "mremove", s_mremove, false },
         { "remove", s_remove, false },
+        { "removeSync", s_remove, false },
         { "forEach", s_forEach, false },
         { "between", s_between, false },
         { "begin", s_begin, false },
         { "commit", s_commit, false },
-        { "close", s_close, false }
+        { "close", s_close, false },
+        { "closeSync", s_close, false }
     };
 
     static ClassData s_cd = {

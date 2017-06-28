@@ -57,7 +57,8 @@ namespace fibjs {
 inline ClassInfo& MySQL_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "use", s_use, false }
+        { "use", s_use, false },
+        { "useSync", s_use, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

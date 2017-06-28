@@ -69,7 +69,8 @@ inline ClassInfo& X509Req_base::class_info()
         { "loadFile", s_loadFile, false },
         { "exportPem", s_exportPem, false },
         { "exportDer", s_exportDer, false },
-        { "sign", s_sign, false }
+        { "sign", s_sign, false },
+        { "signSync", s_sign, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
