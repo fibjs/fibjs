@@ -258,18 +258,12 @@ result_t XmlElement::set_innerHTML(exlib::string newVal)
 
 result_t XmlElement::get_className(exlib::string& retVal)
 {
-    if (m_isXml)
-        return CALL_E_INVALID_CALL;
-
     getAttribute("class", retVal);
     return 0;
 }
 
 result_t XmlElement::set_className(exlib::string newVal)
 {
-    if (m_isXml)
-        return CALL_E_INVALID_CALL;
-
     if (newVal.empty())
         return removeAttribute("class");
 

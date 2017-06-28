@@ -216,6 +216,12 @@ describe('xml', () => {
             assert.equal(e.nodeValue, null);
             e.nodeValue = 'aaaaa';
             assert.equal(e.nodeValue, null);
+
+            e.className = 'test_class';
+            assert.equal(e.className, 'test_class');
+
+            e.id = 'test_id';
+            assert.equal(e.id, 'test_id');
         });
 
         it("child rule", () => {
