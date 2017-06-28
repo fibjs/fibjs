@@ -407,7 +407,7 @@ describe('fs', () => {
 
         describe('fiber sync', () => readTest(fs.read));
 
-        describe('block sync', () => readTest(fs.readSync));
+        describe('alias Sync', () => readTest(fs.readSync));
 
         describe('async await', () => readTest(sync(callback2Async(fs.read))));
     });
