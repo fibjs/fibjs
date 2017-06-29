@@ -11,6 +11,12 @@
 #ifndef _fj_FILE_H
 #define _fj_FILE_H
 
+#define MAX_PATH_LENGTH 4096
+#define F_OK 0
+#define W_OK 4
+#define R_OK 2
+#define X_OK 1
+
 namespace fibjs {
 
 class File : public File_base {
