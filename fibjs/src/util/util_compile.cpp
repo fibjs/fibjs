@@ -12,6 +12,7 @@
 #include "SandBox.h"
 #include "utf8.h"
 #include "QuickArray.h"
+#include "version.h"
 
 namespace fibjs {
 
@@ -97,7 +98,7 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
         n = (int32_t)lines.size();
         pos = (int32_t)buf.length();
 
-        buf.resize(pos + (n + 2) * sizeof(int32_t));
+        buf.resize(pos + (n + 3) * sizeof(int32_t));
         int32_t* p = (int32_t*)&buf[pos];
         int32_t i;
 
@@ -108,6 +109,7 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
 
         p[0] = n;
         p[1] = len;
+        p[2] = jsc_version;
 
         obj_ptr<Buffer_base> unz = new Buffer(buf);
         return zlib_base::cc_gzip(unz, retVal);
