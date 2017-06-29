@@ -1136,6 +1136,12 @@
     <ClCompile Include="src\fs\fs.cpp">
       <Filter>Source Files\fs</Filter>
     </ClCompile>
+    <ClCompile Include="src\fs\fs_posix.cpp">
+      <Filter>Source Files\fs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fs\fs_win32.cpp">
+      <Filter>Source Files\fs</Filter>
+    </ClCompile>
     <ClCompile Include="src\fs\path_posix.cpp">
       <Filter>Source Files\fs</Filter>
     </ClCompile>
