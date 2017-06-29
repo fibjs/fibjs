@@ -9,5 +9,6 @@
 #define VERSION_H_
 
 static const char fibjs_version[] = "0.7.0-dev";
+static const int jsc_version = 0x0F1B0001;
 
 #endif
