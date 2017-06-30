@@ -162,7 +162,8 @@ public:
             }
         }
 
-        return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
+        retVal = m_loaders[0];
+        return 0;
     }
 
 public:

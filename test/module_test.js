@@ -18,6 +18,8 @@ describe("module", () => {
         assert.equal(require.resolve('node_mod1'),
             path.join(__dirname, './node_modules/node_mod1.js'));
 
+        assert.equal(require.resolve('./module/d1'),
+            path.join(__dirname, './module/d1'));
     });
 
     it("circular dependency", () => {
@@ -65,6 +67,12 @@ describe("module", () => {
     it("require .js module folder", () => {
         assert.deepEqual(require('./module/p4.js'), {
             "v": 100
+        });
+    });
+
+    it("require no-ext file", () => {
+        assert.deepEqual(require('./module/d1'), {
+            "d": 100
         });
     });
 
