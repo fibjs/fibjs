@@ -26,6 +26,10 @@ describe("v8 bug", () => {
         assert.equal(find(99), 0);
         assert.equal(find(99), 0);
     });
+
+    it('toLocaleDateString', () => {
+        new Date().toLocaleDateString();
+    });
 });
 
 repl && test.run(console.DEBUG);

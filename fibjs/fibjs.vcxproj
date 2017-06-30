@@ -85,12 +85,6 @@
     <ProjectReference Include="$(SolutionDir)vender\v8\v8.vcxproj">
       <Project>{1F77AB58-706B-4BB5-BE73-0000000000C8}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)vender\icu\icu.vcxproj">
-      <Project>{1F77AB58-706B-4BB5-BE73-0000031CCCCC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)vender\SpiderMonkey\SpiderMonkey.vcxproj">
-      <Project>{1F77AB58-706B-4BB5-BE73-00000000213b}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)vender\jssdk\jssdk.vcxproj">
       <Project>{1F77AB58-706B-4BB5-BE73-00110039117e}</Project>
     </ProjectReference>
