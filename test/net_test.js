@@ -249,13 +249,19 @@ describe("net", () => {
         });
 
         it("broadcast", () => {
-            setTimeout(() => {
-                var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-                c.sendto("bbb", "255.255.255.255", 8889);
-            }, 100);
-
             var s = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
             s.bind(8889);
+
+            setTimeout(() => {
+                var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
+
+                try {
+                    c.sendto("bbb", "255.255.255.255", 8889);
+                } catch (e) {
+                    s.close();
+                    throw e;
+                }
+            }, 100);
 
             assert.equal(s.recvfrom().data.toString(), "bbb");
             s.close();
