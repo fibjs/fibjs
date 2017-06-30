@@ -13,6 +13,7 @@
 #include "ifs/mq.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
+#include "version.h"
 #include "ifs/zlib.h"
 #include "ifs/console.h"
 
@@ -52,6 +53,8 @@ HttpHandler::HttpHandler()
           128)
     , m_maxUploadSize(67108864)
 {
+    m_serverName = "fibjs/";
+    m_serverName.append(fibjs_version);
     m_stats = new Stats();
     m_stats->init(s_staticCounter, 2, s_Counter, 7);
 }
@@ -113,6 +116,8 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             pThis->m_req->get_protocol(str);
             pThis->m_rep->set_protocol(str);
+
+            pThis->m_rep->addHeader("Server", pThis->m_pThis->m_serverName);
 
             bool bKeepAlive;
 
@@ -461,6 +466,18 @@ result_t HttpHandler::set_maxUploadSize(int32_t newVal)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxUploadSize = newVal;
+    return 0;
+}
+
+result_t HttpHandler::get_serverName(exlib::string& retVal)
+{
+    retVal = m_serverName;
+    return 0;
+}
+
+result_t HttpHandler::set_serverName(exlib::string newVal)
+{
+    m_serverName = newVal;
     return 0;
 }
 

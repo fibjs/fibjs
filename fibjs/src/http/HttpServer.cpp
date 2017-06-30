@@ -128,7 +128,16 @@ result_t HttpServer::get_maxUploadSize(int32_t& retVal)
 result_t HttpServer::set_maxUploadSize(int32_t newVal)
 {
     return handler()->set_maxUploadSize(newVal);
-    ;
+}
+
+result_t HttpServer::get_serverName(exlib::string& retVal)
+{
+    return handler()->get_serverName(retVal);
+}
+
+result_t HttpServer::set_serverName(exlib::string newVal)
+{
+    return handler()->set_serverName(newVal);
 }
 
 result_t HttpServer::get_httpStats(obj_ptr<Stats_base>& retVal)
