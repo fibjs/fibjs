@@ -444,6 +444,8 @@
     <ClCompile Include="src\fs\File.cpp" />
     <ClCompile Include="src\fs\Stat.cpp" />
     <ClCompile Include="src\fs\fs.cpp" />
+    <ClCompile Include="src\fs\fs_posix.cpp" />
+    <ClCompile Include="src\fs\fs_win32.cpp" />
     <ClCompile Include="src\fs\path_posix.cpp" />
     <ClCompile Include="src\fs\path_win32.cpp" />
     <ClCompile Include="src\global\Buffer.cpp" />
