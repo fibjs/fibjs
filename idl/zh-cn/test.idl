@@ -61,6 +61,7 @@ describe('test async', () => {
 });
 
 // callback function test
+// cannot use callback mode in jsc
 describe('test callback', () => {
   it('pass case', done => {
     setTimeout(() => {

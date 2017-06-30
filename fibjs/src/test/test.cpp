@@ -368,7 +368,7 @@ inline bool checkCallback(const char* src)
     exlib::string s;
 
     p.skipSpace();
-    p.getWord(s, '(', '=');
+    p.getWord(s, '(', '=', '.');
     if (!s.empty()) {
         if (s != "function")
             return true;

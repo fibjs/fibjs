@@ -1,6 +1,9 @@
 var test = require("test");
 test.setup();
 
+var vm = require("vm");
+var util = require("util");
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -229,6 +232,16 @@ describe("test", () => {
 
         it("(done) => check", () => {
             assert.equal(t, true);
+        });
+
+        describe("callback in jsc", () => {
+            var sbox = new vm.SandBox({});
+            var bin = util.compile("tc1.js", "before(() => {global.jsc_before = true});");
+            var b = sbox.addScript("t1.jsc", bin);
+
+            it('check jsc result', () => {
+                assert.isTrue(global.jsc_before);
+            });
         });
     });
 });
