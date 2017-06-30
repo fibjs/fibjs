@@ -363,6 +363,10 @@ module util
     static LruCache;
 
     /*! @brief 编译脚本为二进制代码
+     util.compile 可以将脚本编译为 v8 内部运行数据块(非机器执行代码)。编译以后的代码，保存为 *.jsc 后，可以由 run 和 require 直接加载执行。
+     
+     由于编译之后，目标代码将不能逆向获取源代码，依赖于 Function.toString 的程序将不能正常运行。
+
      @param srcname 指定要添加的脚本名称
      @param script 指定要编译的脚本代码
      @param mode 编译模式，0: module, 1: script, 2: worker，缺省为 0
