@@ -5,11 +5,12 @@
  *      Author: lion
  */
 
+#include "v8/src/flags.h"
+
 #include "version.h"
 #include "console.h"
 #include "path.h"
 #include "Fiber.h"
-#include "v8/src/flags.h"
 
 namespace fibjs {
 
