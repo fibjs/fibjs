@@ -83,6 +83,8 @@ bool options(int32_t* argc, char* argv[])
     v8::internal::FLAG_lazy = false;
     v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
 
+    v8::internal::FLAG_wasm_async_compilation = false;
+
     v8::V8::SetFlagsFromCommandLine(argc, argv, true);
 
     if (df)
