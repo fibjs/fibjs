@@ -4,12 +4,12 @@ test.setup();
 var coroutine = require('coroutine');
 
 describe("v8 bug", () => {
-    it("not hungup", () => {
+    it("not hangup", () => {
         for (var i = 0; i < 100; i++)
             coroutine.sleep(1);
     });
 
-    it('local varible error', () => {
+    it('local variable error', () => {
         function find(data) {
             var rs = {
                 billmoney: 0
