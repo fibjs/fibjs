@@ -9,15 +9,7 @@
 #include "console.h"
 #include "path.h"
 #include "Fiber.h"
-
-namespace v8 {
-namespace internal {
-    class FlagList {
-    public:
-        static void PrintHelp();
-    };
-}
-}
+#include "v8/src/flags.h"
 
 namespace fibjs {
 
@@ -55,9 +47,6 @@ static void printHelp()
 
 bool options(int32_t* argc, char* argv[])
 {
-    char s_opts[64];
-    char s_sharmony[] = "--harmony --use_strict --nolazy";
-
     int32_t df = 0;
 
     for (int32_t i = 0; i < *argc; i++) {
@@ -89,9 +78,11 @@ bool options(int32_t* argc, char* argv[])
         }
     }
 
-    v8::V8::SetFlagsFromString(s_sharmony, sizeof(s_sharmony) - 1);
-    v8::V8::SetFlagsFromString(s_opts,
-        sprintf(s_opts, "--stack_size=%d", stack_size - GUARD_SIZE));
+    v8::internal::FLAG_harmony = true;
+    v8::internal::FLAG_use_strict = true;
+    v8::internal::FLAG_lazy = false;
+    v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
+
     v8::V8::SetFlagsFromCommandLine(argc, argv, true);
 
     if (df)
