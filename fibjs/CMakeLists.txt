@@ -6,6 +6,12 @@ include(tools/subdirs.cmake)
 
 project(fibjs)
 
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
+
 file(GLOB_RECURSE src_list "src/*.c*")
 add_executable(fibjs ${src_list})
 
