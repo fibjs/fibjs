@@ -130,6 +130,54 @@ result_t fs_base::rmdir(exlib::string path, AsyncEvent* ac)
     return 0;
 }
 
+result_t fs_base::fchmod(int32_t fd, int32_t mode, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (::fchmod(fd, mode))
+        return CHECK_ERROR(LastError());
+
+    return 0;
+}
+
+result_t fs_base::fchown(int32_t fd, int32_t uid, int32_t gid, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (::fchown(fd, uid, gid))
+        return CHECK_ERROR(LastError());
+
+    return 0;
+}
+
+result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+#if defined(Darwin) || defined(FreeBSD)
+    if (::fcntl(fd, F_FULLFSYNC))
+        return CHECK_ERROR(LastError());
+#else
+    if (::fdatasync(fd))
+        return CHECK_ERROR(LastError());
+#endif
+    return 0;
+}
+
+result_t fs_base::fsync(int32_t fd, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (::fsync(fd))
+        return CHECK_ERROR(LastError());
+
+    return 0;
+}
+
 result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
     if (!ac)

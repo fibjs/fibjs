@@ -54,6 +54,10 @@ public:
     static result_t symlink(exlib::string target, exlib::string linkpath, AsyncEvent* ac);
     static result_t truncate(exlib::string path, int32_t len, AsyncEvent* ac);
     static result_t read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac);
+    static result_t fchmod(int32_t fd, int32_t mode, AsyncEvent* ac);
+    static result_t fchown(int32_t fd, int32_t uid, int32_t gid, AsyncEvent* ac);
+    static result_t fdatasync(int32_t fd, AsyncEvent* ac);
+    static result_t fsync(int32_t fd, AsyncEvent* ac);
     static result_t readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
     static result_t openFile(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t open(exlib::string fname, exlib::string flags, int32_t mode, int32_t& retVal, AsyncEvent* ac);
@@ -101,6 +105,10 @@ public:
     static void s_symlink(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_fchmod(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_fchown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_fdatasync(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_fsync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -133,6 +141,10 @@ public:
     ASYNC_STATIC2(fs_base, symlink, exlib::string, exlib::string);
     ASYNC_STATIC2(fs_base, truncate, exlib::string, int32_t);
     ASYNC_STATICVALUE6(fs_base, read, int32_t, Buffer_base*, int32_t, int32_t, int32_t, int32_t);
+    ASYNC_STATIC2(fs_base, fchmod, int32_t, int32_t);
+    ASYNC_STATIC3(fs_base, fchown, int32_t, int32_t, int32_t);
+    ASYNC_STATIC1(fs_base, fdatasync, int32_t);
+    ASYNC_STATIC1(fs_base, fsync, int32_t);
     ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<List_base>);
     ASYNC_STATICVALUE3(fs_base, openFile, exlib::string, exlib::string, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE4(fs_base, open, exlib::string, exlib::string, int32_t, int32_t);
@@ -194,6 +206,14 @@ inline ClassInfo& fs_base::class_info()
         { "truncateSync", s_truncate, true },
         { "read", s_read, true },
         { "readSync", s_read, true },
+        { "fchmod", s_fchmod, true },
+        { "fchmodSync", s_fchmod, true },
+        { "fchown", s_fchown, true },
+        { "fchownSync", s_fchown, true },
+        { "fdatasync", s_fdatasync, true },
+        { "fdatasyncSync", s_fdatasync, true },
+        { "fsync", s_fsync, true },
+        { "fsyncSync", s_fsync, true },
         { "readdir", s_readdir, true },
         { "readdirSync", s_readdir, true },
         { "openFile", s_openFile, true },
@@ -616,6 +636,77 @@ inline void fs_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = ac_read(v0, v1, v2, v3, v4, vr);
 
     METHOD_RETURN();
+}
+
+inline void fs_base::s_fchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 2);
+
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+
+    if (!cb.IsEmpty()) {
+        acb_fchmod(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_fchmod(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void fs_base::s_fchown(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(3, 3);
+
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+    ARG(int32_t, 2);
+
+    if (!cb.IsEmpty()) {
+        acb_fchown(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_fchown(v0, v1, v2);
+
+    METHOD_VOID();
+}
+
+inline void fs_base::s_fdatasync(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    if (!cb.IsEmpty()) {
+        acb_fdatasync(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_fdatasync(v0);
+
+    METHOD_VOID();
+}
+
+inline void fs_base::s_fsync(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    if (!cb.IsEmpty()) {
+        acb_fsync(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_fsync(v0);
+
+    METHOD_VOID();
 }
 
 inline void fs_base::s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args)

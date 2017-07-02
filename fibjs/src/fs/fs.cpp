@@ -197,7 +197,10 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return file_open(fname, flags, mode, retVal);
+    exlib::string safe_name;
+    path_base::normalize(fname, safe_name);
+
+    return file_open(safe_name, flags, mode, retVal);
 }
 
 result_t fs_base::close(int32_t fd, AsyncEvent* ac)
