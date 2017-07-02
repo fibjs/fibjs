@@ -102,8 +102,6 @@ public:
         if (other.empty())
             return;
 
-        const char* c_str = other.c_str();
-
         if (m_buf.length() > 0 && !isWin32PathSlash(m_buf.c_str()[m_buf.length() - 1]))
             m_buf.append(1, PATH_SLASH_WIN32);
 
@@ -114,8 +112,6 @@ public:
     {
         if (other.empty())
             return;
-
-        const char* c_str = other.c_str();
 
         if (m_buf.length() > 0 && !isPosixPathSlash(m_buf.c_str()[m_buf.length() - 1]))
             m_buf.append(1, PATH_SLASH_POSIX);
