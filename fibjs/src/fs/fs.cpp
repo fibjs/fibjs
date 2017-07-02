@@ -17,13 +17,6 @@
 
 #ifndef _WIN32
 #include <dirent.h>
-
-#if defined(Darwin) || defined(FreeBSD)
-#include <copyfile.h>
-#else
-#include <sys/sendfile.h>
-#endif
-
 #else
 #include <stdio.h>
 #endif

@@ -6,9 +6,9 @@
 
 #include <dirent.h>
 
-#if defined(Darwin) || defined(FreeBSD)
+#if defined(Darwin)
 #include <copyfile.h>
-#else
+#elif defined(Linux)
 #include <sys/sendfile.h>
 #endif
 
@@ -192,6 +192,10 @@ result_t fs_base::rename(exlib::string from, exlib::string to,
 
 result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
 {
+#if defined(FreeBSD)
+	return CHECK_ERROR(CALL_E_INVALID_CALL);
+#else
+
     int input, output;
     if ((input = ::open(from.c_str(), O_RDONLY)) == -1)
         return CHECK_ERROR(LastError());
@@ -201,7 +205,7 @@ result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
         return CHECK_ERROR(LastError());
     }
 
-#if defined(Darwin) || defined(FreeBSD)
+#if defined(Darwin)
     int result = fcopyfile(input, output, 0, COPYFILE_ALL);
 #else
     off_t bytesCopied = 0;
@@ -217,6 +221,7 @@ result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
         return CHECK_ERROR(LastError());
 
     return 0;
+#endif
 }
 
 result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal,
