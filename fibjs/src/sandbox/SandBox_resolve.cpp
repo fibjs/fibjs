@@ -131,7 +131,6 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
 result_t SandBox::resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Value>* retVal)
 {
-    Isolate* isolate = holder();
     v8::Local<v8::Object> _mods;
     exlib::string fname1;
     result_t hr;

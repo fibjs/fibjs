@@ -12,10 +12,22 @@
 #define _fj_FILE_H
 
 #define MAX_PATH_LENGTH 4096
+
+#ifndef F_OK
 #define F_OK 0
+#endif
+
+#ifndef W_OK
 #define W_OK 4
+#endif
+
+#ifndef R_OK
 #define R_OK 2
+#endif
+
+#ifndef X_OK
 #define X_OK 1
+#endif
 
 namespace fibjs {
 

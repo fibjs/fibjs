@@ -112,8 +112,10 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Promise> p = v8::Local<v8::Promise>::Cast(result);
     v8::Local<v8::Context> _context = p->CreationContext();
 
-    p->Then(_context, isolate->NewFunction("promise_then", promise_then, args[len - 1]));
-    p->Catch(_context, isolate->NewFunction("promise_catch", promise_catch, args[len - 1]));
+    p->Then(_context, isolate->NewFunction("promise_then", promise_then, args[len - 1]))
+        .ToLocalChecked();
+    p->Catch(_context, isolate->NewFunction("promise_catch", promise_catch, args[len - 1]))
+        .ToLocalChecked();
 }
 
 result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Local<v8::Function>& retVal)
