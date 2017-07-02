@@ -30,7 +30,8 @@ void init_aio();
 void init_fs();
 void init_fiber();
 bool options(int32_t* argc, char* argv[]);
-extern exlib::string s_root;
+
+exlib::string s_root;
 
 void init(int32_t& argc, char* argv[])
 {

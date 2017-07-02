@@ -15,14 +15,12 @@
 namespace fibjs {
 
 bool g_perf;
-bool g_root = false;
 
 #ifdef amd64
 int32_t stack_size = 512;
 #else
 int32_t stack_size = 256;
 #endif
-extern exlib::string s_root;
 
 #ifdef DEBUG
 #define GUARD_SIZE 32
@@ -37,8 +35,6 @@ static void printHelp()
            "Options:\n"
            "  --trace_fiber        allow user to query the non-current\n"
            "                       fiber's stack infomation\n"
-           "  --approot path       set application root directory\n"
-           "  --root               enable application root directory\n"
            "  -h, --help           print fibjs command line options\n"
            "  -v, --version        print fibjs version\n"
            "  --v8-options         print v8 command line options\n"
@@ -59,14 +55,6 @@ bool options(int32_t* argc, char* argv[])
         if (!qstrcmp(arg, "--trace_fiber")) {
             df++;
             Isolate::rt::g_trace = true;
-        } else if (!qstrcmp(arg, "--root")) {
-            df++;
-            g_root = true;
-        } else if (!qstrcmp(arg, "--approot") && i + 1 < *argc) {
-            i++;
-            df += 2;
-            s_root.clear();
-            path_base::fullpath(argv[i], s_root);
         } else if (!qstrcmp(arg, "--help") || !qstrcmp(arg, "-h")) {
             printHelp();
             return true;
