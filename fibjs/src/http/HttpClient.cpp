@@ -78,7 +78,7 @@ result_t HttpClient::set_userAgent(exlib::string newVal)
     return 0;
 }
 
-result_t HttpClient::update(obj_ptr<HttpCookie> cookie)
+result_t HttpClient::update(obj_ptr<HttpCookie_base> cookie)
 {
     int32_t length, i;
     exlib::string str, str1;
@@ -91,10 +91,11 @@ result_t HttpClient::update(obj_ptr<HttpCookie> cookie)
 
     for (i = 0; i < length; i++) {
         Variant v;
-        obj_ptr<HttpCookie> hc;
 
         m_cookies->_indexed_getter(i, v);
-        hc = (HttpCookie*)v.object();
+        obj_ptr<HttpCookie_base> hc = HttpCookie_base::getInstance(v.object());
+        if (!hc)
+            continue;
 
         hc->get_name(str);
         cookie->get_name(str1);
@@ -154,10 +155,11 @@ result_t HttpClient::update_cookies(exlib::string url, obj_ptr<List_base> cookie
 
     for (i = 0; i < length; i++) {
         Variant v;
-        obj_ptr<HttpCookie> hc;
 
         cookies->_indexed_getter(i, v);
-        hc = (HttpCookie*)v.object();
+        obj_ptr<HttpCookie_base> hc = HttpCookie_base::getInstance(v.object());
+        if (!hc)
+            continue;
 
         hc->match(url, match);
         if (!match)
@@ -196,11 +198,13 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
 
     for (i = 0; i < length; i++) {
         Variant v;
-        obj_ptr<HttpCookie> hc;
         date_t date;
 
         m_cookies->_indexed_getter(i, v);
-        hc = (HttpCookie*)v.object();
+        obj_ptr<HttpCookie_base> hc = HttpCookie_base::getInstance(v.object());
+        if (!hc)
+            continue;
+
         hc->get_expires(date);
         if (!date.empty() && date.diff(now) < 0)
             continue;
