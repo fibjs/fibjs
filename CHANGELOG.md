@@ -1,4 +1,4 @@
-## 2017-06-26, Version v0.7.0 @ngot
+## 2017-07-03, Version v0.7.0 @ngot
 
 * **feature** :
   * xml: 
