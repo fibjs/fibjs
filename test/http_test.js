@@ -1312,6 +1312,12 @@ describe("http", () => {
                 });
             });
 
+            it("check cookie validity", () => {
+                client.cookies.push(0);
+                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect").body.readAll().toString(),
+                    "/request");
+            });
+
             it("body", () => {
                 assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request:", "body").body.readAll().toString(),
                     "/request:body");
