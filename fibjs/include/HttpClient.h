@@ -63,7 +63,7 @@ public:
     }
 
 private:
-    result_t update(obj_ptr<HttpCookie> cookie);
+    result_t update(obj_ptr<HttpCookie_base> cookie);
 
 private:
     obj_ptr<List> m_cookies;
