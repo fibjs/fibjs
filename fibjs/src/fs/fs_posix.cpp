@@ -1,8 +1,8 @@
+#ifndef _WIN32
+
 #include "ifs/fs.h"
 #include "List.h"
 #include "File.h"
-
-#ifndef _WIN32
 
 #include <dirent.h>
 
@@ -10,6 +10,59 @@
 #include <copyfile.h>
 #elif defined(Linux)
 #include <sys/sendfile.h>
+#endif
+
+#ifdef FreeBSD
+#include <sys/mman.h>
+
+inline int _copyfile(int ifd, int ofd)
+{
+    size_t file_size, n;
+    int buf_mmapped;
+    struct stat sb;
+    char *b, *buf;
+    ssize_t nr, nw;
+
+    if (fstat(ifd, &sb) < 0)
+        return (-1);
+
+    if (sb.st_size == 0)
+        return (0);
+
+    buf = NULL;
+    buf_mmapped = 0;
+    file_size = (size_t)sb.st_size;
+
+    buf = (char*)mmap(NULL, file_size, PROT_READ, MAP_SHARED, ifd, (off_t)0);
+    if (buf != MAP_FAILED)
+        buf_mmapped = 1;
+    else
+        buf = NULL;
+
+    if (buf_mmapped == false) {
+        if ((buf = (char*)malloc(file_size)) == NULL)
+            return (-1);
+        b = buf;
+        for (n = file_size; n > 0; n -= (size_t)nr, b += nr) {
+            if ((nr = read(ifd, b, n)) < 0) {
+                free(buf);
+                return (-1);
+            }
+        }
+    }
+
+    for (n = file_size, b = buf; n > 0; n -= (size_t)nw, b += nw)
+        if ((nw = write(ofd, b, n)) <= 0)
+            break;
+
+    if (buf_mmapped && munmap(buf, file_size) < 0)
+        return (-1);
+
+    if (!buf_mmapped)
+        free(buf);
+
+    return (n > 0 ? -1 : 0);
+}
 #endif
 
 namespace fibjs {
@@ -192,10 +245,6 @@ result_t fs_base::rename(exlib::string from, exlib::string to,
 
 result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
 {
-#if defined(FreeBSD)
-	return CHECK_ERROR(CALL_E_INVALID_CALL);
-#else
-
     int input, output;
     if ((input = ::open(from.c_str(), O_RDONLY)) == -1)
         return CHECK_ERROR(LastError());
@@ -205,7 +254,9 @@ result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
         return CHECK_ERROR(LastError());
     }
 
-#if defined(Darwin)
+#if defined(FreeBSD)
+    int result = _copyfile(input, output);
+#elif defined(Darwin)
     int result = fcopyfile(input, output, 0, COPYFILE_ALL);
 #else
     off_t bytesCopied = 0;
@@ -221,7 +272,6 @@ result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
         return CHECK_ERROR(LastError());
 
     return 0;
-#endif
 }
 
 result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal,

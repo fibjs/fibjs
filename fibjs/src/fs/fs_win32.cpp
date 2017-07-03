@@ -1,8 +1,8 @@
+#ifdef _WIN32
+
 #include "ifs/fs.h"
 #include "List.h"
 #include "File.h"
-
-#ifdef _WIN32
 
 #include <stdio.h>
 
