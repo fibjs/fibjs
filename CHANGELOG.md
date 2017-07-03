@@ -1,3 +1,53 @@
+## 2017-06-26, Version v0.7.0 @ngot
+
+* **feature** :
+  * xml: 
+    - support el.getElementsByClassName.
+    - support el.getElementById.
+  * sandbox: 
+    - support switch to .js mode when filename does not have ext.
+    - support add version mark in .jsc file.
+  * http: output fibjs version in http header.
+  * core: all Sync alias to  all async apis.
+* **breakchange** :
+  * sandbox: remove --root and --approot option.
+* **bugfix** :
+  * v8: disable icu, fix toLocaleDateString error.
+* **deps** :
+  * v8: upgrade to v6.1.344
+
+* [[`67fee618cc`](https://github.com/fibjs/fibjs/commit/67fee618cc)] - **core, fixbug**: fix freebsd compile error. (xicilion)
+* [[`0e01161d4f`](https://github.com/fibjs/fibjs/commit/0e01161d4f)] - **core, chore**: fix compile warning. (xicilion)
+* [[`a8467666aa`](https://github.com/fibjs/fibjs/commit/a8467666aa)] - **path, refactor**: remove unused variable. (xicilion)
+* [[`1a013416fc`](https://github.com/fibjs/fibjs/commit/1a013416fc)] - **deps, refactor**: remove spidermonkey from vc project. (xicilion)
+* [[`5ec1a58a80`](https://github.com/fibjs/fibjs/commit/5ec1a58a80)] - **deps, refactor**: remove unused library. (xicilion)
+* [[`bb0584f4f3`](https://github.com/fibjs/fibjs/commit/bb0584f4f3)] - **sandbox, break**: deprecate --root and --approot option. (xicilion)
+* [[`5fabc2a337`](https://github.com/fibjs/fibjs/commit/5fabc2a337)] - **core, fixbug**: fix build error on windows. (xicilion)
+* [[`b8c388d61a`](https://github.com/fibjs/fibjs/commit/b8c388d61a)] - **cmake, feat**: enable ccache. (xicilion)
+* [[`9e8ff1d755`](https://github.com/fibjs/fibjs/commit/9e8ff1d755)] - **deps, upgrade**: upgrade to v6.1.344 (xicilion)
+* [[`a022bdf5e6`](https://github.com/fibjs/fibjs/commit/a022bdf5e6)] - **test, fixbug**: fix typo. (xicilion)
+* [[`2d360557d0`](https://github.com/fibjs/fibjs/commit/2d360557d0)] - **core, refactor**: use internal flag variable to change v8 options. (xicilion)
+* [[`93a9df5835`](https://github.com/fibjs/fibjs/commit/93a9df5835)] - **v8, fixbug**: disable icu, fix toLocaleDateString error. (xicilion)
+* [[`d843532424`](https://github.com/fibjs/fibjs/commit/d843532424)] - **http, refactor**: change output compression limit to 64M. (xicilion)
+* [[`272bd7752e`](https://github.com/fibjs/fibjs/commit/272bd7752e)] - **http, feat**: output fibjs version in http header. (xicilion)
+* [[`739d633be7`](https://github.com/fibjs/fibjs/commit/739d633be7)] - **test, feat**: throw the case when network is disconnected. (xicilion)
+* [[`91c342449c`](https://github.com/fibjs/fibjs/commit/91c342449c)] - **sandbox, feat**: switch to .js mode when filename does not have ext. (xicilion)
+* [[`aa16d9b35f`](https://github.com/fibjs/fibjs/commit/aa16d9b35f)] - **doc, feat**: docs about function source code is not available in .jsc mode. (xicilion)
+* [[`86b57a93f8`](https://github.com/fibjs/fibjs/commit/86b57a93f8)] - **fs, refactor**: split fs code (#284) (ngot)
+* [[`f8b63086cb`](https://github.com/fibjs/fibjs/commit/f8b63086cb)] - **test, fixbug**: fix hangup in .jsc mode. (xicilion)
+* [[`3a989b79b2`](https://github.com/fibjs/fibjs/commit/3a989b79b2)] - **SandBox, feat**: add version mark in .jsc file. (xicilion)
+* [[`e74bcaa994`](https://github.com/fibjs/fibjs/commit/e74bcaa994)] - **coroutine, refactor**: use DiscardThreadSpecificMetadata to free thread data in v8. (xicilion)
+* [[`cd20493916`](https://github.com/fibjs/fibjs/commit/cd20493916)] - **core, feat**: all Sync alias to  all async apis. (#282) (ngot)
+* [[`1b31d1b706`](https://github.com/fibjs/fibjs/commit/1b31d1b706)] - **xml, feat**: support el.getElementsByClassName. (xicilion)
+* [[`ca3862497b`](https://github.com/fibjs/fibjs/commit/ca3862497b)] - **xml, refactor**: use get_id to query el.id in el.getElementById. (xicilion)
+* [[`01d3156db4`](https://github.com/fibjs/fibjs/commit/01d3156db4)] - **xml, feat**: el.id & el.className test case. (xicilion)
+* [[`8089d2e4b0`](https://github.com/fibjs/fibjs/commit/8089d2e4b0)] - **xml, feat**: support el.getElementById. (xicilion)
+* [[`3076b629bb`](https://github.com/fibjs/fibjs/commit/3076b629bb)] - **docs, refactor**: format dot output. (xicilion)
+* [[`d7643ab285`](https://github.com/fibjs/fibjs/commit/d7643ab285)] - **docs, refactor**: change dot syntax. (xicilion)
+* [[`cbc5e4ea9d`](https://github.com/fibjs/fibjs/commit/cbc5e4ea9d)] - **sandbox, feat**: report line number in jsc. (xicilion)
+* [[`6a393e1dad`](https://github.com/fibjs/fibjs/commit/6a393e1dad)] - **util, refactor**: split source code. (xicilion)
+* [[`24843e4f2e`](https://github.com/fibjs/fibjs/commit/24843e4f2e)] - **idl, refactor**: move idl to idl dir & move en idl to this repo (#281) (ngot)
+
 ## 2017-06-26, Version v0.6.1 @ngot
 
 * **bugfix** :
