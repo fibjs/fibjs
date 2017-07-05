@@ -138,13 +138,13 @@ module fs
      */
     static Integer read(Integer fd, Buffer buffer, Integer offset = 0, Integer length = 0, Integer position = -1) async;
 
-    /*! @brief 根据文件描述符，改变文件模式
+    /*! @brief 根据文件描述符，改变文件模式。只在 POSIX 系统有效。
      @param fd 文件描述符
      @param mode 文件的模式
      */
     static fchmod(Integer fd, Integer mode) async;
 
-    /*! @brief 根据文件描述符，改变所有者
+    /*! @brief 根据文件描述符，改变所有者。只在 POSIX 系统有效。
      @param fd 文件描述符
      @param uid 用户id
      @param gid 组id
