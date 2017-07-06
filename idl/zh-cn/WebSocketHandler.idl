@@ -13,7 +13,7 @@ interface WebSocketHandler : HandlerEx
     /*! @brief WebSocket 包处理器构造函数
      @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
      */
-    WebSocketHandler(Handler hdlr);
+    deprecated WebSocketHandler(Handler hdlr);
 
     /*! @brief 查询和设置最大包尺寸，以 MB 为单位，缺省为 64 */
     Integer maxSize;

@@ -76,6 +76,8 @@ void WebSocketHandler_base::__new(const T& args)
 
     ARG(obj_ptr<Handler_base>, 0);
 
+    DEPRECATED_SOON("WebSocketHandler._new");
+
     hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
