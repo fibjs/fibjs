@@ -2,7 +2,7 @@ var fs = require("fs");
 var util = require("util");
 var path = require('path');
 
-module.exports = function(defs, baseFolder) {
+module.exports = function (defs, baseFolder) {
     function gen_code(cls, def) {
         var typeMap = {
             "Integer": "int32_t",
@@ -186,6 +186,9 @@ module.exports = function(defs, baseFolder) {
                         if (ftype)
                             args_call.push('vr');
 
+                        if (ov.deprecated)
+                            txts.push('    DEPRECATED_SOON("' + cls + '.' + fname + '");\n');
+
                         if (ov.async) {
                             args.push('cb');
                             txts.push('    if (!cb.IsEmpty()) {\n        ' + (fstatic ? 'acb_' : 'pInst->acb_') + get_name(fname) + '(' + args.join(', ') + ');');
@@ -261,6 +264,10 @@ module.exports = function(defs, baseFolder) {
                     if (!fstatic)
                         txts.push('    METHOD_INSTANCE(' + cls + '_base);');
                     txts.push('    PROPERTY_ENTER();\n');
+
+                    if (fn.deprecated)
+                        txts.push('    DEPRECATED_SOON("' + cls + '.' + fname + '");\n');
+
                     if (fstatic)
                         txts.push('    hr = get_' + fname + '(vr);\n');
                     else
@@ -272,6 +279,10 @@ module.exports = function(defs, baseFolder) {
                         if (!fstatic)
                             txts.push('    METHOD_INSTANCE(' + cls + '_base);');
                         txts.push('    PROPERTY_ENTER();\n    PROPERTY_VAL(' + get_rtype(fn.type) + ');\n');
+
+                        if (fn.deprecated)
+                            txts.push('    DEPRECATED_SOON("' + cls + '.' + fname + '");\n');
+
                         if (fstatic)
                             txts.push('    hr = set_' + fname + '(v0);\n');
                         else
@@ -282,12 +293,12 @@ module.exports = function(defs, baseFolder) {
                 }
             },
             "object": {
-                "declare": () => { },
-                "stub": () => { },
-                "stub_func": () => { }
+                "declare": () => {},
+                "stub": () => {},
+                "stub_func": () => {}
             },
             "const": {
-                "declare": () => { },
+                "declare": () => {},
                 "stub": fn => {
                     var fname = fn.name;
                     txts.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
@@ -295,6 +306,8 @@ module.exports = function(defs, baseFolder) {
                 "stub_func": fn => {
                     var fname = fn.name;
                     txts.push('inline void ' + cls + '_base::s_get_' + fname + '(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');
+                    if (fn.deprecated)
+                        txts.push('    DEPRECATED_SOON("' + cls + '.' + fname + '");\n');
                     txts.push('    int32_t vr = _' + fname + ';\n    PROPERTY_ENTER();\n    METHOD_RETURN();\n}\n');
                 }
             },
@@ -335,6 +348,8 @@ module.exports = function(defs, baseFolder) {
                         txts.push('inline void ' + cls + '_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ' + get_rtype(fn.type) + ' vr;\n');
                         txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');
                         txts.push('    v8::String::Utf8Value k(property);\n    if (class_info().has(*k))\n        return;\n');
+                        if (fn.deprecated)
+                            txts.push('    DEPRECATED_SOON("' + cls + fn.name + '");\n');
                         txts.push('    hr = pInst->_named_getter(*k, vr);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
                         txts.push('    METHOD_RETURN();\n}\n');
                         txts.push('inline void ' + cls + '_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args)\n{\n    v8::Local<v8::Array> vr;\n');
@@ -346,6 +361,8 @@ module.exports = function(defs, baseFolder) {
                             txts.push('inline void ' + cls + '_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');
                             txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');
                             txts.push('    PROPERTY_VAL(' + get_rtype(fn.type) + ');\n    v8::String::Utf8Value k(property);\n    if (class_info().has(*k))\n        return;\n');
+                            if (fn.deprecated)
+                                txts.push('    DEPRECATED_SOON("' + cls + fn.name + '");\n');
                             txts.push('    hr = pInst->_named_setter(*k, v0);\n');
                             txts.push('    METHOD_VOID();\n}\n');
                             txts.push('inline void ' + cls + '_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)\n{\n    v8::Local<v8::Boolean> vr;\n');
@@ -357,11 +374,15 @@ module.exports = function(defs, baseFolder) {
                         txts.push('inline void ' + cls + '_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');
                         txts.push('    ' + get_rtype(fn.type) + ' vr;\n');
                         txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');
+                        if (fn.deprecated)
+                            txts.push('    DEPRECATED_SOON("' + cls + fn.name + '");\n');
                         txts.push('    hr = pInst->_indexed_getter(index, vr);\n\n    METHOD_RETURN();\n}\n');
 
                         if (!fn.readonly) {
                             txts.push('inline void ' + cls + '_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');
                             txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');
+                            if (fn.deprecated)
+                                txts.push('    DEPRECATED_SOON("' + cls + fn.name + '");\n');
                             txts.push('    PROPERTY_VAL(' + get_rtype(fn.type) + ');\n    hr = pInst->_indexed_setter(index, v0);\n');
                             txts.push('    METHOD_VOID();\n}\n');
                         }

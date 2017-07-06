@@ -52,10 +52,11 @@ interfaceBody
   }
 
 constMember
-  = comments:_* constMode:constToken _* name:Identifier? def:defValue? _* ";" {
+  = comments:_* deprecated:deprecatedToken? _* constMode:constToken _* name:Identifier? def:defValue? _* ";" {
     return {
       memType: "const",
       comments: comments.join(""),
+      deprecated: deprecated,
       const: constMode,
       name: name,
       default: def
@@ -63,10 +64,11 @@ constMember
   }
 
 prop
-  = comments:_* staticMode:staticToken? _* readonly:readonlyToken? _* type:Identifier _* name:Identifier _* ";" {
+  = comments:_* deprecated:deprecatedToken? _* staticMode:staticToken? _* readonly:readonlyToken? _* type:Identifier _* name:Identifier _* ";" {
     return {
       memType: "prop",
       comments: comments.join(""),
+      deprecated: deprecated,
       static: staticMode,
       readonly: readonly,
       name: name,
@@ -75,10 +77,11 @@ prop
   }
 
 operator
-  = comments:_* readonly:readonlyToken? _* type:Identifier _* name:Identifier _* "[" _* index:StringToken? _* "]" _* ";" {
+  = comments:_* deprecated:deprecatedToken? _* readonly:readonlyToken? _* type:Identifier _* name:Identifier _* "[" _* index:StringToken? _* "]" _* ";" {
     return {
       memType: "operator",
       comments: comments.join(""),
+      deprecated: deprecated,
       readonly: readonly,
       name: index ? "[String]" : "[]",
       type: type,
@@ -87,30 +90,33 @@ operator
   }
 
 object
-  = comments:_* _* staticMode:staticToken _* type:Identifier _* newToken _* name:Identifier "(" _* ")" _*  ";" {
+  = comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken _* type:Identifier _* newToken _* name:Identifier "(" _* ")" _*  ";" {
     return {
       memType: "object",
       comments: comments.join(""),
+      deprecated: deprecated,
       name: name,
       type: type
     };
   }
 
 object1
-  = comments:_* _* staticMode:staticToken _* type:Identifier _*  ";" {
+  = comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken _* type:Identifier _*  ";" {
     return {
       memType: "object",
       comments: comments.join(""),
+      deprecated: deprecated,
       name: type,
       type: type
     };
   }
 
 method
-  = comments:_* _* staticMode:staticToken? _* type:Identifier? _* name:Identifier? _* "(" params:params? _* ")" _* async:asyncToken? ";" {
+  = comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:Identifier? _* name:Identifier? _* "(" params:params? _* ")" _* async:asyncToken? ";" {
     return {
       memType: "method",
       comments: comments.join(""),
+      deprecated: deprecated,
       static: staticMode,
       async: async,
       name: name ? name : type,
@@ -285,6 +291,7 @@ StringToken     = "String"
 JSObjectToken   = "Object"
 JSValueToken    = "Value"
 staticToken     = "static"
+deprecatedToken = "deprecated"
 readonlyToken   = "readonly"
 asyncToken      = "async"
 constToken      = "const"
