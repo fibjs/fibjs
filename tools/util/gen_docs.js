@@ -3,6 +3,7 @@ var util = require("util");
 var path = require('path');
 var ejs = require('ejs');
 var beautify = require('js-beautify');
+var cloneDeep = require('clone-deep');
 
 global.cwrap = 0;
 
@@ -65,17 +66,22 @@ module.exports = function (defs, docsFolder) {
 
     function cross_link() {
         var def;
+        var keyworks = {};
 
         function link_line(t) {
-            t = t.replace(/\w+/g, function (k) {
-                var def1 = defs[k];
-                if (def1 && def1.declare && def1 != def) {
-                    var k1 = '[' + k + '](';
+            t = t.replace(/(\w+)(\.(\w+))?/g, function (k, k1, k2, k3) {
+                var def1 = defs[k1];
+                if (keyworks[k] && def1 && def1.declare && (def1 != def || k3)) {
+                    var nk = '[' + k + '](';
                     if (def1.declare.type != def.declare.type)
-                        k1 += (def1.declare.type === 'module' ? '../../module/ifs/' : '../../object/ifs/');
+                        nk += (def1.declare.type === 'module' ? '../../module/ifs/' : '../../object/ifs/');
 
-                    k1 += k + '.md)';
-                    return k1;
+                    nk += k1 + '.md';
+                    if (k3)
+                        nk += '#' + k3.toLowerCase();
+
+                    nk += ')';
+                    return nk;
                 }
 
                 return k;
@@ -104,12 +110,18 @@ module.exports = function (defs, docsFolder) {
         }
 
         for (var n in defs) {
+            keyworks[n] = true;
+            defs[n].members.forEach(m => {
+                keyworks[n + '.' + m.name] = true;
+            });
+        }
+
+        for (var n in defs) {
             def = defs[n];
             link_doc(def.declare.doc);
             def.members.forEach(m => {
                 link_doc(m.doc);
             });
-
         }
     }
 
@@ -283,7 +295,7 @@ module.exports = function (defs, docsFolder) {
                         if (m.memType != 'operator' &&
                             m.name !== ext.declare.name &&
                             !m.inherit) {
-                            var m1 = util.clone(m);
+                            var m1 = cloneDeep(m);
                             m1.inherit = true;
                             def.members.push(m1);
                         }
@@ -343,11 +355,11 @@ module.exports = function (defs, docsFolder) {
     gen_summary();
     gen_readme();
 
-    cross_link();
-
     gen_svg();
 
     inherit_method();
+
+    cross_link();
 
     gen_idl();
 }

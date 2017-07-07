@@ -2,6 +2,7 @@
   "name": "tools",
   "version": "1.0.0",
   "dependencies": {
+    "clone-deep": "^0.3.0",
     "ejs": "^2.5.6",
     "js-beautify": "^1.6.14",
     "pegjs": "^0.10.0"
