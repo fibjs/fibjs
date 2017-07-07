@@ -78,7 +78,7 @@ module.exports = function (defs, docsFolder) {
 
                     nk += k1 + '.md';
                     if (k3)
-                        nk += '#' + k3.toLowerCase();
+                        nk += '#' + k3.replace(/\s+/g, '-');
 
                     nk += ')';
                     return nk;
