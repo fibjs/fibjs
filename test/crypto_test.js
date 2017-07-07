@@ -110,6 +110,15 @@ var req1 = "-----BEGIN CERTIFICATE REQUEST-----\n" +
     "G3f1zTP01fknEN1WH762dXrisQONk6qmbga6ytMo7KbJ0Xgl\n" +
     "-----END CERTIFICATE REQUEST-----\n";
 
+var rsa_pub_key = "-----BEGIN RSA PUBLIC KEY-----\n" +
+    "MIIBCgKCAQEAniqcAxl7LclB0kE6q9AcAd8EE+0W6AsriR9Fs9T+6QVXl8uiCiAb\n" +
+    "h/KCyy8X8C2bHsFpNBvwGTqMwHbqZqWBVUvYRtfCFcy3Xmertb09DnOBeWqKS418\n" +
+    "1kss97JDO6G07QNbuLSWwkkO82CHD1kUmeF5/dof0Ra6bsRXqppdo86NzlgFud+E\n" +
+    "2s5BM3XwewZVSpA69bwEiXaRDhrsg5mqeOm68VyxE8LQu+895kKsBnTvTueZTrXT\n" +
+    "+HNaIveoYe8+Lb7b/mZYtlhrDK0i/8EDox85vxnzKZ7wNswqqcDg6vfC2911phST\n" +
+    "Ph13jv2FIOkjO/WHhHEzRnS2VQqivqIbsQIDAQAB\n" +
+    "-----END RSA PUBLIC KEY-----";
+
 var data = new Buffer([0x9b, 0x4c, 0x7b, 0xce, 0x7a, 0xbd, 0x0a, 0x13,
     0x61, 0xfb, 0x17, 0xc2, 0x06, 0x12, 0x0c, 0xed
 ]);
@@ -236,6 +245,12 @@ describe('crypto', () => {
                 assert.isFalse(pk1.isPrivate());
 
                 assert.equal(pk1.exportPem(), pub_rsa1024_pem);
+            });
+
+            it("import rsa format publicKey", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(rsa_pub_key);
+                assert.isFalse(pk.isPrivate());
             });
 
             it("publicKey", () => {
