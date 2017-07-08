@@ -1,3 +1,31 @@
+
+## 2017-07-08, Version v0.8.0
+
+* **feature** :
+  * crypto: support RSA PUBLIC KEY format pem file.
+  * ssl: update root certs.
+  * installer: use sudo&runas to install as administrator.
+  * fs: implement fs.copy on freebsd.
+
+* **breakchange** :
+  * ws: deprecated WebSocketHandler soon.
+
+* **bugfix** :
+  * http: check http cookies validity (#285)
+
+* **deps** :
+  * v8: upgrade v8 to v6.1.394
+
+### Commits
+
+* [[`1e9a40bcdb`](https://github.com/fibjs/fibjs/commit/1e9a40bcdb)] - **v8, feat**: upgrade to v6.1.394.. (xicilion)
+* [[`f61b52f3ab`](https://github.com/fibjs/fibjs/commit/f61b52f3ab)] - **crypto, feat**: : support RSA PUBLIC KEY format pem file. (xicilion)
+* [[`1927fbec79`](https://github.com/fibjs/fibjs/commit/1927fbec79)] - **ssl, feat**: update root certs. (xicilion)
+* [[`12e655871d`](https://github.com/fibjs/fibjs/commit/12e655871d)] - **ws, break**: deprecated WebSocketHandler soon. (xicilion)
+* [[`aaf66d5e07`](https://github.com/fibjs/fibjs/commit/aaf66d5e07)] - **installer, feat**: use sudo&runas to install as administrator. (xicilion)
+* [[`08c6d0b205`](https://github.com/fibjs/fibjs/commit/08c6d0b205)] - **fs, feat**: implement fs.copy on freebsd. (xicilion)
+* [[`8c1e42b8bf`](https://github.com/fibjs/fibjs/commit/8c1e42b8bf)] - **http, bugfix**: check http cookies validity (asionius)
+
 ## 2017-07-03, Version v0.7.0 @ngot
 
 * **feature** :
