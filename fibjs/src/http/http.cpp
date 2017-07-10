@@ -67,14 +67,14 @@ result_t http_base::set_autoRedirect(bool newVal)
     return get_httpClient()->set_autoRedirect(newVal);
 }
 
-result_t http_base::get_maxDownloadSize(int32_t& retVal)
+result_t http_base::get_maxBodySize(int32_t& retVal)
 {
-    return get_httpClient()->get_maxDownloadSize(retVal);
+    return get_httpClient()->get_maxBodySize(retVal);
 }
 
-result_t http_base::set_maxDownloadSize(int32_t newVal)
+result_t http_base::set_maxBodySize(int32_t newVal)
 {
-    return get_httpClient()->set_maxDownloadSize(newVal);
+    return get_httpClient()->set_maxBodySize(newVal);
 }
 
 result_t http_base::get_userAgent(exlib::string& retVal)

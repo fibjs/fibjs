@@ -359,7 +359,7 @@ describe("http", () => {
             return r;
         }
 
-        function get_response(txt) {
+        function get_response(txt, opts) {
             var ms = new io.MemoryStream();
             var bs = new io.BufferedStream(ms);
             bs.EOL = "\r\n";
@@ -368,6 +368,11 @@ describe("http", () => {
             ms.seek(0, fs.SEEK_SET);
 
             var req = new http.Response();
+
+            opts = opts || {};
+            for (var k in opts)
+                req[k] = opts[k];
+
             req.readFrom(bs);
             return req;
         }
@@ -571,6 +576,7 @@ describe("http", () => {
             assert.equal(c['b'].contentTransferEncoding, 'base64');
             assert.equal(c['b'].body.read().toString(), '200');
         });
+
         it("chunk", () => {
             function chunk(data) {
                 return data.length.toString(16) + '\r\n' + data + '\r\n';
@@ -587,6 +593,112 @@ describe("http", () => {
             assert.equal(datas.join(''), rep.body.read());
         });
 
+
+        describe('maxBodySize', () => {
+            var data_1024 = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
+                '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
+                '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
+                '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
+                '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
+                '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
+                '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef' +
+                '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+
+            function get_data(sz) {
+                var data = 'HTTP/1.1 200\r\nConnection: close\r\nContent-Length: ' + sz + '\r\n\r\n';
+
+                assert.equal(data_1024.length, 1024);
+
+                while (sz >= 1024) {
+                    data += data_1024;
+                    sz -= 1024;
+                }
+
+                if (sz > 0)
+                    data += data_1024.substr(1, sz);
+
+                return data;
+            }
+
+            function get_chunk_data(sz) {
+                function chunk(data) {
+                    return data.length.toString(16) + '\r\n' + data + '\r\n';
+                }
+
+                var data = 'HTTP/1.1 200\r\nConnection: close\r\nTransfer-encoding: chunked\r\n\r\n';
+
+                assert.equal(data_1024.length, 1024);
+
+                while (sz >= 1024) {
+                    data += chunk(data_1024);
+                    sz -= 1024;
+                }
+
+                if (sz > 0)
+                    data += chunk(data_1024.substr(1, sz));
+
+                data += chunk("");
+                return data;
+            }
+
+            it('modify', () => {
+                var req = new http.Request();
+                assert.equal(req.maxBodySize, 64);
+                req.maxBodySize = -1;
+                assert.equal(req.maxBodySize, -1);
+
+                var req = new http.Response();
+                assert.equal(req.maxBodySize, 64);
+                req.maxBodySize = -1;
+                assert.equal(req.maxBodySize, -1);
+            })
+
+            it('max size', () => {
+                var rep = get_response(get_data(1024 * 1024), {
+                    maxBodySize: 1
+                });
+                assert.equal(rep.length, 1024 * 1024);
+            })
+
+            it('more then max size', () => {
+                assert.throws(() => {
+                    get_response(get_data(1024 * 1024 + 1), {
+                        maxBodySize: 1
+                    });
+                });
+            });
+
+            it("no limit", () => {
+                var rep = get_response(get_data(1024 * 1024 + 1), {
+                    maxBodySize: -1
+                });
+                assert.equal(rep.length, 1024 * 1024 + 1);
+            });
+
+            describe('chunk', () => {
+                it('max size', () => {
+                    var rep = get_response(get_chunk_data(1024 * 1024), {
+                        maxBodySize: 1
+                    });
+                    assert.equal(rep.length, 1024 * 1024);
+                })
+
+                it('more then max size', () => {
+                    assert.throws(() => {
+                        get_response(get_chunk_data(1024 * 1024 + 1), {
+                            maxBodySize: 1
+                        });
+                    });
+                });
+
+                it("no limit", () => {
+                    var rep = get_response(get_chunk_data(1024 * 1024 + 1), {
+                        maxBodySize: -1
+                    });
+                    assert.equal(rep.length, 1024 * 1024 + 1);
+                });
+            });
+        });
     });
 
     describe("encode", () => {

@@ -51,8 +51,8 @@ public:
     virtual result_t set_forceGZIP(bool newVal);
     virtual result_t get_maxHeadersCount(int32_t& retVal);
     virtual result_t set_maxHeadersCount(int32_t newVal);
-    virtual result_t get_maxUploadSize(int32_t& retVal);
-    virtual result_t set_maxUploadSize(int32_t newVal);
+    virtual result_t get_maxBodySize(int32_t& retVal);
+    virtual result_t set_maxBodySize(int32_t newVal);
     virtual result_t get_serverName(exlib::string& retVal);
     virtual result_t set_serverName(exlib::string newVal);
 
@@ -66,7 +66,7 @@ private:
     bool m_crossDomain;
     bool m_forceGZIP;
     int32_t m_maxHeadersCount;
-    int32_t m_maxUploadSize;
+    int32_t m_maxBodySize;
     exlib::string m_serverName;
 };
 

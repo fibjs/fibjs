@@ -94,14 +94,14 @@ result_t HttpRequest::set_maxHeadersCount(int32_t newVal)
     return m_message->set_maxHeadersCount(newVal);
 }
 
-result_t HttpRequest::get_maxUploadSize(int32_t& retVal)
+result_t HttpRequest::get_maxBodySize(int32_t& retVal)
 {
-    return m_message->get_maxUploadSize(retVal);
+    return m_message->get_maxBodySize(retVal);
 }
 
-result_t HttpRequest::set_maxUploadSize(int32_t newVal)
+result_t HttpRequest::set_maxBodySize(int32_t newVal)
 {
-    return m_message->get_maxUploadSize(newVal);
+    return m_message->set_maxBodySize(newVal);
 }
 
 result_t HttpRequest::get_socket(obj_ptr<Stream_base>& retVal)

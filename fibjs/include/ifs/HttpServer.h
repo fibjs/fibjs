@@ -35,8 +35,8 @@ public:
     virtual result_t set_forceGZIP(bool newVal) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
-    virtual result_t get_maxUploadSize(int32_t& retVal) = 0;
-    virtual result_t set_maxUploadSize(int32_t newVal) = 0;
+    virtual result_t get_maxBodySize(int32_t& retVal) = 0;
+    virtual result_t set_maxBodySize(int32_t newVal) = 0;
     virtual result_t get_serverName(exlib::string& retVal) = 0;
     virtual result_t set_serverName(exlib::string newVal) = 0;
     virtual result_t get_httpStats(obj_ptr<Stats_base>& retVal) = 0;
@@ -54,8 +54,8 @@ public:
     static void s_set_forceGZIP(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_maxUploadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_maxBodySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_maxBodySize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_serverName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_serverName(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_httpStats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -76,7 +76,7 @@ inline ClassInfo& HttpServer_base::class_info()
         { "crossDomain", s_get_crossDomain, s_set_crossDomain, false },
         { "forceGZIP", s_get_forceGZIP, s_set_forceGZIP, false },
         { "maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false },
-        { "maxUploadSize", s_get_maxUploadSize, s_set_maxUploadSize, false },
+        { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
         { "serverName", s_get_serverName, s_set_serverName, false },
         { "httpStats", s_get_httpStats, block_set, false }
     };
@@ -205,25 +205,25 @@ inline void HttpServer_base::s_set_maxHeadersCount(v8::Local<v8::String> propert
     PROPERTY_SET_LEAVE();
 }
 
-inline void HttpServer_base::s_get_maxUploadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpServer_base::s_get_maxBodySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(HttpServer_base);
     PROPERTY_ENTER();
 
-    hr = pInst->get_maxUploadSize(vr);
+    hr = pInst->get_maxBodySize(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpServer_base::s_set_maxUploadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpServer_base::s_set_maxBodySize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(HttpServer_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
-    hr = pInst->set_maxUploadSize(v0);
+    hr = pInst->set_maxBodySize(v0);
 
     PROPERTY_SET_LEAVE();
 }

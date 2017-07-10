@@ -55,8 +55,8 @@ interface HttpServer : TcpServer
     /*! @brief 查询和设置最大请求头个数，缺省为 128 */
     Integer maxHeadersCount;
 
-    /*! @brief 查询和设置最大上传尺寸，以 MB 为单位，缺省为 64 */
-    Integer maxUploadSize;
+    /*! @brief 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 64 */
+    Integer maxBodySize;
 
     /*! @brief 查询和设置服务器名称，缺省为：fibjs/0.x.0 */
     String serverName;

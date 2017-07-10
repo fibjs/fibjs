@@ -51,7 +51,7 @@ HttpHandler::HttpHandler()
     , m_forceGZIP(false)
     , m_maxHeadersCount(
           128)
-    , m_maxUploadSize(67108864)
+    , m_maxBodySize(64)
 {
     m_serverName = "fibjs/";
     m_serverName.append(fibjs_version);
@@ -79,7 +79,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_rep = (HttpResponse_base*)(Message_base*)m;
 
             m_req->set_maxHeadersCount(pThis->m_maxHeadersCount);
-            m_req->set_maxUploadSize(pThis->m_maxUploadSize);
+            m_req->set_maxBodySize(pThis->m_maxBodySize);
 
             set(read);
         }
@@ -454,18 +454,15 @@ result_t HttpHandler::set_maxHeadersCount(int32_t newVal)
     return 0;
 }
 
-result_t HttpHandler::get_maxUploadSize(int32_t& retVal)
+result_t HttpHandler::get_maxBodySize(int32_t& retVal)
 {
-    retVal = m_maxUploadSize;
+    retVal = m_maxBodySize;
     return 0;
 }
 
-result_t HttpHandler::set_maxUploadSize(int32_t newVal)
+result_t HttpHandler::set_maxBodySize(int32_t newVal)
 {
-    if (newVal < 0)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
-
-    m_maxUploadSize = newVal;
+    m_maxBodySize = newVal;
     return 0;
 }
 

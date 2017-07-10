@@ -168,14 +168,14 @@ result_t HttpsServer::set_maxHeadersCount(int32_t newVal)
     return handler()->set_maxHeadersCount(newVal);
 }
 
-result_t HttpsServer::get_maxUploadSize(int32_t& retVal)
+result_t HttpsServer::get_maxBodySize(int32_t& retVal)
 {
-    return handler()->get_maxUploadSize(retVal);
+    return handler()->get_maxBodySize(retVal);
 }
 
-result_t HttpsServer::set_maxUploadSize(int32_t newVal)
+result_t HttpsServer::set_maxBodySize(int32_t newVal)
 {
-    return handler()->set_maxUploadSize(newVal);
+    return handler()->set_maxBodySize(newVal);
 }
 
 result_t HttpsServer::get_serverName(exlib::string& retVal)

@@ -21,8 +21,8 @@ interface HttpClient : object
     /*! @brief 查询和设置超时时间 单位毫秒*/
     Integer timeout;
 
-    /*! @brief 查询和设置 http 下载数据最大尺寸，缺省 -1，不限制尺寸 */
-    Integer maxDownloadSize;
+    /*! @brief 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 -1，不限制尺寸 */
+    Integer maxBodySize;
 
     /*! @brief cookie功能开关，默认开启 */
     Boolean enableCookie;

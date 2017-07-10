@@ -151,8 +151,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
             , m_pThis(pThis)
             , m_stm(stm)
             , m_contentLength(0)
-            , m_bChunked(
-                  false)
+            , m_bChunked(false)
             , m_headCount(0)
         {
             set(begin);
@@ -173,11 +172,11 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
 
             if (pThis->m_strLine.length() > 0) {
                 if (!qstricmp(pThis->m_strLine.c_str(), "content-length:", 15)) {
-                    pThis->m_contentLength = atoi(
-                        pThis->m_strLine.c_str() + 15);
+                    pThis->m_contentLength = atoi(pThis->m_strLine.c_str() + 15);
 
                     if ((pThis->m_contentLength < 0)
-                        || (pThis->m_pThis->m_maxUploadSize >= 0 && pThis->m_contentLength > pThis->m_pThis->m_maxUploadSize))
+                        || (pThis->m_pThis->m_maxBodySize >= 0
+                               && pThis->m_contentLength > pThis->m_pThis->m_maxBodySize * 1024 * 1024))
                         return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
                 } else if (!qstricmp(pThis->m_strLine.c_str(),
                                "transfer-encoding:", 18)) {
@@ -261,6 +260,9 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
             }
 
             if (sz) {
+                if (pThis->m_pThis->m_maxBodySize >= 0
+                    && sz + pThis->m_contentLength > pThis->m_pThis->m_maxBodySize * 1024 * 1024)
+                    return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
                 pThis->set(chunk_body_end);
                 return pThis->m_stm->copyTo(pThis->m_body, sz,
                     pThis->m_copySize, pThis);
@@ -275,6 +277,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
         {
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
+            pThis->m_contentLength += pThis->m_copySize;
             pThis->set(chunk_head);
             return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine,
                 pThis);
@@ -485,18 +488,15 @@ result_t HttpMessage::set_maxHeadersCount(int32_t newVal)
     return 0;
 }
 
-result_t HttpMessage::get_maxUploadSize(int32_t& retVal)
+result_t HttpMessage::get_maxBodySize(int32_t& retVal)
 {
-    retVal = m_maxUploadSize;
+    retVal = m_maxBodySize;
     return 0;
 }
 
-result_t HttpMessage::set_maxUploadSize(int32_t newVal)
+result_t HttpMessage::set_maxBodySize(int32_t newVal)
 {
-    if (newVal < 0)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
-
-    m_maxUploadSize = newVal;
+    m_maxBodySize = newVal;
     return 0;
 }
 
