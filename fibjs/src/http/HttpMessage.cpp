@@ -177,8 +177,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                         pThis->m_strLine.c_str() + 15);
 
                     if ((pThis->m_contentLength < 0)
-                        || (pThis->m_contentLength
-                               > pThis->m_pThis->m_maxUploadSize))
+                        || (pThis->m_pThis->m_maxUploadSize >= 0 && pThis->m_contentLength > pThis->m_pThis->m_maxUploadSize))
                         return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
                 } else if (!qstricmp(pThis->m_strLine.c_str(),
                                "transfer-encoding:", 18)) {

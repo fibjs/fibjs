@@ -21,6 +21,7 @@ public:
         : m_timeout(0)
         , m_enableCookie(true)
         , m_autoRedirect(true)
+        , m_maxDownloadSize(-1)
     {
         m_cookies = new List();
         m_userAgent = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36";
@@ -35,6 +36,8 @@ public:
     virtual result_t set_enableCookie(bool newVal);
     virtual result_t get_autoRedirect(bool& retVal);
     virtual result_t set_autoRedirect(bool newVal);
+    virtual result_t get_maxDownloadSize(int32_t& retVal);
+    virtual result_t set_maxDownloadSize(int32_t newVal);
     virtual result_t get_userAgent(exlib::string& retVal);
     virtual result_t set_userAgent(exlib::string newVal);
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -70,6 +73,7 @@ private:
     int32_t m_timeout;
     bool m_enableCookie;
     bool m_autoRedirect;
+    int32_t m_maxDownloadSize;
     exlib::string m_userAgent;
 };
 } /* namespace fibjs */

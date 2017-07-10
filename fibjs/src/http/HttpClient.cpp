@@ -66,6 +66,18 @@ result_t HttpClient::set_autoRedirect(bool newVal)
     return 0;
 }
 
+result_t HttpClient::get_maxDownloadSize(int32_t& retVal)
+{
+    retVal = m_maxDownloadSize;
+    return 0;
+}
+
+result_t HttpClient::set_maxDownloadSize(int32_t newVal)
+{
+    m_maxDownloadSize = newVal;
+    return 0;
+}
+
 result_t HttpClient::get_userAgent(exlib::string& retVal)
 {
     retVal = m_userAgent;
@@ -237,10 +249,12 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     class asyncRequest : public AsyncState {
     public:
         asyncRequest(Stream_base* conn, HttpRequest_base* req,
+            int32_t maxDownloadSize,
             obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
             : AsyncState(ac)
             , m_conn(conn)
             , m_req(req)
+            , m_maxDownloadSize(maxDownloadSize)
             , m_retVal(retVal)
         {
             set(send);
@@ -259,6 +273,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
             asyncRequest* pThis = (asyncRequest*)pState;
 
             pThis->m_retVal = new HttpResponse();
+            pThis->m_retVal->set_maxUploadSize(pThis->m_maxDownloadSize);
             pThis->m_bs = new BufferedStream(pThis->m_conn);
             pThis->m_bs->set_EOL("\r\n");
 
@@ -310,6 +325,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     private:
         Stream_base* m_conn;
         HttpRequest_base* m_req;
+        int32_t m_maxDownloadSize;
         obj_ptr<HttpResponse_base>& m_retVal;
         obj_ptr<BufferedStream> m_bs;
         obj_ptr<MemoryStream> m_unzip;
@@ -319,7 +335,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRequest(conn, req, retVal, ac))->post(0);
+    return (new asyncRequest(conn, req, m_maxDownloadSize, retVal, ac))->post(0);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,

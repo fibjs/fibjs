@@ -33,6 +33,8 @@ public:
     virtual result_t get_cookies(obj_ptr<List_base>& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
+    virtual result_t get_maxDownloadSize(int32_t& retVal) = 0;
+    virtual result_t set_maxDownloadSize(int32_t newVal) = 0;
     virtual result_t get_enableCookie(bool& retVal) = 0;
     virtual result_t set_enableCookie(bool newVal) = 0;
     virtual result_t get_autoRedirect(bool& retVal) = 0;
@@ -65,6 +67,8 @@ public:
     static void s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_maxDownloadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_maxDownloadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_enableCookie(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_enableCookie(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_autoRedirect(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -108,6 +112,7 @@ inline ClassInfo& HttpClient_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "cookies", s_get_cookies, block_set, false },
         { "timeout", s_get_timeout, s_set_timeout, false },
+        { "maxDownloadSize", s_get_maxDownloadSize, s_set_maxDownloadSize, false },
         { "enableCookie", s_get_enableCookie, s_set_enableCookie, false },
         { "autoRedirect", s_get_autoRedirect, s_set_autoRedirect, false },
         { "userAgent", s_get_userAgent, s_set_userAgent, false }
@@ -174,6 +179,29 @@ inline void HttpClient_base::s_set_timeout(v8::Local<v8::String> property, v8::L
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_timeout(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void HttpClient_base::s_get_maxDownloadSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_maxDownloadSize(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_maxDownloadSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(HttpClient_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
+
+    hr = pInst->set_maxDownloadSize(v0);
 
     PROPERTY_SET_LEAVE();
 }
