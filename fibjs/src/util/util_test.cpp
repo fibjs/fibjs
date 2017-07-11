@@ -163,6 +163,12 @@ result_t util_base::isPromise(v8::Local<v8::Value> v, bool& retVal)
     return 0;
 }
 
+result_t util_base::isAsyncFunction(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsAsyncFunction();
+    return 0;
+}
+
 result_t util_base::isSet(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsSet();

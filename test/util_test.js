@@ -227,6 +227,19 @@ describe('util', () => {
         assert.ok(util.isPromise(p3));
     });
 
+    it('isAsyncFunction', () => {
+        assert.isTrue(util.isAsyncFunction(async () => {}));
+        assert.isTrue(util.isAsyncFunction(async function() {}));
+        assert.isTrue(util.isAsyncFunction(async function demo() {}));
+
+        assert.isFalse(util.isAsyncFunction(() => {}));
+        assert.isFalse(util.isAsyncFunction(function() {}));
+        assert.isFalse(util.isAsyncFunction(function demo() {}));
+
+        assert.isFalse(util.isAsyncFunction(function*() {}));
+        assert.isFalse(util.isAsyncFunction(function* demo() {}));
+    });
+
     it('isSet', () => {
         assert.ok(util.isSet(new Set()));
         assert.notOk(util.isSet(Set));

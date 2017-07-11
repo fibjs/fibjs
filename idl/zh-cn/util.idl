@@ -157,6 +157,13 @@ module util
      */
     static Boolean isPromise(Value v);
 
+    /*! @brief 检测给定的变量是否是 AsyncFunction 类型
+
+     @param v 给定需要检测的变量
+     @return 如果是 AsyncFunction 类型则返回 True
+     */
+    static Boolean isAsyncFunction(Value v);
+
     /*! @brief 检测给定的变量是否是 Set 类型
 
      @param v 给定需要检测的变量
