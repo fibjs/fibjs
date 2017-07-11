@@ -216,6 +216,9 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_dir->get_length(length);
 
             if (pThis->m_dirPos == 0) {
+                obj_ptr<List_base> _dir = pThis->m_dir;
+                _dir->sort(pThis->m_dir);
+
                 pThis->m_file = new MemoryStream();
                 pThis->m_file->cc_write(new Buffer("<html>\n<head><title>Index of "
                     + pThis->m_value + "</title></head>\n<body bgcolor=white>\n<h1>Index of "
