@@ -89,6 +89,11 @@ describe('encoding', () => {
         assert.equal(base64.encode(dot), '//4uAA==');
     });
 
+    it("base64url", () => {
+        assert.equal(base64.encode(base64.decode('//4+AA=='), true), '__4-AA==');
+        assert.deepEqual(base64.decode('//4+AA=='), base64.decode('__4-AA=='));
+    });
+
     it('base64vlq', () => {
         var tests = {
             'AAAA': [0, 0, 0, 0],

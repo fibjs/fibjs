@@ -821,7 +821,7 @@ result_t Buffer::hex(exlib::string& retVal)
 result_t Buffer::base64(exlib::string& retVal)
 {
     obj_ptr<Buffer_base> data = this;
-    return base64_base::encode(data, retVal);
+    return base64_base::encode(data, false, retVal);
 }
 
 result_t Buffer::equals(object_base* expected, bool& retVal)
@@ -846,7 +846,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exli
     exlib::string str;
     int32_t str_length;
 
-   hr = commonEncode(codec, m_data, str);
+    hr = commonEncode(codec, m_data, str);
 
     if (hr < 0)
         return hr;

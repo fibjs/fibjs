@@ -199,7 +199,7 @@ result_t Smtp::login(exlib::string username, exlib::string password,
             obj_ptr<Buffer> buf = new Buffer(str);
             exlib::string s;
 
-            base64_base::encode(buf, s);
+            base64_base::encode(buf, false, s);
             s.append("\r\n", 2);
 
             buf = new Buffer(s);

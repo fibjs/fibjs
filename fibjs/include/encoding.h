@@ -105,12 +105,15 @@ inline void baseDecode(const char* pdecodeTable, int32_t dwBits,
     retVal = new Buffer(strBuf);
 }
 
-inline result_t base64Encode(exlib::string data,
-    exlib::string& retVal)
+inline result_t base64Encode(exlib::string data, bool url, exlib::string& retVal)
 {
-    baseEncode(
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-        6, data, retVal);
+    if (url)
+        baseEncode("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
+            6, data, retVal);
+    else
+        baseEncode("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+            6, data, retVal);
+
     return 0;
 }
 
@@ -151,7 +154,7 @@ inline result_t commonEncode(exlib::string codec, exlib::string data, exlib::str
         if ((codec == "hex"))
             hr = hexEncode(data, retVal);
         else if ((codec == "base64"))
-            hr = base64Encode(data, retVal);
+            hr = base64Encode(data, false, retVal);
         else if ((codec == "ascii")) {
             int32_t len, i;
 
