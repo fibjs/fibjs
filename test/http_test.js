@@ -11,6 +11,7 @@ var encoding = require('encoding');
 var zlib = require('zlib');
 var zip = require('zip');
 var coroutine = require("coroutine");
+var path = require("path");
 
 var ssl = require("ssl");
 var crypto = require("crypto");
@@ -997,8 +998,10 @@ describe("http", () => {
     });
 
     describe("file handler", () => {
-        var hfHandler = new http.fileHandler('./');
+        var baseFolder = __dirname;
+        var hfHandler = new http.fileHandler(baseFolder);
         var url = base_port + 'test.html';
+        var filePath = path.join(baseFolder, url);
         var rep;
 
         function hfh_test(url, headers) {
@@ -1012,10 +1015,10 @@ describe("http", () => {
 
         function clean() {
             try {
-                fs.unlink(url);
+                fs.unlink(filePath);
             } catch (e) {};
             try {
-                fs.unlink(base_port + 'test.html.gz');
+                fs.unlink(filePath + '.gz');
             } catch (e) {};
         }
 
@@ -1029,14 +1032,14 @@ describe("http", () => {
         });
 
         it("normal", () => {
-            fs.writeFile(url, 'test html file');
+            fs.writeFile(filePath, 'test html file');
 
             rep = hfh_test(url);
             assert.equal(200, rep.status);
             assert.equal(14, rep.length);
 
             var a = new Date(rep.firstHeader('Last-Modified'));
-            var b = fs.stat(url).mtime;
+            var b = fs.stat(filePath).mtime;
 
             a = JSON.stringify(a).split('.')[0];
             b = JSON.stringify(b).split('.')[0];
@@ -1063,9 +1066,15 @@ describe("http", () => {
             rep.clear();
         });
 
+        it("index.html", () => {
+            var rep = hfh_test("/");
+            assert.equal(200, rep.status);
+            assert.equal("this is index.html", rep.readAll().toString());
+        });
+
         it("pre-gzip", () => {
             var sgz = 'gz test file';
-            var gz = fs.openFile(base_port + 'test.html.gz', 'w');
+            var gz = fs.openFile(filePath + '.gz', 'w');
             gz.write(zlib.gzip(new Buffer(sgz)));
             gz.close();
 
@@ -1082,7 +1091,7 @@ describe("http", () => {
         });
 
         it("don't gzip small file", () => {
-            fs.unlink(base_port + 'test.html.gz');
+            fs.unlink(filePath + '.gz');
 
             var rep = hfh_test(url, {
                 'Accept-Encoding': 'deflate,gzip'
@@ -1096,14 +1105,14 @@ describe("http", () => {
             var zurl = base_port + 'test.html.zip$/test.html';
 
             before(() => {
-                var zipfile = zip.open(base_port + 'test.html.zip', "w");
-                zipfile.write(url, 'test.html');
+                var zipfile = zip.open(filePath + '.zip', "w");
+                zipfile.write(filePath, 'test.html');
                 zipfile.close();
             });
 
             after(() => {
                 try {
-                    fs.unlink(base_port + 'test.html.zip');
+                    fs.unlink(filePath + '.zip');
                 } catch (e) {};
             });
 
