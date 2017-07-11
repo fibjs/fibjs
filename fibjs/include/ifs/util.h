@@ -47,6 +47,7 @@ public:
     static result_t isMap(v8::Local<v8::Value> v, bool& retVal);
     static result_t isMapIterator(v8::Local<v8::Value> v, bool& retVal);
     static result_t isPromise(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isAsyncFunction(v8::Local<v8::Value> v, bool& retVal);
     static result_t isSet(v8::Local<v8::Value> v, bool& retVal);
     static result_t isSetIterator(v8::Local<v8::Value> v, bool& retVal);
     static result_t isTypedArray(v8::Local<v8::Value> v, bool& retVal);
@@ -110,6 +111,7 @@ public:
     static void s_isMap(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isMapIterator(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isPromise(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isAsyncFunction(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isSet(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isSetIterator(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isTypedArray(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -169,6 +171,7 @@ inline ClassInfo& util_base::class_info()
         { "isMap", s_isMap, true },
         { "isMapIterator", s_isMapIterator, true },
         { "isPromise", s_isPromise, true },
+        { "isAsyncFunction", s_isAsyncFunction, true },
         { "isSet", s_isSet, true },
         { "isSetIterator", s_isSetIterator, true },
         { "isTypedArray", s_isTypedArray, true },
@@ -527,6 +530,21 @@ inline void util_base::s_isPromise(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(v8::Local<v8::Value>, 0);
 
     hr = isPromise(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isAsyncFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isAsyncFunction(v0, vr);
 
     METHOD_RETURN();
 }
