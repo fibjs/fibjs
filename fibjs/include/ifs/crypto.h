@@ -65,7 +65,6 @@ public:
     static result_t pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t pbkdf2Sync(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -110,7 +109,6 @@ public:
     static void s_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pbkdf1(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_pbkdf2Sync(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
@@ -148,8 +146,7 @@ inline ClassInfo& crypto_base::class_info()
         { "pbkdf1", s_pbkdf1, true },
         { "pbkdf1Sync", s_pbkdf1, true },
         { "pbkdf2", s_pbkdf2, true },
-        { "pbkdf2Sync", s_pbkdf2, true },
-        { "pbkdf2Sync", s_pbkdf2Sync, true }
+        { "pbkdf2Sync", s_pbkdf2, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -546,25 +543,6 @@ inline void crypto_base::s_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_pbkdf2(v0, v1, v2, v3, v4, vr);
-
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_pbkdf2Sync(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Buffer_base> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(5, 5);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-    ARG(int32_t, 2);
-    ARG(int32_t, 3);
-    ARG(exlib::string, 4);
-
-    hr = pbkdf2Sync(v0, v1, v2, v3, v4, vr);
 
     METHOD_RETURN();
 }
