@@ -1069,7 +1069,31 @@ describe("http", () => {
         it("index.html", () => {
             var rep = hfh_test("/");
             assert.equal(200, rep.status);
+            assert.equal('text/html', rep.firstHeader('Content-Type'));
             assert.equal("this is index.html", rep.readAll().toString());
+        });
+
+        it("autoindex", () => {
+            var rep = hfh_test("http_autoindex/");
+            assert.equal(404, rep.status);
+
+            hfHandler = new http.fileHandler(baseFolder, {}, true);
+
+            var re = /<a href=\"t.*\">/g;
+            var rep = hfh_test("http_autoindex/");
+            assert.equal(200, rep.status);
+            assert.equal('text/html', rep.firstHeader('Content-Type'));
+            var data = rep.readAll().toString();
+            assert.deepEqual(re[Symbol.match](data), [
+                "<a href=\"t.txt\">",
+                "<a href=\"test.txt\">",
+                "<a href=\"test_dir/\">"
+            ]);
+        });
+
+        it("dir 404", () => {
+            var rep = hfh_test("not_exists/");
+            assert.equal(404, rep.status);
         });
 
         it("pre-gzip", () => {

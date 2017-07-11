@@ -17,8 +17,9 @@ class HttpFileHandler : public Handler_base {
     FIBER_FREE();
 
 public:
-    HttpFileHandler(exlib::string root)
+    HttpFileHandler(exlib::string root, bool autoIndex)
         : m_root(root)
+        , m_autoIndex(autoIndex)
     {
         if (!m_root.empty() && !isPathSlash(m_root.c_str()[m_root.length() - 1]))
             m_root += PATH_SLASH;
@@ -33,6 +34,7 @@ public:
 
 private:
     exlib::string m_root;
+    bool m_autoIndex;
     std::map<exlib::string, exlib::string> m_mimes;
 };
 

@@ -46,7 +46,7 @@ public:
     virtual result_t set_maxBodySize(int32_t newVal) = 0;
     static result_t get_userAgent(exlib::string& retVal);
     static result_t set_userAgent(exlib::string newVal);
-    static result_t fileHandler(exlib::string root, v8::Local<v8::Object> mimes, obj_ptr<Handler_base>& retVal);
+    static result_t fileHandler(exlib::string root, v8::Local<v8::Object> mimes, bool autoIndex, obj_ptr<Handler_base>& retVal);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
     static result_t request(exlib::string method, exlib::string url, SeekableStream_base* body, Map_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -282,12 +282,13 @@ inline void http_base::s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(3, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(bool, 2, false);
 
-    hr = fileHandler(v0, v1, vr);
+    hr = fileHandler(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }

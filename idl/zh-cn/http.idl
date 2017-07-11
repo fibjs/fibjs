@@ -47,9 +47,10 @@ module http
      从而避免重复压缩带来服务器负载。
      @param root 文件根路径
      @param mimes 扩展 mime 设置
+     @param autoIndex 是否支持浏览目录文件，缺省为 false，不支持
      @return 返回一个静态文件处理器用于处理 http 消息
      */
-    static Handler fileHandler(String root, Object mimes = {});
+    static Handler fileHandler(String root, Object mimes = {}, Boolean autoIndex = false);
 
     /*! @brief 发送 http 请求到指定的流对象，并返回结果
      @param conn 指定处理请求的流对象

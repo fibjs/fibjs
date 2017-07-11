@@ -13,6 +13,8 @@
 #include "HttpFileHandler.h"
 #include "HttpRequest.h"
 #include "Url.h"
+#include "Buffer.h"
+#include "MemoryStream.h"
 
 namespace fibjs {
 
@@ -101,9 +103,9 @@ static const char* s_mimeTypes[][2] = {
 };
 
 result_t http_base::fileHandler(exlib::string root, v8::Local<v8::Object> mimes,
-    obj_ptr<Handler_base>& retVal)
+    bool autoIndex, obj_ptr<Handler_base>& retVal)
 {
-    obj_ptr<HttpFileHandler> hdlr = new HttpFileHandler(root);
+    obj_ptr<HttpFileHandler> hdlr = new HttpFileHandler(root, autoIndex);
     result_t hr = hdlr->set_mimes(mimes);
     if (hr < 0)
         return hr;
@@ -143,12 +145,15 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 {
     class asyncInvoke : public AsyncState {
     public:
-        asyncInvoke(HttpFileHandler* pThis, HttpRequest_base* req,
+        asyncInvoke(HttpFileHandler* pThis, HttpRequest_base* req, bool autoIndex,
             AsyncEvent* ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_req(req)
-            , m_gzip(false)
+            , m_autoIndex(autoIndex)
+            , m_pre_gz(false)
+            , m_index(false)
+            , m_dirPos(0)
         {
             obj_ptr<Message_base> m;
             req->get_response(m);
@@ -160,19 +165,12 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 exlib::string str = hdr.string();
 
                 if (qstristr(str.c_str(), "gzip"))
-                    m_gzip = true;
+                    m_pre_gz = true;
             }
 
-            exlib::string value;
-
-            m_req->get_value(value);
-
-            Url::decodeURI(value, value);
-
-            if (value.length() > 0 && isPathSlash(value[value.length() - 1]))
-                value.append("index.html", 10);
-
-            path_base::normalize(m_pThis->m_root + value, m_url);
+            m_req->get_value(m_value);
+            Url::decodeURI(m_value, m_value);
+            path_base::normalize(m_pThis->m_root + m_value, m_url);
 
             set(start);
         }
@@ -187,12 +185,93 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
 
             pThis->m_path = pThis->m_url;
-            if (pThis->m_gzip)
+
+            if (isPathSlash(pThis->m_path[pThis->m_path.length() - 1])) {
+                pThis->m_path.append("index.html", 10);
+                pThis->m_index = true;
+            }
+
+            if (pThis->m_pre_gz)
                 pThis->m_path.append(".gz", 3);
 
             pThis->set(open);
-            return fs_base::openFile(pThis->m_path, "r", pThis->m_file,
-                pThis);
+            return fs_base::openFile(pThis->m_path, "r", pThis->m_file, pThis);
+        }
+
+        static int32_t autoindex(AsyncState* pState, int32_t n)
+        {
+            asyncInvoke* pThis = (asyncInvoke*)pState;
+
+            pThis->m_path = pThis->m_url;
+            pThis->set(list_stat);
+            return fs_base::readdir(pThis->m_path, pThis->m_dir, pThis);
+        }
+
+        static int32_t list_stat(AsyncState* pState, int32_t n)
+        {
+            asyncInvoke* pThis = (asyncInvoke*)pState;
+            int32_t length;
+            static char padding[] = "                                                              ";
+
+            pThis->m_dir->get_length(length);
+
+            if (pThis->m_dirPos == 0) {
+                pThis->m_file = new MemoryStream();
+                pThis->m_file->cc_write(new Buffer("<html>\n<head><title>Index of "
+                    + pThis->m_value + "</title></head>\n<body bgcolor=white>\n<h1>Index of "
+                    + pThis->m_value + "</h1><hr><pre>"));
+
+                if (pThis->m_value.length() > 1)
+                    pThis->m_file->cc_write(new Buffer("<a href=\"../\">../</a>\n"));
+            } else {
+                exlib::string name, ds, ss;
+                date_t d;
+                int64_t sz;
+                bool is_dir = false;
+                int32_t padding_len;
+
+                pThis->m_stat->get_name(name);
+                pThis->m_stat->isDirectory(is_dir);
+                if (is_dir)
+                    name += '/';
+                pThis->m_file->cc_write(new Buffer("<a href=\"" + name + "\">" + name + "</a>"));
+                padding_len = 40 - name.length();
+                if (padding_len < 1)
+                    padding_len = 1;
+                pThis->m_file->cc_write(new Buffer(padding, padding_len));
+
+                pThis->m_stat->get_mtime(d);
+                d.sqlString(ds);
+                pThis->m_file->cc_write(new Buffer(ds));
+
+                pThis->m_stat->get_size(sz);
+                ss = niceSize(sz);
+                padding_len = 12 - ss.length();
+                if (padding_len < 1)
+                    padding_len = 1;
+                pThis->m_file->cc_write(new Buffer(padding, padding_len));
+                pThis->m_file->cc_write(new Buffer(ss + '\n'));
+            }
+
+            if (pThis->m_dirPos >= length) {
+                pThis->m_file->cc_write(new Buffer("</pre><hr></body>\n</html>"));
+                pThis->m_file->rewind();
+
+                pThis->m_rep->set_body(pThis->m_file);
+                pThis->m_rep->addHeader("Content-Type", "text/html");
+
+                return pThis->done(CALL_RETURN_NULL);
+            }
+
+            Variant v;
+
+            pThis->m_dir->_indexed_getter(pThis->m_dirPos, v);
+            pThis->m_dirPos++;
+
+            pThis->m_path = pThis->m_url;
+            pThis->m_path += v.string();
+
+            return fs_base::stat(pThis->m_path, pThis->m_stat, pThis);
         }
 
         static int32_t open(AsyncState* pState, int32_t n)
@@ -200,25 +279,29 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             asyncInvoke* pThis = (asyncInvoke*)pState;
             exlib::string ext;
 
-            path_base::extname(pThis->m_url, ext);
+            if (pThis->m_index)
+                pThis->m_rep->addHeader("Content-Type", "text/html");
+            else {
+                path_base::extname(pThis->m_url, ext);
 
-            if (ext.length() > 0) {
-                const char* pKey = ext.c_str() + 1;
-                std::map<exlib::string, exlib::string>& _mimes = pThis->m_pThis->m_mimes;
+                if (ext.length() > 0) {
+                    const char* pKey = ext.c_str() + 1;
+                    std::map<exlib::string, exlib::string>& _mimes = pThis->m_pThis->m_mimes;
 
-                std::map<exlib::string, exlib::string>::iterator it = _mimes.find(pKey);
+                    std::map<exlib::string, exlib::string>::iterator it = _mimes.find(pKey);
 
-                if (it != _mimes.end())
-                    pThis->m_rep->addHeader("Content-Type", it->second);
-                else {
-                    const char** pMimeType = (const char**)bsearch(&pKey,
-                        &s_mimeTypes, sizeof(s_mimeTypes) / sizeof(s_defType),
-                        sizeof(s_defType), mt_cmp);
+                    if (it != _mimes.end())
+                        pThis->m_rep->addHeader("Content-Type", it->second);
+                    else {
+                        const char** pMimeType = (const char**)bsearch(&pKey,
+                            &s_mimeTypes, sizeof(s_mimeTypes) / sizeof(s_defType),
+                            sizeof(s_defType), mt_cmp);
 
-                    if (!pMimeType)
-                        pMimeType = s_defType;
+                        if (!pMimeType)
+                            pMimeType = s_defType;
 
-                    pThis->m_rep->addHeader("Content-Type", pMimeType[1]);
+                        pThis->m_rep->addHeader("Content-Type", pMimeType[1]);
+                    }
                 }
             }
 
@@ -235,8 +318,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_stat->get_mtime(d);
 
             Variant v;
-            if (pThis->m_req->firstHeader("If-Modified-Since",
-                    v)
+            if (pThis->m_req->firstHeader("If-Modified-Since", v)
                 != CALL_RETURN_NULL) {
                 date_t d1;
                 double diff;
@@ -256,7 +338,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_rep->addHeader("Last-Modified", str);
             pThis->m_rep->set_body(pThis->m_file);
 
-            if (pThis->m_gzip)
+            if (pThis->m_pre_gz)
                 pThis->m_rep->addHeader("Content-Encoding", "gzip");
 
             return pThis->done(CALL_RETURN_NULL);
@@ -264,11 +346,22 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
         virtual int32_t error(int32_t v)
         {
-            if (m_gzip) {
-                m_gzip = false;
+            if (is(open)) {
+                if (m_pre_gz) {
+                    m_pre_gz = false;
 
-                set(start);
-                return 0;
+                    set(start);
+                    return 0;
+                }
+
+                if (m_index) {
+                    m_index = false;
+
+                    if (m_autoIndex) {
+                        set(autoindex);
+                        return 0;
+                    }
+                }
             }
 
             m_rep->set_status(404);
@@ -281,9 +374,14 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<HttpResponse_base> m_rep;
         obj_ptr<SeekableStream_base> m_file;
         obj_ptr<Stat_base> m_stat;
+        exlib::string m_value;
         exlib::string m_url;
         exlib::string m_path;
-        bool m_gzip;
+        bool m_autoIndex;
+        bool m_pre_gz;
+        bool m_index;
+        obj_ptr<List_base> m_dir;
+        int32_t m_dirPos;
     };
 
     if (!ac)
@@ -294,7 +392,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     if (req == NULL)
         return CHECK_ERROR(CALL_E_BADVARTYPE);
 
-    return (new asyncInvoke(this, req, ac))->post(0);
+    return (new asyncInvoke(this, req, m_autoIndex, ac))->post(0);
 }
 
 } /* namespace fibjs */
