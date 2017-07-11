@@ -83,7 +83,7 @@ interface XmlDocument : XmlNode
     /*! @brief 返回带有指定 class 名称的所有元素的一个节点列表
 
      该方法将返回一个 XmlNodeList 对象（可以作为只读数组处理），该对象存放文档中具有指定 class 名的所有 XmlElement 节点，它们存放的顺序就是在源文档中出现的顺序。 XmlNodeList 对象是“活”的，即如果在文档中添加或删除了指定标签名的元素，它的内容会自动进行必要的更新。
-     @param tagName 需检索的 class 名称
+     @param className 需检索的 class 名称
      @return 文档树中具有指定 class 名的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
     */
     XmlNodeList getElementsByClassName(String className);
