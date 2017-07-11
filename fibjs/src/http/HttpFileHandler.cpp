@@ -238,7 +238,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 if (is_dir)
                     name += '/';
                 pThis->m_file->cc_write(new Buffer("<a href=\"" + name + "\">" + name + "</a>"));
-                padding_len = 40 - name.length();
+                padding_len = 40 - (int32_t)name.length();
                 if (padding_len < 1)
                     padding_len = 1;
                 pThis->m_file->cc_write(new Buffer(padding, padding_len));
@@ -248,8 +248,8 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 pThis->m_file->cc_write(new Buffer(ds));
 
                 pThis->m_stat->get_size(sz);
-                ss = niceSize(sz);
-                padding_len = 12 - ss.length();
+                ss = niceSize((intptr_t)sz);
+                padding_len = 12 - (int32_t)ss.length();
                 if (padding_len < 1)
                     padding_len = 1;
                 pThis->m_file->cc_write(new Buffer(padding, padding_len));
