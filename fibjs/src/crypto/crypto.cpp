@@ -410,10 +410,4 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
 
     return pbkdf2(password, salt, iterations, size, mbedtls_md_get_type(mi), retVal, ac);
 }
-
-result_t crypto_base::pbkdf2Sync(Buffer_base* password, Buffer_base* salt, int32_t iterations,
-    int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal)
-{
-    return ac_pbkdf2(password, salt, iterations, size, algoName, retVal);
-}
 }
