@@ -10,6 +10,7 @@
 #include "ifs/db.h"
 #include "DBResult.h"
 #include "Buffer.h"
+#include "trans.h"
 
 namespace fibjs {
 
@@ -117,6 +118,11 @@ result_t SQLite::rollback(AsyncEvent* ac)
 
     obj_ptr<DBResult_base> retVal;
     return execute("ROLLBACK", 8, retVal);
+}
+
+result_t SQLite::trans(v8::Local<v8::Function> func)
+{
+    return _trans(this, func);
 }
 
 int32_t sqlite3_step_sleep(sqlite3_stmt* stmt, int32_t ms)

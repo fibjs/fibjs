@@ -28,6 +28,7 @@ public:
     virtual result_t begin(AsyncEvent* ac) = 0;
     virtual result_t commit(AsyncEvent* ac) = 0;
     virtual result_t rollback(AsyncEvent* ac) = 0;
+    virtual result_t trans(v8::Local<v8::Function> func) = 0;
     virtual result_t execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t execute(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<DBResult_base>& retVal) = 0;
     virtual result_t format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal) = 0;
@@ -49,6 +50,7 @@ public:
     static void s_begin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_commit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_trans(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_execute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -75,6 +77,7 @@ inline ClassInfo& DbConnection_base::class_info()
         { "commitSync", s_commit, false },
         { "rollback", s_rollback, false },
         { "rollbackSync", s_rollback, false },
+        { "trans", s_trans, false },
         { "execute", s_execute, false },
         { "executeSync", s_execute, false },
         { "format", s_format, false }
@@ -166,6 +169,20 @@ inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Val
         hr = CALL_RETURN_NULL;
     } else
         hr = pInst->ac_rollback();
+
+    METHOD_VOID();
+}
+
+inline void DbConnection_base::s_trans(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(DbConnection_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->trans(v0);
 
     METHOD_VOID();
 }

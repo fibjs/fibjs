@@ -118,7 +118,7 @@ describe("db", () => {
             }
         });
 
-        describe("trans", () => {
+        describe("transaction", () => {
             before(() => {
                 try {
                     var b = new Buffer();
@@ -142,6 +142,40 @@ describe("db", () => {
 
                 var rs = conn.execute("select * from test where t1=101");
                 assert.equal(rs[0].t2, "test101.1");
+            });
+
+            describe("trans()", () => {
+                it("auto commit", () => {
+                    conn.trans(function () {
+                        assert.equal(this, conn);
+                        this.execute("update test set t2='test101.2' where t1=101");
+                    });
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.2");
+                });
+
+                it("auto rollback", () => {
+                    conn.trans(function () {
+                        this.execute("update test set t2='test101.3' where t1=101");
+                        return false;
+                    });
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.2");
+                });
+
+                it("rollback when throw", () => {
+                    assert.throws(() => {
+                        conn.trans(function () {
+                            this.execute("update test set t2='test101.3' where t1=101");
+                            throw 100;
+                        });
+                    });
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.2");
+                });
             });
         });
 

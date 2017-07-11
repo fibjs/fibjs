@@ -359,6 +359,7 @@
     <ClInclude Include="include\utf8.h" />
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\version.h" />
+    <ClInclude Include="src\db\sql\trans.h" />
     <ClInclude Include="src\gui\windows\WebView.h" />
     <ClInclude Include="src\sandbox\loaders\loaders.h" />
   </ItemGroup>

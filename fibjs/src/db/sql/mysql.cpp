@@ -12,7 +12,7 @@
 #include "ifs/db.h"
 #include "DBResult.h"
 #include "Url.h"
-#include "Fiber.h"
+#include "trans.h"
 
 namespace fibjs {
 
@@ -285,6 +285,11 @@ result_t mysql::rollback(AsyncEvent* ac)
 
     obj_ptr<DBResult_base> retVal;
     return execute("ROLLBACK", 8, retVal);
+}
+
+result_t mysql::trans(v8::Local<v8::Function> func)
+{
+    return _trans(this, func);
 }
 
 result_t mysql::execute(const char* sql, int32_t sLen,

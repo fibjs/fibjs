@@ -15,6 +15,7 @@
 #include "DBResult.h"
 #include "Buffer.h"
 #include "date.h"
+#include "trans.h"
 
 namespace fibjs {
 
@@ -184,6 +185,11 @@ result_t mssql::rollback(AsyncEvent* ac)
         return error(hr);
 
     return 0;
+}
+
+result_t mssql::trans(v8::Local<v8::Function> func)
+{
+    return _trans(this, func);
 }
 
 result_t mssql::execute(const char* sql, int32_t sLen,

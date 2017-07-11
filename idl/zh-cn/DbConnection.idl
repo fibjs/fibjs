@@ -17,6 +17,16 @@ interface DbConnection : object
     /*! @brief 回滚当前数据库连接上的事务 */
     rollback() async;
 
+    /*! @brief 进入事务执行一个函数，并根据函数执行情况提交或者回滚 
+     func 执行有三种结果：
+     * 函数正常返回，包括运行结束和主动 return，此时事务将自动提交
+     * 函数返回 false，此时事务将回滚
+     * 函数运行错误，事务自动回滚
+
+     @param func 以事务方式执行的函数
+    */
+    trans(Function func);
+
     /*! @brief 执行一个 sql 命令，并返回执行结果
 
      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
