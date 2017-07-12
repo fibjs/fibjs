@@ -8,6 +8,7 @@
 #include "object.h"
 #include "version.h"
 #include "ifs/util.h"
+#include <src/snapshot/snapshot.h>
 #include <zlib/include/zlib.h>
 #include <sqlite/sqlite3.h>
 #include <ev/ev.h>
@@ -87,6 +88,10 @@ result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
         vender->Set(isolate->NewFromUtf8("tiff"), isolate->NewFromUtf8(TIFFLIB_VERSION_STR));
         vender->Set(isolate->NewFromUtf8("uuid"), isolate->NewFromUtf8("1.6.2"));
         vender->Set(isolate->NewFromUtf8("v8"), isolate->NewFromUtf8(v8::V8::GetVersion()));
+
+        vender->Set(isolate->NewFromUtf8("v8-snapshot"),
+            v8::internal::Snapshot::DefaultSnapshotBlob() ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate));
+
         vender->Set(isolate->NewFromUtf8("zlib"), isolate->NewFromUtf8(ZLIB_VERSION));
         vender->Set(isolate->NewFromUtf8("zmq"), isolate->NewFromUtf8(STR(ZMQ_VERSION_MAJOR) "." STR(ZMQ_VERSION_MINOR)));
     }

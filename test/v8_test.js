@@ -2,8 +2,9 @@ var test = require("test");
 test.setup();
 
 var coroutine = require('coroutine');
+var util = require('util');
 
-describe("v8 bug", () => {
+describe("v8 test", () => {
     it("not hangup", () => {
         for (var i = 0; i < 100; i++)
             coroutine.sleep(1);
@@ -30,6 +31,10 @@ describe("v8 bug", () => {
     it('toLocaleDateString', () => {
         new Date().toLocaleDateString();
     });
+
+    it('snapshot', () => {
+        assert.isTrue(util.buildInfo().vender['v8-snapshot']);
+    })
 });
 
 repl && test.run(console.DEBUG);
