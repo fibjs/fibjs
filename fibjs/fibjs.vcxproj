@@ -361,6 +361,7 @@
     <ClInclude Include="include\version.h" />
     <ClInclude Include="src\db\sql\trans.h" />
     <ClInclude Include="src\gui\windows\WebView.h" />
+    <ClInclude Include="src\process\process_hrtime.h" />
     <ClInclude Include="src\sandbox\loaders\loaders.h" />
   </ItemGroup>
   <ItemGroup>
