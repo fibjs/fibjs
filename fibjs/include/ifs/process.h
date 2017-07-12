@@ -35,6 +35,7 @@ public:
     static result_t umask(int32_t mask, int32_t& retVal);
     static result_t umask(exlib::string mask, int32_t& retVal);
     static result_t umask(int32_t& retVal);
+    static result_t hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& retVal);
     static result_t exit(int32_t code);
     static result_t cwd(exlib::string& retVal);
     static result_t chdir(exlib::string directory);
@@ -68,6 +69,7 @@ public:
     static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_platform(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_umask(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_hrtime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -87,6 +89,7 @@ inline ClassInfo& process_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "umask", s_umask, true },
+        { "hrtime", s_hrtime, true },
         { "exit", s_exit, true },
         { "cwd", s_cwd, true },
         { "chdir", s_chdir, true },
@@ -216,6 +219,21 @@ inline void process_base::s_umask(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(0, 0);
 
     hr = umask(vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_hrtime(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
+
+    hr = hrtime(v0, vr);
 
     METHOD_RETURN();
 }

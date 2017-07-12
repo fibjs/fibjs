@@ -15,12 +15,11 @@
 #include "BufferedStream.h"
 #include "SubProcess.h"
 #include <vector>
+#include "process_hrtime.h"
 
 #ifdef _WIN32
 #include <psapi.h>
 #include "utf8.h"
-
-#define pclose _pclose
 
 #else
 
@@ -138,6 +137,27 @@ result_t process_base::umask(int32_t& retVal)
     int32_t old = _umask(0);
     retVal = old;
     _umask(old);
+    return 0;
+}
+
+result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& retVal)
+{
+    uint64_t t = _hrtime();
+
+    if (diff->Length() == 2) {
+        uint64_t seconds = diff->Get(0)->Uint32Value();
+        uint64_t nanos = diff->Get(1)->Uint32Value();
+        t -= (seconds * NANOS_PER_SEC) + nanos;
+    }
+
+    Isolate* isolate = Isolate::current();
+
+    v8::Local<v8::Array> tuple = v8::Array::New(isolate->m_isolate, 2);
+    tuple->Set(0, v8::Integer::NewFromUnsigned(isolate->m_isolate, (uint32_t)(t / NANOS_PER_SEC)));
+    tuple->Set(1, v8::Integer::NewFromUnsigned(isolate->m_isolate, t % NANOS_PER_SEC));
+
+    retVal = tuple;
+
     return 0;
 }
 

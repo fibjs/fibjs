@@ -13,6 +13,19 @@ describe('process', () => {
         cmd = process.execPath;
     });
 
+    it("hrtime", () => {
+        var start = process.hrtime();
+        assert.isArray(start);
+
+        var now = Date.now();
+        while (Date.now() - now < 2000);
+
+        var diff = process.hrtime(start);
+
+        assert.notLessThan(diff[0], 1);
+        assert.notGreaterThan(diff[0], 2);
+    });
+
     it("stdout", () => {
         var bs = process.open(cmd, [__dirname + '/process/exec.js']);
 

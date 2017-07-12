@@ -45,6 +45,12 @@ module process : EventEmitter
     */
     static Integer umask();
 
+    /*! @brief 返回系统高精度时间，此时间与当前时间无关，仅用于高精度计时
+     @param diff 用于比较的初始时间
+     @return 返回计时时间，格式为 [seconds, nanoseconds]
+    */
+    static Array hrtime(Array diff = []);
+
     /*! @brief 退出当前进程，并返回结果
      @param code 返回进程结果
      */
