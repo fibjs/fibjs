@@ -8,7 +8,6 @@
 #include "object.h"
 #include "version.h"
 #include "ifs/util.h"
-#include <src/snapshot/snapshot.h>
 #include <zlib/include/zlib.h>
 #include <sqlite/sqlite3.h>
 #include <ev/ev.h>
@@ -23,6 +22,16 @@
 #include <leveldb/db.h>
 #include <expat/include/expat.h>
 #include <zmq/include/zmq.h>
+
+namespace v8 {
+namespace internal {
+    class StartupData;
+    class Snapshot {
+    public:
+        static const v8::StartupData* DefaultSnapshotBlob();
+    };
+}
+}
 
 #ifndef _WIN32
 #include "gitinfo.h"
