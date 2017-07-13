@@ -10,7 +10,7 @@ inline result_t _trans(DbConnection_base* db, v8::Local<v8::Function> func)
     if (hr < 0)
         return hr;
 
-    v8::Local<v8::Value> result = func->Call(db->wrap(), NULL, 0);
+    v8::Local<v8::Value> result = func->Call(db->wrap(), 0, NULL);
     if (result.IsEmpty()) {
         db->ac_rollback();
         return CALL_E_JAVASCRIPT;
