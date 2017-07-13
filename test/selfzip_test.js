@@ -84,9 +84,16 @@ describe("selfzip", () => {
 
             var r = process.run(testPath, argv);
 
-            try {
-                fs.unlink(testPath);
-            } catch (e) {}
+            for (var i = 0; i < 100; i++) {
+                try {
+                    fs.unlink(testPath);
+                } catch (e) {}
+
+                if (!fs.exists(testPath))
+                    break;
+
+                coroutine.sleep(100);
+            }
 
             return r;
         }
