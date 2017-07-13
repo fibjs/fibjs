@@ -1,0 +1,15 @@
+/*! @brief tty module
+
+ example：
+ ```JavaScript
+ const tty = require('tty');
+ ```
+ */
+module tty
+{
+    /*! @brief the terminal util
+    @param fd A numeric file descriptor 
+     @return true if the given fd is associated with a TTY and false if is not.
+    */
+    static Boolean isatty(Integer fd);
+};

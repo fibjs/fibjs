@@ -338,6 +338,7 @@
     <ClInclude Include="include\ifs\ssl.h" />
     <ClInclude Include="include\ifs\test.h" />
     <ClInclude Include="include\ifs\timers.h" />
+    <ClInclude Include="include\ifs\tty.h" />
     <ClInclude Include="include\ifs\url.h" />
     <ClInclude Include="include\ifs\util.h" />
     <ClInclude Include="include\ifs\uuid.h" />
@@ -395,6 +396,7 @@
     <ClCompile Include="src\console\osx\console_osx_key.cpp" />
     <ClCompile Include="src\console\other\console_linux_key.cpp" />
     <ClCompile Include="src\console\other\console_linux_mouse.cpp" />
+    <ClCompile Include="src\console\tty.cpp" />
     <ClCompile Include="src\console\windows\console_windows_key.cpp" />
     <ClCompile Include="src\console\windows\console_windows_mouse.cpp" />
     <ClCompile Include="src\coroutine\BlockQueue.cpp" />
