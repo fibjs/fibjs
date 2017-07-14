@@ -25,7 +25,6 @@ if (global.full_test)
 run("./coroutine_test.js");
 run("./fibmod_test.js");
 run("./trigger_test.js");
-run("./tty_test.js");
 run("./lock_test.js");
 run("./fs_test.js");
 run("./ms_test.js");
@@ -57,6 +56,7 @@ run("./wasm_test.js");
 if (global.full_test) {
     run("./mongo_test.js");
     run("./redis_test.js");
+    run("./tty_test.js");
 }
 
 run("./selfzip_test.js");
