@@ -6,6 +6,12 @@ var path = require('path');
 var a, b;
 
 describe("module", () => {
+    after(() => {
+        try {
+            fs.unlink(path.join(__dirname, 'module/p6_1'));
+        } catch (e) {}
+    });
+
     it("native module toJSON", () => {
         JSON.stringify(require("os"));
     });
@@ -74,6 +80,11 @@ describe("module", () => {
         assert.deepEqual(require('./module/d1'), {
             "d": 100
         });
+    });
+
+    it("support symlink", () => {
+        fs.symlink(path.join(__dirname, 'module/p6'), path.join(__dirname, 'module/p6_1'));
+        assert.equal(require('./module/p6/t'), require('./module/p6_1/t'));
     });
 
     describe("package.json", () => {

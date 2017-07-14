@@ -52,24 +52,38 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
     result_t hr;
     exlib::string fname1;
 
+    hr = fs_base::cc_realpath(fname, fname1);
+    if (hr < 0)
+        fname1 = fname;
+
     if (retVal) {
-        *retVal = mods->Get(isolate->NewFromUtf8(fname));
-        if (!IsEmpty(*retVal))
+        *retVal = mods->Get(isolate->NewFromUtf8(fname1));
+        if (!IsEmpty(*retVal)) {
+            fname = fname1;
             return 0;
+        }
     }
 
-    hr = loadFile(fname, data);
-    if (hr >= 0)
+    hr = loadFile(fname1, data);
+    if (hr >= 0) {
+        fname = fname1;
         return 0;
+    }
 
     for (size_t i = 0; i < cnt; i++) {
         obj_ptr<ExtLoader>& l = m_loaders[i];
-        fname1 = fname + l->m_ext;
+        exlib::string fname2 = fname + l->m_ext;
+
+        hr = fs_base::cc_realpath(fname2, fname1);
+        if (hr < 0)
+            fname1 = fname2;
 
         if (retVal) {
             *retVal = mods->Get(isolate->NewFromUtf8(fname1));
-            if (!IsEmpty(*retVal))
+            if (!IsEmpty(*retVal)) {
+                fname = fname1;
                 return 0;
+            }
         }
 
         hr = loadFile(fname1, data);
