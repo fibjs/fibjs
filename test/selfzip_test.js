@@ -7,6 +7,7 @@ var path = require('path');
 var process = require('process');
 var zip = require('zip');
 var util = require('util');
+var coroutine = require('coroutine');
 
 var execPath = process.execPath;
 var testPath = path.join(__dirname, path.basename(execPath));
@@ -35,9 +36,16 @@ describe("selfzip", () => {
 
             var r = process.run(testPath, argv);
 
-            try {
-                fs.unlink(testPath);
-            } catch (e) {}
+            for (var i = 0; i < 100; i++) {
+                try {
+                    fs.unlink(testPath);
+                } catch (e) {}
+
+                if (!fs.exists(testPath))
+                    break;
+
+                coroutine.sleep(100);
+            }
 
             return r;
         }
@@ -76,9 +84,16 @@ describe("selfzip", () => {
 
             var r = process.run(testPath, argv);
 
-            try {
-                fs.unlink(testPath);
-            } catch (e) {}
+            for (var i = 0; i < 100; i++) {
+                try {
+                    fs.unlink(testPath);
+                } catch (e) {}
+
+                if (!fs.exists(testPath))
+                    break;
+
+                coroutine.sleep(100);
+            }
 
             return r;
         }
