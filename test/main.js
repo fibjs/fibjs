@@ -25,6 +25,7 @@ if (global.full_test)
 run("./coroutine_test.js");
 run("./fibmod_test.js");
 run("./trigger_test.js");
+run("./tty_test.js");
 run("./lock_test.js");
 run("./fs_test.js");
 run("./ms_test.js");

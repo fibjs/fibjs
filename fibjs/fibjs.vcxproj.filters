@@ -849,6 +849,9 @@
     <ClInclude Include="include\ifs\timers.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\tty.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\url.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -1006,6 +1009,9 @@
     </ClCompile>
     <ClCompile Include="src\console\other\console_linux_mouse.cpp">
       <Filter>Source Files\console\other</Filter>
+    </ClCompile>
+    <ClCompile Include="src\console\tty.cpp">
+      <Filter>Source Files\console</Filter>
     </ClCompile>
     <ClCompile Include="src\console\windows\console_windows_key.cpp">
       <Filter>Source Files\console\windows</Filter>
