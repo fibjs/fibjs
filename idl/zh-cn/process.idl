@@ -52,9 +52,9 @@ module process : EventEmitter
     static Array hrtime(Array diff = []);
 
     /*! @brief 退出当前进程，并返回结果
-     @param code 返回进程结果
+     @param code 返回进程结果, 默认为 0
      */
-    static exit(Integer code);
+    static exit(Integer code = 0);
 
     /*! @brief 返回操作系统当前工作路径
      @return 返回当前系统路径

@@ -242,9 +242,9 @@ inline void process_base::s_exit(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(1, 0);
 
-    ARG(int32_t, 0);
+    OPT_ARG(int32_t, 0, 0);
 
     hr = exit(v0);
 

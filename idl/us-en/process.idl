@@ -16,7 +16,7 @@ module process
     /*! @brief get the fibjs version string */
     static readonly String version;
 
-   /*! @brief The full path of current executable file */
+    /*! @brief The full path of current executable file */
     static readonly String execPath;
 
     /*! @brief The environment variable object of current executable file */
@@ -46,9 +46,9 @@ module process
     static Integer umask();
 
     /*! @brief Exit current process, and return result.
-     @param code result of process.
+     @param The exit code.Defaults to 0.
      */
-    static exit(Integer code);
+    static exit(Integer code = 0);
 
     /*! @brief Return current work path of the operating system.
      @return Work path.
