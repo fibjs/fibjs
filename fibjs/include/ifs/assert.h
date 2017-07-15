@@ -199,9 +199,9 @@ inline void assert_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(2, 0);
 
-    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
     OPT_ARG(exlib::string, 1, "");
 
     hr = _function(v0, v1);
@@ -213,9 +213,9 @@ inline void assert_base::s_ok(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(2, 0);
 
-    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
     OPT_ARG(exlib::string, 1, "");
 
     hr = ok(v0, v1);
@@ -227,9 +227,9 @@ inline void assert_base::s_notOk(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(2, 0);
 
-    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
     OPT_ARG(exlib::string, 1, "");
 
     hr = notOk(v0, v1);
@@ -241,10 +241,10 @@ inline void assert_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER(3, 0);
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
     OPT_ARG(exlib::string, 2, "");
 
     hr = equal(v0, v1, v2);
@@ -256,10 +256,10 @@ inline void assert_base::s_notEqual(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER(3, 0);
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
     OPT_ARG(exlib::string, 2, "");
 
     hr = notEqual(v0, v1, v2);
@@ -271,10 +271,10 @@ inline void assert_base::s_strictEqual(const v8::FunctionCallbackInfo<v8::Value>
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER(3, 0);
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
     OPT_ARG(exlib::string, 2, "");
 
     hr = strictEqual(v0, v1, v2);
@@ -286,10 +286,10 @@ inline void assert_base::s_notStrictEqual(const v8::FunctionCallbackInfo<v8::Val
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER(3, 0);
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
     OPT_ARG(exlib::string, 2, "");
 
     hr = notStrictEqual(v0, v1, v2);
@@ -301,10 +301,10 @@ inline void assert_base::s_deepEqual(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER(3, 0);
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
     OPT_ARG(exlib::string, 2, "");
 
     hr = deepEqual(v0, v1, v2);
@@ -316,10 +316,10 @@ inline void assert_base::s_notDeepEqual(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER(3, 0);
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
     OPT_ARG(exlib::string, 2, "");
 
     hr = notDeepEqual(v0, v1, v2);
