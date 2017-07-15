@@ -43,6 +43,9 @@ public:
     static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t openSmtp(exlib::string url, int32_t timeout, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
     static result_t backend(exlib::string& retVal);
+    static result_t isIP(v8::Local<v8::Value> ip, int32_t& retVal);
+    static result_t isIPv4(v8::Local<v8::Value> ip, bool& retVal);
+    static result_t isIPv6(v8::Local<v8::Value> ip, bool& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -67,6 +70,9 @@ public:
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_openSmtp(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_backend(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isIP(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isIPv4(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isIPv6(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(net_base, resolve, exlib::string, int32_t, exlib::string);
@@ -99,7 +105,10 @@ inline ClassInfo& net_base::class_info()
         { "connectSync", s_connect, true },
         { "openSmtp", s_openSmtp, true },
         { "openSmtpSync", s_openSmtp, true },
-        { "backend", s_backend, true }
+        { "backend", s_backend, true },
+        { "isIP", s_isIP, true },
+        { "isIPv4", s_isIPv4, true },
+        { "isIPv6", s_isIPv6, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -287,6 +296,51 @@ inline void net_base::s_backend(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(0, 0);
 
     hr = backend(vr);
+
+    METHOD_RETURN();
+}
+
+inline void net_base::s_isIP(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+
+    hr = isIP(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void net_base::s_isIPv4(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+
+    hr = isIPv4(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void net_base::s_isIPv6(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+
+    hr = isIPv6(v0, vr);
 
     METHOD_RETURN();
 }
