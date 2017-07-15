@@ -70,6 +70,7 @@ public:
     static result_t deepPropertyNotVal(v8::Local<v8::Value> object, v8::Local<v8::Value> prop, v8::Local<v8::Value> value, exlib::string msg);
     static result_t throws(v8::Local<v8::Function> block, exlib::string msg);
     static result_t doesNotThrow(v8::Local<v8::Function> block, exlib::string msg);
+    static result_t ifError(v8::Local<v8::Value> object);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -128,6 +129,7 @@ public:
     static void s_deepPropertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_throws(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_doesNotThrow(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_ifError(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -182,7 +184,8 @@ inline ClassInfo& assert_base::class_info()
         { "deepPropertyVal", s_deepPropertyVal, true },
         { "deepPropertyNotVal", s_deepPropertyNotVal, true },
         { "throws", s_throws, true },
-        { "doesNotThrow", s_doesNotThrow, true }
+        { "doesNotThrow", s_doesNotThrow, true },
+        { "ifError", s_ifError, true }
     };
 
     static ClassData s_cd = {
@@ -905,6 +908,19 @@ inline void assert_base::s_doesNotThrow(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(exlib::string, 1, "");
 
     hr = doesNotThrow(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void assert_base::s_ifError(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+
+    hr = ifError(v0);
 
     METHOD_VOID();
 }

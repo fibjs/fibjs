@@ -509,6 +509,24 @@ describe('assert', () => {
             assert.closeTo(-10, 20, 29);
         }, "expected -10 to be close to 20 +/- 29");
     });
+
+    it('ifError', () => {
+        assert.throws(() => assert.ifError(1));
+        assert.throws(() => assert.ifError('a'));
+        assert.throws(() => assert.ifError(new Error('error')));
+        assert.throws(function() { assert.ifError(new Error('test error')); });
+        assert.doesNotThrow(function() { assert.ifError(null); });
+        assert.doesNotThrow(function() { assert.ifError(); });
+
+        let threw = false;
+        try {
+            assert.throws(() => assert.ifError(null));
+        } catch (e) {
+            threw = true;
+            assert.strictEqual(e.message, 'Missing expected exception.');
+        }
+        assert.ok(threw);
+    });
 });
 
 repl && test.run(console.DEBUG);

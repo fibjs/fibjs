@@ -914,4 +914,13 @@ result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
 
     return 0;
 }
+
+result_t assert_base::ifError(v8::Local<v8::Value> object)
+{
+    if(object->BooleanValue()){
+        ThrowError(object);
+    }
+
+    return 0;
+}
 }
