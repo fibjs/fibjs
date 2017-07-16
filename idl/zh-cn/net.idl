@@ -87,15 +87,15 @@ module net
     /*! @brief 检测输入是否是 IP 地址
      @return 非合法的 IP 地址，返回 0, 如果是 IPv4 则返回 4，如果是 IPv6 则返回 6
     */
-    static Integer isIP(Value ip = undefined);
+    static Integer isIP(String ip = "");
 
     /*! @brief 检测输入是否是 IPv4 地址
      @return 如果是 IPv4 则返回 true.否则返回 false
     */
-    static Boolean isIPv4(Value ip = undefined);
+    static Boolean isIPv4(String ip = "");
 
     /*! @brief 检测输入是否是 IPv6 地址
      @return 如果是 IPv6 则返回 true.否则返回 false
     */
-    static Boolean isIPv6(Value ip = undefined);
+    static Boolean isIPv6(String ip = "");
 };

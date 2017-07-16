@@ -43,9 +43,9 @@ public:
     static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t openSmtp(exlib::string url, int32_t timeout, obj_ptr<Smtp_base>& retVal, AsyncEvent* ac);
     static result_t backend(exlib::string& retVal);
-    static result_t isIP(v8::Local<v8::Value> ip, int32_t& retVal);
-    static result_t isIPv4(v8::Local<v8::Value> ip, bool& retVal);
-    static result_t isIPv6(v8::Local<v8::Value> ip, bool& retVal);
+    static result_t isIP(exlib::string ip, int32_t& retVal);
+    static result_t isIPv4(exlib::string ip, bool& retVal);
+    static result_t isIPv6(exlib::string ip, bool& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -308,7 +308,7 @@ inline void net_base::s_isIP(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(exlib::string, 0, "");
 
     hr = isIP(v0, vr);
 
@@ -323,7 +323,7 @@ inline void net_base::s_isIPv4(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(exlib::string, 0, "");
 
     hr = isIPv4(v0, vr);
 
@@ -338,7 +338,7 @@ inline void net_base::s_isIPv6(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(exlib::string, 0, "");
 
     hr = isIPv6(v0, vr);
 
