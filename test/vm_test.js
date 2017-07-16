@@ -199,6 +199,10 @@ describe("vm", () => {
         assert.isUndefined(global.var4);
     });
 
+    it("require.cache", () => {
+        assert.isObject(require.cache);
+    });
+
     xit("block function return", () => {
         sbox = new vm.SandBox({});
         assert.throws(() => {
