@@ -336,4 +336,9 @@ module assert
      @param msg The message of assertion failed when return false.
      */
     static doesNotThrow(Function block, String msg = "");
+
+    /*! @brief Throws value if value is truthy.
+     @param object the given object
+     */
+    static ifError(Value object = undefined);
 };

@@ -339,4 +339,9 @@ module assert
      @param msg 断言失败时的提示信息
      */
     static doesNotThrow(Function block, String msg = "");
+
+    /*! @brief 如果参数为真，则抛出
+     @param object 参数
+     */
+    static ifError(Value object = undefined);
 };

@@ -926,6 +926,13 @@ inline v8::Local<v8::Value> ThrowError(const char* msg)
         isolate->NewFromUtf8(msg)));
 }
 
+inline v8::Local<v8::Value> ThrowError(v8::Local<v8::Value> exception)
+{
+    Isolate* isolate = Isolate::current();
+
+    return isolate->m_isolate->ThrowException(exception);
+}
+
 inline v8::Local<v8::Value> ThrowTypeError(const char* msg)
 {
     Isolate* isolate = Isolate::current();
