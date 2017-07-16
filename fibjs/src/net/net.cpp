@@ -184,8 +184,7 @@ result_t net_base::isIPv6(exlib::string ip, bool& retVal)
     int len;
     char tmp[INET6_ADDRSTRLEN], *s, *p;
     unsigned char dst[sizeof(struct in6_addr)];
-    hr = inet_pton4(src, dst);
-    s = (char*)src;
+    s = (char*) src;
     p = strchr(src, '%');
     if (p != NULL) {
         s = tmp;
