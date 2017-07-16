@@ -22,61 +22,61 @@ module assert
      @param actual 要测试的数值
      @param msg 断言失败时的提示信息
      */
-    static Function(Value actual, String msg = "");
+    static Function(Value actual = undefined, String msg = "");
 
     /*! @brief 测试数值为真，为假则断言失败
      @param actual 要测试的数值
      @param msg 断言失败时的提示信息
      */
-    static ok(Value actual, String msg = "");
+    static ok(Value actual = undefined, String msg = "");
 
     /*! @brief 测试数值为假，为真则断言失败
      @param actual 要测试的数值
      @param msg 断言失败时的提示信息
      */
-    static notOk(Value actual, String msg = "");
+    static notOk(Value actual = undefined, String msg = "");
 
     /*! @brief 测试数值等于预期值，不相等则断言失败
      @param actual 要测试的数值
      @param expected 预期的数值
      @param msg 断言失败时的提示信息
      */
-    static equal(Value actual, Value expected, String msg = "");
+    static equal(Value actual = undefined, Value expected = undefined, String msg = "");
 
     /*! @brief 测试数值不等于预期值，相等则断言失败
      @param actual 要测试的数值
      @param expected 预期的数值
      @param msg 断言失败时的提示信息
      */
-    static notEqual(Value actual, Value expected, String msg = "");
+    static notEqual(Value actual = undefined, Value expected = undefined, String msg = "");
 
     /*! @brief 测试数值严格等于预期值，不相等则断言失败
      @param actual 要测试的数值
      @param expected 预期的数值
      @param msg 断言失败时的提示信息
      */
-    static strictEqual(Value actual, Value expected, String msg = "");
+    static strictEqual(Value actual = undefined, Value expected = undefined, String msg = "");
 
     /*! @brief 测试数值不严格等于预期值，相等则断言失败
      @param actual 要测试的数值
      @param expected 预期的数值
      @param msg 断言失败时的提示信息
      */
-    static notStrictEqual(Value actual, Value expected, String msg = "");
+    static notStrictEqual(Value actual = undefined, Value expected = undefined, String msg = "");
 
     /*! @brief 测试数值深度等于预期值，不相等则断言失败
      @param actual 要测试的数值
      @param expected 预期的数值
      @param msg 断言失败时的提示信息
      */
-    static deepEqual(Value actual, Value expected, String msg = "");
+    static deepEqual(Value actual = undefined, Value expected = undefined, String msg = "");
 
     /*! @brief 测试数值不深度等于预期值，相等则断言失败
      @param actual 要测试的数值
      @param expected 预期的数值
      @param msg 断言失败时的提示信息
      */
-    static notDeepEqual(Value actual, Value expected, String msg = "");
+    static notDeepEqual(Value actual = undefined, Value expected = undefined, String msg = "");
 
     /*! @brief 测试数值近似等于预期值，否则断言失败
      @param actual 要测试的数值

@@ -3,23 +3,20 @@
 /*! @brief Assertion test module, if testing result is false, you will get an error. The way of handling error can be set as continue or throw exception.
 
  how to use:
-
- @code
+ ```JavaScript
  var assert = require('assert');
- @endcode
+ ```
+ or using through test module:
 
- or using testing unit:
-
- @code
+ ```JavaScript
  var test = require('test');
  var assert = test.assert;
- @endcode
-
+ ```
  or you can use test.setup to set up test:
 
- @code
+ ```JavaScript
  require("test").setup();
- @endcode
+ ```
  */
 module assert
 {
@@ -27,20 +24,20 @@ module assert
      @param actual The value need to be tested.
      @param msg The message of assertion failed when return false.
      */
-    static ok(Value actual, String msg = "");
+    static ok(Value actual = undefined, String msg = "");
 
     /*! @brief Return true when the testing result is false, assertion failed when return true.
      @param actual The value need to be tested.
      @param msg The message of assertion failed when return false.
      */
-    static notOk(Value actual, String msg = "");
+    static notOk(Value actual = undefined, String msg = "");
 
     /*! @brief Test value should match the expected one, assertion failed when not match.
      @param actual The value need to be tested.
      @param expected The expected value.
      @param msg The message of assertion failed when return false.
      */
-    static equal(Value actual, Value expected, String msg = "");
+    static equal(Value actual = undefined, Value expected = undefined, String msg = "");
 
     /*! @brief Test value should not have to match the expected one, assertion failed when match.
      @param actual The value need to be tested.
@@ -48,35 +45,35 @@ module assert
      @param expected expected value from unittest
      @param msg The message of assertion failed when return false.
      */
-    static notEqual(Value actual, Value expected, String msg = "");
+    static notEqual(Value actual = undefined, Value expected = undefined, String msg = "");
 
     /*! @brief Test value should strictly match the expected one, assertion failed when not match.
      @param actual The value need to be tested.
      @param expected The expected value.
      @param msg The message of assertion failed when return false.
      */
-    static strictEqual(Value actual, Value expected, String msg = "");
+    static strictEqual(Value actual = undefined, Value expected = undefined, String msg = "");
 
     /*! @brief Test value should not have to strictly match the expected one, assertion failed when match.
      @param actual The value need to be tested.
      @param expected The expected value.
      @param msg The message of assertion failed when return false.
      */
-    static notStrictEqual(Value actual, Value expected, String msg = "");
+    static notStrictEqual(Value actual = undefined, Value expected = undefined, String msg = "");
 
     /*! @brief Test value should deeply match the expected one, assertion failed when not match.
      @param actual The value need to be tested.
      @param expected The expected value.
      @param msg The message of assertion failed when return false.
      */
-    static deepEqual(Value actual, Value expected, String msg = "");
+    static deepEqual(Value actual = undefined, Value expected = undefined, String msg = "");
 
     /*! @brief Test value should not have to deeply match the expected one, assertion failed when match.
      @param actual The value need to be tested.
      @param expected The expected value.
      @param msg The message of assertion failed when return false.
      */
-    static notDeepEqual(Value actual, Value expected, String msg = "");
+    static notDeepEqual(Value actual = undefined, Value expected = undefined, String msg = "");
 
     /*! @brief Test value should closely match the expected one, assertion failed when not match.
      @param actual The value need to be tested.
