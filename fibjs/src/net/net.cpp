@@ -9,8 +9,11 @@
 #include "ifs/ssl.h"
 #include "ifs/os.h"
 #include "Socket.h"
+#include "inetAddr.h"
 #include "Smtp.h"
 #include "Url.h"
+
+#define INET6_ADDRSTRLEN 46
 
 namespace fibjs {
 
@@ -138,5 +141,65 @@ result_t net_base::openSmtp(exlib::string url, int32_t timeout,
     retVal->set_timeout(timeout);
 
     return retVal->connect(url, ac);
+}
+
+result_t net_base::isIP(exlib::string ip, int32_t& retVal)
+{
+    retVal = 0;
+    bool is = false;
+
+    isIPv4(ip, is);
+
+    if (is) {
+        retVal = 4;
+        return 0;
+    }
+
+    isIPv6(ip, is);
+
+    if (is)
+        retVal = 6;
+
+    return 0;
+}
+
+result_t net_base::isIPv4(exlib::string ip, bool& retVal)
+{
+    result_t hr;
+
+    retVal = true;
+    const char* src = ip.c_str();
+    unsigned char dst[sizeof(struct in6_addr)];
+    hr = inet_pton4(src, dst);
+    if (hr != 0)
+        retVal = false;
+    return 0;
+}
+
+result_t net_base::isIPv6(exlib::string ip, bool& retVal)
+{
+    result_t hr;
+    retVal = true;
+    const char* src = ip.c_str();
+    int len;
+    char tmp[INET6_ADDRSTRLEN], *s, *p;
+    unsigned char dst[sizeof(struct in6_addr)];
+    s = (char*) src;
+    p = strchr(src, '%');
+    if (p != NULL) {
+        s = tmp;
+        len = p - src;
+        if (len > INET6_ADDRSTRLEN - 1) {
+            retVal = false;
+            return 0;
+        }
+        memcpy(s, src, len);
+        s[len] = '\0';
+    }
+    hr = inet_pton6(s, dst);
+    if (hr != 0)
+        retVal = false;
+
+    return 0;
 }
 }

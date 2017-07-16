@@ -77,4 +77,19 @@ module net
      @return Return network engine name
     */
     static String backend();
+
+    /*! @brief Tests if input is an IP address.
+     @return Returns 0 for invalid strings, returns 4 for IP version 4 addresses, and returns 6 for IP version 6 addresses.
+    */
+    static Integer isIP(String ip = "");
+
+    /*! @brief Tests if input is an IPv4 address.
+     @return Returns true if input is a version 4 IP address, otherwise returns false.
+    */
+    static Boolean isIPv4(String ip = "");
+
+    /*! @brief Tests if input is an IPv6 address.
+     @return Returns true if input is a version 6 IP address, otherwise returns false.
+    */
+    static Boolean isIPv6(String ip = "");
 };
