@@ -119,7 +119,7 @@ module fs
     /*! @brief 创建软连接文件
      @param target 目标文件，可以是文件、目录、或不存在的路径
      @param linkpath 将被创建的软连接文件
-     @param file 创建的软连接类型, 可选类型为'file', 'dir', 'junction', 默认为'file', 该参数只在windows上有效，当为'junction'的时候将要创建的目标路径linkpath必须为绝对路径, 而target则会被自动转化为绝对路径。
+     @param type 创建的软连接类型, 可选类型为'file', 'dir', 'junction', 默认为'file', 该参数只在windows上有效，当为'junction'的时候将要创建的目标路径linkpath必须为绝对路径, 而target则会被自动转化为绝对路径。
      */
     static symlink(String target, String linkpath, String type = "file") async;
 
