@@ -85,16 +85,19 @@ module net
     static String backend();
 
     /*! @brief 检测输入是否是 IP 地址
+     @param ip 指定要检测的字符串
      @return 非合法的 IP 地址，返回 0, 如果是 IPv4 则返回 4，如果是 IPv6 则返回 6
     */
     static Integer isIP(String ip = "");
 
     /*! @brief 检测输入是否是 IPv4 地址
+     @param ip 指定要检测的字符串
      @return 如果是 IPv4 则返回 true.否则返回 false
     */
     static Boolean isIPv4(String ip = "");
 
     /*! @brief 检测输入是否是 IPv6 地址
+     @param ip 指定要检测的字符串
      @return 如果是 IPv6 则返回 true.否则返回 false
     */
     static Boolean isIPv6(String ip = "");
