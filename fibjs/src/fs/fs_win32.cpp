@@ -324,6 +324,37 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     return 0;
 }
 
+result_t fs_base::fchmod(int32_t fd, int32_t mode, AsyncEvent* ac)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t fs_base::fchown(int32_t fd, int32_t uid, int32_t gid, AsyncEvent* ac)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (FlushFileBuffers((HANDLE)_get_osfhandle(fd)))
+        return CHECK_ERROR(LastError());
+    return 0;
+}
+
+result_t fs_base::fsync(int32_t fd, AsyncEvent* ac)
+{
+    if (!ac)
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (FlushFileBuffers((HANDLE)_get_osfhandle(fd)))
+        return CHECK_ERROR(LastError());
+
+    return 0;
+}
+
 result_t _create_junction(const WCHAR* path, const WCHAR* new_path)
 {
 

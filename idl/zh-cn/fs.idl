@@ -139,6 +139,29 @@ module fs
      */
     static Integer read(Integer fd, Buffer buffer, Integer offset = 0, Integer length = 0, Integer position = -1) async;
 
+    /*! @brief 根据文件描述符，改变文件模式。只在 POSIX 系统有效。
+     @param fd 文件描述符
+     @param mode 文件的模式
+     */
+    static fchmod(Integer fd, Integer mode) async;
+
+    /*! @brief 根据文件描述符，改变所有者。只在 POSIX 系统有效。
+     @param fd 文件描述符
+     @param uid 用户id
+     @param gid 组id
+     */
+    static fchown(Integer fd, Integer uid, Integer gid) async;
+
+    /*! @brief 根据文件描述符，同步数据到磁盘
+     @param fd 文件描述符
+     */
+    static fdatasync(Integer fd) async;
+
+    /*! @brief 根据文件描述符，同步数据到磁盘
+     @param fd 文件描述符
+     */
+    static fsync(Integer fd) async;
+
     /*! @brief 读取指定目录的文件信息
      @param path 指定查询的目录
      @return 返回目录的文件信息数组
