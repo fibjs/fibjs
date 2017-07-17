@@ -665,12 +665,23 @@ describe('fs', () => {
         var fn = __dirname + '/fs_test.js';
         var fn1 = __dirname + '/fs_test.js.symlink' + vmid;
         fs.symlink(fn, fn1);
-        if (!win) {
-            assert.ok(fs.lstat(fn1).isSymbolicLink());
-            assert.equal(fs.readlink(fn1), fn);
-            assert.equal(fs.realpath(fn1), fn);
-        }
+        assert.ok(fs.lstat(fn1).isSymbolicLink());
+        assert.equal(fs.readlink(fn1), fn);
+        assert.equal(fs.realpath(fn1), fn);
         assert.equal(fs.readFile(fn).toString(), fs.readFile(fn1).toString());
+        if(win) {
+            var dir = __dirname + '/dirtest';
+            var dir1 = __dirname + '/dirtestsymlink';
+            var file = dir + '/file';
+            var file1 = dir1 + '/file';
+            fs.mkdir(dir, 511);
+            fs.writeFile(file, 'symlink test');
+            fs.symlink(dir, dir1, 'junction');
+            assert.equal(fs.readFile(file1).toString(), 'symlink test');
+            fs.unlink(file1);
+            fs.rmdir(dir1);
+            fs.rmdir(dir);
+        }
         fs.unlink(fn1);
     })
 

@@ -51,7 +51,7 @@ public:
     static result_t lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
     static result_t readlink(exlib::string path, exlib::string& retVal, AsyncEvent* ac);
     static result_t realpath(exlib::string path, exlib::string& retVal, AsyncEvent* ac);
-    static result_t symlink(exlib::string target, exlib::string linkpath, AsyncEvent* ac);
+    static result_t symlink(exlib::string target, exlib::string linkpath, exlib::string type, AsyncEvent* ac);
     static result_t truncate(exlib::string path, int32_t len, AsyncEvent* ac);
     static result_t read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac);
     static result_t readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
@@ -130,7 +130,7 @@ public:
     ASYNC_STATICVALUE2(fs_base, lstat, exlib::string, obj_ptr<Stat_base>);
     ASYNC_STATICVALUE2(fs_base, readlink, exlib::string, exlib::string);
     ASYNC_STATICVALUE2(fs_base, realpath, exlib::string, exlib::string);
-    ASYNC_STATIC2(fs_base, symlink, exlib::string, exlib::string);
+    ASYNC_STATIC3(fs_base, symlink, exlib::string, exlib::string, exlib::string);
     ASYNC_STATIC2(fs_base, truncate, exlib::string, int32_t);
     ASYNC_STATICVALUE6(fs_base, read, int32_t, Buffer_base*, int32_t, int32_t, int32_t, int32_t);
     ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<List_base>);
@@ -563,16 +563,17 @@ inline void fs_base::s_symlink(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
+    OPT_ARG(exlib::string, 2, "file");
 
     if (!cb.IsEmpty()) {
-        acb_symlink(v0, v1, cb);
+        acb_symlink(v0, v1, v2, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = ac_symlink(v0, v1);
+        hr = ac_symlink(v0, v1, v2);
 
     METHOD_VOID();
 }

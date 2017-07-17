@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "ifs/fs.h"
 #include "object.h"
 #include "Stat.h"
 #include "path.h"
@@ -50,6 +51,7 @@ void Stat::fill(WIN32_FIND_DATAW& fd)
 
 void Stat::fill(exlib::string path, BY_HANDLE_FILE_INFORMATION& fd)
 {
+    exlib::string strPath;
     path_base::basename(path, "", name);
 
     size = ((int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow);
@@ -72,6 +74,8 @@ void Stat::fill(exlib::string path, BY_HANDLE_FILE_INFORMATION& fd)
     m_isExecutable = true;
 
     m_isSymbolicLink = false;
+    if (fs_base::cc_readlink(path, strPath) == 0)
+        m_isSymbolicLink = true;
 
     m_isMemory = false;
     m_isSocket = false;
@@ -95,7 +99,17 @@ result_t Stat::getStat(exlib::string path)
 
 result_t Stat::getLstat(exlib::string path)
 {
-    return getStat(path);
+    WIN32_FIND_DATAW fd;
+    HANDLE hFind;
+
+    hFind = FindFirstFileW(UTF8_W(path), &fd);
+    if (hFind == INVALID_HANDLE_VALUE)
+        return CHECK_ERROR(LastError());
+
+    fill(path, fd);
+    FindClose(hFind);
+
+    return 0;
 }
 
 #else
