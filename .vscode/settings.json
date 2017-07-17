@@ -4,7 +4,12 @@
 
     "files.associations": {
         "*.idl": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "ev.c": "cpp",
+        "editline.c": "cpp",
+        "gd_tiff.c": "cpp",
+        "sqlite3.c": "cpp",
+        "gdft.c": "cpp"
     },
 
     "C_Cpp.clang_format_sortIncludes": false,
