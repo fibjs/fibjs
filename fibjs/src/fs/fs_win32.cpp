@@ -317,7 +317,7 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
         return CHECK_ERROR(Runtime::setError("Invalid File Handle"));
     }
 
-    retVal = utf16to8String(w_realpath_ptr, w_realpath_len);
+    retVal = utf16to8String(w_realpath_ptr, w_realpath_len - 1);
 
     free(w_realpath_buf);
     CloseHandle(handle);

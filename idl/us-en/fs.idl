@@ -104,6 +104,37 @@ module fs
      */
     static Stat statSync(String path);
 
+    /*! @brief The function obtains information about the file pointed to by path. It is like fs.stat() except in the case where the named file is a symbolic link; It returns information about the link, while fs.stat() returns information about the file the link references.
+     @param path the path to the targeting file
+     @return return file basic information/stat
+     */
+    static Stat lstat(String path) async;
+
+    /*! @brief read value of a symbolic link, not supported on windows
+     @param path the path to the symbolic link file
+     @return file path the symbolic link file referred
+     */
+    static String readlink(String path) async;
+
+    /*! @brief It expands all symbolic links and resolves relative path to absolute path.
+     @param path the path to be resolved
+     @return return the canonicalized absolute pathname 
+     */
+    static String realpath(String path) async;
+
+    /*! @brief create symbolic link file
+     @param target the target file to be linked to
+     @param linkpath to be created symbolic link file
+     @param type the symbolic type, options are 'file', 'dir', 'junction', default to be 'file', it is used only on windows，when 'junction' is used linkpath has to be absolute path, and target will be resolved as absolute path automatically
+     */
+    static symlink(String target, String linkpath, String type = "file") async;
+
+    /*! @brief change the size of file, if size to be changed is more than the file was, '\0' will be add, otherwise the content after size will be lost.
+     @param path the file to be changed size
+     @param len the file size after truncate
+     */
+    static truncate(String path, Integer len) async;
+
     /*! @brief read fileinfo inside target directory 
      @param path the path to the directory
      @return return a array of files' info in target directory
