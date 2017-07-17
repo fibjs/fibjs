@@ -267,9 +267,6 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     WCHAR* w_realpath_buf;
     HANDLE handle;
 
-    if (!GetFinalPathNameByHandleW)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     handle = CreateFileW(UTF8_W(path),
                          0,
                          0,
