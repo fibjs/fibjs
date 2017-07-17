@@ -13,7 +13,9 @@
 #include "Smtp.h"
 #include "Url.h"
 
+#ifndef INET6_ADDRSTRLEN
 #define INET6_ADDRSTRLEN 46
+#endif
 
 namespace fibjs {
 
@@ -184,11 +186,11 @@ result_t net_base::isIPv6(exlib::string ip, bool& retVal)
     int len;
     char tmp[INET6_ADDRSTRLEN], *s, *p;
     unsigned char dst[sizeof(struct in6_addr)];
-    s = (char*) src;
-    p = strchr(src, '%');
+    s = (char*)src;
+    p = strchr(s, '%');
     if (p != NULL) {
         s = tmp;
-        len = p - src;
+        len = (int32_t)(p - src);
         if (len > INET6_ADDRSTRLEN - 1) {
             retVal = false;
             return 0;

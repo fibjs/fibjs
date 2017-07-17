@@ -53,53 +53,53 @@ union inetAddr {
 
 static int32_t inet_pton4(const char* src, void* dst)
 {
-  static const char digits[] = "0123456789";
-  int saw_digit, octets, ch;
-  unsigned char tmp[sizeof(struct in_addr)], *tp;
+    static const char digits[] = "0123456789";
+    int32_t saw_digit, octets, ch;
+    unsigned char tmp[sizeof(struct in_addr)], *tp;
 
-  saw_digit = 0;
-  octets = 0;
-  *(tp = tmp) = 0;
-  while ((ch = *src++) != '\0') {
-    const char *pch;
+    saw_digit = 0;
+    octets = 0;
+    *(tp = tmp) = 0;
+    while ((ch = *src++) != '\0') {
+        const char* pch;
 
-    if ((pch = strchr(digits, ch)) != NULL) {
-      unsigned int nw = *tp * 10 + (pch - digits);
+        if ((pch = strchr(digits, ch)) != NULL) {
+            uint32_t nw = *tp * 10 + (uint32_t)(pch - digits);
 
-      if (saw_digit && *tp == 0)
+            if (saw_digit && *tp == 0)
+                return -1;
+            if (nw > 255)
+                return -1;
+            *tp = nw;
+            if (!saw_digit) {
+                if (++octets > 4)
+                    return -1;
+                saw_digit = 1;
+            }
+        } else if (ch == '.' && saw_digit) {
+            if (octets == 4)
+                return -1;
+            *++tp = 0;
+            saw_digit = 0;
+        } else
+            return -1;
+    }
+    if (octets < 4)
         return -1;
-      if (nw > 255)
-        return -1;
-      *tp = nw;
-      if (!saw_digit) {
-        if (++octets > 4)
-          return -1;
-        saw_digit = 1;
-      }
-    } else if (ch == '.' && saw_digit) {
-      if (octets == 4)
-        return -1;
-      *++tp = 0;
-      saw_digit = 0;
-    } else
-      return -1;
-  }
-  if (octets < 4)
-    return -1;
-  
-  memcpy(dst, tmp, sizeof(struct in_addr));
 
-  return 0;
+    memcpy(dst, tmp, sizeof(struct in_addr));
+
+    return 0;
 }
 
 static int32_t inet_pton6(const char* src, void* dst)
 {
     static const char xdigits_l[] = "0123456789abcdef",
-        xdigits_u[] = "0123456789ABCDEF";
+                      xdigits_u[] = "0123456789ABCDEF";
     unsigned char tmp[sizeof(struct in6_addr)], *tp, *endp, *colonp;
     const char *xdigits, *curtok;
-    int ch, seen_xdigits;
-    unsigned int val;
+    int32_t ch, seen_xdigits;
+    uint32_t val;
 
     memset((tp = tmp), '\0', sizeof tmp);
     endp = tp + sizeof tmp;
@@ -107,69 +107,69 @@ static int32_t inet_pton6(const char* src, void* dst)
     /* Leading :: requires some special handling. */
     if (*src == ':')
         if (*++src != ':')
-        return -1;
+            return -1;
     curtok = src;
     seen_xdigits = 0;
     val = 0;
     while ((ch = *src++) != '\0') {
-        const char *pch;
+        const char* pch;
 
         if ((pch = strchr((xdigits = xdigits_l), ch)) == NULL)
-        pch = strchr((xdigits = xdigits_u), ch);
+            pch = strchr((xdigits = xdigits_u), ch);
         if (pch != NULL) {
-        val <<= 4;
-        val |= (pch - xdigits);
-        if (++seen_xdigits > 4)
-            return -1;
-        continue;
+            val <<= 4;
+            val |= (pch - xdigits);
+            if (++seen_xdigits > 4)
+                return -1;
+            continue;
         }
         if (ch == ':') {
-        curtok = src;
-        if (!seen_xdigits) {
-            if (colonp)
-            return -1;
-            colonp = tp;
+            curtok = src;
+            if (!seen_xdigits) {
+                if (colonp)
+                    return -1;
+                colonp = tp;
+                continue;
+            } else if (*src == '\0') {
+                return -1;
+            }
+            if (tp + sizeof(uint16_t) > endp)
+                return -1;
+            *tp++ = (unsigned char)(val >> 8) & 0xff;
+            *tp++ = (unsigned char)val & 0xff;
+            seen_xdigits = 0;
+            val = 0;
             continue;
-        } else if (*src == '\0') {
-            return -1;
-        }
-        if (tp + sizeof(uint16_t) > endp)
-            return -1;
-        *tp++ = (unsigned char) (val >> 8) & 0xff;
-        *tp++ = (unsigned char) val & 0xff;
-        seen_xdigits = 0;
-        val = 0;
-        continue;
         }
         if (ch == '.' && ((tp + sizeof(struct in_addr)) <= endp)) {
-        int err = inet_pton4(curtok, tp);
-        if (err == 0) {
-            tp += sizeof(struct in_addr);
-            seen_xdigits = 0;
-            break;  /*%< '\\0' was seen by inet_pton4(). */
-        }
+            int32_t err = inet_pton4(curtok, tp);
+            if (err == 0) {
+                tp += sizeof(struct in_addr);
+                seen_xdigits = 0;
+                break; /*%< '\\0' was seen by inet_pton4(). */
+            }
         }
         return -1;
     }
     if (seen_xdigits) {
         if (tp + sizeof(uint16_t) > endp)
-        return -1;
-        *tp++ = (unsigned char) (val >> 8) & 0xff;
-        *tp++ = (unsigned char) val & 0xff;
+            return -1;
+        *tp++ = (unsigned char)(val >> 8) & 0xff;
+        *tp++ = (unsigned char)val & 0xff;
     }
     if (colonp != NULL) {
         /*
         * Since some memmove()'s erroneously fail to handle
         * overlapping regions, we'll do the shift by hand.
         */
-        const int n = tp - colonp;
-        int i;
+        const int32_t n = (int32_t)(tp - colonp);
+        int32_t i;
 
         if (tp == endp)
-        return -1;
+            return -1;
         for (i = 1; i <= n; i++) {
-        endp[- i] = colonp[n - i];
-        colonp[n - i] = 0;
+            endp[-i] = colonp[n - i];
+            colonp[n - i] = 0;
         }
         tp = endp;
     }
