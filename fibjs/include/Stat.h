@@ -84,7 +84,7 @@ public:
     void fill(exlib::string path, struct stat64& st);
 
 #ifdef _WIN32
-    void fill(WIN32_FIND_DATAW& fd);
+    void fill(exlib::string path, WIN32_FIND_DATAW& fd);
     void fill(exlib::string path, BY_HANDLE_FILE_INFORMATION& fd);
 #endif
 

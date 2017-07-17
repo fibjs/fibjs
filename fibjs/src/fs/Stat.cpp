@@ -20,8 +20,9 @@ inline double FileTimeToJSTime(FILETIME& ft)
     return (double)(*(int64_t*)&ft - 116444736000000000) / 10000;
 }
 
-void Stat::fill(WIN32_FIND_DATAW& fd)
+void Stat::fill(exlib::string path, WIN32_FIND_DATAW& fd)
 {
+    exlib::string strPath;
     name = utf16to8String(fd.cFileName);
 
     size = ((int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow);
@@ -44,6 +45,8 @@ void Stat::fill(WIN32_FIND_DATAW& fd)
     m_isExecutable = true;
 
     m_isSymbolicLink = false;
+    if (fs_base::cc_readlink(path, strPath) == 0)
+        m_isSymbolicLink = true;
 
     m_isMemory = false;
     m_isSocket = false;
@@ -91,7 +94,7 @@ result_t Stat::getStat(exlib::string path)
     if (hFind == INVALID_HANDLE_VALUE)
         return CHECK_ERROR(LastError());
 
-    fill(fd);
+    fill(path, fd);
     FindClose(hFind);
 
     return 0;
@@ -99,17 +102,7 @@ result_t Stat::getStat(exlib::string path)
 
 result_t Stat::getLstat(exlib::string path)
 {
-    WIN32_FIND_DATAW fd;
-    HANDLE hFind;
-
-    hFind = FindFirstFileW(UTF8_W(path), &fd);
-    if (hFind == INVALID_HANDLE_VALUE)
-        return CHECK_ERROR(LastError());
-
-    fill(path, fd);
-    FindClose(hFind);
-
-    return 0;
+    return getStat(path);
 }
 
 #else

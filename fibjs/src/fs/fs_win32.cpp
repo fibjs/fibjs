@@ -267,7 +267,7 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     WCHAR* w_realpath_buf;
     HANDLE handle;
 
-    if (!pGetFinalPathNameByHandleW)
+    if (!GetFinalPathNameByHandleW)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     handle = CreateFileW(UTF8_W(path),
@@ -280,26 +280,26 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     if (handle == INVALID_HANDLE_VALUE)
         return CHECK_ERROR(LastError());
 
-    w_realpath_len = pGetFinalPathNameByHandleW(handle, NULL, 0, VOLUME_NAME_DOS);
+    w_realpath_len = GetFinalPathNameByHandleW(handle, NULL, 0, VOLUME_NAME_DOS);
     if (w_realpath_len == 0) {
         CloseHandle(handle);
         return CHECK_ERROR(LastError());
     }
 
-    w_realpath_buf = malloc((w_realpath_len + 1) * sizeof(WCHAR));
+    w_realpath_buf = (WCHAR*)malloc((w_realpath_len + 1) * sizeof(WCHAR));
     if (w_realpath_buf == NULL) {
         CloseHandle(handle);
         return CHECK_ERROR(CALL_E_OVERFLOW);
     }
     w_realpath_ptr = w_realpath_buf;
 
-    if (pGetFinalPathNameByHandleW(handle,
+    if (GetFinalPathNameByHandleW(handle,
                                    w_realpath_ptr,
                                    w_realpath_len,
                                    VOLUME_NAME_DOS) == 0) {
         CloseHandle(handle);
         free(w_realpath_buf);
-        return CHECK_ERROR("Invalid File Handle");
+        return CHECK_ERROR(Runtime::setError("Invalid File Handle"));
     }
 
     /* convert UNC path to long path */
@@ -485,6 +485,7 @@ result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::s
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    result_t hr;
     bool isDir = type == "dir";
 
     if (isDir || type == "file")
