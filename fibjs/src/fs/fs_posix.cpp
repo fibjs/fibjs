@@ -139,7 +139,7 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     return 0;
 }
 
-result_t fs_base::symlink(exlib::string target, exlib::string linkpath, AsyncEvent* ac)
+result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::string type, AsyncEvent* ac)
 {
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
