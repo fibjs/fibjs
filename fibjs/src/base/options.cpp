@@ -67,8 +67,6 @@ bool options(int32_t* argc, char* argv[])
         }
     }
 
-    v8::internal::FLAG_harmony = true;
-    v8::internal::FLAG_use_strict = true;
     v8::internal::FLAG_lazy = false;
     v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
 
