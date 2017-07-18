@@ -35,6 +35,10 @@ describe("v8 test", () => {
     it('snapshot', () => {
         assert.isTrue(util.buildInfo().vender['v8-snapshot']);
     })
+
+    it('for (var n in {}) {}', () => {
+        for (var n in {}) {}
+    });
 });
 
 repl && test.run(console.DEBUG);
