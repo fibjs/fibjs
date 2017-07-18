@@ -1,4 +1,52 @@
-/*! @brief 浏览器窗口对象 */
+/*! @brief 浏览器窗口对象
+ WebView 是一个嵌入浏览器的窗口组件，目前仅支持 windows ie。
+ 
+ 由于 WebView 内的 JavaScript 程序与 fibjs 并不在同一个引擎内，所以如果需要与宿主程序进行通讯，需要通过消息进行。
+
+ WebView 用于通讯的对象是 external，external 支持两个方法 postMessage, close 和一个事件 onmessage。
+
+ 一个简单的通讯示例代码如下：
+ ```JavaScript 
+ // index.js
+ var gui = require('gui');
+ var webview = gui.open('fs:index.html');
+
+ webview.onmessage = function(msg) {
+     console.log(msg);
+ }
+
+ webview.postMessage("hello from fibjs");
+
+ webview.wait();
+ ```
+
+ index.html 的内容如下：
+ ```html
+ <script>
+     external.onmessage = function(msg){ 
+         external.postMessage("send back: " + msg);
+     };
+ </script>
+ ```
+ 在 html 中，有一个特殊的消息 "close"，在用户窗口关闭之前，会向 html 内发送此消息。onmessage 收到此消息后，可以决定是否关闭。如果 onmessage 返回 false，则此次操作取消，否则将关闭窗口。
+
+ 以下的例子，会在用户点关闭后等待 5 秒后再关闭窗口。
+ ```html
+ <script lang="JavaScript">
+     var bClose = false;
+     external.onmessage = function (m) {
+         if (m == 'close' && !bClose) {
+             setTimeout(function () {
+				 bClose = true;
+                 external.close();
+             }, 5000);
+             return false;
+         }
+     }
+ </script>
+ ```
+ 上面的代码中，因为 external.close 本身也会触发 "close" 事件，所以需要增加一个开关变量，用于识别是否需要处理此次事件。
+ */
 interface WebView : EventEmitter
 {
     /*! @brief 设置 webview 的页面 html
@@ -14,29 +62,12 @@ interface WebView : EventEmitter
     /*! @brief 关闭当前窗口 */
     close() async;
 
-    /*! @brief 等待当前窗口关闭 */
+    /*! @brief 等待当前窗口关闭	
+	宿主程序在创建窗口后，需要进入等待，否则随着宿主程序的退出，窗口将自动关闭。同时 wait 的调用也并不是必须的，你可以在打开窗口后处理其它业务，只需要保证程序不会自行退出即可。
+	*/
     wait() async;
 
     /*! @brief 向 webview 内发送消息
-
-	```JavaScript 
-	// index.js
-	var gui = require('gui');
-	var webview = gui.open('fs:index.html');
-
-	webview.postMessage("hello from fibjs");
-	```
-
-	```html
-	// index.html
-	<script>
-	window.external.onmessage = function(msg){
-		alert(msg); // 会出现内容为 'hello from fibjs' 的弹窗
-	};
-	</script>
-	```
-
-	 
 	 @param msg 要发送的消息
 	*/
     postMessage(String msg) async;
@@ -49,57 +80,35 @@ interface WebView : EventEmitter
 
     /*! @brief 查询和绑定窗口移动事件，相当于 on("move", func); 
 
-		```JavaScript 
-		var gui = require('gui');
-		var webview = gui.open('fs:index.html');
+	 以下示例会在窗口移动时输出窗口的左上角坐标：
+	 ```JavaScript 
+	 var gui = require('gui');
+	 var webview = gui.open('fs:index.html');
 
-		webview.onmove = function(evt) {
-			console.log(evt.left, evt.top);
-		}
-	 	```
+	 webview.onmove = function(evt) {
+	     console.log(evt.left, evt.top);
+	 }
+	 ```
 	*/
     Function onmove;
 
     /*! @brief 查询和绑定窗口尺寸改变事件，相当于 on("size", func);
 
-		```JavaScript
-		var gui = require('gui');
-		var webview = gui.open('fs:index.html');
+     以下示例会在窗口改变大小时输出窗口的尺寸：
+     ```JavaScript
+     var gui = require('gui');
+     var webview = gui.open('fs:index.html');
 
-		webview.onresize = function(evt) {
-			console.log(evt.width, evt.height);
-		}
-		```
+     webview.onresize = function(evt) {
+         console.log(evt.width, evt.height);
+     }
+     ```
 	*/
     Function onresize;
 
-    /*! @brief 查询和绑定窗口关闭事件，相当于 on("close", func);
-		```JavaScript
-		var gui = require('gui');
-		var webview = gui.open('fs:index.html');
-
-		webview.onclose = function() {}
-	 	```
-	*/
+    /*! @brief 查询和绑定窗口关闭事件，相当于 on("close", func); */
     Function onclose;
 
-    /*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func);
-		```html
-		// index.html
-		<script>
-		window.external.postMessage('hello from html')
-		</script>
-		```
-
-		```JavaScript
-		// index.js
-		var gui = require('gui');
-		var webview = gui.open('fs:index.html');
-
-		webview.onmessage = function(msg) {
-			console.log(msg); // 将会打印 'hello from html'
-		}
-		```
-	*/
+    /*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func); */
     Function onmessage;
 };

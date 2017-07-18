@@ -172,6 +172,9 @@ private:
 
     HRESULT OnPostMessage(DISPPARAMS* pDispParams);
     HRESULT OnOnMessage(DISPPARAMS* pDispParams);
+    HRESULT OnClose(DISPPARAMS* pDispParams);
+
+    result_t postMessage(exlib::string msg, _variant_t& retVal);
 
 protected:
     IStorage* storage;
