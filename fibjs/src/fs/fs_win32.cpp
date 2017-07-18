@@ -48,6 +48,10 @@ typedef struct _REPARSE_DATA_BUFFER {
 
 namespace fibjs {
 
+void init_fs()
+{
+}
+
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 {
     if (!ac)

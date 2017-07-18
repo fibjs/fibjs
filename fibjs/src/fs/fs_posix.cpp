@@ -67,6 +67,11 @@ inline int _copyfile(int ifd, int ofd)
 
 namespace fibjs {
 
+void init_fs()
+{
+    ::umask(0);
+}
+
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 {
     if (!ac)

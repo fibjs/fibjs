@@ -35,13 +35,6 @@ public:
 static std::list<obj_ptr<cache_node>> s_cache;
 static exlib::spinlock s_cachelock;
 
-void init_fs()
-{
-#ifndef _WIN32
-    ::umask(0);
-#endif
-}
-
 result_t fs_base::openFile(exlib::string fname, exlib::string flags,
     obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
 {
