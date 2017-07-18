@@ -48,8 +48,20 @@ typedef struct _REPARSE_DATA_BUFFER {
 
 namespace fibjs {
 
+static BOOLEAN(WINAPI* pCreateSymbolicLink)(
+    LPCWSTR lpSymlinkFileName, LPCWSTR lpTargetFileName, DWORD dwFlags);
+static DWORD(WINAPI* pGetFinalPathNameByHandle)(
+    HANDLE hFile, LPCWSTR lpszFilePath, DWORD cchFilePath, DWORD dwFlags);
+
 void init_fs()
 {
+    HMODULE hKernel = GetModuleHandleA("KERNEL32");
+
+    pCreateSymbolicLink = (BOOLEAN(WINAPI*)(LPCWSTR, LPCWSTR, DWORD))
+        GetProcAddress(hKernel, "CreateSymbolicLinkW");
+
+    pGetFinalPathNameByHandle = (DWORD(WINAPI*)(HANDLE, LPCWSTR, DWORD, DWORD))
+        GetProcAddress(hKernel, "GetFinalPathNameByHandleW");
 }
 
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
@@ -239,6 +251,11 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     if (!ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    if (!pGetFinalPathNameByHandle) {
+        retVal = path;
+        return 0;
+    }
+
     DWORD w_realpath_len;
     WCHAR* w_realpath_ptr = NULL;
     WCHAR* w_realpath_buf;
@@ -254,7 +271,7 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     if (handle == INVALID_HANDLE_VALUE)
         return CHECK_ERROR(LastError());
 
-    w_realpath_len = GetFinalPathNameByHandleW(handle, NULL, 0, VOLUME_NAME_DOS);
+    w_realpath_len = pGetFinalPathNameByHandle(handle, NULL, 0, VOLUME_NAME_DOS);
     if (w_realpath_len == 0) {
         CloseHandle(handle);
         return CHECK_ERROR(LastError());
@@ -267,7 +284,7 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     }
     w_realpath_ptr = w_realpath_buf;
 
-    if (GetFinalPathNameByHandleW(handle,
+    if (pGetFinalPathNameByHandle(handle,
             w_realpath_ptr,
             w_realpath_len,
             VOLUME_NAME_DOS)
@@ -497,7 +514,9 @@ result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::s
     bool isDir = type == "dir";
 
     if (isDir || type == "file") {
-        if (CreateSymbolicLinkW(UTF8_W(linkpath), UTF8_W(target), isDir ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0) == 0)
+        if (!pCreateSymbolicLink)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+        if (pCreateSymbolicLink(UTF8_W(linkpath), UTF8_W(target), isDir ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0) == 0)
             return CHECK_ERROR(LastError());
     } else if (type == "junction") {
         path_base::fullpath(target, target);
