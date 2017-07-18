@@ -101,43 +101,39 @@ result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     char buffer[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
-    REPARSE_DATA_BUFFER* reparse_data = (REPARSE_DATA_BUFFER*) buffer;
+    REPARSE_DATA_BUFFER* reparse_data = (REPARSE_DATA_BUFFER*)buffer;
     WCHAR* w_target;
     DWORD w_target_len;
     DWORD bytes;
     HANDLE handle;
 
     handle = CreateFileW(UTF8_W(path),
-                         0,
-                         0,
-                         NULL,
-                         OPEN_EXISTING,
-                         FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
-                         NULL);
+        0,
+        0,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
+        NULL);
 
     if (handle == INVALID_HANDLE_VALUE)
         return CHECK_ERROR(LastError());
 
     if (!DeviceIoControl(handle,
-                         FSCTL_GET_REPARSE_POINT,
-                         NULL,
-                         0,
-                         buffer,
-                         sizeof buffer,
-                         &bytes,
-                         NULL)) {
+            FSCTL_GET_REPARSE_POINT,
+            NULL,
+            0,
+            buffer,
+            sizeof buffer,
+            &bytes,
+            NULL)) {
         CloseHandle(handle);
         return CHECK_ERROR(LastError());
     }
 
     if (reparse_data->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
         /* Real symlink */
-        w_target = reparse_data->SymbolicLinkReparseBuffer.PathBuffer +
-                   (reparse_data->SymbolicLinkReparseBuffer.SubstituteNameOffset /
-                    sizeof(WCHAR));
-        w_target_len =
-            reparse_data->SymbolicLinkReparseBuffer.SubstituteNameLength /
-            sizeof(WCHAR);
+        w_target = reparse_data->SymbolicLinkReparseBuffer.PathBuffer + (reparse_data->SymbolicLinkReparseBuffer.SubstituteNameOffset / sizeof(WCHAR));
+        w_target_len = reparse_data->SymbolicLinkReparseBuffer.SubstituteNameLength / sizeof(WCHAR);
 
         /* Real symlinks can contain pretty much everything, but the only thing */
         /* we really care about is undoing the implicit conversion to an NT */
@@ -145,26 +141,14 @@ result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent
         /* paths. If the path is win32-namespaced then the user must have */
         /* explicitly made it so, and we better just return the unmodified */
         /* reparse data. */
-        if (w_target_len >= 4 &&
-                w_target[0] == L'\\' &&
-                w_target[1] == L'?' &&
-                w_target[2] == L'?' &&
-                w_target[3] == L'\\') {
+        if (w_target_len >= 4 && w_target[0] == L'\\' && w_target[1] == L'?' && w_target[2] == L'?' && w_target[3] == L'\\') {
             /* Starts with \??\ */
-            if (w_target_len >= 6 &&
-                    ((w_target[4] >= L'A' && w_target[4] <= L'Z') ||
-                     (w_target[4] >= L'a' && w_target[4] <= L'z')) &&
-                    w_target[5] == L':' &&
-                    (w_target_len == 6 || w_target[6] == L'\\')) {
+            if (w_target_len >= 6 && ((w_target[4] >= L'A' && w_target[4] <= L'Z') || (w_target[4] >= L'a' && w_target[4] <= L'z')) && w_target[5] == L':' && (w_target_len == 6 || w_target[6] == L'\\')) {
                 /* \??\<drive>:\ */
                 w_target += 4;
                 w_target_len -= 4;
 
-            } else if (w_target_len >= 8 &&
-                       (w_target[4] == L'U' || w_target[4] == L'u') &&
-                       (w_target[5] == L'N' || w_target[5] == L'n') &&
-                       (w_target[6] == L'C' || w_target[6] == L'c') &&
-                       w_target[7] == L'\\') {
+            } else if (w_target_len >= 8 && (w_target[4] == L'U' || w_target[4] == L'u') && (w_target[5] == L'N' || w_target[5] == L'n') && (w_target[6] == L'C' || w_target[6] == L'c') && w_target[7] == L'\\') {
                 /* \??\UNC\<server>\<share>\ - make sure the final path looks like */
                 /* \\<server>\<share>\ */
                 w_target += 6;
@@ -175,26 +159,15 @@ result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent
 
     } else if (reparse_data->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
         /* Junction. */
-        w_target = reparse_data->MountPointReparseBuffer.PathBuffer +
-                   (reparse_data->MountPointReparseBuffer.SubstituteNameOffset /
-                    sizeof(WCHAR));
-        w_target_len = reparse_data->MountPointReparseBuffer.SubstituteNameLength /
-                       sizeof(WCHAR);
+        w_target = reparse_data->MountPointReparseBuffer.PathBuffer + (reparse_data->MountPointReparseBuffer.SubstituteNameOffset / sizeof(WCHAR));
+        w_target_len = reparse_data->MountPointReparseBuffer.SubstituteNameLength / sizeof(WCHAR);
 
         /* Only treat junctions that look like \??\<drive>:\ as symlink. */
         /* Junctions can also be used as mount points, like \??\Volume{<guid>}, */
         /* but that's confusing for programs since they wouldn't be able to */
         /* actually understand such a path when returned by uv_readlink(). */
         /* UNC paths are never valid for junctions so we don't care about them. */
-        if (!(w_target_len >= 6 &&
-                w_target[0] == L'\\' &&
-                w_target[1] == L'?' &&
-                w_target[2] == L'?' &&
-                w_target[3] == L'\\' &&
-                ((w_target[4] >= L'A' && w_target[4] <= L'Z') ||
-                 (w_target[4] >= L'a' && w_target[4] <= L'z')) &&
-                w_target[5] == L':' &&
-                (w_target_len == 6 || w_target[6] == L'\\'))) {
+        if (!(w_target_len >= 6 && w_target[0] == L'\\' && w_target[1] == L'?' && w_target[2] == L'?' && w_target[3] == L'\\' && ((w_target[4] >= L'A' && w_target[4] <= L'Z') || (w_target[4] >= L'a' && w_target[4] <= L'z')) && w_target[5] == L':' && (w_target_len == 6 || w_target[6] == L'\\'))) {
             CloseHandle(handle);
             return CHECK_ERROR(Runtime::setError("Symlink not supported"));
         }
@@ -268,12 +241,12 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     HANDLE handle;
 
     handle = CreateFileW(UTF8_W(path),
-                         0,
-                         0,
-                         NULL,
-                         OPEN_EXISTING,
-                         FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS,
-                         NULL);
+        0,
+        0,
+        NULL,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS,
+        NULL);
     if (handle == INVALID_HANDLE_VALUE)
         return CHECK_ERROR(LastError());
 
@@ -291,9 +264,10 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     w_realpath_ptr = w_realpath_buf;
 
     if (GetFinalPathNameByHandleW(handle,
-                                   w_realpath_ptr,
-                                   w_realpath_len,
-                                   VOLUME_NAME_DOS) == 0) {
+            w_realpath_ptr,
+            w_realpath_len,
+            VOLUME_NAME_DOS)
+        == 0) {
         CloseHandle(handle);
         free(w_realpath_buf);
         return CHECK_ERROR(Runtime::setError("Invalid File Handle"));
@@ -301,14 +275,16 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
 
     /* convert UNC path to long path */
     if (wcsncmp(w_realpath_ptr,
-                UNC_PATH_PREFIX,
-                UNC_PATH_PREFIX_LEN) == 0) {
+            UNC_PATH_PREFIX,
+            UNC_PATH_PREFIX_LEN)
+        == 0) {
         w_realpath_ptr += 6;
         *w_realpath_ptr = L'\\';
         w_realpath_len -= 6;
     } else if (wcsncmp(w_realpath_ptr,
-                       LONG_PATH_PREFIX,
-                       LONG_PATH_PREFIX_LEN) == 0) {
+                   LONG_PATH_PREFIX,
+                   LONG_PATH_PREFIX_LEN)
+        == 0) {
         w_realpath_ptr += 4;
         w_realpath_len -= 4;
     } else {
@@ -516,19 +492,15 @@ result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::s
     result_t hr;
     bool isDir = type == "dir";
 
-    if (isDir || type == "file")
-    {
+    if (isDir || type == "file") {
         if (CreateSymbolicLinkW(UTF8_W(linkpath), UTF8_W(target), isDir ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0) == 0)
             return CHECK_ERROR(LastError());
-    }
-    else if (type == "junction")
-    {
+    } else if (type == "junction") {
         path_base::fullpath(target, target);
         hr = _create_junction(UTF8_W(target), UTF8_W(linkpath));
         if (hr < 0)
             return hr;
-    }
-    else
+    } else
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     return 0;
