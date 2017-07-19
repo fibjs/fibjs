@@ -1,4 +1,4 @@
-## 2017-07-19, Version v0.9.0-beta.0
+## 2017-07-19, Version v0.9.0
 
 * **feature** :
   * assert: add assert.ifError (#303) (Hengfei Zhuang)
@@ -22,9 +22,8 @@
   * tty: add tty module (#296) (Hengfei Zhuang)
   * util: feat: add isAsyncFunction (#295) (Hengfei Zhuang)
   * v8:
-    - upgrade to v6.1.500 (xicilion)
+    - upgrade to v6.1.539 (xicilion)
     - share ia64 snapshot between posix and windows. (xicilion)
-    - upgrade to 6.1.435, enable snapshot at bootstrap Snapshot. (xicilion)
 
 * **breakchange** :
   * core: remove the default harmony & use_strict flag (#299) (Hengfei Zhuang)
@@ -41,11 +40,12 @@
   * xml: fix document error. (xicilion)
 
 * **deps** :
-  * v8: upgrade v8 to v6.1.500
+  * v8: upgrade v8 to v6.1.539
 
 
 ### Commits
 
+* [[`b7ee5c809f`](https://github.com/fibjs/fibjs/commit/b7ee5c809f)] - **v8, feat**: upgrade to v6.1.539 (xicilion)
 * [[`72589ad38b`](https://github.com/fibjs/fibjs/commit/72589ad38b)] - **gui, break**: rename WebView close event to closed. (xicilion)
 * [[`14283edc8c`](https://github.com/fibjs/fibjs/commit/14283edc8c)] - **fs, feat**: compatible with windows XP. (xicilion)
 * [[`50c130983d`](https://github.com/fibjs/fibjs/commit/50c130983d)] - **fs, refactor**: move init_fs function. (xicilion)
