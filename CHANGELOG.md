@@ -1,3 +1,86 @@
+## 2017-07-19, Version v0.9.0
+
+* **feature** :
+  * assert: add assert.ifError (#303) (Hengfei Zhuang)
+  * db: support trans method to auto control transaction. (xicilion)
+  * encoding: base64 support url mode. (xicilion)
+  * fs:
+    - compatible with windows XP. (xicilion)
+    - complete fs test case, complete fs english doc (#307) (Hengfei Zhuang)
+    - complete symlink realpath readlink methods on windows (#305) (Hengfei Zhuang 
+    - add fs.fchmod fs.fchown fs.fdatasync fs.fsync (#292) (Hengfei Zhuang)
+  * gui: WebView support close method and event. (xicilion)
+  * http:
+    - sort file in index page. (xicilion)
+    - fileHandler support autoIndex. (xicilion)
+    - unlimited download size, support http.maxDownloadSize to change it. (xicilion)
+  * net: add isIP, isIPv4, isIPv6 (#301) (Hengfei Zhuang)
+  * module: add require.cache (#300) (Hengfei Zhuang)
+  * process: support hrtime. (xicilion)
+  * sandbox: resolve the realpath of symlink file. (xicilion)
+  * process: process.exit defaults to 0 (#298) (Hengfei Zhuang)
+  * tty: add tty module (#296) (Hengfei Zhuang)
+  * util: feat: add isAsyncFunction (#295) (Hengfei Zhuang)
+  * v8:
+    - upgrade to v6.1.500 (xicilion)
+    - share ia64 snapshot between posix and windows. (xicilion)
+    - upgrade to 6.1.435, enable snapshot at bootstrap Snapshot. (xicilion)
+
+* **breakchange** :
+  * core: remove the default harmony & use_strict flag (#299) (Hengfei Zhuang)
+  * gui: rename WebView close event to closed. (xicilion)
+
+* **bugfix** :
+  * db: fix compile error on freebsd. (xicilion)
+  * http:
+    - fix compile warning on windows. (xicilion)
+    - test: add index.html test. (xicilion)
+    - maxDownloadSize cannot modify. rename maxDownloadSize to maxBodySize. (xicilion)
+  * net: fix comiple error on windows. (xicilion)
+  * v8: fix crash on windows x86. (xicilion)
+  * xml: fix document error. (xicilion)
+
+* **deps** :
+  * v8: upgrade v8 to v6.1.500
+
+
+### Commits
+
+* [[`72589ad38b`](https://github.com/fibjs/fibjs/commit/72589ad38b)] - **gui, break**: rename WebView close event to closed. (xicilion)
+* [[`14283edc8c`](https://github.com/fibjs/fibjs/commit/14283edc8c)] - **fs, feat**: compatible with windows XP. (xicilion)
+* [[`50c130983d`](https://github.com/fibjs/fibjs/commit/50c130983d)] - **fs, refactor**: move init_fs function. (xicilion)
+* [[`f2aadf38cd`](https://github.com/fibjs/fibjs/commit/f2aadf38cd)] - **fs, refactor**: format source code. (xicilion)
+* [[`20698d6545`](https://github.com/fibjs/fibjs/commit/20698d6545)] - **ci, chore**: delete useless config (#308) (Hengfei Zhuang)
+* [[`4a3ec408d7`](https://github.com/fibjs/fibjs/commit/4a3ec408d7)] - **gui, feat**: WebView support close method and event. (xicilion)
+* [[`55ab9a3eaa`](https://github.com/fibjs/fibjs/commit/55ab9a3eaa)] - **core, break**: remove the default harmony & use_strict flag (#299) (Hengfei Zhuang)
+* [[`7fb6beba84`](https://github.com/fibjs/fibjs/commit/7fb6beba84)] - **v8, bugfix**: fix crash on windows x86. (xicilion)
+* [[`8e79b9e09f`](https://github.com/fibjs/fibjs/commit/8e79b9e09f)] - **fs, feat**: complete fs test case, complete fs english doc (#307) (Hengfei Zhuang)
+* [[`967b602953`](https://github.com/fibjs/fibjs/commit/967b602953)] - **v8, feat**: upgrade to v6.1.500 (xicilion)
+* [[`f6db24bb49`](https://github.com/fibjs/fibjs/commit/f6db24bb49)] - **net, bugfix**: fix comiple error on windows. (xicilion)
+* [[`83513660e4`](https://github.com/fibjs/fibjs/commit/83513660e4)] - **fs, feat**: complete symlink realpath readlink methods on windows (#305) (Hengfei Zhuang 
+* [[`c57323d131`](https://github.com/fibjs/fibjs/commit/c57323d131)] - **net, feat**: add isIP, isIPv4, isIPv6 (#301) (Hengfei Zhuang)
+* [[`d34a3beeae`](https://github.com/fibjs/fibjs/commit/d34a3beeae)] - **module, feat**: add require.cache (#300) (Hengfei Zhuang)
+* [[`29326433e6`](https://github.com/fibjs/fibjs/commit/29326433e6)] - **fs, feat**: add fs.fchmod fs.fchown fs.fdatasync fs.fsync (#292) (Hengfei Zhuang)
+* [[`28c2cb07e8`](https://github.com/fibjs/fibjs/commit/28c2cb07e8)] - **assert, feat**: add assert.ifError (#303) (Hengfei Zhuang)
+* [[`5df852888d`](https://github.com/fibjs/fibjs/commit/5df852888d)] - **assert, break**: allow undefined (#302) (Hengfei Zhuang)
+* [[`da2378cad0`](https://github.com/fibjs/fibjs/commit/da2378cad0)] - **sandbox, feat**: resolve the realpath of symlink file. (xicilion)
+* [[`a747a46eaf`](https://github.com/fibjs/fibjs/commit/a747a46eaf)] - **process, feat**: process.exit defaults to 0 (#298) (Hengfei Zhuang)
+* [[`befdb45ff1`](https://github.com/fibjs/fibjs/commit/befdb45ff1)] - **tty, feat**: add tty module (#296) (Hengfei Zhuang)
+* [[`d332acb156`](https://github.com/fibjs/fibjs/commit/d332acb156)] - **db, bugfix**: fix compile error on freebsd. (xicilion)
+* [[`7ec6c04dde`](https://github.com/fibjs/fibjs/commit/7ec6c04dde)] - **v8, feat**: share ia64 snapshot between posix and windows. (xicilion)
+* [[`56060e9201`](https://github.com/fibjs/fibjs/commit/56060e9201)] - **v8, feat**: upgrade to 6.1.435, enable snapshot at bootstrap Snapshot. (xicilion)
+* [[`d224743bc4`](https://github.com/fibjs/fibjs/commit/d224743bc4)] - **process, feat**: support hrtime. (xicilion)
+* [[`f64415dfe4`](https://github.com/fibjs/fibjs/commit/f64415dfe4)] - **util, feat**, feat: add isAsyncFunction (#295) (Hengfei Zhuang)
+* [[`9736723003`](https://github.com/fibjs/fibjs/commit/9736723003)] - **encoding, feat**: base64 support url mode. (xicilion)
+* [[`856aaf660e`](https://github.com/fibjs/fibjs/commit/856aaf660e)] - **db, feat**: support trans method to auto control transaction. (xicilion)
+* [[`7e5933621f`](https://github.com/fibjs/fibjs/commit/7e5933621f)] - **xml, bugfix**: fix document error. (xicilion)
+* [[`8a381a2786`](https://github.com/fibjs/fibjs/commit/8a381a2786)] - **http, bugfix**: fix compile warning on windows. (xicilion)
+* [[`364827698c`](https://github.com/fibjs/fibjs/commit/364827698c)] - **crypto, refactor**: use the alias to implement the pbkdf2Sync (#294) (Hengfei Zhuang)
+* [[`9f37e2fb46`](https://github.com/fibjs/fibjs/commit/9f37e2fb46)] - **http, feat**: sort file in index page. (xicilion)
+* [[`5f6d41b09f`](https://github.com/fibjs/fibjs/commit/5f6d41b09f)] - **http, feat**: fileHandler support autoIndex. (xicilion)
+* [[`60c36574fb`](https://github.com/fibjs/fibjs/commit/60c36574fb)] - **http, bugfix**: test: add index.html test. (xicilion)
+* [[`f05b605fd2`](https://github.com/fibjs/fibjs/commit/f05b605fd2)] - **http, bugfix**: bug: maxDownloadSize cannot modify. rename maxDownloadSize to maxBodySize. (xicilion)
+* [[`ff0c6f4147`](https://github.com/fibjs/fibjs/commit/ff0c6f4147)] - **http, feat**: unlimited download size, support http.maxDownloadSize to change it. (xicilion)
 
 ## 2017-07-08, Version v0.8.0
 
@@ -231,7 +314,7 @@
 * [[`5d8fd217e2`](https://github.com/fibjs/fibjs/commit/5d8fd217e2)] - **docs, feat**: readme (xicilion)
 * [[`eca569b8ea`](https://github.com/fibjs/fibjs/commit/eca569b8ea)] - **docs, feat**: check  document  of return. (xicilion)
 * [[`7528fed61f`](https://github.com/fibjs/fibjs/commit/7528fed61f)] - **docs, feat**: check the comment. (xicilion)
-* [[`cd44aa977d`](https://github.com/fibjs/fibjs/commit/cd44aa977d)] - 文档输出修饰，输出对象 (xicilion)
+* [[`cd44aa977d`](https://github.com/fibjs/fibjs/commit/cd44aa977d)] - **docs, feat**: 文档输出修饰, 输出对象 (xicilion)
 * [[`9aacc04bad`](https://github.com/fibjs/fibjs/commit/9aacc04bad)] - **docs, fixbug**: fix style. (xicilion)
 * [[`1d2f525021`](https://github.com/fibjs/fibjs/commit/1d2f525021)] - **docs, feat**: rewrite with markdown. (xicilion)
 * [[`1f7bf9a673`](https://github.com/fibjs/fibjs/commit/1f7bf9a673)] - **docs, feat**: group members of the same name (xicilion)
@@ -479,7 +562,7 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
   * add `util.compile` method. JavaScript code can be built into ByteCode with `.jsc` extension and it can be required like `require('mod.jsc')`. This is very useful to ship production and protect you code.
   * support virtual zip path. You can pacck you code into a zip file and just require it like this: `require('./test.zip?/b.js'))`
   * syntax check after load error to speed the require.
-  * SandBox.require adding base argv，set the start query dir
+  * SandBox.require adding base argv, set the start query dir
   * package.json support directory.
   * sandbox add --approot to set the run path.
   * remove the sandbox name from the source path
@@ -488,7 +571,7 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * **rpc**:
   * remove rpc module. Please use coroutine.Worker instead.
 * **events**:
-  * remove Trigger Object，use events.EventEmitter instead.
+  * remove Trigger Object, use events.EventEmitter instead.
 * **http**:
   * remove Message.result property
   * add HttpMessage.socket
@@ -517,13 +600,13 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * [[`f1b89d3`](https://github.com/fibjs/fibjs/commit/f1b89d3)] - **http, refactor**: reuse request.cookies (xicilion)
 * [[`3624e39`](https://github.com/fibjs/fibjs/commit/3624e39)] - **mq, remove**: remove mq.jsHandler (xicilion)
 * [[`b7d5efd`](https://github.com/fibjs/fibjs/commit/b7d5efd)] - **rpc, remove**: remove rpc module, use coroutine.Worker instead. (xicilion)
-* [[`059e771`](https://github.com/fibjs/fibjs/commit/059e771)] - **http, refactor**: reuse request，avoid too many objects created (xicilion)
+* [[`059e771`](https://github.com/fibjs/fibjs/commit/059e771)] - **http, refactor**: reuse request, avoid too many objects created (xicilion)
 * [[`298530f`](https://github.com/fibjs/fibjs/commit/298530f)] - **coroutine, feat**: implement native object passing (xicilion)
 * [[`4436f62`](https://github.com/fibjs/fibjs/commit/4436f62)] - **coroutine, feat**: implement Worker message passing (xicilion)
-* [[`ddc13b8`](https://github.com/fibjs/fibjs/commit/ddc13b8)] - **coroutine, feat**: implement Worker basic message passing，onopen event. (xicilion)
+* [[`ddc13b8`](https://github.com/fibjs/fibjs/commit/ddc13b8)] - **coroutine, feat**: implement Worker basic message passing, onopen event. (xicilion)
 * [[`326a677`](https://github.com/fibjs/fibjs/commit/326a677)] - **os, feat**: add mac address & mask (ngot)
 * [[`0796c51`](https://github.com/fibjs/fibjs/commit/0796c51)] - **mq, remove**: remove mq.await, please use sync instead. (xicilion)
-* [[`a1219dc`](https://github.com/fibjs/fibjs/commit/a1219dc)] - **module, refactor**: sandbox.run support different mod，add compile argv，compile different target. (xicilion)
+* [[`a1219dc`](https://github.com/fibjs/fibjs/commit/a1219dc)] - **module, refactor**: sandbox.run support different mod, add compile argv, compile different target. (xicilion)
 * [[`642ddcb`](https://github.com/fibjs/fibjs/commit/642ddcb)] - **zip, fix**: ZipFile  add entry check (xicilion)
 * [[`3773f1a`](https://github.com/fibjs/fibjs/commit/3773f1a)] - **coroutine, feat**: add Worker (xicilion)
 * [[`7e9db7d`](https://github.com/fibjs/fibjs/commit/7e9db7d)] - **net, fix**: fix remotePort ntohs remotePort (#200) (Hengfei)
@@ -533,9 +616,9 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * [[`d18f338`](https://github.com/fibjs/fibjs/commit/d18f338)] - **core, remove**: remove ppc arch support. (xicilion)
 * [[`a0f78f2`](https://github.com/fibjs/fibjs/commit/a0f78f2)] - **util, feat**: LruCache support modifies timeout when invoked. (xicilion)
 * [[`0be9fc3`](https://github.com/fibjs/fibjs/commit/0be9fc3)] - **db, fix**: redis pubsub avoid reentry. (xicilion)
-* [[`3911558`](https://github.com/fibjs/fibjs/commit/3911558)] - **ws, refactor**: dalay web socket at background read，avoid miss event. (xicilion)
+* [[`3911558`](https://github.com/fibjs/fibjs/commit/3911558)] - **ws, refactor**: dalay web socket at background read, avoid miss event. (xicilion)
 * [[`9437cfc`](https://github.com/fibjs/fibjs/commit/9437cfc)] - **fs, fix**: fix file.stat on windows (ngot)
-* [[`3480a0c`](https://github.com/fibjs/fibjs/commit/3480a0c)] - **ssl, feat**: add SslSocket.stream，to query the socket (xicilion)
+* [[`3480a0c`](https://github.com/fibjs/fibjs/commit/3480a0c)] - **ssl, feat**: add SslSocket.stream, to query the socket (xicilion)
 * [[`cbd4480`](https://github.com/fibjs/fibjs/commit/cbd4480)] - **collection, feat**: add List.lastIndexOf (onc3young)
 * [[`17393ee`](https://github.com/fibjs/fibjs/commit/17393ee)] - **http, remove**: remove Message.result (xicilion)
 * [[`f72bcb7`](https://github.com/fibjs/fibjs/commit/f72bcb7)] - **rpc, remove**: remove rpc.json (xicilion)
@@ -553,9 +636,9 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * [[`30dd890`](https://github.com/fibjs/fibjs/commit/30dd890)] - **registry, fix**: fix a logic error. (xicilion)
 * [[`2301a94`](https://github.com/fibjs/fibjs/commit/2301a94)] - **gui, feat**: add gui.setVersion to chose the webview version. (xicilion)
 * [[`325b498`](https://github.com/fibjs/fibjs/commit/325b498)] - **collection. feat**: add Map.set (xicilion)
-* [[`26a8c1b`](https://github.com/fibjs/fibjs/commit/26a8c1b)] - **crypto, feat**: modify pbkdf2 ，compat nodejs (xicilion)
+* [[`26a8c1b`](https://github.com/fibjs/fibjs/commit/26a8c1b)] - **crypto, feat**: modify pbkdf2 , compat nodejs (xicilion)
 * [[`b61b9d9`](https://github.com/fibjs/fibjs/commit/b61b9d9)] - **http, feat**: Add Message.end to terminate chain transaction. (xicilion)
-* [[`232657c`](https://github.com/fibjs/fibjs/commit/232657c)] - **http, refactor**: reuse Message.response，refactor httpHandler creates new instance by every request. (xicilion)
+* [[`232657c`](https://github.com/fibjs/fibjs/commit/232657c)] - **http, refactor**: reuse Message.response, refactor httpHandler creates new instance by every request. (xicilion)
 * [[`bac5eb3`](https://github.com/fibjs/fibjs/commit/bac5eb3)] - **module, refactor**: syntax check after load error to speed the require. (xicilion)
 * [[`47ee1ae`](https://github.com/fibjs/fibjs/commit/47ee1ae)] - **process, feat**: process extends EventEmitter (xicilion)
 * [[`538f16f`](https://github.com/fibjs/fibjs/commit/538f16f)] - **ws, feat**: complete error handles logic. (xicilion)
@@ -567,7 +650,7 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * [[`4113654`](https://github.com/fibjs/fibjs/commit/4113654)] - **ws, feat**: add close & response protocol (xicilion)
 * [[`77ae331`](https://github.com/fibjs/fibjs/commit/77ae331)] - **ws, refactor**: WebSocket.close default code to 1000 (xicilion)
 * [[`1568ee0`](https://github.com/fibjs/fibjs/commit/1568ee0)] - **io, refactor**: bridge use async post start worker flow. (xicilion)
-* [[`267defa`](https://github.com/fibjs/fibjs/commit/267defa)] - **ws, feat**: add ws.upgrade，implement the Event-Driver ws server. (xicilion)
+* [[`267defa`](https://github.com/fibjs/fibjs/commit/267defa)] - **ws, feat**: add ws.upgrade, implement the Event-Driver ws server. (xicilion)
 * [[`ce3bcbb`](https://github.com/fibjs/fibjs/commit/ce3bcbb)] - **querystring, feat**: add querystring module. (xicilion)
 * [[`b5acc55`](https://github.com/fibjs/fibjs/commit/b5acc55)] - **gui, feat**: Webview add setHtml & print. (xicilion)
 * [[`9155774`](https://github.com/fibjs/fibjs/commit/9155774)] - **gui, refactor**: Webview set the init window size. (xicilion)
@@ -580,7 +663,7 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * [[`8206d37`](https://github.com/fibjs/fibjs/commit/8206d37)] - **fs, fix**: fix the error Linux fs.open never throw the error. (xicilion)
 * [[`4d96ebd`](https://github.com/fibjs/fibjs/commit/4d96ebd)] - **ws, refactor**: rename websocket to ws (xicilion)
 * [[`e631090`](https://github.com/fibjs/fibjs/commit/e631090)] - **db, refactor**: redis change onxxxx to property. (xicilion)
-* [[`b76d1a9`](https://github.com/fibjs/fibjs/commit/b76d1a9)] - **events, remove**: remove Trigger Object，use EventEmitter instead. (xicilion)
+* [[`b76d1a9`](https://github.com/fibjs/fibjs/commit/b76d1a9)] - **events, remove**: remove Trigger Object, use EventEmitter instead. (xicilion)
 * [[`9b76ee6`](https://github.com/fibjs/fibjs/commit/9b76ee6)] - **module, remove**: remove __sbname support (xicilion)
 * [[`5b8f29a`](https://github.com/fibjs/fibjs/commit/5b8f29a)] - **util, feat**: info add zmq version (xicilion)
 * [[`995e54a`](https://github.com/fibjs/fibjs/commit/995e54a)] - **zmq, feat**: add zmq module (xicilion)
@@ -592,7 +675,7 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * [[`da1656c`](https://github.com/fibjs/fibjs/commit/da1656c)] - **process, feat**: add process.umask() (ngot)
 * [[`d1a8bcd`](https://github.com/fibjs/fibjs/commit/d1a8bcd)] - **coroutine, feat**: lock adds count to query task info. (xicilion)
 * [[`ff3c494`](https://github.com/fibjs/fibjs/commit/ff3c494)] - **process, feat**: add process.uptime (ngot)
-* [[`8134e68`](https://github.com/fibjs/fibjs/commit/8134e68)] - **db, fix**: mongodb change mongodb m_conn struct，avoid out of bounds errors. (xicilion)
+* [[`8134e68`](https://github.com/fibjs/fibjs/commit/8134e68)] - **db, fix**: mongodb change mongodb m_conn struct, avoid out of bounds errors. (xicilion)
 * [[`1584c81`](https://github.com/fibjs/fibjs/commit/1584c81)] - **core, refactor**: exit wait all the async invoke & timer. (xicilion)
 * [[`b3023ca`](https://github.com/fibjs/fibjs/commit/b3023ca)] - **coroutine, refactor**: coroutine.sleep use async way. (xicilion)
 * [[`7c9e1b7`](https://github.com/fibjs/fibjs/commit/7c9e1b7)] - **core, refactor**: exit before all the fibers exit. (xicilion)
@@ -601,7 +684,7 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * [[`8b76da5`](https://github.com/fibjs/fibjs/commit/8b76da5)] - **fs, refactor**: POSIX init umask to 0 (xicilion)
 * [[`93bf249`](https://github.com/fibjs/fibjs/commit/93bf249)] - **fs, feat**: more Sync API. (xicilion)
 * [[`0b094f0`](https://github.com/fibjs/fibjs/commit/0b094f0)] - **fs, refactor**: change windows readdir. (xicilion)
-* [[`013ac91`](https://github.com/fibjs/fibjs/commit/013ac91)] - **fs, refactor**: change the fs.readdir result，add readdirSync. (xicilion)
+* [[`013ac91`](https://github.com/fibjs/fibjs/commit/013ac91)] - **fs, refactor**: change the fs.readdir result, add readdirSync. (xicilion)
 * [[`edcc5ca`](https://github.com/fibjs/fibjs/commit/edcc5ca)] - **collection, feat**: List support sort (xicilion)
 * [[`d332d58`](https://github.com/fibjs/fibjs/commit/d332d58)] - **collection, feat**: List support callback args (xicilion)
 * [[`95663b8`](https://github.com/fibjs/fibjs/commit/95663b8)] - **url, refactor**: Url property can be modified. (xicilion)
@@ -609,11 +692,11 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * [[`5f951c1`](https://github.com/fibjs/fibjs/commit/5f951c1)] - **core, feat**: callback supports async lock. (xicilion)
 * [[`a48fada`](https://github.com/fibjs/fibjs/commit/a48fada)] - **global, refactor**: sync throw error to outside. (xicilion)
 * [[`66b0e0b`](https://github.com/fibjs/fibjs/commit/66b0e0b)] - **db, fix**: SQLite execute add lock avoid a crash. (xicilion)
-* [[`72a058f`](https://github.com/fibjs/fibjs/commit/72a058f)] - **db, refactor**: DBResult fields，insertId，affected return the default value without throw error. (xicilion)
-* [[`d55ae30`](https://github.com/fibjs/fibjs/commit/d55ae30)] - **module, feat**: SandBox.require adding base argv，set the start query dir. (xicilion)
+* [[`72a058f`](https://github.com/fibjs/fibjs/commit/72a058f)] - **db, refactor**: DBResult fields, insertId, affected return the default value without throw error. (xicilion)
+* [[`d55ae30`](https://github.com/fibjs/fibjs/commit/d55ae30)] - **module, feat**: SandBox.require adding base argv, set the start query dir. (xicilion)
 * [[`7f72bea`](https://github.com/fibjs/fibjs/commit/7f72bea)] - **process, feat**: add process.nextTick (xicilion)
 * [[`8909cdc`](https://github.com/fibjs/fibjs/commit/8909cdc)] - **global, fix**: fix sync when err is null the mistake throw. (xicilion)
-* [[`6999331`](https://github.com/fibjs/fibjs/commit/6999331)] - **url, feat**: url.parse add parseQueryString， (xicilion)
+* [[`6999331`](https://github.com/fibjs/fibjs/commit/6999331)] - **url, feat**: url.parse add parseQueryString,  (xicilion)
 * [[`a443e76`](https://github.com/fibjs/fibjs/commit/a443e76)] - **db, feat**: SQLite add DBConnection type to detect the current connection. (xicilion)
 * [[`4d2a6f1`](https://github.com/fibjs/fibjs/commit/4d2a6f1)] - **process, feat**: add process.version (ngot)
 * [[`423c1ea`](https://github.com/fibjs/fibjs/commit/423c1ea)] - **net, refactor**: restore the net.UrlObject to net.Url (xicilion)
@@ -626,18 +709,18 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * [[`de5e5b3`](https://github.com/fibjs/fibjs/commit/de5e5b3)] - **module, feat**: package.json support directory. (xicilion)
 * [[`0a20b2d`](https://github.com/fibjs/fibjs/commit/0a20b2d)] - **console, fix**: fix osx ESC. (xicilion)
 * [[`b72efaa`](https://github.com/fibjs/fibjs/commit/b72efaa)] - **http, feat**: httpClient add more method. (xicilion)
-* [[`cb25286`](https://github.com/fibjs/fibjs/commit/cb25286)] - **core, fix**: release callback function，avoid memory leak. (xicilion)
+* [[`cb25286`](https://github.com/fibjs/fibjs/commit/cb25286)] - **core, fix**: release callback function, avoid memory leak. (xicilion)
 * [[`750cdf0`](https://github.com/fibjs/fibjs/commit/750cdf0)] - **io, feat**: add io.bridge for stream forward both direction. (xicilion)
 * [[`059bab9`](https://github.com/fibjs/fibjs/commit/059bab9)] - **io, feat**: add io.copyStream (xicilion)
 * [[`b4e95fe`](https://github.com/fibjs/fibjs/commit/b4e95fe)] - **http, feat**: httpClient add default userAgent. (xicilion)
 * [[`7d61d13`](https://github.com/fibjs/fibjs/commit/7d61d13)] - **url: Add**:url module. (xicilion)
 * [[`50a5d35`](https://github.com/fibjs/fibjs/commit/50a5d35)] - **net, refactor**: rename net.Url to net.UrlObject (xicilion)
 * [[`18591b7`](https://github.com/fibjs/fibjs/commit/18591b7)] - **net, feat**: Socket support UDP. (xicilion)
-* [[`7122959`](https://github.com/fibjs/fibjs/commit/7122959)] - **global, feat**: add global，compat Node.js (xicilion)
+* [[`7122959`](https://github.com/fibjs/fibjs/commit/7122959)] - **global, feat**: add global, compat Node.js (xicilion)
 * [[`7fe69e6`](https://github.com/fibjs/fibjs/commit/7fe69e6)] - **db, feat**: SQLite add SQLITE_BUSY support. (xicilion)
-* [[`cbde0fb`](https://github.com/fibjs/fibjs/commit/cbde0fb)] - **db, fix**: sqlite prepare retry，avoid error. (xicilion)
+* [[`cbde0fb`](https://github.com/fibjs/fibjs/commit/cbde0fb)] - **db, fix**: sqlite prepare retry, avoid error. (xicilion)
 * [[`6f3e634`](https://github.com/fibjs/fibjs/commit/6f3e634)] - **coroutine, feat**: parallel add a new mode. (xicilion)
-* [[`30b8a87`](https://github.com/fibjs/fibjs/commit/30b8a87)] - **mq, refactor**: adjust Routing match sequeue，add put method. (xicilion)
+* [[`30b8a87`](https://github.com/fibjs/fibjs/commit/30b8a87)] - **mq, refactor**: adjust Routing match sequeue, add put method. (xicilion)
 * [[`5e22575`](https://github.com/fibjs/fibjs/commit/5e22575)] - **http, fix**: fix httphandler zip error. (xicilion)
 * [[`9fd0ce4`](https://github.com/fibjs/fibjs/commit/9fd0ce4)] - **gui, feat**: webview support DPI. (xicilion)
 * [[`1ef9a62`](https://github.com/fibjs/fibjs/commit/1ef9a62)] - **gui, feat**: webview on HD display auto scale. (xicilion)
@@ -647,7 +730,7 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * [[`43832a7`](https://github.com/fibjs/fibjs/commit/43832a7)] - **fs, feat**: fs.open cache the zip file, speed require. (xicilion)
 * [[`d6c4b71`](https://github.com/fibjs/fibjs/commit/d6c4b71)] - **fs, fix**: fix fs.open zip logic error on windows. (xicilion)
 * [[`e1a0fdf`](https://github.com/fibjs/fibjs/commit/e1a0fdf)] - **encodeing, fix**: fix utf16 encoding error. (xicilion)
-* [[`c30506c`](https://github.com/fibjs/fibjs/commit/c30506c)] - **gui, feat**: webview handle PARSE_SECURITY_DOMAIN，support xmlhttp make a request. (xicilion)
+* [[`c30506c`](https://github.com/fibjs/fibjs/commit/c30506c)] - **gui, feat**: webview handle PARSE_SECURITY_DOMAIN, support xmlhttp make a request. (xicilion)
 * [[`cb8df8b`](https://github.com/fibjs/fibjs/commit/cb8df8b)] - **fs, fix**:  fix fs.stat & File.stat error on window xp. (xicilion)
 * [[`a941e5f`](https://github.com/fibjs/fibjs/commit/a941e5f)] - **module, feat**: sandbox add --approot to set the run path. (xicilion)
 * [[`e192bf0`](https://github.com/fibjs/fibjs/commit/e192bf0)] - **gui, refactor**: webview close the javascript error report. (xicilion)
@@ -672,7 +755,7 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * [[`ed14cb1`](https://github.com/fibjs/fibjs/commit/ed14cb1)] - **module, feat**: require supprt .zip? extension. (xicilion)
 * [[`db8e099`](https://github.com/fibjs/fibjs/commit/db8e099)] - **fs, feat**: fs.open support virtual zip path. (xicilion)
 * [[`f32d777`](https://github.com/fibjs/fibjs/commit/f32d777)] - **fs, refactor**:  fs.open return SeekableStream type. (xicilion)
-* [[`e2b3f4b`](https://github.com/fibjs/fibjs/commit/e2b3f4b)] - **gui, feat**: add gui mode，add windows mode entry. (xicilion)
+* [[`e2b3f4b`](https://github.com/fibjs/fibjs/commit/e2b3f4b)] - **gui, feat**: add gui mode, add windows mode entry. (xicilion)
 * [[`11d999e`](https://github.com/fibjs/fibjs/commit/11d999e)] - **gui, feat**: webview logo (xicilion)
 * [[`9f6f9bf`](https://github.com/fibjs/fibjs/commit/9f6f9bf)] - **module, remove**: remove the sandbox name from the source path. (xicilion)
 * [[`1f09d6f`](https://github.com/fibjs/fibjs/commit/1f09d6f)] - **fs, refactor**: fs.readFile return Buffer Object and add fs.readTextFile for txt read. (xicilion)
@@ -704,7 +787,7 @@ v0.3.0 is a pre-release update version of fibjs. There are many exciting feature
 * [[`d470614`](https://github.com/fibjs/fibjs/commit/d470614)] - **console, feat**: add moveTo, hideCursor, showCursor, clear (xicilion)
 * [[`0596f18`](https://github.com/fibjs/fibjs/commit/0596f18)] - **console, fix**: fix console.timeEnd interger overflow error (asionius)
 * [[`09ed0fc`](https://github.com/fibjs/fibjs/commit/09ed0fc)] - **SubProcess, fix**: fix the timer create an error of SubProcess on windows. (asionius)
-* [[`c0f17ec`](https://github.com/fibjs/fibjs/commit/c0f17ec)] - **console, feat**: add width，height for query or set the console size. (xicilion)
+* [[`c0f17ec`](https://github.com/fibjs/fibjs/commit/c0f17ec)] - **console, feat**: add width, height for query or set the console size. (xicilion)
 * [[`94cecb3`](https://github.com/fibjs/fibjs/commit/94cecb3)] - **http, feat**: add httpClient (asionius)
 * [[`f259bcc`](https://github.com/fibjs/fibjs/commit/f259bcc)] - **core, feat**: support mips arch (xicilion)
 * [[`f94b0ee`](https://github.com/fibjs/fibjs/commit/f94b0ee)] - **Socket, feat**: socket add timeout (xicilion)
