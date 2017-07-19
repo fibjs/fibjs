@@ -106,8 +106,8 @@ interface WebView : EventEmitter
 	*/
     Function onresize;
 
-    /*! @brief 查询和绑定窗口关闭事件，相当于 on("close", func); */
-    Function onclose;
+    /*! @brief 查询和绑定窗口关闭事件，WebView 关闭后会触发此时间，相当于 on("closed", func); */
+    Function onclosed;
 
     /*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func); */
     Function onmessage;

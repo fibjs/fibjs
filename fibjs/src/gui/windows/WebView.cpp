@@ -701,8 +701,8 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
             SetWindowLongPtr(hWnd, 0, 0);
 
-            Variant v = new EventInfo(webView1, "close");
-            webView1->_emit("close", &v, 1);
+            Variant v = new EventInfo(webView1, "closed");
+            webView1->_emit("closed", &v, 1);
 
             webView1->clear();
             webView1->Release();
