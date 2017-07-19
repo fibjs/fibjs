@@ -6,7 +6,7 @@ var db = require('db');
 var encoding = require('encoding');
 var coroutine = require('coroutine');
 
-var test_util = require('test_util');
+var test_util = require('./test_util');
 
 var dbs = "redis://127.0.0.1";
 

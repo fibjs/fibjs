@@ -3,6 +3,8 @@ test.setup();
 
 var coroutine = require('coroutine');
 var util = require('util');
+var path = require('path');
+var process = require('process');
 
 describe("v8 test", () => {
     it("not hangup", () => {
@@ -39,6 +41,12 @@ describe("v8 test", () => {
     it('for (var n in {}) {}', () => {
         for (var n in {}) {}
     });
+
+    if (global.full_test)
+        it('hash seed', () => {
+            assert.notEqual(process.open(process.execPath, [path.join(__dirname, 'v8_seed_test.js')]).readLine(),
+                process.open(process.execPath, [path.join(__dirname, 'v8_seed_test.js')]).readLine());
+        });
 });
 
 repl && test.run(console.DEBUG);
