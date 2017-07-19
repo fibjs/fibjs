@@ -1,4 +1,4 @@
-## 2017-07-19, Version v0.9.0
+## 2017-07-19, Version v0.9.0-beta.0
 
 * **feature** :
   * assert: add assert.ifError (#303) (Hengfei Zhuang)
