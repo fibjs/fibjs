@@ -51,7 +51,7 @@ union inetAddr {
     exlib::string str();
 };
 
-static int32_t inet_pton4(const char* src, void* dst)
+inline int32_t inet_pton4(const char* src, void* dst)
 {
     static const char digits[] = "0123456789";
     int32_t saw_digit, octets, ch;
@@ -92,7 +92,7 @@ static int32_t inet_pton4(const char* src, void* dst)
     return 0;
 }
 
-static int32_t inet_pton6(const char* src, void* dst)
+inline int32_t inet_pton6(const char* src, void* dst)
 {
     static const char xdigits_l[] = "0123456789abcdef",
                       xdigits_u[] = "0123456789ABCDEF";
