@@ -7,6 +7,7 @@ var fs = require("fs");
 var os = require("os");
 var encoding = require("encoding");
 var hex = require("hex");
+var path = require("path");
 
 var rsa1024_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
     "MIICXQIBAAKBgQDSbmW8qlarL0lLu1XYcg+ocJgcuq5K7EgLcXyy2shAsko7etmZ\n" +
@@ -177,7 +178,7 @@ describe('crypto', () => {
     describe('Cipher', () => {
         function test_cipher(provider, file) {
             it(file, () => {
-                var cases = encoding.json.decode(fs.readTextFile(__dirname + "/crypto_case/" + file + ".json"));
+                var cases = encoding.json.decode(fs.readTextFile(path.join(__dirname, "crypto_case", file + ".json")));
 
                 cases.forEach((item) => {
                     var c;
@@ -426,10 +427,10 @@ describe('crypto', () => {
         var cert = new crypto.X509Cert();
 
         it("load", () => {
-            var fl = fs.readdir(__dirname + '/cert_files/');
+            var fl = fs.readdir(path.join(__dirname, 'cert_files'));
             fl.forEach((s) => {
                 if (s.match(/\.crt/))
-                    cert.load(fs.readTextFile(__dirname + '/cert_files/' + s));
+                    cert.load(fs.readTextFile(path.join(__dirname, 'cert_files', s)));
             });
         });
 
@@ -455,10 +456,10 @@ describe('crypto', () => {
             cert.clear();
             assert.deepEqual(cert.dump(), []);
 
-            var fl = fs.readdir(__dirname + '/cert_files/');
+            var fl = fs.readdir(path.join(__dirname, 'cert_files'));
             fl.forEach((s) => {
                 if (s.match(/\.crt/))
-                    cert.loadFile(__dirname + '/cert_files/' + s);
+                    cert.loadFile(path.join(__dirname, 'cert_files', s));
             });
 
             assert.deepEqual(cert.dump(), s);
@@ -468,14 +469,14 @@ describe('crypto', () => {
             cert.clear();
             assert.deepEqual(cert.dump(), []);
 
-            cert.load(fs.readTextFile(__dirname + '/cert_files/certdata.txt'));
+            cert.load(fs.readTextFile(path.join(__dirname, 'cert_files', 'certdata.txt')));
             var s = cert.dump();
             assert.notDeepEqual(s, []);
 
             cert.clear();
             assert.deepEqual(cert.dump(), []);
 
-            cert.load(fs.readTextFile(__dirname + '/cert_files/ca-bundle.crt'));
+            cert.load(fs.readTextFile(path.join(__dirname, 'cert_files', 'ca-bundle.crt')));
             var s1 = cert.dump();
 
             assert.deepEqual(s.slice(s.length - s1.length), s1);
@@ -485,7 +486,7 @@ describe('crypto', () => {
             cert.clear();
             assert.deepEqual(cert.dump(), []);
 
-            cert.load(fs.readTextFile(__dirname + '/cert_files/ca-bundle.crt'));
+            cert.load(fs.readTextFile(path.join(__dirname, 'cert_files', 'ca-bundle.crt')));
             var s = cert.dump();
 
             cert.clear();
@@ -528,7 +529,7 @@ describe('crypto', () => {
 
         it("unknown format", () => {
             assert.throws(() => {
-                cert.load(__dirname + '/cert_files/certdata.txt');
+                cert.load(path.join(__dirname, 'cert_files', 'certdata.txt'));
             });
         });
 
@@ -568,10 +569,10 @@ describe('crypto', () => {
         var crl = new crypto.X509Crl();
 
         it("load", () => {
-            var fl = fs.readdir(__dirname + '/crl_files/');
+            var fl = fs.readdir(path.join(__dirname, 'crl_files'));
             fl.forEach((s) => {
                 if (s.match(/\.pem/))
-                    crl.load(fs.readTextFile(__dirname + '/crl_files/' + s));
+                    crl.load(fs.readTextFile(path.join(__dirname, 'crl_files', s)));
             });
         });
 
@@ -597,10 +598,10 @@ describe('crypto', () => {
             var s = crl.dump();
             crl.clear();
 
-            var fl = fs.readdir(__dirname + '/crl_files/');
+            var fl = fs.readdir(path.join(__dirname, 'crl_files'));
             fl.forEach((s) => {
                 if (s.match(/\.pem/))
-                    crl.loadFile(__dirname + '/crl_files/' + s);
+                    crl.loadFile(path.join(__dirname, 'crl_files', s));
             });
 
             assert.deepEqual(crl.dump(), s);
@@ -612,10 +613,10 @@ describe('crypto', () => {
         var req = new crypto.X509Req();
 
         it("load", () => {
-            var fl = fs.readdir(__dirname + '/req_files/');
+            var fl = fs.readdir(path.join(__dirname, 'req_files'));
             fl.forEach((s) => {
                 if (s.match(/\.req/))
-                    req.load(fs.readTextFile(__dirname + '/req_files/' + s));
+                    req.load(fs.readTextFile(path.join(__dirname, 'req_files', s)));
             });
         });
 

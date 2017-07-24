@@ -3,6 +3,7 @@ test.setup();
 
 var test_util = require('./test_util');
 
+var path = require('path');
 var os = require('os');
 var net = require('net');
 var util = require('util');
@@ -276,7 +277,7 @@ describe('coroutine', () => {
         var worker;
 
         it("new", () => {
-            worker = new coroutine.Worker(__dirname + '/worker_main.js');
+            worker = new coroutine.Worker(path.join(__dirname, 'worker_main.js'));
         });
 
         describe("message", () => {

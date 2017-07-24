@@ -6,6 +6,7 @@ var test_util = require('./test_util');
 var vm = require('vm');
 var os = require('os');
 var fs = require('fs');
+var path = require('path');
 var coroutine = require('coroutine');
 var util = require('util');
 
@@ -13,7 +14,7 @@ describe("vm", () => {
     var sbox;
 
     after(() => {
-        fs.unlink(__dirname + "/vm_test/jsc_test.jsc");
+        fs.unlink(path.join(__dirname, "vm_test", "jsc_test.jsc"));
     });
 
     it("add", () => {
@@ -70,7 +71,7 @@ describe("vm", () => {
 
     it("require jsc", () => {
         var bin = util.compile("jsc_test.js", "module.exports = {a : 100};");
-        fs.writeFile(__dirname + "/vm_test/jsc_test.jsc", bin);
+        fs.writeFile(path.join(__dirname, "vm_test", "jsc_test.jsc"), bin);
         var a = sbox.require("./vm_test/jsc_test", __filename);
         assert.equal(100, a.a);
     });
@@ -180,7 +181,7 @@ describe("vm", () => {
         });
 
         sbox1.require('./vm_test/hack_global', __filename);
-        sbox1.run(__dirname + '/vm_test/hack_global_1');
+        sbox1.run(path.join(__dirname, 'vm_test', 'hack_global_1'));
         var a = sbox1.addScript("t1.js", "global.var2 = 200;module.exports={var1:var1,var2:var2,var3:var3,var4:var4};");
 
         assert.equal(a.var1, 100);

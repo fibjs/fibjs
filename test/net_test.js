@@ -5,6 +5,7 @@ var test_util = require('./test_util');
 
 var net = require('net');
 var fs = require('fs');
+var path = require('path');
 var os = require('os');
 var coroutine = require('coroutine');
 
@@ -139,8 +140,8 @@ describe("net", () => {
 
                 // c.write(str);
 
-                fs.writeFile(__dirname + '/net_temp_000001' + base_port, str);
-                var f = fs.openFile(__dirname + '/net_temp_000001' + base_port);
+                fs.writeFile(path.join(__dirname, 'net_temp_000001' + base_port), str);
+                var f = fs.openFile(path.join(__dirname, 'net_temp_000001' + base_port));
                 assert.equal(f.copyTo(c), str.length);
                 f.close();
                 c.close();
@@ -158,12 +159,12 @@ describe("net", () => {
             var c1 = new net.Socket();
             c1.connect('127.0.0.1', 8081 + base_port);
 
-            var f1 = fs.openFile(__dirname + '/net_temp_000002' + base_port, 'w');
+            var f1 = fs.openFile(path.join(__dirname, 'net_temp_000002' + base_port), 'w');
             assert.equal(c1.copyTo(f1), str.length);
             c1.close();
             f1.close();
 
-            assert.equal(str, fs.readTextFile(__dirname + '/net_temp_000002' + base_port));
+            assert.equal(str, fs.readTextFile(path.join(__dirname, 'net_temp_000002' + base_port)));
         }
 
         for (var i = 0; i < 100; i++)
@@ -174,8 +175,8 @@ describe("net", () => {
 
         t_conn();
 
-        del(__dirname + '/net_temp_000001' + base_port);
-        del(__dirname + '/net_temp_000002' + base_port);
+        del(path.join(__dirname, 'net_temp_000001' + base_port));
+        del(path.join(__dirname, 'net_temp_000002' + base_port));
     });
 
     it("read & recv", () => {
@@ -523,9 +524,15 @@ describe("net", () => {
         assert.strictEqual(net.isIP(123), 0);
         assert.strictEqual(net.isIP(true), 0);
         assert.strictEqual(net.isIP({}), 0);
-        assert.strictEqual(net.isIP({ toString: () => '::2001:252:1:255.255.255.255' }), 6);
-        assert.strictEqual(net.isIP({ toString: () => '127.0.0.1' }), 4);
-        assert.strictEqual(net.isIP({ toString: () => 'bla' }), 0);
+        assert.strictEqual(net.isIP({
+            toString: () => '::2001:252:1:255.255.255.255'
+        }), 6);
+        assert.strictEqual(net.isIP({
+            toString: () => '127.0.0.1'
+        }), 4);
+        assert.strictEqual(net.isIP({
+            toString: () => 'bla'
+        }), 0);
     });
 
     it("isIPv4", () => {
@@ -539,10 +546,14 @@ describe("net", () => {
         assert.strictEqual(net.isIPv4(true), false);
         assert.strictEqual(net.isIPv4({}), false);
         assert.strictEqual(net.isIPv4({
-        toString: () => '::2001:252:1:255.255.255.255'
+            toString: () => '::2001:252:1:255.255.255.255'
         }), false);
-        assert.strictEqual(net.isIPv4({ toString: () => '127.0.0.1' }), true);
-        assert.strictEqual(net.isIPv4({ toString: () => 'bla' }), false);
+        assert.strictEqual(net.isIPv4({
+            toString: () => '127.0.0.1'
+        }), true);
+        assert.strictEqual(net.isIPv4({
+            toString: () => 'bla'
+        }), false);
     });
 
     it("isIPv6", () => {
@@ -556,10 +567,14 @@ describe("net", () => {
         assert.strictEqual(net.isIPv6(true), false);
         assert.strictEqual(net.isIPv6({}), false);
         assert.strictEqual(net.isIPv6({
-        toString: () => '::2001:252:1:255.255.255.255'
+            toString: () => '::2001:252:1:255.255.255.255'
         }), true);
-        assert.strictEqual(net.isIPv6({ toString: () => '127.0.0.1' }), false);
-        assert.strictEqual(net.isIPv6({ toString: () => 'bla' }), false);
+        assert.strictEqual(net.isIPv6({
+            toString: () => '127.0.0.1'
+        }), false);
+        assert.strictEqual(net.isIPv6({
+            toString: () => 'bla'
+        }), false);
     });
 
     it("Memory Leak detect", () => {

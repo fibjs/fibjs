@@ -395,7 +395,7 @@ describe("Trigger/EventEmitter", () => {
         });
 
         it('isolate', () => {
-            var worker = new Worker(path.join(__dirname, './event_files/worker.js'));
+            var worker = new Worker(path.join(__dirname, 'event_files', 'worker.js'));
             var get_worker_max_listeners = util.sync((done) => {
                 worker.onmessage = (evt) => {
                     done(null, evt.data);

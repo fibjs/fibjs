@@ -3,6 +3,7 @@ test.setup();
 
 var db = require('db');
 var fs = require('fs');
+var path = require('path');
 var coroutine = require('coroutine');
 
 var vmid = coroutine.vmid;
@@ -191,10 +192,10 @@ describe("db", () => {
     }
 
     describe("sqlite", () => {
-        var conn_str = 'sqlite:' + __dirname + '/test.db' + vmid;
+        var conn_str = 'sqlite:' + path.join(__dirname, 'test.db' + vmid);
         after(() => {
-            fs.unlink(__dirname + "/test.db" + vmid);
-            fs.unlink(__dirname + "/test.db" + vmid + ".backup");
+            fs.unlink(path.join(__dirname, "test.db" + vmid));
+            fs.unlink(path.join(__dirname, "test.db" + vmid + ".backup"));
         });
         _test(conn_str);
 
@@ -244,23 +245,23 @@ describe("db", () => {
 
         function clear_db() {
             try {
-                fs.readdir(__dirname + "/testdb" + vmid).forEach((s) => {
-                    fs.unlink(__dirname + "/testdb" + vmid + "/" + s);
+                fs.readdir(path.join(__dirname, "testdb" + vmid)).forEach((s) => {
+                    fs.unlink(path.join(__dirname, "testdb" + vmid, s));
                 });
 
-                fs.rmdir(__dirname + "/testdb" + vmid);
+                fs.rmdir(path.join(__dirname, "testdb" + vmid));
             } catch (e) {};
         }
 
         it('open/close', () => {
-            var ldb = db.openLevelDB(__dirname + "/testdb" + vmid);
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
             ldb.close();
             clear_db();
         });
 
         it('set/get', () => {
             var b = "bbbbb";
-            var ldb = db.openLevelDB(__dirname + "/testdb" + vmid);
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
             ldb.set("test", b);
             assert.equal(ldb.get("test").toString(), "bbbbb");
             ldb.close();
@@ -269,7 +270,7 @@ describe("db", () => {
 
         it('binary Key', () => {
             var b = "bbbbb1";
-            var ldb = db.openLevelDB(__dirname + "/testdb" + vmid);
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
             ldb.set("test1", b);
             assert.equal(ldb.get("test1").toString(), "bbbbb1");
             ldb.close();
@@ -284,7 +285,7 @@ describe("db", () => {
                 "ddd": "ddd value"
             };
 
-            var ldb = db.openLevelDB(__dirname + "/testdb" + vmid);
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
             ldb.mset(data);
             assert.equal(ldb.get("aaa").toString(), "aaa value");
             assert.equal(ldb.get("bbb").toString(), "bbb value");
@@ -301,7 +302,7 @@ describe("db", () => {
 
         it('remove/has', () => {
             var b = "bbbbb";
-            var ldb = db.openLevelDB(__dirname + "/testdb" + vmid);
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
             assert.isNull(ldb.get("not_exists"));
             assert.isFalse(ldb.has("not_exists"));
             ldb.set("not_exists", b);
@@ -325,7 +326,7 @@ describe("db", () => {
                 "ddd": "ddd value"
             };
 
-            var ldb = db.openLevelDB(__dirname + "/testdb" + vmid);
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
             ldb.mset(data);
 
             ldb.mremove(["bbb", "ddd"]);
@@ -342,7 +343,7 @@ describe("db", () => {
         it('begin/commit', () => {
             var b = "bbbbb";
             var c = "ccccc";
-            var ldb = db.openLevelDB(__dirname + "/testdb" + vmid);
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
 
             ldb.set("test", b);
             assert.equal(ldb.get("test").toString(), "bbbbb");
@@ -363,7 +364,7 @@ describe("db", () => {
         it('begin/close', () => {
             var b = "bbbbb";
             var c = "ccccc";
-            var ldb = db.openLevelDB(__dirname + "/testdb" + vmid);
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
 
             ldb.set("test", b);
             assert.equal(ldb.get("test").toString(), "bbbbb");
@@ -389,7 +390,7 @@ describe("db", () => {
                 "ddd": "ddd value"
             };
 
-            var ldb = db.openLevelDB(__dirname + "/testdb" + vmid);
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
 
             var count = 0;
             ldb.forEach((v, k) => {
@@ -424,7 +425,7 @@ describe("db", () => {
                 "bbb": "bbb value"
             };
 
-            var ldb = db.openLevelDB(__dirname + "/testdb" + vmid);
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
             ldb.mset(data);
 
             var count = 0;
@@ -452,7 +453,7 @@ describe("db", () => {
                 "bbb": "bbb value"
             };
 
-            var ldb = db.openLevelDB(__dirname + "/testdb" + vmid);
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
             ldb.mset(data);
 
             var count = 0;

@@ -3,6 +3,7 @@ test.setup();
 
 var profiler = require("profiler");
 var fs = require("fs");
+var path = require("path");
 var os = require("os");
 
 var vmid = require('coroutine').vmid;
@@ -15,9 +16,9 @@ function unlink(pathname) {
 
 describe("profiler", () => {
     after(() => {
-        unlink(__dirname + "/test.heapsnapshot" + vmid);
-        unlink(__dirname + "/test1.heapsnapshot" + vmid);
-        unlink(__dirname + "/test2.heapsnapshot" + vmid);
+        unlink(path.join(__dirname, "test.heapsnapshot" + vmid));
+        unlink(path.join(__dirname, "test1.heapsnapshot" + vmid));
+        unlink(path.join(__dirname, "test2.heapsnapshot" + vmid));
     });
 
     it("take snapshot & dispose", () => {
@@ -43,20 +44,20 @@ describe("profiler", () => {
     });
 
     it("serialize", () => {
-        profiler.saveSnapshot(__dirname + "/test.heapsnapshot" + vmid);
+        profiler.saveSnapshot(path.join(__dirname, "test.heapsnapshot" + vmid));
 
-        var ss = profiler.loadSnapshot(__dirname + "/test.heapsnapshot" + vmid);
-        ss.save(__dirname + "/test1.heapsnapshot" + vmid);
+        var ss = profiler.loadSnapshot(path.join(__dirname, "test.heapsnapshot" + vmid));
+        ss.save(path.join(__dirname, "test1.heapsnapshot" + vmid));
 
-        var ss = profiler.loadSnapshot(__dirname + "/test1.heapsnapshot" + vmid);
-        ss.save(__dirname + "/test2.heapsnapshot" + vmid);
+        var ss = profiler.loadSnapshot(path.join(__dirname, "test1.heapsnapshot" + vmid));
+        ss.save(path.join(__dirname, "test2.heapsnapshot" + vmid));
 
-        assert.equal(fs.readTextFile(__dirname + "/test1.heapsnapshot" + vmid),
-            fs.readTextFile(__dirname + "/test2.heapsnapshot" + vmid));
+        assert.equal(fs.readTextFile(path.join(__dirname, "test1.heapsnapshot" + vmid)),
+            fs.readTextFile(path.join(__dirname, "test2.heapsnapshot" + vmid)));
     });
 
     it("disable change", () => {
-        var ss = profiler.loadSnapshot(__dirname + "/test.heapsnapshot" + vmid);
+        var ss = profiler.loadSnapshot(path.join(__dirname, "test.heapsnapshot" + vmid));
         assert.throws(() => {
             ss.nodes[0] = 100;
         });
@@ -68,8 +69,8 @@ describe("profiler", () => {
     });
 
     it("diff", () => {
-        var ss = profiler.loadSnapshot(__dirname + "/test.heapsnapshot" + vmid);
-        var ss1 = profiler.loadSnapshot(__dirname + "/test.heapsnapshot" + vmid);
+        var ss = profiler.loadSnapshot(path.join(__dirname, "test.heapsnapshot" + vmid));
+        var ss1 = profiler.loadSnapshot(path.join(__dirname, "test.heapsnapshot" + vmid));
 
         assert.deepEqual(ss.diff(ss1).change, {
             "size_bytes": 0,

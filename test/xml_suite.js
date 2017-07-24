@@ -3,6 +3,7 @@ test.setup();
 
 var xml = require('xml');
 var fs = require('fs');
+var path = require('path');
 
 var props = [
     [],
@@ -62,9 +63,9 @@ describe('xml', () => {
     function _test(i) {
         var id = ("000" + i).slice(-4);
         it("xml_files/xml/" + id + ".xml", () => {
-            var txt = fs.readTextFile(__dirname + "/xml_files/xml/" + id + ".xml");
-            var json = fs.readTextFile(__dirname + "/xml_files/json/" + id + ".json");
-            var out = fs.readTextFile(__dirname + "/xml_files/out/" + id + ".xml");
+            var txt = fs.readTextFile(path.join(__dirname, "xml_files", "xml", id + ".xml"));
+            var json = fs.readTextFile(path.join(__dirname, "xml_files", "json", id + ".json"));
+            var out = fs.readTextFile(path.join(__dirname, "xml_files", "out", id + ".xml"));
 
             var xdoc = xml.parse(txt);
             assert.equal(JSON.stringify(dump_dom(xdoc)), json);

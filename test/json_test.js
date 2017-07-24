@@ -43,11 +43,11 @@ describe('json', () => {
     });
 
     it("test suite", () => {
-        var files = fs.readdir(__dirname + "/json_files");
+        var files = fs.readdir(path.join(__dirname, "json_files"));
 
         files.forEach((f) => {
             if (path.extname(f) == ".json") {
-                var txt = fs.readTextFile(__dirname + "/json_files/" + f);
+                var txt = fs.readTextFile(path.join(__dirname, "json_files", f));
                 assert.deepEqual(encoding.json.decode(txt), JSON.parse(txt));
             }
         });

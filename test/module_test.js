@@ -8,7 +8,7 @@ var a, b;
 describe("module", () => {
     after(() => {
         try {
-            fs.unlink(path.join(__dirname, 'module/p6_1'));
+            fs.unlink(path.join(__dirname, 'module', 'p6_1'));
         } catch (e) {}
     });
 
@@ -18,14 +18,14 @@ describe("module", () => {
 
     it("resolve", () => {
         assert.equal(require.resolve('./module/a'),
-            path.join(__dirname, './module/a.js'));
+            path.join(__dirname, 'module', 'a.js'));
         assert.equal(require.resolve('./module/test.zip$/folder/b'),
-            path.join(__dirname, './module/test.zip$/folder/b.js'));
+            path.join(__dirname, 'module', 'test.zip$', 'folder', 'b.js'));
         assert.equal(require.resolve('node_mod1'),
-            path.join(__dirname, './node_modules/node_mod1.js'));
+            path.join(__dirname, 'node_modules', 'node_mod1.js'));
 
         assert.equal(require.resolve('./module/d1'),
-            path.join(__dirname, './module/d1'));
+            path.join(__dirname, 'module', 'd1'));
     });
 
     it("circular dependency", () => {
@@ -83,7 +83,7 @@ describe("module", () => {
     });
 
     it("support symlink", () => {
-        fs.symlink(path.join(__dirname, 'module/p6'), path.join(__dirname, 'module/p6_1'));
+        fs.symlink(path.join(__dirname, 'module', 'p6'), path.join(__dirname, 'module', 'p6_1'));
         assert.equal(require('./module/p6/t'), require('./module/p6_1/t'));
     });
 

@@ -4,6 +4,7 @@ test.setup();
 var zlib = require('zlib');
 var io = require('io');
 var fs = require('fs');
+var path = require('path');
 
 var M = 102400;
 var b = new Buffer();
@@ -94,14 +95,14 @@ describe("zlib", () => {
     });
 
     it("gunzip (from file)", () => {
-        var f1 = fs.openTextStream(__dirname + '/zlib_files/gzip');
-        var f2 = fs.openTextStream(__dirname + '/zlib_files/original.js');
+        var f1 = fs.openTextStream(path.join(__dirname, 'zlib_files', 'gzip'));
+        var f2 = fs.openTextStream(path.join(__dirname, 'zlib_files', 'original.js'));
         assert.equal(zlib.gunzip(f1.read()).toString(), f2.read().toString());
     });
 
     it("inflate (from file)", () => {
-        var f1 = fs.openTextStream(__dirname + '/zlib_files/deflate');
-        var f2 = fs.openTextStream(__dirname + '/zlib_files/original.js');
+        var f1 = fs.openTextStream(path.join(__dirname, 'zlib_files', 'deflate'));
+        var f2 = fs.openTextStream(path.join(__dirname, 'zlib_files', 'original.js'));
         assert.equal(zlib.inflateRaw(f1.read()).toString(), f2.read().toString());
     });
 });

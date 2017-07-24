@@ -3,6 +3,7 @@ test.setup();
 
 var process = require('process');
 var coroutine = require("coroutine");
+var path = require('path');
 var json = require('json');
 
 var cmd;
@@ -27,7 +28,7 @@ describe('process', () => {
     });
 
     it("stdout", () => {
-        var bs = process.open(cmd, [__dirname + '/process/exec.js']);
+        var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.js')]);
 
         assert.equal(bs.readLine(), "exec testing....");
 
@@ -43,14 +44,14 @@ describe('process', () => {
     });
 
     it("stdin/stdout", () => {
-        var bs = process.open(cmd, [__dirname + '/process/exec1.js']);
+        var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec1.js')]);
 
         bs.writeLine("hello, exec1");
         assert.equal(bs.readLine(), "hello, exec1");
     });
 
     it("run", () => {
-        assert.equal(process.run(cmd, [__dirname + '/process/exec.js']), 100);
+        assert.equal(process.run(cmd, [path.join(__dirname, 'process', 'exec.js')]), 100);
     });
 
     xit("run throw error", () => {
@@ -61,49 +62,49 @@ describe('process', () => {
 
     it("multi run", () => {
         coroutine.parallel([1, 2, 3, 4, 5, 6], (n) => {
-            assert.equal(process.run(cmd, [__dirname + '/process/exec6.js', n]), n);
+            assert.equal(process.run(cmd, [path.join(__dirname, 'process', 'exec6.js'), n]), n);
         });
     });
 
     it("multi fiber", () => {
-        var p = process.open(cmd, [__dirname + '/process/exec7.js']);
+        var p = process.open(cmd, [path.join(__dirname, 'process', 'exec7.js')]);
         assert.equal(p.readLine(), "100");
         assert.equal(p.wait(), 0);
     });
 
     it("pendding async", () => {
-        var p = process.open(cmd, [__dirname + '/process/exec8.js']);
+        var p = process.open(cmd, [path.join(__dirname, 'process', 'exec8.js')]);
         assert.equal(p.readLine(), "200");
         assert.equal(p.wait(), 0);
     });
 
     it("setTimeout", () => {
-        var p = process.open(cmd, [__dirname + '/process/exec9.js']);
+        var p = process.open(cmd, [path.join(__dirname, 'process', 'exec9.js')]);
         assert.equal(p.readLine(), "300");
         assert.equal(p.wait(), 0);
     });
 
     it("setInterval", () => {
-        var p = process.open(cmd, [__dirname + '/process/exec10.js']);
+        var p = process.open(cmd, [path.join(__dirname, 'process', 'exec10.js')]);
         assert.equal(p.readLine(), "400");
         assert.equal(p.wait(), 0);
     });
 
     it("setImmediate", () => {
-        var p = process.open(cmd, [__dirname + '/process/exec11.js']);
+        var p = process.open(cmd, [path.join(__dirname, 'process', 'exec11.js')]);
         assert.equal(p.readLine(), "500");
         assert.equal(p.wait(), 0);
     });
 
     it("bugfix: multi fiber async", () => {
-        var p = process.open(cmd, [__dirname + '/process/exec12.js']);
+        var p = process.open(cmd, [path.join(__dirname, 'process', 'exec12.js')]);
         assert.equal(p.readLine(), "600");
         assert.equal(p.wait(), 0);
     });
 
     it("start", () => {
         var t1 = new Date().getTime();
-        process.start(cmd, [__dirname + '/process/exec.js']);
+        process.start(cmd, [path.join(__dirname, 'process', 'exec.js')]);
         assert.lessThan(new Date().getTime() - t1, 100);
     });
 
@@ -113,11 +114,11 @@ describe('process', () => {
 
     it("argv", () => {
         assert.deepEqual(json.decode(process.open(cmd, [
-            __dirname + "/process/exec2.js",
+            path.join(__dirname, "process", "exec2.js"),
             "arg1",
             "arg2"
         ]).readLine()), [
-            cmd, __dirname + "/process/exec2.js", "arg1", "arg2"
+            cmd, path.join(__dirname, "process", "exec2.js"), "arg1", "arg2"
         ]);
     });
 
@@ -125,21 +126,21 @@ describe('process', () => {
         assert.deepEqual(json.decode(process.open(cmd, [
             "--use_strict",
             "--test1",
-            __dirname + "/process/exec2.js",
+            path.join(__dirname, "process", "exec2.js"),
             "arg1",
             "arg2"
         ]).readLine()), [
-            cmd, __dirname + "/process/exec2.js", "arg1", "arg2"
+            cmd, path.join(__dirname, "process", "exec2.js"), "arg1", "arg2"
         ]);
     });
 
     it("argv utf8", () => {
         assert.deepEqual(json.decode(process.open(cmd, [
-            __dirname + "/process/exec2.js",
+            path.join(__dirname, "process", "exec2.js"),
             "参数1",
             "参数2"
         ]).readLine()), [
-            cmd, __dirname + "/process/exec2.js", "参数1", "参数2"
+            cmd, path.join(__dirname, "process", "exec2.js"), "参数1", "参数2"
         ]);
     });
 
@@ -147,7 +148,7 @@ describe('process', () => {
         assert.deepEqual(json.decode(process.open(cmd, [
             "--use_strict",
             "--test",
-            __dirname + "/process/exec3.js",
+            path.join(__dirname, "process", "exec3.js"),
             "arg1",
             "arg2"
         ]).readLine()), [
@@ -159,13 +160,13 @@ describe('process', () => {
     it("env", () => {
         process.env.abc = 123;
         assert.equal(json.decode(process.open(cmd, [
-            __dirname + "/process/exec4.js"
+            path.join(__dirname, "process", "exec4.js")
         ]).readLine()).abc, "123");
     });
 
     it("env1", () => {
         var env = json.decode(process.open(cmd, [
-            __dirname + "/process/exec4.js"
+            path.join(__dirname, "process", "exec4.js")
         ], {
             env: {
                 abcd: "234"
@@ -179,7 +180,7 @@ describe('process', () => {
     it("timeout", () => {
         var d = new Date();
         process.run(cmd, [
-            __dirname + "/process/exec5.js"
+            path.join(__dirname, "process", "exec5.js")
         ], {
             timeout: 1000
         });
@@ -193,8 +194,8 @@ describe('process', () => {
 
     if (process.platform != "win32") {
         it("PATH env", () => {
-            assert.equal(process.run("ls", [__dirname + "/process"]), 0)
-            assert.ok(process.open("ls", ["-a", __dirname + "/process"]).stdout.readLine());
+            assert.equal(process.run("ls", [path.join(__dirname, "process")]), 0)
+            assert.ok(process.open("ls", ["-a", path.join(__dirname, "process")]).stdout.readLine());
         });
 
         it("umask()", () => {
