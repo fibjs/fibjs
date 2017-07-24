@@ -123,10 +123,11 @@ describe('process', () => {
 
     it("argv 1", () => {
         assert.deepEqual(json.decode(process.open(cmd, [
+            "--use_strict",
+            "--test1",
             __dirname + "/process/exec2.js",
             "arg1",
-            "arg2",
-            "--use_strict"
+            "arg2"
         ]).readLine()), [
             cmd, __dirname + "/process/exec2.js", "arg1", "arg2"
         ]);
@@ -144,12 +145,14 @@ describe('process', () => {
 
     it("execArgv", () => {
         assert.deepEqual(json.decode(process.open(cmd, [
+            "--use_strict",
+            "--test",
             __dirname + "/process/exec3.js",
             "arg1",
-            "arg2",
-            "--use_strict"
+            "arg2"
         ]).readLine()), [
-            "--use_strict"
+            "--use_strict",
+            "--test",
         ]);
     });
 

@@ -42,11 +42,11 @@ static void printHelp()
            "Documentation can be found at http://fibjs.org/\n");
 }
 
-bool options(int32_t* argc, char* argv[])
+void options(int32_t argc, char* argv[])
 {
     int32_t df = 0;
 
-    for (int32_t i = 0; i < *argc; i++) {
+    for (int32_t i = 0; i < argc; i++) {
         char* arg = argv[i];
 
         if (df)
@@ -57,13 +57,13 @@ bool options(int32_t* argc, char* argv[])
             Isolate::rt::g_trace = true;
         } else if (!qstrcmp(arg, "--help") || !qstrcmp(arg, "-h")) {
             printHelp();
-            return true;
+            _exit(0);
         } else if (!qstrcmp(arg, "--version") || !qstrcmp(arg, "-v")) {
             printf("v%s\n", fibjs_version);
-            return true;
+            _exit(0);
         } else if (!qstrcmp(arg, "--v8-options")) {
             v8::internal::FlagList::PrintHelp();
-            return true;
+            _exit(0);
         }
     }
 
@@ -72,15 +72,13 @@ bool options(int32_t* argc, char* argv[])
 
     v8::internal::FLAG_wasm_async_compilation = false;
 
-    v8::V8::SetFlagsFromCommandLine(argc, argv, true);
-
     if (df)
-        *argc -= df;
+        argc -= df;
+
+    v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
 #ifdef DEBUG
     Isolate::rt::g_trace = true;
 #endif
-
-    return false;
 }
 }

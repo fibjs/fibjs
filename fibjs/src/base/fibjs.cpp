@@ -29,15 +29,18 @@ void init_logger();
 void init_aio();
 void init_fs();
 void init_fiber();
-bool options(int32_t* argc, char* argv[]);
+void options(int32_t argc, char* argv[]);
 
 exlib::string s_root;
+static exlib::string s_start;
 
-void init(int32_t& argc, char* argv[])
+void init()
 {
     ::setlocale(LC_ALL, "");
 
     int32_t cpus = 0;
+
+    process_base::cwd(s_root);
 
     os_base::cpuNumbers(cpus);
     if (cpus < 2)
@@ -45,13 +48,7 @@ void init(int32_t& argc, char* argv[])
 
     exlib::Service::init(cpus + 1);
 
-    init_start_argv(argc, argv);
-
-    if (options(&argc, argv))
-        _exit(0);
-
     init_prof();
-    init_argv(argc, argv);
     init_date();
     init_rt();
     init_cipher();
@@ -87,8 +84,6 @@ static result_t main_fiber(Isolate* isolate)
     return s.m_hr;
 }
 
-static exlib::string s_start;
-
 result_t start_fiber(int32_t n)
 {
     Isolate* isolate = new Isolate(s_start);
@@ -120,18 +115,26 @@ void main(int32_t argc, char* argv[])
         argc++;
     }
 
-    init(argc, argv);
-
-    if (s_root.empty())
-        process_base::cwd(s_root);
-
+    init_start_argv(argc, argv);
     for (i = 1; (i < argc) && (argv[i][0] == '-'); i++)
         ;
+    options(i, argv);
+
+    init();
 
     if (i < argc) {
         s_start = s_root;
         resolvePath(s_start, argv[i]);
+
+        if (i != 1) {
+            int32_t p = 1;
+            for (; i < argc; i++)
+                argv[p++] = argv[i];
+            argc = p;
+        }
     }
+
+    init_argv(argc, argv);
 
     asyncCall(start_fiber, (int32_t)0);
     exlib::Service::dispatch();
