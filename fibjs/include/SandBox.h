@@ -51,6 +51,28 @@ public:
         return o;
     }
 
+    void InstallModule(exlib::string fname, v8::Local<v8::Value> o, v8::Local<v8::Object> m = v8::Local<v8::Object>())
+    {
+        Isolate* isolate = holder();
+
+        if (m.IsEmpty()) {
+            m = v8::Object::New(isolate->m_isolate);
+            m->Set(isolate->NewFromUtf8("exports"), o);
+        }
+
+        mods()->Set(isolate->NewFromUtf8(fname), m);
+    }
+
+    v8::Local<v8::Value> get_module(v8::Local<v8::Object> mods, exlib::string id)
+    {
+        Isolate* isolate = holder();
+        v8::Local<v8::Value> m = mods->Get(isolate->NewFromUtf8(id));
+        if (m->IsUndefined())
+            return m;
+
+        return v8::Local<v8::Object>::Cast(m)->Get(isolate->NewFromUtf8("exports"));
+    }
+
 public:
     class Context {
     public:
@@ -122,8 +144,6 @@ public:
     }
 
     void initGlobal(v8::Local<v8::Object> global);
-
-    void InstallModule(exlib::string fname, v8::Local<v8::Value> o);
 
     result_t installScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal);
 

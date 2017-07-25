@@ -57,7 +57,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
         fname1 = fname;
 
     if (retVal) {
-        *retVal = mods->Get(isolate->NewFromUtf8(fname1));
+        *retVal = get_module(mods, fname1);
         if (!IsEmpty(*retVal)) {
             fname = fname1;
             return 0;
@@ -79,7 +79,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
             fname1 = fname2;
 
         if (retVal) {
-            *retVal = mods->Get(isolate->NewFromUtf8(fname1));
+            *retVal = get_module(mods, fname1);
             if (!IsEmpty(*retVal)) {
                 fname = fname1;
                 return 0;
@@ -191,14 +191,14 @@ result_t SandBox::resolveId(exlib::string& id, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Object> _mods = mods();
     size_t cnt = m_loaders.size();
 
-    retVal = _mods->Get(isolate->NewFromUtf8(id));
+    retVal = get_module(_mods, id);
     if (!IsEmpty(retVal))
         return 0;
 
     for (size_t i = 0; i < cnt; i++) {
         obj_ptr<ExtLoader>& l = m_loaders[i];
 
-        retVal = _mods->Get(isolate->NewFromUtf8(id + l->m_ext));
+        retVal = get_module(_mods, id + l->m_ext);
         if (!IsEmpty(retVal))
             return 0;
     }

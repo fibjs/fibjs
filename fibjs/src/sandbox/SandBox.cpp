@@ -73,11 +73,6 @@ SandBox::SandBox()
     m_global = false;
 }
 
-void SandBox::InstallModule(exlib::string fname, v8::Local<v8::Value> o)
-{
-    mods()->Set(holder()->NewFromUtf8(fname), o);
-}
-
 void SandBox::initGlobal(v8::Local<v8::Object> global)
 {
     Isolate* isolate = Isolate::current();

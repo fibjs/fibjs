@@ -40,7 +40,7 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     mod->Set(strExports, exports);
     mod->Set(strRequire, context.m_fnRequest);
 
-    InstallModule(srcname, exports);
+    InstallModule(srcname, exports, mod);
 
     hr = l->run_module(&context, script, srcname, mod, exports);
     if (hr < 0) {
@@ -50,11 +50,7 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     }
 
     // use module.exports as result value
-    v8::Local<v8::Value> v = mod->Get(strExports);
-    if (!exports->Equals(v))
-        InstallModule(srcname, v);
-
-    retVal = v;
+    retVal = mod->Get(strExports);
     return 0;
 }
 
