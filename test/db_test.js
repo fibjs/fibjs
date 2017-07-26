@@ -417,12 +417,13 @@ describe("db", () => {
                 "ccc": "ccc value",
                 "aaa": "aaa value",
                 "bbb": "bbb value",
-                "ddd": "ddd value"
+                "ddd": "ddd value",
+                "bbb_1": "bbb_1 value",
             };
 
             var data1 = {
-                "ccc": "ccc value",
-                "bbb": "bbb value"
+                "bbb_1": "bbb_1 value",
+                "ccc": "ccc value"
             };
 
             var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));

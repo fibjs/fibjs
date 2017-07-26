@@ -301,6 +301,17 @@ result_t LevelDB::Iter::_iter(AsyncEvent* ac)
             m_end = true;
             return 0;
         }
+
+        if (!m_from.empty()) {
+            leveldb::Slice key = m_it->key();
+            if (key.compare(leveldb::Slice(m_from.c_str(), m_from.length())) == 0) {
+                m_it->Next();
+                if (!m_it->Valid()) {
+                    m_end = true;
+                    return 0;
+                }
+            }
+        }
     }
 
     while (m_count < ITER_BLOCK_SIZE) {
