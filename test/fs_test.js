@@ -2,6 +2,7 @@ var test = require("test");
 var coroutine = require('coroutine');
 var path = require('path');
 var fs = require('fs');
+var zip = require('zip');
 
 test.setup();
 
@@ -24,6 +25,12 @@ describe('fs', () => {
     before(() => {
         unlink(pathname);
         unlink(pathname1);
+    });
+
+    after(() => {
+        try {
+            fs.unlink(path.join(__dirname, 'unzip_test.zip'));
+        } catch (e) {}
     });
 
     it("stat", () => {
@@ -311,6 +318,29 @@ describe('fs', () => {
         f1.close();
 
         fs.unlink(path.join(__dirname, 'fs_test.js.bak' + vmid));
+    });
+
+    it("zip folder", () => {
+        function save_zip(n) {
+            var zipfile = zip.open(path.join(__dirname, 'unzip_test.zip'), "w");
+            zipfile.write(new Buffer('test ' + n), 'test.txt');
+            zipfile.close();
+        }
+
+        function test_zip(n) {
+            assert.equal(fs.readTextFile(path.join(__dirname, "unzip_test.zip$", "test.txt")),
+                "test " + n);
+        }
+
+        save_zip(1);
+        coroutine.sleep(1000);
+        test_zip(1);
+
+        save_zip(2);
+        test_zip(1);
+
+        coroutine.sleep(4000);
+        test_zip(2);
     });
 
     describe('read', () => {

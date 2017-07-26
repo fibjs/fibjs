@@ -29,6 +29,7 @@ class cache_node : public obj_base {
 public:
     exlib::string m_name;
     date_t m_date;
+    date_t m_mtime;
     obj_ptr<List_base> m_list;
 };
 
@@ -68,18 +69,14 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
 #endif
 
         obj_ptr<cache_node> _node;
+        obj_ptr<SeekableStream_base> zip_stream;
+        obj_ptr<Stat_base> stat;
         std::list<obj_ptr<cache_node>>::iterator it;
 
         date_t _now;
         _now.now();
 
         s_cachelock.lock();
-        while ((it = s_cache.begin()) != s_cache.end())
-            if (_now.diff((*it)->m_date) > 3000)
-                s_cache.erase(it);
-            else
-                break;
-
         for (it = s_cache.begin(); it != s_cache.end(); ++it)
             if ((*it)->m_name == zip_file) {
                 _node = *it;
@@ -87,8 +84,41 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
             }
         s_cachelock.unlock();
 
+        if (_node && (_now.diff(_node->m_date) > 3000)) {
+            hr = cc_openFile(zip_file, "r", zip_stream);
+            if (hr < 0)
+                return hr;
+
+            hr = zip_stream->cc_stat(stat);
+            if (hr < 0)
+                return hr;
+
+            date_t _mtime;
+            stat->get_mtime(_mtime);
+
+            if (_mtime.diff(_node->m_mtime) != 0)
+                _node.Release();
+            else
+                _node->m_date = _now;
+        }
+
         if (_node == NULL) {
-            hr = zip_base::cc_open(zip_file, "r", zip_base::_ZIP_DEFLATED, zfile);
+            if (zip_stream == NULL) {
+                hr = cc_openFile(zip_file, "r", zip_stream);
+                if (hr < 0)
+                    return hr;
+
+                hr = zip_stream->cc_stat(stat);
+                if (hr < 0)
+                    return hr;
+            }
+
+            obj_ptr<Buffer_base> zip_data;
+            hr = zip_stream->cc_readAll(zip_data);
+            if (hr < 0)
+                return hr;
+
+            hr = zip_base::cc_open(zip_data, "r", zip_base::_ZIP_DEFLATED, zfile);
             if (hr < 0)
                 return hr;
 
@@ -101,9 +131,16 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
             _node->m_name = zip_file;
             _node->m_list = list;
             _node->m_date.now();
+            stat->get_mtime(_node->m_mtime);
 
             s_cachelock.lock();
-            s_cache.push_back(_node);
+            for (it = s_cache.begin(); it != s_cache.end(); ++it)
+                if ((*it)->m_name == zip_file) {
+                    *it = _node;
+                    break;
+                }
+            if (it == s_cache.end())
+                s_cache.push_back(_node);
             s_cachelock.unlock();
         }
 
