@@ -229,19 +229,16 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
     exlib::string fname;
 
     if (!base.empty()) {
+        if (isPathSlash(base[base.length() - 1]))
+            base.resize(base.length() - 1);
+        fname = base;
 
         while (true) {
-            if (isPathSlash(base[base.length() - 1]))
-                fname = base.substr(0, base.length() - 1);
-            else
-                path_base::dirname(base, fname);
-            if (base.length() == fname.length())
-                break;
-
             base = fname;
 
             if (fname.length())
                 fname += PATH_SLASH;
+
             fname += "node_modules";
             fname += PATH_SLASH;
             fname += id;
@@ -251,6 +248,10 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
                 id = fname;
                 return hr;
             }
+
+            path_base::dirname(base, fname);
+            if (base.length() == fname.length())
+                break;
         }
     }
 
