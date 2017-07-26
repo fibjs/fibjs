@@ -263,7 +263,6 @@ result_t MongoCollection::runCommand(v8::Local<v8::Object> cmd,
 result_t MongoCollection::runCommand(exlib::string cmd,
     v8::Local<v8::Object> arg, v8::Local<v8::Object>& retVal)
 {
-
     obj_ptr<MongoDB> db(m_db);
     if (!db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -345,21 +344,18 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
     Isolate* isolate = holder();
     v8::Local<v8::Object> idx = v8::Object::New(isolate->m_isolate);
 
-    idx->Set(isolate->NewFromUtf8("ns"), isolate->NewFromUtf8(m_ns));
-    idx->Set(isolate->NewFromUtf8("key"), keys);
-
     idx->Set(isolate->NewFromUtf8("name"), isolate->NewFromUtf8(name));
+    idx->Set(isolate->NewFromUtf8("key"), keys);
+    extend(options, idx);
 
-    extend(idx, options);
+    v8::Local<v8::Array> idxs = v8::Array::New(isolate->m_isolate);
+    idxs->Set(0, idx);
 
-    result_t hr;
-    obj_ptr<MongoCollection_base> coll;
+    v8::Local<v8::Object> cmd = v8::Object::New(isolate->m_isolate);
+    cmd->Set(isolate->NewFromUtf8("indexes"), idxs);
 
-    hr = db->getCollection("system.indexes", coll);
-    if (hr < 0)
-        return hr;
-
-    return coll->insert(idx);
+    v8::Local<v8::Object> retVal;
+    return runCommand("createIndexes", cmd, retVal);
 }
 
 result_t MongoCollection::reIndex(v8::Local<v8::Object>& retVal)

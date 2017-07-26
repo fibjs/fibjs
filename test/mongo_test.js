@@ -152,13 +152,13 @@ describe("mongodb", () => {
             data: 1
         });
 
-        // console.log(mdb.test.getIndexes());
+        console.log(mdb.test.getIndexes());
 
-        // assert.equal(mdb.test.getIndexes().toArray()[1]["name"], "data_1");
+        assert.equal(mdb.test.getIndexes().toArray()[1]["name"], "data_1");
         mdb.test.reIndex();
 
         mdb.test.dropIndexes();
-        // assert.equal(mdb.test.getIndexes().toArray()[1], null)
+        assert.equal(mdb.test.getIndexes().toArray()[1], null)
     })
 
     xit("GridFS", () => {
