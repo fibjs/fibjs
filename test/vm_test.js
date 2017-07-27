@@ -110,8 +110,8 @@ describe("vm", () => {
         assert.equal(100, sbox.require("c", __filename));
 
         var o1 = sbox.require("o", __filename);
-        assert.notEqual(o, o1);
-        assert.deepEqual(o, o1);
+        assert.equal(o, o1);
+        // assert.deepEqual(o, o1);
     });
 
     it("add native object", () => {

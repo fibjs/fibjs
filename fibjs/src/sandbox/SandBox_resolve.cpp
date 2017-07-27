@@ -211,10 +211,7 @@ result_t SandBox::resolveId(exlib::string& id, obj_ptr<Buffer_base>& data,
             return CALL_E_JAVASCRIPT;
 
         if (!IsEmpty(retVal)) {
-            if (!retVal->IsProxy() && retVal->IsObject() && !object_base::getInstance(retVal))
-                util_base::clone(retVal, retVal);
             InstallModule(id, retVal);
-
             return 0;
         }
     }
