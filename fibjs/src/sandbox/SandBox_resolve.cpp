@@ -47,7 +47,6 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Value>* retVal)
 {
-    Isolate* isolate = holder();
     size_t cnt = m_loaders.size();
     result_t hr;
     exlib::string fname1;
