@@ -94,16 +94,15 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
 
 void file_logger::clearFile()
 {
-    AsyncEvent ac;
     obj_ptr<List_base> fd;
     result_t hr;
 
     exlib::string name;
 
     if (m_folder.empty())
-        hr = fs_base::readdir(".", fd, &ac);
+        hr = fs_base::cc_readdir(".", fd);
     else
-        hr = fs_base::readdir(m_folder, fd, &ac);
+        hr = fs_base::cc_readdir(m_folder, fd);
     if (hr < 0)
         return;
 
@@ -142,7 +141,7 @@ void file_logger::clearFile()
         int32_t dels = (int32_t)files.size() - m_count + 1;
 
         for (i = 0; i < dels; i++)
-            fs_base::unlink(files[i], &ac);
+            fs_base::cc_unlink(files[i]);
     }
 }
 
