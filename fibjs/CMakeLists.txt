@@ -43,7 +43,7 @@ if(${OS} STREQUAL "FreeBSD")
 endif()
 
 if(${BUILD_TYPE} STREQUAL "release")
-	set(flags "${flags} -O3 ${BUILD_OPTION} -w -fvisibility=hidden")
+	set(flags "${flags} -O3 -s ${BUILD_OPTION} -w -fvisibility=hidden")
 
 	if(${OS} STREQUAL "FreeBSD")
 		set(flags "${flags} -fno-omit-frame-pointer")
