@@ -206,7 +206,7 @@ result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
     if (qstrcmp(url.c_str(), "ssl:", 4))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Url> u = new Url();

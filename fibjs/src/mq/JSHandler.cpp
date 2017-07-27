@@ -34,7 +34,7 @@ JSHandler::JSHandler(v8::Local<v8::Value> proc, bool async)
 result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
 {
-    if (ac)
+    if (ac->isAsync())
         return CHECK_ERROR(CALL_E_NOASYNC);
 
     if (m_async) {
@@ -66,7 +66,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     while (true) {
         v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(hdlr);
         obj_ptr<List_base> params;
-        std::vector<v8::Local<v8::Value> > argv;
+        std::vector<v8::Local<v8::Value>> argv;
         v8::Local<v8::Value>* pargv;
         int32_t len = 0, i;
 
@@ -135,7 +135,7 @@ result_t JSHandler::js_invoke(Handler_base* hdlr, object_base* v,
         {
             {
                 JSFiber::scope s;
-                m_hr = JSHandler::js_invoke(m_pThis, m_v, m_retVal, NULL);
+                m_hr = JSHandler::js_invoke(m_pThis, m_v, m_retVal, this);
                 if (m_hr == CALL_E_EXCEPTION)
                     m_message = Runtime::errMessage();
             }
@@ -162,13 +162,14 @@ result_t JSHandler::js_invoke(Handler_base* hdlr, object_base* v,
         exlib::string m_message;
     };
 
-    if (!ac) {
+    if (ac->isSync()) {
         result_t hr;
         obj_ptr<Handler_base> hdlr1 = hdlr;
         obj_ptr<Handler_base> hdlr2;
+        AsyncEvent ac;
 
         while (true) {
-            hr = hdlr1->invoke(v, hdlr2, NULL);
+            hr = hdlr1->invoke(v, hdlr2, &ac);
             if (hr == CALL_E_NOSYNC) {
                 retVal = hdlr1;
                 return 0;

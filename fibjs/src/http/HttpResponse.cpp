@@ -261,7 +261,7 @@ public:
 
 result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_cookies) {
@@ -348,7 +348,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
         exlib::string m_strLine;
     };
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
@@ -445,7 +445,7 @@ result_t HttpResponse::redirect(exlib::string url)
 
 result_t HttpResponse::sendHeader(Stream_base* stm, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_cookies) {

@@ -22,7 +22,7 @@ namespace fibjs {
 result_t db_base::openMSSQL(exlib::string connString, obj_ptr<MSSQL_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (qstrcmp(connString.c_str(), "mssql:", 6))
@@ -107,7 +107,7 @@ result_t mssql::close(AsyncEvent* ac)
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     m_conn->Close();
@@ -122,7 +122,7 @@ result_t mssql::use(exlib::string dbName, AsyncEvent* ac)
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     bstr_t bstrName(utf8to16String(dbName).c_str());
@@ -140,7 +140,7 @@ result_t mssql::begin(AsyncEvent* ac)
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     HRESULT hr;
@@ -158,7 +158,7 @@ result_t mssql::commit(AsyncEvent* ac)
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     HRESULT hr;
@@ -175,7 +175,7 @@ result_t mssql::rollback(AsyncEvent* ac)
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     HRESULT hr;
@@ -335,7 +335,7 @@ result_t mssql::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, Async
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     return execute(sql.c_str(), (int32_t)sql.length(), retVal);

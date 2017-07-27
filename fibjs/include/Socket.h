@@ -85,7 +85,7 @@ public:
 public:
     result_t create(int32_t family, int32_t type, AsyncEvent* ac)
     {
-        if (!ac)
+        if (ac->isSync())
             return CHECK_ERROR(CALL_E_LONGSYNC);
 
         return create(family, type);

@@ -74,7 +74,7 @@ result_t ZmqSocket::recv(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     if (!m_sock)
         return CALL_E_INVALID_CALL;
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     zmq_msg_t msg;

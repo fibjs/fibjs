@@ -233,7 +233,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
         return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     inetAddr addr_info;
@@ -315,7 +315,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
     if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Socket> s = new Socket();
@@ -424,7 +424,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     (new asyncRecv(m_fd, bytes, retVal, ac, bRead, m_lockRecv, timer))->post();
@@ -478,7 +478,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
     if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     (new asyncSend(m_fd, data, ac, m_lockSend))->post();
@@ -550,7 +550,7 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<DatagramPacket_base>& retVal,
     if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     (new asyncRecvFrom(m_fd, bytes, retVal, ac, m_lockRecv))->post();

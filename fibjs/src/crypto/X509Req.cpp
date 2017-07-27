@@ -247,7 +247,7 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
     exlib::string buf;
     obj_ptr<X509Cert> cert;
 
-    if (!ac) {
+    if (ac->isSync()) {
         Isolate* isolate = holder();
         mbedtls_mpi serial;
         v8::Local<v8::Value> v;

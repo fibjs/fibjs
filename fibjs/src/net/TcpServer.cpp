@@ -174,7 +174,7 @@ result_t TcpServer::run(AsyncEvent* ac)
         obj_ptr<Socket_base> m_retVal;
     };
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!m_socket)

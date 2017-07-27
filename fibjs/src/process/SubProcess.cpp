@@ -82,7 +82,7 @@ result_t SubProcess::close(AsyncEvent* ac)
         obj_ptr<BufferedStream_base> m_stdout;
     };
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
 #ifdef _WIN32

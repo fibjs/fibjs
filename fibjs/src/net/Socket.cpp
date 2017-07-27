@@ -105,7 +105,7 @@ result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
     obj_ptr<Timer> timer;
-    if (ac && m_timeout > 0) {
+    if (ac->isAsync() && m_timeout > 0) {
         timer = new IOTimer(m_timeout, this);
         timer->sleep();
     }
@@ -132,7 +132,7 @@ result_t Socket::close(AsyncEvent* ac)
     if (m_aio.m_fd == INVALID_SOCKET)
         return 0;
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_aio.m_fd != INVALID_SOCKET)
@@ -247,7 +247,7 @@ result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4, AsyncEve
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     inetAddr addr_info;
@@ -287,7 +287,7 @@ result_t Socket::bind(int32_t port, bool allowIPv4, AsyncEvent* ac)
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     return bind("", port, allowIPv4, ac);
@@ -298,7 +298,7 @@ result_t Socket::listen(int32_t backlog, AsyncEvent* ac)
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (::listen(m_aio.m_fd, backlog) == SOCKET_ERROR)
@@ -318,7 +318,7 @@ result_t Socket::connect(exlib::string host, int32_t port, AsyncEvent* ac)
 #endif
 
     obj_ptr<Timer> timer;
-    if (ac && m_timeout > 0) {
+    if (ac->isAsync() && m_timeout > 0) {
         timer = new IOTimer(m_timeout, this);
         timer->sleep();
     }
@@ -340,7 +340,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
     obj_ptr<Timer> timer;
-    if (ac && m_timeout > 0) {
+    if (ac->isAsync() && m_timeout > 0) {
         timer = new IOTimer(m_timeout, this);
         timer->sleep();
     }
@@ -359,7 +359,7 @@ result_t Socket::sendto(Buffer_base* data, exlib::string host, int32_t port,
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     inetAddr addr_info;

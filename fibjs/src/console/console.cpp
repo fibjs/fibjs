@@ -439,7 +439,7 @@ void add_history(char* line);
 result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     flushLog();

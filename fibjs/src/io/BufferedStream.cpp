@@ -142,7 +142,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     if (hr != CALL_E_PENDDING)
         return hr;
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncRead(this, bytes, retVal, ac))->post(0);
@@ -216,7 +216,7 @@ result_t BufferedStream::readText(int32_t size, exlib::string& retVal,
     if (hr != CALL_E_PENDDING)
         return hr;
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncRead(this, size, retVal, ac))->post(0);
@@ -348,7 +348,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
     if (hr != CALL_E_PENDDING)
         return hr;
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncRead(this, mk, maxlen, retVal, ac))->post(0);
@@ -356,7 +356,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
 
 result_t BufferedStream::writeText(exlib::string txt, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strBuf;
@@ -371,7 +371,7 @@ result_t BufferedStream::writeText(exlib::string txt, AsyncEvent* ac)
 
 result_t BufferedStream::writeLine(exlib::string txt, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strBuf;

@@ -223,7 +223,7 @@ result_t HttpRequest::clear()
 
 result_t HttpRequest::sendTo(Stream_base* stm, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strCommand = m_method;
@@ -315,7 +315,7 @@ result_t HttpRequest::readFrom(Stream_base* stm, AsyncEvent* ac)
         exlib::string m_strLine;
     };
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
@@ -419,7 +419,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
 
             get_body(_body);
             _body->rewind();
-            result_t hr = _body->read((int32_t)len, buf, NULL);
+            result_t hr = _body->cc_read((int32_t)len, buf);
             if (hr < 0)
                 return hr;
 

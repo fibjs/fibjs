@@ -145,7 +145,7 @@ result_t MongoDB::error()
 result_t db_base::openMongoDB(exlib::string connString,
     obj_ptr<MongoDB_base>& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     const char* c_str = connString.c_str();
@@ -243,7 +243,7 @@ result_t MongoDB::getCollection(exlib::string name,
 
 result_t MongoDB::_runCommand(bson* command, bson& out, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (mongo_run_command(m_conn, m_ns.c_str(), command, &out) != MONGO_OK) {
@@ -319,7 +319,7 @@ result_t MongoDB::oid(exlib::string hexStr, obj_ptr<MongoID_base>& retVal)
 
 result_t MongoDB::close(AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_conn) {

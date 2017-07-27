@@ -118,7 +118,7 @@ result_t SslHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<SslSocket_base> m_socket;
     };
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Stream_base> stm = Stream_base::getInstance(v);

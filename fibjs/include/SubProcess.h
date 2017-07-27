@@ -97,7 +97,7 @@ public:
             if (m_aio.m_fd == INVALID_SOCKET)
                 return 0;
 
-            if (!ac)
+            if (ac->isSync())
                 return CHECK_ERROR(CALL_E_NOSYNC);
 
             if (m_aio.m_fd != INVALID_SOCKET)

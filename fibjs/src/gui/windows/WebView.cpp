@@ -389,7 +389,7 @@ result_t gui_base::setVersion(int32_t ver)
 result_t gui_base::open(exlib::string url, obj_ptr<WebView_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
     retVal = new WebView(url);
@@ -399,7 +399,7 @@ result_t gui_base::open(exlib::string url, obj_ptr<WebView_base>& retVal,
 result_t gui_base::open(exlib::string url, Map_base* opt,
     obj_ptr<WebView_base>& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
     retVal = new WebView(url, opt);
@@ -715,7 +715,7 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
     HGLOBAL hTextHandle = ::GlobalAlloc(GPTR, html.length() + 1);
@@ -754,7 +754,7 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
 
 result_t WebView::print(int32_t mode, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
     switch (mode) {
@@ -788,7 +788,7 @@ result_t WebView::print(int32_t mode, AsyncEvent* ac)
 
 result_t WebView::close(AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
     PostMessage(hWndParent, WM_CLOSE, 0, 0);
@@ -797,7 +797,7 @@ result_t WebView::close(AsyncEvent* ac)
 
 result_t WebView::wait(AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
     m_ac = ac;
@@ -819,7 +819,7 @@ result_t WebView::postMessage(exlib::string msg, _variant_t& retVal)
 
 result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
     _variant_t vResult;

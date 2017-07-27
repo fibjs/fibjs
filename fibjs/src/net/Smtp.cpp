@@ -133,7 +133,7 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
     if (m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncSmtp(this, ac))->connect(url);
@@ -145,7 +145,7 @@ result_t Smtp::command(exlib::string cmd, exlib::string arg, exlib::string& retV
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncSmtp(this, retVal, ac))->command(cmd, arg);
@@ -156,7 +156,7 @@ result_t Smtp::command(exlib::string cmd, exlib::string arg, AsyncEvent* ac)
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncSmtp(this, ac))->command(cmd, arg);
@@ -244,7 +244,7 @@ result_t Smtp::login(exlib::string username, exlib::string password,
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncLogin(this, username, password, ac))->post(0);
@@ -315,7 +315,7 @@ result_t Smtp::data(exlib::string txt, AsyncEvent* ac)
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncData(this, txt, ac))->post(0);

@@ -66,7 +66,7 @@ void init_fs()
 
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     retVal = _waccess(UTF8_W(path), 0) == 0;
@@ -75,7 +75,7 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 
 result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     DWORD attr = GetFileAttributesW(UTF8_W(path));
@@ -91,7 +91,7 @@ result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
 
 result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::CreateHardLinkW(UTF8_W(newPath), UTF8_W(oldPath), NULL) == 0)
@@ -102,7 +102,7 @@ result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent*
 
 result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::_wunlink(UTF8_W(path)))
@@ -113,7 +113,7 @@ result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
 
 result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     char buffer[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
@@ -206,7 +206,7 @@ result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent
 
 result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::_wmkdir(UTF8_W(path)))
@@ -217,7 +217,7 @@ result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
 
 result_t fs_base::rmdir(exlib::string path, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::_wrmdir(UTF8_W(path)))
@@ -248,7 +248,7 @@ result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEven
 
 result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (!pGetFinalPathNameByHandle) {
@@ -333,7 +333,7 @@ result_t fs_base::fchown(int32_t fd, int32_t uid, int32_t gid, AsyncEvent* ac)
 
 result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (FlushFileBuffers((HANDLE)_get_osfhandle(fd)))
@@ -343,7 +343,7 @@ result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
 
 result_t fs_base::fsync(int32_t fd, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (FlushFileBuffers((HANDLE)_get_osfhandle(fd)))
@@ -507,7 +507,7 @@ error:
 
 result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::string type, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
@@ -531,7 +531,7 @@ result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::s
 
 result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     HANDLE file;
@@ -558,7 +558,7 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
 
 result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::_wrename(UTF8_W(from), UTF8_W(to)))
@@ -577,7 +577,7 @@ result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
 
 result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     WIN32_FIND_DATAW fd;

@@ -91,7 +91,7 @@ result_t http_base::request(Stream_base* conn, HttpRequest_base* req,
     obj_ptr<HttpResponse_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return get_httpClient(ac->isolate())->request(conn, req, retVal, ac);
@@ -101,7 +101,7 @@ result_t http_base::request(exlib::string method, exlib::string url,
     SeekableStream_base* body, Map_base* headers,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);

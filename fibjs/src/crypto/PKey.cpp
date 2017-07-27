@@ -42,7 +42,7 @@ result_t PKey::genRsaKey(int32_t size, AsyncEvent* ac)
     if (size < 128 || size > 8192)
         return CHECK_ERROR(Runtime::setError("PKey: Invalid key size"));
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t ret;
@@ -64,7 +64,7 @@ result_t PKey::genRsaKey(int32_t size, AsyncEvent* ac)
 
 result_t PKey::genEcKey(exlib::string curve, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     const mbedtls_ecp_curve_info* curve_info;
@@ -357,7 +357,7 @@ result_t PKey::exportDer(obj_ptr<Buffer_base>& retVal)
 result_t PKey::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t ret;
@@ -383,7 +383,7 @@ result_t PKey::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
 result_t PKey::decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
@@ -419,7 +419,7 @@ result_t PKey::decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
 result_t PKey::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
@@ -457,7 +457,7 @@ result_t PKey::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal
 result_t PKey::verify(Buffer_base* sign, Buffer_base* data, bool& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t ret;

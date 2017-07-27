@@ -150,7 +150,7 @@ UMConnectionCAPI capi = {
 result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (qstrcmp(connString.c_str(), "mysql:", 6))
@@ -225,7 +225,7 @@ result_t mysql::close(AsyncEvent* ac)
     if (!m_conn)
         return 0;
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (m_conn) {
@@ -242,7 +242,7 @@ result_t mysql::use(exlib::string dbName, AsyncEvent* ac)
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<DBResult_base> retVal;
@@ -256,7 +256,7 @@ result_t mysql::begin(AsyncEvent* ac)
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<DBResult_base> retVal;
@@ -268,7 +268,7 @@ result_t mysql::commit(AsyncEvent* ac)
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<DBResult_base> retVal;
@@ -280,7 +280,7 @@ result_t mysql::rollback(AsyncEvent* ac)
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<DBResult_base> retVal;
@@ -314,7 +314,7 @@ result_t mysql::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, Async
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return execute(sql.c_str(), (int32_t)sql.length(), retVal);

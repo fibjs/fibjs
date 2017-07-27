@@ -361,7 +361,7 @@ public:
 result_t zlib_base::deflate(Buffer_base* data, int32_t level,
     obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return def(level).process(data, retVal);
@@ -370,7 +370,7 @@ result_t zlib_base::deflate(Buffer_base* data, int32_t level,
 result_t zlib_base::deflateTo(Buffer_base* data, Stream_base* stm,
     int32_t level, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return def(level).process(data, stm, ac);
@@ -379,7 +379,7 @@ result_t zlib_base::deflateTo(Buffer_base* data, Stream_base* stm,
 result_t zlib_base::deflateTo(Stream_base* src, Stream_base* stm, int32_t level,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return def(level).process(src, stm, ac);
@@ -388,7 +388,7 @@ result_t zlib_base::deflateTo(Stream_base* src, Stream_base* stm, int32_t level,
 result_t zlib_base::inflate(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return inf().process(data, retVal);
@@ -397,7 +397,7 @@ result_t zlib_base::inflate(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
 result_t zlib_base::inflateTo(Buffer_base* data, Stream_base* stm,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return inf().process(data, stm, ac);
@@ -406,7 +406,7 @@ result_t zlib_base::inflateTo(Buffer_base* data, Stream_base* stm,
 result_t zlib_base::inflateTo(Stream_base* src, Stream_base* stm,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return inf().process(src, stm, ac);
@@ -415,7 +415,7 @@ result_t zlib_base::inflateTo(Stream_base* src, Stream_base* stm,
 result_t zlib_base::gzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gz().process(data, retVal);
@@ -424,7 +424,7 @@ result_t zlib_base::gzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
 result_t zlib_base::gzipTo(Buffer_base* data, Stream_base* stm,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gz().process(data, stm, ac);
@@ -433,7 +433,7 @@ result_t zlib_base::gzipTo(Buffer_base* data, Stream_base* stm,
 result_t zlib_base::gzipTo(Stream_base* src, Stream_base* stm,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gz().process(src, stm, ac);
@@ -442,7 +442,7 @@ result_t zlib_base::gzipTo(Stream_base* src, Stream_base* stm,
 result_t zlib_base::gunzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gunz().process(data, retVal);
@@ -451,7 +451,7 @@ result_t zlib_base::gunzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
 result_t zlib_base::gunzipTo(Buffer_base* data, Stream_base* stm,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gunz().process(data, stm, ac);
@@ -460,7 +460,7 @@ result_t zlib_base::gunzipTo(Buffer_base* data, Stream_base* stm,
 result_t zlib_base::gunzipTo(Stream_base* src, Stream_base* stm,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return gunz().process(src, stm, ac);
@@ -469,7 +469,7 @@ result_t zlib_base::gunzipTo(Stream_base* src, Stream_base* stm,
 result_t zlib_base::deflateRaw(Buffer_base* data, int32_t level,
     obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return defraw().process(data, retVal);
@@ -478,7 +478,7 @@ result_t zlib_base::deflateRaw(Buffer_base* data, int32_t level,
 result_t zlib_base::deflateRawTo(Buffer_base* data, Stream_base* stm,
     int32_t level, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return defraw().process(data, stm, ac);
@@ -487,7 +487,7 @@ result_t zlib_base::deflateRawTo(Buffer_base* data, Stream_base* stm,
 result_t zlib_base::deflateRawTo(Stream_base* src, Stream_base* stm, int32_t level,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return defraw().process(src, stm, ac);
@@ -496,7 +496,7 @@ result_t zlib_base::deflateRawTo(Stream_base* src, Stream_base* stm, int32_t lev
 result_t zlib_base::inflateRaw(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return infraw().process(data, retVal);
@@ -505,7 +505,7 @@ result_t zlib_base::inflateRaw(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
 result_t zlib_base::inflateRawTo(Buffer_base* data, Stream_base* stm,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return infraw().process(data, stm, ac);
@@ -514,7 +514,7 @@ result_t zlib_base::inflateRawTo(Buffer_base* data, Stream_base* stm,
 result_t zlib_base::inflateRawTo(Stream_base* src, Stream_base* stm,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return infraw().process(src, stm, ac);

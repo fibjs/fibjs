@@ -126,7 +126,7 @@ public:
 result_t HttpMessage::sendTo(Stream_base* stm, exlib::string& strCommand,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncSendTo(this, stm, strCommand, ac))->post(0);
@@ -135,7 +135,7 @@ result_t HttpMessage::sendTo(Stream_base* stm, exlib::string& strCommand,
 result_t HttpMessage::sendHeader(Stream_base* stm, exlib::string& strCommand,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncSendTo(this, stm, strCommand, ac, true))->post(0);
@@ -303,7 +303,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
         int64_t m_copySize;
     };
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);

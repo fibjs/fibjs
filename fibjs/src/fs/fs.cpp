@@ -39,7 +39,7 @@ static exlib::spinlock s_cachelock;
 result_t fs_base::openFile(exlib::string fname, exlib::string flags,
     obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string safe_name;
@@ -217,7 +217,7 @@ result_t fs_base::get_constants(v8::Local<v8::Object>& retVal)
 result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
     int32_t& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string safe_name;
@@ -228,7 +228,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
 
 result_t fs_base::close(int32_t fd, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (fd != -1) {
@@ -244,7 +244,7 @@ result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
     obj_ptr<BufferedStream_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> pFile;
@@ -258,7 +258,7 @@ result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
 result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> f;
@@ -281,7 +281,7 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
 result_t fs_base::readFile(exlib::string fname, exlib::string encoding,
     Variant& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> f;
@@ -326,7 +326,7 @@ result_t fs_base::readLines(exlib::string fname, int32_t maxlines,
 result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> f;
@@ -346,7 +346,7 @@ result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt,
 
 result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> f;
@@ -364,7 +364,7 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* 
 
 result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
     obj_ptr<SeekableStream_base> f;
     result_t hr;
@@ -382,7 +382,7 @@ result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, AsyncEvent*
 result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Stat> pStat = new Stat();
@@ -398,7 +398,7 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal,
 
 result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Stat> pStat = new Stat();
@@ -418,7 +418,7 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     if (fd < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t bufLength;

@@ -147,7 +147,7 @@ const char* zip_error(int32_t err)
 
 result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     unzFile unz;
@@ -164,7 +164,7 @@ result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* a
 result_t zip_base::open(exlib::string path, exlib::string mod, int32_t compress_type,
     obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> file;
@@ -196,7 +196,7 @@ result_t zip_base::open(exlib::string path, exlib::string mod, int32_t compress_
 result_t zip_base::open(Buffer_base* data, exlib::string mod, int32_t compress_type,
     obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strData;
@@ -210,7 +210,7 @@ result_t zip_base::open(Buffer_base* data, exlib::string mod, int32_t compress_t
 result_t zip_base::open(SeekableStream_base* strm, exlib::string mod, int32_t compress_type,
     obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     retVal = new ZipFile(strm, mod, compress_type);
@@ -319,7 +319,7 @@ result_t ZipFile::namelist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
     if (!m_unz)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
@@ -364,7 +364,7 @@ result_t ZipFile::infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
     if (!m_unz)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
@@ -409,7 +409,7 @@ result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipInfo_base>& retVal, A
     if (!m_unz)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t err;
@@ -497,7 +497,7 @@ result_t ZipFile::read(exlib::string member, exlib::string password, obj_ptr<Buf
     if (!m_unz)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t err;
@@ -514,7 +514,7 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::strin
     if (!m_unz)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t err;
@@ -537,7 +537,7 @@ result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, exlib
     if (!m_unz)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t err;
@@ -578,7 +578,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncEv
     if (!m_unz)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
@@ -646,7 +646,7 @@ result_t ZipFile::readAll(exlib::string password, obj_ptr<List_base>& retVal, As
     if (!m_unz)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
@@ -781,7 +781,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string inZipName, exlib::
     if (!m_zip)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
@@ -799,7 +799,7 @@ result_t ZipFile::write(Buffer_base* data, exlib::string inZipName, exlib::strin
     if (!m_zip)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     result_t hr;
@@ -822,7 +822,7 @@ result_t ZipFile::write(SeekableStream_base* strm, exlib::string inZipName, exli
     if (!m_zip)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return write(inZipName, password, strm);
@@ -830,7 +830,7 @@ result_t ZipFile::write(SeekableStream_base* strm, exlib::string inZipName, exli
 
 result_t ZipFile::close(AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t err = ZIP_OK;

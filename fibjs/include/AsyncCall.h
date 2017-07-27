@@ -10,6 +10,11 @@ namespace fibjs {
 
 class AsyncEvent : public exlib::linkitem {
 public:
+    AsyncEvent()
+        : m_async(false)
+    {
+    }
+
     virtual ~AsyncEvent()
     {
     }
@@ -47,6 +52,24 @@ public:
         assert(false);
         return NULL;
     }
+
+    bool isAsync() const
+    {
+        return m_async;
+    }
+
+    bool isSync() const
+    {
+        return !m_async;
+    }
+
+    void setAsync()
+    {
+        m_async = true;
+    }
+
+private:
+    bool m_async;
 };
 
 class AsyncCall : public AsyncEvent {
@@ -175,6 +198,7 @@ public:
         , m_bAsyncState(false)
         , m_state(NULL)
     {
+        setAsync();
     }
 
 public:

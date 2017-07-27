@@ -136,7 +136,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         88);
 
                     pThis->m_rep->set_body(body);
-                    body->write(buf, NULL);
+                    body->cc_write(buf);
 
                     pThis->m_rep->setHeader("Content-Type", "text/xml");
 
@@ -374,7 +374,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         date_t m_d;
     };
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Stream_base> stm = Stream_base::getInstance(v);

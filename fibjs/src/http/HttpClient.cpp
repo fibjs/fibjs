@@ -331,7 +331,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
         obj_ptr<SeekableStream_base> m_body;
     };
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncRequest(conn, req, m_maxBodySize, retVal, ac))->post(0);
@@ -496,7 +496,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         obj_ptr<HttpClient> m_hc;
     };
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncRequest(this, method, url, body, headers, retVal, ac))->post(0);
@@ -522,7 +522,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     obj_ptr<HttpResponse_base>& retVal)
 {
     obj_ptr<SeekableStream_base> stm = new MemoryStream();
-    stm->write(body, NULL);
+    stm->cc_write(body);
     return request(method, url, stm, headers, retVal);
 }
 

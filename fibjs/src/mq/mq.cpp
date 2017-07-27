@@ -99,7 +99,7 @@ result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
         obj_ptr<object_base> m_v;
     };
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncInvoke(hdlr, v, ac))->post(0);

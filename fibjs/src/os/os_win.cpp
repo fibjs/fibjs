@@ -473,7 +473,7 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
 
         result_t write(Buffer_base* data, AsyncEvent* ac)
         {
-            if (!ac)
+            if (ac->isSync())
                 return CHECK_ERROR(CALL_E_LONGSYNC);
 
             DOC_INFO_1 DocInfo;
@@ -510,7 +510,7 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
 
         result_t close(AsyncEvent* ac)
         {
-            if (!ac)
+            if (ac->isSync())
                 return CHECK_ERROR(CALL_E_LONGSYNC);
 
             if (m_hPrinter) {
@@ -530,7 +530,7 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
         HANDLE m_hPrinter;
     };
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     HANDLE hPrinter;

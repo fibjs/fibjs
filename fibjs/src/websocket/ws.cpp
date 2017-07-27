@@ -131,7 +131,7 @@ result_t ws_base::connect(exlib::string url, exlib::string origin,
         exlib::string m_accept;
     };
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncConnect(url, origin, retVal, ac))->post(0);

@@ -74,7 +74,7 @@ result_t crypto_base::loadReq(exlib::string filename, obj_ptr<X509Req_base>& ret
 result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     time_t t;
@@ -108,7 +108,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
 result_t crypto_base::simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strBuf;
@@ -128,7 +128,7 @@ result_t crypto_base::simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retV
 result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t i, ret;
@@ -329,7 +329,7 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
     if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string str_pass;
@@ -356,7 +356,7 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
     int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     algoName.toupper();
@@ -373,7 +373,7 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     if (algo < hash_base::_MD2 || algo > hash_base::_RIPEMD160)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string str_pass;
@@ -400,7 +400,7 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     algoName.toupper();

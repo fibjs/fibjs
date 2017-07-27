@@ -15,7 +15,7 @@ namespace fibjs {
 
 result_t MongoCollection::_batchInsert(std::vector<const bson*> pdata, int num, int32_t& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<MongoDB> db(m_db);
@@ -28,7 +28,7 @@ result_t MongoCollection::_batchInsert(std::vector<const bson*> pdata, int num, 
 
 result_t MongoCollection::_insert(const bson* data, int32_t& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<MongoDB> db(m_db);
@@ -41,7 +41,7 @@ result_t MongoCollection::_insert(const bson* data, int32_t& retVal, AsyncEvent*
 
 result_t MongoCollection::_update(const bson* cond, const bson* op, int flags, int32_t& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<MongoDB> db(m_db);
@@ -54,7 +54,7 @@ result_t MongoCollection::_update(const bson* cond, const bson* op, int flags, i
 
 result_t MongoCollection::_remove(const bson* data, int32_t& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<MongoDB> db(m_db);

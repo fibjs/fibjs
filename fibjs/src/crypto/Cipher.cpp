@@ -249,7 +249,7 @@ result_t Cipher::process(const mbedtls_operation_t operation, Buffer_base* data,
 result_t Cipher::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac) {
+    if (ac->isSync()) {
         exlib::string input;
         data->toString(input);
         if (input.length() > 256)
@@ -262,7 +262,7 @@ result_t Cipher::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
 result_t Cipher::decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac) {
+    if (ac->isSync()) {
         exlib::string input;
         data->toString(input);
         if (input.length() > 256)

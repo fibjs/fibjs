@@ -74,7 +74,7 @@ void init_fs()
 
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     retVal = ::access(path.c_str(), F_OK) == 0;
@@ -83,7 +83,7 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 
 result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::access(path.c_str(), mode) < 0)
@@ -94,7 +94,7 @@ result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
 
 result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::link(oldPath.c_str(), newPath.c_str()))
@@ -105,7 +105,7 @@ result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent*
 
 result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::unlink(path.c_str()))
@@ -116,7 +116,7 @@ result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
 
 result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     char buf[MAX_PATH_LENGTH];
@@ -132,7 +132,7 @@ result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent
 
 result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     char buf[MAX_PATH_LENGTH];
@@ -146,7 +146,7 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
 
 result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::string type, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::symlink(target.c_str(), linkpath.c_str()) < 0)
@@ -157,7 +157,7 @@ result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::s
 
 result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::truncate(path.c_str(), len) < 0)
@@ -168,7 +168,7 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
 
 result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::mkdir(path.c_str(), mode))
@@ -179,7 +179,7 @@ result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
 
 result_t fs_base::rmdir(exlib::string path, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::rmdir(path.c_str()))
@@ -190,7 +190,7 @@ result_t fs_base::rmdir(exlib::string path, AsyncEvent* ac)
 
 result_t fs_base::fchmod(int32_t fd, int32_t mode, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::fchmod(fd, mode))
@@ -201,7 +201,7 @@ result_t fs_base::fchmod(int32_t fd, int32_t mode, AsyncEvent* ac)
 
 result_t fs_base::fchown(int32_t fd, int32_t uid, int32_t gid, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::fchown(fd, uid, gid))
@@ -212,7 +212,7 @@ result_t fs_base::fchown(int32_t fd, int32_t uid, int32_t gid, AsyncEvent* ac)
 
 result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
 #if defined(Darwin) || defined(FreeBSD)
@@ -227,7 +227,7 @@ result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
 
 result_t fs_base::fsync(int32_t fd, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::fsync(fd))
@@ -238,7 +238,7 @@ result_t fs_base::fsync(int32_t fd, AsyncEvent* ac)
 
 result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::chmod(path.c_str(), mode))
@@ -249,7 +249,7 @@ result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 
 result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
 #ifdef Linux
@@ -264,7 +264,7 @@ result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 
 result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::chown(path.c_str(), uid, gid))
@@ -275,7 +275,7 @@ result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent
 
 result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::lchown(path.c_str(), uid, gid))
@@ -287,7 +287,7 @@ result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEven
 result_t fs_base::rename(exlib::string from, exlib::string to,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::rename(from.c_str(), to.c_str()))
@@ -330,7 +330,7 @@ result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
 result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal,
     AsyncEvent* ac)
 {
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     DIR* dp;

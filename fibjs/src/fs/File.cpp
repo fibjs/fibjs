@@ -34,7 +34,7 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strBuf;
@@ -98,7 +98,7 @@ result_t File::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strBuf;
@@ -168,7 +168,7 @@ result_t File::write(Buffer_base* data, AsyncEvent* ac)
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     exlib::string strBuf;
@@ -218,7 +218,7 @@ result_t File::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     BY_HANDLE_FILE_INFORMATION fdata;
@@ -240,7 +240,7 @@ result_t File::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     struct stat64 st;
@@ -334,7 +334,7 @@ result_t File::flush(AsyncEvent* ac)
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     //    fflush(m_file);
@@ -363,7 +363,7 @@ result_t File::close()
 result_t File::close(AsyncEvent* ac)
 {
     if (m_fd != -1) {
-        if (!ac)
+        if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         return close();
@@ -377,7 +377,7 @@ result_t File::truncate(int64_t bytes, AsyncEvent* ac)
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (ftruncate64(m_fd, bytes) < 0)
@@ -391,7 +391,7 @@ result_t File::chmod(int32_t mode, AsyncEvent* ac)
 #ifdef _WIN32
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 #else
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (::fchmod(m_fd, mode))

@@ -66,7 +66,7 @@ result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         }
 
     private:
-        std::vector<obj_ptr<Handler_base> > m_array;
+        std::vector<obj_ptr<Handler_base>> m_array;
         obj_ptr<object_base> m_v;
         obj_ptr<Message_base> m_msg;
         int32_t m_pos;
@@ -75,7 +75,7 @@ result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     if (m_array.size() == 0)
         return CHECK_ERROR(Runtime::setError("Chain: empty chain."));
 
-    if (!ac)
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new asyncInvoke(this, v, ac))->post(0);

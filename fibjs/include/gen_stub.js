@@ -60,7 +60,7 @@ function gen_stub(argn, bInst, bRet) {
 
         txt.push('	class _t : public ' + AsyncCall + ' { public: \\');
         txt.push('		_t(void ** a) : ' + AsyncCall + '(a) {} \\');
-        txt.push('		virtual void invoke() { \\');
+        txt.push('		virtual void invoke() { \\\n			setAsync(); \\');
         txt.push('			result_t hr = ' + (bInst ? '((cls*)args[' + (argn) + '])->' : 'cls::') + 'm( \\');
 
         s = '				';
@@ -73,18 +73,6 @@ function gen_stub(argn, bInst, bRet) {
         txt.push(s);
 
         txt.push('			if(hr != CALL_E_PENDDING)post(hr); } }; \\');
-
-        s = '	result_t hr = m(';
-        if (argn > 0) {
-            a = [];
-            for (i = 0; i < argn; i++)
-                a.push('v' + i);
-            a.push('NULL');
-            s += a.join(', ');
-        } else
-            s += 'NULL';
-
-        txt.push(s + '); \\\n' + '	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \\');
 
         if (argn > 0 || bInst) {
             s = '	void* args[] = {';
@@ -103,7 +91,18 @@ function gen_stub(argn, bInst, bRet) {
         } else
             txt.push('	_t ac(NULL); \\');
 
-        txt.push('	if(hr != CALL_E_NOSYNC){ac.async(hr); return ac.wait();} \\\n	else return ac.async_wait(); \\\n	}');
+        s = '	result_t hr = m(';
+        if (argn > 0) {
+            a = [];
+            for (i = 0; i < argn; i++)
+                a.push('v' + i);
+            a.push('&ac');
+            s += a.join(', ');
+        } else
+            s += '&ac';
+
+        txt.push(s + '); \\\n' + '	if(hr != CALL_E_NOSYNC) { \\\n		if(hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \\');
+        txt.push('		ac.async(hr); return ac.wait(); \\\n	} else return ac.async_wait(); \\\n	}');
     }
 
     function gen_callback() {
@@ -141,7 +140,7 @@ function gen_stub(argn, bInst, bRet) {
         s += ' \\';
         txt.push(s);
 
-        txt.push('		{} \\\n		virtual void invoke() \\\n		{ \\');
+        txt.push('		{} \\\n		virtual void invoke() \\\n		{ \\\n			setAsync(); \\');
         if (bInst)
             s = '			result_t hr = ((cls*)(object_base*)m_pThis)->m(';
         else
@@ -185,7 +184,7 @@ function gen_stub(argn, bInst, bRet) {
         if (bRet)
             a.push('ac->retVal');
 
-        a.push('NULL');
+        a.push('ac');
         s += a.join(', ');
 
         txt.push(s + '); \\');
