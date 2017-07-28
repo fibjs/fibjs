@@ -25,7 +25,7 @@ public:
     virtual result_t get_caller(obj_ptr<Fiber_base>& retVal);
 
 public:
-    static void* fiber_proc(void* p);
+    static void fiber_proc(void* p);
     void start();
 
     void set_caller(Fiber_base* caller);
@@ -139,7 +139,7 @@ public:
 
 private:
     v8::Global<v8::Function> m_func;
-    QuickArray<v8::Global<v8::Value> > m_argv;
+    QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Value> m_result;
     v8::Global<v8::Object> m_this;
 };

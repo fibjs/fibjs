@@ -97,13 +97,13 @@ static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallba
     }
 }
 
-void* init_proc(void* p)
+void init_proc(void* p)
 {
     Isolate* isolate = (Isolate*)p;
     Runtime rt(isolate);
 
     isolate->init();
-    return FiberBase::fiber_proc(p);
+    FiberBase::fiber_proc(p);
 }
 
 Isolate::Isolate(exlib::string fname)

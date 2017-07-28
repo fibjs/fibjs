@@ -38,7 +38,7 @@ private:
     {
         class _thread : public exlib::OSThread {
         public:
-            typedef void* (*thread_func)(void*);
+            typedef void (*thread_func)(void*);
 
         public:
             _thread(thread_func proc, void* arg)
@@ -94,10 +94,9 @@ private:
         }
     }
 
-    static void* worker_proc(void* ptr)
+    static void worker_proc(void* ptr)
     {
         ((acPool*)ptr)->worker_proc();
-        return 0;
     }
 
 private:

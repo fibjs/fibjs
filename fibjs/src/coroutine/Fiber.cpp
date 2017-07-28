@@ -25,7 +25,7 @@ void init_fiber()
     g_tlsCurrent = exlib::Fiber::tlsAlloc();
 }
 
-void* FiberBase::fiber_proc(void* p)
+void FiberBase::fiber_proc(void* p)
 {
     result_t hr = 0;
     Isolate* isolate = (Isolate*)p;
@@ -80,8 +80,6 @@ void* FiberBase::fiber_proc(void* p)
     }
 
     isolate->m_isolate->DiscardThreadSpecificMetadata();
-
-    return NULL;
 }
 
 void FiberBase::set_caller(Fiber_base* caller)
