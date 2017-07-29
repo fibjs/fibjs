@@ -64,10 +64,9 @@ public:
     virtual result_t set_timeout(int32_t newVal);
     virtual result_t connect(exlib::string host, int32_t port,
         AsyncEvent* ac);
-    virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4,
-        AsyncEvent* ac);
-    virtual result_t bind(int32_t port, bool allowIPv4, AsyncEvent* ac);
-    virtual result_t listen(int32_t backlog, AsyncEvent* ac);
+    virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4);
+    virtual result_t bind(int32_t port, bool allowIPv4);
+    virtual result_t listen(int32_t backlog);
     virtual result_t accept(obj_ptr<Socket_base>& retVal,
         AsyncEvent* ac);
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
@@ -80,18 +79,6 @@ public:
 
 public:
     result_t create(int32_t family, int32_t type);
-
-#ifdef _WIN32
-public:
-    result_t create(int32_t family, int32_t type, AsyncEvent* ac)
-    {
-        if (ac->isSync())
-            return CHECK_ERROR(CALL_E_LONGSYNC);
-
-        return create(family, type);
-    }
-    ASYNC_MEMBER2_CC(Socket, create, int32_t, int32_t);
-#endif
 
 private:
     class IOTimer : public Timer {

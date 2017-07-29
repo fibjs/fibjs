@@ -21,11 +21,7 @@ result_t Socket_base::_new(int32_t family, int32_t type,
 {
     obj_ptr<Socket> sock = new Socket();
 
-#ifdef _WIN32
-    result_t hr = sock->cc_create(family, type);
-#else
     result_t hr = sock->create(family, type);
-#endif
     if (hr < 0)
         return hr;
 
@@ -242,13 +238,10 @@ result_t Socket::set_timeout(int32_t newVal)
     return 0;
 }
 
-result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4, AsyncEvent* ac)
+result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
 
     inetAddr addr_info;
 
@@ -270,8 +263,7 @@ result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4, AsyncEve
             sizeof(on));
     }
 
-    if (::bind(m_aio.m_fd, (struct sockaddr*)&addr_info,
-            addr_info.size())
+    if (::bind(m_aio.m_fd, (struct sockaddr*)&addr_info, addr_info.size())
         == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
 
@@ -282,24 +274,18 @@ result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4, AsyncEve
     return 0;
 }
 
-result_t Socket::bind(int32_t port, bool allowIPv4, AsyncEvent* ac)
+result_t Socket::bind(int32_t port, bool allowIPv4)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
-
-    return bind("", port, allowIPv4, ac);
+    return bind("", port, allowIPv4);
 }
 
-result_t Socket::listen(int32_t backlog, AsyncEvent* ac)
+result_t Socket::listen(int32_t backlog)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (::listen(m_aio.m_fd, backlog) == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
@@ -311,7 +297,7 @@ result_t Socket::connect(exlib::string host, int32_t port, AsyncEvent* ac)
 {
 #ifdef _WIN32
     if (!m_bBind) {
-        result_t hr = cc_bind(0, TRUE);
+        result_t hr = bind(0, TRUE);
         if (hr < 0)
             return hr;
     }
