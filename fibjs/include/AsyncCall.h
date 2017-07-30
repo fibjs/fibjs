@@ -91,26 +91,21 @@ public:
         return 0;
     }
 
-    int32_t wait()
+    int32_t check_result(int32_t hr)
     {
-        if (!weak.isSet()) {
-            Isolate::rt _rt(m_isolate);
-            weak.wait();
-        }
-
-        if (m_v == CALL_E_EXCEPTION)
-            Runtime::setError(m_error);
-
-        return m_v;
-    }
-
-    int32_t async_wait()
-    {
-        {
+        if (hr == CALL_E_NOSYNC) {
             Isolate::rt _rt(m_isolate);
             invoke();
             weak.wait();
-        }
+        } else if (hr == CALL_E_LONGSYNC || hr == CALL_E_GUICALL) {
+            async(hr);
+
+            if (!weak.isSet()) {
+                Isolate::rt _rt(m_isolate);
+                weak.wait();
+            }
+        } else
+            return hr;
 
         if (m_v == CALL_E_EXCEPTION)
             Runtime::setError(m_error);
@@ -152,20 +147,16 @@ public:
         return 0;
     }
 
-    int32_t wait()
+    int32_t check_result(int32_t hr)
     {
+        if (hr == CALL_E_NOSYNC)
+            invoke();
+        else if (hr == CALL_E_LONGSYNC || hr == CALL_E_GUICALL)
+            async(hr);
+        else
+            return hr;
+
         weak.wait();
-        if (m_v == CALL_E_EXCEPTION)
-            Runtime::setError(m_error);
-
-        return m_v;
-    }
-
-    int32_t async_wait()
-    {
-        invoke();
-        weak.wait();
-
         if (m_v == CALL_E_EXCEPTION)
             Runtime::setError(m_error);
 
@@ -388,6 +379,14 @@ public:
     {
         assert(m_isolate);
         return m_isolate;
+    }
+
+    void check_result(int32_t hr)
+    {
+        if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)
+            callback(hr);
+        else
+            async_call(hr);
     }
 
 protected:

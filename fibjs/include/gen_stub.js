@@ -91,7 +91,7 @@ function gen_stub(argn, bInst, bRet) {
         } else
             txt.push('	_t ac(NULL); \\');
 
-        s = '	result_t hr = m(';
+        s = '	return ac.check_result(m(';
         if (argn > 0) {
             a = [];
             for (i = 0; i < argn; i++)
@@ -101,8 +101,7 @@ function gen_stub(argn, bInst, bRet) {
         } else
             s += '&ac';
 
-        txt.push(s + '); \\\n' + '	if(hr != CALL_E_NOSYNC) { \\\n		if(hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)return hr; \\');
-        txt.push('		ac.async(hr); return ac.wait(); \\\n	} else return ac.async_wait(); \\\n	}');
+        txt.push(s + ')); \\\n	}');
     }
 
     function gen_callback() {
@@ -175,7 +174,7 @@ function gen_stub(argn, bInst, bRet) {
         s += 'cb); \\';
         txt.push(s);
 
-        s = '	result_t hr = m(';
+        s = '	ac->check_result(m(';
 
         a = [];
         for (i = 0; i < argn1; i++)
@@ -187,12 +186,7 @@ function gen_stub(argn, bInst, bRet) {
         a.push('ac');
         s += a.join(', ');
 
-        txt.push(s + '); \\');
-
-        txt.push('	if(hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)ac->callback(hr); \\');
-        txt.push('	else ac->async_call(hr); \\');
-
-        txt.push('	}');
+        txt.push(s + ')); \\\n	}');
     }
 
     gen_define('_AC');
