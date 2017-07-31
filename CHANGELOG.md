@@ -1,3 +1,55 @@
+## 2017-07-31, Version v0.10.0
+
+* **refactor** :
+    * fiber:
+      - switch worker back to thread mode in windows. (xicilion)
+      - use fiber worker in windows, enable full feature of multi thread fiber. (xicilion)
+      - abstract fiber api. (xicilion)
+    * async - move the result checker into the class to reconstruct the source code. (xicilion)
+    * core - use ac->isAsync to test async mode. (xicilion)
+    * console - use cc_ function instead of ac. (xicilion)
+    * sanbox - not clone the module return by callback. (xicilion)
+    * fs - cache files until the zip package is changed. (xicilion)
+    * test - use path.join to build file name. (xicilion)
+
+* **bugfix** :
+    * sandbox:
+      - remove unused variable. (xicilion)
+      - resolve search root folder twice on windows. (xicilion)
+      - circular dependency error when module.exports is changed.. (xicilion)
+    * leveldb - db.between not include the begin key. (xicilion)
+    * mongodb - ensureIndex error on mongodb v3.0+ . (xicilion)
+    * net - compile warning in debug mode. (xicilion)
+
+* **breakchange** :
+    * core - only use the args before entry script as the system options. (xicilion)
+
+* **deps** :
+    * v8 - v6.2.52. (xicilion)
+
+### Commits
+
+* [[`f3a5386cc3`](https://github.com/fibjs/fibjs/commit/f3a5386cc3)] - **async, refactor**: move the result checker into the class to reconstruct the source code. (xicilion)
+* [[`76a2bd5567`](https://github.com/fibjs/fibjs/commit/76a2bd5567)] - **fiber, refactor**: switch worker back to thread mode in windows. (xicilion)
+* [[`d5304df12f`](https://github.com/fibjs/fibjs/commit/d5304df12f)] - **fiber, refactor**: use fiber worker in windows, enable full feature of multi thread fiber. (xicilion)
+* [[`7c4a5bd368`](https://github.com/fibjs/fibjs/commit/7c4a5bd368)] - **fiber, refactor**: abstract fiber api. (xicilion)
+* [[`a29757fd58`](https://github.com/fibjs/fibjs/commit/a29757fd58)] - **sandbox,  bugfix**: remove unused variable. (xicilion)
+* [[`fe384087a0`](https://github.com/fibjs/fibjs/commit/fe384087a0)] - **core, refactor**: use ac->isAsync to test async mode. (xicilion)
+* [[`be97c97879`](https://github.com/fibjs/fibjs/commit/be97c97879)] - **console, refactor**: use cc_ function instead of ac. (xicilion)
+* [[`8ea02b7ba7`](https://github.com/fibjs/fibjs/commit/8ea02b7ba7)] - **v8, upgrade**: v6.2.52. (xicilion)
+* [[`13072368f5`](https://github.com/fibjs/fibjs/commit/13072368f5)] - **sanbox, refactor**: not clone the module return by callback. (xicilion)
+* [[`694659486c`](https://github.com/fibjs/fibjs/commit/694659486c)] - **core: enable** strip option in release mode. (xicilion)
+* [[`0cf26f2cce`](https://github.com/fibjs/fibjs/commit/0cf26f2cce)] - **fs, refactor**: cache files until the zip package is changed. (xicilion)
+* [[`9dd77c284c`](https://github.com/fibjs/fibjs/commit/9dd77c284c)] - **sandbox, bugfix**: resolve search root folder twice on windows. (xicilion)
+* [[`c961d71173`](https://github.com/fibjs/fibjs/commit/c961d71173)] - **leveldb, bugfix**: db.between not include the begin key. (xicilion)
+* [[`3420200ecb`](https://github.com/fibjs/fibjs/commit/3420200ecb)] - **mongodb, bugfix**: ensureIndex error on mongodb v3.0+ . (xicilion)
+* [[`9e99a7a92a`](https://github.com/fibjs/fibjs/commit/9e99a7a92a)] - **sandbox, bugfix**: circular dependency error when module.exports is changed.. (xicilion)
+* [[`61acfb512c`](https://github.com/fibjs/fibjs/commit/61acfb512c)] - **test, refactor**: use path.join to build file name. (xicilion)
+* [[`5f56491d76`](https://github.com/fibjs/fibjs/commit/5f56491d76)] - **core, break**: only use the args before entry script as the system options. (xicilion)
+* [[`1a04db5488`](https://github.com/fibjs/fibjs/commit/1a04db5488)] - **net, bugfix**: compile warning in debug mode. (xicilion)
+* [[`b7ee5c809f`](https://github.com/fibjs/fibjs/commit/b7ee5c809f)] - **v8: upgrade** to v6.1.539 (xicilion)
+* [[`348c1b0476`](https://github.com/fibjs/fibjs/commit/348c1b0476)] - **test: add** v8 hash seed case. (xicilion)
+
 ## 2017-07-19, Version v0.9.0
 
 * **feature** :
