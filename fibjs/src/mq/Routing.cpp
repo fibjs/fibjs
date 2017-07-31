@@ -76,9 +76,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             > 0) {
             obj_ptr<List> list = new List();
 
-            if (rc == 1)
-                msg->set_value("");
-            else {
+            if (rc > 1) {
                 int32_t levelCount[RE_SIZE] = { 0 };
                 int32_t level[RE_SIZE] = { 0 };
                 int32_t p = 1;

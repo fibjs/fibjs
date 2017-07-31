@@ -192,7 +192,7 @@ describe("mq", () => {
         }
 
         function params0(v) {
-            assert.equal(v.value, '');
+            assert.equal(v.value, 'params0/999.html');
             assert.equal(v.params.length, 0);
             n = 'param0';
         }
@@ -307,7 +307,7 @@ describe("mq", () => {
             var m = new mq.Message();
             m.value = '/api/a';
             mq.invoke(r, m);
-            assert.equal('', m.value);
+            assert.equal('/api/a', m.value);
 
             m.value = '/api/a/test';
             mq.invoke(r, m);
