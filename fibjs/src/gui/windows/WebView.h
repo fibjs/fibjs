@@ -169,6 +169,7 @@ private:
     HRESULT OnPropertyChange(DISPPARAMS* pDispParams);
     HRESULT OnStatusTextChange(DISPPARAMS* pDispParams);
     HRESULT OnTitleChange(DISPPARAMS* pDispParams);
+    HRESULT OnWindowClosing(DISPPARAMS* pDispParams);
 
     HRESULT OnPostMessage(DISPPARAMS* pDispParams);
     HRESULT OnOnMessage(DISPPARAMS* pDispParams);

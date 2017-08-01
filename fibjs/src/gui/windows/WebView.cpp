@@ -1005,6 +1005,8 @@ HRESULT WebView::Invoke(DISPID dispid, REFIID riid, LCID lcid, WORD wFlags,
         return OnStatusTextChange(pDispParams);
     case DISPID_TITLECHANGE:
         return OnTitleChange(pDispParams);
+    case DISPID_WINDOWCLOSING:
+        return OnWindowClosing(pDispParams);
 
     case DISPID_POSTMESSAGE:
         return OnPostMessage(pDispParams);
@@ -1484,6 +1486,13 @@ HRESULT WebView::OnTitleChange(DISPPARAMS* pDispParams)
     if (pDispParams->cArgs > 0 && pDispParams->rgvarg[0].vt == VT_BSTR)
         SetWindowTextW(hWndParent, pDispParams->rgvarg[0].bstrVal);
 
+    return S_OK;
+}
+
+HRESULT WebView::OnWindowClosing(DISPPARAMS* pDispParams)
+{
+    PostMessage(hWndParent, WM_CLOSE, 0, 0);
+    *pDispParams->rgvarg->pboolVal = VARIANT_TRUE;
     return S_OK;
 }
 
