@@ -1456,8 +1456,15 @@ HRESULT WebView::OnDownloadComplete(DISPPARAMS* pDispParams)
 
 HRESULT WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
 {
-    Variant v = new EventInfo(this, "load");
-    _emit("load", &v, 1);
+    IWebBrowser2* frame = NULL;
+
+    pDispParams->rgvarg[1].pdispVal->QueryInterface(&frame);
+    if (frame == webBrowser2) {
+        Variant v = new EventInfo(this, "load");
+        _emit("load", &v, 1);
+    }
+    frame->Release();
+
     return E_NOTIMPL;
 }
 
