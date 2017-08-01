@@ -89,6 +89,18 @@ interface Int64 : object
     */
     Int64 sub(Int64 num);
 
+    /*! @brief Multiplication operation, this doesn't affect original number
+     @param num Number to operate
+     @return Return result number
+    */
+    Int64 multi(Int64 num);
+
+    /*! @brief Division operation, this doesn't affect original number
+     @param num Number to operate
+     @return Return result number
+    */
+    Int64 div(Int64 num);
+
     /*! @brief Convert to integer
       @return Return a integer
      */

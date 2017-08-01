@@ -1,4 +1,4 @@
-/*
+/* 
  * Int64.cpp
  *
  *  Created on: Aug 26, 2014
@@ -121,6 +121,22 @@ result_t Int64::add(Int64_base* num, obj_ptr<Int64_base>& retVal)
 result_t Int64::sub(Int64_base* num, obj_ptr<Int64_base>& retVal)
 {
     retVal = new Int64(m_num - ((Int64*)num)->m_num);
+    return 0;
+}
+
+result_t Int64::multi(Int64_base* num, obj_ptr<Int64_base>& retVal)
+{
+    retVal = new Int64(m_num * ((Int64*)num)->m_num);
+    return 0;
+}
+
+result_t Int64::div(Int64_base* num, obj_ptr<Int64_base>& retVal)
+{
+    int64_t num1 = ((Int64*)num)->m_num;
+    if (num1 == 0) {
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+    retVal = new Int64(m_num / num1);
     return 0;
 }
 

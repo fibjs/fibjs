@@ -45,6 +45,8 @@ public:
     virtual result_t _xor(Int64_base* num, obj_ptr<Int64_base>& retVal);
     virtual result_t add(Int64_base* num, obj_ptr<Int64_base>& retVal);
     virtual result_t sub(Int64_base* num, obj_ptr<Int64_base>& retVal);
+    virtual result_t multi(Int64_base* num, obj_ptr<Int64_base>& retVal);
+    virtual result_t div(Int64_base* num, obj_ptr<Int64_base>& retVal);
     virtual result_t toNumber(double& retVal);
     virtual result_t toString(int32_t base, exlib::string& retVal);
 
