@@ -83,6 +83,18 @@ interface Int64 : object
     */
     Int64 sub(Int64 num);
 
+    /*! @brief 将 Int64 内的数值与给定的数值进行乘操作，此操作不影响 Int64 原有数值
+     @param num 指定运算的数值
+     @return 返回包含预算以后数值的对象
+    */
+    Int64 multi(Int64 num);
+
+    /*! @brief 将 Int64 内的数值与给定的数值进行除操作，此操作不影响 Int64 原有数值
+     @param num 指定运算的数值
+     @return 返回包含预算以后数值的对象
+    */
+    Int64 div(Int64 num);
+
     /*! @brief 转换成数字类型
       @return 返回转换后的数字
      */

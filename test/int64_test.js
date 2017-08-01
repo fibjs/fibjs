@@ -112,6 +112,38 @@ describe('Int64', () => {
         assert.equal(c.sub(0x100000000).toString(16), '0xfffffffeffffffff');
     });
 
+    it('can be multied', () => {
+        var a = new Int64(4),
+            b = new Int64(2),
+            c = new Int64(0),
+            d = new Int64(-3);
+        
+        assert.isTrue(a.multi(b).equals(new Int64(8)));
+        assert.isTrue(a.multi(2).equals(new Int64(8)));
+
+        assert.isTrue(b.multi(d).equals(new Int64(-6)));
+        assert.isTrue(b.multi(-3).equals(new Int64(-6)));
+
+        // numbers larger than int32
+        assert.equal(b.multi(0x100000000).toString(16), '0x200000000');
+    });
+
+    it('can be dived', () => {
+        var a = new Int64(4),
+            b = new Int64(2),
+            c = new Int64(0),
+            d = new Int64(0x200000000);
+
+        assert.isTrue(a.div(b).equals(new Int64(2)));
+        assert.isTrue(a.div(2).equals(new Int64(2)));
+
+        assert.throws(() => a.div(c));
+        assert.throws(() => a.div(0));
+
+        // numbers larger than int32
+        assert.equal(d.div(2).toString(16), '0x100000000');
+    });
+
     it("toString and decode", () => {
         var n = new Int64(-12345);
         assert.equal(n, -12345);
