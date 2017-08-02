@@ -237,7 +237,7 @@ result_t mssql::execute(const char* sql, int32_t sLen,
 
                 field->get_Name(&bstrName);
                 res->setField(i, utf16to8String(bstrName));
-
+                SysFreeString(bstrName);
                 field->Release();
             }
 
