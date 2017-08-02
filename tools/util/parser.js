@@ -139,8 +139,13 @@ param
   = paramtype / paramopt
 
 paramopt
-  = _* "..." {
-    return {
+  = _* "..." _* name:Identifier? {
+    return name ? 
+    {
+      type: "...",
+      name: name,
+      default: null
+    } : {
       type: null,
       name: "...",
       default: null

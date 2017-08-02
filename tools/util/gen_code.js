@@ -17,7 +17,8 @@ module.exports = function (defs, baseFolder) {
             "ArrayBuffer": "v8::Local<v8::ArrayBuffer>",
             "Function": "v8::Local<v8::Function>",
             "Value": "v8::Local<v8::Value>",
-            "Variant": "Variant"
+            "Variant": "Variant",
+            "...": "v8::Local<v8::Array>"
         };
 
         var txts = [];
@@ -158,6 +159,10 @@ module.exports = function (defs, baseFolder) {
                                     opts--;
                                     argc = -1;
                                     args[args.length - 1] = 'args';
+                                } else if (p.type == '...') {
+                                    opts--;
+                                    argc = -1;
+                                    params.push('    ARG_LIST(' + params.length + ');');
                                 } else if (p.default) {
                                     var defValue;
                                     opts--;

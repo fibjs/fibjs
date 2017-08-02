@@ -351,6 +351,12 @@ typedef int32_t result_t;
             break;                                              \
     }
 
+#define ARG_LIST(n)                                     \
+    v8::Local<v8::Array> v##n;                          \
+    hr = GetArgumentList(isolate, args, v##n, n, argc); \
+    if (hr < 0)                                         \
+        break;
+
 #define DECLARE_CLASSINFO(c)                      \
 public:                                           \
     static ClassInfo& class_info();               \
@@ -654,6 +660,18 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, d
 inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, Variant& d, bool bStrict = false)
 {
     d = v;
+    return 0;
+}
+
+inline result_t GetArgumentList(v8::Isolate* isolate, const v8::FunctionCallbackInfo<v8::Value>& args,
+    v8::Local<v8::Array>& v, int32_t n, int32_t argc)
+{
+    int32_t n1 = 0;
+
+    v = v8::Array::New(isolate, argc - n);
+    while (n < argc)
+        v->Set(n1++, args[n++]);
+
     return 0;
 }
 
