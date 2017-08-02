@@ -58,7 +58,7 @@ public:
     static result_t keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal);
     static result_t values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal);
     static result_t clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal);
-    static result_t extend(v8::Local<v8::Value> v, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Value>& retVal);
+    static result_t extend(v8::Local<v8::Value> v, v8::Local<v8::Array> objs, v8::Local<v8::Value>& retVal);
     static result_t pick(v8::Local<v8::Value> v, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Object>& retVal);
     static result_t omit(v8::Local<v8::Value> v, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Object>& retVal);
     static result_t first(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal);
@@ -709,8 +709,9 @@ inline void util_base::s_extend(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(-1, 1);
 
     ARG(v8::Local<v8::Value>, 0);
+    ARG_LIST(1);
 
-    hr = extend(v0, args, vr);
+    hr = extend(v0, v1, vr);
 
     METHOD_RETURN();
 }

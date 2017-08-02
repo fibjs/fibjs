@@ -123,8 +123,7 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
     return 0;
 }
 
-result_t util_base::extend(v8::Local<v8::Value> v,
-    const v8::FunctionCallbackInfo<v8::Value>& args,
+result_t util_base::extend(v8::Local<v8::Value> v, v8::Local<v8::Array> objs,
     v8::Local<v8::Value>& retVal)
 {
     if (v->IsUndefined() || v->IsNull()) {
@@ -136,11 +135,11 @@ result_t util_base::extend(v8::Local<v8::Value> v,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> obj = v->ToObject();
-    int32_t argc = args.Length();
+    int32_t argc = objs->Length();
     int32_t i, j;
 
-    for (i = 1; i < argc; i++) {
-        v8::Local<v8::Value> val = args[i];
+    for (i = 0; i < argc; i++) {
+        v8::Local<v8::Value> val = objs->Get(i);
 
         if (val->IsUndefined() || val->IsNull())
             continue;
