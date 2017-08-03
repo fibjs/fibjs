@@ -15,10 +15,9 @@ result_t RedisSet::add(v8::Local<v8::Array> members, int32_t& retVal)
     return m_rdb->doCommand("SADD", m_key, members, retVal);
 }
 
-result_t RedisSet::add(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal)
+result_t RedisSet::add(std::vector<v8::Local<v8::Value>>& members, int32_t& retVal)
 {
-    Redis::_arg a(args);
-    return m_rdb->doCommand("SADD", m_key, a, retVal);
+    return m_rdb->doCommand("SADD", m_key, members, retVal);
 }
 
 result_t RedisSet::remove(v8::Local<v8::Array> members, int32_t& retVal)
@@ -26,10 +25,9 @@ result_t RedisSet::remove(v8::Local<v8::Array> members, int32_t& retVal)
     return m_rdb->doCommand("SREM", m_key, members, retVal);
 }
 
-result_t RedisSet::remove(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal)
+result_t RedisSet::remove(std::vector<v8::Local<v8::Value>>& members, int32_t& retVal)
 {
-    Redis::_arg a(args);
-    return m_rdb->doCommand("SREM", m_key, a, retVal);
+    return m_rdb->doCommand("SREM", m_key, members, retVal);
 }
 
 result_t RedisSet::len(int32_t& retVal)

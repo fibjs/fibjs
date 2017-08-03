@@ -25,10 +25,10 @@ class RedisList_base : public object_base {
 public:
     // RedisList_base
     virtual result_t push(v8::Local<v8::Array> values, int32_t& retVal) = 0;
-    virtual result_t push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
+    virtual result_t push(std::vector<v8::Local<v8::Value>>& values, int32_t& retVal) = 0;
     virtual result_t pop(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t rpush(v8::Local<v8::Array> values, int32_t& retVal) = 0;
-    virtual result_t rpush(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
+    virtual result_t rpush(std::vector<v8::Local<v8::Value>>& values, int32_t& retVal) = 0;
     virtual result_t rpop(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t set(int32_t index, Buffer_base* value) = 0;
     virtual result_t get(int32_t index, obj_ptr<Buffer_base>& retVal) = 0;
@@ -112,7 +112,9 @@ inline void RedisList_base::s_push(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(-1, 0);
 
-    hr = pInst->push(args, vr);
+    ARG_LIST(0);
+
+    hr = pInst->push(v0, vr);
 
     METHOD_RETURN();
 }
@@ -146,7 +148,9 @@ inline void RedisList_base::s_rpush(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(-1, 0);
 
-    hr = pInst->rpush(args, vr);
+    ARG_LIST(0);
+
+    hr = pInst->rpush(v0, vr);
 
     METHOD_RETURN();
 }

@@ -25,11 +25,11 @@ class RedisSortedSet_base : public object_base {
 public:
     // RedisSortedSet_base
     virtual result_t add(v8::Local<v8::Object> sms, int32_t& retVal) = 0;
-    virtual result_t add(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
+    virtual result_t add(std::vector<v8::Local<v8::Value>>& sms, int32_t& retVal) = 0;
     virtual result_t score(Buffer_base* member, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t incr(Buffer_base* member, int64_t num, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t remove(v8::Local<v8::Array> members, int32_t& retVal) = 0;
-    virtual result_t remove(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
+    virtual result_t remove(std::vector<v8::Local<v8::Value>>& members, int32_t& retVal) = 0;
     virtual result_t len(int32_t& retVal) = 0;
     virtual result_t count(int32_t min, int32_t max, int32_t& retVal) = 0;
     virtual result_t range(int32_t start, int32_t stop, bool withScores, obj_ptr<List_base>& retVal) = 0;
@@ -106,7 +106,9 @@ inline void RedisSortedSet_base::s_add(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(-1, 0);
 
-    hr = pInst->add(args, vr);
+    ARG_LIST(0);
+
+    hr = pInst->add(v0, vr);
 
     METHOD_RETURN();
 }
@@ -159,7 +161,9 @@ inline void RedisSortedSet_base::s_remove(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(-1, 0);
 
-    hr = pInst->remove(args, vr);
+    ARG_LIST(0);
+
+    hr = pInst->remove(v0, vr);
 
     METHOD_RETURN();
 }

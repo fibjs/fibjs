@@ -25,9 +25,9 @@ class RedisSet_base : public object_base {
 public:
     // RedisSet_base
     virtual result_t add(v8::Local<v8::Array> members, int32_t& retVal) = 0;
-    virtual result_t add(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
+    virtual result_t add(std::vector<v8::Local<v8::Value>>& members, int32_t& retVal) = 0;
     virtual result_t remove(v8::Local<v8::Array> members, int32_t& retVal) = 0;
-    virtual result_t remove(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
+    virtual result_t remove(std::vector<v8::Local<v8::Value>>& members, int32_t& retVal) = 0;
     virtual result_t len(int32_t& retVal) = 0;
     virtual result_t exists(Buffer_base* member, bool& retVal) = 0;
     virtual result_t members(obj_ptr<List_base>& retVal) = 0;
@@ -98,7 +98,9 @@ inline void RedisSet_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(-1, 0);
 
-    hr = pInst->add(args, vr);
+    ARG_LIST(0);
+
+    hr = pInst->add(v0, vr);
 
     METHOD_RETURN();
 }
@@ -118,7 +120,9 @@ inline void RedisSet_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(-1, 0);
 
-    hr = pInst->remove(args, vr);
+    ARG_LIST(0);
+
+    hr = pInst->remove(v0, vr);
 
     METHOD_RETURN();
 }

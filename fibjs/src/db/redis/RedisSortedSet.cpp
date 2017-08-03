@@ -30,17 +30,19 @@ result_t RedisSortedSet::add(v8::Local<v8::Object> sms, int32_t& retVal)
     return m_rdb->doCommand("ZADD", m_key, mss, retVal);
 }
 
-result_t RedisSortedSet::add(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal)
+result_t RedisSortedSet::add(std::vector<v8::Local<v8::Value>>& sms, int32_t& retVal)
 {
-    v8::Local<v8::Array> mss = v8::Array::New(holder()->m_isolate);
-    int32_t i;
+    if (sms.size() & 1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    for (i = 0; i < (int32_t)args.Length(); i += 2) {
-        mss->Set(i, args[i + 1]);
-        mss->Set(i + 1, args[i]);
+    int32_t i;
+    for (i = 0; i < (int32_t)sms.size(); i += 2) {
+        v8::Local<v8::Value> v = sms[i];
+        sms[i] = sms[i + 1];
+        sms[i + 1] = v;
     }
 
-    return m_rdb->doCommand("ZADD", m_key, mss, retVal);
+    return m_rdb->doCommand("ZADD", m_key, sms, retVal);
 }
 
 result_t RedisSortedSet::score(Buffer_base* member, obj_ptr<Buffer_base>& retVal)
@@ -58,10 +60,9 @@ result_t RedisSortedSet::remove(v8::Local<v8::Array> members, int32_t& retVal)
     return m_rdb->doCommand("ZREM", m_key, members, retVal);
 }
 
-result_t RedisSortedSet::remove(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal)
+result_t RedisSortedSet::remove(std::vector<v8::Local<v8::Value>>& members, int32_t& retVal)
 {
-    Redis::_arg a(args);
-    return m_rdb->doCommand("ZREM", m_key, a, retVal);
+    return m_rdb->doCommand("ZREM", m_key, members, retVal);
 }
 
 result_t RedisSortedSet::len(int32_t& retVal)

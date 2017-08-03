@@ -28,14 +28,14 @@ class Redis_base : public object_base {
 
 public:
     // Redis_base
-    virtual result_t command(exlib::string cmd, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t command(exlib::string cmd, std::vector<v8::Local<v8::Value>>& args, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t set(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
     virtual result_t setNX(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
     virtual result_t setXX(Buffer_base* key, Buffer_base* value, int64_t ttl) = 0;
     virtual result_t mset(v8::Local<v8::Object> kvs) = 0;
-    virtual result_t mset(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
+    virtual result_t mset(std::vector<v8::Local<v8::Value>>& kvs) = 0;
     virtual result_t msetNX(v8::Local<v8::Object> kvs) = 0;
-    virtual result_t msetNX(const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
+    virtual result_t msetNX(std::vector<v8::Local<v8::Value>>& kvs) = 0;
     virtual result_t append(Buffer_base* key, Buffer_base* value, int32_t& retVal) = 0;
     virtual result_t setRange(Buffer_base* key, int32_t offset, Buffer_base* value, int32_t& retVal) = 0;
     virtual result_t getRange(Buffer_base* key, int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
@@ -43,7 +43,7 @@ public:
     virtual result_t bitcount(Buffer_base* key, int32_t start, int32_t end, int32_t& retVal) = 0;
     virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal) = 0;
-    virtual result_t mget(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t mget(std::vector<v8::Local<v8::Value>>& keys, obj_ptr<List_base>& retVal) = 0;
     virtual result_t getset(Buffer_base* key, Buffer_base* value, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t decr(Buffer_base* key, int64_t num, int64_t& retVal) = 0;
     virtual result_t incr(Buffer_base* key, int64_t num, int64_t& retVal) = 0;
@@ -53,7 +53,7 @@ public:
     virtual result_t type(Buffer_base* key, exlib::string& retVal) = 0;
     virtual result_t keys(exlib::string pattern, obj_ptr<List_base>& retVal) = 0;
     virtual result_t del(v8::Local<v8::Array> keys, int32_t& retVal) = 0;
-    virtual result_t del(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal) = 0;
+    virtual result_t del(std::vector<v8::Local<v8::Value>>& keys, int32_t& retVal) = 0;
     virtual result_t expire(Buffer_base* key, int64_t ttl, bool& retVal) = 0;
     virtual result_t ttl(Buffer_base* key, int64_t& retVal) = 0;
     virtual result_t persist(Buffer_base* key, bool& retVal) = 0;
@@ -214,8 +214,9 @@ inline void Redis_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
+    ARG_LIST(1);
 
-    hr = pInst->command(v0, args, vr);
+    hr = pInst->command(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -281,7 +282,9 @@ inline void Redis_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(-1, 0);
 
-    hr = pInst->mset(args);
+    ARG_LIST(0);
+
+    hr = pInst->mset(v0);
 
     METHOD_VOID();
 }
@@ -299,7 +302,9 @@ inline void Redis_base::s_msetNX(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(-1, 0);
 
-    hr = pInst->msetNX(args);
+    ARG_LIST(0);
+
+    hr = pInst->msetNX(v0);
 
     METHOD_VOID();
 }
@@ -422,7 +427,9 @@ inline void Redis_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(-1, 0);
 
-    hr = pInst->mget(args, vr);
+    ARG_LIST(0);
+
+    hr = pInst->mget(v0, vr);
 
     METHOD_RETURN();
 }
@@ -576,7 +583,9 @@ inline void Redis_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(-1, 0);
 
-    hr = pInst->del(args, vr);
+    ARG_LIST(0);
+
+    hr = pInst->del(v0, vr);
 
     METHOD_RETURN();
 }

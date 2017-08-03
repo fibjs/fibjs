@@ -11,9 +11,9 @@ interface Redis : object
 {
     /*! @brief redis 基础命令方法
      @param cmd 指定发送的命令
-     @param ... 指定发送的参数
+     @param args 指定发送的参数
      @return 返回服务器返回的结果 */
-    Value command(String cmd, ...);
+    Value command(String cmd, ...args);
 
     /*! @brief 将字符串值 value 关联到 key，如果 key 已经持有其他值， SET 就覆写旧值，无视类型
      @param key 指定要关联的 key
@@ -38,16 +38,16 @@ interface Redis : object
     mset(Object kvs);
 
     /*! @brief 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
-     @param ... 指定要设置的 key/value 列表*/
-    mset(...);
+     @param kvs 指定要设置的 key/value 列表*/
+    mset(...kvs);
 
     /*! @brief 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
      @param kvs 指定要设置的 key/value 对象*/
     msetNX(Object kvs);
 
     /*! @brief 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
-     @param ... 指定要设置的 key/value 列表*/
-    msetNX(...);
+     @param kvs 指定要设置的 key/value 列表*/
+    msetNX(...kvs);
 
     /*! @brief 如果 key 已经存在并且是一个字符串，append 命令将 value 追加到 key 原来的值的末尾。如果 key 不存在，append 就简单地将给定 key 设为 value
      @param key 指定要追加的 key
@@ -92,9 +92,9 @@ interface Redis : object
     List mget(Array keys);
 
     /*! @brief 返回所有(一个或多个)给定 key 的值。如果给定的 key 里面，有某个 key 不存在，那么这个 key 返回特殊值 nil 。
-     @param ... 指定要查询的 key 列表
+     @param keys 指定要查询的 key 列表
      @return 一个包含所有给定 key 的值的列表 */
-    List mget(...);
+    List mget(...keys);
 
     /*! @brief 将给定 key 的值设为 value ，并返回 key 的旧值(old value)
      @param key 指定要查询修改的 key
@@ -148,9 +148,9 @@ interface Redis : object
     Integer del(Array keys);
 
     /*! @brief 删除给定的一个或多个 key，不存在的 key 会被忽略
-     @param ... 指定要删除的 key 列表
+     @param keys 指定要删除的 key 列表
      @return 被删除 key 的数量 */
-    Integer del(...);
+    Integer del(...keys);
 
     /*! @brief 为给定 key 设置生存时间，当 key 过期时，它会被自动删除
      @param key 指定要设定的 key

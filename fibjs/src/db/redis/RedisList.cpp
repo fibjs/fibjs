@@ -15,11 +15,9 @@ result_t RedisList::push(v8::Local<v8::Array> values, int32_t& retVal)
     return m_rdb->doCommand("LPUSH", m_key, values, retVal);
 }
 
-result_t RedisList::push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal)
+result_t RedisList::push(std::vector<v8::Local<v8::Value>>& values, int32_t& retVal)
 {
-    Variant v;
-    Redis::_arg a(args);
-    return m_rdb->doCommand("LPUSH", m_key, a, retVal);
+    return m_rdb->doCommand("LPUSH", m_key, values, retVal);
 }
 
 result_t RedisList::pop(obj_ptr<Buffer_base>& retVal)
@@ -32,11 +30,9 @@ result_t RedisList::rpush(v8::Local<v8::Array> values, int32_t& retVal)
     return m_rdb->doCommand("RPUSH", m_key, values, retVal);
 }
 
-result_t RedisList::rpush(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal)
+result_t RedisList::rpush(std::vector<v8::Local<v8::Value>>& values, int32_t& retVal)
 {
-    Variant v;
-    Redis::_arg a(args);
-    return m_rdb->doCommand("RPUSH", m_key, a, retVal);
+    return m_rdb->doCommand("RPUSH", m_key, values, retVal);
 }
 
 result_t RedisList::rpop(obj_ptr<Buffer_base>& retVal)

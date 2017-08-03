@@ -16,9 +16,9 @@ interface RedisSortedSet : object
     Integer add(Object sms);
 
     /*! @brief 将一个或多个 member 元素及其 score 值加入到有序集当中
-     @param ... 指定要添加的 member/score 列表
+     @param sms 指定要添加的 member/score 列表
      @return 被成功添加的新成员的数量，不包括那些被更新的、已经存在的成员 */
-    Integer add(...);
+    Integer add(...sms);
 
     /*! @brief 返回有序集中，成员 member 的 score 值
      @param member 指定要查询的 member
@@ -37,9 +37,9 @@ interface RedisSortedSet : object
     Integer remove(Array members);
 
     /*! @brief 移除有序集中的一个或多个 member 元素
-     @param ... 指定要移除的元素列表
+     @param members 指定要移除的元素列表
      @return 被成功移除的元素的数量，不包括被忽略的元素  */
-    Integer remove(...);
+    Integer remove(...members);
 
     /*! @brief 返回有序集中元素的数量
      @return 返回有序集的长度 */

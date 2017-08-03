@@ -304,11 +304,10 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
     return (new asyncCommand(this, req, retVal, ac))->post(0);
 }
 
-result_t Redis::command(exlib::string cmd, const v8::FunctionCallbackInfo<v8::Value>& args,
+result_t Redis::command(exlib::string cmd, std::vector<v8::Local<v8::Value>>& args,
     v8::Local<v8::Value>& retVal)
 {
-    _arg a(args, 1);
-    return doCommand(cmd, a, retVal);
+    return doCommand(cmd, args, retVal);
 }
 
 result_t Redis::set(Buffer_base* key, Buffer_base* value, int64_t ttl)
@@ -347,11 +346,10 @@ result_t Redis::mset(v8::Local<v8::Object> kvs)
     return doCommand("MSET", kvs, v);
 }
 
-result_t Redis::mset(const v8::FunctionCallbackInfo<v8::Value>& args)
+result_t Redis::mset(std::vector<v8::Local<v8::Value>>& kvs)
 {
     Variant v;
-    _arg a(args);
-    return doCommand("MSET", a, v);
+    return doCommand("MSET", kvs, v);
 }
 
 result_t Redis::msetNX(v8::Local<v8::Object> kvs)
@@ -360,11 +358,10 @@ result_t Redis::msetNX(v8::Local<v8::Object> kvs)
     return doCommand("MSETNX", kvs, v);
 }
 
-result_t Redis::msetNX(const v8::FunctionCallbackInfo<v8::Value>& args)
+result_t Redis::msetNX(std::vector<v8::Local<v8::Value>>& kvs)
 {
     Variant v;
-    _arg a(args);
-    return doCommand("MSETNX", a, v);
+    return doCommand("MSETNX", kvs, v);
 }
 
 result_t Redis::append(Buffer_base* key, Buffer_base* value, int32_t& retVal)
@@ -402,10 +399,9 @@ result_t Redis::mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal)
     return doCommand("MGET", keys, retVal);
 }
 
-result_t Redis::mget(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal)
+result_t Redis::mget(std::vector<v8::Local<v8::Value>>& keys, obj_ptr<List_base>& retVal)
 {
-    _arg a(args);
-    return doCommand("MGET", a, retVal);
+    return doCommand("MGET", keys, retVal);
 }
 
 result_t Redis::getset(Buffer_base* key, Buffer_base* value, obj_ptr<Buffer_base>& retVal)
@@ -459,10 +455,9 @@ result_t Redis::del(v8::Local<v8::Array> keys, int32_t& retVal)
     return doCommand("DEL", keys, retVal);
 }
 
-result_t Redis::del(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal)
+result_t Redis::del(std::vector<v8::Local<v8::Value>>& keys, int32_t& retVal)
 {
-    _arg a(args);
-    return doCommand("DEL", a, retVal);
+    return doCommand("DEL", keys, retVal);
 }
 
 result_t Redis::expire(Buffer_base* key, int64_t ttl, bool& retVal)

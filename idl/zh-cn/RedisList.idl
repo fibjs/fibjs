@@ -15,9 +15,9 @@ interface RedisList : object
     Integer push(Array values);
 
     /*! @brief 将一个或多个值 value 插入到列表的表头
-     @param ... 指定要插入的数据
+     @param values 指定要插入的数据
      @return 插入后，列表的长度 */
-    Integer push(...);
+    Integer push(...values);
 
     /*! @brief 移除并返回列表 key 的头元素
      @return 列表的头元素，如果列表为空则返回 null */
@@ -29,9 +29,9 @@ interface RedisList : object
     Integer rpush(Array values);
 
     /*! @brief 将一个或多个值 value 插入到列表的表尾(最右边)
-     @param ... 指定要插入的数据
+     @param values 指定要插入的数据
      @return 插入后，列表的长度 */
-    Integer rpush(...);
+    Integer rpush(...values);
 
     /*! @brief 移除并返回列表 key 的表尾(最右边)元素
      @return 列表的头元素，如果列表为空则返回 null */
