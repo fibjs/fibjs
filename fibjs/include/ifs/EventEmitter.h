@@ -46,7 +46,7 @@ public:
     virtual result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal) = 0;
     virtual result_t listenerCount(exlib::string ev, int32_t& retVal) = 0;
     virtual result_t eventNames(v8::Local<v8::Array>& retVal) = 0;
-    virtual result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args, bool& retVal) = 0;
+    virtual result_t emit(exlib::string ev, v8::Local<v8::Array> args, bool& retVal) = 0;
 
 public:
     template <typename T>
@@ -421,8 +421,9 @@ inline void EventEmitter_base::s_emit(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
+    ARG_LIST(1);
 
-    hr = pInst->emit(v0, args, vr);
+    hr = pInst->emit(v0, v1, vr);
 
     METHOD_RETURN();
 }

@@ -339,7 +339,7 @@ public:
 
     result_t setMaxListeners(int32_t n)
     {
-        if(n < 0)
+        if (n < 0)
             return Runtime::setError("\"defaultMaxListeners\" must be a positive number");
 
         o->SetPrivate(o->CreationContext(),
@@ -351,8 +351,8 @@ public:
     {
         Isolate* _isolate = Isolate::current();
         v8::Local<v8::Value> maxListeners = o->GetPrivate(o->CreationContext(),
-                                        v8::Private::ForApi(isolate, NewFromUtf8("_maxListeners")))
-                                       .ToLocalChecked();
+                                                 v8::Private::ForApi(isolate, NewFromUtf8("_maxListeners")))
+                                                .ToLocalChecked();
         if (maxListeners->IsUndefined() || maxListeners->IsNull()) {
             retVal = _isolate->m_defaultMaxListeners;
         } else {
@@ -363,7 +363,7 @@ public:
 
     static result_t set_defaultMaxListeners(int32_t newVal)
     {
-        if(newVal < 0)
+        if (newVal < 0)
             return Runtime::setError("\"defaultMaxListeners\" must be a positive number");
 
         Isolate* isolate = Isolate::current();
@@ -468,16 +468,15 @@ public:
         return 0;
     }
 
-    result_t emit(exlib::string ev, const v8::FunctionCallbackInfo<v8::Value>& args,
-        bool& retVal)
+    result_t emit(exlib::string ev, v8::Local<v8::Array> args, bool& retVal)
     {
         std::vector<v8::Local<v8::Value>> _args;
-        int32_t len = args.Length();
+        int32_t len = args->Length();
 
-        _args.resize(len - 1);
+        _args.resize(len);
 
-        for (int32_t i = 1; i < len; i++)
-            _args[i - 1] = args[i];
+        for (int32_t i = 0; i < len; i++)
+            _args[i] = args->Get(i);
 
         return _emit(ev, _args.data(), (int32_t)_args.size(), retVal);
     }
@@ -733,8 +732,9 @@ public:
         METHOD_OVER(-1, 1);
 
         ARG(exlib::string, 0);
+        ARG_LIST(1);
 
-        hr = t.emit(v0, args, vr);
+        hr = t.emit(v0, v1, vr);
 
         METHOD_RETURN();
     }
