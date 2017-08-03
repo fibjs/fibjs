@@ -138,16 +138,16 @@ result_t List::lastIndexOf(Variant searchElement, int32_t fromIndex, int32_t& re
     return 0;
 }
 
-result_t List::push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal)
+result_t List::push(v8::Local<v8::Array> els, int32_t& retVal)
 {
     if (m_freeze)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int32_t len = args.Length();
-    int32_t i, r;
+    int32_t len = els->Length();
+    int32_t i;
 
     for (i = 0; i < len; i++)
-        push(args[i], r);
+        append(els->Get(i));
 
     retVal = (int32_t)m_array.size();
     return 0;
@@ -159,10 +159,10 @@ result_t List::pushArray(v8::Local<v8::Array> data)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int32_t len = data->Length();
-    int32_t i, r;
+    int32_t i;
 
     for (i = 0; i < len; i++)
-        push(data->Get(i), r);
+        append(data->Get(i));
     return 0;
 }
 
@@ -180,38 +180,37 @@ result_t List::pop(Variant& retVal)
     return 0;
 }
 
-result_t List::slice(int32_t start, int32_t end,
-    obj_ptr<List_base>& retVal)
+result_t List::slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal)
 {
-    int32_t r;
     if (end < 0)
         end = (int32_t)m_array.size();
 
-    retVal = new List();
+    obj_ptr<List> l = new List();
     while (start < end)
-        retVal->push(m_array[start++], r);
+        l->append(m_array[start++]);
+
+    retVal = l;
 
     return 0;
 }
 
-result_t List::concat(const v8::FunctionCallbackInfo<v8::Value>& args,
-    obj_ptr<List_base>& retVal)
+result_t List::concat(v8::Local<v8::Array> lists, obj_ptr<List_base>& retVal)
 {
     if (m_freeze)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     obj_ptr<List> a;
-    int32_t i, len, r;
+    int32_t i, len;
 
     a = new List();
 
     len = (int32_t)m_array.size();
     for (i = 0; i < len; i++)
-        a->push(m_array[i], r);
+        a->append(m_array[i]);
 
-    len = args.Length();
+    len = lists->Length();
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> v = args[i];
+        v8::Local<v8::Value> v = lists->Get(i);
         obj_ptr<List_base> a1 = List_base::getInstance(v);
 
         if (a1) {
@@ -222,7 +221,7 @@ result_t List::concat(const v8::FunctionCallbackInfo<v8::Value>& args,
                 Variant v1;
 
                 a1->_indexed_getter(i1, v1);
-                a->push(v1, r);
+                a->append(v1);
             }
         } else if (v->IsArray()) {
             int32_t i1, len1;
@@ -230,7 +229,7 @@ result_t List::concat(const v8::FunctionCallbackInfo<v8::Value>& args,
 
             len1 = arr->Length();
             for (i1 = 0; i1 < len1; i1++)
-                a->push(arr->Get(i1), r);
+                a->append(arr->Get(i1));
         } else
             return CHECK_ERROR(CALL_E_INVALIDARG);
     }
@@ -296,7 +295,7 @@ result_t List::filter(v8::Local<v8::Function> func,
     v8::Local<v8::Value> thisArg, obj_ptr<List_base>& retVal)
 {
     obj_ptr<List> a;
-    int32_t i, len, tmp;
+    int32_t i, len;
 
     a = new List();
 
@@ -308,7 +307,7 @@ result_t List::filter(v8::Local<v8::Function> func,
             return CALL_E_JAVASCRIPT;
 
         if (r->BooleanValue())
-            a->push(m_array[i], tmp);
+            a->append(m_array[i]);
     }
 
     retVal = a;
@@ -336,7 +335,7 @@ result_t List::map(v8::Local<v8::Function> func,
     v8::Local<v8::Value> thisArg, obj_ptr<List_base>& retVal)
 {
     obj_ptr<List> a;
-    int32_t i, len, tmp;
+    int32_t i, len;
 
     a = new List();
 
@@ -347,7 +346,7 @@ result_t List::map(v8::Local<v8::Function> func,
         if (r.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
-        a->push(r, tmp);
+        a->append(r);
     }
 
     retVal = a;

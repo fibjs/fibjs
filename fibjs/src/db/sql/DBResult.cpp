@@ -72,12 +72,12 @@ result_t DBResult::push(Variant v, int32_t& retVal)
     return m_array->push(v, retVal);
 }
 
-result_t DBResult::push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal)
+result_t DBResult::push(v8::Local<v8::Array> els, int32_t& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return m_array->push(args, retVal);
+    return m_array->push(els, retVal);
 }
 
 result_t DBResult::pushArray(v8::Local<v8::Array> data)
@@ -104,12 +104,12 @@ result_t DBResult::slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal)
     return m_array->slice(start, end, retVal);
 }
 
-result_t DBResult::concat(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal)
+result_t DBResult::concat(v8::Local<v8::Array> lists, obj_ptr<List_base>& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return m_array->concat(args, retVal);
+    return m_array->concat(lists, retVal);
 }
 
 result_t DBResult::every(v8::Local<v8::Function> func,

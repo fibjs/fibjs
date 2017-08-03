@@ -39,13 +39,13 @@ public:
     virtual result_t get_length(int32_t& retVal);
     virtual result_t resize(int32_t sz);
     virtual result_t push(Variant v, int32_t& retVal);
-    virtual result_t push(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t& retVal);
+    virtual result_t push(v8::Local<v8::Array> els, int32_t& retVal);
     virtual result_t pushArray(v8::Local<v8::Array> data);
     virtual result_t indexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal);
     virtual result_t lastIndexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal);
     virtual result_t pop(Variant& retVal);
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal);
-    virtual result_t concat(const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<List_base>& retVal);
+    virtual result_t concat(v8::Local<v8::Array> lists, obj_ptr<List_base>& retVal);
     virtual result_t every(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, bool& retVal);
     virtual result_t some(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, bool& retVal);
     virtual result_t filter(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, obj_ptr<List_base>& retVal);
