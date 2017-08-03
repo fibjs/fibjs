@@ -18,10 +18,10 @@ DECLARE_MODULE(coroutine);
 
 extern int32_t g_spareFibers;
 
-result_t coroutine_base::start(v8::Local<v8::Function> func,
-    const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<Fiber_base>& retVal)
+result_t coroutine_base::start(v8::Local<v8::Function> func, v8::Local<v8::Array> args,
+    obj_ptr<Fiber_base>& retVal)
 {
-    return JSFiber::New(func, args, 1, retVal);
+    return JSFiber::New(func, args, retVal);
 }
 
 class _parallels {
@@ -153,22 +153,8 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> funcs, int32_t fibers,
     return _p.run(funcs, retVal, fibers);
 }
 
-result_t coroutine_base::parallel(const v8::FunctionCallbackInfo<v8::Value>& args,
-    v8::Local<v8::Array>& retVal)
+result_t coroutine_base::parallel(v8::Local<v8::Array> funcs, v8::Local<v8::Array>& retVal)
 {
-    int32_t l = args.Length();
-    int32_t i;
-
-    if (l == 0) {
-        retVal = v8::Array::New(Isolate::current()->m_isolate);
-        return 0;
-    }
-
-    v8::Local<v8::Array> funcs = v8::Array::New(Isolate::current()->m_isolate, l);
-
-    for (i = 0; i < l; i++)
-        funcs->Set(i, args[i]);
-
     return parallel(funcs, -1, retVal);
 }
 

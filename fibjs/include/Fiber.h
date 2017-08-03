@@ -81,13 +81,27 @@ public:
         start();
     }
 
+    void New(v8::Local<v8::Function> func, v8::Local<v8::Array> args, v8::Local<v8::Object> pThis)
+    {
+        Isolate* isolate = holder();
+        int32_t nArgCount = args->Length();
+        int32_t i;
+
+        m_argv.resize(nArgCount);
+        for (i = 0; i < nArgCount; i++)
+            m_argv[i].Reset(isolate->m_isolate, args->Get(i));
+        m_func.Reset(isolate->m_isolate, func);
+        m_this.Reset(isolate->m_isolate, pThis);
+
+        start();
+    }
+
     template <typename T>
-    static result_t New(v8::Local<v8::Function> func,
-        const v8::FunctionCallbackInfo<v8::Value>& args, int32_t nArgStart,
+    static result_t New(v8::Local<v8::Function> func, v8::Local<v8::Array> args,
         obj_ptr<T>& retVal)
     {
         obj_ptr<JSFiber> fb = new JSFiber();
-        fb->New(func, args, nArgStart, args.Length(), fb->wrap());
+        fb->New(func, args, fb->wrap());
         retVal = fb;
 
         return 0;

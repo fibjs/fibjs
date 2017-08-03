@@ -91,9 +91,9 @@ module process : EventEmitter
 
     /*! @brief 启动一个纤程
      @param func 制定纤程执行的函数
-     @param ... 可变参数序列，此序列会在纤程内传递给函数
+     @param args 可变参数序列，此序列会在纤程内传递给函数
      */
-    static nextTick(Function func, ...);
+    static nextTick(Function func, ...args);
 
     /*! @brief 运行指定的命令行，接管进程输入输出流，并返回进程对象
 

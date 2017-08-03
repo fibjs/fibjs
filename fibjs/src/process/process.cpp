@@ -229,11 +229,10 @@ result_t process_base::uptime(double& retVal)
     return os_base::uptime(retVal);
 }
 
-result_t process_base::nextTick(v8::Local<v8::Function> func,
-    const v8::FunctionCallbackInfo<v8::Value>& args)
+result_t process_base::nextTick(v8::Local<v8::Function> func, v8::Local<v8::Array> args)
 {
     obj_ptr<Fiber_base> retVal;
-    return JSFiber::New(func, args, 1, retVal);
+    return JSFiber::New(func, args, retVal);
 }
 
 result_t process_base::open(exlib::string command, v8::Local<v8::Array> args,

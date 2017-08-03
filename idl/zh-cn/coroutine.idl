@@ -28,10 +28,10 @@ module coroutine
 
     /*! @brief 启动一个纤程并返回纤程对象
      @param func 制定纤程执行的函数
-     @param ... 可变参数序列，此序列会在纤程内传递给函数
+     @param args 可变参数序列，此序列会在纤程内传递给函数
      @return 返回纤程对象
      */
-    static Fiber start(Function func, ...);
+    static Fiber start(Function func, ...args);
 
     /*! @brief 并行执行一组函数，并等待返回
      @param funcs 并行执行的函数数组
@@ -57,10 +57,10 @@ module coroutine
     static Array parallel(Function func, Integer num, Integer fibers = -1);
 
     /*! @brief 并行执行一组函数，并等待返回
-     @param ... 一组并行执行的函数
+     @param funcs 一组并行执行的函数
      @return 返回函数执行结果的数组
      */
-    static Array parallel(...);
+    static Array parallel(...funcs);
 
     /*! @brief 返回当前纤程
      @return 当前纤程对象

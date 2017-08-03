@@ -29,11 +29,11 @@ class coroutine_base : public object_base {
 
 public:
     // coroutine_base
-    static result_t start(v8::Local<v8::Function> func, const v8::FunctionCallbackInfo<v8::Value>& args, obj_ptr<Fiber_base>& retVal);
+    static result_t start(v8::Local<v8::Function> func, v8::Local<v8::Array> args, obj_ptr<Fiber_base>& retVal);
     static result_t parallel(v8::Local<v8::Array> funcs, int32_t fibers, v8::Local<v8::Array>& retVal);
     static result_t parallel(v8::Local<v8::Array> datas, v8::Local<v8::Function> func, int32_t fibers, v8::Local<v8::Array>& retVal);
     static result_t parallel(v8::Local<v8::Function> func, int32_t num, int32_t fibers, v8::Local<v8::Array>& retVal);
-    static result_t parallel(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
+    static result_t parallel(v8::Local<v8::Array> funcs, v8::Local<v8::Array>& retVal);
     static result_t current(obj_ptr<Fiber_base>& retVal);
     static result_t sleep(int32_t ms, AsyncEvent* ac);
     static result_t get_fibers(v8::Local<v8::Array>& retVal);
@@ -125,8 +125,9 @@ inline void coroutine_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER(-1, 1);
 
     ARG(v8::Local<v8::Function>, 0);
+    ARG_LIST(1);
 
-    hr = start(v0, args, vr);
+    hr = start(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -162,7 +163,9 @@ inline void coroutine_base::s_parallel(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(-1, 0);
 
-    hr = parallel(args, vr);
+    ARG_LIST(0);
+
+    hr = parallel(v0, vr);
 
     METHOD_RETURN();
 }
