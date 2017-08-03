@@ -129,12 +129,13 @@ void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql)
     }
 }
 
-result_t _format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& args,
+result_t _format(const char* sql, v8::Local<v8::Array> args,
     bool mysql, bool mssql, exlib::string& retVal)
 {
     exlib::string str;
     const char *p, *p1;
-    int32_t cnt = 1;
+    int32_t cnt = 0;
+    int32_t argc = args->Length();
 
     while (*sql) {
         p = p1 = sql;
@@ -146,8 +147,8 @@ result_t _format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& arg
         if (*p1) {
             p1++;
 
-            if (cnt < args.Length()) {
-                v8::Local<v8::Value> v = args[cnt];
+            if (cnt < argc) {
+                v8::Local<v8::Value> v = args->Get(cnt);
 
                 if (v->IsFunction())
                     return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -198,19 +199,19 @@ result_t _format(const char* sql, const v8::FunctionCallbackInfo<v8::Value>& arg
     return 0;
 }
 
-result_t db_base::format(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args,
+result_t db_base::format(exlib::string sql, v8::Local<v8::Array> args,
     exlib::string& retVal)
 {
     return _format(sql.c_str(), args, false, false, retVal);
 }
 
-result_t db_base::formatMySQL(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args,
+result_t db_base::formatMySQL(exlib::string sql, v8::Local<v8::Array> args,
     exlib::string& retVal)
 {
     return _format(sql.c_str(), args, true, false, retVal);
 }
 
-result_t db_base::formatMSSQL(exlib::string sql, const v8::FunctionCallbackInfo<v8::Value>& args,
+result_t db_base::formatMSSQL(exlib::string sql, v8::Local<v8::Array> args,
     exlib::string& retVal)
 {
     return _format(sql.c_str(), args, false, true, retVal);

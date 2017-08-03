@@ -53,26 +53,26 @@ module db
     /*! @brief 格式化一个 sql 命令，并返回格式化结果
 
      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
-     @param ... 可选参数列表
+     @param args 可选参数列表
      @return 返回格式化之后的 sql 命令
      */
-    static String format(String sql, ...);
+    static String format(String sql, ...args);
 
     /*! @brief 格式化一个 mysql 命令，并返回格式化结果
 
      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
-     @param ... 可选参数列表
+     @param args 可选参数列表
      @return 返回格式化之后的 sql 命令
      */
-    static String formatMySQL(String sql, ...);
+    static String formatMySQL(String sql, ...args);
 
     /*! @brief 格式化一个 mssql 命令，并返回格式化结果
 
      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
-     @param ... 可选参数列表
+     @param args 可选参数列表
      @return 返回格式化之后的 sql 命令
      */
-    static String formatMSSQL(String sql, ...);
+    static String formatMSSQL(String sql, ...args);
 
     /*! @brief 将字符串编码为 SQL 安全编码字符串
      @param str 要编码的字符串
