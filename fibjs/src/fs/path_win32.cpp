@@ -46,14 +46,14 @@ result_t path_win32_base::isAbsolute(exlib::string path, bool& retVal)
     return 0;
 }
 
-result_t path_win32_base::join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+result_t path_win32_base::join(v8::Local<v8::Array> ps, exlib::string& retVal)
 {
-    return _join_win32(args, retVal);
+    return _join_win32(ps, retVal);
 }
 
-result_t path_win32_base::resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+result_t path_win32_base::resolve(v8::Local<v8::Array> ps, exlib::string& retVal)
 {
-    return _resolve_win32(args, retVal);
+    return _resolve_win32(ps, retVal);
 }
 
 result_t path_win32_base::get_sep(exlib::string& retVal)

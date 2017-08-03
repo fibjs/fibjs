@@ -45,14 +45,14 @@ result_t path_posix_base::isAbsolute(exlib::string path, bool& retVal)
     return 0;
 }
 
-result_t path_posix_base::join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+result_t path_posix_base::join(v8::Local<v8::Array> ps, exlib::string& retVal)
 {
-    return _join(args, retVal);
+    return _join(ps, retVal);
 }
 
-result_t path_posix_base::resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+result_t path_posix_base::resolve(v8::Local<v8::Array> ps, exlib::string& retVal)
 {
-    return _resolve(args, retVal);
+    return _resolve(ps, retVal);
 }
 
 result_t path_posix_base::get_sep(exlib::string& retVal)

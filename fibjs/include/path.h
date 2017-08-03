@@ -533,64 +533,64 @@ inline result_t _dirname_win32(exlib::string path, exlib::string& retVal)
     return 0;
 }
 
-inline result_t _join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+inline result_t _join(v8::Local<v8::Array> ps, exlib::string& retVal)
 {
     Path p;
-    int32_t argc = args.Length();
+    int32_t argc = ps->Length();
     int32_t i;
 
     for (i = 0; i < argc; i++) {
-        v8::String::Utf8Value s(args[i]);
+        v8::String::Utf8Value s(ps->Get(i));
         p.joinPosix(*s);
     }
 
     return _normalize(p.str(), retVal);
 }
 
-inline result_t _join_win32(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+inline result_t _join_win32(v8::Local<v8::Array> ps, exlib::string& retVal)
 {
     Path p;
-    int32_t argc = args.Length();
+    int32_t argc = ps->Length();
     int32_t i;
 
     for (i = 0; i < argc; i++) {
-        v8::String::Utf8Value s(args[i]);
+        v8::String::Utf8Value s(ps->Get(i));
         p.joinWin32(*s);
     }
 
     return _normalize_win32(p.str(), retVal);
 }
 
-inline result_t _resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+inline result_t _resolve(v8::Local<v8::Array> ps, exlib::string& retVal)
 {
     exlib::string str;
     process_base::cwd(str);
 
     Path p;
     p.resolvePosix(str);
-    int32_t argc = args.Length();
+    int32_t argc = ps->Length();
     int32_t i;
 
     for (i = 0; i < argc; i++) {
-        v8::String::Utf8Value s(args[i]);
+        v8::String::Utf8Value s(ps->Get(i));
         p.resolvePosix(*s);
     }
 
     return _normalize(p.str(), retVal, true);
 }
 
-inline result_t _resolve_win32(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal)
+inline result_t _resolve_win32(v8::Local<v8::Array> ps, exlib::string& retVal)
 {
     exlib::string str;
     process_base::cwd(str);
 
     Path p;
     p.resolveWin32(str);
-    int32_t argc = args.Length();
+    int32_t argc = ps->Length();
     int32_t i;
 
     for (i = 0; i < argc; i++) {
-        v8::String::Utf8Value s(args[i]);
+        v8::String::Utf8Value s(ps->Get(i));
         p.resolveWin32(*s);
     }
 

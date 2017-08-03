@@ -27,8 +27,8 @@ public:
     static result_t dirname(exlib::string path, exlib::string& retVal);
     static result_t fullpath(exlib::string path, exlib::string& retVal);
     static result_t isAbsolute(exlib::string path, bool& retVal);
-    static result_t join(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
-    static result_t resolve(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
+    static result_t join(v8::Local<v8::Array> ps, exlib::string& retVal);
+    static result_t resolve(v8::Local<v8::Array> ps, exlib::string& retVal);
     static result_t get_sep(exlib::string& retVal);
     static result_t get_delimiter(exlib::string& retVal);
     static result_t get_posix(v8::Local<v8::Object>& retVal);
@@ -191,7 +191,9 @@ inline void path_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(-1, 0);
 
-    hr = join(args, vr);
+    ARG_LIST(0);
+
+    hr = join(v0, vr);
 
     METHOD_RETURN();
 }
@@ -204,7 +206,9 @@ inline void path_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(-1, 0);
 
-    hr = resolve(args, vr);
+    ARG_LIST(0);
+
+    hr = resolve(v0, vr);
 
     METHOD_RETURN();
 }

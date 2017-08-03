@@ -53,17 +53,17 @@ module path
 
     /*! @brief 合并一系列路径成为一个单一路径
 
-     @param ... 一个或多个相关的路径
+     @param ps 一个或多个相关的路径
      @return 返回得到的新路径
      */
-    static String join(...);
+    static String join(...ps);
 
     /*! @brief 合并一系列路径成为一个绝对路径
 
-     @param ... 一个或多个相关的路径
+     @param ps 一个或多个相关的路径
      @return 返回得到的新路径
      */
-    static String resolve(...);
+    static String resolve(...ps);
 
     /*! @brief 查询当前操作系统的路径分割字符，posix 返回 '/', windows 返回  '\\'
      */
