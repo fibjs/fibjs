@@ -319,7 +319,7 @@ void dump_one(exlib::Fiber* fb)
     int32_t i;
 
     fprintf(fp, "\nFiber %d %s\n", fiber_num++, fb->name());
-    sf.save(0, (void*)fb->m_cntxt.fp);
+    sf.save(0, (void*)((exlib::registers*)fb->m_ctx)->fp);
     for (i = 0; i < sf.m_frame_count; i++) {
         fprintf(fp, "    ");
         out_proc(fp, sf.m_frames[i]);
