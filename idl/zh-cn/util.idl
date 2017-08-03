@@ -246,18 +246,18 @@ module util
     /*! @brief 返回一个object副本，只过滤出指定键的属性值
 
      @param v 指定要过滤的对象
-     @param ... 指定一个或者多个用于选择的键
+     @param objs 指定一个或者多个用于选择的键
      @return 返回过滤的结果
      */
-    static Object pick(Value v, ...);
+    static Object pick(Value v, ...objs);
 
     /*! @brief 返回一个object副本，只过排除指定键的属性值
 
      @param v 指定要过滤的对象
-     @param ... 指定一个或者多个用于排除的键
+     @param keys 指定一个或者多个用于排除的键
      @return 返回排除的结果
      */
-    static Object omit(Value v, ...);
+    static Object omit(Value v, ...keys);
 
     /*! @brief 获取数组的第一个元素
 
@@ -299,17 +299,17 @@ module util
 
     /*! @brief 将一个或者多个数组的值合并成一个值唯一的数组
 
-     @param ... 指定一个或者多个用于合并的数组
+     @param arrs 指定一个或者多个用于合并的数组
      @return 返回合并的结果
      */
-    static Array union(...);
+    static Array union(...arrs);
 
     /*! @brief 返回一个包含 arr 数组中排除一个或者多个数组元素的交集
 
-     @param ... 指定一个或者多个用于计算交集的数组
+     @param arrs 指定一个或者多个用于计算交集的数组
      @return 返回计算交集的结果
      */
-    static Array intersection(...);
+    static Array intersection(...arrs);
 
     /*! @brief 将一个嵌套多层的数组(嵌套可以是任何层数)转换为只有一层的数组。 如果你传递 shallow 参数，数组将只减少一维的嵌套。
 
@@ -322,18 +322,18 @@ module util
     /*! @brief 返回一个包含 arr 数组中排除一个或者多个元素后的数组
 
      @param arr 指定需要排除的数组
-     @param ... 指定一个或者多个用于排除的元素
+     @param els 指定一个或者多个用于排除的元素
      @return 返回排除的结果
      */
-    static Array without(Value arr, ...);
+    static Array without(Value arr, ...els);
 
     /*! @brief 返回一个包含 arr 数组中排除 without 数组元素之后的数组
 
      @param list 指定需要排除的数组
-     @param ... 指定用于排除的一个或者多个数组
+     @param arrs 指定用于排除的一个或者多个数组
      @return 返回排除的结果
      */
-    static Array difference(Array list, ...);
+    static Array difference(Array list, ...arrs);
 
     /*! @brief 遍历 list 中的所有元素，按顺序用遍历输出每个元素。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(element, index, list)
 

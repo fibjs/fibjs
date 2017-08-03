@@ -162,8 +162,7 @@ result_t util_base::extend(v8::Local<v8::Value> v, v8::Local<v8::Array> objs,
     return 0;
 }
 
-result_t util_base::pick(v8::Local<v8::Value> v,
-    const v8::FunctionCallbackInfo<v8::Value>& args,
+result_t util_base::pick(v8::Local<v8::Value> v, v8::Local<v8::Array> objs,
     v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
@@ -177,12 +176,13 @@ result_t util_base::pick(v8::Local<v8::Value> v,
 
     v8::Local<v8::Object> obj = v->ToObject();
     v8::Local<v8::Object> obj1 = v8::Object::New(isolate->m_isolate);
-    int32_t argc = args.Length();
+    int32_t argc = objs->Length();
     int32_t i, j;
 
-    for (i = 1; i < argc; i++) {
-        if (args[i]->IsArray()) {
-            v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(args[i]);
+    for (i = 0; i < argc; i++) {
+        v8::Local<v8::Value> o = objs->Get(i);
+        if (o->IsArray()) {
+            v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(o);
             int32_t len = arr->Length();
 
             for (j = 0; j < len; j++) {
@@ -192,7 +192,7 @@ result_t util_base::pick(v8::Local<v8::Value> v,
                     obj1->Set(k, obj->Get(k));
             }
         } else {
-            v8::Local<v8::Value> k = args[i];
+            v8::Local<v8::Value> k = o;
 
             if (obj->Has(k))
                 obj1->Set(k, obj->Get(k));
@@ -204,8 +204,7 @@ result_t util_base::pick(v8::Local<v8::Value> v,
     return 0;
 }
 
-result_t util_base::omit(v8::Local<v8::Value> v,
-    const v8::FunctionCallbackInfo<v8::Value>& args,
+result_t util_base::omit(v8::Local<v8::Value> v, v8::Local<v8::Array> keys,
     v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
@@ -220,13 +219,14 @@ result_t util_base::omit(v8::Local<v8::Value> v,
     v8::Local<v8::Object> obj = v->ToObject();
 
     std::map<exlib::string, bool> _map;
-    int32_t argc = args.Length();
+    int32_t argc = keys->Length();
     int32_t i, j;
     result_t hr;
 
-    for (i = 1; i < argc; i++) {
-        if (args[i]->IsArray()) {
-            v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(args[i]);
+    for (i = 0; i < argc; i++) {
+        v8::Local<v8::Value> o = keys->Get(i);
+        if (o->IsArray()) {
+            v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(o);
             int32_t len = arr->Length();
 
             for (j = 0; j < len; j++) {
@@ -239,7 +239,7 @@ result_t util_base::omit(v8::Local<v8::Value> v,
             }
         } else {
             exlib::string k;
-            hr = GetArgumentValue(args[i], k);
+            hr = GetArgumentValue(o, k);
             if (hr < 0)
                 return CHECK_ERROR(hr);
 
@@ -247,12 +247,12 @@ result_t util_base::omit(v8::Local<v8::Value> v,
         }
     }
 
-    v8::Local<v8::Array> keys = obj->GetPropertyNames();
-    int32_t len = keys->Length();
+    v8::Local<v8::Array> keys1 = obj->GetPropertyNames();
+    int32_t len = keys1->Length();
     v8::Local<v8::Object> obj1 = v8::Object::New(isolate->m_isolate);
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> key = keys->Get(i);
+        v8::Local<v8::Value> key = keys1->Get(i);
 
         if (_map.find(*v8::String::Utf8Value(key)) == _map.end())
             obj1->Set(key, obj->Get(key));
@@ -263,24 +263,24 @@ result_t util_base::omit(v8::Local<v8::Value> v,
     return 0;
 }
 
-result_t util_base::intersection(const v8::FunctionCallbackInfo<v8::Value>& args,
-    v8::Local<v8::Array>& retVal)
+result_t util_base::intersection(v8::Local<v8::Array> arrs, v8::Local<v8::Array>& retVal)
 {
     v8::Local<v8::Array> arr = v8::Array::New(Isolate::current()->m_isolate);
-    int32_t argc = args.Length();
+    int32_t argc = arrs->Length();
     int32_t i, j, k, n = 0;
 
     if (argc > 0) {
-        if (args[0]->IsUndefined() || args[0]->IsNull()) {
+        v8::Local<v8::Value> v0 = arrs->Get(0);
+
+        if (v0->IsUndefined() || v0->IsNull()) {
             retVal = arr;
             return 0;
         }
 
-        for (j = 0; j < argc; j++)
-            if (!args[j]->IsArray())
-                return CHECK_ERROR(CALL_E_INVALIDARG);
+        if (!v0->IsArray())
+            return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        v8::Local<v8::Array> base = v8::Local<v8::Array>::Cast(args[0]);
+        v8::Local<v8::Array> base = v8::Local<v8::Array>::Cast(v0);
         int32_t len = base->Length();
         int32_t left = len;
         QuickArray<v8::Local<v8::Value>> erase;
@@ -290,7 +290,11 @@ result_t util_base::intersection(const v8::FunctionCallbackInfo<v8::Value>& args
             erase[i] = base->Get(i);
 
         for (i = 1; left > 0 && i < argc; i++) {
-            v8::Local<v8::Array> other = v8::Local<v8::Array>::Cast(args[i]);
+            v0 = arrs->Get(i);
+            if (!v0->IsArray())
+                return CHECK_ERROR(CALL_E_INVALIDARG);
+
+            v8::Local<v8::Array> other = v8::Local<v8::Array>::Cast(v0);
             int32_t len1 = other->Length();
 
             for (j = 0; left > 0 && j < len; j++)
@@ -474,15 +478,14 @@ result_t util_base::unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Ar
     return 0;
 }
 
-result_t util_base::_union(const v8::FunctionCallbackInfo<v8::Value>& args,
-    v8::Local<v8::Array>& retVal)
+result_t util_base::_union(v8::Local<v8::Array> arrs, v8::Local<v8::Array>& retVal)
 {
     v8::Local<v8::Array> arr = v8::Array::New(Isolate::current()->m_isolate);
-    int32_t argc = args.Length();
+    int32_t argc = arrs->Length();
     int32_t i, j, k, n = 0;
 
     for (i = 0; i < argc; i++) {
-        v8::Local<v8::Value> a = args[i];
+        v8::Local<v8::Value> a = arrs->Get(i);
 
         if (!a->IsArray())
             return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -549,8 +552,7 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
     return 0;
 }
 
-result_t util_base::without(v8::Local<v8::Value> arr,
-    const v8::FunctionCallbackInfo<v8::Value>& args,
+result_t util_base::without(v8::Local<v8::Value> arr, v8::Local<v8::Array> els,
     v8::Local<v8::Array>& retVal)
 {
     if (!arr->IsObject())
@@ -566,14 +568,14 @@ result_t util_base::without(v8::Local<v8::Value> arr,
     int32_t len = v->Int32Value();
 
     v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate);
-    int32_t argc = args.Length();
+    int32_t argc = els->Length();
     int32_t i, j, n = 0;
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> v = o->Get(i);
 
-        for (j = 1; j < argc; j++)
-            if (v->StrictEquals(args[j]))
+        for (j = 0; j < argc; j++)
+            if (v->StrictEquals(els->Get(j)))
                 break;
 
         if (j == argc)
@@ -585,24 +587,23 @@ result_t util_base::without(v8::Local<v8::Value> arr,
     return 0;
 }
 
-result_t util_base::difference(v8::Local<v8::Array> arr,
-    const v8::FunctionCallbackInfo<v8::Value>& args,
+result_t util_base::difference(v8::Local<v8::Array> arr, v8::Local<v8::Array> arrs,
     v8::Local<v8::Array>& retVal)
 {
     v8::Local<v8::Array> arr1 = v8::Array::New(Isolate::current()->m_isolate);
     int32_t len = arr->Length();
-    int32_t argc = args.Length();
+    int32_t argc = arrs->Length();
     int32_t i, j, k, n = 0, len1;
-
-    for (j = 0; j < argc; j++)
-        if (!args[j]->IsArray())
-            return CHECK_ERROR(CALL_E_INVALIDARG);
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> v = arr->Get(i);
 
-        for (j = 1; j < argc; j++) {
-            v8::Local<v8::Array> without = v8::Local<v8::Array>::Cast(args[j]);
+        for (j = 0; j < argc; j++) {
+            v8::Local<v8::Value> o = arrs->Get(j);
+            if (!o->IsArray())
+                return CHECK_ERROR(CALL_E_INVALIDARG);
+
+            v8::Local<v8::Array> without = v8::Local<v8::Array>::Cast(o);
             len1 = without->Length();
 
             for (k = 0; k < len1; k++)

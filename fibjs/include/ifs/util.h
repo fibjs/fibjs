@@ -59,18 +59,18 @@ public:
     static result_t values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal);
     static result_t clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal);
     static result_t extend(v8::Local<v8::Value> v, v8::Local<v8::Array> objs, v8::Local<v8::Value>& retVal);
-    static result_t pick(v8::Local<v8::Value> v, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Object>& retVal);
-    static result_t omit(v8::Local<v8::Value> v, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Object>& retVal);
+    static result_t pick(v8::Local<v8::Value> v, v8::Local<v8::Array> objs, v8::Local<v8::Object>& retVal);
+    static result_t omit(v8::Local<v8::Value> v, v8::Local<v8::Array> keys, v8::Local<v8::Object>& retVal);
     static result_t first(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal);
     static result_t first(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>& retVal);
     static result_t last(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal);
     static result_t last(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>& retVal);
     static result_t unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Array>& retVal);
-    static result_t _union(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
-    static result_t intersection(const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
+    static result_t _union(v8::Local<v8::Array> arrs, v8::Local<v8::Array>& retVal);
+    static result_t intersection(v8::Local<v8::Array> arrs, v8::Local<v8::Array>& retVal);
     static result_t flatten(v8::Local<v8::Value> arr, bool shallow, v8::Local<v8::Array>& retVal);
-    static result_t without(v8::Local<v8::Value> arr, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
-    static result_t difference(v8::Local<v8::Array> list, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Array>& retVal);
+    static result_t without(v8::Local<v8::Value> arr, v8::Local<v8::Array> els, v8::Local<v8::Array>& retVal);
+    static result_t difference(v8::Local<v8::Array> list, v8::Local<v8::Array> arrs, v8::Local<v8::Array>& retVal);
     static result_t each(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
     static result_t map(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Array>& retVal);
     static result_t reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> memo, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
@@ -725,8 +725,9 @@ inline void util_base::s_pick(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(-1, 1);
 
     ARG(v8::Local<v8::Value>, 0);
+    ARG_LIST(1);
 
-    hr = pick(v0, args, vr);
+    hr = pick(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -740,8 +741,9 @@ inline void util_base::s_omit(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(-1, 1);
 
     ARG(v8::Local<v8::Value>, 0);
+    ARG_LIST(1);
 
-    hr = omit(v0, args, vr);
+    hr = omit(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -814,7 +816,9 @@ inline void util_base::s_union(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(-1, 0);
 
-    hr = _union(args, vr);
+    ARG_LIST(0);
+
+    hr = _union(v0, vr);
 
     METHOD_RETURN();
 }
@@ -827,7 +831,9 @@ inline void util_base::s_intersection(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(-1, 0);
 
-    hr = intersection(args, vr);
+    ARG_LIST(0);
+
+    hr = intersection(v0, vr);
 
     METHOD_RETURN();
 }
@@ -857,8 +863,9 @@ inline void util_base::s_without(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_OVER(-1, 1);
 
     ARG(v8::Local<v8::Value>, 0);
+    ARG_LIST(1);
 
-    hr = without(v0, args, vr);
+    hr = without(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -872,8 +879,9 @@ inline void util_base::s_difference(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER(-1, 1);
 
     ARG(v8::Local<v8::Array>, 0);
+    ARG_LIST(1);
 
-    hr = difference(v0, args, vr);
+    hr = difference(v0, v1, vr);
 
     METHOD_RETURN();
 }
