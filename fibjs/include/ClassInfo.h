@@ -199,8 +199,7 @@ public:
 
                 if (!skips || !skips[j])
                     o->DefineOwnProperty(_context, isolate->NewFromUtf8(m_cd.cms[i].name),
-                         isolate->NewFunction(m_cd.name, m_cd.cms[i].invoker),
-                         (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                         isolate->NewFunction(m_cd.name, m_cd.cms[i].invoker))
                         .IsJust();
             }
         }
@@ -212,8 +211,7 @@ public:
 
             if (!skips || !skips[j])
                 o->DefineOwnProperty(_context, isolate->NewFromUtf8(m_cd.cos[i].name),
-                     m_cd.cos[i].invoker().getModule(isolate),
-                     (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+                     m_cd.cos[i].invoker().getModule(isolate))
                     .IsJust();
         }
 
@@ -316,14 +314,12 @@ private:
 
             for (i = 0; i < m_cd.mc; i++)
                 pt->Set(isolate->NewFromUtf8(m_cd.cms[i].name),
-                    v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker),
-                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                    v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker));
 
             for (i = 0; i < m_cd.oc; i++) {
                 cache* _cache1 = m_cd.cos[i].invoker()._init(isolate);
                 pt->Set(isolate->NewFromUtf8(m_cd.cos[i].name),
-                    v8::Local<v8::FunctionTemplate>::New(isolate->m_isolate, _cache1->m_class),
-                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+                    v8::Local<v8::FunctionTemplate>::New(isolate->m_isolate, _cache1->m_class));
             }
 
             for (i = 0; i < m_cd.pc; i++)

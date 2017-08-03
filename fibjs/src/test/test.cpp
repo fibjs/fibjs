@@ -465,67 +465,52 @@ result_t test_base::setup()
     v8::Local<v8::Function> func, func1;
 
     glob->DefineOwnProperty(_context, isolate->NewFromUtf8("assert"),
-            assert_base::class_info().getModule(isolate),
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+            assert_base::class_info().getModule(isolate))
         .IsJust();
 
     func = isolate->NewFunction("describe", s_describe);
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("describe"), func,
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("describe"), func)
         .IsJust();
 
     func1 = isolate->NewFunction("xdescribe", s_xdescribe);
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xdescribe"), func1,
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xdescribe"), func1)
         .IsJust();
-    func->DefineOwnProperty(_context, isolate->NewFromUtf8("skip"), func1,
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+    func->DefineOwnProperty(_context, isolate->NewFromUtf8("skip"), func1)
         .IsJust();
 
     func1 = isolate->NewFunction("odescribe", s_odescribe);
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("odescribe"), func1,
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("odescribe"), func1)
         .IsJust();
-    func->DefineOwnProperty(_context, isolate->NewFromUtf8("only"), func1,
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+    func->DefineOwnProperty(_context, isolate->NewFromUtf8("only"), func1)
         .IsJust();
 
     func = isolate->NewFunction("it", s_it);
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("it"), func,
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("it"), func)
         .IsJust();
 
     func1 = isolate->NewFunction("xit", s_xit);
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xit"), func1,
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xit"), func1)
         .IsJust();
-    func->DefineOwnProperty(_context, isolate->NewFromUtf8("skip"), func1,
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+    func->DefineOwnProperty(_context, isolate->NewFromUtf8("skip"), func1)
         .IsJust();
 
     func1 = isolate->NewFunction("oit", s_oit);
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("oit"), func1,
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("oit"), func1)
         .IsJust();
-    func->DefineOwnProperty(_context, isolate->NewFromUtf8("only"), func1,
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+    func->DefineOwnProperty(_context, isolate->NewFromUtf8("only"), func1)
         .IsJust();
 
     glob->DefineOwnProperty(_context, isolate->NewFromUtf8("before"),
-            isolate->NewFunction("before", s_before),
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+            isolate->NewFunction("before", s_before))
         .IsJust();
     glob->DefineOwnProperty(_context, isolate->NewFromUtf8("after"),
-            isolate->NewFunction("after", s_after),
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+            isolate->NewFunction("after", s_after))
         .IsJust();
     glob->DefineOwnProperty(_context, isolate->NewFromUtf8("beforeEach"),
-            isolate->NewFunction("beforeEach", s_beforeEach),
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+            isolate->NewFunction("beforeEach", s_beforeEach))
         .IsJust();
     glob->DefineOwnProperty(_context, isolate->NewFromUtf8("afterEach"),
-            isolate->NewFunction("afterEach", s_afterEach),
-            (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
+            isolate->NewFunction("afterEach", s_afterEach))
         .IsJust();
 
     return 0;
