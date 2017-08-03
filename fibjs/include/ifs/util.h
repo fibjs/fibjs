@@ -25,8 +25,8 @@ class util_base : public object_base {
 
 public:
     // util_base
-    static result_t format(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
-    static result_t format(const v8::FunctionCallbackInfo<v8::Value>& args, exlib::string& retVal);
+    static result_t format(exlib::string fmt, v8::Local<v8::Array> args, exlib::string& retVal);
+    static result_t format(v8::Local<v8::Array> args, exlib::string& retVal);
     static result_t inherits(v8::Local<v8::Value> constructor, v8::Local<v8::Value> superConstructor);
     static result_t isEmpty(v8::Local<v8::Value> v, bool& retVal);
     static result_t isArray(v8::Local<v8::Value> v, bool& retVal);
@@ -225,12 +225,15 @@ inline void util_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
+    ARG_LIST(1);
 
-    hr = format(v0, args, vr);
+    hr = format(v0, v1, vr);
 
     METHOD_OVER(-1, 0);
 
-    hr = format(args, vr);
+    ARG_LIST(0);
+
+    hr = format(v0, vr);
 
     METHOD_RETURN();
 }

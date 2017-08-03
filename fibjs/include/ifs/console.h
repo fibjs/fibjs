@@ -46,29 +46,29 @@ public:
     static result_t add(v8::Local<v8::Object> cfg);
     static result_t add(v8::Local<v8::Array> cfg);
     static result_t reset();
-    static result_t log(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t log(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t debug(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t debug(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t info(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t info(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t notice(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t notice(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t warn(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t warn(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t error(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t error(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t crit(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t crit(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t alert(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t alert(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t log(exlib::string fmt, v8::Local<v8::Array> args);
+    static result_t log(v8::Local<v8::Array> args);
+    static result_t debug(exlib::string fmt, v8::Local<v8::Array> args);
+    static result_t debug(v8::Local<v8::Array> args);
+    static result_t info(exlib::string fmt, v8::Local<v8::Array> args);
+    static result_t info(v8::Local<v8::Array> args);
+    static result_t notice(exlib::string fmt, v8::Local<v8::Array> args);
+    static result_t notice(v8::Local<v8::Array> args);
+    static result_t warn(exlib::string fmt, v8::Local<v8::Array> args);
+    static result_t warn(v8::Local<v8::Array> args);
+    static result_t error(exlib::string fmt, v8::Local<v8::Array> args);
+    static result_t error(v8::Local<v8::Array> args);
+    static result_t crit(exlib::string fmt, v8::Local<v8::Array> args);
+    static result_t crit(v8::Local<v8::Array> args);
+    static result_t alert(exlib::string fmt, v8::Local<v8::Array> args);
+    static result_t alert(v8::Local<v8::Array> args);
     static result_t dir(v8::Local<v8::Value> obj);
     static result_t time(exlib::string label);
     static result_t timeEnd(exlib::string label);
     static result_t trace(exlib::string label);
     static result_t _assert(v8::Local<v8::Value> value, exlib::string msg);
-    static result_t print(exlib::string fmt, const v8::FunctionCallbackInfo<v8::Value>& args);
-    static result_t print(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t print(exlib::string fmt, v8::Local<v8::Array> args);
+    static result_t print(v8::Local<v8::Array> args);
     static result_t moveTo(int32_t row, int32_t column);
     static result_t hideCursor();
     static result_t showCursor();
@@ -380,12 +380,15 @@ inline void console_base::s_log(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
+    ARG_LIST(1);
 
-    hr = log(v0, args);
+    hr = log(v0, v1);
 
     METHOD_OVER(-1, 0);
 
-    hr = log(args);
+    ARG_LIST(0);
+
+    hr = log(v0);
 
     METHOD_VOID();
 }
@@ -397,12 +400,15 @@ inline void console_base::s_debug(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
+    ARG_LIST(1);
 
-    hr = debug(v0, args);
+    hr = debug(v0, v1);
 
     METHOD_OVER(-1, 0);
 
-    hr = debug(args);
+    ARG_LIST(0);
+
+    hr = debug(v0);
 
     METHOD_VOID();
 }
@@ -414,12 +420,15 @@ inline void console_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
+    ARG_LIST(1);
 
-    hr = info(v0, args);
+    hr = info(v0, v1);
 
     METHOD_OVER(-1, 0);
 
-    hr = info(args);
+    ARG_LIST(0);
+
+    hr = info(v0);
 
     METHOD_VOID();
 }
@@ -431,12 +440,15 @@ inline void console_base::s_notice(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
+    ARG_LIST(1);
 
-    hr = notice(v0, args);
+    hr = notice(v0, v1);
 
     METHOD_OVER(-1, 0);
 
-    hr = notice(args);
+    ARG_LIST(0);
+
+    hr = notice(v0);
 
     METHOD_VOID();
 }
@@ -448,12 +460,15 @@ inline void console_base::s_warn(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
+    ARG_LIST(1);
 
-    hr = warn(v0, args);
+    hr = warn(v0, v1);
 
     METHOD_OVER(-1, 0);
 
-    hr = warn(args);
+    ARG_LIST(0);
+
+    hr = warn(v0);
 
     METHOD_VOID();
 }
@@ -465,12 +480,15 @@ inline void console_base::s_error(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
+    ARG_LIST(1);
 
-    hr = error(v0, args);
+    hr = error(v0, v1);
 
     METHOD_OVER(-1, 0);
 
-    hr = error(args);
+    ARG_LIST(0);
+
+    hr = error(v0);
 
     METHOD_VOID();
 }
@@ -482,12 +500,15 @@ inline void console_base::s_crit(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
+    ARG_LIST(1);
 
-    hr = crit(v0, args);
+    hr = crit(v0, v1);
 
     METHOD_OVER(-1, 0);
 
-    hr = crit(args);
+    ARG_LIST(0);
+
+    hr = crit(v0);
 
     METHOD_VOID();
 }
@@ -499,12 +520,15 @@ inline void console_base::s_alert(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
+    ARG_LIST(1);
 
-    hr = alert(v0, args);
+    hr = alert(v0, v1);
 
     METHOD_OVER(-1, 0);
 
-    hr = alert(args);
+    ARG_LIST(0);
+
+    hr = alert(v0);
 
     METHOD_VOID();
 }
@@ -582,12 +606,15 @@ inline void console_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
+    ARG_LIST(1);
 
-    hr = print(v0, args);
+    hr = print(v0, v1);
 
     METHOD_OVER(-1, 0);
 
-    hr = print(args);
+    ARG_LIST(0);
+
+    hr = print(v0);
 
     METHOD_VOID();
 }

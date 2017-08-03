@@ -148,121 +148,121 @@ module console
 
      记录一般等级的日志信息。通常用于输出非错误性提示信息。
      @param fmt 格式化字符串
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static log(String fmt, ...);
+    static log(String fmt, ...args);
 
     /*! @brief 记录普通日志信息，与 info 等同
 
      记录一般等级的日志信息。通常用于输出非错误性提示信息。
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static log(...);
+    static log(...args);
 
     /*! @brief 记录调试日志信息
 
      记录调试日志信息。通常用于输出调试信息。不重要。
      @param fmt 格式化字符串
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static debug(String fmt, ...);
+    static debug(String fmt, ...args);
 
     /*! @brief 记录调试日志信息
 
      记录调试日志信息。通常用于输出调试信息。不重要。
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static debug(...);
+    static debug(...args);
 
     /*! @brief 记录普通日志信息，与 log 等同
 
      记录一般等级的日志信息。通常用于输出非错误性提示信息。
      @param fmt 格式化字符串
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static info(String fmt, ...);
+    static info(String fmt, ...args);
 
     /*! @brief 记录普通日志信息，与 log 等同
 
      记录一般等级的日志信息。通常用于输出非错误性提示信息。
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static info(...);
+    static info(...args);
 
     /*! @brief 记录警告日志信息
 
      记录警告日志信息。通常用于输出提示性调试信息。一般重要。
      @param fmt 格式化字符串
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static notice(String fmt, ...);
+    static notice(String fmt, ...args);
 
     /*! @brief 记录警告日志信息
 
      记录警告日志信息。通常用于输出提示性调试信息。一般重要。
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static notice(...);
+    static notice(...args);
 
     /*! @brief 记录警告日志信息
 
      记录警告日志信息。通常用于输出警告性调试信息。重要。
      @param fmt 格式化字符串
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static warn(String fmt, ...);
+    static warn(String fmt, ...args);
 
     /*! @brief 记录警告日志信息
 
      记录警告日志信息。通常用于输出警告性调试信息。重要。
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static warn(...);
+    static warn(...args);
 
     /*! @brief 记录错误日志信息
 
      记录用于错误日志信息。通常用于输出错误信息。非常重要。系统的出错信息也会以此等级记录。
      @param fmt 格式化字符串
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static error(String fmt, ...);
+    static error(String fmt, ...args);
 
     /*! @brief 记录错误日志信息
 
      记录用于错误日志信息。通常用于输出错误信息。非常重要。系统的出错信息也会以此等级记录。
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static error(...);
+    static error(...args);
 
     /*! @brief 记录关键错误日志信息
 
      记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
      @param fmt 格式化字符串
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static crit(String fmt, ...);
+    static crit(String fmt, ...args);
 
     /*! @brief 记录关键错误日志信息
 
      记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static crit(...);
+    static crit(...args);
 
     /*! @brief 记录警报错误日志信息
 
      记录用于警报错误日志信息。通常用于输出警报错误信息。非常重要。为最高级别信息。
      @param fmt 格式化字符串
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static alert(String fmt, ...);
+    static alert(String fmt, ...args);
 
     /*! @brief 记录警报错误日志信息
 
      记录用于警报错误日志信息。通常用于输出警报错误信息。非常重要。为最高级别信息。
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static alert(...);
+    static alert(...args);
 
     /*! @brief 用 JSON 格式输出对象
      @param obj 给定要显示的对象
@@ -296,14 +296,14 @@ module console
 
     /*! @brief 向控制台输出格式化文本，输出内容不会记入日志系统，输出文本后不会自动换行，可连续输出
      @param fmt 格式化字符串
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static print(String fmt, ...);
+    static print(String fmt, ...args);
 
     /*! @brief 向控制台输出格式化文本，输出内容不会记入日志系统，输出文本后不会自动换行，可连续输出
-     @param ... 可选参数列表
+     @param args 可选参数列表
      */
-    static print(...);
+    static print(...args);
 
     /*! @brief 移动控制台光标到指定位置
      @param row 指定新光标的行坐标
