@@ -34,8 +34,8 @@ public:
     virtual result_t rollback(AsyncEvent* ac);
     virtual result_t trans(v8::Local<v8::Function> func);
     virtual result_t execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac);
-    virtual result_t execute(exlib::string sql, v8::Local<v8::Array> args, obj_ptr<DBResult_base>& retVal);
-    virtual result_t format(exlib::string sql, v8::Local<v8::Array> args, exlib::string& retVal);
+    virtual result_t execute(exlib::string sql, std::vector<v8::Local<v8::Value>>& args, obj_ptr<DBResult_base>& retVal);
+    virtual result_t format(exlib::string sql, std::vector<v8::Local<v8::Value>>& args, exlib::string& retVal);
 
 public:
     // MySQL_base

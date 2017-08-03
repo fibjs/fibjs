@@ -145,7 +145,7 @@ public:
     {
         return object_base::listenerCount(ev, retVal);
     }
-    virtual result_t emit(exlib::string ev, v8::Local<v8::Array> args, bool& retVal)
+    virtual result_t emit(exlib::string ev, std::vector<v8::Local<v8::Value>>& args, bool& retVal)
     {
         return object_base::emit(ev, args, retVal);
     }

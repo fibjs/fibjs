@@ -27,8 +27,8 @@ public:
     static result_t dirname(exlib::string path, exlib::string& retVal);
     static result_t fullpath(exlib::string path, exlib::string& retVal);
     static result_t isAbsolute(exlib::string path, bool& retVal);
-    static result_t join(v8::Local<v8::Array> ps, exlib::string& retVal);
-    static result_t resolve(v8::Local<v8::Array> ps, exlib::string& retVal);
+    static result_t join(std::vector<v8::Local<v8::Value>>& ps, exlib::string& retVal);
+    static result_t resolve(std::vector<v8::Local<v8::Value>>& ps, exlib::string& retVal);
     static result_t get_sep(exlib::string& retVal);
     static result_t get_delimiter(exlib::string& retVal);
     static result_t get_posix(v8::Local<v8::Object>& retVal);

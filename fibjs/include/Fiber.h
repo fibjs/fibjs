@@ -66,45 +66,19 @@ public:
     virtual result_t js_invoke();
 
     template <typename T>
-    void New(v8::Local<v8::Function> func, T& args, int32_t nArgStart,
-        int32_t nArgCount, v8::Local<v8::Object> pThis)
+    void New(v8::Local<v8::Function> func, T* args, int32_t nArgCount,
+        v8::Local<v8::Object> pThis)
     {
         Isolate* isolate = holder();
-        int32_t i;
-
-        m_argv.resize(nArgCount - nArgStart);
-        for (i = nArgStart; i < nArgCount; i++)
-            m_argv[i - nArgStart].Reset(isolate->m_isolate, args[i]);
-        m_func.Reset(isolate->m_isolate, func);
-        m_this.Reset(isolate->m_isolate, pThis);
-
-        start();
-    }
-
-    void New(v8::Local<v8::Function> func, v8::Local<v8::Array> args, v8::Local<v8::Object> pThis)
-    {
-        Isolate* isolate = holder();
-        int32_t nArgCount = args->Length();
         int32_t i;
 
         m_argv.resize(nArgCount);
         for (i = 0; i < nArgCount; i++)
-            m_argv[i].Reset(isolate->m_isolate, args->Get(i));
+            m_argv[i].Reset(isolate->m_isolate, args[i]);
         m_func.Reset(isolate->m_isolate, func);
         m_this.Reset(isolate->m_isolate, pThis);
 
         start();
-    }
-
-    template <typename T>
-    static result_t New(v8::Local<v8::Function> func, v8::Local<v8::Array> args,
-        obj_ptr<T>& retVal)
-    {
-        obj_ptr<JSFiber> fb = new JSFiber();
-        fb->New(func, args, fb->wrap());
-        retVal = fb;
-
-        return 0;
     }
 
     template <typename T>
@@ -112,18 +86,18 @@ public:
         v8::Local<v8::Value>* args, int32_t argCount, obj_ptr<T>& retVal)
     {
         obj_ptr<JSFiber> fb = new JSFiber();
-        fb->New(func, args, 0, argCount, pThis);
+        fb->New(func, args, argCount, pThis);
         retVal = fb;
 
         return 0;
     }
 
     template <typename T>
-    static result_t New(v8::Local<v8::Function> func,
-        v8::Local<v8::Value>* args, int32_t argCount, obj_ptr<T>& retVal)
+    static result_t New(v8::Local<v8::Function> func, std::vector<v8::Local<v8::Value>>& args,
+        obj_ptr<T>& retVal)
     {
         obj_ptr<JSFiber> fb = new JSFiber();
-        fb->New(func, args, 0, argCount, fb->wrap());
+        fb->New(func, args.data(), (int32_t)args.size(), fb->wrap());
         retVal = fb;
 
         return 0;

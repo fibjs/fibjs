@@ -35,9 +35,9 @@ public:
     static result_t openMongoDB(exlib::string connString, obj_ptr<MongoDB_base>& retVal, AsyncEvent* ac);
     static result_t openLevelDB(exlib::string connString, obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac);
     static result_t openRedis(exlib::string connString, obj_ptr<Redis_base>& retVal, AsyncEvent* ac);
-    static result_t format(exlib::string sql, v8::Local<v8::Array> args, exlib::string& retVal);
-    static result_t formatMySQL(exlib::string sql, v8::Local<v8::Array> args, exlib::string& retVal);
-    static result_t formatMSSQL(exlib::string sql, v8::Local<v8::Array> args, exlib::string& retVal);
+    static result_t format(exlib::string sql, std::vector<v8::Local<v8::Value>>& args, exlib::string& retVal);
+    static result_t formatMySQL(exlib::string sql, std::vector<v8::Local<v8::Value>>& args, exlib::string& retVal);
+    static result_t formatMSSQL(exlib::string sql, std::vector<v8::Local<v8::Value>>& args, exlib::string& retVal);
     static result_t escape(exlib::string str, bool mysql, exlib::string& retVal);
 
 public:

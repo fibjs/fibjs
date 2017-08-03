@@ -229,7 +229,7 @@ result_t process_base::uptime(double& retVal)
     return os_base::uptime(retVal);
 }
 
-result_t process_base::nextTick(v8::Local<v8::Function> func, v8::Local<v8::Array> args)
+result_t process_base::nextTick(v8::Local<v8::Function> func, std::vector<v8::Local<v8::Value>>& args)
 {
     obj_ptr<Fiber_base> retVal;
     return JSFiber::New(func, args, retVal);

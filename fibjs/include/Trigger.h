@@ -468,22 +468,13 @@ public:
         return 0;
     }
 
-    result_t emit(exlib::string ev, v8::Local<v8::Array> args, bool& retVal)
+    result_t emit(exlib::string ev, std::vector<v8::Local<v8::Value>>& args, bool& retVal)
     {
-        std::vector<v8::Local<v8::Value>> _args;
-        int32_t len = args->Length();
-
-        _args.resize(len);
-
-        for (int32_t i = 0; i < len; i++)
-            _args[i] = args->Get(i);
-
-        return _emit(ev, _args.data(), (int32_t)_args.size(), retVal);
+        return _emit(ev, args.data(), (int32_t)args.size(), retVal);
     }
 
     result_t eventNames(v8::Local<v8::Array>& retVal)
     {
-
         retVal = events->GetOwnPropertyNames();
         return 0;
     }

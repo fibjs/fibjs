@@ -18,7 +18,7 @@ DECLARE_MODULE(coroutine);
 
 extern int32_t g_spareFibers;
 
-result_t coroutine_base::start(v8::Local<v8::Function> func, v8::Local<v8::Array> args,
+result_t coroutine_base::start(v8::Local<v8::Function> func, std::vector<v8::Local<v8::Value>>& args,
     obj_ptr<Fiber_base>& retVal)
 {
     return JSFiber::New(func, args, retVal);
@@ -153,9 +153,18 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> funcs, int32_t fibers,
     return _p.run(funcs, retVal, fibers);
 }
 
-result_t coroutine_base::parallel(v8::Local<v8::Array> funcs, v8::Local<v8::Array>& retVal)
+result_t coroutine_base::parallel(std::vector<v8::Local<v8::Value>>& funcs,
+    v8::Local<v8::Array>& retVal)
 {
-    return parallel(funcs, -1, retVal);
+    v8::Isolate* isolate = Isolate::current()->m_isolate;
+    int32_t num = (int32_t)funcs.size();
+    v8::Local<v8::Array> _funcs = v8::Array::New(isolate, num);
+    int32_t i;
+
+    for (i = 0; i < num; i++)
+        _funcs->Set(i, funcs[i]);
+
+    return parallel(_funcs, -1, retVal);
 }
 
 result_t coroutine_base::parallel(v8::Local<v8::Array> datas, v8::Local<v8::Function> func,

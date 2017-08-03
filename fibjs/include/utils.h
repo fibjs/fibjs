@@ -205,8 +205,8 @@ typedef int32_t result_t;
     if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                 \
         do {                                                    \
             hr = 0;                                             \
-            int32_t argc = args.Length();                       \
-            int32_t argc1 = argc;                               \
+            int32_t argc1 = args.Length();                      \
+            int32_t argc = argc1;                               \
             while (argc > (o) && args[argc - 1]->IsUndefined()) \
                 argc--;                                         \
             if ((c) >= 0 && argc > (c)) {                       \
@@ -218,27 +218,27 @@ typedef int32_t result_t;
                 break;                                          \
             }
 
-#define ASYNC_METHOD_OVER(c, o)                                   \
-    }                                                             \
-    while (0)                                                     \
-        ;                                                         \
-    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                   \
-        do {                                                      \
-            hr = 0;                                               \
-            int32_t argc = args.Length();                         \
-            v8::Local<v8::Function> cb;                           \
-            if (argc > 0 && args[argc - 1]->IsFunction())         \
-                cb = v8::Local<v8::Function>::Cast(args[--argc]); \
-            int32_t argc1 = argc;                                 \
-            while (argc > (o) && args[argc - 1]->IsUndefined())   \
-                argc--;                                           \
-            if ((c) >= 0 && argc > (c)) {                         \
-                hr = CALL_E_BADPARAMCOUNT;                        \
-                break;                                            \
-            }                                                     \
-            if ((o) > 0 && argc < (o)) {                          \
-                hr = CALL_E_PARAMNOTOPTIONAL;                     \
-                break;                                            \
+#define ASYNC_METHOD_OVER(c, o)                                    \
+    }                                                              \
+    while (0)                                                      \
+        ;                                                          \
+    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                    \
+        do {                                                       \
+            hr = 0;                                                \
+            int32_t argc1 = args.Length();                         \
+            v8::Local<v8::Function> cb;                            \
+            if (argc1 > 0 && args[argc1 - 1]->IsFunction())        \
+                cb = v8::Local<v8::Function>::Cast(args[--argc1]); \
+            int32_t argc = argc1;                                  \
+            while (argc > (o) && args[argc - 1]->IsUndefined())    \
+                argc--;                                            \
+            if ((c) >= 0 && argc > (c)) {                          \
+                hr = CALL_E_BADPARAMCOUNT;                         \
+                break;                                             \
+            }                                                      \
+            if ((o) > 0 && argc < (o)) {                           \
+                hr = CALL_E_PARAMNOTOPTIONAL;                      \
+                break;                                             \
             }
 
 #define METHOD_ENTER()                        \
@@ -351,10 +351,10 @@ typedef int32_t result_t;
             break;                                              \
     }
 
-#define ARG_LIST(n)                                      \
-    v8::Local<v8::Array> v##n;                           \
-    hr = GetArgumentList(isolate, args, v##n, n, argc1); \
-    if (hr < 0)                                          \
+#define ARG_LIST(n)                             \
+    std::vector<v8::Local<v8::Value>> v##n;     \
+    hr = GetArgumentList(args, v##n, n, argc1); \
+    if (hr < 0)                                 \
         break;
 
 #define DECLARE_CLASSINFO(c)                      \
@@ -498,7 +498,8 @@ public:                                                                         
     {                                                                                      \
         return object_base::listenerCount(ev, retVal);                                     \
     }                                                                                      \
-    virtual result_t emit(exlib::string ev, v8::Local<v8::Array> args, bool& retVal)       \
+    virtual result_t emit(exlib::string ev, std::vector<v8::Local<v8::Value>>& args,       \
+        bool& retVal)                                                                      \
     {                                                                                      \
         return object_base::emit(ev, args, retVal);                                        \
     }                                                                                      \
@@ -662,14 +663,14 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, V
     return 0;
 }
 
-inline result_t GetArgumentList(v8::Isolate* isolate, const v8::FunctionCallbackInfo<v8::Value>& args,
-    v8::Local<v8::Array>& v, int32_t n, int32_t argc)
+inline result_t GetArgumentList(const v8::FunctionCallbackInfo<v8::Value>& args,
+    std::vector<v8::Local<v8::Value>>& v, int32_t n, int32_t argc)
 {
     int32_t n1 = 0;
 
-    v = v8::Array::New(isolate, argc - n);
+    v.resize(argc - n);
     while (n < argc)
-        v->Set(n1++, args[n++]);
+        v[n1++] = args[n++];
 
     return 0;
 }

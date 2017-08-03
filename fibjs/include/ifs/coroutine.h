@@ -29,11 +29,11 @@ class coroutine_base : public object_base {
 
 public:
     // coroutine_base
-    static result_t start(v8::Local<v8::Function> func, v8::Local<v8::Array> args, obj_ptr<Fiber_base>& retVal);
+    static result_t start(v8::Local<v8::Function> func, std::vector<v8::Local<v8::Value>>& args, obj_ptr<Fiber_base>& retVal);
     static result_t parallel(v8::Local<v8::Array> funcs, int32_t fibers, v8::Local<v8::Array>& retVal);
     static result_t parallel(v8::Local<v8::Array> datas, v8::Local<v8::Function> func, int32_t fibers, v8::Local<v8::Array>& retVal);
     static result_t parallel(v8::Local<v8::Function> func, int32_t num, int32_t fibers, v8::Local<v8::Array>& retVal);
-    static result_t parallel(v8::Local<v8::Array> funcs, v8::Local<v8::Array>& retVal);
+    static result_t parallel(std::vector<v8::Local<v8::Value>>& funcs, v8::Local<v8::Array>& retVal);
     static result_t current(obj_ptr<Fiber_base>& retVal);
     static result_t sleep(int32_t ms, AsyncEvent* ac);
     static result_t get_fibers(v8::Local<v8::Array>& retVal);

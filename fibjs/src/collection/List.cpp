@@ -138,16 +138,16 @@ result_t List::lastIndexOf(Variant searchElement, int32_t fromIndex, int32_t& re
     return 0;
 }
 
-result_t List::push(v8::Local<v8::Array> els, int32_t& retVal)
+result_t List::push(std::vector<v8::Local<v8::Value>>& els, int32_t& retVal)
 {
     if (m_freeze)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    int32_t len = els->Length();
+    int32_t len = els.size();
     int32_t i;
 
     for (i = 0; i < len; i++)
-        append(els->Get(i));
+        append(els[i]);
 
     retVal = (int32_t)m_array.size();
     return 0;
@@ -194,7 +194,7 @@ result_t List::slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal)
     return 0;
 }
 
-result_t List::concat(v8::Local<v8::Array> lists, obj_ptr<List_base>& retVal)
+result_t List::concat(std::vector<v8::Local<v8::Value>>& lists, obj_ptr<List_base>& retVal)
 {
     if (m_freeze)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -208,9 +208,9 @@ result_t List::concat(v8::Local<v8::Array> lists, obj_ptr<List_base>& retVal)
     for (i = 0; i < len; i++)
         a->append(m_array[i]);
 
-    len = lists->Length();
+    len = lists.size();
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> v = lists->Get(i);
+        v8::Local<v8::Value> v = lists[i];
         obj_ptr<List_base> a1 = List_base::getInstance(v);
 
         if (a1) {

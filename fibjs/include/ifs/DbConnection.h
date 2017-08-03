@@ -30,8 +30,8 @@ public:
     virtual result_t rollback(AsyncEvent* ac) = 0;
     virtual result_t trans(v8::Local<v8::Function> func) = 0;
     virtual result_t execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t execute(exlib::string sql, v8::Local<v8::Array> args, obj_ptr<DBResult_base>& retVal) = 0;
-    virtual result_t format(exlib::string sql, v8::Local<v8::Array> args, exlib::string& retVal) = 0;
+    virtual result_t execute(exlib::string sql, std::vector<v8::Local<v8::Value>>& args, obj_ptr<DBResult_base>& retVal) = 0;
+    virtual result_t format(exlib::string sql, std::vector<v8::Local<v8::Value>>& args, exlib::string& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

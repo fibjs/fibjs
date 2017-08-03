@@ -278,12 +278,12 @@ exlib::string json_format(v8::Local<v8::Value> obj)
     return strBuffer.str();
 }
 
-result_t util_base::format(exlib::string fmt, v8::Local<v8::Array> args,
+result_t util_base::format(exlib::string fmt, std::vector<v8::Local<v8::Value>>& args,
     exlib::string& retVal)
 {
     const char* s1;
     char ch;
-    int32_t argc = args->Length();
+    int32_t argc = (int32_t)args.size();
     int32_t idx = 0;
 
     if (argc == 0) {
@@ -308,7 +308,7 @@ result_t util_base::format(exlib::string fmt, v8::Local<v8::Array> args,
             switch (ch = *s++) {
             case 's':
                 if (idx < argc) {
-                    v8::String::Utf8Value s(args->Get(idx++));
+                    v8::String::Utf8Value s(args[idx++]);
                     if (*s)
                         retVal.append(*s, s.length());
                 } else
@@ -316,7 +316,7 @@ result_t util_base::format(exlib::string fmt, v8::Local<v8::Array> args,
                 break;
             case 'd':
                 if (idx < argc) {
-                    v8::String::Utf8Value s(args->Get(idx++)->ToNumber());
+                    v8::String::Utf8Value s(args[idx++]->ToNumber());
                     if (*s)
                         retVal.append(*s, s.length());
                 } else
@@ -325,7 +325,7 @@ result_t util_base::format(exlib::string fmt, v8::Local<v8::Array> args,
             case 'j':
                 if (idx < argc) {
                     exlib::string s;
-                    s = json_format(args->Get(idx++));
+                    s = json_format(args[idx++]);
                     retVal.append(s);
                 } else
                     retVal.append("%j", 2);
@@ -345,7 +345,7 @@ result_t util_base::format(exlib::string fmt, v8::Local<v8::Array> args,
             retVal.append(1, ' ');
 
         bool bIsStr;
-        v8::Local<v8::Value> v = args->Get(idx++);
+        v8::Local<v8::Value> v = args[idx++];
 
         util_base::isString(v, bIsStr);
 
@@ -363,7 +363,7 @@ result_t util_base::format(exlib::string fmt, v8::Local<v8::Array> args,
     return 0;
 }
 
-result_t util_base::format(v8::Local<v8::Array> args, exlib::string& retVal)
+result_t util_base::format(std::vector<v8::Local<v8::Value>>& args, exlib::string& retVal)
 {
     return format("", args, retVal);
 }

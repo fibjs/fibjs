@@ -225,7 +225,7 @@ result_t object_base::_emit(exlib::string ev, Variant* args, int32_t argCount)
     return 0;
 }
 
-result_t object_base::emit(exlib::string ev, v8::Local<v8::Array> args,
+result_t object_base::emit(exlib::string ev, std::vector<v8::Local<v8::Value>>& args,
     bool& retVal)
 {
     return JSTrigger(this).emit(ev, args, retVal);

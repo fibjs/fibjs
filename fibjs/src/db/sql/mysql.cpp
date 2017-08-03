@@ -320,7 +320,8 @@ result_t mysql::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, Async
     return execute(sql.c_str(), (int32_t)sql.length(), retVal);
 }
 
-result_t mysql::execute(exlib::string sql, v8::Local<v8::Array> args, obj_ptr<DBResult_base>& retVal)
+result_t mysql::execute(exlib::string sql, std::vector<v8::Local<v8::Value>>& args,
+    obj_ptr<DBResult_base>& retVal)
 {
     exlib::string str;
     result_t hr = format(sql, args, str);
@@ -330,7 +331,8 @@ result_t mysql::execute(exlib::string sql, v8::Local<v8::Array> args, obj_ptr<DB
     return ac_execute(str, retVal);
 }
 
-result_t mysql::format(exlib::string sql, v8::Local<v8::Array> args, exlib::string& retVal)
+result_t mysql::format(exlib::string sql, std::vector<v8::Local<v8::Value>>& args,
+    exlib::string& retVal)
 {
     return db_base::formatMySQL(sql, args, retVal);
 }
