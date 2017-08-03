@@ -571,7 +571,7 @@ describe("redis", () => {
             rdb1.pub("test.ch1", "test value 1");
 
             coroutine.sleep(200);
-            assert.equal(n1, 2);
+            assert.equal(n1, 3);
         });
 
         it("sub multi", () => {
@@ -599,7 +599,7 @@ describe("redis", () => {
             rdb1.pub("test.ch1", "test value 1");
 
             coroutine.sleep(200);
-            assert.equal(n1, 2);
+            assert.equal(n1, 4);
         });
 
         it("unsub", () => {
