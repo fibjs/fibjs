@@ -481,6 +481,16 @@ interface Buffer : object
     */
     Array toArray();
 
+    /*! @brief 返回全部二进制数据的数组
+     @return 返回包含对象数据索引的迭代器
+    */
+    Object keys();
+
+    /*! @brief 返回全部二进制数据的数组
+     @return 返回包含对象数据值的迭代器
+    */
+    Object values();
+
     /*! @brief 返回二进制数据的编码字符串
      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      @param offset 读取起始位置

@@ -95,6 +95,8 @@ public:
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t hex(exlib::string& retVal) = 0;
     virtual result_t base64(exlib::string& retVal) = 0;
+    virtual result_t keys(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t values(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal) = 0;
     virtual result_t toString(exlib::string& retVal) = 0;
@@ -160,6 +162,8 @@ public:
     static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hex(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_base64(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_values(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -223,6 +227,8 @@ inline ClassInfo& Buffer_base::class_info()
         { "slice", s_slice, false },
         { "hex", s_hex, false },
         { "base64", s_base64, false },
+        { "keys", s_keys, false },
+        { "values", s_values, false },
         { "toArray", s_toArray, false },
         { "toString", s_toString, false }
     };
@@ -1258,6 +1264,34 @@ inline void Buffer_base::s_base64(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(0, 0);
 
     hr = pInst->base64(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->keys(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_values(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->values(vr);
 
     METHOD_RETURN();
 }

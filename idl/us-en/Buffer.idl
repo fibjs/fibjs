@@ -360,6 +360,21 @@ interface Buffer : object
      */
     String base64();
 
+    /*! @brief return the array of the binary data
+     @return The Iterator representing the index of the buffer.
+    */
+    Object keys();
+
+    /*! @brief return the array of the binary data
+     @return The Iterator representing the value of the buffer.
+    */
+    Object values();
+
+    /*! @brief return the array of the binary data
+     @return The Array representing the value of the buffer.
+    */
+    Array toArray();
+
     /*! @brief return the encoded string of the binary data 
      @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system.
      @param offset The start position of string, Default: 0
