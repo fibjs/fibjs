@@ -54,7 +54,7 @@ namespace fibjs {
 extern std_logger* s_std;
 void asyncLog(int32_t priority, exlib::string msg);
 
-void _log(int32_t type, exlib::string fmt, std::vector<v8::Local<v8::Value>>& args)
+void _log(int32_t type, exlib::string fmt, OptArgs args)
 {
     int32_t level;
 
@@ -68,7 +68,7 @@ void _log(int32_t type, exlib::string fmt, std::vector<v8::Local<v8::Value>>& ar
     }
 }
 
-void _log(int32_t type, std::vector<v8::Local<v8::Value>>& args)
+void _log(int32_t type, OptArgs args)
 {
     int32_t level;
 
@@ -82,97 +82,97 @@ void _log(int32_t type, std::vector<v8::Local<v8::Value>>& args)
     }
 }
 
-result_t console_base::log(exlib::string fmt, std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::log(exlib::string fmt, OptArgs args)
 {
     _log(_INFO, fmt, args);
     return 0;
 }
 
-result_t console_base::log(std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::log(OptArgs args)
 {
     _log(_INFO, args);
     return 0;
 }
 
-result_t console_base::debug(exlib::string fmt, std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::debug(exlib::string fmt, OptArgs args)
 {
     _log(_DEBUG, fmt, args);
     return 0;
 }
 
-result_t console_base::debug(std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::debug(OptArgs args)
 {
     _log(_DEBUG, args);
     return 0;
 }
 
-result_t console_base::info(exlib::string fmt, std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::info(exlib::string fmt, OptArgs args)
 {
     _log(_INFO, fmt, args);
     return 0;
 }
 
-result_t console_base::info(std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::info(OptArgs args)
 {
     _log(_INFO, args);
     return 0;
 }
 
-result_t console_base::notice(exlib::string fmt, std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::notice(exlib::string fmt, OptArgs args)
 {
     _log(_NOTICE, fmt, args);
     return 0;
 }
 
-result_t console_base::notice(std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::notice(OptArgs args)
 {
     _log(_NOTICE, args);
     return 0;
 }
 
-result_t console_base::warn(exlib::string fmt, std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::warn(exlib::string fmt, OptArgs args)
 {
     _log(_WARN, fmt, args);
     return 0;
 }
 
-result_t console_base::warn(std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::warn(OptArgs args)
 {
     _log(_WARN, args);
     return 0;
 }
 
-result_t console_base::error(exlib::string fmt, std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::error(exlib::string fmt, OptArgs args)
 {
     _log(_ERROR, fmt, args);
     return 0;
 }
 
-result_t console_base::error(std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::error(OptArgs args)
 {
     _log(_ERROR, args);
     return 0;
 }
 
-result_t console_base::crit(exlib::string fmt, std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::crit(exlib::string fmt, OptArgs args)
 {
     _log(_CRIT, fmt, args);
     return 0;
 }
 
-result_t console_base::crit(std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::crit(OptArgs args)
 {
     _log(_CRIT, args);
     return 0;
 }
 
-result_t console_base::alert(exlib::string fmt, std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::alert(exlib::string fmt, OptArgs args)
 {
     _log(_ALERT, fmt, args);
     return 0;
 }
 
-result_t console_base::alert(std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::alert(OptArgs args)
 {
     _log(_ALERT, args);
     return 0;
@@ -233,13 +233,13 @@ result_t console_base::_assert(v8::Local<v8::Value> value, exlib::string msg)
     return assert_base::ok(value, msg);
 }
 
-result_t console_base::print(exlib::string fmt, std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::print(exlib::string fmt, OptArgs args)
 {
     _log(_PRINT, fmt, args);
     return 0;
 }
 
-result_t console_base::print(std::vector<v8::Local<v8::Value>>& args)
+result_t console_base::print(OptArgs args)
 {
     _log(_PRINT, args);
     return 0;

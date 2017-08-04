@@ -25,10 +25,10 @@ class RedisList_base : public object_base {
 public:
     // RedisList_base
     virtual result_t push(v8::Local<v8::Array> values, int32_t& retVal) = 0;
-    virtual result_t push(std::vector<v8::Local<v8::Value>>& values, int32_t& retVal) = 0;
+    virtual result_t push(OptArgs values, int32_t& retVal) = 0;
     virtual result_t pop(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t rpush(v8::Local<v8::Array> values, int32_t& retVal) = 0;
-    virtual result_t rpush(std::vector<v8::Local<v8::Value>>& values, int32_t& retVal) = 0;
+    virtual result_t rpush(OptArgs values, int32_t& retVal) = 0;
     virtual result_t rpop(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t set(int32_t index, Buffer_base* value) = 0;
     virtual result_t get(int32_t index, obj_ptr<Buffer_base>& retVal) = 0;

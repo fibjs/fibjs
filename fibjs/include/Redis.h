@@ -21,14 +21,14 @@ namespace fibjs {
 class Redis : public Redis_base {
 public:
     // Redis_base
-    virtual result_t command(exlib::string cmd, std::vector<v8::Local<v8::Value>>& args, v8::Local<v8::Value>& retVal);
+    virtual result_t command(exlib::string cmd, OptArgs args, v8::Local<v8::Value>& retVal);
     virtual result_t set(Buffer_base* key, Buffer_base* value, int64_t ttl);
     virtual result_t setNX(Buffer_base* key, Buffer_base* value, int64_t ttl);
     virtual result_t setXX(Buffer_base* key, Buffer_base* value, int64_t ttl);
     virtual result_t mset(v8::Local<v8::Object> kvs);
-    virtual result_t mset(std::vector<v8::Local<v8::Value>>& kvs);
+    virtual result_t mset(OptArgs kvs);
     virtual result_t msetNX(v8::Local<v8::Object> kvs);
-    virtual result_t msetNX(std::vector<v8::Local<v8::Value>>& kvs);
+    virtual result_t msetNX(OptArgs kvs);
     virtual result_t append(Buffer_base* key, Buffer_base* value, int32_t& retVal);
     virtual result_t setRange(Buffer_base* key, int32_t offset, Buffer_base* value, int32_t& retVal);
     virtual result_t getRange(Buffer_base* key, int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal);
@@ -36,7 +36,7 @@ public:
     virtual result_t bitcount(Buffer_base* key, int32_t start, int32_t end, int32_t& retVal);
     virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal);
     virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal);
-    virtual result_t mget(std::vector<v8::Local<v8::Value>>& keys, obj_ptr<List_base>& retVal);
+    virtual result_t mget(OptArgs keys, obj_ptr<List_base>& retVal);
     virtual result_t getset(Buffer_base* key, Buffer_base* value, obj_ptr<Buffer_base>& retVal);
     virtual result_t decr(Buffer_base* key, int64_t num, int64_t& retVal);
     virtual result_t incr(Buffer_base* key, int64_t num, int64_t& retVal);
@@ -46,7 +46,7 @@ public:
     virtual result_t type(Buffer_base* key, exlib::string& retVal);
     virtual result_t keys(exlib::string pattern, obj_ptr<List_base>& retVal);
     virtual result_t del(v8::Local<v8::Array> keys, int32_t& retVal);
-    virtual result_t del(std::vector<v8::Local<v8::Value>>& keys, int32_t& retVal);
+    virtual result_t del(OptArgs keys, int32_t& retVal);
     virtual result_t expire(Buffer_base* key, int64_t ttl, bool& retVal);
     virtual result_t ttl(Buffer_base* key, int64_t& retVal);
     virtual result_t persist(Buffer_base* key, bool& retVal);
@@ -167,12 +167,12 @@ public:
             return 0;
         }
 
-        result_t add(std::vector<v8::Local<v8::Value>>& args)
+        result_t add(OptArgs args)
         {
             result_t hr;
             int32_t i;
 
-            for (i = 0; i < (int32_t)args.size(); i++) {
+            for (i = 0; i < args.Length(); i++) {
                 hr = add(args[i]);
                 if (hr < 0)
                     return hr;

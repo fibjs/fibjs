@@ -41,7 +41,7 @@ public:
     static result_t chdir(exlib::string directory);
     static result_t uptime(double& retVal);
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
-    static result_t nextTick(v8::Local<v8::Function> func, std::vector<v8::Local<v8::Value>>& args);
+    static result_t nextTick(v8::Local<v8::Function> func, OptArgs args);
     static result_t open(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
     static result_t open(exlib::string command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
     static result_t start(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);

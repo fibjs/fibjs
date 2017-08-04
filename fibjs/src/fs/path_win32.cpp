@@ -46,12 +46,12 @@ result_t path_win32_base::isAbsolute(exlib::string path, bool& retVal)
     return 0;
 }
 
-result_t path_win32_base::join(std::vector<v8::Local<v8::Value>>& ps, exlib::string& retVal)
+result_t path_win32_base::join(OptArgs ps, exlib::string& retVal)
 {
     return _join_win32(ps, retVal);
 }
 
-result_t path_win32_base::resolve(std::vector<v8::Local<v8::Value>>& ps, exlib::string& retVal)
+result_t path_win32_base::resolve(OptArgs ps, exlib::string& retVal)
 {
     return _resolve_win32(ps, retVal);
 }

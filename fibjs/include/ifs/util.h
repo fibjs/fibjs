@@ -25,8 +25,8 @@ class util_base : public object_base {
 
 public:
     // util_base
-    static result_t format(exlib::string fmt, std::vector<v8::Local<v8::Value>>& args, exlib::string& retVal);
-    static result_t format(std::vector<v8::Local<v8::Value>>& args, exlib::string& retVal);
+    static result_t format(exlib::string fmt, OptArgs args, exlib::string& retVal);
+    static result_t format(OptArgs args, exlib::string& retVal);
     static result_t inherits(v8::Local<v8::Value> constructor, v8::Local<v8::Value> superConstructor);
     static result_t isEmpty(v8::Local<v8::Value> v, bool& retVal);
     static result_t isArray(v8::Local<v8::Value> v, bool& retVal);
@@ -58,19 +58,19 @@ public:
     static result_t keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal);
     static result_t values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal);
     static result_t clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal);
-    static result_t extend(v8::Local<v8::Value> v, std::vector<v8::Local<v8::Value>>& objs, v8::Local<v8::Value>& retVal);
-    static result_t pick(v8::Local<v8::Value> v, std::vector<v8::Local<v8::Value>>& objs, v8::Local<v8::Object>& retVal);
-    static result_t omit(v8::Local<v8::Value> v, std::vector<v8::Local<v8::Value>>& keys, v8::Local<v8::Object>& retVal);
+    static result_t extend(v8::Local<v8::Value> v, OptArgs objs, v8::Local<v8::Value>& retVal);
+    static result_t pick(v8::Local<v8::Value> v, OptArgs objs, v8::Local<v8::Object>& retVal);
+    static result_t omit(v8::Local<v8::Value> v, OptArgs keys, v8::Local<v8::Object>& retVal);
     static result_t first(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal);
     static result_t first(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>& retVal);
     static result_t last(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal);
     static result_t last(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>& retVal);
     static result_t unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Array>& retVal);
-    static result_t _union(std::vector<v8::Local<v8::Value>>& arrs, v8::Local<v8::Array>& retVal);
-    static result_t intersection(std::vector<v8::Local<v8::Value>>& arrs, v8::Local<v8::Array>& retVal);
+    static result_t _union(OptArgs arrs, v8::Local<v8::Array>& retVal);
+    static result_t intersection(OptArgs arrs, v8::Local<v8::Array>& retVal);
     static result_t flatten(v8::Local<v8::Value> arr, bool shallow, v8::Local<v8::Array>& retVal);
-    static result_t without(v8::Local<v8::Value> arr, std::vector<v8::Local<v8::Value>>& els, v8::Local<v8::Array>& retVal);
-    static result_t difference(v8::Local<v8::Array> list, std::vector<v8::Local<v8::Value>>& arrs, v8::Local<v8::Array>& retVal);
+    static result_t without(v8::Local<v8::Value> arr, OptArgs els, v8::Local<v8::Array>& retVal);
+    static result_t difference(v8::Local<v8::Array> list, OptArgs arrs, v8::Local<v8::Array>& retVal);
     static result_t each(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
     static result_t map(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Array>& retVal);
     static result_t reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> memo, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);

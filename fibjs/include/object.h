@@ -208,7 +208,7 @@ public:
     result_t getListener(exlib::string ev, v8::Local<v8::Function> func);
     result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal);
     result_t listenerCount(exlib::string ev, int32_t& retVal);
-    result_t emit(exlib::string ev, std::vector<v8::Local<v8::Value>>& args, bool& retVal);
+    result_t emit(exlib::string ev, OptArgs args, bool& retVal);
     result_t eventNames(v8::Local<v8::Array>& retVal);
     result_t _emit(exlib::string ev, v8::Local<v8::Value>* args, int32_t argCount, bool& retVal);
     result_t _emit(exlib::string ev, Variant* args, int32_t argCount);

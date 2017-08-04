@@ -447,8 +447,7 @@ public:
         QuickArray<obj_ptr<Fiber_base>> evs;
         v8::Local<v8::Function> ff;
 
-        hr = fireTrigger(GetHiddenList(ev), args, argCount,
-            evs, ff);
+        hr = fireTrigger(GetHiddenList(ev), args, argCount, evs, ff);
         if (hr < 0)
             return hr;
 
@@ -468,9 +467,12 @@ public:
         return 0;
     }
 
-    result_t emit(exlib::string ev, std::vector<v8::Local<v8::Value>>& args, bool& retVal)
+    result_t emit(exlib::string ev, OptArgs args, bool& retVal)
     {
-        return _emit(ev, args.data(), (int32_t)args.size(), retVal);
+        std::vector<v8::Local<v8::Value>> datas;
+        args.GetData(datas);
+
+        return _emit(ev, datas.data(), args.Length(), retVal);
     }
 
     result_t eventNames(v8::Local<v8::Array>& retVal)

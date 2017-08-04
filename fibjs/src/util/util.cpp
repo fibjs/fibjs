@@ -123,7 +123,7 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
     return 0;
 }
 
-result_t util_base::extend(v8::Local<v8::Value> v, std::vector<v8::Local<v8::Value>>& objs,
+result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
     v8::Local<v8::Value>& retVal)
 {
     if (v->IsUndefined() || v->IsNull()) {
@@ -135,7 +135,7 @@ result_t util_base::extend(v8::Local<v8::Value> v, std::vector<v8::Local<v8::Val
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> obj = v->ToObject();
-    int32_t argc = (int32_t)objs.size();
+    int32_t argc = objs.Length();
     int32_t i, j;
 
     for (i = 0; i < argc; i++) {
@@ -162,7 +162,7 @@ result_t util_base::extend(v8::Local<v8::Value> v, std::vector<v8::Local<v8::Val
     return 0;
 }
 
-result_t util_base::pick(v8::Local<v8::Value> v, std::vector<v8::Local<v8::Value>>& objs,
+result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
     v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
@@ -176,7 +176,7 @@ result_t util_base::pick(v8::Local<v8::Value> v, std::vector<v8::Local<v8::Value
 
     v8::Local<v8::Object> obj = v->ToObject();
     v8::Local<v8::Object> obj1 = v8::Object::New(isolate->m_isolate);
-    int32_t argc = (int32_t)objs.size();
+    int32_t argc = objs.Length();
     int32_t i, j;
 
     for (i = 0; i < argc; i++) {
@@ -204,7 +204,7 @@ result_t util_base::pick(v8::Local<v8::Value> v, std::vector<v8::Local<v8::Value
     return 0;
 }
 
-result_t util_base::omit(v8::Local<v8::Value> v, std::vector<v8::Local<v8::Value>>& keys,
+result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
     v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
@@ -219,7 +219,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, std::vector<v8::Local<v8::Value
     v8::Local<v8::Object> obj = v->ToObject();
 
     std::map<exlib::string, bool> _map;
-    int32_t argc = (int32_t)keys.size();
+    int32_t argc = keys.Length();
     int32_t i, j;
     result_t hr;
 
@@ -263,11 +263,11 @@ result_t util_base::omit(v8::Local<v8::Value> v, std::vector<v8::Local<v8::Value
     return 0;
 }
 
-result_t util_base::intersection(std::vector<v8::Local<v8::Value>>& arrs,
+result_t util_base::intersection(OptArgs arrs,
     v8::Local<v8::Array>& retVal)
 {
     v8::Local<v8::Array> arr = v8::Array::New(Isolate::current()->m_isolate);
-    int32_t argc = (int32_t)arrs.size();
+    int32_t argc = arrs.Length();
     int32_t i, j, k, n = 0;
 
     if (argc > 0) {
@@ -479,11 +479,11 @@ result_t util_base::unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Ar
     return 0;
 }
 
-result_t util_base::_union(std::vector<v8::Local<v8::Value>>& arrs,
+result_t util_base::_union(OptArgs arrs,
     v8::Local<v8::Array>& retVal)
 {
     v8::Local<v8::Array> arr = v8::Array::New(Isolate::current()->m_isolate);
-    int32_t argc = (int32_t)arrs.size();
+    int32_t argc = arrs.Length();
     int32_t i, j, k, n = 0;
 
     for (i = 0; i < argc; i++) {
@@ -554,7 +554,7 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
     return 0;
 }
 
-result_t util_base::without(v8::Local<v8::Value> arr, std::vector<v8::Local<v8::Value>>& els,
+result_t util_base::without(v8::Local<v8::Value> arr, OptArgs els,
     v8::Local<v8::Array>& retVal)
 {
     if (!arr->IsObject())
@@ -570,7 +570,7 @@ result_t util_base::without(v8::Local<v8::Value> arr, std::vector<v8::Local<v8::
     int32_t len = v->Int32Value();
 
     v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate);
-    int32_t argc = (int32_t)els.size();
+    int32_t argc = els.Length();
     int32_t i, j, n = 0;
 
     for (i = 0; i < len; i++) {
@@ -589,12 +589,12 @@ result_t util_base::without(v8::Local<v8::Value> arr, std::vector<v8::Local<v8::
     return 0;
 }
 
-result_t util_base::difference(v8::Local<v8::Array> arr, std::vector<v8::Local<v8::Value>>& arrs,
+result_t util_base::difference(v8::Local<v8::Array> arr, OptArgs arrs,
     v8::Local<v8::Array>& retVal)
 {
     v8::Local<v8::Array> arr1 = v8::Array::New(Isolate::current()->m_isolate);
     int32_t len = arr->Length();
-    int32_t argc = (int32_t)arrs.size();
+    int32_t argc = arrs.Length();
     int32_t i, j, k, n = 0, len1;
 
     for (i = 0; i < len; i++) {

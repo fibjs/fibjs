@@ -18,7 +18,7 @@ module.exports = function (defs, baseFolder) {
             "Function": "v8::Local<v8::Function>",
             "Value": "v8::Local<v8::Value>",
             "Variant": "Variant",
-            "...": "std::vector<v8::Local<v8::Value>>&"
+            "...": "OptArgs"
         };
 
         var txts = [];

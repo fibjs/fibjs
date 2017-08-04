@@ -341,7 +341,7 @@ result_t mssql::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, Async
     return execute(sql.c_str(), (int32_t)sql.length(), retVal);
 }
 
-result_t mssql::execute(exlib::string sql, std::vector<v8::Local<v8::Value>>& args,
+result_t mssql::execute(exlib::string sql, OptArgs args,
     obj_ptr<DBResult_base>& retVal)
 {
     exlib::string str;
@@ -352,7 +352,7 @@ result_t mssql::execute(exlib::string sql, std::vector<v8::Local<v8::Value>>& ar
     return ac_execute(str, retVal);
 }
 
-result_t mssql::format(exlib::string sql, std::vector<v8::Local<v8::Value>>& args,
+result_t mssql::format(exlib::string sql, OptArgs args,
     exlib::string& retVal)
 {
     return db_base::formatMSSQL(sql, args, retVal);

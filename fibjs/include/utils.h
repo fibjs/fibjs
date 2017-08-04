@@ -351,11 +351,7 @@ typedef int32_t result_t;
             break;                                              \
     }
 
-#define ARG_LIST(n)                             \
-    std::vector<v8::Local<v8::Value>> v##n;     \
-    hr = GetArgumentList(args, v##n, n, argc1); \
-    if (hr < 0)                                 \
-        break;
+#define ARG_LIST(n) OptArgs v##n(args, n, argc1);
 
 #define DECLARE_CLASSINFO(c)                      \
 public:                                           \
@@ -498,7 +494,7 @@ public:                                                                         
     {                                                                                      \
         return object_base::listenerCount(ev, retVal);                                     \
     }                                                                                      \
-    virtual result_t emit(exlib::string ev, std::vector<v8::Local<v8::Value>>& args,       \
+    virtual result_t emit(exlib::string ev, OptArgs args,                                  \
         bool& retVal)                                                                      \
     {                                                                                      \
         return object_base::emit(ev, args, retVal);                                        \
@@ -663,17 +659,44 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, V
     return 0;
 }
 
-inline result_t GetArgumentList(const v8::FunctionCallbackInfo<v8::Value>& args,
-    std::vector<v8::Local<v8::Value>>& v, int32_t n, int32_t argc)
-{
-    int32_t n1 = 0;
+class OptArgs {
+public:
+    OptArgs(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t base, int32_t argc)
+        : m_args(args)
+        , m_base(base)
+        , m_argc(argc)
+    {
+    }
 
-    v.resize(argc - n);
-    while (n < argc)
-        v[n1++] = args[n++];
+    OptArgs(const OptArgs& a)
+        : m_args(a.m_args)
+        , m_base(a.m_base)
+        , m_argc(a.m_argc)
+    {
+    }
 
-    return 0;
-}
+    int32_t Length() const
+    {
+        return m_argc - m_base;
+    }
+
+    v8::Local<v8::Value> operator[](int32_t i) const
+    {
+        return m_args[i + m_base];
+    }
+
+    void GetData(std::vector<v8::Local<v8::Value>>& datas)
+    {
+        datas.resize(m_argc - m_base);
+        for (int32_t i = 0; i < m_argc - m_base; i++)
+            datas[i] = m_args[m_base + i];
+    }
+
+private:
+    const v8::FunctionCallbackInfo<v8::Value>& m_args;
+    int32_t m_base;
+    int32_t m_argc;
+};
 
 class Value2Args {
 public:

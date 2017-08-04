@@ -27,17 +27,17 @@ public:
     virtual result_t set(Buffer_base* field, Buffer_base* value) = 0;
     virtual result_t setNX(Buffer_base* field, Buffer_base* value) = 0;
     virtual result_t mset(v8::Local<v8::Object> kvs) = 0;
-    virtual result_t mset(std::vector<v8::Local<v8::Value>>& kvs) = 0;
+    virtual result_t mset(OptArgs kvs) = 0;
     virtual result_t get(Buffer_base* field, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<List_base>& retVal) = 0;
-    virtual result_t mget(std::vector<v8::Local<v8::Value>>& fields, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t mget(OptArgs fields, obj_ptr<List_base>& retVal) = 0;
     virtual result_t incr(Buffer_base* field, int64_t num, int64_t& retVal) = 0;
     virtual result_t getAll(obj_ptr<List_base>& retVal) = 0;
     virtual result_t keys(obj_ptr<List_base>& retVal) = 0;
     virtual result_t len(int32_t& retVal) = 0;
     virtual result_t exists(Buffer_base* field, bool& retVal) = 0;
     virtual result_t del(v8::Local<v8::Array> fields, int32_t& retVal) = 0;
-    virtual result_t del(std::vector<v8::Local<v8::Value>>& fields, int32_t& retVal) = 0;
+    virtual result_t del(OptArgs fields, int32_t& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

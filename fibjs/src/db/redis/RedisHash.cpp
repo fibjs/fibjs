@@ -27,7 +27,7 @@ result_t RedisHash::mset(v8::Local<v8::Object> kvs)
     Variant v;
     return m_rdb->doCommand("HMSET", m_key, kvs, v);
 }
-result_t RedisHash::mset(std::vector<v8::Local<v8::Value>>& kvs)
+result_t RedisHash::mset(OptArgs kvs)
 {
     Variant v;
     return m_rdb->doCommand("HMSET", m_key, kvs, v);
@@ -43,7 +43,7 @@ result_t RedisHash::mget(v8::Local<v8::Array> fields, obj_ptr<List_base>& retVal
     return m_rdb->doCommand("HMGET", m_key, fields, retVal);
 }
 
-result_t RedisHash::mget(std::vector<v8::Local<v8::Value>>& fields, obj_ptr<List_base>& retVal)
+result_t RedisHash::mget(OptArgs fields, obj_ptr<List_base>& retVal)
 {
     return m_rdb->doCommand("HMGET", m_key, fields, retVal);
 }
@@ -73,7 +73,7 @@ result_t RedisHash::del(v8::Local<v8::Array> fields, int32_t& retVal)
     return m_rdb->doCommand("HDEL", m_key, fields, retVal);
 }
 
-result_t RedisHash::del(std::vector<v8::Local<v8::Value>>& fields, int32_t& retVal)
+result_t RedisHash::del(OptArgs fields, int32_t& retVal)
 {
     return m_rdb->doCommand("HDEL", m_key, fields, retVal);
 }

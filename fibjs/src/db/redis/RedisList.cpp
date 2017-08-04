@@ -15,7 +15,7 @@ result_t RedisList::push(v8::Local<v8::Array> values, int32_t& retVal)
     return m_rdb->doCommand("LPUSH", m_key, values, retVal);
 }
 
-result_t RedisList::push(std::vector<v8::Local<v8::Value>>& values, int32_t& retVal)
+result_t RedisList::push(OptArgs values, int32_t& retVal)
 {
     return m_rdb->doCommand("LPUSH", m_key, values, retVal);
 }
@@ -30,7 +30,7 @@ result_t RedisList::rpush(v8::Local<v8::Array> values, int32_t& retVal)
     return m_rdb->doCommand("RPUSH", m_key, values, retVal);
 }
 
-result_t RedisList::rpush(std::vector<v8::Local<v8::Value>>& values, int32_t& retVal)
+result_t RedisList::rpush(OptArgs values, int32_t& retVal)
 {
     return m_rdb->doCommand("RPUSH", m_key, values, retVal);
 }

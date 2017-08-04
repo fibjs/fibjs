@@ -272,7 +272,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, Asyn
     return execute(sql.c_str(), (int32_t)sql.length(), retVal);
 }
 
-result_t SQLite::execute(exlib::string sql, std::vector<v8::Local<v8::Value>>& args,
+result_t SQLite::execute(exlib::string sql, OptArgs args,
     obj_ptr<DBResult_base>& retVal)
 {
     exlib::string str;
@@ -283,7 +283,7 @@ result_t SQLite::execute(exlib::string sql, std::vector<v8::Local<v8::Value>>& a
     return ac_execute(str.c_str(), retVal);
 }
 
-result_t SQLite::format(exlib::string sql, std::vector<v8::Local<v8::Value>>& args,
+result_t SQLite::format(exlib::string sql, OptArgs args,
     exlib::string& retVal)
 {
     return db_base::format(sql, args, retVal);

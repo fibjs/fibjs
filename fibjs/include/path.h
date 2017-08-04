@@ -533,10 +533,10 @@ inline result_t _dirname_win32(exlib::string path, exlib::string& retVal)
     return 0;
 }
 
-inline result_t _join(std::vector<v8::Local<v8::Value>>& ps, exlib::string& retVal)
+inline result_t _join(OptArgs ps, exlib::string& retVal)
 {
     Path p;
-    int32_t argc = (int32_t)ps.size();
+    int32_t argc = ps.Length();
     int32_t i;
 
     for (i = 0; i < argc; i++) {
@@ -547,10 +547,10 @@ inline result_t _join(std::vector<v8::Local<v8::Value>>& ps, exlib::string& retV
     return _normalize(p.str(), retVal);
 }
 
-inline result_t _join_win32(std::vector<v8::Local<v8::Value>>& ps, exlib::string& retVal)
+inline result_t _join_win32(OptArgs ps, exlib::string& retVal)
 {
     Path p;
-    int32_t argc = (int32_t)ps.size();
+    int32_t argc = ps.Length();
     int32_t i;
 
     for (i = 0; i < argc; i++) {
@@ -561,14 +561,14 @@ inline result_t _join_win32(std::vector<v8::Local<v8::Value>>& ps, exlib::string
     return _normalize_win32(p.str(), retVal);
 }
 
-inline result_t _resolve(std::vector<v8::Local<v8::Value>>& ps, exlib::string& retVal)
+inline result_t _resolve(OptArgs ps, exlib::string& retVal)
 {
     exlib::string str;
     process_base::cwd(str);
 
     Path p;
     p.resolvePosix(str);
-    int32_t argc = (int32_t)ps.size();
+    int32_t argc = ps.Length();
     int32_t i;
 
     for (i = 0; i < argc; i++) {
@@ -579,14 +579,14 @@ inline result_t _resolve(std::vector<v8::Local<v8::Value>>& ps, exlib::string& r
     return _normalize(p.str(), retVal, true);
 }
 
-inline result_t _resolve_win32(std::vector<v8::Local<v8::Value>>& ps, exlib::string& retVal)
+inline result_t _resolve_win32(OptArgs ps, exlib::string& retVal)
 {
     exlib::string str;
     process_base::cwd(str);
 
     Path p;
     p.resolveWin32(str);
-    int32_t argc = (int32_t)ps.size();
+    int32_t argc = ps.Length();
     int32_t i;
 
     for (i = 0; i < argc; i++) {

@@ -39,9 +39,9 @@ public:
 public:
     // RedisSet_base
     virtual result_t add(v8::Local<v8::Array> members, int32_t& retVal);
-    virtual result_t add(std::vector<v8::Local<v8::Value>>& members, int32_t& retVal);
+    virtual result_t add(OptArgs members, int32_t& retVal);
     virtual result_t remove(v8::Local<v8::Array> members, int32_t& retVal);
-    virtual result_t remove(std::vector<v8::Local<v8::Value>>& members, int32_t& retVal);
+    virtual result_t remove(OptArgs members, int32_t& retVal);
     virtual result_t len(int32_t& retVal);
     virtual result_t exists(Buffer_base* member, bool& retVal);
     virtual result_t members(obj_ptr<List_base>& retVal);

@@ -304,7 +304,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
     return (new asyncCommand(this, req, retVal, ac))->post(0);
 }
 
-result_t Redis::command(exlib::string cmd, std::vector<v8::Local<v8::Value>>& args,
+result_t Redis::command(exlib::string cmd, OptArgs args,
     v8::Local<v8::Value>& retVal)
 {
     return doCommand(cmd, args, retVal);
@@ -346,7 +346,7 @@ result_t Redis::mset(v8::Local<v8::Object> kvs)
     return doCommand("MSET", kvs, v);
 }
 
-result_t Redis::mset(std::vector<v8::Local<v8::Value>>& kvs)
+result_t Redis::mset(OptArgs kvs)
 {
     Variant v;
     return doCommand("MSET", kvs, v);
@@ -358,7 +358,7 @@ result_t Redis::msetNX(v8::Local<v8::Object> kvs)
     return doCommand("MSETNX", kvs, v);
 }
 
-result_t Redis::msetNX(std::vector<v8::Local<v8::Value>>& kvs)
+result_t Redis::msetNX(OptArgs kvs)
 {
     Variant v;
     return doCommand("MSETNX", kvs, v);
@@ -399,7 +399,7 @@ result_t Redis::mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal)
     return doCommand("MGET", keys, retVal);
 }
 
-result_t Redis::mget(std::vector<v8::Local<v8::Value>>& keys, obj_ptr<List_base>& retVal)
+result_t Redis::mget(OptArgs keys, obj_ptr<List_base>& retVal)
 {
     return doCommand("MGET", keys, retVal);
 }
@@ -455,7 +455,7 @@ result_t Redis::del(v8::Local<v8::Array> keys, int32_t& retVal)
     return doCommand("DEL", keys, retVal);
 }
 
-result_t Redis::del(std::vector<v8::Local<v8::Value>>& keys, int32_t& retVal)
+result_t Redis::del(OptArgs keys, int32_t& retVal)
 {
     return doCommand("DEL", keys, retVal);
 }

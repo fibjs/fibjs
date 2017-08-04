@@ -129,13 +129,13 @@ void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql)
     }
 }
 
-result_t _format(const char* sql, std::vector<v8::Local<v8::Value>>& args,
-    bool mysql, bool mssql, exlib::string& retVal)
+result_t _format(const char* sql, OptArgs args, bool mysql,
+    bool mssql, exlib::string& retVal)
 {
     exlib::string str;
     const char *p, *p1;
     int32_t cnt = 0;
-    int32_t argc = (int32_t)args.size();
+    int32_t argc = args.Length();
 
     while (*sql) {
         p = p1 = sql;
@@ -199,19 +199,19 @@ result_t _format(const char* sql, std::vector<v8::Local<v8::Value>>& args,
     return 0;
 }
 
-result_t db_base::format(exlib::string sql, std::vector<v8::Local<v8::Value>>& args,
+result_t db_base::format(exlib::string sql, OptArgs args,
     exlib::string& retVal)
 {
     return _format(sql.c_str(), args, false, false, retVal);
 }
 
-result_t db_base::formatMySQL(exlib::string sql, std::vector<v8::Local<v8::Value>>& args,
+result_t db_base::formatMySQL(exlib::string sql, OptArgs args,
     exlib::string& retVal)
 {
     return _format(sql.c_str(), args, true, false, retVal);
 }
 
-result_t db_base::formatMSSQL(exlib::string sql, std::vector<v8::Local<v8::Value>>& args,
+result_t db_base::formatMSSQL(exlib::string sql, OptArgs args,
     exlib::string& retVal)
 {
     return _format(sql.c_str(), args, false, true, retVal);

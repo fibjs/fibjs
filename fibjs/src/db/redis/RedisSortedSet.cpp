@@ -30,13 +30,13 @@ result_t RedisSortedSet::add(v8::Local<v8::Object> sms, int32_t& retVal)
     return m_rdb->doCommand("ZADD", m_key, mss, retVal);
 }
 
-result_t RedisSortedSet::add(std::vector<v8::Local<v8::Value>>& sms, int32_t& retVal)
+result_t RedisSortedSet::add(OptArgs sms, int32_t& retVal)
 {
-    if (sms.size() & 1)
+    if (sms.Length() & 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int32_t i;
-    for (i = 0; i < (int32_t)sms.size(); i += 2) {
+    for (i = 0; i < sms.Length(); i += 2) {
         v8::Local<v8::Value> v = sms[i];
         sms[i] = sms[i + 1];
         sms[i + 1] = v;
@@ -60,7 +60,7 @@ result_t RedisSortedSet::remove(v8::Local<v8::Array> members, int32_t& retVal)
     return m_rdb->doCommand("ZREM", m_key, members, retVal);
 }
 
-result_t RedisSortedSet::remove(std::vector<v8::Local<v8::Value>>& members, int32_t& retVal)
+result_t RedisSortedSet::remove(OptArgs members, int32_t& retVal)
 {
     return m_rdb->doCommand("ZREM", m_key, members, retVal);
 }

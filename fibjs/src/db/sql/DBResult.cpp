@@ -72,7 +72,7 @@ result_t DBResult::push(Variant v, int32_t& retVal)
     return m_array->push(v, retVal);
 }
 
-result_t DBResult::push(std::vector<v8::Local<v8::Value>>& els, int32_t& retVal)
+result_t DBResult::push(OptArgs els, int32_t& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -104,7 +104,7 @@ result_t DBResult::slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal)
     return m_array->slice(start, end, retVal);
 }
 
-result_t DBResult::concat(std::vector<v8::Local<v8::Value>>& lists, obj_ptr<List_base>& retVal)
+result_t DBResult::concat(OptArgs lists, obj_ptr<List_base>& retVal)
 {
     if (!m_size)
         return CHECK_ERROR(CALL_E_INVALID_CALL);

@@ -93,11 +93,14 @@ public:
     }
 
     template <typename T>
-    static result_t New(v8::Local<v8::Function> func, std::vector<v8::Local<v8::Value>>& args,
+    static result_t New(v8::Local<v8::Function> func, OptArgs args,
         obj_ptr<T>& retVal)
     {
+        std::vector<v8::Local<v8::Value>> datas;
+        args.GetData(datas);
+
         obj_ptr<JSFiber> fb = new JSFiber();
-        fb->New(func, args.data(), (int32_t)args.size(), fb->wrap());
+        fb->New(func, datas.data(), args.Length(), fb->wrap());
         retVal = fb;
 
         return 0;

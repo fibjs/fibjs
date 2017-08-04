@@ -278,12 +278,12 @@ exlib::string json_format(v8::Local<v8::Value> obj)
     return strBuffer.str();
 }
 
-result_t util_base::format(exlib::string fmt, std::vector<v8::Local<v8::Value>>& args,
+result_t util_base::format(exlib::string fmt, OptArgs args,
     exlib::string& retVal)
 {
     const char* s1;
     char ch;
-    int32_t argc = (int32_t)args.size();
+    int32_t argc = args.Length();
     int32_t idx = 0;
 
     if (argc == 0) {
@@ -363,7 +363,7 @@ result_t util_base::format(exlib::string fmt, std::vector<v8::Local<v8::Value>>&
     return 0;
 }
 
-result_t util_base::format(std::vector<v8::Local<v8::Value>>& args, exlib::string& retVal)
+result_t util_base::format(OptArgs args, exlib::string& retVal)
 {
     return format("", args, retVal);
 }
