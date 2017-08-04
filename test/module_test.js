@@ -76,6 +76,11 @@ describe("module", () => {
         });
     });
 
+    it("require ./..", () => {
+        assert.equal(require('./module/p7/t1').p7, require('./module/p7'));
+        assert.equal(require('./module/p7/t.js').p7, require('./module/p7'));
+    });
+
     it("require no-ext file", () => {
         assert.deepEqual(require('./module/d1'), {
             "d": 100
