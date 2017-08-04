@@ -16,24 +16,46 @@ result_t DBRow::_indexed_getter(uint32_t index, v8::Local<v8::Value>& retVal)
         return CHECK_ERROR(CALL_E_BADINDEX);
 
     retVal = m_cols[index];
-
     return 0;
 }
 
-result_t DBRow::_named_getter(const char* property,
-    v8::Local<v8::Value>& retVal)
+result_t DBRow::_indexed_setter(uint32_t index, v8::Local<v8::Value> newVal)
+{
+    if (index >= m_cols.size())
+        return CHECK_ERROR(CALL_E_BADINDEX);
+
+    m_cols[index] = newVal;
+    return 0;
+}
+
+result_t DBRow::_named_getter(const char* property, v8::Local<v8::Value>& retVal)
 {
     int32_t i = m_fields->index(property);
 
     if (i >= 0)
         return _indexed_getter(i, retVal);
 
-    return 0;
+    return CALL_RETURN_NULL;
 }
 
 result_t DBRow::_named_enumerator(v8::Local<v8::Array>& retVal)
 {
     m_fields->names(holder()->m_isolate, retVal);
+    return 0;
+}
+
+result_t DBRow::_named_setter(const char* property, v8::Local<v8::Value> newVal)
+{
+    int32_t i = m_fields->index(property);
+
+    if (i >= 0)
+        return _indexed_setter(i, newVal);
+
+    return CALL_RETURN_NULL;
+}
+
+result_t DBRow::_named_deleter(const char* property, v8::Local<v8::Boolean>& retVal)
+{
     return 0;
 }
 

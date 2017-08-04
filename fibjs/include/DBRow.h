@@ -28,8 +28,11 @@ public:
 public:
     // DBRow_base
     virtual result_t _indexed_getter(uint32_t index, v8::Local<v8::Value>& retVal);
+    virtual result_t _indexed_setter(uint32_t index, v8::Local<v8::Value> newVal);
     virtual result_t _named_getter(const char* property, v8::Local<v8::Value>& retVal);
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal);
+    virtual result_t _named_setter(const char* property, v8::Local<v8::Value> newVal);
+    virtual result_t _named_deleter(const char* property, v8::Local<v8::Boolean>& retVal);
 
 public:
     void setValue(int32_t i, Variant& v)
