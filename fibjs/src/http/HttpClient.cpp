@@ -337,9 +337,8 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     return (new asyncRequest(conn, req, m_maxBodySize, retVal, ac))->post(0);
 }
 
-result_t HttpClient::request(exlib::string method, exlib::string url,
-    SeekableStream_base* body, Map_base* headers,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
+    Map_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
 
     class asyncRequest : public AsyncState {
@@ -502,93 +501,105 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     return (new asyncRequest(this, method, url, body, headers, retVal, ac))->post(0);
 }
 
-result_t HttpClient::request(exlib::string method, exlib::string url,
-    SeekableStream_base* body, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    obj_ptr<Map_base> map = new Map();
-    map->put(headers);
-    return ac_request(method, url, body, map, retVal);
+    if (ac->isSync()) {
+        obj_ptr<Map_base> map = new Map();
+        map->put(headers);
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = map;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    obj_ptr<Map_base> map = Map_base::getInstance(ac->m_ctx[0].object());
+    return request(method, url, body, map, retVal, ac);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return request(method, url, (SeekableStream_base*)NULL, headers, retVal);
+    return request(method, url, (SeekableStream_base*)NULL, headers, retVal, ac);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
     Buffer_base* body, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    obj_ptr<SeekableStream_base> stm = new MemoryStream();
-    stm->cc_write(body);
-    return request(method, url, stm, headers, retVal);
+    obj_ptr<SeekableStream_base> stm;
+    if (ac->isAsync()) {
+        stm = new MemoryStream();
+        stm->cc_write(body);
+    }
+
+    return request(method, url, stm, headers, retVal, ac);
 }
 
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return request("GET", url, headers, retVal);
+    return request("GET", url, headers, retVal, ac);
 }
 
 result_t HttpClient::post(exlib::string url, Buffer_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return request("POST", url, body, headers, retVal);
+    return request("POST", url, body, headers, retVal, ac);
 }
 
 result_t HttpClient::post(exlib::string url, SeekableStream_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return request("POST", url, body, headers, retVal);
+    return request("POST", url, body, headers, retVal, ac);
 }
 
 result_t HttpClient::post(exlib::string url, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return request("POST", url, headers, retVal);
+    return request("POST", url, headers, retVal, ac);
 }
 
 result_t HttpClient::del(exlib::string url, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return request("DELETE", url, headers, retVal);
+    return request("DELETE", url, headers, retVal, ac);
 }
 
 result_t HttpClient::put(exlib::string url, Buffer_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return request("PUT", url, body, headers, retVal);
+    return request("PUT", url, body, headers, retVal, ac);
 }
 
 result_t HttpClient::put(exlib::string url, SeekableStream_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return request("PUT", url, body, headers, retVal);
+    return request("PUT", url, body, headers, retVal, ac);
 }
 
 result_t HttpClient::put(exlib::string url, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return request("PUT", url, headers, retVal);
+    return request("PUT", url, headers, retVal, ac);
 }
 
 result_t HttpClient::patch(exlib::string url, Buffer_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return request("PATCH", url, body, headers, retVal);
+    return request("PATCH", url, body, headers, retVal, ac);
 }
 
 result_t HttpClient::patch(exlib::string url, SeekableStream_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return request("PATCH", url, body, headers, retVal);
+    return request("PATCH", url, body, headers, retVal, ac);
 }
 
 result_t HttpClient::patch(exlib::string url, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return request("PATCH", url, headers, retVal);
+    return request("PATCH", url, headers, retVal, ac);
 }
 }

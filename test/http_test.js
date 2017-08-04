@@ -1264,6 +1264,13 @@ describe("http", () => {
                     "test_header": "header"
                 }).body.read().toString(), "/request:header");
             });
+
+            it("async", (done) => {
+                http.get("http://127.0.0.1:" + (8882 + base_port) + "/request", (e, r) => {
+                    assert.equal(r.data.toString(), "/request");
+                    done();
+                });
+            });
         });
 
         describe("post", () => {
@@ -1276,6 +1283,22 @@ describe("http", () => {
                 assert.equal(http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", "", {
                     "test_header": "header"
                 }).body.read().toString(), "/request:header");
+            });
+
+            it("async body", (done) => {
+                http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", "body", (e, r) => {
+                    assert.equal(r.data.toString(), "/request:body");
+                    done();
+                });
+            });
+
+            it("async header", (done) => {
+                http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", "", {
+                    "test_header": "header"
+                }, (e, r) => {
+                    assert.equal(r.data.toString(), "/request:header");
+                    done();
+                });
             });
         });
 

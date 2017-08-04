@@ -65,7 +65,7 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse request(String method, String url, Object headers = {});
+    static HttpResponse request(String method, String url, Object headers = {}) async;
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
@@ -83,7 +83,7 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse request(String method, String url, SeekableStream body, Object headers = {});
+    static HttpResponse request(String method, String url, SeekableStream body, Object headers = {}) async;
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
@@ -92,14 +92,14 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse request(String method, String url, Buffer body, Object headers = {});
+    static HttpResponse request(String method, String url, Buffer body, Object headers = {}) async;
 
     /*! @brief 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      @param url 指定 url，必须是包含主机的完整 url
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse get(String url, Object headers = {});
+    static HttpResponse get(String url, Object headers = {}) async;
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -107,7 +107,7 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse post(String url, SeekableStream body, Object headers = {});
+    static HttpResponse post(String url, SeekableStream body, Object headers = {}) async;
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -115,21 +115,21 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse post(String url, Buffer body, Object headers = {});
+    static HttpResponse post(String url, Buffer body, Object headers = {}) async;
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      @param url 指定 url，必须是包含主机的完整 url
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse post(String url, Object headers = {});
+    static HttpResponse post(String url, Object headers = {}) async;
 
     /*! @brief 用 DELETE 方法请求指定的 url，并返回结果，等同于 request("DELETE", ...)
      @param url 指定 url，必须是包含主机的完整 url
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse del(String url, Object headers = {});
+    static HttpResponse del(String url, Object headers = {}) async;
 
     /*! @brief 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -137,7 +137,7 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse put(String url, SeekableStream body, Object headers = {});
+    static HttpResponse put(String url, SeekableStream body, Object headers = {}) async;
 
     /*! @brief 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -145,14 +145,14 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse put(String url, Buffer body, Object headers = {});
+    static HttpResponse put(String url, Buffer body, Object headers = {}) async;
 
     /*! @brief 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
      @param url 指定 url，必须是包含主机的完整 url
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse put(String url, Object headers = {});
+    static HttpResponse put(String url, Object headers = {}) async;
 
     /*! @brief 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -160,7 +160,7 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse patch(String url, SeekableStream body, Object headers = {});
+    static HttpResponse patch(String url, SeekableStream body, Object headers = {}) async;
 
     /*! @brief 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -168,12 +168,12 @@ module http
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse patch(String url, Buffer body, Object headers = {});
+    static HttpResponse patch(String url, Buffer body, Object headers = {}) async;
 
     /*! @brief 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
      @param url 指定 url，必须是包含主机的完整 url
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    static HttpResponse patch(String url, Object headers = {});
+    static HttpResponse patch(String url, Object headers = {}) async;
 };

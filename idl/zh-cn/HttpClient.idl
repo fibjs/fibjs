@@ -46,7 +46,7 @@ interface HttpClient : object
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse request(String method, String url, Object headers = {});
+    HttpResponse request(String method, String url, Object headers = {}) async;
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
@@ -64,7 +64,7 @@ interface HttpClient : object
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse request(String method, String url, SeekableStream body, Object headers = {});
+    HttpResponse request(String method, String url, SeekableStream body, Object headers = {}) async;
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
@@ -73,14 +73,14 @@ interface HttpClient : object
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse request(String method, String url, Buffer body, Object headers = {});
+    HttpResponse request(String method, String url, Buffer body, Object headers = {}) async;
 
     /*! @brief 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      @param url 指定 url，必须是包含主机的完整 url
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse get(String url, Object headers = {});
+    HttpResponse get(String url, Object headers = {}) async;
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -88,7 +88,7 @@ interface HttpClient : object
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse post(String url, SeekableStream body, Object headers = {});
+    HttpResponse post(String url, SeekableStream body, Object headers = {}) async;
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -96,21 +96,21 @@ interface HttpClient : object
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse post(String url, Buffer body, Object headers = {});
+    HttpResponse post(String url, Buffer body, Object headers = {}) async;
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
      @param url 指定 url，必须是包含主机的完整 url
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse post(String url, Object headers = {});
+    HttpResponse post(String url, Object headers = {}) async;
 
     /*! @brief 用 DELETE 方法请求指定的 url，并返回结果，等同于 request("DELETE", ...)
      @param url 指定 url，必须是包含主机的完整 url
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse del(String url, Object headers = {});
+    HttpResponse del(String url, Object headers = {}) async;
 
     /*! @brief 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -118,7 +118,7 @@ interface HttpClient : object
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse put(String url, SeekableStream body, Object headers = {});
+    HttpResponse put(String url, SeekableStream body, Object headers = {}) async;
 
     /*! @brief 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -126,14 +126,14 @@ interface HttpClient : object
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse put(String url, Buffer body, Object headers = {});
+    HttpResponse put(String url, Buffer body, Object headers = {}) async;
 
     /*! @brief 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
      @param url 指定 url，必须是包含主机的完整 url
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse put(String url, Object headers = {});
+    HttpResponse put(String url, Object headers = {}) async;
 
     /*! @brief 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -141,7 +141,7 @@ interface HttpClient : object
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse patch(String url, SeekableStream body, Object headers = {});
+    HttpResponse patch(String url, SeekableStream body, Object headers = {}) async;
 
     /*! @brief 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
      @param url 指定 url，必须是包含主机的完整 url
@@ -149,12 +149,12 @@ interface HttpClient : object
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse patch(String url, Buffer body, Object headers = {});
+    HttpResponse patch(String url, Buffer body, Object headers = {}) async;
 
     /*! @brief 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
      @param url 指定 url，必须是包含主机的完整 url
      @param headers 指定附加的 http 头，缺省无附加头
      @return 返回服务器响应
      */
-    HttpResponse patch(String url, Object headers = {});
+    HttpResponse patch(String url, Object headers = {}) async;
 };

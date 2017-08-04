@@ -91,9 +91,6 @@ result_t http_base::request(Stream_base* conn, HttpRequest_base* req,
     obj_ptr<HttpResponse_base>& retVal,
     AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
     return get_httpClient(ac->isolate())->request(conn, req, retVal, ac);
 }
 
@@ -101,95 +98,92 @@ result_t http_base::request(exlib::string method, exlib::string url,
     SeekableStream_base* body, Map_base* headers,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
     return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
 }
 
 result_t http_base::request(exlib::string method, exlib::string url,
     SeekableStream_base* body, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->request(method, url, body, headers, retVal);
+    return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
 }
 
 result_t http_base::request(exlib::string method, exlib::string url,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->request(method, url, headers, retVal);
+    return get_httpClient(ac->isolate())->request(method, url, headers, retVal, ac);
 }
 
 result_t http_base::request(exlib::string method, exlib::string url,
     Buffer_base* body, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->request(method, url, body, headers, retVal);
+    return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
 }
 
 result_t http_base::get(exlib::string url, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->get(url, headers, retVal);
+    return get_httpClient(ac->isolate())->get(url, headers, retVal, ac);
 }
 
 result_t http_base::post(exlib::string url, Buffer_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->post(url, body, headers, retVal);
+    return get_httpClient(ac->isolate())->post(url, body, headers, retVal, ac);
 }
 
 result_t http_base::post(exlib::string url, SeekableStream_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->post(url, body, headers, retVal);
+    return get_httpClient(ac->isolate())->post(url, body, headers, retVal, ac);
 }
 
 result_t http_base::post(exlib::string url, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->post(url, headers, retVal);
+    return get_httpClient(ac->isolate())->post(url, headers, retVal, ac);
 }
 
 result_t http_base::del(exlib::string url, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->del(url, headers, retVal);
+    return get_httpClient(ac->isolate())->del(url, headers, retVal, ac);
 }
 
 result_t http_base::put(exlib::string url, Buffer_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->put(url, body, headers, retVal);
+    return get_httpClient(ac->isolate())->put(url, body, headers, retVal, ac);
 }
 
 result_t http_base::put(exlib::string url, SeekableStream_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->put(url, body, headers, retVal);
+    return get_httpClient(ac->isolate())->put(url, body, headers, retVal, ac);
 }
 
 result_t http_base::put(exlib::string url, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->put(url, headers, retVal);
+    return get_httpClient(ac->isolate())->put(url, headers, retVal, ac);
 }
 
 result_t http_base::patch(exlib::string url, Buffer_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->patch(url, body, headers, retVal);
+    return get_httpClient(ac->isolate())->patch(url, body, headers, retVal, ac);
 }
 
 result_t http_base::patch(exlib::string url, SeekableStream_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->patch(url, body, headers, retVal);
+    return get_httpClient(ac->isolate())->patch(url, body, headers, retVal, ac);
 }
 
 result_t http_base::patch(exlib::string url, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient()->patch(url, headers, retVal);
+    return get_httpClient(ac->isolate())->patch(url, headers, retVal, ac);
 }
 }
