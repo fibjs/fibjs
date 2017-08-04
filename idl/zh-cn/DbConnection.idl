@@ -40,7 +40,7 @@ interface DbConnection : object
      @param args 可选参数列表
      @return 返回 sql 命令执行结果
      */
-    DBResult execute(String sql, ...args);
+    DBResult execute(String sql, ...args) async;
 
     /*! @brief 格式化一个 sql 命令，并返回格式化结果
 

@@ -30,7 +30,7 @@ public:
     virtual result_t rollback(AsyncEvent* ac) = 0;
     virtual result_t trans(v8::Local<v8::Function> func) = 0;
     virtual result_t execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<DBResult_base>& retVal) = 0;
+    virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal) = 0;
 
 public:
@@ -60,6 +60,7 @@ public:
     ASYNC_MEMBER0(DbConnection_base, commit);
     ASYNC_MEMBER0(DbConnection_base, rollback);
     ASYNC_MEMBERVALUE2(DbConnection_base, execute, exlib::string, obj_ptr<DBResult_base>);
+    ASYNC_MEMBERVALUE3(DbConnection_base, execute, exlib::string, OptArgs, obj_ptr<DBResult_base>);
 };
 }
 
@@ -204,12 +205,16 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
     } else
         hr = pInst->ac_execute(v0, vr);
 
-    METHOD_OVER(-1, 1);
+    ASYNC_METHOD_OVER(-1, 1);
 
     ARG(exlib::string, 0);
     ARG_LIST(1);
 
-    hr = pInst->execute(v0, v1, vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_execute(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_execute(v0, v1, vr);
 
     METHOD_RETURN();
 }

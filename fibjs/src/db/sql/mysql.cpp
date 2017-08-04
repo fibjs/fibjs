@@ -320,15 +320,26 @@ result_t mysql::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, Async
     return execute(sql.c_str(), (int32_t)sql.length(), retVal);
 }
 
-result_t mysql::execute(exlib::string sql, OptArgs args,
-    obj_ptr<DBResult_base>& retVal)
+result_t mysql::execute(exlib::string sql, OptArgs args, obj_ptr<DBResult_base>& retVal,
+    AsyncEvent* ac)
 {
-    exlib::string str;
-    result_t hr = format(sql, args, str);
-    if (hr < 0)
-        return hr;
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    return ac_execute(str, retVal);
+    if (ac->isSync()) {
+        exlib::string str;
+        result_t hr = format(sql, args, str);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = str;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    exlib::string str = ac->m_ctx[0].string();
+    return execute(str, retVal, ac);
 }
 
 result_t mysql::format(exlib::string sql, OptArgs args,

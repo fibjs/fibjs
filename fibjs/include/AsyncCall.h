@@ -68,6 +68,9 @@ public:
         m_async = true;
     }
 
+public:
+    std::vector<Variant> m_ctx;
+
 private:
     bool m_async;
 };
