@@ -283,6 +283,8 @@ inline void Map_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8
         return;
 
     hr = pInst->_named_setter(*k, v0);
+    if (hr == CALL_RETURN_NULL)
+        return;
 
     METHOD_VOID();
 }

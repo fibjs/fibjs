@@ -251,6 +251,8 @@ inline void HttpCollection_base::i_NamedSetter(v8::Local<v8::String> property, v
         return;
 
     hr = pInst->_named_setter(*k, v0);
+    if (hr == CALL_RETURN_NULL)
+        return;
 
     METHOD_VOID();
 }
