@@ -99,6 +99,13 @@ describe("db", () => {
             ]);
         });
 
+        it("execute async", (done) => {
+            conn.execute("select * from test where t1=?", 1123, (e, rs) => {
+                assert.equal(rs.length, 1);
+                done();
+            });
+        });
+
         it("update/affected", () => {
             var rs = conn.execute("update test set t2='test101.1' where t1=1123");
             assert.equal(rs.affected, 1);
