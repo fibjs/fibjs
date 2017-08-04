@@ -442,6 +442,7 @@ WebView::WebView(exlib::string url, Map_base* opt)
     connectionPoint = NULL;
     webBrowser2 = NULL;
     _onmessage = NULL;
+    _onclose = NULL;
     hWndParent = NULL;
 
     m_visible = true;
@@ -577,6 +578,11 @@ void WebView::clear()
         _onmessage = NULL;
     }
 
+    if (_onclose) {
+        _onclose->Release();
+        _onclose = NULL;
+    }
+
     if (webBrowser2) {
         webBrowser2->Stop();
         webBrowser2->put_Visible(VARIANT_FALSE);
@@ -695,7 +701,7 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (webView1 != 0) {
 
             _variant_t vResult;
-            webView1->postMessage("close", vResult);
+            webView1->postClose(vResult);
             if (vResult.vt == VT_BOOL && vResult.boolVal == VARIANT_FALSE)
                 return 0;
 
@@ -802,6 +808,18 @@ result_t WebView::wait(AsyncEvent* ac)
 
     m_ac = ac;
     return CALL_E_PENDDING;
+}
+
+result_t WebView::postClose(_variant_t& retVal)
+{
+    if (_onclose) {
+        DISPPARAMS params = { NULL, NULL, 0, 0 };
+
+        _onclose->Invoke(DISPID_VALUE, IID_NULL, LOCALE_USER_DEFAULT,
+            DISPATCH_METHOD, &params, &retVal, NULL, NULL);
+    }
+
+    return 0;
 }
 
 result_t WebView::postMessage(exlib::string msg, _variant_t& retVal)
@@ -946,7 +964,8 @@ ULONG WebView::Release(void)
 
 #define DISPID_POSTMESSAGE (1000 + 1)
 #define DISPID_ONMESSAGE (1000 + 2)
-#define DISPID_CLOSE (1000 + 3)
+#define DISPID_ONCLOSE (1000 + 3)
+#define DISPID_CLOSE (1000 + 4)
 
 // IDispatch
 HRESULT WebView::GetIDsOfNames(REFIID riid, OLECHAR** rgszNames,
@@ -959,6 +978,8 @@ HRESULT WebView::GetIDsOfNames(REFIID riid, OLECHAR** rgszNames,
             rgdispid[i] = DISPID_POSTMESSAGE;
         else if (!qstrcmp(rgszNames[i], L"onmessage"))
             rgdispid[i] = DISPID_ONMESSAGE;
+        else if (!qstrcmp(rgszNames[i], L"onclose"))
+            rgdispid[i] = DISPID_ONCLOSE;
         else if (!qstrcmp(rgszNames[i], L"close"))
             rgdispid[i] = DISPID_CLOSE;
         else
@@ -1012,6 +1033,8 @@ HRESULT WebView::Invoke(DISPID dispid, REFIID riid, LCID lcid, WORD wFlags,
         return OnPostMessage(pDispParams);
     case DISPID_ONMESSAGE:
         return OnOnMessage(pDispParams);
+    case DISPID_ONCLOSE:
+        return OnOnClose(pDispParams);
     case DISPID_CLOSE:
         return OnClose(pDispParams);
     }
@@ -1531,8 +1554,28 @@ HRESULT WebView::OnOnMessage(DISPPARAMS* pDispParams)
     if (pDispParams->rgvarg[0].vt != VT_DISPATCH)
         return TYPE_E_TYPEMISMATCH;
 
+    if (_onmessage)
+        _onmessage->Release();
+
     _onmessage = pDispParams->rgvarg[0].pdispVal;
     _onmessage->AddRef();
+
+    return S_OK;
+}
+
+HRESULT WebView::OnOnClose(DISPPARAMS* pDispParams)
+{
+    if (pDispParams->cArgs != 1)
+        return DISP_E_BADPARAMCOUNT;
+
+    if (pDispParams->rgvarg[0].vt != VT_DISPATCH)
+        return TYPE_E_TYPEMISMATCH;
+
+    if (_onclose)
+        _onclose->Release();
+
+    _onclose = pDispParams->rgvarg[0].pdispVal;
+    _onclose->AddRef();
 
     return S_OK;
 }

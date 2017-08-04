@@ -7,19 +7,24 @@ var os = require("os");
 
 var win = process.platform == 'win32';
 
-function has_class(o, cls) {
-    if (o.class == cls)
-        return true;
+var html =
+    `<html>
+<script>
+    external.onmessage = function(m) {
+        external.postMessage('send back: ' + m)
+    };
 
-    var inherits = o.inherits;
-
-    if (inherits)
-        for (var i = 0; i < inherits.length; i++)
-            if (has_class(inherits[i], cls))
-                return true;
-
-    return false;
-}
+    var first = true;
+    external.onclose = function() {
+        if(first)
+        {
+            first = false;
+            external.postMessage('try close')
+            return false;
+        }
+    }
+</script>
+</html>`;
 
 if (win) {
     var http = require("http");
@@ -34,22 +39,38 @@ if (win) {
             var closed = false;
             var svr = new http.Server(8999 + base_port, (r) => {
                 check = true;
+                r.response.write(html);
             });
             svr.asyncRun();
 
             var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
 
+            var cnt = 0;
+
+            win.onmessage = (m) => {
+                cnt++;
+
+                if (m === 'try close') {
+                    win.close();
+                    win = undefined;
+                } else {
+
+                    win.close();
+                }
+            };
+
+            win.onclosed = () => {
+                closed = true;
+            };
+
+            win.onload = () => {
+                win.postMessage('hello');
+            };
+
             for (var i = 0; i < 1000 && !check; i++)
                 coroutine.sleep(10);
 
             assert.ok(check);
-
-            win.onclose = () => {
-                closed = true;
-            };
-
-            win.close();
-            win = undefined;
 
             for (var i = 0; i < 1000 && test_util.countObject('WebView'); i++) {
                 coroutine.sleep(100);
@@ -58,6 +79,8 @@ if (win) {
 
             GC();
             assert.equal(test_util.countObject('WebView'), 0);
+            assert.equal(closed, true);
+            assert.equal(cnt, 2);
         });
     });
 }

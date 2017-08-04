@@ -173,9 +173,11 @@ private:
 
     HRESULT OnPostMessage(DISPPARAMS* pDispParams);
     HRESULT OnOnMessage(DISPPARAMS* pDispParams);
+    HRESULT OnOnClose(DISPPARAMS* pDispParams);
     HRESULT OnClose(DISPPARAMS* pDispParams);
 
     result_t postMessage(exlib::string msg, _variant_t& retVal);
+    result_t WebView::postClose(_variant_t& retVal);
 
 protected:
     IStorage* storage;
@@ -186,6 +188,7 @@ protected:
     IConnectionPoint* connectionPoint;
     IWebBrowser2* webBrowser2;
     IDispatch* _onmessage;
+    IDispatch* _onclose;
 
     RECT rObject;
     DWORD eventCookie;
