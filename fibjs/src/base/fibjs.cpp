@@ -48,7 +48,7 @@ void init()
 
     exlib::Service::init(cpus + 1);
 
-    init_prof();
+    // init_prof();
     init_date();
     init_rt();
     init_cipher();

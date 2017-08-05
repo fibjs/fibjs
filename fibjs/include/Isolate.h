@@ -20,34 +20,12 @@ class LruCache;
 
 class Isolate : public exlib::linkitem {
 public:
-    class rt_base {
-    public:
-        rt_base(Isolate* cur = NULL)
-        {
-            m_isolate = cur ? cur : Isolate::current();
-        }
-
-        ~rt_base()
-        {
-            if (m_isolate->m_interrupt) {
-                m_isolate->m_interrupt = false;
-                m_isolate->InterruptCallback();
-            }
-        }
-
-    protected:
-        Isolate* m_isolate;
-    };
-
-    class rt : public rt_base {
+    class rt {
     public:
         rt(Isolate* cur = NULL);
-        ~rt();
-
-    public:
-        static bool g_trace;
 
     private:
+        Isolate* m_isolate;
         JSFiber* m_fiber;
         v8::Unlocker unlocker;
     };
@@ -57,9 +35,7 @@ public:
 
 public:
     static Isolate* current();
-
     void init();
-    void InterruptCallback();
 
     v8::Local<v8::String> NewFromUtf8(const char* data, int length = -1)
     {

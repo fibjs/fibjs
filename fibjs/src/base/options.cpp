@@ -14,8 +14,6 @@
 
 namespace fibjs {
 
-bool g_perf;
-
 #ifdef amd64
 int32_t stack_size = 512;
 #else
@@ -33,8 +31,6 @@ static void printHelp()
     printf("Usage: fibjs [options] [script.js] [arguments] \n"
            "\n"
            "Options:\n"
-           "  --trace_fiber        allow user to query the non-current\n"
-           "                       fiber's stack infomation\n"
            "  -h, --help           print fibjs command line options\n"
            "  -v, --version        print fibjs version\n"
            "  --v8-options         print v8 command line options\n"
@@ -52,10 +48,7 @@ void options(int32_t argc, char* argv[])
         if (df)
             argv[i - df] = arg;
 
-        if (!qstrcmp(arg, "--trace_fiber")) {
-            df++;
-            Isolate::rt::g_trace = true;
-        } else if (!qstrcmp(arg, "--help") || !qstrcmp(arg, "-h")) {
+        if (!qstrcmp(arg, "--help") || !qstrcmp(arg, "-h")) {
             printHelp();
             _exit(0);
         } else if (!qstrcmp(arg, "--version") || !qstrcmp(arg, "-v")) {
@@ -76,9 +69,5 @@ void options(int32_t argc, char* argv[])
         argc -= df;
 
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
-
-#ifdef DEBUG
-    Isolate::rt::g_trace = true;
-#endif
 }
 }

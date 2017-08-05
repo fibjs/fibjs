@@ -55,8 +55,6 @@ exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
 extern int32_t stack_size;
 
-bool Isolate::rt::g_trace = false;
-
 inline JSFiber* saveTrace()
 {
     JSFiber* fiber = JSFiber::current();
@@ -66,16 +64,9 @@ inline JSFiber* saveTrace()
 }
 
 Isolate::rt::rt(Isolate* cur)
-    : rt_base(cur)
-    , m_fiber(g_trace ? saveTrace() : NULL)
+    : m_isolate(cur ? cur : Isolate::current())
     , unlocker(m_isolate->m_isolate)
 {
-}
-
-Isolate::rt::~rt()
-{
-    if (m_fiber)
-        m_fiber->m_traceInfo.resize(0);
 }
 
 static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallbackFlags flags)
