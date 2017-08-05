@@ -7,8 +7,6 @@
 #include <cstring>
 #include <string>
 
-#include <stdio.h>
-
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 namespace fibjs {
@@ -91,6 +89,43 @@ result_t Buffer_base::isBuffer(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = !!Buffer_base::getInstance(v);
     return 0;
+}
+
+result_t Buffer_base::from(v8::Local<v8::Array> datas, 
+    obj_ptr<Buffer_base>& retVal)
+{
+    retVal = new Buffer();
+    retVal->append(datas);
+    return 0;
+}
+
+result_t Buffer_base::from(v8::Local<v8::ArrayBuffer> datas, 
+    obj_ptr<Buffer_base>& retVal)
+{
+    retVal = new Buffer();
+    retVal->append(datas);
+    return 0;
+}
+
+result_t Buffer_base::from(v8::Local<v8::TypedArray> datas,
+    obj_ptr<Buffer_base>& retVal)
+{
+    retVal = new Buffer();
+    return retVal->append(datas);
+}
+
+result_t Buffer_base::from(Buffer_base* buffer,
+    obj_ptr<Buffer_base>& retVal)
+{
+    retVal = new Buffer();
+    return retVal->append(buffer);
+}
+
+result_t Buffer_base::from(exlib::string str, exlib::string codec,
+    obj_ptr<Buffer_base>& retVal)
+{
+    retVal = new Buffer();
+    return retVal->append(str, codec);
 }
 
 result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal)
@@ -324,6 +359,7 @@ result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, obj_ptr<Buff
     retVal = this;
     return 0;
 }
+
 
 result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal)
 {

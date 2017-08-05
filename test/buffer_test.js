@@ -111,6 +111,50 @@ describe('Buffer', () => {
         });
     });
 
+    it('Buffer.from(String)', () => {
+        var buf = Buffer.from("abcd");
+        assert.equal(buf.length, 4);
+        assert.equal(buf.toString(), "abcd");
+
+        var buf = new Buffer("100");
+        assert.equal(buf.length, 3);
+        assert.equal(buf.toString(), "100");
+    });
+
+    it('Buffer.from(Array)', () => {
+        var buf = Buffer.from([0x31, 0x32, 0x33, 0x34]);
+        assert.equal(buf.length, 4);
+        assert.equal(buf.toString(), "1234");
+    });
+
+    it('Buffer.from(TypedArray)', () => {
+        var arr = new Uint16Array(2);
+        arr[0] = 5000;
+        arr[1] = 4000;
+
+        var buf = Buffer.from(arr);
+
+        assert.equal(buf.length, 2);
+        assert.equal(buf.hex(), "88a0");
+    });
+
+    it('Buffer.from(ArrayBuffer)', () => {
+        var arr = new Uint16Array(2);
+        arr[0] = 5000;
+        arr[1] = 4000;
+
+        var buf = Buffer.from(arr.buffer);
+
+        assert.equal(buf.length, 4);
+        assert.equal(buf.hex(), "8813a00f");
+    });
+
+    it('Buffer.from(Buffer)', () => {
+        var buf = Buffer.from(new Buffer("abcd"));
+        assert.equal(buf.length, 4);
+        assert.equal(buf.toString(), "abcd");
+    });
+
     it('keys', () => {
         var buf1 = new Buffer('buffer');
         var buf2 = new Buffer([98, 117, 102, 102, 101, 114]);
