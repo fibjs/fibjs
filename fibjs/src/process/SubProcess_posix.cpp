@@ -28,7 +28,7 @@ public:
 public:
     virtual void on_timer()
     {
-        ::kill(m_pid, 9);
+        ::kill(m_pid, SIGINT);
     }
 
 private:
