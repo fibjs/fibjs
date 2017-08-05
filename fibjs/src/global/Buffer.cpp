@@ -7,8 +7,6 @@
 #include <cstring>
 #include <string>
 
-#include <stdio.h>
-
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 namespace fibjs {
