@@ -4,6 +4,7 @@ test.setup();
 describe('Buffer', () => {
     it("buffer module", () => {
         assert.equal(require('buffer'), Buffer);
+        assert.equal(require('buffer').Buffer, Buffer);
     });
 
     it('new Buffer(Integr)', () => {
@@ -162,29 +163,29 @@ describe('Buffer', () => {
         var keys1 = [];
         var keys2 = [];
         for (let key of buf1.keys()) {
-          keys1.push(key);
+            keys1.push(key);
         }
         assert.deepEqual(keys1, correctResult);
 
         for (let key of buf2.keys()) {
-          keys2.push(key);
+            keys2.push(key);
         }
         assert.deepEqual(keys2, correctResult);
     });
 
-   it('values', () => {
+    it('values', () => {
         var buf1 = new Buffer('buffer');
         var buf2 = new Buffer([98, 117, 102, 102, 101, 114]);
         var correctResult = [98, 117, 102, 102, 101, 114];
         var values1 = [];
         var values2 = [];
         for (let value of buf1.values()) {
-          values1.push(value);
+            values1.push(value);
         }
         assert.deepEqual(values1, correctResult);
 
         for (let value of buf2.values()) {
-          values2.push(value);
+            values2.push(value);
         }
         assert.deepEqual(values2, correctResult);
     });

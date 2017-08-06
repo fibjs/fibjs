@@ -106,6 +106,9 @@ void SandBox::initRoot()
 
     v8::Local<v8::Object> _emitter = EventEmitter_base::class_info().getModule(isolate);
     _emitter->Set(isolate->NewFromUtf8("EventEmitter"), _emitter);
+
+    v8::Local<v8::Object> _buffer = Buffer_base::class_info().getModule(isolate);
+    _buffer->Set(isolate->NewFromUtf8("Buffer"), _buffer);
 }
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
