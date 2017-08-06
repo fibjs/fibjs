@@ -61,7 +61,9 @@ MongoCursor::MongoCursor(MongoDB* db, const exlib::string& ns,
 
 static result_t _close(MongoCursor::cursor* cur)
 {
+    cur->m_db->m_lock.lock();
     mongo_cursor_destroy(cur);
+    cur->m_db->m_lock.unlock();
     delete cur;
     return 0;
 }
