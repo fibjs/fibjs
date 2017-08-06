@@ -140,6 +140,33 @@ public:
         }
     }
 
+    void skipUntil(const char* chs)
+    {
+        char ch, ch1;
+        const char* p;
+
+        while (0 != (ch = get())) {
+            p = chs;
+            while (0 != (ch1 = *p++))
+                if (ch == ch1)
+                    return;
+
+            skip();
+        }
+    }
+
+    void skipKeyWord()
+    {
+        char ch;
+
+        while (0 != (ch = get())) {
+            if (!qisascii(ch) && !qisdigit(ch) && (ch != '_'))
+                break;
+            else
+                skip();
+        }
+    }
+
     char getChar()
     {
         char ch = get();
@@ -232,6 +259,32 @@ public:
 
         p1 = pos;
         skipUntil(ch1, ch2, ch3);
+        p2 = pos - p1;
+
+        retVal.assign(string + p1, p2);
+
+        return p2;
+    }
+
+    int32_t getString(exlib::string& retVal, const char* chs)
+    {
+        int32_t p1, p2;
+
+        p1 = pos;
+        skipUntil(chs);
+        p2 = pos - p1;
+
+        retVal.assign(string + p1, p2);
+
+        return p2;
+    }
+
+    int32_t getKeyWord(exlib::string& retVal)
+    {
+        int32_t p1, p2;
+
+        p1 = pos;
+        skipKeyWord();
         p2 = pos - p1;
 
         retVal.assign(string + p1, p2);

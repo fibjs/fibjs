@@ -11,6 +11,7 @@
 #include "ifs/Message.h"
 #include "ifs/HttpRequest.h"
 #include "List.h"
+#include "parse.h"
 
 namespace fibjs {
 
@@ -71,9 +72,9 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         if (htmsg && r->m_method != "*" && qstricmp(method.c_str(), r->m_method.c_str()))
             continue;
 
-        if ((rc = pcre_exec(r->m_re, NULL, value.c_str(),
-                 (int32_t)value.length(), 0, 0, ovector, RE_SIZE))
-            > 0) {
+        rc = pcre_exec(r->m_re, NULL, value.c_str(), (int32_t)value.length(),
+            0, 0, ovector, RE_SIZE);
+        if (rc > 0) {
             obj_ptr<List> list = new List();
 
             if (rc > 1) {
@@ -93,22 +94,23 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 }
 
                 if (levelCount[1] == 1) {
-                    msg->set_value(
-                        value.substr(ovector[2], ovector[3] - ovector[2]).c_str());
-
+                    msg->set_value(value.substr(ovector[2], ovector[3] - ovector[2]));
                     if (levelCount[2] > 0)
                         p = 2;
                 } else
                     msg->set_value("");
                 int32_t toDrop;
                 if (levelCount[p]) {
+                    Variant vUndefined;
                     for (i = 0; i < rc; i++)
-                        if (level[i] == p)
-                            list->push(
-                                value.substr(ovector[i * 2],
-                                    ovector[i * 2 + 1]
-                                        - ovector[i * 2]),
-                                toDrop);
+                        if (level[i] == p) {
+                            if (ovector[i * 2 + 1] - ovector[i * 2] > 0)
+                                list->push(value.substr(ovector[i * 2],
+                                               ovector[i * 2 + 1] - ovector[i * 2]),
+                                    toDrop);
+                            else
+                                list->push(vUndefined, toDrop);
+                        }
                 }
             }
 
@@ -148,12 +150,106 @@ result_t Routing::append(exlib::string method, v8::Local<v8::Object> map)
     return 0;
 }
 
+exlib::string path2RegExp(exlib::string pattern)
+{
+    size_t len = pattern.length();
+
+    if (pattern[len - 1] == '/')
+        pattern.resize(len - 1);
+
+    _parser p(pattern);
+    exlib::string res;
+    exlib::string str;
+    exlib::string re, re1;
+    char ch, last_ch;
+
+    while (!p.end()) {
+        p.getString(str, ":(.*\\");
+        res.append(str);
+
+        ch = p.getChar();
+        if (ch == '\\') {
+            res.append(1, '\\');
+            res.append(1, p.getChar());
+        } else if (ch == '.') {
+            res.append("\\.");
+        } else if (ch == '*') {
+            res.append("((?:.*))");
+        } else if ((ch == ':') || (ch == '(')) {
+            if (res.length() > 0)
+                last_ch = res[res.length() - 1];
+            else
+                last_ch = 0;
+
+            if (ch == ':') {
+                p.getKeyWord(str);
+                re = (last_ch == '.') ? "[^\\.]+" : "[^/]+";
+                re1 = re + "?";
+                ch = p.get();
+                if (ch == '(')
+                    p.skip();
+            }
+
+            if (ch == '(') {
+                p.getString(re, ')');
+                re1 = re;
+                if (p.get() == ')')
+                    p.skip();
+                ch = p.get();
+            }
+
+            if (ch == '?') {
+                p.skip();
+                ch = p.get();
+                if ((ch == 0 || ch == '/') && last_ch == '/') {
+                    res.resize(res.length() - 1);
+                    re = "(?:/((?:" + re1 + ")))?";
+                } else if (last_ch == '.') {
+                    res.resize(res.length() - 2);
+                    re = "(?:\\.((?:" + re1 + ")))?";
+                } else
+                    re = "((?:" + re1 + "))?";
+            } else if (ch == '+') {
+                p.skip();
+                if (last_ch == '/')
+                    re = "((?:" + re + ")(?:/(?:" + re + "))*)";
+                else if (last_ch == '.')
+                    re = "((?:" + re + ")(?:\\.(?:" + re + "))*)";
+                else
+                    re = "((?:" + re + ")((?:" + re + "))*)";
+            } else if (ch == '*') {
+                p.skip();
+                ch = p.get();
+                if ((ch == 0 || ch == '/') && last_ch == '/') {
+                    res.resize(res.length() - 1);
+                    re = "(?:/((?:" + re + ")(?:/(?:" + re + "))*))?";
+                } else if (last_ch == '.') {
+                    res.resize(res.length() - 2);
+                    re = "(?:\\.((?:" + re + ")(?:\\.(?:" + re + "))*))?";
+                } else if (last_ch == '/')
+                    re = "(((?:" + re + ")(?:/(?:" + re + "))*))?";
+                else
+                    re = "(((?:" + re + ")((?:" + re + "))*))?";
+            } else
+                re = "((?:" + re1 + "))";
+
+            res.append(re);
+        }
+    }
+
+    res = "^" + res + "(?:/(?=$))?$";
+    return res;
+}
+
 result_t Routing::append(exlib::string method, exlib::string pattern, Handler_base* hdlr)
 {
     int32_t opt = PCRE_JAVASCRIPT_COMPAT | PCRE_NEWLINE_ANYCRLF | PCRE_UCP | PCRE_CASELESS;
     const char* error;
     int32_t erroffset;
     pcre* re;
+
+    if (pattern.length() > 0 && pattern[0] != '^')
+        pattern = path2RegExp(pattern);
 
     re = pcre_compile(pattern.c_str(), opt, &error, &erroffset, NULL);
     if (re == NULL) {

@@ -15,6 +15,489 @@ var m = new mq.Message();
 var htm = new http.Request();
 var v = new Buffer('abcd');
 
+var p2r_tests = {
+    "/": {
+        "/": [
+            "/"
+        ],
+        "/route": null
+    },
+    "/test": {
+        "/test": [
+            "/test"
+        ],
+        "/route": null,
+        "/test/route": null,
+        "/test/": [
+            "/test/"
+        ]
+    },
+    "/test/": {
+        "/test": [
+            "/test"
+        ],
+        "/test/": [
+            "/test/"
+        ],
+        "/test//": null
+    },
+    "/:test": {
+        "/route": [
+            "/route",
+            "route"
+        ],
+        "/another": [
+            "/another",
+            "another"
+        ],
+        "/something/else": null,
+        "/route.json": [
+            "/route.json",
+            "route.json"
+        ],
+        "/something%2Felse": [
+            "/something%2Felse",
+            "something%2Felse"
+        ],
+        "/something%2Felse%2Fmore": [
+            "/something%2Felse%2Fmore",
+            "something%2Felse%2Fmore"
+        ],
+        "/;,:@&=+$-_.!~*()": [
+            "/;,:@&=+$-_.!~*()",
+            ";,:@&=+$-_.!~*()"
+        ]
+    },
+    "/:test?": {
+        "/route": [
+            "/route",
+            "route"
+        ],
+        "/route/nested": null,
+        "/": [
+            "/"
+        ],
+        "//": null
+    },
+    "/:test?/bar": {
+        "/foo/bar": [
+            "/foo/bar",
+            "foo"
+        ]
+    },
+    "/:test?-bar": {
+        "/-bar": [
+            "/-bar"
+        ],
+        "/foo-bar": [
+            "/foo-bar",
+            "foo"
+        ]
+    },
+    "/:test+": {
+        "/": null,
+        "/route": [
+            "/route",
+            "route"
+        ],
+        "/some/basic/route": [
+            "/some/basic/route",
+            "some/basic/route"
+        ],
+        "//": null
+    },
+    "/:test(\\d+)+": {
+        "/abc/456/789": null,
+        "/123/456/789": [
+            "/123/456/789",
+            "123/456/789"
+        ]
+    },
+    "/route.:ext(json|xml)+": {
+        "/route": null,
+        "/route.json": [
+            "/route.json",
+            "json"
+        ],
+        "/route.xml.json": [
+            "/route.xml.json",
+            "xml.json"
+        ],
+        "/route.html": null
+    },
+    "/:test*": {
+        "/": [
+            "/"
+        ],
+        "//": null,
+        "/route": [
+            "/route",
+            "route"
+        ],
+        "/some/basic/route": [
+            "/some/basic/route",
+            "some/basic/route"
+        ]
+    },
+    "/route.:ext([a-z]+)*": {
+        "/route": [
+            "/route"
+        ],
+        "/route.json": [
+            "/route.json",
+            "json"
+        ],
+        "/route.json.xml": [
+            "/route.json.xml",
+            "json.xml"
+        ],
+        "/route.123": null
+    },
+    "/:test(\\d+)": {
+        "/123": [
+            "/123",
+            "123"
+        ],
+        "/abc": null,
+        "/123/abc": null
+    },
+    "/:test(.*)": {
+        "/anything/goes/here": [
+            "/anything/goes/here",
+            "anything/goes/here"
+        ],
+        "/;,:@&=/+$-_.!/~*()": [
+            "/;,:@&=/+$-_.!/~*()",
+            ";,:@&=/+$-_.!/~*()"
+        ]
+    },
+    "/:route([a-z]+)": {
+        "/abcde": [
+            "/abcde",
+            "abcde"
+        ],
+        "/12345": null
+    },
+    "/:route(this|that)": {
+        "/this": [
+            "/this",
+            "this"
+        ],
+        "/that": [
+            "/that",
+            "that"
+        ],
+        "/foo": null
+    },
+    "/:path(abc|xyz)*": {
+        "/abc": [
+            "/abc",
+            "abc"
+        ],
+        "/abc/abc": [
+            "/abc/abc",
+            "abc/abc"
+        ],
+        "/xyz/xyz": [
+            "/xyz/xyz",
+            "xyz/xyz"
+        ],
+        "/abc/xyz": [
+            "/abc/xyz",
+            "abc/xyz"
+        ],
+        "/abc/xyz/abc/xyz": [
+            "/abc/xyz/abc/xyz",
+            "abc/xyz/abc/xyz"
+        ],
+        "/xyzxyz": null
+    },
+    "test": {
+        "test": [
+            "test"
+        ],
+        "/test": null
+    },
+    ":test": {
+        "route": [
+            "route",
+            "route"
+        ],
+        "/route": null,
+        "route/": [
+            "route/",
+            "route"
+        ]
+    },
+    ":test?": {
+        "route": [
+            "route",
+            "route"
+        ],
+        "/route": null,
+        "": [
+            ""
+        ],
+        "route/foobar": null
+    },
+    "/test.json": {
+        "/test.json": [
+            "/test.json"
+        ],
+        "/route.json": null
+    },
+    "/:test.json": {
+        "/.json": null,
+        "/test.json": [
+            "/test.json",
+            "test"
+        ],
+        "/route.json": [
+            "/route.json",
+            "route"
+        ],
+        "/route.json.json": [
+            "/route.json.json",
+            "route.json"
+        ]
+    },
+    "/test.:format": {
+        "/test.html": [
+            "/test.html",
+            "html"
+        ],
+        "/test.hbs.html": null
+    },
+    "/test.:format.:format": {
+        "/test.html": null,
+        "/test.hbs.html": [
+            "/test.hbs.html",
+            "hbs",
+            "html"
+        ]
+    },
+    "/test.:format+": {
+        "/test.html": [
+            "/test.html",
+            "html"
+        ],
+        "/test.hbs.html": [
+            "/test.hbs.html",
+            "hbs.html"
+        ]
+    },
+    "/test.:format.": {
+        "/test.html.": [
+            "/test.html.",
+            "html"
+        ],
+        "/test.hbs.html": null
+    },
+    "/:test.:format": {
+        "/route.html": [
+            "/route.html",
+            "route",
+            "html"
+        ],
+        "/route": null,
+        "/route.html.json": [
+            "/route.html.json",
+            "route.html",
+            "json"
+        ]
+    },
+    "/:test.:format?": {
+        "/route": [
+            "/route",
+            "route"
+        ],
+        "/route.json": [
+            "/route.json",
+            "route",
+            "json"
+        ],
+        "/route.json.html": [
+            "/route.json.html",
+            "route.json",
+            "html"
+        ]
+    },
+    "/(\\d+)": {
+        "/123": [
+            "/123",
+            "123"
+        ],
+        "/abc": null,
+        "/123/abc": null
+    },
+    "/(\\d+)?": {
+        "/": [
+            "/"
+        ],
+        "/123": [
+            "/123",
+            "123"
+        ]
+    },
+    "/(.*)": {
+        "/": [
+            "/"
+        ],
+        "/route": [
+            "/route",
+            "route"
+        ],
+        "/route/nested": [
+            "/route/nested",
+            "route/nested"
+        ]
+    },
+    "/route\\(\\\\(\\d+\\\\)\\)": {
+        "/route(\\123\\)": [
+            "/route(\\123\\)",
+            "123\\"
+        ]
+    },
+    "/\\(testing\\)": {
+        "/testing": null,
+        "/(testing)": [
+            "/(testing)"
+        ]
+    },
+    "/.+\\*?=^!:${}[]|": {
+        "/.+*?=^!:${}[]|": [
+            "/.+*?=^!:${}[]|"
+        ]
+    },
+    "/*": {
+        "": null,
+        "/": [
+            "/"
+        ],
+        "/foo/bar": [
+            "/foo/bar",
+            "foo/bar"
+        ]
+    },
+    "/foo/*": {
+        "": null,
+        "/test": null,
+        "/foo": null,
+        "/foo/": [
+            "/foo/"
+        ],
+        "/foo/bar": [
+            "/foo/bar",
+            "bar"
+        ]
+    },
+    "/:foo/*": {
+        "": null,
+        "/test": null,
+        "/foo": null,
+        "/foo/": [
+            "/foo/",
+            "foo"
+        ],
+        "/foo/bar": [
+            "/foo/bar",
+            "foo",
+            "bar"
+        ]
+    },
+    "/(apple-)?icon-:res(\\d+).png": {
+        "/icon-240.png": [
+            "/icon-240.png",
+            undefined,
+            "240"
+        ],
+        "/apple-icon-240.png": [
+            "/apple-icon-240.png",
+            "apple-",
+            "240"
+        ]
+    },
+    "/:foo/:bar": {
+        "/match/route": [
+            "/match/route",
+            "match",
+            "route"
+        ]
+    },
+    "/:remote([\\w-.]+)/:user([\\w-]+)": {
+        "/endpoint/user": [
+            "/endpoint/user",
+            "endpoint",
+            "user"
+        ],
+        "/endpoint/user-name": [
+            "/endpoint/user-name",
+            "endpoint",
+            "user-name"
+        ],
+        "/foo.bar/user-name": [
+            "/foo.bar/user-name",
+            "foo.bar",
+            "user-name"
+        ]
+    },
+    "/:foo\\?": {
+        "/route?": [
+            "/route?",
+            "route"
+        ]
+    },
+    "/:foo+baz": {
+        "/foobaz": [
+            "/foobaz",
+            "foo"
+        ],
+        "/foo/barbaz": [
+            "/foo/barbaz",
+            "foo/bar"
+        ],
+        "/baz": null
+    },
+    "/:pre?baz": {
+        "/foobaz": [
+            "/foobaz",
+            "foo"
+        ],
+        "/baz": [
+            "/baz"
+        ]
+    },
+    "/:foo\\(:bar?\\)": {
+        "/hello(world)": [
+            "/hello(world)",
+            "hello",
+            "world"
+        ],
+        "/hello()": [
+            "/hello()",
+            "hello"
+        ]
+    },
+    "/:postType(video|audio|text)(\\+.+)?": {
+        "/video": [
+            "/video",
+            "video"
+        ],
+        "/video+test": [
+            "/video+test",
+            "video",
+            "+test"
+        ],
+        "/video+": null
+    },
+    "/:foo": {
+        "/café": [
+            "/café",
+            "café"
+        ]
+    }
+};
+
 var n;
 
 function hdlr1(v) {
@@ -346,6 +829,36 @@ describe("mq", () => {
             htm.value = "/b";
             mq.invoke(r, htm);
             assert.equal(val, 3);
+        });
+
+        describe("path to regexp", () => {
+            function test_route(p, v) {
+                var r = null;
+                var rt = new mq.Routing();
+                rt.append(p, function () {
+                    r = Array.prototype.slice.call(arguments);
+                    r[0] = v;
+                });
+
+                rt.append("^.*$", () => {});
+
+                var m = new mq.Message();
+                m.value = v;
+
+                mq.invoke(rt, m);
+                return r;
+            }
+
+            function test_one(k) {
+                it(k, () => {
+                    var cases = p2r_tests[k];
+                    for (u in cases)
+                        assert.deepEqual(test_route(k, u), cases[u]);
+                });
+            }
+
+            for (k in p2r_tests)
+                test_one(k);
         });
 
         describe("order", () => {
