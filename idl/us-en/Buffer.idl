@@ -29,6 +29,38 @@ interface Buffer : object
      */
     static Boolean isBuffer(Value v);
 
+
+    /*! @brief Create a Buffer object from Array
+     @param datas Variable to create Buffer objcet
+     @return Return a Buffer object
+     */
+    static Buffer from(Array datas);
+
+    /*! @brief Create a Buffer object from ArrayBuffer
+     @param datas Variable to create Buffer objcet
+     @return Return a Buffer object
+     */
+    static Buffer from(ArrayBuffer datas);
+
+    /*! @brief Create a Buffer object from TypedArray
+     @param datas Variable to create Buffer objcet
+     @return Return a Buffer object
+     */
+    static Buffer from(TypedArray datas);
+
+    /*! @brief Create a Buffer object from other Buffer object
+     @param datas Variable to create Buffer objcet
+     @return Return a Buffer object
+     */
+    static Buffer from(Buffer buffer);
+
+    /*! @brief Create a Buffer object from String
+     @param str Initial string encoded in UTF-8, by default it will create an empty object.
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     @return Return a Buffer object
+     */
+    static Buffer from(String str, String codec = "utf8");
+
     /*! @brief Returns a buffer which is the result of concatenating the buffers in the list.
      @param buflist Array List of Buffer objects to concat
      @param cutLength Number Total length of the buffers when concatenated
@@ -359,6 +391,21 @@ interface Buffer : object
      @return The encoded string
      */
     String base64();
+
+    /*! @brief return the array of the binary data
+     @return The Iterator representing the index of the buffer.
+    */
+    Object keys();
+
+    /*! @brief return the array of the binary data
+     @return The Iterator representing the value of the buffer.
+    */
+    Object values();
+
+    /*! @brief return the array of the binary data
+     @return The Array representing the value of the buffer.
+    */
+    Array toArray();
 
     /*! @brief return the encoded string of the binary data 
      @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system.

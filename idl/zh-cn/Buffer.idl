@@ -45,6 +45,31 @@ interface Buffer : object
     */
     static Boolean isBuffer(Value v);
 
+    /*! @brief 通过数组创建 Buffer 对象
+     @param datas 给定数组类型变量用于创建 Buffer 对象
+     @return 返回 Buffer 实例
+     */
+    static Buffer from(Array datas);
+
+    /*! @brief 通过 TypedArray 创建 Buffer 对象
+     @param datas 给定 TypedArray 类型变量用于创建 Buffer 对象
+     @return 返回 Buffer 实例
+     */
+    static Buffer from(TypedArray datas);
+
+    /*! @brief 通过其他 Buffer 创建 Buffer 对象
+     @param datas 给定 Buffer 类型变量用于创建 Buffer 对象
+     @return 返回 Buffer 实例
+     */
+    static Buffer from(Buffer buffer);
+
+    /*! @brief 通过字符串创建 Buffer 对象
+     @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @return 返回 Buffer 实例
+     */
+    static Buffer from(String str, String codec = "utf8");
+
     /*! @brief 拼接多个缓存区中的数据
      @param buflist 待拼接的Buffer数组
      @param cutLength 截取多少个Buffer对象
@@ -480,6 +505,16 @@ interface Buffer : object
      @return 返回包含对象数据的数组
     */
     Array toArray();
+
+    /*! @brief 返回全部二进制数据的数组
+     @return 返回包含对象数据索引的迭代器
+    */
+    Object keys();
+
+    /*! @brief 返回全部二进制数据的数组
+     @return 返回包含对象数据值的迭代器
+    */
+    Object values();
 
     /*! @brief 返回二进制数据的编码字符串
      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
