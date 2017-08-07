@@ -889,10 +889,14 @@ result_t Buffer::keys(v8::Local<v8::Object>& retVal)
     v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
     v8::Local<v8::Symbol> symbol = v8::Symbol::GetIterator(isolate->m_isolate);
 
-    v8::Local<v8::Object> b = a->Get(context, symbol).ToLocalChecked()
-        ->ToObject(context).ToLocalChecked()
-        ->CallAsFunction(context, a, 0, NULL).ToLocalChecked()
-        ->ToObject(context).ToLocalChecked();
+    v8::Local<v8::Object> b = a->Get(context, symbol)
+                                  .ToLocalChecked()
+                                  ->ToObject(context)
+                                  .ToLocalChecked()
+                                  ->CallAsFunction(context, a, 0, NULL)
+                                  .ToLocalChecked()
+                                  ->ToObject(context)
+                                  .ToLocalChecked();
 
     retVal = b;
 
@@ -912,11 +916,15 @@ result_t Buffer::values(v8::Local<v8::Object>& retVal)
     v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
     v8::Local<v8::Symbol> symbol = v8::Symbol::GetIterator(isolate->m_isolate);
 
-    v8::Local<v8::Object> b = a->Get(context, symbol).ToLocalChecked()
-        ->ToObject(context).ToLocalChecked()
-        ->CallAsFunction(context, a, 0, NULL).ToLocalChecked()
-        ->ToObject(context).ToLocalChecked();
-        
+    v8::Local<v8::Object> b = a->Get(context, symbol)
+                                  .ToLocalChecked()
+                                  ->ToObject(context)
+                                  .ToLocalChecked()
+                                  ->CallAsFunction(context, a, 0, NULL)
+                                  .ToLocalChecked()
+                                  ->ToObject(context)
+                                  .ToLocalChecked();
+
     retVal = b;
 
     return 0;
