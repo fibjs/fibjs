@@ -522,7 +522,7 @@ result_t PKey::exportDer(obj_ptr<Buffer_base>& retVal)
 inline void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string key, const mbedtls_mpi* n)
 {
     exlib::string data;
-    int32_t sz = mbedtls_mpi_size(n);
+    int32_t sz = (int32_t)mbedtls_mpi_size(n);
 
     data.resize(sz);
     mbedtls_mpi_write_binary(n, (unsigned char*)data.c_buffer(), sz);
