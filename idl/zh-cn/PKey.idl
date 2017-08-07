@@ -54,6 +54,11 @@ interface PKey : object
     */
     importKey(String pemKey, String password = "");
 
+    /*! @brief 加载一个 JSON 格式的密钥
+     @param jsonKey JSON 格式的密钥
+    */
+    importKey(Object jsonKey);
+
     /*! @brief 加载一个 PEM/DER 格式的密钥文件
      @param filename 密钥文件名
      @param password 解密密码
@@ -69,6 +74,11 @@ interface PKey : object
      @return 当前 key 的 DER 格式编码
     */
     Buffer exportDer();
+
+    /*! @brief 返回当前 key 的 DER 格式编码
+     @return 当前 key 的 DER 格式编码
+    */
+    Object exportJson();
 
     /*! @brief 使用当前算法密码公钥加密数据
      @param data 指定要加密的数据

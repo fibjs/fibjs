@@ -33,9 +33,11 @@ public:
     virtual result_t clone(obj_ptr<PKey_base>& retVal) = 0;
     virtual result_t importKey(Buffer_base* DerKey, exlib::string password) = 0;
     virtual result_t importKey(exlib::string pemKey, exlib::string password) = 0;
+    virtual result_t importKey(v8::Local<v8::Object> jsonKey) = 0;
     virtual result_t importFile(exlib::string filename, exlib::string password) = 0;
     virtual result_t exportPem(exlib::string& retVal) = 0;
     virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t exportJson(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
@@ -58,6 +60,7 @@ public:
     static void s_importFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_exportJson(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -89,6 +92,7 @@ inline ClassInfo& PKey_base::class_info()
         { "importFile", s_importFile, false },
         { "exportPem", s_exportPem, false },
         { "exportDer", s_exportDer, false },
+        { "exportJson", s_exportJson, false },
         { "encrypt", s_encrypt, false },
         { "encryptSync", s_encrypt, false },
         { "decrypt", s_decrypt, false },
@@ -254,6 +258,12 @@ inline void PKey_base::s_importKey(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     hr = pInst->importKey(v0, v1);
 
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = pInst->importKey(v0);
+
     METHOD_VOID();
 }
 
@@ -296,6 +306,20 @@ inline void PKey_base::s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_OVER(0, 0);
 
     hr = pInst->exportDer(vr);
+
+    METHOD_RETURN();
+}
+
+inline void PKey_base::s_exportJson(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->exportJson(vr);
 
     METHOD_RETURN();
 }

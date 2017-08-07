@@ -22,6 +22,7 @@ public:
 public:
     // object_base
     virtual result_t toString(exlib::string& retVal);
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
 
 public:
     // PKey_base
@@ -34,8 +35,10 @@ public:
     virtual result_t clone(obj_ptr<PKey_base>& retVal);
     virtual result_t importKey(Buffer_base* DerKey, exlib::string password);
     virtual result_t importKey(exlib::string pemKey, exlib::string password);
+    virtual result_t importKey(v8::Local<v8::Object> jsonKey);
     virtual result_t importFile(exlib::string filename, exlib::string password);
     virtual result_t exportPem(exlib::string& retVal);
+    virtual result_t exportJson(v8::Local<v8::Object>& retVal);
     virtual result_t exportDer(obj_ptr<Buffer_base>& retVal);
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
