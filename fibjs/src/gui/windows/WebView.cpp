@@ -18,6 +18,7 @@
 #include "utf8.h"
 #include <exlib/include/thread.h>
 #include <exdispid.h>
+#include <mshtml.h>
 
 namespace fibjs {
 
@@ -943,6 +944,8 @@ HRESULT WebView::QueryInterface(REFIID riid, void** ppvObject)
         *ppvObject = static_cast<IServiceProvider*>(this);
     else if (riid == IID_IInternetSecurityManager)
         *ppvObject = static_cast<IInternetSecurityManager*>(this);
+    else if (riid == IID_IOleCommandTarget)
+        *ppvObject = static_cast<IOleCommandTarget*>(this);
     else
         return E_NOINTERFACE;
 
@@ -1263,6 +1266,97 @@ HRESULT WebView::TranslateUrl(DWORD dwTranslate, OLECHAR* pchURLIn, OLECHAR** pp
 }
 
 HRESULT WebView::FilterDataObject(IDataObject* pDO, IDataObject** ppDORet)
+{
+    return E_NOTIMPL;
+}
+
+// IOleCommandTarget
+HRESULT WebView::Exec(const GUID* pguidCmdGroup, DWORD nCmdID, DWORD nCmdexecopt,
+    VARIANT* pvaIn, VARIANT* pvaOut)
+{
+    HRESULT hr = S_OK;
+
+    if (pguidCmdGroup && IsEqualGUID(*pguidCmdGroup, CGID_DocHostCommandHandler)) {
+
+        switch (nCmdID) {
+        case OLECMDID_SHOWSCRIPTERROR: {
+            IHTMLDocument2* pDoc = NULL;
+            IHTMLWindow2* pWindow = NULL;
+            IHTMLEventObj* pEventObj = NULL;
+            BSTR rgwszNames[5] = {
+                SysAllocString(L"errorLine"),
+                SysAllocString(L"errorCharacter"),
+                SysAllocString(L"errorCode"),
+                SysAllocString(L"errorMessage"),
+                SysAllocString(L"errorUrl")
+            };
+            DISPID rgDispIDs[5];
+            _variant_t rgvaEventInfo[5];
+            DISPPARAMS params;
+            BOOL fContinueRunningScripts = true;
+            int i;
+
+            params.cArgs = 0;
+            params.cNamedArgs = 0;
+
+            hr = pvaIn->punkVal->QueryInterface(IID_IHTMLDocument2, (void**)&pDoc);
+            hr = pDoc->get_parentWindow(&pWindow);
+            pDoc->Release();
+            pDoc = NULL;
+
+            hr = pWindow->get_event(&pEventObj);
+            pWindow->Release();
+            pWindow = NULL;
+
+            // Get the error info from the window.event object.
+            for (i = 0; i < 5; i++) {
+                // Get the property's dispID.
+                hr = pEventObj->GetIDsOfNames(IID_NULL, &rgwszNames[i], 1,
+                    LOCALE_SYSTEM_DEFAULT, &rgDispIDs[i]);
+                // Get the value of the property.
+                hr = pEventObj->Invoke(rgDispIDs[i], IID_NULL,
+                    LOCALE_SYSTEM_DEFAULT,
+                    DISPATCH_PROPERTYGET, &params, &rgvaEventInfo[i],
+                    NULL, NULL);
+                SysFreeString(rgwszNames[i]);
+            }
+            pEventObj->Release();
+            pEventObj = NULL;
+
+            exlib::string msg("WebView Error: ");
+            char buf[32];
+
+            msg += utf16to8String(rgvaEventInfo[3].bstrVal) + "\n    at ";
+            msg += utf16to8String(rgvaEventInfo[4].bstrVal);
+
+            sprintf(buf, ":%d:%d", rgvaEventInfo[0].intVal, rgvaEventInfo[1].intVal);
+
+            msg += buf;
+
+            errorLog(msg);
+
+            (*pvaOut).vt = VT_BOOL;
+            if (fContinueRunningScripts) {
+                // Continue running scripts on the page.
+                (*pvaOut).boolVal = VARIANT_TRUE;
+            } else {
+                // Stop running scripts on the page.
+                (*pvaOut).boolVal = VARIANT_FALSE;
+            }
+            break;
+        }
+        default:
+            hr = OLECMDERR_E_NOTSUPPORTED;
+            break;
+        }
+    } else {
+        hr = OLECMDERR_E_UNKNOWNGROUP;
+    }
+    return (hr);
+}
+
+HRESULT WebView::QueryStatus(const GUID* pguidCmdGroup, ULONG cCmds, OLECMD prgCmds[],
+    OLECMDTEXT* pCmdText)
 {
     return E_NOTIMPL;
 }
