@@ -1557,17 +1557,19 @@ HRESULT WebView::OnCommandStateChange(DISPPARAMS* pDispParams)
 
 HRESULT WebView::OnDocumentComplete(DISPPARAMS* pDispParams)
 {
-    oleObject->DoVerb(OLEIVERB_UIACTIVATE, NULL, this, -1, hWndParent, &rObject);
+    if (pDispParams && pDispParams->cArgs >= 2 && pDispParams->rgvarg[1].vt == VT_DISPATCH) {
+        IWebBrowser2* frame = NULL;
 
-    IWebBrowser2* frame = NULL;
+        pDispParams->rgvarg[1].pdispVal->QueryInterface(&frame);
+        if (frame == webBrowser2) {
+            oleObject->DoVerb(OLEIVERB_UIACTIVATE, NULL, this, -1, hWndParent, &rObject);
 
-    pDispParams->rgvarg[1].pdispVal->QueryInterface(&frame);
-    if (frame == webBrowser2) {
-        Variant v = new EventInfo(this, "load");
-        _emit("load", &v, 1);
+            Variant v = new EventInfo(this, "load");
+            _emit("load", &v, 1);
+        }
+
+        frame->Release();
     }
-
-    frame->Release();
 
     return E_NOTIMPL;
 }
