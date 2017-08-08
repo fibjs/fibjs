@@ -51,6 +51,12 @@ interface Buffer : object
      */
     static Buffer from(Array datas);
 
+    /*! @brief 通过 ArrayBuffer 创建 Buffer 对象
+     @param datas 给定 ArrayBuffer 类型变量用于创建 Buffer 对象
+     @return 返回 Buffer 实例
+     */
+    static Buffer from(ArrayBuffer datas);
+
     /*! @brief 通过 TypedArray 创建 Buffer 对象
      @param datas 给定 TypedArray 类型变量用于创建 Buffer 对象
      @return 返回 Buffer 实例
@@ -76,6 +82,34 @@ interface Buffer : object
      @return 拼接后产生的新 Buffer 对象
     */
     static Buffer concat(Array buflist, Integer cutLength = -1);
+
+    /*! @brief 返回字符串的实际字节长度
+     @param str 初始化字符串，默认字符串将以 utf-8 格式写入
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @return 返回实际字节长度
+     */
+    static Integer byteLength(String str, String codec = "utf8");
+
+    /*! @brief 返回 ArrayBuffer 的实际字节长度
+     @param datas 待取字节长度的 ArrayBuffer 对象
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @return 返回实际字节长度
+     */
+    static Integer byteLength(ArrayBuffer datas, String codec = "utf8");
+
+    /*! @brief 返回 TypedArray 的实际字节长度
+     @param datas 待取字节长度的 TypedArray 对象
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @return 返回实际字节长度
+     */
+    static Integer byteLength(TypedArray datas, String codec = "utf8");
+
+    /*! @brief 返回 Buffer 对象的实际字节长度
+     @param datas 待取字节长度的 Buffer 对象
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @return 返回实际字节长度
+     */
+    static Integer byteLength(Buffer buffer, String codec = "utf8");
 
     /*! @brief 缓存对象可使用下标直接访问二进制数据*/
     Integer operator[];
