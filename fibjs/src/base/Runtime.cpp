@@ -64,8 +64,7 @@ inline JSFiber* saveTrace()
 }
 
 Isolate::rt::rt(Isolate* cur)
-    : m_isolate(cur ? cur : Isolate::current())
-    , unlocker(m_isolate->m_isolate)
+    : unlocker((cur ? cur : Isolate::current())->m_isolate)
 {
 }
 

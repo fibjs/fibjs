@@ -7,6 +7,7 @@
 
 #include "console.h"
 #include "utf8.h"
+#include <stdio.h>
 
 namespace fibjs {
 
@@ -28,10 +29,19 @@ void std_logger::out(exlib::string& txt)
     public:
         color_out()
         {
-            m_handle = GetStdHandle(STD_OUTPUT_HANDLE);
-            m_Now = m_wAttr = 0x7;
-            m_wLight = m_wAttr & FOREGROUND_INTENSITY;
             m_tty = _isatty(_fileno(stdout)) != FALSE;
+
+            if (!m_tty) {
+                fpos_t pos;
+                fgetpos(stdout, &pos);
+                m_tty = pos < 0;
+            }
+
+            if (!m_tty) {
+                m_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+                m_Now = m_wAttr = 0x7;
+                m_wLight = m_wAttr & FOREGROUND_INTENSITY;
+            }
         }
 
         void WriteConsole(exlib::wchar* ptr, size_t sz)
@@ -50,9 +60,27 @@ void std_logger::out(exlib::string& txt)
 
         void out(exlib::string& s)
         {
+            static HANDLE s_console;
+
             if (!m_tty) {
                 fwrite(s.c_str(), 1, s.length(), stdout);
                 return;
+            }
+
+            if (!m_handle) {
+                if (!s_console) {
+                    AllocConsole();
+
+                    freopen("CONIN$", "r", stdin);
+                    freopen("CONOUT$", "w", stdout);
+                    freopen("CONOUT$", "w", stderr);
+
+                    s_console = GetStdHandle(STD_OUTPUT_HANDLE);
+                }
+
+                m_handle = s_console;
+                m_Now = m_wAttr = 0x7;
+                m_wLight = m_wAttr & FOREGROUND_INTENSITY;
             }
 
             exlib::wstring ws = utf8to16String(s);

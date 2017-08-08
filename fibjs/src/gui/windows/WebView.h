@@ -20,6 +20,7 @@ class WebView : public WebView_base,
                 public IOleClientSite,
                 public IOleInPlaceSite,
                 public IDocHostUIHandler,
+                public IOleCommandTarget,
                 public IServiceProvider,
                 public IInternetSecurityManager {
     FIBER_FREE();
@@ -131,6 +132,13 @@ public:
     STDMETHODIMP GetExternal(IDispatch** ppDispatch);
     STDMETHODIMP TranslateUrl(DWORD dwTranslate, OLECHAR* pchURLIn, OLECHAR** ppchURLOut);
     STDMETHODIMP FilterDataObject(IDataObject* pDO, IDataObject** ppDORet);
+
+public:
+    // IOleCommandTarget
+    STDMETHODIMP Exec(const GUID* pguidCmdGroup, DWORD nCmdID, DWORD nCmdexecopt,
+        VARIANT* pvaIn, VARIANT* pvaOut);
+    STDMETHODIMP QueryStatus(const GUID* pguidCmdGroup, ULONG cCmds, OLECMD prgCmds[],
+        OLECMDTEXT* pCmdText);
 
 public:
     // IServiceProvider

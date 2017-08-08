@@ -25,8 +25,6 @@ public:
         rt(Isolate* cur = NULL);
 
     private:
-        Isolate* m_isolate;
-        JSFiber* m_fiber;
         v8::Unlocker unlocker;
     };
 

@@ -117,6 +117,21 @@ inline result_t base64Encode(exlib::string data, bool url, exlib::string& retVal
     return 0;
 }
 
+inline result_t base64Decode(exlib::string data, exlib::string& retVal)
+{
+    static const char decodeTable[] = {
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, 62, -1, 63, /* 2x  !"#$%&'()*+,-./   */
+        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, /* 3x 0123456789:;<=>?   */
+        -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, /* 4x @ABCDEFGHIJKLMNO   */
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, 63, /* 5X PQRSTUVWXYZ[\]^_   */
+        -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, /* 6x `abcdefghijklmno   */
+        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1 /* 7X pqrstuvwxyz{\}~DEL */
+    };
+
+    baseDecode(decodeTable, 6, data, retVal);
+    return 0;
+}
+
 inline result_t hexEncode(exlib::string data, exlib::string& retVal)
 {
     static char HexChar[] = "0123456789abcdef";

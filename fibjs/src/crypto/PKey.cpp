@@ -12,6 +12,7 @@
 #include "Cipher.h"
 #include "Buffer.h"
 #include "ssl.h"
+#include "encoding.h"
 
 namespace fibjs {
 
@@ -62,10 +63,40 @@ result_t PKey::genRsaKey(int32_t size, AsyncEvent* ac)
     return 0;
 }
 
+void alias_curve(exlib::string& curve)
+{
+    if (curve == "P-521")
+        curve = "secp521r1";
+    else if (curve == "P-384")
+        curve = "secp384r1";
+    else if (curve == "P-256")
+        curve = "secp256r1";
+    else if (curve == "P-224")
+        curve = "secp224r1";
+    else if (curve == "P-192")
+        curve = "secp192r1";
+}
+
+void curve_alias(exlib::string& curve)
+{
+    if (curve == "secp521r1")
+        curve = "P-521";
+    else if (curve == "secp384r1")
+        curve = "P-384";
+    else if (curve == "secp256r1")
+        curve = "P-256";
+    else if (curve == "secp224r1")
+        curve = "P-224";
+    else if (curve == "secp192r1")
+        curve = "P-192";
+}
+
 result_t PKey::genEcKey(exlib::string curve, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    alias_curve(curve);
 
     const mbedtls_ecp_curve_info* curve_info;
     curve_info = mbedtls_ecp_curve_info_from_name(curve.c_str());
@@ -132,10 +163,6 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
 
         mbedtls_rsa_context* rsa1 = mbedtls_pk_rsa(pk1->m_key);
 
-        rsa1->len = rsa->len;
-        rsa1->padding = rsa->padding;
-        rsa1->hash_id = rsa->hash_id;
-
         ret = mbedtls_mpi_copy(&rsa1->N, &rsa->N);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
@@ -143,6 +170,8 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
         ret = mbedtls_mpi_copy(&rsa1->E, &rsa->E);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
+
+        rsa1->len = mbedtls_mpi_size(&rsa1->N);
 
         retVal = pk1;
 
@@ -291,6 +320,142 @@ result_t PKey::importKey(exlib::string pemKey, exlib::string password)
     return 0;
 }
 
+inline result_t mpi_load(Isolate* isolate, mbedtls_mpi* n, v8::Local<v8::Object> o, const char* key)
+{
+    exlib::string b64, s;
+    result_t hr;
+
+    hr = GetConfigValue(isolate->m_isolate, o, key, b64);
+    if (hr < 0)
+        return hr;
+
+    base64Decode(b64, s);
+
+    int32_t ret;
+    ret = mbedtls_mpi_read_binary(n, (unsigned char*)s.c_str(), s.length());
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
+    return 0;
+}
+
+result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
+{
+    Isolate* isolate = holder();
+    int32_t ret;
+    result_t hr;
+    exlib::string kty;
+
+    clear();
+
+    hr = GetConfigValue(isolate->m_isolate, jsonKey, "kty", kty);
+    if (hr < 0)
+        return hr;
+
+    if (kty == "RSA") {
+        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
+        if (ret != 0)
+            return CHECK_ERROR(_ssl::setError(ret));
+
+        mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
+
+        hr = mpi_load(isolate, &rsa->N, jsonKey, "n");
+        if (hr < 0)
+            return hr;
+
+        hr = mpi_load(isolate, &rsa->E, jsonKey, "e");
+        if (hr < 0)
+            return hr;
+
+        rsa->len = mbedtls_mpi_size(&rsa->N);
+
+        ret = mbedtls_rsa_check_pubkey(rsa);
+        if (ret != 0)
+            return CHECK_ERROR(_ssl::setError(ret));
+
+        hr = mpi_load(isolate, &rsa->D, jsonKey, "d");
+        if (hr >= 0) {
+            hr = mpi_load(isolate, &rsa->P, jsonKey, "p");
+            if (hr < 0)
+                return hr;
+
+            hr = mpi_load(isolate, &rsa->Q, jsonKey, "q");
+            if (hr < 0)
+                return hr;
+
+            hr = mpi_load(isolate, &rsa->DP, jsonKey, "dp");
+            if (hr < 0)
+                return hr;
+
+            hr = mpi_load(isolate, &rsa->DQ, jsonKey, "dq");
+            if (hr < 0)
+                return hr;
+
+            hr = mpi_load(isolate, &rsa->QP, jsonKey, "qi");
+            if (hr < 0)
+                return hr;
+
+            ret = mbedtls_rsa_check_privkey(rsa);
+            if (ret != 0)
+                return CHECK_ERROR(_ssl::setError(ret));
+        } else if (hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+
+        return 0;
+    }
+
+    if (kty == "EC") {
+        exlib::string curve;
+
+        hr = GetConfigValue(isolate->m_isolate, jsonKey, "crv", curve);
+        if (hr < 0)
+            return hr;
+
+        alias_curve(curve);
+
+        const mbedtls_ecp_curve_info* curve_info;
+        curve_info = mbedtls_ecp_curve_info_from_name(curve.c_str());
+        if (curve_info == NULL)
+            return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
+
+        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
+        if (ret != 0)
+            return CHECK_ERROR(_ssl::setError(ret));
+
+        mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+
+        mbedtls_ecp_group_load(&ecp->grp, curve_info->grp_id);
+
+        hr = mpi_load(isolate, &ecp->Q.X, jsonKey, "x");
+        if (hr < 0)
+            return hr;
+
+        hr = mpi_load(isolate, &ecp->Q.Y, jsonKey, "y");
+        if (hr < 0)
+            return hr;
+
+        ret = mbedtls_mpi_lset(&ecp->Q.Z, 1);
+        if (ret != 0)
+            return CHECK_ERROR(_ssl::setError(ret));
+
+        ret = mbedtls_ecp_check_pubkey(&ecp->grp, &ecp->Q);
+        if (ret != 0)
+            return CHECK_ERROR(_ssl::setError(ret));
+
+        hr = mpi_load(isolate, &ecp->d, jsonKey, "d");
+        if (hr >= 0) {
+            ret = mbedtls_ecp_check_privkey(&ecp->grp, &ecp->d);
+            if (ret != 0)
+                return CHECK_ERROR(_ssl::setError(ret));
+        } else if (hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+
+        return 0;
+    }
+
+    return CHECK_ERROR(CALL_E_INVALIDARG);
+}
+
 result_t PKey::importFile(exlib::string filename, exlib::string password)
 {
     result_t hr;
@@ -350,6 +515,77 @@ result_t PKey::exportDer(obj_ptr<Buffer_base>& retVal)
         return CHECK_ERROR(_ssl::setError(ret));
 
     retVal = new Buffer(buf.substr(buf.length() - ret));
+
+    return 0;
+}
+
+inline void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string key, const mbedtls_mpi* n)
+{
+    exlib::string data;
+    int32_t sz = (int32_t)mbedtls_mpi_size(n);
+
+    data.resize(sz);
+    mbedtls_mpi_write_binary(n, (unsigned char*)data.c_buffer(), sz);
+
+    exlib::string b64;
+    base64Encode(data, true, b64);
+
+    o->Set(isolate->NewFromUtf8(key), isolate->NewFromUtf8(b64));
+}
+
+result_t PKey::exportJson(v8::Local<v8::Object>& retVal)
+{
+    result_t hr;
+    bool priv;
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    Isolate* isolate = holder();
+    mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
+
+    if (type == MBEDTLS_PK_RSA) {
+        mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
+        v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+
+        o->Set(isolate->NewFromUtf8("kty"), isolate->NewFromUtf8("RSA"));
+        mpi_dump(isolate, o, "n", &rsa->N);
+        mpi_dump(isolate, o, "e", &rsa->E);
+
+        if (priv) {
+            mpi_dump(isolate, o, "d", &rsa->D);
+            mpi_dump(isolate, o, "p", &rsa->P);
+            mpi_dump(isolate, o, "q", &rsa->Q);
+            mpi_dump(isolate, o, "dp", &rsa->DP);
+            mpi_dump(isolate, o, "dq", &rsa->DQ);
+            mpi_dump(isolate, o, "qi", &rsa->QP);
+        }
+
+        retVal = o;
+        return 0;
+    }
+
+    if (type == MBEDTLS_PK_ECKEY) {
+        mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+        v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+        const mbedtls_ecp_curve_info* ci = mbedtls_ecp_curve_info_from_grp_id(ecp->grp.id);
+
+        exlib::string crv = ci->name;
+
+        curve_alias(crv);
+
+        o->Set(isolate->NewFromUtf8("kty"), isolate->NewFromUtf8("EC"));
+        o->Set(isolate->NewFromUtf8("crv"), isolate->NewFromUtf8(crv));
+        mpi_dump(isolate, o, "x", &ecp->Q.X);
+        mpi_dump(isolate, o, "y", &ecp->Q.Y);
+
+        if (priv)
+            mpi_dump(isolate, o, "d", &ecp->d);
+
+        retVal = o;
+        return 0;
+    }
 
     return 0;
 }
@@ -498,5 +734,15 @@ result_t PKey::get_keySize(int32_t& retVal)
 result_t PKey::toString(exlib::string& retVal)
 {
     return exportPem(retVal);
+}
+
+result_t PKey::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
+{
+    v8::Local<v8::Object> o;
+
+    result_t hr = exportJson(o);
+    retVal = o;
+
+    return hr;
 }
 }
