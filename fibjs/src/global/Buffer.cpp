@@ -128,6 +128,44 @@ result_t Buffer_base::from(exlib::string str, exlib::string codec,
     return retVal->append(str, codec);
 }
 
+result_t Buffer_base::byteLength(exlib::string str, exlib::string codec,
+    int32_t& retVal)
+{
+    obj_ptr<Buffer_base> buf = new Buffer();
+    buf->append(str, codec);
+    return buf->get_length(retVal);
+}
+
+#define GET_BYTE_LENGTH                                                       \
+    Isolate* isolate = Isolate::current();                                    \
+    v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext(); \
+    retVal = datas->Get(context, isolate->NewFromUtf8("byteLength"))          \
+                 .ToLocalChecked()                                            \
+                 ->ToNumber(context)                                          \
+                 .ToLocalChecked()                                            \
+                 ->ToInt32(context)                                           \
+                 .ToLocalChecked()                                            \
+                 ->Value();                                                   \
+    return 0;
+
+result_t Buffer_base::byteLength(v8::Local<v8::ArrayBuffer> datas,
+    exlib::string codec, int32_t& retVal)
+{
+    GET_BYTE_LENGTH;
+}
+
+result_t Buffer_base::byteLength(v8::Local<v8::TypedArray> datas,
+    exlib::string codec, int32_t& retVal)
+{
+    GET_BYTE_LENGTH;
+}
+
+result_t Buffer_base::byteLength(Buffer_base* buffer,
+    exlib::string codec, int32_t& retVal)
+{
+    return buffer->get_length(retVal);
+}
+
 result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal)
 {
     result_t hr = 0;
@@ -888,7 +926,6 @@ result_t Buffer::keys(v8::Local<v8::Object>& retVal)
 
     v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
     v8::Local<v8::Symbol> symbol = v8::Symbol::GetIterator(isolate->m_isolate);
-
     v8::Local<v8::Object> b = a->Get(context, symbol)
                                   .ToLocalChecked()
                                   ->ToObject(context)
@@ -897,6 +934,7 @@ result_t Buffer::keys(v8::Local<v8::Object>& retVal)
                                   .ToLocalChecked()
                                   ->ToObject(context)
                                   .ToLocalChecked();
+
 
     retVal = b;
 
@@ -915,7 +953,6 @@ result_t Buffer::values(v8::Local<v8::Object>& retVal)
 
     v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
     v8::Local<v8::Symbol> symbol = v8::Symbol::GetIterator(isolate->m_isolate);
-
     v8::Local<v8::Object> b = a->Get(context, symbol)
                                   .ToLocalChecked()
                                   ->ToObject(context)
@@ -924,6 +961,7 @@ result_t Buffer::values(v8::Local<v8::Object>& retVal)
                                   .ToLocalChecked()
                                   ->ToObject(context)
                                   .ToLocalChecked();
+
 
     retVal = b;
 
