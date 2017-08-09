@@ -4,6 +4,7 @@ test.setup();
 var test_util = require('./test_util');
 
 var os = require("os");
+var path = require("path");
 
 var win = process.platform == 'win32';
 
@@ -81,6 +82,20 @@ if (win) {
             assert.equal(test_util.countObject('WebView'), 0);
             assert.equal(closed, true);
             assert.equal(cnt, 2);
+        });
+
+        it("log", () => {
+            var p = process.open(process.execPath, [path.join(__dirname, 'gui_files', 'gui1.js')]);
+            var r = p.readLines();
+            assert.equal(r[0], 'this is.a log');
+            assert.equal(r[1], '\u001b[0;33mthis is.a warn\u001b[0m');
+            assert.equal(r[2].substr(0, 21), '\x1b[1;31mWebView Error:');
+        });
+
+        it("debug", () => {
+            var p = process.open(process.execPath, [path.join(__dirname, 'gui_files', 'gui2.js')]);
+            var r = p.readLines();
+            assert.equal(r.length, 0);
         });
     });
 }
