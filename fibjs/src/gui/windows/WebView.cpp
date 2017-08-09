@@ -1616,7 +1616,6 @@ HRESULT WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
 
         pScript->GetIDsOfNames(IID_NULL, &pszName, 1,
             LOCALE_USER_DEFAULT, &dispid);
-        printf("%d\n", dispid);
 
         if (dispid == -1) {
             _variant_t arg = g_console_js;
