@@ -235,9 +235,9 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
             pThis->set(error_end);
-            pThis->m_pThis->m_err_hdlr.get(pThis->m_hdlr);
-            if (pThis->m_hdlr)
-                return mq_base::invoke(pThis->m_hdlr, pThis->m_msg, pThis);
+            pThis->m_pThis->m_err_hdlr.get(pThis->m_err_hdlr);
+            if (pThis->m_err_hdlr)
+                return mq_base::invoke(pThis->m_err_hdlr, pThis->m_msg, pThis);
             return 0;
         }
 
@@ -284,6 +284,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<WebSocketMessage_base> m_msg;
         obj_ptr<Message_base> m_rep;
         obj_ptr<Handler_base> m_hdlr;
+        obj_ptr<Handler_base> m_err_hdlr;
         bool m_event;
         int32_t m_error;
     };

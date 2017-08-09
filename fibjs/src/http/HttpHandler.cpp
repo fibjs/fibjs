@@ -200,10 +200,10 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
 
             pThis->set(send);
-            pThis->m_pThis->m_err_hdlrs[err_idx].get(pThis->m_hdlr);
-            if (err_idx == -1 || !pThis->m_hdlr)
+            pThis->m_pThis->m_err_hdlrs[err_idx].get(pThis->m_err_hdlr);
+            if (err_idx == -1 || !pThis->m_err_hdlr)
                 return 0;
-            return mq_base::invoke(pThis->m_hdlr, pThis->m_req, pThis);
+            return mq_base::invoke(pThis->m_err_hdlr, pThis->m_req, pThis);
         }
 
         static int32_t send(AsyncState* pState, int32_t n)
@@ -374,6 +374,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<MemoryStream> m_zip;
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<Handler_base> m_hdlr;
+        obj_ptr<Handler_base> m_err_hdlr;
         date_t m_d;
     };
 
