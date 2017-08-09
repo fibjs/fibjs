@@ -136,15 +136,9 @@ public:
 
     T* operator=(T* lp)
     {
-        if (lp != NULL)
-            lp->Ref();
+        if (lp == p)
+            return lp;
 
-        return _attach(lp);
-    }
-
-    template <class Q>
-    T* operator=(Q* lp)
-    {
         if (lp != NULL)
             lp->Ref();
 
