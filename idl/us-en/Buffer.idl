@@ -29,7 +29,6 @@ interface Buffer : object
      */
     static Boolean isBuffer(Value v);
 
-
     /*! @brief Create a Buffer object from Array
      @param datas Variable to create Buffer objcet
      @return Return a Buffer object
@@ -66,7 +65,35 @@ interface Buffer : object
      @param cutLength Number Total length of the buffers when concatenated
      @return Returns a buffer which is the result of concatenating the buffers in the list.
     */
-    static Buffer concat(Array buflist, Integer cutLength = -1);
+    static Buffer concat(Array buflist, String cutLength = -1);
+
+    /*! @brief Returns the actual byte length of a string
+     @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     @return Returns the actual byte length
+     */
+    static Integer byteLength(String str, String codec = "utf8");
+
+    /*! @brief Returns the actual byte length of a string
+     @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     @return Returns the actual byte length
+     */
+    static Integer byteLength(ArrayBuffer str, String codec = "utf8");
+
+    /*! @brief Returns the actual byte length of a string
+     @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     @return Returns the actual byte length
+     */
+    static Integer byteLength(ArrayBufferView str, String codec = "utf8");
+
+    /*! @brief Returns the actual byte length of a string
+     @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     @return Returns the actual byte length
+     */
+    static Integer byteLength(Buffer str, String codec = "utf8");
 
     /*! @brief Buffer constructor
      @param size Initial cache size

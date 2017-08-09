@@ -15,6 +15,7 @@ module.exports = function (defs, baseFolder) {
             "Array": "v8::Local<v8::Array>",
             "TypedArray": "v8::Local<v8::TypedArray>",
             "ArrayBuffer": "v8::Local<v8::ArrayBuffer>",
+            "ArrayBufferView": "v8::Local<v8::ArrayBufferView>",
             "Function": "v8::Local<v8::Function>",
             "Value": "v8::Local<v8::Value>",
             "Variant": "Variant",
@@ -298,12 +299,12 @@ module.exports = function (defs, baseFolder) {
                 }
             },
             "object": {
-                "declare": () => {},
-                "stub": () => {},
-                "stub_func": () => {}
+                "declare": () => { },
+                "stub": () => { },
+                "stub_func": () => { }
             },
             "const": {
-                "declare": () => {},
+                "declare": () => { },
                 "stub": fn => {
                     var fname = fn.name;
                     txts.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
