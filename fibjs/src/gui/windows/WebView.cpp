@@ -456,8 +456,8 @@ WebView::WebView(exlib::string url, Map_base* opt)
     int y = CW_USEDEFAULT;
     int nWidth = CW_USEDEFAULT;
     int nHeight = CW_USEDEFAULT;
-    bool bSilent = true;
 
+    m_bSilent = false;
     m_maximize = false;
 
     if (opt) {
@@ -490,8 +490,8 @@ WebView::WebView(exlib::string url, Map_base* opt)
                 m_visible = false;
         }
 
-        if (opt->get("debug", v) == 0 && v.boolVal())
-            bSilent = false;
+        if (opt->get("debug", v) == 0 && !v.boolVal())
+            m_bSilent = true;
     } else
         dwStyle = WS_OVERLAPPEDWINDOW;
 
@@ -546,7 +546,7 @@ WebView::WebView(exlib::string url, Map_base* opt)
 
     oleObject->QueryInterface(&oleCommandTarget);
 
-    if (bSilent)
+    if (m_bSilent)
         webBrowser2->put_Silent(VARIANT_TRUE);
 
     webBrowser2->put_RegisterAsDropTarget(VARIANT_FALSE);
@@ -1711,33 +1711,35 @@ HRESULT WebView::OnLog(DISPPARAMS* pDispParams)
     if (pDispParams->cArgs != 2)
         return DISP_E_BADPARAMCOUNT;
 
-    int32_t priority;
-    if (pDispParams->rgvarg[1].vt == VT_I4) {
-        priority = pDispParams->rgvarg[1].lVal;
-    } else {
-        _variant_t vint;
-        HRESULT hr = VariantChangeType(&vint, &pDispParams->rgvarg[1],
-            VARIANT_ALPHABOOL, VT_I4);
-        if (!SUCCEEDED(hr))
-            return hr;
-        priority = vint.lVal;
+    if (!m_bSilent) {
+        int32_t priority;
+        if (pDispParams->rgvarg[1].vt == VT_I4) {
+            priority = pDispParams->rgvarg[1].lVal;
+        } else {
+            _variant_t vint;
+            HRESULT hr = VariantChangeType(&vint, &pDispParams->rgvarg[1],
+                VARIANT_ALPHABOOL, VT_I4);
+            if (!SUCCEEDED(hr))
+                return hr;
+            priority = vint.lVal;
+        }
+
+        exlib::string msg;
+        if (pDispParams->rgvarg[0].vt == VT_BSTR) {
+            msg = utf16to8String(pDispParams->rgvarg[0].bstrVal);
+        } else {
+            _variant_t vstr;
+            HRESULT hr = VariantChangeType(&vstr, &pDispParams->rgvarg[0],
+                VARIANT_ALPHABOOL, VT_BSTR);
+            if (!SUCCEEDED(hr))
+                return hr;
+
+            if (vstr.bstrVal)
+                msg = utf16to8String(vstr.bstrVal);
+        }
+
+        outLog(priority, msg);
     }
-
-    exlib::string msg;
-    if (pDispParams->rgvarg[0].vt == VT_BSTR) {
-        msg = utf16to8String(pDispParams->rgvarg[0].bstrVal);
-    } else {
-        _variant_t vstr;
-        HRESULT hr = VariantChangeType(&vstr, &pDispParams->rgvarg[0],
-            VARIANT_ALPHABOOL, VT_BSTR);
-        if (!SUCCEEDED(hr))
-            return hr;
-
-        if (vstr.bstrVal)
-            msg = utf16to8String(vstr.bstrVal);
-    }
-
-    outLog(priority, msg);
 
     return S_OK;
 }
