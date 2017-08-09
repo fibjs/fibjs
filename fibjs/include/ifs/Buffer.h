@@ -37,9 +37,9 @@ public:
     static result_t from(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     static result_t concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal);
     static result_t byteLength(exlib::string str, exlib::string codec, int32_t& retVal);
-    static result_t byteLength(v8::Local<v8::ArrayBuffer> datas, exlib::string codec, int32_t& retVal);
-    static result_t byteLength(v8::Local<v8::TypedArray> datas, exlib::string codec, int32_t& retVal);
-    static result_t byteLength(Buffer_base* buffer, exlib::string codec, int32_t& retVal);
+    static result_t byteLength(v8::Local<v8::ArrayBuffer> str, exlib::string codec, int32_t& retVal);
+    static result_t byteLength(v8::Local<v8::ArrayBufferView> str, exlib::string codec, int32_t& retVal);
+    static result_t byteLength(Buffer_base* str, exlib::string codec, int32_t& retVal);
     virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
     virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
     virtual result_t get_length(int32_t& retVal) = 0;
@@ -104,9 +104,9 @@ public:
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t hex(exlib::string& retVal) = 0;
     virtual result_t base64(exlib::string& retVal) = 0;
-    virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t keys(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t values(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal) = 0;
     virtual result_t toString(exlib::string& retVal) = 0;
 
@@ -173,9 +173,9 @@ public:
     static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hex(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_base64(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_values(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -240,9 +240,9 @@ inline ClassInfo& Buffer_base::class_info()
         { "slice", s_slice, false },
         { "hex", s_hex, false },
         { "base64", s_base64, false },
-        { "toArray", s_toArray, false },
         { "keys", s_keys, false },
         { "values", s_values, false },
+        { "toArray", s_toArray, false },
         { "toString", s_toString, false }
     };
 
@@ -410,7 +410,7 @@ inline void Buffer_base::s_byteLength(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(2, 1);
 
-    ARG(v8::Local<v8::TypedArray>, 0);
+    ARG(v8::Local<v8::ArrayBufferView>, 0);
     OPT_ARG(exlib::string, 1, "utf8");
 
     hr = byteLength(v0, v1, vr);
@@ -1358,20 +1358,6 @@ inline void Buffer_base::s_base64(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void Buffer_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Array> vr;
-
-    METHOD_INSTANCE(Buffer_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->toArray(vr);
-
-    METHOD_RETURN();
-}
-
 inline void Buffer_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
@@ -1396,6 +1382,20 @@ inline void Buffer_base::s_values(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER(0, 0);
 
     hr = pInst->values(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->toArray(vr);
 
     METHOD_RETURN();
 }

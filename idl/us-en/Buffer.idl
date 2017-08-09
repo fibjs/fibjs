@@ -65,35 +65,35 @@ interface Buffer : object
      @param cutLength Number Total length of the buffers when concatenated
      @return Returns a buffer which is the result of concatenating the buffers in the list.
     */
-    static Buffer concat(Array buflist, Integer cutLength = -1);
+    static Buffer concat(Array buflist, String cutLength = -1);
 
     /*! @brief Returns the actual byte length of a string
-     @param str Initial string encoded in UTF-8
+     @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
      @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
      @return Returns the actual byte length
      */
     static Integer byteLength(String str, String codec = "utf8");
 
-    /*! @brief Returns the actual byte length of a ArrayBuffer Object
-     @param datas Need to get the byte length of the ArrayBuffer object
+    /*! @brief Returns the actual byte length of a string
+     @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
      @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
      @return Returns the actual byte length
      */
-    static Integer byteLength(ArrayBuffer datas, String codec = "utf8");
+    static Integer byteLength(ArrayBuffer str, String codec = "utf8");
 
-    /*! @brief 返回 TypedArray 的实际字节长度
-     @param datas  Need to get the byte length of the TypedArray object
+    /*! @brief Returns the actual byte length of a string
+     @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
      @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
      @return Returns the actual byte length
      */
-    static Integer byteLength(TypedArray datas, String codec = "utf8");
+    static Integer byteLength(ArrayBufferView str, String codec = "utf8");
 
-    /*! @brief 返回 Buffer 对象的实际字节长度
-     @param datas  Need to get the byte length of the Buffer object
+    /*! @brief Returns the actual byte length of a string
+     @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
      @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
      @return Returns the actual byte length
      */
-    static Integer byteLength(Buffer buffer, String codec = "utf8");
+    static Integer byteLength(Buffer str, String codec = "utf8");
 
     /*! @brief Buffer constructor
      @param size Initial cache size
