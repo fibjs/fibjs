@@ -371,6 +371,7 @@ void init_gui()
     gui_thread* _thGUI = new gui_thread();
     _thGUI->start();
     s_thread = _thGUI->thread_id;
+    gui_base::setVersion(99999);
 }
 
 result_t gui_base::setVersion(int32_t ver)
