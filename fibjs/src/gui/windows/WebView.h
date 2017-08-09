@@ -6,6 +6,7 @@
  */
 
 #include "ifs/WebView.h"
+#include "ifs/Map.h"
 #include <comdef.h>
 #include <Exdisp.h>
 #include <mshtmhst.h>
@@ -26,8 +27,10 @@ class WebView : public WebView_base,
     FIBER_FREE();
 
 public:
-    WebView(exlib::string url, Map_base* opt = NULL);
+    WebView(exlib::string url, Map_base* opt);
     ~WebView();
+
+    HRESULT open();
 
     void GetDPI(int* dpix, int* dpiy);
     RECT PixelToHiMetric(const RECT& _rc);
@@ -189,6 +192,9 @@ private:
     result_t WebView::postClose(_variant_t& retVal);
 
 protected:
+    exlib::string m_url;
+    obj_ptr<Map_base> m_opt;
+
     IStorage* storage;
     IOleObject* oleObject;
     IOleInPlaceObject* oleInPlaceObject;

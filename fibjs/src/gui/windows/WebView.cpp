@@ -14,6 +14,7 @@
 #include "ifs/os.h"
 #include "path.h"
 #include "WebView.h"
+#include "Map.h"
 #include "EventInfo.h"
 #include "utf8.h"
 #include <exlib/include/thread.h>
@@ -388,23 +389,23 @@ result_t gui_base::setVersion(int32_t ver)
     return 0;
 }
 
-result_t gui_base::open(exlib::string url, obj_ptr<WebView_base>& retVal,
-    AsyncEvent* ac)
+static result_t async_open(obj_ptr<WebView> w)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_GUICALL);
-
-    retVal = new WebView(url);
+    w->open();
     return 0;
 }
 
-result_t gui_base::open(exlib::string url, Map_base* opt,
-    obj_ptr<WebView_base>& retVal, AsyncEvent* ac)
+result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_GUICALL);
+    obj_ptr<Map_base> o = new Map();
+    o->set(opt);
 
-    retVal = new WebView(url, opt);
+    obj_ptr<WebView> w = new WebView(url, o);
+    w->wrap();
+
+    asyncCall(async_open, w, CALL_E_GUICALL);
+    retVal = w;
+
     return 0;
 }
 
@@ -436,6 +437,9 @@ static void RegMainClass()
 
 WebView::WebView(exlib::string url, Map_base* opt)
 {
+    m_url = url;
+    m_opt = opt;
+
     m_ac = NULL;
     oleObject = NULL;
     oleInPlaceObject = NULL;
@@ -450,7 +454,15 @@ WebView::WebView(exlib::string url, Map_base* opt)
     m_visible = true;
 
     RegMainClass();
+}
 
+WebView::~WebView()
+{
+    clear();
+}
+
+HRESULT WebView::open()
+{
     DWORD dwStyle = WS_POPUP;
     int x = CW_USEDEFAULT;
     int y = CW_USEDEFAULT;
@@ -460,37 +472,37 @@ WebView::WebView(exlib::string url, Map_base* opt)
     m_bSilent = false;
     m_maximize = false;
 
-    if (opt) {
+    if (m_opt) {
         Variant v;
 
-        if (opt->get("left", v) == 0)
+        if (m_opt->get("left", v) == 0)
             x = v;
-        if (opt->get("top", v) == 0)
+        if (m_opt->get("top", v) == 0)
             y = v;
-        if (opt->get("width", v) == 0)
+        if (m_opt->get("width", v) == 0)
             nWidth = v;
-        if (opt->get("height", v) == 0)
+        if (m_opt->get("height", v) == 0)
             nHeight = v;
 
-        if (!(opt->get("border", v) == 0 && !v.boolVal())) {
+        if (!(m_opt->get("border", v) == 0 && !v.boolVal())) {
             dwStyle |= WS_BORDER;
 
-            if (!(opt->get("caption", v) == 0 && !v.boolVal()))
+            if (!(m_opt->get("caption", v) == 0 && !v.boolVal()))
                 dwStyle ^= WS_POPUP | WS_CAPTION | WS_SYSMENU;
 
-            if (!(opt->get("resizable", v) == 0 && !v.boolVal()))
+            if (!(m_opt->get("resizable", v) == 0 && !v.boolVal()))
                 dwStyle ^= WS_THICKFRAME | WS_BORDER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 
-            if (opt->get("maximize", v) == 0 && v.boolVal()) {
+            if (m_opt->get("maximize", v) == 0 && v.boolVal()) {
                 m_maximize = true;
                 dwStyle |= WS_MAXIMIZE;
             }
 
-            if (opt->get("visible", v) == 0 && !v.boolVal())
+            if (m_opt->get("visible", v) == 0 && !v.boolVal())
                 m_visible = false;
         }
 
-        if (opt->get("debug", v) == 0 && !v.boolVal())
+        if (m_opt->get("debug", v) == 0 && !v.boolVal())
             m_bSilent = true;
     } else
         dwStyle = WS_OVERLAPPEDWINDOW;
@@ -565,12 +577,9 @@ WebView::WebView(exlib::string url, Map_base* opt)
     GetClientRect(hWndParent, &rcClient);
     SetRect(rcClient);
 
-    Navigate(url.c_str());
-}
+    Navigate(m_url.c_str());
 
-WebView::~WebView()
-{
-    clear();
+    return 0;
 }
 
 void WebView::clear()
