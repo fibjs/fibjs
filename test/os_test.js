@@ -87,11 +87,17 @@ describe('os', () => {
     });
 
     it('tmpdir', () => {
+        var tmpdir = process.env.TMPDIR;
         process.env.TMPDIR = '/tmpdir';
+        var tmp = process.env.TMP;
         process.env.TMP = '/tmp';
+        var temp = process.env.TEMP;
         process.env.TEMP = '/temp';
 
         if (process.platform === 'win32') {
+            var sys = process.env.SystemRoot;
+            var wdir = process.env.windir;
+
             process.env.SystemRoot = "\\SystemRoot";
             process.env.windir = "\\windir";
 
@@ -115,6 +121,9 @@ describe('os', () => {
             assert.equal(os.tmpdir(), '\\temp');
             process.env.TEMP = 'c:\\';
             assert.equal(os.tmpdir(), 'c:\\');
+
+            process.env.SystemRoot = sys;
+            process.env.windir = wdir;
         } else {
             assert.equal(os.tmpdir(), '/tmpdir');
             process.env.TMPDIR = '';
@@ -135,6 +144,10 @@ describe('os', () => {
             process.env.TEMP = '/temp/////';
             assert.equal(os.tmpdir(), '/temp');
         }
+
+        process.env.TMPDIR = tmpdir;
+        process.env.TMP = tmp;
+        process.env.TEMP = temp;
     });
 
     it('endianness', () => {
