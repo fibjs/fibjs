@@ -108,7 +108,7 @@ describe('Buffer', () => {
         buf1 = new Buffer('');
         bufArray = [buf1];
         assert.doesNotThrow(() => {
-            bufRes = Buffer.concat([() => {}, {}, undefined, '']);
+            bufRes = Buffer.concat([() => { }, {}, undefined, '']);
         });
     });
 
@@ -154,6 +154,57 @@ describe('Buffer', () => {
         var buf = Buffer.from(new Buffer("abcd"));
         assert.equal(buf.length, 4);
         assert.equal(buf.toString(), "abcd");
+    });
+
+    it('Buffer.byteLength(String)', () => {
+        var str1 = '\u00bd + \u00bc = \u00be';
+        var str2 = '0xffffff';
+        var str3 = 'YnVmZmVy';
+        assert.equal(Buffer.byteLength(str1), 12);
+        assert.equal(Buffer.byteLength(str1, 'utf8'), 12);
+        assert.equal(Buffer.byteLength(str2, 'hex'), 4);
+        assert.equal(Buffer.byteLength(str3, 'base64'), 6);
+    });
+
+    it('Buffer.byteLength(ArrayBuffer)', () => {
+        var buf = new ArrayBuffer(8);
+        assert.equal(Buffer.byteLength(buf), 8);
+        assert.equal(Buffer.byteLength(buf, ''), 8);
+        assert.equal(Buffer.byteLength(buf, 'utf8'), 8);
+    });
+
+    it('Buffer.byteLength(TypedArray)', () => {
+        var buf = new ArrayBuffer(8);
+        var int32Array = new Int32Array(buf);
+        assert.equal(Buffer.byteLength(int32Array), 8);
+        assert.equal(Buffer.byteLength(int32Array, ''), 8);
+        assert.equal(Buffer.byteLength(int32Array, 'utf8'), 8);
+    });
+
+    it('Buffer.byteLength(DateView)', () => {
+        var buf = new ArrayBuffer(8);
+        var dataView = new DataView(buf);
+        assert.equal(Buffer.byteLength(dataView), 8);
+        assert.equal(Buffer.byteLength(dataView, ''), 8);
+        assert.equal(Buffer.byteLength(dataView, 'utf8'), 8);
+    });
+
+    it('Buffer.byteLength(Buffer)', () => {
+        var buf1 = new Buffer("abcd");
+        var buf2 = new Buffer([98, 117, 102, 102, 101, 114]);
+        assert.equal(Buffer.byteLength(buf1), 4);
+        assert.equal(Buffer.byteLength(buf2), 6);
+        assert.equal(Buffer.byteLength(buf1, ''), 4);
+        assert.equal(Buffer.byteLength(buf1, 'utf-8'), 4);
+        assert.equal(Buffer.byteLength(buf2, ''), 6);
+        assert.equal(Buffer.byteLength(buf2, 'utf-8'), 6);
+    });
+
+    it('Buffer.byteLength(other)', () => {
+        assert.equal(Buffer.byteLength({}), 15);
+        assert.equal(Buffer.byteLength(function () { }), 15);
+        assert.equal(Buffer.byteLength(() => { }), 9);
+        assert.equal(Buffer.byteLength([]), 0);
     });
 
     it('keys', () => {
