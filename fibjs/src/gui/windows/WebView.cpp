@@ -967,9 +967,10 @@ ULONG WebView::Release(void)
 }
 
 #define DISPID_POSTMESSAGE (1000 + 1)
-#define DISPID_ONMESSAGE (1000 + 2)
-#define DISPID_ONCLOSE (1000 + 3)
-#define DISPID_CLOSE (1000 + 4)
+#define DISPID_LOG (1000 + 2)
+#define DISPID_ONMESSAGE (1000 + 3)
+#define DISPID_ONCLOSE (1000 + 4)
+#define DISPID_CLOSE (1000 + 5)
 
 // IDispatch
 HRESULT WebView::GetIDsOfNames(REFIID riid, OLECHAR** rgszNames,
@@ -980,6 +981,8 @@ HRESULT WebView::GetIDsOfNames(REFIID riid, OLECHAR** rgszNames,
     for (i = 0; i < cNames; i++) {
         if (!qstrcmp(rgszNames[i], L"postMessage"))
             rgdispid[i] = DISPID_POSTMESSAGE;
+        else if (!qstrcmp(rgszNames[i], L"log"))
+            rgdispid[i] = DISPID_LOG;
         else if (!qstrcmp(rgszNames[i], L"onmessage"))
             rgdispid[i] = DISPID_ONMESSAGE;
         else if (!qstrcmp(rgszNames[i], L"onclose"))
@@ -1035,6 +1038,8 @@ HRESULT WebView::Invoke(DISPID dispid, REFIID riid, LCID lcid, WORD wFlags,
 
     case DISPID_POSTMESSAGE:
         return OnPostMessage(pDispParams);
+    case DISPID_LOG:
+        return OnLog(pDispParams);
     case DISPID_ONMESSAGE:
         return OnOnMessage(pDispParams);
     case DISPID_ONCLOSE:
@@ -1587,8 +1592,60 @@ HRESULT WebView::OnDownloadComplete(DISPPARAMS* pDispParams)
     return E_NOTIMPL;
 }
 
+extern const wchar_t* g_console_js;
+
 HRESULT WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
 {
+    IWebBrowser2* frame = NULL;
+    pDispParams->rgvarg[1].pdispVal->QueryInterface(&frame);
+
+    HRESULT hr;
+    IDispatch* pHtmlDoc = NULL;
+
+    hr = frame->get_Document(&pHtmlDoc);
+    if (SUCCEEDED(hr)) {
+        IHTMLDocument2* pDoc = NULL;
+        IHTMLWindow2* pWindow = NULL;
+        IDispatch* pScript = NULL;
+
+        pHtmlDoc->QueryInterface(IID_IHTMLDocument2, (void**)&pDoc);
+        pDoc->get_Script(&pScript);
+
+        DISPID dispid = -1;
+        LPOLESTR pszName = L"eval";
+
+        pScript->GetIDsOfNames(IID_NULL, &pszName, 1,
+            LOCALE_USER_DEFAULT, &dispid);
+        printf("%d\n", dispid);
+
+        if (dispid == -1) {
+            _variant_t arg = g_console_js;
+            _variant_t result;
+            DISPPARAMS dispparams;
+            dispparams.rgvarg = &arg;
+            dispparams.cArgs = 1;
+            dispparams.cNamedArgs = 0;
+
+            pScript->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD,
+                &dispparams, &result, NULL, NULL);
+        } else {
+            _variant_t result;
+            _bstr_t s = g_console_js;
+            _bstr_t l = L"JavaScript";
+
+            pDoc->get_parentWindow(&pWindow);
+            pWindow->execScript(s, l, &result);
+
+            pWindow->Release();
+        }
+
+        pScript->Release();
+        pHtmlDoc->Release();
+        pDoc->Release();
+    }
+
+    frame->Release();
+
     return E_NOTIMPL;
 }
 
@@ -1634,15 +1691,54 @@ HRESULT WebView::OnPostMessage(DISPPARAMS* pDispParams)
 
     Variant v;
     if (pDispParams->rgvarg[0].vt == VT_BSTR) {
-        v = UTF8_A(pDispParams->rgvarg[0].bstrVal);
+        v = utf16to8String(pDispParams->rgvarg[0].bstrVal);
         _emit("message", &v, 1);
     } else {
-        _variant_t vstr(pDispParams->rgvarg[0]);
+        _variant_t vstr;
+        HRESULT hr = VariantChangeType(&vstr, &pDispParams->rgvarg[0],
+            VARIANT_ALPHABOOL, VT_BSTR);
+        if (!SUCCEEDED(hr))
+            return hr;
 
-        vstr.ChangeType(VT_BSTR);
-        v = UTF8_A(vstr.bstrVal);
+        v = utf16to8String(vstr.bstrVal);
         _emit("message", &v, 1);
     }
+
+    return S_OK;
+}
+
+HRESULT WebView::OnLog(DISPPARAMS* pDispParams)
+{
+    if (pDispParams->cArgs != 2)
+        return DISP_E_BADPARAMCOUNT;
+
+    int32_t priority;
+    if (pDispParams->rgvarg[1].vt == VT_I4) {
+        priority = pDispParams->rgvarg[1].lVal;
+    } else {
+        _variant_t vint;
+        HRESULT hr = VariantChangeType(&vint, &pDispParams->rgvarg[1],
+            VARIANT_ALPHABOOL, VT_I4);
+        if (!SUCCEEDED(hr))
+            return hr;
+        priority = vint.lVal;
+    }
+
+    exlib::string msg;
+    if (pDispParams->rgvarg[0].vt == VT_BSTR) {
+        msg = utf16to8String(pDispParams->rgvarg[0].bstrVal);
+    } else {
+        _variant_t vstr;
+        HRESULT hr = VariantChangeType(&vstr, &pDispParams->rgvarg[0],
+            VARIANT_ALPHABOOL, VT_BSTR);
+        if (!SUCCEEDED(hr))
+            return hr;
+
+        if (vstr.bstrVal)
+            msg = utf16to8String(vstr.bstrVal);
+    }
+
+    outLog(priority, msg);
 
     return S_OK;
 }

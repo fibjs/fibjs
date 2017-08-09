@@ -180,6 +180,7 @@ private:
     HRESULT OnWindowClosing(DISPPARAMS* pDispParams);
 
     HRESULT OnPostMessage(DISPPARAMS* pDispParams);
+    HRESULT OnLog(DISPPARAMS* pDispParams);
     HRESULT OnOnMessage(DISPPARAMS* pDispParams);
     HRESULT OnOnClose(DISPPARAMS* pDispParams);
     HRESULT OnClose(DISPPARAMS* pDispParams);
