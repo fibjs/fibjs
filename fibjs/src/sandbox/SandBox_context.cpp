@@ -136,9 +136,10 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
         exlib::string strPath;
 
         path_base::dirname(*v8::String::Utf8Value(path), strPath);
-        if (strPath.length())
-            strPath += PATH_SLASH;
-        id = strPath + id;
+        if (strPath.length()) {
+            resolvePath(strPath, id);
+            id = strPath;
+        }
     }
 
     hr = sbox->run(id, argv);

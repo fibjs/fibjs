@@ -105,7 +105,8 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
     exlib::string buf;
     obj_ptr<Buffer_base> bin;
 
-    fname1 = fname + PATH_SLASH + "package.json";
+    fname1 = fname;
+    resolvePath(fname1, "package.json");
     hr = loadFile(fname1, bin);
     if (hr < 0)
         return CALL_E_FILE_NOT_FOUND;
@@ -159,7 +160,8 @@ result_t SandBox::resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
     if (hr != CALL_E_FILE_NOT_FOUND)
         return hr;
 
-    fname1 = fname + PATH_SLASH + "index";
+    fname1 = fname;
+    resolvePath(fname1, "index");
     hr = resolveFile(_mods, fname1, data, retVal);
     if (hr >= 0) {
         fname = fname1;
@@ -173,7 +175,7 @@ result_t SandBox::resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
         return hr;
     }
 
-    fname1 = fname1 + PATH_SLASH + "index";
+    resolvePath(fname1, "index");
     hr = resolveFile(_mods, fname1, data, retVal);
     if (hr >= 0) {
         fname = fname1;
@@ -233,11 +235,10 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
             base = fname;
 
             if (fname.length())
-                fname += PATH_SLASH;
-
-            fname += "node_modules";
-            fname += PATH_SLASH;
-            fname += id;
+                resolvePath(fname, "node_modules");
+            else
+                fname = "node_modules";
+            resolvePath(fname, id);
 
             hr = resolveFile(fname, data, &retVal);
             if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND) {
