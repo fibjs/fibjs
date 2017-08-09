@@ -99,7 +99,7 @@ private:
             m_pProtSink = pIProtSink;
             m_pProtSink->AddRef();
 
-            result_t hr = fs_base::cc_openFile(UTF8_A(szUrl + 3), "r", m_file);
+            result_t hr = fs_base::cc_openFile(utf16to8String(szUrl + 3), "r", m_file);
             if (hr < 0)
                 return INET_E_OBJECT_NOT_FOUND;
 
@@ -1327,12 +1327,14 @@ HRESULT WebView::Exec(const GUID* pguidCmdGroup, DWORD nCmdID, DWORD nCmdexecopt
             exlib::string msg("WebView Error: ");
             char buf[32];
 
-            msg += utf16to8String(rgvaEventInfo[3].bstrVal) + "\n    at ";
-            msg += utf16to8String(rgvaEventInfo[4].bstrVal);
-
-            sprintf(buf, ":%d:%d", rgvaEventInfo[0].intVal, rgvaEventInfo[1].intVal);
-
-            msg += buf;
+            if (rgvaEventInfo[3].bstrVal) {
+                msg += utf16to8String(rgvaEventInfo[3].bstrVal);
+                if (rgvaEventInfo[4].bstrVal) {
+                    msg += "\n    at " + utf16to8String(rgvaEventInfo[4].bstrVal);
+                    sprintf(buf, ":%d:%d", rgvaEventInfo[0].intVal, rgvaEventInfo[1].intVal);
+                    msg += buf;
+                }
+            }
 
             errorLog(msg);
 
