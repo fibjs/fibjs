@@ -99,7 +99,8 @@ result_t TcpServer::run(AsyncEvent* ac)
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
             pThis->set(close);
-            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_sock, pThis);
+            pThis->m_pThis->m_hdlr.get(pThis->m_hdlr);
+            return mq_base::invoke(pThis->m_hdlr, pThis->m_sock, pThis);
         }
 
         static int32_t close(AsyncState* pState, int32_t n)
@@ -122,6 +123,7 @@ result_t TcpServer::run(AsyncEvent* ac)
     private:
         obj_ptr<TcpServer> m_pThis;
         obj_ptr<Socket_base> m_sock;
+        obj_ptr<Handler_base> m_hdlr;
     };
 
     class asyncAccept : public AsyncState {
@@ -160,10 +162,8 @@ result_t TcpServer::run(AsyncEvent* ac)
 
         virtual int32_t error(int32_t v)
         {
-            if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL) {
-                m_pThis->dispose();
+            if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL)
                 return v;
-            }
 
             errorLog("TcpServer: " + getResultMessage(v));
             return 0;
@@ -238,19 +238,17 @@ result_t TcpServer::get_socket(obj_ptr<Socket_base>& retVal)
 
 result_t TcpServer::get_handler(obj_ptr<Handler_base>& retVal)
 {
-    retVal = m_hdlr;
+    m_hdlr.get(retVal);
     return 0;
 }
 
 result_t TcpServer::set_handler(Handler_base* newVal)
 {
-    obj_ptr<Handler_base> hdlr = (Handler_base*)m_hdlr;
+    obj_ptr<Handler_base> hdlr;
+    m_hdlr.get(hdlr);
 
     SetPrivate("handler", newVal->wrap());
-    m_hdlr = newVal;
-
-    if (hdlr)
-        hdlr->dispose();
+    m_hdlr.set(newVal);
 
     return 0;
 }

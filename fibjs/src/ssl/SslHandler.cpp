@@ -95,7 +95,8 @@ result_t SslHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
             pThis->set(close);
-            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_socket, pThis);
+            pThis->m_pThis->m_hdlr.get(pThis->m_hdlr);
+            return mq_base::invoke(pThis->m_hdlr, pThis->m_socket, pThis);
         }
 
         static int32_t close(AsyncState* pState, int32_t n)
@@ -116,6 +117,7 @@ result_t SslHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<SslHandler> m_pThis;
         obj_ptr<Stream_base> m_stm;
         obj_ptr<SslSocket_base> m_socket;
+        obj_ptr<Handler_base> m_hdlr;
     };
 
     if (ac->isSync())
@@ -145,19 +147,17 @@ result_t SslHandler::get_ca(obj_ptr<X509Cert_base>& retVal)
 
 result_t SslHandler::get_handler(obj_ptr<Handler_base>& retVal)
 {
-    retVal = m_hdlr;
+    m_hdlr.get(retVal);
     return 0;
 }
 
 result_t SslHandler::set_handler(Handler_base* newVal)
 {
-    obj_ptr<Handler_base> hdlr = (Handler_base*)m_hdlr;
+    obj_ptr<Handler_base> hdlr;
+    m_hdlr.get(hdlr);
 
     SetPrivate("handler", newVal->wrap());
-    m_hdlr = newVal;
-
-    if (hdlr)
-        hdlr->dispose();
+    m_hdlr.set(newVal);
 
     return 0;
 }

@@ -47,107 +47,146 @@ result_t HttpServer::create(exlib::string addr, int32_t port, Handler_base* hdlr
 
     _server = new TcpServer();
 
-    m_server = _server;
-
     SetPrivate("handler", _handler->wrap());
+    m_hdlr.set(_handler);
+
     SetPrivate("server", _server->wrap());
+    m_server.set(_server);
 
     return _server->create(addr, port, _handler);
 }
 
 result_t HttpServer::run(AsyncEvent* ac)
 {
-    return m_server->run(ac);
+    obj_ptr<TcpServer_base> svr;
+    m_server.get(svr);
+    return svr->run(ac);
 }
 
 result_t HttpServer::asyncRun()
 {
-    return m_server->asyncRun();
+    obj_ptr<TcpServer_base> svr;
+    m_server.get(svr);
+    return svr->asyncRun();
 }
 
 result_t HttpServer::stop(AsyncEvent* ac)
 {
-    return m_server->stop(ac);
+    obj_ptr<TcpServer_base> svr;
+    m_server.get(svr);
+    return svr->stop(ac);
 }
 
 result_t HttpServer::get_socket(obj_ptr<Socket_base>& retVal)
 {
-    return m_server->get_socket(retVal);
+    obj_ptr<TcpServer_base> svr;
+    m_server.get(svr);
+    return svr->get_socket(retVal);
 }
 
 result_t HttpServer::get_handler(obj_ptr<Handler_base>& retVal)
 {
-    return handler()->get_handler(retVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->get_handler(retVal);
 }
 
 result_t HttpServer::set_handler(Handler_base* newVal)
 {
-    return handler()->set_handler(newVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->set_handler(newVal);
 }
 
 result_t HttpServer::onerror(v8::Local<v8::Object> hdlrs)
 {
-    return handler()->onerror(hdlrs);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->onerror(hdlrs);
 }
 
 result_t HttpServer::get_crossDomain(bool& retVal)
 {
-    return handler()->get_crossDomain(retVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->get_crossDomain(retVal);
 }
 
 result_t HttpServer::set_crossDomain(bool newVal)
 {
-    return handler()->set_crossDomain(newVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->set_crossDomain(newVal);
 }
 
 result_t HttpServer::get_forceGZIP(bool& retVal)
 {
-    return handler()->get_forceGZIP(retVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->get_forceGZIP(retVal);
 }
 
 result_t HttpServer::set_forceGZIP(bool newVal)
 {
-    return handler()->set_forceGZIP(newVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->set_forceGZIP(newVal);
 }
 
 result_t HttpServer::get_maxHeadersCount(int32_t& retVal)
 {
-    return handler()->get_maxHeadersCount(retVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->get_maxHeadersCount(retVal);
 }
 
 result_t HttpServer::set_maxHeadersCount(int32_t newVal)
 {
-    return handler()->set_maxHeadersCount(newVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->set_maxHeadersCount(newVal);
 }
 
 result_t HttpServer::get_maxBodySize(int32_t& retVal)
 {
-    return handler()->get_maxBodySize(retVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->get_maxBodySize(retVal);
 }
 
 result_t HttpServer::set_maxBodySize(int32_t newVal)
 {
-    return handler()->set_maxBodySize(newVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->set_maxBodySize(newVal);
 }
 
 result_t HttpServer::get_serverName(exlib::string& retVal)
 {
-    return handler()->get_serverName(retVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->get_serverName(retVal);
 }
 
 result_t HttpServer::set_serverName(exlib::string newVal)
 {
-    return handler()->set_serverName(newVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->set_serverName(newVal);
 }
 
 result_t HttpServer::get_httpStats(obj_ptr<Stats_base>& retVal)
 {
-    return handler()->get_stats(retVal);
+    obj_ptr<HttpHandler_base> hdlr;
+    m_hdlr.get(hdlr);
+    return hdlr->get_stats(retVal);
 }
 
 result_t HttpServer::get_stats(obj_ptr<Stats_base>& retVal)
 {
-    return m_server->get_stats(retVal);
+    obj_ptr<TcpServer_base> svr;
+    m_server.get(svr);
+    return svr->get_stats(retVal);
 }
 
 } /* namespace fibjs */

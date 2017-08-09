@@ -221,6 +221,7 @@ describe("vm", () => {
         assert.equal(no1, test_util.countObject('Buffer'));
 
         var a = sbox.addScript("t1.js", "module.exports = {a : new Buffer()};");
+        GC();
         assert.equal(no1 + 1, test_util.countObject('Buffer'));
 
         sbox = undefined;
@@ -241,6 +242,7 @@ describe("vm", () => {
         var a = {
             b: new vm.SandBox({}).addScript('b.js', "module.exports = new Buffer()")
         };
+        GC();
         assert.equal(no1 + 1, test_util.countObject('Buffer'));
 
         a = undefined;

@@ -719,10 +719,6 @@ describe("mq", () => {
             '^params3/(([0-9]+)\.(([a-z])?[0-9]+([a-z]([0-9]+)))\.html)$': params3
         });
 
-        after(() => {
-            r.dispose();
-        })
-
         it("simple path", () => {
             n = 0;
             m.value = 'a';

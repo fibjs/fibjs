@@ -40,12 +40,7 @@ public:
     // object_base
     virtual result_t dispose()
     {
-        int32_t i, sz = (int32_t)m_array.size();
-
-        for (i = 0; i < sz; i++)
-            m_array[i]->m_hdlr.dispose();
-
-        return 0;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
 public:
@@ -77,7 +72,7 @@ public:
     result_t append(exlib::string method, exlib::string pattern, v8::Local<v8::Value> hdlr);
 
 private:
-    std::vector<obj_ptr<rule> > m_array;
+    std::vector<obj_ptr<rule>> m_array;
 };
 
 } /* namespace fibjs */

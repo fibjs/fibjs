@@ -21,7 +21,7 @@ public:
     // object_base
     virtual result_t dispose()
     {
-        return 0;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
 public:
@@ -60,12 +60,8 @@ public:
     result_t create(X509Cert_base* crt, PKey_base* key, exlib::string addr, int32_t port, Handler_base* hdlr);
 
 private:
-    HttpHandler_base* handler()
-    {
-        return HttpHandler_base::getInstance(GetPrivate("handler"));
-    }
-
-    weak_ptr<SslServer_base> m_server;
+    naked_ptr<SslServer_base> m_server;
+    naked_ptr<HttpHandler_base> m_hdlr;
 };
 
 } /* namespace fibjs */

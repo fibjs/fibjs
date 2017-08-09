@@ -21,7 +21,7 @@ public:
     // object_base
     virtual result_t dispose()
     {
-        return 0;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
 public:
@@ -47,12 +47,8 @@ public:
         Handler_base* listener);
 
 private:
-    SslHandler_base* handler()
-    {
-        return SslHandler_base::getInstance(GetPrivate("handler"));
-    }
-
-    weak_ptr<TcpServer_base> m_server;
+    naked_ptr<TcpServer_base> m_server;
+    naked_ptr<SslHandler_base> m_hdlr;
 };
 
 } /* namespace fibjs */
