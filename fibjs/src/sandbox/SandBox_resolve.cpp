@@ -257,10 +257,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
 result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Value>& retVal)
 {
-    const char* c_str = id.c_str();
-    int32_t len = (int32_t)id.length();
-
-    if (c_str[0] == '.' && ((len == 1) || isPathSlash(c_str[1]) || (c_str[1] == '.' && ((len == 2) || isPathSlash(c_str[2]))))) {
+    if (is_relative(id)) {
         exlib::string strPath;
 
         path_base::dirname(base, strPath);

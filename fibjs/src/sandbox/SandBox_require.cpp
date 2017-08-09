@@ -59,9 +59,7 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
 {
     Scope _scope(this);
 
-    const char* c_str = srcname.c_str();
-
-    if (c_str[0] == '.' && (isPathSlash(c_str[1]) || (c_str[1] == '.' && isPathSlash(c_str[2]))))
+    if (is_relative(srcname))
         return CHECK_ERROR(Runtime::setError("SandBox: AddScript does not accept relative path."));
 
     path_base::normalize(srcname, srcname);
