@@ -174,8 +174,16 @@ result_t TcpServer::run(AsyncEvent* ac)
         obj_ptr<Socket_base> m_retVal;
     };
 
-    if (ac->isSync())
+    if (ac->isSync()) {
+        obj_ptr<Holder> h = new Holder();
+        h->wrap();
+        h->m_server.Reset(holder()->m_isolate, wrap());
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = h;
+
         return CHECK_ERROR(CALL_E_NOSYNC);
+    }
 
     if (!m_socket)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -215,7 +223,16 @@ result_t TcpServer::asyncRun()
     if (m_running)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    (new asyncCall(this))->apost(0);
+    AsyncEvent* ac = new asyncCall(this);
+
+    obj_ptr<Holder> h = new Holder();
+    h->wrap();
+    h->m_server.Reset(holder()->m_isolate, wrap());
+
+    ac->m_ctx.resize(1);
+    ac->m_ctx[0] = h;
+
+    ac->apost(0);
     return 0;
 }
 

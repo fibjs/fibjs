@@ -40,6 +40,12 @@ public:
     virtual result_t get_stats(obj_ptr<Stats_base>& retVal);
 
 public:
+    class Holder : public object_base {
+    public:
+        v8::Global<v8::Value> m_server;
+    };
+
+public:
     result_t create(exlib::string addr, int32_t port, Handler_base* listener);
 
 private:
