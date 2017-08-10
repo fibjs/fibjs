@@ -339,9 +339,9 @@ describe('crypto', () => {
 
                 var md = hash.md5("abcdefg").digest();
                 var md1 = hash.md5("abcdefg1").digest();
-                var d = pk.sign(md);
-                assert.isTrue(pk1.verify(d, md));
-                assert.isFalse(pk1.verify(d, md1));
+                var d = pk.sign(md, hash.MD5);
+                assert.isTrue(pk1.verify(md, d, hash.MD5));
+                assert.isFalse(pk1.verify(md1, d, hash.MD5));
 
                 assert.throws(() => {
                     pk1.sign(md);
@@ -452,9 +452,9 @@ describe('crypto', () => {
 
                 var md = hash.md5("abcdefg").digest();
                 var md1 = hash.md5("abcdefg1").digest();
-                var d = pk.sign(md);
-                assert.isTrue(pk1.verify(d, md));
-                assert.isFalse(pk1.verify(d, md1));
+                var d = pk.sign(md, hash.MD5);
+                assert.isTrue(pk1.verify(md, d, hash.MD5MD5));
+                assert.isFalse(pk1.verify(md1, d, hash.MD5));
 
                 assert.throws(() => {
                     pk1.sign(md);

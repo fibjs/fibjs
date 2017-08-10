@@ -690,8 +690,8 @@ result_t PKey::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal
     return 0;
 }
 
-result_t PKey::verify(Buffer_base* sign, Buffer_base* data, bool& retVal,
-    AsyncEvent* ac)
+result_t PKey::verify(Buffer_base* data, Buffer_base* sign,
+    int32_t alg, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -703,7 +703,7 @@ result_t PKey::verify(Buffer_base* sign, Buffer_base* data, bool& retVal,
     data->toString(str);
     sign->toString(strsign);
 
-    ret = mbedtls_pk_verify(&m_key, MBEDTLS_MD_NONE,
+    ret = mbedtls_pk_verify(&m_key, (mbedtls_md_type_t)alg,
         (const unsigned char*)str.c_str(), str.length(),
         (const unsigned char*)strsign.c_str(), strsign.length());
     if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_RSA_VERIFY_FAILED) {
