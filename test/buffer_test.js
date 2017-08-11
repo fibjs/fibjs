@@ -157,36 +157,36 @@ describe('Buffer', () => {
     });
 
     it('Buffer.byteLength(String)', () => {
-        var str1 = '\u00bd + \u00bc = \u00be';
-        var str2 = '0xffffff';
-        var str3 = 'YnVmZmVy';
+        var str1 = "\u00bd + \u00bc = \u00be";
+        var str2 = "0xffffff";
+        var str3 = "YnVmZmVy";
         assert.equal(Buffer.byteLength(str1), 12);
-        assert.equal(Buffer.byteLength(str1, 'utf8'), 12);
-        assert.equal(Buffer.byteLength(str2, 'hex'), 4);
-        assert.equal(Buffer.byteLength(str3, 'base64'), 6);
+        assert.equal(Buffer.byteLength(str1, "utf8"), 12);
+        assert.equal(Buffer.byteLength(str2, "hex"), 4);
+        assert.equal(Buffer.byteLength(str3, "base64"), 6);
     });
 
     it('Buffer.byteLength(ArrayBuffer)', () => {
         var buf = new ArrayBuffer(8);
         assert.equal(Buffer.byteLength(buf), 8);
-        assert.equal(Buffer.byteLength(buf, ''), 8);
-        assert.equal(Buffer.byteLength(buf, 'utf8'), 8);
+        assert.equal(Buffer.byteLength(buf, ""), 8);
+        assert.equal(Buffer.byteLength(buf, "utf8"), 8);
     });
 
     it('Buffer.byteLength(TypedArray)', () => {
         var buf = new ArrayBuffer(8);
         var int32Array = new Int32Array(buf);
         assert.equal(Buffer.byteLength(int32Array), 8);
-        assert.equal(Buffer.byteLength(int32Array, ''), 8);
-        assert.equal(Buffer.byteLength(int32Array, 'utf8'), 8);
+        assert.equal(Buffer.byteLength(int32Array, ""), 8);
+        assert.equal(Buffer.byteLength(int32Array, "utf8"), 8);
     });
 
     it('Buffer.byteLength(DateView)', () => {
         var buf = new ArrayBuffer(8);
         var dataView = new DataView(buf);
         assert.equal(Buffer.byteLength(dataView), 8);
-        assert.equal(Buffer.byteLength(dataView, ''), 8);
-        assert.equal(Buffer.byteLength(dataView, 'utf8'), 8);
+        assert.equal(Buffer.byteLength(dataView, ""), 8);
+        assert.equal(Buffer.byteLength(dataView, "utf8"), 8);
     });
 
     it('Buffer.byteLength(Buffer)', () => {
@@ -194,10 +194,10 @@ describe('Buffer', () => {
         var buf2 = new Buffer([98, 117, 102, 102, 101, 114]);
         assert.equal(Buffer.byteLength(buf1), 4);
         assert.equal(Buffer.byteLength(buf2), 6);
-        assert.equal(Buffer.byteLength(buf1, ''), 4);
-        assert.equal(Buffer.byteLength(buf1, 'utf-8'), 4);
-        assert.equal(Buffer.byteLength(buf2, ''), 6);
-        assert.equal(Buffer.byteLength(buf2, 'utf-8'), 6);
+        assert.equal(Buffer.byteLength(buf1, ""), 4);
+        assert.equal(Buffer.byteLength(buf1, "utf-8"), 4);
+        assert.equal(Buffer.byteLength(buf2, ""), 6);
+        assert.equal(Buffer.byteLength(buf2, "utf-8"), 6);
     });
 
     it('Buffer.byteLength(other)', () => {
@@ -207,8 +207,40 @@ describe('Buffer', () => {
         assert.equal(Buffer.byteLength([]), 0);
     });
 
+    it('Buffer.alloc(Integer)', () => {
+        var buf1 = Buffer.alloc(10, 2);
+        var buf2 = Buffer.alloc(2, 0xf);
+        assert.equal(buf1.toString(), new Array(11).join("\u0002"));
+        assert.equal(buf2.toString(), "\u000f\u000f");
+    });
+
+    it('Buffer.alloc(String)', () => {
+        var buf1 = Buffer.alloc(10, "h");
+        var buf2 = Buffer.alloc(11, 'aGVsbG8gd29ybGQ=', 'base64');
+        var buf3 = Buffer.alloc(16, 'aGVsbG8gd29ybGQ=', 'base64');
+        assert.equal(buf1.toString(), new Array(11).join("h"));
+        assert.equal(buf2.toString(), "hello world");
+        assert.equal(buf3.toString(), "hello worldhello");
+    });
+
+    it('Buffer.alloc(Buffer)', () => {
+        var buf1 = Buffer.alloc(10, new Buffer("h"));
+        var buf2 = Buffer.alloc(3, new Buffer("hello"));
+        var buf3 = Buffer.alloc(6, new Buffer([0x31, 0x32, 0x33, 0x34]));
+        var buf4 = Buffer.alloc(22, new Buffer('aGVsbG8gd29ybGQ=', 'base64'));
+        assert.equal(buf1.toString(), new Array(11).join("h"));
+        assert.equal(buf2.toString(), "hel");
+        assert.equal(buf3.toString(), "123412");
+        assert.equal(buf4.toString(), "hello worldhello world");
+    });
+
+    it('Buffer.alloc(other)', () => {
+        var buf = Buffer.alloc(10);
+        assert.equal(buf.toString(), new Array(11).join("\u0000"));
+    });
+  
     it('keys', () => {
-        var buf1 = new Buffer('buffer');
+        var buf1 = new Buffer("buffer");
         var buf2 = new Buffer([98, 117, 102, 102, 101, 114]);
         var correctResult = [0, 1, 2, 3, 4, 5];
         var keys1 = [];
@@ -225,7 +257,7 @@ describe('Buffer', () => {
     });
 
     it('values', () => {
-        var buf1 = new Buffer('buffer');
+        var buf1 = new Buffer("buffer");
         var buf2 = new Buffer([98, 117, 102, 102, 101, 114]);
         var correctResult = [98, 117, 102, 102, 101, 114];
         var values1 = [];
