@@ -64,7 +64,7 @@ interface Buffer : object
     static Buffer from(TypedArray datas);
 
     /*! @brief 通过其他 Buffer 创建 Buffer 对象
-     @param datas 给定 Buffer 类型变量用于创建 Buffer 对象
+     @param buffer 给定 Buffer 类型变量用于创建 Buffer 对象
      @return 返回 Buffer 实例
      */
     static Buffer from(Buffer buffer);
