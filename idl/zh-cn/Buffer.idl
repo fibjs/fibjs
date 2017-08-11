@@ -106,7 +106,7 @@ interface Buffer : object
      @return 填充好的新 Buffer 对象
     */
     static Buffer alloc(Integer size, Buffer fill, String codec = "utf8");
-
+    
     /*! @brief 返回字符串的实际字节长度
      @param str 待取字节的字符串，如果str为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 

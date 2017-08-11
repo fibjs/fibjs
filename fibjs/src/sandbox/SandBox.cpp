@@ -113,9 +113,7 @@ void SandBox::initRoot()
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
 {
-    const char* c_str = id.c_str();
-
-    if (c_str[0] == '.' && (isPathSlash(c_str[1]) || (c_str[1] == '.' && isPathSlash(c_str[2]))))
+    if (is_relative(id))
         return CHECK_ERROR(Runtime::setError("SandBox: does not accept relative path."));
 
     path_base::normalize(id, id);

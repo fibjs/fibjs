@@ -285,9 +285,9 @@ private:
 };
 
 template <typename T, typename T1>
-void asyncCall(T func, T1 v)
+void asyncCall(T func, T1 v, int32_t mode = CALL_E_NOSYNC)
 {
-    (new AsyncFunc<T, T1>(func, v))->async(CALL_E_NOSYNC);
+    (new AsyncFunc<T, T1>(func, v))->async(mode);
 }
 
 template <typename T, typename T1>

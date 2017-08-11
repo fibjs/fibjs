@@ -130,6 +130,11 @@ public:
         return m_isolate = Isolate::current();
     }
 
+    Isolate* get_holder()
+    {
+        return m_isolate;
+    }
+
     const char* typeName()
     {
         return Classinfo().name();

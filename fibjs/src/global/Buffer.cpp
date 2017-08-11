@@ -189,7 +189,7 @@ result_t Buffer_base::alloc(int32_t size, Buffer_base* fill,
     buf->fill(fill, 0, size, retVal);
     return 0;
 }
-
+  
 result_t Buffer_base::byteLength(exlib::string str, exlib::string codec,
     int32_t& retVal)
 {

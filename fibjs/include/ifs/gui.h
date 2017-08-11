@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class WebView_base;
-class Map_base;
 
 class gui_base : public object_base {
     DECLARE_CLASS(gui_base);
@@ -35,8 +34,7 @@ public:
 public:
     // gui_base
     static result_t setVersion(int32_t ver);
-    static result_t open(exlib::string url, obj_ptr<WebView_base>& retVal, AsyncEvent* ac);
-    static result_t open(exlib::string url, Map_base* opt, obj_ptr<WebView_base>& retVal, AsyncEvent* ac);
+    static result_t open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -58,23 +56,17 @@ public:
     static void s_get_EDGE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
-
-public:
-    ASYNC_STATICVALUE2(gui_base, open, exlib::string, obj_ptr<WebView_base>);
-    ASYNC_STATICVALUE3(gui_base, open, exlib::string, Map_base*, obj_ptr<WebView_base>);
 };
 }
 
 #include "WebView.h"
-#include "Map.h"
 
 namespace fibjs {
 inline ClassInfo& gui_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "setVersion", s_setVersion, true },
-        { "open", s_open, true },
-        { "openSync", s_open, true }
+        { "open", s_open, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -157,26 +149,12 @@ inline void gui_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-    if (!cb.IsEmpty()) {
-        acb_open(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
-        hr = ac_open(v0, vr);
-
-    ASYNC_METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(obj_ptr<Map_base>, 1);
-
-    if (!cb.IsEmpty()) {
-        acb_open(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
-        hr = ac_open(v0, v1, vr);
+    hr = open(v0, v1, vr);
 
     METHOD_RETURN();
 }

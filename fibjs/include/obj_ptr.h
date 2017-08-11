@@ -136,15 +136,9 @@ public:
 
     T* operator=(T* lp)
     {
-        if (lp != NULL)
-            lp->Ref();
+        if (lp == p)
+            return lp;
 
-        return _attach(lp);
-    }
-
-    template <class Q>
-    T* operator=(Q* lp)
-    {
         if (lp != NULL)
             lp->Ref();
 
@@ -309,66 +303,28 @@ private:
 template <class T>
 class naked_ptr {
 public:
-    naked_ptr()
+    naked_ptr(T* lp = NULL)
+        : p(lp)
     {
     }
 
-    naked_ptr(T* lp)
+    void set(T* lp)
     {
-        operator=(lp);
-    }
-
-    ~naked_ptr()
-    {
-        dispose();
-    }
-
-    T* operator=(T* lp)
-    {
-        dispose();
+        lock.lock();
         p = lp;
-        return lp;
+        lock.unlock();
     }
 
-    operator T*()
+    void get(obj_ptr<T>& lp)
     {
-        return get_ptr();
-    }
-
-    T* operator->()
-    {
-        return get_ptr();
-    }
-
-    void dispose()
-    {
-        T* rp1 = rp.xchg(NULL);
-        if (rp1) {
-            rp1->dispose();
-            rp1->Unref();
-        }
+        lock.lock();
+        lp = p;
+        lock.unlock();
     }
 
 private:
-    T* get_ptr()
-    {
-        T* p1 = p;
-        T* rp1 = rp;
-
-        if (!p1 || p1 == rp1)
-            return p1;
-
-        p1->Ref();
-        rp1 = rp.xchg(p1);
-        if (rp1)
-            rp1->Unref();
-
-        return p1;
-    }
-
-private:
-    exlib::atomic_ptr<T> p;
-    exlib::atomic_ptr<T> rp;
+    exlib::spinlock lock;
+    T* p;
 };
 }
 

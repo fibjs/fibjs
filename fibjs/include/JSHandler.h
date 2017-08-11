@@ -26,7 +26,7 @@ public:
     // object_base
     virtual result_t dispose()
     {
-        return 0;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
 public:

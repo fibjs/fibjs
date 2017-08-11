@@ -186,6 +186,24 @@ public:
         return 0;
     }
 
+    static bool is_relative(exlib::string p)
+    {
+        const char* c_str = p.c_str();
+        if (c_str[0] != '.')
+            return false;
+
+        if (c_str[1] == 0 || isPathSlash(c_str[1]))
+            return true;
+
+        if (c_str[1] != '.')
+            return false;
+
+        if (c_str[2] == 0 || isPathSlash(c_str[2]))
+            return true;
+
+        return false;
+    }
+
 public:
     static const char* script_args;
     static const int32_t script_args_count;

@@ -26,9 +26,7 @@ public:
     // object_base
     virtual result_t dispose()
     {
-        m_hdlr.dispose();
-
-        return 0;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
 public:
@@ -40,6 +38,12 @@ public:
     virtual result_t get_handler(obj_ptr<Handler_base>& retVal);
     virtual result_t set_handler(Handler_base* newVal);
     virtual result_t get_stats(obj_ptr<Stats_base>& retVal);
+
+public:
+    class Holder : public object_base {
+    public:
+        v8::Global<v8::Value> m_server;
+    };
 
 public:
     result_t create(exlib::string addr, int32_t port, Handler_base* listener);

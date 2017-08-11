@@ -64,6 +64,9 @@
     <Filter Include="Source Files\gui\windows">
       <UniqueIdentifier>{5c3dd5b4-51c5-c988-c6c0-35e72267b707}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\gui\windows\script">
+      <UniqueIdentifier>{eddeb053-bd04-91e6-af4b-c14809aba635}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\http">
       <UniqueIdentifier>{a4d0ad94-5b46-ede6-f247-a7f456304c48}</UniqueIdentifier>
     </Filter>
@@ -1174,6 +1177,9 @@
     </ClCompile>
     <ClCompile Include="src\gui\windows\WebView.cpp">
       <Filter>Source Files\gui\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\windows\script\console_js.cpp">
+      <Filter>Source Files\gui\windows\script</Filter>
     </ClCompile>
     <ClCompile Include="src\http\HttpClient.cpp">
       <Filter>Source Files\http</Filter>

@@ -7,6 +7,7 @@ set TARGET_ARCH=!HOST_ARCH!
 
 set BUILD_TYPE=release
 set XP=_xp
+set MT=/m
 set ARG_ERROR=no
 
 for %%a in (%*) do (
@@ -30,6 +31,7 @@ for %%a in (%*) do (
     if "%%a"=="debug" (
     	set BUILD_TYPE=debug
         set ARG_ERROR=no
+        set MT=
     )
 
     if "%%a"=="noxp" (
@@ -69,14 +71,14 @@ if "!TARGET_ARCH!"=="amd64" (set Platform=x64) else (set Platform=Win32)
 set vs_ver=%VisualStudioVersion:.=%
 if "!vs_ver!"=="150" (set vs_ver=141)
 
-msbuild fibjs.sln /t:Build /p:Configuration=!BUILD_TYPE!;Platform=!Platform!;PlatformToolset=v!vs_ver!!XP! /m
+msbuild fibjs.sln /t:Build /p:Configuration=!BUILD_TYPE!;Platform=!Platform!;PlatformToolset=v!vs_ver!!XP! !MT!
 
 if "!BUILD_TYPE!"=="release" (
 	cd bin\Windows_!TARGET_ARCH!_!BUILD_TYPE!
     fibjs ../../fibjs/gen_install.js
     cd ..\..
     cd installer
-    msbuild installer.sln /t:Build /p:Configuration=Release;Platform=!Platform!;PlatformToolset=v!vs_ver!!XP! /m
+    msbuild installer.sln /t:Build /p:Configuration=Release;Platform=!Platform!;PlatformToolset=v!vs_ver!!XP! !MT!
     cd ..
 )
 

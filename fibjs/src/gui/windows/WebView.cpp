@@ -14,6 +14,7 @@
 #include "ifs/os.h"
 #include "path.h"
 #include "WebView.h"
+#include "Map.h"
 #include "EventInfo.h"
 #include "utf8.h"
 #include <exlib/include/thread.h>
@@ -99,7 +100,7 @@ private:
             m_pProtSink = pIProtSink;
             m_pProtSink->AddRef();
 
-            result_t hr = fs_base::cc_openFile(UTF8_A(szUrl + 3), "r", m_file);
+            result_t hr = fs_base::cc_openFile(utf16to8String(szUrl + 3), "r", m_file);
             if (hr < 0)
                 return INET_E_OBJECT_NOT_FOUND;
 
@@ -371,6 +372,7 @@ void init_gui()
     gui_thread* _thGUI = new gui_thread();
     _thGUI->start();
     s_thread = _thGUI->thread_id;
+    gui_base::setVersion(99999);
 }
 
 result_t gui_base::setVersion(int32_t ver)
@@ -387,23 +389,23 @@ result_t gui_base::setVersion(int32_t ver)
     return 0;
 }
 
-result_t gui_base::open(exlib::string url, obj_ptr<WebView_base>& retVal,
-    AsyncEvent* ac)
+static result_t async_open(obj_ptr<WebView> w)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_GUICALL);
-
-    retVal = new WebView(url);
+    w->open();
     return 0;
 }
 
-result_t gui_base::open(exlib::string url, Map_base* opt,
-    obj_ptr<WebView_base>& retVal, AsyncEvent* ac)
+result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_GUICALL);
+    obj_ptr<Map_base> o = new Map();
+    o->set(opt);
 
-    retVal = new WebView(url, opt);
+    obj_ptr<WebView> w = new WebView(url, o);
+    w->wrap();
+
+    asyncCall(async_open, w, CALL_E_GUICALL);
+    retVal = w;
+
     return 0;
 }
 
@@ -435,6 +437,9 @@ static void RegMainClass()
 
 WebView::WebView(exlib::string url, Map_base* opt)
 {
+    m_url = url;
+    m_opt = opt;
+
     m_ac = NULL;
     oleObject = NULL;
     oleInPlaceObject = NULL;
@@ -449,48 +454,56 @@ WebView::WebView(exlib::string url, Map_base* opt)
     m_visible = true;
 
     RegMainClass();
+}
 
+WebView::~WebView()
+{
+    clear();
+}
+
+HRESULT WebView::open()
+{
     DWORD dwStyle = WS_POPUP;
     int x = CW_USEDEFAULT;
     int y = CW_USEDEFAULT;
     int nWidth = CW_USEDEFAULT;
     int nHeight = CW_USEDEFAULT;
-    bool bSilent = true;
 
+    m_bSilent = false;
     m_maximize = false;
 
-    if (opt) {
+    if (m_opt) {
         Variant v;
 
-        if (opt->get("left", v) == 0)
+        if (m_opt->get("left", v) == 0)
             x = v;
-        if (opt->get("top", v) == 0)
+        if (m_opt->get("top", v) == 0)
             y = v;
-        if (opt->get("width", v) == 0)
+        if (m_opt->get("width", v) == 0)
             nWidth = v;
-        if (opt->get("height", v) == 0)
+        if (m_opt->get("height", v) == 0)
             nHeight = v;
 
-        if (!(opt->get("border", v) == 0 && !v.boolVal())) {
+        if (!(m_opt->get("border", v) == 0 && !v.boolVal())) {
             dwStyle |= WS_BORDER;
 
-            if (!(opt->get("caption", v) == 0 && !v.boolVal()))
+            if (!(m_opt->get("caption", v) == 0 && !v.boolVal()))
                 dwStyle ^= WS_POPUP | WS_CAPTION | WS_SYSMENU;
 
-            if (!(opt->get("resizable", v) == 0 && !v.boolVal()))
+            if (!(m_opt->get("resizable", v) == 0 && !v.boolVal()))
                 dwStyle ^= WS_THICKFRAME | WS_BORDER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 
-            if (opt->get("maximize", v) == 0 && v.boolVal()) {
+            if (m_opt->get("maximize", v) == 0 && v.boolVal()) {
                 m_maximize = true;
                 dwStyle |= WS_MAXIMIZE;
             }
 
-            if (opt->get("visible", v) == 0 && !v.boolVal())
+            if (m_opt->get("visible", v) == 0 && !v.boolVal())
                 m_visible = false;
         }
 
-        if (opt->get("debug", v) == 0 && v.boolVal())
-            bSilent = false;
+        if (m_opt->get("debug", v) == 0 && !v.boolVal())
+            m_bSilent = true;
     } else
         dwStyle = WS_OVERLAPPEDWINDOW;
 
@@ -545,7 +558,7 @@ WebView::WebView(exlib::string url, Map_base* opt)
 
     oleObject->QueryInterface(&oleCommandTarget);
 
-    if (bSilent)
+    if (m_bSilent)
         webBrowser2->put_Silent(VARIANT_TRUE);
 
     webBrowser2->put_RegisterAsDropTarget(VARIANT_FALSE);
@@ -564,12 +577,9 @@ WebView::WebView(exlib::string url, Map_base* opt)
     GetClientRect(hWndParent, &rcClient);
     SetRect(rcClient);
 
-    Navigate(url.c_str());
-}
+    Navigate(m_url.c_str());
 
-WebView::~WebView()
-{
-    clear();
+    return 0;
 }
 
 void WebView::clear()
@@ -966,9 +976,10 @@ ULONG WebView::Release(void)
 }
 
 #define DISPID_POSTMESSAGE (1000 + 1)
-#define DISPID_ONMESSAGE (1000 + 2)
-#define DISPID_ONCLOSE (1000 + 3)
-#define DISPID_CLOSE (1000 + 4)
+#define DISPID_LOG (1000 + 2)
+#define DISPID_ONMESSAGE (1000 + 3)
+#define DISPID_ONCLOSE (1000 + 4)
+#define DISPID_CLOSE (1000 + 5)
 
 // IDispatch
 HRESULT WebView::GetIDsOfNames(REFIID riid, OLECHAR** rgszNames,
@@ -979,6 +990,8 @@ HRESULT WebView::GetIDsOfNames(REFIID riid, OLECHAR** rgszNames,
     for (i = 0; i < cNames; i++) {
         if (!qstrcmp(rgszNames[i], L"postMessage"))
             rgdispid[i] = DISPID_POSTMESSAGE;
+        else if (!qstrcmp(rgszNames[i], L"log"))
+            rgdispid[i] = DISPID_LOG;
         else if (!qstrcmp(rgszNames[i], L"onmessage"))
             rgdispid[i] = DISPID_ONMESSAGE;
         else if (!qstrcmp(rgszNames[i], L"onclose"))
@@ -1034,6 +1047,8 @@ HRESULT WebView::Invoke(DISPID dispid, REFIID riid, LCID lcid, WORD wFlags,
 
     case DISPID_POSTMESSAGE:
         return OnPostMessage(pDispParams);
+    case DISPID_LOG:
+        return OnLog(pDispParams);
     case DISPID_ONMESSAGE:
         return OnOnMessage(pDispParams);
     case DISPID_ONCLOSE:
@@ -1326,12 +1341,14 @@ HRESULT WebView::Exec(const GUID* pguidCmdGroup, DWORD nCmdID, DWORD nCmdexecopt
             exlib::string msg("WebView Error: ");
             char buf[32];
 
-            msg += utf16to8String(rgvaEventInfo[3].bstrVal) + "\n    at ";
-            msg += utf16to8String(rgvaEventInfo[4].bstrVal);
-
-            sprintf(buf, ":%d:%d", rgvaEventInfo[0].intVal, rgvaEventInfo[1].intVal);
-
-            msg += buf;
+            if (rgvaEventInfo[3].bstrVal) {
+                msg += utf16to8String(rgvaEventInfo[3].bstrVal);
+                if (rgvaEventInfo[4].bstrVal) {
+                    msg += "\n    at " + utf16to8String(rgvaEventInfo[4].bstrVal);
+                    sprintf(buf, ":%d:%d", rgvaEventInfo[0].intVal, rgvaEventInfo[1].intVal);
+                    msg += buf;
+                }
+            }
 
             errorLog(msg);
 
@@ -1584,8 +1601,59 @@ HRESULT WebView::OnDownloadComplete(DISPPARAMS* pDispParams)
     return E_NOTIMPL;
 }
 
+extern const wchar_t* g_console_js;
+
 HRESULT WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
 {
+    IWebBrowser2* frame = NULL;
+    pDispParams->rgvarg[1].pdispVal->QueryInterface(&frame);
+
+    HRESULT hr;
+    IDispatch* pHtmlDoc = NULL;
+
+    hr = frame->get_Document(&pHtmlDoc);
+    if (SUCCEEDED(hr)) {
+        IHTMLDocument2* pDoc = NULL;
+        IHTMLWindow2* pWindow = NULL;
+        IDispatch* pScript = NULL;
+
+        pHtmlDoc->QueryInterface(IID_IHTMLDocument2, (void**)&pDoc);
+        pDoc->get_Script(&pScript);
+
+        DISPID dispid = -1;
+        LPOLESTR pszName = L"eval";
+
+        pScript->GetIDsOfNames(IID_NULL, &pszName, 1,
+            LOCALE_USER_DEFAULT, &dispid);
+
+        if (dispid != -1) {
+            _variant_t arg = g_console_js;
+            _variant_t result;
+            DISPPARAMS dispparams;
+            dispparams.rgvarg = &arg;
+            dispparams.cArgs = 1;
+            dispparams.cNamedArgs = 0;
+
+            pScript->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD,
+                &dispparams, &result, NULL, NULL);
+        } else {
+            _variant_t result;
+            _bstr_t s = g_console_js;
+            _bstr_t l = L"JavaScript";
+
+            pDoc->get_parentWindow(&pWindow);
+            pWindow->execScript(s, l, &result);
+
+            pWindow->Release();
+        }
+
+        pScript->Release();
+        pHtmlDoc->Release();
+        pDoc->Release();
+    }
+
+    frame->Release();
+
     return E_NOTIMPL;
 }
 
@@ -1631,14 +1699,55 @@ HRESULT WebView::OnPostMessage(DISPPARAMS* pDispParams)
 
     Variant v;
     if (pDispParams->rgvarg[0].vt == VT_BSTR) {
-        v = UTF8_A(pDispParams->rgvarg[0].bstrVal);
+        v = utf16to8String(pDispParams->rgvarg[0].bstrVal);
         _emit("message", &v, 1);
     } else {
-        _variant_t vstr(pDispParams->rgvarg[0]);
+        _variant_t vstr;
+        HRESULT hr = VariantChangeType(&vstr, &pDispParams->rgvarg[0],
+            VARIANT_ALPHABOOL, VT_BSTR);
+        if (!SUCCEEDED(hr))
+            return hr;
 
-        vstr.ChangeType(VT_BSTR);
-        v = UTF8_A(vstr.bstrVal);
+        v = utf16to8String(vstr.bstrVal);
         _emit("message", &v, 1);
+    }
+
+    return S_OK;
+}
+
+HRESULT WebView::OnLog(DISPPARAMS* pDispParams)
+{
+    if (pDispParams->cArgs != 2)
+        return DISP_E_BADPARAMCOUNT;
+
+    if (!m_bSilent) {
+        int32_t priority;
+        if (pDispParams->rgvarg[1].vt == VT_I4) {
+            priority = pDispParams->rgvarg[1].lVal;
+        } else {
+            _variant_t vint;
+            HRESULT hr = VariantChangeType(&vint, &pDispParams->rgvarg[1],
+                VARIANT_ALPHABOOL, VT_I4);
+            if (!SUCCEEDED(hr))
+                return hr;
+            priority = vint.lVal;
+        }
+
+        exlib::string msg;
+        if (pDispParams->rgvarg[0].vt == VT_BSTR) {
+            msg = utf16to8String(pDispParams->rgvarg[0].bstrVal);
+        } else {
+            _variant_t vstr;
+            HRESULT hr = VariantChangeType(&vstr, &pDispParams->rgvarg[0],
+                VARIANT_ALPHABOOL, VT_BSTR);
+            if (!SUCCEEDED(hr))
+                return hr;
+
+            if (vstr.bstrVal)
+                msg = utf16to8String(vstr.bstrVal);
+        }
+
+        outLog(priority, msg);
     }
 
     return S_OK;

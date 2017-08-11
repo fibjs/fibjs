@@ -24,10 +24,7 @@ public:
     // object_base
     virtual result_t dispose()
     {
-        m_hdlr.dispose();
-        m_err_hdlr.dispose();
-
-        return 0;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
 public:

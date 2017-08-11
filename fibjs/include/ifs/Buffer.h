@@ -463,6 +463,59 @@ inline void Buffer_base::s_byteLength(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 
+inline void Buffer_base::s_concat(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Array>, 0);
+    OPT_ARG(int32_t, 1, -1);
+
+    hr = concat(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    hr = byteLength(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::ArrayBuffer>, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    hr = byteLength(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::ArrayBufferView>, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    hr = byteLength(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    hr = byteLength(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
 inline void Buffer_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;

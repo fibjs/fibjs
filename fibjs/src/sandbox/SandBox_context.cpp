@@ -130,15 +130,16 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
         _mod->Get(v8::String::NewFromUtf8(isolate, "_sbox")));
 
-    if (id[0] == '.' && (isPathSlash(id[1]) || (id[1] == '.' && isPathSlash(id[2])))) {
+    if (SandBox::is_relative(id)) {
         v8::Local<v8::Value> path = _mod->Get(v8::String::NewFromUtf8(isolate, "_id"));
 
         exlib::string strPath;
 
         path_base::dirname(*v8::String::Utf8Value(path), strPath);
-        if (strPath.length())
-            strPath += PATH_SLASH;
-        id = strPath + id;
+        if (strPath.length()) {
+            resolvePath(strPath, id);
+            id = strPath;
+        }
     }
 
     hr = sbox->run(id, argv);

@@ -41,7 +41,7 @@ public:
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t verify(Buffer_base* sign, Buffer_base* data, bool& retVal, AsyncEvent* ac) = 0;
+    virtual result_t verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac) = 0;
 
 public:
     template <typename T>
@@ -72,7 +72,7 @@ public:
     ASYNC_MEMBERVALUE2(PKey_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(PKey_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE3(PKey_base, verify, Buffer_base*, Buffer_base*, bool);
+    ASYNC_MEMBERVALUE4(PKey_base, verify, Buffer_base*, Buffer_base*, int32_t, bool);
 };
 }
 
@@ -392,16 +392,17 @@ inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(PKey_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(3, 2);
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(int32_t, 2, 0);
 
     if (!cb.IsEmpty()) {
-        pInst->acb_verify(v0, v1, cb);
+        pInst->acb_verify(v0, v1, v2, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = pInst->ac_verify(v0, v1, vr);
+        hr = pInst->ac_verify(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }

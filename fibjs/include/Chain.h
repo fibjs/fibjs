@@ -15,21 +15,16 @@ namespace fibjs {
 
 class Chain : public Chain_base {
 public:
-    // Handler_base
-    virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
-        AsyncEvent* ac);
-
-public:
     // object_base
     virtual result_t dispose()
     {
-        int32_t i, sz = (int32_t)m_array.size();
-
-        for (i = 0; i < sz; i++)
-            m_array[i].dispose();
-
-        return 0;
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
+
+public:
+    // Handler_base
+    virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
+        AsyncEvent* ac);
 
 public:
     // Chain_base
@@ -40,7 +35,7 @@ public:
     result_t append(v8::Local<v8::Value> hdlr);
 
 private:
-    QuickArray<naked_ptr<Handler_base> > m_array;
+    QuickArray<naked_ptr<Handler_base>> m_array;
 };
 
 } /* namespace fibjs */
