@@ -128,6 +128,68 @@ result_t Buffer_base::from(exlib::string str, exlib::string codec,
     return retVal->append(str, codec);
 }
 
+result_t Buffer_base::alloc(int32_t size, int32_t fill,
+    exlib::string codec, obj_ptr<Buffer_base>& retVal)
+{
+    obj_ptr<Buffer_base> buf = new Buffer();
+    if (size <= 0) {
+        buf->append("", "utf8");
+        retVal = buf;
+        return 0;
+    }
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, size);
+    int32_t i;
+    for (i = 0; i < size; i++) {
+        arr->Set(i, v8::Number::New(isolate->m_isolate, fill));
+    }
+    buf->append(arr);
+    retVal = buf;
+    return 0;
+}
+
+result_t Buffer_base::alloc(int32_t size, exlib::string fill,
+    exlib::string codec, obj_ptr<Buffer_base>& retVal)
+{
+    obj_ptr<Buffer_base> buf = new Buffer();
+    if (size <= 0) {
+        buf->append("", "utf8");
+        retVal = buf;
+        return 0;
+    }
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, size);
+    int32_t i;
+    for (i = 0; i < size; i++) {
+        arr->Set(i, v8::Number::New(isolate->m_isolate, 0));
+    }
+    buf->append(arr);
+    obj_ptr<Buffer_base> tmp = new Buffer();
+    tmp->append(fill, codec);
+    buf->fill(tmp, 0, size, retVal);
+    return 0;
+}
+
+result_t Buffer_base::alloc(int32_t size, Buffer_base* fill,
+    exlib::string codec, obj_ptr<Buffer_base>& retVal)
+{
+    obj_ptr<Buffer_base> buf = new Buffer();
+    if (size <= 0) {
+        buf->append("", "utf8");
+        retVal = buf;
+        return 0;
+    }
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, size);
+    int32_t i;
+    for (i = 0; i < size; i++) {
+        arr->Set(i, v8::Number::New(isolate->m_isolate, 0));
+    }
+    buf->append(arr);
+    buf->fill(fill, 0, size, retVal);
+    return 0;
+}
+  
 result_t Buffer_base::byteLength(exlib::string str, exlib::string codec,
     int32_t& retVal)
 {

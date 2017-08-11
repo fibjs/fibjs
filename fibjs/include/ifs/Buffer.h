@@ -36,6 +36,9 @@ public:
     static result_t from(Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
     static result_t from(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     static result_t concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal);
+    static result_t alloc(int32_t size, int32_t fill, exlib::string codec, obj_ptr<Buffer_base>& retVal);
+    static result_t alloc(int32_t size, exlib::string fill, exlib::string codec, obj_ptr<Buffer_base>& retVal);
+    static result_t alloc(int32_t size, Buffer_base* fill, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     static result_t byteLength(exlib::string str, exlib::string codec, int32_t& retVal);
     static result_t byteLength(v8::Local<v8::ArrayBuffer> str, exlib::string codec, int32_t& retVal);
     static result_t byteLength(v8::Local<v8::ArrayBufferView> str, exlib::string codec, int32_t& retVal);
@@ -119,6 +122,7 @@ public:
     static void s_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_from(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_concat(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_alloc(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -189,6 +193,7 @@ inline ClassInfo& Buffer_base::class_info()
         { "isBuffer", s_isBuffer, true },
         { "from", s_from, true },
         { "concat", s_concat, true },
+        { "alloc", s_alloc, true },
         { "byteLength", s_byteLength, true },
         { "resize", s_resize, false },
         { "append", s_append, false },
@@ -368,6 +373,92 @@ inline void Buffer_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG(exlib::string, 1, "utf8");
 
     hr = from(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_concat(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Array>, 0);
+    OPT_ARG(int32_t, 1, -1);
+
+    hr = concat(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_alloc(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(exlib::string, 2, "utf8");
+
+    hr = alloc(v0, v1, v2, vr);
+
+    METHOD_OVER(3, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG(exlib::string, 2, "utf8");
+
+    hr = alloc(v0, v1, v2, vr);
+
+    METHOD_OVER(3, 2);
+
+    ARG(int32_t, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(exlib::string, 2, "utf8");
+
+    hr = alloc(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    hr = byteLength(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::ArrayBuffer>, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    hr = byteLength(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::ArrayBufferView>, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    hr = byteLength(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    hr = byteLength(v0, v1, vr);
 
     METHOD_RETURN();
 }

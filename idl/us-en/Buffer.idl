@@ -54,18 +54,42 @@ interface Buffer : object
     static Buffer from(Buffer buffer);
 
     /*! @brief Create a Buffer object from String
-     @param str Initial string encoded in UTF-8, by default it will create an empty object.
-     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     @param str Initial string encoded in UTF-8, by default it will create an empty object
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system 
      @return Return a Buffer object
      */
     static Buffer from(String str, String codec = "utf8");
 
-    /*! @brief Returns a buffer which is the result of concatenating the buffers in the list.
+    /*! @brief Returns a buffer which is the result of concatenating the buffers in the list
      @param buflist Array List of Buffer objects to concat
      @param cutLength Number Total length of the buffers when concatenated
-     @return Returns a buffer which is the result of concatenating the buffers in the list.
+     @return Returns a buffer which is the result of concatenating the buffers in the list
     */
     static Buffer concat(Array buflist, String cutLength = -1);
+
+    /*! @brief Allocates a new Buffer of size bytes. A zero-length Buffer will be created if size is 0
+     @param size The desired length of the new Buffer
+     @param fill  String/Buffer/Integer A value to pre-fill the new Buffer with. Default: 0
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system
+     @return a new Buffer of size bytes
+    */
+    static Buffer alloc(Integer size, Integer fill = 0, String codec = "utf8");
+
+    /*! @brief Allocates a new Buffer of size bytes. A zero-length Buffer will be created if size is 0
+     @param size The desired length of the new Buffer
+     @param fill  String/Buffer/Integer A value to pre-fill the new Buffer with. Default: 0
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system
+     @return a new Buffer of size bytes
+    */
+    static Buffer alloc(Integer size, String fill = "", String codec = "utf8");
+
+    /*! @brief Allocates a new Buffer of size bytes. A zero-length Buffer will be created if size is 0
+     @param size The desired length of the new Buffer
+     @param fill  String/Buffer/Integer A value to pre-fill the new Buffer with. Default: 0
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system
+     @return a new Buffer of size bytes
+    */
+    static Buffer alloc(Integer size, Buffer fill, String codec = "utf8");
 
     /*! @brief Returns the actual byte length of a string
      @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
