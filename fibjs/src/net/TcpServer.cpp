@@ -176,7 +176,7 @@ result_t TcpServer::run(AsyncEvent* ac)
 
     if (ac->isSync()) {
         obj_ptr<Holder> h = new Holder();
-        h->wrap();
+        h->setJSObject();
         h->m_server.Reset(holder()->m_isolate, wrap());
 
         ac->m_ctx.resize(1);
@@ -226,7 +226,7 @@ result_t TcpServer::asyncRun()
     AsyncEvent* ac = new asyncCall(this);
 
     obj_ptr<Holder> h = new Holder();
-    h->wrap();
+    h->setJSObject();
     h->m_server.Reset(holder()->m_isolate, wrap());
 
     ac->m_ctx.resize(1);
