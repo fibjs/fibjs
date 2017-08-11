@@ -128,6 +128,48 @@ result_t Buffer_base::from(exlib::string str, exlib::string codec,
     return retVal->append(str, codec);
 }
 
+result_t Buffer_base::alloc(int32_t size, int32_t fill,
+    exlib::string codec, obj_ptr<Buffer_base>& retVal)
+{
+    obj_ptr<Buffer_base> buf = new Buffer();
+    if (size <= 0) {
+        retVal = buf;
+        return 0;
+    }
+    buf->resize(size);
+    buf->fill(fill, 0, size, retVal);
+    retVal = buf;
+    return 0;
+}
+
+result_t Buffer_base::alloc(int32_t size, exlib::string fill,
+    exlib::string codec, obj_ptr<Buffer_base>& retVal)
+{
+    obj_ptr<Buffer_base> buf = new Buffer();
+    if (size <= 0) {
+        retVal = buf;
+        return 0;
+    }
+    buf->resize(size);
+    obj_ptr<Buffer_base> tmp = new Buffer();
+    tmp->append(fill, codec);
+    buf->fill(tmp, 0, size, retVal);
+    return 0;
+}
+
+result_t Buffer_base::alloc(int32_t size, Buffer_base* fill,
+    exlib::string codec, obj_ptr<Buffer_base>& retVal)
+{
+    obj_ptr<Buffer_base> buf = new Buffer();
+    if (size <= 0) {
+        retVal = buf;
+        return 0;
+    }
+    buf->resize(size);
+    buf->fill(fill, 0, size, retVal);
+    return 0;
+}
+
 result_t Buffer_base::byteLength(exlib::string str, exlib::string codec,
     int32_t& retVal)
 {
