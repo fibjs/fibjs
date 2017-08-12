@@ -170,6 +170,30 @@ result_t Buffer_base::alloc(int32_t size, Buffer_base* fill,
     return 0;
 }
 
+result_t Buffer_base::allocUnsafe(int32_t size, obj_ptr<Buffer_base>& retVal)
+{
+    obj_ptr<Buffer_base> buf = new Buffer();
+    if (size <= 0) {
+        retVal = buf;
+        return 0;
+    }
+    buf->resize(size);
+    retVal = buf;
+    return 0;
+}
+
+result_t Buffer_base::allocUnsafeSlow(int32_t size, obj_ptr<Buffer_base>& retVal)
+{
+    obj_ptr<Buffer_base> buf = new Buffer();
+    if (size <= 0) {
+        retVal = buf;
+        return 0;
+    }
+    buf->resize(size);
+    retVal = buf;
+    return 0;
+}
+
 result_t Buffer_base::byteLength(exlib::string str, exlib::string codec,
     int32_t& retVal)
 {

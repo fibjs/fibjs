@@ -39,6 +39,8 @@ public:
     static result_t alloc(int32_t size, int32_t fill, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     static result_t alloc(int32_t size, exlib::string fill, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     static result_t alloc(int32_t size, Buffer_base* fill, exlib::string codec, obj_ptr<Buffer_base>& retVal);
+    static result_t allocUnsafe(int32_t size, obj_ptr<Buffer_base>& retVal);
+    static result_t allocUnsafeSlow(int32_t size, obj_ptr<Buffer_base>& retVal);
     static result_t byteLength(exlib::string str, exlib::string codec, int32_t& retVal);
     static result_t byteLength(v8::Local<v8::ArrayBuffer> str, exlib::string codec, int32_t& retVal);
     static result_t byteLength(v8::Local<v8::ArrayBufferView> str, exlib::string codec, int32_t& retVal);
@@ -123,6 +125,8 @@ public:
     static void s_from(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_concat(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_alloc(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_allocUnsafe(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_allocUnsafeSlow(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -194,6 +198,8 @@ inline ClassInfo& Buffer_base::class_info()
         { "from", s_from, true },
         { "concat", s_concat, true },
         { "alloc", s_alloc, true },
+        { "allocUnsafe", s_allocUnsafe, true },
+        { "allocUnsafeSlow", s_allocUnsafeSlow, true },
         { "byteLength", s_byteLength, true },
         { "resize", s_resize, false },
         { "append", s_append, false },
@@ -422,6 +428,36 @@ inline void Buffer_base::s_alloc(const v8::FunctionCallbackInfo<v8::Value>& args
     OPT_ARG(exlib::string, 2, "utf8");
 
     hr = alloc(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_allocUnsafe(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = allocUnsafe(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_allocUnsafeSlow(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = allocUnsafeSlow(v0, vr);
 
     METHOD_RETURN();
 }

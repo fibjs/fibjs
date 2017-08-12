@@ -238,7 +238,17 @@ describe('Buffer', () => {
         var buf = Buffer.alloc(10);
         assert.equal(buf.toString(), new Array(11).join("\u0000"));
     });
-  
+
+    it('Buffer.allocUnsafe(Integer)', () => {
+        var buf1 = Buffer.allocUnsafe(10);
+        assert.equal(buf1.length, 10);
+    });
+
+    it('Buffer.allocUnsafeSlow(Integer)', () => {
+        var buf1 = Buffer.allocUnsafeSlow(10);
+        assert.equal(buf1.length, 10);
+    });
+
     it('keys', () => {
         var buf1 = new Buffer("buffer");
         var buf2 = new Buffer([98, 117, 102, 102, 101, 114]);
