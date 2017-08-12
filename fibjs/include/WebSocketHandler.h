@@ -49,8 +49,8 @@ public:
     obj_ptr<Stats> m_stats;
 
 private:
-    naked_ptr<Handler_base> m_hdlr;
-    naked_ptr<Handler_base> m_err_hdlr;
+    obj_ptr<Handler_base> m_hdlr;
+    obj_ptr<Handler_base> m_err_hdlr;
     int32_t m_maxSize;
     bool m_event;
 };

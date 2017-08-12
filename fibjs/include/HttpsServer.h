@@ -60,8 +60,8 @@ public:
     result_t create(X509Cert_base* crt, PKey_base* key, exlib::string addr, int32_t port, Handler_base* hdlr);
 
 private:
-    naked_ptr<SslServer_base> m_server;
-    naked_ptr<HttpHandler_base> m_hdlr;
+    obj_ptr<SslServer_base> m_server;
+    obj_ptr<HttpHandler_base> m_hdlr;
 };
 
 } /* namespace fibjs */

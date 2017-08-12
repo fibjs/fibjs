@@ -41,7 +41,7 @@ public:
     result_t init(X509Cert_base* crt, PKey_base* key, Handler_base* hdlr);
 
 private:
-    naked_ptr<Handler_base> m_hdlr;
+    obj_ptr<Handler_base> m_hdlr;
     obj_ptr<SslSocket_base> m_socket;
 };
 

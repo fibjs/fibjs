@@ -33,7 +33,7 @@ public:
     public:
         exlib::string m_method;
         pcre* m_re;
-        naked_ptr<Handler_base> m_hdlr;
+        obj_ptr<Handler_base> m_hdlr;
     };
 
 public:

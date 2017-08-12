@@ -299,33 +299,6 @@ private:
 private:
     exlib::atomic_ptr<obj_base::weak_stub> p;
 };
-
-template <class T>
-class naked_ptr {
-public:
-    naked_ptr(T* lp = NULL)
-        : p(lp)
-    {
-    }
-
-    void set(T* lp)
-    {
-        lock.lock();
-        p = lp;
-        lock.unlock();
-    }
-
-    void get(obj_ptr<T>& lp)
-    {
-        lock.lock();
-        lp = p;
-        lock.unlock();
-    }
-
-private:
-    exlib::spinlock lock;
-    T* p;
-};
 }
 
 #endif /* OBJ_PTR_H_ */

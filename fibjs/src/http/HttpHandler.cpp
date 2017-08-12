@@ -177,8 +177,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     pThis->m_req->setHeader("Accept-Encoding", "gzip");
             }
 
-            pThis->m_pThis->m_hdlr.get(pThis->m_hdlr);
-            return mq_base::invoke(pThis->m_hdlr, pThis->m_req, pThis);
+            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis);
         }
 
         static int32_t check_error(AsyncState* pState, int32_t n)
@@ -200,10 +199,9 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
 
             pThis->set(send);
-            pThis->m_pThis->m_err_hdlrs[err_idx].get(pThis->m_err_hdlr);
-            if (err_idx == -1 || !pThis->m_err_hdlr)
+            if (err_idx == -1 || !pThis->m_pThis->m_err_hdlrs[err_idx])
                 return 0;
-            return mq_base::invoke(pThis->m_err_hdlr, pThis->m_req, pThis);
+            return mq_base::invoke(pThis->m_pThis->m_err_hdlrs[err_idx], pThis->m_req, pThis);
         }
 
         static int32_t send(AsyncState* pState, int32_t n)
@@ -373,8 +371,6 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<HttpResponse_base> m_rep;
         obj_ptr<MemoryStream> m_zip;
         obj_ptr<SeekableStream_base> m_body;
-        obj_ptr<Handler_base> m_hdlr;
-        obj_ptr<Handler_base> m_err_hdlr;
         date_t m_d;
     };
 
@@ -412,7 +408,7 @@ result_t HttpHandler::onerror(v8::Local<v8::Object> hdlrs)
                 return hr;
 
             SetPrivate(s_err_keys[i], hdlr1->wrap());
-            m_err_hdlrs[i].set(hdlr1);
+            m_err_hdlrs[i] = hdlr1;
         }
     }
 
@@ -484,17 +480,14 @@ result_t HttpHandler::set_serverName(exlib::string newVal)
 
 result_t HttpHandler::get_handler(obj_ptr<Handler_base>& retVal)
 {
-    m_hdlr.get(retVal);
+    retVal = m_hdlr;
     return 0;
 }
 
 result_t HttpHandler::set_handler(Handler_base* newVal)
 {
-    obj_ptr<Handler_base> hdlr;
-    m_hdlr.get(hdlr);
-
     SetPrivate("handler", newVal->wrap());
-    m_hdlr.set(newVal);
+    m_hdlr = newVal;
 
     return 0;
 }

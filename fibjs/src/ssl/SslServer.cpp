@@ -72,10 +72,10 @@ result_t SslServer::create(X509Cert_base* crt, PKey_base* key, exlib::string add
         return hr;
 
     SetPrivate("handler", _handler->wrap());
-    m_hdlr.set(_handler);
+    m_hdlr = _handler;
 
     SetPrivate("server", _server->wrap());
-    m_server.set(_server);
+    m_server = _server;
 
     return 0;
 }
@@ -96,81 +96,61 @@ result_t SslServer::create(v8::Local<v8::Array> certs, exlib::string addr, int32
         return hr;
 
     SetPrivate("handler", _handler->wrap());
-    m_hdlr.set(_handler);
+    m_hdlr = _handler;
 
     SetPrivate("server", _server->wrap());
-    m_server.set(_server);
+    m_server = _server;
 
     return 0;
 }
 
 result_t SslServer::run(AsyncEvent* ac)
 {
-    obj_ptr<TcpServer_base> svr;
-    m_server.get(svr);
-    return svr->run(ac);
+    return m_server->run(ac);
 }
 
 result_t SslServer::asyncRun()
 {
-    obj_ptr<TcpServer_base> svr;
-    m_server.get(svr);
-    return svr->asyncRun();
+    return m_server->asyncRun();
 }
 
 result_t SslServer::stop(AsyncEvent* ac)
 {
-    obj_ptr<TcpServer_base> svr;
-    m_server.get(svr);
-    return svr->stop(ac);
+    return m_server->stop(ac);
 }
 
 result_t SslServer::get_socket(obj_ptr<Socket_base>& retVal)
 {
-    obj_ptr<TcpServer_base> svr;
-    m_server.get(svr);
-    return svr->get_socket(retVal);
+    return m_server->get_socket(retVal);
 }
 
 result_t SslServer::get_handler(obj_ptr<Handler_base>& retVal)
 {
-    obj_ptr<SslHandler_base> hdlr;
-    m_hdlr.get(hdlr);
-    return hdlr->get_handler(retVal);
+    return m_hdlr->get_handler(retVal);
 }
 
 result_t SslServer::set_handler(Handler_base* newVal)
 {
-    obj_ptr<SslHandler_base> hdlr;
-    m_hdlr.get(hdlr);
-    return hdlr->set_handler(newVal);
+    return m_hdlr->set_handler(newVal);
 }
 
 result_t SslServer::get_verification(int32_t& retVal)
 {
-    obj_ptr<SslHandler_base> hdlr;
-    m_hdlr.get(hdlr);
-    return hdlr->get_verification(retVal);
+    return m_hdlr->get_verification(retVal);
 }
 
 result_t SslServer::set_verification(int32_t newVal)
 {
-    obj_ptr<SslHandler_base> hdlr;
-    m_hdlr.get(hdlr);
-    return hdlr->set_verification(newVal);
+    return m_hdlr->set_verification(newVal);
 }
 
 result_t SslServer::get_ca(obj_ptr<X509Cert_base>& retVal)
 {
-    obj_ptr<SslHandler_base> hdlr;
-    m_hdlr.get(hdlr);
-    return hdlr->get_ca(retVal);
+    return m_hdlr->get_ca(retVal);
 }
 
 result_t SslServer::get_stats(obj_ptr<Stats_base>& retVal)
 {
-    obj_ptr<TcpServer_base> svr;
-    m_server.get(svr);
-    return svr->get_stats(retVal);
+    return m_server->get_stats(retVal);
 }
 }

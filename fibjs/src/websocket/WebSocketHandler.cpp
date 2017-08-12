@@ -205,8 +205,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 return 0;
             }
 
-            pThis->m_pThis->m_hdlr.get(pThis->m_hdlr);
-            return mq_base::invoke(pThis->m_hdlr, pThis->m_msg, pThis);
+            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_msg, pThis);
         }
 
         static int32_t send(AsyncState* pState, int32_t n)
@@ -235,9 +234,8 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
             pThis->set(error_end);
-            pThis->m_pThis->m_err_hdlr.get(pThis->m_err_hdlr);
-            if (pThis->m_err_hdlr)
-                return mq_base::invoke(pThis->m_err_hdlr, pThis->m_msg, pThis);
+            if (pThis->m_pThis->m_err_hdlr)
+                return mq_base::invoke(pThis->m_pThis->m_err_hdlr, pThis->m_msg, pThis);
             return 0;
         }
 
@@ -283,8 +281,6 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<Stream_base> m_stm;
         obj_ptr<WebSocketMessage_base> m_msg;
         obj_ptr<Message_base> m_rep;
-        obj_ptr<Handler_base> m_hdlr;
-        obj_ptr<Handler_base> m_err_hdlr;
         bool m_event;
         int32_t m_error;
     };
@@ -329,7 +325,7 @@ result_t WebSocketHandler::onerror(v8::Local<v8::Object> hdlrs)
             return hr;
 
         SetPrivate("500", hdlr1->wrap());
-        m_err_hdlr.set(hdlr1);
+        m_err_hdlr = hdlr1;
     }
 
     return 0;
@@ -337,17 +333,14 @@ result_t WebSocketHandler::onerror(v8::Local<v8::Object> hdlrs)
 
 result_t WebSocketHandler::get_handler(obj_ptr<Handler_base>& retVal)
 {
-    m_hdlr.get(retVal);
+    retVal = m_hdlr;
     return 0;
 }
 
 result_t WebSocketHandler::set_handler(Handler_base* newVal)
 {
-    obj_ptr<Handler_base> hdlr;
-    m_hdlr.get(hdlr);
-
     SetPrivate("handler", newVal->wrap());
-    m_hdlr.set(newVal);
+    m_hdlr = newVal;
 
     return 0;
 }

@@ -55,8 +55,8 @@ public:
     obj_ptr<Stats> m_stats;
 
 private:
-    naked_ptr<Handler_base> m_hdlr;
-    naked_ptr<Handler_base> m_err_hdlrs[3];
+    obj_ptr<Handler_base> m_hdlr;
+    obj_ptr<Handler_base> m_err_hdlrs[3];
 
     bool m_crossDomain;
     bool m_forceGZIP;

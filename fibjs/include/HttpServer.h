@@ -53,8 +53,8 @@ public:
     result_t create(exlib::string addr, int32_t port, Handler_base* hdlr);
 
 private:
-    naked_ptr<TcpServer_base> m_server;
-    naked_ptr<HttpHandler_base> m_hdlr;
+    obj_ptr<TcpServer_base> m_server;
+    obj_ptr<HttpHandler_base> m_hdlr;
 };
 
 } /* namespace fibjs */

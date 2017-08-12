@@ -44,7 +44,7 @@ result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             m_array.resize(pThis->m_array.size());
             for (i = 0; i < (int32_t)pThis->m_array.size(); i++)
-                pThis->m_array[i].get(m_array[i]);
+                m_array[i] = pThis->m_array[i];
 
             set(invoke);
         }

@@ -115,7 +115,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
 
             msg->set_params(list);
-            r->m_hdlr.get(retVal);
+            retVal = r->m_hdlr;
             return 0;
         }
     }
@@ -293,10 +293,7 @@ result_t Routing::append(Routing_base* route)
 
         rule* r = r_obj->m_array[i];
 
-        obj_ptr<Handler_base> hdlr;
-        r->m_hdlr.get(hdlr);
-
-        SetPrivate(strBuf, hdlr->wrap());
+        SetPrivate(strBuf, r->m_hdlr->wrap());
         m_array.insert(m_array.begin(), r);
     }
 

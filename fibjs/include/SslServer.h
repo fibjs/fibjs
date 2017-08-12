@@ -47,8 +47,8 @@ public:
         Handler_base* listener);
 
 private:
-    naked_ptr<TcpServer_base> m_server;
-    naked_ptr<SslHandler_base> m_hdlr;
+    obj_ptr<TcpServer_base> m_server;
+    obj_ptr<SslHandler_base> m_hdlr;
 };
 
 } /* namespace fibjs */

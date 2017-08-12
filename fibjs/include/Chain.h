@@ -35,7 +35,7 @@ public:
     result_t append(v8::Local<v8::Value> hdlr);
 
 private:
-    QuickArray<naked_ptr<Handler_base>> m_array;
+    QuickArray<obj_ptr<Handler_base>> m_array;
 };
 
 } /* namespace fibjs */

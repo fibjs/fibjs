@@ -950,13 +950,17 @@ describe("mq", () => {
 
             var no1 = test_util.countObject('Chain');
             var no2 = test_util.countObject('Routing');
+            var no3 = test_util.countObject('Buffer');
+
             (() => {
+                var data = new Buffer();
                 var svr = new http.Server(8891, new mq.Chain([
                     () => {
                         return hdlr
                     },
                     new mq.Routing({
-                        'a': () => {
+                        'a': (r) => {
+                            r.response.write(data);
                             return hdlr
                         }
                     })
@@ -964,6 +968,7 @@ describe("mq", () => {
 
                 assert.equal(no1 + 1, test_util.countObject('Chain'));
                 assert.equal(no2 + 1, test_util.countObject('Routing'));
+                assert.equal(no3 + 1, test_util.countObject('Buffer'));
 
                 svr.asyncRun();
 
@@ -978,6 +983,7 @@ describe("mq", () => {
             assert.equal(closed, false);
             assert.equal(no1 + 1, test_util.countObject('Chain'));
             assert.equal(no2 + 1, test_util.countObject('Routing'));
+            assert.equal(no3 + 1, test_util.countObject('Buffer'));
 
             coroutine.sleep(100);
 
@@ -985,6 +991,7 @@ describe("mq", () => {
             assert.equal(closed, true);
             assert.equal(no1 + 1, test_util.countObject('Chain'));
             assert.equal(no2 + 1, test_util.countObject('Routing'));
+            assert.equal(no3 + 1, test_util.countObject('Buffer'));
 
             c.close();
             coroutine.sleep(10);
@@ -992,6 +999,7 @@ describe("mq", () => {
             GC();
             assert.equal(no1, test_util.countObject('Chain'));
             assert.equal(no2, test_util.countObject('Routing'));
+            assert.equal(no3, test_util.countObject('Buffer'));
         });
     });
 

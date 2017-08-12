@@ -100,8 +100,7 @@ result_t TcpServer::run(AsyncEvent* ac)
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
             pThis->set(close);
-            pThis->m_pThis->m_hdlr.get(pThis->m_hdlr);
-            return mq_base::invoke(pThis->m_hdlr, pThis->m_sock, pThis);
+            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_sock, pThis);
         }
 
         static int32_t close(AsyncState* pState, int32_t n)
@@ -259,17 +258,14 @@ result_t TcpServer::get_socket(obj_ptr<Socket_base>& retVal)
 
 result_t TcpServer::get_handler(obj_ptr<Handler_base>& retVal)
 {
-    m_hdlr.get(retVal);
+    retVal = m_hdlr;
     return 0;
 }
 
 result_t TcpServer::set_handler(Handler_base* newVal)
 {
-    obj_ptr<Handler_base> hdlr;
-    m_hdlr.get(hdlr);
-
     SetPrivate("handler", newVal->wrap());
-    m_hdlr.set(newVal);
+    m_hdlr = newVal;
 
     return 0;
 }
