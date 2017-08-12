@@ -85,10 +85,11 @@ result_t TcpServer::run(AsyncEvent* ac)
 {
     class asyncInvoke : public AsyncState {
     public:
-        asyncInvoke(TcpServer* pThis, Socket_base* pSock)
+        asyncInvoke(TcpServer* pThis, Socket_base* pSock, object_base* holder)
             : AsyncState(NULL)
             , m_pThis(pThis)
             , m_sock(pSock)
+            , m_holder(holder)
         {
             set(invoke);
         }
@@ -124,6 +125,7 @@ result_t TcpServer::run(AsyncEvent* ac)
         obj_ptr<TcpServer> m_pThis;
         obj_ptr<Socket_base> m_sock;
         obj_ptr<Handler_base> m_hdlr;
+        obj_ptr<object_base> m_holder;
     };
 
     class asyncAccept : public AsyncState {
@@ -131,6 +133,7 @@ result_t TcpServer::run(AsyncEvent* ac)
         asyncAccept(TcpServer* pThis, AsyncEvent* ac)
             : AsyncState(ac)
             , m_pThis(pThis)
+            , m_holder(ac->m_ctx[0].object())
         {
             set(accept);
         }
@@ -153,7 +156,7 @@ result_t TcpServer::run(AsyncEvent* ac)
             pThis->m_pThis->m_stats->inc(TCPS_CONNECTIONS);
 
             if (pThis->m_retVal) {
-                (new asyncInvoke(pThis->m_pThis, pThis->m_retVal))->apost(0);
+                (new asyncInvoke(pThis->m_pThis, pThis->m_retVal, pThis->m_holder))->apost(0);
                 pThis->m_retVal.Release();
             }
 
@@ -172,6 +175,7 @@ result_t TcpServer::run(AsyncEvent* ac)
     private:
         obj_ptr<TcpServer> m_pThis;
         obj_ptr<Socket_base> m_retVal;
+        obj_ptr<object_base> m_holder;
     };
 
     if (ac->isSync()) {
