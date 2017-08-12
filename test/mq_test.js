@@ -919,6 +919,80 @@ describe("mq", () => {
             GC();
             assert.equal(no1, test_util.countObject('Routing'));
         });
+
+        it("memory leak 1", () => {
+            var no1 = test_util.countObject('Chain');
+            var no2 = test_util.countObject('Routing');
+            (() => {
+                var hdlr = new mq.Chain([
+                    () => {
+                        return hdlr
+                    },
+                    new mq.Routing({
+                        'a': () => {
+                            return hdlr
+                        }
+                    })
+                ]);
+
+                assert.equal(no1 + 1, test_util.countObject('Chain'));
+                assert.equal(no2 + 1, test_util.countObject('Routing'));
+            })();
+
+            GC();
+            assert.equal(no1, test_util.countObject('Chain'));
+            assert.equal(no2, test_util.countObject('Routing'));
+        });
+
+        it("memory leak 2", () => {
+            var c;
+            var closed = false;
+
+            var no1 = test_util.countObject('Chain');
+            var no2 = test_util.countObject('Routing');
+            (() => {
+                var svr = new http.Server(8891, new mq.Chain([
+                    () => {
+                        return hdlr
+                    },
+                    new mq.Routing({
+                        'a': () => {
+                            return hdlr
+                        }
+                    })
+                ]));
+
+                assert.equal(no1 + 1, test_util.countObject('Chain'));
+                assert.equal(no2 + 1, test_util.countObject('Routing'));
+
+                svr.asyncRun();
+
+                setTimeout(() => {
+                    c = net.connect('tcp://127.0.0.1:8891');
+                    svr.stop();
+                    closed = true;
+                }, 10);
+            })();
+
+            GC();
+            assert.equal(closed, false);
+            assert.equal(no1 + 1, test_util.countObject('Chain'));
+            assert.equal(no2 + 1, test_util.countObject('Routing'));
+
+            coroutine.sleep(100);
+
+            GC();
+            assert.equal(closed, true);
+            assert.equal(no1 + 1, test_util.countObject('Chain'));
+            assert.equal(no2 + 1, test_util.countObject('Routing'));
+
+            c.close();
+            coroutine.sleep(10);
+
+            GC();
+            assert.equal(no1, test_util.countObject('Chain'));
+            assert.equal(no2, test_util.countObject('Routing'));
+        });
     });
 
     it("await", () => {
