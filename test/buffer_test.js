@@ -724,6 +724,48 @@ describe('Buffer', () => {
         assert.equal(buf.indexOf(new Buffer([0x00, 0x36])), 5);
 
     });
+
+    var fixtures = [{
+            "a": "ffff00",
+            "expected": "00ffff"
+        },
+        {
+            "a": "ffff",
+            "expected": "ffff"
+        },
+        {
+            "a": "0000",
+            "expected": "0000"
+        },
+        {
+            "a": "0000ff",
+            "expected": "ff0000"
+        },
+        {
+            "a": "000000",
+            "expected": "000000"
+        },
+        {
+            "a": "ffffff",
+            "expected": "ffffff"
+        },
+        {
+            "a": "00ffff00ff",
+            "expected": "ff00ffff00"
+        },
+        {
+            "a": "0000ff00ffff00ff",
+            "expected": "ff00ffff00ff0000"
+        }
+    ];
+
+    it('reverse', () => {
+        fixtures.forEach((f) => {
+            var a = new Buffer(f.a, 'hex');
+            assert.equal(a.reverse().toString('hex'), f.expected);
+            assert.equal(a.toString('hex'), f.a);
+        })
+    });
 });
 
 repl && test.run(console.DEBUG);

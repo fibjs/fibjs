@@ -107,6 +107,7 @@ public:
     virtual result_t writeDoubleBE(double value, int32_t offset, bool noAssert) = 0;
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t reverse(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t hex(exlib::string& retVal) = 0;
     virtual result_t base64(exlib::string& retVal) = 0;
     virtual result_t keys(v8::Local<v8::Object>& retVal) = 0;
@@ -179,6 +180,7 @@ public:
     static void s_writeDoubleLE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeDoubleBE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_reverse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hex(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_base64(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -249,6 +251,7 @@ inline ClassInfo& Buffer_base::class_info()
         { "writeDoubleLE", s_writeDoubleLE, false },
         { "writeDoubleBE", s_writeDoubleBE, false },
         { "slice", s_slice, false },
+        { "reverse", s_reverse, false },
         { "hex", s_hex, false },
         { "base64", s_base64, false },
         { "keys", s_keys, false },
@@ -1400,6 +1403,20 @@ inline void Buffer_base::s_slice(const v8::FunctionCallbackInfo<v8::Value>& args
     ARG(int32_t, 1);
 
     hr = pInst->slice(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_reverse(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->reverse(vr);
 
     METHOD_RETURN();
 }

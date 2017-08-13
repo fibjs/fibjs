@@ -945,6 +945,24 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal)
     return 0;
 }
 
+result_t Buffer::reverse(obj_ptr<Buffer_base>& retVal)
+{
+    exlib::string strBuf;
+    toString(strBuf);
+
+    char* buf = strBuf.c_buffer();
+    int32_t len = (int32_t)strBuf.length();
+    for (int32_t i = 0; i < len / 2; i++) {
+        char ch = buf[i];
+        buf[i] = buf[len - i - 1];
+        buf[len - i - 1] = ch;
+    }
+
+    retVal = new Buffer(strBuf);
+
+    return 0;
+}
+
 result_t Buffer::toString(exlib::string& retVal)
 {
     retVal = m_data;

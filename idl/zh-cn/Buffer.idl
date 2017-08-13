@@ -561,6 +561,11 @@ interface Buffer : object
      */
     Buffer slice(Integer start, Integer end);
 
+    /*! @brief 返回一个新缓存对象，包含当前对象数据的倒序
+     @return 返回新的缓存对象
+     */
+    Buffer reverse();
+
     /*! @brief 使用 16 进制编码缓存对象内容
      @return 返回编码字符串
      */
