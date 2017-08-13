@@ -91,34 +91,28 @@ result_t Buffer_base::isBuffer(v8::Local<v8::Value> v, bool& retVal)
     return 0;
 }
 
-result_t Buffer_base::from(v8::Local<v8::Array> datas,
+result_t Buffer_base::from(Buffer_base* buffer, int32_t byteOffset, int32_t length,
     obj_ptr<Buffer_base>& retVal)
 {
-    retVal = new Buffer();
-    retVal->append(datas);
+    exlib::string str;
+    buffer->toString(str);
+    return from(str, byteOffset, length, retVal);
+}
+
+result_t Buffer_base::from(exlib::string str, int32_t byteOffset, int32_t length,
+    obj_ptr<Buffer_base>& retVal)
+{
+    if (byteOffset < 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (byteOffset > str.length())
+        byteOffset = str.length();
+
+    if (length < 0)
+        length = str.length() - byteOffset;
+
+    retVal = new Buffer(str.substr(byteOffset, length));
     return 0;
-}
-
-result_t Buffer_base::from(v8::Local<v8::ArrayBuffer> datas,
-    obj_ptr<Buffer_base>& retVal)
-{
-    retVal = new Buffer();
-    retVal->append(datas);
-    return 0;
-}
-
-result_t Buffer_base::from(v8::Local<v8::TypedArray> datas,
-    obj_ptr<Buffer_base>& retVal)
-{
-    retVal = new Buffer();
-    return retVal->append(datas);
-}
-
-result_t Buffer_base::from(Buffer_base* buffer,
-    obj_ptr<Buffer_base>& retVal)
-{
-    retVal = new Buffer();
-    return retVal->append(buffer);
 }
 
 result_t Buffer_base::from(exlib::string str, exlib::string codec,

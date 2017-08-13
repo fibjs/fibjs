@@ -156,6 +156,19 @@ describe('Buffer', () => {
         assert.equal(buf.toString(), "abcd");
     });
 
+    it('Buffer.from(Buffer, offset, len)', () => {
+        var buf = Buffer.from(new Buffer("abcd"), 1, 2);
+        assert.equal(buf.length, 2);
+        assert.equal(buf.toString(), "bc");
+
+        var buf = Buffer.from(new Buffer("abcd"), 1);
+        assert.equal(buf.length, 3);
+        assert.equal(buf.toString(), "bcd");
+
+        var buf = Buffer.from(new Buffer("abcd"), 10);
+        assert.equal(buf.length, 0);
+    });
+
     it('Buffer.byteLength(String)', () => {
         var str1 = "\u00bd + \u00bc = \u00be";
         var str2 = "0xffffff";

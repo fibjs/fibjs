@@ -30,10 +30,8 @@ public:
     static result_t _new(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t isBuffer(v8::Local<v8::Value> v, bool& retVal);
-    static result_t from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal);
-    static result_t from(v8::Local<v8::ArrayBuffer> datas, obj_ptr<Buffer_base>& retVal);
-    static result_t from(v8::Local<v8::TypedArray> datas, obj_ptr<Buffer_base>& retVal);
-    static result_t from(Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t from(Buffer_base* buffer, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal);
+    static result_t from(exlib::string str, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal);
     static result_t from(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     static result_t concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal);
     static result_t alloc(int32_t size, int32_t fill, exlib::string codec, obj_ptr<Buffer_base>& retVal);
@@ -352,29 +350,21 @@ inline void Buffer_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Array>, 0);
-
-    hr = from(v0, vr);
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::ArrayBuffer>, 0);
-
-    hr = from(v0, vr);
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::TypedArray>, 0);
-
-    hr = from(v0, vr);
-
-    METHOD_OVER(1, 1);
+    METHOD_OVER(3, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 2, -1);
 
-    hr = from(v0, vr);
+    hr = from(v0, v1, v2, vr);
+
+    METHOD_OVER(3, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 2, -1);
+
+    hr = from(v0, v1, v2, vr);
 
     METHOD_OVER(2, 1);
 
