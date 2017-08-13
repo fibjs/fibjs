@@ -26,6 +26,7 @@ public:
     static result_t _new(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::ArrayBuffer> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::TypedArray> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::ArrayBufferView> datas, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Buffer_base* buffer, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
@@ -304,6 +305,12 @@ void Buffer_base::__new(const T& args)
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::TypedArray>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::ArrayBufferView>, 0);
 
     hr = _new(v0, vr, args.This());
 

@@ -133,7 +133,9 @@ public:
     result_t writeInt64LE(int64_t value, int32_t offset, bool noAssert);
     result_t writeInt64BE(int64_t value, int32_t offset, bool noAssert);
 
-private:
+public:
+    result_t _append(v8::Local<v8::ArrayBuffer> datas);
+
     template <typename T>
     result_t _append(T datas)
     {

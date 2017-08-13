@@ -24,6 +24,11 @@ interface Buffer : object
     Buffer(TypedArray datas);
 
     /*! @brief 缓存对象构造函数
+     @param datas 初始化数据数组
+     */
+    Buffer(ArrayBufferView datas);
+
+    /*! @brief 缓存对象构造函数
      @param buffer 初始化Buffer对象
      */
     Buffer(Buffer buffer);

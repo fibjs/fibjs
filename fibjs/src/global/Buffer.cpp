@@ -54,35 +54,46 @@ result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base>& retVal,
 }
 
 result_t Buffer_base::_new(v8::Local<v8::Array> datas,
-    obj_ptr<Buffer_base>& retVal,
-    v8::Local<v8::Object> This)
+    obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
 {
-    retVal = new Buffer();
-    return retVal->append(datas);
+    obj_ptr<Buffer> buf;
+    retVal = buf = new Buffer();
+    return buf->_append(datas);
 }
 
 result_t Buffer_base::_new(v8::Local<v8::ArrayBuffer> datas,
-    obj_ptr<Buffer_base>& retVal,
-    v8::Local<v8::Object> This)
+    obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
 {
-    retVal = new Buffer();
-    return retVal->append(datas);
+    obj_ptr<Buffer> buf;
+    retVal = buf = new Buffer();
+    return buf->_append(datas);
 }
 
 result_t Buffer_base::_new(v8::Local<v8::TypedArray> datas,
-    obj_ptr<Buffer_base>& retVal,
-    v8::Local<v8::Object> This)
+    obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
 {
-    retVal = new Buffer();
-    return retVal->append(datas);
+    obj_ptr<Buffer> buf;
+    retVal = buf = new Buffer();
+    return buf->_append(datas);
+}
+
+result_t Buffer_base::_new(v8::Local<v8::ArrayBufferView> datas,
+    obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
+{
+    exlib::string str;
+    str.resize(datas->ByteLength());
+    datas->CopyContents(str.c_buffer(), str.length());
+    retVal = new Buffer(str);
+    return 0;
 }
 
 result_t Buffer_base::_new(Buffer_base* buffer,
-    obj_ptr<Buffer_base>& retVal,
-    v8::Local<v8::Object> This)
+    obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
 {
-    retVal = new Buffer();
-    return retVal->append(buffer);
+    exlib::string str;
+    buffer->toString(str);
+    retVal = new Buffer(str);
+    return 0;
 }
 
 result_t Buffer_base::isBuffer(v8::Local<v8::Value> v, bool& retVal)
@@ -318,7 +329,7 @@ result_t Buffer::append(v8::Local<v8::TypedArray> datas)
     return _append(datas);
 }
 
-result_t Buffer::append(v8::Local<v8::ArrayBuffer> datas)
+result_t Buffer::_append(v8::Local<v8::ArrayBuffer> datas)
 {
     v8::ArrayBuffer::Contents cnt = datas->GetContents();
     int32_t sz = (int32_t)cnt.ByteLength();
@@ -330,6 +341,11 @@ result_t Buffer::append(v8::Local<v8::ArrayBuffer> datas)
     }
 
     return 0;
+}
+
+result_t Buffer::append(v8::Local<v8::ArrayBuffer> datas)
+{
+    return _append(datas);
 }
 
 result_t Buffer::append(Buffer_base* data)

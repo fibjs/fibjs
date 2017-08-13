@@ -56,6 +56,26 @@ describe('Buffer', () => {
         assert.equal(buf.hex(), "8813a00f");
     });
 
+    it('new Buffer(ArrayBufferView)', () => {
+        var arr = new DataView(new ArrayBuffer(2));
+        arr.setInt8(0, 0x10);
+        arr.setInt8(1, 0x20);
+
+        var buf = new Buffer(arr);
+
+        assert.equal(buf.length, 2);
+        assert.equal(buf.hex(), "1020");
+
+        var arr = new DataView(new ArrayBuffer(4), 2);
+        arr.setInt8(0, 0x10);
+        arr.setInt8(1, 0x20);
+
+        var buf = new Buffer(arr);
+
+        assert.equal(buf.length, 2);
+        assert.equal(buf.hex(), "1020");
+    });
+
     it('new Buffer(Buffer)', () => {
         var buf = new Buffer(new Buffer("abcd"));
         assert.equal(buf.length, 4);
@@ -108,7 +128,7 @@ describe('Buffer', () => {
         buf1 = new Buffer('');
         bufArray = [buf1];
         assert.doesNotThrow(() => {
-            bufRes = Buffer.concat([() => { }, {}, undefined, '']);
+            bufRes = Buffer.concat([() => {}, {}, undefined, '']);
         });
     });
 
@@ -215,8 +235,8 @@ describe('Buffer', () => {
 
     it('Buffer.byteLength(other)', () => {
         assert.equal(Buffer.byteLength({}), 15);
-        assert.equal(Buffer.byteLength(function () { }), 15);
-        assert.equal(Buffer.byteLength(() => { }), 9);
+        assert.equal(Buffer.byteLength(function () {}), 14);
+        assert.equal(Buffer.byteLength(() => {}), 8);
         assert.equal(Buffer.byteLength([]), 0);
     });
 
