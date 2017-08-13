@@ -210,26 +210,18 @@ result_t Buffer_base::byteLength(exlib::string str, exlib::string codec,
     return buf->get_length(retVal);
 }
 
-#define GET_ARRAY_BUFFER_BYTE_LEN                                             \
-    Isolate* isolate = Isolate::current();                                    \
-    v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext(); \
-    v8::Local<v8::String> key = isolate->NewFromUtf8("byteLength");           \
-    retVal = str->Get(context, key)                                           \
-                 .ToLocalChecked()                                            \
-                 ->Int32Value(context)                                        \
-                 .ToChecked();                                                \
-    return 0;
-
 result_t Buffer_base::byteLength(v8::Local<v8::ArrayBuffer> str,
     exlib::string codec, int32_t& retVal)
 {
-    GET_ARRAY_BUFFER_BYTE_LEN;
+    retVal = (int32_t)str->ByteLength();
+    return 0;
 }
 
 result_t Buffer_base::byteLength(v8::Local<v8::ArrayBufferView> str,
     exlib::string codec, int32_t& retVal)
 {
-    GET_ARRAY_BUFFER_BYTE_LEN;
+    retVal = (int32_t)str->ByteLength();
+    return 0;
 }
 
 result_t Buffer_base::byteLength(Buffer_base* str,
