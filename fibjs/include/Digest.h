@@ -21,7 +21,7 @@ public:
 
 public:
     // Digest_base
-    virtual result_t update(Buffer_base* data);
+    virtual result_t update(Buffer_base* data, obj_ptr<Digest_base>& retVal);
     virtual result_t digest(Buffer_base* data, obj_ptr<Buffer_base>& retVal);
     virtual result_t digest(obj_ptr<Buffer_base>& retVal);
     virtual result_t get_size(int32_t& retVal);

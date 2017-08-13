@@ -38,7 +38,7 @@ Digest::~Digest()
     mbedtls_md_free(&m_ctx);
 }
 
-result_t Digest::update(Buffer_base* data)
+result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
 {
     if (m_iAlgo < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -52,6 +52,8 @@ result_t Digest::update(Buffer_base* data)
     else
         mbedtls_md_update(&m_ctx, (const unsigned char*)str.c_str(),
             (int32_t)str.length());
+
+    retVal = this;
 
     return 0;
 }
@@ -84,7 +86,8 @@ result_t Digest::digest(Buffer_base* data,
     if (m_iAlgo < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    update(data);
+    obj_ptr<Digest_base> r;
+    update(data, r);
     return digest(retVal);
 }
 

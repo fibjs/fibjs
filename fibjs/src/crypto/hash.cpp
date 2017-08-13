@@ -20,7 +20,9 @@ result_t hash_base::digest(int32_t algo, Buffer_base* data,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = new Digest((mbedtls_md_type_t)algo);
-    retVal->update(data);
+
+    obj_ptr<Digest_base> r;
+    retVal->update(data, r);
 
     return 0;
 }

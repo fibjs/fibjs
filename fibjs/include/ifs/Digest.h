@@ -23,7 +23,7 @@ class Digest_base : public object_base {
 
 public:
     // Digest_base
-    virtual result_t update(Buffer_base* data) = 0;
+    virtual result_t update(Buffer_base* data, obj_ptr<Digest_base>& retVal) = 0;
     virtual result_t digest(Buffer_base* data, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t digest(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t get_size(int32_t& retVal) = 0;
@@ -72,6 +72,8 @@ inline ClassInfo& Digest_base::class_info()
 
 inline void Digest_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<Digest_base> vr;
+
     METHOD_INSTANCE(Digest_base);
     METHOD_ENTER();
 
@@ -79,9 +81,9 @@ inline void Digest_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->update(v0);
+    hr = pInst->update(v0, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Digest_base::s_digest(const v8::FunctionCallbackInfo<v8::Value>& args)
