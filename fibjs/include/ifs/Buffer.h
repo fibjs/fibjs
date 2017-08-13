@@ -48,9 +48,6 @@ public:
     virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
     virtual result_t get_length(int32_t& retVal) = 0;
     virtual result_t resize(int32_t sz) = 0;
-    virtual result_t append(v8::Local<v8::Array> datas) = 0;
-    virtual result_t append(v8::Local<v8::TypedArray> datas) = 0;
-    virtual result_t append(v8::Local<v8::ArrayBuffer> datas) = 0;
     virtual result_t append(Buffer_base* data) = 0;
     virtual result_t append(exlib::string str, exlib::string codec) = 0;
     virtual result_t write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal) = 0;
@@ -552,24 +549,6 @@ inline void Buffer_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Array>, 0);
-
-    hr = pInst->append(v0);
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::TypedArray>, 0);
-
-    hr = pInst->append(v0);
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::ArrayBuffer>, 0);
-
-    hr = pInst->append(v0);
 
     METHOD_OVER(1, 1);
 

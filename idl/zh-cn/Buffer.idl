@@ -155,21 +155,6 @@ interface Buffer : object
      */
     resize(Integer sz);
 
-    /*! @brief 在缓存对象尾部写入一组数据
-     @param datas 初始化数据数组
-     */
-    append(Array datas);
-
-    /*! @brief 在缓存对象尾部写入一组数据
-     @param datas 初始化数据数组
-     */
-    append(TypedArray datas);
-
-    /*! @brief 在缓存对象尾部写入一组数据
-     @param datas 初始化数据数组
-     */
-    append(ArrayBuffer datas);
-
     /*! @brief 在缓存对象尾部写入一组二进制数据
      @param data 初始化二进制数据
      */

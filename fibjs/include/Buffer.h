@@ -46,9 +46,6 @@ public:
     virtual result_t _indexed_setter(uint32_t index, int32_t newVal);
     virtual result_t get_length(int32_t& retVal);
     virtual result_t resize(int32_t sz);
-    virtual result_t append(v8::Local<v8::Array> datas);
-    virtual result_t append(v8::Local<v8::TypedArray> datas);
-    virtual result_t append(v8::Local<v8::ArrayBuffer> datas);
     virtual result_t append(Buffer_base* data);
     virtual result_t append(exlib::string str, exlib::string codec);
     virtual result_t write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal);
@@ -134,8 +131,6 @@ public:
     result_t writeInt64BE(int64_t value, int32_t offset, bool noAssert);
 
 public:
-    result_t _append(v8::Local<v8::ArrayBuffer> datas);
-
     template <typename T>
     result_t _append(T datas)
     {

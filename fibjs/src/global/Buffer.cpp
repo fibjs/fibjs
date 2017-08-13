@@ -64,9 +64,12 @@ result_t Buffer_base::_new(v8::Local<v8::Array> datas,
 result_t Buffer_base::_new(v8::Local<v8::ArrayBuffer> datas,
     obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
 {
-    obj_ptr<Buffer> buf;
-    retVal = buf = new Buffer();
-    return buf->_append(datas);
+    v8::ArrayBuffer::Contents cnt = datas->GetContents();
+    int32_t sz = (int32_t)cnt.ByteLength();
+    char* ptr = (char*)cnt.Data();
+
+    retVal = new Buffer(ptr, sz);
+    return 0;
 }
 
 result_t Buffer_base::_new(v8::Local<v8::TypedArray> datas,
@@ -317,35 +320,6 @@ result_t Buffer::resize(int32_t sz)
     m_data.resize(sz);
 
     return 0;
-}
-
-result_t Buffer::append(v8::Local<v8::Array> datas)
-{
-    return _append(datas);
-}
-
-result_t Buffer::append(v8::Local<v8::TypedArray> datas)
-{
-    return _append(datas);
-}
-
-result_t Buffer::_append(v8::Local<v8::ArrayBuffer> datas)
-{
-    v8::ArrayBuffer::Contents cnt = datas->GetContents();
-    int32_t sz = (int32_t)cnt.ByteLength();
-    char* ptr = (char*)cnt.Data();
-
-    if (sz) {
-        extMemory(sz);
-        m_data.append(ptr, sz);
-    }
-
-    return 0;
-}
-
-result_t Buffer::append(v8::Local<v8::ArrayBuffer> datas)
-{
-    return _append(datas);
 }
 
 result_t Buffer::append(Buffer_base* data)
@@ -1116,8 +1090,8 @@ result_t Buffer::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 void Buffer::fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Object>& o)
 {
     if (data->IsArray()) {
-        obj_ptr<Buffer_base> buf = new Buffer();
-        buf->append(v8::Local<v8::Array>::Cast(data));
+        obj_ptr<Buffer> buf = new Buffer();
+        buf->_append(v8::Local<v8::Array>::Cast(data));
         o = buf->wrap();
     }
 }
