@@ -213,7 +213,7 @@ result_t HttpRequest::clear()
     m_queryString.clear();
 
     if (m_cookies)
-        m_cookies->clear();
+        m_cookies.Release();
 
     m_query.Release();
     m_form.Release();

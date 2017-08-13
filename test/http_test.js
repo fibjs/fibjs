@@ -345,7 +345,7 @@ describe("http", () => {
     });
 
     describe("parse", () => {
-        function get_request(u) {
+        function get_request(u, r) {
             var ms = new io.MemoryStream();
             var bs = new io.BufferedStream(ms);
             bs.EOL = "\r\n";
@@ -353,7 +353,10 @@ describe("http", () => {
             bs.writeText(u);
             ms.seek(0, fs.SEEK_SET);
 
-            var r = new http.Request();
+            if (r)
+                r.clear();
+            else
+                r = new http.Request();
 
             r.readFrom(bs);
 
@@ -487,6 +490,20 @@ describe("http", () => {
             });
 
             var c = get_cookie("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new%20cookie %sdf\r\n\r\n");
+            assert.deepEqual(c, {
+                '$Version': '1',
+                'Skin': 'new cookie %sdf'
+            });
+
+            var r = get_request("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new%20cookie %sdf\r\n\r\n");
+            c = r.cookies.toJSON();
+            assert.deepEqual(c, {
+                '$Version': '1',
+                'Skin': 'new cookie %sdf'
+            });
+
+            r = get_request("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=new%20cookie %sdf\r\n\r\n", r);
+            c = r.cookies.toJSON();
             assert.deepEqual(c, {
                 '$Version': '1',
                 'Skin': 'new cookie %sdf'
