@@ -21,6 +21,7 @@ class PKey_base;
 class X509Cert_base;
 class X509Crl_base;
 class X509Req_base;
+class Digest_base;
 class Buffer_base;
 
 class crypto_base : public object_base {
@@ -53,6 +54,7 @@ public:
 
 public:
     // crypto_base
+    static result_t createHash(exlib::string algo, obj_ptr<Digest_base>& retVal);
     static result_t loadPKey(exlib::string filename, exlib::string password, obj_ptr<PKey_base>& retVal);
     static result_t loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal);
     static result_t loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal);
@@ -99,6 +101,7 @@ public:
     static void s_get_ZEROS_AND_LEN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_ZEROS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_NOPADDING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_createHash(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -126,12 +129,14 @@ public:
 #include "X509Cert.h"
 #include "X509Crl.h"
 #include "X509Req.h"
+#include "Digest.h"
 #include "Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& crypto_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "createHash", s_createHash, true },
         { "loadPKey", s_loadPKey, true },
         { "loadCert", s_loadCert, true },
         { "loadCrl", s_loadCrl, true },
@@ -335,6 +340,21 @@ inline void crypto_base::s_get_NOPADDING(v8::Local<v8::String> property, const v
 {
     int32_t vr = _NOPADDING;
     PROPERTY_ENTER();
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_createHash(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Digest_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = createHash(v0, vr);
+
     METHOD_RETURN();
 }
 

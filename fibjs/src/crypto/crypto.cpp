@@ -9,6 +9,7 @@
 #include "ifs/crypto.h"
 #include "Cipher.h"
 #include "Buffer.h"
+#include "Digest.h"
 #include "PKey.h"
 #include "X509Cert.h"
 #include "X509Crl.h"
@@ -21,6 +22,21 @@
 namespace fibjs {
 
 DECLARE_MODULE(crypto);
+
+result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVal)
+{
+    algo.toupper();
+    if (algo == "RMD160")
+        algo = "RIPEMD160";
+
+    const mbedtls_md_info_t* mi = mbedtls_md_info_from_string(algo.c_str());
+    if (!mi)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    retVal = new Digest(mbedtls_md_get_type(mi));
+
+    return 0;
+}
 
 result_t crypto_base::loadPKey(exlib::string filename, exlib::string password,
     obj_ptr<PKey_base>& retVal)

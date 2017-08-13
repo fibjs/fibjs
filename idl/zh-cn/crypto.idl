@@ -86,6 +86,12 @@ module crypto
     /*! @brief X509Req 构造函数，参见 X509Req */
     static X509Req;
 
+    /*! @brief 根据给定的算法名称创建一个信息摘要对象
+     @param alog 指定信息摘要对象的算法
+     @return 返回信息摘要对象
+    */
+    static Digest createHash(String algo);
+
     /*! @brief 加载一个 PEM/DER 格式的密钥文件
      @param filename 密钥文件名
      @param password 解密密码

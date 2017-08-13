@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var hash = require('hash');
+var crypto = require('crypto');
 
 describe("hash", () => {
     function hash_test(o) {
@@ -10,6 +11,9 @@ describe("hash", () => {
             new Buffer(o.text)).digest().hex());
         assert.equal(o.hash, hash[o.name.toLowerCase()](o.text).digest().hex());
         assert.equal(o.hash, hash.digest(hash[o.name]).digest(o.text).hex());
+
+        assert.equal(o.hash, crypto.createHash(o.name).digest(o.text).hex());
+        assert.equal(o.hash, crypto.createHash(o.name.toLowerCase()).digest(o.text).hex());
     }
 
     function hmac_test(o) {
