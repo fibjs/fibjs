@@ -119,11 +119,11 @@ result_t Buffer_base::from(exlib::string str, int32_t byteOffset, int32_t length
     if (byteOffset < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (byteOffset > str.length())
-        byteOffset = str.length();
+    if (byteOffset > (int32_t)str.length())
+        byteOffset = (int32_t)str.length();
 
     if (length < 0)
-        length = str.length() - byteOffset;
+        length = (int32_t)str.length() - byteOffset;
 
     retVal = new Buffer(str.substr(byteOffset, length));
     return 0;
