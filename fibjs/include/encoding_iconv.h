@@ -27,6 +27,8 @@ public:
     result_t decode(const exlib::string& data, exlib::string& retVal);
     result_t decode(Buffer_base* data, exlib::string& retVal);
 
+    result_t isEncoding(bool& retVal);
+
     exlib::string charset() const
     {
         return m_charset;
@@ -35,6 +37,7 @@ public:
 private:
     void* m_iconv_en;
     void* m_iconv_de;
+    void* m_iconv_ec;
     exlib::string m_charset;
 };
 

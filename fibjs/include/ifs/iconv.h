@@ -25,6 +25,7 @@ public:
     // iconv_base
     static result_t encode(exlib::string charset, exlib::string data, obj_ptr<Buffer_base>& retVal);
     static result_t decode(exlib::string charset, Buffer_base* data, exlib::string& retVal);
+    static result_t isEncoding(exlib::string charset, bool& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -40,6 +41,7 @@ public:
 public:
     static void s_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -50,7 +52,8 @@ inline ClassInfo& iconv_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "encode", s_encode, true },
-        { "decode", s_decode, true }
+        { "decode", s_decode, true },
+        { "isEncoding", s_isEncoding, true }
     };
 
     static ClassData s_cd = {
@@ -91,6 +94,21 @@ inline void iconv_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& args
     ARG(obj_ptr<Buffer_base>, 1);
 
     hr = decode(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void iconv_base::s_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = isEncoding(v0, vr);
 
     METHOD_RETURN();
 }
