@@ -24,4 +24,10 @@ module iconv
 	 @return 返回编码的字符串
 	 */
     static String decode(String charset, Buffer data);
+
+	/*! @brief 检测字符集是否被支持
+	 @param charset 指定字符集
+	 @return 返回是否支持该字符集
+	 */
+    static Boolean isEncoding(String charset);
 };

@@ -128,7 +128,7 @@ describe('Buffer', () => {
         buf1 = new Buffer('');
         bufArray = [buf1];
         assert.doesNotThrow(() => {
-            bufRes = Buffer.concat([() => {}, {}, undefined, '']);
+            bufRes = Buffer.concat([() => { }, {}, undefined, '']);
         });
     });
 
@@ -280,6 +280,30 @@ describe('Buffer', () => {
     it('Buffer.allocUnsafeSlow(Integer)', () => {
         var buf1 = Buffer.allocUnsafeSlow(10);
         assert.equal(buf1.length, 10);
+    });
+
+    it('Buffer.Compare', () => {
+        var buf1 = new Buffer("abcd");
+        var buf2 = new Buffer("abcd");
+        var buf3 = new Buffer("abc");
+        var buf4 = new Buffer("abcde");
+        assert.equal(Buffer.Compare(buf1, buf2), 0);
+        assert.greaterThan(Buffer.Compare(buf1, buf3), 0);
+        assert.lessThan(Buffer.Compare(buf1, buf4), 0);
+    });
+
+    it('Buffer.isEncoding', () => {
+        assert.equal(Buffer.isEncoding('utf8'), true);
+        assert.equal(Buffer.isEncoding('utf-8'), true);
+        assert.equal(Buffer.isEncoding('gbk'), true);
+        assert.equal(Buffer.isEncoding('gb2312'), true);
+        assert.equal(Buffer.isEncoding('hex'), true);
+        assert.equal(Buffer.isEncoding('base64'), true);
+        assert.equal(Buffer.isEncoding('binary'), true);
+        assert.equal(Buffer.isEncoding('latin1'), true);
+        assert.equal(Buffer.isEncoding('big5'), true);
+        assert.equal(Buffer.isEncoding('jis'), false);
+        assert.equal(Buffer.isEncoding('aaabbbccc'), false);
     });
 
     it('keys', () => {
@@ -759,37 +783,37 @@ describe('Buffer', () => {
     });
 
     var fixtures = [{
-            "a": "ffff00",
-            "expected": "00ffff"
-        },
-        {
-            "a": "ffff",
-            "expected": "ffff"
-        },
-        {
-            "a": "0000",
-            "expected": "0000"
-        },
-        {
-            "a": "0000ff",
-            "expected": "ff0000"
-        },
-        {
-            "a": "000000",
-            "expected": "000000"
-        },
-        {
-            "a": "ffffff",
-            "expected": "ffffff"
-        },
-        {
-            "a": "00ffff00ff",
-            "expected": "ff00ffff00"
-        },
-        {
-            "a": "0000ff00ffff00ff",
-            "expected": "ff00ffff00ff0000"
-        }
+        "a": "ffff00",
+        "expected": "00ffff"
+    },
+    {
+        "a": "ffff",
+        "expected": "ffff"
+    },
+    {
+        "a": "0000",
+        "expected": "0000"
+    },
+    {
+        "a": "0000ff",
+        "expected": "ff0000"
+    },
+    {
+        "a": "000000",
+        "expected": "000000"
+    },
+    {
+        "a": "ffffff",
+        "expected": "ffffff"
+    },
+    {
+        "a": "00ffff00ff",
+        "expected": "ff00ffff00"
+    },
+    {
+        "a": "0000ff00ffff00ff",
+        "expected": "ff00ffff00ff0000"
+    }
     ];
 
     it('reverse', () => {

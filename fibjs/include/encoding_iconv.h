@@ -27,6 +27,8 @@ public:
     result_t decode(const exlib::string& data, exlib::string& retVal);
     result_t decode(Buffer_base* data, exlib::string& retVal);
 
+    result_t isEncoding(bool& retVal);
+
     exlib::string charset() const
     {
         return m_charset;

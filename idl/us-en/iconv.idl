@@ -24,4 +24,10 @@ module iconv
 	 @return The text decoded result.
 	 */
 	static String decode(String charset, Buffer data);
+
+	/*! @brief detect whether a charset is supported.
+	 @param charset The charset to be detect.
+	 @return whether to support charset.
+	 */
+    static Boolean isEncoding(String charset);
 };

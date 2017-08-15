@@ -243,6 +243,45 @@ result_t encoding_iconv::decode(Buffer_base* data, exlib::string& retVal)
     return decode(strData, retVal);
 }
 
+result_t encoding_iconv::isEncoding(bool& retVal)
+{
+    exlib::string data = "encoding_test";
+    exlib::string testVal;
+    if ((m_charset == "utf8") || (m_charset == "utf-8"))
+        testVal = data;
+    else {
+        if (m_charset == "binary")
+            m_charset = "latin1";
+
+        if (!m_iconv_en) {
+            m_iconv_en = _iconv_open(m_charset.c_str(), "utf-8");
+            if (m_iconv_en == (iconv_t)(-1)) {
+                m_iconv_en = NULL;
+                retVal = false;
+                return 0;
+            }
+        }
+
+        const char* _data = data.c_str();
+        size_t sz = data.length();
+
+        testVal.resize(sz * 2);
+        char* output_buf = &testVal[0];
+        size_t output_size = testVal.length();
+
+        size_t n = _iconv((iconv_t)m_iconv_en, &_data, &sz, &output_buf, &output_size);
+
+        if (n == (size_t)-1) {
+            retVal = false;
+            return 0;
+        }
+        retVal = true;
+        return 0;
+    }
+    retVal = true;
+    return 0;
+}
+
 result_t iconv_base::encode(exlib::string charset, exlib::string data,
     obj_ptr<Buffer_base>& retVal)
 {
@@ -253,5 +292,9 @@ result_t iconv_base::decode(exlib::string charset, Buffer_base* data,
     exlib::string& retVal)
 {
     return encoding_iconv(charset).decode(data, retVal);
+}
+result_t iconv_base::isEncoding(exlib::string charset, bool& retVal)
+{
+    return encoding_iconv(charset).isEncoding(retVal);
 }
 }

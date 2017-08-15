@@ -44,6 +44,8 @@ public:
     static result_t byteLength(v8::Local<v8::ArrayBuffer> str, exlib::string codec, int32_t& retVal);
     static result_t byteLength(v8::Local<v8::ArrayBufferView> str, exlib::string codec, int32_t& retVal);
     static result_t byteLength(Buffer_base* str, exlib::string codec, int32_t& retVal);
+    static result_t Compare(Buffer_base* buf1, Buffer_base* buf2, int32_t& retVal);
+    static result_t isEncoding(exlib::string codec, bool& retVal);
     virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
     virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
     virtual result_t get_length(int32_t& retVal) = 0;
@@ -125,6 +127,8 @@ public:
     static void s_allocUnsafe(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_allocUnsafeSlow(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_Compare(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -199,6 +203,8 @@ inline ClassInfo& Buffer_base::class_info()
         { "allocUnsafe", s_allocUnsafe, true },
         { "allocUnsafeSlow", s_allocUnsafeSlow, true },
         { "byteLength", s_byteLength, true },
+        { "Compare", s_Compare, true },
+        { "isEncoding", s_isEncoding, true },
         { "resize", s_resize, false },
         { "append", s_append, false },
         { "write", s_write, false },
@@ -492,6 +498,37 @@ inline void Buffer_base::s_byteLength(const v8::FunctionCallbackInfo<v8::Value>&
     OPT_ARG(exlib::string, 1, "utf8");
 
     hr = byteLength(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_Compare(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = Compare(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = isEncoding(v0, vr);
 
     METHOD_RETURN();
 }
