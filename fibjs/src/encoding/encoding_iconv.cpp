@@ -113,6 +113,7 @@ inline void init_iconv()
 encoding_iconv::encoding_iconv()
     : m_iconv_en(NULL)
     , m_iconv_de(NULL)
+    , m_iconv_ec(NULL)
 {
     init_iconv();
     m_charset = "utf-8";
@@ -121,6 +122,7 @@ encoding_iconv::encoding_iconv()
 encoding_iconv::encoding_iconv(exlib::string charset)
     : m_iconv_en(NULL)
     , m_iconv_de(NULL)
+    , m_iconv_ec(NULL)
 {
     init_iconv();
     m_charset = (charset == "gb2312") ? "gbk" : charset;
@@ -133,6 +135,9 @@ encoding_iconv::~encoding_iconv()
 
     if (m_iconv_de)
         _iconv_close((iconv_t)m_iconv_de);
+
+    if (m_iconv_ec)
+        _iconv_close((iconv_t)m_iconv_ec);
 }
 
 void encoding_iconv::open(const char* charset)
@@ -147,6 +152,10 @@ void encoding_iconv::open(const char* charset)
         m_iconv_de = NULL;
     }
 
+    if (m_iconv_ec) {
+        _iconv_close((iconv_t)m_iconv_ec);
+        m_iconv_ec = NULL;
+    }
     m_charset = charset;
 }
 
@@ -243,6 +252,29 @@ result_t encoding_iconv::decode(Buffer_base* data, exlib::string& retVal)
     return decode(strData, retVal);
 }
 
+result_t encoding_iconv::isEncoding(bool& retVal)
+{
+    if ((m_charset == "utf8") || (m_charset == "utf-8")) {
+        retVal = true;
+        return 0;
+    }
+
+    if (m_charset == "binary") {
+        m_charset = "latin1";
+    }
+
+    if (!m_iconv_ec) {
+        m_iconv_ec = _iconv_open(m_charset.c_str(), "utf-8");
+        if (m_iconv_ec == (iconv_t)(-1)) {
+            m_iconv_ec = NULL;
+            retVal = false;
+            return 0;
+        }
+    }
+    retVal = true;
+    return 0;
+}
+
 result_t iconv_base::encode(exlib::string charset, exlib::string data,
     obj_ptr<Buffer_base>& retVal)
 {
@@ -253,5 +285,10 @@ result_t iconv_base::decode(exlib::string charset, Buffer_base* data,
     exlib::string& retVal)
 {
     return encoding_iconv(charset).decode(data, retVal);
+}
+
+result_t iconv_base::isEncoding(exlib::string charset, bool& retVal)
+{
+    return encoding_iconv(charset).isEncoding(retVal);
 }
 }
