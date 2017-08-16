@@ -119,13 +119,6 @@ interface Buffer : object
      */
     static Integer byteLength(Buffer str, String codec = "utf8");
 
-    /*! @brief Compare the contents of the buffer
-     @param buf1 Buffer object
-     @param buf2 Buffer object
-     @return Returns a number indicating whether this comes before or after or is the same as the buf1 and buf2 in sort order.
-     */
-    static Integer compare(Buffer buf1， Buffer buf2);
-
     /*! @brief detect whether a encode format is supported.
      @param codec The encode format to be detect
      @return whether to support the encode format.

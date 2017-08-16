@@ -276,11 +276,6 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     return hr;
 }
 
-result_t Buffer_base::Compare(Buffer_base* buf1, Buffer_base* buf2, int32_t& retVal)
-{
-    return buf1->compare(buf2, retVal);
-}
-
 result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
 {
     if ((codec == "utf8") || (codec == "utf-8") || (codec == "hex") || (codec == "base64")) {

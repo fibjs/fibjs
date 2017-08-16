@@ -144,13 +144,6 @@ interface Buffer : object
      */
     static Integer byteLength(Buffer str, String codec = "utf8");
 
-    /*! @brief 比较缓存区的内容
-     @param buf1 待比较缓存对象
-     @param buf2 待比较缓存对象
-     @return 内容比较结果
-     */
-    static Integer Compare(Buffer buf1, Buffer buf2);
-
     /*! @brief 检测编码格式是否被支持
      @param 待检测的编码格式
      @return 是否支持
