@@ -3,7 +3,7 @@
  
  由于 WebView 内的 JavaScript 程序与 fibjs 并不在同一个引擎内，所以如果需要与宿主程序进行通讯，需要通过消息进行。
 
- WebView 用于通讯的对象是 external，external 支持两个方法 postMessage, close 和一个事件 onmessage。
+ WebView 用于通讯的对象是 external，external 支持一个方法 postMessage 和两个事件 onmessage、onclose。
 
  一个简单的通讯示例代码如下：
  ```JavaScript 
@@ -11,13 +11,9 @@
  var gui = require('gui');
  var webview = gui.open('fs:index.html');
 
- webview.onmessage = function(msg) {
-     console.log(msg);
- }
+ webview.onmessage = msg => console.log(msg);
  
- webview.onload = (evt) => {
-    webview.postMessage("hello from fibjs");
- }
+ webview.onload = evt => webview.postMessage("hello from fibjs");
 
  webview.wait();
  ```
@@ -25,29 +21,32 @@
  index.html 的内容如下：
  ```html
  <script>
+     external.onclose = function() {
+     }
+
      external.onmessage = function(msg){ 
          external.postMessage("send back: " + msg);
      };
  </script>
  ```
- 在 html 中，有一个特殊的消息 "close"，在用户窗口关闭之前，会向 html 内发送此消息。onmessage 收到此消息后，可以决定是否关闭。如果 onmessage 返回 false，则此次操作取消，否则将关闭窗口。
+  在用户窗口关闭之前，会触发 external.onclose 事件，external.onclose 可以决定是否关闭。如果 external.onclose 返回 false，则此次操作取消，否则将关闭窗口。
 
  以下的例子，会在用户点关闭后等待 5 秒后再关闭窗口。
  ```html
  <script lang="JavaScript">
      var bClose = false;
-     external.onmessage = function (m) {
-         if (m == 'close' && !bClose) {
+     external.onclose = function () {
+         if (!bClose) {
              setTimeout(function () {
                  bClose = true;
-                 external.close();
+                 window.close();
              }, 5000);
              return false;
          }
      }
  </script>
  ```
- 上面的代码中，因为 external.close 本身也会触发 "close" 事件，所以需要增加一个开关变量，用于识别是否需要处理此次事件。
+ 上面的代码中，因为 window.close 本身也会触发 onclose 事件，所以需要增加一个开关变量，用于识别是否需要处理此次事件。
  */
 interface WebView : EventEmitter
 {
@@ -88,9 +87,7 @@ interface WebView : EventEmitter
 	 var gui = require('gui');
 	 var webview = gui.open('fs:index.html');
 
-	 webview.onmove = function(evt) {
-	     console.log(evt.left, evt.top);
-	 }
+	 webview.onmove = evt => console.log(evt.left, evt.top);
 	 ```
 	*/
     Function onmove;
@@ -102,9 +99,7 @@ interface WebView : EventEmitter
      var gui = require('gui');
      var webview = gui.open('fs:index.html');
 
-     webview.onresize = function(evt) {
-         console.log(evt.width, evt.height);
-     }
+     webview.onresize = evt => console.log(evt.width, evt.height);
      ```
 	*/
     Function onresize;
