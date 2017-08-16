@@ -16,10 +16,10 @@ interface Buffer : object
      @param buffer otherBuffer
      */
     Buffer(Buffer buffer);
-    
+
     /*! @brief Buffer constructor
      @param str Initial string encoded in UTF-8, by default it will create an empty object.
-     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system.
      */
     Buffer(String str, String codec = "utf8");
 
@@ -55,7 +55,7 @@ interface Buffer : object
 
     /*! @brief Create a Buffer object from String
      @param str Initial string encoded in UTF-8, by default it will create an empty object
-     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system 
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system
      @return Return a Buffer object
      */
     static Buffer from(String str, String codec = "utf8");
@@ -93,28 +93,28 @@ interface Buffer : object
 
     /*! @brief Returns the actual byte length of a string
      @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
-     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system.
      @return Returns the actual byte length
      */
     static Integer byteLength(String str, String codec = "utf8");
 
     /*! @brief Returns the actual byte length of a string
      @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
-     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system.
      @return Returns the actual byte length
      */
     static Integer byteLength(ArrayBuffer str, String codec = "utf8");
 
     /*! @brief Returns the actual byte length of a string
      @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
-     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system.
      @return Returns the actual byte length
      */
     static Integer byteLength(ArrayBufferView str, String codec = "utf8");
 
     /*! @brief Returns the actual byte length of a string
      @param str Initial string encoded in UTF-8, if str is an  ArrayBuffer/TypedArray/DataView/Buffer object, their actual length is returned.
-     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system.
      @return Returns the actual byte length
      */
     static Integer byteLength(Buffer str, String codec = "utf8");
@@ -130,7 +130,7 @@ interface Buffer : object
      */
     Buffer(Integer size = 0);
 
-    /*! @brief The binary data in the buffer can be accessed by using subscript*/ 
+    /*! @brief The binary data in the buffer can be accessed by using subscript*/
     Integer operator[];
 
     /*! @brief The buffer size */
@@ -153,11 +153,11 @@ interface Buffer : object
 
     /*! @brief Write a string encoded in utf-8 into buffer
      @param str String to write
-     @param codec Coded format, can be "hex", “base64”, "utf8" or any other character sets supported by the system. 
+     @param codec Coded format, can be "hex", “base64”, "utf8" or any other character sets supported by the system.
      */
     append(String str, String codec = "utf8");
 
-    /*! @brief Writes string to the buffer at offset using the given encoding. 
+    /*! @brief Writes string to the buffer at offset using the given encoding.
      @param str String - data to be written to buffer
      @param offset Number, Optional, Default 0
      @param length Number, Optional, Default -1
@@ -221,21 +221,21 @@ interface Buffer : object
      @return The targeted integer
      */
     Integer readUInt16LE(Integer offset, Boolean noAssert = false);
-   
+
     /*!	@brief Read an unsigned 16-bit integer from the buffer and use the big-endian format for storage
      @param offset The beginning of the address to read
      @param noAssert If true, then do not throw an error when overread. By default it's false.
      @return The targeted integer
      */
     Integer readUInt16BE(Integer offset, Boolean noAssert = false);
-    
+
     /*!	@brief Read an unsigned 32-bit integer from the buffer and use the little-endian format for storage
      @param offset The beginning of the address to read
      @param noAssert If true, then do not throw an error when overread. By default it's false.
      @return The targeted integer
      */
     Long readUInt32LE(Integer offset, Boolean noAssert = false);
-    	
+
     /*!	@brief Read an unsigned 32-bit integer from the buffer and use the big-endian format for storage
      @param offset The beginning of the address to read
      @param noAssert If true, then do not throw an error when overread. By default it's false.
@@ -435,7 +435,7 @@ interface Buffer : object
     /*!	@brief return a new buffer that contains data in the specified range. If the data is out of range of the buffer, return the available part of the data.
 
      @param start The start of the specified range, by default it's the beginning of the buffer
-     @param end The end of the specified range, by default it's the end of the buffer 
+     @param end The end of the specified range, by default it's the end of the buffer
      */
     Buffer slice(Integer start = 0, Integer end = -1);
 
@@ -464,7 +464,7 @@ interface Buffer : object
     */
     Array toArray();
 
-    /*! @brief return the encoded string of the binary data 
+    /*! @brief return the encoded string of the binary data
      @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system.
      @param offset The start position of string, Default: 0
      @param end The end position of string, Default: -1
@@ -477,4 +477,3 @@ interface Buffer : object
     */
     String toString();
 };
-
