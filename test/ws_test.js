@@ -668,6 +668,51 @@ describe('ws', () => {
             s.close();
         });
 
+        it('send/on("message")', () => {
+            var httpd = new http.Server(8815 + base_port, new mq.Routing({
+                "^/ws$": ws.upgrade((s) => {
+                    s.on("message", function (msg) {
+                        if (msg.data === "Going Away")
+                            msg.stream.close();
+                        else if (msg.data === "close")
+                            this.close(3000, "remote");
+                        else
+                            this.send(msg.data);
+                    });
+                })
+            }));
+            ss.push(httpd.socket);
+            httpd.run(() => {});
+
+            var t = false;
+            var msg;
+            var s = new ws.Socket("ws://127.0.0.1:" + (8815 + base_port) + "/ws", "test");
+            s.on("open", () => {
+                s.send('123');
+            });
+
+            s.on("message", (m) => {
+                msg = m;
+                t = true;
+            });
+
+            for (var i = 0; i < 1000 && !t; i++)
+                coroutine.sleep(1);
+
+            assert.equal(msg.data, '123');
+
+            t = false;
+            s.send(new Buffer('456'));
+
+            for (var i = 0; i < 1000 && !t; i++)
+                coroutine.sleep(1);
+
+            assert.isTrue(Buffer.isBuffer(msg.data));
+            assert.equal(msg.data.toString(), '456');
+
+            s.close();
+        });
+
         it('close/onclose', () => {
             var tc = false;
             var msg;

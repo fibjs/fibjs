@@ -37,121 +37,14 @@ public:
     {
     }
 
+    EVENT_SUPPORT();
+
 public:
-    // WebSocket_base
-    virtual result_t on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
+    // object_base
+    virtual result_t onEventChange(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
     {
         startRecv();
-        return object_base::on(ev, func, retVal);
-    }
-
-    virtual result_t on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
-    {
-        startRecv();
-        return object_base::on(map, retVal);
-    }
-
-    virtual result_t prependListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
-    {
-        startRecv();
-        return object_base::prependListener(ev, func, retVal);
-    }
-
-    virtual result_t prependListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
-    {
-        startRecv();
-        return object_base::prependListener(map, retVal);
-    }
-
-    virtual result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
-    {
-        startRecv();
-        return object_base::once(ev, func, retVal);
-    }
-
-    virtual result_t once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
-    {
-        startRecv();
-        return object_base::once(map, retVal);
-    }
-
-    virtual result_t prependOnceListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
-    {
-        startRecv();
-        return object_base::prependOnceListener(ev, func, retVal);
-    }
-
-    virtual result_t prependOnceListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
-    {
-        startRecv();
-        return object_base::prependOnceListener(map, retVal);
-    }
-
-    result_t setListener(exlib::string ev, v8::Local<v8::Function> func)
-    {
-        startRecv();
-        return object_base::setListener(ev, func);
-    }
-
-    virtual result_t addListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
-    {
-        return on(ev, func, retVal);
-    }
-    virtual result_t addListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
-    {
-        return on(map, retVal);
-    }
-    virtual result_t off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
-    {
-        return object_base::off(ev, func, retVal);
-    }
-    virtual result_t off(exlib::string ev, v8::Local<v8::Object>& retVal)
-    {
-        return object_base::off(ev, retVal);
-    }
-    virtual result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
-    {
-        return object_base::off(map, retVal);
-    }
-    virtual result_t removeListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
-    {
-        return object_base::off(ev, func, retVal);
-    }
-    virtual result_t removeListener(exlib::string ev, v8::Local<v8::Object>& retVal)
-    {
-        return object_base::off(ev, retVal);
-    }
-    virtual result_t removeListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
-    {
-        return object_base::off(map, retVal);
-    }
-    virtual result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal)
-    {
-        return object_base::removeAllListeners(evs, retVal);
-    }
-    virtual result_t setMaxListeners(int32_t n)
-    {
-        return object_base::setMaxListeners(n);
-    }
-    virtual result_t getMaxListeners(int32_t& retVal)
-    {
-        return object_base::getMaxListeners(retVal);
-    }
-    virtual result_t listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
-    {
-        return object_base::listeners(ev, retVal);
-    }
-    virtual result_t listenerCount(exlib::string ev, int32_t& retVal)
-    {
-        return object_base::listenerCount(ev, retVal);
-    }
-    virtual result_t emit(exlib::string ev, OptArgs args, bool& retVal)
-    {
-        return object_base::emit(ev, args, retVal);
-    }
-    virtual result_t eventNames(v8::Local<v8::Array>& retVal)
-    {
-        return object_base::eventNames(retVal);
+        return 0;
     }
 
 public:
