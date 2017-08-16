@@ -87,28 +87,30 @@ public:
         return esa;
     }
 
-    inline result_t emitNewOrRemoveEvent(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
+    inline result_t onEventChange(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
     {
-        std::vector<v8::Local<v8::Value>> _args;
-        _args.resize(2);
+        v8::Local<v8::Value> _args[2];
         bool b;
 
         _args[0] = NewFromUtf8(ev);
 
-        v8::Local<v8::Value> _func = func->Get(NewFromUtf8("_func"));
-
-        if (_func->IsUndefined() || _func->IsNull())
+        _args[1] = func->Get(NewFromUtf8("_func"));
+        if (_args[1]->IsUndefined())
             _args[1] = func;
         else
-            _args[1] = _func;
+            func = v8::Local<v8::Function>::Cast(_args[1]);
 
-        return _emit(type, _args.data(), (int32_t)_args.size(), b);
+        obj_ptr<object_base> pThis = object_base::getInstance(o);
+        if (pThis)
+            pThis->onEventChange(func, ev, type);
+
+        return _emit(type, _args, 2, b);
     }
 
     inline int32_t putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
     {
         result_t hr;
-        hr = emitNewOrRemoveEvent(func, ev, "newListener");
+        hr = onEventChange(func, ev, "newListener");
         if (hr < 0)
             return hr;
 
@@ -120,7 +122,7 @@ public:
     inline int32_t prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
     {
         result_t hr;
-        hr = emitNewOrRemoveEvent(func, ev, "newListener");
+        hr = onEventChange(func, ev, "newListener");
         if (hr < 0)
             return hr;
 
@@ -159,7 +161,7 @@ public:
             if (v->Equals(func)) {
                 spliceOne(esa, i);
                 result_t hr;
-                hr = emitNewOrRemoveEvent(func, ev, "removeListener");
+                hr = onEventChange(func, ev, "removeListener");
                 if (hr < 0)
                     return hr;
                 return 0;

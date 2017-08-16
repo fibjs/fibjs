@@ -218,6 +218,11 @@ public:
     result_t _emit(exlib::string ev, v8::Local<v8::Value>* args, int32_t argCount, bool& retVal);
     result_t _emit(exlib::string ev, Variant* args, int32_t argCount);
 
+    virtual result_t onEventChange(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
+    {
+        return 0;
+    }
+
     void extMemory(int32_t ext)
     {
         if (handle_.IsEmpty())
