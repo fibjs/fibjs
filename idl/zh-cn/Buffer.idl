@@ -145,7 +145,7 @@ interface Buffer : object
     static Integer byteLength(Buffer str, String codec = "utf8");
 
     /*! @brief 检测编码格式是否被支持
-     @param 待检测的编码格式
+     @param codec 待检测的编码格式
      @return 是否支持
      */
     static Boolean isEncoding(String codec);
