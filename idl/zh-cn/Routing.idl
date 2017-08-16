@@ -1,5 +1,34 @@
 /*! @brief 消息处理器路由对象
 
+ 路由对象是 http 消息处理的核心对象，服务器根据路由的设定，匹配 url 和 method，并将 http 消息转发到相应的处理器，以完成不同的事务。
+
+ 一个简单的路由，可以直接以 JSON 对象的形式提供，比如：
+ ```JavaScript
+ var http = require('http');
+
+ var svr = new http.Server(8080, {
+     '/': r => r.response.write('home'),
+     '/help': r => r.response.write('help')
+ });
+
+ svr.run();
+ ```
+ 如果需要更复杂的路由定制，可以自行创建 Routing 对象并根据需要处理路由策略：
+ ```JavaScript
+ var http = require('http');
+ var mq = require('mq');
+
+ var app = new Routing();
+ 
+ app.get('/', r => r.response.write('home'));
+ app.get('/help', r => r.response.write('help'));
+
+ app.post('/help', r => r.response.write('post a help.'));
+
+ var svr = new http.Server(8080, app);
+ svr.run();
+ ```
+ 
  路由对象根据设定的规则匹配消息，将消息传递给符合规则的第一个处理器。后加入的路由规则优先匹配。创建方法：
  ```JavaScript
  var routing = new mq.Routing({
@@ -54,96 +83,113 @@ interface Routing : Handler
 
     /*! @brief 从已有路由对象中添加规则，添加后原路由将被清空
    @param route 已经初始化的路由对象
+   @return 返回路由对象本身
    */
-    append(Routing route);
+    Routing append(Routing route);
 
     /*! @brief 添加一组路由规则
    @param map 路由参数
+   @return 返回路由对象本身
    */
-    append(Object map);
+    Routing append(Object map);
 
     /*! @brief 添加一条路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+   @return 返回路由对象本身
    */
-    append(String pattern, Handler hdlr);
+    Routing append(String pattern, Handler hdlr);
 
     /*! @brief 添加一组路由规则
    @param method 指定 http 请求方法，"*" 接受所有方法
    @param map 路由参数
+   @return 返回路由对象本身
    */
-    append(String method, Object map);
+    Routing append(String method, Object map);
 
     /*! @brief 添加一条路由规则
    @param method 指定 http 请求方法，"*" 接受所有方法
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+   @return 返回路由对象本身
    */
-    append(String method, String pattern, Handler hdlr);
+    Routing append(String method, String pattern, Handler hdlr);
 
     /*! @brief 添加一组接受所有 http 方法路由规则
    @param map 路由参数
+   @return 返回路由对象本身
    */
-    all(Object map);
+    Routing all(Object map);
 
     /*! @brief 添加一条接受所有 http 方法路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+   @return 返回路由对象本身
    */
-    all(String pattern, Handler hdlr);
+    Routing all(String pattern, Handler hdlr);
 
     /*! @brief 添加一组 GET 方法路由规则
    @param map 路由参数
+   @return 返回路由对象本身
    */
-    get(Object map);
+    Routing get(Object map);
 
     /*! @brief 添加一条接受 http GET 方法路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+   @return 返回路由对象本身
    */
-    get(String pattern, Handler hdlr);
+    Routing get(String pattern, Handler hdlr);
 
     /*! @brief 添加一组接受 http POST 方法路由规则
    @param map 路由参数
+   @return 返回路由对象本身
    */
-    post(Object map);
+    Routing post(Object map);
 
     /*! @brief 添加一条接受 http POST 方法路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+   @return 返回路由对象本身
    */
-    post(String pattern, Handler hdlr);
+    Routing post(String pattern, Handler hdlr);
 
     /*! @brief 添加一组接受 http DELETE 方法路由规则
    @param map 路由参数
+   @return 返回路由对象本身
    */
-    del(Object map);
+    Routing del(Object map);
 
     /*! @brief 添加一条接受 http DELETE 方法路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+   @return 返回路由对象本身
    */
-    del(String pattern, Handler hdlr);
+    Routing del(String pattern, Handler hdlr);
 
     /*! @brief 添加一组 PUT 方法路由规则
    @param map 路由参数
+   @return 返回路由对象本身
    */
-    put(Object map);
+    Routing put(Object map);
 
     /*! @brief 添加一条接受 http PUT 方法路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+   @return 返回路由对象本身
    */
-    put(String pattern, Handler hdlr);
+    Routing put(String pattern, Handler hdlr);
 
     /*! @brief 添加一组 PATCH 方法路由规则
    @param map 路由参数
+   @return 返回路由对象本身
    */
-    patch(Object map);
+    Routing patch(Object map);
 
     /*! @brief 添加一条接受 http PATCH 方法路由规则
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+   @return 返回路由对象本身
    */
-    patch(String pattern, Handler hdlr);
+    Routing patch(String pattern, Handler hdlr);
 };

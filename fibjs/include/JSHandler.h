@@ -60,7 +60,8 @@ public:
         v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(hdlr);
         if (!hdlr->IsFunction()) {
             obj_ptr<Routing_base> r = new Routing();
-            result_t hr = r->append(o);
+            obj_ptr<Routing_base> r1;
+            result_t hr = r->append(o, r1);
             if (hr < 0)
                 return hr;
 

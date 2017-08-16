@@ -26,23 +26,23 @@ public:
     // Routing_base
     static result_t _new(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string method, v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t append(Routing_base* route) = 0;
-    virtual result_t append(v8::Local<v8::Object> map) = 0;
-    virtual result_t append(exlib::string pattern, Handler_base* hdlr) = 0;
-    virtual result_t append(exlib::string method, v8::Local<v8::Object> map) = 0;
-    virtual result_t append(exlib::string method, exlib::string pattern, Handler_base* hdlr) = 0;
-    virtual result_t all(v8::Local<v8::Object> map) = 0;
-    virtual result_t all(exlib::string pattern, Handler_base* hdlr) = 0;
-    virtual result_t get(v8::Local<v8::Object> map) = 0;
-    virtual result_t get(exlib::string pattern, Handler_base* hdlr) = 0;
-    virtual result_t post(v8::Local<v8::Object> map) = 0;
-    virtual result_t post(exlib::string pattern, Handler_base* hdlr) = 0;
-    virtual result_t del(v8::Local<v8::Object> map) = 0;
-    virtual result_t del(exlib::string pattern, Handler_base* hdlr) = 0;
-    virtual result_t put(v8::Local<v8::Object> map) = 0;
-    virtual result_t put(exlib::string pattern, Handler_base* hdlr) = 0;
-    virtual result_t patch(v8::Local<v8::Object> map) = 0;
-    virtual result_t patch(exlib::string pattern, Handler_base* hdlr) = 0;
+    virtual result_t append(Routing_base* route, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t append(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t append(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t append(exlib::string method, v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t append(exlib::string method, exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t all(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t all(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t get(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t get(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t post(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t post(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t del(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t del(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t put(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t put(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t patch(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t patch(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
 
 public:
     template <typename T>
@@ -114,6 +114,8 @@ void Routing_base::__new(const T& args)
 
 inline void Routing_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<Routing_base> vr;
+
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -121,27 +123,27 @@ inline void Routing_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(obj_ptr<Routing_base>, 0);
 
-    hr = pInst->append(v0);
+    hr = pInst->append(v0, vr);
 
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->append(v0);
+    hr = pInst->append(v0, vr);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = pInst->append(v0, v1);
+    hr = pInst->append(v0, v1, vr);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Object>, 1);
 
-    hr = pInst->append(v0, v1);
+    hr = pInst->append(v0, v1, vr);
 
     METHOD_OVER(3, 3);
 
@@ -149,13 +151,15 @@ inline void Routing_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(exlib::string, 1);
     ARG(obj_ptr<Handler_base>, 2);
 
-    hr = pInst->append(v0, v1, v2);
+    hr = pInst->append(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Routing_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<Routing_base> vr;
+
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -163,20 +167,22 @@ inline void Routing_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->all(v0);
+    hr = pInst->all(v0, vr);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = pInst->all(v0, v1);
+    hr = pInst->all(v0, v1, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Routing_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<Routing_base> vr;
+
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -184,20 +190,22 @@ inline void Routing_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->get(v0);
+    hr = pInst->get(v0, vr);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = pInst->get(v0, v1);
+    hr = pInst->get(v0, v1, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Routing_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<Routing_base> vr;
+
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -205,20 +213,22 @@ inline void Routing_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args
 
     ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->post(v0);
+    hr = pInst->post(v0, vr);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = pInst->post(v0, v1);
+    hr = pInst->post(v0, v1, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Routing_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<Routing_base> vr;
+
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -226,20 +236,22 @@ inline void Routing_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->del(v0);
+    hr = pInst->del(v0, vr);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = pInst->del(v0, v1);
+    hr = pInst->del(v0, v1, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Routing_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<Routing_base> vr;
+
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -247,20 +259,22 @@ inline void Routing_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->put(v0);
+    hr = pInst->put(v0, vr);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = pInst->put(v0, v1);
+    hr = pInst->put(v0, v1, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Routing_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<Routing_base> vr;
+
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -268,16 +282,16 @@ inline void Routing_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->patch(v0);
+    hr = pInst->patch(v0, vr);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = pInst->patch(v0, v1);
+    hr = pInst->patch(v0, v1, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 }
 
