@@ -282,16 +282,6 @@ describe('Buffer', () => {
         assert.equal(buf1.length, 10);
     });
 
-    it('Buffer.Compare', () => {
-        var buf1 = new Buffer("abcd");
-        var buf2 = new Buffer("abcd");
-        var buf3 = new Buffer("abc");
-        var buf4 = new Buffer("abcde");
-        assert.equal(Buffer.Compare(buf1, buf2), 0);
-        assert.greaterThan(Buffer.Compare(buf1, buf3), 0);
-        assert.lessThan(Buffer.Compare(buf1, buf4), 0);
-    });
-
     it('Buffer.isEncoding', () => {
         assert.equal(Buffer.isEncoding('utf8'), true);
         assert.equal(Buffer.isEncoding('utf-8'), true);
