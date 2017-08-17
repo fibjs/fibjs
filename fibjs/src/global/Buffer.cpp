@@ -1010,6 +1010,25 @@ result_t Buffer::values(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
+result_t Buffer::entries(v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
+    int32_t i;
+    const char* _data = m_data.c_str();
+
+    for (i = 0; i < (int32_t)m_data.length(); i++)
+    {
+        v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate, 2);
+        arr1->Set(0, v8::Number::New(isolate->m_isolate, i));
+        arr1->Set(1, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
+        arr->Set(i, arr1);
+    }
+
+    retVal = GetIteratorReturnValue(isolate->m_isolate, arr);
+    return 0;
+}
+
 result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal)
 {
     result_t hr;

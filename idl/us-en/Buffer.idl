@@ -459,6 +459,25 @@ interface Buffer : object
     */
     Iterator values();
 
+    /*! @brief Creates and returns an iterator of [index, byte] pairs from the contents of buf.
+     @return [index, byte] pairs Iterator.
+    ```JavaScript
+        const buf = Buffer.from('buffer');
+
+        // Prints:
+        //   [0, 98]
+        //   [1, 117]
+        //   [2, 102]
+        //   [3, 102]
+        //   [4, 101]
+        //   [5, 114]
+        for (const pair of buf.entries()) {
+            console.log(pair);
+        }
+    ```
+    */
+    Iterator entries();
+
     /*! @brief return the array of the binary data
      @return The Array representing the value of the buffer.
     */

@@ -574,6 +574,25 @@ interface Buffer : object
     */
     Iterator values();
 
+    /*! @brief 返回包含对象数据 [index, byte] 对的迭代器
+     @return [index, byte] 对的迭代器
+    ```JavaScript
+        const buf = Buffer.from('buffer');
+
+        // Prints:
+        //   [0, 98]
+        //   [1, 117]
+        //   [2, 102]
+        //   [3, 102]
+        //   [4, 101]
+        //   [5, 114]
+        for (const pair of buf.entries()) {
+            console.log(pair);
+        }
+    ```
+    */
+    Iterator entries();
+
     /*! @brief 返回全部二进制数据的数组
      @return 返回包含对象数据的数组
     */
