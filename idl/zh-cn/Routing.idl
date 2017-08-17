@@ -100,13 +100,6 @@ interface Routing : Handler
    */
     Routing append(String pattern, Handler hdlr);
 
-    /*! @brief 添加一组路由规则
-   @param method 指定 http 请求方法，"*" 接受所有方法
-   @param map 路由参数
-   @return 返回路由对象本身
-   */
-    Routing append(String method, Object map);
-
     /*! @brief 添加一条路由规则
    @param method 指定 http 请求方法，"*" 接受所有方法
    @param pattern 消息匹配格式

@@ -53,7 +53,6 @@ public:
     virtual result_t append(Routing_base* route, obj_ptr<Routing_base>& retVal);
     virtual result_t append(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
     virtual result_t append(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal);
-    virtual result_t append(exlib::string method, v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
     virtual result_t append(exlib::string method, exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal);
     virtual result_t all(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
     virtual result_t all(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal);
@@ -67,6 +66,9 @@ public:
     virtual result_t put(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal);
     virtual result_t patch(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
     virtual result_t patch(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal);
+
+public:
+    result_t _append(exlib::string method, v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
 
 private:
     std::vector<obj_ptr<rule>> m_array;

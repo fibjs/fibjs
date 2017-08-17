@@ -29,7 +29,6 @@ public:
     virtual result_t append(Routing_base* route, obj_ptr<Routing_base>& retVal) = 0;
     virtual result_t append(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
     virtual result_t append(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
-    virtual result_t append(exlib::string method, v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
     virtual result_t append(exlib::string method, exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
     virtual result_t all(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
     virtual result_t all(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
@@ -135,13 +134,6 @@ inline void Routing_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Handler_base>, 1);
-
-    hr = pInst->append(v0, v1, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
 
     hr = pInst->append(v0, v1, vr);
 

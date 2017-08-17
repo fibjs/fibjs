@@ -15,23 +15,21 @@
 namespace fibjs {
 
 result_t Routing_base::_new(v8::Local<v8::Object> map,
-    obj_ptr<Routing_base>& retVal,
-    v8::Local<v8::Object> This)
+    obj_ptr<Routing_base>& retVal, v8::Local<v8::Object> This)
 {
-    obj_ptr<Routing_base> r = new Routing();
+    obj_ptr<Routing> r = new Routing();
     r->wrap(This);
 
     return r->append(map, retVal);
 }
 
 result_t Routing_base::_new(exlib::string method, v8::Local<v8::Object> map,
-    obj_ptr<Routing_base>& retVal,
-    v8::Local<v8::Object> This)
+    obj_ptr<Routing_base>& retVal, v8::Local<v8::Object> This)
 {
-    obj_ptr<Routing_base> r = new Routing();
+    obj_ptr<Routing> r = new Routing();
     r->wrap(This);
 
-    return r->append(method, map, retVal);
+    return r->_append(method, map, retVal);
 }
 
 #define RE_SIZE 64
@@ -112,7 +110,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     return CHECK_ERROR(Runtime::setError("Routing: unknown routing: " + value));
 }
 
-result_t Routing::append(exlib::string method, v8::Local<v8::Object> map,
+result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
     obj_ptr<Routing_base>& retVal)
 {
     Isolate* isolate = holder();
@@ -290,7 +288,7 @@ result_t Routing::append(Routing_base* route, obj_ptr<Routing_base>& retVal)
 
 result_t Routing::append(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
 {
-    return append("*", map, retVal);
+    return _append("*", map, retVal);
 }
 
 result_t Routing::append(exlib::string pattern, Handler_base* hdlr,
@@ -301,7 +299,7 @@ result_t Routing::append(exlib::string pattern, Handler_base* hdlr,
 
 result_t Routing::all(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
 {
-    return append("*", map, retVal);
+    return _append("*", map, retVal);
 }
 
 result_t Routing::all(exlib::string pattern, Handler_base* hdlr,
@@ -312,7 +310,7 @@ result_t Routing::all(exlib::string pattern, Handler_base* hdlr,
 
 result_t Routing::get(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
 {
-    return append("GET", map, retVal);
+    return _append("GET", map, retVal);
 }
 
 result_t Routing::get(exlib::string pattern, Handler_base* hdlr,
@@ -323,7 +321,7 @@ result_t Routing::get(exlib::string pattern, Handler_base* hdlr,
 
 result_t Routing::post(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
 {
-    return append("POST", map, retVal);
+    return _append("POST", map, retVal);
 }
 
 result_t Routing::post(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal)
@@ -333,7 +331,7 @@ result_t Routing::post(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routin
 
 result_t Routing::del(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
 {
-    return append("DELETE", map, retVal);
+    return _append("DELETE", map, retVal);
 }
 
 result_t Routing::del(exlib::string pattern, Handler_base* hdlr,
@@ -344,7 +342,7 @@ result_t Routing::del(exlib::string pattern, Handler_base* hdlr,
 
 result_t Routing::put(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
 {
-    return append("PUT", map, retVal);
+    return _append("PUT", map, retVal);
 }
 
 result_t Routing::put(exlib::string pattern, Handler_base* hdlr,
@@ -355,7 +353,7 @@ result_t Routing::put(exlib::string pattern, Handler_base* hdlr,
 
 result_t Routing::patch(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
 {
-    return append("PATCH", map, retVal);
+    return _append("PATCH", map, retVal);
 }
 
 result_t Routing::patch(exlib::string pattern, Handler_base* hdlr,
