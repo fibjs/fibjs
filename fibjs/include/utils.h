@@ -989,6 +989,20 @@ inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, obj_ptr<T>& obj
     return obj->wrap();
 }
 
+inline v8::Local<v8::Object> GetIteratorReturnValue(v8::Isolate* isolate, v8::Local<v8::Array>& array)
+{
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Symbol> symbol = v8::Symbol::GetIterator(isolate);
+    return array->Get(context, symbol)
+            .ToLocalChecked()
+            ->ToObject(context)
+            .ToLocalChecked()
+            ->CallAsFunction(context, array, 0, NULL)
+            .ToLocalChecked()
+            ->ToObject(context)
+            .ToLocalChecked();
+}
+
 inline v8::Local<v8::Value> ThrowError(const char* msg)
 {
     Isolate* isolate = Isolate::current();
