@@ -16,11 +16,6 @@ extern "C" {
 
 namespace fibjs {
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, bson v)
-{
-    return v8::Undefined(isolate);
-}
-
 class MongoDB : public MongoDB_base {
 public:
     MongoDB()
