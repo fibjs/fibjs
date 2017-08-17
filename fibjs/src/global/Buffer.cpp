@@ -986,47 +986,46 @@ result_t Buffer::equals(object_base* expected, bool& retVal)
 result_t Buffer::keys(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = holder();
-    v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
+    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
     int32_t i;
 
     for (i = 0; i < (int32_t)m_data.length(); i++)
-        a->Set(i, v8::Number::New(isolate->m_isolate, i));
+        arr->Set(i, v8::Number::New(isolate->m_isolate, i));
 
-    v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
-    v8::Local<v8::Symbol> symbol = v8::Symbol::GetIterator(isolate->m_isolate);
-    v8::Local<v8::Object> b = a->Get(context, symbol)
-                                  .ToLocalChecked()
-                                  ->ToObject(context)
-                                  .ToLocalChecked()
-                                  ->CallAsFunction(context, a, 0, NULL)
-                                  .ToLocalChecked()
-                                  ->ToObject(context)
-                                  .ToLocalChecked();
-    retVal = b;
+    retVal = GetIteratorReturnValue(isolate->m_isolate, arr);
     return 0;
 }
 
 result_t Buffer::values(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = holder();
-    v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
+    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
     int32_t i;
     const char* _data = m_data.c_str();
 
     for (i = 0; i < (int32_t)m_data.length(); i++)
-        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
+        arr->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
 
-    v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
-    v8::Local<v8::Symbol> symbol = v8::Symbol::GetIterator(isolate->m_isolate);
-    v8::Local<v8::Object> b = a->Get(context, symbol)
-                                  .ToLocalChecked()
-                                  ->ToObject(context)
-                                  .ToLocalChecked()
-                                  ->CallAsFunction(context, a, 0, NULL)
-                                  .ToLocalChecked()
-                                  ->ToObject(context)
-                                  .ToLocalChecked();
-    retVal = b;
+    retVal = GetIteratorReturnValue(isolate->m_isolate, arr);
+    return 0;
+}
+
+result_t Buffer::entries(v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
+    int32_t i;
+    const char* _data = m_data.c_str();
+
+    for (i = 0; i < (int32_t)m_data.length(); i++)
+    {
+        v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate, 2);
+        arr1->Set(0, v8::Number::New(isolate->m_isolate, i));
+        arr1->Set(1, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
+        arr->Set(i, arr1);
+    }
+
+    retVal = GetIteratorReturnValue(isolate->m_isolate, arr);
     return 0;
 }
 

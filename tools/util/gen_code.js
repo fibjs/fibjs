@@ -12,6 +12,7 @@ module.exports = function (defs, baseFolder) {
             "String": "exlib::string",
             "Date": "date_t",
             "Object": "v8::Local<v8::Object>",
+            "Iterator": "v8::Local<v8::Object>",
             "Array": "v8::Local<v8::Array>",
             "TypedArray": "v8::Local<v8::TypedArray>",
             "ArrayBuffer": "v8::Local<v8::ArrayBuffer>",

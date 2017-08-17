@@ -330,6 +330,23 @@ describe('Buffer', () => {
         assert.deepEqual(values2, correctResult);
     });
 
+    it('entries', () => {
+        var buf1 = new Buffer("buffer");
+        var buf2 = new Buffer([98, 117, 102, 102, 101, 114]);
+        var correctResult = [[0, 98], [1, 117], [2, 102], [3, 102], [4, 101], [5, 114]];
+        var entries1 = [];
+        var entries2 = [];
+        for (let value of buf1.entries()) {
+            entries1.push(value);
+        }
+        assert.deepEqual(entries1, correctResult);
+
+        for (let value of buf2.entries()) {
+            entries2.push(value);
+        }
+        assert.deepEqual(entries2, correctResult);
+    });
+
     it('toArray', () => {
         var buf = new Buffer([1, 2, 3, 4]);
         assert.deepEqual(buf.toArray(), [1, 2, 3, 4]);
@@ -773,37 +790,37 @@ describe('Buffer', () => {
     });
 
     var fixtures = [{
-            "a": "ffff00",
-            "expected": "00ffff"
-        },
-        {
-            "a": "ffff",
-            "expected": "ffff"
-        },
-        {
-            "a": "0000",
-            "expected": "0000"
-        },
-        {
-            "a": "0000ff",
-            "expected": "ff0000"
-        },
-        {
-            "a": "000000",
-            "expected": "000000"
-        },
-        {
-            "a": "ffffff",
-            "expected": "ffffff"
-        },
-        {
-            "a": "00ffff00ff",
-            "expected": "ff00ffff00"
-        },
-        {
-            "a": "0000ff00ffff00ff",
-            "expected": "ff00ffff00ff0000"
-        }
+        "a": "ffff00",
+        "expected": "00ffff"
+    },
+    {
+        "a": "ffff",
+        "expected": "ffff"
+    },
+    {
+        "a": "0000",
+        "expected": "0000"
+    },
+    {
+        "a": "0000ff",
+        "expected": "ff0000"
+    },
+    {
+        "a": "000000",
+        "expected": "000000"
+    },
+    {
+        "a": "ffffff",
+        "expected": "ffffff"
+    },
+    {
+        "a": "00ffff00ff",
+        "expected": "ff00ffff00"
+    },
+    {
+        "a": "0000ff00ffff00ff",
+        "expected": "ff00ffff00ff0000"
+    }
     ];
 
     it('reverse', () => {

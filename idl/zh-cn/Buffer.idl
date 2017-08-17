@@ -68,7 +68,7 @@ interface Buffer : object
 
     /*! @brief 通过字符串创建 Buffer 对象
      @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
-     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      @return 返回 Buffer 实例
      */
     static Buffer from(String str, String codec = "utf8");
@@ -83,7 +83,7 @@ interface Buffer : object
     /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
      @param size 缓冲区的所需长度
      @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
-     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      @return 填充好的新 Buffer 对象
     */
     static Buffer alloc(Integer size, Integer fill = 0, String codec = "utf8");
@@ -91,7 +91,7 @@ interface Buffer : object
     /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
      @param size 缓冲区的所需长度
      @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
-     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      @return 填充好的新 Buffer 对象
     */
     static Buffer alloc(Integer size, String fill = "", String codec = "utf8");
@@ -99,11 +99,11 @@ interface Buffer : object
     /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
      @param size 缓冲区的所需长度
      @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
-     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      @return 填充好的新 Buffer 对象
     */
     static Buffer alloc(Integer size, Buffer fill, String codec = "utf8");
-    
+
     /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
      @param size 缓冲区的所需长度
      @return 指定尺寸的新 Buffer 对象
@@ -118,28 +118,28 @@ interface Buffer : object
 
     /*! @brief 返回字符串的实际字节长度
      @param str 待取字节的字符串，如果str为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
-     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      @return 返回实际字节长度
      */
     static Integer byteLength(String str, String codec = "utf8");
 
     /*! @brief 返回字符串的实际字节长度
      @param str 待取字节的字符串，如果str为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
-     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      @return 返回实际字节长度
      */
     static Integer byteLength(ArrayBuffer str, String codec = "utf8");
 
     /*! @brief 返回字符串的实际字节长度
      @param str 待取字节的字符串，如果 str 为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
-     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      @return 返回实际字节长度
      */
     static Integer byteLength(ArrayBufferView str, String codec = "utf8");
 
     /*! @brief 返回字符串的实际字节长度
      @param str 待取字节的字符串，如果str为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
-     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集 
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
      @return 返回实际字节长度
      */
     static Integer byteLength(Buffer str, String codec = "utf8");
@@ -567,12 +567,31 @@ interface Buffer : object
     /*! @brief 返回全部二进制数据的数组
      @return 返回包含对象数据索引的迭代器
     */
-    Object keys();
+    Iterator keys();
 
     /*! @brief 返回全部二进制数据的数组
      @return 返回包含对象数据值的迭代器
     */
-    Object values();
+    Iterator values();
+
+    /*! @brief 返回包含对象数据 [index, byte] 对的迭代器
+     @return [index, byte] 对的迭代器
+    ```JavaScript
+        const buf = Buffer.from('buffer');
+
+        // Prints:
+        //   [0, 98]
+        //   [1, 117]
+        //   [2, 102]
+        //   [3, 102]
+        //   [4, 101]
+        //   [5, 114]
+        for (const pair of buf.entries()) {
+            console.log(pair);
+        }
+    ```
+    */
+    Iterator entries();
 
     /*! @brief 返回全部二进制数据的数组
      @return 返回包含对象数据的数组
