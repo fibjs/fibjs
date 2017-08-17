@@ -80,24 +80,30 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     levelCount[level[i]]++;
                 }
 
-                if (levelCount[1] == 1) {
-                    msg->set_value(value.substr(ovector[2], ovector[3] - ovector[2]));
-                    if (levelCount[2] > 0)
-                        p = 2;
-                } else
-                    msg->set_value("");
-                int32_t toDrop;
-                if (levelCount[p]) {
-                    Variant vUndefined;
-                    for (i = 0; i < rc; i++)
-                        if (level[i] == p) {
-                            if (ovector[i * 2 + 1] - ovector[i * 2] > 0)
-                                list->push(value.substr(ovector[i * 2],
-                                               ovector[i * 2 + 1] - ovector[i * 2]),
-                                    toDrop);
-                            else
-                                list->push(vUndefined, toDrop);
-                        }
+                if (r->m_bSub) {
+                    i = rc - 1;
+                    msg->set_value(value.substr(ovector[i * 2], ovector[i * 2 + 1] - ovector[i * 2]));
+                } else {
+                    if (levelCount[1] == 1) {
+                        msg->set_value(value.substr(ovector[2], ovector[3] - ovector[2]));
+                        if (levelCount[2] > 0)
+                            p = 2;
+                    } else
+                        msg->set_value("");
+
+                    int32_t toDrop;
+                    if (levelCount[p]) {
+                        Variant vUndefined;
+                        for (i = 0; i < rc; i++)
+                            if (level[i] == p) {
+                                if (ovector[i * 2 + 1] - ovector[i * 2] > 0)
+                                    list->push(value.substr(ovector[i * 2],
+                                                   ovector[i * 2 + 1] - ovector[i * 2]),
+                                        toDrop);
+                                else
+                                    list->push(vUndefined, toDrop);
+                            }
+                    }
                 }
             }
 
@@ -141,7 +147,7 @@ exlib::string path2RegExp(exlib::string pattern)
 {
     size_t len = pattern.length();
 
-    if (pattern[len - 1] == '/')
+    if (len > 0 && pattern[len - 1] == '/')
         pattern.resize(len - 1);
 
     _parser p(pattern);
@@ -235,9 +241,20 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
     const char* error;
     int32_t erroffset;
     pcre* re;
+    bool bSub = false;
 
-    if (pattern.length() > 0 && pattern[0] != '^')
+    if (pattern.length() > 0 && pattern[0] != '^') {
+        obj_ptr<Routing_base> rt = Routing_base::getInstance(hdlr);
+        if (rt) {
+            int32_t len = (int32_t)pattern.length();
+            if (len > 0 && pattern[len - 1] == '/')
+                pattern.resize(len - 1);
+            pattern += "(.*)";
+            bSub = true;
+        }
+
         pattern = path2RegExp(pattern);
+    }
 
     re = pcre_compile(pattern.c_str(), opt, &error, &erroffset, NULL);
     if (re == NULL) {
@@ -254,7 +271,7 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
 
     SetPrivate(strBuf, hdlr->wrap());
 
-    obj_ptr<rule> r = new rule(method, re, hdlr);
+    obj_ptr<rule> r = new rule(method, re, hdlr, bSub);
     m_array.insert(m_array.begin(), r);
 
     retVal = this;

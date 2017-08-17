@@ -352,6 +352,23 @@ var p2r_tests = {
             "route/nested"
         ]
     },
+    "/test(.*)": {
+        "/test": [
+            "/test"
+        ],
+        "/test/": [
+            "/test/",
+            "/"
+        ],
+        "/test/route": [
+            "/test/route",
+            "/route",
+        ],
+        "/test/route/nested": [
+            "/test/route/nested",
+            "/route/nested"
+        ]
+    },
     "/route\\(\\\\(\\d+\\\\)\\)": {
         "/route(\\123\\)": [
             "/route(\\123\\)",
@@ -494,6 +511,24 @@ var p2r_tests = {
         "/café": [
             "/café",
             "café"
+        ]
+    }
+};
+
+var p2r_sub_tests = {
+    "/test|/hello": {
+        "/": null,
+        "/test/hello": [
+            "/hello"
+        ]
+    },
+    "/test|/": {
+        "/": null,
+        "/test/": [
+            "/"
+        ],
+        "/test": [
+            ""
         ]
     }
 };
@@ -855,6 +890,40 @@ describe("mq", () => {
 
             for (k in p2r_tests)
                 test_one(k);
+
+            function test_sub_route(p, p1, v) {
+                var r = null;
+                var rt = new mq.Routing();
+                var sub_routing = {};
+
+                sub_routing[p1] = function (req) {
+                    r = Array.prototype.slice.call(arguments);
+                    r[0] = req.value;
+                };
+
+                sub_routing["^.*$"] = () => {};
+
+                rt.append(p, sub_routing);
+                rt.append("^.*$", () => {});
+
+                var m = new mq.Message();
+                m.value = v;
+
+                mq.invoke(rt, m);
+                return r;
+            }
+
+            function test_one_sub(k) {
+                it(k, () => {
+                    var ks = k.split('|');
+                    var cases = p2r_sub_tests[k];
+                    for (u in cases)
+                        assert.deepEqual(test_sub_route(ks[0], ks[1], u), cases[u]);
+                });
+            }
+
+            for (k in p2r_sub_tests)
+                test_one_sub(k);
         });
 
         describe("order", () => {

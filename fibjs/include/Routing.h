@@ -18,10 +18,11 @@ class Routing : public Routing_base {
 public:
     class rule : public obj_base {
     public:
-        rule(exlib::string method, pcre* re, Handler_base* hdlr)
+        rule(exlib::string method, pcre* re, Handler_base* hdlr, bool bSub)
             : m_method(method)
             , m_re(re)
             , m_hdlr(hdlr)
+            , m_bSub(bSub)
         {
         }
 
@@ -34,6 +35,7 @@ public:
         exlib::string m_method;
         pcre* m_re;
         obj_ptr<Handler_base> m_hdlr;
+        bool m_bSub;
     };
 
 public:
