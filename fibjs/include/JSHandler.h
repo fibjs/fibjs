@@ -49,7 +49,7 @@ public:
             v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(hdlr);
 
             obj_ptr<Chain_base> chain = new Chain();
-            result_t hr = chain->append(a);
+            result_t hr = Chain_base::_new(a, chain);
             if (hr < 0)
                 return hr;
 
@@ -59,13 +59,12 @@ public:
 
         v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(hdlr);
         if (!hdlr->IsFunction()) {
-            obj_ptr<Routing_base> r = new Routing();
-            obj_ptr<Routing_base> r1;
-            result_t hr = r->append(o, r1);
+            obj_ptr<Routing_base> routing;
+            result_t hr = Routing_base::_new(o, routing);
             if (hr < 0)
                 return hr;
 
-            retVal = r;
+            retVal = routing;
             return 0;
         }
 

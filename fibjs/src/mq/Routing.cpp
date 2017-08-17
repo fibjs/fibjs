@@ -7,7 +7,6 @@
 
 #include "object.h"
 #include "Routing.h"
-#include "JSHandler.h"
 #include "ifs/Message.h"
 #include "ifs/HttpRequest.h"
 #include "List.h"
@@ -116,6 +115,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 result_t Routing::append(exlib::string method, v8::Local<v8::Object> map,
     obj_ptr<Routing_base>& retVal)
 {
+    Isolate* isolate = holder();
     v8::Local<v8::Array> ks = map->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
@@ -124,18 +124,14 @@ result_t Routing::append(exlib::string method, v8::Local<v8::Object> map,
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
         v8::Local<v8::Value> v = map->Get(k);
-
-        obj_ptr<Handler_base> hdlr = Handler_base::getInstance(v);
+        obj_ptr<Handler_base> hdlr;
         obj_ptr<Routing_base> r;
 
-        if (hdlr) {
-            append(method, *v8::String::Utf8Value(k), hdlr, r);
-            continue;
-        }
-
-        hr = append(method, *v8::String::Utf8Value(k), v, r);
+        hr = GetArgumentValue(isolate->m_isolate, v, hdlr);
         if (hr < 0)
             return hr;
+
+        append(method, *v8::String::Utf8Value(k), hdlr, r);
     }
 
     retVal = this;
@@ -266,16 +262,6 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
     retVal = this;
 
     return 0;
-}
-
-result_t Routing::append(exlib::string method, exlib::string pattern,
-    v8::Local<v8::Value> hdlr, obj_ptr<Routing_base>& retVal)
-{
-    obj_ptr<Handler_base> hdlr1;
-    result_t hr = JSHandler::New(hdlr, hdlr1);
-    if (hr < 0)
-        return hr;
-    return append(method, pattern, hdlr1, retVal);
 }
 
 result_t Routing::append(Routing_base* route, obj_ptr<Routing_base>& retVal)

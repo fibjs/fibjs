@@ -31,9 +31,6 @@ public:
     virtual result_t append(v8::Local<v8::Array> hdlrs);
     virtual result_t append(Handler_base* hdlr);
 
-public:
-    result_t append(v8::Local<v8::Value> hdlr);
-
 private:
     QuickArray<obj_ptr<Handler_base>> m_array;
 };

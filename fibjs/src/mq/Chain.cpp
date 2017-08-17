@@ -7,7 +7,6 @@
 
 #include "object.h"
 #include "Chain.h"
-#include "JSHandler.h"
 #include "ifs/mq.h"
 
 namespace fibjs {
@@ -94,31 +93,22 @@ result_t Chain::append(Handler_base* hdlr)
     return 0;
 }
 
-result_t Chain::append(v8::Local<v8::Value> hdlr)
-{
-    obj_ptr<Handler_base> hdlr1;
-    result_t hr = JSHandler::New(hdlr, hdlr1);
-    if (hr < 0)
-        return hr;
-    return append(hdlr1);
-}
-
 result_t Chain::append(v8::Local<v8::Array> hdlrs)
 {
+    Isolate* isolate = holder();
     int32_t len = hdlrs->Length();
     int32_t i;
     result_t hr;
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> v = hdlrs->Get(i);
-        obj_ptr<Handler_base> hdlr = Handler_base::getInstance(v);
+        obj_ptr<Handler_base> hdlr;
 
-        if (hdlr) {
-            append(hdlr);
-            continue;
-        }
+        hr = GetArgumentValue(isolate->m_isolate, v, hdlr);
+        if (hr < 0)
+            return hr;
 
-        hr = append(v);
+        hr = append(hdlr);
         if (hr < 0)
             return hr;
     }
