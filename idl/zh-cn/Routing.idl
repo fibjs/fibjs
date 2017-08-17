@@ -29,6 +29,12 @@
 
  app.get('/user/:id(\\d+)', (r, id) => r.response.write('get ' + id));
 
+ app.get('/actions', {
+     '/run': r => r.response.write('running'),
+     '/sleep': r => r.response.write('sleeping'),
+     '(.*)': r => r.response.write('........')
+ });
+
  var svr = new http.Server(8080, app);
  svr.run();
  ```
