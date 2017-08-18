@@ -143,7 +143,7 @@ inline void MongoDB_base::i_NamedGetter(v8::Local<v8::String> property, const v8
         return;
 
     hr = pInst->_named_getter(*k, vr);
-    if (hr == CALL_RETURN_NULL)
+    if (hr == CALL_RETURN_UNDEFINED)
         return;
 
     METHOD_RETURN();
@@ -198,7 +198,7 @@ inline void MongoDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_close(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_close();
 

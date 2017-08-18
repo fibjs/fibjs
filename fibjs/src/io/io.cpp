@@ -61,7 +61,7 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 
             pThis->set(read);
 
-            if (n == CALL_RETURN_NULL)
+            if (n == CALL_RETURN_UNDEFINED)
                 return pThis->done();
 
             pThis->m_buf->get_length(blen);
@@ -126,7 +126,7 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
             {
                 AsyncCopy* pThis = (AsyncCopy*)pState;
 
-                if (n == CALL_RETURN_NULL)
+                if (n == CALL_RETURN_UNDEFINED)
                     return pThis->error(0);
 
                 if (pThis->m_data->m_states[pThis->m_from].CompareAndSwap(

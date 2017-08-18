@@ -127,7 +127,7 @@ inline void HeapSnapshot_base::s_save(const v8::FunctionCallbackInfo<v8::Value>&
 
     if (!cb.IsEmpty()) {
         pInst->acb_save(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_save(v0);
 

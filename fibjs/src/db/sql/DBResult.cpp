@@ -13,7 +13,7 @@ namespace fibjs {
 result_t DBResult::_indexed_getter(uint32_t index, Variant& retVal)
 {
     if (!m_size)
-        return CHECK_ERROR(CALL_RETURN_NULL);
+        return CHECK_ERROR(CALL_RETURN_UNDEFINED);
 
     return m_array->_indexed_getter(index, retVal);
 }

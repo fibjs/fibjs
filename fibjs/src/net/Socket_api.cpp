@@ -84,7 +84,7 @@ namespace socket {
 
         exlib::string strBuf;
 
-        if (hr != CALL_RETURN_NULL) {
+        if (hr != CALL_RETURN_UNDEFINED) {
             retVal->toString(strBuf);
             memcpy(buffer, strBuf.c_str(), strBuf.length());
         }
@@ -114,7 +114,7 @@ namespace socket {
 
         exlib::string strBuf;
 
-        if (hr != CALL_RETURN_NULL) {
+        if (hr != CALL_RETURN_UNDEFINED) {
             retVal->toString(strBuf);
             if ((int32_t)strBuf.length() < cbBuffer)
                 return -1;

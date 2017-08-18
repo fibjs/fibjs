@@ -19,12 +19,12 @@ result_t XmlDocumentType::get_nodeName(exlib::string& retVal)
 
 result_t XmlDocumentType::get_nodeValue(exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t XmlDocumentType::set_nodeValue(exlib::string newVal)
 {
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t XmlDocumentType::get_nodeType(int32_t& retVal)
@@ -69,12 +69,12 @@ result_t XmlDocumentType::get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
 
 result_t XmlDocumentType::lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t XmlDocumentType::lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t XmlDocumentType::insertBefore(XmlNode_base* newChild, XmlNode_base* refChild,

@@ -133,7 +133,7 @@ inline void EventInfo_base::i_NamedGetter(v8::Local<v8::String> property, const 
         return;
 
     hr = pInst->_named_getter(*k, vr);
-    if (hr == CALL_RETURN_NULL)
+    if (hr == CALL_RETURN_UNDEFINED)
         return;
 
     METHOD_RETURN();

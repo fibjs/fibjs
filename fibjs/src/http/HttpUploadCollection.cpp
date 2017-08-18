@@ -237,7 +237,7 @@ result_t HttpUploadCollection::first(exlib::string name, Variant& retVal)
             return 0;
         }
 
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t HttpUploadCollection::all(exlib::string name, obj_ptr<List_base>& retVal)

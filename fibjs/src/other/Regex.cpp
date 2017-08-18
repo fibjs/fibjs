@@ -104,7 +104,7 @@ result_t Regex::exec(exlib::string str, v8::Local<v8::Array>& retVal)
             m_nlastIndex += utf8_strlen(c_str, ovector[2 * rc - 1]);
     }
 
-    return rc ? 0 : CALL_RETURN_NULL;
+    return rc ? 0 : CALL_RETURN_UNDEFINED;
 }
 
 result_t Regex::test(exlib::string str, bool& retVal)

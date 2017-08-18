@@ -151,7 +151,7 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
 
     v8::Local<v8::Value> args[2];
 
-    if (pThis->m_v == CALL_RETURN_NULL) {
+    if (pThis->m_v == CALL_RETURN_UNDEFINED) {
         args[0] = v8::Undefined(pThis->m_isolate->m_isolate);
         args[1] = v8::Null(pThis->m_isolate->m_isolate);
     } else if (pThis->m_v >= 0) {

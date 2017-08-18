@@ -109,7 +109,7 @@ public:
     result_t get_result(v8::Local<v8::Value>& retVal)
     {
         if (m_result.IsEmpty())
-            return CALL_RETURN_NULL;
+            return CALL_RETURN_UNDEFINED;
 
         retVal = v8::Local<v8::Value>::New(holder()->m_isolate, m_result);
         return 0;

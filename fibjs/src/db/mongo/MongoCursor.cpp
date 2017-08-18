@@ -155,7 +155,7 @@ result_t MongoCursor::forEach(v8::Local<v8::Function> func)
     v8::Local<v8::Object> o;
     Isolate* isolate = holder();
 
-    while ((hr = next(o)) != CALL_RETURN_NULL) {
+    while ((hr = next(o)) != CALL_RETURN_UNDEFINED) {
         v8::Local<v8::Value> a = o;
         v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate->m_isolate), 1, &a);
 
@@ -175,7 +175,7 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
     v8::Local<v8::Array> as = v8::Array::New(isolate->m_isolate);
     int32_t n = 0;
 
-    while ((hr = next(o)) != CALL_RETURN_NULL) {
+    while ((hr = next(o)) != CALL_RETURN_UNDEFINED) {
         v8::Local<v8::Value> a = o;
         v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate->m_isolate), 1, &a);
 
@@ -223,7 +223,7 @@ result_t MongoCursor::next(v8::Local<v8::Object>& retVal)
         return hr;
 
     if (!has)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = decodeObject(holder(), mongo_cursor_bson(m_cursor));
     m_state = CUR_NONE;
@@ -278,7 +278,7 @@ result_t MongoCursor::toArray(v8::Local<v8::Array>& retVal)
     v8::Local<v8::Array> as = v8::Array::New(holder()->m_isolate);
     int32_t n = 0;
 
-    while ((hr = next(o)) != CALL_RETURN_NULL) {
+    while ((hr = next(o)) != CALL_RETURN_UNDEFINED) {
         as->Set(n, o);
         n++;
     }

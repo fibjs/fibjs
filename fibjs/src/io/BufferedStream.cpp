@@ -24,7 +24,7 @@ public:
 
     virtual result_t process(bool end)
     {
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
     }
 
     static int32_t process(AsyncState* pState, int32_t n)
@@ -51,7 +51,7 @@ public:
         pThis->m_pThis->m_buf.clear();
         pThis->m_pThis->m_pos = 0;
 
-        if (n != CALL_RETURN_NULL) {
+        if (n != CALL_RETURN_UNDEFINED) {
             pThis->m_buf->toString(pThis->m_pThis->m_buf);
             pThis->m_buf.Release();
         } else
@@ -102,7 +102,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                 exlib::string s = pThis->m_strbuf.str();
 
                 if (s.length() == 0)
-                    return CALL_RETURN_NULL;
+                    return CALL_RETURN_UNDEFINED;
 
                 retVal = new Buffer(s);
 
@@ -194,7 +194,7 @@ result_t BufferedStream::readText(int32_t size, exlib::string& retVal,
                     return hr;
 
                 if (retVal.length() == 0)
-                    return CALL_RETURN_NULL;
+                    return CALL_RETURN_UNDEFINED;
 
                 return 0;
             }
@@ -327,7 +327,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
                 }
 
                 pThis->m_temp = 0;
-                return streamEnd && (retVal.length() == 0) ? CALL_RETURN_NULL : 0;
+                return streamEnd && (retVal.length() == 0) ? CALL_RETURN_UNDEFINED : 0;
             }
 
             return CHECK_ERROR(CALL_E_PENDDING);

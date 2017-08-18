@@ -298,7 +298,7 @@ inline void fs_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_exists(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_exists(v0, vr);
 
@@ -316,7 +316,7 @@ inline void fs_base::s_access(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_access(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_access(v0, v1);
 
@@ -334,7 +334,7 @@ inline void fs_base::s_link(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_link(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_link(v0, v1);
 
@@ -351,7 +351,7 @@ inline void fs_base::s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_unlink(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_unlink(v0);
 
@@ -369,7 +369,7 @@ inline void fs_base::s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_mkdir(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_mkdir(v0, v1);
 
@@ -386,7 +386,7 @@ inline void fs_base::s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_rmdir(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_rmdir(v0);
 
@@ -404,7 +404,7 @@ inline void fs_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_rename(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_rename(v0, v1);
 
@@ -422,7 +422,7 @@ inline void fs_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_copy(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_copy(v0, v1);
 
@@ -440,7 +440,7 @@ inline void fs_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_chmod(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_chmod(v0, v1);
 
@@ -458,7 +458,7 @@ inline void fs_base::s_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_lchmod(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_lchmod(v0, v1);
 
@@ -477,7 +477,7 @@ inline void fs_base::s_chown(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_chown(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_chown(v0, v1, v2);
 
@@ -496,7 +496,7 @@ inline void fs_base::s_lchown(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_lchown(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_lchown(v0, v1, v2);
 
@@ -515,7 +515,7 @@ inline void fs_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_stat(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_stat(v0, vr);
 
@@ -534,7 +534,7 @@ inline void fs_base::s_lstat(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_lstat(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_lstat(v0, vr);
 
@@ -553,7 +553,7 @@ inline void fs_base::s_readlink(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_readlink(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_readlink(v0, vr);
 
@@ -572,7 +572,7 @@ inline void fs_base::s_realpath(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_realpath(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_realpath(v0, vr);
 
@@ -591,7 +591,7 @@ inline void fs_base::s_symlink(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_symlink(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_symlink(v0, v1, v2);
 
@@ -609,7 +609,7 @@ inline void fs_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_truncate(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_truncate(v0, v1);
 
@@ -632,7 +632,7 @@ inline void fs_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_read(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_read(v0, v1, v2, v3, v4, vr);
 
@@ -650,7 +650,7 @@ inline void fs_base::s_fchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_fchmod(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_fchmod(v0, v1);
 
@@ -669,7 +669,7 @@ inline void fs_base::s_fchown(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_fchown(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_fchown(v0, v1, v2);
 
@@ -686,7 +686,7 @@ inline void fs_base::s_fdatasync(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_fdatasync(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_fdatasync(v0);
 
@@ -703,7 +703,7 @@ inline void fs_base::s_fsync(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_fsync(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_fsync(v0);
 
@@ -722,7 +722,7 @@ inline void fs_base::s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_readdir(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_readdir(v0, vr);
 
@@ -742,7 +742,7 @@ inline void fs_base::s_openFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_openFile(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_openFile(v0, v1, vr);
 
@@ -763,7 +763,7 @@ inline void fs_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_open(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_open(v0, v1, v2, vr);
 
@@ -780,7 +780,7 @@ inline void fs_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_close(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_close(v0);
 
@@ -800,7 +800,7 @@ inline void fs_base::s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>&
 
     if (!cb.IsEmpty()) {
         acb_openTextStream(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_openTextStream(v0, v1, vr);
 
@@ -819,7 +819,7 @@ inline void fs_base::s_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         acb_readTextFile(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_readTextFile(v0, vr);
 
@@ -839,7 +839,7 @@ inline void fs_base::s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_readFile(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_readFile(v0, v1, vr);
 
@@ -873,7 +873,7 @@ inline void fs_base::s_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& 
 
     if (!cb.IsEmpty()) {
         acb_writeTextFile(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_writeTextFile(v0, v1);
 
@@ -891,7 +891,7 @@ inline void fs_base::s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_writeFile(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_writeFile(v0, v1);
 
@@ -909,7 +909,7 @@ inline void fs_base::s_appendFile(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         acb_appendFile(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_appendFile(v0, v1);
 

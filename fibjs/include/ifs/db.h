@@ -128,7 +128,7 @@ inline void db_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_open(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_open(v0, vr);
 
@@ -147,7 +147,7 @@ inline void db_base::s_openMySQL(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_openMySQL(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_openMySQL(v0, vr);
 
@@ -166,7 +166,7 @@ inline void db_base::s_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_openMSSQL(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_openMSSQL(v0, vr);
 
@@ -185,7 +185,7 @@ inline void db_base::s_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         acb_openSQLite(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_openSQLite(v0, vr);
 
@@ -204,7 +204,7 @@ inline void db_base::s_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         acb_openMongoDB(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_openMongoDB(v0, vr);
 
@@ -223,7 +223,7 @@ inline void db_base::s_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         acb_openLevelDB(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_openLevelDB(v0, vr);
 
@@ -242,7 +242,7 @@ inline void db_base::s_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_openRedis(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_openRedis(v0, vr);
 

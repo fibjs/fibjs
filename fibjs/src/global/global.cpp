@@ -11,7 +11,7 @@ extern exlib::string s_root;
 
 result_t global_base::get_Master(obj_ptr<Worker_base>& retVal)
 {
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t global_base::get_global(v8::Local<v8::Object>& retVal)

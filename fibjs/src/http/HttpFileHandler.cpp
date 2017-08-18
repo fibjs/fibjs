@@ -161,7 +161,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             Variant hdr;
 
-            if (m_req->firstHeader("Accept-Encoding", hdr) != CALL_RETURN_NULL) {
+            if (m_req->firstHeader("Accept-Encoding", hdr) != CALL_RETURN_UNDEFINED) {
                 exlib::string str = hdr.string();
 
                 if (qstristr(str.c_str(), "gzip"))
@@ -181,7 +181,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             if (qstrchr(pThis->m_url.c_str(), '%')) {
                 pThis->m_rep->set_status(400);
-                return pThis->done(CALL_RETURN_NULL);
+                return pThis->done(CALL_RETURN_UNDEFINED);
             }
 
             pThis->m_path = pThis->m_url;
@@ -263,7 +263,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 pThis->m_rep->set_body(pThis->m_file);
                 pThis->m_rep->addHeader("Content-Type", "text/html");
 
-                return pThis->done(CALL_RETURN_NULL);
+                return pThis->done(CALL_RETURN_UNDEFINED);
             }
 
             Variant v;
@@ -322,7 +322,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             Variant v;
             if (pThis->m_req->firstHeader("If-Modified-Since", v)
-                != CALL_RETURN_NULL) {
+                != CALL_RETURN_UNDEFINED) {
                 date_t d1;
                 double diff;
                 exlib::string str = v.string();
@@ -332,7 +332,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 if (diff > -1000 && diff < 1000) {
                     pThis->m_rep->set_status(304);
-                    return pThis->done(CALL_RETURN_NULL);
+                    return pThis->done(CALL_RETURN_UNDEFINED);
                 }
             }
 
@@ -344,7 +344,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (pThis->m_pre_gz)
                 pThis->m_rep->addHeader("Content-Encoding", "gzip");
 
-            return pThis->done(CALL_RETURN_NULL);
+            return pThis->done(CALL_RETURN_UNDEFINED);
         }
 
         virtual int32_t error(int32_t v)
@@ -368,7 +368,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
 
             m_rep->set_status(404);
-            return done(CALL_RETURN_NULL);
+            return done(CALL_RETURN_UNDEFINED);
         }
 
     private:

@@ -46,7 +46,7 @@ private:
         obj_ptr<Buffer_base> data;
 
         hr = strm->cc_read((int32_t)size, data);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
             return 0;
 
         exlib::string strData;
@@ -275,7 +275,7 @@ result_t ZipFile::Info::get_password(bool& retVal)
 result_t ZipFile::Info::get_data(obj_ptr<Buffer_base>& retVal)
 {
     if (!m_data)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_data;
     return 0;
@@ -697,7 +697,7 @@ result_t ZipFile::getFileCrc(SeekableStream_base* strm, uint32_t& crc)
 
     do {
         hr = strm->cc_read(BUF_SIZE, buf);
-        if (hr == CALL_RETURN_NULL)
+        if (hr == CALL_RETURN_UNDEFINED)
             break;
         else if (hr < 0)
             return hr;
@@ -755,7 +755,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
     strm->rewind();
     do {
         hr = strm->cc_read(BUF_SIZE, buf);
-        if (hr == CALL_RETURN_NULL)
+        if (hr == CALL_RETURN_UNDEFINED)
             break;
         else if (hr < 0)
             return hr;

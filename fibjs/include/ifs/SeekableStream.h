@@ -164,7 +164,7 @@ inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Va
 
     if (!cb.IsEmpty()) {
         pInst->acb_readAll(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_readAll(vr);
 
@@ -182,7 +182,7 @@ inline void SeekableStream_base::s_truncate(const v8::FunctionCallbackInfo<v8::V
 
     if (!cb.IsEmpty()) {
         pInst->acb_truncate(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_truncate(v0);
 
@@ -212,7 +212,7 @@ inline void SeekableStream_base::s_flush(const v8::FunctionCallbackInfo<v8::Valu
 
     if (!cb.IsEmpty()) {
         pInst->acb_flush(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_flush();
 
@@ -230,7 +230,7 @@ inline void SeekableStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value
 
     if (!cb.IsEmpty()) {
         pInst->acb_stat(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_stat(vr);
 

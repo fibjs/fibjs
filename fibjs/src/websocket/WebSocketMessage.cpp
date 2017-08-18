@@ -139,7 +139,7 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
 
             pThis->set(read);
 
-            if (n == CALL_RETURN_NULL)
+            if (n == CALL_RETURN_UNDEFINED)
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
 
             if (pThis->m_mask != 0) {
@@ -321,7 +321,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
         {
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
-            if (n == CALL_RETURN_NULL) {
+            if (n == CALL_RETURN_UNDEFINED) {
                 pThis->m_pThis->m_error = 1001;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
             }
@@ -381,7 +381,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
         {
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
-            if (n == CALL_RETURN_NULL) {
+            if (n == CALL_RETURN_UNDEFINED) {
                 pThis->m_pThis->m_error = 1007;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
             }
@@ -460,7 +460,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
 result_t WebSocketMessage::get_stream(obj_ptr<Stream_base>& retVal)
 {
     if (!m_stm)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_stm;
     return 0;

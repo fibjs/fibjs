@@ -37,7 +37,7 @@ inline result_t toBuffer(uuid_st* _uid, obj_ptr<Buffer_base>& retVal)
         return 0;
     }
 
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t makeUUID(int32_t vers, int32_t ns, exlib::string name,

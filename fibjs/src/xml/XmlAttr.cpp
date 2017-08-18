@@ -21,7 +21,7 @@ result_t XmlAttr::get_namespaceURI(exlib::string& retVal)
             return 0;
         }
 
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
     }
 
     retVal = m_namespaceURI;
@@ -31,7 +31,7 @@ result_t XmlAttr::get_namespaceURI(exlib::string& retVal)
 result_t XmlAttr::get_prefix(exlib::string& retVal)
 {
     if (m_prefix.empty())
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_prefix;
     return 0;

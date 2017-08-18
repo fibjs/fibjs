@@ -52,7 +52,7 @@ result_t BlockQueue::remove(v8::Local<v8::Value>& retVal)
 result_t BlockQueue::poll(v8::Local<v8::Value>& retVal)
 {
     if (m_list.size() == 0)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     return take(retVal);
 }
@@ -70,7 +70,7 @@ result_t BlockQueue::element(v8::Local<v8::Value>& retVal)
 result_t BlockQueue::peek(v8::Local<v8::Value>& retVal)
 {
     if (m_list.size() == 0)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = *m_list.begin();
 

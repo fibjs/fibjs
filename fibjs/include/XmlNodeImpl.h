@@ -40,7 +40,7 @@ public:
     result_t get_parentNode(obj_ptr<XmlNode_base>& retVal)
     {
         if (!m_parent)
-            return CALL_RETURN_NULL;
+            return CALL_RETURN_UNDEFINED;
         retVal = m_parent->m_node;
         return 0;
     }
@@ -54,34 +54,34 @@ public:
     result_t get_previousSibling(obj_ptr<XmlNode_base>& retVal)
     {
         if (!m_parent)
-            return CALL_RETURN_NULL;
+            return CALL_RETURN_UNDEFINED;
         return m_parent->m_childs->item(m_index - 1, retVal);
     }
 
     result_t get_nextSibling(obj_ptr<XmlNode_base>& retVal)
     {
         if (!m_parent)
-            return CALL_RETURN_NULL;
+            return CALL_RETURN_UNDEFINED;
         return m_parent->m_childs->item(m_index + 1, retVal);
     }
 
     result_t get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
     {
         retVal = m_document;
-        return !retVal ? CALL_RETURN_NULL : 0;
+        return !retVal ? CALL_RETURN_UNDEFINED : 0;
     }
 
     result_t lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
     {
         if (!m_parent || m_parent->m_type == xml_base::_DOCUMENT_NODE)
-            return CALL_RETURN_NULL;
+            return CALL_RETURN_UNDEFINED;
         return m_parent->m_node->lookupPrefix(namespaceURI, retVal);
     }
 
     result_t lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
     {
         if (!m_parent || m_parent->m_type == xml_base::_DOCUMENT_NODE)
-            return CALL_RETURN_NULL;
+            return CALL_RETURN_UNDEFINED;
         return m_parent->m_node->lookupNamespaceURI(prefix, retVal);
     }
 

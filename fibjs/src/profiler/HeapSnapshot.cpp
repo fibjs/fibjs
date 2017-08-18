@@ -99,7 +99,7 @@ result_t HeapSnapshot::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retV
         m_nodes->_indexed_getter(it->second, v);
         retVal = (HeapGraphNode*)v.object();
     } else
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     return 0;
 }

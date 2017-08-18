@@ -160,7 +160,7 @@ result_t Stats::_named_getter(const char* property, int32_t& retVal)
     int32_t i = find(property);
 
     if (i < 0)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = (int32_t)m_counters[i];
 

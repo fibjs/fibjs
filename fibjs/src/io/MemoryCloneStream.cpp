@@ -35,7 +35,7 @@ result_t MemoryStream::CloneStream::read(int32_t bytes,
     }
 
     if (strBuf.length() == 0)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = new Buffer(strBuf);
 

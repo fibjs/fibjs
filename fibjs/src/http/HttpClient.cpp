@@ -290,7 +290,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
 
             if (pThis->m_retVal->firstHeader("Content-Encoding",
                     hdr)
-                != CALL_RETURN_NULL) {
+                != CALL_RETURN_UNDEFINED) {
                 pThis->m_retVal->removeHeader("Content-Encoding");
 
                 pThis->m_retVal->get_body(pThis->m_body);

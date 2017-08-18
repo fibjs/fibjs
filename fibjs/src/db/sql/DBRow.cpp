@@ -12,8 +12,8 @@ namespace fibjs {
 
 result_t DBRow::_indexed_getter(uint32_t index, v8::Local<v8::Value>& retVal)
 {
-    if (index >= m_cols.size())
-        return CHECK_ERROR(CALL_E_BADINDEX);
+    if (index < 0 || index >= m_cols.size())
+        return CHECK_ERROR(CALL_RETURN_UNDEFINED);
 
     retVal = m_cols[index];
     return 0;
@@ -35,7 +35,7 @@ result_t DBRow::_named_getter(const char* property, v8::Local<v8::Value>& retVal
     if (i >= 0)
         return _indexed_getter(i, retVal);
 
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t DBRow::_named_enumerator(v8::Local<v8::Array>& retVal)
@@ -51,7 +51,7 @@ result_t DBRow::_named_setter(const char* property, v8::Local<v8::Value> newVal)
     if (i >= 0)
         return _indexed_setter(i, newVal);
 
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t DBRow::_named_deleter(const char* property, v8::Local<v8::Boolean>& retVal)

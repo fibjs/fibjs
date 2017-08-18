@@ -48,7 +48,7 @@ result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     }
 
     if (strBuf.length() == 0)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = new Buffer(strBuf);
 

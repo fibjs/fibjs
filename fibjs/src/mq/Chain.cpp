@@ -57,7 +57,7 @@ result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (pThis->m_msg)
                 pThis->m_msg->isEnded(end);
             if (end || (pThis->m_pos == (int32_t)pThis->m_array.size()))
-                return pThis->done(CALL_RETURN_NULL);
+                return pThis->done(CALL_RETURN_UNDEFINED);
 
             pThis->m_pos++;
             return mq_base::invoke(pThis->m_array[pThis->m_pos - 1],

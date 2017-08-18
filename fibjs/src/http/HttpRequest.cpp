@@ -270,8 +270,8 @@ result_t HttpRequest::readFrom(Stream_base* stm, AsyncEvent* ac)
         {
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
-            if (n == CALL_RETURN_NULL)
-                return pThis->done(CALL_RETURN_NULL);
+            if (n == CALL_RETURN_UNDEFINED)
+                return pThis->done(CALL_RETURN_UNDEFINED);
 
             _parser p(pThis->m_strLine);
             result_t hr;
@@ -403,7 +403,7 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
             bool bUpload = false;
             Variant v;
 
-            if (firstHeader("Content-Type", v) == CALL_RETURN_NULL)
+            if (firstHeader("Content-Type", v) == CALL_RETURN_UNDEFINED)
                 return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
 
             strType = v.string();

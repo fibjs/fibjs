@@ -197,7 +197,7 @@ result_t SubProcess::set_EOL(exlib::string newVal)
 result_t SubProcess::get_stdin(obj_ptr<BufferedStream_base>& retVal)
 {
     if (m_stdin == NULL)
-        return CHECK_ERROR(CALL_RETURN_NULL);
+        return CHECK_ERROR(CALL_RETURN_UNDEFINED);
 
     retVal = m_stdin;
 
@@ -207,7 +207,7 @@ result_t SubProcess::get_stdin(obj_ptr<BufferedStream_base>& retVal)
 result_t SubProcess::get_stdout(obj_ptr<BufferedStream_base>& retVal)
 {
     if (m_stdout == NULL)
-        return CHECK_ERROR(CALL_RETURN_NULL);
+        return CHECK_ERROR(CALL_RETURN_UNDEFINED);
 
     retVal = m_stdout;
 

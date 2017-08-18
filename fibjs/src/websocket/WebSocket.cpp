@@ -184,7 +184,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
             if (hr < 0)
                 return hr;
 
-            if (hr == CALL_RETURN_NULL) {
+            if (hr == CALL_RETURN_UNDEFINED) {
                 pThis->m_this->endConnect(1002, "missing Upgrade header.");
                 return CHECK_ERROR(Runtime::setError("websocket: missing Upgrade header."));
             }
@@ -205,7 +205,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
             if (hr < 0)
                 return hr;
 
-            if (hr == CALL_RETURN_NULL) {
+            if (hr == CALL_RETURN_UNDEFINED) {
                 pThis->m_this->endConnect(1002, "missing Sec-WebSocket-Accept header.");
                 return CHECK_ERROR(Runtime::setError("websocket: missing Sec-WebSocket-Accept header."));
             }
@@ -353,7 +353,7 @@ void WebSocket::endConnect(int32_t code, exlib::string reason)
                 m_stream->cc_close();
 
             if (m_ac)
-                m_ac->post(CALL_RETURN_NULL);
+                m_ac->post(CALL_RETURN_UNDEFINED);
 
             Variant v = new EventInfo(this, "close", m_code, m_reason);
             _emit("close", &v, 1);

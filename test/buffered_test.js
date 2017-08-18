@@ -83,7 +83,7 @@ describe("buffered stream", () => {
         var n = 0;
         var s1;
 
-        while ((s1 = r.readLine()) !== null) {
+        while ((s1 = r.readLine()) !== undefined) {
             assert.equal('0123456789', s1);
             n++;
         }

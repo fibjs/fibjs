@@ -105,7 +105,7 @@ inline void DBRow_base::i_NamedGetter(v8::Local<v8::String> property, const v8::
         return;
 
     hr = pInst->_named_getter(*k, vr);
-    if (hr == CALL_RETURN_NULL)
+    if (hr == CALL_RETURN_UNDEFINED)
         return;
 
     METHOD_RETURN();
@@ -134,7 +134,7 @@ inline void DBRow_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<
         return;
 
     hr = pInst->_named_setter(*k, v0);
-    if (hr == CALL_RETURN_NULL)
+    if (hr == CALL_RETURN_UNDEFINED)
         return;
 
     METHOD_VOID();

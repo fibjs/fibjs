@@ -386,7 +386,7 @@ inline void os_base::s_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         acb_openPrinter(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_openPrinter(v0, vr);
 

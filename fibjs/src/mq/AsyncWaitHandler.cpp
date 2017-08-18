@@ -31,7 +31,7 @@ result_t AsyncWaitHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     delete m_as;
     m_as = NULL;
 
-    return CHECK_ERROR(CALL_RETURN_NULL);
+    return CHECK_ERROR(CALL_RETURN_UNDEFINED);
 }
 
 result_t AsyncWaitHandler::end()

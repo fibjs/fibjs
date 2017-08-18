@@ -471,7 +471,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                         m_timer->clear();
                         m_timer.Release();
                     }
-                    return CALL_RETURN_NULL;
+                    return CALL_RETURN_UNDEFINED;
                 }
             } while (m_bRead && m_pos < (int32_t)m_buf.length());
 
@@ -613,7 +613,7 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<DatagramPacket_base>& retVal,
             }
 
             if (n == 0)
-                return CALL_RETURN_NULL;
+                return CALL_RETURN_UNDEFINED;
 
             m_buf.resize(n);
             m_retVal = new DatagramPacket(m_buf, addr_info);

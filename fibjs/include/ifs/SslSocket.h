@@ -188,7 +188,7 @@ inline void SslSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>&
 
     if (!cb.IsEmpty()) {
         pInst->acb_connect(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_connect(v0, v1, vr);
 
@@ -208,7 +208,7 @@ inline void SslSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& 
 
     if (!cb.IsEmpty()) {
         pInst->acb_accept(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_accept(v0, vr);
 

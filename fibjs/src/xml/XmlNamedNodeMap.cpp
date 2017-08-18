@@ -22,7 +22,7 @@ result_t XmlNamedNodeMap::get_length(int32_t& retVal)
 result_t XmlNamedNodeMap::item(int32_t index, obj_ptr<XmlAttr_base>& retVal)
 {
     if (index < 0 || index >= (int32_t)m_childs.size())
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
     retVal = m_childs[index];
     return 0;
 }
@@ -30,7 +30,7 @@ result_t XmlNamedNodeMap::item(int32_t index, obj_ptr<XmlAttr_base>& retVal)
 result_t XmlNamedNodeMap::_indexed_getter(uint32_t index, obj_ptr<XmlAttr_base>& retVal)
 {
     if (index >= m_childs.size())
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
     retVal = m_childs[index];
     return 0;
 }
@@ -79,7 +79,7 @@ result_t XmlNamedNodeMap::getNamedItem(exlib::string name, obj_ptr<XmlAttr_base>
         }
     }
 
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t XmlNamedNodeMap::getNamedItemNS(exlib::string namespaceURI, exlib::string localName,
@@ -96,7 +96,7 @@ result_t XmlNamedNodeMap::getNamedItemNS(exlib::string namespaceURI, exlib::stri
         }
     }
 
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t XmlNamedNodeMap::removeNamedItem(exlib::string name)
@@ -192,7 +192,7 @@ result_t XmlNamedNodeMap::lookupPrefix(exlib::string namespaceURI, exlib::string
             return node->get_localName(retVal);
     }
 
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t XmlNamedNodeMap::lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
@@ -206,6 +206,6 @@ result_t XmlNamedNodeMap::lookupNamespaceURI(exlib::string prefix, exlib::string
             return node->get_value(retVal);
     }
 
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 }

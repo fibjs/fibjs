@@ -189,7 +189,7 @@ inline void net_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_resolve(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_resolve(v0, v1, vr);
 
@@ -208,7 +208,7 @@ inline void net_base::s_ip(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_ip(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_ip(v0, vr);
 
@@ -227,7 +227,7 @@ inline void net_base::s_ipv6(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_ipv6(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_ipv6(v0, vr);
 
@@ -249,7 +249,7 @@ inline void net_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_connect(v0, v1, v2, v3, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_connect(v0, v1, v2, v3, vr);
 
@@ -260,7 +260,7 @@ inline void net_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_connect(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_connect(v0, v1, vr);
 
@@ -280,7 +280,7 @@ inline void net_base::s_openSmtp(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_openSmtp(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_openSmtp(v0, v1, vr);
 

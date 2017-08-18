@@ -61,7 +61,7 @@ result_t Map::get(exlib::string name, Variant& retVal)
     std::map<exlib::string, VariantEx>::iterator it = m_datas.find(name);
 
     if (it == m_datas.end())
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = it->second;
     return 0;

@@ -113,7 +113,7 @@ namespace fibjs {
 
 typedef int32_t result_t;
 
-#define CALL_RETURN_NULL 100000
+#define CALL_RETURN_UNDEFINED 100000
 
 #define CALL_E_MAX -100000
 // Invalid number of parameters.
@@ -294,8 +294,8 @@ typedef int32_t result_t;
 
 #define METHOD_RETURN()                                                    \
     CHECK_ARGUMENT()                                                       \
-    if (hr == CALL_RETURN_NULL) {                                          \
-        args.GetReturnValue().SetNull();                                   \
+    if (hr == CALL_RETURN_UNDEFINED) {                                     \
+        args.GetReturnValue().SetUndefined();                              \
         return;                                                            \
     }                                                                      \
     if (hr >= 0) {                                                         \

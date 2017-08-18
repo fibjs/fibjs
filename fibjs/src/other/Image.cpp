@@ -99,7 +99,7 @@ result_t gd_base::load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal,
         {
             asyncLoad* pThis = (asyncLoad*)pState;
 
-            if (n == CALL_RETURN_NULL)
+            if (n == CALL_RETURN_UNDEFINED)
                 return CHECK_ERROR(CALL_E_INVALID_DATA);
 
             obj_ptr<Image> img = new Image();

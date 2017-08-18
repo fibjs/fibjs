@@ -503,7 +503,7 @@ result_t HttpMessage::set_maxBodySize(int32_t newVal)
 result_t HttpMessage::get_socket(obj_ptr<Stream_base>& retVal)
 {
     if (!m_socket)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_socket;
     return 0;
@@ -552,7 +552,7 @@ result_t HttpMessage::removeHeader(exlib::string name)
 result_t HttpMessage::get_stream(obj_ptr<Stream_base>& retVal)
 {
     if (!m_stm)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_stm;
     return 0;
