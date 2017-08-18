@@ -115,6 +115,8 @@ typedef int32_t result_t;
 
 #define CALL_RETURN_NULL 100000
 
+#define CALL_RETURN_UNDEFINED (CALL_RETURN_NULL - 1)
+
 #define CALL_E_MAX -100000
 // Invalid number of parameters.
 #define CALL_E_BADPARAMCOUNT (CALL_E_MAX - 1)
@@ -296,6 +298,10 @@ typedef int32_t result_t;
     CHECK_ARGUMENT()                                                       \
     if (hr == CALL_RETURN_NULL) {                                          \
         args.GetReturnValue().SetNull();                                   \
+        return;                                                            \
+    }                                                                      \
+    if (hr == CALL_RETURN_UNDEFINED) {                                     \
+        args.GetReturnValue().SetUndefined();                              \
         return;                                                            \
     }                                                                      \
     if (hr >= 0) {                                                         \
