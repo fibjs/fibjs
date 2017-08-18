@@ -131,7 +131,7 @@ interface Buffer : object
     Buffer(Integer size = 0);
 
     /*! @brief The binary data in the buffer can be accessed by using subscript*/
-    Variant operator[];
+    Integer operator[];
 
     /*! @brief The buffer size */
     readonly Integer length;

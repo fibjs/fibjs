@@ -286,16 +286,16 @@ result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
     return 0;
 }
 
-result_t Buffer::_indexed_getter(uint32_t index, Variant& retVal)
+result_t Buffer::_indexed_getter(uint32_t index, int32_t& retVal)
 {
     if (index < 0 || index >= m_data.length())
-        return 0;
+        return CHECK_ERROR(CALL_RETURN_UNDEFINED);
 
     retVal = (unsigned char)m_data.c_str()[index];
     return 0;
 }
 
-result_t Buffer::_indexed_setter(uint32_t index, Variant newVal)
+result_t Buffer::_indexed_setter(uint32_t index, int32_t newVal)
 {
     if (index >= m_data.length())
         return 0;

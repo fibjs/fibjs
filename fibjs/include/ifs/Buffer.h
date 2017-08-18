@@ -45,8 +45,8 @@ public:
     static result_t byteLength(v8::Local<v8::ArrayBufferView> str, exlib::string codec, int32_t& retVal);
     static result_t byteLength(Buffer_base* str, exlib::string codec, int32_t& retVal);
     static result_t isEncoding(exlib::string codec, bool& retVal);
-    virtual result_t _indexed_getter(uint32_t index, Variant& retVal) = 0;
-    virtual result_t _indexed_setter(uint32_t index, Variant newVal) = 0;
+    virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
+    virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
     virtual result_t get_length(int32_t& retVal) = 0;
     virtual result_t resize(int32_t sz) = 0;
     virtual result_t append(Buffer_base* data) = 0;
@@ -519,7 +519,7 @@ inline void Buffer_base::s_isEncoding(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void Buffer_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    Variant vr;
+    int32_t vr;
 
     METHOD_INSTANCE(Buffer_base);
     PROPERTY_ENTER();
@@ -534,7 +534,7 @@ inline void Buffer_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> va
     METHOD_INSTANCE(Buffer_base);
     PROPERTY_ENTER();
 
-    PROPERTY_VAL(Variant);
+    PROPERTY_VAL(int32_t);
     hr = pInst->_indexed_setter(index, v0);
 
     METHOD_VOID();
