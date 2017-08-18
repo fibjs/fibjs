@@ -30,8 +30,9 @@ result_t XmlNodeList::item(int32_t index, obj_ptr<XmlNode_base>& retVal)
 
 result_t XmlNodeList::_indexed_getter(uint32_t index, obj_ptr<XmlNode_base>& retVal)
 {
-    if (index >= m_childs.size())
+    if (index < 0 || index >= m_childs.size())
         return CALL_RETURN_NULL;
+
     retVal = m_childs[index]->m_node;
     return 0;
 }

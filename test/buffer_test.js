@@ -459,9 +459,6 @@ describe('Buffer', () => {
             assert.equal(buf[i + 6], i);
         }
         assert.equal(buf[9], 0);
-        assert.throws(() => {
-            buf[10];
-        })
         assert.equal(buf, buf1);
     });
 
@@ -829,6 +826,14 @@ describe('Buffer', () => {
             assert.equal(a.reverse().toString('hex'), f.expected);
             assert.equal(a.toString('hex'), f.a);
         })
+    });
+
+    it('indexed getter', () => {
+        const b = new Buffer([1, 2]);
+        assert.isUndefined(b[3]);
+        assert.isUndefined(b[-1]);
+        assert.equal(b[0], 1);
+        assert.equal(b[1], 2);
     });
 });
 

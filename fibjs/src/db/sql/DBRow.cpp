@@ -12,8 +12,8 @@ namespace fibjs {
 
 result_t DBRow::_indexed_getter(uint32_t index, v8::Local<v8::Value>& retVal)
 {
-    if (index >= m_cols.size())
-        return CHECK_ERROR(CALL_E_BADINDEX);
+    if (index < 0 || index >= m_cols.size())
+        return CHECK_ERROR(CALL_RETURN_NULL);
 
     retVal = m_cols[index];
     return 0;

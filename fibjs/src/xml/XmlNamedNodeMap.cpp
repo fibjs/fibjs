@@ -29,8 +29,9 @@ result_t XmlNamedNodeMap::item(int32_t index, obj_ptr<XmlAttr_base>& retVal)
 
 result_t XmlNamedNodeMap::_indexed_getter(uint32_t index, obj_ptr<XmlAttr_base>& retVal)
 {
-    if (index >= m_childs.size())
+    if (index < 0 || index >= m_childs.size())
         return CALL_RETURN_NULL;
+
     retVal = m_childs[index];
     return 0;
 }
