@@ -29,7 +29,7 @@ result_t List_base::_new(v8::Local<v8::Array> data, obj_ptr<List_base>& retVal,
 
 result_t List::_indexed_getter(uint32_t index, Variant& retVal)
 {
-    if (index >= m_array.size())
+    if (index < 0 || index >= m_array.size())
         return CHECK_ERROR(CALL_RETURN_NULL);
 
     retVal = m_array[index];

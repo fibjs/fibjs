@@ -383,7 +383,8 @@ module.exports = function (defs, baseFolder) {
                         txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');
                         if (fn.deprecated)
                             txts.push('    DEPRECATED_SOON("' + cls + fn.name + '");\n');
-                        txts.push('    hr = pInst->_indexed_getter(index, vr);\n\n    METHOD_RETURN();\n}\n');
+                        txts.push('    hr = pInst->_indexed_getter(index, vr);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
+                        txts.push('    METHOD_RETURN();\n}\n');
 
                         if (!fn.readonly) {
                             txts.push('inline void ' + cls + '_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');

@@ -108,6 +108,8 @@ inline void XmlNodeList_base::i_IndexedGetter(uint32_t index, const v8::Property
     PROPERTY_ENTER();
 
     hr = pInst->_indexed_getter(index, vr);
+    if (hr == CALL_RETURN_NULL)
+        return;
 
     METHOD_RETURN();
 }
