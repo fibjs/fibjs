@@ -300,8 +300,8 @@ typedef int32_t result_t;
         args.GetReturnValue().SetNull();                                   \
         return;                                                            \
     }                                                                      \
-    if (hr == CALL_RETURN_UNDEFINED) {                                          \
-        args.GetReturnValue().SetUndefined();                                   \
+    if (hr == CALL_RETURN_UNDEFINED) {                                     \
+        args.GetReturnValue().SetUndefined();                              \
         return;                                                            \
     }                                                                      \
     if (hr >= 0) {                                                         \
