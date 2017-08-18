@@ -288,7 +288,7 @@ public:
             return hr;
 
         hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
             return hr;
 
         return retValue(v, retVal);
@@ -315,7 +315,7 @@ public:
             return hr;
 
         hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
             return hr;
 
         return retValue(v, retVal);
@@ -346,7 +346,7 @@ public:
             return hr;
 
         hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
             return hr;
 
         return retValue(v, retVal);
@@ -381,7 +381,7 @@ public:
             return hr;
 
         hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
             return hr;
 
         return retValue(v, retVal);
@@ -420,7 +420,7 @@ public:
             return hr;
 
         hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
             return hr;
 
         return retValue(v, retVal);
@@ -463,7 +463,7 @@ public:
             return hr;
 
         hr = ac__command(ps.str(), v);
-        if (hr < 0 || hr == CALL_RETURN_NULL)
+        if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
             return hr;
 
         return retValue(v, retVal);

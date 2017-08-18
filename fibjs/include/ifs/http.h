@@ -325,7 +325,7 @@ inline void http_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_request(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_request(v0, v1, vr);
 
@@ -337,7 +337,7 @@ inline void http_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_request(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_request(v0, v1, v2, vr);
 
@@ -350,7 +350,7 @@ inline void http_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_request(v0, v1, v2, v3, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_request(v0, v1, v2, v3, vr);
 
@@ -363,7 +363,7 @@ inline void http_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_request(v0, v1, v2, v3, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_request(v0, v1, v2, v3, vr);
 
@@ -376,7 +376,7 @@ inline void http_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_request(v0, v1, v2, v3, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_request(v0, v1, v2, v3, vr);
 
@@ -396,7 +396,7 @@ inline void http_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_get(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_get(v0, v1, vr);
 
@@ -417,7 +417,7 @@ inline void http_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_post(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_post(v0, v1, v2, vr);
 
@@ -429,7 +429,7 @@ inline void http_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_post(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_post(v0, v1, v2, vr);
 
@@ -440,7 +440,7 @@ inline void http_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_post(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_post(v0, v1, vr);
 
@@ -460,7 +460,7 @@ inline void http_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_del(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_del(v0, v1, vr);
 
@@ -481,7 +481,7 @@ inline void http_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_put(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_put(v0, v1, v2, vr);
 
@@ -493,7 +493,7 @@ inline void http_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_put(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_put(v0, v1, v2, vr);
 
@@ -504,7 +504,7 @@ inline void http_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_put(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_put(v0, v1, vr);
 
@@ -525,7 +525,7 @@ inline void http_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_patch(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_patch(v0, v1, v2, vr);
 
@@ -537,7 +537,7 @@ inline void http_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_patch(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_patch(v0, v1, v2, vr);
 
@@ -548,7 +548,7 @@ inline void http_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_patch(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_patch(v0, v1, vr);
 

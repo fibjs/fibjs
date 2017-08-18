@@ -364,7 +364,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                     m_timer.Release();
                 }
 
-                return CALL_RETURN_NULL;
+                return CALL_RETURN_UNDEFINED;
             }
 
             if (nError == ERROR_IO_PENDING)
@@ -404,7 +404,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                     m_buf.resize(m_pos);
                     m_retVal = new Buffer(m_buf);
                 } else
-                    nError = CALL_RETURN_NULL;
+                    nError = CALL_RETURN_UNDEFINED;
             }
 
             asyncProc::ready(dwBytes, nError);
@@ -515,7 +515,7 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<DatagramPacket_base>& retVal,
             nError = GetLastError();
 
             if (nError == ERROR_BROKEN_PIPE)
-                return CALL_RETURN_NULL;
+                return CALL_RETURN_UNDEFINED;
 
             if (nError == ERROR_IO_PENDING)
                 return CHECK_ERROR(CALL_E_PENDDING);

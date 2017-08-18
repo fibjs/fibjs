@@ -109,7 +109,7 @@ result_t SslHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         static int32_t exit(AsyncState* pState, int32_t n)
         {
             asyncInvoke* pThis = (asyncInvoke*)pState;
-            return pThis->done(CALL_RETURN_NULL);
+            return pThis->done(CALL_RETURN_UNDEFINED);
         }
 
     private:

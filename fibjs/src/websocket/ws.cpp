@@ -96,7 +96,7 @@ result_t ws_base::connect(exlib::string url, exlib::string origin,
             if (hr < 0)
                 return hr;
 
-            if (hr == CALL_RETURN_NULL)
+            if (hr == CALL_RETURN_UNDEFINED)
                 return CHECK_ERROR(Runtime::setError("websocket: missing Upgrade header."));
 
             if (qstricmp(v.string().c_str(), "websocket"))
@@ -111,7 +111,7 @@ result_t ws_base::connect(exlib::string url, exlib::string origin,
             if (hr < 0)
                 return hr;
 
-            if (hr == CALL_RETURN_NULL)
+            if (hr == CALL_RETURN_UNDEFINED)
                 return CHECK_ERROR(Runtime::setError("websocket: missing Sec-WebSocket-Accept header."));
 
             if (v.string() != pThis->m_accept)

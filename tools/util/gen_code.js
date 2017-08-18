@@ -199,7 +199,7 @@ module.exports = function (defs, baseFolder) {
                         if (ov.async) {
                             args.push('cb');
                             txts.push('    if (!cb.IsEmpty()) {\n        ' + (fstatic ? 'acb_' : 'pInst->acb_') + get_name(fname) + '(' + args.join(', ') + ');');
-                            txts.push('        hr = CALL_RETURN_NULL;\n    } else');
+                            txts.push('        hr = CALL_RETURN_UNDEFINED;\n    } else');
                             txts.push('        hr = ' + (fstatic ? 'ac_' : 'pInst->ac_') + get_name(fname) + '(' + args_call.join(', ') + ');\n');
                         } else {
                             if (fname == '_new')
@@ -357,7 +357,7 @@ module.exports = function (defs, baseFolder) {
                         txts.push('    v8::String::Utf8Value k(property);\n    if (class_info().has(*k))\n        return;\n');
                         if (fn.deprecated)
                             txts.push('    DEPRECATED_SOON("' + cls + fn.name + '");\n');
-                        txts.push('    hr = pInst->_named_getter(*k, vr);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
+                        txts.push('    hr = pInst->_named_getter(*k, vr);\n    if (hr == CALL_RETURN_UNDEFINED)\n        return;\n');
                         txts.push('    METHOD_RETURN();\n}\n');
                         txts.push('inline void ' + cls + '_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args)\n{\n    v8::Local<v8::Array> vr;\n');
                         txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');
@@ -370,7 +370,7 @@ module.exports = function (defs, baseFolder) {
                             txts.push('    PROPERTY_VAL(' + get_rtype(fn.type) + ');\n    v8::String::Utf8Value k(property);\n    if (class_info().has(*k))\n        return;\n');
                             if (fn.deprecated)
                                 txts.push('    DEPRECATED_SOON("' + cls + fn.name + '");\n');
-                            txts.push('    hr = pInst->_named_setter(*k, v0);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
+                            txts.push('    hr = pInst->_named_setter(*k, v0);\n    if (hr == CALL_RETURN_UNDEFINED)\n        return;\n');
                             txts.push('    METHOD_VOID();\n}\n');
                             txts.push('inline void ' + cls + '_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)\n{\n    v8::Local<v8::Boolean> vr;\n');
                             txts.push('    METHOD_INSTANCE(' + cls + '_base);\n    PROPERTY_ENTER();\n');

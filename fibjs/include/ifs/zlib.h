@@ -193,7 +193,7 @@ inline void zlib_base::s_deflate(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_deflate(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_deflate(v0, v1, vr);
 
@@ -212,7 +212,7 @@ inline void zlib_base::s_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         acb_deflateTo(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_deflateTo(v0, v1, v2);
 
@@ -224,7 +224,7 @@ inline void zlib_base::s_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         acb_deflateTo(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_deflateTo(v0, v1, v2);
 
@@ -243,7 +243,7 @@ inline void zlib_base::s_inflate(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         acb_inflate(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_inflate(v0, vr);
 
@@ -261,7 +261,7 @@ inline void zlib_base::s_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         acb_inflateTo(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_inflateTo(v0, v1);
 
@@ -272,7 +272,7 @@ inline void zlib_base::s_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         acb_inflateTo(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_inflateTo(v0, v1);
 
@@ -291,7 +291,7 @@ inline void zlib_base::s_gzip(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_gzip(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_gzip(v0, vr);
 
@@ -309,7 +309,7 @@ inline void zlib_base::s_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_gzipTo(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_gzipTo(v0, v1);
 
@@ -320,7 +320,7 @@ inline void zlib_base::s_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_gzipTo(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_gzipTo(v0, v1);
 
@@ -339,7 +339,7 @@ inline void zlib_base::s_gunzip(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_gunzip(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_gunzip(v0, vr);
 
@@ -357,7 +357,7 @@ inline void zlib_base::s_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         acb_gunzipTo(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_gunzipTo(v0, v1);
 
@@ -368,7 +368,7 @@ inline void zlib_base::s_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         acb_gunzipTo(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_gunzipTo(v0, v1);
 
@@ -388,7 +388,7 @@ inline void zlib_base::s_deflateRaw(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         acb_deflateRaw(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_deflateRaw(v0, v1, vr);
 
@@ -407,7 +407,7 @@ inline void zlib_base::s_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>&
 
     if (!cb.IsEmpty()) {
         acb_deflateRawTo(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_deflateRawTo(v0, v1, v2);
 
@@ -419,7 +419,7 @@ inline void zlib_base::s_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>&
 
     if (!cb.IsEmpty()) {
         acb_deflateRawTo(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_deflateRawTo(v0, v1, v2);
 
@@ -438,7 +438,7 @@ inline void zlib_base::s_inflateRaw(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         acb_inflateRaw(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_inflateRaw(v0, vr);
 
@@ -456,7 +456,7 @@ inline void zlib_base::s_inflateRawTo(const v8::FunctionCallbackInfo<v8::Value>&
 
     if (!cb.IsEmpty()) {
         acb_inflateRawTo(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_inflateRawTo(v0, v1);
 
@@ -467,7 +467,7 @@ inline void zlib_base::s_inflateRawTo(const v8::FunctionCallbackInfo<v8::Value>&
 
     if (!cb.IsEmpty()) {
         acb_inflateRawTo(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_inflateRawTo(v0, v1);
 

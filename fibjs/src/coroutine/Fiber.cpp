@@ -137,7 +137,7 @@ result_t FiberBase::get_traceInfo(exlib::string& retVal)
 result_t FiberBase::get_caller(obj_ptr<Fiber_base>& retVal)
 {
     if (m_caller == NULL)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_caller;
     return 0;

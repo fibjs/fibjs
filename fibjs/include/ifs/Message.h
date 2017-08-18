@@ -295,7 +295,7 @@ inline void Message_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         pInst->acb_read(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_read(v0, vr);
 
@@ -313,7 +313,7 @@ inline void Message_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         pInst->acb_readAll(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_readAll(vr);
 
@@ -331,7 +331,7 @@ inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_write(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_write(v0);
 
@@ -399,7 +399,7 @@ inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         pInst->acb_sendTo(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_sendTo(v0);
 
@@ -417,7 +417,7 @@ inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& 
 
     if (!cb.IsEmpty()) {
         pInst->acb_readFrom(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_readFrom(v0);
 

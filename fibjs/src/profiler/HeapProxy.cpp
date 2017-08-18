@@ -47,7 +47,7 @@ result_t HeapSnapshotProxy::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>&
 
     it = _nodes.find(id);
     if (it == _nodes.end())
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     Variant v;
 

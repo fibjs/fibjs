@@ -203,7 +203,7 @@ result_t HttpCollection::first(exlib::string name, Variant& retVal)
             return 0;
         }
 
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t HttpCollection::all(exlib::string name, obj_ptr<List_base>& retVal)
@@ -330,7 +330,7 @@ result_t HttpCollection::_named_getter(const char* property, Variant& retVal)
         return 0;
     }
 
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t HttpCollection::_named_enumerator(v8::Local<v8::Array>& retVal)

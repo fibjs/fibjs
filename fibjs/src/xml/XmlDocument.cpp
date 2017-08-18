@@ -71,12 +71,12 @@ result_t XmlDocument::get_nodeName(exlib::string& retVal)
 
 result_t XmlDocument::get_nodeValue(exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t XmlDocument::set_nodeValue(exlib::string newVal)
 {
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t XmlDocument::get_nodeType(int32_t& retVal)
@@ -147,7 +147,7 @@ result_t XmlDocument::lookupPrefix(exlib::string namespaceURI, exlib::string& re
         return 0;
 
     if (!m_element)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     return m_element->lookupPrefix(namespaceURI, retVal);
 }
@@ -158,7 +158,7 @@ result_t XmlDocument::lookupNamespaceURI(exlib::string prefix, exlib::string& re
         return 0;
 
     if (!m_element)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     return m_element->lookupNamespaceURI(prefix, retVal);
 }
@@ -329,7 +329,7 @@ result_t XmlDocument::load(Buffer_base* source)
 result_t XmlDocument::get_doctype(obj_ptr<XmlDocumentType_base>& retVal)
 {
     if (!m_doctype)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_doctype;
     return 0;
@@ -338,7 +338,7 @@ result_t XmlDocument::get_doctype(obj_ptr<XmlDocumentType_base>& retVal)
 result_t XmlDocument::get_documentElement(obj_ptr<XmlElement_base>& retVal)
 {
     if (!m_element)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_element;
     return 0;
@@ -391,7 +391,7 @@ result_t XmlDocument::get_head(obj_ptr<XmlElement_base>& retVal)
     if (pEl)
         return pEl->getFirstElementsByTagName("head", retVal);
 
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t XmlDocument::get_title(exlib::string& retVal)
@@ -402,7 +402,7 @@ result_t XmlDocument::get_title(exlib::string& retVal)
     XmlElement* pEl = (XmlElement*)(XmlElement_base*)m_element;
     if (pEl) {
         obj_ptr<XmlElement_base> title;
-        if (pEl->getFirstElementsByTagName("title", title) == CALL_RETURN_NULL)
+        if (pEl->getFirstElementsByTagName("title", title) == CALL_RETURN_UNDEFINED)
             return 0;
 
         return title->get_textContent(retVal);
@@ -420,7 +420,7 @@ result_t XmlDocument::get_body(obj_ptr<XmlElement_base>& retVal)
     if (pEl)
         return pEl->getFirstElementsByTagName("body", retVal);
 
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t XmlDocument::getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal)
@@ -451,11 +451,11 @@ result_t XmlDocument::getElementsByTagNameNS(exlib::string namespaceURI, exlib::
 result_t XmlDocument::getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal)
 {
     if (id.empty())
-        return CHECK_ERROR(CALL_RETURN_NULL);
+        return CHECK_ERROR(CALL_RETURN_UNDEFINED);
 
     XmlElement* pEl = (XmlElement*)(XmlElement_base*)m_element;
     if (!pEl)
-        return CHECK_ERROR(CALL_RETURN_NULL);
+        return CHECK_ERROR(CALL_RETURN_UNDEFINED);
 
     return pEl->getElementByIdFromThis(id, retVal);
 }
@@ -487,7 +487,7 @@ result_t XmlDocument::getElementsByClassName(exlib::string className, obj_ptr<Xm
 result_t XmlDocument::get_inputEncoding(exlib::string& retVal)
 {
     if (m_encoding.empty())
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_encoding;
     return 0;
@@ -496,7 +496,7 @@ result_t XmlDocument::get_inputEncoding(exlib::string& retVal)
 result_t XmlDocument::get_xmlStandalone(bool& retVal)
 {
     if (m_standalone < 0)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_standalone == 1;
     return 0;

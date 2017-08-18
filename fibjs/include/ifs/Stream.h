@@ -92,7 +92,7 @@ inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         pInst->acb_read(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_read(v0, vr);
 
@@ -110,7 +110,7 @@ inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         pInst->acb_write(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_write(v0);
 
@@ -126,7 +126,7 @@ inline void Stream_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         pInst->acb_close(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_close();
 
@@ -147,7 +147,7 @@ inline void Stream_base::s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_copyTo(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_copyTo(v0, v1, vr);
 

@@ -119,7 +119,7 @@ inline void DbConnection_base::s_close(const v8::FunctionCallbackInfo<v8::Value>
 
     if (!cb.IsEmpty()) {
         pInst->acb_close(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_close();
 
@@ -135,7 +135,7 @@ inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>
 
     if (!cb.IsEmpty()) {
         pInst->acb_begin(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_begin();
 
@@ -151,7 +151,7 @@ inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value
 
     if (!cb.IsEmpty()) {
         pInst->acb_commit(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_commit();
 
@@ -167,7 +167,7 @@ inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Val
 
     if (!cb.IsEmpty()) {
         pInst->acb_rollback(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_rollback();
 
@@ -201,7 +201,7 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
 
     if (!cb.IsEmpty()) {
         pInst->acb_execute(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_execute(v0, vr);
 
@@ -212,7 +212,7 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
 
     if (!cb.IsEmpty()) {
         pInst->acb_execute(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_execute(v0, v1, vr);
 

@@ -120,7 +120,7 @@ inline void SQLite_base::s_backup(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_backup(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_backup(v0);
 

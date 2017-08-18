@@ -320,7 +320,7 @@ describe("collection", () => {
             assert.equal(q.poll(), 200);
             assert.deepEqual(q.toArray(), []);
 
-            assert.isNull(q.poll());
+            assert.isUndefined(q.poll());
             assert.deepEqual(q.toArray(), []);
         });
 
@@ -359,7 +359,7 @@ describe("collection", () => {
             assert.deepEqual(q.toArray(), [100, 200]);
 
             q.clear();
-            assert.isNull(q.peek());
+            assert.isUndefined(q.peek());
         });
     });
 });

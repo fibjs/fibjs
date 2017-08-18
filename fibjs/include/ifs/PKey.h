@@ -186,7 +186,7 @@ inline void PKey_base::s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         pInst->acb_genRsaKey(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_genRsaKey(v0);
 
@@ -204,7 +204,7 @@ inline void PKey_base::s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_genEcKey(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_genEcKey(v0);
 
@@ -337,7 +337,7 @@ inline void PKey_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         pInst->acb_encrypt(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_encrypt(v0, vr);
 
@@ -357,7 +357,7 @@ inline void PKey_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         pInst->acb_decrypt(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_decrypt(v0, vr);
 
@@ -378,7 +378,7 @@ inline void PKey_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         pInst->acb_sign(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_sign(v0, v1, vr);
 
@@ -400,7 +400,7 @@ inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         pInst->acb_verify(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_verify(v0, v1, v2, vr);
 

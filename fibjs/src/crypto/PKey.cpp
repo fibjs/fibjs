@@ -148,7 +148,7 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
         return hr;
 
     if (!priv)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
     int32_t ret;

@@ -194,7 +194,7 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
         virtual int32_t finally()
         {
-            return m_retVal ? 0 : CALL_RETURN_NULL;
+            return m_retVal ? 0 : CALL_RETURN_UNDEFINED;
         }
 
     private:
@@ -319,7 +319,7 @@ result_t SslSocket::get_peerCert(obj_ptr<X509Cert_base>& retVal)
     const mbedtls_x509_crt* crt = mbedtls_ssl_get_peer_cert(&m_ssl);
 
     if (!crt)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     obj_ptr<X509Cert> crtObject = new X509Cert();
 
@@ -335,7 +335,7 @@ result_t SslSocket::get_peerCert(obj_ptr<X509Cert_base>& retVal)
 result_t SslSocket::get_stream(obj_ptr<Stream_base>& retVal)
 {
     if (!m_s)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
     retVal = m_s;
     return 0;
 }

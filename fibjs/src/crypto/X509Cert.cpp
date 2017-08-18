@@ -574,12 +574,12 @@ result_t X509Cert::get_next(obj_ptr<X509Cert_base>& retVal)
     if (m_root) {
         mbedtls_x509_crt* crt = get_crt();
         if (!crt || !crt->next)
-            return CALL_RETURN_NULL;
+            return CALL_RETURN_UNDEFINED;
 
         retVal = new X509Cert(m_root, m_no + 1);
     } else {
         if (!m_crt.next)
-            return CALL_RETURN_NULL;
+            return CALL_RETURN_UNDEFINED;
 
         retVal = new X509Cert(this, 1);
     }

@@ -310,7 +310,7 @@ describe("db", () => {
         it('remove/has', () => {
             var b = "bbbbb";
             var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
-            assert.isNull(ldb.get("not_exists"));
+            assert.isUndefined(ldb.get("not_exists"));
             assert.isFalse(ldb.has("not_exists"));
             ldb.set("not_exists", b);
             assert.isTrue(ldb.has("not_exists"));
@@ -339,9 +339,9 @@ describe("db", () => {
             ldb.mremove(["bbb", "ddd"]);
 
             assert.equal(ldb.get("aaa").toString(), "aaa value");
-            assert.isNull(ldb.get("bbb"));
+            assert.isUndefined(ldb.get("bbb"));
             assert.equal(ldb.get("ccc").toString(), "ccc value");
-            assert.isNull(ldb.get("ddd"));
+            assert.isUndefined(ldb.get("ddd"));
 
             ldb.close();
             clear_db();

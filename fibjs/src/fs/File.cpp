@@ -86,7 +86,7 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     }
 
     if (strBuf.length() == 0)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = new Buffer(strBuf);
 
@@ -139,7 +139,7 @@ result_t File::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     }
 
     if (strBuf.length() == 0)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = new Buffer(strBuf);
 

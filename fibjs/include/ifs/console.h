@@ -808,7 +808,7 @@ inline void console_base::s_readLine(const v8::FunctionCallbackInfo<v8::Value>& 
 
     if (!cb.IsEmpty()) {
         acb_readLine(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_readLine(v0, vr);
 

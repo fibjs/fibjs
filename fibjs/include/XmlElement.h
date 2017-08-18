@@ -127,7 +127,7 @@ public:
         }
 
         result_t hr = getAttribute("xmlns", def_ns);
-        if (hr == CALL_RETURN_NULL && m_parent) {
+        if (hr == CALL_RETURN_UNDEFINED && m_parent) {
             int32_t type;
 
             m_parent->get_nodeType(type);
@@ -179,7 +179,7 @@ public:
                     return 0;
             }
 
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
     }
 
     void getTextContent(StringBuffer& retVal)

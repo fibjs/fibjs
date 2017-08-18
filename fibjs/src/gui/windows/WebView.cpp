@@ -161,7 +161,7 @@ private:
                 obj_ptr<Buffer_base> buf;
 
                 result_t hr = m_file->cc_read(cb, buf);
-                if (hr < 0 || hr == CALL_RETURN_NULL)
+                if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
                     *pcbRead = 0;
                 else {
                     exlib::string strbuf;

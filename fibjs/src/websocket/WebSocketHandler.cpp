@@ -100,7 +100,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (hr < 0)
                 return hr;
 
-            if (hr == CALL_RETURN_NULL)
+            if (hr == CALL_RETURN_UNDEFINED)
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: missing Upgrade header."));
 
             if (qstricmp(v.string().c_str(), "websocket"))
@@ -110,7 +110,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (hr < 0)
                 return hr;
 
-            if (hr == CALL_RETURN_NULL)
+            if (hr == CALL_RETURN_UNDEFINED)
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: missing Sec-WebSocket-Version header."));
 
             if (qstricmp(v.string().c_str(), "13"))
@@ -125,7 +125,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (hr < 0)
                 return hr;
 
-            if (hr == CALL_RETURN_NULL)
+            if (hr == CALL_RETURN_UNDEFINED)
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: missing Sec-WebSocket-Key header."));
 
             exlib::string key(v.string());
@@ -154,7 +154,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         {
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
-            pThis->done(CALL_RETURN_NULL);
+            pThis->done(CALL_RETURN_UNDEFINED);
 
             obj_ptr<WebSocketHandler> pHandler = pThis->m_pThis;
             obj_ptr<WebSocket> sock = new WebSocket(pThis->m_stm, "", pThis);
@@ -190,7 +190,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_msg->get_type(type);
 
             if (type != ws_base::_TEXT && type != ws_base::_BINARY && type != ws_base::_PING)
-                return pThis->done(CALL_RETURN_NULL);
+                return pThis->done(CALL_RETURN_UNDEFINED);
 
             pThis->m_pThis->m_stats->inc(PACKET_TOTAL);
             pThis->m_pThis->m_stats->inc(PACKET_REQUEST);
@@ -268,7 +268,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (is(invoke)) {
                 m_pThis->m_stats->inc(PACKET_TOTAL);
                 m_pThis->m_stats->inc(PACKET_REQUEST);
-                return done(CALL_RETURN_NULL);
+                return done(CALL_RETURN_UNDEFINED);
             }
 
             return v;

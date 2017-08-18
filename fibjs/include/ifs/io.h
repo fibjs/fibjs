@@ -92,7 +92,7 @@ inline void io_base::s_copyStream(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         acb_copyStream(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_copyStream(v0, v1, v2, vr);
 
@@ -110,7 +110,7 @@ inline void io_base::s_bridge(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_bridge(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_bridge(v0, v1);
 

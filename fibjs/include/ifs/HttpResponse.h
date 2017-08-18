@@ -176,7 +176,7 @@ inline void HttpResponse_base::s_sendHeader(const v8::FunctionCallbackInfo<v8::V
 
     if (!cb.IsEmpty()) {
         pInst->acb_sendHeader(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_sendHeader(v0);
 

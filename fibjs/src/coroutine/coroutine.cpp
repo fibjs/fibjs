@@ -192,7 +192,7 @@ result_t coroutine_base::current(obj_ptr<Fiber_base>& retVal)
     Fiber_base* fb = JSFiber::current();
 
     if (!fb)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = fb;
 

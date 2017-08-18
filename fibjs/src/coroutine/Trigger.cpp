@@ -170,7 +170,7 @@ result_t object_base::getListener(exlib::string ev, v8::Local<v8::Function> func
         return hr;
 
     if (r->Length() == 0)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     func = v8::Local<v8::Function>::Cast(r->Get(0));
     return 0;

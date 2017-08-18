@@ -127,7 +127,7 @@ inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         pInst->acb_setHtml(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_setHtml(v0);
 
@@ -145,7 +145,7 @@ inline void WebView_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_print(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_print(v0);
 
@@ -161,7 +161,7 @@ inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_close(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_close();
 
@@ -177,7 +177,7 @@ inline void WebView_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         pInst->acb_wait(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_wait();
 
@@ -195,7 +195,7 @@ inline void WebView_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value
 
     if (!cb.IsEmpty()) {
         pInst->acb_postMessage(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_postMessage(v0);
 

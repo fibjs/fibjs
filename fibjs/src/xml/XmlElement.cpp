@@ -24,7 +24,7 @@ result_t XmlElement::get_nodeName(exlib::string& retVal)
 
 result_t XmlElement::get_nodeValue(exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return CALL_RETURN_UNDEFINED;
 }
 
 result_t XmlElement::set_nodeValue(exlib::string newVal)
@@ -40,7 +40,7 @@ result_t XmlElement::get_nodeType(int32_t& retVal)
 result_t XmlElement::get_namespaceURI(exlib::string& retVal)
 {
     if (m_namespaceURI.empty())
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_namespaceURI;
     return 0;
@@ -49,7 +49,7 @@ result_t XmlElement::get_namespaceURI(exlib::string& retVal)
 result_t XmlElement::get_prefix(exlib::string& retVal)
 {
     if (m_prefix.empty())
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_prefix;
     return 0;
@@ -110,8 +110,8 @@ result_t XmlElement::lookupPrefix(exlib::string namespaceURI, exlib::string& ret
     result_t hr = m_attrs->lookupPrefix(namespaceURI, retVal);
     if (hr < 0)
         return hr;
-    if (hr != CALL_RETURN_NULL)
-        return retVal.empty() ? CALL_RETURN_NULL : 0;
+    if (hr != CALL_RETURN_UNDEFINED)
+        return retVal.empty() ? CALL_RETURN_UNDEFINED : 0;
 
     return XmlNodeImpl::lookupPrefix(namespaceURI, retVal);
 }
@@ -124,8 +124,8 @@ result_t XmlElement::lookupNamespaceURI(exlib::string prefix, exlib::string& ret
     result_t hr = m_attrs->lookupNamespaceURI(prefix, retVal);
     if (hr < 0)
         return hr;
-    if (hr != CALL_RETURN_NULL)
-        return retVal.empty() ? CALL_RETURN_NULL : 0;
+    if (hr != CALL_RETURN_UNDEFINED)
+        return retVal.empty() ? CALL_RETURN_UNDEFINED : 0;
 
     return XmlNodeImpl::lookupNamespaceURI(prefix, retVal);
 }
@@ -283,7 +283,7 @@ result_t XmlElement::getAttribute(exlib::string name, exlib::string& retVal)
     obj_ptr<XmlAttr_base> node;
 
     hr = m_attrs->getNamedItem(name, node);
-    if (hr < 0 || hr == CALL_RETURN_NULL)
+    if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
         return hr;
 
     return node->get_value(retVal);
@@ -296,7 +296,7 @@ result_t XmlElement::getAttributeNS(exlib::string namespaceURI, exlib::string lo
     obj_ptr<XmlAttr_base> node;
 
     hr = m_attrs->getNamedItemNS(namespaceURI, localName, node);
-    if (hr < 0 || hr == CALL_RETURN_NULL)
+    if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
         return hr;
 
     return node->get_value(retVal);
@@ -356,7 +356,7 @@ result_t XmlElement::getElementsByTagNameNS(exlib::string namespaceURI, exlib::s
 result_t XmlElement::getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal)
 {
     if (id.empty())
-        return CHECK_ERROR(CALL_RETURN_NULL);
+        return CHECK_ERROR(CALL_RETURN_UNDEFINED);
 
     QuickArray<XmlNodeImpl*>& childs = m_childs->m_childs;
     int32_t sz = (int32_t)childs.size();
@@ -367,11 +367,11 @@ result_t XmlElement::getElementById(exlib::string id, obj_ptr<XmlElement_base>& 
         if (childs[i]->m_type == xml_base::_ELEMENT_NODE) {
             XmlElement* pEl = (XmlElement*)(childs[i]->m_node);
             hr = pEl->getElementByIdFromThis(id, retVal);
-            if (hr != CALL_RETURN_NULL)
+            if (hr != CALL_RETURN_UNDEFINED)
                 return hr;
         }
 
-    return CHECK_ERROR(CALL_RETURN_NULL);
+    return CHECK_ERROR(CALL_RETURN_UNDEFINED);
 }
 
 result_t XmlElement::getElementsByClassName(exlib::string className, obj_ptr<XmlNodeList_base>& retVal)
@@ -404,7 +404,7 @@ result_t XmlElement::hasAttribute(exlib::string name, bool& retVal)
     if (hr < 0)
         return hr;
 
-    retVal = hr != CALL_RETURN_NULL;
+    retVal = hr != CALL_RETURN_UNDEFINED;
     return 0;
 }
 
@@ -417,7 +417,7 @@ result_t XmlElement::hasAttributeNS(exlib::string namespaceURI, exlib::string lo
     if (hr < 0)
         return hr;
 
-    retVal = hr != CALL_RETURN_NULL;
+    retVal = hr != CALL_RETURN_UNDEFINED;
     return 0;
 }
 
@@ -426,14 +426,14 @@ void XmlElement::fix_prefix(exlib::string namespaceURI, exlib::string& prefix)
     exlib::string _namespaceURI;
     int32_t i;
 
-    if (!prefix.empty() && lookupNamespaceURI(prefix, _namespaceURI) == CALL_RETURN_NULL)
+    if (!prefix.empty() && lookupNamespaceURI(prefix, _namespaceURI) == CALL_RETURN_UNDEFINED)
         setAttributeNS("http://www.w3.org/2000/xmlns/", ("xmlns:" + prefix), namespaceURI);
     else if (_namespaceURI != namespaceURI) {
         char buf[64];
 
         for (i = 0; i < 65536; i++) {
             sprintf(buf, "a%d", i);
-            if (lookupNamespaceURI(buf, _namespaceURI) == CALL_RETURN_NULL) {
+            if (lookupNamespaceURI(buf, _namespaceURI) == CALL_RETURN_UNDEFINED) {
                 prefix = buf;
                 setAttributeNS("http://www.w3.org/2000/xmlns/", ("xmlns:" + prefix), namespaceURI);
                 return;

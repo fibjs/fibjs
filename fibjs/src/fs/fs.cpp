@@ -272,7 +272,7 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
     hr = f->cc_readAll(buf);
     f->cc_close();
 
-    if (hr < 0 || hr == CALL_RETURN_NULL)
+    if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
         return hr;
 
     return buf->toString(retVal);
@@ -304,7 +304,7 @@ result_t fs_base::readFile(exlib::string fname, exlib::string encoding,
     } else
         retVal = buf;
 
-    if (hr < 0 || hr == CALL_RETURN_NULL)
+    if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
         return hr;
 
     return 0;

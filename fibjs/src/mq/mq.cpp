@@ -79,7 +79,7 @@ result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
             asyncInvoke* pThis = (asyncInvoke*)pState;
             result_t hr;
 
-            if (n == CALL_RETURN_NULL)
+            if (n == CALL_RETURN_UNDEFINED)
                 return pThis->done();
 
             pThis->m_hdlr = pThis->m_next;

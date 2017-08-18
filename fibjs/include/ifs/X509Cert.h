@@ -195,7 +195,7 @@ inline void X509Cert_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         pInst->acb_verify(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_verify(v0, vr);
 

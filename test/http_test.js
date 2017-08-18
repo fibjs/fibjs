@@ -97,7 +97,7 @@ describe("http", () => {
         it("remove", () => {
             d.remove('a');
             assert.isFalse(d.has('a'));
-            assert.isNull(d.first('a'));
+            assert.isUndefined(d.first('a'));
 
             assert.isUndefined(d['a']);
 

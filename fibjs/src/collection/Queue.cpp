@@ -53,7 +53,7 @@ result_t Queue::remove(v8::Local<v8::Value>& retVal)
 result_t Queue::poll(v8::Local<v8::Value>& retVal)
 {
     if (m_list.size() == 0)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = *m_list.begin();
     m_list.pop_front();
@@ -73,7 +73,7 @@ result_t Queue::element(v8::Local<v8::Value>& retVal)
 result_t Queue::peek(v8::Local<v8::Value>& retVal)
 {
     if (m_list.size() == 0)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = *m_list.begin();
 

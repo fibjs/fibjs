@@ -107,7 +107,7 @@ inline void File_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         pInst->acb_chmod(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_chmod(v0);
 

@@ -23,7 +23,7 @@ result_t XmlNodeList::get_length(int32_t& retVal)
 result_t XmlNodeList::item(int32_t index, obj_ptr<XmlNode_base>& retVal)
 {
     if (index < 0 || index >= (int32_t)m_childs.size())
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
     retVal = m_childs[index]->m_node;
     return 0;
 }
@@ -31,7 +31,7 @@ result_t XmlNodeList::item(int32_t index, obj_ptr<XmlNode_base>& retVal)
 result_t XmlNodeList::_indexed_getter(uint32_t index, obj_ptr<XmlNode_base>& retVal)
 {
     if (index >= m_childs.size())
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
     retVal = m_childs[index]->m_node;
     return 0;
 }
@@ -84,7 +84,7 @@ result_t XmlNodeList::firstChild(obj_ptr<XmlNode_base>& retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
     if (!sz)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_childs[0]->m_node;
     return 0;
@@ -94,7 +94,7 @@ result_t XmlNodeList::lastChild(obj_ptr<XmlNode_base>& retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
     if (!sz)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     retVal = m_childs[sz - 1]->m_node;
     return 0;

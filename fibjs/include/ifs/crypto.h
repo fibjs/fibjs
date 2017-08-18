@@ -431,7 +431,7 @@ inline void crypto_base::s_randomBytes(const v8::FunctionCallbackInfo<v8::Value>
 
     if (!cb.IsEmpty()) {
         acb_randomBytes(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_randomBytes(v0, vr);
 
@@ -450,7 +450,7 @@ inline void crypto_base::s_simpleRandomBytes(const v8::FunctionCallbackInfo<v8::
 
     if (!cb.IsEmpty()) {
         acb_simpleRandomBytes(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_simpleRandomBytes(v0, vr);
 
@@ -469,7 +469,7 @@ inline void crypto_base::s_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::
 
     if (!cb.IsEmpty()) {
         acb_pseudoRandomBytes(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_pseudoRandomBytes(v0, vr);
 
@@ -509,7 +509,7 @@ inline void crypto_base::s_pbkdf1(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         acb_pbkdf1(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_pbkdf1(v0, v1, v2, v3, v4, vr);
 
@@ -523,7 +523,7 @@ inline void crypto_base::s_pbkdf1(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         acb_pbkdf1(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_pbkdf1(v0, v1, v2, v3, v4, vr);
 
@@ -546,7 +546,7 @@ inline void crypto_base::s_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         acb_pbkdf2(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_pbkdf2(v0, v1, v2, v3, v4, vr);
 
@@ -560,7 +560,7 @@ inline void crypto_base::s_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         acb_pbkdf2(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_pbkdf2(v0, v1, v2, v3, v4, vr);
 

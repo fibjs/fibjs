@@ -116,7 +116,7 @@ inline void zip_base::s_isZipFile(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         acb_isZipFile(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_isZipFile(v0, vr);
 
@@ -137,7 +137,7 @@ inline void zip_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_open(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_open(v0, v1, v2, vr);
 
@@ -149,7 +149,7 @@ inline void zip_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_open(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_open(v0, v1, v2, vr);
 
@@ -161,7 +161,7 @@ inline void zip_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         acb_open(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = ac_open(v0, v1, v2, vr);
 

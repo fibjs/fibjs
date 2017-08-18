@@ -92,7 +92,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_rep->get_keepAlive(bKeepAlive);
 
             if (!bKeepAlive)
-                return pThis->done(CALL_RETURN_NULL);
+                return pThis->done(CALL_RETURN_UNDEFINED);
 
             pThis->m_zip.Release();
             pThis->m_body.Release();
@@ -105,8 +105,8 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         {
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
-            if (n == CALL_RETURN_NULL)
-                return pThis->done(CALL_RETURN_NULL);
+            if (n == CALL_RETURN_UNDEFINED)
+                return pThis->done(CALL_RETURN_UNDEFINED);
 
             pThis->m_pThis->m_stats->inc(HTTP_TOTAL);
             pThis->m_pThis->m_stats->inc(HTTP_REQUEST);
@@ -146,7 +146,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                     if (pThis->m_req->firstHeader("origin",
                             origin)
-                        != CALL_RETURN_NULL) {
+                        != CALL_RETURN_UNDEFINED) {
                         pThis->m_rep->setHeader(
                             "Access-Control-Allow-Credentials", "true");
                         pThis->m_rep->setHeader("Access-Control-Allow-Origin",
@@ -244,7 +244,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 if (pThis->m_req->firstHeader("Accept-Encoding",
                         hdr)
-                    != CALL_RETURN_NULL) {
+                    != CALL_RETURN_UNDEFINED) {
                     exlib::string str = hdr.string();
                     int32_t type = 0;
 
@@ -256,7 +256,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     if (type != 0) {
                         if (pThis->m_rep->firstHeader("Content-Type",
                                 hdr)
-                            != CALL_RETURN_NULL) {
+                            != CALL_RETURN_UNDEFINED) {
                             str = hdr.string();
 
                             if (qstricmp(str.c_str(), "text/", 5)
@@ -272,7 +272,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     if (type != 0) {
                         if (pThis->m_rep->firstHeader("Content-Encoding",
                                 hdr)
-                            != CALL_RETURN_NULL)
+                            != CALL_RETURN_UNDEFINED)
                             type = 0;
                     }
 
@@ -360,7 +360,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
 
             m_pThis->m_stats->dec(HTTP_PENDDING);
-            return done(CALL_RETURN_NULL);
+            return done(CALL_RETURN_UNDEFINED);
         }
 
     private:

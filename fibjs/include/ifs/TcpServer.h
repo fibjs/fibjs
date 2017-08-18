@@ -126,7 +126,7 @@ inline void TcpServer_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_run(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_run();
 
@@ -154,7 +154,7 @@ inline void TcpServer_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         pInst->acb_stop(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_stop();
 

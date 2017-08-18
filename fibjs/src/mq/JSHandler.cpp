@@ -40,7 +40,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     if (m_async) {
         v8::Local<v8::Value> v1 = GetPrivate("handler");
         if (IsEmpty(v1))
-            return CALL_RETURN_NULL;
+            return CALL_RETURN_UNDEFINED;
 
         Isolate* isolate = holder();
 
@@ -104,12 +104,12 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         }
 
         if (IsEmpty(hdlr))
-            return CALL_RETURN_NULL;
+            return CALL_RETURN_UNDEFINED;
 
         if (!hdlr->IsFunction()) {
             if (hdlr->IsObject())
                 return JSHandler::New(hdlr, retVal);
-            return CALL_RETURN_NULL;
+            return CALL_RETURN_UNDEFINED;
         }
     }
 
@@ -175,7 +175,7 @@ result_t JSHandler::js_invoke(Handler_base* hdlr, object_base* v,
                 return 0;
             }
 
-            if (hr < 0 || hr == CALL_RETURN_NULL)
+            if (hr < 0 || hr == CALL_RETURN_UNDEFINED)
                 return hr;
 
             hdlr1 = hdlr2;

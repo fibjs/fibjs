@@ -67,8 +67,8 @@ result_t Message::get_data(v8::Local<v8::Value>& retVal)
     if (hr < 0)
         return hr;
 
-    if (hr == CALL_RETURN_NULL)
-        return CALL_RETURN_NULL;
+    if (hr == CALL_RETURN_UNDEFINED)
+        return CALL_RETURN_UNDEFINED;
 
     if (m_type == _TEXT) {
         exlib::string txt;
@@ -100,7 +100,7 @@ result_t Message::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
     if (m_body == NULL)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     return m_body->read(bytes, retVal, ac);
 }
@@ -108,7 +108,7 @@ result_t Message::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 result_t Message::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (m_body == NULL)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     return m_body->readAll(retVal, ac);
 }

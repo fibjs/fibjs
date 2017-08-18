@@ -127,7 +127,7 @@ inline void ZipFile_base::s_namelist(const v8::FunctionCallbackInfo<v8::Value>& 
 
     if (!cb.IsEmpty()) {
         pInst->acb_namelist(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_namelist(vr);
 
@@ -145,7 +145,7 @@ inline void ZipFile_base::s_infolist(const v8::FunctionCallbackInfo<v8::Value>& 
 
     if (!cb.IsEmpty()) {
         pInst->acb_infolist(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_infolist(vr);
 
@@ -165,7 +165,7 @@ inline void ZipFile_base::s_getinfo(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         pInst->acb_getinfo(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_getinfo(v0, vr);
 
@@ -186,7 +186,7 @@ inline void ZipFile_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         pInst->acb_read(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_read(v0, v1, vr);
 
@@ -206,7 +206,7 @@ inline void ZipFile_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         pInst->acb_readAll(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_readAll(v0, vr);
 
@@ -226,7 +226,7 @@ inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         pInst->acb_extract(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_extract(v0, v1, v2);
 
@@ -238,7 +238,7 @@ inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         pInst->acb_extract(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_extract(v0, v1, v2);
 
@@ -257,7 +257,7 @@ inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>
 
     if (!cb.IsEmpty()) {
         pInst->acb_extractAll(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_extractAll(v0, v1);
 
@@ -277,7 +277,7 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_write(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_write(v0, v1, v2);
 
@@ -289,7 +289,7 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_write(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_write(v0, v1, v2);
 
@@ -301,7 +301,7 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_write(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_write(v0, v1, v2);
 
@@ -317,7 +317,7 @@ inline void ZipFile_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_close(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_close();
 

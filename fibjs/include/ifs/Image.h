@@ -419,7 +419,7 @@ inline void Image_base::s_getData(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_getData(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_getData(v0, v1, vr);
 
@@ -439,7 +439,7 @@ inline void Image_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         pInst->acb_save(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_save(v0, v1, v2);
 
@@ -451,7 +451,7 @@ inline void Image_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         pInst->acb_save(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_save(v0, v1, v2);
 
@@ -994,7 +994,7 @@ inline void Image_base::s_colorReplace(const v8::FunctionCallbackInfo<v8::Value>
 
     if (!cb.IsEmpty()) {
         pInst->acb_colorReplace(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_colorReplace(v0, v1);
 
@@ -1012,7 +1012,7 @@ inline void Image_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         pInst->acb_clone(cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_clone(vr);
 
@@ -1033,7 +1033,7 @@ inline void Image_base::s_resample(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         pInst->acb_resample(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_resample(v0, v1, vr);
 
@@ -1056,7 +1056,7 @@ inline void Image_base::s_crop(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         pInst->acb_crop(v0, v1, v2, v3, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_crop(v0, v1, v2, v3, vr);
 
@@ -1074,7 +1074,7 @@ inline void Image_base::s_flip(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         pInst->acb_flip(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_flip(v0);
 
@@ -1092,7 +1092,7 @@ inline void Image_base::s_rotate(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         pInst->acb_rotate(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_rotate(v0);
 
@@ -1110,7 +1110,7 @@ inline void Image_base::s_convert(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     if (!cb.IsEmpty()) {
         pInst->acb_convert(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_convert(v0);
 
@@ -1134,7 +1134,7 @@ inline void Image_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!cb.IsEmpty()) {
         pInst->acb_copy(v0, v1, v2, v3, v4, v5, v6, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_copy(v0, v1, v2, v3, v4, v5, v6);
 
@@ -1159,7 +1159,7 @@ inline void Image_base::s_copyMerge(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         pInst->acb_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7);
 
@@ -1184,7 +1184,7 @@ inline void Image_base::s_copyMergeGray(const v8::FunctionCallbackInfo<v8::Value
 
     if (!cb.IsEmpty()) {
         pInst->acb_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7);
 
@@ -1210,7 +1210,7 @@ inline void Image_base::s_copyResized(const v8::FunctionCallbackInfo<v8::Value>&
 
     if (!cb.IsEmpty()) {
         pInst->acb_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8);
 
@@ -1236,7 +1236,7 @@ inline void Image_base::s_copyResampled(const v8::FunctionCallbackInfo<v8::Value
 
     if (!cb.IsEmpty()) {
         pInst->acb_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8);
 
@@ -1261,7 +1261,7 @@ inline void Image_base::s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>&
 
     if (!cb.IsEmpty()) {
         pInst->acb_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7);
 
@@ -1283,7 +1283,7 @@ inline void Image_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args
 
     if (!cb.IsEmpty()) {
         pInst->acb_filter(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_filter(v0, v1, v2, v3, v4);
 
@@ -1321,7 +1321,7 @@ inline void Image_base::s_gaussianBlur(const v8::FunctionCallbackInfo<v8::Value>
 
     if (!cb.IsEmpty()) {
         pInst->acb_gaussianBlur(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_gaussianBlur(v0);
 

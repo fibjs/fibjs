@@ -226,7 +226,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
 
                 if (sz < 0) {
                     pThis->m_val.setNull();
-                    return pThis->setResult(CALL_RETURN_NULL);
+                    return pThis->setResult(CALL_RETURN_UNDEFINED);
                 }
 
                 pThis->set(bulk_ok);
@@ -238,7 +238,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
 
                 if (sz < 0) {
                     pThis->m_val.setNull();
-                    return pThis->setResult(CALL_RETURN_NULL);
+                    return pThis->setResult(CALL_RETURN_UNDEFINED);
                 }
 
                 if (sz == 0) {
@@ -260,8 +260,8 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
         {
             asyncCommand* pThis = (asyncCommand*)pState;
 
-            if (n == CALL_RETURN_NULL)
-                return pThis->setResult(CALL_RETURN_NULL);
+            if (n == CALL_RETURN_UNDEFINED)
+                return pThis->setResult(CALL_RETURN_UNDEFINED);
 
             int32_t sz;
             pThis->m_buffer->get_length(sz);

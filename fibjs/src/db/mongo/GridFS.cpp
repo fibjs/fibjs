@@ -64,7 +64,7 @@ result_t GridFS::store(exlib::string name, Stream_base* src)
             return hr;
         }
 
-        if (hr == CALL_RETURN_NULL)
+        if (hr == CALL_RETURN_UNDEFINED)
             break;
 
         exlib::string strBuf;

@@ -199,7 +199,7 @@ inline void Cipher_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         pInst->acb_encrypt(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_encrypt(v0, vr);
 
@@ -219,7 +219,7 @@ inline void Cipher_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         pInst->acb_decrypt(v0, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_decrypt(v0, vr);
 

@@ -30,7 +30,7 @@ result_t List_base::_new(v8::Local<v8::Array> data, obj_ptr<List_base>& retVal,
 result_t List::_indexed_getter(uint32_t index, Variant& retVal)
 {
     if (index >= m_array.size())
-        return CHECK_ERROR(CALL_RETURN_NULL);
+        return CHECK_ERROR(CALL_RETURN_UNDEFINED);
 
     retVal = m_array[index];
 
@@ -169,7 +169,7 @@ result_t List::pushArray(v8::Local<v8::Array> data)
 result_t List::pop(Variant& retVal)
 {
     if (!m_array.size())
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     if (m_freeze)
         return CHECK_ERROR(CALL_E_INVALID_CALL);

@@ -103,7 +103,7 @@ result_t LevelDB::get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent
         leveldb::Slice(key1.c_str(), key1.length()),
         &value);
     if (s.IsNotFound())
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
     else if (!s.ok())
         return CHECK_ERROR(Runtime::setError(s.ToString()));
 
@@ -149,7 +149,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal)
     result_t hr;
 
     if (!len)
-        return CALL_RETURN_NULL;
+        return CALL_RETURN_UNDEFINED;
 
     ks.resize(len);
 

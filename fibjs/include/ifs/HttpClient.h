@@ -308,7 +308,7 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
 
     if (!cb.IsEmpty()) {
         pInst->acb_request(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_request(v0, v1, vr);
 
@@ -320,7 +320,7 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
 
     if (!cb.IsEmpty()) {
         pInst->acb_request(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_request(v0, v1, v2, vr);
 
@@ -333,7 +333,7 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
 
     if (!cb.IsEmpty()) {
         pInst->acb_request(v0, v1, v2, v3, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_request(v0, v1, v2, v3, vr);
 
@@ -346,7 +346,7 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
 
     if (!cb.IsEmpty()) {
         pInst->acb_request(v0, v1, v2, v3, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_request(v0, v1, v2, v3, vr);
 
@@ -359,7 +359,7 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
 
     if (!cb.IsEmpty()) {
         pInst->acb_request(v0, v1, v2, v3, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_request(v0, v1, v2, v3, vr);
 
@@ -380,7 +380,7 @@ inline void HttpClient_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         pInst->acb_get(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_get(v0, v1, vr);
 
@@ -402,7 +402,7 @@ inline void HttpClient_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         pInst->acb_post(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_post(v0, v1, v2, vr);
 
@@ -414,7 +414,7 @@ inline void HttpClient_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         pInst->acb_post(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_post(v0, v1, v2, vr);
 
@@ -425,7 +425,7 @@ inline void HttpClient_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& a
 
     if (!cb.IsEmpty()) {
         pInst->acb_post(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_post(v0, v1, vr);
 
@@ -446,7 +446,7 @@ inline void HttpClient_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         pInst->acb_del(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_del(v0, v1, vr);
 
@@ -468,7 +468,7 @@ inline void HttpClient_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         pInst->acb_put(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_put(v0, v1, v2, vr);
 
@@ -480,7 +480,7 @@ inline void HttpClient_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         pInst->acb_put(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_put(v0, v1, v2, vr);
 
@@ -491,7 +491,7 @@ inline void HttpClient_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     if (!cb.IsEmpty()) {
         pInst->acb_put(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_put(v0, v1, vr);
 
@@ -513,7 +513,7 @@ inline void HttpClient_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& 
 
     if (!cb.IsEmpty()) {
         pInst->acb_patch(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_patch(v0, v1, v2, vr);
 
@@ -525,7 +525,7 @@ inline void HttpClient_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& 
 
     if (!cb.IsEmpty()) {
         pInst->acb_patch(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_patch(v0, v1, v2, vr);
 
@@ -536,7 +536,7 @@ inline void HttpClient_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& 
 
     if (!cb.IsEmpty()) {
         pInst->acb_patch(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
+        hr = CALL_RETURN_UNDEFINED;
     } else
         hr = pInst->ac_patch(v0, v1, vr);
 

@@ -158,7 +158,7 @@ public:
             {
                 asyncProcess* pThis = (asyncProcess*)pState;
 
-                if (n != CALL_RETURN_NULL) {
+                if (n != CALL_RETURN_UNDEFINED) {
                     pThis->m_buffer->toString(pThis->m_strBuf);
                     pThis->m_pThis->strm.avail_in = (int32_t)pThis->m_strBuf.length();
                     pThis->m_pThis->strm.next_in = (unsigned char*)pThis->m_strBuf.c_str();

@@ -30,7 +30,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 
     Variant var;
     hr = fs_base::cc_readFile(fname, "", var);
-    if (hr == CALL_RETURN_NULL) {
+    if (hr == CALL_RETURN_UNDEFINED) {
         data = new Buffer();
         hr = 0;
     } else
