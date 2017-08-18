@@ -459,9 +459,6 @@ describe('Buffer', () => {
             assert.equal(buf[i + 6], i);
         }
         assert.equal(buf[9], 0);
-        assert.throws(() => {
-            buf[10];
-        })
         assert.equal(buf, buf1);
     });
 
@@ -829,6 +826,36 @@ describe('Buffer', () => {
             assert.equal(a.reverse().toString('hex'), f.expected);
             assert.equal(a.toString('hex'), f.a);
         })
+    });
+
+    it('indexed setter', () => {
+        const b = new Buffer([1, 2]);
+        b[0] = -1;
+        assert.deepEqual(new Buffer([255, 2]), b);
+        b[0] = -255;
+        assert.deepEqual(new Buffer([1, 2]), b);
+        b[0] = -256;
+        assert.deepEqual(new Buffer([0, 2]), b);
+        b[0] = -257;
+        assert.deepEqual(new Buffer([255, 2]), b);
+
+        b[0] = 255;
+        assert.deepEqual(new Buffer([255, 2]), b);
+        b[0] = 256;
+        assert.deepEqual(new Buffer([0, 2]), b);
+        b[0] = 257;
+        assert.deepEqual(new Buffer([1, 2]), b);
+
+        b[3] = -1;
+        assert.deepEqual(new Buffer([1, 2]), b);
+    });
+
+    it('indexed getter', () => {
+        const b = new Buffer([1, 2]);
+        assert.isUndefined(b[3]);
+        assert.isUndefined(b[-1]);
+        assert.equal(b[0], 1);
+        assert.equal(b[1], 2);
     });
 });
 

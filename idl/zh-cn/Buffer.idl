@@ -151,7 +151,7 @@ interface Buffer : object
     static Boolean isEncoding(String codec);
 
     /*! @brief 缓存对象可使用下标直接访问二进制数据*/
-    Integer operator[];
+    Variant operator[];
 
     /*! @brief 获取缓存对象的尺寸 */
     readonly Integer length;
