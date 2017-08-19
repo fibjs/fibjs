@@ -173,20 +173,29 @@ describe("http", () => {
             return cookie_data(cookie);
         }
 
+        function copyCookie(cookieObj) {
+            var c = Object.assign({}, cookieObj);
+            if (!c.path) {
+                c.path = '/';
+            }
+            return c;
+        }
+
         var cases = [
             [{
                 name: "test",
                 value: "value"
-            }, "test=value"],
+            }, "test=value; path=/"],
             [{
                 name: "test=",
                 value: "value;"
-            }, "test%3D=value%3B"],
+            }, "test%3D=value%3B; path=/"],
             [{
                 name: "test",
                 value: "value",
-                domain: ".baoz.me"
-            }, "test=value; domain=.baoz.me"],
+                domain: ".baoz.me",
+                path: "/"
+            }, "test=value; domain=.baoz.me; path=/"],
             [{
                 name: "test",
                 value: "value",
@@ -196,17 +205,18 @@ describe("http", () => {
                 name: "test",
                 value: "value",
                 secure: true
-            }, "test=value; secure"],
+            }, "test=value; path=/; secure"],
             [{
                 name: "test",
                 value: "value",
                 httpOnly: true
-            }, "test=value; HttpOnly"],
+            }, "test=value; path=/; HttpOnly"],
             [{
                 name: "test",
                 value: "value",
-                expires: new Date("2020-12-21T13:31:30Z")
-            }, "test=value; expires=Mon, 21 Dec 2020 13:31:30 GMT"],
+                expires: new Date("2020-12-21T13:31:30Z"),
+                path: "/"
+            }, "test=value; expires=Mon, 21 Dec 2020 13:31:30 GMT; path=/"],
             [{
                 name: "test",
                 value: "value",
@@ -225,7 +235,7 @@ describe("http", () => {
 
         it("parse", () => {
             for (var i = 0; i < cases.length; i++)
-                assert.deepEqual(parse(cases[i][1]), cases[i][0]);
+                assert.deepEqual(parse(cases[i][1]), copyCookie(cases[i][0]));
 
             assert.throws(() => {
                 new http.Cookie().parse("");
@@ -517,12 +527,14 @@ describe("http", () => {
 
             assert.deepEqual(cookie_data(cookies[0]), {
                 name: "test",
-                value: "value"
+                value: "value",
+                path: "/"
             });
 
             assert.deepEqual(cookie_data(cookies[1]), {
                 name: "test1",
-                value: "value1"
+                value: "value1",
+                path: "/"
             });
         });
 
@@ -789,7 +801,7 @@ describe("http", () => {
 
             rep.sendTo(ms);
             ms.rewind();
-            assert.equal(ms.read(), 'HTTP/1.1 200 OK\r\nSet-Cookie: test=value\r\nSet-Cookie: test1=value1\r\nConnection: keep-alive\r\nContent-Length: 0\r\n\r\n');
+            assert.equal(ms.read().toString(), 'HTTP/1.1 200 OK\r\nSet-Cookie: test=value; path=/\r\nSet-Cookie: test1=value1; path=/\r\nConnection: keep-alive\r\nContent-Length: 0\r\n\r\n');
         });
     });
 
