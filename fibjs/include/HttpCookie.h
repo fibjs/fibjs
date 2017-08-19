@@ -17,6 +17,7 @@ public:
     HttpCookie()
         : m_httpOnly(false)
         , m_secure(false)
+        , m_path("/")
     {
     }
 
