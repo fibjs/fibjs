@@ -105,7 +105,7 @@ public:
         now->append(p);
 
         td->m_now = p;
-        block->Call(v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
+        block->Call(v8::Object::New(Isolate::current()->m_isolate), 0, NULL);
         td->m_now = now;
 
         return 0;
@@ -179,16 +179,15 @@ public:
             _case *p1, *p2;
 
             if (p->m_pos == 0) {
-                for (i = 0; i < (int32_t)p->m_hooks[HOOK_BEFORE].size(); i++)
-                    if (v8::Local<v8::Function>::New(isolate->m_isolate,
-                            p->m_hooks[HOOK_BEFORE][i])
-                            ->Call(v8::Undefined(isolate->m_isolate),
-                                0, NULL)
-                            .IsEmpty()) {
+                for (i = 0; i < (int32_t)p->m_hooks[HOOK_BEFORE].size(); i++) {
+                    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
+                        p->m_hooks[HOOK_BEFORE][i]);
+                    if (func->Call(v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
                         coroutine_base::set_loglevel(oldlevel);
                         clear();
                         return 0;
                     }
+                }
             }
 
             if (p->m_pos < (int32_t)p->m_subs.size()) {
@@ -216,17 +215,15 @@ public:
 
                 for (j = 0; j < (int32_t)stack.size(); j++) {
                     p2 = stack[j];
-                    for (i = 0; i < (int32_t)p2->m_hooks[HOOK_BEFORECASE].size();
-                         i++)
-                        if (v8::Local<v8::Function>::New(isolate->m_isolate,
-                                p2->m_hooks[HOOK_BEFORECASE][i])
-                                ->Call(v8::Undefined(isolate->m_isolate),
-                                    0, NULL)
-                                .IsEmpty()) {
+                    for (i = 0; i < (int32_t)p2->m_hooks[HOOK_BEFORECASE].size(); i++) {
+                        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
+                            p2->m_hooks[HOOK_BEFORECASE][i]);
+                        if (func->Call(v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
                             coroutine_base::set_loglevel(oldlevel);
                             clear();
                             return 0;
                         }
+                    }
                 }
 
                 cnt++;
@@ -235,7 +232,8 @@ public:
                     date_t d1, d2;
 
                     d1.now();
-                    v8::Local<v8::Function>::New(isolate->m_isolate, p1->m_block)->Call(v8::Undefined(isolate->m_isolate), 0, NULL);
+                    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, p1->m_block);
+                    func->Call(v8::Object::New(isolate->m_isolate), 0, NULL);
                     d2.now();
 
                     if (try_catch.HasCaught()) {
@@ -285,31 +283,28 @@ public:
 
                 for (j = (int32_t)stack.size() - 1; j >= 0; j--) {
                     p2 = stack[j];
-                    for (i = (int32_t)p2->m_hooks[HOOK_AFTERCASE].size() - 1;
-                         i >= 0; i--)
-                        if (v8::Local<v8::Function>::New(isolate->m_isolate,
-                                p2->m_hooks[HOOK_AFTERCASE][i])
-                                ->Call(v8::Undefined(isolate->m_isolate),
-                                    0, NULL)
-                                .IsEmpty()) {
+                    for (i = (int32_t)p2->m_hooks[HOOK_AFTERCASE].size() - 1; i >= 0; i--) {
+                        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
+                            p2->m_hooks[HOOK_AFTERCASE][i]);
+                        if (func->Call(v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
                             coroutine_base::set_loglevel(oldlevel);
                             clear();
                             return 0;
                         }
+                    }
                 }
             }
 
             if (p->m_pos == (int32_t)p->m_subs.size()) {
-                for (i = (int32_t)p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--)
-                    if (v8::Local<v8::Function>::New(isolate->m_isolate,
-                            p->m_hooks[HOOK_AFTER][i])
-                            ->Call(v8::Undefined(isolate->m_isolate),
-                                0, NULL)
-                            .IsEmpty()) {
+                for (i = (int32_t)p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--) {
+                    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
+                        p->m_hooks[HOOK_AFTER][i]);
+                    if (func->Call(v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
                         coroutine_base::set_loglevel(oldlevel);
                         clear();
                         return 0;
                     }
+                }
                 stack.pop();
             }
         }
