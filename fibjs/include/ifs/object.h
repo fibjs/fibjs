@@ -25,7 +25,6 @@ public:
     virtual result_t equals(object_base* expected, bool& retVal) = 0;
     virtual result_t toString(exlib::string& retVal) = 0;
     virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t valueOf(v8::Local<v8::Value>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -43,7 +42,6 @@ public:
     static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_valueOf(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -54,8 +52,7 @@ inline ClassInfo& object_base::class_info()
         { "dispose", s_dispose, false },
         { "equals", s_equals, false },
         { "toString", s_toString, false },
-        { "toJSON", s_toJSON, false },
-        { "valueOf", s_valueOf, false }
+        { "toJSON", s_toJSON, false }
     };
 
     static ClassData s_cd = {
@@ -122,20 +119,6 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& arg
     OPT_ARG(exlib::string, 0, "");
 
     hr = pInst->toJSON(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void object_base::s_valueOf(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Value> vr;
-
-    METHOD_INSTANCE(object_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->valueOf(vr);
 
     METHOD_RETURN();
 }

@@ -420,7 +420,6 @@ private:
     static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_valueOf(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 class RootModule {
@@ -474,8 +473,7 @@ inline ClassInfo& object_base::class_info()
         { "dispose", s_dispose },
         { "equals", s_equals, false },
         { "toString", s_toString },
-        { "toJSON", s_toJSON },
-        { "valueOf", s_valueOf }
+        { "toJSON", s_toJSON }
     };
 
     static ClassData s_cd = {
@@ -541,20 +539,6 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& arg
     OPT_ARG(exlib::string, 0, "");
 
     hr = pInst->toJSON(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void object_base::s_valueOf(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Value> vr;
-
-    METHOD_INSTANCE(object_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->valueOf(vr);
 
     METHOD_RETURN();
 }
