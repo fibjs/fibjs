@@ -972,7 +972,9 @@ inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, v8::Local<v8::F
 template <class T>
 inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, obj_ptr<T>& obj)
 {
-    return obj->wrap();
+    v8::Local<v8::Value> v;
+    obj->valueOf(v);
+    return v;
 }
 
 inline v8::Local<v8::Object> GetIteratorReturnValue(v8::Isolate* isolate, v8::Local<v8::Array>& array)
