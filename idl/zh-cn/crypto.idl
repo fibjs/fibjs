@@ -92,6 +92,13 @@ module crypto
     */
     static Digest createHash(String algo);
 
+    /*! @brief 根据给定的算法名称创建一个 hmac 信息摘要对象
+     @param algo 指定信息摘要对象的算法
+     @param key 二进制签名密钥
+     @return 返回信息摘要对象
+    */
+    static Digest createHmac(String algo, Buffer key);
+
     /*! @brief 加载一个 PEM/DER 格式的密钥文件
      @param filename 密钥文件名
      @param password 解密密码

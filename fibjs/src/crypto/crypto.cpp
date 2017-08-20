@@ -38,6 +38,20 @@ result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVa
     return 0;
 }
 
+result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
+    obj_ptr<Digest_base>& retVal)
+{
+    algo.toupper();
+    if (algo == "RMD160")
+        algo = "RIPEMD160";
+
+    const mbedtls_md_info_t* mi = mbedtls_md_info_from_string(algo.c_str());
+    if (!mi)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    return hash_base::hmac(mbedtls_md_get_type(mi), key, retVal);
+}
+
 result_t crypto_base::loadPKey(exlib::string filename, exlib::string password,
     obj_ptr<PKey_base>& retVal)
 {
