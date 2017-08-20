@@ -82,26 +82,26 @@ public:
     virtual result_t readFloatBE(int32_t offset, bool noAssert, double& retVal) = 0;
     virtual result_t readDoubleLE(int32_t offset, bool noAssert, double& retVal) = 0;
     virtual result_t readDoubleBE(int32_t offset, bool noAssert, double& retVal) = 0;
-    virtual result_t writeUInt8(int32_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeUInt16LE(int32_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeUInt16BE(int32_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeUInt32LE(int64_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeUInt32BE(int64_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeUIntLE(int64_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeUIntBE(int64_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeInt8(int32_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeInt16LE(int32_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeInt16BE(int32_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeInt32LE(int32_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeInt32BE(int32_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeIntLE(int64_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeIntBE(int64_t value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeInt64LE(Int64_base* value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeInt64BE(Int64_base* value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeFloatLE(double value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeFloatBE(double value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeDoubleLE(double value, int32_t offset, bool noAssert) = 0;
-    virtual result_t writeDoubleBE(double value, int32_t offset, bool noAssert) = 0;
+    virtual result_t writeUInt8(int32_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeUInt16LE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeUInt16BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeUInt32LE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeUInt32BE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeUIntLE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeUIntBE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeInt8(int32_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeInt16LE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeInt16BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeInt32LE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeInt32BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeIntLE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeIntBE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeInt64LE(Int64_base* value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeInt64BE(Int64_base* value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeFloatLE(double value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeFloatBE(double value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeDoubleLE(double value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
+    virtual result_t writeDoubleBE(double value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t reverse(obj_ptr<Buffer_base>& retVal) = 0;
@@ -1065,6 +1065,8 @@ inline void Buffer_base::s_readDoubleBE(const v8::FunctionCallbackInfo<v8::Value
 
 inline void Buffer_base::s_writeUInt8(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1074,13 +1076,15 @@ inline void Buffer_base::s_writeUInt8(const v8::FunctionCallbackInfo<v8::Value>&
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeUInt8(v0, v1, v2);
+    hr = pInst->writeUInt8(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeUInt16LE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1090,13 +1094,15 @@ inline void Buffer_base::s_writeUInt16LE(const v8::FunctionCallbackInfo<v8::Valu
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeUInt16LE(v0, v1, v2);
+    hr = pInst->writeUInt16LE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeUInt16BE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1106,13 +1112,15 @@ inline void Buffer_base::s_writeUInt16BE(const v8::FunctionCallbackInfo<v8::Valu
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeUInt16BE(v0, v1, v2);
+    hr = pInst->writeUInt16BE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeUInt32LE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1122,13 +1130,15 @@ inline void Buffer_base::s_writeUInt32LE(const v8::FunctionCallbackInfo<v8::Valu
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeUInt32LE(v0, v1, v2);
+    hr = pInst->writeUInt32LE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeUInt32BE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1138,13 +1148,15 @@ inline void Buffer_base::s_writeUInt32BE(const v8::FunctionCallbackInfo<v8::Valu
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeUInt32BE(v0, v1, v2);
+    hr = pInst->writeUInt32BE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeUIntLE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1154,13 +1166,15 @@ inline void Buffer_base::s_writeUIntLE(const v8::FunctionCallbackInfo<v8::Value>
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeUIntLE(v0, v1, v2);
+    hr = pInst->writeUIntLE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeUIntBE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1170,13 +1184,15 @@ inline void Buffer_base::s_writeUIntBE(const v8::FunctionCallbackInfo<v8::Value>
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeUIntBE(v0, v1, v2);
+    hr = pInst->writeUIntBE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeInt8(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1186,13 +1202,15 @@ inline void Buffer_base::s_writeInt8(const v8::FunctionCallbackInfo<v8::Value>& 
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeInt8(v0, v1, v2);
+    hr = pInst->writeInt8(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeInt16LE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1202,13 +1220,15 @@ inline void Buffer_base::s_writeInt16LE(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeInt16LE(v0, v1, v2);
+    hr = pInst->writeInt16LE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeInt16BE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1218,13 +1238,15 @@ inline void Buffer_base::s_writeInt16BE(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeInt16BE(v0, v1, v2);
+    hr = pInst->writeInt16BE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeInt32LE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1234,13 +1256,15 @@ inline void Buffer_base::s_writeInt32LE(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeInt32LE(v0, v1, v2);
+    hr = pInst->writeInt32LE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeInt32BE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1250,13 +1274,15 @@ inline void Buffer_base::s_writeInt32BE(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeInt32BE(v0, v1, v2);
+    hr = pInst->writeInt32BE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeIntLE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1266,13 +1292,15 @@ inline void Buffer_base::s_writeIntLE(const v8::FunctionCallbackInfo<v8::Value>&
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeIntLE(v0, v1, v2);
+    hr = pInst->writeIntLE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeIntBE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1282,13 +1310,15 @@ inline void Buffer_base::s_writeIntBE(const v8::FunctionCallbackInfo<v8::Value>&
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeIntBE(v0, v1, v2);
+    hr = pInst->writeIntBE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeInt64LE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1298,13 +1328,15 @@ inline void Buffer_base::s_writeInt64LE(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeInt64LE(v0, v1, v2);
+    hr = pInst->writeInt64LE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeInt64BE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1314,13 +1346,15 @@ inline void Buffer_base::s_writeInt64BE(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeInt64BE(v0, v1, v2);
+    hr = pInst->writeInt64BE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeFloatLE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1330,13 +1364,15 @@ inline void Buffer_base::s_writeFloatLE(const v8::FunctionCallbackInfo<v8::Value
     ARG(int32_t, 1);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeFloatLE(v0, v1, v2);
+    hr = pInst->writeFloatLE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeFloatBE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1346,13 +1382,15 @@ inline void Buffer_base::s_writeFloatBE(const v8::FunctionCallbackInfo<v8::Value
     ARG(int32_t, 1);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeFloatBE(v0, v1, v2);
+    hr = pInst->writeFloatBE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeDoubleLE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1362,13 +1400,15 @@ inline void Buffer_base::s_writeDoubleLE(const v8::FunctionCallbackInfo<v8::Valu
     ARG(int32_t, 1);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeDoubleLE(v0, v1, v2);
+    hr = pInst->writeDoubleLE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_writeDoubleBE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1378,9 +1418,9 @@ inline void Buffer_base::s_writeDoubleBE(const v8::FunctionCallbackInfo<v8::Valu
     ARG(int32_t, 1);
     OPT_ARG(bool, 2, false);
 
-    hr = pInst->writeDoubleBE(v0, v1, v2);
+    hr = pInst->writeDoubleBE(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_slice(const v8::FunctionCallbackInfo<v8::Value>& args)

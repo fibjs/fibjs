@@ -333,7 +333,14 @@ describe('Buffer', () => {
     it('entries', () => {
         var buf1 = new Buffer("buffer");
         var buf2 = new Buffer([98, 117, 102, 102, 101, 114]);
-        var correctResult = [[0, 98], [1, 117], [2, 102], [3, 102], [4, 101], [5, 114]];
+        var correctResult = [
+            [0, 98],
+            [1, 117],
+            [2, 102],
+            [3, 102],
+            [4, 101],
+            [5, 114]
+        ];
         var entries1 = [];
         var entries2 = [];
         for (let value of buf1.entries()) {
@@ -605,18 +612,18 @@ describe('Buffer', () => {
     it("writeNumber", () => {
         var buf = new Buffer(2);
 
-        buf.writeUInt16BE(9026, 0);
+        assert.equal(buf.writeUInt16BE(9026, 0), 2);
         assert.equal(buf.readUInt16BE(), 9026);
 
-        buf.writeUInt16LE(16931, 0);
+        assert.equal(buf.writeUInt16LE(16931, 0), 2);
         assert.equal(buf.readUInt16BE(), 9026);
 
         buf[1] = 0x00;
-        buf.writeUInt16BE(16896, 1, true);
+        assert.equal(buf.writeUInt16BE(16896, 1, true), 2);
         assert.equal(buf[1], 0x42);
 
         buf[1] = 0x00;
-        buf.writeUInt16LE(66, 1, true);
+        assert.equal(buf.writeUInt16LE(66, 1, true), 2);
         assert.equal(buf[1], 0x42);
 
         assert.equal(buf.length, 2);
@@ -631,7 +638,7 @@ describe('Buffer', () => {
 
         var buf = new Buffer(4);
 
-        buf.writeInt32BE(0x12345678, 0);
+        assert.equal(buf.writeInt32BE(0x12345678, 0), 4);
         assert.deepEqual(buf.toArray(), [
             0x12,
             0x34,
@@ -639,7 +646,7 @@ describe('Buffer', () => {
             0x78
         ]);
 
-        buf.writeInt32LE(0x12345678, 0);
+        assert.equal(buf.writeInt32LE(0x12345678, 0), 4);
         assert.deepEqual(buf.toArray(), [
             0x78,
             0x56,
@@ -649,7 +656,7 @@ describe('Buffer', () => {
 
         var buf = new Buffer(6);
 
-        buf.writeIntBE(0x12345678abcd, 0);
+        assert.equal(buf.writeIntBE(0x12345678abcd, 0), 6);
         assert.deepEqual(buf.toArray(), [
             0x12,
             0x34,
@@ -659,7 +666,7 @@ describe('Buffer', () => {
             0xcd
         ]);
 
-        buf.writeIntLE(0x12345678abcd, 0);
+        assert.equal(buf.writeIntLE(0x12345678abcd, 0), 6);
         assert.deepEqual(buf.toArray(), [
             0xcd,
             0xab,
@@ -671,7 +678,7 @@ describe('Buffer', () => {
 
         var buf = new Buffer(8);
 
-        buf.writeInt64BE(0x12345678abcd, 0);
+        assert.equal(buf.writeInt64BE(0x12345678abcd, 0), 8);
         assert.deepEqual(buf.toArray(), [
             0x0,
             0x0,
@@ -683,7 +690,7 @@ describe('Buffer', () => {
             0xcd
         ]);
 
-        buf.writeInt64LE(0x12345678abcd, 0);
+        assert.equal(buf.writeInt64LE(0x12345678abcd, 0), 8);
         assert.deepEqual(buf.toArray(), [
             0xcd,
             0xab,
@@ -695,7 +702,7 @@ describe('Buffer', () => {
             0x0
         ]);
 
-        buf.writeInt64BE(new Int64(0x12345678abcd), 0);
+        assert.equal(buf.writeInt64BE(new Int64(0x12345678abcd), 0), 8);
         assert.deepEqual(buf.toArray(), [
             0x0,
             0x0,
@@ -707,7 +714,7 @@ describe('Buffer', () => {
             0xcd
         ]);
 
-        buf.writeInt64LE(new Int64(0x12345678abcd), 0);
+        assert.equal(buf.writeInt64LE(new Int64(0x12345678abcd), 0), 8);
         assert.deepEqual(buf.toArray(), [
             0xcd,
             0xab,
@@ -720,11 +727,11 @@ describe('Buffer', () => {
         ]);
 
         var buf = new Buffer(4);
-        buf.writeFloatLE(1, 0);
+        assert.equal(buf.writeFloatLE(1, 0), 4);
         assert.equal(buf.hex(), "0000803f");
 
         var buf = new Buffer(8);
-        buf.writeDoubleLE(0.3333333333333333, 0);
+        assert.equal(buf.writeDoubleLE(0.3333333333333333, 0), 8);
         assert.equal(buf.hex(), "555555555555d53f");
     });
 
@@ -787,37 +794,37 @@ describe('Buffer', () => {
     });
 
     var fixtures = [{
-        "a": "ffff00",
-        "expected": "00ffff"
-    },
-    {
-        "a": "ffff",
-        "expected": "ffff"
-    },
-    {
-        "a": "0000",
-        "expected": "0000"
-    },
-    {
-        "a": "0000ff",
-        "expected": "ff0000"
-    },
-    {
-        "a": "000000",
-        "expected": "000000"
-    },
-    {
-        "a": "ffffff",
-        "expected": "ffffff"
-    },
-    {
-        "a": "00ffff00ff",
-        "expected": "ff00ffff00"
-    },
-    {
-        "a": "0000ff00ffff00ff",
-        "expected": "ff00ffff00ff0000"
-    }
+            "a": "ffff00",
+            "expected": "00ffff"
+        },
+        {
+            "a": "ffff",
+            "expected": "ffff"
+        },
+        {
+            "a": "0000",
+            "expected": "0000"
+        },
+        {
+            "a": "0000ff",
+            "expected": "ff0000"
+        },
+        {
+            "a": "000000",
+            "expected": "000000"
+        },
+        {
+            "a": "ffffff",
+            "expected": "ffffff"
+        },
+        {
+            "a": "00ffff00ff",
+            "expected": "ff00ffff00"
+        },
+        {
+            "a": "0000ff00ffff00ff",
+            "expected": "ff00ffff00ff0000"
+        }
     ];
 
     it('reverse', () => {
@@ -829,26 +836,26 @@ describe('Buffer', () => {
     });
 
     it('indexed setter', () => {
-         const b = new Buffer([1, 2]);
-         b[0] = -1;
-         assert.deepEqual(new Buffer([255, 2]), b);
-         b[0] = -255;
-         assert.deepEqual(new Buffer([1, 2]), b);
-         b[0] = -256;
-         assert.deepEqual(new Buffer([0, 2]), b);
-         b[0] = -257;
-         assert.deepEqual(new Buffer([255, 2]), b);
+        const b = new Buffer([1, 2]);
+        b[0] = -1;
+        assert.deepEqual(new Buffer([255, 2]), b);
+        b[0] = -255;
+        assert.deepEqual(new Buffer([1, 2]), b);
+        b[0] = -256;
+        assert.deepEqual(new Buffer([0, 2]), b);
+        b[0] = -257;
+        assert.deepEqual(new Buffer([255, 2]), b);
 
-         b[0] = 255;
-         assert.deepEqual(new Buffer([255, 2]), b);
-         b[0] = 256;
-         assert.deepEqual(new Buffer([0, 2]), b);
-         b[0] = 257;
-         assert.deepEqual(new Buffer([1, 2]), b);
+        b[0] = 255;
+        assert.deepEqual(new Buffer([255, 2]), b);
+        b[0] = 256;
+        assert.deepEqual(new Buffer([0, 2]), b);
+        b[0] = 257;
+        assert.deepEqual(new Buffer([1, 2]), b);
 
-         b[3] = -1;
-         assert.deepEqual(new Buffer([1, 2]), b);
-     });
+        b[3] = -1;
+        assert.deepEqual(new Buffer([1, 2]), b);
+    });
 
     it('indexed getter', () => {
         const b = new Buffer([1, 2]);
