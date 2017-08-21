@@ -11,6 +11,7 @@
 #include "ifs/Socket.h"
 #include "Timer.h"
 #include "inetAddr.h"
+#include "SimpleObject.h"
 
 #ifndef ASYNCIO_H_
 #define ASYNCIO_H_
@@ -33,39 +34,14 @@ public:
     {
     }
 
-    class DatagramPacket : public DatagramPacket_base {
+    class DatagramPacket : public SimpleObject {
     public:
         DatagramPacket(exlib::string data, inetAddr& addr)
         {
-            m_data = new Buffer(data);
-            m_addr = addr.str();
-            m_port = addr.port();
+            add("data", new Buffer(data));
+            add("address", addr.str());
+            add("port", addr.port());
         }
-
-    public:
-        // DatagramPacket_base
-        virtual result_t get_data(obj_ptr<Buffer_base>& retVal)
-        {
-            retVal = m_data;
-            return 0;
-        }
-
-        virtual result_t get_address(exlib::string& retVal)
-        {
-            retVal = m_addr;
-            return 0;
-        }
-
-        virtual result_t get_port(int32_t& retVal)
-        {
-            retVal = m_port;
-            return 0;
-        }
-
-    private:
-        obj_ptr<Buffer_base> m_data;
-        exlib::string m_addr;
-        int32_t m_port;
     };
 
 public:
@@ -74,7 +50,7 @@ public:
     result_t write(Buffer_base* data, AsyncEvent* ac);
     result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         AsyncEvent* ac, bool bRead, Timer_base* timer);
-    result_t recvfrom(int32_t bytes, obj_ptr<DatagramPacket_base>& retVal, AsyncEvent* ac);
+    result_t recvfrom(int32_t bytes, obj_ptr<object_base>& retVal, AsyncEvent* ac);
 
 #ifndef _WIN32
     result_t cancel(AsyncEvent* ac);
