@@ -160,6 +160,7 @@
     <ClInclude Include="include\SandBox.h" />
     <ClInclude Include="include\Semaph.h" />
     <ClInclude Include="include\Service.h" />
+    <ClInclude Include="include\SimpleObject.h" />
     <ClInclude Include="include\Smtp.h" />
     <ClInclude Include="include\Socket.h" />
     <ClInclude Include="include\Socket_api.h" />
@@ -213,7 +214,6 @@
     <ClInclude Include="include\ifs\Condition.h" />
     <ClInclude Include="include\ifs\DBResult.h" />
     <ClInclude Include="include\ifs\DBRow.h" />
-    <ClInclude Include="include\ifs\DatagramPacket.h" />
     <ClInclude Include="include\ifs\DbConnection.h" />
     <ClInclude Include="include\ifs\Digest.h" />
     <ClInclude Include="include\ifs\Event.h" />
