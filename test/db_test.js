@@ -101,6 +101,9 @@ describe("db", () => {
 
         it("execute async", (done) => {
             conn.execute("select * from test where t1=?", 1123, (e, rs) => {
+                if (e)
+                    return done(e);
+
                 assert.equal(rs.length, 1);
                 done();
             });
