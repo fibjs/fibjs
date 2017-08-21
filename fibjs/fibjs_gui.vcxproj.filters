@@ -318,6 +318,9 @@
     <ClInclude Include="include\Service.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SimpleObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\Smtp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -475,9 +478,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\DBRow.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\DatagramPacket.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\DbConnection.h">
