@@ -300,12 +300,12 @@ module.exports = function (defs, baseFolder) {
                 }
             },
             "object": {
-                "declare": () => { },
-                "stub": () => { },
-                "stub_func": () => { }
+                "declare": () => {},
+                "stub": () => {},
+                "stub_func": () => {}
             },
             "const": {
-                "declare": () => { },
+                "declare": () => {},
                 "stub": fn => {
                     var fname = fn.name;
                     txts.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
@@ -678,7 +678,7 @@ module.exports = function (defs, baseFolder) {
             var types = {};
 
             function add_type(type) {
-                if (type && (type !== cls) &&
+                if (type && (type !== cls) && (type !== 'object') &&
                     (type !== def.declare.extend) &&
                     (!typeMap[type]))
                     types[type] = true;
