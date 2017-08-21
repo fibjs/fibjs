@@ -109,6 +109,12 @@ public:
         operator=(v);
     }
 
+    Variant(date_t v)
+        : m_type(VT_Undefined)
+    {
+        operator=(v);
+    }
+
     template <typename T>
     Variant(obj_ptr<T>& v)
         : m_type(VT_Undefined)

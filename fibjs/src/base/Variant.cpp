@@ -98,11 +98,12 @@ Variant::operator v8::Local<v8::Value>() const
         return dateVal().value(isolate->m_isolate);
     case VT_Object: {
         object_base* obj = (object_base*)m_Val.objVal;
-
         if (obj == NULL)
             break;
 
-        return obj->wrap();
+        v8::Local<v8::Value> v;
+        obj->valueOf(v);
+        return v;
     }
     case VT_JSValue:
         if (isGlobal())
