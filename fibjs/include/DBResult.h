@@ -5,93 +5,67 @@
  *      Author: lion
  */
 
-#include "ifs/DBResult.h"
-#include "List.h"
-#include "DBRow.h"
+#include "SimpleObject.h"
 
 #ifndef DBRESULT_H_
 #define DBRESULT_H_
 
 namespace fibjs {
 
-class DBResult : public DBResult_base {
+class DBResult : public SimpleObject {
 public:
-    DBResult(int32_t sz, int64_t affected = 0, int64_t insertId = 0)
-        : m_size(sz)
-        , m_affected(affected)
-        , m_insertId(insertId)
+    DBResult(int32_t sz, int64_t affected, int64_t insertId)
+        : SimpleObject(true)
     {
-        m_array = new List();
-
         if (sz)
-            m_fields = new DBField(sz);
+            m_keys.resize(sz);
+
+        add("affected", affected);
+        add("insertId", insertId);
     }
 
-public:
-    // object_base
-    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
+    DBResult(int32_t sz, int64_t affected)
+        : SimpleObject(true)
+    {
+        if (sz)
+            m_keys.resize(sz);
 
-public:
-    // List_base
-    virtual result_t _indexed_getter(uint32_t index, Variant& retVal);
-    virtual result_t _indexed_setter(uint32_t index, Variant newVal);
-    virtual result_t freeze();
-    virtual result_t get_length(int32_t& retVal);
-    virtual result_t resize(int32_t sz);
-    virtual result_t push(Variant v, int32_t& retVal);
-    virtual result_t push(OptArgs els, int32_t& retVal);
-    virtual result_t pushArray(v8::Local<v8::Array> data);
-    virtual result_t indexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal);
-    virtual result_t lastIndexOf(Variant searchElement, int32_t fromIndex, int32_t& retVal);
-    virtual result_t pop(Variant& retVal);
-    virtual result_t slice(int32_t start, int32_t end, obj_ptr<List_base>& retVal);
-    virtual result_t concat(OptArgs lists, obj_ptr<List_base>& retVal);
-    virtual result_t every(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, bool& retVal);
-    virtual result_t some(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, bool& retVal);
-    virtual result_t filter(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, obj_ptr<List_base>& retVal);
-    virtual result_t forEach(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg);
-    virtual result_t map(v8::Local<v8::Function> func, v8::Local<v8::Value> thisArg, obj_ptr<List_base>& retVal);
-    virtual result_t reduce(v8::Local<v8::Function> func, v8::Local<v8::Value> initVal, v8::Local<v8::Value>& retVal);
-    virtual result_t sort(v8::Local<v8::Function> func, obj_ptr<List_base>& retVal);
-    virtual result_t sort(obj_ptr<List_base>& retVal);
-    virtual result_t toArray(v8::Local<v8::Array>& retVal);
+        add("affected", affected);
+    }
 
-public:
-    // DBResult_base
-    virtual result_t get_insertId(int64_t& retVal);
-    virtual result_t get_affected(int64_t& retVal);
-    virtual result_t get_fields(v8::Local<v8::Array>& retVal);
+    DBResult(int32_t sz)
+        : SimpleObject(true)
+    {
+        if (sz)
+            m_keys.resize(sz);
+    }
 
 public:
     void setField(int32_t i, exlib::string& s)
     {
-        m_fields->setField(i, s);
+        m_keys[i] = s;
     }
 
     void beginRow()
     {
-        m_nowRow = new DBRow(m_fields, m_size);
+        m_jsRow = new SimpleObject();
     }
 
     void endRow()
     {
-        m_array->append(m_nowRow);
-        m_nowRow.Release();
+        add(m_jsRow);
+        m_jsRow.Release();
     }
 
     void rowValue(int32_t i, Variant& v)
     {
-        m_nowRow->setValue(i, v);
+        m_jsRow->add(m_keys[i], v);
         extMemory((int32_t)v.size());
     }
 
 private:
-    obj_ptr<List> m_array;
-    int32_t m_size;
-    int64_t m_affected;
-    int64_t m_insertId;
-    obj_ptr<DBField> m_fields;
-    obj_ptr<DBRow> m_nowRow;
+    std::vector<exlib::string> m_keys;
+    obj_ptr<SimpleObject> m_jsRow;
 };
 
 } /* namespace fibjs */

@@ -50,7 +50,7 @@ result_t SQLite::open(const char* file)
         return hr;
     }
 
-    obj_ptr<DBResult_base> retVal;
+    obj_ptr<object_base> retVal;
     execute("PRAGMA journal_mode=WAL;", 24, retVal);
 
     m_file = file;
@@ -92,7 +92,7 @@ result_t SQLite::begin(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<DBResult_base> retVal;
+    obj_ptr<object_base> retVal;
     return execute("BEGIN", 5, retVal);
 }
 
@@ -104,7 +104,7 @@ result_t SQLite::commit(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<DBResult_base> retVal;
+    obj_ptr<object_base> retVal;
     return execute("COMMIT", 6, retVal);
 }
 
@@ -116,7 +116,7 @@ result_t SQLite::rollback(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<DBResult_base> retVal;
+    obj_ptr<object_base> retVal;
     return execute("ROLLBACK", 8, retVal);
 }
 
@@ -153,7 +153,7 @@ int32_t sqlite3_prepare_sleep(sqlite3* db, const char* zSql, int nByte,
 #define SQLITE_SLEEP_TIME 10000
 
 result_t SQLite::execute(const char* sql, int32_t sLen,
-    obj_ptr<DBResult_base>& retVal)
+    obj_ptr<object_base>& retVal)
 {
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -255,13 +255,12 @@ result_t SQLite::execute(const char* sql, int32_t sLen,
 
     sqlite3_finalize(stmt);
 
-    res->freeze();
     retVal = res;
 
     return 0;
 }
 
-result_t SQLite::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac)
+result_t SQLite::execute(exlib::string sql, obj_ptr<object_base>& retVal, AsyncEvent* ac)
 {
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -272,7 +271,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, Asyn
     return execute(sql.c_str(), (int32_t)sql.length(), retVal);
 }
 
-result_t SQLite::execute(exlib::string sql, OptArgs args, obj_ptr<DBResult_base>& retVal,
+result_t SQLite::execute(exlib::string sql, OptArgs args, obj_ptr<object_base>& retVal,
     AsyncEvent* ac)
 {
     if (!m_db)
