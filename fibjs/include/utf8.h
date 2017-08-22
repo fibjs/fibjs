@@ -16,19 +16,34 @@
 
 namespace fibjs {
 
-int32_t utf8_mbstowcs(const char* src, int32_t srclen, exlib::wchar* dst, int32_t dstlen);
-int32_t utf8_wcstombs(const exlib::wchar* src, int32_t srclen, char* dst, int32_t dstlen);
-int32_t utf8_getchar(const char*& src, const char* end);
-int32_t utf8_putchar(int32_t ch, char*& dst, const char* end);
-int32_t utf16_getchar(const exlib::wchar*& src, const exlib::wchar* end);
-int32_t utf16_putchar(int32_t ch, exlib::wchar*& dst, const exlib::wchar* end);
+exlib::wchar32 utf_getchar(const char*& src, const char* end);
+int32_t utf_putchar(exlib::wchar32 ch, char*& dst, const char* end);
+
+exlib::wchar32 utf_getchar(const exlib::wchar*& src, const exlib::wchar* end);
+int32_t utf_putchar(exlib::wchar32 ch, exlib::wchar*& dst, const exlib::wchar* end);
+
+exlib::wchar32 utf_getchar(const exlib::wchar32*& src, const exlib::wchar32* end);
+int32_t utf_putchar(exlib::wchar32 ch, exlib::wchar32*& dst, const exlib::wchar32* end);
+
+template <typename T1, typename T2>
+inline int32_t utf_convert(const T1* src, int32_t srclen, T2* dst, int32_t dstlen)
+{
+    int32_t count = 0;
+    const T1* src_end = src + srclen;
+    const T2* dst_end = dst + dstlen;
+
+    while (src < src_end)
+        count += utf_putchar(utf_getchar(src, src_end), dst, dst_end);
+
+    return count;
+}
 
 inline int32_t utf8_strlen(const char* src, int32_t srclen)
 {
     if (srclen == -1)
         srclen = (int32_t)qstrlen(src);
 
-    return utf8_mbstowcs(src, srclen, NULL, 0);
+    return utf_convert(src, srclen, (exlib::wchar*)NULL, 0);
 }
 
 inline int32_t utf8_strlen(const exlib::wchar* src, int32_t srclen)
@@ -36,7 +51,7 @@ inline int32_t utf8_strlen(const exlib::wchar* src, int32_t srclen)
     if (srclen == -1)
         srclen = (int32_t)qstrlen(src);
 
-    return utf8_wcstombs(src, srclen, NULL, 0);
+    return utf_convert(src, srclen, (char*)NULL, 0);
 }
 
 inline exlib::wstring utf8to16String(const char* src, int32_t srclen = -1)
@@ -47,10 +62,10 @@ inline exlib::wstring utf8to16String(const char* src, int32_t srclen = -1)
         srclen = (int32_t)qstrlen(src);
 
     if (srclen) {
-        int32_t n = utf8_mbstowcs(src, srclen, NULL, 0);
+        int32_t n = utf_convert(src, srclen, (exlib::wchar*)NULL, 0);
         str.resize(n);
 
-        utf8_mbstowcs(src, srclen, &str[0], n);
+        utf_convert(src, srclen, &str[0], n);
     }
 
     return str;
@@ -71,10 +86,10 @@ inline exlib::string utf16to8String(const exlib::wchar* src, int32_t srclen = -1
         srclen = (int32_t)qstrlen(src);
 
     if (srclen) {
-        int32_t n = utf8_wcstombs(src, srclen, NULL, 0);
+        int32_t n = utf_convert(src, srclen, (char*)NULL, 0);
         str.resize(n);
 
-        utf8_wcstombs(src, srclen, &str[0], n);
+        utf_convert(src, srclen, &str[0], n);
     }
 
     return str;
