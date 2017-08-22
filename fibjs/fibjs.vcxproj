@@ -105,7 +105,6 @@
     <ClInclude Include="include\Condition.h" />
     <ClInclude Include="include\DBField.h" />
     <ClInclude Include="include\DBResult.h" />
-    <ClInclude Include="include\DBRow.h" />
     <ClInclude Include="include\DateCache.h" />
     <ClInclude Include="include\Digest.h" />
     <ClInclude Include="include\Event.h" />
@@ -212,8 +211,6 @@
     <ClInclude Include="include\ifs\Chain.h" />
     <ClInclude Include="include\ifs\Cipher.h" />
     <ClInclude Include="include\ifs\Condition.h" />
-    <ClInclude Include="include\ifs\DBResult.h" />
-    <ClInclude Include="include\ifs\DBRow.h" />
     <ClInclude Include="include\ifs\DbConnection.h" />
     <ClInclude Include="include\ifs\Digest.h" />
     <ClInclude Include="include\ifs\Event.h" />
@@ -429,8 +426,6 @@
     <ClCompile Include="src\db\redis\RedisPubSub.cpp" />
     <ClCompile Include="src\db\redis\RedisSet.cpp" />
     <ClCompile Include="src\db\redis\RedisSortedSet.cpp" />
-    <ClCompile Include="src\db\sql\DBResult.cpp" />
-    <ClCompile Include="src\db\sql\DBRow.cpp" />
     <ClCompile Include="src\db\sql\SQLite.cpp" />
     <ClCompile Include="src\db\sql\mssql.cpp" />
     <ClCompile Include="src\db\sql\mysql.cpp" />

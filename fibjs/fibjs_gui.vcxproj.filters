@@ -153,9 +153,6 @@
     <ClInclude Include="include\DBResult.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\DBRow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\DateCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -472,12 +469,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Condition.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\DBResult.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\DBRow.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\DbConnection.h">
@@ -1111,12 +1102,6 @@
     </ClCompile>
     <ClCompile Include="src\db\redis\RedisSortedSet.cpp">
       <Filter>Source Files\db\redis</Filter>
-    </ClCompile>
-    <ClCompile Include="src\db\sql\DBResult.cpp">
-      <Filter>Source Files\db\sql</Filter>
-    </ClCompile>
-    <ClCompile Include="src\db\sql\DBRow.cpp">
-      <Filter>Source Files\db\sql</Filter>
     </ClCompile>
     <ClCompile Include="src\db\sql\SQLite.cpp">
       <Filter>Source Files\db\sql</Filter>

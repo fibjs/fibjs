@@ -91,13 +91,6 @@ describe("db", () => {
             assert.strictEqual(r['t3'].toString(), 'DDDDDDDDDD');
             assert.deepEqual(r['t4'], new Date('1998-04-14 12:12:12'));
 
-            assert.deepEqual(rs.fields, [
-                "t1",
-                "t2",
-                "t3",
-                "t4"
-            ]);
-
             assert.deepEqual(Object.keys(r), [
                 "t1",
                 "t2",
