@@ -288,7 +288,7 @@ result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
 
 result_t Buffer::_indexed_getter(uint32_t index, int32_t& retVal)
 {
-    if (index < 0 || index >= m_data.length())
+    if (index >= m_data.length())
         return CALL_RETURN_NULL;
 
     retVal = (unsigned char)m_data.c_str()[index];
