@@ -79,7 +79,7 @@ inline void baseDecode(const char* pdecodeTable, int32_t dwBits,
     int32_t nBits = 0;
     uint32_t ch;
 
-    while ((ch = utf8_getchar(_baseString, end)) != 0) {
+    while ((ch = utf_getchar(_baseString, end)) != 0) {
         int32_t nCh = (ch > 0x20 && ch < 0x80) ? pdecodeTable[ch - 0x20] : -1;
 
         if (nCh != -1) {

@@ -127,7 +127,7 @@ result_t base64vlq_base::decode(exlib::string data, v8::Local<v8::Array>& retVal
         int32_t bits = 0;
         int32_t num = 0;
 
-        while ((ch = utf8_getchar(_data, end)) != 0) {
+        while ((ch = utf_getchar(_data, end)) != 0) {
             int32_t byte = (ch > 0x20 && ch < 0x80) ? decodeTable[ch - 0x20] : -1;
 
             if (byte != -1) {
@@ -170,13 +170,13 @@ result_t hex_base::decode(exlib::string data,
     strBuf.resize(len / 2);
 
     pos = 0;
-    while ((ch1 = utf8_getchar(_data, end)) != 0) {
+    while ((ch1 = utf_getchar(_data, end)) != 0) {
         if (qisxdigit(ch1))
             ch1 = qhex(ch1);
         else
             continue;
 
-        ch2 = utf8_getchar(_data, end);
+        ch2 = utf_getchar(_data, end);
         if (ch2 == 0)
             break;
 

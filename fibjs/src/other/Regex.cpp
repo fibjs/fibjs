@@ -78,7 +78,7 @@ result_t Regex::exec(exlib::string str, v8::Local<v8::Array>& retVal)
 
     if (m_bGlobal) {
         int32_t n = m_nlastIndex;
-        while (n > 0 && utf8_getchar(c_str, end))
+        while (n > 0 && utf_getchar(c_str, end))
             n--;
     }
 
@@ -117,7 +117,7 @@ result_t Regex::test(exlib::string str, bool& retVal)
 
     if (m_bGlobal) {
         int32_t n = m_nlastIndex;
-        while (n > 0 && utf8_getchar(c_str, end))
+        while (n > 0 && utf_getchar(c_str, end))
             n--;
     }
 
