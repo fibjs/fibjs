@@ -101,6 +101,50 @@ inline exlib::string utf16to8String(exlib::wstring src)
 }
 
 #define UTF8_A(s) utf16to8String(s).c_str()
+
+inline exlib::wstring32 utf8to32String(const char* src, int32_t srclen = -1)
+{
+    exlib::wstring32 str;
+
+    if (srclen == -1)
+        srclen = (int32_t)qstrlen(src);
+
+    if (srclen) {
+        int32_t n = utf_convert(src, srclen, (exlib::wchar32*)NULL, 0);
+        str.resize(n);
+
+        utf_convert(src, srclen, &str[0], n);
+    }
+
+    return str;
+}
+
+inline exlib::wstring32 utf8to32String(exlib::string src)
+{
+    return utf8to32String(src.c_str(), (int32_t)src.length());
+}
+
+inline exlib::string utf32to8String(const exlib::wchar32* src, int32_t srclen = -1)
+{
+    exlib::string str;
+
+    if (srclen == -1)
+        srclen = (int32_t)qstrlen(src);
+
+    if (srclen) {
+        int32_t n = utf_convert(src, srclen, (char*)NULL, 0);
+        str.resize(n);
+
+        utf_convert(src, srclen, &str[0], n);
+    }
+
+    return str;
+}
+
+inline exlib::string utf32to8String(exlib::wstring32 src)
+{
+    return utf32to8String(src.c_str(), (int32_t)src.length());
+}
 }
 
 #endif
