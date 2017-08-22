@@ -112,6 +112,8 @@ void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql)
     if (bNumber) {
         v8::String::Utf8Value s1(v);
         str.append(*s1, s1.length());
+    } else if (v->IsUndefined() || v->IsNull()) {
+        str.append("NULL", 4);
     } else {
         exlib::string s;
         str += '\'';
