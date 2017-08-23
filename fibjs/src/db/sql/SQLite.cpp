@@ -192,6 +192,7 @@ result_t SQLite::execute(const char* sql, int32_t sLen,
 
                     switch (sqlite3_column_type(stmt, i)) {
                     case SQLITE_NULL:
+                        v.setNull();
                         break;
 
                     case SQLITE_INTEGER:
