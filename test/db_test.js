@@ -100,10 +100,10 @@ describe("db", () => {
 
             if (conn.type == 'SQLite') {
                 rs = conn.execute('select t1,t2,t3,t4 from test_null')[0];
-                assert.isUndefined(rs.t1);
-                assert.isUndefined(rs.t2);
-                assert.isUndefined(rs.t3);
-                assert.isUndefined(rs.t4);
+                assert.isNull(rs.t1);
+                assert.isNull(rs.t2);
+                assert.isNull(rs.t3);
+                assert.isNull(rs.t4);
             }
         });
 

@@ -78,7 +78,7 @@ int32_t API_resultRowValue(void* result, int32_t icolumn, UMTypeInfo* ti, void* 
 {
     Variant v;
 
-    if (value)
+    if (value) {
         switch (ti->type) {
         case MFTYPE_NULL:
             break;
@@ -115,6 +115,9 @@ int32_t API_resultRowValue(void* result, int32_t icolumn, UMTypeInfo* ti, void* 
             v = exlib::string((const char*)value, cbValue);
             break;
         }
+    } else {
+        v.setNull();
+    }
 
     ((DBResult*)result)->rowValue(icolumn, v);
     return true;
