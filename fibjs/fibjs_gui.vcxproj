@@ -329,6 +329,7 @@
     <ClInclude Include="include\ifs\path_win32.h" />
     <ClInclude Include="include\ifs\process.h" />
     <ClInclude Include="include\ifs\profiler.h" />
+    <ClInclude Include="include\ifs\punycode.h" />
     <ClInclude Include="include\ifs\querystring.h" />
     <ClInclude Include="include\ifs\re.h" />
     <ClInclude Include="include\ifs\registry.h" />
@@ -482,6 +483,7 @@
     <ClCompile Include="src\net\Url.cpp" />
     <ClCompile Include="src\net\inetAddr.cpp" />
     <ClCompile Include="src\net\net.cpp" />
+    <ClCompile Include="src\net\punycode.cpp" />
     <ClCompile Include="src\os\Service_other.cpp" />
     <ClCompile Include="src\os\Service_win.cpp" />
     <ClCompile Include="src\os\os.cpp" />

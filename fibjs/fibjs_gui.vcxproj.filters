@@ -825,6 +825,9 @@
     <ClInclude Include="include\ifs\profiler.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\punycode.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\querystring.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -1269,6 +1272,9 @@
       <Filter>Source Files\net</Filter>
     </ClCompile>
     <ClCompile Include="src\net\net.cpp">
+      <Filter>Source Files\net</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net\punycode.cpp">
       <Filter>Source Files\net</Filter>
     </ClCompile>
     <ClCompile Include="src\os\Service_other.cpp">
