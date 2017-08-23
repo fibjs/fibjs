@@ -54,14 +54,21 @@ describe("db", () => {
         it("create table", () => {
             if (conn.type == 'mssql')
                 conn.execute('create table test(t1 int, t2 varchar(128), t3 VARBINARY(100), t4 datetime);');
-            else
+            else {
                 conn.execute('create table test(t1 int, t2 varchar(128), t3 BLOB, t4 datetime);');
+                conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 BLOB NULL, t4 datetime NULL);');
+            }
         });
 
         it("insert", () => {
             conn.execute("insert into test values(?,?,?,?);", 1123,
                 'aaaaa', new Buffer('DDDDDDDDDD'), new Date(
                     '1998-04-14 12:12:12'));
+
+            if (conn.type != 'mssql') {
+                conn.execute("insert into test_null values(?,?,?,?);", null,
+                    undefined, null, undefined);
+            }
         });
 
         it("select", () => {
@@ -90,6 +97,14 @@ describe("db", () => {
                 "t3",
                 "t4"
             ]);
+
+            if (conn.type == 'SQLite') {
+                rs = conn.execute('select t1,t2,t3,t4 from test_null')[0];
+                assert.isUndefined(rs.t1);
+                assert.isUndefined(rs.t2);
+                assert.isUndefined(rs.t3);
+                assert.isUndefined(rs.t4);
+            }
         });
 
         it("execute async", (done) => {
