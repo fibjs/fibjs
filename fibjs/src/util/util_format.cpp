@@ -95,12 +95,6 @@ exlib::string json_format(v8::Local<v8::Value> obj)
         } else if (v->IsObject()) {
             do {
                 v8::Local<v8::Object> obj = v->ToObject();
-                v8::Local<v8::Array> keys = obj->GetPropertyNames();
-
-                if (v->IsFunction() && keys->Length() == 0) {
-                    strBuffer.append("[Function]");
-                    break;
-                }
 
                 obj_ptr<Buffer_base> buf = Buffer_base::getInstance(v);
                 if (buf) {
@@ -134,6 +128,13 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                     exlib::string s;
                     int64Val->toString(10, s);
                     strBuffer.append(s);
+                    break;
+                }
+
+                v8::Local<v8::Array> keys = obj->GetPropertyNames();
+
+                if (v->IsFunction() && keys->Length() == 0) {
+                    strBuffer.append("[Function]");
                     break;
                 }
 
