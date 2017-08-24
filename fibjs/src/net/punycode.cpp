@@ -7,6 +7,7 @@
 
 #include "ifs/punycode.h"
 #include "utf8.h"
+#include <limits.h>
 
 namespace fibjs {
 
