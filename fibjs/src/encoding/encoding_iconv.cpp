@@ -164,7 +164,12 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
     result_t hr = 0;
     if ((m_charset == "utf8") || (m_charset == "utf-8"))
         retVal = data;
-    else {
+    else if ((m_charset == "ucs2") || (m_charset == "ucs-2")
+        || (m_charset == "utf16le") || (m_charset == "utf-16le")) {
+        int32_t n = utf_convert(data.c_str(), data.length(), (exlib::wchar*)NULL, 0);
+        retVal.resize(n * sizeof(exlib::wchar));
+        utf_convert(data.c_str(), data.length(), (exlib::wchar*)&retVal[0], n);
+    } else {
         if (m_charset == "binary")
             m_charset = "latin1";
 
@@ -211,6 +216,9 @@ result_t encoding_iconv::decode(const exlib::string& data, exlib::string& retVal
 {
     if ((m_charset == "utf8") || (m_charset == "utf-8"))
         retVal = data;
+    else if ((m_charset == "ucs2") || (m_charset == "ucs-2")
+        || (m_charset == "utf16le") || (m_charset == "utf-16le"))
+        retVal = utf16to8String((const exlib::wchar*)data.c_str(), (int32_t)data.length() / 2);
     else {
         if (m_charset == "binary")
             m_charset = "latin1";
@@ -254,7 +262,9 @@ result_t encoding_iconv::decode(Buffer_base* data, exlib::string& retVal)
 
 result_t encoding_iconv::isEncoding(bool& retVal)
 {
-    if ((m_charset == "utf8") || (m_charset == "utf-8")) {
+    if ((m_charset == "utf8") || (m_charset == "utf-8")
+        || (m_charset == "ucs2") || (m_charset == "ucs-2")
+        || (m_charset == "utf16le") || (m_charset == "utf-16le")) {
         retVal = true;
         return 0;
     }
