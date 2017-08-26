@@ -17,7 +17,7 @@ result_t JsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
 {
     Isolate* isolate = ctx->m_sb->holder();
 
-    v8::Local<v8::String> soname = isolate->NewFromUtf8(name);
+    v8::Local<v8::String> soname = isolate->NewString(name);
     exlib::string pname;
     path_base::dirname(name, pname);
 
@@ -38,12 +38,12 @@ result_t JsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
         exlib::string src1 = arg_names + strScript + "\n});";
 
         script = v8::Script::Compile(
-            isolate->NewFromUtf8(src1), soname);
+            isolate->NewString(src1), soname);
         if (script.IsEmpty()) {
             TryCatch try_catch1;
 
             v8::ScriptCompiler::Source script_source(
-                isolate->NewFromUtf8(strScript),
+                isolate->NewString(strScript),
                 v8::ScriptOrigin(soname));
 
             if (v8::ScriptCompiler::CompileUnbound(
@@ -62,7 +62,7 @@ result_t JsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
         return CALL_E_JAVASCRIPT;
 
     args[0] = soname;
-    args[1] = isolate->NewFromUtf8(pname);
+    args[1] = isolate->NewString(pname);
     v8::Local<v8::Object> glob = isolate->context()->Global();
     v = v8::Local<v8::Function>::Cast(v)->Call(glob, args_count, args);
     if (v.IsEmpty())

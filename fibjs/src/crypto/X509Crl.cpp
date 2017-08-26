@@ -96,7 +96,7 @@ result_t X509Crl::dump(v8::Local<v8::Array>& retVal)
             if (ret != 0)
                 return CHECK_ERROR(_ssl::setError(ret));
 
-            retVal->Set(n++, isolate->NewFromUtf8(buf.c_str(), (int32_t)olen - 1));
+            retVal->Set(n++, isolate->NewString(buf.c_str(), (int32_t)olen - 1));
         }
         pCrl = pCrl->next;
     }

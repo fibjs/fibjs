@@ -168,7 +168,7 @@ result_t MongoCollection::save(v8::Local<v8::Object> document)
 {
     Isolate* isolate = holder();
 
-    v8::Local<v8::String> strId = isolate->NewFromUtf8("_id", 3);
+    v8::Local<v8::String> strId = isolate->NewString("_id", 3);
     v8::Local<v8::Value> id = document->Get(strId);
 
     if (IsEmpty(id))
@@ -222,8 +222,8 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
 {
     Isolate* isolate = holder();
     return update(query, document,
-        options->Get(isolate->NewFromUtf8("upsert", 6))->BooleanValue(),
-        options->Get(isolate->NewFromUtf8("multi", 5))->BooleanValue());
+        options->Get(isolate->NewString("upsert", 6))->BooleanValue(),
+        options->Get(isolate->NewString("multi", 5))->BooleanValue());
 }
 
 result_t MongoCollection::remove(v8::Local<v8::Object> query)
@@ -307,7 +307,7 @@ result_t MongoCollection::drop()
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     v8::Local<v8::Object> r;
-    return db->runCommand("drop", holder()->NewFromUtf8(m_name), r);
+    return db->runCommand("drop", holder()->NewString(m_name), r);
 }
 
 result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
@@ -344,15 +344,15 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
     Isolate* isolate = holder();
     v8::Local<v8::Object> idx = v8::Object::New(isolate->m_isolate);
 
-    idx->Set(isolate->NewFromUtf8("name"), isolate->NewFromUtf8(name));
-    idx->Set(isolate->NewFromUtf8("key"), keys);
+    idx->Set(isolate->NewString("name"), isolate->NewString(name));
+    idx->Set(isolate->NewString("key"), keys);
     extend(options, idx);
 
     v8::Local<v8::Array> idxs = v8::Array::New(isolate->m_isolate);
     idxs->Set(0, idx);
 
     v8::Local<v8::Object> cmd = v8::Object::New(isolate->m_isolate);
-    cmd->Set(isolate->NewFromUtf8("indexes"), idxs);
+    cmd->Set(isolate->NewString("indexes"), idxs);
 
     v8::Local<v8::Object> retVal;
     return runCommand("createIndexes", cmd, retVal);
@@ -390,7 +390,7 @@ result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base>& retVal)
     Isolate* isolate = holder();
     v8::Local<v8::Object> f = v8::Object::New(isolate->m_isolate);
     v8::Local<v8::Object> q = v8::Object::New(isolate->m_isolate);
-    q->Set(isolate->NewFromUtf8("ns"), isolate->NewFromUtf8(m_ns));
+    q->Set(isolate->NewString("ns"), isolate->NewString(m_ns));
 
     return coll->find(q, f, retVal);
 }

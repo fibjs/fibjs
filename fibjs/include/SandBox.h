@@ -57,20 +57,20 @@ public:
 
         if (m.IsEmpty()) {
             m = v8::Object::New(isolate->m_isolate);
-            m->Set(isolate->NewFromUtf8("exports"), o);
+            m->Set(isolate->NewString("exports"), o);
         }
 
-        mods()->Set(isolate->NewFromUtf8(fname), m);
+        mods()->Set(isolate->NewString(fname), m);
     }
 
     v8::Local<v8::Value> get_module(v8::Local<v8::Object> mods, exlib::string id)
     {
         Isolate* isolate = holder();
-        v8::Local<v8::Value> m = mods->Get(isolate->NewFromUtf8(id));
+        v8::Local<v8::Value> m = mods->Get(isolate->NewString(id));
         if (m->IsUndefined())
             return m;
 
-        return v8::Local<v8::Object>::Cast(m)->Get(isolate->NewFromUtf8("exports"));
+        return v8::Local<v8::Object>::Cast(m)->Get(isolate->NewString("exports"));
     }
 
 public:

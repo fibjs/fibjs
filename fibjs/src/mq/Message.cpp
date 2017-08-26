@@ -74,7 +74,7 @@ result_t Message::get_data(v8::Local<v8::Value>& retVal)
         exlib::string txt;
 
         data->toString(txt);
-        retVal = holder()->NewFromUtf8(txt);
+        retVal = holder()->NewString(txt);
     } else
         retVal = data->wrap();
 

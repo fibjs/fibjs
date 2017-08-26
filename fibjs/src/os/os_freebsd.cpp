@@ -181,29 +181,29 @@ result_t os_base::cpus(v8::Local<v8::Array>& retVal)
         cpuinfo = v8::Object::New(isolate->m_isolate);
         cputimes = v8::Object::New(isolate->m_isolate);
         cputimes->Set(
-            isolate->NewFromUtf8("user"),
+            isolate->NewString("user"),
             v8::Number::New(isolate->m_isolate,
                 (uint64_t)(cp_times[CP_USER + cur]) * multiplier));
         cputimes->Set(
-            isolate->NewFromUtf8("nice"),
+            isolate->NewString("nice"),
             v8::Number::New(isolate->m_isolate,
                 (uint64_t)(cp_times[CP_NICE + cur]) * multiplier));
         cputimes->Set(
-            isolate->NewFromUtf8("sys"),
+            isolate->NewString("sys"),
             v8::Number::New(isolate->m_isolate, (uint64_t)(cp_times[CP_SYS + cur]) * multiplier));
         cputimes->Set(
-            isolate->NewFromUtf8("idle"),
+            isolate->NewString("idle"),
             v8::Number::New(isolate->m_isolate,
                 (uint64_t)(cp_times[CP_IDLE + cur]) * multiplier));
         cputimes->Set(
-            isolate->NewFromUtf8("irq"),
+            isolate->NewString("irq"),
             v8::Number::New(isolate->m_isolate,
                 (uint64_t)(cp_times[CP_INTR + cur]) * multiplier));
 
-        cpuinfo->Set(isolate->NewFromUtf8("model"), isolate->NewFromUtf8(model));
-        cpuinfo->Set(isolate->NewFromUtf8("speed"), v8::Number::New(isolate->m_isolate, cpuspeed));
+        cpuinfo->Set(isolate->NewString("model"), isolate->NewString(model));
+        cpuinfo->Set(isolate->NewString("speed"), v8::Number::New(isolate->m_isolate, cpuspeed));
 
-        cpuinfo->Set(isolate->NewFromUtf8("times"), cputimes);
+        cpuinfo->Set(isolate->NewString("times"), cputimes);
         retVal->Set(i, cpuinfo);
 
         cur += CPUSTATES;
@@ -292,15 +292,15 @@ result_t os_base::memoryUsage(v8::Local<v8::Object>& retVal)
 
     v8::HeapStatistics v8_heap_stats;
     isolate->m_isolate->GetHeapStatistics(&v8_heap_stats);
-    info->Set(isolate->NewFromUtf8("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
-    info->Set(isolate->NewFromUtf8("heapTotal"),
+    info->Set(isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
+    info->Set(isolate->NewString("heapTotal"),
         v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size()));
-    info->Set(isolate->NewFromUtf8("heapUsed"),
+    info->Set(isolate->NewString("heapUsed"),
         v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size()));
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
-    info->Set(isolate->NewFromUtf8("nativeObjects"), objs);
+    info->Set(isolate->NewString("nativeObjects"), objs);
 
     retVal = info;
 

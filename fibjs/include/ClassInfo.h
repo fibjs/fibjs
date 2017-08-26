@@ -198,7 +198,7 @@ public:
                         ;
 
                 if (!skips || !skips[j])
-                    o->DefineOwnProperty(_context, isolate->NewFromUtf8(m_cd.cms[i].name),
+                    o->DefineOwnProperty(_context, isolate->NewString(m_cd.cms[i].name),
                          isolate->NewFunction(m_cd.name, m_cd.cms[i].invoker))
                         .IsJust();
             }
@@ -210,7 +210,7 @@ public:
                     ;
 
             if (!skips || !skips[j])
-                o->DefineOwnProperty(_context, isolate->NewFromUtf8(m_cd.cos[i].name),
+                o->DefineOwnProperty(_context, isolate->NewString(m_cd.cos[i].name),
                      m_cd.cos[i].invoker().getModule(isolate))
                     .IsJust();
         }
@@ -222,7 +222,7 @@ public:
                         ;
 
                 if (!skips || !skips[j])
-                    o->SetAccessor(isolate->NewFromUtf8(m_cd.cps[i].name),
+                    o->SetAccessor(isolate->NewString(m_cd.cps[i].name),
                         m_cd.cps[i].getter, m_cd.cps[i].setter);
             }
 
@@ -253,9 +253,9 @@ public:
 
         if (cnt) {
             o = v8::Object::New(isolate->m_isolate);
-            o->Set(isolate->NewFromUtf8("class"),
-                isolate->NewFromUtf8(m_cd.name));
-            o->Set(isolate->NewFromUtf8("objects"),
+            o->Set(isolate->NewString("class"),
+                isolate->NewString(m_cd.name));
+            o->Set(isolate->NewString("objects"),
                 v8::Integer::New(isolate->m_isolate, (int32_t)cnt));
 
             v8::Local<v8::Array> inherits = v8::Array::New(isolate->m_isolate);
@@ -272,7 +272,7 @@ public:
             }
 
             if (icnt)
-                o->Set(isolate->NewFromUtf8("inherits"), inherits);
+                o->Set(isolate->NewString("inherits"), inherits);
         }
 
         return cnt;
@@ -300,7 +300,7 @@ private:
                 isolate->m_isolate, m_cd.cor);
             _cache->m_class.Reset(isolate->m_isolate, _class);
 
-            _class->SetClassName(isolate->NewFromUtf8(m_cd.name));
+            _class->SetClassName(isolate->NewString(m_cd.name));
 
             if (m_cd.base) {
                 cache* _cache1 = m_cd.base->_init(isolate);
@@ -313,17 +313,17 @@ private:
             int32_t i;
 
             for (i = 0; i < m_cd.mc; i++)
-                pt->Set(isolate->NewFromUtf8(m_cd.cms[i].name),
+                pt->Set(isolate->NewString(m_cd.cms[i].name),
                     v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker));
 
             for (i = 0; i < m_cd.oc; i++) {
                 cache* _cache1 = m_cd.cos[i].invoker()._init(isolate);
-                pt->Set(isolate->NewFromUtf8(m_cd.cos[i].name),
+                pt->Set(isolate->NewString(m_cd.cos[i].name),
                     v8::Local<v8::FunctionTemplate>::New(isolate->m_isolate, _cache1->m_class));
             }
 
             for (i = 0; i < m_cd.pc; i++)
-                pt->SetAccessor(isolate->NewFromUtf8(m_cd.cps[i].name),
+                pt->SetAccessor(isolate->NewString(m_cd.cps[i].name),
                     m_cd.cps[i].getter, m_cd.cps[i].setter,
                     v8::Local<v8::Value>(), v8::DEFAULT, v8::DontDelete);
 

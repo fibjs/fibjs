@@ -139,10 +139,10 @@ bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Va
     v8::Local<v8::Object> object = element->ToObject();
 
     if (doJson) {
-        v8::Local<v8::Value> jsonFun = object->Get(isolate->NewFromUtf8("toJSON", 6));
+        v8::Local<v8::Value> jsonFun = object->Get(isolate->NewString("toJSON", 6));
 
         if (!IsEmpty(jsonFun) && jsonFun->IsFunction()) {
-            v8::Local<v8::Value> p = isolate->NewFromUtf8(name ? name : "");
+            v8::Local<v8::Value> p = isolate->NewString(name ? name : "");
             v8::Local<v8::Value> element1 = v8::Local<v8::Function>::Cast(
                 jsonFun)->Call(object, 1, &p);
 
@@ -229,48 +229,48 @@ void decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator* it)
 
     switch (type) {
     case BSON_NULL:
-        obj->Set(isolate->NewFromUtf8(key), v8::Null(isolate->m_isolate));
+        obj->Set(isolate->NewString(key), v8::Null(isolate->m_isolate));
         break;
     case BSON_STRING:
-        obj->Set(isolate->NewFromUtf8(key),
-            isolate->NewFromUtf8(bson_iterator_string(it)));
+        obj->Set(isolate->NewString(key),
+            isolate->NewString(bson_iterator_string(it)));
         break;
     case BSON_BOOL:
-        obj->Set(isolate->NewFromUtf8(key),
+        obj->Set(isolate->NewString(key),
             bson_iterator_bool(it) ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate));
         break;
     case BSON_INT:
-        obj->Set(isolate->NewFromUtf8(key), v8::Number::New(isolate->m_isolate, bson_iterator_int(it)));
+        obj->Set(isolate->NewString(key), v8::Number::New(isolate->m_isolate, bson_iterator_int(it)));
         break;
     case BSON_LONG: {
         int64_t num = bson_iterator_long(it);
         if (num >= -2147483648ll && num <= 2147483647ll) {
-            obj->Set(isolate->NewFromUtf8(key),
+            obj->Set(isolate->NewString(key),
                 v8::Number::New(isolate->m_isolate, (double)num));
         } else {
             obj_ptr<Int64> int64 = new Int64(num);
-            obj->Set(isolate->NewFromUtf8(key), int64->wrap());
+            obj->Set(isolate->NewString(key), int64->wrap());
         }
         break;
     }
     case BSON_DOUBLE:
-        obj->Set(isolate->NewFromUtf8(key),
+        obj->Set(isolate->NewString(key),
             v8::Number::New(isolate->m_isolate, bson_iterator_double(it)));
         break;
     case BSON_DATE:
-        obj->Set(isolate->NewFromUtf8(key),
+        obj->Set(isolate->NewString(key),
             v8::Date::New(isolate->m_isolate, (double)bson_iterator_date(it)));
         break;
     case BSON_BINDATA: {
         obj_ptr<Buffer_base> buf = new Buffer(
             bson_iterator_bin_data(it), bson_iterator_bin_len(it));
 
-        obj->Set(isolate->NewFromUtf8(key), buf->wrap());
+        obj->Set(isolate->NewString(key), buf->wrap());
         break;
     }
     case BSON_OID: {
         obj_ptr<MongoID> oid = new MongoID(bson_iterator_oid(it));
-        obj->Set(isolate->NewFromUtf8(key), oid->wrap());
+        obj->Set(isolate->NewString(key), oid->wrap());
         break;
     }
     case BSON_REGEX: {
@@ -286,8 +286,8 @@ void decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator* it)
             else if (ch == 'i')
                 flgs = (v8::RegExp::Flags)(flgs | v8::RegExp::kIgnoreCase);
 
-        obj->Set(isolate->NewFromUtf8(key),
-            v8::RegExp::New(isolate->NewFromUtf8(bson_iterator_regex(it)),
+        obj->Set(isolate->NewString(key),
+            v8::RegExp::New(isolate->NewString(bson_iterator_regex(it)),
                 flgs));
         break;
     }
@@ -296,7 +296,7 @@ void decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator* it)
         bson_iterator it1;
 
         bson_iterator_subiterator(it, &it1);
-        obj->Set(isolate->NewFromUtf8(key), decodeObject(isolate, &it1, type == BSON_ARRAY));
+        obj->Set(isolate->NewString(key), decodeObject(isolate, &it1, type == BSON_ARRAY));
         break;
     }
     default:

@@ -34,9 +34,9 @@ void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Object> _mod = args.Data()->ToObject();
-    v8::Local<v8::Value> path = _mod->Get(v8::String::NewFromUtf8(isolate, "_id"));
+    v8::Local<v8::Value> path = _mod->Get(NewString(isolate, "_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
-        _mod->Get(v8::String::NewFromUtf8(isolate, "_sbox")));
+        _mod->Get(NewString(isolate, "_sbox")));
 
     exlib::string v;
     hr = sbox->resolve(id, *v8::String::Utf8Value(path), v);
@@ -49,8 +49,7 @@ void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    args.GetReturnValue().Set(V8_RETURN(v8::String::NewFromUtf8(isolate, v.c_str(),
-        v8::String::kNormalString, (int32_t)v.length())));
+    args.GetReturnValue().Set(V8_RETURN(sbox->holder()->NewString(v)));
 }
 
 void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -76,9 +75,9 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Object> _mod = args.Data()->ToObject();
-    v8::Local<v8::Value> path = _mod->Get(v8::String::NewFromUtf8(isolate, "_id"));
+    v8::Local<v8::Value> path = _mod->Get(NewString(isolate, "_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
-        _mod->Get(v8::String::NewFromUtf8(isolate, "_sbox")));
+        _mod->Get(NewString(isolate, "_sbox")));
 
     v8::Local<v8::Value> v;
     hr = sbox->run_module(id, *v8::String::Utf8Value(path), v);
@@ -128,10 +127,10 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     v8::Local<v8::Object> _mod = args.Data()->ToObject();
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
-        _mod->Get(v8::String::NewFromUtf8(isolate, "_sbox")));
+        _mod->Get(NewString(isolate, "_sbox")));
 
     if (SandBox::is_relative(id)) {
-        v8::Local<v8::Value> path = _mod->Get(v8::String::NewFromUtf8(isolate, "_id"));
+        v8::Local<v8::Value> path = _mod->Get(NewString(isolate, "_id"));
 
         exlib::string strPath;
 
@@ -157,16 +156,16 @@ SandBox::Context::Context(SandBox* sb, exlib::string id)
     : m_sb(sb)
 {
     Isolate* isolate = m_sb->holder();
-    m_id = isolate->NewFromUtf8(id);
+    m_id = isolate->NewString(id);
 
     v8::Local<v8::Object> _mod = v8::Object::New(isolate->m_isolate);
 
-    _mod->Set(isolate->NewFromUtf8("_sbox"), m_sb->wrap());
-    _mod->Set(isolate->NewFromUtf8("_id"), m_id);
+    _mod->Set(isolate->NewString("_sbox"), m_sb->wrap());
+    _mod->Set(isolate->NewString("_id"), m_id);
 
     m_fnRequest = isolate->NewFunction("require", _require, _mod);
-    m_fnRequest->Set(isolate->NewFromUtf8("resolve"), isolate->NewFunction("resolve", _resolve, _mod));
-    m_fnRequest->Set(isolate->NewFromUtf8("cache"), m_sb->mods());
+    m_fnRequest->Set(isolate->NewString("resolve"), isolate->NewFunction("resolve", _resolve, _mod));
+    m_fnRequest->Set(isolate->NewString("cache"), m_sb->mods());
 
     m_fnRun = isolate->NewFunction("run", _run, _mod);
 }

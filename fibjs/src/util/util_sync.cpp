@@ -17,15 +17,15 @@ static void sync_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
 
     obj_ptr<Event_base> ev;
-    ev = Event_base::getInstance(_data->Get(v8::String::NewFromUtf8(isolate, "_ev")));
+    ev = Event_base::getInstance(_data->Get(NewString(isolate, "_ev")));
 
     int32_t len = args.Length();
 
     if (len > 0)
-        _data->Set(v8::String::NewFromUtf8(isolate, "_error"), args[0]);
+        _data->Set(NewString(isolate, "_error"), args[0]);
 
     if (len > 1)
-        _data->Set(v8::String::NewFromUtf8(isolate, "_result"), args[1]);
+        _data->Set(NewString(isolate, "_result"), args[1]);
 
     ev->set();
 }
@@ -37,7 +37,7 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     v8::Local<v8::Object> _data = v8::Object::New(isolate->m_isolate);
 
-    _data->Set(isolate->NewFromUtf8("_ev"), ev->wrap());
+    _data->Set(isolate->NewString("_ev"), ev->wrap());
 
     std::vector<v8::Local<v8::Value>> argv;
 
@@ -59,12 +59,12 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     isolate->m_isolate->RunMicrotasks();
     ev->wait();
 
-    v8::Local<v8::Value> error = _data->Get(isolate->NewFromUtf8("_error"));
+    v8::Local<v8::Value> error = _data->Get(isolate->NewString("_error"));
 
     if (!error.IsEmpty() && !error->IsUndefined() && !error->IsNull())
         isolate->m_isolate->ThrowException(error);
     else
-        args.GetReturnValue().Set(_data->Get(isolate->NewFromUtf8("_result")));
+        args.GetReturnValue().Set(_data->Get(isolate->NewString("_result")));
 }
 
 static void promise_then(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -127,7 +127,7 @@ result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Loca
 
     retVal = isolate->NewFunction("sync", sync_stub, func);
     retVal->SetPrivate(retVal->CreationContext(),
-        v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8("_async")), func);
+        v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
 
     return 0;
 }

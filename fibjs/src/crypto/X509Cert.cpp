@@ -111,7 +111,7 @@ result_t X509Cert::load(exlib::string txtCert)
     }
 
     _parser p(txtCert);
-    QuickArray<std::pair<exlib::string, exlib::string> > values;
+    QuickArray<std::pair<exlib::string, exlib::string>> values;
     std::map<exlib::string, bool> verifies;
     std::map<exlib::string, bool> certs;
 
@@ -353,7 +353,7 @@ result_t X509Cert::dump(v8::Local<v8::Array>& retVal)
             if (ret != 0)
                 return CHECK_ERROR(_ssl::setError(ret));
 
-            retVal->Set(n++, isolate->NewFromUtf8(buf.c_str(), (int32_t)olen - 1));
+            retVal->Set(n++, isolate->NewString(buf.c_str(), (int32_t)olen - 1));
         }
         pCert = pCert->next;
     }

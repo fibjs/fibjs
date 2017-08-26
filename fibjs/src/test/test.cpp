@@ -459,52 +459,52 @@ result_t test_base::setup()
     v8::Local<v8::Object> glob = _context->Global();
     v8::Local<v8::Function> func, func1;
 
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("assert"),
+    glob->DefineOwnProperty(_context, isolate->NewString("assert"),
             assert_base::class_info().getModule(isolate))
         .IsJust();
 
     func = isolate->NewFunction("describe", s_describe);
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("describe"), func)
+    glob->DefineOwnProperty(_context, isolate->NewString("describe"), func)
         .IsJust();
 
     func1 = isolate->NewFunction("xdescribe", s_xdescribe);
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xdescribe"), func1)
+    glob->DefineOwnProperty(_context, isolate->NewString("xdescribe"), func1)
         .IsJust();
-    func->DefineOwnProperty(_context, isolate->NewFromUtf8("skip"), func1)
+    func->DefineOwnProperty(_context, isolate->NewString("skip"), func1)
         .IsJust();
 
     func1 = isolate->NewFunction("odescribe", s_odescribe);
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("odescribe"), func1)
+    glob->DefineOwnProperty(_context, isolate->NewString("odescribe"), func1)
         .IsJust();
-    func->DefineOwnProperty(_context, isolate->NewFromUtf8("only"), func1)
+    func->DefineOwnProperty(_context, isolate->NewString("only"), func1)
         .IsJust();
 
     func = isolate->NewFunction("it", s_it);
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("it"), func)
+    glob->DefineOwnProperty(_context, isolate->NewString("it"), func)
         .IsJust();
 
     func1 = isolate->NewFunction("xit", s_xit);
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("xit"), func1)
+    glob->DefineOwnProperty(_context, isolate->NewString("xit"), func1)
         .IsJust();
-    func->DefineOwnProperty(_context, isolate->NewFromUtf8("skip"), func1)
+    func->DefineOwnProperty(_context, isolate->NewString("skip"), func1)
         .IsJust();
 
     func1 = isolate->NewFunction("oit", s_oit);
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("oit"), func1)
+    glob->DefineOwnProperty(_context, isolate->NewString("oit"), func1)
         .IsJust();
-    func->DefineOwnProperty(_context, isolate->NewFromUtf8("only"), func1)
+    func->DefineOwnProperty(_context, isolate->NewString("only"), func1)
         .IsJust();
 
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("before"),
+    glob->DefineOwnProperty(_context, isolate->NewString("before"),
             isolate->NewFunction("before", s_before))
         .IsJust();
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("after"),
+    glob->DefineOwnProperty(_context, isolate->NewString("after"),
             isolate->NewFunction("after", s_after))
         .IsJust();
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("beforeEach"),
+    glob->DefineOwnProperty(_context, isolate->NewString("beforeEach"),
             isolate->NewFunction("beforeEach", s_beforeEach))
         .IsJust();
-    glob->DefineOwnProperty(_context, isolate->NewFromUtf8("afterEach"),
+    glob->DefineOwnProperty(_context, isolate->NewString("afterEach"),
             isolate->NewFunction("afterEach", s_afterEach))
         .IsJust();
 

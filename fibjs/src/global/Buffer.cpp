@@ -1087,8 +1087,8 @@ result_t Buffer::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     for (i = 0; i < (int32_t)m_data.length(); i++)
         a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
 
-    o->Set(isolate->NewFromUtf8("type"), isolate->NewFromUtf8("Buffer"));
-    o->Set(isolate->NewFromUtf8("data"), a);
+    o->Set(isolate->NewString("type"), isolate->NewString("Buffer"));
+    o->Set(isolate->NewString("data"), a);
 
     retVal = o;
 

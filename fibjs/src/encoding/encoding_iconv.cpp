@@ -166,9 +166,9 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
         retVal = data;
     else if ((m_charset == "ucs2") || (m_charset == "ucs-2")
         || (m_charset == "utf16le") || (m_charset == "utf-16le")) {
-        int32_t n = utf_convert(data.c_str(), data.length(), (exlib::wchar*)NULL, 0);
+        int32_t n = utf_convert(data.c_str(), (int32_t)data.length(), (exlib::wchar*)NULL, 0);
         retVal.resize(n * sizeof(exlib::wchar));
-        utf_convert(data.c_str(), data.length(), (exlib::wchar*)&retVal[0], n);
+        utf_convert(data.c_str(), (int32_t)data.length(), (exlib::wchar*)&retVal[0], n);
     } else {
         if (m_charset == "binary")
             m_charset = "latin1";

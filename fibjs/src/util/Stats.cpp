@@ -175,7 +175,7 @@ result_t Stats::_named_enumerator(v8::Local<v8::Array>& retVal)
     retVal = v8::Array::New(isolate->m_isolate);
 
     for (i = 0; i < m_size; i++)
-        retVal->Set(i, isolate->NewFromUtf8(m_keys[i]));
+        retVal->Set(i, isolate->NewString(m_keys[i]));
 
     return 0;
 }

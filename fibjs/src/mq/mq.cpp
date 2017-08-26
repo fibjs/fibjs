@@ -49,7 +49,7 @@ result_t Handler_base::_new(v8::Local<v8::Function> hdlr, obj_ptr<Handler_base>&
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Value> _async = hdlr->GetPrivate(hdlr->CreationContext(),
-                                          v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8("_async")))
+                                          v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")))
                                       .ToLocalChecked();
 
     if (!IsEmpty(_async))

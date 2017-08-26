@@ -182,22 +182,22 @@ result_t HeapSnapshot::load(exlib::string fname)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     o = v8::Local<v8::Object>::Cast(v);
-    hr = GetArray(o->Get(isolate->NewFromUtf8("nodes")),
+    hr = GetArray(o->Get(isolate->NewString("nodes")),
         nodes);
     if (hr < 0)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    hr = GetArray(o->Get(isolate->NewFromUtf8("edges")),
+    hr = GetArray(o->Get(isolate->NewString("edges")),
         edges);
     if (hr < 0)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    hr = GetArray(o->Get(isolate->NewFromUtf8("strings")),
+    hr = GetArray(o->Get(isolate->NewString("strings")),
         names);
     if (hr < 0)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    v = o->Get(isolate->NewFromUtf8("snapshot"));
+    v = o->Get(isolate->NewString("snapshot"));
     if (v.IsEmpty() || !v->IsObject())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
@@ -210,17 +210,17 @@ result_t HeapSnapshot::load(exlib::string fname)
     if (hr < 0)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    v = o->Get(isolate->NewFromUtf8("meta"));
+    v = o->Get(isolate->NewString("meta"));
     if (v.IsEmpty() || !v->IsObject())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     o = v8::Local<v8::Object>::Cast(v);
-    hr = GetArray(o->Get(isolate->NewFromUtf8("node_fields")),
+    hr = GetArray(o->Get(isolate->NewString("node_fields")),
         node_fields);
     if (hr < 0 || checkArray(node_fields, node_fields_chk, ARRAYSIZE(node_fields_chk)))
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    hr = GetArray(o->Get(isolate->NewFromUtf8("edge_fields")),
+    hr = GetArray(o->Get(isolate->NewString("edge_fields")),
         edge_fields);
     if (hr < 0 || checkArray(edge_fields, edge_fields_chk, ARRAYSIZE(edge_fields_chk)))
         return CHECK_ERROR(CALL_E_INVALID_DATA);
@@ -231,7 +231,7 @@ result_t HeapSnapshot::load(exlib::string fname)
     if (edge_fields.size() * edge_count != edges.size())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    v = o->Get(isolate->NewFromUtf8("node_types"));
+    v = o->Get(isolate->NewString("node_types"));
     if (v.IsEmpty() || !v->IsArray())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
@@ -239,7 +239,7 @@ result_t HeapSnapshot::load(exlib::string fname)
     if (hr < 0 || checkArray(node_types, node_types_chk, ARRAYSIZE(node_types_chk)))
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    v = o->Get(isolate->NewFromUtf8("edge_types"));
+    v = o->Get(isolate->NewString("edge_types"));
     if (v.IsEmpty() || !v->IsArray())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 

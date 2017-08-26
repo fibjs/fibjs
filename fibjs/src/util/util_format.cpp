@@ -150,7 +150,7 @@ exlib::string json_format(v8::Local<v8::Value> obj)
 
                 vals.append(obj);
 
-                v8::Local<v8::Value> toArray = obj->Get(isolate->NewFromUtf8("toArray"));
+                v8::Local<v8::Value> toArray = obj->Get(isolate->NewString("toArray"));
                 if (!IsEmpty(toArray) && toArray->IsFunction()) {
                     TryCatch try_catch;
                     v8::Local<v8::Value> v1 = v8::Local<v8::Function>::Cast(toArray)->Call(obj, 0, NULL);

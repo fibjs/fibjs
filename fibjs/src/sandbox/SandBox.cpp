@@ -84,7 +84,7 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
     _context->SetSecurityToken(_token);
 
     v8::Local<v8::Object> _global = _context->Global();
-    _global->Set(isolate->NewFromUtf8("global"), _global);
+    _global->Set(isolate->NewString("global"), _global);
     extend(global, _global);
 
     SetPrivate("_global", _global);
@@ -105,10 +105,10 @@ void SandBox::initRoot()
     }
 
     v8::Local<v8::Object> _emitter = EventEmitter_base::class_info().getModule(isolate);
-    _emitter->Set(isolate->NewFromUtf8("EventEmitter"), _emitter);
+    _emitter->Set(isolate->NewString("EventEmitter"), _emitter);
 
     v8::Local<v8::Object> _buffer = Buffer_base::class_info().getModule(isolate);
-    _buffer->Set(isolate->NewFromUtf8("Buffer"), _buffer);
+    _buffer->Set(isolate->NewString("Buffer"), _buffer);
 }
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
@@ -144,7 +144,7 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
 result_t SandBox::remove(exlib::string id)
 {
     path_base::normalize(id, id);
-    mods()->Delete(holder()->NewFromUtf8(id));
+    mods()->Delete(holder()->NewString(id));
 
     return 0;
 }

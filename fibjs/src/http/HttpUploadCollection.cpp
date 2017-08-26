@@ -339,7 +339,7 @@ result_t HttpUploadCollection::_named_enumerator(v8::Local<v8::Array>& retVal)
 
     retVal = v8::Array::New(isolate->m_isolate);
     for (i = 0; i < m_count; i++)
-        retVal->Set(i, isolate->NewFromUtf8(m_names[i]));
+        retVal->Set(i, isolate->NewString(m_names[i]));
 
     return 0;
 }

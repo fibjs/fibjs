@@ -36,20 +36,20 @@ public:
     }
 
 private:
-    v8::Local<v8::String> NewFromUtf8(exlib::string str)
+    v8::Local<v8::String> NewString(exlib::string str)
     {
-        return v8::String::NewFromUtf8(isolate, str.c_str(), v8::String::kNormalString, (int32_t)str.length());
+        return fibjs::NewString(isolate, str);
     }
 
     void initEv()
     {
         v8::Local<v8::Value> obj = o->GetPrivate(o->CreationContext(),
-                                        v8::Private::ForApi(isolate, NewFromUtf8("_ev")))
+                                        v8::Private::ForApi(isolate, NewString("_ev")))
                                        .ToLocalChecked();
         if (obj->IsUndefined() || obj->IsNull()) {
             events = v8::Object::New(isolate);
             o->SetPrivate(o->CreationContext(),
-                v8::Private::ForApi(isolate, NewFromUtf8("_ev")), events);
+                v8::Private::ForApi(isolate, NewString("_ev")), events);
         } else {
             events = v8::Local<v8::Object>::Cast(obj);
         }
@@ -58,17 +58,17 @@ private:
 public:
     v8::Local<v8::Value> GetPrivate(exlib::string key)
     {
-        return events->Get(NewFromUtf8(key));
+        return events->Get(NewString(key));
     }
 
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
     {
-        events->Set(NewFromUtf8(key), value);
+        events->Set(NewString(key), value);
     }
 
     void DeletePrivate(exlib::string key)
     {
-        events->Delete(NewFromUtf8(key));
+        events->Delete(NewString(key));
     }
 
     v8::Local<v8::Array> GetHiddenList(exlib::string k, bool create = false)
@@ -92,9 +92,9 @@ public:
         v8::Local<v8::Value> _args[2];
         bool b;
 
-        _args[0] = NewFromUtf8(ev);
+        _args[0] = NewString(ev);
 
-        _args[1] = func->Get(NewFromUtf8("_func"));
+        _args[1] = func->Get(NewString("_func"));
         if (_args[1]->IsUndefined())
             _args[1] = func;
         else
@@ -144,7 +144,7 @@ public:
         for (i = index; i < len - 1; i++)
             esa->Set(i, esa->Get(i + 1));
         esa->Delete(len - 1);
-        esa->Set(NewFromUtf8("length"),
+        esa->Set(NewString("length"),
             v8::Integer::New(isolate, len - 1));
     }
 
@@ -226,8 +226,8 @@ public:
         Isolate* isolate = Isolate::current();
         v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
 
-        v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(_data->Get(isolate->NewFromUtf8("_func")));
-        v8::Local<v8::Value> v = _data->Get(isolate->NewFromUtf8("_ev"));
+        v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(_data->Get(isolate->NewString("_func")));
+        v8::Local<v8::Value> v = _data->Get(isolate->NewString("_ev"));
 
         exlib::string ev;
         GetArgumentValue(v, ev, true);
@@ -250,11 +250,11 @@ public:
     {
         Isolate* _isolate = Isolate::current();
         v8::Local<v8::Object> _data = v8::Object::New(isolate);
-        _data->Set(NewFromUtf8("_func"), func);
-        _data->Set(NewFromUtf8("_ev"), NewFromUtf8(ev));
+        _data->Set(NewString("_func"), func);
+        _data->Set(NewString("_ev"), NewString(ev));
 
         v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
-        wrap->Set(NewFromUtf8("_func"), func);
+        wrap->Set(NewString("_func"), func);
         putFunction(GetHiddenList(ev, true), wrap, ev);
 
         retVal = o;
@@ -270,12 +270,12 @@ public:
     {
         Isolate* _isolate = Isolate::current();
         v8::Local<v8::Object> _data = v8::Object::New(isolate);
-        _data->Set(NewFromUtf8("_func"), func);
-        _data->Set(NewFromUtf8("_ev"), NewFromUtf8(ev));
+        _data->Set(NewString("_func"), func);
+        _data->Set(NewString("_ev"), NewString(ev));
 
         v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
 
-        _data->Set(NewFromUtf8("_wrap"), wrap);
+        _data->Set(NewString("_wrap"), wrap);
 
         prependPutFunction(GetHiddenList(ev, true), wrap, ev);
 
@@ -345,7 +345,7 @@ public:
             return Runtime::setError("\"defaultMaxListeners\" must be a positive number");
 
         o->SetPrivate(o->CreationContext(),
-            v8::Private::ForApi(isolate, NewFromUtf8("_maxListeners")), v8::Integer::New(isolate, n));
+            v8::Private::ForApi(isolate, NewString("_maxListeners")), v8::Integer::New(isolate, n));
         return 0;
     }
 
@@ -353,7 +353,7 @@ public:
     {
         Isolate* _isolate = Isolate::current();
         v8::Local<v8::Value> maxListeners = o->GetPrivate(o->CreationContext(),
-                                                 v8::Private::ForApi(isolate, NewFromUtf8("_maxListeners")))
+                                                 v8::Private::ForApi(isolate, NewString("_maxListeners")))
                                                 .ToLocalChecked();
         if (maxListeners->IsUndefined() || maxListeners->IsNull()) {
             retVal = _isolate->m_defaultMaxListeners;

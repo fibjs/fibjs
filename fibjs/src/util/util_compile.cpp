@@ -22,7 +22,7 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
     Isolate* isolate = Isolate::current();
     exlib::string oname = srcname;
 
-    v8::Local<v8::String> soname = isolate->NewFromUtf8(oname);
+    v8::Local<v8::String> soname = isolate->NewString(oname);
 
     if (script.length() > 2 && script[0] == '#' && script[1] == '!') {
         script[0] = '/';
@@ -35,7 +35,7 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
 
         {
             v8::ScriptCompiler::Source script_source(
-                isolate->NewFromUtf8(script));
+                isolate->NewString(script));
 
             if (v8::ScriptCompiler::CompileUnbound(
                     isolate->m_isolate, &script_source)

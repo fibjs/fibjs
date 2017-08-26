@@ -111,7 +111,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
             && ent->ifa_addr->sa_family != AF_INET)
             continue;
 
-        name = isolate->NewFromUtf8(ent->ifa_name);
+        name = isolate->NewString(ent->ifa_name);
         if (retVal->Has(name)) {
             ret = v8::Local<v8::Array>::Cast(retVal->Get(name));
         } else {
@@ -125,21 +125,21 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
 
             inet_ntop(AF_INET6, &(in6->sin6_addr), ip, INET6_ADDRSTRLEN);
             inet_ntop(AF_INET6, &(mask6->sin6_addr), netmask, INET6_ADDRSTRLEN);
-            family = isolate->NewFromUtf8("IPv6");
+            family = isolate->NewString("IPv6");
         } else if (ent->ifa_addr->sa_family == AF_INET) {
             in4 = (struct sockaddr_in*)ent->ifa_addr;
             mask4 = (struct sockaddr_in*)ent->ifa_netmask;
 
             inet_ntop(AF_INET, &(in4->sin_addr), ip, INET6_ADDRSTRLEN);
             inet_ntop(AF_INET, &(mask4->sin_addr), netmask, INET6_ADDRSTRLEN);
-            family = isolate->NewFromUtf8("IPv4");
+            family = isolate->NewString("IPv4");
         }
 
         o = v8::Object::New(isolate->m_isolate);
-        o->Set(isolate->NewFromUtf8("address"), isolate->NewFromUtf8(ip));
-        o->Set(isolate->NewFromUtf8("netmask"), isolate->NewFromUtf8(netmask));
-        o->Set(isolate->NewFromUtf8("family"), family);
-        o->Set(isolate->NewFromUtf8("internal"),
+        o->Set(isolate->NewString("address"), isolate->NewString(ip));
+        o->Set(isolate->NewString("netmask"), isolate->NewString(netmask));
+        o->Set(isolate->NewString("family"), family);
+        o->Set(isolate->NewString("internal"),
             ent->ifa_flags & IFF_LOOPBACK ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate));
 
         ret->Set(ret->Length(), o);
@@ -160,7 +160,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
         unsigned char* ptr;
         char mac[18] = "";
 
-        name = isolate->NewFromUtf8(ent->ifa_name);
+        name = isolate->NewString(ent->ifa_name);
 
         if (!retVal->Has(name)) {
             continue;
@@ -180,7 +180,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
         int32_t len = ret->Length();
         for (int i = 0; i < len; i++) {
             v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(ret->Get(i));
-            o->Set(isolate->NewFromUtf8("mac"), isolate->NewFromUtf8(mac));
+            o->Set(isolate->NewString("mac"), isolate->NewString(mac));
         }
     }
 
@@ -265,26 +265,26 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
 
     free(buf);
 
-    retVal->Set(isolate->NewFromUtf8("uid"), v8::Integer::New(isolate->m_isolate, pwd.pw_uid));
-    retVal->Set(isolate->NewFromUtf8("gid"), v8::Integer::New(isolate->m_isolate, pwd.pw_gid));
+    retVal->Set(isolate->NewString("uid"), v8::Integer::New(isolate->m_isolate, pwd.pw_uid));
+    retVal->Set(isolate->NewString("gid"), v8::Integer::New(isolate->m_isolate, pwd.pw_gid));
 
     if (encoding == "buffer") {
         obj_ptr<Buffer_base> usernameBuffer = new Buffer(username);
         obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
         obj_ptr<Buffer_base> shellBuffer = new Buffer(shell);
 
-        retVal->Set(isolate->NewFromUtf8("username"), usernameBuffer->wrap());
-        retVal->Set(isolate->NewFromUtf8("homedir"), homedirBuffer->wrap());
-        retVal->Set(isolate->NewFromUtf8("shell"), shellBuffer->wrap());
+        retVal->Set(isolate->NewString("username"), usernameBuffer->wrap());
+        retVal->Set(isolate->NewString("homedir"), homedirBuffer->wrap());
+        retVal->Set(isolate->NewString("shell"), shellBuffer->wrap());
         return 0;
     } else {
         commonEncode(encoding, username, username);
         commonEncode(encoding, homedir, homedir);
         commonEncode(encoding, shell, shell);
 
-        retVal->Set(isolate->NewFromUtf8("username"), isolate->NewFromUtf8(username));
-        retVal->Set(isolate->NewFromUtf8("homedir"), isolate->NewFromUtf8(homedir));
-        retVal->Set(isolate->NewFromUtf8("shell"), isolate->NewFromUtf8(shell));
+        retVal->Set(isolate->NewString("username"), isolate->NewString(username));
+        retVal->Set(isolate->NewString("homedir"), isolate->NewString(homedir));
+        retVal->Set(isolate->NewString("shell"), isolate->NewString(shell));
         return 0;
     }
 }

@@ -127,15 +127,15 @@ inline v8::Local<v8::Value> changesetToObject(Isolate* isolate, changeset& chang
     for (int32_t i = 0; i < n; i++) {
         changeset::iterator it = its[i];
         v8::Local<v8::Object> d = v8::Object::New(isolate->m_isolate);
-        d->Set(isolate->NewFromUtf8("type"),
-            isolate->NewFromUtf8(it->first));
-        d->Set(isolate->NewFromUtf8("size_bytes"),
+        d->Set(isolate->NewString("type"),
+            isolate->NewString(it->first));
+        d->Set(isolate->NewString("size_bytes"),
             v8::Integer::New(isolate->m_isolate, (int32_t)it->second.size));
-        d->Set(isolate->NewFromUtf8("size"),
-            isolate->NewFromUtf8(niceSize(it->second.size)));
-        d->Set(isolate->NewFromUtf8("+"),
+        d->Set(isolate->NewString("size"),
+            isolate->NewString(niceSize(it->second.size)));
+        d->Set(isolate->NewString("+"),
             v8::Integer::New(isolate->m_isolate, (int32_t)it->second.added));
-        d->Set(isolate->NewFromUtf8("-"),
+        d->Set(isolate->NewString("-"),
             v8::Integer::New(isolate->m_isolate, (int32_t)it->second.released));
         a->Set(a->Length(), d);
     }
@@ -157,53 +157,53 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
     v8::Local<v8::Object> b = v8::Object::New(isolate->m_isolate);
     before->get_nodes(nodes);
     nodes->get_length(_count);
-    b->Set(isolate->NewFromUtf8("nodes"),
+    b->Set(isolate->NewString("nodes"),
         v8::Integer::New(isolate->m_isolate, _count));
 
     before->get_time(d);
-    b->Set(isolate->NewFromUtf8("time"), d.value(isolate->m_isolate));
-    o->Set(isolate->NewFromUtf8("before"), b);
+    b->Set(isolate->NewString("time"), d.value(isolate->m_isolate));
+    o->Set(isolate->NewString("before"), b);
 
     v8::Local<v8::Object> a = v8::Object::New(isolate->m_isolate);
     after->get_nodes(nodes);
     nodes->get_length(_count);
-    a->Set(isolate->NewFromUtf8("nodes"),
+    a->Set(isolate->NewString("nodes"),
         v8::Integer::New(isolate->m_isolate, _count));
     after->get_time(d);
-    a->Set(isolate->NewFromUtf8("time"), d.value(isolate->m_isolate));
-    o->Set(isolate->NewFromUtf8("after"), a);
+    a->Set(isolate->NewString("time"), d.value(isolate->m_isolate));
+    o->Set(isolate->NewString("after"), a);
 
     idset beforeIDs, afterIDs;
 
     s = 0;
     buildIDSet(&beforeIDs, before, s);
 
-    b->Set(isolate->NewFromUtf8("size_bytes"),
+    b->Set(isolate->NewString("size_bytes"),
         v8::Integer::New(isolate->m_isolate, (int32_t)s));
-    b->Set(isolate->NewFromUtf8("size"),
-        isolate->NewFromUtf8(niceSize(s)));
+    b->Set(isolate->NewString("size"),
+        isolate->NewString(niceSize(s)));
 
     diffBytes = s;
     s = 0;
     buildIDSet(&afterIDs, after, s);
 
-    a->Set(isolate->NewFromUtf8("size_bytes"),
+    a->Set(isolate->NewString("size_bytes"),
         v8::Integer::New(isolate->m_isolate, (int32_t)s));
-    a->Set(isolate->NewFromUtf8("size"),
-        isolate->NewFromUtf8(niceSize(s)));
+    a->Set(isolate->NewString("size"),
+        isolate->NewString(niceSize(s)));
 
     diffBytes = s - diffBytes;
 
     v8::Local<v8::Object> c = v8::Object::New(isolate->m_isolate);
-    c->Set(isolate->NewFromUtf8("size_bytes"),
+    c->Set(isolate->NewString("size_bytes"),
         v8::Integer::New(isolate->m_isolate, (int32_t)diffBytes));
-    c->Set(isolate->NewFromUtf8("size"),
-        isolate->NewFromUtf8(niceSize(diffBytes)));
-    o->Set(isolate->NewFromUtf8("change"), c);
+    c->Set(isolate->NewString("size"),
+        isolate->NewString(niceSize(diffBytes)));
+    o->Set(isolate->NewString("change"), c);
 
     std::vector<int32_t> changedIDs;
     setDiff(beforeIDs, afterIDs, changedIDs);
-    c->Set(isolate->NewFromUtf8("freed_nodes"),
+    c->Set(isolate->NewString("freed_nodes"),
         v8::Integer::New(isolate->m_isolate, (int32_t)changedIDs.size()));
 
     changeset changes;
@@ -219,7 +219,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
 
     setDiff(afterIDs, beforeIDs, changedIDs);
 
-    c->Set(isolate->NewFromUtf8("allocated_nodes"),
+    c->Set(isolate->NewString("allocated_nodes"),
         v8::Integer::New(isolate->m_isolate, (int32_t)changedIDs.size()));
 
     for (size_t i = 0; i < changedIDs.size(); i++) {
@@ -229,7 +229,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
         manageChange(changes, n, true);
     }
 
-    c->Set(isolate->NewFromUtf8("details"),
+    c->Set(isolate->NewString("details"),
         changesetToObject(isolate, changes));
 
     retVal = o;
