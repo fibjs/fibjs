@@ -6,6 +6,7 @@ var json = require('json');
 var bson = require('bson');
 var base64 = require('base64');
 var hex = require('hex');
+var iconv = require('iconv');
 var base64vlq = require('base64vlq');
 
 describe('encoding', () => {
@@ -125,6 +126,18 @@ describe('encoding', () => {
         for (var i = 0; i < 256; i++) {
             assert.equal(hexb2[i], hexb[i]);
         }
+    });
+
+    it('iconv', () => {
+        for (var i = 0; i < 65536; i++) {
+            var s = String.fromCharCode(i);
+            var buf = iconv.encode('utf16le', s);
+            var n = buf.readUInt16LE();
+            assert.equal(i, n);
+            assert.equal(iconv.decode('utf16le', buf), s);
+        }
+
+        assert.equal(new Buffer([0xc8]).toString(), '\ufffd');
     });
 
     it('uri', () => {
