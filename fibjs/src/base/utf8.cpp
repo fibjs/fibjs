@@ -132,7 +132,7 @@ exlib::wchar32 utf_getchar(const exlib::wchar*& src, const exlib::wchar* end)
         return ch;
 
     src++;
-    return ((ch & 0x7ff) << 10) + (ch1 & 0x3ff);
+    return ((ch & 0x7ff) << 10) + (ch1 & 0x3ff) + 0x10000;
 }
 
 int32_t utf_putchar(exlib::wchar32 ch, exlib::wchar*& dst, const exlib::wchar* end)

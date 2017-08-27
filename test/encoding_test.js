@@ -140,70 +140,83 @@ describe('encoding', () => {
         assert.equal(new Buffer([0xc8]).toString(), '\ufffd');
     });
 
-    it('iconv ucs4', () => {
-        var datas = [
-            [
-                0x7f,
-                "7f000000",
-                "7f000000"
-            ],
-            [
-                0x80,
-                "80000000",
-                "80000000"
-            ],
-            [
-                0x7ff,
-                "ff070000",
-                "ff070000"
-            ],
-            [
-                0x800,
-                "00080000",
-                "00080000"
-            ],
-            [
-                0xffff,
-                "ffff0000",
-                "ffff0000"
-            ],
-            [
-                0x10000,
-                "00000100",
-                "00000100"
-            ],
-            [
-                0x10ffff,
-                "ffff1000",
-                "ffff1000"
-            ],
-            [
-                0x110000,
-                "00001100",
-                "00dc000000dc0000"
-            ],
-            [
-                0x1fffff,
-                "ffff1f00",
-                "bfdf0000ffdf0000"
-            ],
-            [
-                0x200000,
-                "00002000",
-                "c0df000000dc0000"
-            ],
-            [
-                0x3ffffff,
-                "ffffff03",
-                "bfff0000ffdf0000"
-            ],
-            [
-                0x4000000,
-                "00000004",
-                "c0ff000000dc0000"
-            ]
-        ];
+    var datas = [
+        [
+            0x7f,
+            "7f000000",
+            "7f000000"
+        ],
+        [
+            0x80,
+            "80000000",
+            "80000000"
+        ],
+        [
+            0x7ff,
+            "ff070000",
+            "ff070000"
+        ],
+        [
+            0x800,
+            "00080000",
+            "00080000"
+        ],
+        [
+            0xffff,
+            "ffff0000",
+            "ffff0000"
+        ],
+        [
+            0x10000,
+            "00000100",
+            "00000100"
+        ],
+        [
+            0x10ffff,
+            "ffff1000",
+            "ffff1000"
+        ],
+        [
+            0x110000,
+            "00001100",
+            "00dc000000dc0000"
+        ],
+        [
+            0x1fffff,
+            "ffff1f00",
+            "bfdf0000ffdf0000"
+        ],
+        [
+            0x200000,
+            "00002000",
+            "c0df000000dc0000"
+        ],
+        [
+            0x3ffffff,
+            "ffffff03",
+            "bfff0000ffdf0000"
+        ],
+        [
+            0x4000000,
+            "00000004",
+            "c0ff000000dc0000"
+        ]
+    ];
 
+    it('iconv ucs2 multi', () => {
+        datas.forEach(d => {
+            var buf = new Buffer(4);
+            buf.writeUInt32LE(d[0]);
+            var s = iconv.decode('utf32le', buf);
+            var buf2 = new Buffer(s.length * 2);
+            buf2.writeInt16LE(s.charCodeAt(0));
+            if (s.length > 1)
+                buf2.writeInt16LE(s.charCodeAt(1), 2);
+            assert.equal(iconv.decode('utf16le', buf2), s);
+        });
+    });
+
+    it('iconv ucs4', () => {
         datas.forEach(d => {
             var buf = new Buffer(4);
             buf.writeUInt32LE(d[0]);
