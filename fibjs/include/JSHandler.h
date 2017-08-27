@@ -70,7 +70,7 @@ public:
 
         Isolate* isolate = Isolate::current();
         v8::Local<v8::Value> _async = o->GetPrivate(o->CreationContext(),
-                                           v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8("_async")))
+                                           v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")))
                                           .ToLocalChecked();
 
         if (!IsEmpty(_async))

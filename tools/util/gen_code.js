@@ -487,7 +487,7 @@ module.exports = function (defs, baseFolder) {
                         "        CONSTRUCT_INIT();\n\n" +
                         "        Isolate* isolate = Isolate::current();\n\n" +
                         "        isolate->m_isolate->ThrowException(\n" +
-                        "            isolate->NewFromUtf8(\"not a constructor\"));\n    }\n");
+                        "            isolate->NewString(\"not a constructor\"));\n    }\n");
             }
 
             function gen_cls_member_stubs() {

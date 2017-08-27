@@ -32,11 +32,11 @@ inline result_t _jsonEncode(v8::Local<v8::Value> data,
 
     if (isolate->m_json.IsEmpty()) {
         v8::Local<v8::Object> glob = isolate->context()->Global();
-        _json = glob->Get(isolate->NewFromUtf8("JSON"))->ToObject();
+        _json = glob->Get(isolate->NewString("JSON"))->ToObject();
         isolate->m_json.Reset(isolate->m_isolate, _json);
 
         isolate->m_stringify.Reset(isolate->m_isolate,
-            v8::Local<v8::Function>::Cast(_json->Get(isolate->NewFromUtf8("stringify"))));
+            v8::Local<v8::Function>::Cast(_json->Get(isolate->NewString("stringify"))));
     } else
         _json = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_json);
 
@@ -320,8 +320,8 @@ inline result_t _jsonDecode(exlib::string data,
 
             AdvanceSkipWhitespace();
 
-            v8::Local<v8::Value> type = json_object->Get(isolate->NewFromUtf8("type"));
-            v8::Local<v8::Value> data = json_object->Get(isolate->NewFromUtf8("data"));
+            v8::Local<v8::Value> type = json_object->Get(isolate->NewString("type"));
+            v8::Local<v8::Value> data = json_object->Get(isolate->NewString("data"));
 
             if (!type.IsEmpty() && !data.IsEmpty()) {
                 v8::String::Utf8Value str(type);

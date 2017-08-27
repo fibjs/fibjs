@@ -283,7 +283,7 @@ result_t Int64::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     exlib::string str;
 
     toString(16, str);
-    retVal = holder()->NewFromUtf8(str);
+    retVal = holder()->NewString(str);
 
     return 0;
 }

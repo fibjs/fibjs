@@ -162,8 +162,8 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
             Runtime::setError(pThis->m_error);
 
         v8::Local<v8::Value> e = v8::Exception::Error(
-            pThis->m_isolate->NewFromUtf8(getResultMessage(pThis->m_v)));
-        e->ToObject()->Set(pThis->m_isolate->NewFromUtf8("number"),
+            pThis->m_isolate->NewString(getResultMessage(pThis->m_v)));
+        e->ToObject()->Set(pThis->m_isolate->NewString("number"),
             v8::Int32::New(pThis->m_isolate->m_isolate, -pThis->m_v));
 
         args[0] = e;

@@ -55,7 +55,7 @@ public:
             obj = v8::Object::New(isolate->m_isolate);
 
         for (int32_t i = 0; i < (int32_t)m_keys.size(); i++)
-            obj->Set(isolate->NewFromUtf8(m_keys[i]), m_values[i]);
+            obj->Set(isolate->NewString(m_keys[i]), m_values[i]);
 
         retVal = obj;
         return 0;

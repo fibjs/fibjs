@@ -299,7 +299,7 @@ result_t Url::parse(exlib::string url, bool parseQueryString)
 bool getString(Isolate* isolate, v8::Local<v8::Object>& args,
     const char* key, exlib::string& retVal)
 {
-    v8::Local<v8::Value> v = args->Get(isolate->NewFromUtf8(key));
+    v8::Local<v8::Value> v = args->Get(isolate->NewString(key));
 
     if (!v.IsEmpty() && (v->IsString() || v->IsStringObject())) {
         retVal = *v8::String::Utf8Value(v);
@@ -337,7 +337,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     if (getString(isolate, args, "pathname", str))
         set_pathname(str);
 
-    v = args->Get(holder()->NewFromUtf8("query"));
+    v = args->Get(holder()->NewString("query"));
     if (!IsEmpty(v))
         set_query(v);
 
@@ -347,7 +347,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
         m_slashes = false;
 
-    v = args->Get(holder()->NewFromUtf8("slashes"));
+    v = args->Get(holder()->NewString("slashes"));
     if (!IsEmpty(v))
         set_slashes(v->BooleanValue());
 

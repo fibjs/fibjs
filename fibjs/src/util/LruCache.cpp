@@ -89,7 +89,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
     v8::Handle<v8::Object> o = wrap();
     Isolate* isolate = holder();
     exlib::string sname(name);
-    v8::Handle<v8::Value> a = isolate->NewFromUtf8(name);
+    v8::Handle<v8::Value> a = isolate->NewString(name);
 
     std::map<exlib::string, _linkedNode>::iterator find;
 
@@ -105,11 +105,11 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
         if (updater.IsEmpty())
             return 0;
 
-        std::map<exlib::string, obj_ptr<Event_base> >::iterator padding;
+        std::map<exlib::string, obj_ptr<Event_base>>::iterator padding;
         padding = m_paddings.find(sname);
         if (padding == m_paddings.end()) {
             e = new Event();
-            padding = m_paddings.insert(std::pair<exlib::string, obj_ptr<Event_base> >(sname, e)).first;
+            padding = m_paddings.insert(std::pair<exlib::string, obj_ptr<Event_base>>(sname, e)).first;
             v8::Local<v8::Value> v = updater->Call(o, 1, &a);
             m_paddings.erase(padding);
             e->set();
@@ -209,7 +209,7 @@ result_t LruCache::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
 
     while (it != m_datas.end()) {
-        v8::Local<v8::String> name = isolate->NewFromUtf8(it->first);
+        v8::Local<v8::String> name = isolate->NewString(it->first);
         obj->Set(name, GetPrivate(it->first));
         it = _instantiate(it->second.m_next);
     }

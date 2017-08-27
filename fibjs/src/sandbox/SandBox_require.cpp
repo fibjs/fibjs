@@ -28,8 +28,8 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     v8::Local<v8::Object> exports;
 
     // cache string
-    v8::Local<v8::String> strRequire = isolate->NewFromUtf8("require");
-    v8::Local<v8::String> strExports = isolate->NewFromUtf8("exports");
+    v8::Local<v8::String> strRequire = isolate->NewString("require");
+    v8::Local<v8::String> strExports = isolate->NewString("exports");
 
     exports = v8::Object::New(isolate->m_isolate);
 

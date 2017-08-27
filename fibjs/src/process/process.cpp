@@ -81,7 +81,7 @@ result_t process_base::get_argv(v8::Local<v8::Array>& retVal)
     v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate, (int32_t)s_argv.size());
 
     for (int32_t i = 0; i < (int32_t)s_argv.size(); i++)
-        args->Set(i, isolate->NewFromUtf8(s_argv[i]));
+        args->Set(i, isolate->NewString(s_argv[i]));
 
     retVal = args;
 
@@ -95,7 +95,7 @@ result_t process_base::get_execArgv(v8::Local<v8::Array>& retVal)
     int32_t i;
 
     for (i = 0; i < (int32_t)s_start_argv.size(); i++)
-        args->Set(i, isolate->NewFromUtf8(s_start_argv[i]));
+        args->Set(i, isolate->NewString(s_start_argv[i]));
 
     retVal = args;
 
@@ -178,7 +178,7 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
         while ((p = *env++) != NULL) {
             p1 = qstrchr(p, '=');
             if (p1)
-                o->Set(isolate->NewFromUtf8(p, (int32_t)(p1 - p)), isolate->NewFromUtf8(p1 + 1));
+                o->Set(isolate->NewString(p, (int32_t)(p1 - p)), isolate->NewString(p1 + 1));
         }
 
         isolate->m_env.Reset(isolate->m_isolate, o);

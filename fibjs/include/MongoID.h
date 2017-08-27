@@ -44,7 +44,7 @@ public:
         exlib::string str;
 
         toString(str);
-        retVal = holder()->NewFromUtf8(str);
+        retVal = holder()->NewString(str);
 
         return 0;
     }

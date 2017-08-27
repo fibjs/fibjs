@@ -120,7 +120,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
         return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-    v8::Local<v8::Value> main = o->Get(isolate->NewFromUtf8("main", 4));
+    v8::Local<v8::Value> main = o->Get(isolate->NewString("main", 4));
     if (IsEmpty(main))
         return CALL_E_FILE_NOT_FOUND;
 
@@ -206,7 +206,7 @@ result_t SandBox::resolveId(exlib::string& id, obj_ptr<Buffer_base>& data,
 
     v8::Local<v8::Value> func = GetPrivate("require");
     if (!func->IsUndefined()) {
-        v8::Local<v8::Value> arg = isolate->NewFromUtf8(id);
+        v8::Local<v8::Value> arg = isolate->NewString(id);
         retVal = v8::Local<v8::Function>::Cast(func)->Call(wrap(), 1, &arg);
         if (retVal.IsEmpty())
             return CALL_E_JAVASCRIPT;

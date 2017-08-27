@@ -530,7 +530,7 @@ inline void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string ke
     exlib::string b64;
     base64Encode(data, true, b64);
 
-    o->Set(isolate->NewFromUtf8(key), isolate->NewFromUtf8(b64));
+    o->Set(isolate->NewString(key), isolate->NewString(b64));
 }
 
 result_t PKey::exportJson(v8::Local<v8::Object>& retVal)
@@ -549,7 +549,7 @@ result_t PKey::exportJson(v8::Local<v8::Object>& retVal)
         mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-        o->Set(isolate->NewFromUtf8("kty"), isolate->NewFromUtf8("RSA"));
+        o->Set(isolate->NewString("kty"), isolate->NewString("RSA"));
         mpi_dump(isolate, o, "n", &rsa->N);
         mpi_dump(isolate, o, "e", &rsa->E);
 
@@ -575,8 +575,8 @@ result_t PKey::exportJson(v8::Local<v8::Object>& retVal)
 
         curve_alias(crv);
 
-        o->Set(isolate->NewFromUtf8("kty"), isolate->NewFromUtf8("EC"));
-        o->Set(isolate->NewFromUtf8("crv"), isolate->NewFromUtf8(crv));
+        o->Set(isolate->NewString("kty"), isolate->NewString("EC"));
+        o->Set(isolate->NewString("crv"), isolate->NewString(crv));
         mpi_dump(isolate, o, "x", &ecp->Q.X);
         mpi_dump(isolate, o, "y", &ecp->Q.Y);
 

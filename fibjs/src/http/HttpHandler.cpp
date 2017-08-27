@@ -397,7 +397,7 @@ result_t HttpHandler::onerror(v8::Local<v8::Object> hdlrs)
     Isolate* isolate = holder();
 
     for (i = 0; i < 3; i++) {
-        v8::Local<v8::String> key = isolate->NewFromUtf8(s_err_keys[i]);
+        v8::Local<v8::String> key = isolate->NewString(s_err_keys[i]);
         v8::Local<v8::Value> hdlr = hdlrs->Get(key);
 
         if (!IsEmpty(hdlr)) {

@@ -278,7 +278,7 @@ public:
         Isolate* isolate = holder();
 
         return o->GetPrivate(o->CreationContext(),
-                    v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)))
+                    v8::Private::ForApi(isolate->m_isolate, isolate->NewString(key)))
             .ToLocalChecked();
     }
 
@@ -288,7 +288,7 @@ public:
         Isolate* isolate = holder();
 
         o->SetPrivate(o->CreationContext(),
-            v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)),
+            v8::Private::ForApi(isolate->m_isolate, isolate->NewString(key)),
             value);
     }
 
@@ -298,7 +298,7 @@ public:
         Isolate* isolate = holder();
 
         o->DeletePrivate(o->CreationContext(),
-            v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)));
+            v8::Private::ForApi(isolate->m_isolate, isolate->NewString(key)));
     }
 
 public:
@@ -382,7 +382,7 @@ public:
         strError += *v8::String::Utf8Value(property);
         strError += "\' is read-only.";
         isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8(strError));
+            isolate->NewString(strError));
     }
 
     static void i_IndexedSetter(uint32_t index,
@@ -391,7 +391,7 @@ public:
         Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8("Indexed Property is read-only."));
+            isolate->NewString("Indexed Property is read-only."));
     }
 
     static void i_NamedSetter(v8::Local<v8::String> property,
@@ -400,7 +400,7 @@ public:
         Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8("Named Property is read-only."));
+            isolate->NewString("Named Property is read-only."));
     }
 
     static void i_NamedDeleter(
@@ -409,7 +409,7 @@ public:
         Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8("Named Property is read-only."));
+            isolate->NewString("Named Property is read-only."));
     }
 
     //------------------------------------------------------------------

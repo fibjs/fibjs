@@ -206,10 +206,10 @@ result_t fs_base::get_constants(v8::Local<v8::Object>& retVal)
     Isolate* isolate = Isolate::current();
     retVal = v8::Object::New(isolate->m_isolate);
 
-    retVal->Set(isolate->NewFromUtf8("F_OK"), v8::Integer::New(isolate->m_isolate, F_OK));
-    retVal->Set(isolate->NewFromUtf8("R_OK"), v8::Integer::New(isolate->m_isolate, R_OK));
-    retVal->Set(isolate->NewFromUtf8("W_OK"), v8::Integer::New(isolate->m_isolate, W_OK));
-    retVal->Set(isolate->NewFromUtf8("X_OK"), v8::Integer::New(isolate->m_isolate, X_OK));
+    retVal->Set(isolate->NewString("F_OK"), v8::Integer::New(isolate->m_isolate, F_OK));
+    retVal->Set(isolate->NewString("R_OK"), v8::Integer::New(isolate->m_isolate, R_OK));
+    retVal->Set(isolate->NewString("W_OK"), v8::Integer::New(isolate->m_isolate, W_OK));
+    retVal->Set(isolate->NewString("X_OK"), v8::Integer::New(isolate->m_isolate, X_OK));
 
     return 0;
 }
