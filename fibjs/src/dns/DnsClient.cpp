@@ -171,8 +171,14 @@ namespace fibjs {
         static void callback(void *arg, int status, int timeouts, unsigned char *abuf, int alen)
         {
             struct ares_mx_reply * mx_reply = nullptr;
-            obj_ptr<List> mx_list = new List();
+            obj_ptr<List> mx_list;
             asyncDNSQuery* pThis = (asyncDNSQuery*)arg;
+
+            if (status != ARES_SUCCESS){
+                pThis->errorno = status;
+                pThis->set(error);
+                return;
+            }
 
             int rs_status = ares_parse_mx_reply(abuf, alen, &mx_reply);
             if (rs_status != ARES_SUCCESS){
@@ -181,6 +187,7 @@ namespace fibjs {
                 return;
             }
 
+            mx_list = new List();
             ares_mx_reply* current = mx_reply;
             for (uint32_t i = 0; current != nullptr; ++i, current = current->next) {
                 mx_list->append(new ResolveMxResult(current));
@@ -213,7 +220,13 @@ namespace fibjs {
         {
             struct ares_srv_reply* srv_start;
             asyncDNSQuery* pThis = (asyncDNSQuery*)arg;
-            obj_ptr<List> srv_list = new List();
+            obj_ptr<List> srv_list;
+
+            if (status != ARES_SUCCESS){
+                pThis->errorno = status;
+                pThis->set(error);
+                return;
+            }
 
             int rs_status = ares_parse_srv_reply(abuf, alen, &srv_start);
             if (rs_status != ARES_SUCCESS){
@@ -222,6 +235,7 @@ namespace fibjs {
                 return;
             }
 
+            srv_list = new List();
             ares_srv_reply* current = srv_start;
             for (uint32_t i = 0; current != nullptr; ++i, current = current->next) {
                 srv_list->append(new ResolveSrvResult(current));
@@ -243,7 +257,13 @@ namespace fibjs {
         {
             struct ares_txt_ext* txt_out;
             asyncDNSQuery* pThis = (asyncDNSQuery*)arg;
-            obj_ptr<List> txt_list = new List();
+            obj_ptr<List> txt_list;
+
+            if (status != ARES_SUCCESS){
+                pThis->errorno = status;
+                pThis->set(error);
+                return;
+            }
 
             int rs_status = ares_parse_txt_reply_ext(abuf, alen, &txt_out);
             if (rs_status != ARES_SUCCESS){
@@ -255,6 +275,7 @@ namespace fibjs {
             struct ares_txt_ext* current = txt_out;
             int32_t len;
             obj_ptr<List> txt_result = new List();
+            txt_list = new List();
 
             for (uint32_t i = 0; current != nullptr; current = current->next) {
 
@@ -291,8 +312,14 @@ namespace fibjs {
         static void callback(void *arg, int status, int timeouts, unsigned char *abuf, int alen)
         {
             asyncDNSQuery* pThis = (asyncDNSQuery*)arg;
-            obj_ptr<List> ns_list = new List();
+            obj_ptr<List> ns_list;
             hostent* host;
+
+            if (status != ARES_SUCCESS){
+                pThis->errorno = status;
+                pThis->set(error);
+                return;
+            }
 
             int rs_status = ares_parse_ns_reply(abuf, alen, &host);
             if (rs_status != ARES_SUCCESS){
@@ -301,6 +328,7 @@ namespace fibjs {
                 return;
             }
 
+            ns_list = new List();
             for (uint32_t i = 0; host->h_aliases[i] != nullptr; ++i){
                 ns_list->append(host->h_aliases[i]);
             }
@@ -336,6 +364,12 @@ namespace fibjs {
             asyncDNSQuery* pThis = (asyncDNSQuery*)arg;
             ares_soa_reply* soa_out;
 
+            if (status != ARES_SUCCESS){
+                pThis->errorno = status;
+                pThis->set(error);
+                return;
+            }
+
             int rs_status = ares_parse_soa_reply(abuf, alen, &soa_out);
             if (rs_status != ARES_SUCCESS){
                 pThis->errorno = rs_status;
@@ -360,7 +394,13 @@ namespace fibjs {
         {
             asyncDNSQuery* pThis = (asyncDNSQuery*)arg;
             hostent* host;
-            obj_ptr<List> ptr_list = new List();
+            obj_ptr<List> ptr_list;
+
+            if (status != ARES_SUCCESS){
+                pThis->errorno = status;
+                pThis->set(error);
+                return;
+            }
 
             int rs_status = ares_parse_ptr_reply(abuf, alen, NULL, 0, AF_INET, &host);
             if (rs_status != ARES_SUCCESS){
@@ -369,6 +409,7 @@ namespace fibjs {
                 return;
             }
 
+            ptr_list = new List();
             for (uint32_t i = 0; host->h_aliases[i] != NULL; i++) {
                 ptr_list->append(host->h_aliases[i]);
             }
@@ -403,7 +444,13 @@ namespace fibjs {
         {
             asyncDNSQuery* pThis = (asyncDNSQuery*)arg;
             ares_naptr_reply* naptr_start;
-            obj_ptr<List> naptr_list = new List();
+            obj_ptr<List> naptr_list;
+
+            if (status != ARES_SUCCESS){
+                pThis->errorno = status;
+                pThis->set(error);
+                return;
+            }
 
             int rs_status = ares_parse_naptr_reply(abuf, alen, &naptr_start);
             if (rs_status != ARES_SUCCESS){
@@ -412,6 +459,7 @@ namespace fibjs {
                 return;
             }
 
+            naptr_list = new List();
             ares_naptr_reply* current = naptr_start;
             for (uint32_t i = 0; current != nullptr; ++i, current = current->next) {
                 naptr_list->append(new ResolveNaptrResult(current));
@@ -434,7 +482,13 @@ namespace fibjs {
         {
             asyncDNSQuery *pThis = (asyncDNSQuery *) arg;
             hostent* host;
-            obj_ptr<List> cname_list = new List();
+            obj_ptr<List> cname_list;
+
+            if (status != ARES_SUCCESS){
+                pThis->errorno = status;
+                pThis->set(error);
+                return;
+            }
 
             int rs_status = ares_parse_a_reply(abuf, alen, &host, nullptr, nullptr);
             if (rs_status != ARES_SUCCESS){
@@ -443,6 +497,7 @@ namespace fibjs {
                 return;
             }
 
+            cname_list = new List();
             cname_list->append(host->h_name);
             ares_free_hostent(host);
             pThis->m_retVal = cname_list;
@@ -486,7 +541,13 @@ namespace fibjs {
             hostent* host;
             ares_addrttl addrttls[256];
             int naddrttls = sizeof(addrttls);
-            obj_ptr<List> a_list = new List();
+            obj_ptr<List> a_list;
+
+            if (status != ARES_SUCCESS){
+                pThis->errorno = status;
+                pThis->set(error);
+                return;
+            }
 
             int rs_status = ares_parse_a_reply(abuf, alen, &host, (ares_addrttl*)addrttls, &naddrttls);
             if (rs_status != ARES_SUCCESS){
@@ -495,6 +556,7 @@ namespace fibjs {
                 return;
             }
 
+            a_list = new List();
             for (uint32_t i = 0; host->h_addr_list[i] != nullptr; ++i) {
                 char ip[INET6_ADDRSTRLEN];
                 inet_ntop4((const unsigned char *) host->h_addr_list[i], ip, sizeof(ip));
@@ -607,7 +669,13 @@ namespace fibjs {
             hostent* host;
             ares_addr6ttl addrttls[256];
             int naddrttls = sizeof(addrttls);
-            obj_ptr<List> aaaa_list = new List();
+            obj_ptr<List> aaaa_list;
+
+            if (status != ARES_SUCCESS){
+                pThis->errorno = status;
+                pThis->set(error);
+                return;
+            }
 
             int rs_status = ares_parse_aaaa_reply(abuf, alen, &host, (ares_addr6ttl*)addrttls, &naddrttls);
             if (rs_status != ARES_SUCCESS){
@@ -616,6 +684,7 @@ namespace fibjs {
                 return;
             }
 
+            aaaa_list = new List();
             for (uint32_t i = 0; host->h_addr_list[i] != nullptr; ++i) {
                 char ip[INET6_ADDRSTRLEN];
                 inet_ntop6((const unsigned char *) host->h_addr_list[i], ip, sizeof(ip));
