@@ -288,7 +288,7 @@ result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
 
 result_t Buffer::_indexed_getter(uint32_t index, int32_t& retVal)
 {
-    if (index < 0 || index >= m_data.length())
+    if (index >= m_data.length())
         return CALL_RETURN_NULL;
 
     retVal = (unsigned char)m_data.c_str()[index];
@@ -301,7 +301,7 @@ result_t Buffer::_indexed_setter(uint32_t index, int32_t newVal)
         return 0;
 
     if (newVal < 0)
-        newVal = 256 +  (newVal %  256);
+        newVal = 256 + (newVal % 256);
     else if (newVal > 255)
         newVal = newVal % 256;
 
@@ -540,7 +540,8 @@ result_t Buffer::compare(Buffer_base* buf, int32_t& retVal)
     return 0;
 }
 
-result_t Buffer::copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal)
+result_t Buffer::copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart,
+    int32_t sourceEnd, int32_t& retVal)
 {
     if (targetStart < 0 || sourceStart < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -749,7 +750,8 @@ result_t Buffer::readDoubleBE(int32_t offset, bool noAssert, double& retVal)
     READ_NUMBER(double, false);
 }
 
-result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size, bool noAssert, bool le)
+result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size, bool noAssert,
+    bool le, int32_t& retVal)
 {
     int32_t sz = size;
 
@@ -758,9 +760,13 @@ result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size, bool
             return CHECK_ERROR(CALL_E_OUTRANGE);
 
         sz = (int32_t)m_data.length() - offset;
-        if (sz <= 0)
+        if (sz <= 0) {
+            retVal = offset;
             return 0;
+        }
     }
+
+    retVal = sz + offset;
 
     if (size == 1) {
         m_data[offset] = buf[0];
@@ -778,126 +784,126 @@ result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size, bool
     return 0;
 }
 
-#define WRITE_NUMBER(t, le)                                                \
+#define WRITE_NUMBER(t, le)                                                        \
+    t v = (t)value;                                                                \
+    result_t hr = writeNumber(offset, (char*)&v, sizeof(v), noAssert, le, retVal); \
+    if (hr < 0)                                                                    \
+        return hr;                                                                 \
+    return 0;
+
+#define WRITE_NUMBER_48(t, le)                                             \
     t v = (t)value;                                                        \
-    result_t hr = writeNumber(offset, (char*)&v, sizeof(v), noAssert, le); \
+    result_t hr = writeNumber(offset, (char*)&v, 6, noAssert, le, retVal); \
     if (hr < 0)                                                            \
         return hr;                                                         \
     return 0;
 
-#define WRITE_NUMBER_48(t, le)                                     \
-    t v = (t)value;                                                \
-    result_t hr = writeNumber(offset, (char*)&v, 6, noAssert, le); \
-    if (hr < 0)                                                    \
-        return hr;                                                 \
-    return 0;
-
-result_t Buffer::writeUInt8(int32_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeUInt8(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(uint8_t, true);
 }
 
-result_t Buffer::writeUInt16LE(int32_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeUInt16LE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(uint16_t, true);
 }
 
-result_t Buffer::writeUInt16BE(int32_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeUInt16BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(uint16_t, false);
 }
 
-result_t Buffer::writeUInt32LE(int64_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeUInt32LE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(uint32_t, true);
 }
 
-result_t Buffer::writeUInt32BE(int64_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeUInt32BE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(uint32_t, false);
 }
 
-result_t Buffer::writeUIntLE(int64_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeUIntLE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER_48(uint64_t, true);
 }
 
-result_t Buffer::writeUIntBE(int64_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeUIntBE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER_48(uint64_t, false);
 }
 
-result_t Buffer::writeInt8(int32_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeInt8(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(int8_t, true);
 }
 
-result_t Buffer::writeInt16LE(int32_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeInt16LE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(int16_t, true);
 }
 
-result_t Buffer::writeInt16BE(int32_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeInt16BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(int16_t, false);
 }
 
-result_t Buffer::writeInt32LE(int32_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeInt32LE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(int32_t, true);
 }
 
-result_t Buffer::writeInt32BE(int32_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeInt32BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(int32_t, false);
 }
 
-result_t Buffer::writeIntLE(int64_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeIntLE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER_48(int64_t, true);
 }
 
-result_t Buffer::writeIntBE(int64_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeIntBE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER_48(int64_t, false);
 }
 
-result_t Buffer::writeInt64LE(int64_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeInt64LE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(int64_t, true);
 }
 
-result_t Buffer::writeInt64LE(Int64_base* value, int32_t offset, bool noAssert)
+result_t Buffer::writeInt64LE(Int64_base* value, int32_t offset, bool noAssert, int32_t& retVal)
 {
-    return writeInt64LE(((Int64*)value)->m_num, offset, noAssert);
+    return writeInt64LE(((Int64*)value)->m_num, offset, noAssert, retVal);
 }
 
-result_t Buffer::writeInt64BE(int64_t value, int32_t offset, bool noAssert)
+result_t Buffer::writeInt64BE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(int64_t, false);
 }
 
-result_t Buffer::writeInt64BE(Int64_base* value, int32_t offset, bool noAssert)
+result_t Buffer::writeInt64BE(Int64_base* value, int32_t offset, bool noAssert, int32_t& retVal)
 {
-    return writeInt64BE(((Int64*)value)->m_num, offset, noAssert);
+    return writeInt64BE(((Int64*)value)->m_num, offset, noAssert, retVal);
 }
 
-result_t Buffer::writeFloatLE(double value, int32_t offset, bool noAssert)
+result_t Buffer::writeFloatLE(double value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(float, true);
 }
 
-result_t Buffer::writeFloatBE(double value, int32_t offset, bool noAssert)
+result_t Buffer::writeFloatBE(double value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(float, false);
 }
 
-result_t Buffer::writeDoubleLE(double value, int32_t offset, bool noAssert)
+result_t Buffer::writeDoubleLE(double value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(double, true);
 }
 
-result_t Buffer::writeDoubleBE(double value, int32_t offset, bool noAssert)
+result_t Buffer::writeDoubleBE(double value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(double, false);
 }
@@ -1019,8 +1025,7 @@ result_t Buffer::entries(v8::Local<v8::Object>& retVal)
     int32_t i;
     const char* _data = m_data.c_str();
 
-    for (i = 0; i < (int32_t)m_data.length(); i++)
-    {
+    for (i = 0; i < (int32_t)m_data.length(); i++) {
         v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate, 2);
         arr1->Set(0, v8::Number::New(isolate->m_isolate, i));
         arr1->Set(1, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
@@ -1082,8 +1087,8 @@ result_t Buffer::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     for (i = 0; i < (int32_t)m_data.length(); i++)
         a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
 
-    o->Set(isolate->NewFromUtf8("type"), isolate->NewFromUtf8("Buffer"));
-    o->Set(isolate->NewFromUtf8("data"), a);
+    o->Set(isolate->NewString("type"), isolate->NewString("Buffer"));
+    o->Set(isolate->NewString("data"), a);
 
     retVal = o;
 

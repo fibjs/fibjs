@@ -8,13 +8,14 @@
   - modify fibjs/include/version.h, change version string.
   - run tools/changelog.js, generate changelog.
   - change branch of vender to #.##.x in .gitmodules.
-
-* commit fibjs with "Release v#.##"
-* tag fibjs with "v#.##"
+  - commit fibjs with "Release v#.##"
+  - merge dev into master
+  - branch #.##.x
+  - tag fibjs with "v#.##"
 
 * switch branch of vender to dev.
-* switch branch of fibjs to dev.
 * fibjs
+  - switch branch of fibjs to dev.
   - modify fibjs/include/version.h, change version string to "dev".
   - switch branch of vender to "dev" in .gitmodules.
-* commit fibjs with "dev v#.##"
+  - commit fibjs with "dev v#.##"

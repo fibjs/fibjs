@@ -130,7 +130,7 @@ public:
                 exlib::wchar wch = (qhex(src[2]) << 12) + (qhex(src[3]) << 8)
                     + (qhex(src[4]) << 4) + qhex(src[5]);
 
-                bstr += utf8_wcstombs(&wch, 1, bstr, 5);
+                bstr += utf_convert(&wch, 1, bstr, 5);
 
                 src += 5;
                 l -= 5;

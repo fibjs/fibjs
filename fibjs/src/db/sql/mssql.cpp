@@ -193,7 +193,7 @@ result_t mssql::trans(v8::Local<v8::Function> func)
 }
 
 result_t mssql::execute(const char* sql, int32_t sLen,
-    obj_ptr<DBResult_base>& retVal)
+    obj_ptr<object_base>& retVal)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -324,13 +324,12 @@ result_t mssql::execute(const char* sql, int32_t sLen,
 
     rs->Release();
 
-    res->freeze();
     retVal = res;
 
     return 0;
 }
 
-result_t mssql::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac)
+result_t mssql::execute(exlib::string sql, obj_ptr<object_base>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -341,7 +340,7 @@ result_t mssql::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, Async
     return execute(sql.c_str(), (int32_t)sql.length(), retVal);
 }
 
-result_t mssql::execute(exlib::string sql, OptArgs args, obj_ptr<DBResult_base>& retVal,
+result_t mssql::execute(exlib::string sql, OptArgs args, obj_ptr<object_base>& retVal,
     AsyncEvent* ac)
 {
     if (!m_conn)

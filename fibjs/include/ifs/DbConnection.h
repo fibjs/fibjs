@@ -16,8 +16,6 @@
 
 namespace fibjs {
 
-class DBResult_base;
-
 class DbConnection_base : public object_base {
     DECLARE_CLASS(DbConnection_base);
 
@@ -29,8 +27,8 @@ public:
     virtual result_t commit(AsyncEvent* ac) = 0;
     virtual result_t rollback(AsyncEvent* ac) = 0;
     virtual result_t trans(v8::Local<v8::Function> func) = 0;
-    virtual result_t execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t execute(exlib::string sql, obj_ptr<object_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<object_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal) = 0;
 
 public:
@@ -41,7 +39,7 @@ public:
         Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8("not a constructor"));
+            isolate->NewString("not a constructor"));
     }
 
 public:
@@ -59,12 +57,10 @@ public:
     ASYNC_MEMBER0(DbConnection_base, begin);
     ASYNC_MEMBER0(DbConnection_base, commit);
     ASYNC_MEMBER0(DbConnection_base, rollback);
-    ASYNC_MEMBERVALUE2(DbConnection_base, execute, exlib::string, obj_ptr<DBResult_base>);
-    ASYNC_MEMBERVALUE3(DbConnection_base, execute, exlib::string, OptArgs, obj_ptr<DBResult_base>);
+    ASYNC_MEMBERVALUE2(DbConnection_base, execute, exlib::string, obj_ptr<object_base>);
+    ASYNC_MEMBERVALUE3(DbConnection_base, execute, exlib::string, OptArgs, obj_ptr<object_base>);
 };
 }
-
-#include "DBResult.h"
 
 namespace fibjs {
 inline ClassInfo& DbConnection_base::class_info()
@@ -190,7 +186,7 @@ inline void DbConnection_base::s_trans(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<DBResult_base> vr;
+    obj_ptr<object_base> vr;
 
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();

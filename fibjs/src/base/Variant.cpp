@@ -98,11 +98,12 @@ Variant::operator v8::Local<v8::Value>() const
         return dateVal().value(isolate->m_isolate);
     case VT_Object: {
         object_base* obj = (object_base*)m_Val.objVal;
-
         if (obj == NULL)
             break;
 
-        return obj->wrap();
+        v8::Local<v8::Value> v;
+        obj->valueOf(v);
+        return v;
     }
     case VT_JSValue:
         if (isGlobal())
@@ -117,7 +118,7 @@ Variant::operator v8::Local<v8::Value>() const
     }
     case VT_String: {
         exlib::string& str = strVal();
-        return isolate->NewFromUtf8(str);
+        return isolate->NewString(str);
     }
     case VT_UNBOUND_ARRAY: {
         v8::Local<v8::Array> a;
@@ -143,7 +144,7 @@ Variant::operator v8::Local<v8::Value>() const
         o = v8::Object::New(isolate->m_isolate);
 
         for (i = 0; i < len; i++)
-            o->Set(isolate->NewFromUtf8(data[i].k), data[i].v.operator v8::Local<v8::Value>());
+            o->Set(isolate->NewString(data[i].k), data[i].v.operator v8::Local<v8::Value>());
 
         return o;
     }

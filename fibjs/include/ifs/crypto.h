@@ -55,6 +55,7 @@ public:
 public:
     // crypto_base
     static result_t createHash(exlib::string algo, obj_ptr<Digest_base>& retVal);
+    static result_t createHmac(exlib::string algo, Buffer_base* key, obj_ptr<Digest_base>& retVal);
     static result_t loadPKey(exlib::string filename, exlib::string password, obj_ptr<PKey_base>& retVal);
     static result_t loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal);
     static result_t loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal);
@@ -76,7 +77,7 @@ public:
         Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8("not a constructor"));
+            isolate->NewString("not a constructor"));
     }
 
 public:
@@ -102,6 +103,7 @@ public:
     static void s_get_ZEROS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_NOPADDING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_createHash(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_createHmac(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -137,6 +139,7 @@ inline ClassInfo& crypto_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "createHash", s_createHash, true },
+        { "createHmac", s_createHmac, true },
         { "loadPKey", s_loadPKey, true },
         { "loadCert", s_loadCert, true },
         { "loadCrl", s_loadCrl, true },
@@ -354,6 +357,22 @@ inline void crypto_base::s_createHash(const v8::FunctionCallbackInfo<v8::Value>&
     ARG(exlib::string, 0);
 
     hr = createHash(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_createHmac(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Digest_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = createHmac(v0, v1, vr);
 
     METHOD_RETURN();
 }

@@ -314,7 +314,7 @@ result_t WebSocketHandler::onerror(v8::Local<v8::Object> hdlrs)
 {
     Isolate* isolate = holder();
 
-    v8::Local<v8::String> key = isolate->NewFromUtf8("500");
+    v8::Local<v8::String> key = isolate->NewString("500");
     v8::Local<v8::Value> hdlr = hdlrs->Get(key);
 
     if (!IsEmpty(hdlr)) {

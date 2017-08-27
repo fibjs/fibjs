@@ -105,7 +105,6 @@
     <ClInclude Include="include\Condition.h" />
     <ClInclude Include="include\DBField.h" />
     <ClInclude Include="include\DBResult.h" />
-    <ClInclude Include="include\DBRow.h" />
     <ClInclude Include="include\DateCache.h" />
     <ClInclude Include="include\Digest.h" />
     <ClInclude Include="include\Event.h" />
@@ -153,13 +152,13 @@
     <ClInclude Include="include\RedisList.h" />
     <ClInclude Include="include\RedisSet.h" />
     <ClInclude Include="include\RedisSortedSet.h" />
-    <ClInclude Include="include\Regex.h" />
     <ClInclude Include="include\Routing.h" />
     <ClInclude Include="include\Runtime.h" />
     <ClInclude Include="include\SQLite.h" />
     <ClInclude Include="include\SandBox.h" />
     <ClInclude Include="include\Semaph.h" />
     <ClInclude Include="include\Service.h" />
+    <ClInclude Include="include\SimpleObject.h" />
     <ClInclude Include="include\Smtp.h" />
     <ClInclude Include="include\Socket.h" />
     <ClInclude Include="include\Socket_api.h" />
@@ -211,9 +210,6 @@
     <ClInclude Include="include\ifs\Chain.h" />
     <ClInclude Include="include\ifs\Cipher.h" />
     <ClInclude Include="include\ifs\Condition.h" />
-    <ClInclude Include="include\ifs\DBResult.h" />
-    <ClInclude Include="include\ifs\DBRow.h" />
-    <ClInclude Include="include\ifs\DatagramPacket.h" />
     <ClInclude Include="include\ifs\DbConnection.h" />
     <ClInclude Include="include\ifs\Digest.h" />
     <ClInclude Include="include\ifs\Event.h" />
@@ -259,7 +255,6 @@
     <ClInclude Include="include\ifs\RedisList.h" />
     <ClInclude Include="include\ifs\RedisSet.h" />
     <ClInclude Include="include\ifs\RedisSortedSet.h" />
-    <ClInclude Include="include\ifs\Regex.h" />
     <ClInclude Include="include\ifs\Routing.h" />
     <ClInclude Include="include\ifs\SQLite.h" />
     <ClInclude Include="include\ifs\SandBox.h" />
@@ -332,8 +327,8 @@
     <ClInclude Include="include\ifs\path_win32.h" />
     <ClInclude Include="include\ifs\process.h" />
     <ClInclude Include="include\ifs\profiler.h" />
+    <ClInclude Include="include\ifs\punycode.h" />
     <ClInclude Include="include\ifs\querystring.h" />
-    <ClInclude Include="include\ifs\re.h" />
     <ClInclude Include="include\ifs\registry.h" />
     <ClInclude Include="include\ifs\ssl.h" />
     <ClInclude Include="include\ifs\test.h" />
@@ -429,8 +424,6 @@
     <ClCompile Include="src\db\redis\RedisPubSub.cpp" />
     <ClCompile Include="src\db\redis\RedisSet.cpp" />
     <ClCompile Include="src\db\redis\RedisSortedSet.cpp" />
-    <ClCompile Include="src\db\sql\DBResult.cpp" />
-    <ClCompile Include="src\db\sql\DBRow.cpp" />
     <ClCompile Include="src\db\sql\SQLite.cpp" />
     <ClCompile Include="src\db\sql\mssql.cpp" />
     <ClCompile Include="src\db\sql\mysql.cpp" />
@@ -487,6 +480,7 @@
     <ClCompile Include="src\net\Url.cpp" />
     <ClCompile Include="src\net\inetAddr.cpp" />
     <ClCompile Include="src\net\net.cpp" />
+    <ClCompile Include="src\net\punycode.cpp" />
     <ClCompile Include="src\os\Service_other.cpp" />
     <ClCompile Include="src\os\Service_win.cpp" />
     <ClCompile Include="src\os\os.cpp" />
@@ -497,7 +491,6 @@
     <ClCompile Include="src\os\os_win.cpp" />
     <ClCompile Include="src\os\registry.cpp" />
     <ClCompile Include="src\other\Image.cpp" />
-    <ClCompile Include="src\other\Regex.cpp" />
     <ClCompile Include="src\other\uuid.cpp" />
     <ClCompile Include="src\process\SubProcess.cpp" />
     <ClCompile Include="src\process\SubProcess_posix.cpp" />

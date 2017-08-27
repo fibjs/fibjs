@@ -144,21 +144,21 @@ result_t os_base::cpus(v8::Local<v8::Array>& retVal)
     for (uint32_t i = 0; i < numcpus; i++) {
         cpuinfo = v8::Object::New(isolate->m_isolate);
         cputimes = v8::Object::New(isolate->m_isolate);
-        cputimes->Set(isolate->NewFromUtf8("user"),
+        cputimes->Set(isolate->NewString("user"),
             v8::Number::New(isolate->m_isolate, (uint64_t)(info[i].cpu_ticks[0]) * multiplier));
-        cputimes->Set(isolate->NewFromUtf8("nice"),
+        cputimes->Set(isolate->NewString("nice"),
             v8::Number::New(isolate->m_isolate, (uint64_t)(info[i].cpu_ticks[3]) * multiplier));
-        cputimes->Set(isolate->NewFromUtf8("sys"),
+        cputimes->Set(isolate->NewString("sys"),
             v8::Number::New(isolate->m_isolate, (uint64_t)(info[i].cpu_ticks[1]) * multiplier));
-        cputimes->Set(isolate->NewFromUtf8("idle"),
+        cputimes->Set(isolate->NewString("idle"),
             v8::Number::New(isolate->m_isolate, (uint64_t)(info[i].cpu_ticks[2]) * multiplier));
-        cputimes->Set(isolate->NewFromUtf8("irq"), v8::Number::New(isolate->m_isolate, 0));
+        cputimes->Set(isolate->NewString("irq"), v8::Number::New(isolate->m_isolate, 0));
 
-        cpuinfo->Set(isolate->NewFromUtf8("model"), isolate->NewFromUtf8(model));
-        cpuinfo->Set(isolate->NewFromUtf8("speed"),
+        cpuinfo->Set(isolate->NewString("model"), isolate->NewString(model));
+        cpuinfo->Set(isolate->NewString("speed"),
             v8::Number::New(isolate->m_isolate, cpuspeed / 1000000));
 
-        cpuinfo->Set(isolate->NewFromUtf8("times"), cputimes);
+        cpuinfo->Set(isolate->NewString("times"), cputimes);
         retVal->Set(i, cpuinfo);
     }
     vm_deallocate(mach_task_self(), (vm_address_t)info, count);
@@ -195,15 +195,15 @@ result_t os_base::memoryUsage(v8::Local<v8::Object>& retVal)
 
     v8::HeapStatistics v8_heap_stats;
     isolate->m_isolate->GetHeapStatistics(&v8_heap_stats);
-    info->Set(isolate->NewFromUtf8("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
-    info->Set(isolate->NewFromUtf8("heapTotal"),
+    info->Set(isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
+    info->Set(isolate->NewString("heapTotal"),
         v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size()));
-    info->Set(isolate->NewFromUtf8("heapUsed"),
+    info->Set(isolate->NewString("heapUsed"),
         v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size()));
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
-    info->Set(isolate->NewFromUtf8("nativeObjects"), objs);
+    info->Set(isolate->NewString("nativeObjects"), objs);
 
     retVal = info;
 

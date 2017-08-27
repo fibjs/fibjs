@@ -578,12 +578,12 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
     return (new asyncSend(m_fd, data, ac, m_family, m_lockSend, m_SendOpt))->call();
 }
 
-result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<DatagramPacket_base>& retVal,
+result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<object_base>& retVal,
     AsyncEvent* ac)
 {
     class asyncRecvFrom : public asyncProc {
     public:
-        asyncRecvFrom(intptr_t s, int32_t bytes, obj_ptr<DatagramPacket_base>& retVal, AsyncEvent* ac,
+        asyncRecvFrom(intptr_t s, int32_t bytes, obj_ptr<object_base>& retVal, AsyncEvent* ac,
             exlib::Locker& locker, void*& opt)
             : asyncProc(s, EV_READ, ac, locker, opt)
             , m_retVal(retVal)
@@ -632,7 +632,7 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<DatagramPacket_base>& retVal,
         }
 
     public:
-        obj_ptr<DatagramPacket_base>& m_retVal;
+        obj_ptr<object_base>& m_retVal;
         int32_t m_bytes;
         exlib::string m_buf;
     };

@@ -23,20 +23,6 @@ describe('Int64', () => {
         });
     });
 
-    it('can be converted to Number', () => {
-        var a = new Int64(2),
-            b = new Int64(3);
-        assert.equal(a + b, 5);
-        var x = new Int64(),
-            y = new Int64(42),
-            z = new Int64(0xfedcba98, 0x76543210),
-            w = new Int64('0xfedcba9876543210')
-        assert.equal(+x, 0);
-        assert.equal(+y, 42);
-        assert.equal(+z, Infinity);
-        assert.equal(+w, Infinity);
-    });
-
     it('can be compared', () => {
         var a = new Int64(2),
             b = new Int64(3);
@@ -117,7 +103,7 @@ describe('Int64', () => {
             b = new Int64(2),
             c = new Int64(0),
             d = new Int64(-3);
-        
+
         assert.isTrue(a.multi(b).equals(new Int64(8)));
         assert.isTrue(a.multi(2).equals(new Int64(8)));
 

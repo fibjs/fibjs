@@ -79,7 +79,7 @@ inline void baseDecode(const char* pdecodeTable, int32_t dwBits,
     int32_t nBits = 0;
     uint32_t ch;
 
-    while ((ch = utf8_getchar(_baseString, end)) != 0) {
+    while ((ch = utf_getchar(_baseString, end)) != 0) {
         int32_t nCh = (ch > 0x20 && ch < 0x80) ? pdecodeTable[ch - 0x20] : -1;
 
         if (nCh != -1) {
@@ -179,9 +179,6 @@ inline result_t commonEncode(exlib::string codec, exlib::string data, exlib::str
             for (i = 0; i < len; i++)
                 retVal[i] = _data[i] & 0x7f;
 
-            hr = 0;
-        } else if ((codec == "ucs2") || (codec == "ucs-2") || (codec == "utf16le") || (codec == "utf-16le")) {
-            retVal = utf16to8String((const exlib::wchar*)data.c_str(), (int32_t)data.length() / 2);
             hr = 0;
         } else
             hr = encoding_iconv(codec).decode(data, retVal);

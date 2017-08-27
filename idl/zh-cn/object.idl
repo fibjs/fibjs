@@ -20,9 +20,4 @@ interface object
      @return 返回包含可 JSON 序列化的值
      */
     Value toJSON(String key = "");
-
-    /*! @brief 返回对象本身的数值
-     @return 返回对象本身的数值
-    */
-    Value valueOf();
 };

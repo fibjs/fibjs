@@ -23,7 +23,7 @@ result_t JsonLoader::run_module(SandBox::Context* ctx, Buffer_base* src,
         return hr;
 
     Isolate* isolate = ctx->m_sb->holder();
-    module->Set(isolate->NewFromUtf8("exports"), v);
+    module->Set(isolate->NewString("exports"), v);
 
     return 0;
 }

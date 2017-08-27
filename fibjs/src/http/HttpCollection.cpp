@@ -343,7 +343,7 @@ result_t HttpCollection::_named_enumerator(v8::Local<v8::Array>& retVal)
     for (i = 0, n = 0; i < m_count; i++) {
         exlib::string& name = m_names[i];
         if (name_set.insert(name).second)
-            retVal->Set(n++, isolate->NewFromUtf8(name));
+            retVal->Set(n++, isolate->NewString(name));
     }
 
     return 0;

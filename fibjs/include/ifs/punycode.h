@@ -5,8 +5,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _re_base_H_
-#define _re_base_H_
+#ifndef _punycode_base_H_
+#define _punycode_base_H_
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -16,14 +16,13 @@
 
 namespace fibjs {
 
-class Regex_base;
-
-class re_base : public object_base {
-    DECLARE_CLASS(re_base);
+class punycode_base : public object_base {
+    DECLARE_CLASS(punycode_base);
 
 public:
-    // re_base
-    static result_t compile(exlib::string pattern, exlib::string opt, obj_ptr<Regex_base>& retVal);
+    // punycode_base
+    static result_t encode(exlib::string domain, exlib::string& retVal);
+    static result_t decode(exlib::string domain, exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -33,25 +32,25 @@ public:
         Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8("not a constructor"));
+            isolate->NewString("not a constructor"));
     }
 
 public:
-    static void s_compile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
-#include "Regex.h"
-
 namespace fibjs {
-inline ClassInfo& re_base::class_info()
+inline ClassInfo& punycode_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "compile", s_compile, true }
+        { "encode", s_encode, true },
+        { "decode", s_decode, true }
     };
 
     static ClassData s_cd = {
-        "re", true, s__new, NULL,
+        "punycode", true, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };
@@ -60,18 +59,32 @@ inline ClassInfo& re_base::class_info()
     return s_ci;
 }
 
-inline void re_base::s_compile(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void punycode_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<Regex_base> vr;
+    exlib::string vr;
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
 
-    hr = compile(v0, v1, vr);
+    hr = encode(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void punycode_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = decode(v0, vr);
 
     METHOD_RETURN();
 }

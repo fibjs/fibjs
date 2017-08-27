@@ -78,7 +78,7 @@ int32_t API_resultRowValue(void* result, int32_t icolumn, UMTypeInfo* ti, void* 
 {
     Variant v;
 
-    if (value)
+    if (value) {
         switch (ti->type) {
         case MFTYPE_NULL:
             break;
@@ -115,6 +115,9 @@ int32_t API_resultRowValue(void* result, int32_t icolumn, UMTypeInfo* ti, void* 
             v = exlib::string((const char*)value, cbValue);
             break;
         }
+    } else {
+        v.setNull();
+    }
 
     ((DBResult*)result)->rowValue(icolumn, v);
     return true;
@@ -245,7 +248,7 @@ result_t mysql::use(exlib::string dbName, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<DBResult_base> retVal;
+    obj_ptr<object_base> retVal;
     exlib::string s("USE ", 4);
     s.append(dbName);
     return execute(s.c_str(), (int32_t)s.length(), retVal);
@@ -259,7 +262,7 @@ result_t mysql::begin(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<DBResult_base> retVal;
+    obj_ptr<object_base> retVal;
     return execute("BEGIN", 5, retVal);
 }
 
@@ -271,7 +274,7 @@ result_t mysql::commit(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<DBResult_base> retVal;
+    obj_ptr<object_base> retVal;
     return execute("COMMIT", 6, retVal);
 }
 
@@ -283,7 +286,7 @@ result_t mysql::rollback(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<DBResult_base> retVal;
+    obj_ptr<object_base> retVal;
     return execute("ROLLBACK", 8, retVal);
 }
 
@@ -293,7 +296,7 @@ result_t mysql::trans(v8::Local<v8::Function> func)
 }
 
 result_t mysql::execute(const char* sql, int32_t sLen,
-    obj_ptr<DBResult_base>& retVal)
+    obj_ptr<object_base>& retVal)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -302,14 +305,13 @@ result_t mysql::execute(const char* sql, int32_t sLen,
     if (!res)
         return CHECK_ERROR(error());
 
-    res->freeze();
     retVal = res;
     res->Unref();
 
     return 0;
 }
 
-result_t mysql::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, AsyncEvent* ac)
+result_t mysql::execute(exlib::string sql, obj_ptr<object_base>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -320,7 +322,7 @@ result_t mysql::execute(exlib::string sql, obj_ptr<DBResult_base>& retVal, Async
     return execute(sql.c_str(), (int32_t)sql.length(), retVal);
 }
 
-result_t mysql::execute(exlib::string sql, OptArgs args, obj_ptr<DBResult_base>& retVal,
+result_t mysql::execute(exlib::string sql, OptArgs args, obj_ptr<object_base>& retVal,
     AsyncEvent* ac)
 {
     if (!m_conn)

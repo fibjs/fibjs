@@ -268,15 +268,6 @@ result_t Int64::toString(int32_t base, exlib::string& retVal)
     return 0;
 }
 
-result_t Int64::valueOf(v8::Local<v8::Value>& retVal)
-{
-    double num;
-
-    toNumber(num);
-    retVal = v8::Number::New(holder()->m_isolate, num);
-    return 0;
-}
-
 result_t Int64::toNumber(double& retVal)
 {
     if (m_num < -9007199254740992ll || m_num > 9007199254740992ll)
@@ -292,7 +283,7 @@ result_t Int64::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     exlib::string str;
 
     toString(16, str);
-    retVal = holder()->NewFromUtf8(str);
+    retVal = holder()->NewString(str);
 
     return 0;
 }

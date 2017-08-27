@@ -15,7 +15,8 @@ namespace fibjs {
 class HttpCookie : public HttpCookie_base {
 public:
     HttpCookie()
-        : m_httpOnly(false)
+        : m_path("/")
+        , m_httpOnly(false)
         , m_secure(false)
     {
     }

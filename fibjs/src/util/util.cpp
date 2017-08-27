@@ -27,15 +27,15 @@ result_t util_base::inherits(v8::Local<v8::Value> constructor,
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Function> temp = v8::Function::New(isolate->m_isolate, NULL);
 
-    temp->Set(isolate->NewFromUtf8("prototype"),
-        _superConstructor->Get(isolate->NewFromUtf8("prototype")));
+    temp->Set(isolate->NewString("prototype"),
+        _superConstructor->Get(isolate->NewString("prototype")));
 
     v8::Local<v8::Object> proto = temp->NewInstance();
 
-    proto->Set(isolate->NewFromUtf8("constructor"), _constructor);
+    proto->Set(isolate->NewString("constructor"), _constructor);
 
-    _constructor->Set(isolate->NewFromUtf8("prototype"), proto);
-    _constructor->Set(isolate->NewFromUtf8("super_"), _superConstructor);
+    _constructor->Set(isolate->NewString("prototype"), proto);
+    _constructor->Set(isolate->NewString("super_"), _superConstructor);
 
     return 0;
 }
@@ -51,7 +51,7 @@ result_t util_base::has(v8::Local<v8::Value> v, exlib::string key, bool& retVal)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> obj = v->ToObject();
-    retVal = obj->HasOwnProperty(Isolate::current()->NewFromUtf8(key));
+    retVal = obj->HasOwnProperty(Isolate::current()->NewString(key));
     return 0;
 }
 
@@ -528,7 +528,7 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
         bNext = false;
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
-    v8::Local<v8::Value> v = o->Get(isolate->NewFromUtf8("length"));
+    v8::Local<v8::Value> v = o->Get(isolate->NewString("length"));
     if (IsEmpty(v))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -540,7 +540,7 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
         v = o->Get(i);
         if (bNext && v->IsObject()) {
             v8::Local<v8::Object> o1 = v8::Local<v8::Object>::Cast(v);
-            v = o->Get(isolate->NewFromUtf8("length"));
+            v = o->Get(isolate->NewString("length"));
             if (IsEmpty(v))
                 retVal->Set(cnt++, o->Get(i));
             else {
@@ -563,7 +563,7 @@ result_t util_base::without(v8::Local<v8::Value> arr, OptArgs els,
     Isolate* isolate = Isolate::current();
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(arr);
-    v8::Local<v8::Value> v = o->Get(isolate->NewFromUtf8("length"));
+    v8::Local<v8::Value> v = o->Get(isolate->NewString("length"));
     if (IsEmpty(v))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -638,7 +638,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
-    v8::Local<v8::Value> v = o->Get(isolate->NewFromUtf8("length"));
+    v8::Local<v8::Value> v = o->Get(isolate->NewString("length"));
 
     if (IsEmpty(v)) {
         v8::Local<v8::Array> keys = o->GetPropertyNames();
@@ -688,7 +688,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
     args[2] = list;
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
-    v8::Local<v8::Value> v = o->Get(isolate->NewFromUtf8("length"));
+    v8::Local<v8::Value> v = o->Get(isolate->NewString("length"));
     int32_t cnt = 0;
 
     if (IsEmpty(v)) {
@@ -742,7 +742,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
-    v8::Local<v8::Value> v = o->Get(isolate->NewFromUtf8("length"));
+    v8::Local<v8::Value> v = o->Get(isolate->NewString("length"));
 
     if (IsEmpty(v)) {
         v8::Local<v8::Array> keys = o->GetPropertyNames();

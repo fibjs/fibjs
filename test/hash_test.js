@@ -19,6 +19,7 @@ describe("hash", () => {
     function hmac_test(o) {
         assert.equal(o.hmac, hash.hmac(hash[o.name], o.key).digest(o.text).hex());
         assert.equal(o.hmac, hash['hmac_' + o.name.toLowerCase()](o.key).digest(o.text).hex());
+        assert.equal(o.hmac, crypto.createHmac(o.name, o.key).digest(o.text).hex());
     }
 
     it("md2", () => {

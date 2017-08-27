@@ -198,47 +198,47 @@ typedef int32_t result_t;
     do {                                      \
         do {
 
-#define METHOD_OVER(c, o)                                             \
-    }                                                                 \
-    while (0)                                                         \
-        ;                                                             \
-    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                       \
-        do {                                                          \
-            hr = 0;                                                   \
-            int32_t argc1 = args.Length();                            \
-            int32_t argc = argc1;                                     \
-            while (argc > (o) && IsArgumentUndefined(args[argc - 1])) \
-                argc--;                                               \
-            if ((c) >= 0 && argc > (c)) {                             \
-                hr = CALL_E_BADPARAMCOUNT;                            \
-                break;                                                \
-            }                                                         \
-            if ((o) > 0 && argc < (o)) {                              \
-                hr = CALL_E_PARAMNOTOPTIONAL;                         \
-                break;                                                \
+#define METHOD_OVER(c, o)                                       \
+    }                                                           \
+    while (0)                                                   \
+        ;                                                       \
+    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                 \
+        do {                                                    \
+            hr = 0;                                             \
+            int32_t argc1 = args.Length();                      \
+            int32_t argc = argc1;                               \
+            while (argc > (o) && args[argc - 1]->IsUndefined()) \
+                argc--;                                         \
+            if ((c) >= 0 && argc > (c)) {                       \
+                hr = CALL_E_BADPARAMCOUNT;                      \
+                break;                                          \
+            }                                                   \
+            if ((o) > 0 && argc < (o)) {                        \
+                hr = CALL_E_PARAMNOTOPTIONAL;                   \
+                break;                                          \
             }
 
-#define ASYNC_METHOD_OVER(c, o)                                       \
-    }                                                                 \
-    while (0)                                                         \
-        ;                                                             \
-    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                       \
-        do {                                                          \
-            hr = 0;                                                   \
-            int32_t argc1 = args.Length();                            \
-            v8::Local<v8::Function> cb;                               \
-            if (argc1 > 0 && args[argc1 - 1]->IsFunction())           \
-                cb = v8::Local<v8::Function>::Cast(args[--argc1]);    \
-            int32_t argc = argc1;                                     \
-            while (argc > (o) && IsArgumentUndefined(args[argc - 1])) \
-                argc--;                                               \
-            if ((c) >= 0 && argc > (c)) {                             \
-                hr = CALL_E_BADPARAMCOUNT;                            \
-                break;                                                \
-            }                                                         \
-            if ((o) > 0 && argc < (o)) {                              \
-                hr = CALL_E_PARAMNOTOPTIONAL;                         \
-                break;                                                \
+#define ASYNC_METHOD_OVER(c, o)                                    \
+    }                                                              \
+    while (0)                                                      \
+        ;                                                          \
+    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                    \
+        do {                                                       \
+            hr = 0;                                                \
+            int32_t argc1 = args.Length();                         \
+            v8::Local<v8::Function> cb;                            \
+            if (argc1 > 0 && args[argc1 - 1]->IsFunction())        \
+                cb = v8::Local<v8::Function>::Cast(args[--argc1]); \
+            int32_t argc = argc1;                                  \
+            while (argc > (o) && args[argc - 1]->IsUndefined())    \
+                argc--;                                            \
+            if ((c) >= 0 && argc > (c)) {                          \
+                hr = CALL_E_BADPARAMCOUNT;                         \
+                break;                                             \
+            }                                                      \
+            if ((o) > 0 && argc < (o)) {                           \
+                hr = CALL_E_PARAMNOTOPTIONAL;                      \
+                break;                                             \
             }
 
 #define METHOD_ENTER()                        \
@@ -544,20 +544,6 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool 
     n.assign(*tmp, tmp.length());
 
     return 0;
-}
-
-inline bool IsArgumentUndefined(v8::Local<v8::Value> v)
-{
-    if (v->IsUndefined())
-        return true;
-
-    if (!v->IsNumber() && !v->IsNumberObject())
-        return false;
-
-    if (isnan(v->NumberValue()))
-        return true;
-
-    return false;
 }
 
 inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, exlib::string& n, bool bStrict = false)
@@ -920,7 +906,7 @@ template <typename T>
 result_t GetConfigValue(v8::Isolate* isolate, v8::Local<v8::Object> o,
     const char* key, T& n, bool bStrict = false)
 {
-    v8::Local<v8::Value> v = o->Get(v8::String::NewFromUtf8(isolate, key));
+    v8::Local<v8::Value> v = o->Get(NewString(isolate, key));
     if (IsEmpty(v))
         return CALL_E_PARAMNOTOPTIONAL;
 
@@ -949,8 +935,7 @@ inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, int64_t v)
 
 inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, exlib::string& str)
 {
-    return v8::String::NewFromUtf8(isolate, str.c_str(),
-        v8::String::kNormalString, (int32_t)str.length());
+    return NewString(isolate, str);
 }
 
 inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, date_t& v)
@@ -986,7 +971,9 @@ inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, v8::Local<v8::F
 template <class T>
 inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, obj_ptr<T>& obj)
 {
-    return obj->wrap();
+    v8::Local<v8::Value> v;
+    obj->valueOf(v);
+    return v;
 }
 
 inline v8::Local<v8::Object> GetIteratorReturnValue(v8::Isolate* isolate, v8::Local<v8::Array>& array)
@@ -994,13 +981,13 @@ inline v8::Local<v8::Object> GetIteratorReturnValue(v8::Isolate* isolate, v8::Lo
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::Symbol> symbol = v8::Symbol::GetIterator(isolate);
     return array->Get(context, symbol)
-            .ToLocalChecked()
-            ->ToObject(context)
-            .ToLocalChecked()
-            ->CallAsFunction(context, array, 0, NULL)
-            .ToLocalChecked()
-            ->ToObject(context)
-            .ToLocalChecked();
+        .ToLocalChecked()
+        ->ToObject(context)
+        .ToLocalChecked()
+        ->CallAsFunction(context, array, 0, NULL)
+        .ToLocalChecked()
+        ->ToObject(context)
+        .ToLocalChecked();
 }
 
 inline v8::Local<v8::Value> ThrowError(const char* msg)
@@ -1008,7 +995,7 @@ inline v8::Local<v8::Value> ThrowError(const char* msg)
     Isolate* isolate = Isolate::current();
 
     return isolate->m_isolate->ThrowException(v8::Exception::Error(
-        isolate->NewFromUtf8(msg)));
+        isolate->NewString(msg)));
 }
 
 inline v8::Local<v8::Value> ThrowError(v8::Local<v8::Value> exception)
@@ -1023,7 +1010,7 @@ inline v8::Local<v8::Value> ThrowTypeError(const char* msg)
     Isolate* isolate = Isolate::current();
 
     return isolate->m_isolate->ThrowException(v8::Exception::TypeError(
-        isolate->NewFromUtf8(msg)));
+        isolate->NewString(msg)));
 }
 
 inline v8::Local<v8::Value> ThrowRangeError(const char* msg)
@@ -1031,7 +1018,7 @@ inline v8::Local<v8::Value> ThrowRangeError(const char* msg)
     Isolate* isolate = Isolate::current();
 
     return isolate->m_isolate->ThrowException(v8::Exception::RangeError(
-        isolate->NewFromUtf8(msg)));
+        isolate->NewString(msg)));
 }
 
 inline v8::Local<v8::Value> ThrowError(exlib::string msg)
@@ -1039,7 +1026,7 @@ inline v8::Local<v8::Value> ThrowError(exlib::string msg)
     Isolate* isolate = Isolate::current();
 
     return isolate->m_isolate->ThrowException(v8::Exception::Error(
-        isolate->NewFromUtf8(msg)));
+        isolate->NewString(msg)));
 }
 
 inline v8::Local<v8::Value> ThrowTypeError(exlib::string msg)
@@ -1047,7 +1034,7 @@ inline v8::Local<v8::Value> ThrowTypeError(exlib::string msg)
     Isolate* isolate = Isolate::current();
 
     return isolate->m_isolate->ThrowException(v8::Exception::TypeError(
-        isolate->NewFromUtf8(msg)));
+        isolate->NewString(msg)));
 }
 
 inline v8::Local<v8::Value> ThrowRangeError(exlib::string msg)
@@ -1055,7 +1042,7 @@ inline v8::Local<v8::Value> ThrowRangeError(exlib::string msg)
     Isolate* isolate = Isolate::current();
 
     return isolate->m_isolate->ThrowException(v8::Exception::RangeError(
-        isolate->NewFromUtf8(msg)));
+        isolate->NewString(msg)));
 }
 
 inline result_t LastError()

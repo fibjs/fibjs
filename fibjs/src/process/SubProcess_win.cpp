@@ -279,13 +279,13 @@ result_t SubProcess::findWindow(exlib::string name, v8::Local<v8::Value>& retVal
     if (ed.found) {
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-        o->Set(isolate->NewFromUtf8("left"),
+        o->Set(isolate->NewString("left"),
             v8::Number::New(isolate->m_isolate, ed.rect.left));
-        o->Set(isolate->NewFromUtf8("top"),
+        o->Set(isolate->NewString("top"),
             v8::Number::New(isolate->m_isolate, ed.rect.top));
-        o->Set(isolate->NewFromUtf8("right"),
+        o->Set(isolate->NewString("right"),
             v8::Number::New(isolate->m_isolate, ed.rect.right));
-        o->Set(isolate->NewFromUtf8("bottom"),
+        o->Set(isolate->NewString("bottom"),
             v8::Number::New(isolate->m_isolate, ed.rect.bottom));
 
         retVal = o;

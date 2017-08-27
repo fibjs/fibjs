@@ -11,8 +11,22 @@
 #include <exlib/include/list.h>
 #include <exlib/include/service.h>
 #include "QuickArray.h"
+#include "utf8.h"
 
 namespace fibjs {
+
+inline v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, int32_t length = -1)
+{
+    exlib::wstring wstr = utf8to16String(data, length);
+
+    return v8::String::NewFromTwoByte(isolate, (const uint16_t*)wstr.c_str(),
+        v8::String::kNormalString, (int32_t)wstr.length());
+}
+
+inline v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str)
+{
+    return NewString(isolate, str.c_str(), (int32_t)str.length());
+}
 
 class SandBox;
 class JSFiber;
@@ -35,21 +49,21 @@ public:
     static Isolate* current();
     void init();
 
-    v8::Local<v8::String> NewFromUtf8(const char* data, int length = -1)
+    v8::Local<v8::String> NewString(const char* data, int length = -1)
     {
-        return v8::String::NewFromUtf8(m_isolate, data, v8::String::kNormalString, length);
+        return fibjs::NewString(m_isolate, data, length);
     }
 
-    v8::Local<v8::String> NewFromUtf8(exlib::string str)
+    v8::Local<v8::String> NewString(exlib::string str)
     {
-        return v8::String::NewFromUtf8(m_isolate, str.c_str(), v8::String::kNormalString, (int32_t)str.length());
+        return fibjs::NewString(m_isolate, str);
     }
 
     v8::Local<v8::Function> NewFunction(const char* funcName, v8::FunctionCallback callback,
         v8::Local<v8::Value> data = v8::Local<v8::Value>())
     {
         v8::Local<v8::Function> func = v8::Function::New(m_isolate, callback, data);
-        func->SetName(NewFromUtf8(funcName));
+        func->SetName(NewString(funcName));
         return func;
     }
 

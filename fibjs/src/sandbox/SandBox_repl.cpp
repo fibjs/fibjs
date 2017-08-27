@@ -143,7 +143,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
     exlib::string buf;
     v8::Local<v8::Value> v, v1;
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::String> strFname = isolate->NewFromUtf8("repl", 4);
+    v8::Local<v8::String> strFname = isolate->NewString("repl", 4);
     obj_ptr<BufferedStream_base> bs;
     stream_logger* logger = NULL;
 
@@ -198,7 +198,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
             v8::Local<v8::Script> script;
             TryCatch try_catch;
 
-            script = v8::Script::Compile(isolate->NewFromUtf8(buf), strFname);
+            script = v8::Script::Compile(isolate->NewString(buf), strFname);
             if (script.IsEmpty()) {
                 v8::String::Utf8Value exception(try_catch.Exception());
                 if (*exception && qstrcmp(*exception, "SyntaxError: Unexpected end of input")) {

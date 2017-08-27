@@ -54,14 +54,21 @@ describe("db", () => {
         it("create table", () => {
             if (conn.type == 'mssql')
                 conn.execute('create table test(t1 int, t2 varchar(128), t3 VARBINARY(100), t4 datetime);');
-            else
+            else {
                 conn.execute('create table test(t1 int, t2 varchar(128), t3 BLOB, t4 datetime);');
+                conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 BLOB NULL, t4 datetime NULL);');
+            }
         });
 
         it("insert", () => {
             conn.execute("insert into test values(?,?,?,?);", 1123,
                 'aaaaa', new Buffer('DDDDDDDDDD'), new Date(
                     '1998-04-14 12:12:12'));
+
+            if (conn.type != 'mssql') {
+                conn.execute("insert into test_null values(?,?,?,?);", null,
+                    undefined, null, undefined);
+            }
         });
 
         it("select", () => {
@@ -84,23 +91,27 @@ describe("db", () => {
             assert.strictEqual(r['t3'].toString(), 'DDDDDDDDDD');
             assert.deepEqual(r['t4'], new Date('1998-04-14 12:12:12'));
 
-            assert.deepEqual(rs.fields, [
-                "t1",
-                "t2",
-                "t3",
-                "t4"
-            ]);
-
             assert.deepEqual(Object.keys(r), [
                 "t1",
                 "t2",
                 "t3",
                 "t4"
             ]);
+
+            if (conn.type == 'SQLite') {
+                rs = conn.execute('select t1,t2,t3,t4 from test_null')[0];
+                assert.isNull(rs.t1);
+                assert.isNull(rs.t2);
+                assert.isNull(rs.t3);
+                assert.isNull(rs.t4);
+            }
         });
 
         it("execute async", (done) => {
             conn.execute("select * from test where t1=?", 1123, (e, rs) => {
+                if (e)
+                    return done(e);
+
                 assert.equal(rs.length, 1);
                 done();
             });

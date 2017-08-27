@@ -47,62 +47,62 @@ result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
     Isolate* isolate = Isolate::current();
     retVal = v8::Object::New(isolate->m_isolate);
 
-    retVal->Set(isolate->NewFromUtf8("fibjs"), isolate->NewFromUtf8(fibjs_version));
+    retVal->Set(isolate->NewString("fibjs"), isolate->NewString(fibjs_version));
 
 #ifdef GIT_INFO
-    retVal->Set(isolate->NewFromUtf8("git"), isolate->NewFromUtf8(GIT_INFO));
+    retVal->Set(isolate->NewString("git"), isolate->NewString(GIT_INFO));
 #endif
 
 #if defined(__clang__)
-    retVal->Set(isolate->NewFromUtf8("clang"),
-        isolate->NewFromUtf8(STR(__clang_major__) "." STR(__clang_minor__)));
+    retVal->Set(isolate->NewString("clang"),
+        isolate->NewString(STR(__clang_major__) "." STR(__clang_minor__)));
 #elif defined(__GNUC__)
-    retVal->Set(isolate->NewFromUtf8("gcc"),
-        isolate->NewFromUtf8(STR(__GNUC__) "." STR(__GNUC_MINOR__) "." STR(__GNUC_PATCHLEVEL__)));
+    retVal->Set(isolate->NewString("gcc"),
+        isolate->NewString(STR(__GNUC__) "." STR(__GNUC_MINOR__) "." STR(__GNUC_PATCHLEVEL__)));
 #elif defined(_MSC_VER)
-    retVal->Set(isolate->NewFromUtf8("msvc"),
-        isolate->NewFromUtf8(STR(_MSC_VER)));
+    retVal->Set(isolate->NewString("msvc"),
+        isolate->NewString(STR(_MSC_VER)));
 #endif
 
-    retVal->Set(isolate->NewFromUtf8("date"),
-        isolate->NewFromUtf8(__DATE__ " " __TIME__));
+    retVal->Set(isolate->NewString("date"),
+        isolate->NewString(__DATE__ " " __TIME__));
 
 #ifndef NDEBUG
-    retVal->Set(isolate->NewFromUtf8("debug"), v8::True(isolate->m_isolate));
+    retVal->Set(isolate->NewString("debug"), v8::True(isolate->m_isolate));
 #endif
 
     {
         v8::Local<v8::Object> vender = v8::Object::New(isolate->m_isolate);
         char str[64];
 
-        retVal->Set(isolate->NewFromUtf8("vender"), vender);
+        retVal->Set(isolate->NewString("vender"), vender);
 
-        vender->Set(isolate->NewFromUtf8("ev"),
-            isolate->NewFromUtf8(STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR)));
+        vender->Set(isolate->NewString("ev"),
+            isolate->NewString(STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR)));
 
-        vender->Set(isolate->NewFromUtf8("expat"),
-            isolate->NewFromUtf8(STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION)));
+        vender->Set(isolate->NewString("expat"),
+            isolate->NewString(STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION)));
 
-        vender->Set(isolate->NewFromUtf8("gd"), isolate->NewFromUtf8(GD_VERSION_STRING));
-        vender->Set(isolate->NewFromUtf8("jpeg"), isolate->NewFromUtf8(STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR)));
+        vender->Set(isolate->NewString("gd"), isolate->NewString(GD_VERSION_STRING));
+        vender->Set(isolate->NewString("jpeg"), isolate->NewString(STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR)));
         sprintf(str, "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
-        vender->Set(isolate->NewFromUtf8("leveldb"), isolate->NewFromUtf8(str));
-        vender->Set(isolate->NewFromUtf8("mongo"), isolate->NewFromUtf8(STR(MONGO_MAJOR) "." STR(MONGO_MINOR)));
-        vender->Set(isolate->NewFromUtf8("pcre"), isolate->NewFromUtf8(STR(PCRE_MAJOR) "." STR(PCRE_MINOR)));
-        vender->Set(isolate->NewFromUtf8("png"), isolate->NewFromUtf8(PNG_LIBPNG_VER_STRING));
-        vender->Set(isolate->NewFromUtf8("mbedtls"), isolate->NewFromUtf8(MBEDTLS_VERSION_STRING));
-        vender->Set(isolate->NewFromUtf8("snappy"),
-            isolate->NewFromUtf8(STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL)));
-        vender->Set(isolate->NewFromUtf8("sqlite"), isolate->NewFromUtf8(SQLITE_VERSION));
-        vender->Set(isolate->NewFromUtf8("tiff"), isolate->NewFromUtf8(TIFFLIB_VERSION_STR));
-        vender->Set(isolate->NewFromUtf8("uuid"), isolate->NewFromUtf8("1.6.2"));
-        vender->Set(isolate->NewFromUtf8("v8"), isolate->NewFromUtf8(v8::V8::GetVersion()));
+        vender->Set(isolate->NewString("leveldb"), isolate->NewString(str));
+        vender->Set(isolate->NewString("mongo"), isolate->NewString(STR(MONGO_MAJOR) "." STR(MONGO_MINOR)));
+        vender->Set(isolate->NewString("pcre"), isolate->NewString(STR(PCRE_MAJOR) "." STR(PCRE_MINOR)));
+        vender->Set(isolate->NewString("png"), isolate->NewString(PNG_LIBPNG_VER_STRING));
+        vender->Set(isolate->NewString("mbedtls"), isolate->NewString(MBEDTLS_VERSION_STRING));
+        vender->Set(isolate->NewString("snappy"),
+            isolate->NewString(STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL)));
+        vender->Set(isolate->NewString("sqlite"), isolate->NewString(SQLITE_VERSION));
+        vender->Set(isolate->NewString("tiff"), isolate->NewString(TIFFLIB_VERSION_STR));
+        vender->Set(isolate->NewString("uuid"), isolate->NewString("1.6.2"));
+        vender->Set(isolate->NewString("v8"), isolate->NewString(v8::V8::GetVersion()));
 
-        vender->Set(isolate->NewFromUtf8("v8-snapshot"),
+        vender->Set(isolate->NewString("v8-snapshot"),
             v8::internal::Snapshot::DefaultSnapshotBlob() ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate));
 
-        vender->Set(isolate->NewFromUtf8("zlib"), isolate->NewFromUtf8(ZLIB_VERSION));
-        vender->Set(isolate->NewFromUtf8("zmq"), isolate->NewFromUtf8(STR(ZMQ_VERSION_MAJOR) "." STR(ZMQ_VERSION_MINOR)));
+        vender->Set(isolate->NewString("zlib"), isolate->NewString(ZLIB_VERSION));
+        vender->Set(isolate->NewString("zmq"), isolate->NewString(STR(ZMQ_VERSION_MAJOR) "." STR(ZMQ_VERSION_MINOR)));
     }
 
     return 0;

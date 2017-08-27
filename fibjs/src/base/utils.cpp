@@ -109,8 +109,8 @@ v8::Local<v8::Value> ThrowResult(result_t hr)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Value> e = v8::Exception::Error(
-        isolate->NewFromUtf8(getResultMessage(hr)));
-    e->ToObject()->Set(isolate->NewFromUtf8("number"), v8::Int32::New(isolate->m_isolate, -hr));
+        isolate->NewString(getResultMessage(hr)));
+    e->ToObject()->Set(isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr));
 
     return isolate->m_isolate->ThrowException(e);
 }

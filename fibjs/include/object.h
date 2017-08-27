@@ -278,7 +278,7 @@ public:
         Isolate* isolate = holder();
 
         return o->GetPrivate(o->CreationContext(),
-                    v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)))
+                    v8::Private::ForApi(isolate->m_isolate, isolate->NewString(key)))
             .ToLocalChecked();
     }
 
@@ -288,7 +288,7 @@ public:
         Isolate* isolate = holder();
 
         o->SetPrivate(o->CreationContext(),
-            v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)),
+            v8::Private::ForApi(isolate->m_isolate, isolate->NewString(key)),
             value);
     }
 
@@ -298,7 +298,7 @@ public:
         Isolate* isolate = holder();
 
         o->DeletePrivate(o->CreationContext(),
-            v8::Private::ForApi(isolate->m_isolate, isolate->NewFromUtf8(key)));
+            v8::Private::ForApi(isolate->m_isolate, isolate->NewString(key)));
     }
 
 public:
@@ -382,7 +382,7 @@ public:
         strError += *v8::String::Utf8Value(property);
         strError += "\' is read-only.";
         isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8(strError));
+            isolate->NewString(strError));
     }
 
     static void i_IndexedSetter(uint32_t index,
@@ -391,7 +391,7 @@ public:
         Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8("Indexed Property is read-only."));
+            isolate->NewString("Indexed Property is read-only."));
     }
 
     static void i_NamedSetter(v8::Local<v8::String> property,
@@ -400,7 +400,7 @@ public:
         Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8("Named Property is read-only."));
+            isolate->NewString("Named Property is read-only."));
     }
 
     static void i_NamedDeleter(
@@ -409,7 +409,7 @@ public:
         Isolate* isolate = Isolate::current();
 
         isolate->m_isolate->ThrowException(
-            isolate->NewFromUtf8("Named Property is read-only."));
+            isolate->NewString("Named Property is read-only."));
     }
 
     //------------------------------------------------------------------
@@ -420,7 +420,6 @@ private:
     static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_valueOf(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 class RootModule {
@@ -474,12 +473,11 @@ inline ClassInfo& object_base::class_info()
         { "dispose", s_dispose },
         { "equals", s_equals, false },
         { "toString", s_toString },
-        { "toJSON", s_toJSON },
-        { "valueOf", s_valueOf }
+        { "toJSON", s_toJSON }
     };
 
     static ClassData s_cd = {
-        "object", false, NULL, NULL, 5, s_method, 0,
+        "object", false, NULL, NULL, 4, s_method, 0,
         NULL, 0, NULL, NULL, NULL, NULL
     };
 
@@ -541,20 +539,6 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& arg
     OPT_ARG(exlib::string, 0, "");
 
     hr = pInst->toJSON(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void object_base::s_valueOf(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Value> vr;
-
-    METHOD_INSTANCE(object_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->valueOf(vr);
 
     METHOD_RETURN();
 }

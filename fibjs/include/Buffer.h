@@ -79,26 +79,26 @@ public:
     virtual result_t readFloatBE(int32_t offset, bool noAssert, double& retVal);
     virtual result_t readDoubleLE(int32_t offset, bool noAssert, double& retVal);
     virtual result_t readDoubleBE(int32_t offset, bool noAssert, double& retVal);
-    virtual result_t writeUInt8(int32_t value, int32_t offset, bool noAssert);
-    virtual result_t writeUInt16LE(int32_t value, int32_t offset, bool noAssert);
-    virtual result_t writeUInt16BE(int32_t value, int32_t offset, bool noAssert);
-    virtual result_t writeUInt32LE(int64_t value, int32_t offset, bool noAssert);
-    virtual result_t writeUInt32BE(int64_t value, int32_t offset, bool noAssert);
-    virtual result_t writeUIntLE(int64_t value, int32_t offset, bool noAssert);
-    virtual result_t writeUIntBE(int64_t value, int32_t offset, bool noAssert);
-    virtual result_t writeInt8(int32_t value, int32_t offset, bool noAssert);
-    virtual result_t writeInt16LE(int32_t value, int32_t offset, bool noAssert);
-    virtual result_t writeInt16BE(int32_t value, int32_t offset, bool noAssert);
-    virtual result_t writeInt32LE(int32_t value, int32_t offset, bool noAssert);
-    virtual result_t writeInt32BE(int32_t value, int32_t offset, bool noAssert);
-    virtual result_t writeIntLE(int64_t value, int32_t offset, bool noAssert);
-    virtual result_t writeIntBE(int64_t value, int32_t offset, bool noAssert);
-    virtual result_t writeInt64LE(Int64_base* value, int32_t offset, bool noAssert);
-    virtual result_t writeInt64BE(Int64_base* value, int32_t offset, bool noAssert);
-    virtual result_t writeFloatLE(double value, int32_t offset, bool noAssert);
-    virtual result_t writeFloatBE(double value, int32_t offset, bool noAssert);
-    virtual result_t writeDoubleLE(double value, int32_t offset, bool noAssert);
-    virtual result_t writeDoubleBE(double value, int32_t offset, bool noAssert);
+    virtual result_t writeUInt8(int32_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeUInt16LE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeUInt16BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeUInt32LE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeUInt32BE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeUIntLE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeUIntBE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeInt8(int32_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeInt16LE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeInt16BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeInt32LE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeInt32BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeIntLE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeIntBE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeInt64LE(Int64_base* value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeInt64BE(Int64_base* value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeFloatLE(double value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeFloatBE(double value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeDoubleLE(double value, int32_t offset, bool noAssert, int32_t& retVal);
+    virtual result_t writeDoubleBE(double value, int32_t offset, bool noAssert, int32_t& retVal);
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal);
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal);
     virtual result_t reverse(obj_ptr<Buffer_base>& retVal);
@@ -123,13 +123,13 @@ public:
 
 public:
     result_t readNumber(int32_t offset, char* buf, int32_t size, bool noAssert, bool le);
-    result_t writeNumber(int32_t offset, const char* buf, int32_t size, bool noAssert, bool le);
+    result_t writeNumber(int32_t offset, const char* buf, int32_t size, bool noAssert, bool le, int32_t& retVal);
 
     result_t readInt64LE(int32_t offset, bool noAssert, int64_t& retVal);
     result_t readInt64BE(int32_t offset, bool noAssert, int64_t& retVal);
 
-    result_t writeInt64LE(int64_t value, int32_t offset, bool noAssert);
-    result_t writeInt64BE(int64_t value, int32_t offset, bool noAssert);
+    result_t writeInt64LE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal);
+    result_t writeInt64BE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal);
 
 public:
     template <typename T>

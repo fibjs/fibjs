@@ -164,7 +164,17 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
     result_t hr = 0;
     if ((m_charset == "utf8") || (m_charset == "utf-8"))
         retVal = data;
-    else {
+    else if ((m_charset == "ucs2") || (m_charset == "ucs-2")
+        || (m_charset == "utf16le") || (m_charset == "utf-16le")) {
+        int32_t n = utf_convert(data.c_str(), (int32_t)data.length(), (exlib::wchar*)NULL, 0);
+        retVal.resize(n * sizeof(exlib::wchar));
+        utf_convert(data.c_str(), (int32_t)data.length(), (exlib::wchar*)&retVal[0], n);
+    } else if ((m_charset == "ucs4") || (m_charset == "ucs-4")
+        || (m_charset == "utf32le") || (m_charset == "utf-32le")) {
+        int32_t n = utf_convert(data.c_str(), (int32_t)data.length(), (exlib::wchar32*)NULL, 0);
+        retVal.resize(n * sizeof(exlib::wchar32));
+        utf_convert(data.c_str(), (int32_t)data.length(), (exlib::wchar32*)&retVal[0], n);
+    } else {
         if (m_charset == "binary")
             m_charset = "latin1";
 
@@ -211,6 +221,12 @@ result_t encoding_iconv::decode(const exlib::string& data, exlib::string& retVal
 {
     if ((m_charset == "utf8") || (m_charset == "utf-8"))
         retVal = data;
+    else if ((m_charset == "ucs2") || (m_charset == "ucs-2")
+        || (m_charset == "utf16le") || (m_charset == "utf-16le"))
+        retVal = utf16to8String((const exlib::wchar*)data.c_str(), (int32_t)data.length() / sizeof(exlib::wchar));
+    else if ((m_charset == "ucs4") || (m_charset == "ucs-4")
+        || (m_charset == "utf32le") || (m_charset == "utf-32le"))
+        retVal = utf32to8String((const exlib::wchar32*)data.c_str(), (int32_t)data.length() / sizeof(exlib::wchar32));
     else {
         if (m_charset == "binary")
             m_charset = "latin1";
@@ -254,14 +270,17 @@ result_t encoding_iconv::decode(Buffer_base* data, exlib::string& retVal)
 
 result_t encoding_iconv::isEncoding(bool& retVal)
 {
-    if ((m_charset == "utf8") || (m_charset == "utf-8")) {
+    if ((m_charset == "utf8") || (m_charset == "utf-8")
+        || (m_charset == "ucs2") || (m_charset == "ucs-2")
+        || (m_charset == "utf16le") || (m_charset == "utf-16le")
+        || (m_charset == "ucs4") || (m_charset == "ucs-4")
+        || (m_charset == "utf32le") || (m_charset == "utf-32le")) {
         retVal = true;
         return 0;
     }
 
-    if (m_charset == "binary") {
+    if (m_charset == "binary")
         m_charset = "latin1";
-    }
 
     if (!m_iconv_ec) {
         m_iconv_ec = _iconv_open(m_charset.c_str(), "utf-8");

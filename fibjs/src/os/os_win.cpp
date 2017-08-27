@@ -321,26 +321,26 @@ result_t os_base::cpus(v8::Local<v8::Array>& retVal)
         RegCloseKey(processor_key);
 
         v8::Local<v8::Object> times_info = v8::Object::New(isolate->m_isolate);
-        times_info->Set(isolate->NewFromUtf8("user"),
+        times_info->Set(isolate->NewString("user"),
             v8::Integer::New(isolate->m_isolate,
                 (int32_t)(sppi[i].UserTime.QuadPart / 10000)));
-        times_info->Set(isolate->NewFromUtf8("nice"), v8::Integer::New(isolate->m_isolate, 0));
-        times_info->Set(isolate->NewFromUtf8("sys"),
+        times_info->Set(isolate->NewString("nice"), v8::Integer::New(isolate->m_isolate, 0));
+        times_info->Set(isolate->NewString("sys"),
             v8::Integer::New(isolate->m_isolate,
                 (int32_t)(sppi[i].KernelTime.QuadPart
                     - sppi[i].IdleTime.QuadPart)
                     / 10000));
-        times_info->Set(isolate->NewFromUtf8("idle"),
+        times_info->Set(isolate->NewString("idle"),
             v8::Integer::New(isolate->m_isolate,
                 (int32_t)(sppi[i].IdleTime.QuadPart / 10000)));
-        times_info->Set(isolate->NewFromUtf8("irq"),
+        times_info->Set(isolate->NewString("irq"),
             v8::Integer::New(isolate->m_isolate,
                 (int32_t)(sppi[i].InterruptTime.QuadPart / 10000)));
 
         v8::Local<v8::Object> cpu_info = v8::Object::New(isolate->m_isolate);
-        cpu_info->Set(isolate->NewFromUtf8("model"), isolate->NewFromUtf8(cpu_brand));
-        cpu_info->Set(isolate->NewFromUtf8("speed"), v8::Integer::New(isolate->m_isolate, cpu_speed));
-        cpu_info->Set(isolate->NewFromUtf8("times"), times_info);
+        cpu_info->Set(isolate->NewString("model"), isolate->NewString(cpu_brand));
+        cpu_info->Set(isolate->NewString("speed"), v8::Integer::New(isolate->m_isolate, cpu_speed));
+        cpu_info->Set(isolate->NewString("times"), times_info);
         retVal->Set(i, cpu_info);
     }
 
@@ -378,7 +378,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
         if (adapter_address->OperStatus != IfOperStatusUp)
             continue;
 
-        name = isolate->NewFromUtf8(UTF8_A(adapter_address->FriendlyName));
+        name = isolate->NewString(UTF8_A(adapter_address->FriendlyName));
 
         ret = v8::Array::New(isolate->m_isolate);
         retVal->Set(name, ret);
@@ -388,9 +388,9 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
             inetAddr* sock_addr = (inetAddr*)unicast_address->Address.lpSockaddr;
 
             o = v8::Object::New(isolate->m_isolate);
-            o->Set(isolate->NewFromUtf8("address"), isolate->NewFromUtf8(sock_addr->str()));
-            o->Set(isolate->NewFromUtf8("family"), sock_addr->family() == net_base::_AF_INET6 ? isolate->NewFromUtf8("IPv6") : isolate->NewFromUtf8("IPv4"));
-            o->Set(isolate->NewFromUtf8("internal"),
+            o->Set(isolate->NewString("address"), isolate->NewString(sock_addr->str()));
+            o->Set(isolate->NewString("family"), sock_addr->family() == net_base::_AF_INET6 ? isolate->NewString("IPv6") : isolate->NewString("IPv4"));
+            o->Set(isolate->NewString("internal"),
                 adapter_address->IfType == IF_TYPE_SOFTWARE_LOOPBACK ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate));
 
             ret->Set(ret->Length(), o);
@@ -429,15 +429,15 @@ result_t os_base::printerInfo(v8::Local<v8::Array>& retVal)
     for (DWORD i = 0; i < dwReturned; i++) {
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
         PRINTER_INFO_5W* pItem = &pinfo[i];
-        o->Set(isolate->NewFromUtf8("name"), isolate->NewFromUtf8(UTF8_A(pItem->pPrinterName)));
-        o->Set(isolate->NewFromUtf8("port"), isolate->NewFromUtf8(UTF8_A(pItem->pPortName)));
+        o->Set(isolate->NewString("name"), isolate->NewString(UTF8_A(pItem->pPrinterName)));
+        o->Set(isolate->NewString("port"), isolate->NewString(UTF8_A(pItem->pPortName)));
         if (PRINTER_ATTRIBUTE_LOCAL & pItem->Attributes)
-            o->Set(isolate->NewFromUtf8("type"), isolate->NewFromUtf8("local"));
+            o->Set(isolate->NewString("type"), isolate->NewString("local"));
         else if (PRINTER_ATTRIBUTE_NETWORK & pItem->Attributes)
-            o->Set(isolate->NewFromUtf8("type"), isolate->NewFromUtf8("network"));
+            o->Set(isolate->NewString("type"), isolate->NewString("network"));
 
         if (!qstrcmp(pname, pItem->pPrinterName))
-            o->Set(isolate->NewFromUtf8("default"), v8::True(isolate->m_isolate));
+            o->Set(isolate->NewString("default"), v8::True(isolate->m_isolate));
 
         ret->Set(ret->Length(), o);
     }
@@ -570,15 +570,15 @@ result_t os_base::memoryUsage(v8::Local<v8::Object>& retVal)
 
     v8::HeapStatistics v8_heap_stats;
     isolate->m_isolate->GetHeapStatistics(&v8_heap_stats);
-    info->Set(isolate->NewFromUtf8("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
-    info->Set(isolate->NewFromUtf8("heapTotal"),
+    info->Set(isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
+    info->Set(isolate->NewString("heapTotal"),
         v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size()));
-    info->Set(isolate->NewFromUtf8("heapUsed"),
+    info->Set(isolate->NewString("heapUsed"),
         v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size()));
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
-    info->Set(isolate->NewFromUtf8("nativeObjects"), objs);
+    info->Set(isolate->NewString("nativeObjects"), objs);
 
     retVal = info;
 
@@ -676,24 +676,24 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
 
     // homedir end
 
-    retVal->Set(isolate->NewFromUtf8("uid"), v8::Integer::New(isolate->m_isolate, -1));
-    retVal->Set(isolate->NewFromUtf8("gid"), v8::Integer::New(isolate->m_isolate, -1));
+    retVal->Set(isolate->NewString("uid"), v8::Integer::New(isolate->m_isolate, -1));
+    retVal->Set(isolate->NewString("gid"), v8::Integer::New(isolate->m_isolate, -1));
 
     if (encoding == "buffer") {
         obj_ptr<Buffer_base> usernameBuffer = new Buffer(username);
         obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
 
-        retVal->Set(isolate->NewFromUtf8("username"), usernameBuffer->wrap());
-        retVal->Set(isolate->NewFromUtf8("homedir"), homedirBuffer->wrap());
-        retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
+        retVal->Set(isolate->NewString("username"), usernameBuffer->wrap());
+        retVal->Set(isolate->NewString("homedir"), homedirBuffer->wrap());
+        retVal->Set(isolate->NewString("shell"), v8::Null(isolate->m_isolate));
         return 0;
     } else {
         commonEncode(encoding, username, username);
         commonEncode(encoding, homedir, homedir);
 
-        retVal->Set(isolate->NewFromUtf8("username"), isolate->NewFromUtf8(username));
-        retVal->Set(isolate->NewFromUtf8("homedir"), isolate->NewFromUtf8(homedir));
-        retVal->Set(isolate->NewFromUtf8("shell"), v8::Null(isolate->m_isolate));
+        retVal->Set(isolate->NewString("username"), isolate->NewString(username));
+        retVal->Set(isolate->NewString("homedir"), isolate->NewString(homedir));
+        retVal->Set(isolate->NewString("shell"), v8::Null(isolate->m_isolate));
         return 0;
     }
     return 0;

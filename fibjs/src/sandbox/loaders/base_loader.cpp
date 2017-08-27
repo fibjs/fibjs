@@ -40,7 +40,7 @@ result_t SandBox::ExtLoader::run_main(Context* ctx, Buffer_base* src,
     Isolate* isolate = ctx->m_sb->holder();
 
     v8::Local<v8::Value> replFunc = global_base::class_info().getModule(isolate)->Get(
-        isolate->NewFromUtf8("repl"));
+        isolate->NewString("repl"));
 
     v8::Local<v8::Value> args[10] = {
         v8::Local<v8::Value>(), v8::Local<v8::Value>(),

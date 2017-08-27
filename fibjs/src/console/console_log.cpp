@@ -98,7 +98,7 @@ result_t console_base::add(exlib::string type)
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-    o->Set(isolate->NewFromUtf8("type", 4), isolate->NewFromUtf8(type));
+    o->Set(isolate->NewString("type", 4), isolate->NewString(type));
     return add(o);
 }
 
@@ -115,7 +115,7 @@ result_t console_base::add(v8::Local<v8::Object> cfg)
     v8::Local<v8::Value> type;
     Isolate* isolate = Isolate::current();
 
-    type = cfg->Get(isolate->NewFromUtf8("type", 4));
+    type = cfg->Get(isolate->NewString("type", 4));
     if (IsEmpty(type))
         return CHECK_ERROR(Runtime::setError("Missing log type."));
 

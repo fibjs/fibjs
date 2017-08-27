@@ -153,9 +153,6 @@
     <ClInclude Include="include\DBResult.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\DBRow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\DateCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -297,9 +294,6 @@
     <ClInclude Include="include\RedisSortedSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Regex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Routing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -316,6 +310,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Service.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SimpleObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Smtp.h">
@@ -471,15 +468,6 @@
     <ClInclude Include="include\ifs\Condition.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\DBResult.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\DBRow.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\DatagramPacket.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\DbConnection.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -613,9 +601,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\RedisSortedSet.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\Regex.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Routing.h">
@@ -834,10 +819,10 @@
     <ClInclude Include="include\ifs\profiler.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\querystring.h">
+    <ClInclude Include="include\ifs\punycode.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\re.h">
+    <ClInclude Include="include\ifs\querystring.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\registry.h">
@@ -1112,12 +1097,6 @@
     <ClCompile Include="src\db\redis\RedisSortedSet.cpp">
       <Filter>Source Files\db\redis</Filter>
     </ClCompile>
-    <ClCompile Include="src\db\sql\DBResult.cpp">
-      <Filter>Source Files\db\sql</Filter>
-    </ClCompile>
-    <ClCompile Include="src\db\sql\DBRow.cpp">
-      <Filter>Source Files\db\sql</Filter>
-    </ClCompile>
     <ClCompile Include="src\db\sql\SQLite.cpp">
       <Filter>Source Files\db\sql</Filter>
     </ClCompile>
@@ -1286,6 +1265,9 @@
     <ClCompile Include="src\net\net.cpp">
       <Filter>Source Files\net</Filter>
     </ClCompile>
+    <ClCompile Include="src\net\punycode.cpp">
+      <Filter>Source Files\net</Filter>
+    </ClCompile>
     <ClCompile Include="src\os\Service_other.cpp">
       <Filter>Source Files\os</Filter>
     </ClCompile>
@@ -1314,9 +1296,6 @@
       <Filter>Source Files\os</Filter>
     </ClCompile>
     <ClCompile Include="src\other\Image.cpp">
-      <Filter>Source Files\other</Filter>
-    </ClCompile>
-    <ClCompile Include="src\other\Regex.cpp">
       <Filter>Source Files\other</Filter>
     </ClCompile>
     <ClCompile Include="src\other\uuid.cpp">
