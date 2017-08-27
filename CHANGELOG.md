@@ -1,3 +1,97 @@
+## 2017-08-27, Version v0.12.0
+
+* **feature** :
+    * Buffer - Buffer.write* return new offset, compatible with node.js.(响马)
+    * core:
+      - support ucs2 string convert.(响马)
+      - SimpleObject support Array.(响马)
+      - Implement SimpleObject to build simple JavaScript Object from native.(响马)
+      - not ignore nan in arguments.(响马)
+    * crypto - support crypto.createHmac.(响马)
+    * db:
+      - query result NULL is converted to null in MySQL and SQLite (#334)(blingz)
+      - undefined / null are converted to NULL (#333)(blingz)
+    * HttpCookie - path=/ as default value in cookie (#332)(blingz)
+    * iconv:
+      - support ucs4 codec.(响马)
+      - support ucs2, utf16le codec.(响马)
+    * punycode - support native module punycode.(响马)
+    * test - support this in test function.(响马)
+    * v8 - upgrade to v6.2.377.(响马)
+    * vs - generate vc proj file.(响马)
+
+* **breakchange** :
+    * Int64 - deprecated valueOf.(响马)
+    * object - deprecated valueOf.(响马)
+    * re - deprecated module re.(响马)
+
+* **bugfix** :
+    * core:
+      - disable parallel scavenge, fix gc deadlock.(响马)
+      - compile warning on windows debug.(响马)
+      - method count error in class info of  object.(响马)
+    * db - fix typo.(响马)
+    * iconv:
+      - multi char utf-16 decode error.(xicilion)
+      - unicode 0xd800 convert error.(响马)
+    * punycode:
+      - compile warning on windows x86.(响马)
+      - compile error on linux.(响马)
+    * sandbox - jsc test file load error.(xicilion)
+    * test - callback hungup when execute return error.(响马)
+
+* **refactor** :
+    * core:
+      - use new NewString convert string to v8 Value, fix v8 utf8 issue.(响马)
+      - rename utf8 api, support wchar32.(响马)
+      - use valueOf to get the wrap of native object.(响马)
+    * db - use simpleObject to return the query result of execute.(响马)
+    * idlc - not refer object_base.(响马)
+    * net - use SimpleObject to build the result of method recvfrom.(响马)
+    * util - method format check native object first.(响马)
+    * Variant - use valueOf to convert object_base to JavaScript Value.(响马)
+
+### Commits
+* [[`8d729e1a9d`](https://github.com/fibjs/fibjs/commit/8d729e1a9d)] - **sandbox, bugfix**: jsc test file load error.(xicilion)
+* [[`7ffc201fae`](https://github.com/fibjs/fibjs/commit/7ffc201fae)] - **iconv, bugfix**: multi char utf-16 decode error.(xicilion)
+* [[`29f63c319e`](https://github.com/fibjs/fibjs/commit/29f63c319e)] - **punycode, bugfix**: compile warning on windows x86.(响马)
+* [[`5e24e08983`](https://github.com/fibjs/fibjs/commit/5e24e08983)] - **v8, feat**: upgrade to v6.2.377.(响马)
+* [[`dc9d0afa70`](https://github.com/fibjs/fibjs/commit/dc9d0afa70)] - **iconv, feat**: support ucs4 codec.(响马)
+* [[`195314e86c`](https://github.com/fibjs/fibjs/commit/195314e86c)] - **iconv, bugfix**: unicode 0xd800 convert error.(响马)
+* [[`e359be21f5`](https://github.com/fibjs/fibjs/commit/e359be21f5)] - **core, refactor**: use new NewString convert string to v8 Value, fix v8 utf8 issue.(响马)
+* [[`b0f49372f2`](https://github.com/fibjs/fibjs/commit/b0f49372f2)] - **iconv, feat**: support ucs2, utf16le codec.(响马)
+* [[`d235fc204f`](https://github.com/fibjs/fibjs/commit/d235fc204f)] - **re, break**: deprecated module re.(响马)
+* [[`6a02c5201d`](https://github.com/fibjs/fibjs/commit/6a02c5201d)] - **core, bugfix**: disable parallel scavenge, fix gc deadlock.(响马)
+* [[`4ff74b2b22`](https://github.com/fibjs/fibjs/commit/4ff74b2b22)] - **punycode, bugfix**: compile error on linux.(响马)
+* [[`f2fb96a312`](https://github.com/fibjs/fibjs/commit/f2fb96a312)] - **docs**: remove old docs.(响马)
+* [[`d53df147e1`](https://github.com/fibjs/fibjs/commit/d53df147e1)] - **punycode, feat**: support native module punycode.(响马)
+* [[`f52f2dedc3`](https://github.com/fibjs/fibjs/commit/f52f2dedc3)] - **util, refactor**: method format check native object first.(响马)
+* [[`d3587e7fe0`](https://github.com/fibjs/fibjs/commit/d3587e7fe0)] - **db, feat**: query result NULL is converted to null in MySQL and SQLite (#334)(blingz)
+* [[`c1a79a0004`](https://github.com/fibjs/fibjs/commit/c1a79a0004)] - **db, feat**: undefined / null are converted to NULL (#333)(blingz)
+* [[`51f58f3578`](https://github.com/fibjs/fibjs/commit/51f58f3578)] - **core, feat**: support ucs2 string convert.(响马)
+* [[`350a328ca0`](https://github.com/fibjs/fibjs/commit/350a328ca0)] - **core, refactor**: rename utf8 api, support wchar32.(响马)
+* [[`82a9924bc4`](https://github.com/fibjs/fibjs/commit/82a9924bc4)] - **bugfix**: compile warning in debug mode.(响马)
+* [[`8f9d6450f9`](https://github.com/fibjs/fibjs/commit/8f9d6450f9)] - **db, bugfix**: fix typo.(响马)
+* [[`5b67d542a9`](https://github.com/fibjs/fibjs/commit/5b67d542a9)] - **db, refactor**: use simpleObject to return the query result of execute.(响马)
+* [[`e5a98ede0d`](https://github.com/fibjs/fibjs/commit/e5a98ede0d)] - **core, feat**: SimpleObject support Array.(响马)
+* [[`ee9b215c57`](https://github.com/fibjs/fibjs/commit/ee9b215c57)] - **vs, feat**: generate vc proj file.(响马)
+* [[`9f76fa8627`](https://github.com/fibjs/fibjs/commit/9f76fa8627)] - **core**: bugfix: method count error in class info of  object.(响马)
+* [[`97cfa51b53`](https://github.com/fibjs/fibjs/commit/97cfa51b53)] - **core, bugfix**: compile warning on windows debug.(响马)
+* [[`ce2963d1f1`](https://github.com/fibjs/fibjs/commit/ce2963d1f1)] - **test, bugfix**: callback hungup when execute return error.(响马)
+* [[`9ef7ae593d`](https://github.com/fibjs/fibjs/commit/9ef7ae593d)] - **net, refactor**: use SimpleObject to build the result of method recvfrom.(响马)
+* [[`354f580471`](https://github.com/fibjs/fibjs/commit/354f580471)] - **idlc, refactor**: not refer object_base.(响马)
+* [[`731e7de9da`](https://github.com/fibjs/fibjs/commit/731e7de9da)] - **Variant, refactor**: use valueOf to convert object_base to JavaScript Value.(响马)
+* [[`62698ce857`](https://github.com/fibjs/fibjs/commit/62698ce857)] - **core, feat**: Implement SimpleObject to build simple JavaScript Object from native.(响马)
+* [[`789d30f24a`](https://github.com/fibjs/fibjs/commit/789d30f24a)] - **core, refactor**: use valueOf to get the wrap of native object.(响马)
+* [[`def3f5fab6`](https://github.com/fibjs/fibjs/commit/def3f5fab6)] - **object, break**: deprecated valueOf.(响马)
+* [[`43c42740cf`](https://github.com/fibjs/fibjs/commit/43c42740cf)] - **Int64, break**: deprecated valueOf.(响马)
+* [[`95c2e5aaa6`](https://github.com/fibjs/fibjs/commit/95c2e5aaa6)] - **test, feat**: support this in test function.(响马)
+* [[`1f43374a7c`](https://github.com/fibjs/fibjs/commit/1f43374a7c)] - **crypto, feat**: support crypto.createHmac.(响马)
+* [[`754a0ffe7f`](https://github.com/fibjs/fibjs/commit/754a0ffe7f)] - delete unused file.(响马)
+* [[`9424db39a3`](https://github.com/fibjs/fibjs/commit/9424db39a3)] - **core, feat**: not ignore nan in arguments.(响马)
+* [[`0f3f0ee885`](https://github.com/fibjs/fibjs/commit/0f3f0ee885)] - **Buffer, feat**: Buffer.write* return new offset, compatible with node.js.(响马)
+* [[`f990110958`](https://github.com/fibjs/fibjs/commit/f990110958)] - **HttpCookie, feat**: path=/ as default value in cookie (#332)(blingz)
+
 ## 2017-08-19, Version v0.11.0
 
 * **feature** :
