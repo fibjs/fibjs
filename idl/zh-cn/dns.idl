@@ -1,0 +1,158 @@
+/*! @brief 域名解析模块
+
+ 使用方法:
+ ```JavaScript
+ var dns = require('dns');
+ ```
+ */
+module dns
+{
+    /*! @brief 创建一个 dns 解析对象，参见 DnsClient */
+    static DnsClient new Resolver();
+
+    /*! @brief 解析相应类型的 dns 记录
+     @param host 指定要解析的主机名
+     @param type 指定解析类型，默认为 'A'
+     @return 指定解析类型的返回结果
+
+     'A' : dns.resolve4
+     'AAAA': dns.resolve6
+     'CNAME': dns.resolveCname
+     'MX': dns.resolveMx
+     'NAPTR': dns.resolveNaptr
+     'NS': dns.resolveNs
+     'PTR': dns.resolvePtr
+     'SOA': dns.resolveSoa
+     'SRV': dns.resolveSrv
+     'TXT': dns.resolveTxt
+     'ANY': dns.resolveAny
+    */
+    static object resolve(String host, String type = "A") async;
+
+    /*! @brief 解析IPv4地址
+     @param host 指定要解析的主机名
+     @param options 解析参数
+
+     参数详情
+     ```Javascript
+     {
+        ttl: false //是否获取IP包生存时间，最大跳数
+     }
+     ```
+
+     @return 返回一个数组 (eg. ['1.2.3.4', '2.3.4.5']) 如果 ttl 为 true (eg. [{address: '1.2.3.4',  ttl: 66}])
+    */
+    static List resolve4(String host, Map options) async;
+
+    /*! @brief 解析IPv4地址
+     @param host 指定要解析的主机名
+     @return 返回一个数组 (eg. ['1.2.3.4', '2.3.4.5'])
+    */
+    static List resolve4(String host) async;
+
+    /*! @brief 解析IPv6地址
+     @param host 指定要解析的主机名
+     @param options 解析参数
+
+     参数详情
+     ```Javascript
+     {
+        ttl: false //是否获取IP包生存时间，最大跳数
+     }
+     ```
+
+     @return 返回一个数组 (eg. ['2404:6800:4008:801::200e', '0:1:2:3:4:5:6:7']) 如果 ttl 为 true (eg. [{address: '2404:6800:4008:801::200e', ttl: 66}])
+    */
+    static List resolve6(String host, Map options) async;
+
+    /*! @brief 解析IPv6地址
+     @param host 指定要解析的主机名
+     @return 返回一个数组 (eg. ['2404:6800:4008:801::200e', '0:1:2:3:4:5:6:7'])
+    */
+    static List resolve6(String host) async;
+
+    /*! @brief 解析邮件交换记录(MX 记录)
+     @param host 指定要解析的主机名
+     @return 返回一个对象数组包含 priority 和 exchange 两个属性 (e.g. [{priority: 10, exchange: 'mx.example.com'}, ...])
+    */
+    static List resolveMx(String host) async;
+
+    /*! @brief 解析主机名(TXT 记录)
+     @param host 指定要解析的主机名
+     @return 返回一个二维字符串数组 (e.g. [[ 'v=spf1 include:spf1.baidu.com include:spf2.baidu.com include:spf3.baidu.com a mx ptr -all' ] ])
+    */
+    static List resolveTxt(String host) async;
+
+
+    /*! @brief 解析服务记录(SRV记录)
+     @param host 指定要解析的主机名
+     @return 返回一个对象数组包含 priority, weight, port, name 四个属性
+
+     返回示例
+     ```Javascript
+     {
+       priority: 10,
+       weight: 5,
+       port: 21223,
+       name: 'service.example.com'
+     }
+     ```
+    */
+    static List resolveSrv(String host) async;
+
+    /*! @brief 解析子域名记录(SOA记录)
+     @param host 指定要解析的主机名
+     @return 返回一个对象数组包含 nsname, hostmaster, serial, refresh, retry, expire, minttl 七个属性
+
+     返回示例
+     ```Javascript
+     {
+       nsname: 'ns.example.com',
+       hostmaster: 'root.example.com',
+       serial: 2013101809,
+       refresh: 10000,
+       retry: 2400,
+       expire: 604800,
+       minttl: 3600
+     }
+     ```
+    */
+    static object resolveSoa(String host) async;
+
+
+    /*! @brief 解析名称服务器主机名记录(NS记录)
+     @param host 指定要解析的主机名
+     @return 有效的名称服务器记录主机名数组（eg:['ns1.example.com', 'ns2.example.com']）
+    */
+    static List resolveNs(String host) async;
+
+    /*! @brief 解析CNAME记录主机名
+     @param host 指定要解析的主机名
+     @return 返回有效的主机名数组 (eg: ['bar.example.com'])
+    */
+    static List resolveCname(String host) async;
+
+    /*! @brief 处理基于正则表达式匹配的记录(NAPTR记录)
+     @param host 指定要解析的主机名
+     @return 返回一个对象数组包含 flags, service, regexp, replacement, order, preference 六个属性
+
+     返回示例
+     ```Javascript
+     {
+       flags: 's',
+       service: 'SIP+D2U',
+       regexp: '',
+       replacement: '_sip._udp.example.com',
+       order: 30,
+       preference: 100
+     }
+     ```
+    */
+    static List resolveNaptr(String host) async;
+
+    /*! @brief 解析主机名引用记录(PTR记录)
+     @param host 指定要解析的主机名
+     @return 返回一个字符串数组包含回复记录
+    */
+    static List resolvePtr(String host) async;
+};

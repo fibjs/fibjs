@@ -78,6 +78,7 @@ public:
     obj_ptr<LruCache> m_script_cache;
     obj_ptr<SandBox> m_topSandbox;
     obj_ptr<obj_base> m_httpclient;
+    obj_ptr<obj_base> m_dnsclient;
 
     exlib::List<exlib::linkitem> m_fibers;
 

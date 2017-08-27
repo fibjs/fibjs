@@ -52,6 +52,7 @@ run("./ws_test.js");
 run("./vm_test.js");
 run("./db_test.js");
 run("./wasm_test.js");
+run("./dns_test.js");
 
 if (global.full_test) {
     run("./mongo_test.js");

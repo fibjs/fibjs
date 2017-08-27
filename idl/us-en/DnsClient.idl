@@ -1,0 +1,163 @@
+
+/*! @brief dns resolve object
+
+resolve dns info，contain MX record, CName record, TXT record and more
+
+how to use
+ ```JavaScript
+ var dns = require('dns');
+ var dnsClient = new dns.Resolver();
+ dnsClient.resolveMx('google.com');
+ ```
+ */
+interface DnsClient : object
+{
+    /*! @brief DnsClient 构造函数，创建一个新的DnsClient对象 */
+    DnsClient();
+
+    /*! @brief Uses the DNS protocol to resolve a hostname
+     @param host Hostname to resolve.
+     @param type Resource record type. Default: 'A'
+     @return resource records.
+
+     'A' : dns.resolve4
+     'AAAA': dns.resolve6
+     'CNAME': dns.resolveCname
+     'MX': dns.resolveMx
+     'NAPTR': dns.resolveNaptr
+     'NS': dns.resolveNs
+     'PTR': dns.resolvePtr
+     'SOA': dns.resolveSoa
+     'SRV': dns.resolveSrv
+     'TXT': dns.resolveTxt
+     'ANY': dns.resolveAny
+    */
+    object resolve(String host, String type = "A") async;
+
+    /*! @brief Uses the DNS protocol to resolve a IPv4 addresses
+     @param host Hostname to resolve.
+     @param options params
+
+     参数详情
+     ```Javascript
+     {
+        ttl: false //Retrieve the Time-To-Live value (TTL) of each record. When true, the callback receives an array of { address: '1.2.3.4', ttl: 60 } objects rather than an array of strings, with the TTL expressed in seconds.
+     }
+     ```
+
+     @return a array of resource records (eg. ['1.2.3.4', '2.3.4.5'])
+    */
+    List resolve4(String host, Map options) async;
+
+    /*! @brief Uses the DNS protocol to resolve a IPv4 addresses
+     @param host Hostname to resolve.
+     @return a array of resource records (eg. ['1.2.3.4', '2.3.4.5'])
+    */
+    List resolve4(String host) async;
+
+    /*! @brief Uses the DNS protocol to resolve a IPv6 addresses
+     @param host Hostname to resolve.
+     @param options params
+
+     参数详情
+     ```Javascript
+     {
+        ttl: false //Retrieve the Time-To-Live value (TTL) of each record. When true, the callback receives an array of { address: '0:1:2:3:4:5:6:7', ttl: 60 } objects rather than an array of strings, with the TTL expressed in seconds.
+     }
+     ```
+
+     @return a array of resource records (eg. ['2404:6800:4008:801::200e', '0:1:2:3:4:5:6:7']) 如果 ttl 为 true (eg. [{address: '2404:6800:4008:801::200e', ttl: 66}])
+    */
+    List resolve6(String host, Map options) async;
+
+    /*! @brief Uses the DNS protocol to resolve a IPv6 addresses
+     @param host Hostname to resolve.
+     @return a array of resource records (eg. ['2404:6800:4008:801::200e', '0:1:2:3:4:5:6:7'])
+    */
+    List resolve6(String host) async;
+
+    /*! @brief Uses the DNS protocol to resolve mail exchange records(MX records)
+     @param host Hostname to resolve.
+     @return ontain an array of objects containing both a priority and exchange property (e.g. [{priority: 10, exchange: 'mx.example.com'}, ...])
+    */
+    List resolveMx(String host) async;
+
+    /*! @brief Uses the DNS protocol to resolve text queries (TXT records)
+     @param host Hostname to resolve.
+     @return a two-dimensional array of the text records (e.g. [[ 'v=spf1 include:spf1.baidu.com include:spf2.baidu.com include:spf3.baidu.com a mx ptr -all' ] ])
+    */
+    List resolveTxt(String host) async;
+
+
+    /*! @brief Uses the DNS protocol to resolve service records (SRV records)
+     @param host Hostname to resolve.
+     @return  an array of objects with the following properties: priority, weight, port, name
+
+     eg
+     ```Javascript
+     {
+       priority: 10,
+       weight: 5,
+       port: 21223,
+       name: 'service.example.com'
+     }
+     ```
+    */
+    List resolveSrv(String host) async;
+
+    /*! @brief Uses the DNS protocol to resolve a start of authority record (SOA record)
+     @param host Hostname to resolve.
+     @return  an object with the following properties: nsname, hostmaster, serial, refresh, retry, expire, minttl
+
+     eg
+     ```Javascript
+     {
+       nsname: 'ns.example.com',
+       hostmaster: 'root.example.com',
+       serial: 2013101809,
+       refresh: 10000,
+       retry: 2400,
+       expire: 604800,
+       minttl: 3600
+     }
+     ```
+    */
+    object resolveSoa(String host) async;
+
+
+    /*! @brief Uses the DNS protocol to resolve name server records (NS records)
+     @param host Hostname to resolve.
+     @return an array of name server records available for the hostname（eg:['ns1.example.com', 'ns2.example.com']）
+    */
+    List resolveNs(String host) async;
+
+    /*! @brief Uses the DNS protocol to resolve CNAME records
+     @param host Hostname to resolve.
+     @return an array of canonical name records available for the hostname (eg: ['bar.example.com'])
+    */
+    List resolveCname(String host) async;
+
+    /*! @brief Uses the DNS protocol to resolve regular expression based records (NAPTR records)
+     @param host Hostname to resolve.
+     @return  an array of objects with the following properties: flags, service, regexp, replacement, order, preference
+
+     eg
+     ```Javascript
+     {
+       flags: 's',
+       service: 'SIP+D2U',
+       regexp: '',
+       replacement: '_sip._udp.example.com',
+       order: 30,
+       preference: 100
+     }
+     ```
+    */
+    List resolveNaptr(String host) async;
+
+    /*! @brief Uses the DNS protocol to resolve pointer records (PTR records)
+     @param host Hostname to resolve.
+     @return an array of strings containing the reply records.
+    */
+    List resolvePtr(String host) async;
+};
