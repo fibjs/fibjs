@@ -70,7 +70,7 @@ static int32_t encode_var_int(int32_t bias, int32_t delta, char* dst, size_t dst
     k = BASE;
     q = delta;
 
-    while (i < dstlen) {
+    while (i < (int32_t)dstlen) {
         if (k <= bias)
             t = TMIN;
         else if (k >= bias + TMAX)
@@ -87,7 +87,7 @@ static int32_t encode_var_int(int32_t bias, int32_t delta, char* dst, size_t dst
         k += BASE;
     }
 
-    if (i < dstlen) {
+    if (i < (int32_t)dstlen) {
         dst[i++] = encode_digit(q);
     }
 
@@ -110,7 +110,7 @@ result_t punycode_base::encode(exlib::string domain, exlib::string& retVal)
     exlib::wchar32 m, n;
     int32_t si, di;
 
-    for (si = 0, di = 0; si < srclen && di < (int32_t)output_length; si++)
+    for (si = 0, di = 0; si < (int32_t)srclen && di < (int32_t)output_length; si++)
         if (src[si] < 128)
             dst[di++] = src[si];
 
@@ -172,7 +172,7 @@ result_t punycode_base::decode(exlib::string domain, exlib::string& retVal)
     int32_t org_i;
     int32_t bias;
 
-    for (si = 0; si < srclen; si++)
+    for (si = 0; si < (int32_t)srclen; si++)
         if (src[si] & 0x80)
             return CHECK_ERROR(CALL_E_INVALID_DATA);
 
