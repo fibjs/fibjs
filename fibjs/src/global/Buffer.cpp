@@ -370,39 +370,39 @@ result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib:
     if (buffer_length < offset)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
-    max_length = (int32_t)str.length();
-    max_length = MIN(max_length, buffer_length - offset);
-    if (0 == length)
-        return 0;
-    else if (0 < length)
-        max_length = MIN(max_length, length);
-
-    if (max_length < 0)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
-
-    retVal = max_length;
-    if ((codec == "utf8") || (codec == "utf-8")) {
-        memcpy(&m_data[offset], str.c_str(), max_length);
+    if (buffer_length == offset || length == 0) {
+        retVal = 0;
         return 0;
     }
 
     result_t hr;
-    obj_ptr<Buffer_base> data;
     exlib::string strBuf;
 
-    if ((codec == "hex"))
-        hr = hex_base::decode(str, data);
-    else if ((codec == "base64"))
-        hr = base64_base::decode(str, data);
-    else
-        hr = iconv_base::encode(codec, str, data);
+    if ((codec == "utf8") || (codec == "utf-8"))
+        strBuf = str;
+    else {
+        obj_ptr<Buffer_base> data;
 
-    if (hr < 0)
-        return hr;
-    data->toString(strBuf);
+        if ((codec == "hex"))
+            hr = hex_base::decode(str, data);
+        else if ((codec == "base64"))
+            hr = base64_base::decode(str, data);
+        else
+            hr = iconv_base::encode(codec, str, data);
+
+        if (hr < 0)
+            return hr;
+        data->toString(strBuf);
+    }
+
+    max_length = (int32_t)strBuf.length();
+    max_length = MIN(max_length, buffer_length - offset);
+    if (length > 0)
+        max_length = MIN(max_length, length);
+
+    retVal = max_length;
     memcpy(&m_data[offset], strBuf.c_str(), max_length);
-
-    return hr;
+    return 0;
 }
 
 result_t Buffer::write(exlib::string str, int32_t offset, exlib::string codec, int32_t& retVal)
