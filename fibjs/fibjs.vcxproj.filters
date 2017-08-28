@@ -115,6 +115,9 @@
     <Filter Include="Source Files\zip">
       <UniqueIdentifier>{860bf62d-7ade-88bc-d2f6-743844f0d2f2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\dns">
+      <UniqueIdentifier>{6be6873a-0d89-4771-860b-3d4f55d979c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\AsyncCall.h">
@@ -915,6 +918,15 @@
     <ClInclude Include="src\sandbox\loaders\loaders.h">
       <Filter>Source Files\sandbox\loaders</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\dns.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\DnsClient.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DnsClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\base\Runtime.cpp">
@@ -1457,5 +1469,20 @@
     <ClCompile Include="src\zip\zlib.cpp">
       <Filter>Source Files\zip</Filter>
     </ClCompile>
+    <ClCompile Include="src\dns\dns.cpp">
+      <Filter>Source Files\dns</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dns\DnsClient.cpp">
+      <Filter>Source Files\dns</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="res\fibjs.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\fibjs.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\object_async.inl" />
   </ItemGroup>
 </Project>
