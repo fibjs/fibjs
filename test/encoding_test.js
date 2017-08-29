@@ -138,6 +138,7 @@ describe('encoding', () => {
         }
 
         assert.equal(new Buffer([0xc8]).toString(), '\ufffd');
+        assert.equal(Buffer.from('3DD84DDC', 'hex').toString('utf16le'), '👍');
     });
 
     var datas = [

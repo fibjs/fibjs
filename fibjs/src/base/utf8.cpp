@@ -28,6 +28,8 @@ exlib::wchar32 utf_getchar(const char*& src, const char* end)
     exlib::wchar32 res = ch & utf8_mask[len];
 
     switch (len) {
+    case 0:
+        return 0xFFFD;
     case 5:
         if (src >= end || (ch = (unsigned char)*src ^ 0x80) >= 0x40)
             return 0xFFFD;

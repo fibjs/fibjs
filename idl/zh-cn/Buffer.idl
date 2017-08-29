@@ -624,7 +624,14 @@ interface Buffer : object
      @param end 读取终止位置
      @return 返回对象的字符串表示
     */
-    String toString(String codec, Integer offset = 0, Integer end = -1);
+    String toString(String codec, Integer offset = 0, Integer end);
+
+    /*! @brief 返回二进制数据的编码字符串
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
+     @param offset 读取起始位置
+     @return 返回对象的字符串表示
+    */
+    String toString(String codec, Integer offset = 0);
 
     /*! @brief 返回二进制数据的 utf8 编码字符串
      @return 返回对象的字符串表示

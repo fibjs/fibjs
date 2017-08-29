@@ -140,6 +140,39 @@ describe('Buffer', () => {
         var buf = new Buffer("100");
         assert.equal(buf.length, 3);
         assert.equal(buf.toString(), "100");
+
+        const expected = [0xff, 0xff, 0xbe, 0xff, 0xef, 0xbf, 0xfb, 0xef, 0xff];
+        assert.deepEqual(Buffer.from('//++/++/++//', 'base64'),
+            Buffer.from(expected));
+        assert.deepEqual(Buffer.from('__--_--_--__', 'base64'),
+            Buffer.from(expected));
+
+        ['ucs2', 'ucs-2', 'utf16le', 'utf-16le'].forEach((encoding) => {
+            {
+                // Test for proper UTF16LE encoding, length should be 8
+                const f = Buffer.from('über', encoding);
+                assert.deepEqual(f, Buffer.from([252, 0, 98, 0, 101, 0, 114, 0]));
+            }
+
+            {
+                // Length should be 12
+                const f = Buffer.from('привет', encoding);
+                assert.deepEqual(
+                    f, Buffer.from([63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4])
+                );
+                assert.strictEqual(f.toString(encoding), 'привет');
+            }
+
+//             {
+//                 const f = Buffer.from([0, 0, 0, 0, 0]);
+//                 assert.strictEqual(f.length, 5);
+//                 const size = f.write('あいうえお', encoding);
+//                 assert.strictEqual(size, 4);
+//                 assert.deepEqual(f, Buffer.from([0x42, 0x30, 0x44, 0x30, 0x00]));
+//             }
+        });
+
+        assert.deepEqual(Buffer.from('=bad'.repeat(1e4), 'base64'), Buffer.from(''));
     });
 
     it('Buffer.from(Array)', () => {
@@ -375,8 +408,8 @@ describe('Buffer', () => {
         assert.equal(buf.toString("base64"), "MTIzNA==");
         assert.equal(buf.toString("utf8", 1), "234");
         assert.equal(buf.toString("utf8", 1, 3), "23");
-        assert.equal(buf.toString("hex", 2), "323334");
-        assert.equal(buf.toString("base64", 2), "IzNA==");
+        assert.equal(buf.toString("hex", 2), "3334");
+        assert.equal(buf.toString("base64", 2), "MzQ=");
 
         buf = new Buffer(5)
         buf.append("abcd");
@@ -387,6 +420,24 @@ describe('Buffer', () => {
         assert.equal(buf1.toString('ascii'), 'this is a tC)st');
 
         assert.equal(buf1.toString('ucs2'), '桴獩椠⁳⁡썴玩');
+
+        assert.strictEqual(Buffer.from([0x41]).toString('utf8', -1), 'A');
+        assert.strictEqual(Buffer.from([0x41]).toString('utf8', 1), '');
+        assert.strictEqual(Buffer.from([0x41]).toString('utf8', 2), '');
+
+        const b = Buffer.allocUnsafe(1024);
+        const utf8String = '¡hέlló wôrld!';
+        const offset = 100;
+      
+        b.write(utf8String, 0, Buffer.byteLength(utf8String), 'utf8');
+        let utf8Slice = b.toString('utf8', 0, Buffer.byteLength(utf8String));
+        assert.strictEqual(utf8String, utf8Slice);
+      
+        assert.strictEqual(Buffer.byteLength(utf8String),
+                           b.write(utf8String, offset, 'utf8'));
+        utf8Slice = b.toString('utf8', offset,
+                               offset + Buffer.byteLength(utf8String));
+        assert.strictEqual(utf8String, utf8Slice);
     });
 
     it('append', () => {
@@ -485,6 +536,15 @@ describe('Buffer', () => {
 
         var buf = new Buffer('buffer'); //TODO slice 反向的支持
         assert.equal(buf.slice(-6, -1), 'buffe');
+
+        const utf8String = '¡hέlló wôrld!';
+        const offset = 100;
+        const b = Buffer.allocUnsafe(1024);
+        const sliceA = b.slice(offset, offset + Buffer.byteLength(utf8String));
+        const sliceB = b.slice(offset, offset + Buffer.byteLength(utf8String));
+        for (let i = 0; i < Buffer.byteLength(utf8String); i++) {
+          assert.strictEqual(sliceA[i], sliceB[i]);
+        }
     });
 
     it('equals & compare', () => {
@@ -794,37 +854,37 @@ describe('Buffer', () => {
     });
 
     var fixtures = [{
-            "a": "ffff00",
-            "expected": "00ffff"
-        },
-        {
-            "a": "ffff",
-            "expected": "ffff"
-        },
-        {
-            "a": "0000",
-            "expected": "0000"
-        },
-        {
-            "a": "0000ff",
-            "expected": "ff0000"
-        },
-        {
-            "a": "000000",
-            "expected": "000000"
-        },
-        {
-            "a": "ffffff",
-            "expected": "ffffff"
-        },
-        {
-            "a": "00ffff00ff",
-            "expected": "ff00ffff00"
-        },
-        {
-            "a": "0000ff00ffff00ff",
-            "expected": "ff00ffff00ff0000"
-        }
+        "a": "ffff00",
+        "expected": "00ffff"
+    },
+    {
+        "a": "ffff",
+        "expected": "ffff"
+    },
+    {
+        "a": "0000",
+        "expected": "0000"
+    },
+    {
+        "a": "0000ff",
+        "expected": "ff0000"
+    },
+    {
+        "a": "000000",
+        "expected": "000000"
+    },
+    {
+        "a": "ffffff",
+        "expected": "ffffff"
+    },
+    {
+        "a": "00ffff00ff",
+        "expected": "ff00ffff00"
+    },
+    {
+        "a": "0000ff00ffff00ff",
+        "expected": "ff00ffff00ff0000"
+    }
     ];
 
     it('reverse', () => {

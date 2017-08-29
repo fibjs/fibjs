@@ -486,10 +486,17 @@ interface Buffer : object
     /*! @brief return the encoded string of the binary data
      @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system.
      @param offset The start position of string, Default: 0
-     @param end The end position of string, Default: -1
+     @param end The end position of string.
      @return The string representing the value of the buffer.
     */
-    String toString(String codec, Integer offset = 0, Integer end = -1);
+    String toString(String codec, Integer offset = 0, Integer end);
+
+    /*! @brief return the encoded string of the binary data
+     @param codec The encode format, can be "hex", “base64”, "utf8" or any other character sets supported by the system.
+     @param offset The start position of string, Default: 0
+     @return The string representing the value of the buffer.
+    */
+    String toString(String codec, Integer offset = 0);
 
    /*! @brief return the utf8-encoded string of the binary data
      @return The string representing the value of the buffer.
