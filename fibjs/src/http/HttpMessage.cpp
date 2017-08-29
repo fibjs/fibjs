@@ -132,8 +132,11 @@ result_t HttpMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retV
 result_t HttpMessage::json(v8::Local<v8::Value>& retVal)
 {
     Variant v;
+    exlib::string str;
+
     firstHeader("Content-Type", v);
-    if (v.string() != "application/json")
+    str = v.string();
+    if (qstricmp(str.c_str(), "application/json", 16))
         return CHECK_ERROR(Runtime::setError("HttpRequest: bad content type."));
 
     return Message::json(retVal);
