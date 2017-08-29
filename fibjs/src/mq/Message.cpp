@@ -55,17 +55,14 @@ result_t Message::set_type(int32_t newVal)
 
 result_t Message::get_data(v8::Local<v8::Value>& retVal)
 {
-    result_t hr;
+    if (m_body == NULL)
+        return CALL_RETURN_NULL;
 
-    obj_ptr<SeekableStream_base> body;
+    result_t hr;
     obj_ptr<Buffer_base> data;
 
-    hr = get_body(body);
-    if (hr < 0)
-        return hr;
-
-    body->rewind();
-    hr = body->cc_readAll(data);
+    m_body->rewind();
+    hr = m_body->ac_readAll(data);
     if (hr < 0)
         return hr;
 
@@ -123,22 +120,40 @@ result_t Message::write(Buffer_base* data, AsyncEvent* ac)
     return m_body->write(data, ac);
 }
 
-result_t Message::json(v8::Local<v8::Value> data, AsyncEvent* ac)
+result_t Message::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
 {
-    if (ac->isSync()) {
-        exlib::string str;
-        result_t hr = json_base::encode(data, str);
-        if (hr < 0)
-            return hr;
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = new Buffer(str);
-    }
-
     if (m_body == NULL)
         m_body = new MemoryStream();
 
-    obj_ptr<Buffer_base> buf = Buffer_base::getInstance(ac->m_ctx[0].object());
-    return m_body->write(buf, ac);
+    exlib::string str;
+    result_t hr = json_base::encode(data, str);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<Buffer_base> buf = new Buffer(str);
+    return m_body->ac_write(buf);
+}
+
+result_t Message::json(v8::Local<v8::Value>& retVal)
+{
+    if (m_body == NULL)
+        return CALL_RETURN_NULL;
+
+    result_t hr;
+    obj_ptr<Buffer_base> data;
+
+    m_body->rewind();
+    hr = m_body->ac_readAll(data);
+    if (hr < 0)
+        return hr;
+
+    if (hr == CALL_RETURN_NULL)
+        return CALL_RETURN_NULL;
+
+    exlib::string str;
+    data->toString(str);
+
+    return json_base::decode(str, retVal);
 }
 
 result_t Message::get_length(int64_t& retVal)

@@ -60,12 +60,14 @@ result_t HttpResponse::write(Buffer_base* data, AsyncEvent* ac)
     return m_message->write(data, ac);
 }
 
-result_t HttpResponse::json(v8::Local<v8::Value> data, AsyncEvent* ac)
+result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
 {
-    if (ac->isSync())
-        m_message->setHeader("Content-Type", "application/json");
+    return m_message->json(data, retVal);
+}
 
-    return m_message->json(data, ac);
+result_t HttpResponse::json(v8::Local<v8::Value>& retVal)
+{
+    return m_message->json(retVal);
 }
 
 result_t HttpResponse::get_length(int64_t& retVal)
