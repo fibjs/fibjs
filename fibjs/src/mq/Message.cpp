@@ -9,6 +9,8 @@
 #include "Message.h"
 #include "List.h"
 #include "MemoryStream.h"
+#include "Buffer.h"
+#include "ifs/json.h"
 
 namespace fibjs {
 
@@ -119,6 +121,24 @@ result_t Message::write(Buffer_base* data, AsyncEvent* ac)
         m_body = new MemoryStream();
 
     return m_body->write(data, ac);
+}
+
+result_t Message::json(v8::Local<v8::Value> data, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        exlib::string str;
+        result_t hr = json_base::encode(data, str);
+        if (hr < 0)
+            return hr;
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = new Buffer(str);
+    }
+
+    if (m_body == NULL)
+        m_body = new MemoryStream();
+
+    obj_ptr<Buffer_base> buf = Buffer_base::getInstance(ac->m_ctx[0].object());
+    return m_body->write(buf, ac);
 }
 
 result_t Message::get_length(int64_t& retVal)

@@ -731,6 +731,22 @@ describe("http", () => {
         });
     });
 
+    it('json', () => {
+        var req = new http.Request();
+        req.json({
+            a: 100
+        });
+        assert.equal(req.firstHeader('Content-Type'), "application/json");
+        assert.equal(req.data.toString(), '{"a":100}');
+
+        var rep = new http.Response();
+        rep.json({
+            a: 100
+        });
+        assert.equal(rep.firstHeader('Content-Type'), "application/json");
+        assert.equal(rep.data.toString(), '{"a":100}');
+    });
+
     describe("encode", () => {
         it("request", () => {
             var rep = new http.Request();
