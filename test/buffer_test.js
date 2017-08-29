@@ -470,7 +470,7 @@ describe('Buffer', () => {
         assert.equal(buf.write("MTIzNA==", 0, 4, "base64"), 4);
         assert.equal(buf.toString("utf8", 0, 4), "1234");
 
-        assert.equal(buf.write("31323334", 0, 20, "hex"), 8);
+        assert.equal(buf.write("31323334", 0, 20, "hex"), 4);
         assert.equal(buf.toString("utf8", 0, 4), "1234");
 
         assert.equal(buf.write("abcde", 1, 4), 4);
