@@ -288,9 +288,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
 
             Variant hdr;
 
-            if (pThis->m_retVal->firstHeader("Content-Encoding",
-                    hdr)
-                != CALL_RETURN_NULL) {
+            if (pThis->m_retVal->firstHeader("Content-Encoding", hdr) != CALL_RETURN_NULL) {
                 pThis->m_retVal->removeHeader("Content-Encoding");
 
                 pThis->m_retVal->get_body(pThis->m_body);
@@ -299,11 +297,9 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
                 exlib::string str = hdr.string();
 
                 if (str == "gzip")
-                    return zlib_base::gunzipTo(pThis->m_body,
-                        pThis->m_unzip, pThis);
+                    return zlib_base::gunzipTo(pThis->m_body, pThis->m_unzip, pThis);
                 else if (str == "deflate")
-                    return zlib_base::inflateRawTo(pThis->m_body,
-                        pThis->m_unzip, pThis);
+                    return zlib_base::inflateRawTo(pThis->m_body, pThis->m_unzip, pThis);
             }
 
             return 0;
@@ -405,8 +401,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             pThis->m_hc->get_cookie(pThis->m_url, cookie);
             if (cookie.length() > 0)
                 pThis->m_req->setHeader("Cookie", cookie);
+
             pThis->m_req->addHeader(pThis->m_headers);
-            pThis->m_hc->setAgent(pThis->m_req);
+
+            bool bCheck = false;
+            pThis->m_req->hasHeader("User-Agent", bCheck);
+            if (!bCheck)
+                pThis->m_req->addHeader("User-Agent", pThis->m_hc->agent());
 
             if (pThis->m_body)
                 pThis->m_req->set_body(pThis->m_body);
