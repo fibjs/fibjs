@@ -67,6 +67,11 @@ result_t WebSocketMessage::write(Buffer_base* data, AsyncEvent* ac)
     return m_message->write(data, ac);
 }
 
+result_t WebSocketMessage::json(v8::Local<v8::Value> data, AsyncEvent* ac)
+{
+    return m_message->json(data, ac);
+}
+
 result_t WebSocketMessage::get_length(int64_t& retVal)
 {
     return m_message->get_length(retVal);

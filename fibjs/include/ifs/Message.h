@@ -45,6 +45,7 @@ public:
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, AsyncEvent* ac) = 0;
+    virtual result_t json(v8::Local<v8::Value> data, AsyncEvent* ac) = 0;
     virtual result_t get_length(int64_t& retVal) = 0;
     virtual result_t end() = 0;
     virtual result_t isEnded(bool& retVal) = 0;
@@ -76,6 +77,7 @@ public:
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_end(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isEnded(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -91,6 +93,7 @@ public:
     ASYNC_MEMBERVALUE2(Message_base, read, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE1(Message_base, readAll, obj_ptr<Buffer_base>);
     ASYNC_MEMBER1(Message_base, write, Buffer_base*);
+    ASYNC_MEMBER1(Message_base, json, v8::Local<v8::Value>);
     ASYNC_MEMBER1(Message_base, sendTo, Stream_base*);
     ASYNC_MEMBER1(Message_base, readFrom, Stream_base*);
 };
@@ -111,6 +114,8 @@ inline ClassInfo& Message_base::class_info()
         { "readAllSync", s_readAll, false },
         { "write", s_write, false },
         { "writeSync", s_write, false },
+        { "json", s_json, false },
+        { "jsonSync", s_json, false },
         { "end", s_end, false },
         { "isEnded", s_isEnded, false },
         { "clear", s_clear, false },
@@ -334,6 +339,24 @@ inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = CALL_RETURN_NULL;
     } else
         hr = pInst->ac_write(v0);
+
+    METHOD_VOID();
+}
+
+inline void Message_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_json(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_json(v0);
 
     METHOD_VOID();
 }

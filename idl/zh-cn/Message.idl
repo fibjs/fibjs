@@ -49,6 +49,11 @@ interface Message : object
      */
     write(Buffer data) async;
 
+    /*! @brief 以 JSON 编码写入给定的数据
+     @param data 给定要写入的数据
+     */
+    json(Value data) async;
+
     /*! @brief 消息数据部分的长度 */
     readonly Long length;
 
