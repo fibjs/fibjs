@@ -957,12 +957,6 @@ result_t Buffer::reverse(obj_ptr<Buffer_base>& retVal)
     return 0;
 }
 
-result_t Buffer::toString(exlib::string& retVal)
-{
-    retVal = m_data;
-    return 0;
-}
-
 result_t Buffer::hex(exlib::string& retVal)
 {
     obj_ptr<Buffer_base> data = this;
@@ -1036,29 +1030,55 @@ result_t Buffer::entries(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
+result_t Buffer::toString(exlib::string& retVal)
+{
+    retVal = m_data;
+    return 0;
+}
+
+result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& retVal)
+{
+    exlib::string str;
+    int32_t length = (int32_t)m_data.length();
+
+    if (offset < 0)
+        offset = 0;
+
+    if (offset >= length){
+        retVal = "";
+        return 0;
+    }
+
+    if (offset > 0) {
+        str.append(m_data.c_str() + offset, length - offset);
+        return commonEncode(codec, str, retVal);
+    }else{
+        return commonEncode(codec, m_data, retVal);
+    }
+}
+
 result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal)
 {
-    result_t hr;
     exlib::string str;
-    int32_t str_length;
+    int32_t length = (int32_t)m_data.length();
 
-    hr = commonEncode(codec, m_data, str);
+    if (offset < 0)
+        offset = 0;
 
-    if (hr < 0)
-        return hr;
+    if (end < 0 || offset >= end){
+        retVal = "";
+        return 0;
+    }
 
-    str_length = (int32_t)str.length();
-    if (end < 0)
-        end = str_length + end + 1;
+    if (end > length)
+        end = length;
 
-    if (offset < 0 || end < 0 || offset > end)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-
-    if (end > str_length)
-        end = str_length;
-
-    retVal = str.substr(offset, end - offset);
-    return hr;
+    if (offset < end) {
+        str.append(m_data.c_str() + offset, end - offset);
+        return commonEncode(codec, str, retVal);
+    } else {
+        return commonEncode(codec, m_data, retVal);
+    }
 }
 
 result_t Buffer::toArray(v8::Local<v8::Array>& retVal)
