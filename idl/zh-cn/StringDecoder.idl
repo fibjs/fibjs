@@ -1,0 +1,49 @@
+interface StringDecoder : object
+{
+  /*! @brief 解码器构造函数
+     @param encoding 解码编码. 默认 'utf8'.
+     */
+  StringDecoder(String encoding = "utf8");
+
+  /*! @brief 将内部存留的 buffer 作为字符返回。不完整的 UTF-8 和 UTF-16 字节会尝试补全。
+     @return 解码后的字符串.
+     */
+  String end();
+
+  /*! @brief 将内部存留的 buffer 作为字符返回。不完整的 UTF-8 和 UTF-16 字节会尝试补全。
+     @param buf 需要解码的 Buffer. 在执行 end 之前，会先调用 write 将 buffer 写入。
+     @return 解码后的字符串.
+     */
+  String end(Buffer buf);
+
+   /*! @brief 返回一个解码后的字符串, 确保任何非完整的末尾字符被省略此次不返回，并被存储在内部供下一次的 write 或者 end 方法使用。
+     @param  buf 需要解码的 Buffer。
+     @return 解码后的字符串.
+     */
+  String write(Buffer buf);
+
+  /*! @brief 内部使用。.
+     @param buf 需要解码的 Buffer。
+     @param offset 解码偏移量
+     @return 解码后的字符串.
+     */
+  String text(Buffer buf, Integer offset);
+
+  /*! @brief 内部使用。.
+     @param buf A Buffer containing the bytes to decode.
+     @return 解码后的字符串.
+     */
+  String fillLast(Buffer buf);
+
+  /*! @brief 内部使用。 */
+  Integer lastNeed;
+
+  /*! @brief 内部使用。 */
+  Integer lastTotal;
+
+  /*! @brief 内部使用。 */
+  Buffer lastChar;
+
+  /*! @brief 解码编码.内部使用。 */
+  String encoding;
+};

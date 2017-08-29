@@ -1,0 +1,49 @@
+interface StringDecoder : object
+{
+  /*! @brief decoder object constructor
+     @param encoding The character encoding the StringDecoder will use. Defaults to 'utf8'.
+     */
+  StringDecoder(String encoding = "utf8");
+
+  /*! @brief decoder object constructor
+     @return Returns any remaining input stored in the internal buffer as a string. Bytes representing incomplete UTF-8 and UTF-16 characters will be replaced with substitution characters appropriate for the character encoding.
+     */
+  String end();
+
+  /*! @brief Returns any remaining input stored in the internal buffer as a string. Bytes representing incomplete UTF-8 and UTF-16 characters will be replaced with substitution characters appropriate for the character encoding.
+     @param buf A Buffer containing the bytes to decode.If the buffer argument is provided, one final call to stringDecoder.write() is performed before returning the remaining input.
+     @return decoded string.
+     */
+  String end(Buffer buf);
+
+   /*! @brief Returns a decoded string, ensuring that any incomplete multibyte characters at the end of the Buffer are omitted from the returned string and stored in an internal buffer for the next call to stringDecoder.write() or stringDecoder.end().
+     @param  buf A Buffer containing the bytes to decode.
+     @return decoded string.
+     */
+  String write(Buffer buf);
+
+  /*! @brief This is for internal use.
+     @param buf A Buffer containing the bytes to decode.
+     @param offset decode start offset
+     @return decoded string.
+     */
+  String text(Buffer buf, Integer offset);
+
+  /*! @brief This is for internal use.
+     @param buf A Buffer containing the bytes to decode.
+     @return decoded string.
+     */
+  String fillLast(Buffer buf);
+
+  /*! @brief internal use */
+  Integer lastNeed;
+
+  /*! @brief internal use */
+  Integer lastTotal;
+
+  /*! @brief internal use */
+  Buffer lastChar;
+
+  /*! @brief The character encoding the StringDecoder will use.Internal use */
+  String encoding;
+};
