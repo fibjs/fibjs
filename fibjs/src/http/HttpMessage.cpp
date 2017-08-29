@@ -135,9 +135,18 @@ result_t HttpMessage::json(v8::Local<v8::Value>& retVal)
     exlib::string str;
 
     firstHeader("Content-Type", v);
+
+    if (v.isUndefined())
+        return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
+
     str = v.string();
-    if (qstricmp(str.c_str(), "application/json", 16))
-        return CHECK_ERROR(Runtime::setError("HttpRequest: bad content type."));
+
+    size_t pos = str.find(';');
+    if (pos != exlib::string::npos)
+        str = str.substr(0, pos);
+
+    if (str != "application/json")
+        return CHECK_ERROR(Runtime::setError("HttpRequest: Invalid content type."));
 
     return Message::json(retVal);
 }

@@ -737,29 +737,43 @@ describe("http", () => {
         };
 
         var req = new http.Request();
+
         assert.throws(() => {
             req.json();
         });
+        req.setHeader('Content-Type', "application/jso");
+        assert.throws(() => {
+            req.json();
+        });
+
         req.json(v);
         assert.equal(req.firstHeader('Content-Type'), "application/json");
         assert.equal(req.data.toString(), '{"a":100}');
+
         assert.deepEqual(req.json(), v);
 
-        req.setHeader('Content-Type', "application/json, utf-8");
-        assert.equal(req.firstHeader('Content-Type'), "application/json, utf-8");
+        req.setHeader('Content-Type', "application/json; utf-8");
+        assert.equal(req.firstHeader('Content-Type'), "application/json; utf-8");
         assert.deepEqual(req.json(), v);
 
         var rep = new http.Response();
+
         assert.throws(() => {
             rep.json();
         });
+        req.setHeader('Content-Type', "application/jso");
+        assert.throws(() => {
+            req.json();
+        });
+
         rep.json(v);
         assert.equal(rep.firstHeader('Content-Type'), "application/json");
         assert.equal(rep.data.toString(), '{"a":100}');
+
         assert.deepEqual(rep.json(), v);
 
-        rep.setHeader('Content-Type', "application/json, utf-8");
-        assert.equal(rep.firstHeader('Content-Type'), "application/json, utf-8");
+        rep.setHeader('Content-Type', "application/json; utf-8");
+        assert.equal(rep.firstHeader('Content-Type'), "application/json; utf-8");
         assert.deepEqual(rep.json(), v);
     });
 
