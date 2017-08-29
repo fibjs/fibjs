@@ -162,7 +162,7 @@ describe('Buffer', () => {
                 );
                 assert.strictEqual(f.toString(encoding), 'привет');
             }
-
+// todo fix the half char write case
 //             {
 //                 const f = Buffer.from([0, 0, 0, 0, 0]);
 //                 assert.strictEqual(f.length, 5);
@@ -171,8 +171,6 @@ describe('Buffer', () => {
 //                 assert.deepEqual(f, Buffer.from([0x42, 0x30, 0x44, 0x30, 0x00]));
 //             }
         });
-
-        assert.deepEqual(Buffer.from('=bad'.repeat(1e4), 'base64'), Buffer.from(''));
     });
 
     it('Buffer.from(Array)', () => {
