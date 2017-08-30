@@ -176,8 +176,10 @@ describe("vm", () => {
     });
 
     it("standalone global", () => {
+        function _t() {}
         var sbox1 = new vm.SandBox({}, {
-            var1: 100
+            var1: 100,
+            func: _t
         });
 
         sbox1.require('./vm_test/hack_global', __filename);
@@ -193,6 +195,7 @@ describe("vm", () => {
         assert.equal(sbox1.global.var2, 200);
         assert.equal(sbox1.global.var3, 300);
         assert.equal(sbox1.global.var4, 400);
+        assert.equal(sbox1.global.func, _t);
 
         assert.isUndefined(global.var1);
         assert.isUndefined(global.var2);

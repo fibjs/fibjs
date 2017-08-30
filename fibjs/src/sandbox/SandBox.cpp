@@ -85,7 +85,17 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
 
     v8::Local<v8::Object> _global = _context->Global();
     _global->Set(isolate->NewString("global"), _global);
-    extend(global, _global);
+
+    v8::Local<v8::Array> ks = global->GetPropertyNames();
+    int32_t len = ks->Length();
+    int32_t i;
+
+    for (i = 0; i < len; i++) {
+        v8::Local<v8::Value> k = ks->Get(i);
+        v8::Local<v8::Value> v = global->Get(k);
+
+        _global->Set(k, v);
+    }
 
     SetPrivate("_global", _global);
     m_global = true;
