@@ -1,3 +1,6 @@
+
+/*! @brief Stream decode Object
+ */
 interface StringDecoder : object
 {
   /*! @brief decoder object constructor

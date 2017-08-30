@@ -1,3 +1,6 @@
+
+/*! @brief 流解码对象
+ */
 interface StringDecoder : object
 {
   /*! @brief 解码器构造函数
