@@ -196,6 +196,7 @@ describe("vm", () => {
         assert.equal(sbox1.global.var3, 300);
         assert.equal(sbox1.global.var4, 400);
         assert.equal(sbox1.global.func, _t);
+        assert.isUndefined(sbox1.global.console);
 
         assert.isUndefined(global.var1);
         assert.isUndefined(global.var2);

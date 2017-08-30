@@ -84,6 +84,8 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
     _context->SetSecurityToken(_token);
 
     v8::Local<v8::Object> _global = _context->Global();
+
+    _global->Delete(isolate->NewString("console"));
     _global->Set(isolate->NewString("global"), _global);
 
     v8::Local<v8::Array> ks = global->GetPropertyNames();
