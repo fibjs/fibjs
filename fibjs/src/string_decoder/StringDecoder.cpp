@@ -108,7 +108,7 @@ result_t StringDecoder::utf16Text(Buffer_base* buf, int32_t offset, exlib::strin
     if ((bufLen - offset) % 2 == 0) {
         buf->toString("utf16le", offset, r);
         exlib::wstring ws = utf8to16String(r);
-        int32_t len = ws.length();
+        int32_t len = (int32_t)ws.length();
         if (len > 0) {
             int32_t c = ws[len - 1];
             if (c >= 0xD800 && c <= 0xDBFF) {
