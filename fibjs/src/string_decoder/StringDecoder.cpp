@@ -172,19 +172,19 @@ result_t StringDecoder::utf8FillLast(Buffer_base* buf, exlib::string& retVal)
 
     if ((b & 0xC0) != 0x80) {
         m_lastNeed = 0;
-        retVal = "\ufffd";
+        retVal = "\xef\xbf\xbd";
         return 0;
     } else if (m_lastNeed > 1 && bufLen > 1) {
         buf->_indexed_getter(1, b);
         if ((b & 0xC0) != 0x80) {
             m_lastNeed = 1;
-            retVal = "\ufffd";
+            retVal = "\xef\xbf\xbd";
             return 0;
         } else if (m_lastNeed > 2 && bufLen > 2) {
             buf->_indexed_getter(2, b);
             if ((b & 0xC0) != 0x80) {
                 m_lastNeed = 2;
-                retVal = "\ufffd";
+                retVal = "\xef\xbf\xbd";
                 return 0;
             }
         }
@@ -344,7 +344,7 @@ result_t StringDecoder::simpleEnd2(Buffer_base* buf, exlib::string& retVal) // ?
 result_t StringDecoder::utf8End1(exlib::string& retVal)
 {
     if (m_lastNeed != 0)
-        retVal = "\ufffd";
+        retVal = "\xef\xbf\xbd";
     else
         retVal = "";
     return 0;
