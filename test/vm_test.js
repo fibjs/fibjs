@@ -204,6 +204,14 @@ describe("vm", () => {
         assert.isUndefined(global.var4);
     });
 
+    it("standalone global obj type error", () => {
+        var sbox1 = new vm.SandBox({}, {
+            mq: require('mq')
+        });
+
+        sbox1.addScript("t1.js", "new mq.Routing({});");
+    });
+
     it("require.cache", () => {
         assert.isObject(require.cache);
     });

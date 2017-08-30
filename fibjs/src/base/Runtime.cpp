@@ -161,6 +161,8 @@ void Isolate::init()
 
     v8::Context::Scope context_scope(_context);
 
+    _context->SetEmbedderData(1, v8::Object::New(m_isolate)->GetPrototype());
+
     static const char* skips[] = { "Master", "repl", "argv", "__filename", "__dirname", NULL };
     global_base::class_info().Attach(this, _context->Global(), skips);
 
