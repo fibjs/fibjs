@@ -334,7 +334,7 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     return m_aio.read(bytes, retVal, ac, false, timer);
 }
 
-result_t Socket::recvfrom(int32_t bytes, obj_ptr<object_base>& retVal, AsyncEvent* ac)
+result_t Socket::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac)
 {
     return m_aio.recvfrom(bytes, retVal, ac);
 }

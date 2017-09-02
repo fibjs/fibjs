@@ -549,3 +549,5 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& arg
 #ifdef _assert
 #undef _assert
 #endif
+
+#include "SimpleObject.h"

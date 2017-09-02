@@ -5,17 +5,14 @@
  *      Author: lion
  */
 
-#include "SimpleObject.h"
-
 #ifndef DBRESULT_H_
 #define DBRESULT_H_
 
 namespace fibjs {
 
-class DBResult : public SimpleObject {
+class DBResult : public NArray {
 public:
     DBResult(int32_t sz, int64_t affected, int64_t insertId)
-        : SimpleObject(true)
     {
         if (sz)
             m_keys.resize(sz);
@@ -25,7 +22,6 @@ public:
     }
 
     DBResult(int32_t sz, int64_t affected)
-        : SimpleObject(true)
     {
         if (sz)
             m_keys.resize(sz);
@@ -34,7 +30,6 @@ public:
     }
 
     DBResult(int32_t sz)
-        : SimpleObject(true)
     {
         if (sz)
             m_keys.resize(sz);
@@ -48,24 +43,23 @@ public:
 
     void beginRow()
     {
-        m_jsRow = new SimpleObject();
+        m_jsRow = new NObject();
     }
 
     void endRow()
     {
-        add(m_jsRow);
+        append(m_jsRow);
         m_jsRow.Release();
     }
 
     void rowValue(int32_t i, Variant& v)
     {
         m_jsRow->add(m_keys[i], v);
-        extMemory((int32_t)v.size());
     }
 
 private:
     std::vector<exlib::string> m_keys;
-    obj_ptr<SimpleObject> m_jsRow;
+    obj_ptr<NObject> m_jsRow;
 };
 
 } /* namespace fibjs */

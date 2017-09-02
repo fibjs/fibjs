@@ -32,7 +32,7 @@ interface DbConnection : object
      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
      */
-    object execute(String sql) async;
+    NArray execute(String sql) async;
 
     /*! @brief 执行一个 sql 命令，并返回执行结果，可根据参数格式化字符串
 
@@ -40,7 +40,7 @@ interface DbConnection : object
      @param args 可选参数列表
      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
      */
-    object execute(String sql, ...args) async;
+    NArray execute(String sql, ...args) async;
 
     /*! @brief 格式化一个 sql 命令，并返回格式化结果
 

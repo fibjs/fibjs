@@ -248,7 +248,7 @@ result_t mysql::use(exlib::string dbName, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<object_base> retVal;
+    obj_ptr<NArray> retVal;
     exlib::string s("USE ", 4);
     s.append(dbName);
     return execute(s.c_str(), (int32_t)s.length(), retVal);
@@ -262,7 +262,7 @@ result_t mysql::begin(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<object_base> retVal;
+    obj_ptr<NArray> retVal;
     return execute("BEGIN", 5, retVal);
 }
 
@@ -274,7 +274,7 @@ result_t mysql::commit(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<object_base> retVal;
+    obj_ptr<NArray> retVal;
     return execute("COMMIT", 6, retVal);
 }
 
@@ -286,7 +286,7 @@ result_t mysql::rollback(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<object_base> retVal;
+    obj_ptr<NArray> retVal;
     return execute("ROLLBACK", 8, retVal);
 }
 
@@ -296,7 +296,7 @@ result_t mysql::trans(v8::Local<v8::Function> func)
 }
 
 result_t mysql::execute(const char* sql, int32_t sLen,
-    obj_ptr<object_base>& retVal)
+    obj_ptr<NArray>& retVal)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -311,7 +311,7 @@ result_t mysql::execute(const char* sql, int32_t sLen,
     return 0;
 }
 
-result_t mysql::execute(exlib::string sql, obj_ptr<object_base>& retVal, AsyncEvent* ac)
+result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -322,7 +322,7 @@ result_t mysql::execute(exlib::string sql, obj_ptr<object_base>& retVal, AsyncEv
     return execute(sql.c_str(), (int32_t)sql.length(), retVal);
 }
 
-result_t mysql::execute(exlib::string sql, OptArgs args, obj_ptr<object_base>& retVal,
+result_t mysql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,
     AsyncEvent* ac)
 {
     if (!m_conn)
