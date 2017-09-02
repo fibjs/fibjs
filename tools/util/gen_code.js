@@ -20,6 +20,8 @@ module.exports = function (defs, baseFolder) {
             "Function": "v8::Local<v8::Function>",
             "Value": "v8::Local<v8::Value>",
             "Variant": "Variant",
+            "NObject": "obj_ptr<NObject>",
+            "NArray": "obj_ptr<NArray>",
             "...": "OptArgs"
         };
 
