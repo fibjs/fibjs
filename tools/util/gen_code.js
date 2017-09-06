@@ -38,6 +38,8 @@ module.exports = function (defs, baseFolder) {
         }
 
         function get_rtype(t) {
+            if (Array.isArray(t))
+                return "obj_ptr<" + t.name + ">";
             return typeMap[t] || ("obj_ptr<" + t + "_base>");
         }
 
@@ -467,6 +469,58 @@ module.exports = function (defs, baseFolder) {
                 }
             }
 
+            function gen_cls_retTypes() {
+                var types = {};
+                var bHasTypes = false;
+
+                def.members.forEach(fn => {
+                    if (Array.isArray(fn.type)) {
+                        bHasTypes = true;
+
+                        var ts = [];
+
+                        var name = fn.name;
+                        name = name.substr(0, 1).toUpperCase() + name.substr(1) + "Type";
+                        fn.type.name = name;
+
+                        ts.push('    class ' + name + ' : public NType {');
+
+                        ts.push('    public:');
+                        ts.push('        virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)');
+                        ts.push('        {');
+
+                        fn.type.forEach(t => {
+                            ts.push('            retVal->Set(isolate->NewString("' + t.name + '"), GetReturnValue(isolate->m_isolate, ' + t.name + '));');
+                        });
+
+                        ts.push('        }\n');
+
+                        ts.push('        virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)');
+                        ts.push('        {');
+
+                        fn.type.forEach(t => {
+                            ts.push('            args.push_back(GetReturnValue(isolate->m_isolate, ' + t.name + '));');
+                        });
+
+                        ts.push('        }\n');
+
+                        ts.push('    public:');
+                        fn.type.forEach(t => {
+                            ts.push('        ' + get_rtype(t.type) + ' ' + t.name + ';');
+                        });
+
+                        ts.push('    };');
+
+                        types[name] = ts.join('\n');
+                    }
+                });
+
+                if (bHasTypes) {
+                    txts.push("\npublic:");
+                    txts.push(Object.values(types).join("\n"));
+                }
+            }
+
             function gen_cls_members() {
                 txts.push("\npublic:\n    // " + cls + "_base");
                 var l = txts.length;
@@ -544,6 +598,7 @@ module.exports = function (defs, baseFolder) {
 
             gen_cls_declare();
             gen_cls_consts();
+            gen_cls_retTypes();
             gen_cls_members();
             gen_cls_new();
             gen_cls_member_stubs();
@@ -687,7 +742,11 @@ module.exports = function (defs, baseFolder) {
             }
 
             def.members.forEach(m => {
-                add_type(m.type);
+                if (Array.isArray(m.type))
+                    m.type.forEach(rt => add_type(rt.type));
+                else
+                    add_type(m.type);
+
                 if (!m.overs)
                     return;
                 m.overs.forEach(ov => {

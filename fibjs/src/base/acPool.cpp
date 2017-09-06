@@ -143,34 +143,49 @@ int32_t AsyncCallBack::post(int32_t v)
     return callback(v);
 }
 
+void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, object_base* obj)
+{
+    v8::Local<v8::Value> v;
+    obj->valueOf(v);
+    args.push_back(v);
+}
+
+void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, NType* v)
+{
+    v->fillArguments(m_isolate, args);
+}
+
 result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
 {
     JSFiber::scope s;
+    Isolate* isolate = pThis->m_isolate;
 
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(pThis->m_isolate->m_isolate, pThis->m_cb);
+    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, pThis->m_cb);
 
-    v8::Local<v8::Value> args[2];
+    std::vector<v8::Local<v8::Value>> args;
 
     if (pThis->m_v == CALL_RETURN_NULL) {
-        args[0] = v8::Undefined(pThis->m_isolate->m_isolate);
-        args[1] = v8::Null(pThis->m_isolate->m_isolate);
+        args.resize(2);
+        args[0] = v8::Undefined(isolate->m_isolate);
+        args[1] = v8::Null(isolate->m_isolate);
     } else if (pThis->m_v >= 0) {
-        args[0] = v8::Undefined(pThis->m_isolate->m_isolate);
-        args[1] = pThis->getValue();
+        args.resize(1);
+        args[0] = v8::Undefined(isolate->m_isolate);
+        pThis->fillArguments(args);
     } else {
         if (pThis->m_v == CALL_E_EXCEPTION)
             Runtime::setError(pThis->m_error);
 
         v8::Local<v8::Value> e = v8::Exception::Error(
-            pThis->m_isolate->NewString(getResultMessage(pThis->m_v)));
-        e->ToObject()->Set(pThis->m_isolate->NewString("number"),
-            v8::Int32::New(pThis->m_isolate->m_isolate, -pThis->m_v));
+            isolate->NewString(getResultMessage(pThis->m_v)));
+        e->ToObject()->Set(isolate->NewString("number"),
+            v8::Int32::New(isolate->m_isolate, -pThis->m_v));
 
+        args.resize(1);
         args[0] = e;
-        args[1] = v8::Undefined(pThis->m_isolate->m_isolate);
     }
 
-    func->Call(v8::Undefined(pThis->m_isolate->m_isolate), 2, args);
+    func->Call(v8::Undefined(isolate->m_isolate), args.size(), args.data());
 
     delete pThis;
 

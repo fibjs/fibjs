@@ -76,6 +76,33 @@ protected:
     QuickArray<Variant> m_array;
 };
 
+class NType : public object_base {
+
+public:
+    // object_base
+    virtual result_t valueOf(v8::Local<v8::Value>& retVal)
+    {
+        Isolate* isolate = Isolate::current();
+        v8::Local<v8::Object> obj;
+
+        obj = v8::Object::New(isolate->m_isolate);
+
+        fillMembers(isolate, obj);
+
+        retVal = obj;
+        return 0;
+    }
+
+public:
+    virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
+    {
+    }
+
+    virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+    {
+    }
+};
+
 } /* namespace fibjs */
 
 #endif

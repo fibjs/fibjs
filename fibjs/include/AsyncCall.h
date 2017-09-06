@@ -330,6 +330,7 @@ private:
     obj_ptr<T> m_v;
 };
 
+class NType;
 class AsyncCallBack : public AsyncEvent,
                       public exlib::Task_base {
 public:
@@ -393,9 +394,23 @@ public:
     }
 
 protected:
-    virtual v8::Local<v8::Value> getValue()
+    void fillRetVal(std::vector<v8::Local<v8::Value>>& args, object_base* obj);
+    void fillRetVal(std::vector<v8::Local<v8::Value>>& args, NType* v);
+
+    template <typename T>
+    void fillRetVal(std::vector<v8::Local<v8::Value>>& args, obj_ptr<T>& v)
     {
-        return v8::Undefined(m_isolate->m_isolate);
+        fillRetVal(args, (T*)v);
+    }
+
+    template <typename T>
+    void fillRetVal(std::vector<v8::Local<v8::Value>>& args, T& v)
+    {
+        args.push_back(GetReturnValue(m_isolate->m_isolate, v));
+    }
+
+    virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args)
+    {
     }
 
     static result_t syncFunc(AsyncCallBack* pThis);

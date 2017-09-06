@@ -112,17 +112,35 @@ object1
   }
 
 method
-  = comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:Identifier? _* name:Identifier? _* "(" params:params? _* ")" _* async:asyncToken? ";" {
+  =   comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* name:Identifier _* "(" params:params? _* ")" _* async:asyncToken? ";" {
     return {
       memType: "method",
       comments: comments.join(""),
       deprecated: deprecated,
       static: staticMode,
       async: async,
-      name: name ? name : type,
-      type: name ? type : null,
+      name: name,
+      type: null,
       params: params
     };
+  } /
+  comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:method_type _* name:Identifier _* "(" params:params? _* ")" _* async:asyncToken? ";" {
+    return {
+      memType: "method",
+      comments: comments.join(""),
+      deprecated: deprecated,
+      static: staticMode,
+      async: async,
+      name: name,
+      type: type,
+      params: params
+    };
+  }
+
+method_type
+  = Identifier /
+  "(" params:params? _* ")" {
+    return params
   }
 
 params
