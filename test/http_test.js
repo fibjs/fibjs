@@ -1263,6 +1263,7 @@ describe("http", () => {
                     r.response.addHeader("set-cookie", "name=value; path=/name");
                     r.response.body.write(r.address);
                 } else if (r.address == "/redirect") {
+                    r.response.addHeader("test", "test1");
                     r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/request");
                 } else if (r.address == "/redirect1") {
                     r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/redirect1");
@@ -1674,6 +1675,8 @@ describe("http", () => {
                 http.autoRedirect = false;
                 var resp = http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect');
                 assert.equal(resp.headers.location, "request");
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect").firstHeader("test"),
+                    "test1");
             })
         });
     });

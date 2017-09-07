@@ -446,8 +446,6 @@ result_t HttpResponse::addCookie(HttpCookie_base* cookie)
 
 result_t HttpResponse::redirect(exlib::string url)
 {
-    clear();
-
     m_status = 302;
     setHeader("Location", url);
     return 0;
