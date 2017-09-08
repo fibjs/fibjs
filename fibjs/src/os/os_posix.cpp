@@ -157,7 +157,6 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
 
         v8::Local<v8::String> name;
         v8::Local<v8::Array> ret;
-        unsigned char* ptr;
         char mac[18] = "";
 
         name = isolate->NewString(ent->ifa_name);
@@ -245,8 +244,8 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     struct passwd pwd;
     struct passwd* result;
     char* buf;
-    size_t bufsize;
-    int s;
+    int32_t bufsize;
+
     bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
     if (bufsize == -1)
         bufsize = 16384;
@@ -254,7 +253,7 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     if (buf == NULL) {
         return CHECK_ERROR(LastError());
     }
-    s = getpwuid_r(geteuid(), &pwd, buf, bufsize, &result);
+    getpwuid_r(geteuid(), &pwd, buf, bufsize, &result);
     if (result == NULL) {
         free(buf);
         return CHECK_ERROR(LastError());
@@ -302,8 +301,8 @@ result_t os_base::homedir(exlib::string& retVal)
         struct passwd pwd;
         struct passwd* result;
         char* buf;
-        size_t bufsize;
-        int s;
+        int32_t bufsize;
+
         bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
         if (bufsize == -1)
             bufsize = 16384;
@@ -311,7 +310,7 @@ result_t os_base::homedir(exlib::string& retVal)
         if (buf == NULL) {
             return CHECK_ERROR(LastError());
         }
-        s = getpwuid_r(getuid(), &pwd, buf, bufsize, &result);
+        getpwuid_r(getuid(), &pwd, buf, bufsize, &result);
         if (result == NULL) {
             free(buf);
             return CHECK_ERROR(LastError());
