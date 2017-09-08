@@ -55,7 +55,7 @@ result_t MemoryStream::CloneStream::truncate(int64_t bytes, AsyncEvent* ac)
 
 result_t MemoryStream::CloneStream::eof(bool& retVal)
 {
-    retVal = m_pos == m_buffer.length();
+    retVal = m_pos == (int32_t)m_buffer.length();
     return 0;
 }
 
