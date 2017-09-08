@@ -172,7 +172,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
         for (int i = 0; i < 6; i++)
             macAddrlen += sprintf(mac + macAddrlen, "%02X%s", s->sll_addr[i], i < 5 ? ":" : "");
 #elif defined(Darwin)
-        ptr = (unsigned char*)LLADDR((struct sockaddr_dl*)(ent->ifa_addr));
+        unsigned char* ptr = (unsigned char*)LLADDR((struct sockaddr_dl*)(ent->ifa_addr));
         sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x",
             *ptr, *(ptr + 1), *(ptr + 2), *(ptr + 3), *(ptr + 4), *(ptr + 5));
 #endif
