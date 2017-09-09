@@ -67,10 +67,6 @@ if(${BUILD_TYPE} STREQUAL "debug")
 	set(flags "${flags} -g -O0 ${BUILD_OPTION} -Wall -Wno-overloaded-virtual")
 	set(link_flags "${link_flags} ${BUILD_OPTION}")
 	add_definitions(-DDEBUG=1)
-
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(link_flags "${link_flags} -Wl,--wrap=malloc -Wl,--wrap=free -Wl,--wrap=calloc -Wl,--wrap=realloc")
-	endif()
 endif()
 
 set(CMAKE_C_FLAGS "${flags}")

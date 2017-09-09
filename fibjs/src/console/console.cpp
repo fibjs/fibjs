@@ -430,7 +430,6 @@ char* read_line()
 
 #ifndef _WIN32
 extern "C" {
-void __real_free(void*);
 char* readline(const char* prompt);
 void add_history(char* line);
 }
@@ -448,19 +447,6 @@ result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
     static bool _init = false;
     static char* (*_readline)(const char*);
     static void (*_add_history)(char*);
-
-#ifdef DEBUG
-#ifdef __clang__
-    static void (*_free)(void*);
-
-    if (_free == 0)
-        _free = (void (*)(void*))dlsym(RTLD_NEXT, "free");
-#else
-#define _free __real_free
-#endif
-#else
-#define _free free
-#endif
 
     if (!_init) {
         _init = true;
@@ -509,7 +495,7 @@ result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
             _add_history(line);
             retVal = line;
         }
-        _free(line);
+        free(line);
     } else
 #endif
     {
