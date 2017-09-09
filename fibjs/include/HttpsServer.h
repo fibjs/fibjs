@@ -18,13 +18,6 @@ class HttpsServer : public HttpsServer_base {
     FIBER_FREE();
 
 public:
-    // object_base
-    virtual result_t dispose()
-    {
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-    }
-
-public:
     // TcpServer_base
     virtual result_t run(AsyncEvent* ac);
     virtual result_t asyncRun();
