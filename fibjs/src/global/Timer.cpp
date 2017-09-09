@@ -18,15 +18,10 @@ public:
         : Timer(timeout, repeat)
         , m_clear_pendding(false)
     {
-        holder()->m_pendding.inc();
-        SetPrivate("callback", callback);
-    }
+        Isolate* isolate = holder();
 
-public:
-    virtual result_t clear()
-    {
-        _clear();
-        return Timer::clear();
+        isolate->m_pendding.inc();
+        m_callback.Reset(isolate->m_isolate, callback);
     }
 
 public:
@@ -39,19 +34,13 @@ public:
     virtual void on_timer()
     {
         JSFiber::scope s;
-
-        v8::Local<v8::Value> v = GetPrivate("callback");
-
-        if (v->IsFunction())
-            v8::Local<v8::Function>::Cast(v)->Call(wrap(), 0, NULL);
-
-        if (!hasNext())
-            _clear();
+        v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(holder()->m_isolate, m_callback);
+        callback->Call(wrap(), 0, NULL);
     }
 
-private:
-    void _clear()
+    virtual void on_clean()
     {
+        m_callback.Reset();
         if (!m_clear_pendding) {
             m_clear_pendding = true;
             holder()->m_pendding.dec();
@@ -60,6 +49,7 @@ private:
 
 private:
     bool m_clear_pendding;
+    v8::Global<v8::Function> m_callback;
 };
 
 DECLARE_MODULE(timers);
