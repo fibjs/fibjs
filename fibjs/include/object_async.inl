@@ -135,8 +135,8 @@
 			result_t hr = cls::m(retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T0 retVal; \
 	private: \
@@ -190,8 +190,8 @@
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T0 retVal; \
 	private: \
@@ -352,8 +352,8 @@
 			result_t hr = cls::m(m_v0.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T1 retVal; \
 	private: \
@@ -409,8 +409,8 @@
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T1 retVal; \
 	private: \
@@ -574,8 +574,8 @@
 			result_t hr = cls::m(m_v0.value(), m_v1.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T2 retVal; \
 	private: \
@@ -632,8 +632,8 @@
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T2 retVal; \
 	private: \
@@ -800,8 +800,8 @@
 			result_t hr = cls::m(m_v0.value(), m_v1.value(), m_v2.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T3 retVal; \
 	private: \
@@ -859,8 +859,8 @@
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T3 retVal; \
 	private: \
@@ -1030,8 +1030,8 @@
 			result_t hr = cls::m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T4 retVal; \
 	private: \
@@ -1090,8 +1090,8 @@
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T4 retVal; \
 	private: \
@@ -1264,8 +1264,8 @@
 			result_t hr = cls::m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T5 retVal; \
 	private: \
@@ -1325,8 +1325,8 @@
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T5 retVal; \
 	private: \
@@ -1502,8 +1502,8 @@
 			result_t hr = cls::m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T6 retVal; \
 	private: \
@@ -1564,8 +1564,8 @@
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T6 retVal; \
 	private: \
@@ -1744,8 +1744,8 @@
 			result_t hr = cls::m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), m_v6.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T7 retVal; \
 	private: \
@@ -1807,8 +1807,8 @@
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), m_v6.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T7 retVal; \
 	private: \
@@ -1990,8 +1990,8 @@
 			result_t hr = cls::m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), m_v6.value(), m_v7.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T8 retVal; \
 	private: \
@@ -2054,8 +2054,8 @@
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), m_v6.value(), m_v7.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T8 retVal; \
 	private: \
@@ -2240,8 +2240,8 @@
 			result_t hr = cls::m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), m_v6.value(), m_v7.value(), m_v8.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T9 retVal; \
 	private: \
@@ -2305,8 +2305,8 @@
 			result_t hr = ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), m_v6.value(), m_v7.value(), m_v8.value(), retVal, this); \
 			if (hr != CALL_E_PENDDING)post(hr); \
 		} \
-    	virtual v8::Local<v8::Value> getValue() \
-    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \
+    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	{ fillRetVal(args, retVal); } \
 	public: \
 		T9 retVal; \
 	private: \

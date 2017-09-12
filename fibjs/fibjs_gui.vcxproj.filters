@@ -100,6 +100,9 @@
     <Filter Include="Source Files\ssl">
       <UniqueIdentifier>{946bd967-41b8-dd1c-5b15-d3d20a7609f0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\string_decoder">
+      <UniqueIdentifier>{66f36292-adda-6f18-28a3-ecef644c4114}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\test">
       <UniqueIdentifier>{4c71dba2-1448-753e-32fb-4d83994539f4}</UniqueIdentifier>
     </Filter>
@@ -340,6 +343,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\StringBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\StringDecoder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\SubProcess.h">
@@ -645,6 +651,9 @@
     <ClInclude Include="include\ifs\Stream.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\StringDecoder.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\SubProcess.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -831,6 +840,9 @@
     <ClInclude Include="include\ifs\ssl.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\string_decoder.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\test.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -939,9 +951,6 @@
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\fuck_sym.cpp">
-      <Filter>Source Files\base</Filter>
-    </ClCompile>
-    <ClCompile Include="src\base\mem_trace.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\options.cpp">
@@ -1369,6 +1378,9 @@
     </ClCompile>
     <ClCompile Include="src\ssl\ssl.cpp">
       <Filter>Source Files\ssl</Filter>
+    </ClCompile>
+    <ClCompile Include="src\string_decoder\StringDecoder.cpp">
+      <Filter>Source Files\string_decoder</Filter>
     </ClCompile>
     <ClCompile Include="src\test\assert.cpp">
       <Filter>Source Files\test</Filter>

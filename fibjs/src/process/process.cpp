@@ -199,16 +199,9 @@ result_t process_base::get_platform(exlib::string& retVal)
     return os_base::platform(retVal);
 }
 
-void dump_memory();
-
 result_t process_base::exit(int32_t code)
 {
     flushLog();
-
-#ifdef DEBUG
-    global_base::GC();
-    dump_memory();
-#endif
 
 #ifdef _WIN32
     TerminateProcess(GetCurrentProcess(), code);

@@ -51,6 +51,20 @@ module.exports = function (defs, docsFolder) {
                     }
                 }
 
+                if (Array.isArray(m.type)) {
+                    var ts = '';
+
+                    m.type.forEach(function (p) {
+                        if (ts)
+                            ts += ', ';
+
+                        if (p.type)
+                            ts += p.type + ' ';
+                        ts += p.name;
+                    });
+                    m.type = '(' + ts + ')';
+                }
+
                 if (m.type) {
                     if (m.memType == 'method' && m.doc.return && m.doc.return.descript) {
                         m.doc.return.descript = m.type + ", " + m.doc.return.descript;
@@ -317,8 +331,7 @@ module.exports = function (defs, docsFolder) {
             md = md.replace(/\n\s+```/g, '\n```');
 
             md = md.replace(/\n```JavaScript\s+((.|\n)*?)\s+```\s+/gi, function (s, p1, p2, p3) {
-                return '\n\n```JavaScript\n' + beautify(p1.replace(/\n( |\t)*/g, '\n')) + '\n```\n\n';
-
+                return '\n\n```JavaScript\n' + beautify(p1.replace(/\n( |\t)*/g, '\n')).replace(/^static\(/g, 'static (') + '\n```\n\n';
             });
 
             md = md.replace(/\n\n+/g, '\n\n');

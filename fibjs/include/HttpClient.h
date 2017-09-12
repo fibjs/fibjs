@@ -60,9 +60,10 @@ public:
 public:
     result_t update_cookies(exlib::string url, obj_ptr<List_base> cookies);
     result_t get_cookie(exlib::string url, exlib::string& retVal);
-    void setAgent(obj_ptr<HttpRequest_base> req)
+
+    exlib::string agent()
     {
-        req->addHeader("User-Agent", m_userAgent);
+        return m_userAgent;
     }
 
 private:

@@ -45,6 +45,8 @@ public:
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, AsyncEvent* ac) = 0;
+    virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t json(v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get_length(int64_t& retVal) = 0;
     virtual result_t end() = 0;
     virtual result_t isEnded(bool& retVal) = 0;
@@ -76,6 +78,7 @@ public:
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_end(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isEnded(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -111,6 +114,7 @@ inline ClassInfo& Message_base::class_info()
         { "readAllSync", s_readAll, false },
         { "write", s_write, false },
         { "writeSync", s_write, false },
+        { "json", s_json, false },
         { "end", s_end, false },
         { "isEnded", s_isEnded, false },
         { "clear", s_clear, false },
@@ -336,6 +340,26 @@ inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = pInst->ac_write(v0);
 
     METHOD_VOID();
+}
+
+inline void Message_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_INSTANCE(Message_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = pInst->json(v0, vr);
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->json(vr);
+
+    METHOD_RETURN();
 }
 
 inline void Message_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)

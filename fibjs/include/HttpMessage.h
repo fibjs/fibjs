@@ -28,6 +28,11 @@ public:
     }
 
 public:
+    // Message_base
+    virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal);
+    virtual result_t json(v8::Local<v8::Value>& retVal);
+
+public:
     result_t get_protocol(exlib::string& retVal);
     result_t set_protocol(exlib::string newVal);
     result_t get_headers(obj_ptr<HttpCollection_base>& retVal);

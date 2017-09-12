@@ -81,11 +81,24 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
     v8::Local<v8::Context> _context = v8::Context::New(isolate->m_isolate);
     v8::Context::Scope context_scope(_context);
 
+    _context->SetEmbedderData(1, v8::Object::New(isolate->m_isolate)->GetPrototype());
     _context->SetSecurityToken(_token);
 
     v8::Local<v8::Object> _global = _context->Global();
+
+    _global->Delete(isolate->NewString("console"));
     _global->Set(isolate->NewString("global"), _global);
-    extend(global, _global);
+
+    v8::Local<v8::Array> ks = global->GetPropertyNames();
+    int32_t len = ks->Length();
+    int32_t i;
+
+    for (i = 0; i < len; i++) {
+        v8::Local<v8::Value> k = ks->Get(i);
+        v8::Local<v8::Value> v = global->Get(k);
+
+        _global->Set(k, v);
+    }
 
     SetPrivate("_global", _global);
     m_global = true;

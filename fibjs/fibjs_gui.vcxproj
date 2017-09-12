@@ -168,6 +168,7 @@
     <ClInclude Include="include\Stat.h" />
     <ClInclude Include="include\Stats.h" />
     <ClInclude Include="include\StringBuffer.h" />
+    <ClInclude Include="include\StringDecoder.h" />
     <ClInclude Include="include\SubProcess.h" />
     <ClInclude Include="include\TcpServer.h" />
     <ClInclude Include="include\TextColor.h" />
@@ -269,6 +270,7 @@
     <ClInclude Include="include\ifs\Stat.h" />
     <ClInclude Include="include\ifs\Stats.h" />
     <ClInclude Include="include\ifs\Stream.h" />
+    <ClInclude Include="include\ifs\StringDecoder.h" />
     <ClInclude Include="include\ifs\SubProcess.h" />
     <ClInclude Include="include\ifs\TcpServer.h" />
     <ClInclude Include="include\ifs\TextColor.h" />
@@ -331,6 +333,7 @@
     <ClInclude Include="include\ifs\querystring.h" />
     <ClInclude Include="include\ifs\registry.h" />
     <ClInclude Include="include\ifs\ssl.h" />
+    <ClInclude Include="include\ifs\string_decoder.h" />
     <ClInclude Include="include\ifs\test.h" />
     <ClInclude Include="include\ifs\timers.h" />
     <ClInclude Include="include\ifs\tty.h" />
@@ -372,7 +375,6 @@
     <ClCompile Include="src\base\date_cache.cpp" />
     <ClCompile Include="src\base\fibjs.cpp" />
     <ClCompile Include="src\base\fuck_sym.cpp" />
-    <ClCompile Include="src\base\mem_trace.cpp" />
     <ClCompile Include="src\base\options.cpp" />
     <ClCompile Include="src\base\utf8.cpp" />
     <ClCompile Include="src\base\utils.cpp" />
@@ -515,6 +517,7 @@
     <ClCompile Include="src\ssl\SslServer.cpp" />
     <ClCompile Include="src\ssl\SslSocket.cpp" />
     <ClCompile Include="src\ssl\ssl.cpp" />
+    <ClCompile Include="src\string_decoder\StringDecoder.cpp" />
     <ClCompile Include="src\test\assert.cpp" />
     <ClCompile Include="src\test\test.cpp" />
     <ClCompile Include="src\util\LruCache.cpp" />

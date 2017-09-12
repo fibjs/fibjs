@@ -485,12 +485,12 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 
-result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<object_base>& retVal,
+result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
     AsyncEvent* ac)
 {
     class asyncRecvFrom : public asyncProc {
     public:
-        asyncRecvFrom(SOCKET s, int32_t bytes, obj_ptr<object_base>& retVal,
+        asyncRecvFrom(SOCKET s, int32_t bytes, obj_ptr<NObject>& retVal,
             AsyncEvent* ac, exlib::Locker& locker)
             : asyncProc(s, ac, locker)
             , m_retVal(retVal)
@@ -539,7 +539,7 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<object_base>& retVal,
         }
 
     public:
-        obj_ptr<object_base>& m_retVal;
+        obj_ptr<NObject>& m_retVal;
         exlib::string m_buf;
         inetAddr addr_info;
         socklen_t sz;

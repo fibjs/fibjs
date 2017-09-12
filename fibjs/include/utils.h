@@ -773,22 +773,15 @@ result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<
 
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object>& vr, bool bStrict = false)
 {
-    Isolate* isolate = Isolate::current();
-
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
     if (!v->IsObject())
         return CALL_E_TYPEMISMATCH;
 
-    v8::Local<v8::Value> proto;
-    if (isolate->m_proto.IsEmpty()) {
-        proto = v8::Object::New(isolate->m_isolate)->GetPrototype();
-        isolate->m_proto.Reset(isolate->m_isolate, proto);
-    } else
-        proto = v8::Local<v8::Value>::New(isolate->m_isolate, isolate->m_proto);
-
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+    v8::Local<v8::Context> _context = o->CreationContext();
+    v8::Local<v8::Value> proto = _context->GetEmbedderData(1);
     if (!proto->Equals(o->GetPrototype()))
         return CALL_E_TYPEMISMATCH;
 

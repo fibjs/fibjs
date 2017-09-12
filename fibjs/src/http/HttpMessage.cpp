@@ -123,6 +123,34 @@ public:
     bool m_headerOnly;
 };
 
+result_t HttpMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+{
+    setHeader("Content-Type", "application/json");
+    return Message::json(data, retVal);
+}
+
+result_t HttpMessage::json(v8::Local<v8::Value>& retVal)
+{
+    Variant v;
+    exlib::string str;
+
+    firstHeader("Content-Type", v);
+
+    if (v.isUndefined())
+        return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
+
+    str = v.string();
+
+    size_t pos = str.find(';');
+    if (pos != exlib::string::npos)
+        str = str.substr(0, pos);
+
+    if (str != "application/json")
+        return CHECK_ERROR(Runtime::setError("HttpRequest: Invalid content type."));
+
+    return Message::json(retVal);
+}
+
 result_t HttpMessage::sendTo(Stream_base* stm, exlib::string& strCommand,
     AsyncEvent* ac)
 {

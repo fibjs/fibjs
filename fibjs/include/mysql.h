@@ -32,8 +32,8 @@ public:
     virtual result_t commit(AsyncEvent* ac);
     virtual result_t rollback(AsyncEvent* ac);
     virtual result_t trans(v8::Local<v8::Function> func);
-    virtual result_t execute(exlib::string sql, obj_ptr<object_base>& retVal, AsyncEvent* ac);
-    virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<object_base>& retVal, AsyncEvent* ac);
+    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac);
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal);
 
 public:
@@ -47,7 +47,7 @@ public:
 public:
     result_t connect(const char* host, int32_t port, const char* username,
         const char* password, const char* dbName);
-    result_t execute(const char* sql, int32_t sLen, obj_ptr<object_base>& retVal);
+    result_t execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal);
 
 private:
     inline result_t error()

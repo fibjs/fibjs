@@ -60,6 +60,16 @@ result_t HttpResponse::write(Buffer_base* data, AsyncEvent* ac)
     return m_message->write(data, ac);
 }
 
+result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+{
+    return m_message->json(data, retVal);
+}
+
+result_t HttpResponse::json(v8::Local<v8::Value>& retVal)
+{
+    return m_message->json(retVal);
+}
+
 result_t HttpResponse::get_length(int64_t& retVal)
 {
     return m_message->get_length(retVal);
@@ -436,8 +446,6 @@ result_t HttpResponse::addCookie(HttpCookie_base* cookie)
 
 result_t HttpResponse::redirect(exlib::string url)
 {
-    clear();
-
     m_status = 302;
     setHeader("Location", url);
     return 0;

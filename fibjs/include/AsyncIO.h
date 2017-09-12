@@ -11,7 +11,6 @@
 #include "ifs/Socket.h"
 #include "Timer.h"
 #include "inetAddr.h"
-#include "SimpleObject.h"
 
 #ifndef ASYNCIO_H_
 #define ASYNCIO_H_
@@ -34,7 +33,7 @@ public:
     {
     }
 
-    class DatagramPacket : public SimpleObject {
+    class DatagramPacket : public NObject {
     public:
         DatagramPacket(exlib::string data, inetAddr& addr)
         {
@@ -50,7 +49,7 @@ public:
     result_t write(Buffer_base* data, AsyncEvent* ac);
     result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         AsyncEvent* ac, bool bRead, Timer_base* timer);
-    result_t recvfrom(int32_t bytes, obj_ptr<object_base>& retVal, AsyncEvent* ac);
+    result_t recvfrom(int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac);
 
 #ifndef _WIN32
     result_t cancel(AsyncEvent* ac);

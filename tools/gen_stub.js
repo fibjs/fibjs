@@ -3,6 +3,7 @@
 var txt = [];
 
 var fs = require('fs');
+var path = require('path');
 
 for (var i = 0; i < 10; i++) {
     gen_stub(i, false, false);
@@ -12,7 +13,7 @@ for (var i = 0; i < 10; i++) {
     gen_stub(i + 1, true, true);
 }
 
-fs.writeFile('object_async.inl', txt.join('\n'));
+fs.writeFile(path.join(__dirname, '../fibjs/include/object_async.inl'), txt.join('\n'));
 
 function gen_stub(argn, bInst, bRet) {
     var group = [];
@@ -155,8 +156,8 @@ function gen_stub(argn, bInst, bRet) {
         txt.push('			if (hr != CALL_E_PENDDING)post(hr); \\\n' + '		} \\');
 
         if (bRet) {
-            txt.push('    	virtual v8::Local<v8::Value> getValue() \\');
-            txt.push('    	{   return GetReturnValue(isolate()->m_isolate, retVal); } \\');
+            txt.push('    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \\');
+            txt.push('    	{ fillRetVal(args, retVal); } \\');
 
             txt.push('	public: \\\n		T' + argn1 + ' retVal; \\');
         }

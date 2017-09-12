@@ -130,41 +130,22 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (pThis->m_pThis->m_crossDomain) {
                 pThis->m_req->get_address(str);
 
-                if (str == "/crossdomain.xml") {
-                    obj_ptr<MemoryStream> body = new MemoryStream();
-                    obj_ptr<Buffer> buf = new Buffer("<cross-domain-policy><allow-access-from domain=\"*\" to-ports=\"*\" /></cross-domain-policy>",
-                        88);
+                Variant origin;
 
-                    pThis->m_rep->set_body(body);
-                    body->cc_write(buf);
+                if (pThis->m_req->firstHeader("origin",
+                        origin)
+                    != CALL_RETURN_NULL) {
+                    pThis->m_rep->setHeader("Access-Control-Allow-Credentials", "true");
+                    pThis->m_rep->setHeader("Access-Control-Allow-Origin", origin);
 
-                    pThis->m_rep->setHeader("Content-Type", "text/xml");
+                    pThis->m_req->get_method(str);
 
-                    return 0;
-                } else {
-                    Variant origin;
+                    if (!qstricmp(str.c_str(), "options")) {
+                        pThis->m_rep->setHeader("Access-Control-Allow-Methods", "*");
+                        pThis->m_rep->setHeader("Access-Control-Allow-Headers", "CONTENT-TYPE");
+                        pThis->m_rep->setHeader("Access-Control-Max-Age", "1728000");
 
-                    if (pThis->m_req->firstHeader("origin",
-                            origin)
-                        != CALL_RETURN_NULL) {
-                        pThis->m_rep->setHeader(
-                            "Access-Control-Allow-Credentials", "true");
-                        pThis->m_rep->setHeader("Access-Control-Allow-Origin",
-                            origin);
-
-                        pThis->m_req->get_method(str);
-
-                        if (!qstricmp(str.c_str(), "options")) {
-                            pThis->m_rep->setHeader(
-                                "Access-Control-Allow-Methods", "*");
-                            pThis->m_rep->setHeader(
-                                "Access-Control-Allow-Headers",
-                                "CONTENT-TYPE");
-                            pThis->m_rep->setHeader("Access-Control-Max-Age",
-                                "1728000");
-
-                            return 0;
-                        }
+                        return 0;
                     }
                 }
             }

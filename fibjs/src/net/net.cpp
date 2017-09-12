@@ -79,28 +79,6 @@ result_t net_base::ipv6(exlib::string name, exlib::string& retVal,
     return resolve(name, net_base::_AF_INET6, retVal, ac);
 }
 
-result_t net_base::connect(exlib::string host, int32_t port, int32_t timeout, int32_t family,
-    obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
-{
-    if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    result_t hr;
-    obj_ptr<Socket_base> socket;
-
-    hr = Socket_base::_new(family, net_base::_SOCK_STREAM, socket);
-    if (hr < 0)
-        return hr;
-
-    socket->set_timeout(timeout);
-
-    retVal = socket;
-    return socket->connect(host, port, ac);
-}
-
 result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal,
     AsyncEvent* ac)
 {
@@ -123,9 +101,18 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int32_t nPort = atoi(u->m_port.c_str());
-    return connect(u->m_hostname.c_str(), nPort, timeout,
-        u->m_ipv6 ? net_base::_AF_INET6 : net_base::_AF_INET,
-        retVal, ac);
+    int32_t family = u->m_ipv6 ? net_base::_AF_INET6 : net_base::_AF_INET;
+
+    obj_ptr<Socket_base> socket;
+
+    hr = Socket_base::_new(family, net_base::_SOCK_STREAM, socket);
+    if (hr < 0)
+        return hr;
+
+    socket->set_timeout(timeout);
+
+    retVal = socket;
+    return socket->connect(u->m_hostname, nPort, ac);
 }
 
 result_t net_base::openSmtp(exlib::string url, int32_t timeout,

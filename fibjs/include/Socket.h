@@ -71,7 +71,7 @@ public:
         AsyncEvent* ac);
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         AsyncEvent* ac);
-    virtual result_t recvfrom(int32_t bytes, obj_ptr<object_base>& retVal,
+    virtual result_t recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
         AsyncEvent* ac);
     virtual result_t send(Buffer_base* data, AsyncEvent* ac);
     virtual result_t sendto(Buffer_base* data, exlib::string host,

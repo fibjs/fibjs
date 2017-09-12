@@ -15,13 +15,6 @@ namespace fibjs {
 
 class Chain : public Chain_base {
 public:
-    // object_base
-    virtual result_t dispose()
-    {
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-    }
-
-public:
     // Handler_base
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         AsyncEvent* ac);

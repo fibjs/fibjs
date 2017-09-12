@@ -41,7 +41,7 @@ public:
     virtual result_t listen(int32_t backlog) = 0;
     virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t recvfrom(int32_t bytes, obj_ptr<object_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t recvfrom(int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac) = 0;
     virtual result_t send(Buffer_base* data, AsyncEvent* ac) = 0;
     virtual result_t sendto(Buffer_base* data, exlib::string host, int32_t port, AsyncEvent* ac) = 0;
 
@@ -72,7 +72,7 @@ public:
     ASYNC_MEMBER2(Socket_base, connect, exlib::string, int32_t);
     ASYNC_MEMBERVALUE1(Socket_base, accept, obj_ptr<Socket_base>);
     ASYNC_MEMBERVALUE2(Socket_base, recv, int32_t, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE2(Socket_base, recvfrom, int32_t, obj_ptr<object_base>);
+    ASYNC_MEMBERVALUE2(Socket_base, recvfrom, int32_t, obj_ptr<NObject>);
     ASYNC_MEMBER1(Socket_base, send, Buffer_base*);
     ASYNC_MEMBER3(Socket_base, sendto, Buffer_base*, exlib::string, int32_t);
 };
@@ -335,7 +335,7 @@ inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Socket_base::s_recvfrom(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<object_base> vr;
+    obj_ptr<NObject> vr;
 
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();

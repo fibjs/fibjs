@@ -56,6 +56,16 @@ result_t WorkerMessage::write(Buffer_base* data, AsyncEvent* ac)
     return m_message->write(data, ac);
 }
 
+result_t WorkerMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+{
+    return m_message->json(data, retVal);
+}
+
+result_t WorkerMessage::json(v8::Local<v8::Value>& retVal)
+{
+    return m_message->json(retVal);
+}
+
 result_t WorkerMessage::get_length(int64_t& retVal)
 {
     return m_message->get_length(retVal);

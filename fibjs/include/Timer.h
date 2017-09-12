@@ -64,6 +64,10 @@ public:
     {
     }
 
+    virtual void on_clean()
+    {
+    }
+
 protected:
     result_t callback()
     {
@@ -72,17 +76,16 @@ protected:
 
             if (m_repeat && !m_cancel)
                 sleep();
-            else
+            else {
+                on_clean();
                 Unref();
-        } else
+            }
+        } else {
+            on_clean();
             Unref();
+        }
 
         return 0;
-    }
-
-    bool hasNext()
-    {
-        return m_repeat && !m_cancel;
     }
 
     static result_t _callback(Timer* pThis)

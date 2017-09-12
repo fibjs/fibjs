@@ -731,6 +731,52 @@ describe("http", () => {
         });
     });
 
+    it('json', () => {
+        var v = {
+            a: 100
+        };
+
+        var req = new http.Request();
+
+        assert.throws(() => {
+            req.json();
+        });
+        req.setHeader('Content-Type', "application/jso");
+        assert.throws(() => {
+            req.json();
+        });
+
+        req.json(v);
+        assert.equal(req.firstHeader('Content-Type'), "application/json");
+        assert.equal(req.data.toString(), '{"a":100}');
+
+        assert.deepEqual(req.json(), v);
+
+        req.setHeader('Content-Type', "application/json; utf-8");
+        assert.equal(req.firstHeader('Content-Type'), "application/json; utf-8");
+        assert.deepEqual(req.json(), v);
+
+        var rep = new http.Response();
+
+        assert.throws(() => {
+            rep.json();
+        });
+        req.setHeader('Content-Type', "application/jso");
+        assert.throws(() => {
+            req.json();
+        });
+
+        rep.json(v);
+        assert.equal(rep.firstHeader('Content-Type'), "application/json");
+        assert.equal(rep.data.toString(), '{"a":100}');
+
+        assert.deepEqual(rep.json(), v);
+
+        rep.setHeader('Content-Type', "application/json; utf-8");
+        assert.equal(rep.firstHeader('Content-Type'), "application/json; utf-8");
+        assert.deepEqual(rep.json(), v);
+    });
+
     describe("encode", () => {
         it("request", () => {
             var rep = new http.Request();
@@ -1217,9 +1263,13 @@ describe("http", () => {
                     r.response.addHeader("set-cookie", "name=value; path=/name");
                     r.response.body.write(r.address);
                 } else if (r.address == "/redirect") {
+                    r.response.addHeader("test", "test1");
                     r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/request");
                 } else if (r.address == "/redirect1") {
                     r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/redirect1");
+                } else if (r.address == "/agent") {
+                    if (r.allHeader("user-agent").length == 1)
+                        r.response.body.write(r.firstHeader("user-agent"));
                 } else if (r.address != "/gzip_test") {
                     r.response.addHeader("set-cookie", "request=value; domain=127.0.0.1; path=/request");
                     r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1; path=/request");
@@ -1269,6 +1319,23 @@ describe("http", () => {
                     "test_header": "header"
                 }).body.read().toString(), "/request:header");
                 assert.equal(cookie, "root=value2");
+            });
+
+            it("agent", () => {
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").body.read().toString(),
+                    "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36");
+
+                http.userAgent = 'test agent';
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").body.read().toString(),
+                    "test agent");
+
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent", {
+                        "user-agent": "agent in headers"
+                    }).body.read().toString(),
+                    "agent in headers");
+
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").body.read().toString(),
+                    "test agent");
             });
 
             it("gzip", () => {
@@ -1608,6 +1675,8 @@ describe("http", () => {
                 http.autoRedirect = false;
                 var resp = http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect');
                 assert.equal(resp.headers.location, "request");
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect").firstHeader("test"),
+                    "test1");
             })
         });
     });

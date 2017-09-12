@@ -370,39 +370,39 @@ result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib:
     if (buffer_length < offset)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
-    max_length = (int32_t)str.length();
-    max_length = MIN(max_length, buffer_length - offset);
-    if (0 == length)
-        return 0;
-    else if (0 < length)
-        max_length = MIN(max_length, length);
-
-    if (max_length < 0)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
-
-    retVal = max_length;
-    if ((codec == "utf8") || (codec == "utf-8")) {
-        memcpy(&m_data[offset], str.c_str(), max_length);
+    if (buffer_length == offset || length == 0) {
+        retVal = 0;
         return 0;
     }
 
     result_t hr;
-    obj_ptr<Buffer_base> data;
     exlib::string strBuf;
 
-    if ((codec == "hex"))
-        hr = hex_base::decode(str, data);
-    else if ((codec == "base64"))
-        hr = base64_base::decode(str, data);
-    else
-        hr = iconv_base::encode(codec, str, data);
+    if ((codec == "utf8") || (codec == "utf-8"))
+        strBuf = str;
+    else {
+        obj_ptr<Buffer_base> data;
 
-    if (hr < 0)
-        return hr;
-    data->toString(strBuf);
+        if ((codec == "hex"))
+            hr = hex_base::decode(str, data);
+        else if ((codec == "base64"))
+            hr = base64_base::decode(str, data);
+        else
+            hr = iconv_base::encode(codec, str, data);
+
+        if (hr < 0)
+            return hr;
+        data->toString(strBuf);
+    }
+
+    max_length = (int32_t)strBuf.length();
+    max_length = MIN(max_length, buffer_length - offset);
+    if (length > 0)
+        max_length = MIN(max_length, length);
+
+    retVal = max_length;
     memcpy(&m_data[offset], strBuf.c_str(), max_length);
-
-    return hr;
+    return 0;
 }
 
 result_t Buffer::write(exlib::string str, int32_t offset, exlib::string codec, int32_t& retVal)
@@ -957,12 +957,6 @@ result_t Buffer::reverse(obj_ptr<Buffer_base>& retVal)
     return 0;
 }
 
-result_t Buffer::toString(exlib::string& retVal)
-{
-    retVal = m_data;
-    return 0;
-}
-
 result_t Buffer::hex(exlib::string& retVal)
 {
     obj_ptr<Buffer_base> data = this;
@@ -1036,29 +1030,55 @@ result_t Buffer::entries(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
+result_t Buffer::toString(exlib::string& retVal)
+{
+    retVal = m_data;
+    return 0;
+}
+
+result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& retVal)
+{
+    exlib::string str;
+    int32_t length = (int32_t)m_data.length();
+
+    if (offset < 0)
+        offset = 0;
+
+    if (offset >= length){
+        retVal = "";
+        return 0;
+    }
+
+    if (offset > 0) {
+        str.append(m_data.c_str() + offset, length - offset);
+        return commonEncode(codec, str, retVal);
+    }else{
+        return commonEncode(codec, m_data, retVal);
+    }
+}
+
 result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal)
 {
-    result_t hr;
     exlib::string str;
-    int32_t str_length;
+    int32_t length = (int32_t)m_data.length();
 
-    hr = commonEncode(codec, m_data, str);
+    if (offset < 0)
+        offset = 0;
 
-    if (hr < 0)
-        return hr;
+    if (end < 0 || offset >= end){
+        retVal = "";
+        return 0;
+    }
 
-    str_length = (int32_t)str.length();
-    if (end < 0)
-        end = str_length + end + 1;
+    if (end > length)
+        end = length;
 
-    if (offset < 0 || end < 0 || offset > end)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-
-    if (end > str_length)
-        end = str_length;
-
-    retVal = str.substr(offset, end - offset);
-    return hr;
+    if (offset < end) {
+        str.append(m_data.c_str() + offset, end - offset);
+        return commonEncode(codec, str, retVal);
+    } else {
+        return commonEncode(codec, m_data, retVal);
+    }
 }
 
 result_t Buffer::toArray(v8::Local<v8::Array>& retVal)
