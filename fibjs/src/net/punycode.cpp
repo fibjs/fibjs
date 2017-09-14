@@ -7,6 +7,8 @@
 
 #include "ifs/punycode.h"
 #include "utf8.h"
+#include "qstring.h"
+#include "parse.h"
 #include <limits.h>
 
 namespace fibjs {
@@ -237,4 +239,121 @@ fail:
 
     return 0;
 }
+
+result_t punycode_base::toASCII(exlib::string domain, exlib::string& retVal)
+{
+    result_t hr;
+    exlib::string left;
+    exlib::string result;
+    exlib::string str;
+    exlib::wstring32 wdomain;
+    exlib::wstring32 wStr;
+    size_t length;
+    bool notAscii = false;
+    bool finished = false;
+    _parser p(domain);
+    size_t p1 = 0;
+
+    p.skipUntil('@');
+    if (p.get() == '@')
+    {
+        p.skip();
+        result.append(p.string, p.pos);
+    } else
+        p.pos = 0;
+
+
+    p.getLeft(left);
+    wdomain = utf8to32String(left);
+    length = wdomain.length();
+    for (size_t i = 0; i < length; i++)
+    {
+        if (i + 1 == length || wdomain[i] == '\x2E' || wdomain[i] == 0x3002 || wdomain[i] == 0xff0e || wdomain[i] == 0xff61)
+        {
+            if (i + 1 == length)
+            {
+                finished = true;
+                i++;
+            }
+            for (size_t j = p1; j < i; j++)
+                if (wdomain[j] > '\x7E' || wdomain[j] < '\x20')
+                {
+                    notAscii = true;
+                    break;
+                }
+            wStr = wdomain.substr(p1, i - p1);
+            str = utf32to8String(wStr);
+            if (notAscii) {
+                hr = encode(str, str);
+                if (hr < 0)
+                    return CHECK_ERROR(hr);
+                result += "xn--";
+            }
+            result += str;
+            if (!finished)
+                result += ".";
+            notAscii = false;
+            p1 = i + 1;
+        }
+    }
+
+    retVal = result;
+
+    return 0;
+}
+
+result_t punycode_base::toUnicode(exlib::string domain, exlib::string& retVal)
+{
+    result_t hr;
+    exlib::string left;
+    exlib::string result;
+    exlib::string str;
+    size_t length;
+    bool finished = false;
+    _parser p(domain);
+    size_t p1 = 0;
+
+    p.skipUntil('@');
+    if (p.get() == '@')
+    {
+        p.skip();
+        result.append(p.string, p.pos);
+    }
+    else
+        p.pos = 0;
+
+    p.getLeft(left);
+    length = left.length();
+    for (size_t i = 0; i < length; i++)
+    {
+        if (left[i] == '\x2E' || i + 1 == length)
+        {
+            if (i + 1 == length)
+            {
+                i++;
+                finished = true;
+            }
+
+            if (qstrcmp(&left[p1], "xn--", 4) == 0)
+            {
+                str = left.substr(p1 + 4, i - p1 - 4);
+                str.tolower();
+                hr = decode(str, str);
+                if (hr < 0)
+                    return CHECK_ERROR(hr);
+            } else
+                str = left.substr(p1, i - p1);
+
+            result += str;
+            if (!finished)
+                result += ".";
+            p1 = i + 1;
+        }
+    }
+
+    retVal = result;
+
+    return 0;
+}
+
 }

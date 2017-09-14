@@ -23,6 +23,8 @@ public:
     // punycode_base
     static result_t encode(exlib::string domain, exlib::string& retVal);
     static result_t decode(exlib::string domain, exlib::string& retVal);
+    static result_t toASCII(exlib::string domain, exlib::string& retVal);
+    static result_t toUnicode(exlib::string domain, exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -38,6 +40,8 @@ public:
 public:
     static void s_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_toASCII(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_toUnicode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -46,7 +50,9 @@ inline ClassInfo& punycode_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "encode", s_encode, true },
-        { "decode", s_decode, true }
+        { "decode", s_decode, true },
+        { "toASCII", s_toASCII, true },
+        { "toUnicode", s_toUnicode, true }
     };
 
     static ClassData s_cd = {
@@ -85,6 +91,36 @@ inline void punycode_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(exlib::string, 0);
 
     hr = decode(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void punycode_base::s_toASCII(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = toASCII(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void punycode_base::s_toUnicode(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = toUnicode(v0, vr);
 
     METHOD_RETURN();
 }
