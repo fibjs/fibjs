@@ -25,6 +25,7 @@ namespace fibjs {
 
 #define JSOBJECT_JSVALUE 1
 #define JSOBJECT_JSHANDLE 2
+#define JSOBJECT_JSREFFER 4
 
 class object_base : public obj_base {
 public:
@@ -39,6 +40,8 @@ public:
 
     virtual ~object_base()
     {
+        assert(!(m_isJSObject & JSOBJECT_JSREFFER));
+
         clear_handle();
         object_base::class_info().Unref();
     }
@@ -100,9 +103,16 @@ public:
 private:
     static void WeakCallback(const v8::WeakCallbackInfo<object_base>& data)
     {
+        assert(!data.GetParameter()->handle_.IsEmpty());
         object_base* pThis = data.GetParameter();
-        assert(!pThis->handle_.IsEmpty());
-        pThis->dispose();
+
+        assert(pThis->m_isJSObject & JSOBJECT_JSREFFER);
+
+        pThis->handle_.ClearWeak();
+
+        pThis->m_isJSObject &= ~JSOBJECT_JSREFFER;
+        if (pThis->internalUnref() == 0)
+            delete pThis;
     }
 
 private:
@@ -152,13 +162,15 @@ public:
 
             v8_isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
 
-            internalRef();
-            handle_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kFinalizer);
-            handle_.MarkIndependent();
-
             m_isJSObject |= JSOBJECT_JSHANDLE;
         } else
             o = v8::Local<v8::Object>::New(v8_isolate, handle_);
+
+        if (!(m_isJSObject & JSOBJECT_JSREFFER)) {
+            m_isJSObject |= JSOBJECT_JSREFFER;
+            internalRef();
+            handle_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kFinalizer);
+        }
 
         return o;
     }
@@ -253,8 +265,6 @@ private:
             v8::Isolate* v8_isolate = isolate->m_isolate;
 
             v8::Local<v8::Object>::New(v8_isolate, handle_)->SetAlignedPointerInInternalField(0, 0);
-
-            handle_.ClearWeak();
             handle_.Reset();
 
             v8_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
@@ -295,9 +305,10 @@ public:
     // object_base
     virtual result_t dispose()
     {
-        if (m_isJSObject & JSOBJECT_JSHANDLE) {
-            clear_handle();
+        clear_handle();
 
+        if (m_isJSObject & JSOBJECT_JSREFFER) {
+            m_isJSObject &= ~JSOBJECT_JSREFFER;
             if (internalUnref() == 0)
                 delete this;
         }
