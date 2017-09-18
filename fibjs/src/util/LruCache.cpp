@@ -118,11 +118,14 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
                 return CALL_E_JAVASCRIPT;
 
             if (!IsEmpty(v)) {
-                find = m_datas.insert(std::pair<exlib::string, _linkedNode>(sname, newNode)).first;
-                insert(find);
+                find = m_datas.find(sname);
+                if (find == m_datas.end()) {
+                    find = m_datas.insert(std::pair<exlib::string, _linkedNode>(sname, newNode)).first;
+                    insert(find);
 
-                find->second.insert.now();
-                SetPrivate(name, v);
+                    find->second.insert.now();
+                    SetPrivate(name, v);
+                }
             }
 
             retVal = v;

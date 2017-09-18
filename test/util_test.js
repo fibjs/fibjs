@@ -228,15 +228,15 @@ describe('util', () => {
     });
 
     it('isAsyncFunction', () => {
-        assert.isTrue(util.isAsyncFunction(async () => {}));
-        assert.isTrue(util.isAsyncFunction(async function() {}));
+        assert.isTrue(util.isAsyncFunction(async() => {}));
+        assert.isTrue(util.isAsyncFunction(async function () {}));
         assert.isTrue(util.isAsyncFunction(async function demo() {}));
 
         assert.isFalse(util.isAsyncFunction(() => {}));
-        assert.isFalse(util.isAsyncFunction(function() {}));
+        assert.isFalse(util.isAsyncFunction(function () {}));
         assert.isFalse(util.isAsyncFunction(function demo() {}));
 
-        assert.isFalse(util.isAsyncFunction(function*() {}));
+        assert.isFalse(util.isAsyncFunction(function* () {}));
         assert.isFalse(util.isAsyncFunction(function* demo() {}));
     });
 
@@ -1272,6 +1272,11 @@ describe('util', () => {
                 })
             });
 
+            assert.equal(c.get("c1", (k) => {
+                c.set("c1", 200);
+                return 100;
+            }), 100);
+            assert.equal(c.get("c1"), 200);
         });
 
         it("Garbage Collection", () => {
@@ -1290,8 +1295,6 @@ describe('util', () => {
 
             GC();
             assert.equal(no1, os.memoryUsage().nativeObjects.objects);
-
-
         });
     });
 });
