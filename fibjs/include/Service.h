@@ -24,16 +24,9 @@ public:
 
 public:
     // Service_base
+    virtual result_t run(AsyncEvent* ac);
     virtual result_t get_name(exlib::string& retVal);
     virtual result_t set_name(exlib::string newVal);
-    virtual result_t install(exlib::string cmd, exlib::string displayName, exlib::string description);
-    virtual result_t remove();
-    virtual result_t start();
-    virtual result_t stop();
-    virtual result_t restart();
-    virtual result_t run(AsyncEvent* ac);
-    virtual result_t isInstalled(bool& retVal);
-    virtual result_t isRunning(bool& retVal);
 
 public:
     EVENT_FUNC(stop);

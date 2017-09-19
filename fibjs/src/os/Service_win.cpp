@@ -30,7 +30,7 @@ result_t Service_base::_new(exlib::string name, v8::Local<v8::Function> worker,
     return 0;
 }
 
-result_t Service::install(exlib::string cmd, exlib::string displayName, exlib::string description)
+result_t Service_base::install(exlib::string name, exlib::string cmd, exlib::string displayName, exlib::string description)
 {
     SC_HANDLE schService;
     SC_HANDLE schSCManager;
@@ -39,7 +39,7 @@ result_t Service::install(exlib::string cmd, exlib::string displayName, exlib::s
     if (!schSCManager)
         return CHECK_ERROR(LastError());
 
-    schService = CreateServiceW(schSCManager, UTF8_W(m_name), UTF8_W(displayName),
+    schService = CreateServiceW(schSCManager, UTF8_W(name), UTF8_W(displayName),
         SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
         SERVICE_AUTO_START, SERVICE_ERROR_NORMAL,
         UTF8_W(cmd), NULL, NULL, NULL, NULL, NULL);
@@ -60,7 +60,7 @@ result_t Service::install(exlib::string cmd, exlib::string displayName, exlib::s
     return 0;
 }
 
-result_t Service::remove()
+result_t Service_base::remove(exlib::string name)
 {
     SC_HANDLE schService;
     SC_HANDLE schSCManager;
@@ -69,7 +69,7 @@ result_t Service::remove()
     if (!schSCManager)
         return CHECK_ERROR(LastError());
 
-    schService = OpenServiceW(schSCManager, UTF8_W(m_name), SERVICE_ALL_ACCESS);
+    schService = OpenServiceW(schSCManager, UTF8_W(name), SERVICE_ALL_ACCESS);
     if (!schService) {
         CloseServiceHandle(schSCManager);
         return CHECK_ERROR(LastError());
@@ -83,7 +83,7 @@ result_t Service::remove()
     return 0;
 }
 
-result_t Service::start()
+result_t Service_base::start(exlib::string name)
 {
     SC_HANDLE schService;
     SC_HANDLE schSCManager;
@@ -92,7 +92,7 @@ result_t Service::start()
     if (!schSCManager)
         return CHECK_ERROR(LastError());
 
-    schService = OpenServiceW(schSCManager, UTF8_W(m_name), SERVICE_ALL_ACCESS);
+    schService = OpenServiceW(schSCManager, UTF8_W(name), SERVICE_ALL_ACCESS);
     if (!schService) {
         CloseServiceHandle(schSCManager);
         return CHECK_ERROR(LastError());
@@ -106,7 +106,7 @@ result_t Service::start()
     return 0;
 }
 
-result_t Service::stop()
+result_t Service_base::stop(exlib::string name)
 {
     SC_HANDLE schService;
     SC_HANDLE schSCManager;
@@ -116,7 +116,7 @@ result_t Service::stop()
     if (!schSCManager)
         return CHECK_ERROR(LastError());
 
-    schService = OpenServiceW(schSCManager, UTF8_W(m_name), SERVICE_ALL_ACCESS);
+    schService = OpenServiceW(schSCManager, UTF8_W(name), SERVICE_ALL_ACCESS);
     if (!schService) {
         CloseServiceHandle(schSCManager);
         return CHECK_ERROR(LastError());
@@ -139,15 +139,60 @@ result_t Service::stop()
     return 0;
 }
 
-result_t Service::restart()
+result_t Service_base::restart(exlib::string name)
 {
     result_t hr;
 
-    hr = stop();
+    hr = stop(name);
     if (hr < 0)
         return hr;
 
-    return start();
+    return start(name);
+}
+
+result_t Service_base::isInstalled(exlib::string name, bool& retVal)
+{
+    SC_HANDLE schService;
+    SC_HANDLE schSCManager;
+
+    retVal = false;
+
+    schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+    if (!schSCManager)
+        return CHECK_ERROR(LastError());
+
+    schService = OpenServiceW(schSCManager, UTF8_W(name), SERVICE_ALL_ACCESS);
+    if (schService) {
+        retVal = true;
+        CloseServiceHandle(schService);
+    }
+    CloseServiceHandle(schSCManager);
+
+    return 0;
+}
+
+result_t Service_base::isRunning(exlib::string name, bool& retVal)
+{
+    SC_HANDLE schService;
+    SC_HANDLE schSCManager;
+    SERVICE_STATUS ssStatus;
+
+    retVal = false;
+
+    schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+    if (!schSCManager)
+        return CHECK_ERROR(LastError());
+
+    schService = OpenServiceW(schSCManager, UTF8_W(name), SERVICE_ALL_ACCESS);
+    if (schService) {
+        if (QueryServiceStatus(schService, &ssStatus) && ssStatus.dwCurrentState == SERVICE_RUNNING)
+            retVal = TRUE;
+
+        CloseServiceHandle(schService);
+    }
+    CloseServiceHandle(schSCManager);
+
+    return 0;
 }
 
 void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv);
@@ -249,51 +294,6 @@ result_t Service::run(AsyncEvent* ac)
     }
 
     s_srv = NULL;
-
-    return 0;
-}
-
-result_t Service::isInstalled(bool& retVal)
-{
-    SC_HANDLE schService;
-    SC_HANDLE schSCManager;
-
-    retVal = false;
-
-    schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
-    if (!schSCManager)
-        return CHECK_ERROR(LastError());
-
-    schService = OpenServiceW(schSCManager, UTF8_W(m_name), SERVICE_ALL_ACCESS);
-    if (schService) {
-        retVal = true;
-        CloseServiceHandle(schService);
-    }
-    CloseServiceHandle(schSCManager);
-
-    return 0;
-}
-
-result_t Service::isRunning(bool& retVal)
-{
-    SC_HANDLE schService;
-    SC_HANDLE schSCManager;
-    SERVICE_STATUS ssStatus;
-
-    retVal = false;
-
-    schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
-    if (!schSCManager)
-        return CHECK_ERROR(LastError());
-
-    schService = OpenServiceW(schSCManager, UTF8_W(m_name), SERVICE_ALL_ACCESS);
-    if (schService) {
-        if (QueryServiceStatus(schService, &ssStatus) && ssStatus.dwCurrentState == SERVICE_RUNNING)
-            retVal = TRUE;
-
-        CloseServiceHandle(schService);
-    }
-    CloseServiceHandle(schSCManager);
 
     return 0;
 }
