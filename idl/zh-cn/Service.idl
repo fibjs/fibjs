@@ -8,40 +8,11 @@ interface Service : EventEmitter
      */
     Service(String name, Function worker, Object event = {});
 
-    /*! @brief 查询和设置服务名称 */
-    String name;
-
-    /*! @brief 安装服务到系统
-     @param cmd 服务命令行
-     @param displayName 服务显示名称
-     @param description 服务描述信息
-     */
-    install(String cmd, String displayName = "", String description = "");
-
-    /*! @brief 从系统中卸载服务 */
-    remove();
-
-    /*! @brief 启动服务 */
-    start();
-
-    /*! @brief 停止服务 */
-    stop();
-
-    /*! @brief 重启服务 */
-    restart();
-
     /*! @brief 开始运行服务实体 */
     run() async;
 
-    /*! @brief 检测服务是否安装
-     @return 服务安装返回 True
-     */
-    Boolean isInstalled();
-
-    /*! @brief 检测服务是否运行
-     @return 服务运行返回 True
-     */
-    Boolean isRunning();
+    /*! @brief 查询和设置服务名称 */
+    String name;
 
     /*! @brief 查询和绑定服务停止事件，相当于 on("stop", func); */
     Function onstop;
@@ -51,4 +22,44 @@ interface Service : EventEmitter
 
     /*! @brief 查询和绑定服务恢复事件，相当于 on("continue", func); */
     Function oncontinue;
+
+    /*! @brief 安装服务到系统
+     @param name 服务名称
+     @param cmd 服务命令行
+     @param displayName 服务显示名称
+     @param description 服务描述信息
+     */
+    static install(String name, String cmd, String displayName = "", String description = "");
+
+    /*! @brief 从系统中卸载服务 
+     @param name 服务名称
+     */
+    static remove(String name);
+
+    /*! @brief 启动服务 
+     @param name 服务名称
+     */
+    static start(String name);
+
+    /*! @brief 停止服务 
+     @param name 服务名称
+     */
+    static stop(String name);
+
+    /*! @brief 重启服务 
+     @param name 服务名称
+     */
+    static restart(String name);
+
+    /*! @brief 检测服务是否安装
+     @param name 服务名称
+     @return 服务安装返回 True
+     */
+    static Boolean isInstalled(String name);
+
+    /*! @brief 检测服务是否运行
+     @param name 服务名称
+     @return 服务运行返回 True
+     */
+    static Boolean isRunning(String name);
 };
