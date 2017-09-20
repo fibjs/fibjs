@@ -63,8 +63,6 @@ void options(int32_t argc, char* argv[])
     v8::internal::FLAG_lazy = false;
     v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
 
-    v8::internal::FLAG_turbo_inlining = false;
-
     v8::internal::FLAG_wasm_async_compilation = false;
     v8::internal::FLAG_parallel_scavenge = false;
 
