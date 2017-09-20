@@ -1,95 +1,17 @@
-/*! @brief Url handle object
-
- Base module, it provides url formatting, parsing and assembling
- \code
- var url = new net.Url('http://www.xici.net/');
- var url = new net.Url({protocol: 'http:', hostname:'www.xici.net', pathname:'/'});
- \endcode
- */
-interface Url : object
+/*! @brief url URL parse and format module */
+module url
 {
-    /*! @brief Url constructor with parameters
-     @param args Parameters dictionary, allows protocol, slashes, username, password, hostname, port, pathname, query and hash
+    /*! @brief convert UrlObject to string
+     @param args UrlObject, keys supported are: protocol, slashes, username, password, hostname, port, pathname, query, hash
+     @return url string that has been construct
      */
-    Url(Object args);
+    static String format(Object args);
 
-    /*! @brief Url constructor with URL string
-     @param url URL string
+    /*! @brief parse an url to UrlObject
+     @param url literal string to be parsed
+     @param parseQueryString figure out whether to resolve query
+     @param slashesDenoteHost  If true, the first token after the literal string // and preceding the next / will be interpreted as the host. For instance, given //foo/bar, the result would be {host: 'foo', pathname: '/bar'} rather than {pathname: '//foo/bar'}. Defaults to false.
+     @return object containing data that has been resolved.
      */
-    Url(String url = "");
-
-    /*! @brief Parse a url string
-     @param url URL string
-     */
-    parse(String url);
-
-    /*! @brief Format Url by parameters
-     @param args Parameters dictionary, allows protocol, slashes, username, password, hostname, port, pathname, query and hash
-     */
-    format(Object args);
-
-    /*! @brief Resolve url path, it handles both relative and absolute paths
-     @param url New path
-     */
-    Url resolve(String url);
-
-    /*! @brief Normalize path
-     */
-    normalize();
-
-    /*! @brief Get Url complete url address description by assembling other attributes
-     */
-    readonly String href;
-
-    /*! @brief Get Url protocol
-     */
-    readonly String protocol;
-
-    /*! @brief Check if Url contains double slashes
-     */
-    readonly Integer slashes;
-
-    /*! @brief Get Url completeauth string, assembled by username and password
-     */
-    readonly String auth;
-
-    /*! @brief Get Url username
-     */
-    readonly String username;
-
-    /*! @brief Get Url password
-     */
-    readonly String password;
-
-    /*! @brief Get Url host, assembled by hastname and port
-     */
-    readonly String host;
-
-    /*! @brief Get Url hostname
-     */
-    readonly String hostname;
-
-    /*! @brief Get Url port number
-     */
-    readonly String port;
-
-    /*! @brief Get Url complete path, assembled by pathname and query
-     */
-    readonly String path;
-
-    /*! @brief Get Url pathname
-     */
-    readonly String pathname;
-
-    /*! @brief Get Url query string, include "?" character
-     */
-    readonly String search;
-
-    /*! @brief Get Url query string, exclude "?" character
-     */
-    readonly String query;
-
-    /*! @brief Get Url anchor include "\#" character
-     */
-    readonly String hash;
+    static UrlObject parse(String url, Boolean parseQueryString = false, Boolean slashesDenoteHost = false);
 };

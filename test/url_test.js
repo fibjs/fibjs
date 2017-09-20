@@ -7,11 +7,11 @@ var url = require('url');
 describe("url", () => {
     var parseTests = {
         '//some_path': {
-            'href': '//some_path/',
-            'slashes': true,
-            'hostname': 'some_path',
-            'pathname': '/',
-            'path': '/'
+            'href': '//some_path',
+            'slashes': false,
+            'hostname': '',
+            'pathname': '//some_path',
+            'path': '///some_path'
         },
 
         'HTTP://www.example.com/': {

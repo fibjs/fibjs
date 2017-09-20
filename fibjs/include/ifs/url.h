@@ -24,7 +24,7 @@ class url_base : public object_base {
 public:
     // url_base
     static result_t format(v8::Local<v8::Object> args, exlib::string& retVal);
-    static result_t parse(exlib::string url, bool parseQueryString, obj_ptr<UrlObject_base>& retVal);
+    static result_t parse(exlib::string url, bool parseQueryString, bool slashesDenoteHost, obj_ptr<UrlObject_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -84,12 +84,13 @@ inline void url_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(3, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(bool, 1, false);
+    OPT_ARG(bool, 2, false);
 
-    hr = parse(v0, v1, vr);
+    hr = parse(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }
