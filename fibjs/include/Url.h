@@ -8,7 +8,6 @@
 #include "ifs/UrlObject.h"
 #include "utf8.h"
 #include "HttpCollection.h"
-#include <pcre/pcre.h>
 
 #ifndef URL_H_
 #define URL_H_
@@ -70,10 +69,11 @@ public:
     }
 
     static void parseHost(const char*& url, exlib::string& hostname, exlib::string& port);
+    static void trimUrl(exlib::string url, exlib::string& retVal);
 
 private:
     void clear();
-    void trimUrl(exlib::string url, exlib::string& retVal);
+    bool checkHost(const char* str);
     void parseProtocol(const char*& url);
 
     void parseAuth(const char*& url);

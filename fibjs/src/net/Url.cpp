@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "Url.h"
+#include "parse.h"
 #include "ifs/encoding.h"
 #include "ifs/url.h"
 #include "ifs/punycode.h"
@@ -156,62 +157,49 @@ void Url::parseAuth(const char*& url)
 
 void Url::parseHost(const char*& url, exlib::string& hostname, exlib::string& port)
 {
-    exlib::string str = url;
-    exlib::wstring32 wUrl = utf8to32String(str);
-    exlib::wstring32 wHostname;
-    exlib::wstring32 wPort;
-    exlib::wstring32 left;
-    size_t p1 = 0;
-    size_t p2 = 0;
-    uint32_t ch;
+    const char* p1 = url;
+    const char* p2 = NULL;
+    char ch;
 
-    if (wUrl[p1] == '[') {
+    if (*p1 == '[') {
         p1++;
-        while ((ch = wUrl[p1]) && (qisxdigit(ch) || ch == ':' || ch == '.'))
+        while ((ch = *p1) && (qisxdigit(ch) || ch == ':' || ch == '.'))
             p1++;
         if (ch == ']')
-            ch = wUrl[++p1];
+            ch = *++p1;
         else
             url++;
     } else {
-        while ((ch = wUrl[p1])
+        while ((ch = *p1)
                 && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_'
-                    || ch == '-') || ch > 127)
+                    || ch == '-') || ch < 0)
             p1++;
     }
 
     if (ch == ':') {
         p2 = p1 + 1;
 
-        while ((ch = wUrl[p2]) && qisdigit(ch))
+        while ((ch = *p2) && qisdigit(ch))
             p2++;
     }
 
-    if (wUrl[0] == '[')
-        wHostname.assign(&wUrl[1], p1 - 2);
+    if (*url == '[')
+        hostname.assign(url + 1, p1 - url - 2);
     else
-        wHostname.assign(&wUrl[0], p1);
+        hostname.assign(url, p1 - url);
 
-    if (wHostname.length() > 0)
+    if (hostname.length() > 0)
     {
-        hostname = utf32to8String(wHostname);
         qstrlwr(&hostname[0]);
         punycode_base::toASCII(hostname, hostname);
     }
-
     if (p2)
-    {
-        wPort.assign(&wUrl[p1 + 1], p2 - p1 - 1);
-        port = utf32to8String(wPort);
-    }
+        port.assign(p1 + 1, p2 - p1 - 1);
     else
         port.clear();
 
-    left = wUrl.substr(p2 ? p2 : p1);
-    if (left.length() > 0)
-        url = qstrstr(url, utf32to8String(left).c_str());
-    else
-        url = url + str.length();
+    url = p2 ? p2 : p1;
+
 }
 
 void Url::parseHost(const char*& url)
@@ -294,18 +282,25 @@ void Url::parseHash(const char*& url)
 
 void Url::trimUrl(exlib::string url, exlib::string& retVal)
 {
-    exlib::wstring32 wRest;
-    exlib::wstring32 wStr = utf8to32String(url);
+    exlib::string rest;
     int32_t start = -1;
     int32_t end = -1;
     int32_t lastPos = 0;
     size_t i;
     bool isWs;
     bool inWs = false;
-    for (i = 0; i < wStr.length(); i++)
+    for (i = 0; i < url.length(); i++)
     {
-        isWs = wStr[i] == 32 || wStr[i] == 9 || wStr[i] == 13 || wStr[i] == 10 ||
-               wStr[i] == 12 || wStr[i] == 160 || wStr[i] == 65279;
+        isWs = url[i] == 32 || url[i] == 9 || url[i] == 13 || url[i] == 10 || url[i] == 12 ||
+               (*(unsigned char*)&url[i] == 0xc2 && *(unsigned char*)&url[i + 1] == 0xa0) ||
+               (*(unsigned char*)&url[i] == 239 && *(unsigned char*)&url[i + 1] == 187 &&
+                *(unsigned char*)&url[i + 2] == 191);
+
+        if (*(unsigned char*)&url[i] == 0xc2 && *(unsigned char*)&url[i + 1] == 0xa0)
+            i++;
+        if (*(unsigned char*)&url[i] == 239 && *(unsigned char*)&url[i + 1] == 187 &&
+                *(unsigned char*)&url[i + 2] == 191)
+            i += 2;
 
         if (start == -1) {
             if (isWs)
@@ -322,45 +317,71 @@ void Url::trimUrl(exlib::string url, exlib::string& retVal)
                 inWs = true;
             }
         }
-        if (wStr[i] == 92 && i - lastPos > 0)
-            wStr[i] = '/';
+        if (url[i] == 92 && i - lastPos > 0)
+            url[i] = '/';
     }
 
     if (start != -1) {
         if (lastPos == start) {
             if (end == -1) {
                 if (start == 0)
-                    wRest = wStr;
+                    rest = url;
                 else
-                    wRest = wStr.substr(start);
+                    rest = url.substr(start);
             } else {
-                wRest = wStr.substr(start, end - start);
+                rest = url.substr(start, end - start);
             }
-        } else if (end == -1 && lastPos < wStr.length()) {
+        } else if (end == -1 && lastPos < url.length()) {
             // We converted some backslashes and have only part of the entire string
-            wRest += wStr.substr(lastPos);
+            rest = url.substr(lastPos);
         } else if (end != -1 && lastPos < end) {
             // We converted some backslashes and have only part of the entire string
-            wRest += wStr.substr(lastPos, end);
+            rest = url.substr(lastPos, end);
         }
     }
-    retVal = utf32to8String(wRest);
+    retVal = rest;
 }
 
-#ifndef RE_SIZE
-#define RE_SIZE 64
-#endif
+bool Url::checkHost(const char* str)
+{
+    _parser parser(str);
+    int32_t p, p1;
+
+    if (parser.get() != '/')
+        return false;
+    parser.skip();
+    if (parser.get() != '/')
+        return false;
+    parser.skip();
+
+    p = parser.pos;
+    if (parser.get() == '@' || parser.get() == '/')
+        return false;
+    parser.skip();
+    parser.skipUntil('@');
+    if (parser.get() != '@')
+        return false;
+
+    p1 = parser.pos;
+    if (p1 + 1 == parser.sz)
+        return false;
+    parser.pos = p;
+    parser.skipUntil('/');
+    if (parser.get() == '/' && parser.pos <= p1 + 1)
+        return false;
+
+    parser.pos = p1 + 1;
+    if (parser.get() == '@')
+        return false;
+
+    return true;
+}
+
 result_t Url::parse(exlib::string url, bool parseQueryString, bool slashesDenoteHost)
 {
     bool bHost;
     clear();
     m_slashes = false;
-
-    pcre* re;
-    int32_t ovector[RE_SIZE];
-    int32_t opt = PCRE_JAVASCRIPT_COMPAT | PCRE_NEWLINE_ANYCRLF | PCRE_UCP;
-    const char* error;
-    int32_t erroffset;
 
     trimUrl(url, url);
     const char* c_str = url.c_str();
@@ -373,16 +394,8 @@ result_t Url::parse(exlib::string url, bool parseQueryString, bool slashesDenote
     }
 
     parseProtocol(c_str);
-    re = pcre_compile("^\\/\\/[^@/]+@[^@/]+", opt, &error, &erroffset, NULL);
-    if (re == NULL) {
-        char buf[1024];
 
-        sprintf(buf, "listOids: Compilation failed at offset %d: %s.", erroffset, error);
-        return CHECK_ERROR(Runtime::setError(buf));
-    }
-    bHost = pcre_exec(re, NULL, c_str, qstrlen(c_str),
-                      0, 0, ovector, RE_SIZE) > 0;
-    pcre_free(re);
+    bHost = checkHost(c_str);
 
     if (slashesDenoteHost || m_protocol.length() > 0 || bHost)
         m_slashes = ((isUrlSlash(*c_str) && isUrlSlash(c_str[1])) &&
