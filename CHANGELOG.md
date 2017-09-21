@@ -1,3 +1,25 @@
+## 2017-09-21, Version v0.14.0
+
+* **feature** :
+    * punycode - support toUnicode and toASCII methods (#351)(王爱科)
+    * v8 - upgrade to v6.3.179.(响马)
+
+* **bugfix** :
+    * LruCache - data error when update element in updater function.(xicilion)
+
+* **refactor** :
+    * LruCache - use result of insert to check the element in map.(响马)
+    * Service - modify service control function to static function.(xicilion)
+    * url - standardize url.parse behavior (#355)(王爱科)
+
+### Commits
+* [[`06b98f80f2`](https://github.com/fibjs/fibjs/commit/06b98f80f2)] - **url, refactor**: standardize url.parse behavior (#355)(王爱科)
+* [[`0018f2d86c`](https://github.com/fibjs/fibjs/commit/0018f2d86c)] - **v8, feat**: upgrade to v6.3.179.(响马)
+* [[`2de4dbae9f`](https://github.com/fibjs/fibjs/commit/2de4dbae9f)] - **Service, refactor**: modify service control function to static function.(xicilion)
+* [[`a286b7be6f`](https://github.com/fibjs/fibjs/commit/a286b7be6f)] - **LruCache, refactor**: use result of insert to check the element in map.(响马)
+* [[`d27eb0099a`](https://github.com/fibjs/fibjs/commit/d27eb0099a)] - **LruCache, bugfix**: data error when update element in updater function.(xicilion)
+* [[`a4b70743a9`](https://github.com/fibjs/fibjs/commit/a4b70743a9)] - **punycode, feat**: support toUnicode and toASCII methods (#351)(王爱科)
+
 ## 2017-09-12, Version v0.13.0
 
 * **feature** :
