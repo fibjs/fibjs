@@ -7,11 +7,11 @@ var url = require('url');
 describe("url", () => {
     var parseTests = {
         '//some_path': {
-            'href': '//some_path/',
-            'slashes': true,
-            'hostname': 'some_path',
-            'pathname': '/',
-            'path': '/'
+            'href': '//some_path',
+            'slashes': false,
+            'hostname': '',
+            'pathname': '//some_path',
+            'path': '///some_path'
         },
 
         'HTTP://www.example.com/': {
@@ -663,6 +663,22 @@ describe("url", () => {
             'hostname': 'fedc:ba98:7654:3210:fedc:ba98:7654:3210',
             port: '61616',
             'pathname': '/s/stopButton'
+        },
+        '\t\r\n\f\u00a0\ufeffhttp://test.com\\r?n=t': {
+            'href': 'http://test.com/r?n=t',
+            'protocol': 'http',
+            'hostname': 'test.com',
+            'pathname': '/r',
+            'path': '/r?n=t',
+            "query": "n=t"
+        },
+        'http://中文.com': {
+            "pathname": "/",
+            "path": "/",
+            "hostname": "xn--fiq228c.com",
+            "host": "xn--fiq228c.com",
+            "protocol": "http:",
+            "href": "http://xn--fiq228c.com/",
         }
     };
 

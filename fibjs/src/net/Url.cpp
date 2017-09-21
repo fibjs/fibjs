@@ -7,8 +7,10 @@
 
 #include "object.h"
 #include "Url.h"
+#include "parse.h"
 #include "ifs/encoding.h"
 #include "ifs/url.h"
+#include "ifs/punycode.h"
 
 namespace fibjs {
 
@@ -26,11 +28,11 @@ result_t url_base::format(v8::Local<v8::Object> args, exlib::string& retVal)
 }
 
 result_t url_base::parse(exlib::string url, bool parseQueryString,
-    obj_ptr<UrlObject_base>& retVal)
+                         bool slashesDenoteHost, obj_ptr<UrlObject_base>& retVal)
 {
     obj_ptr<Url> u = new Url();
 
-    result_t hr = u->parse(url, parseQueryString);
+    result_t hr = u->parse(url, parseQueryString, slashesDenoteHost);
     if (hr < 0)
         return hr;
 
@@ -44,12 +46,13 @@ static const char* queryTable = " !  $%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMN
 static const char* hashTable = " ! #$%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
 
 result_t UrlObject_base::_new(exlib::string url, bool parseQueryString,
-    obj_ptr<UrlObject_base>& retVal,
-    v8::Local<v8::Object> This)
+                              bool slashesDenoteHost,
+                              obj_ptr<UrlObject_base>& retVal,
+                              v8::Local<v8::Object> This)
 {
     obj_ptr<Url> u = new Url();
 
-    result_t hr = u->parse(url, parseQueryString);
+    result_t hr = u->parse(url, parseQueryString, slashesDenoteHost);
     if (hr < 0)
         return hr;
 
@@ -168,8 +171,8 @@ void Url::parseHost(const char*& url, exlib::string& hostname, exlib::string& po
             url++;
     } else {
         while ((ch = *p1)
-            && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_'
-                   || ch == '-'))
+                && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_'
+                    || ch == '-') || ch < 0)
             p1++;
     }
 
@@ -186,13 +189,17 @@ void Url::parseHost(const char*& url, exlib::string& hostname, exlib::string& po
         hostname.assign(url, p1 - url);
 
     if (hostname.length() > 0)
+    {
         qstrlwr(&hostname[0]);
+        punycode_base::toASCII(hostname, hostname);
+    }
     if (p2)
         port.assign(p1 + 1, p2 - p1 - 1);
     else
         port.clear();
 
     url = p2 ? p2 : p1;
+
 }
 
 void Url::parseHost(const char*& url)
@@ -210,11 +217,22 @@ void Url::parseHost(const char*& url)
     }
 
     if (url > p0) {
-        if (*(url - 1) == ':')
-            m_host.assign(p0, url - p0 - 1);
-        else
-            m_host.assign(p0, url - p0);
-        qstrlwr(&m_host[0]);
+        if (m_hostname.length() > 0)
+        {
+            if (m_ipv6)
+            {
+                m_host.append("[");
+                m_host.append(m_hostname);
+                m_host.append("]");
+            } else
+                m_host.append(m_hostname);
+        }
+
+        if (m_port.length() > 0)
+        {
+            m_host.append(":");
+            m_host.append(m_port);
+        }
     }
 }
 
@@ -262,24 +280,141 @@ void Url::parseHash(const char*& url)
     Url::encodeURI(url, -1, m_hash, hashTable);
 }
 
-result_t Url::parse(exlib::string url, bool parseQueryString)
+void Url::trimUrl(exlib::string url, exlib::string& retVal)
+{
+    exlib::string rest;
+    int32_t start = -1;
+    int32_t end = -1;
+    int32_t lastPos = 0;
+    size_t i;
+    bool isWs;
+    bool inWs = false;
+    for (i = 0; i < url.length(); i++)
+    {
+        isWs = url[i] == 32 || url[i] == 9 || url[i] == 13 || url[i] == 10 || url[i] == 12;
+
+        if (*(unsigned char*)&url[i] == 0xc2 && *(unsigned char*)&url[i + 1] == 0xa0)
+        {
+            isWs = true;
+            i++;
+        }
+        if (*(unsigned char*)&url[i] == 239 && *(unsigned char*)&url[i + 1] == 187 &&
+                *(unsigned char*)&url[i + 2] == 191)
+        {
+            isWs = true;
+            i += 2;
+        }
+
+        if (start == -1) {
+            if (isWs)
+                continue;
+            lastPos = start = i;
+        } else {
+            if (inWs) {
+                if (!isWs) {
+                    end = -1;
+                    inWs = false;
+                }
+            } else if (isWs) {
+                end = i;
+                inWs = true;
+            }
+        }
+        if (url[i] == 92 && i - lastPos > 0)
+            url[i] = '/';
+    }
+
+    if (start != -1) {
+        if (lastPos == start) {
+            if (end == -1) {
+                if (start == 0)
+                    rest = url;
+                else
+                    rest = url.substr(start);
+            } else {
+                rest = url.substr(start, end - start);
+            }
+        } else if (end == -1 && lastPos < url.length()) {
+            // We converted some backslashes and have only part of the entire string
+            rest = url.substr(lastPos);
+        } else if (end != -1 && lastPos < end) {
+            // We converted some backslashes and have only part of the entire string
+            rest = url.substr(lastPos, end);
+        }
+    }
+    retVal = rest;
+}
+
+bool Url::checkHost(const char* str)
+{
+    _parser parser(str);
+    int32_t p, p1;
+
+    if (parser.get() != '/')
+        return false;
+    parser.skip();
+    if (parser.get() != '/')
+        return false;
+    parser.skip();
+
+    p = parser.pos;
+    if (parser.get() == '@' || parser.get() == '/')
+        return false;
+    parser.skip();
+    parser.skipUntil('@');
+    if (parser.get() != '@')
+        return false;
+
+    p1 = parser.pos;
+    if (p1 + 1 == parser.sz)
+        return false;
+    parser.pos = p;
+    parser.skipUntil('/');
+    if (parser.get() == '/' && parser.pos <= p1 + 1)
+        return false;
+
+    parser.pos = p1 + 1;
+    if (parser.get() == '@')
+        return false;
+
+    return true;
+}
+
+result_t Url::parse(exlib::string url, bool parseQueryString, bool slashesDenoteHost)
 {
     bool bHost;
     clear();
+    m_slashes = false;
 
+    trimUrl(url, url);
     const char* c_str = url.c_str();
+    bool hasHash = qstrchr(c_str, '#') != NULL;
+
+    if (!slashesDenoteHost && !hasHash && isUrlSlash(*c_str))
+    {
+        parsePath(c_str);
+        parseQuery(c_str);
+        parseHash(c_str);
+
+        if (parseQueryString) {
+            m_queryParsed = new HttpCollection();
+            m_queryParsed->parse(m_query);
+        }
+
+        return 0;
+    }
 
     parseProtocol(c_str);
 
-    bHost = !m_slashes;
-    m_slashes = (isUrlSlash(*c_str) && isUrlSlash(c_str[1]));
-    if (m_slashes)
-        c_str += 2;
+    bHost = checkHost(c_str);
 
-    if (!m_protocol.compare("javascript:")) {
-        m_slashes = false;
-        bHost = false;
-    } else if (m_slashes || bHost) {
+    if (slashesDenoteHost || m_protocol.length() > 0 || bHost)
+        m_slashes = ((isUrlSlash(*c_str) && isUrlSlash(c_str[1])) &&
+                     (m_protocol.length() <= 0 || m_protocol.compare("javascript:")));
+
+    if (m_protocol.compare("javascript:") && m_slashes)
+    {
+        c_str += 2;
         parseAuth(c_str);
         parseHost(c_str);
     }
@@ -506,7 +641,7 @@ result_t Url::get_href(exlib::string& retVal)
 
 result_t Url::set_href(exlib::string newVal)
 {
-    return parse(newVal, m_queryParsed != NULL);
+    return parse(newVal, m_queryParsed != NULL, false);
 }
 
 result_t Url::get_protocol(exlib::string& retVal)

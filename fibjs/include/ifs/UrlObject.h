@@ -22,8 +22,8 @@ class UrlObject_base : public object_base {
 public:
     // UrlObject_base
     static result_t _new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string url, bool parseQueryString, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t parse(exlib::string url, bool parseQueryString) = 0;
+    static result_t _new(exlib::string url, bool parseQueryString, bool slashesDenoteHost, obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t parse(exlib::string url, bool parseQueryString, bool slashesDenoteHost) = 0;
     virtual result_t format(v8::Local<v8::Object> args) = 0;
     virtual result_t resolve(exlib::string url, obj_ptr<UrlObject_base>& retVal) = 0;
     virtual result_t normalize() = 0;
@@ -153,12 +153,13 @@ void UrlObject_base::__new(const T& args)
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(2, 0);
+    METHOD_OVER(3, 0);
 
     OPT_ARG(exlib::string, 0, "");
     OPT_ARG(bool, 1, false);
+    OPT_ARG(bool, 2, false);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, v1, v2, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -168,12 +169,13 @@ inline void UrlObject_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(UrlObject_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(3, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(bool, 1, false);
+    OPT_ARG(bool, 2, false);
 
-    hr = pInst->parse(v0, v1);
+    hr = pInst->parse(v0, v1, v2);
 
     METHOD_VOID();
 }

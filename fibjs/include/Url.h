@@ -29,7 +29,7 @@ public:
 
 public:
     // UrlObject_base
-    virtual result_t parse(exlib::string url, bool parseQueryString);
+    virtual result_t parse(exlib::string url, bool parseQueryString, bool slashesDenoteHost);
     virtual result_t format(v8::Local<v8::Object> args);
     virtual result_t resolve(exlib::string to, obj_ptr<UrlObject_base>& retVal);
     virtual result_t normalize();
@@ -65,14 +65,15 @@ public:
 public:
     result_t parse(exlib::string url)
     {
-        return parse(url, false);
+        return parse(url, false, false);
     }
 
     static void parseHost(const char*& url, exlib::string& hostname, exlib::string& port);
+    static void trimUrl(exlib::string url, exlib::string& retVal);
 
 private:
     void clear();
-
+    bool checkHost(const char* str);
     void parseProtocol(const char*& url);
 
     void parseAuth(const char*& url);
