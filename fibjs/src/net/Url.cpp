@@ -291,16 +291,19 @@ void Url::trimUrl(exlib::string url, exlib::string& retVal)
     bool inWs = false;
     for (i = 0; i < url.length(); i++)
     {
-        isWs = url[i] == 32 || url[i] == 9 || url[i] == 13 || url[i] == 10 || url[i] == 12 ||
-               (*(unsigned char*)&url[i] == 0xc2 && *(unsigned char*)&url[i + 1] == 0xa0) ||
-               (*(unsigned char*)&url[i] == 239 && *(unsigned char*)&url[i + 1] == 187 &&
-                *(unsigned char*)&url[i + 2] == 191);
+        isWs = url[i] == 32 || url[i] == 9 || url[i] == 13 || url[i] == 10 || url[i] == 12;
 
         if (*(unsigned char*)&url[i] == 0xc2 && *(unsigned char*)&url[i + 1] == 0xa0)
+        {
+            isWs = true;
             i++;
+        }
         if (*(unsigned char*)&url[i] == 239 && *(unsigned char*)&url[i + 1] == 187 &&
                 *(unsigned char*)&url[i + 2] == 191)
+        {
+            isWs = true;
             i += 2;
+        }
 
         if (start == -1) {
             if (isWs)
@@ -387,10 +390,18 @@ result_t Url::parse(exlib::string url, bool parseQueryString, bool slashesDenote
     const char* c_str = url.c_str();
     bool hasHash = qstrchr(c_str, '#') != NULL;
 
-    if (!slashesDenoteHost && !hasHash)
+    if (!slashesDenoteHost && !hasHash && isUrlSlash(*c_str))
     {
-        if (isUrlSlash(*c_str) && isUrlSlash(c_str[1]))
-            goto AFTERHOST;
+        parsePath(c_str);
+        parseQuery(c_str);
+        parseHash(c_str);
+
+        if (parseQueryString) {
+            m_queryParsed = new HttpCollection();
+            m_queryParsed->parse(m_query);
+        }
+
+        return 0;
     }
 
     parseProtocol(c_str);
@@ -408,7 +419,6 @@ result_t Url::parse(exlib::string url, bool parseQueryString, bool slashesDenote
         parseHost(c_str);
     }
 
-AFTERHOST:
     parsePath(c_str);
     parseQuery(c_str);
     parseHash(c_str);
