@@ -548,7 +548,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool 
     else
         return CALL_E_TYPEMISMATCH;
 
-    size_t bufUtf8Len = str->Utf8Length();
+    int32_t bufUtf8Len = str->Utf8Length();
     n.resize(bufUtf8Len);
     int flags = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
     str->WriteUtf8(n.c_buffer(), bufUtf8Len, NULL, flags);
