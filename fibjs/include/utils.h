@@ -537,11 +537,21 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool 
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
-    if (bStrict && !v->IsString() && !v->IsStringObject())
+    v8::Local<v8::String> str;
+
+    if (v->IsString())
+        str = v8::Local<v8::String>::Cast(v);
+    else if (v->IsStringObject())
+        str = v8::Local<v8::StringObject>::Cast(v)->ValueOf();
+    else if (!bStrict)
+        str = v->ToString();
+    else
         return CALL_E_TYPEMISMATCH;
 
-    v8::String::Utf8Value tmp(v);
-    n.assign(*tmp, tmp.length());
+    size_t bufUtf8Len = str->Utf8Length();
+    n.resize(bufUtf8Len);
+    int flags = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
+    str->WriteUtf8(n.c_buffer(), bufUtf8Len, NULL, flags);
 
     return 0;
 }
