@@ -51,8 +51,8 @@ Variant& Variant::operator=(v8::Local<v8::Value> v)
             m_Val.dblVal = n;
         }
     } else if (v->IsString() || v->IsStringObject()) {
-        v8::String::Utf8Value s(v);
-        exlib::string str(*s, s.length());
+        exlib::string str;
+        GetArgumentValue(Isolate::current()->m_isolate, v, str);
         return operator=(str);
     } else {
         object_base* obj = object_base::getInstance(v);
@@ -383,11 +383,12 @@ result_t Variant::unbind()
 
             m_Val.buffer.cnt = len;
             if (len > 0) {
+                Isolate* isolate = Isolate::current();
+
                 m_Val.buffer.data = data = new UNBIND_DATA[len];
                 for (i = 0; i < len; i++) {
                     v8::Local<v8::Value> k = ks->Get(i);
-
-                    data[i].k = *v8::String::Utf8Value(k);
+                    GetArgumentValue(isolate->m_isolate, k, data[i].k);
                     data[i].v = o->Get(k);
                 }
             }
