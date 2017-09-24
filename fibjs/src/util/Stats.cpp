@@ -155,7 +155,7 @@ result_t Stats::uptime(int32_t& retVal)
     return 0;
 }
 
-result_t Stats::_named_getter(const char* property, int32_t& retVal)
+result_t Stats::_named_getter(exlib::string property, int32_t& retVal)
 {
     int32_t i = find(property);
 

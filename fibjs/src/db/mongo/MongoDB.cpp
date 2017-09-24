@@ -294,7 +294,7 @@ result_t MongoDB::runCommand(exlib::string cmd, v8::Local<v8::Value> arg,
     return bsonHandler(&bbq, retVal);
 }
 
-result_t MongoDB::_named_getter(const char* property,
+result_t MongoDB::_named_getter(exlib::string property,
     obj_ptr<MongoCollection_base>& retVal)
 {
     return getCollection(property, retVal);

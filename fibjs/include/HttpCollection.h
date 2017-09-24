@@ -31,10 +31,10 @@ public:
     virtual result_t set(Map_base* map);
     virtual result_t set(exlib::string name, Variant value);
     virtual result_t remove(exlib::string name);
-    virtual result_t _named_getter(const char* property, Variant& retVal);
+    virtual result_t _named_getter(exlib::string property, Variant& retVal);
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal);
-    virtual result_t _named_setter(const char* property, Variant newVal);
-    virtual result_t _named_deleter(const char* property, v8::Local<v8::Boolean>& retVal);
+    virtual result_t _named_setter(exlib::string property, Variant newVal);
+    virtual result_t _named_deleter(exlib::string property, v8::Local<v8::Boolean>& retVal);
 
 public:
     void add(const char* name, int32_t szName, const char* value, int32_t szValue)

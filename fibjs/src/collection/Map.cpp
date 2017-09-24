@@ -113,7 +113,7 @@ result_t Map::isEmpty(bool& retVal)
     return 0;
 }
 
-result_t Map::_named_getter(const char* property, Variant& retVal)
+result_t Map::_named_getter(exlib::string property, Variant& retVal)
 {
     return get(property, retVal);
 }
@@ -132,12 +132,12 @@ result_t Map::_named_enumerator(v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-result_t Map::_named_setter(const char* property, Variant newVal)
+result_t Map::_named_setter(exlib::string property, Variant newVal)
 {
     return put(property, newVal);
 }
 
-result_t Map::_named_deleter(const char* property,
+result_t Map::_named_deleter(exlib::string property,
     v8::Local<v8::Boolean>& retVal)
 {
     return remove(property);

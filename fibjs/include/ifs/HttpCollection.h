@@ -33,10 +33,10 @@ public:
     virtual result_t set(Map_base* map) = 0;
     virtual result_t set(exlib::string name, Variant value) = 0;
     virtual result_t remove(exlib::string name) = 0;
-    virtual result_t _named_getter(const char* property, Variant& retVal) = 0;
+    virtual result_t _named_getter(exlib::string property, Variant& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
-    virtual result_t _named_setter(const char* property, Variant newVal) = 0;
-    virtual result_t _named_deleter(const char* property, v8::Local<v8::Boolean>& retVal) = 0;
+    virtual result_t _named_setter(exlib::string property, Variant newVal) = 0;
+    virtual result_t _named_deleter(exlib::string property, v8::Local<v8::Boolean>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -217,11 +217,12 @@ inline void HttpCollection_base::i_NamedGetter(v8::Local<v8::String> property, c
     METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 
-    v8::String::Utf8Value k(property);
-    if (class_info().has(*k))
+    exlib::string k;
+    GetArgumentValue(isolate, property, k);
+    if (class_info().has(k.c_str()))
         return;
 
-    hr = pInst->_named_getter(*k, vr);
+    hr = pInst->_named_getter(k, vr);
     if (hr == CALL_RETURN_NULL)
         return;
 
@@ -246,11 +247,12 @@ inline void HttpCollection_base::i_NamedSetter(v8::Local<v8::String> property, v
     PROPERTY_ENTER();
 
     PROPERTY_VAL(Variant);
-    v8::String::Utf8Value k(property);
-    if (class_info().has(*k))
+    exlib::string k;
+    GetArgumentValue(isolate, property, k);
+    if (class_info().has(k.c_str()))
         return;
 
-    hr = pInst->_named_setter(*k, v0);
+    hr = pInst->_named_setter(k, v0);
     if (hr == CALL_RETURN_NULL)
         return;
 
@@ -264,13 +266,14 @@ inline void HttpCollection_base::i_NamedDeleter(v8::Local<v8::String> property, 
     METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 
-    v8::String::Utf8Value k(property);
-    if (class_info().has(*k)) {
+    exlib::string k;
+    GetArgumentValue(isolate, property, k);
+    if (class_info().has(k.c_str())) {
         args.GetReturnValue().Set(v8::False(isolate));
         return;
     }
 
-    hr = pInst->_named_deleter(*k, vr);
+    hr = pInst->_named_deleter(k, vr);
     METHOD_RETURN1();
 }
 }

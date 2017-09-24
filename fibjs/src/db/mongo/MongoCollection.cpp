@@ -416,7 +416,7 @@ result_t MongoCollection::getCollection(exlib::string name,
     return 0;
 }
 
-result_t MongoCollection::_named_getter(const char* property,
+result_t MongoCollection::_named_getter(exlib::string property,
     obj_ptr<MongoCollection_base>& retVal)
 {
     return getCollection(property, retVal);

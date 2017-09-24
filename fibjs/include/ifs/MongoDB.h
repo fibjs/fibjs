@@ -28,7 +28,7 @@ public:
     virtual result_t getCollection(exlib::string name, obj_ptr<MongoCollection_base>& retVal) = 0;
     virtual result_t runCommand(v8::Local<v8::Object> cmd, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t runCommand(exlib::string cmd, v8::Local<v8::Value> arg, v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t _named_getter(const char* property, obj_ptr<MongoCollection_base>& retVal) = 0;
+    virtual result_t _named_getter(exlib::string property, obj_ptr<MongoCollection_base>& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t get_fs(obj_ptr<GridFS_base>& retVal) = 0;
     virtual result_t oid(exlib::string hexStr, obj_ptr<MongoID_base>& retVal) = 0;
@@ -138,11 +138,12 @@ inline void MongoDB_base::i_NamedGetter(v8::Local<v8::String> property, const v8
     METHOD_INSTANCE(MongoDB_base);
     PROPERTY_ENTER();
 
-    v8::String::Utf8Value k(property);
-    if (class_info().has(*k))
+    exlib::string k;
+    GetArgumentValue(isolate, property, k);
+    if (class_info().has(k.c_str()))
         return;
 
-    hr = pInst->_named_getter(*k, vr);
+    hr = pInst->_named_getter(k, vr);
     if (hr == CALL_RETURN_NULL)
         return;
 

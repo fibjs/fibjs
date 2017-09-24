@@ -50,7 +50,7 @@ public:
         return 0;
     }
 
-    virtual result_t _named_getter(const char* property, int32_t& retVal)
+    virtual result_t _named_getter(exlib::string property, int32_t& retVal)
     {
         std::map<exlib::string, VariantEx>::iterator it = m_datas.find(property);
 

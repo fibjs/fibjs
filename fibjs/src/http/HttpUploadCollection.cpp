@@ -326,7 +326,7 @@ result_t HttpUploadCollection::remove(exlib::string name)
     return 0;
 }
 
-result_t HttpUploadCollection::_named_getter(const char* property,
+result_t HttpUploadCollection::_named_getter(exlib::string property,
     Variant& retVal)
 {
     return first(property, retVal);
@@ -344,13 +344,13 @@ result_t HttpUploadCollection::_named_enumerator(v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-result_t HttpUploadCollection::_named_setter(const char* property,
+result_t HttpUploadCollection::_named_setter(exlib::string property,
     Variant newVal)
 {
     return set(property, newVal);
 }
 
-result_t HttpUploadCollection::_named_deleter(const char* property,
+result_t HttpUploadCollection::_named_deleter(exlib::string property,
     v8::Local<v8::Boolean>& retVal)
 {
     int32_t n = m_count;

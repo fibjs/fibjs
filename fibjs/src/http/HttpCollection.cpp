@@ -300,7 +300,7 @@ result_t HttpCollection::remove(exlib::string name)
     return 0;
 }
 
-result_t HttpCollection::_named_getter(const char* property, Variant& retVal)
+result_t HttpCollection::_named_getter(exlib::string property, Variant& retVal)
 {
     int32_t i;
     int32_t n = 0;
@@ -308,7 +308,7 @@ result_t HttpCollection::_named_getter(const char* property, Variant& retVal)
     v8::Local<v8::Array> a;
 
     for (i = 0; i < m_count; i++)
-        if (!qstricmp(m_names[i].c_str(), property)) {
+        if (!qstricmp(m_names[i].c_str(), property.c_str())) {
             if (n == 0) {
                 v = m_values[i];
                 n = 1;
@@ -349,12 +349,12 @@ result_t HttpCollection::_named_enumerator(v8::Local<v8::Array>& retVal)
     return 0;
 }
 
-result_t HttpCollection::_named_setter(const char* property, Variant newVal)
+result_t HttpCollection::_named_setter(exlib::string property, Variant newVal)
 {
     return set(property, newVal);
 }
 
-result_t HttpCollection::_named_deleter(const char* property,
+result_t HttpCollection::_named_deleter(exlib::string property,
     v8::Local<v8::Boolean>& retVal)
 {
     int32_t n = m_count;

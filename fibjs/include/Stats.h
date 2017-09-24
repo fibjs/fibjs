@@ -21,7 +21,7 @@ public:
     virtual result_t add(exlib::string key, int32_t value);
     virtual result_t reset();
     virtual result_t uptime(int32_t& retVal);
-    virtual result_t _named_getter(const char* property, int32_t& retVal);
+    virtual result_t _named_getter(exlib::string property, int32_t& retVal);
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal);
 
 public:
