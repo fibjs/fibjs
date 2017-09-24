@@ -538,10 +538,12 @@ inline result_t _join(OptArgs ps, exlib::string& retVal)
     Path p;
     int32_t argc = ps.Length();
     int32_t i;
+    Isolate* isolate = Isolate::current();
 
     for (i = 0; i < argc; i++) {
-        v8::String::Utf8Value s(ps[i]);
-        p.joinPosix(*s);
+        exlib::string s;
+        GetArgumentValue(isolate->m_isolate, ps[i], s);
+        p.joinPosix(s);
     }
 
     return _normalize(p.str(), retVal);
@@ -552,10 +554,12 @@ inline result_t _join_win32(OptArgs ps, exlib::string& retVal)
     Path p;
     int32_t argc = ps.Length();
     int32_t i;
+    Isolate* isolate = Isolate::current();
 
     for (i = 0; i < argc; i++) {
-        v8::String::Utf8Value s(ps[i]);
-        p.joinWin32(*s);
+        exlib::string s;
+        GetArgumentValue(isolate->m_isolate, ps[i], s);
+        p.joinWin32(s);
     }
 
     return _normalize_win32(p.str(), retVal);
@@ -570,10 +574,12 @@ inline result_t _resolve(OptArgs ps, exlib::string& retVal)
     p.resolvePosix(str);
     int32_t argc = ps.Length();
     int32_t i;
+    Isolate* isolate = Isolate::current();
 
     for (i = 0; i < argc; i++) {
-        v8::String::Utf8Value s(ps[i]);
-        p.resolvePosix(*s);
+        exlib::string s;
+        GetArgumentValue(isolate->m_isolate, ps[i], s);
+        p.resolvePosix(s);
     }
 
     return _normalize(p.str(), retVal, true);
@@ -588,10 +594,12 @@ inline result_t _resolve_win32(OptArgs ps, exlib::string& retVal)
     p.resolveWin32(str);
     int32_t argc = ps.Length();
     int32_t i;
+    Isolate* isolate = Isolate::current();
 
     for (i = 0; i < argc; i++) {
-        v8::String::Utf8Value s(ps[i]);
-        p.resolveWin32(*s);
+        exlib::string s;
+        GetArgumentValue(isolate->m_isolate, ps[i], s);
+        p.resolveWin32(s);
     }
 
     return _normalize_win32(p.str(), retVal, true);
