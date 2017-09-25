@@ -279,8 +279,13 @@ exlib::string json_format(v8::Local<v8::Value> obj)
     return strBuffer.str();
 }
 
-result_t util_base::format(exlib::string fmt, OptArgs args,
-    exlib::string& retVal)
+result_t util_base::inspect(v8::Local<v8::Object> obj, v8::Local<v8::Object> options, exlib::string& retVal)
+{
+    retVal = json_format(obj);
+    return 0;
+}
+
+result_t util_base::format(exlib::string fmt, OptArgs args, exlib::string& retVal)
 {
     const char* s1;
     char ch;

@@ -28,6 +28,7 @@ public:
     static result_t format(exlib::string fmt, OptArgs args, exlib::string& retVal);
     static result_t format(OptArgs args, exlib::string& retVal);
     static result_t inherits(v8::Local<v8::Value> constructor, v8::Local<v8::Value> superConstructor);
+    static result_t inspect(v8::Local<v8::Object> obj, v8::Local<v8::Object> options, exlib::string& retVal);
     static result_t isEmpty(v8::Local<v8::Value> v, bool& retVal);
     static result_t isArray(v8::Local<v8::Value> v, bool& retVal);
     static result_t isBoolean(v8::Local<v8::Value> v, bool& retVal);
@@ -93,6 +94,7 @@ public:
 public:
     static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_inherits(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_inspect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isArray(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isBoolean(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -154,6 +156,7 @@ inline ClassInfo& util_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "format", s_format, true },
         { "inherits", s_inherits, true },
+        { "inspect", s_inspect, true },
         { "isEmpty", s_isEmpty, true },
         { "isArray", s_isArray, true },
         { "isBoolean", s_isBoolean, true },
@@ -253,6 +256,22 @@ inline void util_base::s_inherits(const v8::FunctionCallbackInfo<v8::Value>& arg
     hr = inherits(v0, v1);
 
     METHOD_VOID();
+}
+
+inline void util_base::s_inspect(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+    hr = inspect(v0, v1, vr);
+
+    METHOD_RETURN();
 }
 
 inline void util_base::s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args)
