@@ -18,6 +18,7 @@
 namespace fibjs {
 
 class EventEmitter_base;
+class File_base;
 class SubProcess_base;
 
 class process_base : public EventEmitter_base {
@@ -32,6 +33,9 @@ public:
     static result_t get_env(v8::Local<v8::Object>& retVal);
     static result_t get_arch(exlib::string& retVal);
     static result_t get_platform(exlib::string& retVal);
+    static result_t get_stdin(obj_ptr<File_base>& retVal);
+    static result_t get_stdout(obj_ptr<File_base>& retVal);
+    static result_t get_stderr(obj_ptr<File_base>& retVal);
     static result_t umask(int32_t mask, int32_t& retVal);
     static result_t umask(exlib::string mask, int32_t& retVal);
     static result_t umask(int32_t& retVal);
@@ -68,6 +72,9 @@ public:
     static void s_get_env(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_platform(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_stderr(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_umask(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hrtime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -82,6 +89,7 @@ public:
 };
 }
 
+#include "File.h"
 #include "SubProcess.h"
 
 namespace fibjs {
@@ -108,7 +116,10 @@ inline ClassInfo& process_base::class_info()
         { "execPath", s_get_execPath, block_set, true },
         { "env", s_get_env, block_set, true },
         { "arch", s_get_arch, block_set, true },
-        { "platform", s_get_platform, block_set, true }
+        { "platform", s_get_platform, block_set, true },
+        { "stdin", s_get_stdin, block_set, true },
+        { "stdout", s_get_stdout, block_set, true },
+        { "stderr", s_get_stderr, block_set, true }
     };
 
     static ClassData s_cd = {
@@ -194,6 +205,39 @@ inline void process_base::s_get_platform(v8::Local<v8::String> property, const v
     PROPERTY_ENTER();
 
     hr = get_platform(vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<File_base> vr;
+
+    PROPERTY_ENTER();
+
+    hr = get_stdin(vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<File_base> vr;
+
+    PROPERTY_ENTER();
+
+    hr = get_stdout(vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_get_stderr(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<File_base> vr;
+
+    PROPERTY_ENTER();
+
+    hr = get_stderr(vr);
 
     METHOD_RETURN();
 }

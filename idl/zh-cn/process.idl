@@ -28,6 +28,15 @@ module process : EventEmitter
     /*! @brief 查询当前平台名称，可能的结果为 'darwin', 'freebsd', 'linux', 或 'win32' */
     static readonly String platform;
 
+    /*! @brief 查询当前进程标准输入对象 */
+    static readonly File stdin
+    
+    /*! @brief 查询当前进程标准输出对象 */;
+    static readonly File stdout;
+
+    /*! @brief 查询当前进程标准错误输出对象 */
+    static readonly File stderr;
+
     /*! @brief 改变当前的 umask，Windows 不支持此方法
      @param mask 指定新的掩码
      @return 返回之前的 mask
