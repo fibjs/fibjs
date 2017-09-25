@@ -59,6 +59,7 @@ public:
     static result_t values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal);
     static result_t clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal);
     static result_t extend(v8::Local<v8::Value> v, OptArgs objs, v8::Local<v8::Value>& retVal);
+    static result_t _extend(v8::Local<v8::Value> v, OptArgs objs, v8::Local<v8::Value>& retVal);
     static result_t pick(v8::Local<v8::Value> v, OptArgs objs, v8::Local<v8::Object>& retVal);
     static result_t omit(v8::Local<v8::Value> v, OptArgs keys, v8::Local<v8::Object>& retVal);
     static result_t first(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal);
@@ -123,6 +124,7 @@ public:
     static void s_values(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_extend(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__extend(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pick(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_omit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_first(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -183,6 +185,7 @@ inline ClassInfo& util_base::class_info()
         { "values", s_values, true },
         { "clone", s_clone, true },
         { "extend", s_extend, true },
+        { "_extend", s__extend, true },
         { "pick", s_pick, true },
         { "omit", s_omit, true },
         { "first", s_first, true },
@@ -715,6 +718,22 @@ inline void util_base::s_extend(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG_LIST(1);
 
     hr = extend(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s__extend(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG_LIST(1);
+
+    hr = _extend(v0, v1, vr);
 
     METHOD_RETURN();
 }

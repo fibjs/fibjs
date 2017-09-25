@@ -162,6 +162,12 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
     return 0;
 }
 
+result_t util_base::_extend(v8::Local<v8::Value> v, OptArgs objs,
+    v8::Local<v8::Value>& retVal)
+{
+    return extend(v, objs, retVal);
+}
+
 result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
     v8::Local<v8::Object>& retVal)
 {

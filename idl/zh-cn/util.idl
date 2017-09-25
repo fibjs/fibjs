@@ -243,6 +243,14 @@ module util
      */
     static Value extend(Value v, ...objs);
 
+    /*! @brief 将一个或者多个对象的键值扩展到指定对象，是 extend 的别名
+
+     @param v 指定要扩展的对象
+     @param objs 指定一个或者多个用于扩展的对象
+     @return 返回扩展的结果
+     */
+    static Value _extend(Value v, ...objs);
+
     /*! @brief 返回一个object副本，只过滤出指定键的属性值
 
      @param v 指定要过滤的对象
