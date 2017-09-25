@@ -80,7 +80,7 @@ bool repl_command(exlib::string& line, v8::Local<v8::Array> cmds)
     if (cmd_word == ".info") {
         v8::Local<v8::Object> o;
 
-        util_base::buildInfo(o);
+        process_base::get_versions(o);
         console_base::dir(o);
         return true;
     }

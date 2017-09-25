@@ -29,6 +29,7 @@ public:
     static result_t get_argv(v8::Local<v8::Array>& retVal);
     static result_t get_execArgv(v8::Local<v8::Array>& retVal);
     static result_t get_version(exlib::string& retVal);
+    static result_t get_versions(v8::Local<v8::Object>& retVal);
     static result_t get_execPath(exlib::string& retVal);
     static result_t get_env(v8::Local<v8::Object>& retVal);
     static result_t get_arch(exlib::string& retVal);
@@ -68,6 +69,7 @@ public:
     static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_execArgv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_versions(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_env(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_arch(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -113,6 +115,7 @@ inline ClassInfo& process_base::class_info()
         { "argv", s_get_argv, block_set, true },
         { "execArgv", s_get_execArgv, block_set, true },
         { "version", s_get_version, block_set, true },
+        { "versions", s_get_versions, block_set, true },
         { "execPath", s_get_execPath, block_set, true },
         { "env", s_get_env, block_set, true },
         { "arch", s_get_arch, block_set, true },
@@ -161,6 +164,17 @@ inline void process_base::s_get_version(v8::Local<v8::String> property, const v8
     PROPERTY_ENTER();
 
     hr = get_version(vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_get_versions(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    PROPERTY_ENTER();
+
+    hr = get_versions(vr);
 
     METHOD_RETURN();
 }

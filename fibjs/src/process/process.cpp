@@ -10,6 +10,7 @@
 #include "ifs/process.h"
 #include "ifs/os.h"
 #include "ifs/global.h"
+#include "ifs/util.h"
 #include "Fiber.h"
 #include "File.h"
 #include "BufferedStream.h"
@@ -106,6 +107,11 @@ result_t process_base::get_version(exlib::string& retVal)
 {
     retVal = fibjs_version;
     return 0;
+}
+
+result_t process_base::get_versions(v8::Local<v8::Object>& retVal)
+{
+    return util_base::buildInfo(retVal);
 }
 
 result_t process_base::umask(int32_t mask, int32_t& retVal)
