@@ -91,14 +91,9 @@ result_t HttpServer::onerror(v8::Local<v8::Object> hdlrs)
     return m_hdlr->onerror(hdlrs);
 }
 
-result_t HttpServer::get_crossDomain(bool& retVal)
+result_t HttpServer::enableCrossOrigin(exlib::string allowHeaders)
 {
-    return m_hdlr->get_crossDomain(retVal);
-}
-
-result_t HttpServer::set_crossDomain(bool newVal)
-{
-    return m_hdlr->set_crossDomain(newVal);
+    return m_hdlr->enableCrossOrigin(allowHeaders);
 }
 
 result_t HttpServer::get_forceGZIP(bool& retVal)

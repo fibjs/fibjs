@@ -37,8 +37,7 @@ public:
 public:
     // HttpServer_base
     virtual result_t onerror(v8::Local<v8::Object> hdlrs);
-    virtual result_t get_crossDomain(bool& retVal);
-    virtual result_t set_crossDomain(bool newVal);
+    virtual result_t enableCrossOrigin(exlib::string allowHeaders);
     virtual result_t get_forceGZIP(bool& retVal);
     virtual result_t set_forceGZIP(bool newVal);
     virtual result_t get_maxHeadersCount(int32_t& retVal);

@@ -132,8 +132,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 Variant origin;
 
-                if (pThis->m_req->firstHeader("origin",
-                        origin)
+                if (pThis->m_req->firstHeader("origin", origin)
                     != CALL_RETURN_NULL) {
                     pThis->m_rep->setHeader("Access-Control-Allow-Credentials", "true");
                     pThis->m_rep->setHeader("Access-Control-Allow-Origin", origin);
@@ -142,7 +141,8 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                     if (!qstricmp(str.c_str(), "options")) {
                         pThis->m_rep->setHeader("Access-Control-Allow-Methods", "*");
-                        pThis->m_rep->setHeader("Access-Control-Allow-Headers", "CONTENT-TYPE");
+                        pThis->m_rep->setHeader("Access-Control-Allow-Headers",
+                            pThis->m_pThis->m_allowHeaders);
                         pThis->m_rep->setHeader("Access-Control-Max-Age", "1728000");
 
                         return 0;
@@ -199,8 +199,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (s == 200) {
                 pThis->m_rep->hasHeader("Last-Modified", t);
                 if (!t) {
-                    pThis->m_rep->addHeader("Cache-Control",
-                        "no-cache, no-store");
+                    pThis->m_rep->addHeader("Cache-Control", "no-cache, no-store");
                     pThis->m_rep->addHeader("Expires", "-1");
                 }
             }
@@ -223,8 +222,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (len > 128 && len < 1024 * 1024 * 64) {
                 Variant hdr;
 
-                if (pThis->m_req->firstHeader("Accept-Encoding",
-                        hdr)
+                if (pThis->m_req->firstHeader("Accept-Encoding", hdr)
                     != CALL_RETURN_NULL) {
                     exlib::string str = hdr.string();
                     int32_t type = 0;
@@ -235,31 +233,26 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         type = 2;
 
                     if (type != 0) {
-                        if (pThis->m_rep->firstHeader("Content-Type",
-                                hdr)
+                        if (pThis->m_rep->firstHeader("Content-Type", hdr)
                             != CALL_RETURN_NULL) {
                             str = hdr.string();
 
                             if (qstricmp(str.c_str(), "text/", 5)
-                                && qstricmp(str.c_str(),
-                                       "application/x-javascript")
-                                && qstricmp(str.c_str(),
-                                       "application/json"))
+                                && qstricmp(str.c_str(), "application/x-javascript")
+                                && qstricmp(str.c_str(), "application/json"))
                                 type = 0;
                         } else
                             type = 0;
                     }
 
                     if (type != 0) {
-                        if (pThis->m_rep->firstHeader("Content-Encoding",
-                                hdr)
+                        if (pThis->m_rep->firstHeader("Content-Encoding", hdr)
                             != CALL_RETURN_NULL)
                             type = 0;
                     }
 
                     if (type != 0) {
-                        pThis->m_rep->addHeader("Content-Encoding",
-                            type == 1 ? "gzip" : "deflate");
+                        pThis->m_rep->addHeader("Content-Encoding", type == 1 ? "gzip" : "deflate");
 
                         pThis->m_rep->get_body(pThis->m_body);
                         pThis->m_body->rewind();
@@ -269,11 +262,9 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         pThis->set(zip);
 
                         if (type == 1)
-                            return zlib_base::gzipTo(pThis->m_body,
-                                pThis->m_zip, pThis);
+                            return zlib_base::gzipTo(pThis->m_body, pThis->m_zip, pThis);
                         else
-                            return zlib_base::deflateTo(pThis->m_body,
-                                pThis->m_zip, -1, pThis);
+                            return zlib_base::deflateTo(pThis->m_body, pThis->m_zip, -1, pThis);
                     }
                 }
             }
@@ -396,15 +387,10 @@ result_t HttpHandler::onerror(v8::Local<v8::Object> hdlrs)
     return 0;
 }
 
-result_t HttpHandler::get_crossDomain(bool& retVal)
+result_t HttpHandler::enableCrossOrigin(exlib::string allowHeaders)
 {
-    retVal = m_crossDomain;
-    return 0;
-}
-
-result_t HttpHandler::set_crossDomain(bool newVal)
-{
-    m_crossDomain = newVal;
+    m_crossDomain = true;
+    m_allowHeaders = allowHeaders;
     return 0;
 }
 

@@ -17,8 +17,10 @@ interface HttpHandler : HandlerEx
     */
     HttpHandler(Handler hdlr);
 
-    /*! @brief 查询和设置是否允许跨域请求，缺省为 false */
-    Boolean crossDomain;
+    /*! @brief 允许跨域请求
+     @param allowHeaders 指定接受的 http 头字段
+     */
+    enableCrossOrigin(String allowHeaders = "Content-Type");
 
     /*! @brief 查询和设置是否允强制使用 gzip 压缩输出，缺省为 false */
     Boolean forceGZIP;

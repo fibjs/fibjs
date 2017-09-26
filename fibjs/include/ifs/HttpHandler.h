@@ -26,8 +26,7 @@ class HttpHandler_base : public HandlerEx_base {
 public:
     // HttpHandler_base
     static result_t _new(Handler_base* hdlr, obj_ptr<HttpHandler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t get_crossDomain(bool& retVal) = 0;
-    virtual result_t set_crossDomain(bool newVal) = 0;
+    virtual result_t enableCrossOrigin(exlib::string allowHeaders) = 0;
     virtual result_t get_forceGZIP(bool& retVal) = 0;
     virtual result_t set_forceGZIP(bool newVal) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
@@ -43,8 +42,7 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_enableCrossOrigin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_forceGZIP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_forceGZIP(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -61,8 +59,11 @@ public:
 namespace fibjs {
 inline ClassInfo& HttpHandler_base::class_info()
 {
+    static ClassData::ClassMethod s_method[] = {
+        { "enableCrossOrigin", s_enableCrossOrigin, false }
+    };
+
     static ClassData::ClassProperty s_property[] = {
-        { "crossDomain", s_get_crossDomain, s_set_crossDomain, false },
         { "forceGZIP", s_get_forceGZIP, s_set_forceGZIP, false },
         { "maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false },
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
@@ -71,7 +72,7 @@ inline ClassInfo& HttpHandler_base::class_info()
 
     static ClassData s_cd = {
         "HttpHandler", false, s__new, NULL,
-        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
         &HandlerEx_base::class_info()
     };
 
@@ -101,27 +102,18 @@ void HttpHandler_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void HttpHandler_base::s_get_crossDomain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    bool vr;
-
-    METHOD_INSTANCE(HttpHandler_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_crossDomain(vr);
-
-    METHOD_RETURN();
-}
-
-inline void HttpHandler_base::s_set_crossDomain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpHandler_base::s_enableCrossOrigin(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpHandler_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(bool);
+    METHOD_ENTER();
 
-    hr = pInst->set_crossDomain(v0);
+    METHOD_OVER(1, 0);
 
-    PROPERTY_SET_LEAVE();
+    OPT_ARG(exlib::string, 0, "Content-Type");
+
+    hr = pInst->enableCrossOrigin(v0);
+
+    METHOD_VOID();
 }
 
 inline void HttpHandler_base::s_get_forceGZIP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)

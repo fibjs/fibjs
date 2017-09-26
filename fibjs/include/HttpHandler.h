@@ -40,8 +40,7 @@ public:
 
 public:
     // HttpHandler_base
-    virtual result_t get_crossDomain(bool& retVal);
-    virtual result_t set_crossDomain(bool newVal);
+    virtual result_t enableCrossOrigin(exlib::string allowHeaders);
     virtual result_t get_forceGZIP(bool& retVal);
     virtual result_t set_forceGZIP(bool newVal);
     virtual result_t get_maxHeadersCount(int32_t& retVal);
@@ -59,6 +58,7 @@ private:
     obj_ptr<Handler_base> m_err_hdlrs[3];
 
     bool m_crossDomain;
+    exlib::string m_allowHeaders;
     bool m_forceGZIP;
     int32_t m_maxHeadersCount;
     int32_t m_maxBodySize;
