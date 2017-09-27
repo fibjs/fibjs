@@ -174,7 +174,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
             result_t hr;
             int32_t status;
 
-            pThis->m_httprep->get_status(status);
+            pThis->m_httprep->get_statusCode(status);
             if (status != 101) {
                 pThis->m_this->endConnect(1002, "server error.");
                 return CHECK_ERROR(Runtime::setError("websocket: server error."));

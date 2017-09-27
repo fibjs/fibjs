@@ -75,8 +75,12 @@ public:
 
 public:
     // HttpResponse_base
-    virtual result_t get_status(int32_t& retVal);
-    virtual result_t set_status(int32_t newVal);
+    virtual result_t get_statusCode(int32_t& retVal);
+    virtual result_t set_statusCode(int32_t newVal);
+    virtual result_t get_statusMessage(exlib::string& retVal);
+    virtual result_t set_statusMessage(exlib::string newVal);
+    virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers);
+    virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers);
     virtual result_t get_cookies(obj_ptr<List_base>& retVal);
     virtual result_t addCookie(HttpCookie_base* cookie);
     virtual result_t redirect(exlib::string url);
@@ -84,7 +88,8 @@ public:
 
 public:
     obj_ptr<HttpMessage> m_message;
-    int32_t m_status;
+    int32_t m_statusCode;
+    exlib::string m_statusMessage;
     obj_ptr<List_base> m_cookies;
 };
 

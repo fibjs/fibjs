@@ -88,7 +88,7 @@ result_t ws_base::connect(exlib::string url, exlib::string origin,
             result_t hr;
             int32_t status;
 
-            pThis->m_httprep->get_status(status);
+            pThis->m_httprep->get_statusCode(status);
             if (status != 101)
                 return CHECK_ERROR(Runtime::setError("websocket: server error."));
 

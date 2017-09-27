@@ -167,7 +167,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             int32_t s;
             int32_t err_idx = -1;
 
-            pThis->m_rep->get_status(s);
+            pThis->m_rep->get_statusCode(s);
             if (s == 400) {
                 err_idx = 0;
                 pThis->m_pThis->m_stats->inc(HTTP_ERROR_400);
@@ -195,7 +195,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             d.now();
             pThis->m_pThis->m_stats->add(HTTP_TOTAL_TIME, (int32_t)d.diff(pThis->m_d));
 
-            pThis->m_rep->get_status(s);
+            pThis->m_rep->get_statusCode(s);
             if (s == 200) {
                 pThis->m_rep->hasHeader("Last-Modified", t);
                 if (!t) {
@@ -310,7 +310,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_req->set_lastError(err);
                 errorLog("HttpHandler: " + err);
 
-                m_rep->set_status(500);
+                m_rep->set_statusCode(500);
                 return 0;
             }
 
@@ -320,7 +320,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_pThis->m_stats->inc(HTTP_PENDDING);
 
                 m_rep->set_keepAlive(false);
-                m_rep->set_status(400);
+                m_rep->set_statusCode(400);
                 set(check_error);
                 m_d.now();
                 return 0;

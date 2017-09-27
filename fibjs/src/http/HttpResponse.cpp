@@ -220,7 +220,7 @@ result_t HttpResponse::clear()
     m_message->clear();
 
     m_cookies.Release();
-    m_status = 200;
+    m_statusCode = 200;
 
     return 0;
 }
@@ -296,11 +296,16 @@ result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
         m_cookies.Release();
     }
 
-    int32_t pos = shortcut[m_status / 100 - 1] + m_status % 100;
     exlib::string strCommand;
+    exlib::string statusMessage = m_statusMessage;
+
+    if (statusMessage.empty()) {
+        int32_t pos = shortcut[m_statusCode / 100 - 1] + m_statusCode % 100;
+        statusMessage.assign(status_lines[pos], status_lines_size[pos]);
+    }
 
     get_protocol(strCommand);
-    strCommand.append(status_lines[pos], status_lines_size[pos]);
+    strCommand.append(statusMessage);
 
     return m_message->sendTo(stm, strCommand, ac);
 }
@@ -341,7 +346,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
                        && qisdigit(pThis->m_strLine[12])))
                 return CHECK_ERROR(Runtime::setError("HttpResponse: bad protocol: " + pThis->m_strLine));
 
-            pThis->m_pThis->set_status(atoi(pThis->m_strLine.c_str() + 8));
+            pThis->m_pThis->set_statusCode(atoi(pThis->m_strLine.c_str() + 8));
             pThis->m_strLine.resize(8);
 
             hr = pThis->m_pThis->set_protocol(pThis->m_strLine);
@@ -378,13 +383,13 @@ result_t HttpResponse::get_response(obj_ptr<Message_base>& retVal)
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t HttpResponse::get_status(int32_t& retVal)
+result_t HttpResponse::get_statusCode(int32_t& retVal)
 {
-    retVal = m_status;
+    retVal = m_statusCode;
     return 0;
 }
 
-result_t HttpResponse::set_status(int32_t newVal)
+result_t HttpResponse::set_statusCode(int32_t newVal)
 {
     if (newVal < 100 || newVal >= 600)
         newVal = 500;
@@ -394,7 +399,34 @@ result_t HttpResponse::set_status(int32_t newVal)
             newVal = 500;
     }
 
-    m_status = newVal;
+    m_statusCode = newVal;
+    return 0;
+}
+
+result_t HttpResponse::get_statusMessage(exlib::string& retVal)
+{
+    retVal = m_statusMessage;
+    return 0;
+}
+
+result_t HttpResponse::set_statusMessage(exlib::string newVal)
+{
+    m_statusMessage = newVal;
+    return 0;
+}
+
+result_t HttpResponse::writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers)
+{
+    set_statusCode(statusCode);
+    set_statusMessage(statusMessage);
+    addHeader(headers);
+    return 0;
+}
+
+result_t HttpResponse::writeHead(int32_t statusCode, v8::Local<v8::Object> headers)
+{
+    set_statusCode(statusCode);
+    addHeader(headers);
     return 0;
 }
 
@@ -446,7 +478,7 @@ result_t HttpResponse::addCookie(HttpCookie_base* cookie)
 
 result_t HttpResponse::redirect(exlib::string url)
 {
-    m_status = 302;
+    m_statusCode = 302;
     setHeader("Location", url);
     return 0;
 }
@@ -478,7 +510,7 @@ result_t HttpResponse::sendHeader(Stream_base* stm, AsyncEvent* ac)
         m_cookies.Release();
     }
 
-    int32_t pos = shortcut[m_status / 100 - 1] + m_status % 100;
+    int32_t pos = shortcut[m_statusCode / 100 - 1] + m_statusCode % 100;
     exlib::string strCommand;
 
     get_protocol(strCommand);

@@ -6,7 +6,23 @@ interface HttpResponse : HttpMessage
     HttpResponse();
 
     /*! @brief 查询和设置响应消息的返回状态 */
-    Integer status;
+    Integer statusCode;
+
+    /*! @brief 查询和设置响应消息的返回消息 */
+    String statusMessage;
+
+    /*! @brief 设置响应消息的返回状态，返回消息，并添加响应头
+     @param statusCode 指定响应消息的返回状态
+     @param statusMessage 指定响应消息的返回消息
+     @param headers 指定响应消息添加的响应头
+     */
+    writeHead(Integer statusCode, String statusMessage, Object headers = {});
+
+    /*! @brief 设置响应消息的返回状态，返回消息，并添加响应头
+     @param statusCode 指定响应消息的返回状态
+     @param headers 指定响应消息添加的响应头
+     */
+    writeHead(Integer statusCode, Object headers = {});
 
     /*! @brief 返回当前消息的 HttpCookie 对象列表 */
     readonly List cookies;

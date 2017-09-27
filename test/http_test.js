@@ -461,7 +461,7 @@ describe("http", () => {
             assert.equal(req.socket, null);
 
             var r = get_response("HTTP/1.0 200\r\n\r\n");
-            assert.equal(r.status, 200);
+            assert.equal(r.statusCode, 200);
             assert.equal(r.protocol, 'HTTP/1.0');
         });
 
@@ -861,7 +861,7 @@ describe("http", () => {
                 if (r.value == '/throw')
                     throw new Error('throw test');
                 else if (r.value == '/not_found')
-                    r.response.status = 404;
+                    r.response.statusCode = 404;
                 else if (r.value == '/remote_close') {
                     st.step = 1;
                     st.wait(2);
@@ -924,7 +924,7 @@ describe("http", () => {
         it("normal request", () => {
             c.write("GET / HTTP/1.0\r\n\r\n");
             var req = get_response();
-            assert.equal(req.status, 200);
+            assert.equal(req.statusCode, 200);
 
             coroutine.sleep(100);
             assert.deepEqual(getStats(hdr), {
@@ -942,7 +942,7 @@ describe("http", () => {
         it("bad request(error 400)", () => {
             c.write("GET /\r\n\r\n");
             var req = get_response();
-            assert.equal(req.status, 400);
+            assert.equal(req.statusCode, 400);
 
             coroutine.sleep(100);
             assert.equal(err_400, 1);
@@ -961,7 +961,7 @@ describe("http", () => {
         it("error 404", () => {
             c.write("GET /not_found HTTP/1.0\r\n\r\n");
             var req = get_response();
-            assert.equal(req.status, 404);
+            assert.equal(req.statusCode, 404);
 
             coroutine.sleep(100);
             assert.equal(err_404, 1);
@@ -980,7 +980,7 @@ describe("http", () => {
         it("error 500", () => {
             c.write("GET /throw HTTP/1.0\r\n\r\n");
             var req = get_response();
-            assert.equal(req.status, 500);
+            assert.equal(req.statusCode, 500);
 
             coroutine.sleep(100);
             assert.equal(err_500, 1);
@@ -1065,7 +1065,7 @@ describe("http", () => {
             throw_in_handler = true;
             c.write("GET /not_found HTTP/1.0\r\n\r\n");
             var req = get_response();
-            assert.equal(req.status, 404);
+            assert.equal(req.statusCode, 404);
 
             assert.equal(err_404, 0);
         });
@@ -1102,7 +1102,7 @@ describe("http", () => {
 
         it("file not found", () => {
             rep = hfh_test(url);
-            assert.equal(404, rep.status);
+            assert.equal(404, rep.statusCode);
             rep.clear();
         });
 
@@ -1110,7 +1110,7 @@ describe("http", () => {
             fs.writeFile(filePath, 'test html file');
 
             rep = hfh_test(url);
-            assert.equal(200, rep.status);
+            assert.equal(200, rep.statusCode);
             assert.equal(14, rep.length);
 
             var a = new Date(rep.firstHeader('Last-Modified'));
@@ -1126,7 +1126,7 @@ describe("http", () => {
             var rep1 = hfh_test(url, {
                 'If-Modified-Since': rep.firstHeader('Last-Modified')
             });
-            assert.equal(304, rep1.status);
+            assert.equal(304, rep1.statusCode);
             rep1.clear();
             rep.clear();
         });
@@ -1135,7 +1135,7 @@ describe("http", () => {
             var rep = hfh_test(url, {
                 'If-Modified-Since': new Date('1998-04-14 12:12:12')
             });
-            assert.equal(200, rep.status);
+            assert.equal(200, rep.statusCode);
             assert.equal(14, rep.length);
             assert.equal('text/html', rep.firstHeader('Content-Type'));
             rep.clear();
@@ -1143,20 +1143,20 @@ describe("http", () => {
 
         it("index.html", () => {
             var rep = hfh_test("/");
-            assert.equal(200, rep.status);
+            assert.equal(200, rep.statusCode);
             assert.equal('text/html', rep.firstHeader('Content-Type'));
             assert.equal("this is index.html", rep.readAll().toString());
         });
 
         it("autoindex", () => {
             var rep = hfh_test("http_autoindex/");
-            assert.equal(404, rep.status);
+            assert.equal(404, rep.statusCode);
 
             hfHandler = new http.fileHandler(baseFolder, {}, true);
 
             var re = /<a href=\"t.*\">/g;
             var rep = hfh_test("http_autoindex/");
-            assert.equal(200, rep.status);
+            assert.equal(200, rep.statusCode);
             assert.equal('text/html', rep.firstHeader('Content-Type'));
             var data = rep.readAll().toString();
             assert.deepEqual(re[Symbol.match](data), [
@@ -1168,7 +1168,7 @@ describe("http", () => {
 
         it("dir 404", () => {
             var rep = hfh_test("not_exists/");
-            assert.equal(404, rep.status);
+            assert.equal(404, rep.statusCode);
         });
 
         it("pre-gzip", () => {
@@ -1180,7 +1180,7 @@ describe("http", () => {
             var rep = hfh_test(url, {
                 'Accept-Encoding': 'deflate,gzip'
             });
-            assert.equal(200, rep.status);
+            assert.equal(200, rep.statusCode);
             assert.equal('gzip', rep.firstHeader('Content-Encoding'));
             assert.equal('text/html', rep.firstHeader('Content-Type'));
             rep.body.rewind();
@@ -1195,7 +1195,7 @@ describe("http", () => {
             var rep = hfh_test(url, {
                 'Accept-Encoding': 'deflate,gzip'
             });
-            assert.equal(200, rep.status);
+            assert.equal(200, rep.statusCode);
             assert.equal(null, rep.firstHeader('Content-Encoding'));
             rep.clear();
         });
@@ -1217,7 +1217,7 @@ describe("http", () => {
 
             it("normal", () => {
                 rep = hfh_test(zurl);
-                assert.equal(200, rep.status);
+                assert.equal(200, rep.statusCode);
                 assert.equal(14, rep.length);
 
                 assert.deepEqual(rep.readAll().toString(), "test html file");
@@ -1227,7 +1227,7 @@ describe("http", () => {
                 var rep1 = hfh_test(zurl, {
                     'If-Modified-Since': rep.firstHeader('Last-Modified')
                 });
-                assert.equal(304, rep1.status);
+                assert.equal(304, rep1.statusCode);
                 rep1.clear();
                 rep.clear();
             });
@@ -1236,7 +1236,7 @@ describe("http", () => {
                 var rep = hfh_test(zurl, {
                     'If-Modified-Since': new Date('1998-04-14 12:12:12')
                 });
-                assert.equal(200, rep.status);
+                assert.equal(200, rep.statusCode);
                 assert.equal(14, rep.length);
                 assert.equal('text/html', rep.firstHeader('Content-Type'));
                 rep.clear();

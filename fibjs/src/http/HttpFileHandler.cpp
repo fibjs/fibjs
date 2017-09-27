@@ -180,7 +180,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
             if (qstrchr(pThis->m_url.c_str(), '%')) {
-                pThis->m_rep->set_status(400);
+                pThis->m_rep->set_statusCode(400);
                 return pThis->done(CALL_RETURN_NULL);
             }
 
@@ -331,7 +331,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 diff = d.diff(d1);
 
                 if (diff > -1000 && diff < 1000) {
-                    pThis->m_rep->set_status(304);
+                    pThis->m_rep->set_statusCode(304);
                     return pThis->done(CALL_RETURN_NULL);
                 }
             }
@@ -367,7 +367,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 }
             }
 
-            m_rep->set_status(404);
+            m_rep->set_statusCode(404);
             return done(CALL_RETURN_NULL);
         }
 

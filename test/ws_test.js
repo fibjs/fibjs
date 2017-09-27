@@ -175,7 +175,7 @@ describe('ws', () => {
 
             assert.equal(rep.firstHeader("Sec-WebSocket-Accept"), "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=");
             assert.equal(rep.firstHeader("Upgrade"), "websocket");
-            assert.equal(rep.status, 101);
+            assert.equal(rep.statusCode, 101);
             assert.equal(rep.upgrade, true);
 
             test_msg(10, true);
@@ -193,7 +193,7 @@ describe('ws', () => {
                 "Sec-WebSocket-Version": "13"
             });
 
-            assert.equal(rep.status, 500);
+            assert.equal(rep.statusCode, 500);
 
             rep.stream.stream.close();
 
@@ -203,7 +203,7 @@ describe('ws', () => {
                 "Sec-WebSocket-Version": "13"
             });
 
-            assert.equal(rep.status, 500);
+            assert.equal(rep.statusCode, 500);
 
             rep.stream.stream.close();
 
@@ -213,7 +213,7 @@ describe('ws', () => {
                 "Sec-WebSocket-Version": "13"
             });
 
-            assert.equal(rep.status, 500);
+            assert.equal(rep.statusCode, 500);
 
             rep.stream.stream.close();
 
@@ -223,7 +223,7 @@ describe('ws', () => {
                 "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ=="
             });
 
-            assert.equal(rep.status, 500);
+            assert.equal(rep.statusCode, 500);
 
             assert.throws(() => {
                 test_msg(10);
@@ -397,7 +397,7 @@ describe('ws', () => {
 
             assert.equal(rep.firstHeader("Sec-WebSocket-Accept"), "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=");
             assert.equal(rep.firstHeader("Upgrade"), "websocket");
-            assert.equal(rep.status, 101);
+            assert.equal(rep.statusCode, 101);
             assert.equal(rep.upgrade, true);
             return rep.stream;
         }
@@ -460,7 +460,7 @@ describe('ws', () => {
                     "Sec-WebSocket-Version": "13"
                 });
 
-                assert.equal(rep.status, 500);
+                assert.equal(rep.statusCode, 500);
                 rep.stream.stream.close();
             });
 
@@ -471,7 +471,7 @@ describe('ws', () => {
                     "Sec-WebSocket-Version": "13"
                 });
 
-                assert.equal(rep.status, 500);
+                assert.equal(rep.statusCode, 500);
                 rep.stream.stream.close();
             });
 
@@ -482,7 +482,7 @@ describe('ws', () => {
                     "Sec-WebSocket-Version": "13"
                 });
 
-                assert.equal(rep.status, 500);
+                assert.equal(rep.statusCode, 500);
                 rep.stream.stream.close();
             });
 
@@ -493,7 +493,7 @@ describe('ws', () => {
                     "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ=="
                 });
 
-                assert.equal(rep.status, 500);
+                assert.equal(rep.statusCode, 500);
                 rep.stream.stream.close();
             });
         });

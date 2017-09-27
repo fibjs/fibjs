@@ -457,7 +457,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             obj_ptr<Url> u = new Url();
             obj_ptr<UrlObject_base> u1;
 
-            hr = pThis->m_retVal->get_status(status);
+            hr = pThis->m_retVal->get_statusCode(status);
             if (hr < 0)
                 return hr;
 
