@@ -234,9 +234,18 @@ result_t HttpCollection::add(exlib::string name, Variant value)
     return 0;
 }
 
-result_t HttpCollection::add(Map_base* map)
+result_t HttpCollection::add(v8::Local<v8::Object> map)
 {
-    return ((Map*)map)->map(this, &HttpCollection::add);
+    v8::Local<v8::Array> ks = map->GetPropertyNames();
+    int32_t len = ks->Length();
+    int32_t i;
+
+    for (i = 0; i < len; i++) {
+        v8::Local<v8::Value> k = ks->Get(i);
+        add(*v8::String::Utf8Value(k), map->Get(k));
+    }
+
+    return 0;
 }
 
 result_t HttpCollection::set(exlib::string name, Variant value)
@@ -275,9 +284,18 @@ result_t HttpCollection::set(exlib::string name, Variant value)
     return 0;
 }
 
-result_t HttpCollection::set(Map_base* map)
+result_t HttpCollection::set(v8::Local<v8::Object> map)
 {
-    return ((Map*)map)->map(this, &HttpCollection::set);
+    v8::Local<v8::Array> ks = map->GetPropertyNames();
+    int32_t len = ks->Length();
+    int32_t i;
+
+    for (i = 0; i < len; i++) {
+        v8::Local<v8::Value> k = ks->Get(i);
+        set(*v8::String::Utf8Value(k), map->Get(k));
+    }
+
+    return 0;
 }
 
 result_t HttpCollection::remove(exlib::string name)

@@ -26,9 +26,9 @@ public:
     virtual result_t has(exlib::string name, bool& retVal);
     virtual result_t first(exlib::string name, Variant& retVal);
     virtual result_t all(exlib::string name, obj_ptr<List_base>& retVal);
-    virtual result_t add(Map_base* map);
+    virtual result_t add(v8::Local<v8::Object> map);
     virtual result_t add(exlib::string name, Variant value);
-    virtual result_t set(Map_base* map);
+    virtual result_t set(v8::Local<v8::Object> map);
     virtual result_t set(exlib::string name, Variant value);
     virtual result_t remove(exlib::string name);
     virtual result_t _named_getter(exlib::string property, Variant& retVal);

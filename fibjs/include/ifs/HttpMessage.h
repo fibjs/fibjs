@@ -21,7 +21,6 @@ class Message_base;
 class HttpCollection_base;
 class Stream_base;
 class List_base;
-class Map_base;
 
 class HttpMessage_base : public Message_base {
     DECLARE_CLASS(HttpMessage_base);
@@ -43,9 +42,9 @@ public:
     virtual result_t hasHeader(exlib::string name, bool& retVal) = 0;
     virtual result_t firstHeader(exlib::string name, Variant& retVal) = 0;
     virtual result_t allHeader(exlib::string name, obj_ptr<List_base>& retVal) = 0;
-    virtual result_t addHeader(Map_base* map) = 0;
+    virtual result_t addHeader(v8::Local<v8::Object> map) = 0;
     virtual result_t addHeader(exlib::string name, Variant value) = 0;
-    virtual result_t setHeader(Map_base* map) = 0;
+    virtual result_t setHeader(v8::Local<v8::Object> map) = 0;
     virtual result_t setHeader(exlib::string name, Variant value) = 0;
     virtual result_t removeHeader(exlib::string name) = 0;
 
@@ -85,7 +84,6 @@ public:
 #include "HttpCollection.h"
 #include "Stream.h"
 #include "List.h"
-#include "Map.h"
 
 namespace fibjs {
 inline ClassInfo& HttpMessage_base::class_info()
@@ -313,7 +311,7 @@ inline void HttpMessage_base::s_addHeader(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Map_base>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
     hr = pInst->addHeader(v0);
 
@@ -334,7 +332,7 @@ inline void HttpMessage_base::s_setHeader(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Map_base>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
     hr = pInst->setHeader(v0);
 

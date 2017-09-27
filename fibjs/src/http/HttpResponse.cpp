@@ -135,7 +135,7 @@ result_t HttpResponse::allHeader(exlib::string name, obj_ptr<List_base>& retVal)
     return m_message->allHeader(name, retVal);
 }
 
-result_t HttpResponse::addHeader(Map_base* map)
+result_t HttpResponse::addHeader(v8::Local<v8::Object> map)
 {
     return m_message->addHeader(map);
 }
@@ -145,7 +145,7 @@ result_t HttpResponse::addHeader(exlib::string name, Variant value)
     return m_message->addHeader(name, value);
 }
 
-result_t HttpResponse::setHeader(Map_base* map)
+result_t HttpResponse::setHeader(v8::Local<v8::Object> map)
 {
     return m_message->setHeader(map);
 }

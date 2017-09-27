@@ -9,6 +9,7 @@
 #include "HttpMessage.h"
 #include "HttpResponse.h"
 #include "HttpCollection.h"
+#include "Map.h"
 
 #ifndef HTTPREQUEST_H_
 #define HTTPREQUEST_H_
@@ -68,9 +69,9 @@ public:
     virtual result_t hasHeader(exlib::string name, bool& retVal);
     virtual result_t firstHeader(exlib::string name, Variant& retVal);
     virtual result_t allHeader(exlib::string name, obj_ptr<List_base>& retVal);
-    virtual result_t addHeader(Map_base* map);
+    virtual result_t addHeader(v8::Local<v8::Object> map);
     virtual result_t addHeader(exlib::string name, Variant value);
-    virtual result_t setHeader(Map_base* map);
+    virtual result_t setHeader(v8::Local<v8::Object> map);
     virtual result_t setHeader(exlib::string name, Variant value);
     virtual result_t removeHeader(exlib::string name);
 
@@ -87,6 +88,11 @@ public:
     virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal);
 
 public:
+    result_t addHeader(Map_base* map)
+    {
+        return ((Map*)map)->map(this, &HttpRequest::addHeader);
+    }
+
     void header(const char* name, exlib::string& retVal)
     {
         Variant varCookie;

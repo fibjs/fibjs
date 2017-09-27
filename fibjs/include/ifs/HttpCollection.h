@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class List_base;
-class Map_base;
 
 class HttpCollection_base : public object_base {
     DECLARE_CLASS(HttpCollection_base);
@@ -28,9 +27,9 @@ public:
     virtual result_t has(exlib::string name, bool& retVal) = 0;
     virtual result_t first(exlib::string name, Variant& retVal) = 0;
     virtual result_t all(exlib::string name, obj_ptr<List_base>& retVal) = 0;
-    virtual result_t add(Map_base* map) = 0;
+    virtual result_t add(v8::Local<v8::Object> map) = 0;
     virtual result_t add(exlib::string name, Variant value) = 0;
-    virtual result_t set(Map_base* map) = 0;
+    virtual result_t set(v8::Local<v8::Object> map) = 0;
     virtual result_t set(exlib::string name, Variant value) = 0;
     virtual result_t remove(exlib::string name) = 0;
     virtual result_t _named_getter(exlib::string property, Variant& retVal) = 0;
@@ -65,7 +64,6 @@ public:
 }
 
 #include "List.h"
-#include "Map.h"
 
 namespace fibjs {
 inline ClassInfo& HttpCollection_base::class_info()
@@ -161,7 +159,7 @@ inline void HttpCollection_base::s_add(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Map_base>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
     hr = pInst->add(v0);
 
@@ -182,7 +180,7 @@ inline void HttpCollection_base::s_set(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Map_base>, 0);
+    ARG(v8::Local<v8::Object>, 0);
 
     hr = pInst->set(v0);
 
