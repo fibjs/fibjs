@@ -300,8 +300,21 @@ result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
     exlib::string statusMessage;
 
     if (m_statusMessage.empty()) {
-        int32_t pos = shortcut[m_statusCode / 100 - 1] + m_statusCode % 100;
-        statusMessage.assign(status_lines[pos], status_lines_size[pos]);
+        int32_t statusCode = m_statusCode;
+
+        if (statusCode >= 100 && statusCode < 600) {
+            int32_t n = statusCode / 100;
+            if (shortcut[n - 1] + statusCode % 100 < shortcut[n]) {
+                int32_t pos = shortcut[statusCode / 100 - 1] + statusCode % 100;
+                statusMessage.assign(status_lines[pos], status_lines_size[pos]);
+            }
+        }
+
+        if (statusMessage.empty()) {
+            char buf[16];
+            sprintf(buf, " %d Unknown", statusCode);
+            statusMessage = buf;
+        }
     } else {
         char buf[16];
 
@@ -397,14 +410,6 @@ result_t HttpResponse::get_statusCode(int32_t& retVal)
 
 result_t HttpResponse::set_statusCode(int32_t newVal)
 {
-    if (newVal < 100 || newVal >= 600)
-        newVal = 500;
-    else {
-        int32_t n = newVal / 100;
-        if (shortcut[n - 1] + newVal % 100 >= shortcut[n])
-            newVal = 500;
-    }
-
     m_statusCode = newVal;
     return 0;
 }
