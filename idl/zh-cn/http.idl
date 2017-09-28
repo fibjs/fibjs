@@ -176,4 +176,27 @@ module http
      @return 返回服务器响应
      */
     static HttpResponse patch(String url, Object headers = {}) async;
+
+    /*! @brief 用 FIND 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
+     @param url 指定 url，必须是包含主机的完整 url
+     @param body 指定发送的 body 内容
+     @param headers 指定附加的 http 头，缺省无附加头
+     @return 返回服务器响应
+     */
+    static HttpResponse find(String url, SeekableStream body, Object headers = {}) async;
+
+    /*! @brief 用 FIND 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
+     @param url 指定 url，必须是包含主机的完整 url
+     @param body 指定发送的 body 内容
+     @param headers 指定附加的 http 头，缺省无附加头
+     @return 返回服务器响应
+     */
+    static HttpResponse find(String url, Buffer body, Object headers = {}) async;
+
+    /*! @brief 用 FIND 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
+     @param url 指定 url，必须是包含主机的完整 url
+     @param headers 指定附加的 http 头，缺省无附加头
+     @return 返回服务器响应
+     */
+    static HttpResponse find(String url, Object headers = {}) async;
 };

@@ -194,4 +194,17 @@ interface Routing : Handler
    @return 返回路由对象本身
    */
     Routing patch(String pattern, Handler hdlr);
+
+    /*! @brief 添加一组 FIND 方法路由规则
+   @param map 路由参数
+   @return 返回路由对象本身
+   */
+    Routing find(Object map);
+
+    /*! @brief 添加一条接受 http FIND 方法路由规则
+   @param pattern 消息匹配格式
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+   @return 返回路由对象本身
+   */
+    Routing find(String pattern, Handler hdlr);
 };

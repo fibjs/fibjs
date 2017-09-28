@@ -68,6 +68,8 @@ public:
     virtual result_t put(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal);
     virtual result_t patch(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
     virtual result_t patch(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal);
+    virtual result_t find(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    virtual result_t find(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal);
 
 public:
     result_t _append(exlib::string method, v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);

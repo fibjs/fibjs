@@ -42,6 +42,8 @@ public:
     virtual result_t put(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
     virtual result_t patch(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
     virtual result_t patch(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t find(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t find(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
 
 public:
     template <typename T>
@@ -56,6 +58,7 @@ public:
     static void s_del(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_patch(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_find(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -69,7 +72,8 @@ inline ClassInfo& Routing_base::class_info()
         { "post", s_post, false },
         { "del", s_del, false },
         { "put", s_put, false },
-        { "patch", s_patch, false }
+        { "patch", s_patch, false },
+        { "find", s_find, false }
     };
 
     static ClassData s_cd = {
@@ -282,6 +286,29 @@ inline void Routing_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(obj_ptr<Handler_base>, 1);
 
     hr = pInst->patch(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Routing_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Routing_base> vr;
+
+    METHOD_INSTANCE(Routing_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = pInst->find(v0, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Handler_base>, 1);
+
+    hr = pInst->find(v0, v1, vr);
 
     METHOD_RETURN();
 }

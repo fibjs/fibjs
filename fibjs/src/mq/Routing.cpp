@@ -379,4 +379,15 @@ result_t Routing::patch(exlib::string pattern, Handler_base* hdlr,
     return append("PATCH", pattern, hdlr, retVal);
 }
 
+result_t Routing::find(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
+{
+    return _append("FIND", map, retVal);
+}
+
+result_t Routing::find(exlib::string pattern, Handler_base* hdlr,
+    obj_ptr<Routing_base>& retVal)
+{
+    return append("FIND", pattern, hdlr, retVal);
+}
+
 } /* namespace fibjs */

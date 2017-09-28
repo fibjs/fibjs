@@ -603,4 +603,22 @@ result_t HttpClient::patch(exlib::string url, v8::Local<v8::Object> headers,
 {
     return request("PATCH", url, headers, retVal, ac);
 }
+
+result_t HttpClient::find(exlib::string url, Buffer_base* body,
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+{
+    return request("FIND", url, body, headers, retVal, ac);
+}
+
+result_t HttpClient::find(exlib::string url, SeekableStream_base* body,
+    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+{
+    return request("FIND", url, body, headers, retVal, ac);
+}
+
+result_t HttpClient::find(exlib::string url, v8::Local<v8::Object> headers,
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+{
+    return request("FIND", url, headers, retVal, ac);
+}
 }

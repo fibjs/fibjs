@@ -63,6 +63,9 @@ public:
     static result_t patch(exlib::string url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t patch(exlib::string url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t patch(exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t find(exlib::string url, SeekableStream_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t find(exlib::string url, Buffer_base* body, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t find(exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -94,6 +97,7 @@ public:
     static void s_del(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_patch(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_find(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(http_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
@@ -112,6 +116,9 @@ public:
     ASYNC_STATICVALUE4(http_base, patch, exlib::string, SeekableStream_base*, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE4(http_base, patch, exlib::string, Buffer_base*, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, patch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE4(http_base, find, exlib::string, SeekableStream_base*, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE4(http_base, find, exlib::string, Buffer_base*, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE3(http_base, find, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
 };
 }
 
@@ -145,7 +152,9 @@ inline ClassInfo& http_base::class_info()
         { "put", s_put, true },
         { "putSync", s_put, true },
         { "patch", s_patch, true },
-        { "patchSync", s_patch, true }
+        { "patchSync", s_patch, true },
+        { "find", s_find, true },
+        { "findSync", s_find, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -551,6 +560,50 @@ inline void http_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_patch(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void http_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpResponse_base> vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<SeekableStream_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+
+    if (!cb.IsEmpty()) {
+        acb_find(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_find(v0, v1, v2, vr);
+
+    ASYNC_METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+
+    if (!cb.IsEmpty()) {
+        acb_find(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_find(v0, v1, v2, vr);
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+    if (!cb.IsEmpty()) {
+        acb_find(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_find(v0, v1, vr);
 
     METHOD_RETURN();
 }
