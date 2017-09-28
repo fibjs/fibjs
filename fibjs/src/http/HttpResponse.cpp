@@ -356,18 +356,18 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
         {
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
             result_t hr;
+            const char* c_str = pThis->m_strLine.c_str();
+            int32_t len = pThis->m_strLine.length();
 
-            if (pThis->m_strLine.length() < 12 || pThis->m_strLine[8] != ' '
-                || !qisdigit(pThis->m_strLine[9])
-                || !qisdigit(pThis->m_strLine[10])
-                || !qisdigit(pThis->m_strLine[11])
-                || (pThis->m_strLine.length() > 12
-                       && qisdigit(pThis->m_strLine[12])))
+            if (len < 12 || c_str[8] != ' '
+                || !qisdigit(c_str[9]) || !qisdigit(c_str[10]) || !qisdigit(c_str[11])
+                || qisdigit(c_str[12]))
                 return CHECK_ERROR(Runtime::setError("HttpResponse: bad protocol: " + pThis->m_strLine));
 
-            pThis->m_pThis->set_statusCode(atoi(pThis->m_strLine.c_str() + 8));
-            pThis->m_strLine.resize(8);
+            pThis->m_pThis->set_statusCode((c_str[9] - '0') * 100 + (c_str[10] - '0') * 10 + (c_str[11] - '0'));
+            pThis->m_pThis->set_statusMessage(c_str[12] == ' ' ? c_str + 13 : c_str + 12);
 
+            pThis->m_strLine.resize(8);
             hr = pThis->m_pThis->set_protocol(pThis->m_strLine);
             if (hr < 0)
                 return hr;

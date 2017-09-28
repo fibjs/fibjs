@@ -462,6 +462,12 @@ describe("http", () => {
 
             var r = get_response("HTTP/1.0 200\r\n\r\n");
             assert.equal(r.statusCode, 200);
+            assert.equal(r.statusMessage, "");
+            assert.equal(r.protocol, 'HTTP/1.0');
+
+            var r = get_response("HTTP/1.0 200 ok\r\n\r\n");
+            assert.equal(r.statusCode, 200);
+            assert.equal(r.statusMessage, "ok");
             assert.equal(r.protocol, 'HTTP/1.0');
         });
 
