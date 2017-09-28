@@ -811,6 +811,41 @@ describe("http", () => {
             assert.equal(ms.read(), 'HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n');
         });
 
+        it("statusCode", () => {
+            var ms = new io.MemoryStream();
+
+            var rep = new http.Response();
+            rep.statusCode = 404;
+
+            rep.sendTo(ms);
+            ms.rewind();
+            assert.equal(ms.read(), 'HTTP/1.1 404 File Not Found\r\nConnection: keep-alive\r\nContent-Length: 0\r\n\r\n');
+        });
+
+        it("statusMessage", () => {
+            var ms = new io.MemoryStream();
+
+            var rep = new http.Response();
+            rep.statusMessage = "test message";
+
+            rep.sendTo(ms);
+            ms.rewind();
+            assert.equal(ms.read(), 'HTTP/1.1 200 test message\r\nConnection: keep-alive\r\nContent-Length: 0\r\n\r\n');
+        });
+
+        it("writeHead", () => {
+            var ms = new io.MemoryStream();
+
+            var rep = new http.Response();
+            rep.writeHead(202, "test message", {
+                "test": "test_header"
+            });
+
+            rep.sendTo(ms);
+            ms.rewind();
+            assert.equal(ms.read().toString(), 'HTTP/1.1 202 test message\r\ntest: test_header\r\nConnection: keep-alive\r\nContent-Length: 0\r\n\r\n');
+        });
+
         it("address", () => {
             var rep = new http.Request();
             rep.body.write("0123456789");

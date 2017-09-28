@@ -297,11 +297,17 @@ result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
     }
 
     exlib::string strCommand;
-    exlib::string statusMessage = m_statusMessage;
+    exlib::string statusMessage;
 
-    if (statusMessage.empty()) {
+    if (m_statusMessage.empty()) {
         int32_t pos = shortcut[m_statusCode / 100 - 1] + m_statusCode % 100;
         statusMessage.assign(status_lines[pos], status_lines_size[pos]);
+    } else {
+        char buf[16];
+
+        sprintf(buf, " %d ", m_statusCode);
+        statusMessage = buf;
+        statusMessage.append(m_statusMessage);
     }
 
     get_protocol(strCommand);
