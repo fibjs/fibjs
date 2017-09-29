@@ -167,10 +167,12 @@ describe('ws', () => {
             httpd.run(() => {});
 
             var rep = http.get("http://127.0.0.1:" + (8810 + base_port) + "/", {
-                "Upgrade": "websocket",
-                "Connection": "Upgrade",
-                "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
-                "Sec-WebSocket-Version": "13"
+                headers: {
+                    "Upgrade": "websocket",
+                    "Connection": "Upgrade",
+                    "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                    "Sec-WebSocket-Version": "13"
+                }
             });
 
             assert.equal(rep.firstHeader("Sec-WebSocket-Accept"), "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=");
@@ -389,10 +391,12 @@ describe('ws', () => {
     describe('WebSocketHandler', () => {
         function connect() {
             var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
-                "Upgrade": "websocket",
-                "Connection": "Upgrade",
-                "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
-                "Sec-WebSocket-Version": "13"
+                headers: {
+                    "Upgrade": "websocket",
+                    "Connection": "Upgrade",
+                    "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                    "Sec-WebSocket-Version": "13"
+                }
             });
 
             assert.equal(rep.firstHeader("Sec-WebSocket-Accept"), "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=");
