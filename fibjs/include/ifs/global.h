@@ -40,7 +40,9 @@ public:
     static result_t clearTimeout(Timer_base* t);
     static result_t clearImmediate(Timer_base* t);
     static result_t setInterval(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal);
+    static result_t setInterval(v8::Local<v8::Function> callback, double timeout, obj_ptr<Timer_base>& retVal);
     static result_t setTimeout(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal);
+    static result_t setTimeout(v8::Local<v8::Function> callback, double timeout, obj_ptr<Timer_base>& retVal);
     static result_t setImmediate(v8::Local<v8::Function> callback, obj_ptr<Timer_base>& retVal);
     static result_t GC();
     static result_t repl(v8::Local<v8::Array> cmds);
@@ -261,6 +263,13 @@ inline void global_base::s_setInterval(const v8::FunctionCallbackInfo<v8::Value>
 
     hr = setInterval(v0, v1, vr);
 
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Function>, 0);
+    ARG(double, 1);
+
+    hr = setInterval(v0, v1, vr);
+
     METHOD_RETURN();
 }
 
@@ -274,6 +283,13 @@ inline void global_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>&
 
     ARG(v8::Local<v8::Function>, 0);
     ARG(int32_t, 1);
+
+    hr = setTimeout(v0, v1, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Function>, 0);
+    ARG(double, 1);
 
     hr = setTimeout(v0, v1, vr);
 

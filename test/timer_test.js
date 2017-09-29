@@ -32,6 +32,17 @@ describe("timer", () => {
             GC();
             no2 = test_util.countObject('Timer');
             assert.equal(no1, no2);
+
+            setTimeout(() => {
+                n = 3;
+            }, Math.pow(2, 31));
+
+            coroutine.sleep(5);
+            assert.equal(n, 3);
+
+            GC();
+            no3 = test_util.countObject('Timer');
+            assert.equal(no1, no3);
         }
 
         it("global setTimeout", () => {
@@ -228,10 +239,15 @@ describe("timer", () => {
                 clearInterval(this);
             }, 1);
 
+            setInterval(function () {
+                n++;
+                clearInterval(this);
+            }, Math.pow(2, 31));
+
             assert.equal(n, 0);
             for (var i = 0; i < 1000 && n == 0; i++)
-                coroutine.sleep(1);
-            assert.equal(n, 1);
+                coroutine.sleep(10);
+            assert.equal(n, 2);
 
             GC();
             var no2 = test_util.countObject('Timer');
