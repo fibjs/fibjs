@@ -41,12 +41,21 @@ interface HttpClient : object
     HttpResponse request(Stream conn, HttpRequest req) async;
 
     /*! @brief 请求指定的 url，并返回结果
+     opts 包含请求的附加选项，支持的内容如下：
+     ```JavaScript
+     {
+         "body": SeekedStream | Buffer | String | {},
+         "json": {},
+         "headers": {}
+     }
+     ```
+     其中 body，json 不得同时出现。缺省为 {}，不包含任何附加信息
      @param method 指定 http 请求方法：GET, POST 等
      @param url 指定 url，必须是包含主机的完整 url
-     @param headers 指定附加的 http 头，缺省无附加头
+     @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse request(String method, String url, Object headers = {}) async;
+    HttpResponse request(String method, String url, Object opts = {}) async;
 
     /*! @brief 请求指定的 url，并返回结果
      @param method 指定 http 请求方法：GET, POST 等
@@ -57,127 +66,99 @@ interface HttpClient : object
      */
     HttpResponse request(String method, String url, SeekableStream body, Map headers) async;
 
-    /*! @brief 请求指定的 url，并返回结果
-     @param method 指定 http 请求方法：GET, POST 等
-     @param url 指定 url，必须是包含主机的完整 url
-     @param body 指定发送的 body 内容
-     @param headers 指定附加的 http 头，缺省无附加头
-     @return 返回服务器响应
-     */
-    HttpResponse request(String method, String url, SeekableStream body, Object headers = {}) async;
-
-    /*! @brief 请求指定的 url，并返回结果
-     @param method 指定 http 请求方法：GET, POST 等
-     @param url 指定 url，必须是包含主机的完整 url
-     @param body 指定发送的 body 内容
-     @param headers 指定附加的 http 头，缺省无附加头
-     @return 返回服务器响应
-     */
-    HttpResponse request(String method, String url, Buffer body, Object headers = {}) async;
-
     /*! @brief 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
+     opts 包含请求的附加选项，支持的内容如下：
+     ```JavaScript
+     {
+         "body": SeekedStream | Buffer | String | {},
+         "json": {},
+         "headers": {}
+     }
+     ```
+     其中 body，json 不得同时出现。缺省为 {}，不包含任何附加信息
      @param url 指定 url，必须是包含主机的完整 url
-     @param headers 指定附加的 http 头，缺省无附加头
+     @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse get(String url, Object headers = {}) async;
+    HttpResponse get(String url, Object opts = {}) async;
 
     /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
+     opts 包含请求的附加选项，支持的内容如下：
+     ```JavaScript
+     {
+         "body": SeekedStream | Buffer | String | {},
+         "json": {},
+         "headers": {}
+     }
+     ```
+     其中 body，json 不得同时出现。缺省为 {}，不包含任何附加信息
      @param url 指定 url，必须是包含主机的完整 url
-     @param body 指定发送的 body 内容
-     @param headers 指定附加的 http 头，缺省无附加头
+     @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse post(String url, SeekableStream body, Object headers = {}) async;
-
-    /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
-     @param url 指定 url，必须是包含主机的完整 url
-     @param body 指定发送的 body 内容
-     @param headers 指定附加的 http 头，缺省无附加头
-     @return 返回服务器响应
-     */
-    HttpResponse post(String url, Buffer body, Object headers = {}) async;
-
-    /*! @brief 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
-     @param url 指定 url，必须是包含主机的完整 url
-     @param headers 指定附加的 http 头，缺省无附加头
-     @return 返回服务器响应
-     */
-    HttpResponse post(String url, Object headers = {}) async;
+    HttpResponse post(String url, Object opts = {}) async;
 
     /*! @brief 用 DELETE 方法请求指定的 url，并返回结果，等同于 request("DELETE", ...)
+     opts 包含请求的附加选项，支持的内容如下：
+     ```JavaScript
+     {
+         "body": SeekedStream | Buffer | String | {},
+         "json": {},
+         "headers": {}
+     }
+     ```
+     其中 body，json 不得同时出现。缺省为 {}，不包含任何附加信息
      @param url 指定 url，必须是包含主机的完整 url
-     @param headers 指定附加的 http 头，缺省无附加头
+     @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse del(String url, Object headers = {}) async;
+    HttpResponse del(String url, Object opts = {}) async;
 
     /*! @brief 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
+     opts 包含请求的附加选项，支持的内容如下：
+     ```JavaScript
+     {
+         "body": SeekedStream | Buffer | String | {},
+         "json": {},
+         "headers": {}
+     }
+     ```
+     其中 body，json 不得同时出现。缺省为 {}，不包含任何附加信息
      @param url 指定 url，必须是包含主机的完整 url
-     @param body 指定发送的 body 内容
-     @param headers 指定附加的 http 头，缺省无附加头
+     @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse put(String url, SeekableStream body, Object headers = {}) async;
-
-    /*! @brief 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
-     @param url 指定 url，必须是包含主机的完整 url
-     @param body 指定发送的 body 内容
-     @param headers 指定附加的 http 头，缺省无附加头
-     @return 返回服务器响应
-     */
-    HttpResponse put(String url, Buffer body, Object headers = {}) async;
-
-    /*! @brief 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
-     @param url 指定 url，必须是包含主机的完整 url
-     @param headers 指定附加的 http 头，缺省无附加头
-     @return 返回服务器响应
-     */
-    HttpResponse put(String url, Object headers = {}) async;
+    HttpResponse put(String url, Object opts = {}) async;
 
     /*! @brief 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
+     opts 包含请求的附加选项，支持的内容如下：
+     ```JavaScript
+     {
+         "body": SeekedStream | Buffer | String | {},
+         "json": {},
+         "headers": {}
+     }
+     ```
+     其中 body，json 不得同时出现。缺省为 {}，不包含任何附加信息
      @param url 指定 url，必须是包含主机的完整 url
-     @param body 指定发送的 body 内容
-     @param headers 指定附加的 http 头，缺省无附加头
+     @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse patch(String url, SeekableStream body, Object headers = {}) async;
-
-    /*! @brief 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
-     @param url 指定 url，必须是包含主机的完整 url
-     @param body 指定发送的 body 内容
-     @param headers 指定附加的 http 头，缺省无附加头
-     @return 返回服务器响应
-     */
-    HttpResponse patch(String url, Buffer body, Object headers = {}) async;
-
-    /*! @brief 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
-     @param url 指定 url，必须是包含主机的完整 url
-     @param headers 指定附加的 http 头，缺省无附加头
-     @return 返回服务器响应
-     */
-    HttpResponse patch(String url, Object headers = {}) async;
+    HttpResponse patch(String url, Object opts = {}) async;
 
     /*! @brief 用 FIND 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
+     opts 包含请求的附加选项，支持的内容如下：
+     ```JavaScript
+     {
+         "body": SeekedStream | Buffer | String | {},
+         "json": {},
+         "headers": {}
+     }
+     ```
+     其中 body，json 不得同时出现。缺省为 {}，不包含任何附加信息
      @param url 指定 url，必须是包含主机的完整 url
-     @param body 指定发送的 body 内容
-     @param headers 指定附加的 http 头，缺省无附加头
+     @param opts 指定附加信息
      @return 返回服务器响应
      */
-    HttpResponse find(String url, SeekableStream body, Object headers = {}) async;
-
-    /*! @brief 用 FIND 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
-     @param url 指定 url，必须是包含主机的完整 url
-     @param body 指定发送的 body 内容
-     @param headers 指定附加的 http 头，缺省无附加头
-     @return 返回服务器响应
-     */
-    HttpResponse find(String url, Buffer body, Object headers = {}) async;
-
-    /*! @brief 用 FIND 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
-     @param url 指定 url，必须是包含主机的完整 url
-     @param headers 指定附加的 http 头，缺省无附加头
-     @return 返回服务器响应
-     */
-    HttpResponse find(String url, Object headers = {}) async;
+    HttpResponse find(String url, Object opts = {}) async;
 };

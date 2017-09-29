@@ -1322,6 +1322,12 @@ describe("http", () => {
                 } else if (r.address == "/agent") {
                     if (r.allHeader("user-agent").length == 1)
                         r.response.body.write(r.firstHeader("user-agent"));
+                } else if (r.address == "/request_url:") {
+                    r.response.body.write(r.address);
+                    r.response.body.write(r.form.test_field);
+                } else if (r.address == "/request_json:") {
+                    r.response.body.write(r.address);
+                    r.response.body.write(r.json().test_field);
                 } else if (r.address != "/gzip_test") {
                     r.response.addHeader("set-cookie", "request=value; domain=127.0.0.1; path=/request");
                     r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1; path=/request");
@@ -1361,14 +1367,44 @@ describe("http", () => {
             });
 
             it("body", () => {
-                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", "body").body.read().toString(),
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                        body: "body"
+                    }).body.read().toString(),
+                    "/request:body");
+                assert.equal(cookie, "root=value2");
+
+                var ms = new io.MemoryStream();
+                ms.write("body");
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                        body: ms
+                    }).body.read().toString(),
                     "/request:body");
                 assert.equal(cookie, "root=value2");
             });
 
+            it("urlencode", () => {
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request_url:", {
+                        body: {
+                            test_field: "field"
+                        }
+                    }).body.read().toString(),
+                    "/request_url:field");
+            });
+
+            it("json", () => {
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request_json:", {
+                        json: {
+                            test_field: "field"
+                        }
+                    }).body.read().toString(),
+                    "/request_json:field");
+            });
+
             it("header", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
-                    "test_header": "header"
+                    headers: {
+                        "test_header": "header"
+                    }
                 }).body.read().toString(), "/request:header");
                 assert.equal(cookie, "root=value2");
             });
@@ -1382,7 +1418,9 @@ describe("http", () => {
                     "test agent");
 
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent", {
-                        "user-agent": "agent in headers"
+                        headers: {
+                            "user-agent": "agent in headers"
+                        }
                     }).body.read().toString(),
                     "agent in headers");
 
@@ -1409,7 +1447,9 @@ describe("http", () => {
 
             it("header", () => {
                 assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
-                    "test_header": "header"
+                    headers: {
+                        "test_header": "header"
+                    }
                 }).body.read().toString(), "/request:header");
             });
 
@@ -1423,26 +1463,36 @@ describe("http", () => {
 
         describe("post", () => {
             it("body", () => {
-                assert.equal(http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", "body").body.read().toString(),
+                assert.equal(http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                        body: "body"
+                    }).body.read().toString(),
                     "/request:body");
             });
 
             it("header", () => {
-                assert.equal(http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", "", {
-                    "test_header": "header"
+                assert.equal(http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                    body: "",
+                    headers: {
+                        "test_header": "header"
+                    }
                 }).body.read().toString(), "/request:header");
             });
 
             it("async body", (done) => {
-                http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", "body", (e, r) => {
+                http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                    body: "body"
+                }, (e, r) => {
                     assert.equal(r.data.toString(), "/request:body");
                     done();
                 });
             });
 
             it("async header", (done) => {
-                http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", "", {
-                    "test_header": "header"
+                http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                    headers: {
+                        "test_header": "header"
+                    },
+                    body: ""
                 }, (e, r) => {
                     assert.equal(r.data.toString(), "/request:header");
                     done();
@@ -1504,13 +1554,17 @@ describe("http", () => {
             });
 
             it("body", () => {
-                assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request:", "body").body.read().toString(),
+                assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request:", {
+                        body: "body"
+                    }).body.read().toString(),
                     "/request:body");
             });
 
             it("header", () => {
                 assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request:", {
-                    "test_header": "header"
+                    headers: {
+                        "test_header": "header"
+                    }
                 }).body.read().toString(), "/request:header");
             });
 
@@ -1528,7 +1582,9 @@ describe("http", () => {
 
             it("header", () => {
                 assert.equal(http.get("https://localhost:" + (8883 + base_port) + "/request:", {
-                    "test_header": "header"
+                    headers: {
+                        "test_header": "header"
+                    }
                 }).body.read().toString(), "/request:header");
             });
         });
@@ -1536,14 +1592,19 @@ describe("http", () => {
         describe("post", () => {
             it("body", () => {
                 assert.equal(http.post(
-                        "https://localhost:" + (8883 + base_port) + "/request:", "body").body
+                        "https://localhost:" + (8883 + base_port) + "/request:", {
+                            body: "body"
+                        }).body
                     .read().toString(), "/request:body");
             });
 
             it("header", () => {
                 assert.equal(http.post(
-                    "https://localhost:" + (8883 + base_port) + "/request:", "", {
-                        "test_header": "header"
+                    "https://localhost:" + (8883 + base_port) + "/request:", {
+                        body: "",
+                        headers: {
+                            "test_header": "header"
+                        }
                     }).body.read().toString(), "/request:header");
             });
         });
@@ -1635,13 +1696,17 @@ describe("http", () => {
             });
 
             it("body", () => {
-                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request:", "body").body.readAll().toString(),
+                assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request:", {
+                        body: "body"
+                    }).body.readAll().toString(),
                     "/request:body");
             });
 
             it("header", () => {
                 assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request:", {
-                    "test_header": "header"
+                    headers: {
+                        "test_header": "header"
+                    }
                 }).body.read().toString(), "/request:header");
             });
 

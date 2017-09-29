@@ -15,6 +15,8 @@
 #include "map"
 #include "ifs/net.h"
 #include "ifs/zlib.h"
+#include "ifs/json.h"
+#include "ifs/querystring.h"
 
 namespace fibjs {
 
@@ -402,7 +404,8 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             if (cookie.length() > 0)
                 pThis->m_req->setHeader("Cookie", cookie);
 
-            pThis->m_req->addHeader(pThis->m_headers);
+            if (pThis->m_headers)
+                pThis->m_req->addHeader(pThis->m_headers);
 
             bool bCheck = false;
             pThis->m_req->hasHeader("User-Agent", bCheck);
@@ -502,58 +505,87 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
     return (new asyncRequest(this, method, url, body, headers, retVal, ac))->post(0);
 }
 
-result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+result_t HttpClient::request(exlib::string method, exlib::string url,
+    v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        obj_ptr<Map_base> map = new Map();
-        map->put(headers);
+        Isolate* isolate = holder();
 
-        ac->m_ctx.resize(1);
+        ac->m_ctx.resize(2);
+
+        obj_ptr<Map_base> map = new Map();
         ac->m_ctx[0] = map;
+
+        v8::Local<v8::Object> o;
+        result_t hr = GetArgumentValue(opts->Get(isolate->NewString("headers", 7)), o);
+        if (hr >= 0)
+            map->put(o);
+
+        obj_ptr<SeekableStream_base> stm;
+        v8::Local<v8::Value> v;
+
+        v = opts->Get(isolate->NewString("body", 4));
+        if (!v->IsUndefined()) {
+            stm = SeekableStream_base::getInstance(v);
+            if (!stm) {
+                obj_ptr<Buffer_base> buf;
+
+                stm = new MemoryStream();
+
+                o.Clear();
+                hr = GetArgumentValue(v, o);
+                if (hr >= 0) {
+                    exlib::string s;
+                    hr = querystring_base::stringify(o, "&", "=", v8::Local<v8::Object>(), s);
+                    if (hr < 0)
+                        return hr;
+
+                    buf = new Buffer(s);
+                    map->put("Content-Type", "application/x-www-form-urlencoded");
+                } else {
+                    hr = GetArgumentValue(isolate->m_isolate, v, buf);
+                    if (hr < 0)
+                        return hr;
+                }
+
+                stm->cc_write(buf);
+            }
+        } else {
+            v = opts->Get(isolate->NewString("json", 4));
+            if (!v->IsUndefined()) {
+                obj_ptr<Buffer_base> buf;
+
+                stm = new MemoryStream();
+
+                o.Clear();
+                hr = GetArgumentValue(v, o);
+                if (hr < 0)
+                    return hr;
+
+                exlib::string s;
+                hr = json_base::encode(o, s);
+                if (hr < 0)
+                    return hr;
+
+                buf = new Buffer(s);
+                stm->cc_write(buf);
+                map->put("Content-Type", "application/json");
+            }
+        }
+        ac->m_ctx[1] = stm;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     obj_ptr<Map_base> map = Map_base::getInstance(ac->m_ctx[0].object());
-    return request(method, url, body, map, retVal, ac);
-}
-
-result_t HttpClient::request(exlib::string method, exlib::string url,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return request(method, url, (SeekableStream_base*)NULL, headers, retVal, ac);
-}
-
-result_t HttpClient::request(exlib::string method, exlib::string url,
-    Buffer_base* body, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    obj_ptr<SeekableStream_base> stm;
-    if (ac->isAsync()) {
-        stm = new MemoryStream();
-        stm->cc_write(body);
-    }
-
-    return request(method, url, stm, headers, retVal, ac);
+    obj_ptr<SeekableStream_base> stm = SeekableStream_base::getInstance(ac->m_ctx[1].object());
+    return request(method, url, stm, map, retVal, ac);
 }
 
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> headers,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     return request("GET", url, headers, retVal, ac);
-}
-
-result_t HttpClient::post(exlib::string url, Buffer_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return request("POST", url, body, headers, retVal, ac);
-}
-
-result_t HttpClient::post(exlib::string url, SeekableStream_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return request("POST", url, body, headers, retVal, ac);
 }
 
 result_t HttpClient::post(exlib::string url, v8::Local<v8::Object> headers,
@@ -568,52 +600,16 @@ result_t HttpClient::del(exlib::string url, v8::Local<v8::Object> headers,
     return request("DELETE", url, headers, retVal, ac);
 }
 
-result_t HttpClient::put(exlib::string url, Buffer_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return request("PUT", url, body, headers, retVal, ac);
-}
-
-result_t HttpClient::put(exlib::string url, SeekableStream_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return request("PUT", url, body, headers, retVal, ac);
-}
-
 result_t HttpClient::put(exlib::string url, v8::Local<v8::Object> headers,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     return request("PUT", url, headers, retVal, ac);
 }
 
-result_t HttpClient::patch(exlib::string url, Buffer_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return request("PATCH", url, body, headers, retVal, ac);
-}
-
-result_t HttpClient::patch(exlib::string url, SeekableStream_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return request("PATCH", url, body, headers, retVal, ac);
-}
-
 result_t HttpClient::patch(exlib::string url, v8::Local<v8::Object> headers,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     return request("PATCH", url, headers, retVal, ac);
-}
-
-result_t HttpClient::find(exlib::string url, Buffer_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return request("FIND", url, body, headers, retVal, ac);
-}
-
-result_t HttpClient::find(exlib::string url, SeekableStream_base* body,
-    v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return request("FIND", url, body, headers, retVal, ac);
 }
 
 result_t HttpClient::find(exlib::string url, v8::Local<v8::Object> headers,
