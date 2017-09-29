@@ -357,7 +357,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
             result_t hr;
             const char* c_str = pThis->m_strLine.c_str();
-            int32_t len = pThis->m_strLine.length();
+            int32_t len = (int32_t)pThis->m_strLine.length();
 
             if (len < 12 || c_str[8] != ' '
                 || !qisdigit(c_str[9]) || !qisdigit(c_str[10]) || !qisdigit(c_str[11])
