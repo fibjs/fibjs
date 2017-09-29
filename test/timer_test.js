@@ -9,8 +9,8 @@ var timers = require("timers");
 var os = require("os");
 
 describe("timer", () => {
-    describe("setTimeout", () => {
-        function test(setTimeout) {
+    describe("setTimeout/clearTimeout", () => {
+        function test(setTimeout, clearTimeout) {
             var n = 0;
 
             GC();
@@ -41,60 +41,44 @@ describe("timer", () => {
             assert.equal(n, 3);
 
             GC();
-            no3 = test_util.countObject('Timer');
+            var no3 = test_util.countObject('Timer');
             assert.equal(no1, no3);
-        }
-
-        it("global setTimeout", () => {
-            test(setTimeout);
-        });
-
-        it("global.setTimeout", () => {
-            test(global.setTimeout);
-        });
-
-        it("timers.setTimeout", () => {
-            test(timers.setTimeout);
-        });
-    });
-
-    describe("clearTimeout", () => {
-        function test(setTimeout) {
-            var n = 0;
-
-            GC();
-            var no1 = test_util.countObject('Timer');
 
             var t = setTimeout(() => {
-                n = 1;
-            }, 1);
+                n = 5;
+            }, Math.pow(2, 31) - 1);
 
-            assert.equal(n, 0);
-            clearTimeout(t);
-            t = undefined;
-            coroutine.sleep(100);
-            assert.equal(n, 0);
+            coroutine.sleep(200);
+            assert.equal(n, 3);
 
             GC();
-            var no2 = test_util.countObject('Timer');
-            assert.equal(no1, no2);
+            var no4 = test_util.countObject('Timer');
+            assert.equal(no1 + 1, no4);
+            clearTimeout(t);
+            t = undefined;
+            
+            coroutine.sleep(200);
+            GC();
+
+            no4 = test_util.countObject('Timer');
+            assert.equal(no1, no4);
         }
 
-        it("global clearTimeout", () => {
-            test(setTimeout);
+        it("global setTimeout/global clearTimeout", () => {
+            test(setTimeout, clearTimeout);
         });
 
-        it("global.clearTimeout", () => {
-            test(global.setTimeout);
+        it("global.setTimeout/global.clearTimeout", () => {
+            test(global.setTimeout, global.clearTimeout);
         });
 
-        it("timers.clearTimeout", () => {
-            test(timers.setTimeout);
+        it("timers.setTimeout/timers.clearTimeout", () => {
+            test(timers.setTimeout, timers.clearTimeout);
         });
     });
 
     describe("double clearTimeout", () => {
-        function test(setTimeout) {
+        function test(setTimeout, clearTimeout) {
             var t = setTimeout(() => {
                 n = 1;
             }, 1);
@@ -106,16 +90,16 @@ describe("timer", () => {
             });
         }
 
-        it("double global clearTimeout", () => {
-            test(setTimeout);
+        it("global clearTimeout", () => {
+            test(setTimeout, clearTimeout);
         });
 
-        it("double global.clearTimeout", () => {
-            test(global.setTimeout);
+        it("global.clearTimeout", () => {
+            test(global.setTimeout, global.clearTimeout);
         });
 
-        it("double timers.clearTimeout", () => {
-            test(timers.setTimeout);
+        it("timers.clearTimeout", () => {
+            test(timers.setTimeout, timers.clearTimeout);
         });
     });
 
@@ -194,27 +178,47 @@ describe("timer", () => {
 
     describe("setInterval/clearInterval", () => {
         function test(setInterval, clearInterval) {
-            var n = 0;
+            var n1 = 0;
+            var n2 = 0;
+            var n3 = 0;
 
             GC();
             var no1 = test_util.countObject('Timer');
 
-            var t = setImmediate(() => {
-                n = 1;
-            });
+            var t1 = setInterval(() => n1++, 50);
+            coroutine.sleep(10);
+            clearInterval(t1);
+            t1 = undefined;
 
-            assert.equal(n, 0);
-            clearImmediate(t);
-            t = undefined;
+            var t2 = setInterval(() => n2++, Math.pow(2, 31));
+            coroutine.sleep(10);
+            clearInterval(t2);
+            t2 = undefined;
+
+            var t3 = setInterval(() => n3++, Math.pow(2, 31) - 1);
+
+            assert.equal(n1, 0);
+            assert.greaterThan(n2, 0);
+            assert.equal(n3, 0);
             coroutine.sleep(100);
-            assert.equal(n, 0);
+            assert.equal(n1, 0);
+            assert.greaterThan(n2, 0);
+            assert.equal(n3, 0);
 
             GC();
             var no2 = test_util.countObject('Timer');
-            assert.equal(no1, no2);
+            assert.equal(no1 + 1, no2);
+
+            clearInterval(t3);
+            t3 = undefined;
+            coroutine.sleep(100);
+
+            GC();
+            var no3 = test_util.countObject('Timer');
+            assert.equal(no2 - 1, no3);
         }
 
-        it("global setInterval/clearInterval", () => {
+        it("global setInterval/global clearInterval", () => {
             test(setInterval, clearInterval);
         });
 
@@ -228,42 +232,52 @@ describe("timer", () => {
     });
 
     describe("clearInterval in callback", () => {
-        function test(clearInterval) {
+        function test(setInterval, clearInterval) {
             var n = 0;
 
             GC();
             var no1 = test_util.countObject('Timer');
 
-            setInterval(function () {
+            setInterval(function() {
                 n++;
                 clearInterval(this);
             }, 1);
 
-            setInterval(function () {
+            setInterval(function() {
                 n++;
                 clearInterval(this);
             }, Math.pow(2, 31));
 
+            var t = setInterval(() => n++, Math.pow(2, 31) - 1);
+
             assert.equal(n, 0);
-            for (var i = 0; i < 1000 && n == 0; i++)
-                coroutine.sleep(10);
+            coroutine.sleep(100);
             assert.equal(n, 2);
 
             GC();
             var no2 = test_util.countObject('Timer');
-            assert.equal(no1, no2);
+            assert.equal(no1 + 1, no2);
+
+            clearInterval(t);
+            t = undefined;
+
+            coroutine.sleep(100);
+
+            GC();
+            var no3 = test_util.countObject('Timer');
+            assert.equal(no2 - 1, no3);
         }
 
-        it("global setInterval", () => {
-            test(clearInterval);
+        it("global clearInterval", () => {
+            test(setInterval, clearInterval);
         });
 
         it("global.clearInterval", () => {
-            test(global.clearInterval);
+            test(global.setInterval, global.clearInterval);
         });
 
         it("timers.clearInterval", () => {
-            test(timers.clearInterval);
+            test(timers.setInterval, timers.clearInterval);
         });
     });
 });
