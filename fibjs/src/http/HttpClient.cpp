@@ -557,13 +557,8 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 
                 stm = new MemoryStream();
 
-                o.Clear();
-                hr = GetArgumentValue(v, o);
-                if (hr < 0)
-                    return hr;
-
                 exlib::string s;
-                hr = json_base::encode(o, s);
+                hr = json_base::encode(v, s);
                 if (hr < 0)
                     return hr;
 
