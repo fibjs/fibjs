@@ -1,3 +1,71 @@
+## 2017-09-30, Version v0.15.0
+
+* **feature** :
+    * docs:
+      - remove github token.(xicilion)
+      - add awesome sync tool.(xicilion)
+    * http:
+      - request support json any type.(xicilion)
+      - HttpResponse parse statusMessage.(xicilion)
+      - HttpResopnse support any statusCode.(xicilion)
+      - support find method.(xicilion)
+      - support statusCode, statusMessage, writeHeaders.(xicilion)
+    * process:
+      - support process.versions.(xicilion)
+      - support process.stdin, process.stdout, process.stderr.(xicilion)
+    * timer - support beyond 2^31 delay (#357)(Hengfei Zhuang)
+    * util:
+      - support util.inspect.(xicilion)
+      - support util._extend.(xicilion)
+    * v8 - upgrade to v6.3.228.(xicilion)
+
+* **breakchange** :
+    * http - deprecated property crossDomain, add method enableCrossOrigin.(xicilion)
+
+* **bugfix** :
+    * core - fix compile warning on windows.(xicilion)
+    * http:
+      - compile warning on windows.(xicilion)
+      - HttpResponse.statusMessage encode error.(xicilion)
+    * timer - compile warning on windows.(xicilion)
+    * websocket - compatible with new http api.(xicilion)
+
+* **refactor** :
+    * core - use WriteUtf8 to get better performance (#356)(Hengfei Zhuang)
+    * http:
+      - use opts to pass body and headers, support urlencode and json encode.(xicilion)
+      - use Object to pass headers.(xicilion)
+    * idlc - use GetArgumentValue to convert property.(xicilion)
+    * path - use getArgumentValue.(xicilion)
+    * Variant - use GetArgumentValue.(xicilion)
+
+### Commits
+* [[`4167a08687`](https://github.com/fibjs/fibjs/commit/4167a08687)] - **v8, feat**: upgrade to v6.3.228.(xicilion)
+* [[`55d21b5045`](https://github.com/fibjs/fibjs/commit/55d21b5045)] - **timer, bugfix**: compile warning on windows.(xicilion)
+* [[`875654e4f0`](https://github.com/fibjs/fibjs/commit/875654e4f0)] - **timer, feat**: support beyond 2^31 delay (#357)(Hengfei Zhuang)
+* [[`bab35312b3`](https://github.com/fibjs/fibjs/commit/bab35312b3)] - **http, bugfix**: compile warning on windows.(xicilion)
+* [[`881a7c7636`](https://github.com/fibjs/fibjs/commit/881a7c7636)] - **http, feat**: request support json any type.(xicilion)
+* [[`c258ae4129`](https://github.com/fibjs/fibjs/commit/c258ae4129)] - **websocket, bugfix**: compatible with new http api.(xicilion)
+* [[`c66498fe7a`](https://github.com/fibjs/fibjs/commit/c66498fe7a)] - **http, refactor**: use opts to pass body and headers, support urlencode and json encode.(xicilion)
+* [[`8538dc249d`](https://github.com/fibjs/fibjs/commit/8538dc249d)] - **http, feat**: HttpResponse parse statusMessage.(xicilion)
+* [[`f8e5511b2a`](https://github.com/fibjs/fibjs/commit/f8e5511b2a)] - **http, feat**: HttpResopnse support any statusCode.(xicilion)
+* [[`91915c0842`](https://github.com/fibjs/fibjs/commit/91915c0842)] - **http, bugfix**: HttpResponse.statusMessage encode error.(xicilion)
+* [[`b7f14b1288`](https://github.com/fibjs/fibjs/commit/b7f14b1288)] - **http, feat**: support find method.(xicilion)
+* [[`1429a5f7df`](https://github.com/fibjs/fibjs/commit/1429a5f7df)] - **http, feat**: support statusCode, statusMessage, writeHeaders.(xicilion)
+* [[`731c1fdb9d`](https://github.com/fibjs/fibjs/commit/731c1fdb9d)] - **http, refactor**: use Object to pass headers.(xicilion)
+* [[`a3cfcc5e89`](https://github.com/fibjs/fibjs/commit/a3cfcc5e89)] - **docs, feat**: remove github token.(xicilion)
+* [[`ec4958dfc9`](https://github.com/fibjs/fibjs/commit/ec4958dfc9)] - **docs, feat**: add awesome sync tool.(xicilion)
+* [[`d5d1196ac9`](https://github.com/fibjs/fibjs/commit/d5d1196ac9)] - **http, break**: deprecated property crossDomain, add method enableCrossOrigin.(xicilion)
+* [[`ca05229cb2`](https://github.com/fibjs/fibjs/commit/ca05229cb2)] - **util, feat**: support util.inspect.(xicilion)
+* [[`d93ca533c7`](https://github.com/fibjs/fibjs/commit/d93ca533c7)] - **util, feat**: support util._extend.(xicilion)
+* [[`f97d881da0`](https://github.com/fibjs/fibjs/commit/f97d881da0)] - **process, feat**: support process.versions.(xicilion)
+* [[`b3f68688b0`](https://github.com/fibjs/fibjs/commit/b3f68688b0)] - **process, feat**: support process.stdin, process.stdout, process.stderr.(xicilion)
+* [[`8085d429da`](https://github.com/fibjs/fibjs/commit/8085d429da)] - **Variant, refactor**: use GetArgumentValue.(xicilion)
+* [[`ad9f7dbc0d`](https://github.com/fibjs/fibjs/commit/ad9f7dbc0d)] - **path, refactor**: use getArgumentValue.(xicilion)
+* [[`7765c2402a`](https://github.com/fibjs/fibjs/commit/7765c2402a)] - **idlc, refactor**: use GetArgumentValue to convert property.(xicilion)
+* [[`8cc030841e`](https://github.com/fibjs/fibjs/commit/8cc030841e)] - **core, bugfix**: fix compile warning on windows.(xicilion)
+* [[`4ce374f000`](https://github.com/fibjs/fibjs/commit/4ce374f000)] - **core, refactor**: use WriteUtf8 to get better performance (#356)(Hengfei Zhuang)
+
 ## 2017-09-21, Version v0.14.0
 
 * **feature** :
