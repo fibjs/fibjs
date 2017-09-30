@@ -358,7 +358,7 @@ describe("net", () => {
         var no = test_util.countObject('Timer');
         c1.connect('127.0.0.1', 8085 + base_port);
         for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++)
-            coroutine.sleep(1);
+            coroutine.sleep(50);
         assert.equal(no, test_util.countObject('Timer'));
 
         var t1 = new Date();

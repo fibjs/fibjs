@@ -16,9 +16,7 @@ describe("timer", () => {
             GC();
             var no1 = test_util.countObject('Timer');
 
-            setTimeout(() => {
-                n = 1;
-            }, 1);
+            setTimeout(() => n = 1, 1);
 
             GC();
             var no2 = test_util.countObject('Timer');
@@ -26,29 +24,29 @@ describe("timer", () => {
 
             assert.equal(n, 0);
             for (var i = 0; i < 1000 && n == 0; i++)
-                coroutine.sleep(1);
+                coroutine.sleep(10);
+
             assert.equal(n, 1);
 
             GC();
             no2 = test_util.countObject('Timer');
             assert.equal(no1, no2);
 
-            setTimeout(() => {
-                n = 3;
-            }, Math.pow(2, 31));
-
-            coroutine.sleep(5);
-            assert.equal(n, 3);
+            setTimeout(() => n = 3, Math.pow(2, 31));
 
             GC();
             var no3 = test_util.countObject('Timer');
-            assert.equal(no1, no3);
+            assert.equal(no1 + 1, no3);
+            assert.equal(n, 1);
 
-            var t = setTimeout(() => {
-                n = 5;
-            }, Math.pow(2, 31) - 1);
+            for (var i = 0; i < 1000 && n == 1; i++)
+                coroutine.sleep(10);
 
-            coroutine.sleep(200);
+            assert.equal(n, 3);
+
+            var t = setTimeout(() => n = 5, Math.pow(2, 31) - 1);
+
+            coroutine.sleep(100);
             assert.equal(n, 3);
 
             GC();
@@ -56,7 +54,7 @@ describe("timer", () => {
             assert.equal(no1 + 1, no4);
             clearTimeout(t);
             t = undefined;
-            
+
             coroutine.sleep(200);
             GC();
 
@@ -79,15 +77,11 @@ describe("timer", () => {
 
     describe("double clearTimeout", () => {
         function test(setTimeout, clearTimeout) {
-            var t = setTimeout(() => {
-                n = 1;
-            }, 1);
+            var t = setTimeout(() => n = 1, 1);
 
             clearTimeout(t);
             coroutine.sleep(100);
-            assert.doesNotThrow(() => {
-                clearTimeout(t);
-            });
+            assert.doesNotThrow(() => clearTimeout(t));
         }
 
         it("global clearTimeout", () => {
@@ -110,9 +104,7 @@ describe("timer", () => {
             GC();
             var no1 = test_util.countObject('Timer');
 
-            setImmediate(() => {
-                n = 1;
-            });
+            setImmediate(() => n = 1);
 
             GC();
             var no2 = test_util.countObject('Timer');
@@ -148,9 +140,7 @@ describe("timer", () => {
             GC();
             var no1 = test_util.countObject('Timer');
 
-            var t = setImmediate(() => {
-                n = 1;
-            });
+            var t = setImmediate(() => n = 1);
 
             assert.equal(n, 0);
             clearImmediate(t);
