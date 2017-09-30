@@ -76,20 +76,20 @@ result_t timers_base::setInterval(v8::Local<v8::Function> callback, double timeo
     if (timeout < 1 || timeout > TIMEOUT_MAX)
         timeout = 1;
 
-    obj_ptr<Timer> timer = new JSTimer(callback, timeout, true);
+    obj_ptr<Timer> timer = new JSTimer(callback, (int32_t)timeout, true);
     timer->sleep();
     retVal = timer;
 
     return 0;
 }
 
-result_t timers_base::setTimeout(v8::Local<v8::Function> callback, 
+result_t timers_base::setTimeout(v8::Local<v8::Function> callback,
     double timeout, obj_ptr<Timer_base>& retVal)
 {
     if (timeout < 1 || timeout > TIMEOUT_MAX)
         timeout = 1;
 
-    obj_ptr<Timer> timer = new JSTimer(callback, timeout);
+    obj_ptr<Timer> timer = new JSTimer(callback, (int32_t)timeout);
     timer->sleep();
     retVal = timer;
 
