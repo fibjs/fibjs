@@ -32,9 +32,9 @@ module process : EventEmitter
     static readonly String platform;
 
     /*! @brief 查询当前进程标准输入对象 */
-    static readonly File stdin
+    static readonly File stdin;
     
-    /*! @brief 查询当前进程标准输出对象 */;
+    /*! @brief 查询当前进程标准输出对象 */
     static readonly File stdout;
 
     /*! @brief 查询当前进程标准错误输出对象 */
