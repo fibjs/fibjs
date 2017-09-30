@@ -12,6 +12,8 @@
 
 namespace fibjs {
 
+#define TIMEOUT_MAX 2147483647 // 2^31-1
+
 class JSTimer : public Timer {
 public:
     JSTimer(v8::Local<v8::Function> callback, int32_t timeout = 0, bool repeat = false)
@@ -69,9 +71,9 @@ result_t timers_base::clearImmediate(Timer_base* t)
     return t->clear();
 }
 
-result_t timers_base::setInterval(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal)
+result_t timers_base::setInterval(v8::Local<v8::Function> callback, double timeout, obj_ptr<Timer_base>& retVal)
 {
-    if (timeout < 1)
+    if (timeout < 1 || timeout > TIMEOUT_MAX)
         timeout = 1;
 
     obj_ptr<Timer> timer = new JSTimer(callback, timeout, true);
@@ -81,9 +83,10 @@ result_t timers_base::setInterval(v8::Local<v8::Function> callback, int32_t time
     return 0;
 }
 
-result_t timers_base::setTimeout(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal)
+result_t timers_base::setTimeout(v8::Local<v8::Function> callback, 
+    double timeout, obj_ptr<Timer_base>& retVal)
 {
-    if (timeout < 1)
+    if (timeout < 1 || timeout > TIMEOUT_MAX)
         timeout = 1;
 
     obj_ptr<Timer> timer = new JSTimer(callback, timeout);
@@ -117,12 +120,12 @@ result_t global_base::clearImmediate(Timer_base* t)
     return timers_base::clearImmediate(t);
 }
 
-result_t global_base::setInterval(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal)
+result_t global_base::setInterval(v8::Local<v8::Function> callback, double timeout, obj_ptr<Timer_base>& retVal)
 {
     return timers_base::setInterval(callback, timeout, retVal);
 }
 
-result_t global_base::setTimeout(v8::Local<v8::Function> callback, int32_t timeout, obj_ptr<Timer_base>& retVal)
+result_t global_base::setTimeout(v8::Local<v8::Function> callback, double timeout, obj_ptr<Timer_base>& retVal)
 {
     return timers_base::setTimeout(callback, timeout, retVal);
 }

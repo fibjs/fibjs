@@ -11,7 +11,7 @@ module global
     /*! @brief 控制台访问对象 */
     static console;
 
-    /*! @brief 控制台访问对象 */
+    /*! @brief 进程对象 */
     static process;
 
     /*! @brief Worker 宿主对象，仅在 Worker 入口脚本有效 */
@@ -114,17 +114,17 @@ module global
 
     /*! @brief 每间隔指定的时间后调用函数
      @param callback 指定回调函数
-     @param timeout 指定间隔的时间，以毫秒为单位
+     @param timeout 指定间隔的时间，以毫秒为单位。超过 2^31 的话,立即执行。
      @return 返回定时器对象
     */
-    static Timer setInterval(Function callback, Integer timeout);
+    static Timer setInterval(Function callback, Number timeout);
 
     /*! @brief 在指定的时间后调用函数
      @param callback 指定回调函数
-     @param timeout 指定延时的时间，以毫秒为单位
+     @param timeout 指定延时的时间，以毫秒为单位。超过 2^31 的话,立即执行。
      @return 返回定时器对象
     */
-    static Timer setTimeout(Function callback, Integer timeout);
+    static Timer setTimeout(Function callback, Number timeout);
 
     /*! @brief 下一个空闲时间立即执行回调函数
      @param callback 指定回调函数
