@@ -685,6 +685,13 @@ public:
     {
     }
 
+    OptArgs(const OptArgs&& a)
+    : m_args(std::move(a.m_args))
+    , m_base(std::move(a.m_base))
+    , m_argc(std::move(a.m_argc))
+    {
+    }
+
     int32_t Length() const
     {
         return m_argc - m_base;

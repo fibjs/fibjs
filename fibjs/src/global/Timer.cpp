@@ -6,6 +6,8 @@
  */
 
 #include "object.h"
+#include "utils.h"
+#include "QuickArray.h"
 #include "ifs/global.h"
 #include "ifs/timers.h"
 #include "Timer.h"
@@ -16,11 +18,16 @@ namespace fibjs {
 
 class JSTimer : public Timer {
 public:
-    JSTimer(v8::Local<v8::Function> callback, int32_t timeout = 0, bool repeat = false)
+    JSTimer(v8::Local<v8::Function> callback, OptArgs* args, int32_t timeout = 0, bool repeat = false)
         : Timer(timeout, repeat)
         , m_clear_pendding(false)
     {
         Isolate* isolate = holder();
+
+        int32_t nArgCount = args->Length();
+        m_argv.resize(nArgCount);
+        for (int i = 0; i < nArgCount; i++)
+            m_argv[i].Reset(isolate->m_isolate, (*args)[i]);
 
         isolate->m_pendding.inc();
         m_callback.Reset(isolate->m_isolate, callback);
@@ -35,9 +42,17 @@ public:
 public:
     virtual void on_timer()
     {
+        Isolate* isolate = holder();
         JSFiber::scope s;
-        v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(holder()->m_isolate, m_callback);
-        callback->Call(wrap(), 0, NULL);
+        v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(isolate->m_isolate, m_callback);
+        std::vector<v8::Local<v8::Value>> argv;
+
+        size_t nArgCount = m_argv.size();
+        argv.resize(nArgCount);
+        for (int i = 0; i < nArgCount; i++)
+            argv[i] = v8::Local<v8::Value>::New(isolate->m_isolate, m_argv[i]);
+
+        callback->Call(wrap(), (int32_t)argv.size(), argv.data());
     }
 
     virtual void on_clean()
@@ -51,6 +66,7 @@ public:
 
 private:
     bool m_clear_pendding;
+    QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Function> m_callback;
 };
 
@@ -71,12 +87,13 @@ result_t timers_base::clearImmediate(Timer_base* t)
     return t->clear();
 }
 
-result_t timers_base::setInterval(v8::Local<v8::Function> callback, double timeout, obj_ptr<Timer_base>& retVal)
+result_t timers_base::setInterval(v8::Local<v8::Function> callback,
+    double timeout, OptArgs args, obj_ptr<Timer_base>& retVal)
 {
     if (timeout < 1 || timeout > TIMEOUT_MAX)
         timeout = 1;
 
-    obj_ptr<Timer> timer = new JSTimer(callback, (int32_t)timeout, true);
+    obj_ptr<Timer> timer = new JSTimer(callback, &args, (int32_t)timeout, true);
     timer->sleep();
     retVal = timer;
 
@@ -84,21 +101,22 @@ result_t timers_base::setInterval(v8::Local<v8::Function> callback, double timeo
 }
 
 result_t timers_base::setTimeout(v8::Local<v8::Function> callback,
-    double timeout, obj_ptr<Timer_base>& retVal)
+    double timeout, OptArgs args, obj_ptr<Timer_base>& retVal)
 {
     if (timeout < 1 || timeout > TIMEOUT_MAX)
         timeout = 1;
 
-    obj_ptr<Timer> timer = new JSTimer(callback, (int32_t)timeout);
+    obj_ptr<Timer> timer = new JSTimer(callback, &args, (int32_t)timeout);
     timer->sleep();
     retVal = timer;
 
     return 0;
 }
 
-result_t timers_base::setImmediate(v8::Local<v8::Function> callback, obj_ptr<Timer_base>& retVal)
+result_t timers_base::setImmediate(v8::Local<v8::Function> callback, 
+    OptArgs args, obj_ptr<Timer_base>& retVal)
 {
-    obj_ptr<Timer> timer = new JSTimer(callback);
+    obj_ptr<Timer> timer = new JSTimer(callback, &args);
     timer->sleep();
     retVal = timer;
 
@@ -120,18 +138,21 @@ result_t global_base::clearImmediate(Timer_base* t)
     return timers_base::clearImmediate(t);
 }
 
-result_t global_base::setInterval(v8::Local<v8::Function> callback, double timeout, obj_ptr<Timer_base>& retVal)
+result_t global_base::setInterval(v8::Local<v8::Function> callback, 
+    double timeout, OptArgs args, obj_ptr<Timer_base>& retVal)
 {
-    return timers_base::setInterval(callback, timeout, retVal);
+    return timers_base::setInterval(callback, timeout, std::move(args), retVal);
 }
 
-result_t global_base::setTimeout(v8::Local<v8::Function> callback, double timeout, obj_ptr<Timer_base>& retVal)
+result_t global_base::setTimeout(v8::Local<v8::Function> callback,
+    double timeout, OptArgs args, obj_ptr<Timer_base>& retVal)
 {
-    return timers_base::setTimeout(callback, timeout, retVal);
+    return timers_base::setTimeout(callback, timeout, std::move(args), retVal);
 }
 
-result_t global_base::setImmediate(v8::Local<v8::Function> callback, obj_ptr<Timer_base>& retVal)
+result_t global_base::setImmediate(v8::Local<v8::Function> callback,
+    OptArgs args, obj_ptr<Timer_base>& retVal)
 {
-    return timers_base::setImmediate(callback, retVal);
+    return timers_base::setImmediate(callback, std::move(args), retVal);
 }
 }

@@ -26,9 +26,9 @@ public:
     static result_t clearInterval(Timer_base* t);
     static result_t clearTimeout(Timer_base* t);
     static result_t clearImmediate(Timer_base* t);
-    static result_t setInterval(v8::Local<v8::Function> callback, double timeout, obj_ptr<Timer_base>& retVal);
-    static result_t setTimeout(v8::Local<v8::Function> callback, double timeout, obj_ptr<Timer_base>& retVal);
-    static result_t setImmediate(v8::Local<v8::Function> callback, obj_ptr<Timer_base>& retVal);
+    static result_t setInterval(v8::Local<v8::Function> callback, double timeout, OptArgs args, obj_ptr<Timer_base>& retVal);
+    static result_t setTimeout(v8::Local<v8::Function> callback, double timeout, OptArgs args, obj_ptr<Timer_base>& retVal);
+    static result_t setImmediate(v8::Local<v8::Function> callback, OptArgs args, obj_ptr<Timer_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -120,12 +120,13 @@ inline void timers_base::s_setInterval(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER(-1, 2);
 
     ARG(v8::Local<v8::Function>, 0);
     ARG(double, 1);
+    ARG_LIST(2);
 
-    hr = setInterval(v0, v1, vr);
+    hr = setInterval(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }
@@ -136,12 +137,13 @@ inline void timers_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER(-1, 2);
 
     ARG(v8::Local<v8::Function>, 0);
     ARG(double, 1);
+    ARG_LIST(2);
 
-    hr = setTimeout(v0, v1, vr);
+    hr = setTimeout(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }
@@ -152,11 +154,12 @@ inline void timers_base::s_setImmediate(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(-1, 1);
 
     ARG(v8::Local<v8::Function>, 0);
+    ARG_LIST(1);
 
-    hr = setImmediate(v0, vr);
+    hr = setImmediate(v0, v1, vr);
 
     METHOD_RETURN();
 }

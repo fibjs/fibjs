@@ -16,7 +16,7 @@ describe("timer", () => {
             GC();
             var no1 = test_util.countObject('Timer');
 
-            setTimeout(() => n = 1, 1);
+            setTimeout((a) => n = a, 1, 1);
 
             GC();
             var no2 = test_util.countObject('Timer');
@@ -32,7 +32,7 @@ describe("timer", () => {
             no2 = test_util.countObject('Timer');
             assert.equal(no1, no2);
 
-            setTimeout(() => n = 3, Math.pow(2, 31));
+            setTimeout((a) => n = a, Math.pow(2, 31), 3);
 
             GC();
             var no3 = test_util.countObject('Timer');
@@ -104,7 +104,7 @@ describe("timer", () => {
             GC();
             var no1 = test_util.countObject('Timer');
 
-            setImmediate(() => n = 1);
+            setImmediate((a) => n = a, 1);
 
             GC();
             var no2 = test_util.countObject('Timer');
