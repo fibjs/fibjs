@@ -33,6 +33,11 @@ class JSFiber;
 class LruCache;
 class File_base;
 
+struct V8FrameInfo {
+    void* entry_fp;
+    void* handle;
+};
+
 class Isolate : public exlib::linkitem {
 public:
     class rt {
@@ -40,6 +45,8 @@ public:
         rt(Isolate* cur = NULL);
 
     private:
+        v8::Isolate* m_isolate;
+        V8FrameInfo m_fi;
         v8::Unlocker unlocker;
     };
 

@@ -220,45 +220,4 @@ void ReportException(TryCatch& try_catch, result_t hr)
     if (try_catch.HasCaught() || hr < 0)
         errorLog(GetException(try_catch, hr));
 }
-
-exlib::string traceInfo(int32_t deep)
-{
-    v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-        Isolate::current()->m_isolate, deep, v8::StackTrace::kOverview);
-    int32_t count = stackTrace->GetFrameCount();
-    int32_t i;
-    exlib::string strBuffer;
-
-    for (i = 0; i < count; i++) {
-        char numStr[32];
-        v8::Local<v8::StackFrame> f = stackTrace->GetFrame(i);
-
-        v8::String::Utf8Value funname(f->GetFunctionName());
-        v8::String::Utf8Value filename(f->GetScriptName());
-
-        strBuffer.append("\n    at ");
-
-        if (**funname) {
-            strBuffer.append(*funname);
-            strBuffer.append(" (", 2);
-        }
-
-        if (*filename) {
-            strBuffer.append(*filename);
-            strBuffer.append(1, ':');
-        } else
-            strBuffer.append("[eval]:", 7);
-
-        sprintf(numStr, "%d", f->GetLineNumber());
-        strBuffer.append(numStr);
-        strBuffer.append(1, ':');
-        sprintf(numStr, "%d", f->GetColumn());
-        strBuffer.append(numStr);
-
-        if (**funname)
-            strBuffer.append(")", 1);
-    }
-
-    return strBuffer;
-}
 }

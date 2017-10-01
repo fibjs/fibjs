@@ -55,17 +55,17 @@ exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
 extern int32_t stack_size;
 
-inline JSFiber* saveTrace()
-{
-    JSFiber* fiber = JSFiber::current();
-    assert(fiber != 0);
-    fiber->m_traceInfo = traceInfo(300);
-    return fiber;
-}
+V8FrameInfo save_fi(v8::Isolate* isolate);
 
 Isolate::rt::rt(Isolate* cur)
-    : unlocker((cur ? cur : Isolate::current())->m_isolate)
+    : m_isolate((cur ? cur : Isolate::current())->m_isolate)
+    , m_fi(save_fi(m_isolate))
+    , unlocker(m_isolate)
 {
+    JSFiber* fb = JSFiber::current();
+
+    fb->m_c_entry_fp_ = m_fi.entry_fp;
+    fb->m_handler_ = m_fi.handle;
 }
 
 static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallbackFlags flags)
@@ -93,7 +93,7 @@ void init_proc(void* p)
     Runtime rt(isolate);
 
     isolate->init();
-    FiberBase::fiber_proc(p);
+    JSFiber::fiber_proc(p);
 }
 
 Isolate::Isolate(exlib::string fname)

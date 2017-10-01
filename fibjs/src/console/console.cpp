@@ -222,7 +222,8 @@ result_t console_base::trace(exlib::string label)
 
     strBuffer.append("console.trace: ", 15);
     strBuffer.append(label);
-    strBuffer.append(traceInfo(10));
+    strBuffer.append(1, '\n');
+    strBuffer.append(traceInfo(Isolate::current()->m_isolate, 10));
 
     asyncLog(_WARN, strBuffer);
     return 0;

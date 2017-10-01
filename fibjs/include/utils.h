@@ -1066,7 +1066,9 @@ inline result_t SocketError()
 #endif
 }
 
-exlib::string traceInfo(int32_t deep);
+exlib::string traceInfo(v8::Isolate* isolate, int32_t deep);
+exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void* handle);
+
 exlib::string getResultMessage(result_t hr);
 v8::Local<v8::Value> ThrowResult(result_t hr);
 void ReportException(TryCatch& try_catch, result_t hr);
@@ -1141,15 +1143,15 @@ inline result_t _error_checker(result_t hr, const char* file, int32_t line)
 #define CHECK_ERROR(hr) (hr)
 #endif
 
-#define DEPRECATED_SOON(name)                                       \
-    {                                                               \
-        static bool once = false;                                   \
-        if (!once) {                                                \
-            once = true;                                            \
-            exlib::string str(name);                                \
-            str.append(" is deprecated and will soon be removed."); \
-            errorLog(str + traceInfo(16));                          \
-        }                                                           \
+#define DEPRECATED_SOON(name)                                         \
+    {                                                                 \
+        static bool once = false;                                     \
+        if (!once) {                                                  \
+            once = true;                                              \
+            exlib::string str(name);                                  \
+            str.append(" is deprecated and will soon be removed.\n"); \
+            errorLog(str + traceInfo(isolate, 16));                   \
+        }                                                             \
     }
 
 inline exlib::string niceSize(intptr_t sz)

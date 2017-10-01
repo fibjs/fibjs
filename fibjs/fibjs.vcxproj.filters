@@ -956,6 +956,9 @@
     <ClCompile Include="src\base\options.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
+    <ClCompile Include="src\base\traceInfo.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
     <ClCompile Include="src\base\utf8.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>

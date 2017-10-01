@@ -1,12 +1,18 @@
 var test = require("test");
 test.setup();
 
+var coroutine = require('coroutine');
+
+function test_fiber() {
+    coroutine.sleep(100);
+}
+
 var profiler = require("profiler");
 var fs = require("fs");
 var path = require("path");
 var os = require("os");
 
-var vmid = require('coroutine').vmid;
+var vmid = coroutine.vmid;
 
 function unlink(pathname) {
     try {
@@ -79,6 +85,12 @@ describe("profiler", () => {
             "allocated_nodes": 0,
             "details": []
         });
+    });
+
+    it("Fiber.stack", () => {
+        var fb = coroutine.start(test_fiber);
+        coroutine.sleep(10);
+        assert.equal(`    at test_fiber (${__filename}:7:15)`, fb.stack)
     });
 });
 

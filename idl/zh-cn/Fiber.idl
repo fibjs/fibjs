@@ -54,6 +54,6 @@ interface Fiber : object
     /*! @brief 查询纤程的调用纤程 */
     readonly Fiber caller;
 
-    /*! @brief 查询纤程的调用堆栈，查询非当前纤程的堆栈需要在执行时指定参数：--trace_fiber */
-    readonly String traceInfo;
+    /*! @brief 查询纤程的调用堆栈*/
+    readonly String stack;
 };

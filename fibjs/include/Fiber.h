@@ -14,29 +14,8 @@
 
 namespace fibjs {
 
-class FiberBase : public Fiber_base,
-                  public AsyncEvent {
-    FIBER_FREE();
-
-public:
-    // Fiber_base
-    virtual result_t join();
-    virtual result_t get_traceInfo(exlib::string& retVal);
-    virtual result_t get_caller(obj_ptr<Fiber_base>& retVal);
-
-public:
-    static void fiber_proc(void* p);
-    void start();
-
-    void set_caller(Fiber_base* caller);
-
-public:
-    exlib::string m_traceInfo;
-    exlib::Event m_quit;
-    weak_ptr<Fiber_base> m_caller;
-};
-
-class JSFiber : public FiberBase {
+class JSFiber : public Fiber_base,
+                public AsyncEvent {
 public:
     class scope {
     public:
@@ -57,10 +36,29 @@ public:
     };
 
 public:
+    JSFiber()
+        : m_bindFiber(NULL)
+    {
+    }
+
     ~JSFiber()
     {
         clear();
     }
+
+    FIBER_FREE();
+
+public:
+    // Fiber_base
+    virtual result_t join();
+    virtual result_t get_stack(exlib::string& retVal);
+    virtual result_t get_caller(obj_ptr<Fiber_base>& retVal);
+
+public:
+    static void fiber_proc(void* p);
+    void start();
+
+    void set_caller(Fiber_base* caller);
 
     static JSFiber* current();
     virtual result_t js_invoke();
@@ -128,7 +126,14 @@ public:
         m_this.Reset();
     }
 
+public:
+    exlib::Event m_quit;
+    weak_ptr<Fiber_base> m_caller;
+    void* m_c_entry_fp_;
+    void* m_handler_;
+
 private:
+    exlib::Fiber* m_bindFiber;
     v8::Global<v8::Function> m_func;
     QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Value> m_result;

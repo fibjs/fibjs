@@ -19,13 +19,15 @@ extern int32_t stack_size;
 int32_t g_spareFibers;
 static int32_t g_tlsCurrent;
 
+exlib::string traceInfo(int32_t deep, void* entry_fp, void* handle);
+
 void init_fiber()
 {
     g_spareFibers = MAX_IDLE;
     g_tlsCurrent = exlib::Fiber::tlsAlloc();
 }
 
-void FiberBase::fiber_proc(void* p)
+void JSFiber::fiber_proc(void* p)
 {
     result_t hr = 0;
     Isolate* isolate = (Isolate*)p;
@@ -82,7 +84,7 @@ void FiberBase::fiber_proc(void* p)
     isolate->m_isolate->DiscardThreadSpecificMetadata();
 }
 
-void FiberBase::set_caller(Fiber_base* caller)
+void JSFiber::set_caller(Fiber_base* caller)
 {
     m_caller = caller;
 
@@ -102,7 +104,7 @@ void FiberBase::set_caller(Fiber_base* caller)
     }
 }
 
-void FiberBase::start()
+void JSFiber::start()
 {
     Isolate* isolate = holder();
 
@@ -114,7 +116,7 @@ void FiberBase::start()
     Ref();
 }
 
-result_t FiberBase::join()
+result_t JSFiber::join()
 {
     if (!m_quit.isSet()) {
         Isolate::rt _rt(holder());
@@ -124,17 +126,17 @@ result_t FiberBase::join()
     return 0;
 }
 
-result_t FiberBase::get_traceInfo(exlib::string& retVal)
+result_t JSFiber::get_stack(exlib::string& retVal)
 {
     if (JSFiber::current() == this)
-        retVal = traceInfo(300);
-    else
-        retVal = m_traceInfo;
+        retVal = traceInfo(holder()->m_isolate, 300);
+    else if (m_bindFiber)
+        retVal = traceInfo(holder()->m_isolate, 300, m_c_entry_fp_, m_handler_);
 
     return 0;
 }
 
-result_t FiberBase::get_caller(obj_ptr<Fiber_base>& retVal)
+result_t JSFiber::get_caller(obj_ptr<Fiber_base>& retVal)
 {
     if (m_caller == NULL)
         return CALL_RETURN_NULL;
@@ -182,6 +184,7 @@ JSFiber::scope::scope(JSFiber* fb)
     if (fb == NULL)
         m_pFiber = new JSFiber();
 
+    m_pFiber->m_bindFiber = exlib::Fiber::current();
     exlib::Fiber::tlsPut(g_tlsCurrent, m_pFiber);
     m_pFiber->holder()->m_fibers.putTail(m_pFiber);
 }

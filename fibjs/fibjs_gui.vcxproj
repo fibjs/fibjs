@@ -376,6 +376,7 @@
     <ClCompile Include="src\base\fibjs.cpp" />
     <ClCompile Include="src\base\fuck_sym.cpp" />
     <ClCompile Include="src\base\options.cpp" />
+    <ClCompile Include="src\base\traceInfo.cpp" />
     <ClCompile Include="src\base\utf8.cpp" />
     <ClCompile Include="src\base\utils.cpp" />
     <ClCompile Include="src\collection\List.cpp" />
