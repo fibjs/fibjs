@@ -181,7 +181,7 @@ describe("timer", () => {
             t1 = undefined;
 
             var t2 = setInterval(() => n2++, Math.pow(2, 31));
-            coroutine.sleep(10);
+            coroutine.sleep(100);
             clearInterval(t2);
             t2 = undefined;
 
