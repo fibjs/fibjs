@@ -4,6 +4,7 @@
 #include "encoding.h"
 #include "Int64.h"
 #include "utf8.h"
+#include "StringDecoder.h"
 #include <cstring>
 #include <string>
 
@@ -475,52 +476,150 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffe
     return 0;
 }
 
-result_t Buffer::indexOf(int32_t v, int32_t offset, int32_t& retVal)
+inline int32_t GetOffset(v8::Local<v8::Value>& offset)
+{
+    int32_t buf_offset = 0;
+    double num;
+    result_t hr = GetArgumentValue(offset, num, false);
+    if (hr < 0) {
+        buf_offset = 0;
+    } else if (num > 2147483647ll) {
+        buf_offset = 2147483647ll;
+    } else if (num < -2147483648ll) {
+        buf_offset = -2147483648ll;
+    } else {
+        buf_offset = (int32_t)num;
+    }
+    return buf_offset;
+}
+
+result_t Buffer::indexOf(int32_t value, v8::Local<v8::Value> offset,
+    exlib::string encoding, int32_t& retVal)
 {
     int32_t buf_length = (int32_t)m_data.length();
-    result_t hr = validOffset(buf_length, offset);
-    if (hr < 0)
-        return CHECK_ERROR(hr);
+    int32_t buf_offset = 0;
+    if (!offset->IsString() && !offset->IsStringObject()) {
+        buf_offset = GetOffset(offset);
+    }
+
+    if (buf_offset >= buf_length) {
+        retVal = -1;
+        return 0;
+    } else if (buf_offset < 0) {
+        buf_offset = buf_length + buf_offset;
+        if (buf_offset < 0) {
+            buf_offset = 0;
+        }
+    }
 
     const char* _data = m_data.c_str();
 
-    while (offset < buf_length) {
-        if (_data[offset] == (v & 255)) {
-            retVal = offset;
+    while (buf_offset < buf_length) {
+        if (_data[buf_offset] == (value & 255)) {
+            retVal = buf_offset;
             return 0;
         }
-        offset++;
+        buf_offset++;
     }
 
     retVal = -1;
     return 0;
 }
 
-result_t Buffer::indexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
+result_t Buffer::indexOf(Buffer_base* value, v8::Local<v8::Value> offset,
+    exlib::string encoding, int32_t& retVal)
 {
-    result_t hr = validOffset((int32_t)m_data.length(), offset);
-    if (hr < 0)
-        return CHECK_ERROR(hr);
+    int32_t buf_length = (int32_t)m_data.length();
+    int32_t buf_offset = 0;
 
-    obj_ptr<Buffer> v_data = dynamic_cast<Buffer*>(v);
+    if (!offset->IsString() && !offset->IsStringObject())
+        buf_offset = GetOffset(offset);
+    else
+        GetArgumentValue(offset, encoding);
+
+    encoding = normalizeEncoding(encoding);
+    bool isValid = false;
+    Buffer_base::isEncoding(encoding, isValid);
+    if (!isValid) {
+        return CHECK_ERROR(Runtime::setError("Unknown encoding: " + encoding));
+    }
+
+    if (encoding == "utf16le") {
+        int32_t len = 0;
+        value->get_length(len);
+        if (len < 2 || buf_length < 2) {
+            retVal = -1;
+            return 0;
+        }
+    }
+
+    obj_ptr<Buffer> v_data = dynamic_cast<Buffer*>(value);
     exlib::string vstr;
     v_data->toString(vstr);
 
-    const char* find = exlib::qmemfind(m_data.c_str() + offset, m_data.length() - offset,
+    if (vstr.length() == 0) {
+        retVal = buf_offset < buf_length ? buf_offset : buf_length;
+        return 0;
+    }
+
+    if (buf_offset >= buf_length) {
+        retVal = -1;
+        return 0;
+    } else if (buf_offset < 0) {
+        buf_offset = buf_length + buf_offset;
+        if (buf_offset < 0) {
+            buf_offset = 0;
+        }
+    }
+
+    const char* find = exlib::qmemfind(m_data.c_str() + buf_offset, m_data.length() - buf_offset,
         vstr.c_str(), vstr.length());
 
     retVal = find ? (int32_t)(find - m_data.c_str()) : -1;
     return 0;
 }
 
-result_t Buffer::indexOf(exlib::string v, int32_t offset, int32_t& retVal)
+result_t Buffer::indexOf(exlib::string value, v8::Local<v8::Value> offset,
+    exlib::string encoding, int32_t& retVal)
 {
-    result_t hr = validOffset((int32_t)m_data.length(), offset);
-    if (hr < 0)
-        return CHECK_ERROR(hr);
+    int32_t buf_length = (int32_t)m_data.length();
+    int32_t buf_offset = 0;
 
-    const char* find = exlib::qmemfind(m_data.c_str() + offset, m_data.length() - offset,
-        v.c_str(), v.length());
+    if (!offset->IsString() && !offset->IsStringObject())
+        buf_offset = GetOffset(offset);
+    else
+        GetArgumentValue(offset, encoding);
+
+    encoding = normalizeEncoding(encoding);
+    bool isValid = false;
+    Buffer_base::isEncoding(encoding, isValid);
+    if (!isValid) {
+        return CHECK_ERROR(Runtime::setError("Unknown encoding: " + encoding));
+    }
+
+    if (value.length() == 0) {
+        retVal = buf_offset < buf_length ? buf_offset : buf_length;
+        return 0;
+    } else if (encoding != "utf8") {
+        obj_ptr<Buffer> buf = new Buffer();
+        result_t hr = buf->append(value, encoding);
+        if (hr < 0)
+            return hr;
+        buf->toString(value);
+    }
+
+    if (buf_offset >= buf_length) {
+        retVal = -1;
+        return 0;
+    } else if (buf_offset < 0) {
+        buf_offset = buf_length + buf_offset;
+        if (buf_offset < 0) {
+            buf_offset = 0;
+        }
+    }
+
+    const char* find = exlib::qmemfind(m_data.c_str() + buf_offset, m_data.length() - buf_offset,
+        value.c_str(), value.length());
 
     retVal = find ? (int32_t)(find - m_data.c_str()) : -1;
     return 0;
@@ -1044,7 +1143,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& re
     if (offset < 0)
         offset = 0;
 
-    if (offset >= length){
+    if (offset >= length) {
         retVal = "";
         return 0;
     }
@@ -1052,7 +1151,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& re
     if (offset > 0) {
         str.append(m_data.c_str() + offset, length - offset);
         return commonEncode(codec, str, retVal);
-    }else{
+    } else {
         return commonEncode(codec, m_data, retVal);
     }
 }
@@ -1065,7 +1164,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exli
     if (offset < 0)
         offset = 0;
 
-    if (end < 0 || offset >= end){
+    if (end < 0 || offset >= end) {
         retVal = "";
         return 0;
     }

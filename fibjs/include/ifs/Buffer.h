@@ -57,9 +57,9 @@ public:
     virtual result_t fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t fill(exlib::string v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t indexOf(int32_t v, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t indexOf(exlib::string v, int32_t offset, int32_t& retVal) = 0;
+    virtual result_t indexOf(int32_t value, v8::Local<v8::Value> offset, exlib::string encoding, int32_t& retVal) = 0;
+    virtual result_t indexOf(Buffer_base* value, v8::Local<v8::Value> offset, exlib::string encoding, int32_t& retVal) = 0;
+    virtual result_t indexOf(exlib::string value, v8::Local<v8::Value> offset, exlib::string encoding, int32_t& retVal) = 0;
     virtual result_t compare(Buffer_base* buf, int32_t& retVal) = 0;
     virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal) = 0;
     virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t& retVal) = 0;
@@ -665,26 +665,29 @@ inline void Buffer_base::s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(3, 1);
 
     ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+    OPT_ARG(exlib::string, 2, "utf-8");
 
-    hr = pInst->indexOf(v0, v1, vr);
+    hr = pInst->indexOf(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(3, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+    OPT_ARG(exlib::string, 2, "utf-8");
 
-    hr = pInst->indexOf(v0, v1, vr);
+    hr = pInst->indexOf(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(3, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+    OPT_ARG(exlib::string, 2, "utf-8");
 
-    hr = pInst->indexOf(v0, v1, vr);
+    hr = pInst->indexOf(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }
