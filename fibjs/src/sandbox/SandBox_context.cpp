@@ -79,8 +79,12 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
         _mod->Get(NewString(isolate, "_sbox")));
 
+    exlib::string _path;
+    GetArgumentValue(path, _path);
+    path_base::dirname(_path, _path);
+
     v8::Local<v8::Value> v;
-    hr = sbox->run_module(id, *v8::String::Utf8Value(path), v);
+    hr = sbox->run_module(id, _path, v);
     if (hr < 0) {
         if (hr == CALL_E_JAVASCRIPT) {
             args.GetReturnValue().Set(v8::Local<v8::Value>());
