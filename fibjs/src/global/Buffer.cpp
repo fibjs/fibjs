@@ -75,6 +75,9 @@ result_t Buffer_base::_new(v8::Local<v8::ArrayBuffer> datas,
 result_t Buffer_base::_new(v8::Local<v8::TypedArray> datas,
     obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
 {
+    if (datas->IsUint8Array() || datas->IsInt8Array())
+        return _new(datas->Buffer(), retVal, This);
+
     obj_ptr<Buffer> buf;
     retVal = buf = new Buffer();
     return buf->_append(datas);
@@ -83,6 +86,9 @@ result_t Buffer_base::_new(v8::Local<v8::TypedArray> datas,
 result_t Buffer_base::_new(v8::Local<v8::ArrayBufferView> datas,
     obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
 {
+    if (datas->ByteOffset() == 0)
+        return _new(datas->Buffer(), retVal, This);
+
     exlib::string str;
     str.resize(datas->ByteLength());
     datas->CopyContents(str.c_buffer(), str.length());
@@ -1044,7 +1050,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& re
     if (offset < 0)
         offset = 0;
 
-    if (offset >= length){
+    if (offset >= length) {
         retVal = "";
         return 0;
     }
@@ -1052,7 +1058,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& re
     if (offset > 0) {
         str.append(m_data.c_str() + offset, length - offset);
         return commonEncode(codec, str, retVal);
-    }else{
+    } else {
         return commonEncode(codec, m_data, retVal);
     }
 }
@@ -1065,7 +1071,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exli
     if (offset < 0)
         offset = 0;
 
-    if (end < 0 || offset >= end){
+    if (end < 0 || offset >= end) {
         retVal = "";
         return 0;
     }

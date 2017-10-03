@@ -35,6 +35,15 @@ describe('Buffer', () => {
     });
 
     it('new Buffer(TypedArray)', () => {
+        var arr = new Uint8Array(2);
+        arr[0] = 50;
+        arr[1] = 40;
+
+        var buf = new Buffer(arr);
+
+        assert.equal(buf.length, 2);
+        assert.equal(buf.hex(), "3228");
+
         var arr = new Uint16Array(2);
         arr[0] = 5000;
         arr[1] = 4000;
@@ -162,14 +171,14 @@ describe('Buffer', () => {
                 );
                 assert.strictEqual(f.toString(encoding), 'привет');
             }
-// todo fix the half char write case
-//             {
-//                 const f = Buffer.from([0, 0, 0, 0, 0]);
-//                 assert.strictEqual(f.length, 5);
-//                 const size = f.write('あいうえお', encoding);
-//                 assert.strictEqual(size, 4);
-//                 assert.deepEqual(f, Buffer.from([0x42, 0x30, 0x44, 0x30, 0x00]));
-//             }
+            // todo fix the half char write case
+            //             {
+            //                 const f = Buffer.from([0, 0, 0, 0, 0]);
+            //                 assert.strictEqual(f.length, 5);
+            //                 const size = f.write('あいうえお', encoding);
+            //                 assert.strictEqual(size, 4);
+            //                 assert.deepEqual(f, Buffer.from([0x42, 0x30, 0x44, 0x30, 0x00]));
+            //             }
         });
     });
 
@@ -426,15 +435,15 @@ describe('Buffer', () => {
         const b = Buffer.allocUnsafe(1024);
         const utf8String = '¡hέlló wôrld!';
         const offset = 100;
-      
+
         b.write(utf8String, 0, Buffer.byteLength(utf8String), 'utf8');
         let utf8Slice = b.toString('utf8', 0, Buffer.byteLength(utf8String));
         assert.strictEqual(utf8String, utf8Slice);
-      
+
         assert.strictEqual(Buffer.byteLength(utf8String),
-                           b.write(utf8String, offset, 'utf8'));
+            b.write(utf8String, offset, 'utf8'));
         utf8Slice = b.toString('utf8', offset,
-                               offset + Buffer.byteLength(utf8String));
+            offset + Buffer.byteLength(utf8String));
         assert.strictEqual(utf8String, utf8Slice);
     });
 
@@ -541,7 +550,7 @@ describe('Buffer', () => {
         const sliceA = b.slice(offset, offset + Buffer.byteLength(utf8String));
         const sliceB = b.slice(offset, offset + Buffer.byteLength(utf8String));
         for (let i = 0; i < Buffer.byteLength(utf8String); i++) {
-          assert.strictEqual(sliceA[i], sliceB[i]);
+            assert.strictEqual(sliceA[i], sliceB[i]);
         }
     });
 
@@ -852,37 +861,37 @@ describe('Buffer', () => {
     });
 
     var fixtures = [{
-        "a": "ffff00",
-        "expected": "00ffff"
-    },
-    {
-        "a": "ffff",
-        "expected": "ffff"
-    },
-    {
-        "a": "0000",
-        "expected": "0000"
-    },
-    {
-        "a": "0000ff",
-        "expected": "ff0000"
-    },
-    {
-        "a": "000000",
-        "expected": "000000"
-    },
-    {
-        "a": "ffffff",
-        "expected": "ffffff"
-    },
-    {
-        "a": "00ffff00ff",
-        "expected": "ff00ffff00"
-    },
-    {
-        "a": "0000ff00ffff00ff",
-        "expected": "ff00ffff00ff0000"
-    }
+            "a": "ffff00",
+            "expected": "00ffff"
+        },
+        {
+            "a": "ffff",
+            "expected": "ffff"
+        },
+        {
+            "a": "0000",
+            "expected": "0000"
+        },
+        {
+            "a": "0000ff",
+            "expected": "ff0000"
+        },
+        {
+            "a": "000000",
+            "expected": "000000"
+        },
+        {
+            "a": "ffffff",
+            "expected": "ffffff"
+        },
+        {
+            "a": "00ffff00ff",
+            "expected": "ff00ffff00"
+        },
+        {
+            "a": "0000ff00ffff00ff",
+            "expected": "ff00ffff00ff0000"
+        }
     ];
 
     it('reverse', () => {
