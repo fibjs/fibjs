@@ -832,7 +832,12 @@ describe('Buffer', () => {
         const s = 'abcdef';
         // Search in string containing many non-ASCII chars.
         const allCodePoints = [];
-        for (let i = 0; i < 62000; i++) allCodePoints[i] = i;// 65536 todo , 62542
+        /**
+         * 65536 todo , 
+         * 62542 x64 limit
+         * 60394 darwin i386
+         */
+        for (let i = 0; i < 60394; i++) allCodePoints[i] = i;
         const allCharsString = String.fromCharCode.apply(String, allCodePoints);
 
         it('indexOf', () => {
