@@ -24,31 +24,15 @@ struct _from {
     { NULL }
 };
 
-inline result_t _jsonEncode(v8::Local<v8::Value> data,
-    exlib::string& retVal)
+inline result_t _jsonEncode(v8::Local<v8::Value> data, exlib::string& retVal)
 {
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Object> _json;
 
-    if (isolate->m_json.IsEmpty()) {
-        v8::Local<v8::Object> glob = isolate->context()->Global();
-        _json = glob->Get(isolate->NewString("JSON"))->ToObject();
-        isolate->m_json.Reset(isolate->m_isolate, _json);
+    v8::Local<v8::String> str = v8::JSON::Stringify(isolate->context(), data).ToLocalChecked();
+    if (str.IsEmpty())
+        return CALL_E_JAVASCRIPT;
 
-        isolate->m_stringify.Reset(isolate->m_isolate,
-            v8::Local<v8::Function>::Cast(_json->Get(isolate->NewString("stringify"))));
-    } else
-        _json = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_json);
-
-    TryCatch try_catch;
-    v8::Local<v8::Value> str = v8::Local<v8::Function>::New(isolate->m_isolate, isolate->m_stringify)->Call(_json, 1, &data);
-    if (try_catch.HasCaught())
-        return CHECK_ERROR(Runtime::setError(*v8::String::Utf8Value(try_catch.Exception())));
-
-    v8::String::Utf8Value v(str);
-    retVal.assign(*v, v.length());
-
-    return 0;
+    return GetArgumentValue(isolate->m_isolate, str, retVal);
 }
 
 result_t json_base::encode(v8::Local<v8::Value> data,
