@@ -259,11 +259,8 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
     v8::Local<v8::Value>& retVal)
 {
     if (is_relative(id)) {
-        exlib::string strPath;
-
-        path_base::dirname(base, strPath);
-        resolvePath(strPath, id);
-        path_base::normalize(strPath, id);
+        resolvePath(base, id);
+        path_base::normalize(base, id);
     } else {
         bool isAbs;
 

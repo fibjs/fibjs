@@ -35,30 +35,30 @@ describe("vm", () => {
         sbox.add('a', 100);
         sbox.add('coroutine', require('coroutine'));
 
-        sbox.require('./vm_test/t1', __filename).fun();
+        sbox.require('./vm_test/t1', __dirname).fun();
         assert.equal(1000, b.a);
     });
 
     it("addScript", () => {
         var a = sbox.addScript("t1.js", "module.exports = {a : 100};");
         assert.equal(100, a.a);
-        assert.equal(100, sbox.require("t1", __filename).a);
+        assert.equal(100, sbox.require("t1", __dirname).a);
 
         var b = sbox.addScript("t2.js", "module.exports = {a : require('t1').a};");
         assert.equal(100, b.a);
-        assert.equal(100, sbox.require("t2", __filename).a);
+        assert.equal(100, sbox.require("t2", __dirname).a);
     });
 
     it("compile & addScript", () => {
         var bin = util.compile("tc1.js", "module.exports = {a : 100};");
         var a = sbox.addScript("tc1.jsc", bin);
         assert.equal(100, a.a);
-        assert.equal(100, sbox.require("tc1", __filename).a);
+        assert.equal(100, sbox.require("tc1", __dirname).a);
 
         var bin1 = util.compile("tc2.js", "module.exports = {a : require('tc1').a};");
         var b = sbox.addScript("tc2.jsc", bin1);
         assert.equal(100, b.a);
-        assert.equal(100, sbox.require("tc2", __filename).a);
+        assert.equal(100, sbox.require("tc2", __dirname).a);
 
         var bin2 = util.compile("tc3.js", "module.exports = function(v) {return v;}");
         var b = sbox.addScript("tc3.jsc", bin2);
@@ -72,12 +72,12 @@ describe("vm", () => {
     it("require jsc", () => {
         var bin = util.compile("jsc_test.js", "module.exports = {a : 100};");
         fs.writeFile(path.join(__dirname, "vm_test", "jsc_test.jsc"), bin);
-        var a = sbox.require("./vm_test/jsc_test", __filename);
+        var a = sbox.require("./vm_test/jsc_test", __dirname);
         assert.equal(100, a.a);
     });
 
     it("require jsc arch test", () => {
-        var a = sbox.require("./vm_test/jsc_test_" + os.arch(), __filename);
+        var a = sbox.require("./vm_test/jsc_test_" + os.arch(), __dirname);
         assert.equal(100, a.a);
     });
 
@@ -106,10 +106,10 @@ describe("vm", () => {
                 return o;
         });
 
-        assert.equal(200, sbox.require("b", __filename));
-        assert.equal(100, sbox.require("c", __filename));
+        assert.equal(200, sbox.require("b", __dirname));
+        assert.equal(100, sbox.require("c", __dirname));
 
-        var o1 = sbox.require("o", __filename);
+        var o1 = sbox.require("o", __dirname);
         assert.equal(o, o1);
         // assert.deepEqual(o, o1);
     });
@@ -121,7 +121,7 @@ describe("vm", () => {
             b: b
         });
 
-        var b1 = sbox.require("b", __filename);
+        var b1 = sbox.require("b", __dirname);
         assert.equal(b, b1);
     });
 
@@ -135,7 +135,7 @@ describe("vm", () => {
             b: b
         });
 
-        var b1 = sbox.require("b", __filename);
+        var b1 = sbox.require("b", __dirname);
         assert.notEqual(b, b1);
         assert.deepEqual(b, b1);
     });
@@ -145,16 +145,16 @@ describe("vm", () => {
             a: 100,
             b: 200
         });
-        assert.equal(sbox.require("a", __filename), 100);
+        assert.equal(sbox.require("a", __dirname), 100);
 
         var sb1 = sbox.clone();
-        assert.equal(sb1.require("a", __filename), 100);
+        assert.equal(sb1.require("a", __dirname), 100);
 
         sb1.add("c", 300);
-        assert.equal(sb1.require("c", __filename), 300);
+        assert.equal(sb1.require("c", __dirname), 300);
 
         assert.throws(() => {
-            sbox.require("c", __filename);
+            sbox.require("c", __dirname);
         });
     });
 
@@ -182,7 +182,7 @@ describe("vm", () => {
             func: _t
         });
 
-        sbox1.require('./vm_test/hack_global', __filename);
+        sbox1.require('./vm_test/hack_global', __dirname);
         sbox1.run(path.join(__dirname, 'vm_test', 'hack_global_1'));
         var a = sbox1.addScript("t1.js", "global.var2 = 200;module.exports={var1:var1,var2:var2,var3:var3,var4:var4};");
 
