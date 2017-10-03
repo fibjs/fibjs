@@ -58,8 +58,8 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
         bool bChanged = false;
         exlib::string member1 = member;
         {
-            int32_t sz = (int32_t)member.length();
-            const char* buf = member.c_str();
+            int32_t sz = (int32_t)member1.length();
+            const char* buf = member1.c_str();
             for (int32_t i = 0; i < sz; i++)
                 if (buf[i] == PATH_SLASH) {
                     member[i] = '/';
