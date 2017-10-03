@@ -42,12 +42,12 @@ public:
 
     virtual void* AllocateUninitialized(size_t length)
     {
-        return malloc(length);
+        return exlib::string::Buffer::New(length)->data();
     }
 
     virtual void Free(void* data, size_t)
     {
-        free(data);
+        exlib::string::Buffer::fromData((char*)data)->unref();
     }
 };
 
