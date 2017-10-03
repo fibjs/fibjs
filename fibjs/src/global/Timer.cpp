@@ -18,8 +18,12 @@ namespace fibjs {
 
 class JSTimer : public Timer {
 public:
-    JSTimer(v8::Local<v8::Function> callback, OptArgs& args, int32_t timeout = 0, bool repeat = false)
+    JSTimer(v8::Local<v8::Function> callback, OptArgs& args, int32_t timeout = 0,
+        bool repeat = false, bool hr = false)
         : Timer(timeout, repeat)
+        , m_hr(hr)
+        , m_pendding(0)
+        , m_counter(0)
         , m_clear_pendding(false)
     {
         Isolate* isolate = holder();
@@ -31,19 +35,45 @@ public:
 
         isolate->m_pendding.inc();
         m_callback.Reset(isolate->m_isolate, callback);
+
+        if (m_hr) {
+            v8::Local<v8::Script> script = v8::Script::Compile(
+                isolate->NewString("(function(){})"), isolate->NewString(""));
+            m_worker.Reset(isolate->m_isolate, v8::Local<v8::Function>::Cast(script->Run()));
+        }
     }
 
 public:
     virtual void resume()
     {
-        syncCall(holder(), _callback, this);
+        Isolate* isolate = holder();
+
+        if (m_hr) {
+            m_pendding++;
+            holder()->m_isolate->RequestInterrupt(_InterruptCallback, this);
+
+            if (m_has_worker.CompareAndSwap(0, 1) == 0) {
+                Ref();
+                syncCall(isolate, js_worker, this);
+            }
+        } else
+            syncCall(isolate, _callback, this);
+    }
+
+    static void _InterruptCallback(v8::Isolate* isolate, void* data)
+    {
+        JSTimer* pThis = (JSTimer*)data;
+
+        if (pThis->m_counter < pThis->m_pendding) {
+            pThis->m_counter = pThis->m_pendding;
+            _callback(pThis);
+        }
     }
 
 public:
-    virtual void on_timer()
+    void do_timer_in_fiber()
     {
         Isolate* isolate = holder();
-        JSFiber::scope s;
         v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(isolate->m_isolate, m_callback);
         std::vector<v8::Local<v8::Value>> argv;
 
@@ -55,6 +85,16 @@ public:
         callback->Call(wrap(), (int32_t)argv.size(), argv.data());
     }
 
+    virtual void on_timer()
+    {
+        if (m_hr)
+            do_timer_in_fiber();
+        else {
+            JSFiber::scope s;
+            do_timer_in_fiber();
+        }
+    }
+
     virtual void on_clean()
     {
         m_callback.Reset();
@@ -64,15 +104,41 @@ public:
         }
     }
 
+    static result_t js_worker(JSTimer* pThis)
+    {
+        if (pThis->m_counter < pThis->m_pendding) {
+            JSFiber::scope s;
+            Isolate* isolate = pThis->holder();
+            v8::Local<v8::Function> worker = v8::Local<v8::Function>::New(isolate->m_isolate, pThis->m_worker);
+
+            pThis->m_has_worker = 0;
+            isolate->m_isolate->RequestInterrupt(_InterruptCallback, pThis);
+            worker->Call(worker, 0, NULL);
+        }
+        pThis->Unref();
+
+        return 0;
+    }
+
 private:
+    bool m_hr;
+    exlib::atomic m_has_worker;
+    uint64_t m_pendding;
+    uint64_t m_counter;
     bool m_clear_pendding;
     QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Function> m_callback;
+    v8::Global<v8::Function> m_worker;
 };
 
 DECLARE_MODULE(timers);
 
 result_t timers_base::clearInterval(Timer_base* t)
+{
+    return t->clear();
+}
+
+result_t timers_base::clearHrInterval(Timer_base* t)
 {
     return t->clear();
 }
@@ -93,7 +159,20 @@ result_t timers_base::setInterval(v8::Local<v8::Function> callback,
     if (timeout < 1 || timeout > TIMEOUT_MAX)
         timeout = 1;
 
-    obj_ptr<Timer> timer = new JSTimer(callback, args, (int32_t)timeout, true);
+    obj_ptr<JSTimer> timer = new JSTimer(callback, args, (int32_t)timeout, true);
+    timer->sleep();
+    retVal = timer;
+
+    return 0;
+}
+
+result_t timers_base::setHrInterval(v8::Local<v8::Function> callback,
+    double timeout, OptArgs args, obj_ptr<Timer_base>& retVal)
+{
+    if (timeout < 1 || timeout > TIMEOUT_MAX)
+        timeout = 1;
+
+    obj_ptr<JSTimer> timer = new JSTimer(callback, args, (int32_t)timeout, true, true);
     timer->sleep();
     retVal = timer;
 
@@ -106,17 +185,17 @@ result_t timers_base::setTimeout(v8::Local<v8::Function> callback,
     if (timeout < 1 || timeout > TIMEOUT_MAX)
         timeout = 1;
 
-    obj_ptr<Timer> timer = new JSTimer(callback, args, (int32_t)timeout);
+    obj_ptr<JSTimer> timer = new JSTimer(callback, args, (int32_t)timeout);
     timer->sleep();
     retVal = timer;
 
     return 0;
 }
 
-result_t timers_base::setImmediate(v8::Local<v8::Function> callback, 
+result_t timers_base::setImmediate(v8::Local<v8::Function> callback,
     OptArgs args, obj_ptr<Timer_base>& retVal)
 {
-    obj_ptr<Timer> timer = new JSTimer(callback, args);
+    obj_ptr<JSTimer> timer = new JSTimer(callback, args);
     timer->sleep();
     retVal = timer;
 
@@ -126,6 +205,11 @@ result_t timers_base::setImmediate(v8::Local<v8::Function> callback,
 result_t global_base::clearInterval(Timer_base* t)
 {
     return timers_base::clearInterval(t);
+}
+
+result_t global_base::clearHrInterval(Timer_base* t)
+{
+    return timers_base::clearHrInterval(t);
 }
 
 result_t global_base::clearTimeout(Timer_base* t)
@@ -138,10 +222,16 @@ result_t global_base::clearImmediate(Timer_base* t)
     return timers_base::clearImmediate(t);
 }
 
-result_t global_base::setInterval(v8::Local<v8::Function> callback, 
+result_t global_base::setInterval(v8::Local<v8::Function> callback,
     double timeout, OptArgs args, obj_ptr<Timer_base>& retVal)
 {
     return timers_base::setInterval(callback, timeout, args, retVal);
+}
+
+result_t global_base::setHrInterval(v8::Local<v8::Function> callback,
+    double timeout, OptArgs args, obj_ptr<Timer_base>& retVal)
+{
+    return timers_base::setHrInterval(callback, timeout, args, retVal);
 }
 
 result_t global_base::setTimeout(v8::Local<v8::Function> callback,

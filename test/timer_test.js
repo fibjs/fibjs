@@ -228,12 +228,12 @@ describe("timer", () => {
             GC();
             var no1 = test_util.countObject('Timer');
 
-            setInterval(function() {
+            setInterval(function () {
                 n++;
                 clearInterval(this);
             }, 1);
 
-            setInterval(function() {
+            setInterval(function () {
                 n++;
                 clearInterval(this);
             }, Math.pow(2, 31));
@@ -268,6 +268,120 @@ describe("timer", () => {
 
         it("timers.clearInterval", () => {
             test(timers.setInterval, timers.clearInterval);
+        });
+    });
+
+    function deadLoop(ms) {
+        var tm = new Date().getTime() + ms;
+        while (new Date().getTime() < tm);
+    }
+
+    describe("setHrInterval/clearHrInterval", () => {
+        function test(setHrInterval, clearHrInterval) {
+            var n1 = 0;
+            var n2 = 0;
+            var n3 = 0;
+
+            GC();
+            var no1 = test_util.countObject('Timer');
+
+            var t1 = setHrInterval(() => n1++, 50);
+            deadLoop(10);
+            clearHrInterval(t1);
+            t1 = undefined;
+
+            var t2 = setHrInterval(() => n2++, Math.pow(2, 31));
+            deadLoop(100);
+            clearHrInterval(t2);
+            t2 = undefined;
+
+            var t3 = setHrInterval(() => n3++, Math.pow(2, 31) - 1);
+
+            assert.equal(n1, 0);
+            assert.greaterThan(n2, 0);
+            assert.equal(n3, 0);
+            deadLoop(100);
+            assert.equal(n1, 0);
+            assert.greaterThan(n2, 0);
+            assert.equal(n3, 0);
+
+            coroutine.sleep(10);
+            GC();
+            var no2 = test_util.countObject('Timer');
+            assert.equal(no1 + 1, no2);
+
+            clearHrInterval(t3);
+            t3 = undefined;
+            deadLoop(100);
+
+            coroutine.sleep(10);
+            GC();
+            var no3 = test_util.countObject('Timer');
+            assert.equal(no2 - 1, no3);
+        }
+
+        it("global setHrInterval/global clearHrInterval", () => {
+            test(setHrInterval, clearHrInterval);
+        });
+
+        it("global.setHrInterval/global.clearHrInterval", () => {
+            test(global.setHrInterval, global.clearHrInterval);
+        });
+
+        it("timers.setHrInterval/timers.clearHrInterval", () => {
+            test(timers.setHrInterval, timers.clearHrInterval);
+        });
+    });
+
+    describe("clearHrInterval in callback", () => {
+        function test(setHrInterval, clearHrInterval) {
+            var n = 0;
+
+            GC();
+            var no1 = test_util.countObject('Timer');
+
+            setHrInterval(function () {
+                n++;
+                clearHrInterval(this);
+            }, 1);
+
+            setHrInterval(function () {
+                n++;
+                clearHrInterval(this);
+            }, Math.pow(2, 31));
+
+            var t = setHrInterval(() => n++, Math.pow(2, 31) - 1);
+
+            assert.equal(n, 0);
+            deadLoop(100);
+            assert.equal(n, 2);
+
+            coroutine.sleep(10);
+            GC();
+            var no2 = test_util.countObject('Timer');
+            assert.equal(no1 + 1, no2);
+
+            clearHrInterval(t);
+            t = undefined;
+
+            deadLoop(100);
+
+            coroutine.sleep(10);
+            GC();
+            var no3 = test_util.countObject('Timer');
+            assert.equal(no2 - 1, no3);
+        }
+
+        it("global clearHrInterval", () => {
+            test(setHrInterval, clearHrInterval);
+        });
+
+        it("global.clearHrInterval", () => {
+            test(global.setHrInterval, global.clearHrInterval);
+        });
+
+        it("timers.clearHrInterval", () => {
+            test(timers.setHrInterval, timers.clearHrInterval);
         });
     });
 });
