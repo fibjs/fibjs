@@ -42,11 +42,19 @@ describe("console", () => {
             levels: [console.DEBUG, console.ERROR]
         });
 
-        assert.throws(() => {
-            console.add({
-                type: "console",
-                levels: [console.DEBUG, "other"]
-            });
+        console.add({
+            type: "console",
+            levels: [console.DEBUG, {}]
+        });
+
+        console.add({
+            type: "console",
+            levels: [console.DEBUG, NaN]
+        });
+
+        console.add({
+            type: "console",
+            levels: [console.DEBUG, '1']
         });
 
         assert.throws(() => {
