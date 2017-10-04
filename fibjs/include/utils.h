@@ -571,13 +571,10 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, double& n, bool bStrict
             return CALL_E_TYPEMISMATCH;
 
         v = v->ToNumber();
-        if (v.IsEmpty())
-            return CALL_E_TYPEMISMATCH;
     }
 
     n = v->NumberValue();
-    if (isnan(n))
-        return CALL_E_TYPEMISMATCH;
+    if (isnan(n)) n = 0;
 
     return 0;
 }
