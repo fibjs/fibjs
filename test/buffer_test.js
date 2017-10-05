@@ -818,7 +818,6 @@ describe('Buffer', () => {
         assert.doesNotThrow(() => {
             buf.resize("12")
         });
-<<<<<<< HEAD
         assert.doesNotThrow(() => {
             buf.resize("a12")
         });
@@ -829,21 +828,10 @@ describe('Buffer', () => {
 
         assert.doesNotThrow(() => {
             buf.resize("12.a")
-=======
-        // assert.throws(() => {
-        //     buf.resize("a12")
-        // });
-
-        // assert.throws(() => {
-        //     buf.resize("12a")
-        // });
-
-        // assert.throws(() => {
-        //     buf.resize("12.a")
-        // });
+        });
     });
 
-    odescribe('indexOf', () => {
+    describe('indexOf', () => {
         const b = Buffer.from('abcdef');
         const buf_a = Buffer.from('a');
         const buf_bc = Buffer.from('bc');
@@ -930,7 +918,6 @@ describe('Buffer', () => {
             assert.strictEqual(b.indexOf(buf_empty, 1), 1);
             assert.strictEqual(b.indexOf(buf_empty, b.length + 1), b.length);
             assert.strictEqual(b.indexOf(buf_empty, Infinity), b.length);
->>>>>>> indexOf
         });
 
         it('Number', () => {
@@ -1288,37 +1275,37 @@ describe('Buffer', () => {
     });
 
     var fixtures = [{
-            "a": "ffff00",
-            "expected": "00ffff"
-        },
-        {
-            "a": "ffff",
-            "expected": "ffff"
-        },
-        {
-            "a": "0000",
-            "expected": "0000"
-        },
-        {
-            "a": "0000ff",
-            "expected": "ff0000"
-        },
-        {
-            "a": "000000",
-            "expected": "000000"
-        },
-        {
-            "a": "ffffff",
-            "expected": "ffffff"
-        },
-        {
-            "a": "00ffff00ff",
-            "expected": "ff00ffff00"
-        },
-        {
-            "a": "0000ff00ffff00ff",
-            "expected": "ff00ffff00ff0000"
-        }
+        "a": "ffff00",
+        "expected": "00ffff"
+    },
+    {
+        "a": "ffff",
+        "expected": "ffff"
+    },
+    {
+        "a": "0000",
+        "expected": "0000"
+    },
+    {
+        "a": "0000ff",
+        "expected": "ff0000"
+    },
+    {
+        "a": "000000",
+        "expected": "000000"
+    },
+    {
+        "a": "ffffff",
+        "expected": "ffffff"
+    },
+    {
+        "a": "00ffff00ff",
+        "expected": "ff00ffff00"
+    },
+    {
+        "a": "0000ff00ffff00ff",
+        "expected": "ff00ffff00ff0000"
+    }
     ];
 
     it('reverse', () => {
