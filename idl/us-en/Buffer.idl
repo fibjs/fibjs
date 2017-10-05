@@ -187,6 +187,30 @@ interface Buffer : object
      */
     fill(String v, Integer offset = 0, Integer end = -1);
 
+    /*! @brief The index of the first occurrence of value in buf.
+     @param value What to search for.
+     @param offset  Where to begin searching in buf. Default: 0.
+     @param encoding If value is a string, this is its encoding. Default: 'utf8'.
+     @return The index of the first occurrence of value in buf or -1 if buf does not contain value.
+     */
+    Integer indexOf(Integer value, Value offset = undefined, String encoding = "utf-8");
+    
+    /*! @brief The index of the first occurrence of value in buf.
+     @param value What to search for.
+     @param offset  Where to begin searching in buf. Default: 0.
+     @param encoding If value is a string, this is its encoding. Default: 'utf8'.
+     @return The index of the first occurrence of value in buf or -1 if buf does not contain value.
+     */
+    Integer indexOf(Buffer value, Value offset = undefined, String encoding = "utf-8");
+
+    /*! @brief The index of the first occurrence of value in buf.
+     @param value What to search for.
+     @param offset  Where to begin searching in buf. Default: 0.
+     @param encoding If value is a string, this is its encoding. Default: 'utf8'.
+     @return The index of the first occurrence of value in buf or -1 if buf does not contain value.
+     */
+    Integer indexOf(String value, Value offset = undefined, String encoding = "utf-8");
+
     /*! @brief Whether this and otherBuffer have the same bytes.
      @param buf otherBuffer
      @return Returns a boolean of whether this and otherBuffer have the same bytes.

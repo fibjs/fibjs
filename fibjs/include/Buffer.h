@@ -54,9 +54,11 @@ public:
     virtual result_t fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal);
     virtual result_t fill(exlib::string v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal);
     virtual result_t fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal);
-    virtual result_t indexOf(int32_t v, int32_t offset, int32_t& retVal);
-    virtual result_t indexOf(exlib::string v, int32_t offset, int32_t& retVal);
-    virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal);
+    virtual result_t indexOf(int32_t value, double offset, int32_t& retVal);
+    virtual result_t indexOf(Buffer_base* value, double offset, exlib::string encoding, int32_t& retVal);
+    virtual result_t indexOf(Buffer_base* value, exlib::string encoding, int32_t& retVal);
+    virtual result_t indexOf(exlib::string value, double offset, exlib::string encoding, int32_t& retVal);
+    virtual result_t indexOf(exlib::string value, exlib::string encoding, int32_t& retVal);
     virtual result_t compare(Buffer_base* buf, int32_t& retVal);
     virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal);
     virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t& retVal);
