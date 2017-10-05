@@ -818,15 +818,15 @@ describe('Buffer', () => {
         assert.doesNotThrow(() => {
             buf.resize("12")
         });
-        assert.throws(() => {
+        assert.doesNotThrow(() => {
             buf.resize("a12")
         });
 
-        assert.throws(() => {
+        assert.doesNotThrow(() => {
             buf.resize("12a")
         });
 
-        assert.throws(() => {
+        assert.doesNotThrow(() => {
             buf.resize("12.a")
         });
     });

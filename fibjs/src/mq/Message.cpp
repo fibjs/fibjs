@@ -122,8 +122,7 @@ result_t Message::write(Buffer_base* data, AsyncEvent* ac)
 
 result_t Message::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
 {
-    if (m_body == NULL)
-        m_body = new MemoryStream();
+    m_body = new MemoryStream();
 
     exlib::string str;
     result_t hr = json_base::encode(data, str);

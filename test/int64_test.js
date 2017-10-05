@@ -17,12 +17,6 @@ describe('Int64', () => {
         assert.equal(k.toString(16), '0xfedcba9876543210');
     });
 
-    it('can not be constructed from object', () => {
-        assert.throws(() => {
-            var x = new Int64({});
-        });
-    });
-
     it('can be compared', () => {
         var a = new Int64(2),
             b = new Int64(3);
