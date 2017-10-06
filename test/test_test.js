@@ -243,6 +243,16 @@ describe("test", () => {
                 assert.isTrue(global.jsc_before);
             });
         });
+
+        describe("async callback in jsc", () => {
+            var sbox = new vm.SandBox({});
+            var bin = util.compile("tc1.js", "before((done) => {global.jsc_before1 = true;done();});");
+            var b = sbox.addScript("t1.jsc", bin);
+
+            it('check jsc result', () => {
+                assert.isTrue(global.jsc_before1);
+            });
+        });
     });
 });
 
