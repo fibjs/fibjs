@@ -357,39 +357,13 @@ private:
     bool m_error;
 };
 
-inline bool checkCallback(const char* src)
-{
-    _parser p(src);
-    exlib::string s;
-
-    p.skipSpace();
-    p.getWord(s, '(', '=', '.');
-    if (!s.empty()) {
-        if (s != "function")
-            return true;
-
-        p.skipSpace();
-        p.getWord(s, '(');
-        p.skipSpace();
-    }
-
-    p.skipSpace();
-    if (p.getChar() != '(')
-        return false;
-
-    p.skipSpace();
-    p.getWord(s, ')', ',');
-    return !s.empty();
-}
-
 inline v8::Local<v8::Function> wrapFunction(v8::Local<v8::Function> func)
 {
     if (func->IsAsyncFunction())
         util_base::sync(func, true, func);
     {
-        v8::Local<v8::String> src = func->ToString();
-        v8::String::Utf8Value tmp(src);
-        if (checkCallback(*tmp))
+        Isolate* isolate = Isolate::current();
+        if (func->Get(isolate->NewString("length"))->Int32Value() > 0)
             util_base::sync(func, false, func);
     }
 
