@@ -1322,6 +1322,9 @@ describe("http", () => {
                 } else if (r.address == "/agent") {
                     if (r.allHeader("user-agent").length == 1)
                         r.response.body.write(r.firstHeader("user-agent"));
+                } else if (r.address == "/request_query:") {
+                    r.response.body.write(r.address);
+                    r.response.body.write(r.query.test_field);
                 } else if (r.address == "/request_url:") {
                     r.response.body.write(r.address);
                     r.response.body.write(r.form.test_field);
@@ -1364,6 +1367,15 @@ describe("http", () => {
                 assert.throws(() => {
                     http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect1")
                 });
+            });
+
+            it("urlencode", () => {
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request_query:", {
+                        query: {
+                            test_field: "field"
+                        }
+                    }).body.read().toString(),
+                    "/request_query:field");
             });
 
             it("body", () => {

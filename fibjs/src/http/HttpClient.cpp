@@ -510,19 +510,30 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 {
     if (ac->isSync()) {
         Isolate* isolate = holder();
-
-        ac->m_ctx.resize(2);
-
         obj_ptr<Map_base> map = new Map();
-        ac->m_ctx[0] = map;
-
+        obj_ptr<SeekableStream_base> stm;
         v8::Local<v8::Object> o;
-        result_t hr = GetArgumentValue(opts->Get(isolate->NewString("headers", 7)), o);
+        v8::Local<v8::Value> v;
+        result_t hr;
+
+        ac->m_ctx.resize(3);
+
+        hr = GetArgumentValue(opts->Get(isolate->NewString("query", 5)), o);
+        if (hr >= 0) {
+            exlib::string s;
+            hr = querystring_base::stringify(o, "&", "=", v8::Local<v8::Object>(), s);
+            if (hr < 0)
+                return hr;
+            ac->m_ctx[0] = s;
+        } else
+            ac->m_ctx[0] = "";
+
+        ac->m_ctx[1] = map;
+
+        o.Clear();
+        hr = GetArgumentValue(opts->Get(isolate->NewString("headers", 7)), o);
         if (hr >= 0)
             map->put(o);
-
-        obj_ptr<SeekableStream_base> stm;
-        v8::Local<v8::Value> v;
 
         v = opts->Get(isolate->NewString("body", 4));
         if (!v->IsUndefined()) {
@@ -567,13 +578,18 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                 map->put("Content-Type", "application/json");
             }
         }
-        ac->m_ctx[1] = stm;
+        ac->m_ctx[2] = stm;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    obj_ptr<Map_base> map = Map_base::getInstance(ac->m_ctx[0].object());
-    obj_ptr<SeekableStream_base> stm = SeekableStream_base::getInstance(ac->m_ctx[1].object());
+    exlib::string query = ac->m_ctx[0].string();
+    obj_ptr<Map_base> map = Map_base::getInstance(ac->m_ctx[1].object());
+    obj_ptr<SeekableStream_base> stm = SeekableStream_base::getInstance(ac->m_ctx[2].object());
+
+    if (!query.empty())
+        url = url + '?' + query;
+
     return request(method, url, stm, map, retVal, ac);
 }
 
