@@ -407,7 +407,7 @@ function parser_comment(comment) {
 module.exports = function (baseFolder) {
   var defs = {};
 
-  fs.readdir(baseFolder).forEach(f => {
+  fs.readdir(baseFolder).sort().forEach(f => {
     if (path.extname(f) == '.idl') {
       f = path.join(baseFolder, f);
       var def = parser.parse(fs.readTextFile(f));
