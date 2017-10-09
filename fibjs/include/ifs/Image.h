@@ -89,7 +89,7 @@ public:
     virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, AsyncEvent* ac) = 0;
     virtual result_t copyRotated(Image_base* source, double dstX, double dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, double angle, AsyncEvent* ac) = 0;
     virtual result_t filter(int32_t filterType, double arg1, double arg2, double arg3, double arg4, AsyncEvent* ac) = 0;
-    virtual result_t affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_t width, int32_t height, obj_ptr<Image_base>& retVal) = 0;
+    virtual result_t affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_t width, int32_t height, obj_ptr<Image_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t gaussianBlur(int32_t radius, AsyncEvent* ac) = 0;
 
 public:
@@ -179,6 +179,7 @@ public:
     ASYNC_MEMBER9(Image_base, copyResampled, Image_base*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
     ASYNC_MEMBER8(Image_base, copyRotated, Image_base*, double, double, int32_t, int32_t, int32_t, int32_t, double);
     ASYNC_MEMBER5(Image_base, filter, int32_t, double, double, double, double);
+    ASYNC_MEMBERVALUE6(Image_base, affine, v8::Local<v8::Array>, int32_t, int32_t, int32_t, int32_t, obj_ptr<Image_base>);
     ASYNC_MEMBER1(Image_base, gaussianBlur, int32_t);
 };
 }
@@ -251,6 +252,7 @@ inline ClassInfo& Image_base::class_info()
         { "filter", s_filter, false },
         { "filterSync", s_filter, false },
         { "affine", s_affine, false },
+        { "affineSync", s_affine, false },
         { "gaussianBlur", s_gaussianBlur, false },
         { "gaussianBlurSync", s_gaussianBlur, false }
     };
@@ -1297,7 +1299,7 @@ inline void Image_base::s_affine(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
-    METHOD_OVER(5, 1);
+    ASYNC_METHOD_OVER(5, 1);
 
     ARG(v8::Local<v8::Array>, 0);
     OPT_ARG(int32_t, 1, -1);
@@ -1305,7 +1307,11 @@ inline void Image_base::s_affine(const v8::FunctionCallbackInfo<v8::Value>& args
     OPT_ARG(int32_t, 3, -1);
     OPT_ARG(int32_t, 4, -1);
 
-    hr = pInst->affine(v0, v1, v2, v3, v4, vr);
+    if (!cb.IsEmpty()) {
+        pInst->acb_affine(v0, v1, v2, v3, v4, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_affine(v0, v1, v2, v3, v4, vr);
 
     METHOD_RETURN();
 }

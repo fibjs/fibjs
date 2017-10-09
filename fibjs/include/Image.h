@@ -94,7 +94,7 @@ public:
     virtual result_t copyResampled(Image_base* source, int32_t dstX, int32_t dstY, int32_t srcX, int32_t srcY, int32_t dstW, int32_t dstH, int32_t srcW, int32_t srcH, AsyncEvent* ac);
     virtual result_t copyRotated(Image_base* source, double dstX, double dstY, int32_t srcX, int32_t srcY, int32_t width, int32_t height, double angle, AsyncEvent* ac);
     virtual result_t filter(int32_t filterType, double arg1, double arg2, double arg3, double arg4, AsyncEvent* ac);
-    virtual result_t affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_t width, int32_t height, obj_ptr<Image_base>& retVal);
+    virtual result_t affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_t width, int32_t height, obj_ptr<Image_base>& retVal, AsyncEvent* ac);
     virtual result_t gaussianBlur(int32_t radius, AsyncEvent* ac);
 
 public:

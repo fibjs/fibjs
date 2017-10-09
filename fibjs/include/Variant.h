@@ -370,6 +370,13 @@ public:
         return m_Val.boolVal;
     }
 
+    double dblVal() const
+    {
+        if (type() != VT_Number)
+            return 0;
+        return m_Val.dblVal;
+    }
+
     void parseNumber(const char* str, int32_t len = -1);
     void parseDate(const char* str, int32_t len = -1)
     {

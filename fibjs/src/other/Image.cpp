@@ -1534,15 +1534,27 @@ result_t Image::filter(int32_t filterType, double arg1, double arg2, double arg3
 }
 
 result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_t width, int32_t height,
-    obj_ptr<Image_base>& retVal)
+    obj_ptr<Image_base>& retVal, AsyncEvent* ac)
 {
     if (!m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
+    if (affine->Length() != 6)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (ac->isSync()) {
+        ac->m_ctx.resize(6);
+
+        for (int32_t i = 0; i < 6; i++)
+            ac->m_ctx[i] = affine->Get(i)->NumberValue();
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
     if (x == -1 && y == -1 && width == -1 && height == -1) {
         width = gdImageSX(m_image);
         height = gdImageSY(m_image);
-    } else if (x < 0 || y < 0 || width < 0 || height < 0 || affine->Length() != 6)
+    } else if (x < 0 || y < 0 || width < 0 || height < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<Image> dst = new Image();
@@ -1555,7 +1567,7 @@ result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_
 
     double affineMatrix[6];
     for (int32_t i = 0; i <= 5; i++)
-        affineMatrix[i] = affine->Get(i)->NumberValue();
+        affineMatrix[i] = ac->m_ctx[i].dblVal();
 
     gdTransformAffineGetImage(&dst->m_image, m_image, &rect, affineMatrix);
     dst->setExtMemory();

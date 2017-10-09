@@ -476,7 +476,7 @@ interface Image : object
      @param height 可选剪切区域的的高度
      @return 返回仿射后的图像
      */
-    Image affine(Array affine, Integer x = -1, Integer y = -1, Integer width = -1, Integer height = -1);
+    Image affine(Array affine, Integer x = -1, Integer y = -1, Integer width = -1, Integer height = -1) async;
 
     /*! @brief 对当前图像进行高斯模糊处理
      @param radius 模糊半径
