@@ -111,10 +111,10 @@ public:
             Isolate* isolate = pThis->holder();
             v8::Local<v8::Function> worker = v8::Local<v8::Function>::New(isolate->m_isolate, pThis->m_worker);
 
-            pThis->m_has_worker = 0;
             isolate->m_isolate->RequestInterrupt(_InterruptCallback, pThis);
             worker->Call(worker, 0, NULL);
         }
+        pThis->m_has_worker = 0;
         pThis->Unref();
 
         return 0;
