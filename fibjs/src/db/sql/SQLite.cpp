@@ -11,6 +11,7 @@
 #include "DBResult.h"
 #include "Buffer.h"
 #include "trans.h"
+#include "ifs/coroutine.h"
 
 namespace fibjs {
 
@@ -132,7 +133,7 @@ int32_t sqlite3_step_sleep(sqlite3_stmt* stmt, int32_t ms)
         if ((r != SQLITE_LOCKED && r != SQLITE_BUSY) || ms <= 0)
             return r;
 
-        sqlite3_sleep(1);
+        coroutine_base::cc_sleep(1);
         ms--;
     }
 }
@@ -145,7 +146,7 @@ int32_t sqlite3_prepare_sleep(sqlite3* db, const char* zSql, int nByte,
         if ((r != SQLITE_LOCKED && r != SQLITE_BUSY) || ms <= 0)
             return r;
 
-        sqlite3_sleep(1);
+        coroutine_base::cc_sleep(1);
         ms--;
     }
 }
@@ -355,7 +356,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
         do {
             rc = sqlite3_backup_step(pBackup, 5);
             if (rc == SQLITE_LOCKED)
-                sqlite3_sleep(1);
+                coroutine_base::cc_sleep(1);
         } while (rc == SQLITE_OK || rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
 
         sqlite3_backup_finish(pBackup);
