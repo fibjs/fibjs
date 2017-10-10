@@ -30,16 +30,29 @@ matrix:
     - os: linux
       env:
         - ARCH=mips64
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      rvm install ruby-2.4.0;
+      rvm --default use 2.4.0;
+      ruby -v;
+      brew update;
+    fi
 install:
   - git submodule init
   - git submodule update
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull fibjs/build-env:latest; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install xz; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      docker pull fibjs/build-env:latest;
+    fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install xz;
+    fi
 script:
   - echo "${ARCH}"
   - ./.travis/build.sh
   - ./.travis/test.sh
-  - if [[ "$TRAVIS_TAG" != "" ]]; then ./.travis/release.sh; fi
+  - if [[ "$TRAVIS_TAG" != "" ]]; then 
+      ./.travis/release.sh; 
+    fi
 deploy:
   - provider: releases
     api_key:
