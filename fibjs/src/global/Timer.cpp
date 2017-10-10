@@ -38,7 +38,7 @@ public:
 
         if (m_hr) {
             v8::Local<v8::Script> script = v8::Script::Compile(
-                isolate->NewString("(function(){})"), isolate->NewString(""));
+                isolate->NewString("(()=>{})"), isolate->NewString(""));
             m_worker.Reset(isolate->m_isolate, v8::Local<v8::Function>::Cast(script->Run()));
         }
     }
