@@ -13,6 +13,11 @@ var logs = process.open('git', [
 
 var commits = [];
 var changes = {};
+var alias = {
+    'feat': 'feature',
+    'break': 'breakchange',
+    'fixbug': 'bugfix'
+};
 
 logs.forEach(log => {
     var log_info = /^([a-f\d]+)-\s*(([^\,\:]*)(\s*,\s*([^\:]*))?\s*:)?\s*(.*)$/.exec(log);
@@ -32,9 +37,12 @@ logs.forEach(log => {
 
     var group;
     if (log_info[5]) {
-        group = changes[log_info[5]];
+        var k = log_info[5];
+        if (alias[k])
+            k = alias[k];
+        group = changes[k];
         if (group === undefined)
-            group = changes[log_info[5]] = {};
+            group = changes[k] = {};
     } else {
         group = changes['others'];
         if (group === undefined)
@@ -46,21 +54,16 @@ logs.forEach(log => {
         module = group[log_info[3]] = [];
 
     module.push(log_info[6]);
-
     commits.push(`* [[\`${hash}\`](https://github.com/fibjs/fibjs/commit/${hash})] - ${type}${log_info[6]}`);
 });
 
-
-function out_changes(key, name) {
-    if (name === undefined)
-        name = key;
-
+function out_changes(key) {
     var group = changes[key];
 
     if (group === undefined)
         return;
 
-    console.log(`* **${name}** :`);
+    console.log(`* **${key}** :`);
 
     var keys = Object.keys(group);
 
@@ -85,13 +88,13 @@ function out_changes(key, name) {
     delete changes[key];
 }
 
-out_changes('feat', 'feature');
-out_changes('break', 'breakchange');
+out_changes('feature');
+out_changes('breakchange');
 out_changes('bugfix');
 out_changes('refactor');
 
 for (var k in changes)
-    out_changes(k, k);
+    out_changes(k);
 
 console.log("### Commits");
 console.log(commits.join('\n'));
