@@ -232,6 +232,9 @@ result_t coroutine_base::sleep(int32_t ms, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    if (ms <= 0)
+        return 0;
+
     exlib::Fiber::sleep(ms, new AcyncSleep(ac));
     return CALL_E_PENDDING;
 }
