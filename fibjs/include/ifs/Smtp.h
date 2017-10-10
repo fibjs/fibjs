@@ -116,7 +116,7 @@ void Smtp_base::__new(const T& args)
 {
     obj_ptr<Smtp_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new Smtp()");
 
     METHOD_OVER(0, 0);
 
@@ -128,7 +128,7 @@ void Smtp_base::__new(const T& args)
 inline void Smtp_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Smtp_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Smtp.connect");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -148,7 +148,7 @@ inline void Smtp_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& args
     exlib::string vr;
 
     METHOD_INSTANCE(Smtp_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Smtp.command");
 
     ASYNC_METHOD_OVER(2, 2);
 
@@ -167,7 +167,7 @@ inline void Smtp_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void Smtp_base::s_hello(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Smtp_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Smtp.hello");
 
     ASYNC_METHOD_OVER(1, 0);
 
@@ -185,7 +185,7 @@ inline void Smtp_base::s_hello(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Smtp_base::s_login(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Smtp_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Smtp.login");
 
     ASYNC_METHOD_OVER(2, 2);
 
@@ -204,7 +204,7 @@ inline void Smtp_base::s_login(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Smtp_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Smtp_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Smtp.from");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -222,7 +222,7 @@ inline void Smtp_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Smtp_base::s_to(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Smtp_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Smtp.to");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -240,7 +240,7 @@ inline void Smtp_base::s_to(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Smtp_base::s_data(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Smtp_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Smtp.data");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -258,7 +258,7 @@ inline void Smtp_base::s_data(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Smtp_base::s_quit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Smtp_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Smtp.quit");
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -276,7 +276,7 @@ inline void Smtp_base::s_get_timeout(v8::Local<v8::String> property, const v8::P
     int32_t vr;
 
     METHOD_INSTANCE(Smtp_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Smtp.timeout");
 
     hr = pInst->get_timeout(vr);
 
@@ -286,7 +286,7 @@ inline void Smtp_base::s_get_timeout(v8::Local<v8::String> property, const v8::P
 inline void Smtp_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(Smtp_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Smtp.timeout");
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_timeout(v0);
@@ -299,7 +299,7 @@ inline void Smtp_base::s_get_socket(v8::Local<v8::String> property, const v8::Pr
     obj_ptr<Stream_base> vr;
 
     METHOD_INSTANCE(Smtp_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Smtp.socket");
 
     hr = pInst->get_socket(vr);
 

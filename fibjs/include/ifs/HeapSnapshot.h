@@ -89,7 +89,7 @@ inline void HeapSnapshot_base::s_diff(const v8::FunctionCallbackInfo<v8::Value>&
     v8::Local<v8::Object> vr;
 
     METHOD_INSTANCE(HeapSnapshot_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HeapSnapshot.diff");
 
     METHOD_OVER(1, 1);
 
@@ -105,7 +105,7 @@ inline void HeapSnapshot_base::s_getNodeById(const v8::FunctionCallbackInfo<v8::
     obj_ptr<HeapGraphNode_base> vr;
 
     METHOD_INSTANCE(HeapSnapshot_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HeapSnapshot.getNodeById");
 
     METHOD_OVER(1, 1);
 
@@ -119,7 +119,7 @@ inline void HeapSnapshot_base::s_getNodeById(const v8::FunctionCallbackInfo<v8::
 inline void HeapSnapshot_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HeapSnapshot_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HeapSnapshot.save");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -139,7 +139,7 @@ inline void HeapSnapshot_base::s_get_time(v8::Local<v8::String> property, const 
     date_t vr;
 
     METHOD_INSTANCE(HeapSnapshot_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HeapSnapshot.time");
 
     hr = pInst->get_time(vr);
 
@@ -151,7 +151,7 @@ inline void HeapSnapshot_base::s_get_root(v8::Local<v8::String> property, const 
     obj_ptr<HeapGraphNode_base> vr;
 
     METHOD_INSTANCE(HeapSnapshot_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HeapSnapshot.root");
 
     hr = pInst->get_root(vr);
 
@@ -163,7 +163,7 @@ inline void HeapSnapshot_base::s_get_nodes(v8::Local<v8::String> property, const
     obj_ptr<List_base> vr;
 
     METHOD_INSTANCE(HeapSnapshot_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HeapSnapshot.nodes");
 
     hr = pInst->get_nodes(vr);
 

@@ -139,7 +139,7 @@ inline void process_base::s_get_argv(v8::Local<v8::String> property, const v8::P
 {
     v8::Local<v8::Array> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("process.argv");
 
     hr = get_argv(vr);
 
@@ -150,7 +150,7 @@ inline void process_base::s_get_execArgv(v8::Local<v8::String> property, const v
 {
     v8::Local<v8::Array> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("process.execArgv");
 
     hr = get_execArgv(vr);
 
@@ -161,7 +161,7 @@ inline void process_base::s_get_version(v8::Local<v8::String> property, const v8
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("process.version");
 
     hr = get_version(vr);
 
@@ -172,7 +172,7 @@ inline void process_base::s_get_versions(v8::Local<v8::String> property, const v
 {
     v8::Local<v8::Object> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("process.versions");
 
     hr = get_versions(vr);
 
@@ -183,7 +183,7 @@ inline void process_base::s_get_execPath(v8::Local<v8::String> property, const v
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("process.execPath");
 
     hr = get_execPath(vr);
 
@@ -194,7 +194,7 @@ inline void process_base::s_get_env(v8::Local<v8::String> property, const v8::Pr
 {
     v8::Local<v8::Object> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("process.env");
 
     hr = get_env(vr);
 
@@ -205,7 +205,7 @@ inline void process_base::s_get_arch(v8::Local<v8::String> property, const v8::P
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("process.arch");
 
     hr = get_arch(vr);
 
@@ -216,7 +216,7 @@ inline void process_base::s_get_platform(v8::Local<v8::String> property, const v
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("process.platform");
 
     hr = get_platform(vr);
 
@@ -227,7 +227,7 @@ inline void process_base::s_get_stdin(v8::Local<v8::String> property, const v8::
 {
     obj_ptr<File_base> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("process.stdin");
 
     hr = get_stdin(vr);
 
@@ -238,7 +238,7 @@ inline void process_base::s_get_stdout(v8::Local<v8::String> property, const v8:
 {
     obj_ptr<File_base> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("process.stdout");
 
     hr = get_stdout(vr);
 
@@ -249,7 +249,7 @@ inline void process_base::s_get_stderr(v8::Local<v8::String> property, const v8:
 {
     obj_ptr<File_base> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("process.stderr");
 
     hr = get_stderr(vr);
 
@@ -260,7 +260,7 @@ inline void process_base::s_umask(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     int32_t vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("process.umask");
 
     METHOD_OVER(1, 1);
 
@@ -285,7 +285,7 @@ inline void process_base::s_hrtime(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("process.hrtime");
 
     METHOD_OVER(1, 0);
 
@@ -298,7 +298,7 @@ inline void process_base::s_hrtime(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void process_base::s_exit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("process.exit");
 
     METHOD_OVER(1, 0);
 
@@ -313,7 +313,7 @@ inline void process_base::s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("process.cwd");
 
     METHOD_OVER(0, 0);
 
@@ -324,7 +324,7 @@ inline void process_base::s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void process_base::s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("process.chdir");
 
     METHOD_OVER(1, 1);
 
@@ -339,7 +339,7 @@ inline void process_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     double vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("process.uptime");
 
     METHOD_OVER(0, 0);
 
@@ -352,7 +352,7 @@ inline void process_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("process.memoryUsage");
 
     METHOD_OVER(0, 0);
 
@@ -363,7 +363,7 @@ inline void process_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value
 
 inline void process_base::s_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("process.nextTick");
 
     METHOD_OVER(-1, 1);
 
@@ -379,7 +379,7 @@ inline void process_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<SubProcess_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("process.open");
 
     METHOD_OVER(3, 2);
 
@@ -403,7 +403,7 @@ inline void process_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<SubProcess_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("process.start");
 
     METHOD_OVER(3, 2);
 
@@ -427,7 +427,7 @@ inline void process_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("process.run");
 
     METHOD_OVER(3, 2);
 

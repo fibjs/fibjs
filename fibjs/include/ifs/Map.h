@@ -101,7 +101,7 @@ void Map_base::__new(const T& args)
 {
     obj_ptr<Map_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new Map()");
 
     METHOD_OVER(0, 0);
 
@@ -121,7 +121,7 @@ inline void Map_base::s_get_size(v8::Local<v8::String> property, const v8::Prope
     int32_t vr;
 
     METHOD_INSTANCE(Map_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Map.size");
 
     hr = pInst->get_size(vr);
 
@@ -131,7 +131,7 @@ inline void Map_base::s_get_size(v8::Local<v8::String> property, const v8::Prope
 inline void Map_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Map_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Map.clear");
 
     METHOD_OVER(0, 0);
 
@@ -145,7 +145,7 @@ inline void Map_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
     bool vr;
 
     METHOD_INSTANCE(Map_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Map.has");
 
     METHOD_OVER(1, 1);
 
@@ -161,7 +161,7 @@ inline void Map_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
     Variant vr;
 
     METHOD_INSTANCE(Map_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Map.get");
 
     METHOD_OVER(1, 1);
 
@@ -175,7 +175,7 @@ inline void Map_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Map_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Map_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Map.put");
 
     METHOD_OVER(1, 1);
 
@@ -196,7 +196,7 @@ inline void Map_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Map_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Map_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Map.set");
 
     METHOD_OVER(1, 1);
 
@@ -217,7 +217,7 @@ inline void Map_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Map_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Map_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Map.remove");
 
     METHOD_OVER(1, 1);
 
@@ -233,7 +233,7 @@ inline void Map_base::s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args)
     bool vr;
 
     METHOD_INSTANCE(Map_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Map.isEmpty");
 
     METHOD_OVER(0, 0);
 
@@ -247,7 +247,7 @@ inline void Map_base::i_NamedGetter(v8::Local<v8::String> property, const v8::Pr
     Variant vr;
 
     METHOD_INSTANCE(Map_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Map.undefined[]");
 
     exlib::string k;
     GetArgumentValue(isolate, property, k);
@@ -266,7 +266,7 @@ inline void Map_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array
     v8::Local<v8::Array> vr;
 
     METHOD_INSTANCE(Map_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Map.undefined[]");
 
     hr = pInst->_named_enumerator(vr);
 
@@ -276,7 +276,7 @@ inline void Map_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array
 inline void Map_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Map_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Map.undefined[]");
 
     PROPERTY_VAL(Variant);
     exlib::string k;
@@ -296,7 +296,7 @@ inline void Map_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::P
     v8::Local<v8::Boolean> vr;
 
     METHOD_INSTANCE(Map_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Map.undefined[]");
 
     exlib::string k;
     GetArgumentValue(isolate, property, k);

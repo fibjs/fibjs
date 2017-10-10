@@ -97,7 +97,7 @@ inline void MongoDB_base::s_getCollection(const v8::FunctionCallbackInfo<v8::Val
     obj_ptr<MongoCollection_base> vr;
 
     METHOD_INSTANCE(MongoDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("MongoDB.getCollection");
 
     METHOD_OVER(1, 1);
 
@@ -113,7 +113,7 @@ inline void MongoDB_base::s_runCommand(const v8::FunctionCallbackInfo<v8::Value>
     v8::Local<v8::Object> vr;
 
     METHOD_INSTANCE(MongoDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("MongoDB.runCommand");
 
     METHOD_OVER(1, 1);
 
@@ -136,7 +136,7 @@ inline void MongoDB_base::i_NamedGetter(v8::Local<v8::String> property, const v8
     obj_ptr<MongoCollection_base> vr;
 
     METHOD_INSTANCE(MongoDB_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("MongoDB.undefined[]");
 
     exlib::string k;
     GetArgumentValue(isolate, property, k);
@@ -155,7 +155,7 @@ inline void MongoDB_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::A
     v8::Local<v8::Array> vr;
 
     METHOD_INSTANCE(MongoDB_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("MongoDB.undefined[]");
 
     hr = pInst->_named_enumerator(vr);
 
@@ -167,7 +167,7 @@ inline void MongoDB_base::s_get_fs(v8::Local<v8::String> property, const v8::Pro
     obj_ptr<GridFS_base> vr;
 
     METHOD_INSTANCE(MongoDB_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("MongoDB.fs");
 
     hr = pInst->get_fs(vr);
 
@@ -179,7 +179,7 @@ inline void MongoDB_base::s_oid(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<MongoID_base> vr;
 
     METHOD_INSTANCE(MongoDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("MongoDB.oid");
 
     METHOD_OVER(1, 0);
 
@@ -193,7 +193,7 @@ inline void MongoDB_base::s_oid(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void MongoDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(MongoDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("MongoDB.close");
 
     ASYNC_METHOD_OVER(0, 0);
 

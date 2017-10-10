@@ -82,7 +82,7 @@ inline void io_base::s_copyStream(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     int64_t vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("io.copyStream");
 
     ASYNC_METHOD_OVER(3, 2);
 
@@ -101,7 +101,7 @@ inline void io_base::s_copyStream(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void io_base::s_bridge(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("io.bridge");
 
     ASYNC_METHOD_OVER(2, 2);
 

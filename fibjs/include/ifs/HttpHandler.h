@@ -91,7 +91,7 @@ void HttpHandler_base::__new(const T& args)
 {
     obj_ptr<HttpHandler_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new HttpHandler()");
 
     METHOD_OVER(1, 1);
 
@@ -105,7 +105,7 @@ void HttpHandler_base::__new(const T& args)
 inline void HttpHandler_base::s_enableCrossOrigin(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpHandler_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HttpHandler.enableCrossOrigin");
 
     METHOD_OVER(1, 0);
 
@@ -121,7 +121,7 @@ inline void HttpHandler_base::s_get_forceGZIP(v8::Local<v8::String> property, co
     bool vr;
 
     METHOD_INSTANCE(HttpHandler_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpHandler.forceGZIP");
 
     hr = pInst->get_forceGZIP(vr);
 
@@ -131,7 +131,7 @@ inline void HttpHandler_base::s_get_forceGZIP(v8::Local<v8::String> property, co
 inline void HttpHandler_base::s_set_forceGZIP(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(HttpHandler_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpHandler.forceGZIP");
     PROPERTY_VAL(bool);
 
     hr = pInst->set_forceGZIP(v0);
@@ -144,7 +144,7 @@ inline void HttpHandler_base::s_get_maxHeadersCount(v8::Local<v8::String> proper
     int32_t vr;
 
     METHOD_INSTANCE(HttpHandler_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpHandler.maxHeadersCount");
 
     hr = pInst->get_maxHeadersCount(vr);
 
@@ -154,7 +154,7 @@ inline void HttpHandler_base::s_get_maxHeadersCount(v8::Local<v8::String> proper
 inline void HttpHandler_base::s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(HttpHandler_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpHandler.maxHeadersCount");
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_maxHeadersCount(v0);
@@ -167,7 +167,7 @@ inline void HttpHandler_base::s_get_maxBodySize(v8::Local<v8::String> property, 
     int32_t vr;
 
     METHOD_INSTANCE(HttpHandler_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpHandler.maxBodySize");
 
     hr = pInst->get_maxBodySize(vr);
 
@@ -177,7 +177,7 @@ inline void HttpHandler_base::s_get_maxBodySize(v8::Local<v8::String> property, 
 inline void HttpHandler_base::s_set_maxBodySize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(HttpHandler_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpHandler.maxBodySize");
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_maxBodySize(v0);
@@ -190,7 +190,7 @@ inline void HttpHandler_base::s_get_serverName(v8::Local<v8::String> property, c
     exlib::string vr;
 
     METHOD_INSTANCE(HttpHandler_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpHandler.serverName");
 
     hr = pInst->get_serverName(vr);
 
@@ -200,7 +200,7 @@ inline void HttpHandler_base::s_get_serverName(v8::Local<v8::String> property, c
 inline void HttpHandler_base::s_set_serverName(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(HttpHandler_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpHandler.serverName");
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_serverName(v0);

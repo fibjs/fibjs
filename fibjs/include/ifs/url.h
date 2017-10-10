@@ -67,7 +67,7 @@ inline void url_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("url.format");
 
     METHOD_OVER(1, 1);
 
@@ -82,7 +82,7 @@ inline void url_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<UrlObject_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("url.parse");
 
     METHOD_OVER(3, 1);
 

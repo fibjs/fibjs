@@ -70,7 +70,7 @@ inline void XmlDocumentType_base::s_get_name(v8::Local<v8::String> property, con
     exlib::string vr;
 
     METHOD_INSTANCE(XmlDocumentType_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocumentType.name");
 
     hr = pInst->get_name(vr);
 
@@ -82,7 +82,7 @@ inline void XmlDocumentType_base::s_get_publicId(v8::Local<v8::String> property,
     exlib::string vr;
 
     METHOD_INSTANCE(XmlDocumentType_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocumentType.publicId");
 
     hr = pInst->get_publicId(vr);
 
@@ -94,7 +94,7 @@ inline void XmlDocumentType_base::s_get_systemId(v8::Local<v8::String> property,
     exlib::string vr;
 
     METHOD_INSTANCE(XmlDocumentType_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocumentType.systemId");
 
     hr = pInst->get_systemId(vr);
 

@@ -66,7 +66,7 @@ inline ClassInfo& MSSQL_base::class_info()
 inline void MSSQL_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(MSSQL_base);
-    METHOD_ENTER();
+    METHOD_ENTER("MSSQL.use");
 
     ASYNC_METHOD_OVER(1, 1);
 

@@ -69,7 +69,7 @@ inline void XmlProcessingInstruction_base::s_get_target(v8::Local<v8::String> pr
     exlib::string vr;
 
     METHOD_INSTANCE(XmlProcessingInstruction_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlProcessingInstruction.target");
 
     hr = pInst->get_target(vr);
 
@@ -81,7 +81,7 @@ inline void XmlProcessingInstruction_base::s_get_data(v8::Local<v8::String> prop
     exlib::string vr;
 
     METHOD_INSTANCE(XmlProcessingInstruction_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlProcessingInstruction.data");
 
     hr = pInst->get_data(vr);
 
@@ -91,7 +91,7 @@ inline void XmlProcessingInstruction_base::s_get_data(v8::Local<v8::String> prop
 inline void XmlProcessingInstruction_base::s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(XmlProcessingInstruction_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlProcessingInstruction.data");
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_data(v0);

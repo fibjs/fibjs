@@ -157,63 +157,63 @@ inline ClassInfo& hash_base::class_info()
 inline void hash_base::s_get_MD2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _MD2;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("hash.MD2");
     METHOD_RETURN();
 }
 
 inline void hash_base::s_get_MD4(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _MD4;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("hash.MD4");
     METHOD_RETURN();
 }
 
 inline void hash_base::s_get_MD5(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _MD5;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("hash.MD5");
     METHOD_RETURN();
 }
 
 inline void hash_base::s_get_SHA1(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _SHA1;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("hash.SHA1");
     METHOD_RETURN();
 }
 
 inline void hash_base::s_get_SHA224(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _SHA224;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("hash.SHA224");
     METHOD_RETURN();
 }
 
 inline void hash_base::s_get_SHA256(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _SHA256;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("hash.SHA256");
     METHOD_RETURN();
 }
 
 inline void hash_base::s_get_SHA384(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _SHA384;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("hash.SHA384");
     METHOD_RETURN();
 }
 
 inline void hash_base::s_get_SHA512(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _SHA512;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("hash.SHA512");
     METHOD_RETURN();
 }
 
 inline void hash_base::s_get_RIPEMD160(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _RIPEMD160;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("hash.RIPEMD160");
     METHOD_RETURN();
 }
 
@@ -221,7 +221,7 @@ inline void hash_base::s_digest(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.digest");
 
     METHOD_OVER(2, 2);
 
@@ -243,7 +243,7 @@ inline void hash_base::s_md2(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.md2");
 
     METHOD_OVER(1, 1);
 
@@ -258,7 +258,7 @@ inline void hash_base::s_md4(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.md4");
 
     METHOD_OVER(1, 1);
 
@@ -273,7 +273,7 @@ inline void hash_base::s_md5(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.md5");
 
     METHOD_OVER(1, 1);
 
@@ -288,7 +288,7 @@ inline void hash_base::s_sha1(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.sha1");
 
     METHOD_OVER(1, 1);
 
@@ -303,7 +303,7 @@ inline void hash_base::s_sha224(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.sha224");
 
     METHOD_OVER(1, 1);
 
@@ -318,7 +318,7 @@ inline void hash_base::s_sha256(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.sha256");
 
     METHOD_OVER(1, 1);
 
@@ -333,7 +333,7 @@ inline void hash_base::s_sha384(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.sha384");
 
     METHOD_OVER(1, 1);
 
@@ -348,7 +348,7 @@ inline void hash_base::s_sha512(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.sha512");
 
     METHOD_OVER(1, 1);
 
@@ -363,7 +363,7 @@ inline void hash_base::s_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.ripemd160");
 
     METHOD_OVER(1, 1);
 
@@ -378,7 +378,7 @@ inline void hash_base::s_hmac(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.hmac");
 
     METHOD_OVER(2, 2);
 
@@ -394,7 +394,7 @@ inline void hash_base::s_hmac_md2(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.hmac_md2");
 
     METHOD_OVER(1, 1);
 
@@ -409,7 +409,7 @@ inline void hash_base::s_hmac_md4(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.hmac_md4");
 
     METHOD_OVER(1, 1);
 
@@ -424,7 +424,7 @@ inline void hash_base::s_hmac_md5(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.hmac_md5");
 
     METHOD_OVER(1, 1);
 
@@ -439,7 +439,7 @@ inline void hash_base::s_hmac_sha1(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.hmac_sha1");
 
     METHOD_OVER(1, 1);
 
@@ -454,7 +454,7 @@ inline void hash_base::s_hmac_sha224(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.hmac_sha224");
 
     METHOD_OVER(1, 1);
 
@@ -469,7 +469,7 @@ inline void hash_base::s_hmac_sha256(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.hmac_sha256");
 
     METHOD_OVER(1, 1);
 
@@ -484,7 +484,7 @@ inline void hash_base::s_hmac_sha384(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.hmac_sha384");
 
     METHOD_OVER(1, 1);
 
@@ -499,7 +499,7 @@ inline void hash_base::s_hmac_sha512(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.hmac_sha512");
 
     METHOD_OVER(1, 1);
 
@@ -514,7 +514,7 @@ inline void hash_base::s_hmac_ripemd160(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("hash.hmac_ripemd160");
 
     METHOD_OVER(1, 1);
 

@@ -106,56 +106,56 @@ inline ClassInfo& xml_base::class_info()
 inline void xml_base::s_get_ELEMENT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _ELEMENT_NODE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("xml.ELEMENT_NODE");
     METHOD_RETURN();
 }
 
 inline void xml_base::s_get_ATTRIBUTE_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _ATTRIBUTE_NODE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("xml.ATTRIBUTE_NODE");
     METHOD_RETURN();
 }
 
 inline void xml_base::s_get_TEXT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _TEXT_NODE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("xml.TEXT_NODE");
     METHOD_RETURN();
 }
 
 inline void xml_base::s_get_CDATA_SECTION_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _CDATA_SECTION_NODE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("xml.CDATA_SECTION_NODE");
     METHOD_RETURN();
 }
 
 inline void xml_base::s_get_PROCESSING_INSTRUCTION_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _PROCESSING_INSTRUCTION_NODE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("xml.PROCESSING_INSTRUCTION_NODE");
     METHOD_RETURN();
 }
 
 inline void xml_base::s_get_COMMENT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _COMMENT_NODE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("xml.COMMENT_NODE");
     METHOD_RETURN();
 }
 
 inline void xml_base::s_get_DOCUMENT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _DOCUMENT_NODE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("xml.DOCUMENT_NODE");
     METHOD_RETURN();
 }
 
 inline void xml_base::s_get_DOCUMENT_TYPE_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _DOCUMENT_TYPE_NODE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("xml.DOCUMENT_TYPE_NODE");
     METHOD_RETURN();
 }
 
@@ -163,7 +163,7 @@ inline void xml_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlDocument_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("xml.parse");
 
     METHOD_OVER(2, 1);
 
@@ -186,7 +186,7 @@ inline void xml_base::s_serialize(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("xml.serialize");
 
     METHOD_OVER(1, 1);
 

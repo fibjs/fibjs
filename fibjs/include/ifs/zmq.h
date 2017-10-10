@@ -98,77 +98,77 @@ inline ClassInfo& zmq_base::class_info()
 inline void zmq_base::s_get_PAIR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _PAIR;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zmq.PAIR");
     METHOD_RETURN();
 }
 
 inline void zmq_base::s_get_PUB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _PUB;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zmq.PUB");
     METHOD_RETURN();
 }
 
 inline void zmq_base::s_get_SUB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _SUB;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zmq.SUB");
     METHOD_RETURN();
 }
 
 inline void zmq_base::s_get_REQ(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _REQ;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zmq.REQ");
     METHOD_RETURN();
 }
 
 inline void zmq_base::s_get_REP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _REP;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zmq.REP");
     METHOD_RETURN();
 }
 
 inline void zmq_base::s_get_DEALER(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _DEALER;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zmq.DEALER");
     METHOD_RETURN();
 }
 
 inline void zmq_base::s_get_ROUTER(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _ROUTER;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zmq.ROUTER");
     METHOD_RETURN();
 }
 
 inline void zmq_base::s_get_PULL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _PULL;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zmq.PULL");
     METHOD_RETURN();
 }
 
 inline void zmq_base::s_get_PUSH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _PUSH;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zmq.PUSH");
     METHOD_RETURN();
 }
 
 inline void zmq_base::s_get_XPUB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _XPUB;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zmq.XPUB");
     METHOD_RETURN();
 }
 
 inline void zmq_base::s_get_XSUB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _XSUB;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zmq.XSUB");
     METHOD_RETURN();
 }
 }

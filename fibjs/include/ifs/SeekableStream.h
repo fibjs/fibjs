@@ -101,7 +101,7 @@ inline ClassInfo& SeekableStream_base::class_info()
 inline void SeekableStream_base::s_seek(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SeekableStream.seek");
 
     METHOD_OVER(2, 2);
 
@@ -118,7 +118,7 @@ inline void SeekableStream_base::s_tell(const v8::FunctionCallbackInfo<v8::Value
     int64_t vr;
 
     METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SeekableStream.tell");
 
     METHOD_OVER(0, 0);
 
@@ -130,7 +130,7 @@ inline void SeekableStream_base::s_tell(const v8::FunctionCallbackInfo<v8::Value
 inline void SeekableStream_base::s_rewind(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SeekableStream.rewind");
 
     METHOD_OVER(0, 0);
 
@@ -144,7 +144,7 @@ inline void SeekableStream_base::s_size(const v8::FunctionCallbackInfo<v8::Value
     int64_t vr;
 
     METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SeekableStream.size");
 
     METHOD_OVER(0, 0);
 
@@ -158,7 +158,7 @@ inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Va
     obj_ptr<Buffer_base> vr;
 
     METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SeekableStream.readAll");
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -174,7 +174,7 @@ inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Va
 inline void SeekableStream_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SeekableStream.truncate");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -194,7 +194,7 @@ inline void SeekableStream_base::s_eof(const v8::FunctionCallbackInfo<v8::Value>
     bool vr;
 
     METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SeekableStream.eof");
 
     METHOD_OVER(0, 0);
 
@@ -206,7 +206,7 @@ inline void SeekableStream_base::s_eof(const v8::FunctionCallbackInfo<v8::Value>
 inline void SeekableStream_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SeekableStream.flush");
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -224,7 +224,7 @@ inline void SeekableStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value
     obj_ptr<Stat_base> vr;
 
     METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SeekableStream.stat");
 
     ASYNC_METHOD_OVER(0, 0);
 

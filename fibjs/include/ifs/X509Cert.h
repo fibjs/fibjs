@@ -127,7 +127,7 @@ void X509Cert_base::__new(const T& args)
 {
     obj_ptr<X509Cert_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new X509Cert()");
 
     METHOD_OVER(0, 0);
 
@@ -139,7 +139,7 @@ void X509Cert_base::__new(const T& args)
 inline void X509Cert_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(X509Cert_base);
-    METHOD_ENTER();
+    METHOD_ENTER("X509Cert.load");
 
     METHOD_OVER(1, 1);
 
@@ -159,7 +159,7 @@ inline void X509Cert_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& arg
 inline void X509Cert_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(X509Cert_base);
-    METHOD_ENTER();
+    METHOD_ENTER("X509Cert.loadFile");
 
     METHOD_OVER(1, 1);
 
@@ -173,7 +173,7 @@ inline void X509Cert_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>&
 inline void X509Cert_base::s_loadRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(X509Cert_base);
-    METHOD_ENTER();
+    METHOD_ENTER("X509Cert.loadRootCerts");
 
     METHOD_OVER(0, 0);
 
@@ -187,7 +187,7 @@ inline void X509Cert_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& a
     bool vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    METHOD_ENTER();
+    METHOD_ENTER("X509Cert.verify");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -207,7 +207,7 @@ inline void X509Cert_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& arg
     v8::Local<v8::Array> vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    METHOD_ENTER();
+    METHOD_ENTER("X509Cert.dump");
 
     METHOD_OVER(0, 0);
 
@@ -219,7 +219,7 @@ inline void X509Cert_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& arg
 inline void X509Cert_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(X509Cert_base);
-    METHOD_ENTER();
+    METHOD_ENTER("X509Cert.clear");
 
     METHOD_OVER(0, 0);
 
@@ -233,7 +233,7 @@ inline void X509Cert_base::s_get_version(v8::Local<v8::String> property, const v
     int32_t vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("X509Cert.version");
 
     hr = pInst->get_version(vr);
 
@@ -245,7 +245,7 @@ inline void X509Cert_base::s_get_serial(v8::Local<v8::String> property, const v8
     exlib::string vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("X509Cert.serial");
 
     hr = pInst->get_serial(vr);
 
@@ -257,7 +257,7 @@ inline void X509Cert_base::s_get_issuer(v8::Local<v8::String> property, const v8
     exlib::string vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("X509Cert.issuer");
 
     hr = pInst->get_issuer(vr);
 
@@ -269,7 +269,7 @@ inline void X509Cert_base::s_get_subject(v8::Local<v8::String> property, const v
     exlib::string vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("X509Cert.subject");
 
     hr = pInst->get_subject(vr);
 
@@ -281,7 +281,7 @@ inline void X509Cert_base::s_get_notBefore(v8::Local<v8::String> property, const
     date_t vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("X509Cert.notBefore");
 
     hr = pInst->get_notBefore(vr);
 
@@ -293,7 +293,7 @@ inline void X509Cert_base::s_get_notAfter(v8::Local<v8::String> property, const 
     date_t vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("X509Cert.notAfter");
 
     hr = pInst->get_notAfter(vr);
 
@@ -305,7 +305,7 @@ inline void X509Cert_base::s_get_ca(v8::Local<v8::String> property, const v8::Pr
     bool vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("X509Cert.ca");
 
     hr = pInst->get_ca(vr);
 
@@ -317,7 +317,7 @@ inline void X509Cert_base::s_get_pathlen(v8::Local<v8::String> property, const v
     int32_t vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("X509Cert.pathlen");
 
     hr = pInst->get_pathlen(vr);
 
@@ -329,7 +329,7 @@ inline void X509Cert_base::s_get_usage(v8::Local<v8::String> property, const v8:
     exlib::string vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("X509Cert.usage");
 
     hr = pInst->get_usage(vr);
 
@@ -341,7 +341,7 @@ inline void X509Cert_base::s_get_type(v8::Local<v8::String> property, const v8::
     exlib::string vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("X509Cert.type");
 
     hr = pInst->get_type(vr);
 
@@ -353,7 +353,7 @@ inline void X509Cert_base::s_get_publicKey(v8::Local<v8::String> property, const
     obj_ptr<PKey_base> vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("X509Cert.publicKey");
 
     hr = pInst->get_publicKey(vr);
 
@@ -365,7 +365,7 @@ inline void X509Cert_base::s_get_next(v8::Local<v8::String> property, const v8::
     obj_ptr<X509Cert_base> vr;
 
     METHOD_INSTANCE(X509Cert_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("X509Cert.next");
 
     hr = pInst->get_next(vr);
 

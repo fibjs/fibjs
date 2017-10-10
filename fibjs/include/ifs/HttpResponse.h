@@ -102,7 +102,7 @@ void HttpResponse_base::__new(const T& args)
 {
     obj_ptr<HttpResponse_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new HttpResponse()");
 
     METHOD_OVER(0, 0);
 
@@ -116,7 +116,7 @@ inline void HttpResponse_base::s_get_statusCode(v8::Local<v8::String> property, 
     int32_t vr;
 
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpResponse.statusCode");
 
     hr = pInst->get_statusCode(vr);
 
@@ -126,7 +126,7 @@ inline void HttpResponse_base::s_get_statusCode(v8::Local<v8::String> property, 
 inline void HttpResponse_base::s_set_statusCode(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpResponse.statusCode");
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_statusCode(v0);
@@ -139,7 +139,7 @@ inline void HttpResponse_base::s_get_statusMessage(v8::Local<v8::String> propert
     exlib::string vr;
 
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpResponse.statusMessage");
 
     hr = pInst->get_statusMessage(vr);
 
@@ -149,7 +149,7 @@ inline void HttpResponse_base::s_get_statusMessage(v8::Local<v8::String> propert
 inline void HttpResponse_base::s_set_statusMessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpResponse.statusMessage");
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_statusMessage(v0);
@@ -160,7 +160,7 @@ inline void HttpResponse_base::s_set_statusMessage(v8::Local<v8::String> propert
 inline void HttpResponse_base::s_writeHead(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpResponse_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HttpResponse.writeHead");
 
     METHOD_OVER(3, 2);
 
@@ -185,7 +185,7 @@ inline void HttpResponse_base::s_get_cookies(v8::Local<v8::String> property, con
     obj_ptr<List_base> vr;
 
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpResponse.cookies");
 
     hr = pInst->get_cookies(vr);
 
@@ -195,7 +195,7 @@ inline void HttpResponse_base::s_get_cookies(v8::Local<v8::String> property, con
 inline void HttpResponse_base::s_addCookie(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpResponse_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HttpResponse.addCookie");
 
     METHOD_OVER(1, 1);
 
@@ -209,7 +209,7 @@ inline void HttpResponse_base::s_addCookie(const v8::FunctionCallbackInfo<v8::Va
 inline void HttpResponse_base::s_redirect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpResponse_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HttpResponse.redirect");
 
     METHOD_OVER(1, 1);
 
@@ -223,7 +223,7 @@ inline void HttpResponse_base::s_redirect(const v8::FunctionCallbackInfo<v8::Val
 inline void HttpResponse_base::s_sendHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpResponse_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HttpResponse.sendHeader");
 
     ASYNC_METHOD_OVER(1, 1);
 

@@ -129,7 +129,7 @@ inline void XmlNode_base::s_get_nodeType(v8::Local<v8::String> property, const v
     int32_t vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlNode.nodeType");
 
     hr = pInst->get_nodeType(vr);
 
@@ -141,7 +141,7 @@ inline void XmlNode_base::s_get_nodeName(v8::Local<v8::String> property, const v
     exlib::string vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlNode.nodeName");
 
     hr = pInst->get_nodeName(vr);
 
@@ -153,7 +153,7 @@ inline void XmlNode_base::s_get_nodeValue(v8::Local<v8::String> property, const 
     exlib::string vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlNode.nodeValue");
 
     hr = pInst->get_nodeValue(vr);
 
@@ -163,7 +163,7 @@ inline void XmlNode_base::s_get_nodeValue(v8::Local<v8::String> property, const 
 inline void XmlNode_base::s_set_nodeValue(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(XmlNode_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlNode.nodeValue");
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_nodeValue(v0);
@@ -176,7 +176,7 @@ inline void XmlNode_base::s_get_ownerDocument(v8::Local<v8::String> property, co
     obj_ptr<XmlDocument_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlNode.ownerDocument");
 
     hr = pInst->get_ownerDocument(vr);
 
@@ -188,7 +188,7 @@ inline void XmlNode_base::s_get_parentNode(v8::Local<v8::String> property, const
     obj_ptr<XmlNode_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlNode.parentNode");
 
     hr = pInst->get_parentNode(vr);
 
@@ -200,7 +200,7 @@ inline void XmlNode_base::s_hasChildNodes(const v8::FunctionCallbackInfo<v8::Val
     bool vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlNode.hasChildNodes");
 
     METHOD_OVER(0, 0);
 
@@ -214,7 +214,7 @@ inline void XmlNode_base::s_get_childNodes(v8::Local<v8::String> property, const
     obj_ptr<XmlNodeList_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlNode.childNodes");
 
     hr = pInst->get_childNodes(vr);
 
@@ -226,7 +226,7 @@ inline void XmlNode_base::s_get_firstChild(v8::Local<v8::String> property, const
     obj_ptr<XmlNode_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlNode.firstChild");
 
     hr = pInst->get_firstChild(vr);
 
@@ -238,7 +238,7 @@ inline void XmlNode_base::s_get_lastChild(v8::Local<v8::String> property, const 
     obj_ptr<XmlNode_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlNode.lastChild");
 
     hr = pInst->get_lastChild(vr);
 
@@ -250,7 +250,7 @@ inline void XmlNode_base::s_get_previousSibling(v8::Local<v8::String> property, 
     obj_ptr<XmlNode_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlNode.previousSibling");
 
     hr = pInst->get_previousSibling(vr);
 
@@ -262,7 +262,7 @@ inline void XmlNode_base::s_get_nextSibling(v8::Local<v8::String> property, cons
     obj_ptr<XmlNode_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlNode.nextSibling");
 
     hr = pInst->get_nextSibling(vr);
 
@@ -272,7 +272,7 @@ inline void XmlNode_base::s_get_nextSibling(v8::Local<v8::String> property, cons
 inline void XmlNode_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(XmlNode_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlNode.normalize");
 
     METHOD_OVER(0, 0);
 
@@ -286,7 +286,7 @@ inline void XmlNode_base::s_cloneNode(const v8::FunctionCallbackInfo<v8::Value>&
     obj_ptr<XmlNode_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlNode.cloneNode");
 
     METHOD_OVER(1, 0);
 
@@ -302,7 +302,7 @@ inline void XmlNode_base::s_lookupPrefix(const v8::FunctionCallbackInfo<v8::Valu
     exlib::string vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlNode.lookupPrefix");
 
     METHOD_OVER(1, 1);
 
@@ -318,7 +318,7 @@ inline void XmlNode_base::s_lookupNamespaceURI(const v8::FunctionCallbackInfo<v8
     exlib::string vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlNode.lookupNamespaceURI");
 
     METHOD_OVER(1, 1);
 
@@ -334,7 +334,7 @@ inline void XmlNode_base::s_insertBefore(const v8::FunctionCallbackInfo<v8::Valu
     obj_ptr<XmlNode_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlNode.insertBefore");
 
     METHOD_OVER(2, 2);
 
@@ -351,7 +351,7 @@ inline void XmlNode_base::s_insertAfter(const v8::FunctionCallbackInfo<v8::Value
     obj_ptr<XmlNode_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlNode.insertAfter");
 
     METHOD_OVER(2, 2);
 
@@ -368,7 +368,7 @@ inline void XmlNode_base::s_appendChild(const v8::FunctionCallbackInfo<v8::Value
     obj_ptr<XmlNode_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlNode.appendChild");
 
     METHOD_OVER(1, 1);
 
@@ -384,7 +384,7 @@ inline void XmlNode_base::s_replaceChild(const v8::FunctionCallbackInfo<v8::Valu
     obj_ptr<XmlNode_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlNode.replaceChild");
 
     METHOD_OVER(2, 2);
 
@@ -401,7 +401,7 @@ inline void XmlNode_base::s_removeChild(const v8::FunctionCallbackInfo<v8::Value
     obj_ptr<XmlNode_base> vr;
 
     METHOD_INSTANCE(XmlNode_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlNode.removeChild");
 
     METHOD_OVER(1, 1);
 

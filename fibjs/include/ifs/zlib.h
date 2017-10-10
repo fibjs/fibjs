@@ -155,28 +155,28 @@ inline ClassInfo& zlib_base::class_info()
 inline void zlib_base::s_get_NO_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _NO_COMPRESSION;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zlib.NO_COMPRESSION");
     METHOD_RETURN();
 }
 
 inline void zlib_base::s_get_BEST_SPEED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _BEST_SPEED;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zlib.BEST_SPEED");
     METHOD_RETURN();
 }
 
 inline void zlib_base::s_get_BEST_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _BEST_COMPRESSION;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zlib.BEST_COMPRESSION");
     METHOD_RETURN();
 }
 
 inline void zlib_base::s_get_DEFAULT_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _DEFAULT_COMPRESSION;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("zlib.DEFAULT_COMPRESSION");
     METHOD_RETURN();
 }
 
@@ -184,7 +184,7 @@ inline void zlib_base::s_deflate(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("zlib.deflate");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -202,7 +202,7 @@ inline void zlib_base::s_deflate(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void zlib_base::s_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("zlib.deflateTo");
 
     ASYNC_METHOD_OVER(3, 2);
 
@@ -235,7 +235,7 @@ inline void zlib_base::s_inflate(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("zlib.inflate");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -252,7 +252,7 @@ inline void zlib_base::s_inflate(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void zlib_base::s_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("zlib.inflateTo");
 
     ASYNC_METHOD_OVER(2, 2);
 
@@ -283,7 +283,7 @@ inline void zlib_base::s_gzip(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("zlib.gzip");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -300,7 +300,7 @@ inline void zlib_base::s_gzip(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void zlib_base::s_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("zlib.gzipTo");
 
     ASYNC_METHOD_OVER(2, 2);
 
@@ -331,7 +331,7 @@ inline void zlib_base::s_gunzip(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("zlib.gunzip");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -348,7 +348,7 @@ inline void zlib_base::s_gunzip(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void zlib_base::s_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("zlib.gunzipTo");
 
     ASYNC_METHOD_OVER(2, 2);
 
@@ -379,7 +379,7 @@ inline void zlib_base::s_deflateRaw(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("zlib.deflateRaw");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -397,7 +397,7 @@ inline void zlib_base::s_deflateRaw(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void zlib_base::s_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("zlib.deflateRawTo");
 
     ASYNC_METHOD_OVER(3, 2);
 
@@ -430,7 +430,7 @@ inline void zlib_base::s_inflateRaw(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("zlib.inflateRaw");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -447,7 +447,7 @@ inline void zlib_base::s_inflateRaw(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void zlib_base::s_inflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("zlib.inflateRawTo");
 
     ASYNC_METHOD_OVER(2, 2);
 

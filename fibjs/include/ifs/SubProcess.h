@@ -84,7 +84,7 @@ inline ClassInfo& SubProcess_base::class_info()
 inline void SubProcess_base::s_kill(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(SubProcess_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SubProcess.kill");
 
     METHOD_OVER(1, 1);
 
@@ -100,7 +100,7 @@ inline void SubProcess_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& a
     int32_t vr;
 
     METHOD_INSTANCE(SubProcess_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SubProcess.wait");
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -118,7 +118,7 @@ inline void SubProcess_base::s_findWindow(const v8::FunctionCallbackInfo<v8::Val
     v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(SubProcess_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SubProcess.findWindow");
 
     METHOD_OVER(1, 1);
 
@@ -134,7 +134,7 @@ inline void SubProcess_base::s_get_pid(v8::Local<v8::String> property, const v8:
     int32_t vr;
 
     METHOD_INSTANCE(SubProcess_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("SubProcess.pid");
 
     hr = pInst->get_pid(vr);
 
@@ -146,7 +146,7 @@ inline void SubProcess_base::s_get_stdin(v8::Local<v8::String> property, const v
     obj_ptr<BufferedStream_base> vr;
 
     METHOD_INSTANCE(SubProcess_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("SubProcess.stdin");
 
     hr = pInst->get_stdin(vr);
 
@@ -158,7 +158,7 @@ inline void SubProcess_base::s_get_stdout(v8::Local<v8::String> property, const 
     obj_ptr<BufferedStream_base> vr;
 
     METHOD_INSTANCE(SubProcess_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("SubProcess.stdout");
 
     hr = pInst->get_stdout(vr);
 

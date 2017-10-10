@@ -84,7 +84,7 @@ inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Buffer_base> vr;
 
     METHOD_INSTANCE(Stream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stream.read");
 
     ASYNC_METHOD_OVER(1, 0);
 
@@ -102,7 +102,7 @@ inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Stream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stream.write");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -120,7 +120,7 @@ inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void Stream_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Stream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stream.close");
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -138,7 +138,7 @@ inline void Stream_base::s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& arg
     int64_t vr;
 
     METHOD_INSTANCE(Stream_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stream.copyTo");
 
     ASYNC_METHOD_OVER(2, 1);
 

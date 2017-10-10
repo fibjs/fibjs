@@ -112,7 +112,7 @@ inline void Stat_base::s_get_name(v8::Local<v8::String> property, const v8::Prop
     exlib::string vr;
 
     METHOD_INSTANCE(Stat_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Stat.name");
 
     hr = pInst->get_name(vr);
 
@@ -124,7 +124,7 @@ inline void Stat_base::s_get_size(v8::Local<v8::String> property, const v8::Prop
     int64_t vr;
 
     METHOD_INSTANCE(Stat_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Stat.size");
 
     hr = pInst->get_size(vr);
 
@@ -136,7 +136,7 @@ inline void Stat_base::s_get_mode(v8::Local<v8::String> property, const v8::Prop
     int32_t vr;
 
     METHOD_INSTANCE(Stat_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Stat.mode");
 
     hr = pInst->get_mode(vr);
 
@@ -148,7 +148,7 @@ inline void Stat_base::s_get_mtime(v8::Local<v8::String> property, const v8::Pro
     date_t vr;
 
     METHOD_INSTANCE(Stat_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Stat.mtime");
 
     hr = pInst->get_mtime(vr);
 
@@ -160,7 +160,7 @@ inline void Stat_base::s_get_atime(v8::Local<v8::String> property, const v8::Pro
     date_t vr;
 
     METHOD_INSTANCE(Stat_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Stat.atime");
 
     hr = pInst->get_atime(vr);
 
@@ -172,7 +172,7 @@ inline void Stat_base::s_get_ctime(v8::Local<v8::String> property, const v8::Pro
     date_t vr;
 
     METHOD_INSTANCE(Stat_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Stat.ctime");
 
     hr = pInst->get_ctime(vr);
 
@@ -184,7 +184,7 @@ inline void Stat_base::s_get_uid(v8::Local<v8::String> property, const v8::Prope
     int32_t vr;
 
     METHOD_INSTANCE(Stat_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Stat.uid");
 
     hr = pInst->get_uid(vr);
 
@@ -196,7 +196,7 @@ inline void Stat_base::s_get_gid(v8::Local<v8::String> property, const v8::Prope
     int32_t vr;
 
     METHOD_INSTANCE(Stat_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Stat.gid");
 
     hr = pInst->get_gid(vr);
 
@@ -208,7 +208,7 @@ inline void Stat_base::s_isWritable(const v8::FunctionCallbackInfo<v8::Value>& a
     bool vr;
 
     METHOD_INSTANCE(Stat_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stat.isWritable");
 
     METHOD_OVER(0, 0);
 
@@ -222,7 +222,7 @@ inline void Stat_base::s_isReadable(const v8::FunctionCallbackInfo<v8::Value>& a
     bool vr;
 
     METHOD_INSTANCE(Stat_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stat.isReadable");
 
     METHOD_OVER(0, 0);
 
@@ -236,7 +236,7 @@ inline void Stat_base::s_isExecutable(const v8::FunctionCallbackInfo<v8::Value>&
     bool vr;
 
     METHOD_INSTANCE(Stat_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stat.isExecutable");
 
     METHOD_OVER(0, 0);
 
@@ -250,7 +250,7 @@ inline void Stat_base::s_isHidden(const v8::FunctionCallbackInfo<v8::Value>& arg
     bool vr;
 
     METHOD_INSTANCE(Stat_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stat.isHidden");
 
     METHOD_OVER(0, 0);
 
@@ -264,7 +264,7 @@ inline void Stat_base::s_isDirectory(const v8::FunctionCallbackInfo<v8::Value>& 
     bool vr;
 
     METHOD_INSTANCE(Stat_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stat.isDirectory");
 
     METHOD_OVER(0, 0);
 
@@ -278,7 +278,7 @@ inline void Stat_base::s_isFile(const v8::FunctionCallbackInfo<v8::Value>& args)
     bool vr;
 
     METHOD_INSTANCE(Stat_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stat.isFile");
 
     METHOD_OVER(0, 0);
 
@@ -292,7 +292,7 @@ inline void Stat_base::s_isSymbolicLink(const v8::FunctionCallbackInfo<v8::Value
     bool vr;
 
     METHOD_INSTANCE(Stat_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stat.isSymbolicLink");
 
     METHOD_OVER(0, 0);
 
@@ -306,7 +306,7 @@ inline void Stat_base::s_isMemory(const v8::FunctionCallbackInfo<v8::Value>& arg
     bool vr;
 
     METHOD_INSTANCE(Stat_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stat.isMemory");
 
     METHOD_OVER(0, 0);
 
@@ -320,7 +320,7 @@ inline void Stat_base::s_isSocket(const v8::FunctionCallbackInfo<v8::Value>& arg
     bool vr;
 
     METHOD_INSTANCE(Stat_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stat.isSocket");
 
     METHOD_OVER(0, 0);
 

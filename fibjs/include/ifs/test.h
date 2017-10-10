@@ -109,7 +109,7 @@ inline ClassInfo& test_base::class_info()
 
 inline void test_base::s_describe(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("test.describe");
 
     METHOD_OVER(2, 2);
 
@@ -123,7 +123,7 @@ inline void test_base::s_describe(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void test_base::s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("test.xdescribe");
 
     METHOD_OVER(2, 2);
 
@@ -137,7 +137,7 @@ inline void test_base::s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void test_base::s_odescribe(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("test.odescribe");
 
     METHOD_OVER(2, 2);
 
@@ -151,7 +151,7 @@ inline void test_base::s_odescribe(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void test_base::s_it(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("test.it");
 
     METHOD_OVER(2, 2);
 
@@ -165,7 +165,7 @@ inline void test_base::s_it(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void test_base::s_xit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("test.xit");
 
     METHOD_OVER(2, 2);
 
@@ -179,7 +179,7 @@ inline void test_base::s_xit(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void test_base::s_oit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("test.oit");
 
     METHOD_OVER(2, 2);
 
@@ -193,7 +193,7 @@ inline void test_base::s_oit(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void test_base::s_before(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("test.before");
 
     METHOD_OVER(1, 1);
 
@@ -206,7 +206,7 @@ inline void test_base::s_before(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void test_base::s_after(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("test.after");
 
     METHOD_OVER(1, 1);
 
@@ -219,7 +219,7 @@ inline void test_base::s_after(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void test_base::s_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("test.beforeEach");
 
     METHOD_OVER(1, 1);
 
@@ -232,7 +232,7 @@ inline void test_base::s_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void test_base::s_afterEach(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("test.afterEach");
 
     METHOD_OVER(1, 1);
 
@@ -247,7 +247,7 @@ inline void test_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("test.run");
 
     METHOD_OVER(1, 0);
 
@@ -260,7 +260,7 @@ inline void test_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void test_base::s_setup(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("test.setup");
 
     METHOD_OVER(0, 0);
 
@@ -273,7 +273,7 @@ inline void test_base::s_get_slow(v8::Local<v8::String> property, const v8::Prop
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("test.slow");
 
     hr = get_slow(vr);
 
@@ -282,7 +282,7 @@ inline void test_base::s_get_slow(v8::Local<v8::String> property, const v8::Prop
 
 inline void test_base::s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("test.slow");
     PROPERTY_VAL(int32_t);
 
     hr = set_slow(v0);

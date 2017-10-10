@@ -190,7 +190,8 @@ typedef int32_t result_t;
 #define V8_RETURN(v) (v)
 #endif
 
-#define PROPERTY_ENTER()                      \
+#define PROPERTY_ENTER(name)                  \
+    save_native_name(name);                   \
     v8::Isolate* isolate = args.GetIsolate(); \
     V8_SCOPE(isolate);                        \
     result_t hr = 0;                          \
@@ -241,7 +242,8 @@ typedef int32_t result_t;
                 break;                                             \
             }
 
-#define METHOD_ENTER()                        \
+#define METHOD_ENTER(name)                    \
+    save_native_name(name);                   \
     v8::Isolate* isolate = args.GetIsolate(); \
     V8_SCOPE(isolate);                        \
     result_t hr = CALL_E_BADPARAMCOUNT;       \
@@ -253,12 +255,12 @@ typedef int32_t result_t;
     if (class_info().init_isolate()) \
         return;
 
-#define CONSTRUCT_ENTER()                \
+#define CONSTRUCT_ENTER(name)            \
     if (!args.IsConstructCall()) {       \
         ThrowResult(CALL_E_CONSTRUCTOR); \
         return;                          \
     }                                    \
-    METHOD_ENTER()
+    METHOD_ENTER(name)
 
 #define METHOD_INSTANCE(cls)                            \
     obj_ptr<cls> pInst = cls::getInstance(args.This()); \
@@ -574,7 +576,8 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, double& n, bool bStrict
     }
 
     n = v->NumberValue();
-    if (isnan(n)) n = 0;
+    if (isnan(n))
+        n = 0;
 
     return 0;
 }
@@ -1170,22 +1173,8 @@ inline exlib::string niceSize(intptr_t sz)
     return exlib::string(buf, cnt);
 }
 
-inline exlib::string dump_str(exlib::string str)
-{
-    static const char hexs[] = "0123456789abcdef";
-    exlib::string strHex;
-    int32_t i;
-
-    for (i = 0; i < (int32_t)str.length(); i++) {
-        unsigned char ch = (unsigned char)str[i];
-        strHex += hexs[ch >> 4];
-        strHex += hexs[ch & 0xf];
-    }
-
-    return strHex;
-}
-
 void flushLog();
+void save_native_name(const char* name);
 }
 
 #endif

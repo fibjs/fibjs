@@ -90,7 +90,7 @@ void ZmqSocket_base::__new(const T& args)
 {
     obj_ptr<ZmqSocket_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new ZmqSocket()");
 
     METHOD_OVER(1, 0);
 
@@ -104,7 +104,7 @@ void ZmqSocket_base::__new(const T& args)
 inline void ZmqSocket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(ZmqSocket_base);
-    METHOD_ENTER();
+    METHOD_ENTER("ZmqSocket.bind");
 
     METHOD_OVER(1, 1);
 
@@ -118,7 +118,7 @@ inline void ZmqSocket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void ZmqSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(ZmqSocket_base);
-    METHOD_ENTER();
+    METHOD_ENTER("ZmqSocket.connect");
 
     METHOD_OVER(1, 1);
 
@@ -134,7 +134,7 @@ inline void ZmqSocket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& ar
     obj_ptr<Buffer_base> vr;
 
     METHOD_INSTANCE(ZmqSocket_base);
-    METHOD_ENTER();
+    METHOD_ENTER("ZmqSocket.recv");
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -150,7 +150,7 @@ inline void ZmqSocket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void ZmqSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(ZmqSocket_base);
-    METHOD_ENTER();
+    METHOD_ENTER("ZmqSocket.send");
 
     METHOD_OVER(1, 1);
 
@@ -164,7 +164,7 @@ inline void ZmqSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void ZmqSocket_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(ZmqSocket_base);
-    METHOD_ENTER();
+    METHOD_ENTER("ZmqSocket.close");
 
     METHOD_OVER(0, 0);
 
@@ -178,7 +178,7 @@ inline void ZmqSocket_base::s_get_type(v8::Local<v8::String> property, const v8:
     int32_t vr;
 
     METHOD_INSTANCE(ZmqSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("ZmqSocket.type");
 
     hr = pInst->get_type(vr);
 

@@ -90,7 +90,7 @@ void LruCache_base::__new(const T& args)
 {
     obj_ptr<LruCache_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new LruCache()");
 
     METHOD_OVER(2, 1);
 
@@ -107,7 +107,7 @@ inline void LruCache_base::s_get_size(v8::Local<v8::String> property, const v8::
     int32_t vr;
 
     METHOD_INSTANCE(LruCache_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("LruCache.size");
 
     hr = pInst->get_size(vr);
 
@@ -119,7 +119,7 @@ inline void LruCache_base::s_get_timeout(v8::Local<v8::String> property, const v
     int32_t vr;
 
     METHOD_INSTANCE(LruCache_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("LruCache.timeout");
 
     hr = pInst->get_timeout(vr);
 
@@ -129,7 +129,7 @@ inline void LruCache_base::s_get_timeout(v8::Local<v8::String> property, const v
 inline void LruCache_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(LruCache_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("LruCache.timeout");
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_timeout(v0);
@@ -140,7 +140,7 @@ inline void LruCache_base::s_set_timeout(v8::Local<v8::String> property, v8::Loc
 inline void LruCache_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(LruCache_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LruCache.clear");
 
     METHOD_OVER(0, 0);
 
@@ -154,7 +154,7 @@ inline void LruCache_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args
     bool vr;
 
     METHOD_INSTANCE(LruCache_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LruCache.has");
 
     METHOD_OVER(1, 1);
 
@@ -170,7 +170,7 @@ inline void LruCache_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args
     v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(LruCache_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LruCache.get");
 
     METHOD_OVER(1, 1);
 
@@ -191,7 +191,7 @@ inline void LruCache_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void LruCache_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(LruCache_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LruCache.set");
 
     METHOD_OVER(2, 2);
 
@@ -212,7 +212,7 @@ inline void LruCache_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void LruCache_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(LruCache_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LruCache.remove");
 
     METHOD_OVER(1, 1);
 
@@ -228,7 +228,7 @@ inline void LruCache_base::s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& 
     bool vr;
 
     METHOD_INSTANCE(LruCache_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LruCache.isEmpty");
 
     METHOD_OVER(0, 0);
 

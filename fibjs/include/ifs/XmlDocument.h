@@ -144,7 +144,7 @@ void XmlDocument_base::__new(const T& args)
 {
     obj_ptr<XmlDocument_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new XmlDocument()");
 
     METHOD_OVER(1, 0);
 
@@ -158,7 +158,7 @@ void XmlDocument_base::__new(const T& args)
 inline void XmlDocument_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(XmlDocument_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlDocument.load");
 
     METHOD_OVER(1, 1);
 
@@ -180,7 +180,7 @@ inline void XmlDocument_base::s_get_inputEncoding(v8::Local<v8::String> property
     exlib::string vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocument.inputEncoding");
 
     hr = pInst->get_inputEncoding(vr);
 
@@ -192,7 +192,7 @@ inline void XmlDocument_base::s_get_xmlStandalone(v8::Local<v8::String> property
     bool vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocument.xmlStandalone");
 
     hr = pInst->get_xmlStandalone(vr);
 
@@ -202,7 +202,7 @@ inline void XmlDocument_base::s_get_xmlStandalone(v8::Local<v8::String> property
 inline void XmlDocument_base::s_set_xmlStandalone(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocument.xmlStandalone");
     PROPERTY_VAL(bool);
 
     hr = pInst->set_xmlStandalone(v0);
@@ -215,7 +215,7 @@ inline void XmlDocument_base::s_get_xmlVersion(v8::Local<v8::String> property, c
     exlib::string vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocument.xmlVersion");
 
     hr = pInst->get_xmlVersion(vr);
 
@@ -225,7 +225,7 @@ inline void XmlDocument_base::s_get_xmlVersion(v8::Local<v8::String> property, c
 inline void XmlDocument_base::s_set_xmlVersion(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocument.xmlVersion");
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_xmlVersion(v0);
@@ -238,7 +238,7 @@ inline void XmlDocument_base::s_get_doctype(v8::Local<v8::String> property, cons
     obj_ptr<XmlDocumentType_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocument.doctype");
 
     hr = pInst->get_doctype(vr);
 
@@ -250,7 +250,7 @@ inline void XmlDocument_base::s_get_documentElement(v8::Local<v8::String> proper
     obj_ptr<XmlElement_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocument.documentElement");
 
     hr = pInst->get_documentElement(vr);
 
@@ -262,7 +262,7 @@ inline void XmlDocument_base::s_get_head(v8::Local<v8::String> property, const v
     obj_ptr<XmlElement_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocument.head");
 
     hr = pInst->get_head(vr);
 
@@ -274,7 +274,7 @@ inline void XmlDocument_base::s_get_title(v8::Local<v8::String> property, const 
     exlib::string vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocument.title");
 
     hr = pInst->get_title(vr);
 
@@ -286,7 +286,7 @@ inline void XmlDocument_base::s_get_body(v8::Local<v8::String> property, const v
     obj_ptr<XmlElement_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("XmlDocument.body");
 
     hr = pInst->get_body(vr);
 
@@ -298,7 +298,7 @@ inline void XmlDocument_base::s_getElementsByTagName(const v8::FunctionCallbackI
     obj_ptr<XmlNodeList_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlDocument.getElementsByTagName");
 
     METHOD_OVER(1, 1);
 
@@ -314,7 +314,7 @@ inline void XmlDocument_base::s_getElementsByTagNameNS(const v8::FunctionCallbac
     obj_ptr<XmlNodeList_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlDocument.getElementsByTagNameNS");
 
     METHOD_OVER(2, 2);
 
@@ -331,7 +331,7 @@ inline void XmlDocument_base::s_getElementById(const v8::FunctionCallbackInfo<v8
     obj_ptr<XmlElement_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlDocument.getElementById");
 
     METHOD_OVER(1, 1);
 
@@ -347,7 +347,7 @@ inline void XmlDocument_base::s_getElementsByClassName(const v8::FunctionCallbac
     obj_ptr<XmlNodeList_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlDocument.getElementsByClassName");
 
     METHOD_OVER(1, 1);
 
@@ -363,7 +363,7 @@ inline void XmlDocument_base::s_createElement(const v8::FunctionCallbackInfo<v8:
     obj_ptr<XmlElement_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlDocument.createElement");
 
     METHOD_OVER(1, 1);
 
@@ -379,7 +379,7 @@ inline void XmlDocument_base::s_createElementNS(const v8::FunctionCallbackInfo<v
     obj_ptr<XmlElement_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlDocument.createElementNS");
 
     METHOD_OVER(2, 2);
 
@@ -396,7 +396,7 @@ inline void XmlDocument_base::s_createTextNode(const v8::FunctionCallbackInfo<v8
     obj_ptr<XmlText_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlDocument.createTextNode");
 
     METHOD_OVER(1, 1);
 
@@ -412,7 +412,7 @@ inline void XmlDocument_base::s_createComment(const v8::FunctionCallbackInfo<v8:
     obj_ptr<XmlComment_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlDocument.createComment");
 
     METHOD_OVER(1, 1);
 
@@ -428,7 +428,7 @@ inline void XmlDocument_base::s_createCDATASection(const v8::FunctionCallbackInf
     obj_ptr<XmlCDATASection_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlDocument.createCDATASection");
 
     METHOD_OVER(1, 1);
 
@@ -444,7 +444,7 @@ inline void XmlDocument_base::s_createProcessingInstruction(const v8::FunctionCa
     obj_ptr<XmlProcessingInstruction_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    METHOD_ENTER();
+    METHOD_ENTER("XmlDocument.createProcessingInstruction");
 
     METHOD_OVER(2, 2);
 

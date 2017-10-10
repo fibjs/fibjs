@@ -88,7 +88,7 @@ inline void RedisSet_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args
     int32_t vr;
 
     METHOD_INSTANCE(RedisSet_base);
-    METHOD_ENTER();
+    METHOD_ENTER("RedisSet.add");
 
     METHOD_OVER(1, 1);
 
@@ -110,7 +110,7 @@ inline void RedisSet_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& a
     int32_t vr;
 
     METHOD_INSTANCE(RedisSet_base);
-    METHOD_ENTER();
+    METHOD_ENTER("RedisSet.remove");
 
     METHOD_OVER(1, 1);
 
@@ -132,7 +132,7 @@ inline void RedisSet_base::s_len(const v8::FunctionCallbackInfo<v8::Value>& args
     int32_t vr;
 
     METHOD_INSTANCE(RedisSet_base);
-    METHOD_ENTER();
+    METHOD_ENTER("RedisSet.len");
 
     METHOD_OVER(0, 0);
 
@@ -146,7 +146,7 @@ inline void RedisSet_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& a
     bool vr;
 
     METHOD_INSTANCE(RedisSet_base);
-    METHOD_ENTER();
+    METHOD_ENTER("RedisSet.exists");
 
     METHOD_OVER(1, 1);
 
@@ -162,7 +162,7 @@ inline void RedisSet_base::s_members(const v8::FunctionCallbackInfo<v8::Value>& 
     obj_ptr<List_base> vr;
 
     METHOD_INSTANCE(RedisSet_base);
-    METHOD_ENTER();
+    METHOD_ENTER("RedisSet.members");
 
     METHOD_OVER(0, 0);
 
@@ -176,7 +176,7 @@ inline void RedisSet_base::s_pop(const v8::FunctionCallbackInfo<v8::Value>& args
     obj_ptr<Buffer_base> vr;
 
     METHOD_INSTANCE(RedisSet_base);
-    METHOD_ENTER();
+    METHOD_ENTER("RedisSet.pop");
 
     METHOD_OVER(0, 0);
 
@@ -190,7 +190,7 @@ inline void RedisSet_base::s_randMember(const v8::FunctionCallbackInfo<v8::Value
     v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(RedisSet_base);
-    METHOD_ENTER();
+    METHOD_ENTER("RedisSet.randMember");
 
     METHOD_OVER(0, 0);
 

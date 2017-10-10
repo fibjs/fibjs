@@ -89,7 +89,7 @@ void Queue_base::__new(const T& args)
 {
     obj_ptr<Queue_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new Queue()");
 
     METHOD_OVER(1, 1);
 
@@ -105,7 +105,7 @@ inline void Queue_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
     bool vr;
 
     METHOD_INSTANCE(Queue_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Queue.add");
 
     METHOD_OVER(1, 1);
 
@@ -121,7 +121,7 @@ inline void Queue_base::s_offer(const v8::FunctionCallbackInfo<v8::Value>& args)
     bool vr;
 
     METHOD_INSTANCE(Queue_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Queue.offer");
 
     METHOD_OVER(1, 1);
 
@@ -137,7 +137,7 @@ inline void Queue_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args
     v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(Queue_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Queue.remove");
 
     METHOD_OVER(0, 0);
 
@@ -151,7 +151,7 @@ inline void Queue_base::s_poll(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(Queue_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Queue.poll");
 
     METHOD_OVER(0, 0);
 
@@ -165,7 +165,7 @@ inline void Queue_base::s_element(const v8::FunctionCallbackInfo<v8::Value>& arg
     v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(Queue_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Queue.element");
 
     METHOD_OVER(0, 0);
 
@@ -179,7 +179,7 @@ inline void Queue_base::s_peek(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(Queue_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Queue.peek");
 
     METHOD_OVER(0, 0);
 
@@ -191,7 +191,7 @@ inline void Queue_base::s_peek(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Queue_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Queue_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Queue.clear");
 
     METHOD_OVER(0, 0);
 
@@ -205,7 +205,7 @@ inline void Queue_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& arg
     v8::Local<v8::Array> vr;
 
     METHOD_INSTANCE(Queue_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Queue.toArray");
 
     METHOD_OVER(0, 0);
 
@@ -219,7 +219,7 @@ inline void Queue_base::s_get_length(v8::Local<v8::String> property, const v8::P
     int32_t vr;
 
     METHOD_INSTANCE(Queue_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Queue.length");
 
     hr = pInst->get_length(vr);
 

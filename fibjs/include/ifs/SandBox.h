@@ -94,7 +94,7 @@ void SandBox_base::__new(const T& args)
 {
     obj_ptr<SandBox_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new SandBox()");
 
     METHOD_OVER(1, 1);
 
@@ -130,7 +130,7 @@ void SandBox_base::__new(const T& args)
 inline void SandBox_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(SandBox_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SandBox.add");
 
     METHOD_OVER(2, 2);
 
@@ -153,7 +153,7 @@ inline void SandBox_base::s_addScript(const v8::FunctionCallbackInfo<v8::Value>&
     v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(SandBox_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SandBox.addScript");
 
     METHOD_OVER(2, 2);
 
@@ -168,7 +168,7 @@ inline void SandBox_base::s_addScript(const v8::FunctionCallbackInfo<v8::Value>&
 inline void SandBox_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(SandBox_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SandBox.remove");
 
     METHOD_OVER(1, 1);
 
@@ -184,7 +184,7 @@ inline void SandBox_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& arg
     obj_ptr<SandBox_base> vr;
 
     METHOD_INSTANCE(SandBox_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SandBox.clone");
 
     METHOD_OVER(0, 0);
 
@@ -196,7 +196,7 @@ inline void SandBox_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& arg
 inline void SandBox_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(SandBox_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SandBox.run");
 
     METHOD_OVER(2, 1);
 
@@ -213,7 +213,7 @@ inline void SandBox_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& a
     exlib::string vr;
 
     METHOD_INSTANCE(SandBox_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SandBox.resolve");
 
     METHOD_OVER(2, 2);
 
@@ -230,7 +230,7 @@ inline void SandBox_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& a
     v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(SandBox_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SandBox.require");
 
     METHOD_OVER(2, 2);
 
@@ -247,7 +247,7 @@ inline void SandBox_base::s_get_global(v8::Local<v8::String> property, const v8:
     v8::Local<v8::Object> vr;
 
     METHOD_INSTANCE(SandBox_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("SandBox.global");
 
     hr = pInst->get_global(vr);
 

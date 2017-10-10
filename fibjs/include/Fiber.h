@@ -36,11 +36,6 @@ public:
     };
 
 public:
-    JSFiber()
-        : m_bindFiber(NULL)
-    {
-    }
-
     ~JSFiber()
     {
         clear();
@@ -131,9 +126,9 @@ public:
     weak_ptr<Fiber_base> m_caller;
     void* m_c_entry_fp_;
     void* m_handler_;
+    const char* m_native_name;
 
 private:
-    exlib::Fiber* m_bindFiber;
     v8::Global<v8::Function> m_func;
     QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Value> m_result;

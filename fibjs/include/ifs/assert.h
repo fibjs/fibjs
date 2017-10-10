@@ -200,7 +200,7 @@ inline ClassInfo& assert_base::class_info()
 
 inline void assert_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert");
 
     METHOD_OVER(2, 0);
 
@@ -214,7 +214,7 @@ inline void assert_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void assert_base::s_ok(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.ok");
 
     METHOD_OVER(2, 0);
 
@@ -228,7 +228,7 @@ inline void assert_base::s_ok(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void assert_base::s_notOk(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.notOk");
 
     METHOD_OVER(2, 0);
 
@@ -242,7 +242,7 @@ inline void assert_base::s_notOk(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void assert_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.equal");
 
     METHOD_OVER(3, 0);
 
@@ -257,7 +257,7 @@ inline void assert_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void assert_base::s_notEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.notEqual");
 
     METHOD_OVER(3, 0);
 
@@ -272,7 +272,7 @@ inline void assert_base::s_notEqual(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void assert_base::s_strictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.strictEqual");
 
     METHOD_OVER(3, 0);
 
@@ -287,7 +287,7 @@ inline void assert_base::s_strictEqual(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void assert_base::s_notStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.notStrictEqual");
 
     METHOD_OVER(3, 0);
 
@@ -302,7 +302,7 @@ inline void assert_base::s_notStrictEqual(const v8::FunctionCallbackInfo<v8::Val
 
 inline void assert_base::s_deepEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.deepEqual");
 
     METHOD_OVER(3, 0);
 
@@ -317,7 +317,7 @@ inline void assert_base::s_deepEqual(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void assert_base::s_notDeepEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.notDeepEqual");
 
     METHOD_OVER(3, 0);
 
@@ -332,7 +332,7 @@ inline void assert_base::s_notDeepEqual(const v8::FunctionCallbackInfo<v8::Value
 
 inline void assert_base::s_closeTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.closeTo");
 
     METHOD_OVER(4, 3);
 
@@ -348,7 +348,7 @@ inline void assert_base::s_closeTo(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void assert_base::s_notCloseTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.notCloseTo");
 
     METHOD_OVER(4, 3);
 
@@ -364,7 +364,7 @@ inline void assert_base::s_notCloseTo(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void assert_base::s_lessThan(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.lessThan");
 
     METHOD_OVER(3, 2);
 
@@ -379,7 +379,7 @@ inline void assert_base::s_lessThan(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void assert_base::s_notLessThan(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.notLessThan");
 
     METHOD_OVER(3, 2);
 
@@ -394,7 +394,7 @@ inline void assert_base::s_notLessThan(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void assert_base::s_greaterThan(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.greaterThan");
 
     METHOD_OVER(3, 2);
 
@@ -409,7 +409,7 @@ inline void assert_base::s_greaterThan(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void assert_base::s_notGreaterThan(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.notGreaterThan");
 
     METHOD_OVER(3, 2);
 
@@ -424,7 +424,7 @@ inline void assert_base::s_notGreaterThan(const v8::FunctionCallbackInfo<v8::Val
 
 inline void assert_base::s_exist(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.exist");
 
     METHOD_OVER(2, 1);
 
@@ -438,7 +438,7 @@ inline void assert_base::s_exist(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void assert_base::s_notExist(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.notExist");
 
     METHOD_OVER(2, 1);
 
@@ -452,7 +452,7 @@ inline void assert_base::s_notExist(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void assert_base::s_isTrue(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isTrue");
 
     METHOD_OVER(2, 1);
 
@@ -466,7 +466,7 @@ inline void assert_base::s_isTrue(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void assert_base::s_isNotTrue(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isNotTrue");
 
     METHOD_OVER(2, 1);
 
@@ -480,7 +480,7 @@ inline void assert_base::s_isNotTrue(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void assert_base::s_isFalse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isFalse");
 
     METHOD_OVER(2, 1);
 
@@ -494,7 +494,7 @@ inline void assert_base::s_isFalse(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void assert_base::s_isNotFalse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isNotFalse");
 
     METHOD_OVER(2, 1);
 
@@ -508,7 +508,7 @@ inline void assert_base::s_isNotFalse(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void assert_base::s_isNull(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isNull");
 
     METHOD_OVER(2, 1);
 
@@ -522,7 +522,7 @@ inline void assert_base::s_isNull(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void assert_base::s_isNotNull(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isNotNull");
 
     METHOD_OVER(2, 1);
 
@@ -536,7 +536,7 @@ inline void assert_base::s_isNotNull(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void assert_base::s_isUndefined(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isUndefined");
 
     METHOD_OVER(2, 1);
 
@@ -550,7 +550,7 @@ inline void assert_base::s_isUndefined(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void assert_base::s_isDefined(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isDefined");
 
     METHOD_OVER(2, 1);
 
@@ -564,7 +564,7 @@ inline void assert_base::s_isDefined(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void assert_base::s_isFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isFunction");
 
     METHOD_OVER(2, 1);
 
@@ -578,7 +578,7 @@ inline void assert_base::s_isFunction(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void assert_base::s_isNotFunction(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isNotFunction");
 
     METHOD_OVER(2, 1);
 
@@ -592,7 +592,7 @@ inline void assert_base::s_isNotFunction(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void assert_base::s_isObject(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isObject");
 
     METHOD_OVER(2, 1);
 
@@ -606,7 +606,7 @@ inline void assert_base::s_isObject(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void assert_base::s_isNotObject(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isNotObject");
 
     METHOD_OVER(2, 1);
 
@@ -620,7 +620,7 @@ inline void assert_base::s_isNotObject(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void assert_base::s_isArray(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isArray");
 
     METHOD_OVER(2, 1);
 
@@ -634,7 +634,7 @@ inline void assert_base::s_isArray(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void assert_base::s_isNotArray(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isNotArray");
 
     METHOD_OVER(2, 1);
 
@@ -648,7 +648,7 @@ inline void assert_base::s_isNotArray(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void assert_base::s_isString(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isString");
 
     METHOD_OVER(2, 1);
 
@@ -662,7 +662,7 @@ inline void assert_base::s_isString(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void assert_base::s_isNotString(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isNotString");
 
     METHOD_OVER(2, 1);
 
@@ -676,7 +676,7 @@ inline void assert_base::s_isNotString(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void assert_base::s_isNumber(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isNumber");
 
     METHOD_OVER(2, 1);
 
@@ -690,7 +690,7 @@ inline void assert_base::s_isNumber(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void assert_base::s_isNotNumber(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isNotNumber");
 
     METHOD_OVER(2, 1);
 
@@ -704,7 +704,7 @@ inline void assert_base::s_isNotNumber(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void assert_base::s_isBoolean(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isBoolean");
 
     METHOD_OVER(2, 1);
 
@@ -718,7 +718,7 @@ inline void assert_base::s_isBoolean(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void assert_base::s_isNotBoolean(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.isNotBoolean");
 
     METHOD_OVER(2, 1);
 
@@ -732,7 +732,7 @@ inline void assert_base::s_isNotBoolean(const v8::FunctionCallbackInfo<v8::Value
 
 inline void assert_base::s_typeOf(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.typeOf");
 
     METHOD_OVER(3, 2);
 
@@ -747,7 +747,7 @@ inline void assert_base::s_typeOf(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void assert_base::s_notTypeOf(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.notTypeOf");
 
     METHOD_OVER(3, 2);
 
@@ -762,7 +762,7 @@ inline void assert_base::s_notTypeOf(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void assert_base::s_property(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.property");
 
     METHOD_OVER(3, 2);
 
@@ -777,7 +777,7 @@ inline void assert_base::s_property(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void assert_base::s_notProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.notProperty");
 
     METHOD_OVER(3, 2);
 
@@ -792,7 +792,7 @@ inline void assert_base::s_notProperty(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void assert_base::s_deepProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.deepProperty");
 
     METHOD_OVER(3, 2);
 
@@ -807,7 +807,7 @@ inline void assert_base::s_deepProperty(const v8::FunctionCallbackInfo<v8::Value
 
 inline void assert_base::s_notDeepProperty(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.notDeepProperty");
 
     METHOD_OVER(3, 2);
 
@@ -822,7 +822,7 @@ inline void assert_base::s_notDeepProperty(const v8::FunctionCallbackInfo<v8::Va
 
 inline void assert_base::s_propertyVal(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.propertyVal");
 
     METHOD_OVER(4, 3);
 
@@ -838,7 +838,7 @@ inline void assert_base::s_propertyVal(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void assert_base::s_propertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.propertyNotVal");
 
     METHOD_OVER(4, 3);
 
@@ -854,7 +854,7 @@ inline void assert_base::s_propertyNotVal(const v8::FunctionCallbackInfo<v8::Val
 
 inline void assert_base::s_deepPropertyVal(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.deepPropertyVal");
 
     METHOD_OVER(4, 3);
 
@@ -870,7 +870,7 @@ inline void assert_base::s_deepPropertyVal(const v8::FunctionCallbackInfo<v8::Va
 
 inline void assert_base::s_deepPropertyNotVal(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.deepPropertyNotVal");
 
     METHOD_OVER(4, 3);
 
@@ -886,7 +886,7 @@ inline void assert_base::s_deepPropertyNotVal(const v8::FunctionCallbackInfo<v8:
 
 inline void assert_base::s_throws(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.throws");
 
     METHOD_OVER(2, 1);
 
@@ -900,7 +900,7 @@ inline void assert_base::s_throws(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void assert_base::s_doesNotThrow(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.doesNotThrow");
 
     METHOD_OVER(2, 1);
 
@@ -914,7 +914,7 @@ inline void assert_base::s_doesNotThrow(const v8::FunctionCallbackInfo<v8::Value
 
 inline void assert_base::s_ifError(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("assert.ifError");
 
     METHOD_OVER(1, 0);
 

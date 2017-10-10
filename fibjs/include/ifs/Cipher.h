@@ -95,7 +95,7 @@ void Cipher_base::__new(const T& args)
 {
     obj_ptr<Cipher_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new Cipher()");
 
     METHOD_OVER(2, 2);
 
@@ -129,7 +129,7 @@ inline void Cipher_base::s_get_name(v8::Local<v8::String> property, const v8::Pr
     exlib::string vr;
 
     METHOD_INSTANCE(Cipher_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Cipher.name");
 
     hr = pInst->get_name(vr);
 
@@ -141,7 +141,7 @@ inline void Cipher_base::s_get_keySize(v8::Local<v8::String> property, const v8:
     int32_t vr;
 
     METHOD_INSTANCE(Cipher_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Cipher.keySize");
 
     hr = pInst->get_keySize(vr);
 
@@ -153,7 +153,7 @@ inline void Cipher_base::s_get_ivSize(v8::Local<v8::String> property, const v8::
     int32_t vr;
 
     METHOD_INSTANCE(Cipher_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Cipher.ivSize");
 
     hr = pInst->get_ivSize(vr);
 
@@ -165,7 +165,7 @@ inline void Cipher_base::s_get_blockSize(v8::Local<v8::String> property, const v
     int32_t vr;
 
     METHOD_INSTANCE(Cipher_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Cipher.blockSize");
 
     hr = pInst->get_blockSize(vr);
 
@@ -175,7 +175,7 @@ inline void Cipher_base::s_get_blockSize(v8::Local<v8::String> property, const v
 inline void Cipher_base::s_paddingMode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Cipher_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Cipher.paddingMode");
 
     METHOD_OVER(1, 1);
 
@@ -191,7 +191,7 @@ inline void Cipher_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& ar
     obj_ptr<Buffer_base> vr;
 
     METHOD_INSTANCE(Cipher_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Cipher.encrypt");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -211,7 +211,7 @@ inline void Cipher_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& ar
     obj_ptr<Buffer_base> vr;
 
     METHOD_INSTANCE(Cipher_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Cipher.decrypt");
 
     ASYNC_METHOD_OVER(1, 1);
 

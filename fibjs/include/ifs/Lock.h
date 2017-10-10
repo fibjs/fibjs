@@ -68,7 +68,7 @@ void Lock_base::__new(const T& args)
 {
     obj_ptr<Lock_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new Lock()");
 
     METHOD_OVER(0, 0);
 
@@ -82,7 +82,7 @@ inline void Lock_base::s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args
     bool vr;
 
     METHOD_INSTANCE(Lock_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Lock.acquire");
 
     METHOD_OVER(1, 0);
 
@@ -96,7 +96,7 @@ inline void Lock_base::s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void Lock_base::s_release(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Lock_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Lock.release");
 
     METHOD_OVER(0, 0);
 
@@ -110,7 +110,7 @@ inline void Lock_base::s_count(const v8::FunctionCallbackInfo<v8::Value>& args)
     int32_t vr;
 
     METHOD_INSTANCE(Lock_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Lock.count");
 
     METHOD_OVER(0, 0);
 

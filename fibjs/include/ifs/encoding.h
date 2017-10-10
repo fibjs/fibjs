@@ -95,7 +95,7 @@ inline void encoding_base::s_jsstr(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("encoding.jsstr");
 
     METHOD_OVER(2, 1);
 
@@ -111,7 +111,7 @@ inline void encoding_base::s_encodeURI(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("encoding.encodeURI");
 
     METHOD_OVER(1, 1);
 
@@ -126,7 +126,7 @@ inline void encoding_base::s_encodeURIComponent(const v8::FunctionCallbackInfo<v
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("encoding.encodeURIComponent");
 
     METHOD_OVER(1, 1);
 
@@ -141,7 +141,7 @@ inline void encoding_base::s_decodeURI(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("encoding.decodeURI");
 
     METHOD_OVER(1, 1);
 

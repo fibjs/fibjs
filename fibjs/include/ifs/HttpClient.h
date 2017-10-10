@@ -145,7 +145,7 @@ void HttpClient_base::__new(const T& args)
 {
     obj_ptr<HttpClient_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new HttpClient()");
 
     METHOD_OVER(0, 0);
 
@@ -159,7 +159,7 @@ inline void HttpClient_base::s_get_cookies(v8::Local<v8::String> property, const
     obj_ptr<List_base> vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpClient.cookies");
 
     hr = pInst->get_cookies(vr);
 
@@ -171,7 +171,7 @@ inline void HttpClient_base::s_get_timeout(v8::Local<v8::String> property, const
     int32_t vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpClient.timeout");
 
     hr = pInst->get_timeout(vr);
 
@@ -181,7 +181,7 @@ inline void HttpClient_base::s_get_timeout(v8::Local<v8::String> property, const
 inline void HttpClient_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(HttpClient_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpClient.timeout");
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_timeout(v0);
@@ -194,7 +194,7 @@ inline void HttpClient_base::s_get_maxBodySize(v8::Local<v8::String> property, c
     int32_t vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpClient.maxBodySize");
 
     hr = pInst->get_maxBodySize(vr);
 
@@ -204,7 +204,7 @@ inline void HttpClient_base::s_get_maxBodySize(v8::Local<v8::String> property, c
 inline void HttpClient_base::s_set_maxBodySize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(HttpClient_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpClient.maxBodySize");
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_maxBodySize(v0);
@@ -217,7 +217,7 @@ inline void HttpClient_base::s_get_enableCookie(v8::Local<v8::String> property, 
     bool vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpClient.enableCookie");
 
     hr = pInst->get_enableCookie(vr);
 
@@ -227,7 +227,7 @@ inline void HttpClient_base::s_get_enableCookie(v8::Local<v8::String> property, 
 inline void HttpClient_base::s_set_enableCookie(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(HttpClient_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpClient.enableCookie");
     PROPERTY_VAL(bool);
 
     hr = pInst->set_enableCookie(v0);
@@ -240,7 +240,7 @@ inline void HttpClient_base::s_get_autoRedirect(v8::Local<v8::String> property, 
     bool vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpClient.autoRedirect");
 
     hr = pInst->get_autoRedirect(vr);
 
@@ -250,7 +250,7 @@ inline void HttpClient_base::s_get_autoRedirect(v8::Local<v8::String> property, 
 inline void HttpClient_base::s_set_autoRedirect(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(HttpClient_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpClient.autoRedirect");
     PROPERTY_VAL(bool);
 
     hr = pInst->set_autoRedirect(v0);
@@ -263,7 +263,7 @@ inline void HttpClient_base::s_get_userAgent(v8::Local<v8::String> property, con
     exlib::string vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpClient.userAgent");
 
     hr = pInst->get_userAgent(vr);
 
@@ -273,7 +273,7 @@ inline void HttpClient_base::s_get_userAgent(v8::Local<v8::String> property, con
 inline void HttpClient_base::s_set_userAgent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(HttpClient_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpClient.userAgent");
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_userAgent(v0);
@@ -286,7 +286,7 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
     obj_ptr<HttpResponse_base> vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HttpClient.request");
 
     ASYNC_METHOD_OVER(2, 2);
 
@@ -332,7 +332,7 @@ inline void HttpClient_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& ar
     obj_ptr<HttpResponse_base> vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HttpClient.get");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -353,7 +353,7 @@ inline void HttpClient_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<HttpResponse_base> vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HttpClient.post");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -374,7 +374,7 @@ inline void HttpClient_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& ar
     obj_ptr<HttpResponse_base> vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HttpClient.del");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -395,7 +395,7 @@ inline void HttpClient_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& ar
     obj_ptr<HttpResponse_base> vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HttpClient.put");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -416,7 +416,7 @@ inline void HttpClient_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& 
     obj_ptr<HttpResponse_base> vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HttpClient.patch");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -437,7 +437,7 @@ inline void HttpClient_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<HttpResponse_base> vr;
 
     METHOD_INSTANCE(HttpClient_base);
-    METHOD_ENTER();
+    METHOD_ENTER("HttpClient.find");
 
     ASYNC_METHOD_OVER(2, 1);
 

@@ -111,7 +111,7 @@ void Int64_base::__new(const T& args)
 {
     obj_ptr<Int64_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new Int64()");
 
     METHOD_OVER(1, 0);
 
@@ -147,7 +147,7 @@ inline void Int64_base::s_get_hi(v8::Local<v8::String> property, const v8::Prope
     int64_t vr;
 
     METHOD_INSTANCE(Int64_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Int64.hi");
 
     hr = pInst->get_hi(vr);
 
@@ -157,7 +157,7 @@ inline void Int64_base::s_get_hi(v8::Local<v8::String> property, const v8::Prope
 inline void Int64_base::s_set_hi(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(Int64_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Int64.hi");
     PROPERTY_VAL(int64_t);
 
     hr = pInst->set_hi(v0);
@@ -170,7 +170,7 @@ inline void Int64_base::s_get_lo(v8::Local<v8::String> property, const v8::Prope
     int64_t vr;
 
     METHOD_INSTANCE(Int64_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Int64.lo");
 
     hr = pInst->get_lo(vr);
 
@@ -180,7 +180,7 @@ inline void Int64_base::s_get_lo(v8::Local<v8::String> property, const v8::Prope
 inline void Int64_base::s_set_lo(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(Int64_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Int64.lo");
     PROPERTY_VAL(int64_t);
 
     hr = pInst->set_lo(v0);
@@ -193,7 +193,7 @@ inline void Int64_base::s_compare(const v8::FunctionCallbackInfo<v8::Value>& arg
     int32_t vr;
 
     METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Int64.compare");
 
     METHOD_OVER(1, 1);
 
@@ -209,7 +209,7 @@ inline void Int64_base::s_shiftLeft(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<Int64_base> vr;
 
     METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Int64.shiftLeft");
 
     METHOD_OVER(1, 1);
 
@@ -225,7 +225,7 @@ inline void Int64_base::s_shiftRight(const v8::FunctionCallbackInfo<v8::Value>& 
     obj_ptr<Int64_base> vr;
 
     METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Int64.shiftRight");
 
     METHOD_OVER(1, 1);
 
@@ -241,7 +241,7 @@ inline void Int64_base::s_and(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Int64_base> vr;
 
     METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Int64.and");
 
     METHOD_OVER(1, 1);
 
@@ -257,7 +257,7 @@ inline void Int64_base::s_or(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Int64_base> vr;
 
     METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Int64.or");
 
     METHOD_OVER(1, 1);
 
@@ -273,7 +273,7 @@ inline void Int64_base::s_xor(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Int64_base> vr;
 
     METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Int64.xor");
 
     METHOD_OVER(1, 1);
 
@@ -289,7 +289,7 @@ inline void Int64_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Int64_base> vr;
 
     METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Int64.add");
 
     METHOD_OVER(1, 1);
 
@@ -305,7 +305,7 @@ inline void Int64_base::s_sub(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Int64_base> vr;
 
     METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Int64.sub");
 
     METHOD_OVER(1, 1);
 
@@ -321,7 +321,7 @@ inline void Int64_base::s_multi(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Int64_base> vr;
 
     METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Int64.multi");
 
     METHOD_OVER(1, 1);
 
@@ -337,7 +337,7 @@ inline void Int64_base::s_div(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Int64_base> vr;
 
     METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Int64.div");
 
     METHOD_OVER(1, 1);
 
@@ -353,7 +353,7 @@ inline void Int64_base::s_toNumber(const v8::FunctionCallbackInfo<v8::Value>& ar
     double vr;
 
     METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Int64.toNumber");
 
     METHOD_OVER(0, 0);
 
@@ -367,7 +367,7 @@ inline void Int64_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& ar
     exlib::string vr;
 
     METHOD_INSTANCE(Int64_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Int64.toString");
 
     METHOD_OVER(1, 0);
 

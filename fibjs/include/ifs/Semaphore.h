@@ -71,7 +71,7 @@ void Semaphore_base::__new(const T& args)
 {
     obj_ptr<Semaphore_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new Semaphore()");
 
     METHOD_OVER(1, 0);
 
@@ -85,7 +85,7 @@ void Semaphore_base::__new(const T& args)
 inline void Semaphore_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Semaphore_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Semaphore.wait");
 
     METHOD_OVER(0, 0);
 
@@ -97,7 +97,7 @@ inline void Semaphore_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void Semaphore_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Semaphore_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Semaphore.post");
 
     METHOD_OVER(0, 0);
 
@@ -111,7 +111,7 @@ inline void Semaphore_base::s_trywait(const v8::FunctionCallbackInfo<v8::Value>&
     bool vr;
 
     METHOD_INSTANCE(Semaphore_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Semaphore.trywait");
 
     METHOD_OVER(0, 0);
 

@@ -136,28 +136,28 @@ inline ClassInfo& net_base::class_info()
 inline void net_base::s_get_AF_INET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _AF_INET;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("net.AF_INET");
     METHOD_RETURN();
 }
 
 inline void net_base::s_get_AF_INET6(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _AF_INET6;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("net.AF_INET6");
     METHOD_RETURN();
 }
 
 inline void net_base::s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _SOCK_STREAM;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("net.SOCK_STREAM");
     METHOD_RETURN();
 }
 
 inline void net_base::s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _SOCK_DGRAM;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("net.SOCK_DGRAM");
     METHOD_RETURN();
 }
 
@@ -165,7 +165,7 @@ inline void net_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("net.info");
 
     METHOD_OVER(0, 0);
 
@@ -178,7 +178,7 @@ inline void net_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("net.resolve");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -198,7 +198,7 @@ inline void net_base::s_ip(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("net.ip");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -217,7 +217,7 @@ inline void net_base::s_ipv6(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("net.ipv6");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -236,7 +236,7 @@ inline void net_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("net.connect");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -256,7 +256,7 @@ inline void net_base::s_openSmtp(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Smtp_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("net.openSmtp");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -276,7 +276,7 @@ inline void net_base::s_backend(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("net.backend");
 
     METHOD_OVER(0, 0);
 
@@ -289,7 +289,7 @@ inline void net_base::s_isIP(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("net.isIP");
 
     METHOD_OVER(1, 0);
 
@@ -304,7 +304,7 @@ inline void net_base::s_isIPv4(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("net.isIPv4");
 
     METHOD_OVER(1, 0);
 
@@ -319,7 +319,7 @@ inline void net_base::s_isIPv6(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("net.isIPv6");
 
     METHOD_OVER(1, 0);
 

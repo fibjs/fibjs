@@ -63,7 +63,7 @@ inline void json_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("json.encode");
 
     METHOD_OVER(1, 1);
 
@@ -78,7 +78,7 @@ inline void json_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("json.decode");
 
     METHOD_OVER(1, 1);
 

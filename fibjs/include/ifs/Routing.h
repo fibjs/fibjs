@@ -97,7 +97,7 @@ void Routing_base::__new(const T& args)
 {
     obj_ptr<Routing_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new Routing()");
 
     METHOD_OVER(1, 0);
 
@@ -120,7 +120,7 @@ inline void Routing_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& ar
     obj_ptr<Routing_base> vr;
 
     METHOD_INSTANCE(Routing_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Routing.append");
 
     METHOD_OVER(1, 1);
 
@@ -157,7 +157,7 @@ inline void Routing_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Routing_base> vr;
 
     METHOD_INSTANCE(Routing_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Routing.all");
 
     METHOD_OVER(1, 1);
 
@@ -180,7 +180,7 @@ inline void Routing_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Routing_base> vr;
 
     METHOD_INSTANCE(Routing_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Routing.get");
 
     METHOD_OVER(1, 1);
 
@@ -203,7 +203,7 @@ inline void Routing_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args
     obj_ptr<Routing_base> vr;
 
     METHOD_INSTANCE(Routing_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Routing.post");
 
     METHOD_OVER(1, 1);
 
@@ -226,7 +226,7 @@ inline void Routing_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Routing_base> vr;
 
     METHOD_INSTANCE(Routing_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Routing.del");
 
     METHOD_OVER(1, 1);
 
@@ -249,7 +249,7 @@ inline void Routing_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Routing_base> vr;
 
     METHOD_INSTANCE(Routing_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Routing.put");
 
     METHOD_OVER(1, 1);
 
@@ -272,7 +272,7 @@ inline void Routing_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& arg
     obj_ptr<Routing_base> vr;
 
     METHOD_INSTANCE(Routing_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Routing.patch");
 
     METHOD_OVER(1, 1);
 
@@ -295,7 +295,7 @@ inline void Routing_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args
     obj_ptr<Routing_base> vr;
 
     METHOD_INSTANCE(Routing_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Routing.find");
 
     METHOD_OVER(1, 1);
 

@@ -112,7 +112,7 @@ inline void LevelDB_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
     bool vr;
 
     METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LevelDB.has");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -132,7 +132,7 @@ inline void LevelDB_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Buffer_base> vr;
 
     METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LevelDB.get");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -152,7 +152,7 @@ inline void LevelDB_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args
     obj_ptr<List_base> vr;
 
     METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LevelDB.mget");
 
     METHOD_OVER(1, 1);
 
@@ -166,7 +166,7 @@ inline void LevelDB_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void LevelDB_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LevelDB.set");
 
     ASYNC_METHOD_OVER(2, 2);
 
@@ -185,7 +185,7 @@ inline void LevelDB_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void LevelDB_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LevelDB.mset");
 
     METHOD_OVER(1, 1);
 
@@ -199,7 +199,7 @@ inline void LevelDB_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void LevelDB_base::s_mremove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LevelDB.mremove");
 
     METHOD_OVER(1, 1);
 
@@ -213,7 +213,7 @@ inline void LevelDB_base::s_mremove(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void LevelDB_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LevelDB.remove");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -231,7 +231,7 @@ inline void LevelDB_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LevelDB.forEach");
 
     METHOD_OVER(1, 1);
 
@@ -245,7 +245,7 @@ inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void LevelDB_base::s_between(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LevelDB.between");
 
     METHOD_OVER(3, 3);
 
@@ -263,7 +263,7 @@ inline void LevelDB_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>& arg
     obj_ptr<LevelDB_base> vr;
 
     METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LevelDB.begin");
 
     METHOD_OVER(0, 0);
 
@@ -275,7 +275,7 @@ inline void LevelDB_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>& arg
 inline void LevelDB_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LevelDB.commit");
 
     METHOD_OVER(0, 0);
 
@@ -287,7 +287,7 @@ inline void LevelDB_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void LevelDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
+    METHOD_ENTER("LevelDB.close");
 
     ASYNC_METHOD_OVER(0, 0);
 

@@ -74,7 +74,7 @@ inline void HttpUploadData_base::s_get_fileName(v8::Local<v8::String> property, 
     exlib::string vr;
 
     METHOD_INSTANCE(HttpUploadData_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpUploadData.fileName");
 
     hr = pInst->get_fileName(vr);
 
@@ -86,7 +86,7 @@ inline void HttpUploadData_base::s_get_contentType(v8::Local<v8::String> propert
     exlib::string vr;
 
     METHOD_INSTANCE(HttpUploadData_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpUploadData.contentType");
 
     hr = pInst->get_contentType(vr);
 
@@ -98,7 +98,7 @@ inline void HttpUploadData_base::s_get_contentTransferEncoding(v8::Local<v8::Str
     exlib::string vr;
 
     METHOD_INSTANCE(HttpUploadData_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpUploadData.contentTransferEncoding");
 
     hr = pInst->get_contentTransferEncoding(vr);
 
@@ -110,7 +110,7 @@ inline void HttpUploadData_base::s_get_body(v8::Local<v8::String> property, cons
     obj_ptr<SeekableStream_base> vr;
 
     METHOD_INSTANCE(HttpUploadData_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("HttpUploadData.body");
 
     hr = pInst->get_body(vr);
 

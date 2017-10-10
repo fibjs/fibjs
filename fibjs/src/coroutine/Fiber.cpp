@@ -126,12 +126,24 @@ result_t JSFiber::join()
     return 0;
 }
 
+void save_native_name(const char* name)
+{
+    JSFiber* fb = JSFiber::current();
+    fb->m_native_name = name;
+}
+
 result_t JSFiber::get_stack(exlib::string& retVal)
 {
     if (JSFiber::current() == this)
         retVal = traceInfo(holder()->m_isolate, 300);
-    else if (m_bindFiber)
-        retVal = traceInfo(holder()->m_isolate, 300, m_c_entry_fp_, m_handler_);
+    else {
+        exlib::string str("    at ");
+        str += m_native_name;
+        str += " (native code)\n";
+        str += traceInfo(holder()->m_isolate, 300, m_c_entry_fp_, m_handler_);
+
+        retVal = str;
+    }
 
     return 0;
 }
@@ -184,7 +196,6 @@ JSFiber::scope::scope(JSFiber* fb)
     if (fb == NULL)
         m_pFiber = new JSFiber();
 
-    m_pFiber->m_bindFiber = exlib::Fiber::current();
     exlib::Fiber::tlsPut(g_tlsCurrent, m_pFiber);
     m_pFiber->holder()->m_fibers.putTail(m_pFiber);
 }

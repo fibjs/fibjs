@@ -66,7 +66,7 @@ void Chain_base::__new(const T& args)
 {
     obj_ptr<Chain_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new Chain()");
 
     METHOD_OVER(1, 1);
 
@@ -80,7 +80,7 @@ void Chain_base::__new(const T& args)
 inline void Chain_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Chain_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Chain.append");
 
     METHOD_OVER(1, 1);
 

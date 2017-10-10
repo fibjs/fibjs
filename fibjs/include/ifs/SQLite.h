@@ -79,7 +79,7 @@ inline void SQLite_base::s_get_fileName(v8::Local<v8::String> property, const v8
     exlib::string vr;
 
     METHOD_INSTANCE(SQLite_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("SQLite.fileName");
 
     hr = pInst->get_fileName(vr);
 
@@ -91,7 +91,7 @@ inline void SQLite_base::s_get_timeout(v8::Local<v8::String> property, const v8:
     int32_t vr;
 
     METHOD_INSTANCE(SQLite_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("SQLite.timeout");
 
     hr = pInst->get_timeout(vr);
 
@@ -101,7 +101,7 @@ inline void SQLite_base::s_get_timeout(v8::Local<v8::String> property, const v8:
 inline void SQLite_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(SQLite_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("SQLite.timeout");
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_timeout(v0);
@@ -112,7 +112,7 @@ inline void SQLite_base::s_set_timeout(v8::Local<v8::String> property, v8::Local
 inline void SQLite_base::s_backup(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(SQLite_base);
-    METHOD_ENTER();
+    METHOD_ENTER("SQLite.backup");
 
     ASYNC_METHOD_OVER(1, 1);
 

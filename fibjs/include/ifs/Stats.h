@@ -83,7 +83,7 @@ void Stats_base::__new(const T& args)
 {
     obj_ptr<Stats_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new Stats()");
 
     METHOD_OVER(1, 1);
 
@@ -104,7 +104,7 @@ void Stats_base::__new(const T& args)
 inline void Stats_base::s_inc(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Stats_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stats.inc");
 
     METHOD_OVER(1, 1);
 
@@ -118,7 +118,7 @@ inline void Stats_base::s_inc(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Stats_base::s_dec(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Stats_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stats.dec");
 
     METHOD_OVER(1, 1);
 
@@ -132,7 +132,7 @@ inline void Stats_base::s_dec(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Stats_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Stats_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stats.add");
 
     METHOD_OVER(2, 2);
 
@@ -147,7 +147,7 @@ inline void Stats_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Stats_base::s_reset(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Stats_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stats.reset");
 
     METHOD_OVER(0, 0);
 
@@ -161,7 +161,7 @@ inline void Stats_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args
     int32_t vr;
 
     METHOD_INSTANCE(Stats_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Stats.uptime");
 
     METHOD_OVER(0, 0);
 
@@ -175,7 +175,7 @@ inline void Stats_base::i_NamedGetter(v8::Local<v8::String> property, const v8::
     int32_t vr;
 
     METHOD_INSTANCE(Stats_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Stats.undefined[]");
 
     exlib::string k;
     GetArgumentValue(isolate, property, k);
@@ -194,7 +194,7 @@ inline void Stats_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Arr
     v8::Local<v8::Array> vr;
 
     METHOD_INSTANCE(Stats_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("Stats.undefined[]");
 
     hr = pInst->_named_enumerator(vr);
 

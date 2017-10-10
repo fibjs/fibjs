@@ -216,70 +216,70 @@ inline ClassInfo& console_base::class_info()
 inline void console_base::s_get_FATAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _FATAL;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.FATAL");
     METHOD_RETURN();
 }
 
 inline void console_base::s_get_ALERT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _ALERT;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.ALERT");
     METHOD_RETURN();
 }
 
 inline void console_base::s_get_CRIT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _CRIT;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.CRIT");
     METHOD_RETURN();
 }
 
 inline void console_base::s_get_ERROR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _ERROR;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.ERROR");
     METHOD_RETURN();
 }
 
 inline void console_base::s_get_WARN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _WARN;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.WARN");
     METHOD_RETURN();
 }
 
 inline void console_base::s_get_NOTICE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _NOTICE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.NOTICE");
     METHOD_RETURN();
 }
 
 inline void console_base::s_get_INFO(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _INFO;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.INFO");
     METHOD_RETURN();
 }
 
 inline void console_base::s_get_DEBUG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _DEBUG;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.DEBUG");
     METHOD_RETURN();
 }
 
 inline void console_base::s_get_PRINT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _PRINT;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.PRINT");
     METHOD_RETURN();
 }
 
 inline void console_base::s_get_NOTSET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _NOTSET;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.NOTSET");
     METHOD_RETURN();
 }
 
@@ -287,7 +287,7 @@ inline void console_base::s_get_loglevel(v8::Local<v8::String> property, const v
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.loglevel");
 
     hr = get_loglevel(vr);
 
@@ -296,7 +296,7 @@ inline void console_base::s_get_loglevel(v8::Local<v8::String> property, const v
 
 inline void console_base::s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.loglevel");
     PROPERTY_VAL(int32_t);
 
     hr = set_loglevel(v0);
@@ -308,7 +308,7 @@ inline void console_base::s_get_colors(v8::Local<v8::String> property, const v8:
 {
     obj_ptr<TextColor_base> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.colors");
 
     hr = get_colors(vr);
 
@@ -319,7 +319,7 @@ inline void console_base::s_get_width(v8::Local<v8::String> property, const v8::
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.width");
 
     hr = get_width(vr);
 
@@ -330,7 +330,7 @@ inline void console_base::s_get_height(v8::Local<v8::String> property, const v8:
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("console.height");
 
     hr = get_height(vr);
 
@@ -339,7 +339,7 @@ inline void console_base::s_get_height(v8::Local<v8::String> property, const v8:
 
 inline void console_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.add");
 
     METHOD_OVER(1, 1);
 
@@ -364,7 +364,7 @@ inline void console_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void console_base::s_reset(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.reset");
 
     METHOD_OVER(0, 0);
 
@@ -375,7 +375,7 @@ inline void console_base::s_reset(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void console_base::s_log(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.log");
 
     METHOD_OVER(-1, 1);
 
@@ -395,7 +395,7 @@ inline void console_base::s_log(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void console_base::s_debug(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.debug");
 
     METHOD_OVER(-1, 1);
 
@@ -415,7 +415,7 @@ inline void console_base::s_debug(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void console_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.info");
 
     METHOD_OVER(-1, 1);
 
@@ -435,7 +435,7 @@ inline void console_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void console_base::s_notice(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.notice");
 
     METHOD_OVER(-1, 1);
 
@@ -455,7 +455,7 @@ inline void console_base::s_notice(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void console_base::s_warn(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.warn");
 
     METHOD_OVER(-1, 1);
 
@@ -475,7 +475,7 @@ inline void console_base::s_warn(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void console_base::s_error(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.error");
 
     METHOD_OVER(-1, 1);
 
@@ -495,7 +495,7 @@ inline void console_base::s_error(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void console_base::s_crit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.crit");
 
     METHOD_OVER(-1, 1);
 
@@ -515,7 +515,7 @@ inline void console_base::s_crit(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void console_base::s_alert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.alert");
 
     METHOD_OVER(-1, 1);
 
@@ -535,7 +535,7 @@ inline void console_base::s_alert(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void console_base::s_dir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.dir");
 
     METHOD_OVER(1, 1);
 
@@ -548,7 +548,7 @@ inline void console_base::s_dir(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void console_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.time");
 
     METHOD_OVER(1, 0);
 
@@ -561,7 +561,7 @@ inline void console_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void console_base::s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.timeEnd");
 
     METHOD_OVER(1, 0);
 
@@ -574,7 +574,7 @@ inline void console_base::s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void console_base::s_trace(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.trace");
 
     METHOD_OVER(1, 0);
 
@@ -587,7 +587,7 @@ inline void console_base::s_trace(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void console_base::s_assert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.assert");
 
     METHOD_OVER(2, 1);
 
@@ -601,7 +601,7 @@ inline void console_base::s_assert(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void console_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.print");
 
     METHOD_OVER(-1, 1);
 
@@ -621,7 +621,7 @@ inline void console_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void console_base::s_moveTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.moveTo");
 
     METHOD_OVER(2, 2);
 
@@ -635,7 +635,7 @@ inline void console_base::s_moveTo(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void console_base::s_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.hideCursor");
 
     METHOD_OVER(0, 0);
 
@@ -646,7 +646,7 @@ inline void console_base::s_hideCursor(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void console_base::s_showCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.showCursor");
 
     METHOD_OVER(0, 0);
 
@@ -657,7 +657,7 @@ inline void console_base::s_showCursor(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void console_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.clear");
 
     METHOD_OVER(0, 0);
 
@@ -668,7 +668,7 @@ inline void console_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void console_base::s_keyDown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.keyDown");
 
     METHOD_OVER(2, 1);
 
@@ -689,7 +689,7 @@ inline void console_base::s_keyDown(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void console_base::s_keyUp(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.keyUp");
 
     METHOD_OVER(2, 1);
 
@@ -710,7 +710,7 @@ inline void console_base::s_keyUp(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void console_base::s_keyTap(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.keyTap");
 
     METHOD_OVER(2, 1);
 
@@ -731,7 +731,7 @@ inline void console_base::s_keyTap(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void console_base::s_typeString(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.typeString");
 
     METHOD_OVER(1, 1);
 
@@ -744,7 +744,7 @@ inline void console_base::s_typeString(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void console_base::s_moveMouse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.moveMouse");
 
     METHOD_OVER(2, 2);
 
@@ -758,7 +758,7 @@ inline void console_base::s_moveMouse(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void console_base::s_mouseUp(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.mouseUp");
 
     METHOD_OVER(1, 1);
 
@@ -771,7 +771,7 @@ inline void console_base::s_mouseUp(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void console_base::s_mouseDown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.mouseDown");
 
     METHOD_OVER(1, 1);
 
@@ -784,7 +784,7 @@ inline void console_base::s_mouseDown(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void console_base::s_clickMouse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("console.clickMouse");
 
     METHOD_OVER(2, 1);
 
@@ -800,7 +800,7 @@ inline void console_base::s_readLine(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("console.readLine");
 
     ASYNC_METHOD_OVER(1, 0);
 

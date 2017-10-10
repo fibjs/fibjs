@@ -168,7 +168,7 @@ inline void http_base::s_get_cookies(v8::Local<v8::String> property, const v8::P
 {
     obj_ptr<List_base> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("http.cookies");
 
     hr = get_cookies(vr);
 
@@ -179,7 +179,7 @@ inline void http_base::s_get_timeout(v8::Local<v8::String> property, const v8::P
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("http.timeout");
 
     hr = get_timeout(vr);
 
@@ -188,7 +188,7 @@ inline void http_base::s_get_timeout(v8::Local<v8::String> property, const v8::P
 
 inline void http_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("http.timeout");
     PROPERTY_VAL(int32_t);
 
     hr = set_timeout(v0);
@@ -200,7 +200,7 @@ inline void http_base::s_get_enableCookie(v8::Local<v8::String> property, const 
 {
     bool vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("http.enableCookie");
 
     hr = get_enableCookie(vr);
 
@@ -209,7 +209,7 @@ inline void http_base::s_get_enableCookie(v8::Local<v8::String> property, const 
 
 inline void http_base::s_set_enableCookie(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("http.enableCookie");
     PROPERTY_VAL(bool);
 
     hr = set_enableCookie(v0);
@@ -221,7 +221,7 @@ inline void http_base::s_get_autoRedirect(v8::Local<v8::String> property, const 
 {
     bool vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("http.autoRedirect");
 
     hr = get_autoRedirect(vr);
 
@@ -230,7 +230,7 @@ inline void http_base::s_get_autoRedirect(v8::Local<v8::String> property, const 
 
 inline void http_base::s_set_autoRedirect(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("http.autoRedirect");
     PROPERTY_VAL(bool);
 
     hr = set_autoRedirect(v0);
@@ -243,7 +243,7 @@ inline void http_base::s_get_maxBodySize(v8::Local<v8::String> property, const v
     int32_t vr;
 
     METHOD_INSTANCE(http_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("http.maxBodySize");
 
     hr = pInst->get_maxBodySize(vr);
 
@@ -253,7 +253,7 @@ inline void http_base::s_get_maxBodySize(v8::Local<v8::String> property, const v
 inline void http_base::s_set_maxBodySize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(http_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("http.maxBodySize");
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_maxBodySize(v0);
@@ -265,7 +265,7 @@ inline void http_base::s_get_userAgent(v8::Local<v8::String> property, const v8:
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("http.userAgent");
 
     hr = get_userAgent(vr);
 
@@ -274,7 +274,7 @@ inline void http_base::s_get_userAgent(v8::Local<v8::String> property, const v8:
 
 inline void http_base::s_set_userAgent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("http.userAgent");
     PROPERTY_VAL(exlib::string);
 
     hr = set_userAgent(v0);
@@ -286,7 +286,7 @@ inline void http_base::s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<Handler_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("http.fileHandler");
 
     METHOD_OVER(3, 1);
 
@@ -303,7 +303,7 @@ inline void http_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("http.request");
 
     ASYNC_METHOD_OVER(2, 2);
 
@@ -348,7 +348,7 @@ inline void http_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("http.get");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -368,7 +368,7 @@ inline void http_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("http.post");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -388,7 +388,7 @@ inline void http_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("http.del");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -408,7 +408,7 @@ inline void http_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("http.put");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -428,7 +428,7 @@ inline void http_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("http.patch");
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -448,7 +448,7 @@ inline void http_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("http.find");
 
     ASYNC_METHOD_OVER(2, 1);
 

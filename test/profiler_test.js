@@ -90,7 +90,7 @@ describe("profiler", () => {
     it("Fiber.stack", () => {
         var fb = coroutine.start(test_fiber);
         coroutine.sleep(10);
-        assert.equal(`    at test_fiber (${__filename}:7:15)`, fb.stack)
+        assert.equal(`    at coroutine.sleep (native code)\n    at test_fiber (${__filename}:7:15)`, fb.stack)
     });
 });
 

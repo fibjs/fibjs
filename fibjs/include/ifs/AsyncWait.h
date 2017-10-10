@@ -62,7 +62,7 @@ inline ClassInfo& AsyncWait_base::class_info()
 inline void AsyncWait_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(AsyncWait_base);
-    METHOD_ENTER();
+    METHOD_ENTER("AsyncWait.end");
 
     METHOD_OVER(0, 0);
 

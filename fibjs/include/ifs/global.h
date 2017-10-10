@@ -135,7 +135,7 @@ inline void global_base::s_get_Master(v8::Local<v8::String> property, const v8::
 {
     obj_ptr<Worker_base> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("global.Master");
 
     hr = get_Master(vr);
 
@@ -146,7 +146,7 @@ inline void global_base::s_get_global(v8::Local<v8::String> property, const v8::
 {
     v8::Local<v8::Object> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("global.global");
 
     hr = get_global(vr);
 
@@ -155,7 +155,7 @@ inline void global_base::s_get_global(v8::Local<v8::String> property, const v8::
 
 inline void global_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("global.run");
 
     METHOD_OVER(2, 1);
 
@@ -171,7 +171,7 @@ inline void global_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("global.require");
 
     METHOD_OVER(1, 1);
 
@@ -186,7 +186,7 @@ inline void global_base::s_get_argv(v8::Local<v8::String> property, const v8::Pr
 {
     v8::Local<v8::Array> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("global.argv");
 
     hr = get_argv(vr);
 
@@ -197,7 +197,7 @@ inline void global_base::s_get___filename(v8::Local<v8::String> property, const 
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("global.__filename");
 
     hr = get___filename(vr);
 
@@ -208,7 +208,7 @@ inline void global_base::s_get___dirname(v8::Local<v8::String> property, const v
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("global.__dirname");
 
     hr = get___dirname(vr);
 
@@ -219,7 +219,7 @@ inline void global_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>&
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("global.setTimeout");
 
     METHOD_OVER(-1, 2);
 
@@ -234,7 +234,7 @@ inline void global_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void global_base::s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("global.clearTimeout");
 
     METHOD_OVER(1, 1);
 
@@ -249,7 +249,7 @@ inline void global_base::s_setInterval(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("global.setInterval");
 
     METHOD_OVER(-1, 2);
 
@@ -264,7 +264,7 @@ inline void global_base::s_setInterval(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void global_base::s_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("global.clearInterval");
 
     METHOD_OVER(1, 1);
 
@@ -279,7 +279,7 @@ inline void global_base::s_setHrInterval(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("global.setHrInterval");
 
     METHOD_OVER(-1, 2);
 
@@ -294,7 +294,7 @@ inline void global_base::s_setHrInterval(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void global_base::s_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("global.clearHrInterval");
 
     METHOD_OVER(1, 1);
 
@@ -309,7 +309,7 @@ inline void global_base::s_setImmediate(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("global.setImmediate");
 
     METHOD_OVER(-1, 1);
 
@@ -323,7 +323,7 @@ inline void global_base::s_setImmediate(const v8::FunctionCallbackInfo<v8::Value
 
 inline void global_base::s_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("global.clearImmediate");
 
     METHOD_OVER(1, 1);
 
@@ -336,7 +336,7 @@ inline void global_base::s_clearImmediate(const v8::FunctionCallbackInfo<v8::Val
 
 inline void global_base::s_GC(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("global.GC");
 
     METHOD_OVER(0, 0);
 
@@ -347,7 +347,7 @@ inline void global_base::s_GC(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void global_base::s_repl(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("global.repl");
 
     METHOD_OVER(1, 0);
 

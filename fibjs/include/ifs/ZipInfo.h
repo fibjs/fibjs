@@ -83,7 +83,7 @@ inline void ZipInfo_base::s_get_filename(v8::Local<v8::String> property, const v
     exlib::string vr;
 
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("ZipInfo.filename");
 
     hr = pInst->get_filename(vr);
 
@@ -95,7 +95,7 @@ inline void ZipInfo_base::s_get_date(v8::Local<v8::String> property, const v8::P
     date_t vr;
 
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("ZipInfo.date");
 
     hr = pInst->get_date(vr);
 
@@ -107,7 +107,7 @@ inline void ZipInfo_base::s_get_compress_type(v8::Local<v8::String> property, co
     exlib::string vr;
 
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("ZipInfo.compress_type");
 
     hr = pInst->get_compress_type(vr);
 
@@ -119,7 +119,7 @@ inline void ZipInfo_base::s_get_compress_size(v8::Local<v8::String> property, co
     int64_t vr;
 
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("ZipInfo.compress_size");
 
     hr = pInst->get_compress_size(vr);
 
@@ -131,7 +131,7 @@ inline void ZipInfo_base::s_get_file_size(v8::Local<v8::String> property, const 
     int64_t vr;
 
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("ZipInfo.file_size");
 
     hr = pInst->get_file_size(vr);
 
@@ -143,7 +143,7 @@ inline void ZipInfo_base::s_get_password(v8::Local<v8::String> property, const v
     bool vr;
 
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("ZipInfo.password");
 
     hr = pInst->get_password(vr);
 
@@ -155,7 +155,7 @@ inline void ZipInfo_base::s_get_data(v8::Local<v8::String> property, const v8::P
     obj_ptr<Buffer_base> vr;
 
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("ZipInfo.data");
 
     hr = pInst->get_data(vr);
 

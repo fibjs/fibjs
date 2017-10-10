@@ -72,7 +72,7 @@ void Condition_base::__new(const T& args)
 {
     obj_ptr<Condition_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new Condition()");
 
     METHOD_OVER(0, 0);
 
@@ -90,7 +90,7 @@ void Condition_base::__new(const T& args)
 inline void Condition_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Condition_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Condition.wait");
 
     METHOD_OVER(0, 0);
 
@@ -102,7 +102,7 @@ inline void Condition_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void Condition_base::s_notify(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Condition_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Condition.notify");
 
     METHOD_OVER(0, 0);
 
@@ -114,7 +114,7 @@ inline void Condition_base::s_notify(const v8::FunctionCallbackInfo<v8::Value>& 
 inline void Condition_base::s_notifyAll(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Condition_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Condition.notifyAll");
 
     METHOD_OVER(0, 0);
 

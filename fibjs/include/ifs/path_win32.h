@@ -96,7 +96,7 @@ inline void path_win32_base::s_normalize(const v8::FunctionCallbackInfo<v8::Valu
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("path_win32.normalize");
 
     METHOD_OVER(1, 1);
 
@@ -111,7 +111,7 @@ inline void path_win32_base::s_basename(const v8::FunctionCallbackInfo<v8::Value
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("path_win32.basename");
 
     METHOD_OVER(2, 1);
 
@@ -127,7 +127,7 @@ inline void path_win32_base::s_extname(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("path_win32.extname");
 
     METHOD_OVER(1, 1);
 
@@ -142,7 +142,7 @@ inline void path_win32_base::s_dirname(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("path_win32.dirname");
 
     METHOD_OVER(1, 1);
 
@@ -157,7 +157,7 @@ inline void path_win32_base::s_fullpath(const v8::FunctionCallbackInfo<v8::Value
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("path_win32.fullpath");
 
     METHOD_OVER(1, 1);
 
@@ -172,7 +172,7 @@ inline void path_win32_base::s_isAbsolute(const v8::FunctionCallbackInfo<v8::Val
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("path_win32.isAbsolute");
 
     METHOD_OVER(1, 1);
 
@@ -187,7 +187,7 @@ inline void path_win32_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("path_win32.join");
 
     METHOD_OVER(-1, 0);
 
@@ -202,7 +202,7 @@ inline void path_win32_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("path_win32.resolve");
 
     METHOD_OVER(-1, 0);
 
@@ -217,7 +217,7 @@ inline void path_win32_base::s_get_sep(v8::Local<v8::String> property, const v8:
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("path_win32.sep");
 
     hr = get_sep(vr);
 
@@ -228,7 +228,7 @@ inline void path_win32_base::s_get_delimiter(v8::Local<v8::String> property, con
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("path_win32.delimiter");
 
     hr = get_delimiter(vr);
 
@@ -239,7 +239,7 @@ inline void path_win32_base::s_get_posix(v8::Local<v8::String> property, const v
 {
     v8::Local<v8::Object> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("path_win32.posix");
 
     hr = get_posix(vr);
 
@@ -250,7 +250,7 @@ inline void path_win32_base::s_get_win32(v8::Local<v8::String> property, const v
 {
     v8::Local<v8::Object> vr;
 
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("path_win32.win32");
 
     hr = get_win32(vr);
 

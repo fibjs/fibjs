@@ -195,203 +195,203 @@ inline ClassInfo& gd_base::class_info()
 inline void gd_base::s_get_NONE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _NONE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.NONE");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_JPEG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _JPEG;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.JPEG");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_GIF(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _GIF;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.GIF");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_PNG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _PNG;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.PNG");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_TIFF(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _TIFF;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.TIFF");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_BMP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _BMP;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.BMP");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_WEBP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _WEBP;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.WEBP");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_TRUECOLOR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _TRUECOLOR;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.TRUECOLOR");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_PALETTE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _PALETTE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.PALETTE");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_ARC(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _ARC;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.ARC");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_CHORD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _CHORD;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.CHORD");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_NOFILL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _NOFILL;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.NOFILL");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_EDGED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _EDGED;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.EDGED");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_HORIZONTAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _HORIZONTAL;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.HORIZONTAL");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_VERTICAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _VERTICAL;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.VERTICAL");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_BOTH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _BOTH;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.BOTH");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_LEFT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _LEFT;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.LEFT");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_RIGHT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _RIGHT;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.RIGHT");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_MEAN_REMOVAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _MEAN_REMOVAL;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.MEAN_REMOVAL");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_EDGEDETECT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _EDGEDETECT;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.EDGEDETECT");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_EMBOSS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _EMBOSS;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.EMBOSS");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_SELECTIVE_BLUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _SELECTIVE_BLUR;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.SELECTIVE_BLUR");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_GAUSSIAN_BLUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _GAUSSIAN_BLUR;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.GAUSSIAN_BLUR");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_NEGATE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _NEGATE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.NEGATE");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_GRAYSCALE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _GRAYSCALE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.GRAYSCALE");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_SMOOTH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _SMOOTH;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.SMOOTH");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_BRIGHTNESS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _BRIGHTNESS;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.BRIGHTNESS");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_CONTRAST(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _CONTRAST;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.CONTRAST");
     METHOD_RETURN();
 }
 
 inline void gd_base::s_get_COLORIZE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr = _COLORIZE;
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("gd.COLORIZE");
     METHOD_RETURN();
 }
 
@@ -399,7 +399,7 @@ inline void gd_base::s_create(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Image_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("gd.create");
 
     ASYNC_METHOD_OVER(3, 2);
 
@@ -420,7 +420,7 @@ inline void gd_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Image_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("gd.load");
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -459,7 +459,7 @@ inline void gd_base::s_rgb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("gd.rgb");
 
     METHOD_OVER(3, 3);
 
@@ -476,7 +476,7 @@ inline void gd_base::s_rgba(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("gd.rgba");
 
     METHOD_OVER(4, 4);
 
@@ -494,7 +494,7 @@ inline void gd_base::s_hsl(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("gd.hsl");
 
     METHOD_OVER(3, 3);
 
@@ -511,7 +511,7 @@ inline void gd_base::s_hsla(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("gd.hsla");
 
     METHOD_OVER(4, 4);
 
@@ -529,7 +529,7 @@ inline void gd_base::s_hsb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("gd.hsb");
 
     METHOD_OVER(3, 3);
 
@@ -546,7 +546,7 @@ inline void gd_base::s_hsba(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("gd.hsba");
 
     METHOD_OVER(4, 4);
 
@@ -564,7 +564,7 @@ inline void gd_base::s_color(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("gd.color");
 
     METHOD_OVER(1, 1);
 

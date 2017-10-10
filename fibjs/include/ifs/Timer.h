@@ -59,7 +59,7 @@ inline ClassInfo& Timer_base::class_info()
 inline void Timer_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Timer_base);
-    METHOD_ENTER();
+    METHOD_ENTER("Timer.clear");
 
     METHOD_OVER(0, 0);
 

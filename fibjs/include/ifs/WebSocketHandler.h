@@ -70,7 +70,7 @@ void WebSocketHandler_base::__new(const T& args)
 {
     obj_ptr<WebSocketHandler_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new WebSocketHandler()");
 
     METHOD_OVER(1, 1);
 
@@ -88,7 +88,7 @@ inline void WebSocketHandler_base::s_get_maxSize(v8::Local<v8::String> property,
     int32_t vr;
 
     METHOD_INSTANCE(WebSocketHandler_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocketHandler.maxSize");
 
     hr = pInst->get_maxSize(vr);
 
@@ -98,7 +98,7 @@ inline void WebSocketHandler_base::s_get_maxSize(v8::Local<v8::String> property,
 inline void WebSocketHandler_base::s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(WebSocketHandler_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocketHandler.maxSize");
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_maxSize(v0);

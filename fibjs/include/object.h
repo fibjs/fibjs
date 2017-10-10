@@ -488,7 +488,7 @@ inline ClassInfo& object_base::class_info()
 inline void object_base::s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(object_base);
-    METHOD_ENTER();
+    METHOD_ENTER("object.dispose");
 
     METHOD_OVER(0, 0);
 
@@ -502,7 +502,7 @@ inline void object_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& arg
     bool vr;
 
     METHOD_INSTANCE(object_base);
-    METHOD_ENTER();
+    METHOD_ENTER("object.equals");
 
     METHOD_OVER(1, 1);
 
@@ -518,7 +518,7 @@ inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& a
     exlib::string vr;
 
     METHOD_INSTANCE(object_base);
-    METHOD_ENTER();
+    METHOD_ENTER("object.toString");
 
     METHOD_OVER(0, 0);
 
@@ -532,7 +532,7 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& arg
     v8::Local<v8::Value> vr;
 
     METHOD_INSTANCE(object_base);
-    METHOD_ENTER();
+    METHOD_ENTER("object.toJSON");
 
     METHOD_OVER(1, 0);
 

@@ -107,7 +107,7 @@ void WebSocket_base::__new(const T& args)
 {
     obj_ptr<WebSocket_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new WebSocket()");
 
     METHOD_OVER(3, 1);
 
@@ -125,7 +125,7 @@ inline void WebSocket_base::s_get_url(v8::Local<v8::String> property, const v8::
     exlib::string vr;
 
     METHOD_INSTANCE(WebSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocket.url");
 
     hr = pInst->get_url(vr);
 
@@ -137,7 +137,7 @@ inline void WebSocket_base::s_get_protocol(v8::Local<v8::String> property, const
     exlib::string vr;
 
     METHOD_INSTANCE(WebSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocket.protocol");
 
     hr = pInst->get_protocol(vr);
 
@@ -149,7 +149,7 @@ inline void WebSocket_base::s_get_origin(v8::Local<v8::String> property, const v
     exlib::string vr;
 
     METHOD_INSTANCE(WebSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocket.origin");
 
     hr = pInst->get_origin(vr);
 
@@ -161,7 +161,7 @@ inline void WebSocket_base::s_get_readyState(v8::Local<v8::String> property, con
     int32_t vr;
 
     METHOD_INSTANCE(WebSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocket.readyState");
 
     hr = pInst->get_readyState(vr);
 
@@ -171,7 +171,7 @@ inline void WebSocket_base::s_get_readyState(v8::Local<v8::String> property, con
 inline void WebSocket_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(WebSocket_base);
-    METHOD_ENTER();
+    METHOD_ENTER("WebSocket.close");
 
     METHOD_OVER(2, 0);
 
@@ -186,7 +186,7 @@ inline void WebSocket_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void WebSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(WebSocket_base);
-    METHOD_ENTER();
+    METHOD_ENTER("WebSocket.send");
 
     METHOD_OVER(1, 1);
 
@@ -208,7 +208,7 @@ inline void WebSocket_base::s_get_onopen(v8::Local<v8::String> property, const v
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(WebSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocket.onopen");
 
     hr = pInst->get_onopen(vr);
 
@@ -218,7 +218,7 @@ inline void WebSocket_base::s_get_onopen(v8::Local<v8::String> property, const v
 inline void WebSocket_base::s_set_onopen(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(WebSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocket.onopen");
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onopen(v0);
@@ -231,7 +231,7 @@ inline void WebSocket_base::s_get_onmessage(v8::Local<v8::String> property, cons
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(WebSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocket.onmessage");
 
     hr = pInst->get_onmessage(vr);
 
@@ -241,7 +241,7 @@ inline void WebSocket_base::s_get_onmessage(v8::Local<v8::String> property, cons
 inline void WebSocket_base::s_set_onmessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(WebSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocket.onmessage");
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onmessage(v0);
@@ -254,7 +254,7 @@ inline void WebSocket_base::s_get_onclose(v8::Local<v8::String> property, const 
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(WebSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocket.onclose");
 
     hr = pInst->get_onclose(vr);
 
@@ -264,7 +264,7 @@ inline void WebSocket_base::s_get_onclose(v8::Local<v8::String> property, const 
 inline void WebSocket_base::s_set_onclose(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(WebSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocket.onclose");
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onclose(v0);
@@ -277,7 +277,7 @@ inline void WebSocket_base::s_get_onerror(v8::Local<v8::String> property, const 
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(WebSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocket.onerror");
 
     hr = pInst->get_onerror(vr);
 
@@ -287,7 +287,7 @@ inline void WebSocket_base::s_get_onerror(v8::Local<v8::String> property, const 
 inline void WebSocket_base::s_set_onerror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_INSTANCE(WebSocket_base);
-    PROPERTY_ENTER();
+    PROPERTY_ENTER("WebSocket.onerror");
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onerror(v0);

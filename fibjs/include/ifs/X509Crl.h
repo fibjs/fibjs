@@ -76,7 +76,7 @@ void X509Crl_base::__new(const T& args)
 {
     obj_ptr<X509Crl_base> vr;
 
-    CONSTRUCT_ENTER();
+    CONSTRUCT_ENTER("new X509Crl()");
 
     METHOD_OVER(0, 0);
 
@@ -88,7 +88,7 @@ void X509Crl_base::__new(const T& args)
 inline void X509Crl_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(X509Crl_base);
-    METHOD_ENTER();
+    METHOD_ENTER("X509Crl.load");
 
     METHOD_OVER(1, 1);
 
@@ -108,7 +108,7 @@ inline void X509Crl_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void X509Crl_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(X509Crl_base);
-    METHOD_ENTER();
+    METHOD_ENTER("X509Crl.loadFile");
 
     METHOD_OVER(1, 1);
 
@@ -124,7 +124,7 @@ inline void X509Crl_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& args
     v8::Local<v8::Array> vr;
 
     METHOD_INSTANCE(X509Crl_base);
-    METHOD_ENTER();
+    METHOD_ENTER("X509Crl.dump");
 
     METHOD_OVER(0, 0);
 
@@ -136,7 +136,7 @@ inline void X509Crl_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void X509Crl_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(X509Crl_base);
-    METHOD_ENTER();
+    METHOD_ENTER("X509Crl.clear");
 
     METHOD_OVER(0, 0);
 

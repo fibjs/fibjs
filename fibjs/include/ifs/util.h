@@ -226,7 +226,7 @@ inline void util_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.format");
 
     METHOD_OVER(-1, 1);
 
@@ -246,7 +246,7 @@ inline void util_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void util_base::s_inherits(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    METHOD_ENTER("util.inherits");
 
     METHOD_OVER(2, 2);
 
@@ -262,7 +262,7 @@ inline void util_base::s_inspect(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.inspect");
 
     METHOD_OVER(2, 1);
 
@@ -278,7 +278,7 @@ inline void util_base::s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isEmpty");
 
     METHOD_OVER(1, 1);
 
@@ -293,7 +293,7 @@ inline void util_base::s_isArray(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isArray");
 
     METHOD_OVER(1, 1);
 
@@ -308,7 +308,7 @@ inline void util_base::s_isBoolean(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isBoolean");
 
     METHOD_OVER(1, 1);
 
@@ -323,7 +323,7 @@ inline void util_base::s_isNull(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isNull");
 
     METHOD_OVER(1, 1);
 
@@ -338,7 +338,7 @@ inline void util_base::s_isNullOrUndefined(const v8::FunctionCallbackInfo<v8::Va
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isNullOrUndefined");
 
     METHOD_OVER(1, 1);
 
@@ -353,7 +353,7 @@ inline void util_base::s_isNumber(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isNumber");
 
     METHOD_OVER(1, 1);
 
@@ -368,7 +368,7 @@ inline void util_base::s_isString(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isString");
 
     METHOD_OVER(1, 1);
 
@@ -383,7 +383,7 @@ inline void util_base::s_isUndefined(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isUndefined");
 
     METHOD_OVER(1, 1);
 
@@ -398,7 +398,7 @@ inline void util_base::s_isRegExp(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isRegExp");
 
     METHOD_OVER(1, 1);
 
@@ -413,7 +413,7 @@ inline void util_base::s_isObject(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isObject");
 
     METHOD_OVER(1, 1);
 
@@ -428,7 +428,7 @@ inline void util_base::s_isDate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isDate");
 
     METHOD_OVER(1, 1);
 
@@ -443,7 +443,7 @@ inline void util_base::s_isNativeError(const v8::FunctionCallbackInfo<v8::Value>
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isNativeError");
 
     METHOD_OVER(1, 1);
 
@@ -458,7 +458,7 @@ inline void util_base::s_isPrimitive(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isPrimitive");
 
     METHOD_OVER(1, 1);
 
@@ -473,7 +473,7 @@ inline void util_base::s_isSymbol(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isSymbol");
 
     METHOD_OVER(1, 1);
 
@@ -488,7 +488,7 @@ inline void util_base::s_isDataView(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isDataView");
 
     METHOD_OVER(1, 1);
 
@@ -503,7 +503,7 @@ inline void util_base::s_isExternal(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isExternal");
 
     METHOD_OVER(1, 1);
 
@@ -518,7 +518,7 @@ inline void util_base::s_isMap(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isMap");
 
     METHOD_OVER(1, 1);
 
@@ -533,7 +533,7 @@ inline void util_base::s_isMapIterator(const v8::FunctionCallbackInfo<v8::Value>
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isMapIterator");
 
     METHOD_OVER(1, 1);
 
@@ -548,7 +548,7 @@ inline void util_base::s_isPromise(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isPromise");
 
     METHOD_OVER(1, 1);
 
@@ -563,7 +563,7 @@ inline void util_base::s_isAsyncFunction(const v8::FunctionCallbackInfo<v8::Valu
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isAsyncFunction");
 
     METHOD_OVER(1, 1);
 
@@ -578,7 +578,7 @@ inline void util_base::s_isSet(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isSet");
 
     METHOD_OVER(1, 1);
 
@@ -593,7 +593,7 @@ inline void util_base::s_isSetIterator(const v8::FunctionCallbackInfo<v8::Value>
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isSetIterator");
 
     METHOD_OVER(1, 1);
 
@@ -608,7 +608,7 @@ inline void util_base::s_isTypedArray(const v8::FunctionCallbackInfo<v8::Value>&
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isTypedArray");
 
     METHOD_OVER(1, 1);
 
@@ -623,7 +623,7 @@ inline void util_base::s_isUint8Array(const v8::FunctionCallbackInfo<v8::Value>&
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isUint8Array");
 
     METHOD_OVER(1, 1);
 
@@ -638,7 +638,7 @@ inline void util_base::s_isFunction(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isFunction");
 
     METHOD_OVER(1, 1);
 
@@ -653,7 +653,7 @@ inline void util_base::s_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.isBuffer");
 
     METHOD_OVER(1, 1);
 
@@ -668,7 +668,7 @@ inline void util_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.has");
 
     METHOD_OVER(2, 2);
 
@@ -684,7 +684,7 @@ inline void util_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.keys");
 
     METHOD_OVER(1, 1);
 
@@ -699,7 +699,7 @@ inline void util_base::s_values(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.values");
 
     METHOD_OVER(1, 1);
 
@@ -714,7 +714,7 @@ inline void util_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.clone");
 
     METHOD_OVER(1, 1);
 
@@ -729,7 +729,7 @@ inline void util_base::s_extend(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.extend");
 
     METHOD_OVER(-1, 1);
 
@@ -745,7 +745,7 @@ inline void util_base::s__extend(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util._extend");
 
     METHOD_OVER(-1, 1);
 
@@ -761,7 +761,7 @@ inline void util_base::s_pick(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.pick");
 
     METHOD_OVER(-1, 1);
 
@@ -777,7 +777,7 @@ inline void util_base::s_omit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.omit");
 
     METHOD_OVER(-1, 1);
 
@@ -793,7 +793,7 @@ inline void util_base::s_first(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.first");
 
     METHOD_OVER(1, 1);
 
@@ -815,7 +815,7 @@ inline void util_base::s_last(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.last");
 
     METHOD_OVER(1, 1);
 
@@ -837,7 +837,7 @@ inline void util_base::s_unique(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.unique");
 
     METHOD_OVER(2, 1);
 
@@ -853,7 +853,7 @@ inline void util_base::s_union(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.union");
 
     METHOD_OVER(-1, 0);
 
@@ -868,7 +868,7 @@ inline void util_base::s_intersection(const v8::FunctionCallbackInfo<v8::Value>&
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.intersection");
 
     METHOD_OVER(-1, 0);
 
@@ -883,7 +883,7 @@ inline void util_base::s_flatten(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.flatten");
 
     METHOD_OVER(2, 1);
 
@@ -899,7 +899,7 @@ inline void util_base::s_without(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.without");
 
     METHOD_OVER(-1, 1);
 
@@ -915,7 +915,7 @@ inline void util_base::s_difference(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.difference");
 
     METHOD_OVER(-1, 1);
 
@@ -931,7 +931,7 @@ inline void util_base::s_each(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.each");
 
     METHOD_OVER(3, 2);
 
@@ -948,7 +948,7 @@ inline void util_base::s_map(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.map");
 
     METHOD_OVER(3, 2);
 
@@ -965,7 +965,7 @@ inline void util_base::s_reduce(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.reduce");
 
     METHOD_OVER(4, 3);
 
@@ -983,7 +983,7 @@ inline void util_base::s_compile(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.compile");
 
     METHOD_OVER(3, 2);
 
@@ -1000,7 +1000,7 @@ inline void util_base::s_sync(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.sync");
 
     METHOD_OVER(2, 1);
 
@@ -1016,7 +1016,7 @@ inline void util_base::s_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_ENTER();
+    METHOD_ENTER("util.buildInfo");
 
     METHOD_OVER(0, 0);
 
