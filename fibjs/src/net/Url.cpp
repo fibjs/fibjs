@@ -284,7 +284,9 @@ void Url::trimUrl(exlib::string url, exlib::string& retVal)
     int32_t lastPos = 0;
     int32_t i;
     bool isWs;
+
     bool inWs = false;
+
     for (i = 0; i < (int32_t)url.length(); i++) {
         isWs = url[i] == 32 || url[i] == 9 || url[i] == 13 || url[i] == 10 || url[i] == 12;
 
@@ -326,7 +328,7 @@ void Url::trimUrl(exlib::string url, exlib::string& retVal)
             } else {
                 rest = url.substr(start, end - start);
             }
-        } else if (end == -1 && lastPos < url.length()) {
+        } else if (end == -1 && lastPos < (int32_t)url.length()) {
             // We converted some backslashes and have only part of the entire string
             rest = url.substr(lastPos);
         } else if (end != -1 && lastPos < end) {
