@@ -17,7 +17,7 @@ class SQLite : public SQLite_base {
 public:
     SQLite()
         : m_db(NULL)
-        , m_nCmdTimeout(5000)
+        , m_nCmdTimeout(10000)
     {
     }
 

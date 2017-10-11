@@ -126,32 +126,46 @@ result_t SQLite::trans(v8::Local<v8::Function> func)
     return _trans(this, func);
 }
 
+inline int32_t _busy(int32_t ms, int32_t count)
+{
+    static const int32_t delays[] = { 1, 2, 5, 10, 15, 20, 25, 25, 25, 50, 50, 100 };
+
+    int32_t delay;
+
+    if (count < ARRAYSIZE(delays))
+        delay = delays[count];
+    else
+        delay = delays[ARRAYSIZE(delays) - 1];
+
+    if (delay > ms)
+        delay = ms;
+
+    coroutine_base::cc_sleep(delay);
+    return delay;
+}
+
 int32_t sqlite3_step_sleep(sqlite3_stmt* stmt, int32_t ms)
 {
+    int32_t count = 0;
     while (true) {
         int32_t r = sqlite3_step(stmt);
         if ((r != SQLITE_LOCKED && r != SQLITE_BUSY) || ms <= 0)
             return r;
-
-        coroutine_base::cc_sleep(1);
-        ms--;
+        ms -= _busy(ms, count--);
     }
 }
 
 int32_t sqlite3_prepare_sleep(sqlite3* db, const char* zSql, int nByte,
     sqlite3_stmt** ppStmt, const char** pzTail, int32_t ms)
 {
+    int32_t count = 0;
     while (true) {
         int32_t r = sqlite3_prepare_v2(db, zSql, nByte, ppStmt, pzTail);
         if ((r != SQLITE_LOCKED && r != SQLITE_BUSY) || ms <= 0)
             return r;
-
-        coroutine_base::cc_sleep(1);
-        ms--;
+        ms -= _busy(ms, count--);
     }
 }
-
-#define SQLITE_SLEEP_TIME 10000
 
 result_t SQLite::execute(const char* sql, int32_t sLen,
     obj_ptr<NArray>& retVal)
@@ -162,7 +176,7 @@ result_t SQLite::execute(const char* sql, int32_t sLen,
     sqlite3_stmt* stmt = 0;
     const char* pStr1;
 
-    if (sqlite3_prepare_sleep(m_db, sql, sLen, &stmt, &pStr1, SQLITE_SLEEP_TIME)) {
+    if (sqlite3_prepare_sleep(m_db, sql, sLen, &stmt, &pStr1, m_nCmdTimeout)) {
         result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
         if (stmt)
             sqlite3_finalize(stmt);
@@ -185,7 +199,7 @@ result_t SQLite::execute(const char* sql, int32_t sLen,
         }
 
         while (true) {
-            int32_t r = sqlite3_step_sleep(stmt, SQLITE_SLEEP_TIME);
+            int32_t r = sqlite3_step_sleep(stmt, m_nCmdTimeout);
             if (r == SQLITE_ROW) {
                 res->beginRow();
                 for (i = 0; i < columns; i++) {
@@ -245,7 +259,7 @@ result_t SQLite::execute(const char* sql, int32_t sLen,
             }
         }
     } else {
-        int32_t r = sqlite3_step_sleep(stmt, SQLITE_SLEEP_TIME);
+        int32_t r = sqlite3_step_sleep(stmt, m_nCmdTimeout);
         if (r == SQLITE_DONE)
             res = new DBResult(0, sqlite3_changes(m_db),
                 sqlite3_last_insert_rowid(m_db));
@@ -325,7 +339,6 @@ result_t SQLite::set_timeout(int32_t newVal)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     m_nCmdTimeout = newVal;
-    sqlite3_busy_timeout(m_db, m_nCmdTimeout);
     return 0;
 }
 
