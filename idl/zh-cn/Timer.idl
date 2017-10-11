@@ -3,4 +3,7 @@ interface Timer : object
 {
     /*! @brief 取消当前定时器	 */
     clear();
+
+    /*! @brief 查询当前定时器是否已经终止 */
+    readonly Boolean stopped;
 };

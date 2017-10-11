@@ -35,6 +35,12 @@ public:
         return 0;
     }
 
+    virtual result_t get_stopped(bool& retVal)
+    {
+        retVal = m_cancel != 0;
+        return 0;
+    }
+
 public:
     // exlib::Task_base
     virtual void suspend()
@@ -77,6 +83,7 @@ protected:
             if (m_repeat && !m_cancel)
                 sleep();
             else {
+                m_cancel = 1;
                 on_clean();
                 Unref();
             }

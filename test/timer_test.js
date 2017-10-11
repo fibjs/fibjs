@@ -16,7 +16,7 @@ describe("timer", () => {
             GC();
             var no1 = test_util.countObject('Timer');
 
-            setTimeout((a) => n = a, 1, 1);
+            var t = setTimeout((a) => n = a, 1, 1);
 
             GC();
             var no2 = test_util.countObject('Timer');
@@ -27,6 +27,8 @@ describe("timer", () => {
                 coroutine.sleep(10);
 
             assert.equal(n, 1);
+            assert.isTrue(t.stopped);
+            t = undefined;
 
             GC();
             no2 = test_util.countObject('Timer');
@@ -53,6 +55,7 @@ describe("timer", () => {
             var no4 = test_util.countObject('Timer');
             assert.equal(no1 + 1, no4);
             clearTimeout(t);
+            assert.isTrue(t.stopped);
             t = undefined;
 
             coroutine.sleep(200);
@@ -144,6 +147,7 @@ describe("timer", () => {
 
             assert.equal(n, 0);
             clearImmediate(t);
+            assert.isTrue(t.stopped);
             t = undefined;
             coroutine.sleep(100);
             assert.equal(n, 0);
@@ -178,11 +182,13 @@ describe("timer", () => {
             var t1 = setInterval(() => n1++, 50);
             coroutine.sleep(10);
             clearInterval(t1);
+            assert.isTrue(t1.stopped);
             t1 = undefined;
 
             var t2 = setInterval(() => n2++, Math.pow(2, 31));
             coroutine.sleep(100);
             clearInterval(t2);
+            assert.isTrue(t2.stopped);
             t2 = undefined;
 
             var t3 = setInterval(() => n3++, Math.pow(2, 31) - 1);
@@ -200,6 +206,7 @@ describe("timer", () => {
             assert.equal(no1 + 1, no2);
 
             clearInterval(t3);
+            assert.isTrue(t3.stopped);
             t3 = undefined;
             coroutine.sleep(100);
 
@@ -231,11 +238,13 @@ describe("timer", () => {
             setInterval(function () {
                 n++;
                 clearInterval(this);
+                assert.isTrue(this.stopped);
             }, 1);
 
             setInterval(function () {
                 n++;
                 clearInterval(this);
+                assert.isTrue(this.stopped);
             }, Math.pow(2, 31));
 
             var t = setInterval(() => n++, Math.pow(2, 31) - 1);
@@ -288,6 +297,7 @@ describe("timer", () => {
             var t1 = setHrInterval(() => n1++, 50);
             deadLoop(10);
             clearHrInterval(t1);
+            assert.isTrue(t1.stopped);
             t1 = undefined;
 
             var t2 = setHrInterval(() => n2++, Math.pow(2, 31));
@@ -343,11 +353,13 @@ describe("timer", () => {
             setHrInterval(function () {
                 n++;
                 clearHrInterval(this);
+                assert.isTrue(this.stopped);
             }, 1);
 
             setHrInterval(function () {
                 n++;
                 clearHrInterval(this);
+                assert.isTrue(this.stopped);
             }, Math.pow(2, 31));
 
             var t = setHrInterval(() => n++, Math.pow(2, 31) - 1);
