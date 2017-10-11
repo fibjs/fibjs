@@ -171,9 +171,7 @@ void Url::parseHost(const char*& url, exlib::string& hostname, exlib::string& po
             url++;
     } else {
         while ((ch = *p1)
-                && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_'
-                       || ch == '-')
-            || ch < 0)
+            && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_' || ch == '-' || ch < 0))
             p1++;
     }
 
