@@ -92,15 +92,17 @@ inline ClassInfo& zip_base::class_info()
 
 inline void zip_base::s_get_ZIP_STORED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("zip.ZIP_STORED");
     int32_t vr = _ZIP_STORED;
-    PROPERTY_ENTER("zip.ZIP_STORED");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void zip_base::s_get_ZIP_DEFLATED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("zip.ZIP_DEFLATED");
     int32_t vr = _ZIP_DEFLATED;
-    PROPERTY_ENTER("zip.ZIP_DEFLATED");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
@@ -108,7 +110,8 @@ inline void zip_base::s_isZipFile(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_ENTER("zip.isZipFile");
+    METHOD_NAME("zip.isZipFile");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -127,7 +130,8 @@ inline void zip_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<ZipFile_base> vr;
 
-    METHOD_ENTER("zip.open");
+    METHOD_NAME("zip.open");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(3, 1);
 

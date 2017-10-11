@@ -82,8 +82,9 @@ inline void ZipInfo_base::s_get_filename(v8::Local<v8::String> property, const v
 {
     exlib::string vr;
 
+    METHOD_NAME("ZipInfo.filename");
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER("ZipInfo.filename");
+    PROPERTY_ENTER();
 
     hr = pInst->get_filename(vr);
 
@@ -94,8 +95,9 @@ inline void ZipInfo_base::s_get_date(v8::Local<v8::String> property, const v8::P
 {
     date_t vr;
 
+    METHOD_NAME("ZipInfo.date");
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER("ZipInfo.date");
+    PROPERTY_ENTER();
 
     hr = pInst->get_date(vr);
 
@@ -106,8 +108,9 @@ inline void ZipInfo_base::s_get_compress_type(v8::Local<v8::String> property, co
 {
     exlib::string vr;
 
+    METHOD_NAME("ZipInfo.compress_type");
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER("ZipInfo.compress_type");
+    PROPERTY_ENTER();
 
     hr = pInst->get_compress_type(vr);
 
@@ -118,8 +121,9 @@ inline void ZipInfo_base::s_get_compress_size(v8::Local<v8::String> property, co
 {
     int64_t vr;
 
+    METHOD_NAME("ZipInfo.compress_size");
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER("ZipInfo.compress_size");
+    PROPERTY_ENTER();
 
     hr = pInst->get_compress_size(vr);
 
@@ -130,8 +134,9 @@ inline void ZipInfo_base::s_get_file_size(v8::Local<v8::String> property, const 
 {
     int64_t vr;
 
+    METHOD_NAME("ZipInfo.file_size");
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER("ZipInfo.file_size");
+    PROPERTY_ENTER();
 
     hr = pInst->get_file_size(vr);
 
@@ -142,8 +147,9 @@ inline void ZipInfo_base::s_get_password(v8::Local<v8::String> property, const v
 {
     bool vr;
 
+    METHOD_NAME("ZipInfo.password");
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER("ZipInfo.password");
+    PROPERTY_ENTER();
 
     hr = pInst->get_password(vr);
 
@@ -154,8 +160,9 @@ inline void ZipInfo_base::s_get_data(v8::Local<v8::String> property, const v8::P
 {
     obj_ptr<Buffer_base> vr;
 
+    METHOD_NAME("ZipInfo.data");
     METHOD_INSTANCE(ZipInfo_base);
-    PROPERTY_ENTER("ZipInfo.data");
+    PROPERTY_ENTER();
 
     hr = pInst->get_data(vr);
 

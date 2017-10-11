@@ -190,8 +190,9 @@ typedef int32_t result_t;
 #define V8_RETURN(v) (v)
 #endif
 
-#define PROPERTY_ENTER(name)                  \
-    save_native_name(name);                   \
+#define METHOD_NAME(name) save_method_name _save_method_name(name)
+
+#define PROPERTY_ENTER()                      \
     v8::Isolate* isolate = args.GetIsolate(); \
     V8_SCOPE(isolate);                        \
     result_t hr = 0;                          \
@@ -242,8 +243,7 @@ typedef int32_t result_t;
                 break;                                             \
             }
 
-#define METHOD_ENTER(name)                    \
-    save_native_name(name);                   \
+#define METHOD_ENTER()                        \
     v8::Isolate* isolate = args.GetIsolate(); \
     V8_SCOPE(isolate);                        \
     result_t hr = CALL_E_BADPARAMCOUNT;       \
@@ -255,12 +255,12 @@ typedef int32_t result_t;
     if (class_info().init_isolate()) \
         return;
 
-#define CONSTRUCT_ENTER(name)            \
+#define CONSTRUCT_ENTER()                \
     if (!args.IsConstructCall()) {       \
         ThrowResult(CALL_E_CONSTRUCTOR); \
         return;                          \
     }                                    \
-    METHOD_ENTER(name)
+    METHOD_ENTER()
 
 #define METHOD_INSTANCE(cls)                            \
     obj_ptr<cls> pInst = cls::getInstance(args.This()); \
@@ -1181,7 +1181,16 @@ inline exlib::string niceSize(intptr_t sz)
 }
 
 void flushLog();
-void save_native_name(const char* name);
+
+class save_method_name {
+public:
+    save_method_name(const char* name);
+    ~save_method_name();
+
+private:
+    JSFiber* m_fb;
+    const char* m_name;
+};
 }
 
 #endif

@@ -98,29 +98,33 @@ inline ClassInfo& uuid_base::class_info()
 
 inline void uuid_base::s_get_DNS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("uuid.DNS");
     int32_t vr = _DNS;
-    PROPERTY_ENTER("uuid.DNS");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void uuid_base::s_get_URL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("uuid.URL");
     int32_t vr = _URL;
-    PROPERTY_ENTER("uuid.URL");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void uuid_base::s_get_OID(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("uuid.OID");
     int32_t vr = _OID;
-    PROPERTY_ENTER("uuid.OID");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void uuid_base::s_get_X509(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("uuid.X509");
     int32_t vr = _X509;
-    PROPERTY_ENTER("uuid.X509");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
@@ -128,7 +132,8 @@ inline void uuid_base::s_node(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER("uuid.node");
+    METHOD_NAME("uuid.node");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -141,7 +146,8 @@ inline void uuid_base::s_md5(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER("uuid.md5");
+    METHOD_NAME("uuid.md5");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -157,7 +163,8 @@ inline void uuid_base::s_random(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER("uuid.random");
+    METHOD_NAME("uuid.random");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -170,7 +177,8 @@ inline void uuid_base::s_sha1(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER("uuid.sha1");
+    METHOD_NAME("uuid.sha1");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -186,7 +194,8 @@ inline void uuid_base::s_snowflake(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER("uuid.snowflake");
+    METHOD_NAME("uuid.snowflake");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -199,7 +208,8 @@ inline void uuid_base::s_get_hostID(v8::Local<v8::String> property, const v8::Pr
 {
     int32_t vr;
 
-    PROPERTY_ENTER("uuid.hostID");
+    METHOD_NAME("uuid.hostID");
+    PROPERTY_ENTER();
 
     hr = get_hostID(vr);
 
@@ -208,7 +218,8 @@ inline void uuid_base::s_get_hostID(v8::Local<v8::String> property, const v8::Pr
 
 inline void uuid_base::s_set_hostID(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    PROPERTY_ENTER("uuid.hostID");
+    METHOD_NAME("uuid.hostID");
+    PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
     hr = set_hostID(v0);

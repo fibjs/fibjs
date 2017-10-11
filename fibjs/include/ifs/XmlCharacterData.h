@@ -86,8 +86,9 @@ inline void XmlCharacterData_base::s_get_data(v8::Local<v8::String> property, co
 {
     exlib::string vr;
 
+    METHOD_NAME("XmlCharacterData.data");
     METHOD_INSTANCE(XmlCharacterData_base);
-    PROPERTY_ENTER("XmlCharacterData.data");
+    PROPERTY_ENTER();
 
     hr = pInst->get_data(vr);
 
@@ -96,8 +97,9 @@ inline void XmlCharacterData_base::s_get_data(v8::Local<v8::String> property, co
 
 inline void XmlCharacterData_base::s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("XmlCharacterData.data");
     METHOD_INSTANCE(XmlCharacterData_base);
-    PROPERTY_ENTER("XmlCharacterData.data");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_data(v0);
@@ -109,8 +111,9 @@ inline void XmlCharacterData_base::s_get_length(v8::Local<v8::String> property, 
 {
     int32_t vr;
 
+    METHOD_NAME("XmlCharacterData.length");
     METHOD_INSTANCE(XmlCharacterData_base);
-    PROPERTY_ENTER("XmlCharacterData.length");
+    PROPERTY_ENTER();
 
     hr = pInst->get_length(vr);
 
@@ -121,8 +124,9 @@ inline void XmlCharacterData_base::s_substringData(const v8::FunctionCallbackInf
 {
     exlib::string vr;
 
+    METHOD_NAME("XmlCharacterData.substringData");
     METHOD_INSTANCE(XmlCharacterData_base);
-    METHOD_ENTER("XmlCharacterData.substringData");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -136,8 +140,9 @@ inline void XmlCharacterData_base::s_substringData(const v8::FunctionCallbackInf
 
 inline void XmlCharacterData_base::s_appendData(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("XmlCharacterData.appendData");
     METHOD_INSTANCE(XmlCharacterData_base);
-    METHOD_ENTER("XmlCharacterData.appendData");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -150,8 +155,9 @@ inline void XmlCharacterData_base::s_appendData(const v8::FunctionCallbackInfo<v
 
 inline void XmlCharacterData_base::s_insertData(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("XmlCharacterData.insertData");
     METHOD_INSTANCE(XmlCharacterData_base);
-    METHOD_ENTER("XmlCharacterData.insertData");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -165,8 +171,9 @@ inline void XmlCharacterData_base::s_insertData(const v8::FunctionCallbackInfo<v
 
 inline void XmlCharacterData_base::s_deleteData(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("XmlCharacterData.deleteData");
     METHOD_INSTANCE(XmlCharacterData_base);
-    METHOD_ENTER("XmlCharacterData.deleteData");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -180,8 +187,9 @@ inline void XmlCharacterData_base::s_deleteData(const v8::FunctionCallbackInfo<v
 
 inline void XmlCharacterData_base::s_replaceData(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("XmlCharacterData.replaceData");
     METHOD_INSTANCE(XmlCharacterData_base);
-    METHOD_ENTER("XmlCharacterData.replaceData");
+    METHOD_ENTER();
 
     METHOD_OVER(3, 3);
 

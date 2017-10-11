@@ -83,7 +83,8 @@ void Stats_base::__new(const T& args)
 {
     obj_ptr<Stats_base> vr;
 
-    CONSTRUCT_ENTER("new Stats()");
+    METHOD_NAME("new Stats()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -103,8 +104,9 @@ void Stats_base::__new(const T& args)
 
 inline void Stats_base::s_inc(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("Stats.inc");
     METHOD_INSTANCE(Stats_base);
-    METHOD_ENTER("Stats.inc");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -117,8 +119,9 @@ inline void Stats_base::s_inc(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Stats_base::s_dec(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("Stats.dec");
     METHOD_INSTANCE(Stats_base);
-    METHOD_ENTER("Stats.dec");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -131,8 +134,9 @@ inline void Stats_base::s_dec(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Stats_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("Stats.add");
     METHOD_INSTANCE(Stats_base);
-    METHOD_ENTER("Stats.add");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -146,8 +150,9 @@ inline void Stats_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Stats_base::s_reset(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("Stats.reset");
     METHOD_INSTANCE(Stats_base);
-    METHOD_ENTER("Stats.reset");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -160,8 +165,9 @@ inline void Stats_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     int32_t vr;
 
+    METHOD_NAME("Stats.uptime");
     METHOD_INSTANCE(Stats_base);
-    METHOD_ENTER("Stats.uptime");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -174,8 +180,9 @@ inline void Stats_base::i_NamedGetter(v8::Local<v8::String> property, const v8::
 {
     int32_t vr;
 
+    METHOD_NAME("Stats.undefined[]");
     METHOD_INSTANCE(Stats_base);
-    PROPERTY_ENTER("Stats.undefined[]");
+    PROPERTY_ENTER();
 
     exlib::string k;
     GetArgumentValue(isolate, property, k);
@@ -193,8 +200,9 @@ inline void Stats_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Arr
 {
     v8::Local<v8::Array> vr;
 
+    METHOD_NAME("Stats.undefined");
     METHOD_INSTANCE(Stats_base);
-    PROPERTY_ENTER("Stats.undefined[]");
+    PROPERTY_ENTER();
 
     hr = pInst->_named_enumerator(vr);
 

@@ -68,7 +68,8 @@ void Handler_base::__new(const T& args)
 {
     obj_ptr<Handler_base> vr;
 
-    CONSTRUCT_ENTER("new Handler()");
+    METHOD_NAME("new Handler()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -95,8 +96,9 @@ inline void Handler_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Handler_base> vr;
 
+    METHOD_NAME("Handler.invoke");
     METHOD_INSTANCE(Handler_base);
-    METHOD_ENTER("Handler.invoke");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 

@@ -78,8 +78,9 @@ inline ClassInfo& MySQL_base::class_info()
 
 inline void MySQL_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("MySQL.use");
     METHOD_INSTANCE(MySQL_base);
-    METHOD_ENTER("MySQL.use");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -98,8 +99,9 @@ inline void MySQL_base::s_get_rxBufferSize(v8::Local<v8::String> property, const
 {
     int32_t vr;
 
+    METHOD_NAME("MySQL.rxBufferSize");
     METHOD_INSTANCE(MySQL_base);
-    PROPERTY_ENTER("MySQL.rxBufferSize");
+    PROPERTY_ENTER();
 
     hr = pInst->get_rxBufferSize(vr);
 
@@ -108,8 +110,9 @@ inline void MySQL_base::s_get_rxBufferSize(v8::Local<v8::String> property, const
 
 inline void MySQL_base::s_set_rxBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("MySQL.rxBufferSize");
     METHOD_INSTANCE(MySQL_base);
-    PROPERTY_ENTER("MySQL.rxBufferSize");
+    PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_rxBufferSize(v0);
@@ -121,8 +124,9 @@ inline void MySQL_base::s_get_txBufferSize(v8::Local<v8::String> property, const
 {
     int32_t vr;
 
+    METHOD_NAME("MySQL.txBufferSize");
     METHOD_INSTANCE(MySQL_base);
-    PROPERTY_ENTER("MySQL.txBufferSize");
+    PROPERTY_ENTER();
 
     hr = pInst->get_txBufferSize(vr);
 
@@ -131,8 +135,9 @@ inline void MySQL_base::s_get_txBufferSize(v8::Local<v8::String> property, const
 
 inline void MySQL_base::s_set_txBufferSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("MySQL.txBufferSize");
     METHOD_INSTANCE(MySQL_base);
-    PROPERTY_ENTER("MySQL.txBufferSize");
+    PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_txBufferSize(v0);

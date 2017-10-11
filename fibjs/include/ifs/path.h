@@ -96,7 +96,8 @@ inline void path_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     exlib::string vr;
 
-    METHOD_ENTER("path.normalize");
+    METHOD_NAME("path.normalize");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -111,7 +112,8 @@ inline void path_base::s_basename(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     exlib::string vr;
 
-    METHOD_ENTER("path.basename");
+    METHOD_NAME("path.basename");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -127,7 +129,8 @@ inline void path_base::s_extname(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     exlib::string vr;
 
-    METHOD_ENTER("path.extname");
+    METHOD_NAME("path.extname");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -142,7 +145,8 @@ inline void path_base::s_dirname(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     exlib::string vr;
 
-    METHOD_ENTER("path.dirname");
+    METHOD_NAME("path.dirname");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -157,7 +161,8 @@ inline void path_base::s_fullpath(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     exlib::string vr;
 
-    METHOD_ENTER("path.fullpath");
+    METHOD_NAME("path.fullpath");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -172,7 +177,8 @@ inline void path_base::s_isAbsolute(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     bool vr;
 
-    METHOD_ENTER("path.isAbsolute");
+    METHOD_NAME("path.isAbsolute");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -187,7 +193,8 @@ inline void path_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER("path.join");
+    METHOD_NAME("path.join");
+    METHOD_ENTER();
 
     METHOD_OVER(-1, 0);
 
@@ -202,7 +209,8 @@ inline void path_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     exlib::string vr;
 
-    METHOD_ENTER("path.resolve");
+    METHOD_NAME("path.resolve");
+    METHOD_ENTER();
 
     METHOD_OVER(-1, 0);
 
@@ -217,7 +225,8 @@ inline void path_base::s_get_sep(v8::Local<v8::String> property, const v8::Prope
 {
     exlib::string vr;
 
-    PROPERTY_ENTER("path.sep");
+    METHOD_NAME("path.sep");
+    PROPERTY_ENTER();
 
     hr = get_sep(vr);
 
@@ -228,7 +237,8 @@ inline void path_base::s_get_delimiter(v8::Local<v8::String> property, const v8:
 {
     exlib::string vr;
 
-    PROPERTY_ENTER("path.delimiter");
+    METHOD_NAME("path.delimiter");
+    PROPERTY_ENTER();
 
     hr = get_delimiter(vr);
 
@@ -239,7 +249,8 @@ inline void path_base::s_get_posix(v8::Local<v8::String> property, const v8::Pro
 {
     v8::Local<v8::Object> vr;
 
-    PROPERTY_ENTER("path.posix");
+    METHOD_NAME("path.posix");
+    PROPERTY_ENTER();
 
     hr = get_posix(vr);
 
@@ -250,7 +261,8 @@ inline void path_base::s_get_win32(v8::Local<v8::String> property, const v8::Pro
 {
     v8::Local<v8::Object> vr;
 
-    PROPERTY_ENTER("path.win32");
+    METHOD_NAME("path.win32");
+    PROPERTY_ENTER();
 
     hr = get_win32(vr);
 

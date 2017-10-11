@@ -75,7 +75,8 @@ void WebSocketMessage_base::__new(const T& args)
 {
     obj_ptr<WebSocketMessage_base> vr;
 
-    CONSTRUCT_ENTER("new WebSocketMessage()");
+    METHOD_NAME("new WebSocketMessage()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(3, 0);
 
@@ -92,8 +93,9 @@ inline void WebSocketMessage_base::s_get_masked(v8::Local<v8::String> property, 
 {
     bool vr;
 
+    METHOD_NAME("WebSocketMessage.masked");
     METHOD_INSTANCE(WebSocketMessage_base);
-    PROPERTY_ENTER("WebSocketMessage.masked");
+    PROPERTY_ENTER();
 
     hr = pInst->get_masked(vr);
 
@@ -102,8 +104,9 @@ inline void WebSocketMessage_base::s_get_masked(v8::Local<v8::String> property, 
 
 inline void WebSocketMessage_base::s_set_masked(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("WebSocketMessage.masked");
     METHOD_INSTANCE(WebSocketMessage_base);
-    PROPERTY_ENTER("WebSocketMessage.masked");
+    PROPERTY_ENTER();
     PROPERTY_VAL(bool);
 
     hr = pInst->set_masked(v0);
@@ -115,8 +118,9 @@ inline void WebSocketMessage_base::s_get_maxSize(v8::Local<v8::String> property,
 {
     int32_t vr;
 
+    METHOD_NAME("WebSocketMessage.maxSize");
     METHOD_INSTANCE(WebSocketMessage_base);
-    PROPERTY_ENTER("WebSocketMessage.maxSize");
+    PROPERTY_ENTER();
 
     hr = pInst->get_maxSize(vr);
 
@@ -125,8 +129,9 @@ inline void WebSocketMessage_base::s_get_maxSize(v8::Local<v8::String> property,
 
 inline void WebSocketMessage_base::s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("WebSocketMessage.maxSize");
     METHOD_INSTANCE(WebSocketMessage_base);
-    PROPERTY_ENTER("WebSocketMessage.maxSize");
+    PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_maxSize(v0);

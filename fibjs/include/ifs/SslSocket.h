@@ -97,7 +97,8 @@ void SslSocket_base::__new(const T& args)
 {
     obj_ptr<SslSocket_base> vr;
 
-    CONSTRUCT_ENTER("new SslSocket()");
+    METHOD_NAME("new SslSocket()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 0);
 
@@ -119,8 +120,9 @@ inline void SslSocket_base::s_get_verification(v8::Local<v8::String> property, c
 {
     int32_t vr;
 
+    METHOD_NAME("SslSocket.verification");
     METHOD_INSTANCE(SslSocket_base);
-    PROPERTY_ENTER("SslSocket.verification");
+    PROPERTY_ENTER();
 
     hr = pInst->get_verification(vr);
 
@@ -129,8 +131,9 @@ inline void SslSocket_base::s_get_verification(v8::Local<v8::String> property, c
 
 inline void SslSocket_base::s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("SslSocket.verification");
     METHOD_INSTANCE(SslSocket_base);
-    PROPERTY_ENTER("SslSocket.verification");
+    PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_verification(v0);
@@ -142,8 +145,9 @@ inline void SslSocket_base::s_get_ca(v8::Local<v8::String> property, const v8::P
 {
     obj_ptr<X509Cert_base> vr;
 
+    METHOD_NAME("SslSocket.ca");
     METHOD_INSTANCE(SslSocket_base);
-    PROPERTY_ENTER("SslSocket.ca");
+    PROPERTY_ENTER();
 
     hr = pInst->get_ca(vr);
 
@@ -154,8 +158,9 @@ inline void SslSocket_base::s_get_peerCert(v8::Local<v8::String> property, const
 {
     obj_ptr<X509Cert_base> vr;
 
+    METHOD_NAME("SslSocket.peerCert");
     METHOD_INSTANCE(SslSocket_base);
-    PROPERTY_ENTER("SslSocket.peerCert");
+    PROPERTY_ENTER();
 
     hr = pInst->get_peerCert(vr);
 
@@ -166,8 +171,9 @@ inline void SslSocket_base::s_get_stream(v8::Local<v8::String> property, const v
 {
     obj_ptr<Stream_base> vr;
 
+    METHOD_NAME("SslSocket.stream");
     METHOD_INSTANCE(SslSocket_base);
-    PROPERTY_ENTER("SslSocket.stream");
+    PROPERTY_ENTER();
 
     hr = pInst->get_stream(vr);
 
@@ -178,8 +184,9 @@ inline void SslSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>&
 {
     int32_t vr;
 
+    METHOD_NAME("SslSocket.connect");
     METHOD_INSTANCE(SslSocket_base);
-    METHOD_ENTER("SslSocket.connect");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -199,8 +206,9 @@ inline void SslSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<SslSocket_base> vr;
 
+    METHOD_NAME("SslSocket.accept");
     METHOD_INSTANCE(SslSocket_base);
-    METHOD_ENTER("SslSocket.accept");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 

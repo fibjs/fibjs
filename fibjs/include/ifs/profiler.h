@@ -146,154 +146,176 @@ inline ClassInfo& profiler_base::class_info()
 
 inline void profiler_base::s_get_Node_Hidden(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_Hidden");
     int32_t vr = _Node_Hidden;
-    PROPERTY_ENTER("profiler.Node_Hidden");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_Array(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_Array");
     int32_t vr = _Node_Array;
-    PROPERTY_ENTER("profiler.Node_Array");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_String(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_String");
     int32_t vr = _Node_String;
-    PROPERTY_ENTER("profiler.Node_String");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_Object(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_Object");
     int32_t vr = _Node_Object;
-    PROPERTY_ENTER("profiler.Node_Object");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_Code(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_Code");
     int32_t vr = _Node_Code;
-    PROPERTY_ENTER("profiler.Node_Code");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_Closure(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_Closure");
     int32_t vr = _Node_Closure;
-    PROPERTY_ENTER("profiler.Node_Closure");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_RegExp(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_RegExp");
     int32_t vr = _Node_RegExp;
-    PROPERTY_ENTER("profiler.Node_RegExp");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_HeapNumber(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_HeapNumber");
     int32_t vr = _Node_HeapNumber;
-    PROPERTY_ENTER("profiler.Node_HeapNumber");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_Native(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_Native");
     int32_t vr = _Node_Native;
-    PROPERTY_ENTER("profiler.Node_Native");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_Synthetic(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_Synthetic");
     int32_t vr = _Node_Synthetic;
-    PROPERTY_ENTER("profiler.Node_Synthetic");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_ConsString(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_ConsString");
     int32_t vr = _Node_ConsString;
-    PROPERTY_ENTER("profiler.Node_ConsString");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_SlicedString(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_SlicedString");
     int32_t vr = _Node_SlicedString;
-    PROPERTY_ENTER("profiler.Node_SlicedString");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_Symbol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_Symbol");
     int32_t vr = _Node_Symbol;
-    PROPERTY_ENTER("profiler.Node_Symbol");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Node_SimdValue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Node_SimdValue");
     int32_t vr = _Node_SimdValue;
-    PROPERTY_ENTER("profiler.Node_SimdValue");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Edge_ContextVariable(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Edge_ContextVariable");
     int32_t vr = _Edge_ContextVariable;
-    PROPERTY_ENTER("profiler.Edge_ContextVariable");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Edge_Element(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Edge_Element");
     int32_t vr = _Edge_Element;
-    PROPERTY_ENTER("profiler.Edge_Element");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Edge_Property(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Edge_Property");
     int32_t vr = _Edge_Property;
-    PROPERTY_ENTER("profiler.Edge_Property");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Edge_Internal(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Edge_Internal");
     int32_t vr = _Edge_Internal;
-    PROPERTY_ENTER("profiler.Edge_Internal");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Edge_Hidden(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Edge_Hidden");
     int32_t vr = _Edge_Hidden;
-    PROPERTY_ENTER("profiler.Edge_Hidden");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Edge_Shortcut(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Edge_Shortcut");
     int32_t vr = _Edge_Shortcut;
-    PROPERTY_ENTER("profiler.Edge_Shortcut");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_get_Edge_Weak(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("profiler.Edge_Weak");
     int32_t vr = _Edge_Weak;
-    PROPERTY_ENTER("profiler.Edge_Weak");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void profiler_base::s_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("profiler.saveSnapshot");
+    METHOD_NAME("profiler.saveSnapshot");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -308,7 +330,8 @@ inline void profiler_base::s_loadSnapshot(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<HeapSnapshot_base> vr;
 
-    METHOD_ENTER("profiler.loadSnapshot");
+    METHOD_NAME("profiler.loadSnapshot");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -323,7 +346,8 @@ inline void profiler_base::s_takeSnapshot(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<HeapSnapshot_base> vr;
 
-    METHOD_ENTER("profiler.takeSnapshot");
+    METHOD_NAME("profiler.takeSnapshot");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -336,7 +360,8 @@ inline void profiler_base::s_diff(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_ENTER("profiler.diff");
+    METHOD_NAME("profiler.diff");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -351,7 +376,8 @@ inline void profiler_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_ENTER("profiler.start");
+    METHOD_NAME("profiler.start");
+    METHOD_ENTER();
 
     METHOD_OVER(3, 1);
 

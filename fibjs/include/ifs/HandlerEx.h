@@ -75,8 +75,9 @@ inline ClassInfo& HandlerEx_base::class_info()
 
 inline void HandlerEx_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("HandlerEx.onerror");
     METHOD_INSTANCE(HandlerEx_base);
-    METHOD_ENTER("HandlerEx.onerror");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -91,8 +92,9 @@ inline void HandlerEx_base::s_get_handler(v8::Local<v8::String> property, const 
 {
     obj_ptr<Handler_base> vr;
 
+    METHOD_NAME("HandlerEx.handler");
     METHOD_INSTANCE(HandlerEx_base);
-    PROPERTY_ENTER("HandlerEx.handler");
+    PROPERTY_ENTER();
 
     hr = pInst->get_handler(vr);
 
@@ -101,8 +103,9 @@ inline void HandlerEx_base::s_get_handler(v8::Local<v8::String> property, const 
 
 inline void HandlerEx_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HandlerEx.handler");
     METHOD_INSTANCE(HandlerEx_base);
-    PROPERTY_ENTER("HandlerEx.handler");
+    PROPERTY_ENTER();
     PROPERTY_VAL(obj_ptr<Handler_base>);
 
     hr = pInst->set_handler(v0);
@@ -114,8 +117,9 @@ inline void HandlerEx_base::s_get_stats(v8::Local<v8::String> property, const v8
 {
     obj_ptr<Stats_base> vr;
 
+    METHOD_NAME("HandlerEx.stats");
     METHOD_INSTANCE(HandlerEx_base);
-    PROPERTY_ENTER("HandlerEx.stats");
+    PROPERTY_ENTER();
 
     hr = pInst->get_stats(vr);
 

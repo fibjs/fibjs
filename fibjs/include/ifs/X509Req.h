@@ -99,7 +99,8 @@ void X509Req_base::__new(const T& args)
 {
     obj_ptr<X509Req_base> vr;
 
-    CONSTRUCT_ENTER("new X509Req()");
+    METHOD_NAME("new X509Req()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -118,8 +119,9 @@ void X509Req_base::__new(const T& args)
 
 inline void X509Req_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("X509Req.load");
     METHOD_INSTANCE(X509Req_base);
-    METHOD_ENTER("X509Req.load");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -138,8 +140,9 @@ inline void X509Req_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void X509Req_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("X509Req.loadFile");
     METHOD_INSTANCE(X509Req_base);
-    METHOD_ENTER("X509Req.loadFile");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -154,8 +157,9 @@ inline void X509Req_base::s_exportPem(const v8::FunctionCallbackInfo<v8::Value>&
 {
     exlib::string vr;
 
+    METHOD_NAME("X509Req.exportPem");
     METHOD_INSTANCE(X509Req_base);
-    METHOD_ENTER("X509Req.exportPem");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -168,8 +172,9 @@ inline void X509Req_base::s_exportDer(const v8::FunctionCallbackInfo<v8::Value>&
 {
     obj_ptr<Buffer_base> vr;
 
+    METHOD_NAME("X509Req.exportDer");
     METHOD_INSTANCE(X509Req_base);
-    METHOD_ENTER("X509Req.exportDer");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -182,8 +187,9 @@ inline void X509Req_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<X509Cert_base> vr;
 
+    METHOD_NAME("X509Req.sign");
     METHOD_INSTANCE(X509Req_base);
-    METHOD_ENTER("X509Req.sign");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(3, 2);
 
@@ -204,8 +210,9 @@ inline void X509Req_base::s_get_subject(v8::Local<v8::String> property, const v8
 {
     exlib::string vr;
 
+    METHOD_NAME("X509Req.subject");
     METHOD_INSTANCE(X509Req_base);
-    PROPERTY_ENTER("X509Req.subject");
+    PROPERTY_ENTER();
 
     hr = pInst->get_subject(vr);
 
@@ -216,8 +223,9 @@ inline void X509Req_base::s_get_publicKey(v8::Local<v8::String> property, const 
 {
     obj_ptr<PKey_base> vr;
 
+    METHOD_NAME("X509Req.publicKey");
     METHOD_INSTANCE(X509Req_base);
-    PROPERTY_ENTER("X509Req.publicKey");
+    PROPERTY_ENTER();
 
     hr = pInst->get_publicKey(vr);
 

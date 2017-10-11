@@ -130,7 +130,8 @@ void PKey_base::__new(const T& args)
 {
     obj_ptr<PKey_base> vr;
 
-    CONSTRUCT_ENTER("new PKey()");
+    METHOD_NAME("new PKey()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -143,8 +144,9 @@ inline void PKey_base::s_get_name(v8::Local<v8::String> property, const v8::Prop
 {
     exlib::string vr;
 
+    METHOD_NAME("PKey.name");
     METHOD_INSTANCE(PKey_base);
-    PROPERTY_ENTER("PKey.name");
+    PROPERTY_ENTER();
 
     hr = pInst->get_name(vr);
 
@@ -155,8 +157,9 @@ inline void PKey_base::s_get_keySize(v8::Local<v8::String> property, const v8::P
 {
     int32_t vr;
 
+    METHOD_NAME("PKey.keySize");
     METHOD_INSTANCE(PKey_base);
-    PROPERTY_ENTER("PKey.keySize");
+    PROPERTY_ENTER();
 
     hr = pInst->get_keySize(vr);
 
@@ -167,8 +170,9 @@ inline void PKey_base::s_get_publicKey(v8::Local<v8::String> property, const v8:
 {
     obj_ptr<PKey_base> vr;
 
+    METHOD_NAME("PKey.publicKey");
     METHOD_INSTANCE(PKey_base);
-    PROPERTY_ENTER("PKey.publicKey");
+    PROPERTY_ENTER();
 
     hr = pInst->get_publicKey(vr);
 
@@ -177,8 +181,9 @@ inline void PKey_base::s_get_publicKey(v8::Local<v8::String> property, const v8:
 
 inline void PKey_base::s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("PKey.genRsaKey");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.genRsaKey");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -195,8 +200,9 @@ inline void PKey_base::s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void PKey_base::s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("PKey.genEcKey");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.genEcKey");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 0);
 
@@ -215,8 +221,9 @@ inline void PKey_base::s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     bool vr;
 
+    METHOD_NAME("PKey.isPrivate");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.isPrivate");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -229,8 +236,9 @@ inline void PKey_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<PKey_base> vr;
 
+    METHOD_NAME("PKey.clone");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.clone");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -241,8 +249,9 @@ inline void PKey_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void PKey_base::s_importKey(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("PKey.importKey");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.importKey");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -269,8 +278,9 @@ inline void PKey_base::s_importKey(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void PKey_base::s_importFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("PKey.importFile");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.importFile");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -286,8 +296,9 @@ inline void PKey_base::s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     exlib::string vr;
 
+    METHOD_NAME("PKey.exportPem");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.exportPem");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -300,8 +311,9 @@ inline void PKey_base::s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Buffer_base> vr;
 
+    METHOD_NAME("PKey.exportDer");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.exportDer");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -314,8 +326,9 @@ inline void PKey_base::s_exportJson(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     v8::Local<v8::Object> vr;
 
+    METHOD_NAME("PKey.exportJson");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.exportJson");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -328,8 +341,9 @@ inline void PKey_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Buffer_base> vr;
 
+    METHOD_NAME("PKey.encrypt");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.encrypt");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -348,8 +362,9 @@ inline void PKey_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Buffer_base> vr;
 
+    METHOD_NAME("PKey.decrypt");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.decrypt");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -368,8 +383,9 @@ inline void PKey_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
+    METHOD_NAME("PKey.sign");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.sign");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -389,8 +405,9 @@ inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
+    METHOD_NAME("PKey.verify");
     METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER("PKey.verify");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(3, 2);
 

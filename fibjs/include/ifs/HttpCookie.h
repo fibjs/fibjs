@@ -104,7 +104,8 @@ void HttpCookie_base::__new(const T& args)
 {
     obj_ptr<HttpCookie_base> vr;
 
-    CONSTRUCT_ENTER("new HttpCookie()");
+    METHOD_NAME("new HttpCookie()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 0);
 
@@ -125,8 +126,9 @@ void HttpCookie_base::__new(const T& args)
 
 inline void HttpCookie_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("HttpCookie.parse");
     METHOD_INSTANCE(HttpCookie_base);
-    METHOD_ENTER("HttpCookie.parse");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -141,8 +143,9 @@ inline void HttpCookie_base::s_match(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     bool vr;
 
+    METHOD_NAME("HttpCookie.match");
     METHOD_INSTANCE(HttpCookie_base);
-    METHOD_ENTER("HttpCookie.match");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -157,8 +160,9 @@ inline void HttpCookie_base::s_get_name(v8::Local<v8::String> property, const v8
 {
     exlib::string vr;
 
+    METHOD_NAME("HttpCookie.name");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.name");
+    PROPERTY_ENTER();
 
     hr = pInst->get_name(vr);
 
@@ -167,8 +171,9 @@ inline void HttpCookie_base::s_get_name(v8::Local<v8::String> property, const v8
 
 inline void HttpCookie_base::s_set_name(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpCookie.name");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.name");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_name(v0);
@@ -180,8 +185,9 @@ inline void HttpCookie_base::s_get_value(v8::Local<v8::String> property, const v
 {
     exlib::string vr;
 
+    METHOD_NAME("HttpCookie.value");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.value");
+    PROPERTY_ENTER();
 
     hr = pInst->get_value(vr);
 
@@ -190,8 +196,9 @@ inline void HttpCookie_base::s_get_value(v8::Local<v8::String> property, const v
 
 inline void HttpCookie_base::s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpCookie.value");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.value");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_value(v0);
@@ -203,8 +210,9 @@ inline void HttpCookie_base::s_get_domain(v8::Local<v8::String> property, const 
 {
     exlib::string vr;
 
+    METHOD_NAME("HttpCookie.domain");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.domain");
+    PROPERTY_ENTER();
 
     hr = pInst->get_domain(vr);
 
@@ -213,8 +221,9 @@ inline void HttpCookie_base::s_get_domain(v8::Local<v8::String> property, const 
 
 inline void HttpCookie_base::s_set_domain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpCookie.domain");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.domain");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_domain(v0);
@@ -226,8 +235,9 @@ inline void HttpCookie_base::s_get_path(v8::Local<v8::String> property, const v8
 {
     exlib::string vr;
 
+    METHOD_NAME("HttpCookie.path");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.path");
+    PROPERTY_ENTER();
 
     hr = pInst->get_path(vr);
 
@@ -236,8 +246,9 @@ inline void HttpCookie_base::s_get_path(v8::Local<v8::String> property, const v8
 
 inline void HttpCookie_base::s_set_path(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpCookie.path");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.path");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_path(v0);
@@ -249,8 +260,9 @@ inline void HttpCookie_base::s_get_expires(v8::Local<v8::String> property, const
 {
     date_t vr;
 
+    METHOD_NAME("HttpCookie.expires");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.expires");
+    PROPERTY_ENTER();
 
     hr = pInst->get_expires(vr);
 
@@ -259,8 +271,9 @@ inline void HttpCookie_base::s_get_expires(v8::Local<v8::String> property, const
 
 inline void HttpCookie_base::s_set_expires(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpCookie.expires");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.expires");
+    PROPERTY_ENTER();
     PROPERTY_VAL(date_t);
 
     hr = pInst->set_expires(v0);
@@ -272,8 +285,9 @@ inline void HttpCookie_base::s_get_httpOnly(v8::Local<v8::String> property, cons
 {
     bool vr;
 
+    METHOD_NAME("HttpCookie.httpOnly");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.httpOnly");
+    PROPERTY_ENTER();
 
     hr = pInst->get_httpOnly(vr);
 
@@ -282,8 +296,9 @@ inline void HttpCookie_base::s_get_httpOnly(v8::Local<v8::String> property, cons
 
 inline void HttpCookie_base::s_set_httpOnly(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpCookie.httpOnly");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.httpOnly");
+    PROPERTY_ENTER();
     PROPERTY_VAL(bool);
 
     hr = pInst->set_httpOnly(v0);
@@ -295,8 +310,9 @@ inline void HttpCookie_base::s_get_secure(v8::Local<v8::String> property, const 
 {
     bool vr;
 
+    METHOD_NAME("HttpCookie.secure");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.secure");
+    PROPERTY_ENTER();
 
     hr = pInst->get_secure(vr);
 
@@ -305,8 +321,9 @@ inline void HttpCookie_base::s_get_secure(v8::Local<v8::String> property, const 
 
 inline void HttpCookie_base::s_set_secure(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpCookie.secure");
     METHOD_INSTANCE(HttpCookie_base);
-    PROPERTY_ENTER("HttpCookie.secure");
+    PROPERTY_ENTER();
     PROPERTY_VAL(bool);
 
     hr = pInst->set_secure(v0);

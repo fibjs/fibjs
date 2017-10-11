@@ -120,8 +120,9 @@ inline void ZipFile_base::s_namelist(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<List_base> vr;
 
+    METHOD_NAME("ZipFile.namelist");
     METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER("ZipFile.namelist");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -138,8 +139,9 @@ inline void ZipFile_base::s_infolist(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<List_base> vr;
 
+    METHOD_NAME("ZipFile.infolist");
     METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER("ZipFile.infolist");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -156,8 +158,9 @@ inline void ZipFile_base::s_getinfo(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<ZipInfo_base> vr;
 
+    METHOD_NAME("ZipFile.getinfo");
     METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER("ZipFile.getinfo");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -176,8 +179,9 @@ inline void ZipFile_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Buffer_base> vr;
 
+    METHOD_NAME("ZipFile.read");
     METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER("ZipFile.read");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -197,8 +201,9 @@ inline void ZipFile_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<List_base> vr;
 
+    METHOD_NAME("ZipFile.readAll");
     METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER("ZipFile.readAll");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 0);
 
@@ -215,8 +220,9 @@ inline void ZipFile_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ZipFile.extract");
     METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER("ZipFile.extract");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(3, 2);
 
@@ -247,8 +253,9 @@ inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ZipFile.extractAll");
     METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER("ZipFile.extractAll");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -266,8 +273,9 @@ inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ZipFile.write");
     METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER("ZipFile.write");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(3, 2);
 
@@ -310,8 +318,9 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void ZipFile_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ZipFile.close");
     METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER("ZipFile.close");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
 

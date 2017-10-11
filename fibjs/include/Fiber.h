@@ -36,6 +36,13 @@ public:
     };
 
 public:
+    JSFiber()
+        : m_native_name(NULL)
+        , m_c_entry_fp_(NULL)
+        , m_handler_(NULL)
+    {
+    }
+
     ~JSFiber()
     {
         clear();
@@ -124,9 +131,10 @@ public:
 public:
     exlib::Event m_quit;
     weak_ptr<Fiber_base> m_caller;
+
+    const char* m_native_name;
     void* m_c_entry_fp_;
     void* m_handler_;
-    const char* m_native_name;
 
 private:
     v8::Global<v8::Function> m_func;

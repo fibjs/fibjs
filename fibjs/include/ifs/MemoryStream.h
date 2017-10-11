@@ -71,7 +71,8 @@ void MemoryStream_base::__new(const T& args)
 {
     obj_ptr<MemoryStream_base> vr;
 
-    CONSTRUCT_ENTER("new MemoryStream()");
+    METHOD_NAME("new MemoryStream()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -82,8 +83,9 @@ void MemoryStream_base::__new(const T& args)
 
 inline void MemoryStream_base::s_setTime(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("MemoryStream.setTime");
     METHOD_INSTANCE(MemoryStream_base);
-    METHOD_ENTER("MemoryStream.setTime");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -98,8 +100,9 @@ inline void MemoryStream_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<MemoryStream_base> vr;
 
+    METHOD_NAME("MemoryStream.clone");
     METHOD_INSTANCE(MemoryStream_base);
-    METHOD_ENTER("MemoryStream.clone");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -110,8 +113,9 @@ inline void MemoryStream_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void MemoryStream_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("MemoryStream.clear");
     METHOD_INSTANCE(MemoryStream_base);
-    METHOD_ENTER("MemoryStream.clear");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 

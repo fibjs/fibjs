@@ -117,8 +117,9 @@ inline void MongoCollection_base::s_find(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<MongoCursor_base> vr;
 
+    METHOD_NAME("MongoCollection.find");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.find");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 0);
 
@@ -134,8 +135,9 @@ inline void MongoCollection_base::s_findOne(const v8::FunctionCallbackInfo<v8::V
 {
     v8::Local<v8::Object> vr;
 
+    METHOD_NAME("MongoCollection.findOne");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.findOne");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 0);
 
@@ -151,8 +153,9 @@ inline void MongoCollection_base::s_findAndModify(const v8::FunctionCallbackInfo
 {
     v8::Local<v8::Object> vr;
 
+    METHOD_NAME("MongoCollection.findAndModify");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.findAndModify");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -165,8 +168,9 @@ inline void MongoCollection_base::s_findAndModify(const v8::FunctionCallbackInfo
 
 inline void MongoCollection_base::s_insert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("MongoCollection.insert");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.insert");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -185,8 +189,9 @@ inline void MongoCollection_base::s_insert(const v8::FunctionCallbackInfo<v8::Va
 
 inline void MongoCollection_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("MongoCollection.save");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.save");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -199,8 +204,9 @@ inline void MongoCollection_base::s_save(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void MongoCollection_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("MongoCollection.update");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.update");
+    METHOD_ENTER();
 
     METHOD_OVER(4, 2);
 
@@ -224,8 +230,9 @@ inline void MongoCollection_base::s_update(const v8::FunctionCallbackInfo<v8::Va
 
 inline void MongoCollection_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("MongoCollection.remove");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.remove");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -240,8 +247,9 @@ inline void MongoCollection_base::s_runCommand(const v8::FunctionCallbackInfo<v8
 {
     v8::Local<v8::Object> vr;
 
+    METHOD_NAME("MongoCollection.runCommand");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.runCommand");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -261,8 +269,9 @@ inline void MongoCollection_base::s_runCommand(const v8::FunctionCallbackInfo<v8
 
 inline void MongoCollection_base::s_drop(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("MongoCollection.drop");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.drop");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -273,8 +282,9 @@ inline void MongoCollection_base::s_drop(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void MongoCollection_base::s_ensureIndex(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("MongoCollection.ensureIndex");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.ensureIndex");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -290,8 +300,9 @@ inline void MongoCollection_base::s_reIndex(const v8::FunctionCallbackInfo<v8::V
 {
     v8::Local<v8::Object> vr;
 
+    METHOD_NAME("MongoCollection.reIndex");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.reIndex");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -304,8 +315,9 @@ inline void MongoCollection_base::s_dropIndex(const v8::FunctionCallbackInfo<v8:
 {
     v8::Local<v8::Object> vr;
 
+    METHOD_NAME("MongoCollection.dropIndex");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.dropIndex");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -320,8 +332,9 @@ inline void MongoCollection_base::s_dropIndexes(const v8::FunctionCallbackInfo<v
 {
     v8::Local<v8::Object> vr;
 
+    METHOD_NAME("MongoCollection.dropIndexes");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.dropIndexes");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -334,8 +347,9 @@ inline void MongoCollection_base::s_getIndexes(const v8::FunctionCallbackInfo<v8
 {
     obj_ptr<MongoCursor_base> vr;
 
+    METHOD_NAME("MongoCollection.getIndexes");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.getIndexes");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -348,8 +362,9 @@ inline void MongoCollection_base::s_getCollection(const v8::FunctionCallbackInfo
 {
     obj_ptr<MongoCollection_base> vr;
 
+    METHOD_NAME("MongoCollection.getCollection");
     METHOD_INSTANCE(MongoCollection_base);
-    METHOD_ENTER("MongoCollection.getCollection");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -364,8 +379,9 @@ inline void MongoCollection_base::i_NamedGetter(v8::Local<v8::String> property, 
 {
     obj_ptr<MongoCollection_base> vr;
 
+    METHOD_NAME("MongoCollection.undefined[]");
     METHOD_INSTANCE(MongoCollection_base);
-    PROPERTY_ENTER("MongoCollection.undefined[]");
+    PROPERTY_ENTER();
 
     exlib::string k;
     GetArgumentValue(isolate, property, k);
@@ -383,8 +399,9 @@ inline void MongoCollection_base::i_NamedEnumerator(const v8::PropertyCallbackIn
 {
     v8::Local<v8::Array> vr;
 
+    METHOD_NAME("MongoCollection.undefined");
     METHOD_INSTANCE(MongoCollection_base);
-    PROPERTY_ENTER("MongoCollection.undefined[]");
+    PROPERTY_ENTER();
 
     hr = pInst->_named_enumerator(vr);
 

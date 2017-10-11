@@ -118,8 +118,9 @@ inline ClassInfo& WebView_base::class_info()
 
 inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("WebView.setHtml");
     METHOD_INSTANCE(WebView_base);
-    METHOD_ENTER("WebView.setHtml");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -136,8 +137,9 @@ inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void WebView_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("WebView.print");
     METHOD_INSTANCE(WebView_base);
-    METHOD_ENTER("WebView.print");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 0);
 
@@ -154,8 +156,9 @@ inline void WebView_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("WebView.close");
     METHOD_INSTANCE(WebView_base);
-    METHOD_ENTER("WebView.close");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -170,8 +173,9 @@ inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void WebView_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("WebView.wait");
     METHOD_INSTANCE(WebView_base);
-    METHOD_ENTER("WebView.wait");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -186,8 +190,9 @@ inline void WebView_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void WebView_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("WebView.postMessage");
     METHOD_INSTANCE(WebView_base);
-    METHOD_ENTER("WebView.postMessage");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -206,8 +211,9 @@ inline void WebView_base::s_get_visible(v8::Local<v8::String> property, const v8
 {
     bool vr;
 
+    METHOD_NAME("WebView.visible");
     METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER("WebView.visible");
+    PROPERTY_ENTER();
 
     hr = pInst->get_visible(vr);
 
@@ -216,8 +222,9 @@ inline void WebView_base::s_get_visible(v8::Local<v8::String> property, const v8
 
 inline void WebView_base::s_set_visible(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("WebView.visible");
     METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER("WebView.visible");
+    PROPERTY_ENTER();
     PROPERTY_VAL(bool);
 
     hr = pInst->set_visible(v0);
@@ -229,8 +236,9 @@ inline void WebView_base::s_get_onload(v8::Local<v8::String> property, const v8:
 {
     v8::Local<v8::Function> vr;
 
+    METHOD_NAME("WebView.onload");
     METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER("WebView.onload");
+    PROPERTY_ENTER();
 
     hr = pInst->get_onload(vr);
 
@@ -239,8 +247,9 @@ inline void WebView_base::s_get_onload(v8::Local<v8::String> property, const v8:
 
 inline void WebView_base::s_set_onload(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("WebView.onload");
     METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER("WebView.onload");
+    PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onload(v0);
@@ -252,8 +261,9 @@ inline void WebView_base::s_get_onmove(v8::Local<v8::String> property, const v8:
 {
     v8::Local<v8::Function> vr;
 
+    METHOD_NAME("WebView.onmove");
     METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER("WebView.onmove");
+    PROPERTY_ENTER();
 
     hr = pInst->get_onmove(vr);
 
@@ -262,8 +272,9 @@ inline void WebView_base::s_get_onmove(v8::Local<v8::String> property, const v8:
 
 inline void WebView_base::s_set_onmove(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("WebView.onmove");
     METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER("WebView.onmove");
+    PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onmove(v0);
@@ -275,8 +286,9 @@ inline void WebView_base::s_get_onresize(v8::Local<v8::String> property, const v
 {
     v8::Local<v8::Function> vr;
 
+    METHOD_NAME("WebView.onresize");
     METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER("WebView.onresize");
+    PROPERTY_ENTER();
 
     hr = pInst->get_onresize(vr);
 
@@ -285,8 +297,9 @@ inline void WebView_base::s_get_onresize(v8::Local<v8::String> property, const v
 
 inline void WebView_base::s_set_onresize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("WebView.onresize");
     METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER("WebView.onresize");
+    PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onresize(v0);
@@ -298,8 +311,9 @@ inline void WebView_base::s_get_onclosed(v8::Local<v8::String> property, const v
 {
     v8::Local<v8::Function> vr;
 
+    METHOD_NAME("WebView.onclosed");
     METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER("WebView.onclosed");
+    PROPERTY_ENTER();
 
     hr = pInst->get_onclosed(vr);
 
@@ -308,8 +322,9 @@ inline void WebView_base::s_get_onclosed(v8::Local<v8::String> property, const v
 
 inline void WebView_base::s_set_onclosed(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("WebView.onclosed");
     METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER("WebView.onclosed");
+    PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onclosed(v0);
@@ -321,8 +336,9 @@ inline void WebView_base::s_get_onmessage(v8::Local<v8::String> property, const 
 {
     v8::Local<v8::Function> vr;
 
+    METHOD_NAME("WebView.onmessage");
     METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER("WebView.onmessage");
+    PROPERTY_ENTER();
 
     hr = pInst->get_onmessage(vr);
 
@@ -331,8 +347,9 @@ inline void WebView_base::s_get_onmessage(v8::Local<v8::String> property, const 
 
 inline void WebView_base::s_set_onmessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("WebView.onmessage");
     METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER("WebView.onmessage");
+    PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onmessage(v0);

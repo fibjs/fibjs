@@ -120,7 +120,8 @@ inline void db_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<object_base> vr;
 
-    METHOD_ENTER("db.open");
+    METHOD_NAME("db.open");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -139,7 +140,8 @@ inline void db_base::s_openMySQL(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<MySQL_base> vr;
 
-    METHOD_ENTER("db.openMySQL");
+    METHOD_NAME("db.openMySQL");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -158,7 +160,8 @@ inline void db_base::s_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<MSSQL_base> vr;
 
-    METHOD_ENTER("db.openMSSQL");
+    METHOD_NAME("db.openMSSQL");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -177,7 +180,8 @@ inline void db_base::s_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<SQLite_base> vr;
 
-    METHOD_ENTER("db.openSQLite");
+    METHOD_NAME("db.openSQLite");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -196,7 +200,8 @@ inline void db_base::s_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<MongoDB_base> vr;
 
-    METHOD_ENTER("db.openMongoDB");
+    METHOD_NAME("db.openMongoDB");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -215,7 +220,8 @@ inline void db_base::s_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<LevelDB_base> vr;
 
-    METHOD_ENTER("db.openLevelDB");
+    METHOD_NAME("db.openLevelDB");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -234,7 +240,8 @@ inline void db_base::s_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Redis_base> vr;
 
-    METHOD_ENTER("db.openRedis");
+    METHOD_NAME("db.openRedis");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -253,7 +260,8 @@ inline void db_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER("db.format");
+    METHOD_NAME("db.format");
+    METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
 
@@ -269,7 +277,8 @@ inline void db_base::s_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     exlib::string vr;
 
-    METHOD_ENTER("db.formatMySQL");
+    METHOD_NAME("db.formatMySQL");
+    METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
 
@@ -285,7 +294,8 @@ inline void db_base::s_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     exlib::string vr;
 
-    METHOD_ENTER("db.formatMSSQL");
+    METHOD_NAME("db.formatMSSQL");
+    METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
 
@@ -301,7 +311,8 @@ inline void db_base::s_escape(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER("db.escape");
+    METHOD_NAME("db.escape");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 

@@ -89,7 +89,8 @@ void HttpRequest_base::__new(const T& args)
 {
     obj_ptr<HttpRequest_base> vr;
 
-    CONSTRUCT_ENTER("new HttpRequest()");
+    METHOD_NAME("new HttpRequest()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -102,8 +103,9 @@ inline void HttpRequest_base::s_get_method(v8::Local<v8::String> property, const
 {
     exlib::string vr;
 
+    METHOD_NAME("HttpRequest.method");
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER("HttpRequest.method");
+    PROPERTY_ENTER();
 
     hr = pInst->get_method(vr);
 
@@ -112,8 +114,9 @@ inline void HttpRequest_base::s_get_method(v8::Local<v8::String> property, const
 
 inline void HttpRequest_base::s_set_method(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpRequest.method");
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER("HttpRequest.method");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_method(v0);
@@ -125,8 +128,9 @@ inline void HttpRequest_base::s_get_address(v8::Local<v8::String> property, cons
 {
     exlib::string vr;
 
+    METHOD_NAME("HttpRequest.address");
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER("HttpRequest.address");
+    PROPERTY_ENTER();
 
     hr = pInst->get_address(vr);
 
@@ -135,8 +139,9 @@ inline void HttpRequest_base::s_get_address(v8::Local<v8::String> property, cons
 
 inline void HttpRequest_base::s_set_address(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpRequest.address");
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER("HttpRequest.address");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_address(v0);
@@ -148,8 +153,9 @@ inline void HttpRequest_base::s_get_queryString(v8::Local<v8::String> property, 
 {
     exlib::string vr;
 
+    METHOD_NAME("HttpRequest.queryString");
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER("HttpRequest.queryString");
+    PROPERTY_ENTER();
 
     hr = pInst->get_queryString(vr);
 
@@ -158,8 +164,9 @@ inline void HttpRequest_base::s_get_queryString(v8::Local<v8::String> property, 
 
 inline void HttpRequest_base::s_set_queryString(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpRequest.queryString");
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER("HttpRequest.queryString");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_queryString(v0);
@@ -171,8 +178,9 @@ inline void HttpRequest_base::s_get_cookies(v8::Local<v8::String> property, cons
 {
     obj_ptr<HttpCollection_base> vr;
 
+    METHOD_NAME("HttpRequest.cookies");
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER("HttpRequest.cookies");
+    PROPERTY_ENTER();
 
     hr = pInst->get_cookies(vr);
 
@@ -183,8 +191,9 @@ inline void HttpRequest_base::s_get_form(v8::Local<v8::String> property, const v
 {
     obj_ptr<HttpCollection_base> vr;
 
+    METHOD_NAME("HttpRequest.form");
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER("HttpRequest.form");
+    PROPERTY_ENTER();
 
     hr = pInst->get_form(vr);
 
@@ -195,8 +204,9 @@ inline void HttpRequest_base::s_get_query(v8::Local<v8::String> property, const 
 {
     obj_ptr<HttpCollection_base> vr;
 
+    METHOD_NAME("HttpRequest.query");
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER("HttpRequest.query");
+    PROPERTY_ENTER();
 
     hr = pInst->get_query(vr);
 

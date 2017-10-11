@@ -64,7 +64,8 @@ inline void base64vlq_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     exlib::string vr;
 
-    METHOD_ENTER("base64vlq.encode");
+    METHOD_NAME("base64vlq.encode");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -85,7 +86,8 @@ inline void base64vlq_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER("base64vlq.decode");
+    METHOD_NAME("base64vlq.decode");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 

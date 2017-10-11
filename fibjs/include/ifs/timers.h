@@ -85,7 +85,8 @@ inline void timers_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>&
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_ENTER("timers.setTimeout");
+    METHOD_NAME("timers.setTimeout");
+    METHOD_ENTER();
 
     METHOD_OVER(-1, 2);
 
@@ -100,7 +101,8 @@ inline void timers_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void timers_base::s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("timers.clearTimeout");
+    METHOD_NAME("timers.clearTimeout");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -115,7 +117,8 @@ inline void timers_base::s_setInterval(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_ENTER("timers.setInterval");
+    METHOD_NAME("timers.setInterval");
+    METHOD_ENTER();
 
     METHOD_OVER(-1, 2);
 
@@ -130,7 +133,8 @@ inline void timers_base::s_setInterval(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void timers_base::s_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("timers.clearInterval");
+    METHOD_NAME("timers.clearInterval");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -145,7 +149,8 @@ inline void timers_base::s_setHrInterval(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_ENTER("timers.setHrInterval");
+    METHOD_NAME("timers.setHrInterval");
+    METHOD_ENTER();
 
     METHOD_OVER(-1, 2);
 
@@ -160,7 +165,8 @@ inline void timers_base::s_setHrInterval(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void timers_base::s_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("timers.clearHrInterval");
+    METHOD_NAME("timers.clearHrInterval");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -175,7 +181,8 @@ inline void timers_base::s_setImmediate(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_ENTER("timers.setImmediate");
+    METHOD_NAME("timers.setImmediate");
+    METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
 
@@ -189,7 +196,8 @@ inline void timers_base::s_setImmediate(const v8::FunctionCallbackInfo<v8::Value
 
 inline void timers_base::s_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("timers.clearImmediate");
+    METHOD_NAME("timers.clearImmediate");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 

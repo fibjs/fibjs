@@ -68,7 +68,8 @@ void BlockQueue_base::__new(const T& args)
 {
     obj_ptr<BlockQueue_base> vr;
 
-    CONSTRUCT_ENTER("new BlockQueue()");
+    METHOD_NAME("new BlockQueue()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -81,8 +82,9 @@ void BlockQueue_base::__new(const T& args)
 
 inline void BlockQueue_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("BlockQueue.put");
     METHOD_INSTANCE(BlockQueue_base);
-    METHOD_ENTER("BlockQueue.put");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -97,8 +99,9 @@ inline void BlockQueue_base::s_take(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     v8::Local<v8::Value> vr;
 
+    METHOD_NAME("BlockQueue.take");
     METHOD_INSTANCE(BlockQueue_base);
-    METHOD_ENTER("BlockQueue.take");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 

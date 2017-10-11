@@ -503,7 +503,8 @@ public:
         v8::Local<v8::Object> vr;
         JSTrigger t(args);
 
-        METHOD_ENTER("EventEmitter.on");
+        METHOD_NAME("EventEmitter.on");
+        METHOD_ENTER();
 
         METHOD_OVER(2, 2);
 
@@ -526,7 +527,8 @@ public:
         v8::Local<v8::Object> vr;
         JSTrigger t(args);
 
-        METHOD_ENTER("EventEmitter.prependListener");
+        METHOD_NAME("EventEmitter.prependListener");
+        METHOD_ENTER();
 
         METHOD_OVER(2, 2);
 
@@ -549,7 +551,8 @@ public:
         v8::Local<v8::Object> vr;
         JSTrigger t(args);
 
-        METHOD_ENTER("EventEmitter.once");
+        METHOD_NAME("EventEmitter.once");
+        METHOD_ENTER();
 
         METHOD_OVER(2, 2);
 
@@ -572,7 +575,8 @@ public:
         v8::Local<v8::Object> vr;
         JSTrigger t(args);
 
-        METHOD_ENTER("EventEmitter.prependOnceListener");
+        METHOD_NAME("EventEmitter.prependOnceListener");
+        METHOD_ENTER();
 
         METHOD_OVER(2, 2);
 
@@ -595,7 +599,8 @@ public:
         v8::Local<v8::Object> vr;
         JSTrigger t(args);
 
-        METHOD_ENTER("EventEmitter.off");
+        METHOD_NAME("EventEmitter.off");
+        METHOD_ENTER();
 
         METHOD_OVER(2, 2);
 
@@ -624,7 +629,8 @@ public:
         v8::Local<v8::Object> vr;
         JSTrigger t(args);
 
-        METHOD_ENTER("EventEmitter.removeAllListeners");
+        METHOD_NAME("EventEmitter.removeAllListeners");
+        METHOD_ENTER();
 
         METHOD_OVER(1, 0);
 
@@ -639,7 +645,8 @@ public:
     {
         JSTrigger t(args);
 
-        METHOD_ENTER("EventEmitter.setMaxListeners");
+        METHOD_NAME("EventEmitter.setMaxListeners");
+        METHOD_ENTER();
 
         METHOD_OVER(1, 1);
 
@@ -655,7 +662,8 @@ public:
         int32_t vr;
         JSTrigger t(args);
 
-        METHOD_ENTER("EventEmitter.getMaxListeners");
+        METHOD_NAME("EventEmitter.getMaxListeners");
+        METHOD_ENTER();
 
         METHOD_OVER(0, 0);
 
@@ -668,7 +676,8 @@ public:
     {
         int32_t vr;
 
-        PROPERTY_ENTER("EventEmitter.defaultMaxListeners");
+        METHOD_NAME("EventEmitter.defaultMaxListeners");
+        PROPERTY_ENTER();
 
         hr = get_defaultMaxListeners(vr);
 
@@ -677,7 +686,8 @@ public:
 
     static void s_set_defaultMaxListeners(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
     {
-        PROPERTY_ENTER("EventEmitter.defaultMaxListeners");
+        METHOD_NAME("EventEmitter.defaultMaxListeners");
+        PROPERTY_ENTER();
         PROPERTY_VAL(int32_t);
 
         hr = set_defaultMaxListeners(v0);
@@ -690,7 +700,8 @@ public:
         v8::Local<v8::Array> vr;
         JSTrigger t(args);
 
-        METHOD_ENTER("EventEmitter.listeners");
+        METHOD_NAME("EventEmitter.listeners");
+        METHOD_ENTER();
 
         METHOD_OVER(1, 1);
 
@@ -706,7 +717,8 @@ public:
         int32_t vr;
         JSTrigger t(args);
 
-        METHOD_ENTER("EventEmitter.listenerCount");
+        METHOD_NAME("EventEmitter.listenerCount");
+        METHOD_ENTER();
 
         METHOD_OVER(1, 1);
 
@@ -722,7 +734,8 @@ public:
         bool vr;
         JSTrigger t(args);
 
-        METHOD_ENTER("EventEmitter.emit");
+        METHOD_NAME("EventEmitter.emit");
+        METHOD_ENTER();
 
         METHOD_OVER(-1, 1);
 
@@ -739,7 +752,8 @@ public:
         v8::Local<v8::Array> vr;
         JSTrigger t(args);
 
-        METHOD_ENTER("EventEmitter.eventNames");
+        METHOD_NAME("EventEmitter.eventNames");
+        METHOD_ENTER();
 
         METHOD_OVER(0, 0);
 

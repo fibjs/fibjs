@@ -77,7 +77,8 @@ void Event_base::__new(const T& args)
 {
     obj_ptr<Event_base> vr;
 
-    CONSTRUCT_ENTER("new Event()");
+    METHOD_NAME("new Event()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 0);
 
@@ -92,8 +93,9 @@ inline void Event_base::s_isSet(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
+    METHOD_NAME("Event.isSet");
     METHOD_INSTANCE(Event_base);
-    METHOD_ENTER("Event.isSet");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -104,8 +106,9 @@ inline void Event_base::s_isSet(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Event_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("Event.set");
     METHOD_INSTANCE(Event_base);
-    METHOD_ENTER("Event.set");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -116,8 +119,9 @@ inline void Event_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Event_base::s_pulse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("Event.pulse");
     METHOD_INSTANCE(Event_base);
-    METHOD_ENTER("Event.pulse");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -128,8 +132,9 @@ inline void Event_base::s_pulse(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Event_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("Event.clear");
     METHOD_INSTANCE(Event_base);
-    METHOD_ENTER("Event.clear");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -140,8 +145,9 @@ inline void Event_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Event_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("Event.wait");
     METHOD_INSTANCE(Event_base);
-    METHOD_ENTER("Event.wait");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 

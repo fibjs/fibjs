@@ -94,8 +94,9 @@ inline ClassInfo& HttpCollection_base::class_info()
 
 inline void HttpCollection_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("HttpCollection.clear");
     METHOD_INSTANCE(HttpCollection_base);
-    METHOD_ENTER("HttpCollection.clear");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -108,8 +109,9 @@ inline void HttpCollection_base::s_has(const v8::FunctionCallbackInfo<v8::Value>
 {
     bool vr;
 
+    METHOD_NAME("HttpCollection.has");
     METHOD_INSTANCE(HttpCollection_base);
-    METHOD_ENTER("HttpCollection.has");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -124,8 +126,9 @@ inline void HttpCollection_base::s_first(const v8::FunctionCallbackInfo<v8::Valu
 {
     Variant vr;
 
+    METHOD_NAME("HttpCollection.first");
     METHOD_INSTANCE(HttpCollection_base);
-    METHOD_ENTER("HttpCollection.first");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -140,8 +143,9 @@ inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<List_base> vr;
 
+    METHOD_NAME("HttpCollection.all");
     METHOD_INSTANCE(HttpCollection_base);
-    METHOD_ENTER("HttpCollection.all");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -154,8 +158,9 @@ inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void HttpCollection_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("HttpCollection.add");
     METHOD_INSTANCE(HttpCollection_base);
-    METHOD_ENTER("HttpCollection.add");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -175,8 +180,9 @@ inline void HttpCollection_base::s_add(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void HttpCollection_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("HttpCollection.set");
     METHOD_INSTANCE(HttpCollection_base);
-    METHOD_ENTER("HttpCollection.set");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -196,8 +202,9 @@ inline void HttpCollection_base::s_set(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void HttpCollection_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("HttpCollection.remove");
     METHOD_INSTANCE(HttpCollection_base);
-    METHOD_ENTER("HttpCollection.remove");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -212,8 +219,9 @@ inline void HttpCollection_base::i_NamedGetter(v8::Local<v8::String> property, c
 {
     Variant vr;
 
+    METHOD_NAME("HttpCollection.undefined[]");
     METHOD_INSTANCE(HttpCollection_base);
-    PROPERTY_ENTER("HttpCollection.undefined[]");
+    PROPERTY_ENTER();
 
     exlib::string k;
     GetArgumentValue(isolate, property, k);
@@ -231,8 +239,9 @@ inline void HttpCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInf
 {
     v8::Local<v8::Array> vr;
 
+    METHOD_NAME("HttpCollection.undefined");
     METHOD_INSTANCE(HttpCollection_base);
-    PROPERTY_ENTER("HttpCollection.undefined[]");
+    PROPERTY_ENTER();
 
     hr = pInst->_named_enumerator(vr);
 
@@ -241,8 +250,9 @@ inline void HttpCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInf
 
 inline void HttpCollection_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("HttpCollection.undefined");
     METHOD_INSTANCE(HttpCollection_base);
-    PROPERTY_ENTER("HttpCollection.undefined[]");
+    PROPERTY_ENTER();
 
     PROPERTY_VAL(Variant);
     exlib::string k;
@@ -261,8 +271,9 @@ inline void HttpCollection_base::i_NamedDeleter(v8::Local<v8::String> property, 
 {
     v8::Local<v8::Boolean> vr;
 
+    METHOD_NAME("HttpCollection.undefined");
     METHOD_INSTANCE(HttpCollection_base);
-    PROPERTY_ENTER("HttpCollection.undefined[]");
+    PROPERTY_ENTER();
 
     exlib::string k;
     GetArgumentValue(isolate, property, k);

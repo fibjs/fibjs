@@ -89,8 +89,9 @@ inline void GridFS_base::s_retrieve(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<MemoryStream_base> vr;
 
+    METHOD_NAME("GridFS.retrieve");
     METHOD_INSTANCE(GridFS_base);
-    METHOD_ENTER("GridFS.retrieve");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -103,8 +104,9 @@ inline void GridFS_base::s_retrieve(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void GridFS_base::s_store(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("GridFS.store");
     METHOD_INSTANCE(GridFS_base);
-    METHOD_ENTER("GridFS.store");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -127,8 +129,9 @@ inline void GridFS_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
+    METHOD_NAME("GridFS.exists");
     METHOD_INSTANCE(GridFS_base);
-    METHOD_ENTER("GridFS.exists");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -141,8 +144,9 @@ inline void GridFS_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void GridFS_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("GridFS.remove");
     METHOD_INSTANCE(GridFS_base);
-    METHOD_ENTER("GridFS.remove");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -157,8 +161,9 @@ inline void GridFS_base::s_get_files(v8::Local<v8::String> property, const v8::P
 {
     obj_ptr<MongoCollection_base> vr;
 
+    METHOD_NAME("GridFS.files");
     METHOD_INSTANCE(GridFS_base);
-    PROPERTY_ENTER("GridFS.files");
+    PROPERTY_ENTER();
 
     hr = pInst->get_files(vr);
 
@@ -169,8 +174,9 @@ inline void GridFS_base::s_get_chunks(v8::Local<v8::String> property, const v8::
 {
     obj_ptr<MongoCollection_base> vr;
 
+    METHOD_NAME("GridFS.chunks");
     METHOD_INSTANCE(GridFS_base);
-    PROPERTY_ENTER("GridFS.chunks");
+    PROPERTY_ENTER();
 
     hr = pInst->get_chunks(vr);
 

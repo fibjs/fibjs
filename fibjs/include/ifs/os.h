@@ -146,7 +146,8 @@ inline void os_base::s_hostname(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER("os.hostname");
+    METHOD_NAME("os.hostname");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -159,7 +160,8 @@ inline void os_base::s_endianness(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     exlib::string vr;
 
-    METHOD_ENTER("os.endianness");
+    METHOD_NAME("os.endianness");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -172,7 +174,8 @@ inline void os_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER("os.type");
+    METHOD_NAME("os.type");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -185,7 +188,8 @@ inline void os_base::s_release(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER("os.release");
+    METHOD_NAME("os.release");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -198,7 +202,8 @@ inline void os_base::s_homedir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER("os.homedir");
+    METHOD_NAME("os.homedir");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -211,7 +216,8 @@ inline void os_base::s_arch(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER("os.arch");
+    METHOD_NAME("os.arch");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -224,7 +230,8 @@ inline void os_base::s_get_timezone(v8::Local<v8::String> property, const v8::Pr
 {
     int32_t vr;
 
-    PROPERTY_ENTER("os.timezone");
+    METHOD_NAME("os.timezone");
+    PROPERTY_ENTER();
 
     hr = get_timezone(vr);
 
@@ -235,7 +242,8 @@ inline void os_base::s_get_EOL(v8::Local<v8::String> property, const v8::Propert
 {
     exlib::string vr;
 
-    PROPERTY_ENTER("os.EOL");
+    METHOD_NAME("os.EOL");
+    PROPERTY_ENTER();
 
     hr = get_EOL(vr);
 
@@ -246,7 +254,8 @@ inline void os_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     double vr;
 
-    METHOD_ENTER("os.uptime");
+    METHOD_NAME("os.uptime");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -259,7 +268,8 @@ inline void os_base::s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER("os.loadavg");
+    METHOD_NAME("os.loadavg");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -272,7 +282,8 @@ inline void os_base::s_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
-    METHOD_ENTER("os.totalmem");
+    METHOD_NAME("os.totalmem");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -285,7 +296,8 @@ inline void os_base::s_freemem(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
-    METHOD_ENTER("os.freemem");
+    METHOD_NAME("os.freemem");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -298,7 +310,8 @@ inline void os_base::s_cpus(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER("os.cpus");
+    METHOD_NAME("os.cpus");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -311,7 +324,8 @@ inline void os_base::s_cpuNumbers(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     int32_t vr;
 
-    METHOD_ENTER("os.cpuNumbers");
+    METHOD_NAME("os.cpuNumbers");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -324,7 +338,8 @@ inline void os_base::s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER("os.tmpdir");
+    METHOD_NAME("os.tmpdir");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -337,7 +352,8 @@ inline void os_base::s_userInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_ENTER("os.userInfo");
+    METHOD_NAME("os.userInfo");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 0);
 
@@ -352,7 +368,8 @@ inline void os_base::s_networkInterfaces(const v8::FunctionCallbackInfo<v8::Valu
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_ENTER("os.networkInterfaces");
+    METHOD_NAME("os.networkInterfaces");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -365,7 +382,8 @@ inline void os_base::s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_ENTER("os.printerInfo");
+    METHOD_NAME("os.printerInfo");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -378,7 +396,8 @@ inline void os_base::s_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<BufferedStream_base> vr;
 
-    METHOD_ENTER("os.openPrinter");
+    METHOD_NAME("os.openPrinter");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -397,7 +416,8 @@ inline void os_base::s_platform(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_ENTER("os.platform");
+    METHOD_NAME("os.platform");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -410,7 +430,8 @@ inline void os_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     date_t vr;
 
-    METHOD_ENTER("os.time");
+    METHOD_NAME("os.time");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 0);
 
@@ -425,7 +446,8 @@ inline void os_base::s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     date_t vr;
 
-    METHOD_ENTER("os.dateAdd");
+    METHOD_NAME("os.dateAdd");
+    METHOD_ENTER();
 
     METHOD_OVER(3, 3);
 
@@ -442,7 +464,8 @@ inline void os_base::s_get_execPath(v8::Local<v8::String> property, const v8::Pr
 {
     exlib::string vr;
 
-    PROPERTY_ENTER("os.execPath");
+    METHOD_NAME("os.execPath");
+    PROPERTY_ENTER();
 
     hr = get_execPath(vr);
 
@@ -453,7 +476,8 @@ inline void os_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_ENTER("os.memoryUsage");
+    METHOD_NAME("os.memoryUsage");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 

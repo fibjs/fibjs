@@ -79,8 +79,9 @@ inline void HeapGraphEdge_base::s_get_type(v8::Local<v8::String> property, const
 {
     int32_t vr;
 
+    METHOD_NAME("HeapGraphEdge.type");
     METHOD_INSTANCE(HeapGraphEdge_base);
-    PROPERTY_ENTER("HeapGraphEdge.type");
+    PROPERTY_ENTER();
 
     hr = pInst->get_type(vr);
 
@@ -91,8 +92,9 @@ inline void HeapGraphEdge_base::s_get_name(v8::Local<v8::String> property, const
 {
     exlib::string vr;
 
+    METHOD_NAME("HeapGraphEdge.name");
     METHOD_INSTANCE(HeapGraphEdge_base);
-    PROPERTY_ENTER("HeapGraphEdge.name");
+    PROPERTY_ENTER();
 
     hr = pInst->get_name(vr);
 
@@ -103,8 +105,9 @@ inline void HeapGraphEdge_base::s_get_description(v8::Local<v8::String> property
 {
     exlib::string vr;
 
+    METHOD_NAME("HeapGraphEdge.description");
     METHOD_INSTANCE(HeapGraphEdge_base);
-    PROPERTY_ENTER("HeapGraphEdge.description");
+    PROPERTY_ENTER();
 
     hr = pInst->get_description(vr);
 
@@ -115,8 +118,9 @@ inline void HeapGraphEdge_base::s_getFromNode(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<HeapGraphNode_base> vr;
 
+    METHOD_NAME("HeapGraphEdge.getFromNode");
     METHOD_INSTANCE(HeapGraphEdge_base);
-    METHOD_ENTER("HeapGraphEdge.getFromNode");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -129,8 +133,9 @@ inline void HeapGraphEdge_base::s_getToNode(const v8::FunctionCallbackInfo<v8::V
 {
     obj_ptr<HeapGraphNode_base> vr;
 
+    METHOD_NAME("HeapGraphEdge.getToNode");
     METHOD_INSTANCE(HeapGraphEdge_base);
-    METHOD_ENTER("HeapGraphEdge.getToNode");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 

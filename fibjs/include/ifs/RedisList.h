@@ -101,8 +101,9 @@ inline void RedisList_base::s_push(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     int32_t vr;
 
+    METHOD_NAME("RedisList.push");
     METHOD_INSTANCE(RedisList_base);
-    METHOD_ENTER("RedisList.push");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -123,8 +124,9 @@ inline void RedisList_base::s_pop(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<Buffer_base> vr;
 
+    METHOD_NAME("RedisList.pop");
     METHOD_INSTANCE(RedisList_base);
-    METHOD_ENTER("RedisList.pop");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -137,8 +139,9 @@ inline void RedisList_base::s_rpush(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     int32_t vr;
 
+    METHOD_NAME("RedisList.rpush");
     METHOD_INSTANCE(RedisList_base);
-    METHOD_ENTER("RedisList.rpush");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -159,8 +162,9 @@ inline void RedisList_base::s_rpop(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Buffer_base> vr;
 
+    METHOD_NAME("RedisList.rpop");
     METHOD_INSTANCE(RedisList_base);
-    METHOD_ENTER("RedisList.rpop");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -171,8 +175,9 @@ inline void RedisList_base::s_rpop(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void RedisList_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("RedisList.set");
     METHOD_INSTANCE(RedisList_base);
-    METHOD_ENTER("RedisList.set");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -188,8 +193,9 @@ inline void RedisList_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<Buffer_base> vr;
 
+    METHOD_NAME("RedisList.get");
     METHOD_INSTANCE(RedisList_base);
-    METHOD_ENTER("RedisList.get");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -204,8 +210,9 @@ inline void RedisList_base::s_insertBefore(const v8::FunctionCallbackInfo<v8::Va
 {
     int32_t vr;
 
+    METHOD_NAME("RedisList.insertBefore");
     METHOD_INSTANCE(RedisList_base);
-    METHOD_ENTER("RedisList.insertBefore");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -221,8 +228,9 @@ inline void RedisList_base::s_insertAfter(const v8::FunctionCallbackInfo<v8::Val
 {
     int32_t vr;
 
+    METHOD_NAME("RedisList.insertAfter");
     METHOD_INSTANCE(RedisList_base);
-    METHOD_ENTER("RedisList.insertAfter");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -238,8 +246,9 @@ inline void RedisList_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     int32_t vr;
 
+    METHOD_NAME("RedisList.remove");
     METHOD_INSTANCE(RedisList_base);
-    METHOD_ENTER("RedisList.remove");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -253,8 +262,9 @@ inline void RedisList_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void RedisList_base::s_trim(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("RedisList.trim");
     METHOD_INSTANCE(RedisList_base);
-    METHOD_ENTER("RedisList.trim");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -270,8 +280,9 @@ inline void RedisList_base::s_len(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     int32_t vr;
 
+    METHOD_NAME("RedisList.len");
     METHOD_INSTANCE(RedisList_base);
-    METHOD_ENTER("RedisList.len");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -284,8 +295,9 @@ inline void RedisList_base::s_range(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<List_base> vr;
 
+    METHOD_NAME("RedisList.range");
     METHOD_INSTANCE(RedisList_base);
-    METHOD_ENTER("RedisList.range");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 

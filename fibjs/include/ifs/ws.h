@@ -120,71 +120,81 @@ inline ClassInfo& ws_base::class_info()
 
 inline void ws_base::s_get_CONTINUE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ws.CONTINUE");
     int32_t vr = _CONTINUE;
-    PROPERTY_ENTER("ws.CONTINUE");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void ws_base::s_get_TEXT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ws.TEXT");
     int32_t vr = _TEXT;
-    PROPERTY_ENTER("ws.TEXT");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void ws_base::s_get_BINARY(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ws.BINARY");
     int32_t vr = _BINARY;
-    PROPERTY_ENTER("ws.BINARY");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void ws_base::s_get_CLOSE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ws.CLOSE");
     int32_t vr = _CLOSE;
-    PROPERTY_ENTER("ws.CLOSE");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void ws_base::s_get_PING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ws.PING");
     int32_t vr = _PING;
-    PROPERTY_ENTER("ws.PING");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void ws_base::s_get_PONG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ws.PONG");
     int32_t vr = _PONG;
-    PROPERTY_ENTER("ws.PONG");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void ws_base::s_get_CONNECTING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ws.CONNECTING");
     int32_t vr = _CONNECTING;
-    PROPERTY_ENTER("ws.CONNECTING");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void ws_base::s_get_OPEN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ws.OPEN");
     int32_t vr = _OPEN;
-    PROPERTY_ENTER("ws.OPEN");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void ws_base::s_get_CLOSING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ws.CLOSING");
     int32_t vr = _CLOSING;
-    PROPERTY_ENTER("ws.CLOSING");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void ws_base::s_get_CLOSED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("ws.CLOSED");
     int32_t vr = _CLOSED;
-    PROPERTY_ENTER("ws.CLOSED");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
@@ -192,7 +202,8 @@ inline void ws_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_ENTER("ws.connect");
+    METHOD_NAME("ws.connect");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
 
@@ -212,7 +223,8 @@ inline void ws_base::s_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Handler_base> vr;
 
-    METHOD_ENTER("ws.upgrade");
+    METHOD_NAME("ws.upgrade");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 

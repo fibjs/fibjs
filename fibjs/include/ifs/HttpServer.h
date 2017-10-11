@@ -100,7 +100,8 @@ void HttpServer_base::__new(const T& args)
 {
     obj_ptr<HttpServer_base> vr;
 
-    CONSTRUCT_ENTER("new HttpServer()");
+    METHOD_NAME("new HttpServer()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -122,8 +123,9 @@ void HttpServer_base::__new(const T& args)
 
 inline void HttpServer_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("HttpServer.onerror");
     METHOD_INSTANCE(HttpServer_base);
-    METHOD_ENTER("HttpServer.onerror");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -136,8 +138,9 @@ inline void HttpServer_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void HttpServer_base::s_enableCrossOrigin(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("HttpServer.enableCrossOrigin");
     METHOD_INSTANCE(HttpServer_base);
-    METHOD_ENTER("HttpServer.enableCrossOrigin");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 0);
 
@@ -152,8 +155,9 @@ inline void HttpServer_base::s_get_forceGZIP(v8::Local<v8::String> property, con
 {
     bool vr;
 
+    METHOD_NAME("HttpServer.forceGZIP");
     METHOD_INSTANCE(HttpServer_base);
-    PROPERTY_ENTER("HttpServer.forceGZIP");
+    PROPERTY_ENTER();
 
     hr = pInst->get_forceGZIP(vr);
 
@@ -162,8 +166,9 @@ inline void HttpServer_base::s_get_forceGZIP(v8::Local<v8::String> property, con
 
 inline void HttpServer_base::s_set_forceGZIP(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpServer.forceGZIP");
     METHOD_INSTANCE(HttpServer_base);
-    PROPERTY_ENTER("HttpServer.forceGZIP");
+    PROPERTY_ENTER();
     PROPERTY_VAL(bool);
 
     hr = pInst->set_forceGZIP(v0);
@@ -175,8 +180,9 @@ inline void HttpServer_base::s_get_maxHeadersCount(v8::Local<v8::String> propert
 {
     int32_t vr;
 
+    METHOD_NAME("HttpServer.maxHeadersCount");
     METHOD_INSTANCE(HttpServer_base);
-    PROPERTY_ENTER("HttpServer.maxHeadersCount");
+    PROPERTY_ENTER();
 
     hr = pInst->get_maxHeadersCount(vr);
 
@@ -185,8 +191,9 @@ inline void HttpServer_base::s_get_maxHeadersCount(v8::Local<v8::String> propert
 
 inline void HttpServer_base::s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpServer.maxHeadersCount");
     METHOD_INSTANCE(HttpServer_base);
-    PROPERTY_ENTER("HttpServer.maxHeadersCount");
+    PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_maxHeadersCount(v0);
@@ -198,8 +205,9 @@ inline void HttpServer_base::s_get_maxBodySize(v8::Local<v8::String> property, c
 {
     int32_t vr;
 
+    METHOD_NAME("HttpServer.maxBodySize");
     METHOD_INSTANCE(HttpServer_base);
-    PROPERTY_ENTER("HttpServer.maxBodySize");
+    PROPERTY_ENTER();
 
     hr = pInst->get_maxBodySize(vr);
 
@@ -208,8 +216,9 @@ inline void HttpServer_base::s_get_maxBodySize(v8::Local<v8::String> property, c
 
 inline void HttpServer_base::s_set_maxBodySize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpServer.maxBodySize");
     METHOD_INSTANCE(HttpServer_base);
-    PROPERTY_ENTER("HttpServer.maxBodySize");
+    PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_maxBodySize(v0);
@@ -221,8 +230,9 @@ inline void HttpServer_base::s_get_serverName(v8::Local<v8::String> property, co
 {
     exlib::string vr;
 
+    METHOD_NAME("HttpServer.serverName");
     METHOD_INSTANCE(HttpServer_base);
-    PROPERTY_ENTER("HttpServer.serverName");
+    PROPERTY_ENTER();
 
     hr = pInst->get_serverName(vr);
 
@@ -231,8 +241,9 @@ inline void HttpServer_base::s_get_serverName(v8::Local<v8::String> property, co
 
 inline void HttpServer_base::s_set_serverName(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("HttpServer.serverName");
     METHOD_INSTANCE(HttpServer_base);
-    PROPERTY_ENTER("HttpServer.serverName");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_serverName(v0);
@@ -244,8 +255,9 @@ inline void HttpServer_base::s_get_httpStats(v8::Local<v8::String> property, con
 {
     obj_ptr<Stats_base> vr;
 
+    METHOD_NAME("HttpServer.httpStats");
     METHOD_INSTANCE(HttpServer_base);
-    PROPERTY_ENTER("HttpServer.httpStats");
+    PROPERTY_ENTER();
 
     hr = pInst->get_httpStats(vr);
 

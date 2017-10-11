@@ -73,7 +73,8 @@ void Worker_base::__new(const T& args)
 {
     obj_ptr<Worker_base> vr;
 
-    CONSTRUCT_ENTER("new Worker()");
+    METHOD_NAME("new Worker()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -87,8 +88,9 @@ void Worker_base::__new(const T& args)
 
 inline void Worker_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("Worker.postMessage");
     METHOD_INSTANCE(Worker_base);
-    METHOD_ENTER("Worker.postMessage");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -103,8 +105,9 @@ inline void Worker_base::s_get_onmessage(v8::Local<v8::String> property, const v
 {
     v8::Local<v8::Function> vr;
 
+    METHOD_NAME("Worker.onmessage");
     METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER("Worker.onmessage");
+    PROPERTY_ENTER();
 
     hr = pInst->get_onmessage(vr);
 
@@ -113,8 +116,9 @@ inline void Worker_base::s_get_onmessage(v8::Local<v8::String> property, const v
 
 inline void Worker_base::s_set_onmessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("Worker.onmessage");
     METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER("Worker.onmessage");
+    PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onmessage(v0);

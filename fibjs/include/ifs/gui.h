@@ -90,49 +90,56 @@ inline ClassInfo& gui_base::class_info()
 
 inline void gui_base::s_get_IE7(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("gui.IE7");
     int32_t vr = _IE7;
-    PROPERTY_ENTER("gui.IE7");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void gui_base::s_get_IE8(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("gui.IE8");
     int32_t vr = _IE8;
-    PROPERTY_ENTER("gui.IE8");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void gui_base::s_get_IE9(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("gui.IE9");
     int32_t vr = _IE9;
-    PROPERTY_ENTER("gui.IE9");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void gui_base::s_get_IE10(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("gui.IE10");
     int32_t vr = _IE10;
-    PROPERTY_ENTER("gui.IE10");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void gui_base::s_get_IE11(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("gui.IE11");
     int32_t vr = _IE11;
-    PROPERTY_ENTER("gui.IE11");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void gui_base::s_get_EDGE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("gui.EDGE");
     int32_t vr = _EDGE;
-    PROPERTY_ENTER("gui.EDGE");
+    PROPERTY_ENTER();
     METHOD_RETURN();
 }
 
 inline void gui_base::s_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("gui.setVersion");
+    METHOD_NAME("gui.setVersion");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -147,7 +154,8 @@ inline void gui_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<WebView_base> vr;
 
-    METHOD_ENTER("gui.open");
+    METHOD_NAME("gui.open");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 

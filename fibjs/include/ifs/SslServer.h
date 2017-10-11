@@ -80,7 +80,8 @@ void SslServer_base::__new(const T& args)
 {
     obj_ptr<SslServer_base> vr;
 
-    CONSTRUCT_ENTER("new SslServer()");
+    METHOD_NAME("new SslServer()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(3, 3);
 
@@ -125,8 +126,9 @@ inline void SslServer_base::s_get_verification(v8::Local<v8::String> property, c
 {
     int32_t vr;
 
+    METHOD_NAME("SslServer.verification");
     METHOD_INSTANCE(SslServer_base);
-    PROPERTY_ENTER("SslServer.verification");
+    PROPERTY_ENTER();
 
     hr = pInst->get_verification(vr);
 
@@ -135,8 +137,9 @@ inline void SslServer_base::s_get_verification(v8::Local<v8::String> property, c
 
 inline void SslServer_base::s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("SslServer.verification");
     METHOD_INSTANCE(SslServer_base);
-    PROPERTY_ENTER("SslServer.verification");
+    PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_verification(v0);
@@ -148,8 +151,9 @@ inline void SslServer_base::s_get_ca(v8::Local<v8::String> property, const v8::P
 {
     obj_ptr<X509Cert_base> vr;
 
+    METHOD_NAME("SslServer.ca");
     METHOD_INSTANCE(SslServer_base);
-    PROPERTY_ENTER("SslServer.ca");
+    PROPERTY_ENTER();
 
     hr = pInst->get_ca(vr);
 

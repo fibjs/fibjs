@@ -99,7 +99,8 @@ void StringDecoder_base::__new(const T& args)
 {
     obj_ptr<StringDecoder_base> vr;
 
-    CONSTRUCT_ENTER("new StringDecoder()");
+    METHOD_NAME("new StringDecoder()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 0);
 
@@ -114,8 +115,9 @@ inline void StringDecoder_base::s_end(const v8::FunctionCallbackInfo<v8::Value>&
 {
     exlib::string vr;
 
+    METHOD_NAME("StringDecoder.end");
     METHOD_INSTANCE(StringDecoder_base);
-    METHOD_ENTER("StringDecoder.end");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -134,8 +136,9 @@ inline void StringDecoder_base::s_write(const v8::FunctionCallbackInfo<v8::Value
 {
     exlib::string vr;
 
+    METHOD_NAME("StringDecoder.write");
     METHOD_INSTANCE(StringDecoder_base);
-    METHOD_ENTER("StringDecoder.write");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -150,8 +153,9 @@ inline void StringDecoder_base::s_text(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
+    METHOD_NAME("StringDecoder.text");
     METHOD_INSTANCE(StringDecoder_base);
-    METHOD_ENTER("StringDecoder.text");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -167,8 +171,9 @@ inline void StringDecoder_base::s_fillLast(const v8::FunctionCallbackInfo<v8::Va
 {
     exlib::string vr;
 
+    METHOD_NAME("StringDecoder.fillLast");
     METHOD_INSTANCE(StringDecoder_base);
-    METHOD_ENTER("StringDecoder.fillLast");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -183,8 +188,9 @@ inline void StringDecoder_base::s_get_lastNeed(v8::Local<v8::String> property, c
 {
     int32_t vr;
 
+    METHOD_NAME("StringDecoder.lastNeed");
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER("StringDecoder.lastNeed");
+    PROPERTY_ENTER();
 
     hr = pInst->get_lastNeed(vr);
 
@@ -193,8 +199,9 @@ inline void StringDecoder_base::s_get_lastNeed(v8::Local<v8::String> property, c
 
 inline void StringDecoder_base::s_set_lastNeed(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("StringDecoder.lastNeed");
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER("StringDecoder.lastNeed");
+    PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_lastNeed(v0);
@@ -206,8 +213,9 @@ inline void StringDecoder_base::s_get_lastTotal(v8::Local<v8::String> property, 
 {
     int32_t vr;
 
+    METHOD_NAME("StringDecoder.lastTotal");
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER("StringDecoder.lastTotal");
+    PROPERTY_ENTER();
 
     hr = pInst->get_lastTotal(vr);
 
@@ -216,8 +224,9 @@ inline void StringDecoder_base::s_get_lastTotal(v8::Local<v8::String> property, 
 
 inline void StringDecoder_base::s_set_lastTotal(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("StringDecoder.lastTotal");
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER("StringDecoder.lastTotal");
+    PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_lastTotal(v0);
@@ -229,8 +238,9 @@ inline void StringDecoder_base::s_get_lastChar(v8::Local<v8::String> property, c
 {
     obj_ptr<Buffer_base> vr;
 
+    METHOD_NAME("StringDecoder.lastChar");
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER("StringDecoder.lastChar");
+    PROPERTY_ENTER();
 
     hr = pInst->get_lastChar(vr);
 
@@ -239,8 +249,9 @@ inline void StringDecoder_base::s_get_lastChar(v8::Local<v8::String> property, c
 
 inline void StringDecoder_base::s_set_lastChar(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("StringDecoder.lastChar");
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER("StringDecoder.lastChar");
+    PROPERTY_ENTER();
     PROPERTY_VAL(obj_ptr<Buffer_base>);
 
     hr = pInst->set_lastChar(v0);
@@ -252,8 +263,9 @@ inline void StringDecoder_base::s_get_encoding(v8::Local<v8::String> property, c
 {
     exlib::string vr;
 
+    METHOD_NAME("StringDecoder.encoding");
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER("StringDecoder.encoding");
+    PROPERTY_ENTER();
 
     hr = pInst->get_encoding(vr);
 
@@ -262,8 +274,9 @@ inline void StringDecoder_base::s_get_encoding(v8::Local<v8::String> property, c
 
 inline void StringDecoder_base::s_set_encoding(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("StringDecoder.encoding");
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER("StringDecoder.encoding");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_encoding(v0);

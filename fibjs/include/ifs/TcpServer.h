@@ -97,7 +97,8 @@ void TcpServer_base::__new(const T& args)
 {
     obj_ptr<TcpServer_base> vr;
 
-    CONSTRUCT_ENTER("new TcpServer()");
+    METHOD_NAME("new TcpServer()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -119,8 +120,9 @@ void TcpServer_base::__new(const T& args)
 
 inline void TcpServer_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("TcpServer.run");
     METHOD_INSTANCE(TcpServer_base);
-    METHOD_ENTER("TcpServer.run");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -135,8 +137,9 @@ inline void TcpServer_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void TcpServer_base::s_asyncRun(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("TcpServer.asyncRun");
     METHOD_INSTANCE(TcpServer_base);
-    METHOD_ENTER("TcpServer.asyncRun");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -147,8 +150,9 @@ inline void TcpServer_base::s_asyncRun(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void TcpServer_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("TcpServer.stop");
     METHOD_INSTANCE(TcpServer_base);
-    METHOD_ENTER("TcpServer.stop");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -165,8 +169,9 @@ inline void TcpServer_base::s_get_socket(v8::Local<v8::String> property, const v
 {
     obj_ptr<Socket_base> vr;
 
+    METHOD_NAME("TcpServer.socket");
     METHOD_INSTANCE(TcpServer_base);
-    PROPERTY_ENTER("TcpServer.socket");
+    PROPERTY_ENTER();
 
     hr = pInst->get_socket(vr);
 
@@ -177,8 +182,9 @@ inline void TcpServer_base::s_get_handler(v8::Local<v8::String> property, const 
 {
     obj_ptr<Handler_base> vr;
 
+    METHOD_NAME("TcpServer.handler");
     METHOD_INSTANCE(TcpServer_base);
-    PROPERTY_ENTER("TcpServer.handler");
+    PROPERTY_ENTER();
 
     hr = pInst->get_handler(vr);
 
@@ -187,8 +193,9 @@ inline void TcpServer_base::s_get_handler(v8::Local<v8::String> property, const 
 
 inline void TcpServer_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("TcpServer.handler");
     METHOD_INSTANCE(TcpServer_base);
-    PROPERTY_ENTER("TcpServer.handler");
+    PROPERTY_ENTER();
     PROPERTY_VAL(obj_ptr<Handler_base>);
 
     hr = pInst->set_handler(v0);
@@ -200,8 +207,9 @@ inline void TcpServer_base::s_get_stats(v8::Local<v8::String> property, const v8
 {
     obj_ptr<Stats_base> vr;
 
+    METHOD_NAME("TcpServer.stats");
     METHOD_INSTANCE(TcpServer_base);
-    PROPERTY_ENTER("TcpServer.stats");
+    PROPERTY_ENTER();
 
     hr = pInst->get_stats(vr);
 

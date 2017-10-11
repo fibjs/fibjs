@@ -77,8 +77,9 @@ inline void EventInfo_base::s_get_code(v8::Local<v8::String> property, const v8:
 {
     int32_t vr;
 
+    METHOD_NAME("EventInfo.code");
     METHOD_INSTANCE(EventInfo_base);
-    PROPERTY_ENTER("EventInfo.code");
+    PROPERTY_ENTER();
 
     hr = pInst->get_code(vr);
 
@@ -89,8 +90,9 @@ inline void EventInfo_base::s_get_reason(v8::Local<v8::String> property, const v
 {
     exlib::string vr;
 
+    METHOD_NAME("EventInfo.reason");
     METHOD_INSTANCE(EventInfo_base);
-    PROPERTY_ENTER("EventInfo.reason");
+    PROPERTY_ENTER();
 
     hr = pInst->get_reason(vr);
 
@@ -101,8 +103,9 @@ inline void EventInfo_base::s_get_type(v8::Local<v8::String> property, const v8:
 {
     exlib::string vr;
 
+    METHOD_NAME("EventInfo.type");
     METHOD_INSTANCE(EventInfo_base);
-    PROPERTY_ENTER("EventInfo.type");
+    PROPERTY_ENTER();
 
     hr = pInst->get_type(vr);
 
@@ -113,8 +116,9 @@ inline void EventInfo_base::s_get_target(v8::Local<v8::String> property, const v
 {
     v8::Local<v8::Object> vr;
 
+    METHOD_NAME("EventInfo.target");
     METHOD_INSTANCE(EventInfo_base);
-    PROPERTY_ENTER("EventInfo.target");
+    PROPERTY_ENTER();
 
     hr = pInst->get_target(vr);
 
@@ -125,8 +129,9 @@ inline void EventInfo_base::i_NamedGetter(v8::Local<v8::String> property, const 
 {
     int32_t vr;
 
+    METHOD_NAME("EventInfo.undefined[]");
     METHOD_INSTANCE(EventInfo_base);
-    PROPERTY_ENTER("EventInfo.undefined[]");
+    PROPERTY_ENTER();
 
     exlib::string k;
     GetArgumentValue(isolate, property, k);
@@ -144,8 +149,9 @@ inline void EventInfo_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8:
 {
     v8::Local<v8::Array> vr;
 
+    METHOD_NAME("EventInfo.undefined");
     METHOD_INSTANCE(EventInfo_base);
-    PROPERTY_ENTER("EventInfo.undefined[]");
+    PROPERTY_ENTER();
 
     hr = pInst->_named_enumerator(vr);
 

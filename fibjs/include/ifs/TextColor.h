@@ -77,8 +77,9 @@ inline void TextColor_base::s_get_notice(v8::Local<v8::String> property, const v
 {
     exlib::string vr;
 
+    METHOD_NAME("TextColor.notice");
     METHOD_INSTANCE(TextColor_base);
-    PROPERTY_ENTER("TextColor.notice");
+    PROPERTY_ENTER();
 
     hr = pInst->get_notice(vr);
 
@@ -87,8 +88,9 @@ inline void TextColor_base::s_get_notice(v8::Local<v8::String> property, const v
 
 inline void TextColor_base::s_set_notice(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("TextColor.notice");
     METHOD_INSTANCE(TextColor_base);
-    PROPERTY_ENTER("TextColor.notice");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_notice(v0);
@@ -100,8 +102,9 @@ inline void TextColor_base::s_get_warn(v8::Local<v8::String> property, const v8:
 {
     exlib::string vr;
 
+    METHOD_NAME("TextColor.warn");
     METHOD_INSTANCE(TextColor_base);
-    PROPERTY_ENTER("TextColor.warn");
+    PROPERTY_ENTER();
 
     hr = pInst->get_warn(vr);
 
@@ -110,8 +113,9 @@ inline void TextColor_base::s_get_warn(v8::Local<v8::String> property, const v8:
 
 inline void TextColor_base::s_set_warn(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("TextColor.warn");
     METHOD_INSTANCE(TextColor_base);
-    PROPERTY_ENTER("TextColor.warn");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_warn(v0);
@@ -123,8 +127,9 @@ inline void TextColor_base::s_get_error(v8::Local<v8::String> property, const v8
 {
     exlib::string vr;
 
+    METHOD_NAME("TextColor.error");
     METHOD_INSTANCE(TextColor_base);
-    PROPERTY_ENTER("TextColor.error");
+    PROPERTY_ENTER();
 
     hr = pInst->get_error(vr);
 
@@ -133,8 +138,9 @@ inline void TextColor_base::s_get_error(v8::Local<v8::String> property, const v8
 
 inline void TextColor_base::s_set_error(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("TextColor.error");
     METHOD_INSTANCE(TextColor_base);
-    PROPERTY_ENTER("TextColor.error");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_error(v0);
@@ -146,8 +152,9 @@ inline void TextColor_base::s_get_highLight(v8::Local<v8::String> property, cons
 {
     exlib::string vr;
 
+    METHOD_NAME("TextColor.highLight");
     METHOD_INSTANCE(TextColor_base);
-    PROPERTY_ENTER("TextColor.highLight");
+    PROPERTY_ENTER();
 
     hr = pInst->get_highLight(vr);
 
@@ -156,8 +163,9 @@ inline void TextColor_base::s_get_highLight(v8::Local<v8::String> property, cons
 
 inline void TextColor_base::s_set_highLight(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
+    METHOD_NAME("TextColor.highLight");
     METHOD_INSTANCE(TextColor_base);
-    PROPERTY_ENTER("TextColor.highLight");
+    PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_highLight(v0);

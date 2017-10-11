@@ -127,7 +127,8 @@ void List_base::__new(const T& args)
 {
     obj_ptr<List_base> vr;
 
-    CONSTRUCT_ENTER("new List()");
+    METHOD_NAME("new List()");
+    CONSTRUCT_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -146,8 +147,9 @@ inline void List_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbac
 {
     Variant vr;
 
+    METHOD_NAME("List.undefined");
     METHOD_INSTANCE(List_base);
-    PROPERTY_ENTER("List.undefined[]");
+    PROPERTY_ENTER();
 
     hr = pInst->_indexed_getter(index, vr);
     if (hr == CALL_RETURN_NULL)
@@ -158,8 +160,9 @@ inline void List_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbac
 
 inline void List_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("List.undefined");
     METHOD_INSTANCE(List_base);
-    PROPERTY_ENTER("List.undefined[]");
+    PROPERTY_ENTER();
 
     PROPERTY_VAL(Variant);
     hr = pInst->_indexed_setter(index, v0);
@@ -169,8 +172,9 @@ inline void List_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> valu
 
 inline void List_base::s_freeze(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("List.freeze");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.freeze");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -183,8 +187,9 @@ inline void List_base::s_get_length(v8::Local<v8::String> property, const v8::Pr
 {
     int32_t vr;
 
+    METHOD_NAME("List.length");
     METHOD_INSTANCE(List_base);
-    PROPERTY_ENTER("List.length");
+    PROPERTY_ENTER();
 
     hr = pInst->get_length(vr);
 
@@ -193,8 +198,9 @@ inline void List_base::s_get_length(v8::Local<v8::String> property, const v8::Pr
 
 inline void List_base::s_resize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("List.resize");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.resize");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -209,8 +215,9 @@ inline void List_base::s_push(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
+    METHOD_NAME("List.push");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.push");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -231,8 +238,9 @@ inline void List_base::s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     int32_t vr;
 
+    METHOD_NAME("List.indexOf");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.indexOf");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -248,8 +256,9 @@ inline void List_base::s_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     int32_t vr;
 
+    METHOD_NAME("List.lastIndexOf");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.lastIndexOf");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -263,8 +272,9 @@ inline void List_base::s_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void List_base::s_pushArray(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("List.pushArray");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.pushArray");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -279,8 +289,9 @@ inline void List_base::s_pop(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     Variant vr;
 
+    METHOD_NAME("List.pop");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.pop");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -293,8 +304,9 @@ inline void List_base::s_slice(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<List_base> vr;
 
+    METHOD_NAME("List.slice");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.slice");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 0);
 
@@ -310,8 +322,9 @@ inline void List_base::s_concat(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<List_base> vr;
 
+    METHOD_NAME("List.concat");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.concat");
+    METHOD_ENTER();
 
     METHOD_OVER(-1, 0);
 
@@ -326,8 +339,9 @@ inline void List_base::s_every(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
+    METHOD_NAME("List.every");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.every");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -343,8 +357,9 @@ inline void List_base::s_some(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
+    METHOD_NAME("List.some");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.some");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -360,8 +375,9 @@ inline void List_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<List_base> vr;
 
+    METHOD_NAME("List.filter");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.filter");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -375,8 +391,9 @@ inline void List_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void List_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("List.forEach");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.forEach");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -392,8 +409,9 @@ inline void List_base::s_map(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<List_base> vr;
 
+    METHOD_NAME("List.map");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.map");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -409,8 +427,9 @@ inline void List_base::s_reduce(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
+    METHOD_NAME("List.reduce");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.reduce");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 1);
 
@@ -426,8 +445,9 @@ inline void List_base::s_sort(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<List_base> vr;
 
+    METHOD_NAME("List.sort");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.sort");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -446,8 +466,9 @@ inline void List_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     v8::Local<v8::Array> vr;
 
+    METHOD_NAME("List.toArray");
     METHOD_INSTANCE(List_base);
-    METHOD_ENTER("List.toArray");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 

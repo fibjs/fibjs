@@ -98,8 +98,9 @@ inline void DbConnection_base::s_get_type(v8::Local<v8::String> property, const 
 {
     exlib::string vr;
 
+    METHOD_NAME("DbConnection.type");
     METHOD_INSTANCE(DbConnection_base);
-    PROPERTY_ENTER("DbConnection.type");
+    PROPERTY_ENTER();
 
     hr = pInst->get_type(vr);
 
@@ -108,8 +109,9 @@ inline void DbConnection_base::s_get_type(v8::Local<v8::String> property, const 
 
 inline void DbConnection_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("DbConnection.close");
     METHOD_INSTANCE(DbConnection_base);
-    METHOD_ENTER("DbConnection.close");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -124,8 +126,9 @@ inline void DbConnection_base::s_close(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("DbConnection.begin");
     METHOD_INSTANCE(DbConnection_base);
-    METHOD_ENTER("DbConnection.begin");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -140,8 +143,9 @@ inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("DbConnection.commit");
     METHOD_INSTANCE(DbConnection_base);
-    METHOD_ENTER("DbConnection.commit");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -156,8 +160,9 @@ inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value
 
 inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("DbConnection.rollback");
     METHOD_INSTANCE(DbConnection_base);
-    METHOD_ENTER("DbConnection.rollback");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
 
@@ -172,8 +177,9 @@ inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Val
 
 inline void DbConnection_base::s_trans(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    METHOD_NAME("DbConnection.trans");
     METHOD_INSTANCE(DbConnection_base);
-    METHOD_ENTER("DbConnection.trans");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -188,8 +194,9 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<NArray> vr;
 
+    METHOD_NAME("DbConnection.execute");
     METHOD_INSTANCE(DbConnection_base);
-    METHOD_ENTER("DbConnection.execute");
+    METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
@@ -219,8 +226,9 @@ inline void DbConnection_base::s_format(const v8::FunctionCallbackInfo<v8::Value
 {
     exlib::string vr;
 
+    METHOD_NAME("DbConnection.format");
     METHOD_INSTANCE(DbConnection_base);
-    METHOD_ENTER("DbConnection.format");
+    METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
 

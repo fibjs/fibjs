@@ -109,7 +109,8 @@ inline ClassInfo& test_base::class_info()
 
 inline void test_base::s_describe(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("test.describe");
+    METHOD_NAME("test.describe");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -123,7 +124,8 @@ inline void test_base::s_describe(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void test_base::s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("test.xdescribe");
+    METHOD_NAME("test.xdescribe");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -137,7 +139,8 @@ inline void test_base::s_xdescribe(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void test_base::s_odescribe(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("test.odescribe");
+    METHOD_NAME("test.odescribe");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -151,7 +154,8 @@ inline void test_base::s_odescribe(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void test_base::s_it(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("test.it");
+    METHOD_NAME("test.it");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -165,7 +169,8 @@ inline void test_base::s_it(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void test_base::s_xit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("test.xit");
+    METHOD_NAME("test.xit");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -179,7 +184,8 @@ inline void test_base::s_xit(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void test_base::s_oit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("test.oit");
+    METHOD_NAME("test.oit");
+    METHOD_ENTER();
 
     METHOD_OVER(2, 2);
 
@@ -193,7 +199,8 @@ inline void test_base::s_oit(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void test_base::s_before(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("test.before");
+    METHOD_NAME("test.before");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -206,7 +213,8 @@ inline void test_base::s_before(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void test_base::s_after(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("test.after");
+    METHOD_NAME("test.after");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -219,7 +227,8 @@ inline void test_base::s_after(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void test_base::s_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("test.beforeEach");
+    METHOD_NAME("test.beforeEach");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -232,7 +241,8 @@ inline void test_base::s_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void test_base::s_afterEach(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("test.afterEach");
+    METHOD_NAME("test.afterEach");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 1);
 
@@ -247,7 +257,8 @@ inline void test_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_ENTER("test.run");
+    METHOD_NAME("test.run");
+    METHOD_ENTER();
 
     METHOD_OVER(1, 0);
 
@@ -260,7 +271,8 @@ inline void test_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void test_base::s_setup(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER("test.setup");
+    METHOD_NAME("test.setup");
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
@@ -273,7 +285,8 @@ inline void test_base::s_get_slow(v8::Local<v8::String> property, const v8::Prop
 {
     int32_t vr;
 
-    PROPERTY_ENTER("test.slow");
+    METHOD_NAME("test.slow");
+    PROPERTY_ENTER();
 
     hr = get_slow(vr);
 
@@ -282,7 +295,8 @@ inline void test_base::s_get_slow(v8::Local<v8::String> property, const v8::Prop
 
 inline void test_base::s_set_slow(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    PROPERTY_ENTER("test.slow");
+    METHOD_NAME("test.slow");
+    PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
     hr = set_slow(v0);

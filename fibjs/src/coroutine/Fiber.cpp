@@ -126,10 +126,17 @@ result_t JSFiber::join()
     return 0;
 }
 
-void save_native_name(const char* name)
+save_method_name::save_method_name(const char* name)
 {
-    JSFiber* fb = JSFiber::current();
-    fb->m_native_name = name;
+    m_fb = JSFiber::current();
+
+    m_name = m_fb->m_native_name;
+    m_fb->m_native_name = name;
+}
+
+save_method_name::~save_method_name()
+{
+    m_fb->m_native_name = m_name;
 }
 
 result_t JSFiber::get_stack(exlib::string& retVal)
