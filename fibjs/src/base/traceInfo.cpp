@@ -91,7 +91,6 @@ exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void
 
     for (; !it.done(); it.Advance()) {
         v8::internal::JavaScriptFrame* frame = it.frame();
-        v8::internal::JSFunction* function = frame->function();
         std::vector<v8::internal::FrameSummary> frames;
 
         frame->Summarize(&frames);
