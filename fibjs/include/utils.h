@@ -672,7 +672,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, V
 class OptArgs {
 public:
     OptArgs(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t base, int32_t argc)
-        : m_args(args)
+        : m_args(&args)
         , m_base(base)
         , m_argc(argc)
     {
@@ -685,6 +685,13 @@ public:
     {
     }
 
+    OptArgs()
+        : m_args(NULL)
+        , m_base(0)
+        , m_argc(0)
+    {
+    }
+
     int32_t Length() const
     {
         return m_argc - m_base;
@@ -692,18 +699,18 @@ public:
 
     v8::Local<v8::Value> operator[](int32_t i) const
     {
-        return m_args[i + m_base];
+        return (*m_args)[i + m_base];
     }
 
     void GetData(std::vector<v8::Local<v8::Value>>& datas)
     {
         datas.resize(m_argc - m_base);
         for (int32_t i = 0; i < m_argc - m_base; i++)
-            datas[i] = m_args[m_base + i];
+            datas[i] = (*m_args)[m_base + i];
     }
 
 private:
-    const v8::FunctionCallbackInfo<v8::Value>& m_args;
+    const v8::FunctionCallbackInfo<v8::Value>* m_args;
     int32_t m_base;
     int32_t m_argc;
 };

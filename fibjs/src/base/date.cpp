@@ -636,7 +636,9 @@ void date_t::add(int32_t num, int32_t part)
     if (isnan(d))
         return;
 
-    if (part == _SECOND)
+    if (part == _MICROSECOND)
+        d += (int64_t)num;
+    else if (part == _SECOND)
         d += (int64_t)num * 1000;
     else if (part == _MINUTE)
         d += (int64_t)num * 60 * 1000;

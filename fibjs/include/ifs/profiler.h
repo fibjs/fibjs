@@ -17,6 +17,7 @@
 namespace fibjs {
 
 class HeapSnapshot_base;
+class Timer_base;
 
 class profiler_base : public object_base {
     DECLARE_CLASS(profiler_base);
@@ -52,6 +53,7 @@ public:
     static result_t loadSnapshot(exlib::string fname, obj_ptr<HeapSnapshot_base>& retVal);
     static result_t takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal);
     static result_t diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal);
+    static result_t start(exlib::string fname, int32_t time, int32_t interval, obj_ptr<Timer_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -90,10 +92,12 @@ public:
     static void s_loadSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_takeSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_diff(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
 #include "HeapSnapshot.h"
+#include "Timer.h"
 
 namespace fibjs {
 inline ClassInfo& profiler_base::class_info()
@@ -102,7 +106,8 @@ inline ClassInfo& profiler_base::class_info()
         { "saveSnapshot", s_saveSnapshot, true },
         { "loadSnapshot", s_loadSnapshot, true },
         { "takeSnapshot", s_takeSnapshot, true },
-        { "diff", s_diff, true }
+        { "diff", s_diff, true },
+        { "start", s_start, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -338,6 +343,23 @@ inline void profiler_base::s_diff(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(v8::Local<v8::Function>, 0);
 
     hr = diff(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void profiler_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Timer_base> vr;
+
+    METHOD_ENTER("profiler.start");
+
+    METHOD_OVER(3, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 60000);
+    OPT_ARG(int32_t, 2, 100);
+
+    hr = start(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }

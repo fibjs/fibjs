@@ -1325,6 +1325,9 @@
     <ClCompile Include="src\process\process.cpp">
       <Filter>Source Files\process</Filter>
     </ClCompile>
+    <ClCompile Include="src\profiler\CpuProfiler.cpp">
+      <Filter>Source Files\profiler</Filter>
+    </ClCompile>
     <ClCompile Include="src\profiler\HeapDiff.cpp">
       <Filter>Source Files\profiler</Filter>
     </ClCompile>

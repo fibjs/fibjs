@@ -92,4 +92,12 @@ module profiler
 	 @return 返回对比的结果
 	 */
     static Object diff(Function test);
+
+    /*! @brief 启动一次运行状态采样日志
+	 @param fname 给定日志存储文件名
+	 @param time 指定采样时间，缺省 1 分钟
+	 @param interval 指定间隔时间，缺省 100 毫秒
+     @return 返回采样定时器，可以通过 clear 方法提前停止采样
+	 */
+    static Timer start(String fname, Integer time = 60000, Integer interval = 100);
 };

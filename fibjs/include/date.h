@@ -22,7 +22,8 @@ public:
         _DAY = 2,
         _HOUR = 3,
         _MINUTE = 4,
-        _SECOND = 5
+        _SECOND = 5,
+        _MICROSECOND = 6
     };
 
     class Part {
