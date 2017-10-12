@@ -18,10 +18,6 @@ namespace fibjs {
 static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Isolate* isolate = args.GetIsolate();
-    obj_ptr<Timer_base> tm = Timer_base::getInstance(args.This());
-
-    obj_ptr<Fiber_base> cur;
-    coroutine_base::current(cur);
 
     v8::Local<v8::Array> fibers;
     coroutine_base::get_fibers(fibers);
@@ -33,7 +29,7 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
         obj_ptr<Fiber_base> fb = Fiber_base::getInstance(fibers->Get(i));
 
         fb->get_stack(stack);
-        if (fb != cur || stack != "    at :1:2")
+        if (stack != "")
             stacks->Set(cnt++, NewString(isolate, stack));
     }
 
@@ -47,7 +43,7 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
     date_t d;
     d.now();
     if (d.date() > _data->Get(NewString(isolate, "_time"))->NumberValue())
-        tm->clear();
+        Timer_base::getInstance(args.This())->clear();
 }
 
 result_t profiler_base::start(exlib::string fname, int32_t time, int32_t interval, obj_ptr<Timer_base>& retVal)

@@ -14,6 +14,8 @@
 
 namespace fibjs {
 
+void InvokeApiInterruptCallbacks(v8::Isolate* isolate);
+
 #define TIMEOUT_MAX 2147483647 // 2^31-1
 
 class JSTimer : public Timer {
@@ -22,8 +24,6 @@ public:
         bool repeat = false, bool hr = false)
         : Timer(timeout, repeat)
         , m_hr(hr)
-        , m_pendding(0)
-        , m_counter(0)
         , m_clear_pendding(false)
     {
         Isolate* isolate = holder();
@@ -35,12 +35,6 @@ public:
 
         isolate->m_pendding.inc();
         m_callback.Reset(isolate->m_isolate, callback);
-
-        if (m_hr) {
-            v8::Local<v8::Script> script = v8::Script::Compile(
-                isolate->NewString("(()=>{})"), isolate->NewString(""));
-            m_worker.Reset(isolate->m_isolate, v8::Local<v8::Function>::Cast(script->Run()));
-        }
     }
 
 public:
@@ -49,7 +43,6 @@ public:
         Isolate* isolate = holder();
 
         if (m_hr) {
-            m_pendding++;
             holder()->m_isolate->RequestInterrupt(_InterruptCallback, this);
 
             if (m_has_worker.CompareAndSwap(0, 1) == 0) {
@@ -62,12 +55,7 @@ public:
 
     static void _InterruptCallback(v8::Isolate* isolate, void* data)
     {
-        JSTimer* pThis = (JSTimer*)data;
-
-        if (pThis->m_counter < pThis->m_pendding) {
-            pThis->m_counter = pThis->m_pendding;
-            _callback(pThis);
-        }
+        _callback((JSTimer*)data);
     }
 
 public:
@@ -106,14 +94,11 @@ public:
 
     static result_t js_worker(JSTimer* pThis)
     {
-        if (pThis->m_counter < pThis->m_pendding) {
-            JSFiber::scope s;
-            Isolate* isolate = pThis->holder();
-            v8::Local<v8::Function> worker = v8::Local<v8::Function>::New(isolate->m_isolate, pThis->m_worker);
+        JSFiber::scope s;
+        Isolate* isolate = pThis->holder();
 
-            isolate->m_isolate->RequestInterrupt(_InterruptCallback, pThis);
-            worker->Call(worker, 0, NULL);
-        }
+        InvokeApiInterruptCallbacks(isolate->m_isolate);
+
         pThis->m_has_worker = 0;
         pThis->Unref();
 
@@ -123,12 +108,9 @@ public:
 private:
     bool m_hr;
     exlib::atomic m_has_worker;
-    uint64_t m_pendding;
-    uint64_t m_counter;
     bool m_clear_pendding;
     QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Function> m_callback;
-    v8::Global<v8::Function> m_worker;
 };
 
 DECLARE_MODULE(timers);
