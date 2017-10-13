@@ -41,47 +41,6 @@ V8FrameInfo save_fi(v8::Isolate* isolate)
     return fi;
 }
 
-exlib::string traceInfo(v8::Isolate* isolate, int32_t deep)
-{
-    v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-        isolate, deep, v8::StackTrace::kOverview);
-    int32_t count = stackTrace->GetFrameCount();
-    int32_t i;
-    exlib::string strBuffer;
-
-    for (i = 0; i < count; i++) {
-        char numStr[32];
-        v8::Local<v8::StackFrame> f = stackTrace->GetFrame(i);
-
-        v8::String::Utf8Value funname(f->GetFunctionName());
-        v8::String::Utf8Value filename(f->GetScriptName());
-
-        strBuffer.append(i == 0 ? "    at " : "\n    at ");
-
-        if (**funname) {
-            strBuffer.append(*funname);
-            strBuffer.append(" (", 2);
-        }
-
-        if (*filename) {
-            strBuffer.append(*filename);
-            strBuffer.append(1, ':');
-        } else
-            strBuffer.append("[eval]:", 7);
-
-        sprintf(numStr, "%d", f->GetLineNumber());
-        strBuffer.append(numStr);
-        strBuffer.append(1, ':');
-        sprintf(numStr, "%d", f->GetColumn());
-        strBuffer.append(numStr);
-
-        if (**funname)
-            strBuffer.append(")", 1);
-    }
-
-    return strBuffer;
-}
-
 exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void* handle)
 {
     v8::internal::Isolate* v8_isolate = (v8::internal::Isolate*)isolate;
@@ -95,7 +54,7 @@ exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void
     exlib::string strBuffer;
     bool bFirst = true;
 
-    for (; !it.done(); it.Advance()) {
+    for (; !it.done() && deep-- > 0; it.Advance()) {
         v8::internal::JavaScriptFrame* frame = it.frame();
         std::vector<v8::internal::FrameSummary> frames;
 
@@ -144,5 +103,11 @@ exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void
             strBuffer.append(1, ')');
     }
     return strBuffer;
+}
+
+exlib::string traceInfo(v8::Isolate* isolate, int32_t deep)
+{
+    v8::internal::Isolate* v8_isolate = (v8::internal::Isolate*)isolate;
+    return traceInfo(isolate, deep, *v8_isolate->c_entry_fp_address(), *v8_isolate->handler_address());
 }
 }
