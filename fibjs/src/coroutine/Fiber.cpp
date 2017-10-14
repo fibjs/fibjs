@@ -139,6 +139,12 @@ save_method_name::~save_method_name()
     m_fb->m_native_name = m_name;
 }
 
+result_t JSFiber::get_id(int64_t& retVal)
+{
+    retVal = m_id;
+    return 0;
+}
+
 result_t JSFiber::get_stack(exlib::string& retVal)
 {
     if (JSFiber::current() == this)

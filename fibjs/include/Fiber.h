@@ -41,6 +41,7 @@ public:
         , m_c_entry_fp_(NULL)
         , m_handler_(NULL)
     {
+        m_id = holder()->m_fid++;
     }
 
     ~JSFiber()
@@ -53,6 +54,7 @@ public:
 public:
     // Fiber_base
     virtual result_t join();
+    virtual result_t get_id(int64_t& retVal);
     virtual result_t get_stack(exlib::string& retVal);
     virtual result_t get_caller(obj_ptr<Fiber_base>& retVal);
 
@@ -137,6 +139,7 @@ public:
     void* m_handler_;
 
 private:
+    int64_t m_id;
     v8::Global<v8::Function> m_func;
     QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Value> m_result;

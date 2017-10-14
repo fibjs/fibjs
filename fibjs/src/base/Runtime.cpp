@@ -101,12 +101,12 @@ Isolate::Isolate(exlib::string fname)
     , m_test(NULL)
     , m_currentFibers(0)
     , m_idleFibers(0)
+    , m_fid(1)
     , m_flake_tm(0)
     , m_flake_host(0)
     , m_flake_count(0)
     , m_loglevel(console_base::_NOTSET)
     , m_defaultMaxListeners(10)
-    , m_interrupt(false)
 {
     m_fname = fname;
 

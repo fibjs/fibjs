@@ -51,6 +51,9 @@ interface Fiber : object
     /*! @brief 等待纤程结束 */
     join();
 
+    /*! @brief 查询纤程的唯一 id */
+    readonly Long id;
+
     /*! @brief 查询纤程的调用纤程 */
     readonly Fiber caller;
 
