@@ -43,7 +43,7 @@ public:
         Isolate* isolate = holder();
 
         if (m_hr) {
-            holder()->m_isolate->RequestInterrupt(_InterruptCallback, this);
+            isolate->m_isolate->RequestInterrupt(_InterruptCallback, this);
 
             if (m_has_worker.CompareAndSwap(0, 1) == 0) {
                 Ref();
