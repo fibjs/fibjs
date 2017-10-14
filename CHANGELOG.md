@@ -1,3 +1,91 @@
+## 2017-10-14, Version v0.16.0
+
+* **feature** :
+    * core:
+      - save method name before lock the object, support recursive native call.(xicilion)
+      - treat NaN as zero in argumets when require number (#362)(Hengfei Zhuang)
+      - use exlib::string::Buffer as ArrayBuffer allocator.(xicilion)
+    * docs - sort .idl file before parse.(响马)
+    * Fiber:
+      - include native function name in Fiber.stack.(xicilion)
+      - support Fiber.stack to trace JavaScript stack frame.(xicilion)
+    * fs - access string data safely.(xicilion)
+    * gd - change Image.affine to async to free v8 runtime.(xicilion)
+    * http:
+      - request support query in opts.(响马)
+      - reset body when store json data.(xicilion)
+    * profiler - support cpu profiler.(xicilion)
+    * test:
+      - add jsc async callback test case.(响马)
+      - use Function.length to check callback function.(响马)
+    * timers:
+      - support property stopped to detect if the Timer has stopped.(xicilion)
+      - Use => rewrite blank function.(xicilion)
+      - support setHrInterval/clearHrInternal.(xicilion)
+      - support param (#358)(Hengfei Zhuang)
+    * tools - changelog script support type alias.(xicilion)
+    * util - remove nouse variable.(xicilion)
+    * v8 - upgrade to v6.3.296.(xicilion)
+
+* **bugfix** :
+    * ci - lock the ruby version to 2.4 to fix homebrew error (#364)(Hengfei Zhuang)
+    * docs - fix process.stdout document.(xicilion)
+    * Fiber - Fiber.stack not break line.(xicilion)
+    * SQLite - use coroutine.sleep release worker thread.(xicilion)
+    * timers:
+      - setHrInterval delay sometimes.(xicilion)
+      - fix wrong timeout (#359)(Hengfei Zhuang)
+    * Url - compile in debug mode.(xicilion)
+    * url - compile warning on windows.(xicilion)
+    * vm - fix the sandbox.require base dir (#361)(Hengfei Zhuang)
+
+* **refactor** :
+    * Buffer - If possible, use ArrayBuffer to create Buffer.(xicilion)
+    * core - use same api to trace stack.(xicilion)
+    * coroutine - sleep with 0ms return directly.(xicilion)
+    * encoding - rewrite json.encode use new v8 json api.(xicilion)
+    * exlib - split source code.(xicilion)
+    * SQLite - Optimize the sleep algorithm when the database is busy.(xicilion)
+    * timers - use v8 internal api to invoke interrupt callback directly.(xicilion)
+
+### Commits
+* [[`3b925b7de6`](https://github.com/fibjs/fibjs/commit/3b925b7de6)] - **core, refactor**: use same api to trace stack.(xicilion)
+* [[`48bbcc6699`](https://github.com/fibjs/fibjs/commit/48bbcc6699)] - **v8, feat**: upgrade to v6.3.296.(xicilion)
+* [[`9c82a02f28`](https://github.com/fibjs/fibjs/commit/9c82a02f28)] - **timers, refactor**: use v8 internal api to invoke interrupt callback directly.(xicilion)
+* [[`6155b8dbee`](https://github.com/fibjs/fibjs/commit/6155b8dbee)] - **Fiber, bugfix**: Fiber.stack not break line.(xicilion)
+* [[`4673b38448`](https://github.com/fibjs/fibjs/commit/4673b38448)] - **timers, feat**: support property stopped to detect if the Timer has stopped.(xicilion)
+* [[`89bf1893a3`](https://github.com/fibjs/fibjs/commit/89bf1893a3)] - **core, feat**: save method name before lock the object, support recursive native call.(xicilion)
+* [[`d2550f5bc6`](https://github.com/fibjs/fibjs/commit/d2550f5bc6)] - **Url, bugfix**: compile in debug mode.(xicilion)
+* [[`e09d3b56ba`](https://github.com/fibjs/fibjs/commit/e09d3b56ba)] - **util, feat**: remove nouse variable.(xicilion)
+* [[`2ec5980ab5`](https://github.com/fibjs/fibjs/commit/2ec5980ab5)] - **profiler, feat**: support cpu profiler.(xicilion)
+* [[`7443033c29`](https://github.com/fibjs/fibjs/commit/7443033c29)] - **SQLite, refactor**: Optimize the sleep algorithm when the database is busy.(xicilion)
+* [[`dbd3c63fd7`](https://github.com/fibjs/fibjs/commit/dbd3c63fd7)] - **coroutine, refactor**: sleep with 0ms return directly.(xicilion)
+* [[`5a5e7658a3`](https://github.com/fibjs/fibjs/commit/5a5e7658a3)] - **timers, feat**: Use => rewrite blank function.(xicilion)
+* [[`d1c64dc5bf`](https://github.com/fibjs/fibjs/commit/d1c64dc5bf)] - **Fiber, feat**: include native function name in Fiber.stack.(xicilion)
+* [[`612ac63127`](https://github.com/fibjs/fibjs/commit/612ac63127)] - **tools, feat**: changelog script support type alias.(xicilion)
+* [[`125bcd348b`](https://github.com/fibjs/fibjs/commit/125bcd348b)] - **ci, fixbug**: lock the ruby version to 2.4 to fix homebrew error (#364)(Hengfei Zhuang)
+* [[`7ac34e97c0`](https://github.com/fibjs/fibjs/commit/7ac34e97c0)] - **url, bugfix**: compile warning on windows.(xicilion)
+* [[`921f9d47fa`](https://github.com/fibjs/fibjs/commit/921f9d47fa)] - **SQLite, bugfix**: use coroutine.sleep release worker thread.(xicilion)
+* [[`cc3a032a07`](https://github.com/fibjs/fibjs/commit/cc3a032a07)] - **gd, feat**: change Image.affine to async to free v8 runtime.(xicilion)
+* [[`b0fba8d60e`](https://github.com/fibjs/fibjs/commit/b0fba8d60e)] - **timers, bugfix**: setHrInterval delay sometimes.(xicilion)
+* [[`75d8c55d74`](https://github.com/fibjs/fibjs/commit/75d8c55d74)] - **docs, feat**: sort .idl file before parse.(响马)
+* [[`751d1f9269`](https://github.com/fibjs/fibjs/commit/751d1f9269)] - **http, feat**: request support query in opts.(响马)
+* [[`1fa3bbf1c9`](https://github.com/fibjs/fibjs/commit/1fa3bbf1c9)] - **test, feat**: add jsc async callback test case.(响马)
+* [[`82aa0f4e2f`](https://github.com/fibjs/fibjs/commit/82aa0f4e2f)] - **test, feat**: use Function.length to check callback function.(响马)
+* [[`0bf90f4ced`](https://github.com/fibjs/fibjs/commit/0bf90f4ced)] - **http, feat**: reset body when store json data.(xicilion)
+* [[`c0d4be1fa1`](https://github.com/fibjs/fibjs/commit/c0d4be1fa1)] - **core, feat**: treat NaN as zero in argumets when require number (#362)(Hengfei Zhuang)
+* [[`3a92d0e6db`](https://github.com/fibjs/fibjs/commit/3a92d0e6db)] - **encoding, refactor**: rewrite json.encode use new v8 json api.(xicilion)
+* [[`94e0ee98fc`](https://github.com/fibjs/fibjs/commit/94e0ee98fc)] - **fs, feat**: access string data safely.(xicilion)
+* [[`d04963c97a`](https://github.com/fibjs/fibjs/commit/d04963c97a)] - **core, feat**: use exlib::string::Buffer as ArrayBuffer allocator.(xicilion)
+* [[`3312d9d567`](https://github.com/fibjs/fibjs/commit/3312d9d567)] - **Buffer, refactor**: If possible, use ArrayBuffer to create Buffer.(xicilion)
+* [[`efbfdeb65e`](https://github.com/fibjs/fibjs/commit/efbfdeb65e)] - **vm, fixbug**: fix the sandbox.require base dir (#361)(Hengfei Zhuang)
+* [[`b5cb1cb732`](https://github.com/fibjs/fibjs/commit/b5cb1cb732)] - **timers, feat**: support setHrInterval/clearHrInternal.(xicilion)
+* [[`ebcb904574`](https://github.com/fibjs/fibjs/commit/ebcb904574)] - **timers, fixbug**: fix wrong timeout (#359)(Hengfei Zhuang)
+* [[`7be90a7a4f`](https://github.com/fibjs/fibjs/commit/7be90a7a4f)] - **Fiber, feat**: support Fiber.stack to trace JavaScript stack frame.(xicilion)
+* [[`aa55e2bb6f`](https://github.com/fibjs/fibjs/commit/aa55e2bb6f)] - **exlib, refactor**: split source code.(xicilion)
+* [[`0281ce9aad`](https://github.com/fibjs/fibjs/commit/0281ce9aad)] - **timers, feat**: support param (#358)(Hengfei Zhuang)
+* [[`3a2ca55c09`](https://github.com/fibjs/fibjs/commit/3a2ca55c09)] - **docs, bugfix**: fix process.stdout document.(xicilion)
+
 ## 2017-09-30, Version v0.15.0
 
 * **feature** :
