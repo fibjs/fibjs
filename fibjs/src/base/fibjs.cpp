@@ -29,10 +29,9 @@ void init_logger();
 void init_aio();
 void init_fs();
 void init_fiber();
-void options(int32_t argc, char* argv[]);
+void options(int32_t& pos, char* argv[]);
 
 exlib::string s_root;
-static exlib::string s_start;
 
 void init()
 {
@@ -84,18 +83,10 @@ static result_t main_fiber(Isolate* isolate)
     return s.m_hr;
 }
 
-result_t start_fiber(int32_t n)
-{
-    Isolate* isolate = new Isolate(s_start);
-    syncCall(isolate, main_fiber, isolate);
-    return 0;
-}
-
 void main(int32_t argc, char* argv[])
 {
     exlib::string exePath;
     std::vector<char*> ptrArg;
-    int32_t i;
 
     process_base::get_execPath(exePath);
 
@@ -108,6 +99,8 @@ void main(int32_t argc, char* argv[])
 
         ptrArg[0] = argv[0];
         ptrArg[1] = exePath.c_buffer();
+
+        int32_t i;
         for (i = 1; i < argc; i++)
             ptrArg[i + 1] = argv[i];
 
@@ -116,27 +109,30 @@ void main(int32_t argc, char* argv[])
     }
 
     init_start_argv(argc, argv);
-    for (i = 1; (i < argc) && (argv[i][0] == '-'); i++)
-        ;
-    options(i, argv);
+
+    int32_t pos = argc;
+    options(pos, argv);
 
     init();
 
-    if (i < argc) {
-        s_start = s_root;
-        resolvePath(s_start, argv[i]);
+    exlib::string start;
+    if (pos < argc) {
+        start = s_root;
+        resolvePath(start, argv[pos]);
 
-        if (i != 1) {
+        if (pos != 1) {
             int32_t p = 1;
-            for (; i < argc; i++)
-                argv[p++] = argv[i];
+            for (; pos < argc; pos++)
+                argv[p++] = argv[pos];
             argc = p;
         }
     }
 
     init_argv(argc, argv);
 
-    asyncCall(start_fiber, (int32_t)0);
+    Isolate* isolate = new Isolate(start);
+    syncCall(isolate, main_fiber, isolate);
+
     exlib::Service::dispatch();
 }
 }

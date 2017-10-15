@@ -38,8 +38,12 @@ static void printHelp()
            "Documentation can be found at http://fibjs.org/\n");
 }
 
-void options(int32_t argc, char* argv[])
+void options(int32_t& pos, char* argv[])
 {
+    int32_t argc = pos;
+    for (pos = 1; (pos < argc) && (argv[pos][0] == '-'); pos++)
+        ;
+    argc = pos;
     int32_t df = 0;
 
     for (int32_t i = 0; i < argc; i++) {
