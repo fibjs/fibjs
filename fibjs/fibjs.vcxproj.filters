@@ -935,9 +935,6 @@
     <ClCompile Include="src\base\Variant.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
-    <ClCompile Include="src\base\_test.cpp">
-      <Filter>Source Files\base</Filter>
-    </ClCompile>
     <ClCompile Include="src\base\acPool.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
@@ -951,6 +948,9 @@
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\fuck_sym.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\base\opt_tools.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\options.cpp">

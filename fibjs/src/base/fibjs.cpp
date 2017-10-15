@@ -117,8 +117,12 @@ void main(int32_t argc, char* argv[])
 
     exlib::string start;
     if (pos < argc) {
-        start = s_root;
-        resolvePath(start, argv[pos]);
+        if (argv[pos][0] == '-')
+            start = argv[pos];
+        else {
+            start = s_root;
+            resolvePath(start, argv[pos]);
+        }
 
         if (pos != 1) {
             int32_t p = 1;

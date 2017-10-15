@@ -7,24 +7,36 @@
 
 #include "object.h"
 #include "SandBox.h"
+#include "Buffer.h"
 #include "path.h"
 
 namespace fibjs {
 
+extern const char* opt_tools[];
+
 result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
 {
     result_t hr;
-    bool isAbs;
-
-    path_base::isAbsolute(fname, isAbs);
-    if (!isAbs)
-        return CHECK_ERROR(Runtime::setError("SandBox: Invalid file name."));
-    path_base::normalize(fname, fname);
-
     obj_ptr<Buffer_base> bin;
-    hr = resolveFile(fname, bin, NULL);
-    if (hr < 0)
-        return hr;
+
+    if (fname[0] == '-') {
+        int32_t i;
+
+        for (i = 0; opt_tools[i] && qstrcmp(opt_tools[i], fname.c_str()); i += 2)
+            ;
+        bin = new Buffer(opt_tools[i + 1]);
+    } else {
+        bool isAbs;
+
+        path_base::isAbsolute(fname, isAbs);
+        if (!isAbs)
+            return CHECK_ERROR(Runtime::setError("SandBox: Invalid file name."));
+        path_base::normalize(fname, fname);
+
+        hr = resolveFile(fname, bin, NULL);
+        if (hr < 0)
+            return hr;
+    }
 
     obj_ptr<ExtLoader> l;
     hr = get_loader(fname, l);
