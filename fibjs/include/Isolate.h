@@ -57,6 +57,8 @@ public:
     static Isolate* current();
     void init();
 
+    void RequestInterrupt(v8::InterruptCallback callback, void* data);
+
     v8::Local<v8::String> NewString(const char* data, int length = -1)
     {
         return fibjs::NewString(m_isolate, data, length);
@@ -111,6 +113,7 @@ public:
     int32_t m_idleFibers;
 
     exlib::atomic m_pendding;
+    exlib::atomic m_has_timer;
 
     int64_t m_fid;
 

@@ -14,8 +14,6 @@
 
 namespace fibjs {
 
-void InvokeApiInterruptCallbacks(v8::Isolate* isolate);
-
 #define TIMEOUT_MAX 2147483647 // 2^31-1
 
 class JSTimer : public Timer {
@@ -42,14 +40,9 @@ public:
     {
         Isolate* isolate = holder();
 
-        if (m_hr) {
-            isolate->m_isolate->RequestInterrupt(_InterruptCallback, this);
-
-            if (m_has_worker.CompareAndSwap(0, 1) == 0) {
-                Ref();
-                syncCall(isolate, js_worker, this);
-            }
-        } else
+        if (m_hr)
+            isolate->RequestInterrupt(_InterruptCallback, this);
+        else
             syncCall(isolate, _callback, this);
     }
 
@@ -92,22 +85,8 @@ public:
         }
     }
 
-    static result_t js_worker(JSTimer* pThis)
-    {
-        JSFiber::scope s;
-        Isolate* isolate = pThis->holder();
-
-        InvokeApiInterruptCallbacks(isolate->m_isolate);
-
-        pThis->m_has_worker = 0;
-        pThis->Unref();
-
-        return 0;
-    }
-
 private:
     bool m_hr;
-    exlib::atomic m_has_worker;
     bool m_clear_pendding;
     QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Function> m_callback;

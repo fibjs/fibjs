@@ -170,4 +170,20 @@ void Isolate::init()
     m_topSandbox->initRoot();
 }
 
+void InvokeApiInterruptCallbacks(v8::Isolate* isolate);
+static result_t js_timer(Isolate* isolate)
+{
+    JSFiber::scope s;
+    isolate->m_has_timer = 0;
+    InvokeApiInterruptCallbacks(isolate->m_isolate);
+    return 0;
+}
+
+void Isolate::RequestInterrupt(v8::InterruptCallback callback, void* data)
+{
+    m_isolate->RequestInterrupt(callback, data);
+    if (m_has_timer.CompareAndSwap(0, 1) == 0)
+        syncCall(this, js_timer, this);
+}
+
 } /* namespace fibjs */
