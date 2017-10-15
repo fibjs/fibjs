@@ -34,12 +34,10 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     Isolate* isolate = Isolate::current();
     obj_ptr<Event_base> ev = new Event();
-
     v8::Local<v8::Object> _data = v8::Object::New(isolate->m_isolate);
+    std::vector<v8::Local<v8::Value>> argv;
 
     _data->Set(isolate->NewString("_ev"), ev->wrap());
-
-    std::vector<v8::Local<v8::Value>> argv;
 
     int32_t len = args.Length();
     int32_t i;
@@ -51,6 +49,12 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     argv[i] = isolate->NewFunction("sync_callback", sync_callback, _data);
 
     v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
+
+    exlib::string str("util.sync(");
+    str += *v8::String::Utf8Value(func->GetName());
+    str += ")";
+
+    METHOD_NAME(str.c_str());
 
     v8::Local<v8::Value> result = func->Call(args.This(), (int32_t)argv.size(), argv.data());
     if (result.IsEmpty())
