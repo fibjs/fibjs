@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "Fiber.h"
+#include "Trigger.h"
 #include "ifs/os.h"
 #include "ifs/process.h"
 
@@ -73,8 +74,16 @@ void JSFiber::fiber_proc(void* p)
 
             if (isolate->m_pendding.dec() == 0)
                 if (isolate->m_id == 1) {
+                    v8::HandleScope handle_scope(isolate->m_isolate);
                     JSFiber::scope s;
-                    process_base::exit(hr);
+                    JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
+                    v8::Local<v8::Value> code = v8::Number::New(isolate->m_isolate, isolate->m_exitCode);
+                    bool r;
+
+                    isolate->m_pendding.inc();
+                    t._emit("beforeExit", &code, 1, r);
+                    if (isolate->m_pendding.dec() == 0)
+                        process_base::exit(hr);
                 }
         }
 

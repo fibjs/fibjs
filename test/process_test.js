@@ -54,6 +54,11 @@ describe('process', () => {
         assert.equal(process.run(cmd, [path.join(__dirname, 'process', 'exec.js')]), 100);
     });
 
+    it("exitCode", () => {
+        assert.equal(process.run(cmd, [path.join(__dirname, 'process', 'exec13.js')]), 100);
+        assert.equal(process.run(cmd, [path.join(__dirname, 'process', 'exec14.js')]), 101);
+    });
+
     xit("run throw error", () => {
         assert.throws(() => {
             process.run("not_exists_exec_file");
@@ -212,6 +217,19 @@ describe('process', () => {
             assert.equal(old, process.umask());
         });
     }
+
+    describe("Event", () => {
+        it("beforeExit", () => {
+            var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec15.js')]);
+            assert.deepEqual(bs.readLines(), [
+                "beforeExit 101",
+                "other beforeExit 101",
+                "new work 101",
+                "beforeExit 101",
+                "other beforeExit 101"
+            ]);
+        });
+    });
 });
 
 repl && test.run(console.DEBUG);
