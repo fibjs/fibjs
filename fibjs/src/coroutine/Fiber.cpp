@@ -161,8 +161,13 @@ result_t JSFiber::get_stack(exlib::string& retVal)
     else {
         exlib::string str("    at ");
         str += m_native_name;
-        str += " (native code)\n";
-        str += traceInfo(holder()->m_isolate, 300, m_c_entry_fp_, m_handler_);
+        str += " (native code)";
+
+        exlib::string str1 = traceInfo(holder()->m_isolate, 300, m_c_entry_fp_, m_handler_);
+        if (!str1.empty()) {
+            str += '\n';
+            str += str1;
+        }
 
         retVal = str;
     }

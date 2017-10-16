@@ -61,46 +61,48 @@ exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void
         frame->Summarize(&frames);
 
         const v8::internal::FrameSummary::JavaScriptFrameSummary& summ = frames[0].AsJavaScript();
-        v8::String::Utf8Value funcname(v8::Utils::ToLocal(summ.FunctionName()));
-
-        strBuffer.append(bFirst ? "    at " : "\n    at ");
-        bFirst = false;
-        if (**funcname) {
-            strBuffer.append(*funcname);
-            strBuffer.append(" (", 2);
-        }
-
         v8::internal::Handle<v8::internal::Script> script = v8::internal::Handle<v8::internal::Script>::cast(summ.script());
+        if (script->type() == v8::internal::Script::TYPE_NORMAL) {
+            strBuffer.append(bFirst ? "    at " : "\n    at ");
+            bFirst = false;
 
-        int32_t line_number = 0;
-        int32_t column_number = 0;
-        v8::internal::Script::PositionInfo info;
-        bool valid_pos = v8::internal::Script::GetPositionInfo(script, summ.SourcePosition(),
-            &info, v8::internal::Script::WITH_OFFSET);
+            v8::String::Utf8Value funcname(v8::Utils::ToLocal(summ.FunctionName()));
+            if (**funcname) {
+                strBuffer.append(*funcname);
+                strBuffer.append(" (", 2);
+            }
 
-        if (valid_pos) {
-            line_number = info.line + 1;
-            column_number = info.column + 1;
-        }
+            int32_t line_number = 0;
+            int32_t column_number = 0;
+            v8::internal::Script::PositionInfo info;
+            bool valid_pos = v8::internal::Script::GetPositionInfo(script, summ.SourcePosition(),
+                &info, v8::internal::Script::WITH_OFFSET);
 
-        v8::internal::Handle<v8::internal::Object> name(script->name(), v8_isolate);
-        v8::String::Utf8Value filename(v8::Utils::ToLocal(name));
-        char numStr[32];
+            if (valid_pos) {
+                line_number = info.line + 1;
+                column_number = info.column + 1;
+            }
 
-        if (*filename) {
-            strBuffer.append(*filename);
+            v8::internal::Handle<v8::internal::Object> name(script->name(), v8_isolate);
+            v8::String::Utf8Value filename(v8::Utils::ToLocal(name));
+
+            char numStr[32];
+
+            if (*filename) {
+                strBuffer.append(*filename);
+                strBuffer.append(1, ':');
+            } else
+                strBuffer.append("[eval]:", 7);
+
+            sprintf(numStr, "%d", line_number);
+            strBuffer.append(numStr);
             strBuffer.append(1, ':');
-        } else
-            strBuffer.append("[eval]:", 7);
+            sprintf(numStr, "%d", column_number);
+            strBuffer.append(numStr);
 
-        sprintf(numStr, "%d", line_number);
-        strBuffer.append(numStr);
-        strBuffer.append(1, ':');
-        sprintf(numStr, "%d", column_number);
-        strBuffer.append(numStr);
-
-        if (**funcname)
-            strBuffer.append(1, ')');
+            if (**funcname)
+                strBuffer.append(1, ')');
+        }
     }
     return strBuffer;
 }
