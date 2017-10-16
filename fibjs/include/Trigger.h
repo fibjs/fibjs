@@ -460,6 +460,7 @@ public:
 
         if (evs.size() > 0) {
             int32_t i;
+            METHOD_NAME("EventEmitter.emit");
             for (i = 0; i < (int32_t)evs.size(); i++)
                 evs[i]->join();
 
