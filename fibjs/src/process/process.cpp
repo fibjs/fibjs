@@ -12,6 +12,7 @@
 #include "ifs/global.h"
 #include "ifs/util.h"
 #include "Fiber.h"
+#include "Trigger.h"
 #include "File.h"
 #include "BufferedStream.h"
 #include "SubProcess.h"
@@ -252,10 +253,19 @@ result_t process_base::get_stderr(obj_ptr<File_base>& retVal)
 
 result_t process_base::exit(int32_t code)
 {
+    Isolate* isolate = Isolate::current();
+
     if (code != 0)
-        set_exitCode(code);
+        isolate->m_exitCode = code;
     else
-        get_exitCode(code);
+        code = isolate->m_exitCode;
+
+    JSTrigger t(isolate->m_isolate, class_info().getModule(isolate));
+    v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, code);
+    bool r;
+
+    isolate->m_pendding.inc();
+    t._emit("exit", &v, 1, r);
 
     flushLog();
 

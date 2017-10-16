@@ -228,6 +228,17 @@ describe('process', () => {
                 "beforeExit 101",
                 "other beforeExit 101"
             ]);
+
+            var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec16.js')]);
+            assert.deepEqual(bs.readLines(), []);
+        });
+
+        it("exit", () => {
+            var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec17.js')]);
+            assert.deepEqual(bs.readLines(), [
+                "exit 101",
+                "other exit 101"
+            ]);
         });
     });
 });
