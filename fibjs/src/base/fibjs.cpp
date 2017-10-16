@@ -29,6 +29,7 @@ void init_logger();
 void init_aio();
 void init_fs();
 void init_fiber();
+void init_signal();
 void options(int32_t& pos, char* argv[]);
 
 exlib::string s_root;
@@ -57,6 +58,7 @@ void init()
     init_aio();
     init_fs();
     init_fiber();
+    init_signal();
 
     srand((unsigned int)time(0));
 

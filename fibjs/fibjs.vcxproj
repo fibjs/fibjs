@@ -499,6 +499,7 @@
     <ClCompile Include="src\process\SubProcess_posix.cpp" />
     <ClCompile Include="src\process\SubProcess_win.cpp" />
     <ClCompile Include="src\process\process.cpp" />
+    <ClCompile Include="src\process\process_signal.cpp" />
     <ClCompile Include="src\profiler\CpuProfiler.cpp" />
     <ClCompile Include="src\profiler\HeapDiff.cpp" />
     <ClCompile Include="src\profiler\HeapGraphEdge.cpp" />
