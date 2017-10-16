@@ -37,6 +37,8 @@ public:
     static result_t get_stdin(obj_ptr<File_base>& retVal);
     static result_t get_stdout(obj_ptr<File_base>& retVal);
     static result_t get_stderr(obj_ptr<File_base>& retVal);
+    static result_t get_exitCode(int32_t& retVal);
+    static result_t set_exitCode(int32_t newVal);
     static result_t umask(int32_t mask, int32_t& retVal);
     static result_t umask(exlib::string mask, int32_t& retVal);
     static result_t umask(int32_t& retVal);
@@ -77,6 +79,8 @@ public:
     static void s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_stderr(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_exitCode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_exitCode(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_umask(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hrtime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -122,7 +126,8 @@ inline ClassInfo& process_base::class_info()
         { "platform", s_get_platform, block_set, true },
         { "stdin", s_get_stdin, block_set, true },
         { "stdout", s_get_stdout, block_set, true },
-        { "stderr", s_get_stderr, block_set, true }
+        { "stderr", s_get_stderr, block_set, true },
+        { "exitCode", s_get_exitCode, s_set_exitCode, true }
     };
 
     static ClassData s_cd = {
@@ -265,6 +270,29 @@ inline void process_base::s_get_stderr(v8::Local<v8::String> property, const v8:
     hr = get_stderr(vr);
 
     METHOD_RETURN();
+}
+
+inline void process_base::s_get_exitCode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("process.exitCode");
+    PROPERTY_ENTER();
+
+    hr = get_exitCode(vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_set_exitCode(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("process.exitCode");
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
+
+    hr = set_exitCode(v0);
+
+    PROPERTY_SET_LEAVE();
 }
 
 inline void process_base::s_umask(const v8::FunctionCallbackInfo<v8::Value>& args)

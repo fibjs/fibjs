@@ -124,6 +124,8 @@ public:
     int32_t m_loglevel;
 
     int32_t m_defaultMaxListeners;
+
+    int32_t m_exitCode;
 };
 
 } /* namespace fibjs */

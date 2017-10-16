@@ -114,6 +114,18 @@ result_t process_base::get_versions(v8::Local<v8::Object>& retVal)
     return util_base::buildInfo(retVal);
 }
 
+result_t process_base::get_exitCode(int32_t& retVal)
+{
+    retVal = Isolate::current()->m_exitCode;
+    return 0;
+}
+
+result_t process_base::set_exitCode(int32_t newVal)
+{
+    Isolate::current()->m_exitCode = newVal;
+    return 0;
+}
+
 result_t process_base::umask(int32_t mask, int32_t& retVal)
 {
     retVal = _umask(mask);
@@ -240,6 +252,11 @@ result_t process_base::get_stderr(obj_ptr<File_base>& retVal)
 
 result_t process_base::exit(int32_t code)
 {
+    if (code != 0)
+        set_exitCode(code);
+    else
+        get_exitCode(code);
+
     flushLog();
 
 #ifdef _WIN32
