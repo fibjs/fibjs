@@ -569,6 +569,9 @@ result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
 
 result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     if (!CopyFileW(UTF8_W(from), UTF8_W(to), TRUE))
         return CHECK_ERROR(LastError());
 

@@ -298,6 +298,9 @@ result_t fs_base::rename(exlib::string from, exlib::string to,
 
 result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     int input, output;
     if ((input = ::open(from.c_str(), O_RDONLY)) == -1)
         return CHECK_ERROR(LastError());
