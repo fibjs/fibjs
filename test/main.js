@@ -66,4 +66,4 @@ run("./profiler_test.js");
 
 run("./v8_test.js");
 
-process.exit(-test.run());
+repl ? process.exit(-test.run()) : test.run(console.DEBUG);
