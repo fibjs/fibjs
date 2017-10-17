@@ -369,6 +369,23 @@ describe('util', () => {
         assert.deepEqual(o, o1);
         o["a"] = 150;
         assert.notDeepEqual(o, o1);
+
+        var moe = {
+            name: 'moe',
+            lucky: [13, 27, 34]
+        };
+        var clone = util.clone(moe);
+        assert.strictEqual(clone.name, 'moe', 'the clone as the attributes of the original');
+
+        clone.name = 'curly';
+        assert.ok(clone.name === 'curly' && moe.name === 'moe', 'clones can change shallow attributes without affecting the original');
+
+        clone.lucky.push(101);
+        assert.strictEqual(util.last(moe.lucky), 101, 'changes to deep attributes are shared with the original');
+
+        assert.strictEqual(util.clone(void 0), void 0, 'non objects should not be changed by clone');
+        assert.strictEqual(util.clone(1), 1, 'non objects should not be changed by clone');
+        assert.strictEqual(util.clone(null), null, 'non objects should not be changed by clone');
     });
 
     it('extend', () => {
