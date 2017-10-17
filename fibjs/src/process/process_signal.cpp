@@ -21,9 +21,11 @@
 namespace fibjs {
 
 extern exlib::LockedList<Isolate> s_isolates;
+exlib::atomic s_check_callback;
 
 static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
 {
+    s_check_callback = 0;
     Isolate* isolate = Isolate::current();
     JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
     bool r = false;
@@ -35,6 +37,9 @@ static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
 
 void on_signal(int32_t s)
 {
+    if (s_check_callback.CompareAndSwap(0, 1) != 0)
+        _exit(1);
+
     const char* name = NULL;
 
     switch (s) {
@@ -46,8 +51,8 @@ void on_signal(int32_t s)
         break;
 #ifdef SIGBREAK
     case SIGBREAK:
-    name = "SIGINT";
-    break;
+        name = "SIGINT";
+        break;
 #endif
     default:
         _exit(1);
