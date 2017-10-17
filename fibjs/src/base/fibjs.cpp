@@ -72,6 +72,8 @@ static result_t main_fiber(Isolate* isolate)
 {
     JSFiber::scope s;
 
+    isolate->start_profiler();
+
     if (!isolate->m_fname.empty()) {
         v8::Local<v8::Array> argv;
 

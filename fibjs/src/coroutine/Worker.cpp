@@ -41,6 +41,8 @@ result_t Worker::_main()
 {
     JSFiber::scope s;
 
+    m_isolate->start_profiler();
+
     m_worker->wrap();
     m_event->set();
     return m_isolate->m_topSandbox->run_worker(m_isolate->m_fname, m_worker);

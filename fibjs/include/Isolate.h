@@ -93,6 +93,8 @@ public:
         return m_in_use != 0;
     }
 
+    void start_profiler();
+
 public:
     int32_t m_id;
     exlib::string m_fname;

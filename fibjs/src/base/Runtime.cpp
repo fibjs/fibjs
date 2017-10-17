@@ -13,10 +13,13 @@
 #include "ifs/global.h"
 #include "ifs/process.h"
 #include "ifs/coroutine.h"
+#include "ifs/profiler.h"
 
 namespace fibjs {
 
 static int32_t s_tls_rt;
+extern bool g_prof;
+extern int32_t g_prof_interval;
 
 void init_rt()
 {
@@ -180,6 +183,17 @@ void Isolate::init()
 
     m_topSandbox = new SandBox();
     m_topSandbox->initRoot();
+}
+
+void Isolate::start_profiler()
+{
+    if (g_prof) {
+        char name[32];
+        obj_ptr<Timer_base> tm;
+        sprintf(name, "fibjs-%p.log", this);
+        profiler_base::start(name, -1, g_prof_interval, tm);
+        m_pendding.dec();
+    }
 }
 
 class CallbackData : public obj_base {
