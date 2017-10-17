@@ -47,6 +47,7 @@ describe('ssl', () => {
         ss.forEach((s) => {
             s.close();
         });
+        ssl.ca.clear();
     });
 
     it("root ca", () => {
