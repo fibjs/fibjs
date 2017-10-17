@@ -224,7 +224,7 @@ void Isolate::RequestInterrupt(v8::InterruptCallback callback, void* data)
     CallbackData* cd = new CallbackData(this, callback, data);
     cd->Ref();
 
-    if (m_isolate->IsInUse()) {
+    if (IsInUse()) {
         cd->Ref();
         m_isolate->RequestInterrupt(_InterruptCallback, cd);
 
@@ -240,7 +240,7 @@ void Isolate::RequestInterrupt(v8::InterruptCallback callback, void* data)
 
         exlib::OSThread::sleep(1);
 
-        if (!cd->m_invoked) {
+        if (IsInUse() && !cd->m_invoked) {
             cd->Ref();
             m_isolate->RequestInterrupt(_InterruptCallback, cd);
         }
