@@ -60,9 +60,13 @@ result_t profiler_base::start(exlib::string fname, int32_t time, int32_t interva
 
     v8::Local<v8::Object> _data = f->wrap();
 
-    d.now();
-    d.add(time, date_t::_MICROSECOND);
-    _data->Set(isolate->NewString("_time"), d.value(isolate->m_isolate));
+    if (time > 0) {
+        date_t d;
+        d.now();
+        d.add(time, date_t::_MICROSECOND);
+        _data->Set(isolate->NewString("_time"), d.value(isolate->m_isolate));
+    } else
+        _data->Set(isolate->NewString("_time"), v8::Number::New(isolate->m_isolate, INFINITY));
 
     return timers_base::setHrInterval(isolate->NewFunction("_cpu_profiler", cpu_profiler, _data),
         interval, args, retVal);
