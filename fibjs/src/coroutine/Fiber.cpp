@@ -69,7 +69,10 @@ void JSFiber::fiber_proc(void* p)
             {
                 v8::HandleScope handle_scope(isolate->m_isolate);
                 AsyncEvent* ae = (AsyncEvent*)isolate->m_jobs.getHead();
+
+                isolate->m_in_use = 1;
                 hr = ae->js_invoke();
+                isolate->m_in_use = 0;
             }
 
             if (isolate->m_pendding.dec() == 0)

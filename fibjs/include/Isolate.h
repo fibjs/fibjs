@@ -33,20 +33,26 @@ class JSFiber;
 class LruCache;
 class File_base;
 
-struct V8FrameInfo {
-    void* entry_fp;
-    void* handle;
-};
-
 class Isolate : public exlib::linkitem {
 public:
-    class rt {
+    class rt_base {
     public:
-        rt(Isolate* cur = NULL);
+        rt_base(Isolate* cur = NULL);
+        ~rt_base();
+
+    protected:
+        Isolate* m_isolate;
+    };
+
+    class rt : public rt_base {
+    public:
+        rt(Isolate* cur = NULL)
+            : rt_base(cur)
+            , unlocker(m_isolate->m_isolate)
+        {
+        }
 
     private:
-        v8::Isolate* m_isolate;
-        V8FrameInfo m_fi;
         v8::Unlocker unlocker;
     };
 
@@ -82,6 +88,11 @@ public:
         return m_isolate->GetCurrentContext();
     }
 
+    bool IsInUse()
+    {
+        return m_in_use != 0;
+    }
+
 public:
     int32_t m_id;
     exlib::string m_fname;
@@ -113,7 +124,7 @@ public:
     int32_t m_idleFibers;
 
     exlib::atomic m_pendding;
-    exlib::atomic m_has_timer;
+    exlib::atomic m_in_use;
 
     int64_t m_fid;
 

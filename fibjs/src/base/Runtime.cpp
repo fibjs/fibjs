@@ -56,17 +56,27 @@ exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
 extern int32_t stack_size;
 
+struct V8FrameInfo {
+    void* entry_fp;
+    void* handle;
+};
 V8FrameInfo save_fi(v8::Isolate* isolate);
 
-Isolate::rt::rt(Isolate* cur)
-    : m_isolate((cur ? cur : Isolate::current())->m_isolate)
-    , m_fi(save_fi(m_isolate))
-    , unlocker(m_isolate)
+Isolate::rt_base::rt_base(Isolate* cur)
+    : m_isolate((cur ? cur : Isolate::current()))
 {
     JSFiber* fb = JSFiber::current();
+    V8FrameInfo _fi = save_fi(m_isolate->m_isolate);
 
-    fb->m_c_entry_fp_ = m_fi.entry_fp;
-    fb->m_handler_ = m_fi.handle;
+    fb->m_c_entry_fp_ = _fi.entry_fp;
+    fb->m_handler_ = _fi.handle;
+
+    m_isolate->m_in_use = 0;
+}
+
+Isolate::rt_base::~rt_base()
+{
+    m_isolate->m_in_use = 1;
 }
 
 static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallbackFlags flags)
