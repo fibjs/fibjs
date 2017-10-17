@@ -33,12 +33,14 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
             stacks->Set(cnt++, NewString(isolate, stack));
     }
 
-    exlib::string str;
-    json_base::encode(stacks, str);
-
     v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
-    obj_ptr<Buffer_base> buf = new Buffer(str + '\n');
-    SeekableStream_base::getInstance(_data)->cc_write(buf);
+    if (cnt > 0) {
+        exlib::string str;
+        json_base::encode(stacks, str);
+
+        obj_ptr<Buffer_base> buf = new Buffer(str + '\n');
+        SeekableStream_base::getInstance(_data)->cc_write(buf);
+    }
 
     date_t d;
     d.now();
@@ -51,7 +53,6 @@ result_t profiler_base::start(exlib::string fname, int32_t time, int32_t interva
     Isolate* isolate = Isolate::current();
     obj_ptr<SeekableStream_base> f;
     OptArgs args;
-    date_t d;
     result_t hr;
 
     hr = fs_base::ac_openFile(fname, "a", f);
