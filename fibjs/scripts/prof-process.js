@@ -3,6 +3,7 @@ var io = require('io');
 
 function read_log(f) {
     var bs = new io.BufferedStream(fs.openFile(f));
+    bs.EOL = '\n';
 
     var root = {
         deep: 1,
