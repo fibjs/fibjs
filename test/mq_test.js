@@ -1023,7 +1023,7 @@ describe("mq", () => {
 
             (() => {
                 var data = new Buffer();
-                var svr = new http.Server(8891, new mq.Chain([
+                var svr = new http.Server(8892, new mq.Chain([
                     () => {
                         return hdlr
                     },
@@ -1042,7 +1042,7 @@ describe("mq", () => {
                 svr.asyncRun();
 
                 setTimeout(() => {
-                    c = net.connect('tcp://127.0.0.1:8891');
+                    c = net.connect('tcp://127.0.0.1:8892');
                     svr.stop();
                     closed = true;
                 }, 10);
