@@ -277,7 +277,6 @@
     <ClInclude Include="include\ifs\Timer.h" />
     <ClInclude Include="include\ifs\UrlObject.h" />
     <ClInclude Include="include\ifs\WebSocket.h" />
-    <ClInclude Include="include\ifs\WebSocketHandler.h" />
     <ClInclude Include="include\ifs\WebSocketMessage.h" />
     <ClInclude Include="include\ifs\WebView.h" />
     <ClInclude Include="include\ifs\Worker.h" />

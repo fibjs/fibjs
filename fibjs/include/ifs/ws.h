@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class WebSocketMessage_base;
-class WebSocketHandler_base;
 class WebSocket_base;
 class Stream_base;
 class Handler_base;
@@ -75,7 +74,6 @@ public:
 }
 
 #include "WebSocketMessage.h"
-#include "WebSocketHandler.h"
 #include "WebSocket.h"
 #include "Stream.h"
 #include "Handler.h"
@@ -91,7 +89,6 @@ inline ClassInfo& ws_base::class_info()
 
     static ClassData::ClassObject s_object[] = {
         { "Message", WebSocketMessage_base::class_info },
-        { "Handler", WebSocketHandler_base::class_info },
         { "Socket", WebSocket_base::class_info }
     };
 

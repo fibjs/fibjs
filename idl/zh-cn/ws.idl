@@ -41,9 +41,6 @@ module ws
     /*! @brief 创建一个 websocket 消息对象，参见 WebSocketMessage */
     static WebSocketMessage new Message();
 
-    /*! @brief 创建一个 websocket 包协议转换处理器，参见 WebSocketHandler */
-    static WebSocketHandler new Handler();
-
     /*! @brief WebSocket 对象，参见 WebSocket */
     static WebSocket new Socket();
 

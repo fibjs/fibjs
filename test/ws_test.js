@@ -18,7 +18,7 @@ describe('ws', () => {
         });
     });
 
-    describe('Message', () => {
+    xdescribe('Message', () => {
         function load_msg(data) {
             var ms = new io.MemoryStream();
             ms.write(data);
