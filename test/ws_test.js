@@ -30,75 +30,142 @@ describe('ws', () => {
             return {
                 masked: msg.masked,
                 type: msg.type,
+                compress: msg.compress,
                 data: msg.body.readAll().toString()
             };
         }
 
-        it("readFrom", () => {
-            assert.deepEqual(load_msg([0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]), {
-                "masked": false,
-                "type": ws.TEXT,
-                "data": "Hello"
+        describe("readFrom", () => {
+            it("simple", () => {
+                assert.deepEqual(load_msg([0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]), {
+                    "masked": false,
+                    "type": ws.TEXT,
+                    "compress": false,
+                    "data": "Hello"
+                });
             });
 
-            assert.deepEqual(load_msg([0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58]), {
-                "masked": true,
-                "type": ws.TEXT,
-                "data": "Hello"
+            it("mask", () => {
+                assert.deepEqual(load_msg([0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58]), {
+                    "masked": true,
+                    "type": ws.TEXT,
+                    "compress": false,
+                    "data": "Hello"
+                });
             });
 
-            assert.deepEqual(load_msg([0x89, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]), {
-                "masked": false,
-                "type": ws.PING,
-                "data": "Hello"
+            it("ping", () => {
+                assert.deepEqual(load_msg([0x89, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]), {
+                    "masked": false,
+                    "type": ws.PING,
+                    "compress": false,
+                    "data": "Hello"
+                });
             });
 
-            assert.deepEqual(load_msg([0x8a, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58]), {
-                "masked": true,
-                "type": ws.PONG,
-                "data": "Hello"
+            it("pong", () => {
+                assert.deepEqual(load_msg([0x8a, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58]), {
+                    "masked": true,
+                    "type": ws.PONG,
+                    "compress": false,
+                    "data": "Hello"
+                });
             });
 
-            assert.deepEqual(load_msg([0x01, 0x03, 0x48, 0x65, 0x6c, 0x80, 0x02, 0x6c, 0x6f]), {
-                "masked": false,
-                "type": ws.TEXT,
-                "data": "Hello"
+            it("split", () => {
+                assert.deepEqual(load_msg([0x01, 0x03, 0x48, 0x65, 0x6c, 0x80, 0x02, 0x6c, 0x6f]), {
+                    "masked": false,
+                    "type": ws.TEXT,
+                    "compress": false,
+                    "data": "Hello"
+                });
             });
 
-            var s = "";
-            for (var i = 0; i < 20; i++)
-                s += "0123456789";
-
-            var buf = new Buffer([0x82, 0x7e, 0, 0]);
-            buf.writeUInt16BE(s.length, 2);
-            buf.append(s);
-
-            assert.deepEqual(load_msg(buf), {
-                "masked": false,
-                "type": ws.BINARY,
-                "data": s
+            it("compress", () => {
+                assert.deepEqual(load_msg([0xc1, 0x07, 0xf2, 0x48, 0xcd, 0xc9, 0xc9, 0x07, 0x00]), {
+                    "masked": false,
+                    "type": ws.TEXT,
+                    "compress": true,
+                    "data": "Hello"
+                });
             });
 
-            var s = "";
-            for (var i = 0; i < 20000; i++)
-                s += "0123456789";
-
-            var buf = new Buffer([0x82, 0x7f, 0, 0, 0, 0, 0, 0, 0, 0]);
-            buf.writeInt64BE(s.length, 2);
-            buf.append(s);
-
-            assert.deepEqual(load_msg(buf), {
-                "masked": false,
-                "type": ws.BINARY,
-                "data": s
+            it("split compress", () => {
+                assert.deepEqual(load_msg([0x41, 0x03, 0xf2, 0x48, 0xcd, 0x80, 0x04, 0xc9, 0xc9, 0x07, 0x00]), {
+                    "masked": false,
+                    "type": ws.TEXT,
+                    "compress": true,
+                    "data": "Hello"
+                });
             });
 
-            assert.throws(() => {
-                load_msg([0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c])
+            it("no compress", () => {
+                assert.deepEqual(load_msg([0xc1, 0x0b, 0x00, 0x05, 0x00, 0xfa, 0xff, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x00]), {
+                    "masked": false,
+                    "type": ws.TEXT,
+                    "compress": true,
+                    "data": "Hello"
+                });
             });
 
-            assert.throws(() => {
-                load_msg([0x01, 0x03, 0x48, 0x65, 0x6c]);
+            it("BFINAL compress", () => {
+                assert.deepEqual(load_msg([0xc1, 0x08, 0xf3, 0x48, 0xcd, 0xc9, 0xc9, 0x07, 0x00, 0x00]), {
+                    "masked": false,
+                    "type": ws.TEXT,
+                    "compress": true,
+                    "data": "Hello"
+                });
+            });
+
+            it("2 blocks compress", () => {
+                assert.deepEqual(load_msg([0xc1, 0x0d, 0xf2, 0x48, 0x05, 0x00, 0x00, 0x00, 0xff, 0xff, 0xca, 0xc9, 0xc9, 0x07, 0x00]), {
+                    "masked": false,
+                    "type": ws.TEXT,
+                    "compress": true,
+                    "data": "Hello"
+                });
+            });
+
+            it("binary", () => {
+                var s = "";
+                for (var i = 0; i < 20; i++)
+                    s += "0123456789";
+
+                var buf = new Buffer([0x82, 0x7e, 0, 0]);
+                buf.writeUInt16BE(s.length, 2);
+                buf.append(s);
+
+                assert.deepEqual(load_msg(buf), {
+                    "masked": false,
+                    "type": ws.BINARY,
+                    "compress": false,
+                    "data": s
+                });
+
+                var s = "";
+                for (var i = 0; i < 20000; i++)
+                    s += "0123456789";
+
+                var buf = new Buffer([0x82, 0x7f, 0, 0, 0, 0, 0, 0, 0, 0]);
+                buf.writeInt64BE(s.length, 2);
+                buf.append(s);
+
+                assert.deepEqual(load_msg(buf), {
+                    "masked": false,
+                    "type": ws.BINARY,
+                    "compress": false,
+                    "data": s
+                });
+            });
+
+            it("throw", () => {
+                assert.throws(() => {
+                    load_msg([0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c])
+                });
+
+                assert.throws(() => {
+                    load_msg([0x01, 0x03, 0x48, 0x65, 0x6c]);
+                });
             });
         });
 

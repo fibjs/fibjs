@@ -26,7 +26,7 @@ public:
         , m_end(false)
     {
         m_data = new Buffer(data);
-        m_msg = new WebSocketMessage(type, m_this->m_masked, 0);
+        m_msg = new WebSocketMessage(type, m_this->m_masked, false, 0);
 
         set(fill);
     }
@@ -37,7 +37,7 @@ public:
         , m_end(false)
     {
         m_data = new Buffer(data);
-        m_msg = new WebSocketMessage(type, m_this->m_masked, 0);
+        m_msg = new WebSocketMessage(type, m_this->m_masked, false, 0);
 
         set(fill);
     }
@@ -47,7 +47,7 @@ public:
         , m_this(pThis)
         , m_end(end)
     {
-        m_msg = new WebSocketMessage(type, m_this->m_masked, 0);
+        m_msg = new WebSocketMessage(type, m_this->m_masked, false, 0);
         if (body)
             m_msg->set_body(body);
 
@@ -264,7 +264,7 @@ void WebSocket::startRecv()
         {
             asyncRead* pThis = (asyncRead*)pState;
 
-            pThis->m_msg = new WebSocketMessage(ws_base::_TEXT, false, pThis->m_this->m_maxSize);
+            pThis->m_msg = new WebSocketMessage(ws_base::_TEXT, false, false, pThis->m_this->m_maxSize);
 
             pThis->set(event);
             return pThis->m_msg->readFrom(pThis->m_this->m_stream, pThis);

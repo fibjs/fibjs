@@ -25,9 +25,11 @@ class WebSocketMessage_base : public Message_base {
 
 public:
     // WebSocketMessage_base
-    static result_t _new(int32_t type, bool masked, int32_t maxSize, obj_ptr<WebSocketMessage_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(int32_t type, bool masked, bool compress, int32_t maxSize, obj_ptr<WebSocketMessage_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_masked(bool& retVal) = 0;
     virtual result_t set_masked(bool newVal) = 0;
+    virtual result_t get_compress(bool& retVal) = 0;
+    virtual result_t set_compress(bool newVal) = 0;
     virtual result_t get_maxSize(int32_t& retVal) = 0;
     virtual result_t set_maxSize(int32_t newVal) = 0;
 
@@ -39,6 +41,8 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_masked(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_masked(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_compress(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_compress(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_maxSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
@@ -51,6 +55,7 @@ inline ClassInfo& WebSocketMessage_base::class_info()
 {
     static ClassData::ClassProperty s_property[] = {
         { "masked", s_get_masked, s_set_masked, false },
+        { "compress", s_get_compress, s_set_compress, false },
         { "maxSize", s_get_maxSize, s_set_maxSize, false }
     };
 
@@ -78,13 +83,14 @@ void WebSocketMessage_base::__new(const T& args)
     METHOD_NAME("new WebSocketMessage()");
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(3, 0);
+    METHOD_OVER(4, 0);
 
     OPT_ARG(int32_t, 0, ws_base::_BINARY);
     OPT_ARG(bool, 1, true);
-    OPT_ARG(int32_t, 2, 67108864);
+    OPT_ARG(bool, 2, false);
+    OPT_ARG(int32_t, 3, 67108864);
 
-    hr = _new(v0, v1, v2, vr, args.This());
+    hr = _new(v0, v1, v2, v3, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -110,6 +116,31 @@ inline void WebSocketMessage_base::s_set_masked(v8::Local<v8::String> property, 
     PROPERTY_VAL(bool);
 
     hr = pInst->set_masked(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void WebSocketMessage_base::s_get_compress(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("WebSocketMessage.compress");
+    METHOD_INSTANCE(WebSocketMessage_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_compress(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebSocketMessage_base::s_set_compress(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("WebSocketMessage.compress");
+    METHOD_INSTANCE(WebSocketMessage_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(bool);
+
+    hr = pInst->set_compress(v0);
 
     PROPERTY_SET_LEAVE();
 }

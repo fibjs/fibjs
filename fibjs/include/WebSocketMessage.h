@@ -15,8 +15,9 @@ namespace fibjs {
 
 class WebSocketMessage : public WebSocketMessage_base {
 public:
-    WebSocketMessage(int32_t type, bool masked, int32_t maxSize, bool bRep = false)
+    WebSocketMessage(int32_t type, bool masked, bool compress, int32_t maxSize, bool bRep = false)
         : m_masked(masked)
+        , m_compress(compress)
         , m_maxSize(maxSize)
         , m_error(0)
         , m_bRep(bRep)
@@ -56,6 +57,8 @@ public:
     // WebSocketMessage_base
     virtual result_t get_masked(bool& retVal);
     virtual result_t set_masked(bool newVal);
+    virtual result_t get_compress(bool& retVal);
+    virtual result_t set_compress(bool newVal);
     virtual result_t get_maxSize(int32_t& retVal);
     virtual result_t set_maxSize(int32_t newVal);
 
@@ -65,6 +68,7 @@ public:
 public:
     obj_ptr<Stream_base> m_stm;
     bool m_masked;
+    bool m_compress;
     int32_t m_maxSize;
     int32_t m_error;
 

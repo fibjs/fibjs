@@ -7,17 +7,18 @@
 
 #include "object.h"
 #include "ifs/io.h"
+#include "ifs/zlib.h"
 #include "WebSocketMessage.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
 
 namespace fibjs {
 
-result_t WebSocketMessage_base::_new(int32_t type, bool masked, int32_t maxSize,
+result_t WebSocketMessage_base::_new(int32_t type, bool masked, bool compress, int32_t maxSize,
     obj_ptr<WebSocketMessage_base>& retVal,
     v8::Local<v8::Object> This)
 {
-    retVal = new WebSocketMessage(type, masked, maxSize);
+    retVal = new WebSocketMessage(type, masked, compress, maxSize);
     return 0;
 }
 
@@ -316,6 +317,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
             , m_mask(0)
         {
             m_pThis->get_body(m_body);
+            m_stm1 = m_body;
             set(head);
         }
 
@@ -344,7 +346,10 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
             pThis->m_buffer.Release();
 
             ch = strBuffer[0];
-            if (ch & 0x70) {
+            if (ch & 0x40) {
+                pThis->m_stm1 = new MemoryStream();
+                pThis->m_pThis->m_compress = true;
+            } else if (ch & 0x70) {
                 pThis->m_pThis->m_error = 1007;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: non-zero RSV values."));
             }
@@ -383,7 +388,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                 return pThis->m_stm->read(sz, pThis->m_buffer, pThis);
             }
 
-            pThis->set(body);
+            pThis->set(copy);
             return 0;
         }
 
@@ -413,11 +418,11 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
             if (pThis->m_masked)
                 memcpy(&pThis->m_mask, &strBuffer[pos], 4);
 
-            pThis->set(body);
+            pThis->set(copy);
             return 0;
         }
 
-        static int32_t body(AsyncState* pState, int32_t n)
+        static int32_t copy(AsyncState* pState, int32_t n)
         {
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
@@ -426,11 +431,11 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: Message Too Big."));
             }
 
-            pThis->set(body_end);
-            return copy(pThis->m_stm, pThis->m_body, pThis->m_size, pThis->m_mask, pThis);
+            pThis->set(copy_end);
+            return WebSocketMessage::copy(pThis->m_stm, pThis->m_stm1, pThis->m_size, pThis->m_mask, pThis);
         }
 
-        static int32_t body_end(AsyncState* pState, int32_t n)
+        static int32_t copy_end(AsyncState* pState, int32_t n)
         {
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
@@ -442,6 +447,26 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                 return 0;
             }
 
+            if (pThis->m_pThis->m_compress)
+                pThis->set(inflate);
+            else
+                pThis->set(body_end);
+            return 0;
+        }
+
+        static int32_t inflate(AsyncState* pState, int32_t n)
+        {
+            asyncReadFrom* pThis = (asyncReadFrom*)pState;
+
+            pThis->set(body_end);
+            pThis->m_stm1->rewind();
+            return zlib_base::inflateRawTo(pThis->m_stm1, pThis->m_body, pThis);
+        }
+
+        static int32_t body_end(AsyncState* pState, int32_t n)
+        {
+            asyncReadFrom* pThis = (asyncReadFrom*)pState;
+
             pThis->m_body->rewind();
             return pThis->done();
         }
@@ -449,6 +474,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
     public:
         WebSocketMessage* m_pThis;
         obj_ptr<Stream_base> m_stm;
+        obj_ptr<SeekableStream_base> m_stm1;
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<Buffer_base> m_buffer;
         bool m_fin;
@@ -517,6 +543,18 @@ result_t WebSocketMessage::get_masked(bool& retVal)
 result_t WebSocketMessage::set_masked(bool newVal)
 {
     m_masked = newVal;
+    return 0;
+}
+
+result_t WebSocketMessage::get_compress(bool& retVal)
+{
+    retVal = m_compress;
+    return 0;
+}
+
+result_t WebSocketMessage::set_compress(bool newVal)
+{
+    m_compress = newVal;
     return 0;
 }
 
