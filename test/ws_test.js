@@ -476,6 +476,7 @@ describe('ws', () => {
             var httpd = new http.Server(8814 + base_port, new mq.Routing({
                 "^/ws$": ws.upgrade((s) => {
                     s.onmessage = function (msg) {
+                        assert.isTrue(msg.compress);
                         if (msg.data === "Going Away")
                             msg.stream.close();
                         else if (msg.data === "close")
@@ -528,6 +529,7 @@ describe('ws', () => {
             };
 
             s.onmessage = (m) => {
+                assert.isTrue(m.compress);
                 msg = m;
                 t = true;
             };

@@ -135,6 +135,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
             pThis->m_headers->put("Upgrade", "websocket");
             pThis->m_headers->put("Connection", "Upgrade");
             pThis->m_headers->put("Sec-WebSocket-Version", "13");
+            pThis->m_headers->put("Sec-WebSocket-Extensions", "permessage-deflate");
 
             if (!pThis->m_this->m_origin.empty())
                 pThis->m_headers->put("Origin", pThis->m_this->m_origin);
@@ -214,6 +215,13 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
                 pThis->m_this->endConnect(1002, "invalid Sec-WebSocket-Accept header.");
                 return CHECK_ERROR(Runtime::setError("websocket: invalid Sec-WebSocket-Accept header."));
             }
+
+            hr = pThis->m_httprep->firstHeader("Sec-WebSocket-Extensions", v);
+            if (hr < 0)
+                return hr;
+
+            if (hr != CALL_RETURN_NULL && !qstricmp(v.string().c_str(), "permessage-deflate", 18))
+                pThis->m_this->m_compress = true;
 
             pThis->m_httprep->get_stream(pThis->m_this->m_stream);
 
