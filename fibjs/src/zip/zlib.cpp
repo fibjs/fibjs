@@ -255,6 +255,7 @@ public:
 
     virtual void end()
     {
+        delete this;
     }
 
 protected:
@@ -293,6 +294,7 @@ public:
     virtual void end()
     {
         deflateEnd(&strm);
+        zlibWorker::end();
     }
 
 private:
@@ -323,6 +325,7 @@ public:
     virtual void end()
     {
         inflateEnd(&strm);
+        zlibWorker::end();
     }
 };
 
@@ -364,7 +367,7 @@ result_t zlib_base::deflate(Buffer_base* data, int32_t level,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return def(level).process(data, retVal);
+    return (new def(level))->process(data, retVal);
 }
 
 result_t zlib_base::deflateTo(Buffer_base* data, Stream_base* stm,
@@ -373,7 +376,7 @@ result_t zlib_base::deflateTo(Buffer_base* data, Stream_base* stm,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return def(level).process(data, stm, ac);
+    return (new def(level))->process(data, stm, ac);
 }
 
 result_t zlib_base::deflateTo(Stream_base* src, Stream_base* stm, int32_t level,
@@ -382,7 +385,7 @@ result_t zlib_base::deflateTo(Stream_base* src, Stream_base* stm, int32_t level,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return def(level).process(src, stm, ac);
+    return (new def(level))->process(src, stm, ac);
 }
 
 result_t zlib_base::inflate(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
@@ -391,7 +394,7 @@ result_t zlib_base::inflate(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return inf().process(data, retVal);
+    return (new inf())->process(data, retVal);
 }
 
 result_t zlib_base::inflateTo(Buffer_base* data, Stream_base* stm,
@@ -400,7 +403,7 @@ result_t zlib_base::inflateTo(Buffer_base* data, Stream_base* stm,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return inf().process(data, stm, ac);
+    return (new inf())->process(data, stm, ac);
 }
 
 result_t zlib_base::inflateTo(Stream_base* src, Stream_base* stm,
@@ -409,7 +412,7 @@ result_t zlib_base::inflateTo(Stream_base* src, Stream_base* stm,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return inf().process(src, stm, ac);
+    return (new inf())->process(src, stm, ac);
 }
 
 result_t zlib_base::gzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
@@ -418,7 +421,7 @@ result_t zlib_base::gzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return gz().process(data, retVal);
+    return (new gz())->process(data, retVal);
 }
 
 result_t zlib_base::gzipTo(Buffer_base* data, Stream_base* stm,
@@ -427,7 +430,7 @@ result_t zlib_base::gzipTo(Buffer_base* data, Stream_base* stm,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return gz().process(data, stm, ac);
+    return (new gz())->process(data, stm, ac);
 }
 
 result_t zlib_base::gzipTo(Stream_base* src, Stream_base* stm,
@@ -436,7 +439,7 @@ result_t zlib_base::gzipTo(Stream_base* src, Stream_base* stm,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return gz().process(src, stm, ac);
+    return (new gz())->process(src, stm, ac);
 }
 
 result_t zlib_base::gunzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
@@ -445,7 +448,7 @@ result_t zlib_base::gunzip(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return gunz().process(data, retVal);
+    return (new gunz())->process(data, retVal);
 }
 
 result_t zlib_base::gunzipTo(Buffer_base* data, Stream_base* stm,
@@ -454,7 +457,7 @@ result_t zlib_base::gunzipTo(Buffer_base* data, Stream_base* stm,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return gunz().process(data, stm, ac);
+    return (new gunz())->process(data, stm, ac);
 }
 
 result_t zlib_base::gunzipTo(Stream_base* src, Stream_base* stm,
@@ -463,7 +466,7 @@ result_t zlib_base::gunzipTo(Stream_base* src, Stream_base* stm,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return gunz().process(src, stm, ac);
+    return (new gunz())->process(src, stm, ac);
 }
 
 result_t zlib_base::deflateRaw(Buffer_base* data, int32_t level,
@@ -472,7 +475,7 @@ result_t zlib_base::deflateRaw(Buffer_base* data, int32_t level,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return defraw().process(data, retVal);
+    return (new defraw())->process(data, retVal);
 }
 
 result_t zlib_base::deflateRawTo(Buffer_base* data, Stream_base* stm,
@@ -481,7 +484,7 @@ result_t zlib_base::deflateRawTo(Buffer_base* data, Stream_base* stm,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return defraw().process(data, stm, ac);
+    return (new defraw())->process(data, stm, ac);
 }
 
 result_t zlib_base::deflateRawTo(Stream_base* src, Stream_base* stm, int32_t level,
@@ -490,7 +493,7 @@ result_t zlib_base::deflateRawTo(Stream_base* src, Stream_base* stm, int32_t lev
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return defraw().process(src, stm, ac);
+    return (new defraw())->process(src, stm, ac);
 }
 
 result_t zlib_base::inflateRaw(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
@@ -499,7 +502,7 @@ result_t zlib_base::inflateRaw(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return infraw().process(data, retVal);
+    return (new infraw())->process(data, retVal);
 }
 
 result_t zlib_base::inflateRawTo(Buffer_base* data, Stream_base* stm,
@@ -508,7 +511,7 @@ result_t zlib_base::inflateRawTo(Buffer_base* data, Stream_base* stm,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return infraw().process(data, stm, ac);
+    return (new infraw())->process(data, stm, ac);
 }
 
 result_t zlib_base::inflateRawTo(Stream_base* src, Stream_base* stm,
@@ -517,6 +520,6 @@ result_t zlib_base::inflateRawTo(Stream_base* src, Stream_base* stm,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return infraw().process(src, stm, ac);
+    return (new infraw())->process(src, stm, ac);
 }
 }
