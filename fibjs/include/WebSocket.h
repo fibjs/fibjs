@@ -22,16 +22,18 @@ public:
         , m_protocol(protocol)
         , m_origin(origin)
         , m_masked(true)
+        , m_compress(false)
         , m_maxSize(67108864)
         , m_readyState(ws_base::_CONNECTING)
     {
     }
 
-    WebSocket(Stream_base* stream, exlib::string protocol, AsyncEvent* ac)
+    WebSocket(Stream_base* stream, bool compress, exlib::string protocol, AsyncEvent* ac)
         : m_stream(stream)
         , m_ac(ac)
         , m_protocol(protocol)
         , m_masked(false)
+        , m_compress(compress)
         , m_maxSize(67108864)
         , m_readyState(ws_base::_OPEN)
     {
@@ -77,6 +79,7 @@ public:
     exlib::string m_origin;
 
     bool m_masked;
+    bool m_compress;
     int32_t m_maxSize;
 
     exlib::atomic m_readyState;

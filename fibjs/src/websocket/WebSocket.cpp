@@ -26,7 +26,7 @@ public:
         , m_end(false)
     {
         m_data = new Buffer(data);
-        m_msg = new WebSocketMessage(type, m_this->m_masked, false, 0);
+        m_msg = new WebSocketMessage(type, m_this->m_masked, m_this->m_compress, 0);
 
         set(fill);
     }
@@ -37,7 +37,7 @@ public:
         , m_end(false)
     {
         m_data = new Buffer(data);
-        m_msg = new WebSocketMessage(type, m_this->m_masked, false, 0);
+        m_msg = new WebSocketMessage(type, m_this->m_masked, m_this->m_compress, 0);
 
         set(fill);
     }
@@ -47,7 +47,7 @@ public:
         , m_this(pThis)
         , m_end(end)
     {
-        m_msg = new WebSocketMessage(type, m_this->m_masked, false, 0);
+        m_msg = new WebSocketMessage(type, m_this->m_masked, m_this->m_compress, 0);
         if (body)
             m_msg->set_body(body);
 

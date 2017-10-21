@@ -534,7 +534,7 @@ result_t WebSocketMessage::get_response(obj_ptr<Message_base>& retVal)
 
         if (type == ws_base::_PING)
             type = ws_base::_PONG;
-        m_message->m_response = new WebSocketMessage(type, false, m_maxSize, true);
+        m_message->m_response = new WebSocketMessage(type, false, false, m_maxSize, true);
     }
 
     return m_message->get_response(retVal);

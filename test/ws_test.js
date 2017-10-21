@@ -210,27 +210,35 @@ describe('ws', () => {
     });
 
     describe('WebSocketHandler', () => {
-        function connect() {
+        function connect(compress) {
+            var headers = {
+                "Upgrade": "websocket",
+                "Connection": "Upgrade",
+                "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                "Sec-WebSocket-Version": "13"
+            };
+
+            if (compress)
+                headers["Sec-WebSocket-Extensions"] = "permessage-deflate";
+
             var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
-                headers: {
-                    "Upgrade": "websocket",
-                    "Connection": "Upgrade",
-                    "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
-                    "Sec-WebSocket-Version": "13"
-                }
+                headers
             });
 
             assert.equal(rep.firstHeader("Sec-WebSocket-Accept"), "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=");
             assert.equal(rep.firstHeader("Upgrade"), "websocket");
+            if (compress)
+                assert.equal(rep.firstHeader("Sec-WebSocket-Extensions"), "permessage-deflate");
             assert.equal(rep.statusCode, 101);
             assert.equal(rep.upgrade, true);
             return rep.stream;
         }
 
-        function test_msg(s, n, masked) {
+        function test_msg(s, n, compress) {
             var msg = new ws.Message();
             msg.type = ws.TEXT;
-            msg.masked = masked;
+            msg.compress = compress;
+            msg.masked = true;
 
             var buf = new Buffer(n);
             for (var i = 0; i < n; i++) {
@@ -243,6 +251,9 @@ describe('ws', () => {
 
             var msg = new ws.Message();
             msg.readFrom(s);
+
+            if (compress)
+                assert.isTrue(msg.compress);
 
             assert.equal(msg.body.readAll().toString(), buf.toString());
         }
@@ -265,62 +276,107 @@ describe('ws', () => {
         });
 
         describe("handshake", () => {
-            it("echo", () => {
-                var s = connect();
-
-                test_msg(s, 10, true);
-                test_msg(s, 100, true);
-                test_msg(s, 125, true);
-                test_msg(s, 126, true);
-                test_msg(s, 65535, true);
-                test_msg(s, 65536, true);
-
-                s.stream.close();
-            });
-
             it("missing Upgrade header.", () => {
                 var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
-                    "Connection": "Upgrade",
-                    "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
-                    "Sec-WebSocket-Version": "13"
+                    headers: {
+                        "Connection": "Upgrade",
+                        "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                        "Sec-WebSocket-Version": "13"
+                    }
                 });
 
                 assert.equal(rep.statusCode, 500);
-                rep.stream.stream.close();
             });
 
             it("invalid connection header.", () => {
                 var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
-                    "Upgrade": "websocket",
-                    "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
-                    "Sec-WebSocket-Version": "13"
+                    headers: {
+                        "Upgrade": "websocket",
+                        "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                        "Sec-WebSocket-Version": "13"
+                    }
                 });
 
                 assert.equal(rep.statusCode, 500);
-                rep.stream.stream.close();
             });
 
             it("missing Sec-WebSocket-Key header.", () => {
                 var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
-                    "Upgrade": "websocket",
-                    "Connection": "Upgrade",
-                    "Sec-WebSocket-Version": "13"
+                    headers: {
+                        "Upgrade": "websocket",
+                        "Connection": "Upgrade",
+                        "Sec-WebSocket-Version": "13"
+                    }
                 });
 
                 assert.equal(rep.statusCode, 500);
-                rep.stream.stream.close();
             });
 
             it("missing Sec-WebSocket-Version header.", () => {
                 var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
-                    "Upgrade": "websocket",
-                    "Connection": "Upgrade",
-                    "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ=="
+                    headers: {
+                        "Upgrade": "websocket",
+                        "Connection": "Upgrade",
+                        "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ=="
+                    }
                 });
 
                 assert.equal(rep.statusCode, 500);
-                rep.stream.stream.close();
             });
+
+            it("support Sec-WebSocket-Extensions header.", () => {
+                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
+                    headers: {
+                        "Upgrade": "websocket",
+                        "Connection": "Upgrade",
+                        "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                        "Sec-WebSocket-Version": "13",
+                        "Sec-WebSocket-Extensions": "permessage-deflate"
+                    }
+                });
+
+                assert.equal(rep.statusCode, 101);
+                assert.equal(rep.firstHeader("Sec-WebSocket-Extensions"), "permessage-deflate");
+
+                var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
+                    headers: {
+                        "Upgrade": "websocket",
+                        "Connection": "Upgrade",
+                        "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+                        "Sec-WebSocket-Version": "13",
+                        "Sec-WebSocket-Extensions": "permessage-deflate; client_max_window_bits"
+                    }
+                });
+
+                assert.equal(rep.statusCode, 101);
+                assert.equal(rep.firstHeader("Sec-WebSocket-Extensions"), "permessage-deflate");
+            });
+        });
+
+        it("echo", () => {
+            var s = connect();
+
+            test_msg(s, 10, false);
+            test_msg(s, 100, false);
+            test_msg(s, 125, false);
+            test_msg(s, 126, false);
+            test_msg(s, 65535, false);
+            test_msg(s, 65536, false);
+
+            s.stream.close();
+        });
+
+        it("echo compress", () => {
+            var s = connect(true);
+
+            test_msg(s, 10, true);
+            test_msg(s, 100, true);
+            test_msg(s, 125, true);
+            test_msg(s, 126, true);
+            test_msg(s, 65535, true);
+            test_msg(s, 65536, true);
+
+            s.stream.close();
         });
 
         it("ping", () => {

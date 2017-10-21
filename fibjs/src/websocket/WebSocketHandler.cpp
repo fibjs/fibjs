@@ -40,6 +40,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_httpreq(req)
+            , m_compress(false)
         {
             obj_ptr<Message_base> rep;
 
@@ -108,6 +109,15 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_httprep->addHeader("Upgrade", "websocket");
             pThis->m_httprep->set_upgrade(true);
 
+            hr = pThis->m_httpreq->firstHeader("Sec-WebSocket-Extensions", v);
+            if (hr < 0)
+                return hr;
+
+            if (hr != CALL_RETURN_NULL && !qstricmp(v.string().c_str(), "permessage-deflate", 18)) {
+                pThis->m_httprep->addHeader("Sec-WebSocket-Extensions", "permessage-deflate");
+                pThis->m_compress = true;
+            }
+
             pThis->set(accept);
             return pThis->m_httprep->sendTo(pThis->m_stm, pThis);
         }
@@ -119,7 +129,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->done(CALL_RETURN_NULL);
 
             obj_ptr<WebSocketHandler> pHandler = pThis->m_pThis;
-            obj_ptr<WebSocket> sock = new WebSocket(pThis->m_stm, "", pThis);
+            obj_ptr<WebSocket> sock = new WebSocket(pThis->m_stm, pThis->m_compress, "", pThis);
 
             Variant v = sock;
             pHandler->_emit("accept", &v, 1);
@@ -134,6 +144,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<HttpRequest_base> m_httpreq;
         obj_ptr<HttpResponse_base> m_httprep;
         obj_ptr<Stream_base> m_stm;
+        bool m_compress;
     };
 
     if (ac->isSync())
