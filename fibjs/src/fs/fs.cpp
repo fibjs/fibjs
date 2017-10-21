@@ -272,7 +272,12 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
     hr = f->cc_readAll(buf);
     f->cc_close();
 
-    if (hr < 0 || hr == CALL_RETURN_NULL)
+    if (hr == CALL_RETURN_NULL) {
+        retVal.clear();
+        return 0;
+    }
+
+    if (hr < 0)
         return hr;
 
     return buf->toString(retVal);
@@ -295,17 +300,27 @@ result_t fs_base::readFile(exlib::string fname, exlib::string encoding,
     hr = f->cc_readAll(buf);
     f->cc_close();
 
-    if (encoding != "") {
-        exlib::string str;
-        hr = iconv_base::decode(encoding, buf, str);
-        if (hr < 0)
-            return hr;
-        retVal = str;
-    } else
-        retVal = buf;
-
-    if (hr < 0 || hr == CALL_RETURN_NULL)
+    if (hr < 0)
         return hr;
+
+    if (hr == CALL_RETURN_NULL) {
+        if (encoding != "") {
+            exlib::string str;
+            retVal = str;
+        } else {
+            buf = new Buffer();
+            retVal = buf;
+        }
+    } else {
+        if (encoding != "") {
+            exlib::string str;
+            hr = iconv_base::decode(encoding, buf, str);
+            if (hr < 0)
+                return hr;
+            retVal = str;
+        } else
+            retVal = buf;
+    }
 
     return 0;
 }
