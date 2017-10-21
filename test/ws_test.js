@@ -170,10 +170,11 @@ describe('ws', () => {
         });
 
         it("sendTo", () => {
-            function test_msg(n, masked) {
+            function test_msg(n, masked, compress) {
                 var msg = new ws.Message();
                 msg.type = ws.TEXT;
                 msg.masked = masked;
+                msg.compress = compress;
 
                 var buf = new Buffer(n);
                 for (var i = 0; i < n; i++) {
@@ -192,18 +193,19 @@ describe('ws', () => {
                 assert.equal(msg.body.readAll().toString(), buf.toString());
             }
 
-            test_msg(10);
-            test_msg(10, true);
-            test_msg(100);
-            test_msg(100, true);
-            test_msg(125);
-            test_msg(125, true);
-            test_msg(126);
-            test_msg(126, true);
-            test_msg(65535);
-            test_msg(65535, true);
-            test_msg(65536);
-            test_msg(65536, true);
+            function test_msg_1(n) {
+                test_msg(n, false, false);
+                test_msg(n, true, false);
+                test_msg(n, false, true);
+                test_msg(n, true, true);
+            }
+
+            test_msg_1(10);
+            test_msg_1(100);
+            test_msg_1(125);
+            test_msg_1(126);
+            test_msg_1(65535);
+            test_msg_1(65536);
         });
     });
 
