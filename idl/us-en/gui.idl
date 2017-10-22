@@ -1,0 +1,56 @@
+/*! @brief gui module
+
+usage：
+```JavaScript
+var gui = require('gui');
+```
+ */
+module gui
+{
+    /*! @brief WebView ie simulate version，set to ie7 */
+    const IE7 = 7000;
+
+    /*! @brief WebView ie simulate version，set to ie8 */
+    const IE8 = 8000;
+
+    /*! @brief WebView ie simulate version，set to ie9 */
+    const IE9 = 9000;
+
+    /*! @brief WebView ie simulate version，set to ie10 */
+    const IE10 = 10000;
+
+    /*! @brief WebView ie simulate version，set to ie11 */
+    const IE11 = 11000;
+
+    /*! @brief WebView ie simulate version，set to edge */
+    const EDGE = 11001;
+
+    /* Set the highest simulate version of ie.When the installed ie version is lower than this, use the system version.
+     @param ver ie version
+    */
+    static setVersion(Integer ver);
+
+    /*! @brief use a URL to open a window
+
+     supported params:
+     ```JavaScript
+     {
+         "left": 100, // the left corner if the window: x，default to the system value.
+         "right": 100, // the left corner if the window:  y，default to the system value.
+         "width": 100, // window width，default to the system value.
+         "height": 100, // window height，default to the system value.
+         "border": true, // whether or not has border, default to true.
+         "caption": true, // whether or not has title, default to true.
+         "resizable": true, // whether or not is resizable, default to true.
+         "maximize": false, // whether or not can be maximized, default to false.
+         "visible": true, // whether or not is visible, default to true.
+         "debug": true // whether or not throw the webview error and print log, default to true.
+     }
+     ```
+     when set the width & height, but leave the left & right to default, the window will opened in the center of the screen.
+     @param url request url.Also can use fs:path to access the local file.
+     @param opt the initialize params
+     @return window object
+	*/
+    static WebView open(String url, Object opt = {});
+};
