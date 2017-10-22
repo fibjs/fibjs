@@ -43,15 +43,6 @@ public:
 
 public:
     // exlib::Task_base
-    virtual void suspend()
-    {
-    }
-
-    virtual void suspend(exlib::spinlock& lock)
-    {
-        lock.unlock();
-    }
-
     virtual void resume()
     {
         asyncCall(_callback, this);

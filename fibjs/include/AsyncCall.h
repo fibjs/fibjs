@@ -8,7 +8,7 @@
 
 namespace fibjs {
 
-class AsyncEvent : public exlib::linkitem {
+class AsyncEvent : public exlib::Task_base {
 public:
     AsyncEvent()
         : m_async(false)
@@ -16,6 +16,11 @@ public:
     }
 
     virtual ~AsyncEvent()
+    {
+    }
+
+public:
+    virtual void resume()
     {
     }
 
@@ -331,8 +336,7 @@ private:
 };
 
 class NType;
-class AsyncCallBack : public AsyncEvent,
-                      public exlib::Task_base {
+class AsyncCallBack : public AsyncEvent {
 public:
     AsyncCallBack(v8::Local<v8::Function> cb)
     {
@@ -350,15 +354,6 @@ public:
     }
 
 public:
-    virtual void suspend()
-    {
-    }
-
-    virtual void suspend(exlib::spinlock& lock)
-    {
-        lock.unlock();
-    }
-
     virtual void resume()
     {
         async(m_v);

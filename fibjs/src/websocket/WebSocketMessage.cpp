@@ -322,7 +322,6 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, AsyncEvent* ac)
 
 result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
 {
-
     class asyncReadFrom : public AsyncState {
     public:
         asyncReadFrom(WebSocketMessage* pThis, Stream_base* stm,

@@ -56,15 +56,6 @@ public:
     }
 
 public:
-    virtual void suspend()
-    {
-    }
-
-    virtual void suspend(exlib::spinlock& lock)
-    {
-        lock.unlock();
-    }
-
     virtual void resume()
     {
         PostQueuedCompletionStatus(s_hIocp, -1, -1, (LPOVERLAPPED)this);

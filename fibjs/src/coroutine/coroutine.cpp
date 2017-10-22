@@ -210,15 +210,6 @@ result_t coroutine_base::sleep(int32_t ms, AsyncEvent* ac)
 
     public:
         // exlib::Task_base
-        virtual void suspend()
-        {
-        }
-
-        virtual void suspend(exlib::spinlock& lock)
-        {
-            lock.unlock();
-        }
-
         virtual void resume()
         {
             m_ac->post(0);

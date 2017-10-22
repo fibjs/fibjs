@@ -116,15 +116,6 @@ public:
     }
 
 public:
-    virtual void suspend()
-    {
-    }
-
-    virtual void suspend(exlib::spinlock& lock)
-    {
-        lock.unlock();
-    }
-
     virtual void resume()
     {
         post();
