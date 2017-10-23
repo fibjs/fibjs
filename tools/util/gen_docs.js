@@ -172,7 +172,7 @@ module.exports = function (defs, docsFolder) {
     }
 
     function gen_svg() {
-        function get_node(def, me) {
+        function get_node(def, me, simple) {
             var txts = [];
 
             function member_output(name, test) {
@@ -203,40 +203,44 @@ module.exports = function (defs, docsFolder) {
             txts.push(' [tooltip="' + def.declare.name + '"' + (me ? ', fillcolor="lightgray"' : '') + ', ');
             if (!me)
                 txts.push('URL="' + def.declare.name + '.md", ');
+            else
+                txts.push('id="me", ');
             txts.push('label="{');
             txts.push(def.declare.name);
 
-            member_output('构造函数', function (m, n) {
-                return m.memType == 'method' && m.name == n;
-            });
+            if (!simple) {
+                member_output('构造函数', function (m, n) {
+                    return m.memType == 'method' && m.name == n;
+                });
 
-            member_output('下标操作', function (m) {
-                return m.memType == 'operator';
-            });
+                member_output('下标操作', function (m) {
+                    return m.memType == 'operator';
+                });
 
-            member_output('对象', function (m) {
-                return m.memType == 'object';
-            });
+                member_output('对象', function (m) {
+                    return m.memType == 'object';
+                });
 
-            member_output('静态函数', function (m, n) {
-                return m.memType == 'method' && m.name !== n && m.static;
-            });
+                member_output('静态函数', function (m, n) {
+                    return m.memType == 'method' && m.name !== n && m.static;
+                });
 
-            member_output('静态属性', function (m) {
-                return m.memType == 'prop' && m.static;
-            });
+                member_output('静态属性', function (m) {
+                    return m.memType == 'prop' && m.static;
+                });
 
-            member_output('常量', function (m) {
-                return m.memType == 'const';
-            });
+                member_output('常量', function (m) {
+                    return m.memType == 'const';
+                });
 
-            member_output('成员属性', function (m) {
-                return m.memType == 'prop' && !m.static;
-            });
+                member_output('成员属性', function (m) {
+                    return m.memType == 'prop' && !m.static;
+                });
 
-            member_output('成员函数', function (m, n) {
-                return m.memType == 'method' && m.name !== n && !m.static;
-            });
+                member_output('成员函数', function (m, n) {
+                    return m.memType == 'method' && m.name !== n && !m.static;
+                });
+            }
 
             txts.push('}"];');
 
@@ -247,7 +251,7 @@ module.exports = function (defs, docsFolder) {
         function get_inherits(def, nodes, arrows) {
             if (def.inherits)
                 def.inherits.forEach(i => {
-                    nodes.push(get_node(defs[i]));
+                    nodes.push(get_node(defs[i], false, true));
                     arrows.push("    " + def.declare.name + " -> " + i + ' [dir=back];');
                     get_inherits(defs[i], nodes, arrows);
                 });
