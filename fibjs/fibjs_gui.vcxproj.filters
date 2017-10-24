@@ -1476,4 +1476,13 @@
       <Filter>Source Files\zip</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="res\fibjs.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\fibjs.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\object_async.inl" />
+  </ItemGroup>
 </Project>

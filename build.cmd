@@ -6,7 +6,7 @@ if defined ProgramFiles(x86) (set HOST_ARCH=amd64) else (set HOST_ARCH=i386)
 set TARGET_ARCH=!HOST_ARCH!
 
 set BUILD_TYPE=release
-set XP=_xp
+set XP=""
 set MT=/m
 set ARG_ERROR=no
 
@@ -34,8 +34,8 @@ for %%a in (%*) do (
         set MT=
     )
 
-    if "%%a"=="noxp" (
-    	set XP=""
+    if "%%a"=="xp" (
+    	set XP="_XP"
         set ARG_ERROR=no
     )
 
@@ -68,17 +68,14 @@ if "!BUILD_TYPE!"=="clean" (
 
 if "!TARGET_ARCH!"=="amd64" (set Platform=x64) else (set Platform=Win32)
 
-set vs_ver=%VisualStudioVersion:.=%
-if "!vs_ver!"=="150" (set vs_ver=141)
-
-msbuild fibjs.sln /t:Build /p:Configuration=!BUILD_TYPE!;Platform=!Platform!;PlatformToolset=v!vs_ver!!XP! !MT!
+msbuild fibjs.sln /t:Build /p:Configuration=!BUILD_TYPE!;Platform=!Platform!;PlatformToolset=v141!XP! !MT!
 
 if "!BUILD_TYPE!"=="release" (
 	cd bin\Windows_!TARGET_ARCH!_!BUILD_TYPE!
     fibjs ../../fibjs/gen_install.js
     cd ..\..
     cd installer
-    msbuild installer.sln /t:Build /p:Configuration=Release;Platform=!Platform!;PlatformToolset=v!vs_ver!!XP! !MT!
+    msbuild installer.sln /t:Build /p:Configuration=Release;Platform=!Platform!;PlatformToolset=v141!XP! !MT!
     cd ..
 )
 
@@ -92,8 +89,8 @@ echo   release, debug:
 echo       Specifies the build type.
 echo   i386, amd64:
 echo       Specifies the architecture for code generation.
-echo   noxp:
-echo       Remove xp support build.Default supported.
+echo   xp:
+echo       Build as xp support.
 echo   clean: 
 echo       Clean the build folder.
 echo   -h, --help:
