@@ -27,6 +27,10 @@ public:
         strm.opaque = Z_NULL;
     }
 
+    virtual ~zlibWorker()
+    {
+    }
+
 public:
     result_t process(Buffer_base* data, obj_ptr<Buffer_base>& retVal)
     {
