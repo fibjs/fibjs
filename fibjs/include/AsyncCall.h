@@ -261,10 +261,9 @@ public:
         apost(0);
     }
 
-    void lock(exlib::Locker& l)
+    result_t lock(exlib::Locker& l)
     {
-        if (l.lock(this))
-            apost(0);
+        return l.lock(this) ? 0 : CALL_E_PENDDING;
     }
 
     void unlock(exlib::Locker& l)

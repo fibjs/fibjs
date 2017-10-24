@@ -204,8 +204,6 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, AsyncEvent* ac)
         {
             m_pThis->get_body(m_body);
 
-            m_ms = new MemoryStream();
-
             if (m_pThis->m_compress) {
                 m_zip = new MemoryStream();
                 set(deflate);
@@ -281,31 +279,20 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, AsyncEvent* ac)
             pThis->m_buffer = new Buffer((const char*)buf, pos);
 
             pThis->set(sendData);
-            return pThis->m_ms->write(pThis->m_buffer, pThis);
+            return pThis->m_stm->write(pThis->m_buffer, pThis);
         }
 
         static int32_t sendData(AsyncState* pState, int32_t n)
         {
             asyncSendTo* pThis = (asyncSendTo*)pState;
 
-            pThis->set(sendToStream);
+            pThis->done();
             pThis->m_zip->rewind();
-            return copy(pThis->m_zip, pThis->m_ms, pThis->m_size, pThis->m_mask, pThis);
-        }
-
-        static int32_t sendToStream(AsyncState* pState, int32_t n)
-        {
-            asyncSendTo* pThis = (asyncSendTo*)pState;
-
-            pThis->m_ms->rewind();
-
-            pThis->set(NULL);
-            return io_base::copyStream(pThis->m_ms, pThis->m_stm, -1, pThis->m_size, pThis);
+            return copy(pThis->m_zip, pThis->m_stm, pThis->m_size, pThis->m_mask, pThis);
         }
 
     public:
         obj_ptr<SeekableStream_base> m_zip;
-        obj_ptr<MemoryStream_base> m_ms;
         WebSocketMessage* m_pThis;
         obj_ptr<Stream_base> m_stm;
         obj_ptr<SeekableStream_base> m_body;
