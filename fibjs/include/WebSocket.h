@@ -73,6 +73,7 @@ public:
 public:
     obj_ptr<Stream_base> m_stream;
     AsyncEvent* m_ac;
+    exlib::Locker m_sendLocker;
 
     exlib::string m_url;
     exlib::string m_protocol;

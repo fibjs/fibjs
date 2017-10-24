@@ -25,10 +25,12 @@ public:
         , m_this(pThis)
         , m_end(false)
     {
-        m_data = new Buffer(data);
+        obj_ptr<Buffer_base> _data = new Buffer(data);
         m_msg = new WebSocketMessage(type, m_this->m_masked, m_this->m_compress, 0);
+        m_msg->cc_write(_data);
 
-        set(fill);
+        set(send);
+        lock(m_this->m_sendLocker);
     }
 
     asyncSend(WebSocket* pThis, Buffer_base* data, int32_t type = ws_base::_BINARY)
@@ -36,10 +38,11 @@ public:
         , m_this(pThis)
         , m_end(false)
     {
-        m_data = new Buffer(data);
         m_msg = new WebSocketMessage(type, m_this->m_masked, m_this->m_compress, 0);
+        m_msg->cc_write(data);
 
-        set(fill);
+        set(send);
+        lock(m_this->m_sendLocker);
     }
 
     asyncSend(WebSocket* pThis, SeekableStream_base* body, int32_t type, bool end = false)
@@ -52,14 +55,12 @@ public:
             m_msg->set_body(body);
 
         set(send);
+        lock(m_this->m_sendLocker);
     }
 
-    static int32_t fill(AsyncState* pState, int32_t n)
+    ~asyncSend()
     {
-        asyncSend* pThis = (asyncSend*)pState;
-
-        pThis->set(send);
-        return pThis->m_msg->write(pThis->m_data, pThis);
+        unlock(m_this->m_sendLocker);
     }
 
     static int32_t send(AsyncState* pState, int32_t n)
@@ -91,7 +92,6 @@ public:
 
 private:
     obj_ptr<WebSocketMessage> m_msg;
-    obj_ptr<Buffer_base> m_data;
     obj_ptr<WebSocket> m_this;
     bool m_end;
 };
@@ -250,7 +250,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
     obj_ptr<WebSocket> sock = new WebSocket(url, protocol, origin);
     sock->wrap(This);
 
-    (new asyncConnect(sock))->post(0);
+    (new asyncConnect(sock))->apost(0);
 
     retVal = sock;
 
@@ -296,7 +296,7 @@ void WebSocket::startRecv()
             case ws_base::_PING: {
                 obj_ptr<SeekableStream_base> body;
                 pThis->m_msg->get_body(body);
-                (new asyncSend(pThis->m_this, body, ws_base::_PONG))->post(0);
+                new asyncSend(pThis->m_this, body, ws_base::_PONG);
                 break;
             }
             case ws_base::_CLOSE: {
@@ -305,7 +305,7 @@ void WebSocket::startRecv()
 
                 if (pThis->m_this->m_readyState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING)
                     == ws_base::_OPEN)
-                    (new asyncSend(pThis->m_this, body, ws_base::_CLOSE, true))->post(0);
+                    new asyncSend(pThis->m_this, body, ws_base::_CLOSE, true);
                 else
                     pThis->m_this->endConnect(body);
 
@@ -433,7 +433,7 @@ result_t WebSocket::close(int32_t code, exlib::string reason)
     buf[0] = (code >> 8) & 255;
     buf[1] = code & 255;
 
-    (new asyncSend(this, buf, ws_base::_CLOSE))->post(0);
+    new asyncSend(this, buf, ws_base::_CLOSE);
     return 0;
 }
 
@@ -442,7 +442,7 @@ result_t WebSocket::send(exlib::string data)
     if (m_readyState != ws_base::_OPEN)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    (new asyncSend(this, data))->post(0);
+    new asyncSend(this, data);
     return 0;
 }
 
@@ -451,7 +451,7 @@ result_t WebSocket::send(Buffer_base* data)
     if (m_readyState != ws_base::_OPEN)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    (new asyncSend(this, data))->post(0);
+    new asyncSend(this, data);
     return 0;
 }
 }
