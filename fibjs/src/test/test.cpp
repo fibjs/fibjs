@@ -9,6 +9,7 @@
 #include "ifs/test.h"
 #include "ifs/assert.h"
 #include "ifs/util.h"
+#include "ifs/process.h"
 #include "QuickArray.h"
 #include "date.h"
 #include "console.h"
@@ -422,7 +423,9 @@ result_t test_base::afterEach(v8::Local<v8::Function> func)
 
 result_t test_base::run(int32_t loglevel, int32_t& retVal)
 {
-    return _case::run(loglevel, retVal);
+    result_t hr = _case::run(loglevel, retVal);
+    process_base::set_exitCode(retVal);
+    return hr;
 }
 
 result_t test_base::setup()
