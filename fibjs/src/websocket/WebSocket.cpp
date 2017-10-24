@@ -309,7 +309,7 @@ void WebSocket::startRecv()
                 else
                     pThis->m_this->endConnect(body);
 
-                break;
+                return pThis->done(0);
             }
             case ws_base::_TEXT:
             case ws_base::_BINARY: {
