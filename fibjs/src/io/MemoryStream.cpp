@@ -38,13 +38,13 @@ result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     if (bytes > 0) {
         if (p == 0 && bytes == (int32_t)sz) {
             strBuf = m_buffer.str();
-            m_buffer.seekg(sz);
+            m_buffer.seekg(sz, std::ios::beg);
         } else {
             strBuf.resize(bytes);
             m_buffer.read(&strBuf[0], bytes);
         }
 
-        m_buffer.seekp(m_buffer.tellg());
+        m_buffer.seekp(m_buffer.tellg(), std::ios::beg);
     }
 
     if (strBuf.length() == 0)
@@ -92,7 +92,7 @@ result_t MemoryStream::write(Buffer_base* data, AsyncEvent* ac)
 
     size(sz1);
     m_buffer.write(strBuf.c_str(), (int32_t)strBuf.length());
-    m_buffer.seekg(m_buffer.tellp());
+    m_buffer.seekg(m_buffer.tellp(), std::ios::beg);
     size(sz2);
 
     if (sz2 > sz1)
@@ -147,8 +147,8 @@ result_t MemoryStream::seek(int64_t offset, int32_t whence)
     else if (offset > sz)
         offset = sz;
 
-    m_buffer.seekg((int64_t)offset);
-    m_buffer.seekp((int64_t)offset);
+    m_buffer.seekg((int64_t)offset, std::ios::beg);
+    m_buffer.seekp((int64_t)offset, std::ios::beg);
 
     return 0;
 }
@@ -161,8 +161,8 @@ result_t MemoryStream::tell(int64_t& retVal)
 
 result_t MemoryStream::rewind()
 {
-    m_buffer.seekg(0);
-    m_buffer.seekp(0);
+    m_buffer.seekg(0, std::ios::beg);
+    m_buffer.seekp(0, std::ios::beg);
     return 0;
 }
 
