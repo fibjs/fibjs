@@ -81,9 +81,16 @@ public:
 
     void start()
     {
-        set(encode);
-        if (m_this->m_lockBuffer.lock(this))
+        set(lock_buffer_for_encode);
+        if (m_this->m_lockEncode.lock(this))
             apost(0);
+    }
+
+    static int32_t lock_buffer_for_encode(AsyncState* pState, int32_t n)
+    {
+        asyncSend* pThis = (asyncSend*)pState;
+        pThis->set(encode);
+        return pThis->lock(pThis->m_this->m_lockBuffer);
     }
 
     static int32_t encode(AsyncState* pState, int32_t n)
@@ -101,12 +108,13 @@ public:
     {
         asyncSend* pThis = (asyncSend*)pState;
         pThis->unlock(pThis->m_this->m_lockBuffer);
+        pThis->unlock(pThis->m_this->m_lockEncode);
 
-        pThis->set(lock_buffer);
+        pThis->set(lock_buffer_for_send);
         return pThis->lock(pThis->m_this->m_lockSend);
     }
 
-    static int32_t lock_buffer(AsyncState* pState, int32_t n)
+    static int32_t lock_buffer_for_send(AsyncState* pState, int32_t n)
     {
         asyncSend* pThis = (asyncSend*)pState;
         pThis->set(send);
@@ -116,7 +124,6 @@ public:
     static int32_t send(AsyncState* pState, int32_t n)
     {
         asyncSend* pThis = (asyncSend*)pState;
-        static int32_t cnt;
 
         pThis->m_buffer = pThis->m_this->m_buffer;
         pThis->m_this->m_buffer.Release();

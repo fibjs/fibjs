@@ -75,6 +75,7 @@ public:
     AsyncEvent* m_ac;
 
     obj_ptr<SeekableStream_base> m_buffer;
+    exlib::Locker m_lockEncode;
     exlib::Locker m_lockBuffer;
     exlib::Locker m_lockSend;
 
