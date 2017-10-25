@@ -53,6 +53,21 @@ public:
 
 #ifndef _WIN32
     result_t cancel(AsyncEvent* ac);
+    result_t close(intptr_t& s, AsyncEvent* ac);
+#else
+    result_t cancel(AsyncEvent* ac)
+    {
+        return 0;
+    }
+
+    result_t close(intptr_t& s, AsyncEvent* ac)
+    {
+        if (s != INVALID_SOCKET)
+            ::closesocket(s);
+        s = INVALID_SOCKET;
+
+        return 0;
+    }
 #endif
 
 public:

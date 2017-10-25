@@ -131,16 +131,7 @@ result_t Socket::close(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (m_aio.m_fd != INVALID_SOCKET)
-        ::closesocket(m_aio.m_fd);
-
-    m_aio.m_fd = INVALID_SOCKET;
-
-#ifndef _WIN32
-    return m_aio.cancel(ac);
-#else
-    return 0;
-#endif
+    return m_aio.close(m_aio.m_fd, ac);
 }
 
 result_t Socket::get_family(int32_t& retVal)
