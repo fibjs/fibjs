@@ -192,19 +192,17 @@ public:
 
     virtual void Run()
     {
+        Runtime rt(NULL);
+
         ev_async_init(&s_asEvent, as_cb);
         ev_async_start(s_loop, &s_asEvent);
-
-        ev_timer tm;
-        tm_cb(s_loop, &tm, 0);
-
-        Runtime rt(NULL);
 
         ev_run(s_loop, 0);
     }
 
 private:
-    static void doAsync()
+    static void as_cb(struct ev_loop* loop, struct ev_async* watcher,
+        int32_t revents)
     {
         exlib::List<asyncEv> jobs;
         asyncEv* p1;
@@ -213,21 +211,6 @@ private:
 
         while ((p1 = jobs.getHead()) != 0)
             p1->start();
-    }
-
-    static void tm_cb(struct ev_loop* loop, struct ev_timer* watcher,
-        int32_t revents)
-    {
-        ev_timer_init(watcher, tm_cb, 10, 0);
-        ev_timer_start(s_loop, watcher);
-
-        doAsync();
-    }
-
-    static void as_cb(struct ev_loop* loop, struct ev_async* watcher,
-        int32_t revents)
-    {
-        doAsync();
     }
 };
 
