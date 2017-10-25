@@ -153,6 +153,11 @@ result_t BufferedStream::write(Buffer_base* data, AsyncEvent* ac)
     return m_stm->write(data, ac);
 }
 
+result_t BufferedStream::flush(AsyncEvent* ac)
+{
+    return 0;
+}
+
 result_t BufferedStream::close(AsyncEvent* ac)
 {
     return m_stm->close(ac);

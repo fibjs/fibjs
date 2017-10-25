@@ -154,9 +154,9 @@ public:
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         AsyncEvent* ac);
     virtual result_t write(Buffer_base* data, AsyncEvent* ac);
+    virtual result_t flush(AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
-    virtual result_t copyTo(Stream_base* stm, int64_t bytes,
-        int64_t& retVal, AsyncEvent* ac);
+    virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac);
 
 public:
     // SslSocket_base
@@ -186,8 +186,8 @@ public:
 
 private:
     obj_ptr<X509Cert> m_ca;
-    std::vector<obj_ptr<X509Cert_base> > m_crts;
-    std::vector<obj_ptr<PKey_base> > m_keys;
+    std::vector<obj_ptr<X509Cert_base>> m_crts;
+    std::vector<obj_ptr<PKey_base>> m_keys;
     obj_ptr<Stream_base> m_s;
     exlib::string m_recv;
     int32_t m_recv_pos;

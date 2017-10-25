@@ -114,6 +114,11 @@ result_t Socket::write(Buffer_base* data, AsyncEvent* ac)
     return m_aio.write(data, ac);
 }
 
+result_t Socket::flush(AsyncEvent* ac)
+{
+    return 0;
+}
+
 result_t Socket::copyTo(Stream_base* stm, int64_t bytes,
     int64_t& retVal, AsyncEvent* ac)
 {

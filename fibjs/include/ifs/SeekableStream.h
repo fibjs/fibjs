@@ -33,7 +33,6 @@ public:
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t truncate(int64_t bytes, AsyncEvent* ac) = 0;
     virtual result_t eof(bool& retVal) = 0;
-    virtual result_t flush(AsyncEvent* ac) = 0;
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
@@ -55,13 +54,11 @@ public:
     static void s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_eof(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE1(SeekableStream_base, readAll, obj_ptr<Buffer_base>);
     ASYNC_MEMBER1(SeekableStream_base, truncate, int64_t);
-    ASYNC_MEMBER0(SeekableStream_base, flush);
     ASYNC_MEMBERVALUE1(SeekableStream_base, stat, obj_ptr<Stat_base>);
 };
 }
@@ -82,8 +79,6 @@ inline ClassInfo& SeekableStream_base::class_info()
         { "truncate", s_truncate, false },
         { "truncateSync", s_truncate, false },
         { "eof", s_eof, false },
-        { "flush", s_flush, false },
-        { "flushSync", s_flush, false },
         { "stat", s_stat, false },
         { "statSync", s_stat, false }
     };
@@ -208,23 +203,6 @@ inline void SeekableStream_base::s_eof(const v8::FunctionCallbackInfo<v8::Value>
     hr = pInst->eof(vr);
 
     METHOD_RETURN();
-}
-
-inline void SeekableStream_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("SeekableStream.flush");
-    METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(0, 0);
-
-    if (!cb.IsEmpty()) {
-        pInst->acb_flush(cb);
-        hr = CALL_RETURN_NULL;
-    } else
-        hr = pInst->ac_flush();
-
-    METHOD_VOID();
 }
 
 inline void SeekableStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& args)

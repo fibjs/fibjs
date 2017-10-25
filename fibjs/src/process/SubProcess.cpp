@@ -41,6 +41,11 @@ result_t SubProcess::write(Buffer_base* data, AsyncEvent* ac)
     return m_stdin->write(data, ac);
 }
 
+result_t SubProcess::flush(AsyncEvent* ac)
+{
+    return 0;
+}
+
 result_t SubProcess::close(AsyncEvent* ac)
 {
     if (m_timer)

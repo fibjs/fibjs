@@ -25,6 +25,7 @@ public:
     // Stream_base
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, AsyncEvent* ac) = 0;
+    virtual result_t flush(AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac) = 0;
 
@@ -42,12 +43,14 @@ public:
 public:
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE2(Stream_base, read, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBER1(Stream_base, write, Buffer_base*);
+    ASYNC_MEMBER0(Stream_base, flush);
     ASYNC_MEMBER0(Stream_base, close);
     ASYNC_MEMBERVALUE3(Stream_base, copyTo, Stream_base*, int64_t, int64_t);
 };
@@ -63,6 +66,8 @@ inline ClassInfo& Stream_base::class_info()
         { "readSync", s_read, false },
         { "write", s_write, false },
         { "writeSync", s_write, false },
+        { "flush", s_flush, false },
+        { "flushSync", s_flush, false },
         { "close", s_close, false },
         { "closeSync", s_close, false },
         { "copyTo", s_copyTo, false },
@@ -115,6 +120,23 @@ inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args
         hr = CALL_RETURN_NULL;
     } else
         hr = pInst->ac_write(v0);
+
+    METHOD_VOID();
+}
+
+inline void Stream_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("Stream.flush");
+    METHOD_INSTANCE(Stream_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_flush(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_flush();
 
     METHOD_VOID();
 }
