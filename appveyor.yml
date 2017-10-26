@@ -1,6 +1,4 @@
-environment:
-  matrix:
-    - image: Visual Studio 2017
+image: Visual Studio 2017
 
 platform:
   - x64
