@@ -11,8 +11,8 @@ install:
   - git submodule update
 
 test_script:
-  - IF /I "%PLATFORM%" == "x64" ECHO "x64 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64 &&   build release amd64 && cd test && ..\bin\Windows_amd64_release\fibjs.exe --prof main.js
-  - IF /I "%PLATFORM%" == "x86" ECHO "x86 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&   build release i386 && cd test && ..\bin\Windows_i386_release\fibjs.exe --prof main.js
+  - IF /I "%PLATFORM%" == "x64" ECHO "x64 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64 &&   build release amd64 && cd test && ..\bin\Windows_amd64_release\fibjs.exe --prof main.js
+  - IF /I "%PLATFORM%" == "x86" ECHO "x86 building..." && CALL "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x86 &&   build release i386 && cd test && ..\bin\Windows_i386_release\fibjs.exe --prof main.js
   - IF /I "%APPVEYOR_REPO_TAG%" == "false" set APPVEYOR_REPO_TAG_NAME=dist
   - mkdir %APPVEYOR_REPO_TAG_NAME%
   - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs.exe .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x64.exe
