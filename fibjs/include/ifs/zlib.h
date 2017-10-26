@@ -16,8 +16,8 @@
 
 namespace fibjs {
 
-class Buffer_base;
 class Stream_base;
+class Buffer_base;
 
 class zlib_base : public object_base {
     DECLARE_CLASS(zlib_base);
@@ -32,6 +32,12 @@ public:
 
 public:
     // zlib_base
+    static result_t createDeflate(Stream_base* to, obj_ptr<Stream_base>& retVal);
+    static result_t createDeflateRaw(Stream_base* to, obj_ptr<Stream_base>& retVal);
+    static result_t createGunzip(Stream_base* to, obj_ptr<Stream_base>& retVal);
+    static result_t createGzip(Stream_base* to, obj_ptr<Stream_base>& retVal);
+    static result_t createInflate(Stream_base* to, obj_ptr<Stream_base>& retVal);
+    static result_t createInflateRaw(Stream_base* to, obj_ptr<Stream_base>& retVal);
     static result_t deflate(Buffer_base* data, int32_t level, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t deflateTo(Buffer_base* data, Stream_base* stm, int32_t level, AsyncEvent* ac);
     static result_t deflateTo(Stream_base* src, Stream_base* stm, int32_t level, AsyncEvent* ac);
@@ -67,6 +73,12 @@ public:
     static void s_get_BEST_SPEED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_BEST_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_DEFAULT_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_createDeflate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_createDeflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_createGunzip(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_createGzip(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_createInflate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_createInflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_deflate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_inflate(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -102,13 +114,19 @@ public:
 };
 }
 
-#include "Buffer.h"
 #include "Stream.h"
+#include "Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& zlib_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "createDeflate", s_createDeflate, true },
+        { "createDeflateRaw", s_createDeflateRaw, true },
+        { "createGunzip", s_createGunzip, true },
+        { "createGzip", s_createGzip, true },
+        { "createInflate", s_createInflate, true },
+        { "createInflateRaw", s_createInflateRaw, true },
         { "deflate", s_deflate, true },
         { "deflateSync", s_deflate, true },
         { "deflateTo", s_deflateTo, true },
@@ -181,6 +199,102 @@ inline void zlib_base::s_get_DEFAULT_COMPRESSION(v8::Local<v8::String> property,
     METHOD_NAME("zlib.DEFAULT_COMPRESSION");
     int32_t vr = _DEFAULT_COMPRESSION;
     PROPERTY_ENTER();
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_createDeflate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_NAME("zlib.createDeflate");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Stream_base>, 0);
+
+    hr = createDeflate(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_createDeflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_NAME("zlib.createDeflateRaw");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Stream_base>, 0);
+
+    hr = createDeflateRaw(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_createGunzip(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_NAME("zlib.createGunzip");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Stream_base>, 0);
+
+    hr = createGunzip(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_createGzip(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_NAME("zlib.createGzip");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Stream_base>, 0);
+
+    hr = createGzip(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_createInflate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_NAME("zlib.createInflate");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Stream_base>, 0);
+
+    hr = createInflate(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_createInflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_NAME("zlib.createInflateRaw");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Stream_base>, 0);
+
+    hr = createInflateRaw(v0, vr);
+
     METHOD_RETURN();
 }
 
