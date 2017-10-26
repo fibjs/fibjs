@@ -17,50 +17,51 @@ for (i = 0; i < M; i++)
 
 describe("zlib", () => {
     it("inflate", () => {
-        assert.equal(zlib.inflate(zlib.deflate(b)).toString(), b.toString());
+        assert.deepEqual(zlib.inflate(zlib.deflate(b)), b);
     });
 
     it("gzip", () => {
-        assert.equal(zlib.gunzip(zlib.gzip(b)).toString(), b.toString());
+        assert.deepEqual(zlib.gunzip(zlib.gzip(b)), b);
     });
 
     it("deflateTo (from Buffer)", () => {
         var stm = new io.MemoryStream();
         zlib.deflateTo(b, stm);
         stm.rewind();
-        assert.equal(zlib.inflate(stm.read()).toString(), b.toString());
+        assert.deepEqual(zlib.inflate(stm.readAll()), b);
     });
 
     it("inflateTo (from Buffer)", () => {
         var stm = new io.MemoryStream();
         zlib.inflateTo(zlib.deflate(b), stm);
         stm.rewind();
-        assert.equal(stm.read().toString(), b.toString());
+        assert.deepEqual(stm.readAll(), b);
     });
 
     it("gzipTo (from Buffer)", () => {
         var stm = new io.MemoryStream();
         zlib.gzipTo(b, stm);
         stm.rewind();
-        assert.equal(zlib.gunzip(stm.read()).toString(), b.toString());
+        assert.deepEqual(zlib.gunzip(stm.readAll()), b);
     });
 
     it("gunzipTo (from Buffer)", () => {
         var stm = new io.MemoryStream();
         zlib.gunzipTo(zlib.gzip(b), stm);
         stm.rewind();
-        assert.equal(stm.read().toString(), b.toString());
+        assert.deepEqual(stm.readAll(), b);
     });
 
     it("deflateTo (from Stream)", () => {
         var stm = new io.MemoryStream();
         stm.write(b);
+        stm.rewind();
 
-        stm.rewind()
         var stm1 = new io.MemoryStream();
         zlib.deflateTo(stm, stm1);
+
         stm1.rewind();
-        assert.equal(zlib.inflate(stm1.read()).toString(), b.toString());
+        assert.deepEqual(zlib.inflate(stm1.readAll()), b);
     });
 
     it("inflateTo (from Stream)", () => {
@@ -70,7 +71,7 @@ describe("zlib", () => {
         var stm1 = new io.MemoryStream();
         zlib.inflateTo(stm, stm1);
         stm1.rewind();
-        assert.equal(stm1.read().toString(), b.toString());
+        assert.deepEqual(stm1.readAll(), b);
     });
 
     it("gzipTo (from Stream)", () => {
@@ -81,7 +82,7 @@ describe("zlib", () => {
         var stm1 = new io.MemoryStream();
         zlib.gzipTo(stm, stm1);
         stm1.rewind();
-        assert.equal(zlib.gunzip(stm1.read()).toString(), b.toString());
+        assert.deepEqual(zlib.gunzip(stm1.readAll()), b);
     });
 
     it("gunzipTo (from Stream)", () => {
@@ -91,19 +92,19 @@ describe("zlib", () => {
         var stm1 = new io.MemoryStream();
         zlib.gunzipTo(stm, stm1);
         stm1.rewind();
-        assert.equal(stm1.read().toString(), b.toString());
+        assert.deepEqual(stm1.readAll(), b);
     });
 
     it("gunzip (from file)", () => {
-        var f1 = fs.openTextStream(path.join(__dirname, 'zlib_files', 'gzip'));
-        var f2 = fs.openTextStream(path.join(__dirname, 'zlib_files', 'original.js'));
-        assert.equal(zlib.gunzip(f1.read()).toString(), f2.read().toString());
+        var f1 = fs.openFile(path.join(__dirname, 'zlib_files', 'gzip'));
+        var f2 = fs.openFile(path.join(__dirname, 'zlib_files', 'original.js'));
+        assert.deepEqual(zlib.gunzip(f1.readAll()), f2.readAll());
     });
 
     it("inflate (from file)", () => {
-        var f1 = fs.openTextStream(path.join(__dirname, 'zlib_files', 'deflate'));
-        var f2 = fs.openTextStream(path.join(__dirname, 'zlib_files', 'original.js'));
-        assert.equal(zlib.inflateRaw(f1.read()).toString(), f2.read().toString());
+        var f1 = fs.openFile(path.join(__dirname, 'zlib_files', 'deflate'));
+        var f2 = fs.openFile(path.join(__dirname, 'zlib_files', 'original.js'));
+        assert.deepEqual(zlib.inflateRaw(f1.readAll()), f2.readAll());
     });
 });
 

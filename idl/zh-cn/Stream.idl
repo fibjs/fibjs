@@ -15,6 +15,9 @@ interface Stream : object
      */
     write(Buffer data) async;
 
+    /*! @brief 将文件缓冲区内容写入物理设备 */
+    flush() async;
+
     /*! @brief 关闭当前流对象 */
     close() async;
 

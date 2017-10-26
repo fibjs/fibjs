@@ -19,7 +19,7 @@
 
 namespace fibjs {
 
-void setOption(intptr_t s)
+void setOption(intptr_t& s)
 {
     int32_t keepAlive = 1;
     setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (void*)&keepAlive,
@@ -98,7 +98,7 @@ public:
 class asyncProc : public asyncEv,
                   public exlib::Task_base {
 public:
-    asyncProc(intptr_t s, int32_t op, AsyncEvent* ac, exlib::Locker& locker, void*& opt)
+    asyncProc(intptr_t& s, int32_t op, AsyncEvent* ac, exlib::Locker& locker, void*& opt)
         : m_s(s)
         , m_op(op)
         , m_ac(ac)
@@ -109,6 +109,12 @@ public:
 
     virtual void start()
     {
+        if (m_s == SOCKET_ERROR) {
+            m_ac->apost(SOCKET_ERROR);
+            delete this;
+            return;
+        }
+
         m_opt = this;
         ev_io* io = (ev_io*)this;
         ev_io_init(io, io_cb, m_s, m_op);
@@ -164,7 +170,7 @@ public:
     }
 
 public:
-    intptr_t m_s;
+    intptr_t& m_s;
     int32_t m_op;
     AsyncEvent* m_ac;
     exlib::Locker& m_locker;
@@ -186,19 +192,17 @@ public:
 
     virtual void Run()
     {
+        Runtime rt(NULL);
+
         ev_async_init(&s_asEvent, as_cb);
         ev_async_start(s_loop, &s_asEvent);
-
-        ev_timer tm;
-        tm_cb(s_loop, &tm, 0);
-
-        Runtime rt(NULL);
 
         ev_run(s_loop, 0);
     }
 
 private:
-    static void doAsync()
+    static void as_cb(struct ev_loop* loop, struct ev_async* watcher,
+        int32_t revents)
     {
         exlib::List<asyncEv> jobs;
         asyncEv* p1;
@@ -207,21 +211,6 @@ private:
 
         while ((p1 = jobs.getHead()) != 0)
             p1->start();
-    }
-
-    static void tm_cb(struct ev_loop* loop, struct ev_timer* watcher,
-        int32_t revents)
-    {
-        ev_timer_init(watcher, tm_cb, 10, 0);
-        ev_timer_start(s_loop, watcher);
-
-        doAsync();
-    }
-
-    static void as_cb(struct ev_loop* loop, struct ev_async* watcher,
-        int32_t revents)
-    {
-        doAsync();
     }
 };
 
@@ -264,11 +253,52 @@ result_t AsyncIO::cancel(AsyncEvent* ac)
     return CALL_E_PENDDING;
 }
 
+result_t AsyncIO::close(intptr_t& s, AsyncEvent* ac)
+{
+    class asyncClose : public asyncEv {
+    public:
+        asyncClose(intptr_t& s, void*& opt1, void*& opt2, AsyncEvent* ac)
+            : m_ac(ac)
+            , m_s(s)
+            , m_opt1(opt1)
+            , m_opt2(opt2)
+        {
+        }
+
+        virtual void start()
+        {
+            if (m_s != INVALID_SOCKET) {
+                if (m_opt1)
+                    ((asyncProc*)m_opt1)->onready();
+
+                if (m_opt2)
+                    ((asyncProc*)m_opt2)->onready();
+
+                ::closesocket(m_s);
+            }
+
+            m_s = INVALID_SOCKET;
+
+            m_ac->apost(0);
+            delete this;
+        }
+
+    public:
+        AsyncEvent* m_ac;
+        intptr_t& m_s;
+        void*& m_opt1;
+        void*& m_opt2;
+    };
+
+    (new asyncClose(s, m_RecvOpt, m_SendOpt, ac))->post();
+    return CALL_E_PENDDING;
+}
+
 result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Timer_base* timer)
 {
     class asyncConnect : public asyncProc {
     public:
-        asyncConnect(intptr_t s, inetAddr& ai, AsyncEvent* ac, exlib::Locker& locker, void*& opt,
+        asyncConnect(intptr_t& s, inetAddr& ai, AsyncEvent* ac, exlib::Locker& locker, void*& opt,
             Timer_base* timer)
             : asyncProc(s, EV_WRITE, ac, locker, opt)
             , m_ai(ai)
@@ -356,7 +386,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
 {
     class asyncAccept : public asyncProc {
     public:
-        asyncAccept(intptr_t s, obj_ptr<Socket_base>& retVal,
+        asyncAccept(intptr_t& s, obj_ptr<Socket_base>& retVal,
             AsyncEvent* ac, exlib::Locker& locker, void*& opt)
             : asyncProc(s, EV_READ, ac, locker, opt)
             , m_retVal(retVal)
@@ -409,7 +439,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 {
     class asyncRecv : public asyncProc {
     public:
-        asyncRecv(intptr_t s, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac,
+        asyncRecv(intptr_t& s, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac,
             int32_t family, bool bRead, exlib::Locker& locker, void*& opt, Timer_base* timer)
             : asyncProc(s, EV_READ, ac, locker, opt)
             , m_retVal(retVal)
@@ -513,7 +543,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
 {
     class asyncSend : public asyncProc {
     public:
-        asyncSend(intptr_t s, Buffer_base* data, AsyncEvent* ac, int32_t family, exlib::Locker& locker, void*& opt)
+        asyncSend(intptr_t& s, Buffer_base* data, AsyncEvent* ac, int32_t family, exlib::Locker& locker, void*& opt)
             : asyncProc(s, EV_WRITE, ac, locker, opt)
             , m_family(family)
         {
@@ -574,7 +604,7 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
 {
     class asyncRecvFrom : public asyncProc {
     public:
-        asyncRecvFrom(intptr_t s, int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac,
+        asyncRecvFrom(intptr_t& s, int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac,
             exlib::Locker& locker, void*& opt)
             : asyncProc(s, EV_READ, ac, locker, opt)
             , m_retVal(retVal)

@@ -37,7 +37,13 @@ static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
 
 result_t async_signal(const char* name)
 {
-    s_isolates.head()->RequestInterrupt(_InterruptCallback, (void*)name);
+    Isolate* isolate = s_isolates.head();
+
+    if (isolate)
+        isolate->RequestInterrupt(_InterruptCallback, (void*)name);
+    else
+        _exit(1);
+
     return 0;
 }
 

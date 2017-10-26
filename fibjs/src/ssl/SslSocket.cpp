@@ -254,6 +254,11 @@ result_t SslSocket::write(Buffer_base* data, AsyncEvent* ac)
     return (new asyncWrite(this, data, ac))->post(0);
 }
 
+result_t SslSocket::flush(AsyncEvent* ac)
+{
+    return 0;
+}
+
 result_t SslSocket::close(AsyncEvent* ac)
 {
     class asyncClose : public asyncSsl {
