@@ -366,7 +366,7 @@ describe('ws', () => {
             s.stream.close();
         });
 
-        it("echo compress", () => {
+        xit("echo compress", () => {
             var s = connect(true);
 
             test_msg(s, 10, true);

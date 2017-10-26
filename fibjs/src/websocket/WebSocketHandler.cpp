@@ -129,7 +129,9 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->done(CALL_RETURN_NULL);
 
             obj_ptr<WebSocketHandler> pHandler = pThis->m_pThis;
-            obj_ptr<WebSocket> sock = new WebSocket(pThis->m_stm, pThis->m_compress, "", pThis);
+            obj_ptr<WebSocket> sock = new WebSocket(pThis->m_stm, "", pThis);
+            if (pThis->m_compress)
+                sock->enableCompress();
 
             Variant v = sock;
             pHandler->_emit("accept", &v, 1);

@@ -93,6 +93,11 @@ public:
         strm.next_out = m_outBuffer;
     }
 
+    void attach(Stream_base* stm)
+    {
+        m_stm = stm;
+    }
+
 public:
     // Stream_base
     result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)

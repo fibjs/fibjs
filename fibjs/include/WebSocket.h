@@ -8,6 +8,7 @@
 #include "ifs/WebSocket.h"
 #include "ifs/ws.h"
 #include "ifs/Stream.h"
+#include "zlib.h"
 
 #ifndef WEBSOCKET_H_
 #define WEBSOCKET_H_
@@ -28,12 +29,12 @@ public:
     {
     }
 
-    WebSocket(Stream_base* stream, bool compress, exlib::string protocol, AsyncEvent* ac)
+    WebSocket(Stream_base* stream, exlib::string protocol, AsyncEvent* ac)
         : m_stream(stream)
         , m_ac(ac)
         , m_protocol(protocol)
         , m_masked(false)
-        , m_compress(compress)
+        , m_compress(false)
         , m_maxSize(67108864)
         , m_readyState(ws_base::_OPEN)
     {
@@ -69,10 +70,15 @@ public:
     void startRecv();
     void endConnect(int32_t code, exlib::string reason);
     void endConnect(SeekableStream_base* body);
+    void enableCompress();
 
 public:
     obj_ptr<Stream_base> m_stream;
     AsyncEvent* m_ac;
+
+    obj_ptr<ZlibStream> m_deflate;
+    obj_ptr<ZlibStream> m_inflate;
+    obj_ptr<Buffer_base> m_flushTail;
 
     obj_ptr<SeekableStream_base> m_buffer;
     exlib::Locker m_lockEncode;

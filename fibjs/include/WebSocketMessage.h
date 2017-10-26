@@ -7,6 +7,7 @@
 
 #include "Message.h"
 #include "ifs/WebSocketMessage.h"
+#include "WebSocket.h"
 
 #ifndef WEBSOCKETMESSAGE_H_
 #define WEBSOCKETMESSAGE_H_
@@ -64,6 +65,8 @@ public:
 
 public:
     static result_t copy(Stream_base* from, Stream_base* to, int64_t bytes, uint32_t mask, AsyncEvent* ac);
+    result_t sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* ac);
+    result_t readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent* ac);
 
 public:
     obj_ptr<Stream_base> m_stm;

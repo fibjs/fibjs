@@ -191,24 +191,33 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
     return (new asyncCopy(from, to, bytes, mask, ac))->post(0);
 }
 
-result_t WebSocketMessage::sendTo(Stream_base* stm, AsyncEvent* ac)
+result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* ac)
 {
     class asyncSendTo : public AsyncState {
     public:
-        asyncSendTo(WebSocketMessage* pThis, Stream_base* stm,
-            AsyncEvent* ac)
+        asyncSendTo(WebSocketMessage* pThis, Stream_base* stm, WebSocket* wss, AsyncEvent* ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
+            , m_wss(wss)
             , m_mask(0)
+            , m_take_over(false)
         {
             m_pThis->get_body(m_body);
 
             if (m_pThis->m_compress) {
-                m_zip = new MemoryStream();
+                m_data = new MemoryStream();
+
+                if (m_wss && m_wss->m_compress) {
+                    m_take_over = true;
+                    m_wss->m_deflate->attach(m_data);
+                    m_zip = m_wss->m_deflate;
+                } else
+                    zlib_base::createDeflateRaw(m_data, m_zip);
+
                 set(deflate);
             } else {
-                m_zip = m_body;
+                m_data = m_body;
                 set(head);
             }
         }
@@ -217,14 +226,31 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, AsyncEvent* ac)
         {
             asyncSendTo* pThis = (asyncSendTo*)pState;
 
-            pThis->set(head);
             pThis->m_body->rewind();
-            return zlib_base::deflateRawTo(pThis->m_body, pThis->m_zip, zlib_base::_DEFAULT_COMPRESSION, pThis);
+            pThis->set(flush);
+            return pThis->m_body->copyTo(pThis->m_zip, -1, pThis->m_size, pThis);
+        }
+
+        static int32_t flush(AsyncState* pState, int32_t n)
+        {
+            asyncSendTo* pThis = (asyncSendTo*)pState;
+
+            pThis->set(head);
+            return pThis->m_zip->flush(pThis);
         }
 
         static int32_t head(AsyncState* pState, int32_t n)
         {
             asyncSendTo* pThis = (asyncSendTo*)pState;
+
+            if (pThis->m_take_over)
+                pThis->m_wss->m_deflate->attach(NULL);
+
+            int64_t size;
+            pThis->m_data->size(size);
+            if (pThis->m_pThis->m_compress)
+                size -= 4;
+            pThis->m_size = size;
 
             uint8_t buf[16];
             int32_t pos = 0;
@@ -235,10 +261,6 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, AsyncEvent* ac)
                 buf[0] = 0xc0 | (type & 0x0f);
             else
                 buf[0] = 0x80 | (type & 0x0f);
-
-            int64_t size;
-            pThis->m_zip->size(size);
-            pThis->m_size = size;
 
             if (size < 126) {
                 buf[1] = (uint8_t)size;
@@ -287,41 +309,57 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, AsyncEvent* ac)
             asyncSendTo* pThis = (asyncSendTo*)pState;
 
             pThis->done();
-            pThis->m_zip->rewind();
-            return copy(pThis->m_zip, pThis->m_stm, pThis->m_size, pThis->m_mask, pThis);
+            pThis->m_data->rewind();
+            return copy(pThis->m_data, pThis->m_stm, pThis->m_size, pThis->m_mask, pThis);
+        }
+
+        virtual int32_t error(int32_t v)
+        {
+            if (m_take_over)
+                m_wss->m_deflate->attach(NULL);
+            return v;
         }
 
     public:
-        obj_ptr<SeekableStream_base> m_zip;
-        WebSocketMessage* m_pThis;
+        obj_ptr<Stream_base> m_zip;
+        obj_ptr<SeekableStream_base> m_data;
+        obj_ptr<WebSocketMessage> m_pThis;
         obj_ptr<Stream_base> m_stm;
+        obj_ptr<WebSocket> m_wss;
         obj_ptr<SeekableStream_base> m_body;
         int64_t m_size;
         uint32_t m_mask;
         obj_ptr<Buffer_base> m_buffer;
+        bool m_take_over;
     };
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncSendTo(this, stm, ac))->post(0);
+    return (new asyncSendTo(this, stm, wss, ac))->post(0);
 }
 
-result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
+result_t WebSocketMessage::sendTo(Stream_base* stm, AsyncEvent* ac)
+{
+    return sendTo(stm, NULL, ac);
+}
+
+result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent* ac)
 {
     class asyncReadFrom : public AsyncState {
     public:
-        asyncReadFrom(WebSocketMessage* pThis, Stream_base* stm,
-            AsyncEvent* ac)
+        asyncReadFrom(WebSocketMessage* pThis, Stream_base* stm, WebSocket* wss, AsyncEvent* ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
+            , m_wss(wss)
             , m_fin(false)
             , m_masked(false)
             , m_fragmented(false)
             , m_size(0)
             , m_fullsize(0)
             , m_mask(0)
+            , m_take_over(false)
         {
             m_pThis->get_body(m_body);
             m_zip = m_body;
@@ -354,7 +392,13 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
 
             ch = strBuffer[0];
             if (ch & 0x40) {
-                pThis->m_zip = new MemoryStream();
+                if (pThis->m_wss && pThis->m_wss->m_compress) {
+                    pThis->m_take_over = true;
+                    pThis->m_wss->m_inflate->attach(pThis->m_body);
+                    pThis->m_zip = pThis->m_wss->m_inflate;
+                } else
+                    zlib_base::createInflateRaw(pThis->m_body, pThis->m_zip);
+
                 pThis->m_pThis->m_compress = true;
             } else if (ch & 0x70) {
                 pThis->m_pThis->m_error = 1007;
@@ -454,34 +498,46 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                 return 0;
             }
 
-            if (pThis->m_pThis->m_compress)
-                pThis->set(inflate);
-            else
-                pThis->set(body_end);
-            return 0;
+            if (pThis->m_take_over) {
+                pThis->set(tail_end);
+                return pThis->m_zip->write(pThis->m_wss->m_flushTail, pThis);
+            }
+
+            pThis->set(body_end);
+            return pThis->m_zip->flush(pThis);
         }
 
-        static int32_t inflate(AsyncState* pState, int32_t n)
+        static int32_t tail_end(AsyncState* pState, int32_t n)
         {
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
             pThis->set(body_end);
-            pThis->m_zip->rewind();
-            return zlib_base::inflateRawTo(pThis->m_zip, pThis->m_body, pThis);
+            return pThis->m_zip->flush(pThis);
         }
 
         static int32_t body_end(AsyncState* pState, int32_t n)
         {
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
+            if (pThis->m_take_over)
+                pThis->m_wss->m_inflate->attach(NULL);
+
             pThis->m_body->rewind();
             return pThis->done();
         }
 
+        virtual int32_t error(int32_t v)
+        {
+            if (m_take_over)
+                m_wss->m_inflate->attach(NULL);
+            return v;
+        }
+
     public:
-        WebSocketMessage* m_pThis;
+        obj_ptr<WebSocketMessage> m_pThis;
         obj_ptr<Stream_base> m_stm;
-        obj_ptr<SeekableStream_base> m_zip;
+        obj_ptr<WebSocket> m_wss;
+        obj_ptr<Stream_base> m_zip;
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<Buffer_base> m_buffer;
         bool m_fin;
@@ -490,6 +546,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
         int64_t m_size;
         int64_t m_fullsize;
         uint32_t m_mask;
+        bool m_take_over;
     };
 
     if (ac->isSync())
@@ -497,7 +554,12 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
 
     m_stm = stm;
 
-    return (new asyncReadFrom(this, stm, ac))->post(0);
+    return (new asyncReadFrom(this, stm, wss, ac))->post(0);
+}
+
+result_t WebSocketMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
+{
+    return readFrom(stm, NULL, ac);
 }
 
 result_t WebSocketMessage::get_stream(obj_ptr<Stream_base>& retVal)

@@ -11,6 +11,7 @@
 #include "EventInfo.h"
 #include "ifs/io.h"
 #include "ifs/http.h"
+#include "ifs/zlib.h"
 #include "Map.h"
 #include <mbedtls/mbedtls/sha1.h>
 #include "encoding.h"
@@ -101,7 +102,7 @@ public:
             pThis->m_this->m_buffer = new MemoryStream();
 
         pThis->set(encode_ok);
-        return pThis->m_msg->sendTo(pThis->m_this->m_buffer, pThis);
+        return pThis->m_msg->sendTo(pThis->m_this->m_buffer, pThis->m_this, pThis);
     }
 
     static int32_t encode_ok(AsyncState* pState, int32_t n)
@@ -290,7 +291,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
                 return hr;
 
             if (hr != CALL_RETURN_NULL && !qstricmp(v.string().c_str(), "permessage-deflate", 18))
-                pThis->m_this->m_compress = true;
+                pThis->m_this->enableCompress();
 
             pThis->m_httprep->get_stream(pThis->m_this->m_stream);
 
@@ -344,7 +345,7 @@ void WebSocket::startRecv()
             pThis->m_msg = new WebSocketMessage(ws_base::_TEXT, false, false, pThis->m_this->m_maxSize);
 
             pThis->set(event);
-            return pThis->m_msg->readFrom(pThis->m_this->m_stream, pThis);
+            return pThis->m_msg->readFrom(pThis->m_this->m_stream, pThis->m_this, pThis);
         }
 
         static int32_t event(AsyncState* pState, int32_t n)
@@ -462,6 +463,14 @@ void WebSocket::endConnect(SeekableStream_base* body)
     }
 
     endConnect(code, reason);
+}
+
+void WebSocket::enableCompress()
+{
+    m_compress = true;
+    m_deflate = new defraw(NULL);
+    m_inflate = new infraw(NULL);
+    m_flushTail = new Buffer("\x0\x0\xff\xff", 4);
 }
 
 result_t WebSocket::get_url(exlib::string& retVal)
