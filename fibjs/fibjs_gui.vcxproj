@@ -357,6 +357,7 @@
     <ClInclude Include="include\utf8.h" />
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\version.h" />
+    <ClInclude Include="include\zlib.h" />
     <ClInclude Include="src\db\sql\trans.h" />
     <ClInclude Include="src\gui\windows\WebView.h" />
     <ClInclude Include="src\process\process_hrtime.h" />
@@ -557,7 +558,7 @@
     <Image Include="res\fibjs.ico" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E86C788B-0810-4E08-A184-421054A3FD03}</ProjectGuid>
+    <ProjectGuid>{05654A7E-DBAF-4211-886A-C23565833D05}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>fibjs_gui</RootNamespace>
   </PropertyGroup>
