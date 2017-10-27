@@ -1,3 +1,153 @@
+## 2017-10-27, Version v0.17.0
+
+* **feature** :
+    * ci - test --prof.(xicilion)
+    * core:
+      - support async locker in state machine.(响马)
+      - save the status of isolate.(xicilion)
+      - exit application directly while v8 is not alive.(响马)
+    * docs:
+      - change diagram style.(响马)
+      - add process signal docs.(xicilion)
+    * EventEmitter - save method name in emit.(xicilion)
+    * Fiber:
+      - not trace internal function in stack.(xicilion)
+      - support Fiber.id.(响马)
+    * process:
+      - interrupt isolate in async mode.(xicilion)
+      - support signal.(xicilion)
+      - support Event exit.(xicilion)
+      - support Event beforeExit.(xicilion)
+      - support process.exitCode.(xicilion)
+    * profiler:
+      - support command line option: --prof and --prof-interval.(xicilion)
+      - not log empty sample.(xicilion)
+      - profiler.start(name, -1) will profile for ever.(xicilion)
+      - support process tool.(xicilion)
+    * test:
+      - test.run set result to process.exitCode.(xicilion)
+      - change the test mode according to the startup mode.(xicilion)
+    * util:
+      - add underscore test case.(响马)
+      - save sync function name to fiber stack.(xicilion)
+    * v8 - upgrade to v6.4.146.(xicilion)
+    * websocket:
+      - support context takeover.(响马)
+      - lock the Buffer individually to send the buffer as soon as possible.(xicilion)
+      - Send multiple websocket packets together.(响马)
+      - use locker to keep the message sequence.(响马)
+      - new WebSocket support compress.(响马)
+      - support compress handshake in ws.upgrade.(响马)
+      - support compress in WebSocketMessage.sendTo.(响马)
+      - WebSocketMessage.readFrom support compress message.(xicilion)
+    * zlib - support zlib stream.(xicilion)
+
+* **breakchange** :
+    * build - remove support of vs2015.(xicilion)
+    * websocket:
+      - delete nouse test case.(xicilion)
+      - deprecated WebSocketHandler.(xicilion)
+
+* **bugfix** :
+    * ci:
+      - fix windows build (#367)(Hengfei Zhuang)
+      - fix windows build (#366)(Hengfei Zhuang)
+    * fs:
+      - fix crash when read empty file with codec use fs.readFile.(响马)
+      - change fs.copy to async mode.(xicilion)
+    * MemoryStream - fix MemoryStrem.seek error on windows.(xicilion)
+    * net - safely close socket to repair socket reuse errors.(xicilion)
+    * process - ctrl_c will cause the program to crash during startup.(响马)
+    * profiler - log file parse error on windows.(xicilion)
+    * socket - closing a socket twice will cause a crash.(响马)
+    * test:
+      - change tcp port.(xicilion)
+      - clear root ca after test.(xicilion)
+    * timers - fix v8 deadlock in setHrInterval.(xicilion)
+    * websocket - end async recv worker after close stream.(响马)
+    * zlib:
+      - compile error on windows.(xicilion)
+      - compile warning in debug mode.(响马)
+      - asynchronous operation may cause access to illegal memory.(响马)
+
+* **refactor** :
+    * core:
+      - define v8 api in v8_api.h.(xicilion)
+      - AsyncEvent base on Task_base.(响马)
+      - call interrupt callback function directly if possible.(响马)
+      - move RequestInterrupt into isolate.(xicilion)
+      - optimize the startup process.(xicilion)
+    * io - move method flush to Interface Stream.(响马)
+    * net - remove unused event from libev.(响马)
+    * timers - reuse variable isolate.(xicilion)
+    * zlib - move ZlibStream to include file.(xicilion)
+
+* **doc** :
+    * gui - add gui english doc (#365)(Hengfei Zhuang)
+
+### Commits
+* [[`0260298dd4`](https://github.com/fibjs/fibjs/commit/0260298dd4)] - **core, refactor**: define v8 api in v8_api.h.(xicilion)
+* [[`bfdedd0835`](https://github.com/fibjs/fibjs/commit/bfdedd0835)] - **v8, feat**: upgrade to v6.4.146.(xicilion)
+* [[`0334b8a375`](https://github.com/fibjs/fibjs/commit/0334b8a375)] - **zlib, bugfix**: compile error on windows.(xicilion)
+* [[`e96f23e9fa`](https://github.com/fibjs/fibjs/commit/e96f23e9fa)] - **websocket, feat**: support context takeover.(响马)
+* [[`8b31858bba`](https://github.com/fibjs/fibjs/commit/8b31858bba)] - **ci, bugfix**: fix windows build (#367)(Hengfei Zhuang)
+* [[`7bbbb143ec`](https://github.com/fibjs/fibjs/commit/7bbbb143ec)] - **zlib, refactor**: move ZlibStream to include file.(xicilion)
+* [[`49aa9975c6`](https://github.com/fibjs/fibjs/commit/49aa9975c6)] - **zlib, feat**: support zlib stream.(xicilion)
+* [[`feac71466c`](https://github.com/fibjs/fibjs/commit/feac71466c)] - **io, refactor**: move method flush to Interface Stream.(响马)
+* [[`666ae9f38d`](https://github.com/fibjs/fibjs/commit/666ae9f38d)] - **net, refactor**: remove unused event from libev.(响马)
+* [[`f0459a34b8`](https://github.com/fibjs/fibjs/commit/f0459a34b8)] - **socket, bugfix**: closing a socket twice will cause a crash.(响马)
+* [[`64e9abaf99`](https://github.com/fibjs/fibjs/commit/64e9abaf99)] - **net, bugfix**: safely close socket to repair socket reuse errors.(xicilion)
+* [[`2986202089`](https://github.com/fibjs/fibjs/commit/2986202089)] - **websocket, feat**: lock the Buffer individually to send the buffer as soon as possible.(xicilion)
+* [[`dbff1aa286`](https://github.com/fibjs/fibjs/commit/dbff1aa286)] - **websocket, feat**: Send multiple websocket packets together.(响马)
+* [[`d69b32c6ec`](https://github.com/fibjs/fibjs/commit/d69b32c6ec)] - **websocket, feat**: use locker to keep the message sequence.(响马)
+* [[`344f0ae6aa`](https://github.com/fibjs/fibjs/commit/344f0ae6aa)] - **process, bugfix**: ctrl_c will cause the program to crash during startup.(响马)
+* [[`418d2a8dc5`](https://github.com/fibjs/fibjs/commit/418d2a8dc5)] - **websocket, bugfix**: end async recv worker after close stream.(响马)
+* [[`3637d39a95`](https://github.com/fibjs/fibjs/commit/3637d39a95)] - **zlib, bugfix**: compile warning in debug mode.(响马)
+* [[`0fd19ee721`](https://github.com/fibjs/fibjs/commit/0fd19ee721)] - **MemoryStream, bugfix**: fix MemoryStrem.seek error on windows.(xicilion)
+* [[`6563d2c665`](https://github.com/fibjs/fibjs/commit/6563d2c665)] - **gui, doc**: add gui english doc (#365)(Hengfei Zhuang)
+* [[`a24b4b404e`](https://github.com/fibjs/fibjs/commit/a24b4b404e)] - **ci, bugfix**: fix windows build (#366)(Hengfei Zhuang)
+* [[`ec8362f662`](https://github.com/fibjs/fibjs/commit/ec8362f662)] - **build, break**: remove support of vs2015.(xicilion)
+* [[`42b69ff4c2`](https://github.com/fibjs/fibjs/commit/42b69ff4c2)] - **test, feat**: test.run set result to process.exitCode.(xicilion)
+* [[`77e64585d1`](https://github.com/fibjs/fibjs/commit/77e64585d1)] - **docs, feat**: change diagram style.(响马)
+* [[`6147c17aaf`](https://github.com/fibjs/fibjs/commit/6147c17aaf)] - **core, feat**: support async locker in state machine.(响马)
+* [[`51e88700ad`](https://github.com/fibjs/fibjs/commit/51e88700ad)] - **core, refactor**: AsyncEvent base on Task_base.(响马)
+* [[`39ed71a85c`](https://github.com/fibjs/fibjs/commit/39ed71a85c)] - **fs, bugfix**: fix crash when read empty file with codec use fs.readFile.(响马)
+* [[`07e705e8e0`](https://github.com/fibjs/fibjs/commit/07e705e8e0)] - **zlib, bugfix**: asynchronous operation may cause access to illegal memory.(响马)
+* [[`122bc6dbb2`](https://github.com/fibjs/fibjs/commit/122bc6dbb2)] - **websocket, feat**: new WebSocket support compress.(响马)
+* [[`76efe05aa1`](https://github.com/fibjs/fibjs/commit/76efe05aa1)] - **websocket, feat**: support compress handshake in ws.upgrade.(响马)
+* [[`e2662049c5`](https://github.com/fibjs/fibjs/commit/e2662049c5)] - **websocket, feat**: support compress in WebSocketMessage.sendTo.(响马)
+* [[`2e17b82fad`](https://github.com/fibjs/fibjs/commit/2e17b82fad)] - **websocket, feat**: WebSocketMessage.readFrom support compress message.(xicilion)
+* [[`4fe56e695a`](https://github.com/fibjs/fibjs/commit/4fe56e695a)] - **websocket, break**: delete nouse test case.(xicilion)
+* [[`c39d7037f0`](https://github.com/fibjs/fibjs/commit/c39d7037f0)] - **websocket, break**: deprecated WebSocketHandler.(xicilion)
+* [[`8d00946b50`](https://github.com/fibjs/fibjs/commit/8d00946b50)] - **test, bugfix**: change tcp port.(xicilion)
+* [[`6c625f5446`](https://github.com/fibjs/fibjs/commit/6c625f5446)] - **util, feat**: add underscore test case.(响马)
+* [[`ff90700a11`](https://github.com/fibjs/fibjs/commit/ff90700a11)] - **ci, feat**: test --prof.(xicilion)
+* [[`138b59b221`](https://github.com/fibjs/fibjs/commit/138b59b221)] - **profiler, bugfix**: log file parse error on windows.(xicilion)
+* [[`9f6bad2138`](https://github.com/fibjs/fibjs/commit/9f6bad2138)] - **profiler, feat**: support command line option: --prof and --prof-interval.(xicilion)
+* [[`21425c9eae`](https://github.com/fibjs/fibjs/commit/21425c9eae)] - **profiler, feat**: not log empty sample.(xicilion)
+* [[`7b42a50f6b`](https://github.com/fibjs/fibjs/commit/7b42a50f6b)] - **profiler, feat**: profiler.start(name, -1) will profile for ever.(xicilion)
+* [[`c79d4bd26f`](https://github.com/fibjs/fibjs/commit/c79d4bd26f)] - **docs, feat**: add process signal docs.(xicilion)
+* [[`d80d83060f`](https://github.com/fibjs/fibjs/commit/d80d83060f)] - **test, feat**: change the test mode according to the startup mode.(xicilion)
+* [[`106639b788`](https://github.com/fibjs/fibjs/commit/106639b788)] - **test, bugfix**: clear root ca after test.(xicilion)
+* [[`6253b8a13d`](https://github.com/fibjs/fibjs/commit/6253b8a13d)] - **fs, bugfix**: change fs.copy to async mode.(xicilion)
+* [[`880f894dc9`](https://github.com/fibjs/fibjs/commit/880f894dc9)] - **process, feat**: interrupt isolate in async mode.(xicilion)
+* [[`4520bb3a85`](https://github.com/fibjs/fibjs/commit/4520bb3a85)] - **timers, bugfix**: fix v8 deadlock in setHrInterval.(xicilion)
+* [[`838295b4be`](https://github.com/fibjs/fibjs/commit/838295b4be)] - **core, feat**: save the status of isolate.(xicilion)
+* [[`5b2c83f57c`](https://github.com/fibjs/fibjs/commit/5b2c83f57c)] - **core, feat**: exit application directly while v8 is not alive.(响马)
+* [[`4ec77e3241`](https://github.com/fibjs/fibjs/commit/4ec77e3241)] - **core, refactor**: call interrupt callback function directly if possible.(响马)
+* [[`c62738774c`](https://github.com/fibjs/fibjs/commit/c62738774c)] - **process, feat**: support signal.(xicilion)
+* [[`8d6271866d`](https://github.com/fibjs/fibjs/commit/8d6271866d)] - **EventEmitter, feat**: save method name in emit.(xicilion)
+* [[`dc1089eefe`](https://github.com/fibjs/fibjs/commit/dc1089eefe)] - **Fiber, feat**: not trace internal function in stack.(xicilion)
+* [[`dd0c0611df`](https://github.com/fibjs/fibjs/commit/dd0c0611df)] - **process, feat**: support Event exit.(xicilion)
+* [[`08cf7066e4`](https://github.com/fibjs/fibjs/commit/08cf7066e4)] - **process, feat**: support Event beforeExit.(xicilion)
+* [[`b6ec6558ef`](https://github.com/fibjs/fibjs/commit/b6ec6558ef)] - **process, feat**: support process.exitCode.(xicilion)
+* [[`7c9a6cba3d`](https://github.com/fibjs/fibjs/commit/7c9a6cba3d)] - **core, refactor**: move RequestInterrupt into isolate.(xicilion)
+* [[`eb4d6bce05`](https://github.com/fibjs/fibjs/commit/eb4d6bce05)] - **profiler, feat**: support process tool.(xicilion)
+* [[`159b2275f2`](https://github.com/fibjs/fibjs/commit/159b2275f2)] - **core, refactor**: optimize the startup process.(xicilion)
+* [[`39145217bc`](https://github.com/fibjs/fibjs/commit/39145217bc)] - **util, feat**: save sync function name to fiber stack.(xicilion)
+* [[`c3092d0476`](https://github.com/fibjs/fibjs/commit/c3092d0476)] - **Fiber, feat**: support Fiber.id.(响马)
+* [[`41e402b5d2`](https://github.com/fibjs/fibjs/commit/41e402b5d2)] - **timers, refactor**: reuse variable isolate.(xicilion)
+
 ## 2017-10-14, Version v0.16.0
 
 * **feature** :
