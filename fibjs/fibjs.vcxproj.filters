@@ -912,6 +912,9 @@
     <ClInclude Include="include\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\v8_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\version.h">
       <Filter>Header Files</Filter>
     </ClInclude>

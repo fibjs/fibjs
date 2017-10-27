@@ -10,6 +10,7 @@
 #include "Trigger.h"
 #include "ifs/os.h"
 #include "ifs/process.h"
+#include "v8_api.h"
 
 namespace fibjs {
 
@@ -19,8 +20,6 @@ extern int32_t stack_size;
 
 int32_t g_spareFibers;
 static int32_t g_tlsCurrent;
-
-exlib::string traceInfo(int32_t deep, void* entry_fp, void* handle);
 
 void init_fiber()
 {

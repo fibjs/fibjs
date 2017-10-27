@@ -1073,9 +1073,6 @@ inline result_t SocketError()
 #endif
 }
 
-exlib::string traceInfo(v8::Isolate* isolate, int32_t deep);
-exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void* handle);
-
 exlib::string getResultMessage(result_t hr);
 v8::Local<v8::Value> ThrowResult(result_t hr);
 void ReportException(TryCatch& try_catch, result_t hr);

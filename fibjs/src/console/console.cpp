@@ -11,6 +11,7 @@
 #include "ifs/encoding.h"
 #include "ifs/process.h"
 #include "ifs/util.h"
+#include "v8_api.h"
 #include <map>
 #include "console.h"
 #include <stdlib.h>

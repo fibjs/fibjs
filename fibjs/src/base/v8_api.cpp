@@ -16,13 +16,9 @@
 #include "v8/src/frames.h"
 #include "v8/src/frames-inl.h"
 #include "exlib/include/qstring.h"
+#include "v8_api.h"
 
 namespace fibjs {
-
-struct V8FrameInfo {
-    void* entry_fp;
-    void* handle;
-};
 
 V8FrameInfo save_fi(v8::Isolate* isolate)
 {

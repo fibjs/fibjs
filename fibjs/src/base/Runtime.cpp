@@ -14,6 +14,7 @@
 #include "ifs/process.h"
 #include "ifs/coroutine.h"
 #include "ifs/profiler.h"
+#include "v8_api.h"
 
 namespace fibjs {
 
@@ -58,12 +59,6 @@ public:
 exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
 extern int32_t stack_size;
-
-struct V8FrameInfo {
-    void* entry_fp;
-    void* handle;
-};
-V8FrameInfo save_fi(v8::Isolate* isolate);
 
 Isolate::rt_base::rt_base(Isolate* cur)
     : m_isolate((cur ? cur : Isolate::current()))
