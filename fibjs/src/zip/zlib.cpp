@@ -6,7 +6,7 @@
  */
 
 #include "object.h"
-#include "zlib.h"
+#include "ZlibStream.h"
 
 namespace fibjs {
 

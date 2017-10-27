@@ -198,6 +198,7 @@
     <ClInclude Include="include\XmlProcessingInstruction.h" />
     <ClInclude Include="include\XmlText.h" />
     <ClInclude Include="include\ZipFile.h" />
+    <ClInclude Include="include\ZlibStream.h" />
     <ClInclude Include="include\ZmqSocket.h" />
     <ClInclude Include="include\console.h" />
     <ClInclude Include="include\date.h" />
@@ -357,7 +358,6 @@
     <ClInclude Include="include\utf8.h" />
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\version.h" />
-    <ClInclude Include="include\zlib.h" />
     <ClInclude Include="src\db\sql\trans.h" />
     <ClInclude Include="src\gui\windows\WebView.h" />
     <ClInclude Include="src\process\process_hrtime.h" />

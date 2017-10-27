@@ -508,6 +508,11 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
             return 0;
         }
 
+        result_t flush(AsyncEvent* ac)
+        {
+            return 0;
+        }
+
         result_t close(AsyncEvent* ac)
         {
             if (ac->isSync())

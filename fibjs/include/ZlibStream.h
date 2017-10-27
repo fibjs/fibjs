@@ -1,5 +1,5 @@
 /*
- * zlib.h
+ * ZlibStream.h
  *
  *  Created on: Oct 26, 2017
  *      Author: lion
@@ -10,8 +10,8 @@
 #include "MemoryStream.h"
 #include <zlib/include/zlib.h>
 
-#ifndef __ZLIB_H_
-#define __ZLIB_H_
+#ifndef __ZLIBSTREAM_H_
+#define __ZLIBSTREAM_H_
 
 namespace fibjs {
 
@@ -366,4 +366,4 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* __ZLIB_H_ */
+#endif /* __ZLIBSTREAM_H_ */

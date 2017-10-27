@@ -8,7 +8,7 @@
 #include "ifs/WebSocket.h"
 #include "ifs/ws.h"
 #include "ifs/Stream.h"
-#include "zlib.h"
+#include "ZlibStream.h"
 
 #ifndef WEBSOCKET_H_
 #define WEBSOCKET_H_

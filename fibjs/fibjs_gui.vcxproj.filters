@@ -435,6 +435,9 @@
     <ClInclude Include="include\ZipFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\ZlibStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\ZmqSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -910,9 +913,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\version.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\db\sql\trans.h">
