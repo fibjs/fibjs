@@ -5,11 +5,11 @@ services:
 matrix:
   include:
     - os: osx
-      osx_image: xcode8.3
+      osx_image: xcode9
       env:
         - ARCH=amd64
     - os: osx
-      osx_image: xcode8.3
+      osx_image: xcode9
       env:
         - ARCH=i386
     - os: linux
