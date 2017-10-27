@@ -133,8 +133,10 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (pThis->m_compress)
                 sock->enableCompress();
 
-            Variant v = sock;
-            pHandler->_emit("accept", &v, 1);
+            Variant vs[2];
+            vs[0] = sock;
+            vs[1] = pThis->m_httpreq;
+            pHandler->_emit("accept", vs, 2);
 
             // sock->startRecv();
 

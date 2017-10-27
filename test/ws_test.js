@@ -259,8 +259,8 @@ describe('ws', () => {
         }
 
         it("server", () => {
-            var httpd = new http.Server(8813 + base_port, new mq.Routing({
-                "^/ws$": ws.upgrade((s) => {
+            var httpd = new http.Server(8813 + base_port, {
+                "/ws": ws.upgrade((s) => {
                     s.onmessage = function (msg) {
                         if (msg.data === "Going Away")
                             msg.stream.close();
@@ -270,7 +270,7 @@ describe('ws', () => {
                             this.send(msg.data);
                     };
                 })
-            }));
+            });
             ss.push(httpd.socket);
             httpd.run(() => {});
         });
@@ -473,8 +473,9 @@ describe('ws', () => {
 
     describe('WebSocket', () => {
         it("server", () => {
-            var httpd = new http.Server(8814 + base_port, new mq.Routing({
-                "^/ws$": ws.upgrade((s) => {
+            var httpd = new http.Server(8814 + base_port, {
+                "/ws": ws.upgrade((s, req) => {
+                    assert.equal(req.firstHeader("upgrade"), "websocket");
                     s.onmessage = function (msg) {
                         assert.isTrue(msg.compress);
                         if (msg.data === "Going Away")
@@ -485,7 +486,7 @@ describe('ws', () => {
                             this.send(msg.data);
                     };
                 })
-            }));
+            });
             ss.push(httpd.socket);
             httpd.run(() => {});
         });
@@ -552,8 +553,8 @@ describe('ws', () => {
         });
 
         it('send/on("message")', () => {
-            var httpd = new http.Server(8815 + base_port, new mq.Routing({
-                "^/ws$": ws.upgrade((s) => {
+            var httpd = new http.Server(8815 + base_port, {
+                "/ws": ws.upgrade((s) => {
                     s.on("message", function (msg) {
                         if (msg.data === "Going Away")
                             msg.stream.close();
@@ -563,7 +564,7 @@ describe('ws', () => {
                             this.send(msg.data);
                     });
                 })
-            }));
+            });
             ss.push(httpd.socket);
             httpd.run(() => {});
 
