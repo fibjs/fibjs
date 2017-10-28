@@ -1433,9 +1433,6 @@
     <ClCompile Include="src\websocket\WebSocketMessage.cpp">
       <Filter>Source Files\websocket</Filter>
     </ClCompile>
-    <ClCompile Include="src\websocket\ws.cpp">
-      <Filter>Source Files\websocket</Filter>
-    </ClCompile>
     <ClCompile Include="src\xml\XmlAttr.cpp">
       <Filter>Source Files\xml</Filter>
     </ClCompile>

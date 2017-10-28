@@ -18,7 +18,6 @@ namespace fibjs {
 
 class WebSocketMessage_base;
 class WebSocket_base;
-class Stream_base;
 class Handler_base;
 
 class ws_base : public object_base {
@@ -40,7 +39,6 @@ public:
 
 public:
     // ws_base
-    static result_t connect(exlib::string url, exlib::string origin, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal);
 
 public:
@@ -65,25 +63,18 @@ public:
     static void s_get_OPEN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_CLOSING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_CLOSED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args);
-
-public:
-    ASYNC_STATICVALUE3(ws_base, connect, exlib::string, exlib::string, obj_ptr<Stream_base>);
 };
 }
 
 #include "WebSocketMessage.h"
 #include "WebSocket.h"
-#include "Stream.h"
 #include "Handler.h"
 
 namespace fibjs {
 inline ClassInfo& ws_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "connect", s_connect, true },
-        { "connectSync", s_connect, true },
         { "upgrade", s_upgrade, true }
     };
 
@@ -192,27 +183,6 @@ inline void ws_base::s_get_CLOSED(v8::Local<v8::String> property, const v8::Prop
     METHOD_NAME("ws.CLOSED");
     int32_t vr = _CLOSED;
     PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void ws_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Stream_base> vr;
-
-    METHOD_NAME("ws.connect");
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    if (!cb.IsEmpty()) {
-        acb_connect(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
-        hr = ac_connect(v0, v1, vr);
-
     METHOD_RETURN();
 }
 

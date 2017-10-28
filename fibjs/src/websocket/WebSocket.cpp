@@ -20,6 +20,8 @@
 
 namespace fibjs {
 
+DECLARE_MODULE(ws);
+
 class asyncSend : public AsyncState {
 public:
     asyncSend(WebSocket* pThis, exlib::string data, int32_t type = ws_base::_TEXT)
