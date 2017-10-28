@@ -24,6 +24,9 @@ public:
         , m_bRep(bRep)
     {
         m_message = new Message(m_bRep);
+        if (type != ws_base::_TEXT && type != ws_base::_BINARY)
+            m_compress = false;
+
         m_message->set_type(type);
     }
 
