@@ -16,17 +16,16 @@ namespace fibjs {
 
 class WebSocketMessage : public WebSocketMessage_base {
 public:
-    WebSocketMessage(int32_t type, bool masked, bool compress, int32_t maxSize, bool bRep = false)
+    WebSocketMessage(int32_t type, bool masked, bool compress, int32_t maxSize)
         : m_masked(masked)
         , m_compress(compress)
         , m_maxSize(maxSize)
         , m_error(0)
-        , m_bRep(bRep)
     {
-        m_message = new Message(m_bRep);
         if (type != ws_base::_TEXT && type != ws_base::_BINARY)
             m_compress = false;
 
+        m_message = new Message();
         m_message->set_type(type);
     }
 
@@ -80,7 +79,6 @@ public:
 
 private:
     obj_ptr<Message> m_message;
-    bool m_bRep;
 };
 
 } /* namespace fibjs */
