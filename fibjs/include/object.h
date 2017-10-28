@@ -223,6 +223,11 @@ public:
         return 0;
     }
 
+    virtual result_t onEventEmit(exlib::string ev)
+    {
+        return 0;
+    }
+
     void extMemory(int32_t ext)
     {
         if (handle_.IsEmpty())
