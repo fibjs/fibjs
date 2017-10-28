@@ -373,7 +373,7 @@ void WebSocket::startRecv()
                 obj_ptr<SeekableStream_base> body;
                 pThis->m_msg->get_body(body);
 
-                if (pThis->m_this->m_readyState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING) == ws_base::_OPEN)
+                if (pThis->m_this->m_closeState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING) == ws_base::_OPEN)
                     new asyncSend(pThis->m_this, body, ws_base::_CLOSE);
                 else
                     pThis->m_this->endConnect(body);
@@ -412,7 +412,7 @@ void WebSocket::startRecv()
 
 void WebSocket::endConnect(int32_t code, exlib::string reason)
 {
-    if (m_readyState.xchg(ws_base::_CLOSED) != ws_base::_CLOSED) {
+    if (m_closeState.xchg(ws_base::_CLOSED) != ws_base::_CLOSED) {
         Isolate* isolate = holder();
         if (isolate) {
             if (code > 1000 && code < 3000) {
@@ -512,7 +512,7 @@ result_t WebSocket::close(int32_t code, exlib::string reason)
 result_t WebSocket::send(exlib::string data)
 {
     if (m_readyState != ws_base::_OPEN)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CONNECTING, CLOSING or CLOSED state."));
 
     new asyncSend(this, data);
     return 0;
@@ -521,7 +521,7 @@ result_t WebSocket::send(exlib::string data)
 result_t WebSocket::send(Buffer_base* data)
 {
     if (m_readyState != ws_base::_OPEN)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CONNECTING, CLOSING or CLOSED state."));
 
     new asyncSend(this, data);
     return 0;

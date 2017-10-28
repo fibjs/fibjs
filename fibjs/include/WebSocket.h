@@ -26,6 +26,7 @@ public:
         , m_compress(false)
         , m_maxSize(67108864)
         , m_readyState(ws_base::_CONNECTING)
+        , m_closeState(ws_base::_OPEN)
     {
     }
 
@@ -37,6 +38,7 @@ public:
         , m_compress(false)
         , m_maxSize(67108864)
         , m_readyState(ws_base::_OPEN)
+        , m_closeState(ws_base::_OPEN)
     {
     }
 
@@ -47,6 +49,13 @@ public:
     virtual result_t onEventChange(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
     {
         startRecv();
+        return 0;
+    }
+
+    virtual result_t onEventEmit(exlib::string ev)
+    {
+        if (m_closeState == ws_base::_CLOSED)
+            m_readyState.xchg(ws_base::_CLOSED);
         return 0;
     }
 
@@ -95,6 +104,7 @@ public:
 
     exlib::atomic m_readyState;
     exlib::atomic m_readState;
+    exlib::atomic m_closeState;
 
     int32_t m_code;
     exlib::string m_reason;

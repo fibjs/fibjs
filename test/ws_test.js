@@ -607,6 +607,7 @@ describe('ws', () => {
             };
 
             s.onclose = (e) => {
+                assert.equal(s.readyState, ws.CLOSED);
                 assert.equal(e.code, 1000);
                 assert.equal(e.reason, "123");
                 tc = true;
@@ -628,6 +629,7 @@ describe('ws', () => {
             };
 
             s.onclose = (e) => {
+                assert.equal(s.readyState, ws.CLOSED);
                 // assert.equal(e.code, 3000);
                 // assert.equal(e.reason, "remote");
                 tc = true;
@@ -705,6 +707,7 @@ describe('ws', () => {
                 };
 
                 s.onerror = (e) => {
+                    assert.equal(s.readyState, ws.CLOSED);
                     assert.equal(e.code, 1002);
                     te = true;
                 };
@@ -737,6 +740,7 @@ describe('ws', () => {
                 };
 
                 s.onerror = (e) => {
+                    assert.equal(s.readyState, ws.CLOSED);
                     assert.equal(e.code, 1002);
                     te = true;
                 };
