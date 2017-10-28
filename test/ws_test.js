@@ -519,6 +519,7 @@ describe('ws', () => {
             assert.equal(s.readyState, ws.OPEN);
 
             s.close();
+            s.close();
         });
 
         it('send/onmessage', () => {

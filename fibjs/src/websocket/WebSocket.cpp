@@ -499,11 +499,11 @@ result_t WebSocket::get_readyState(int32_t& retVal)
 
 result_t WebSocket::close(int32_t code, exlib::string reason)
 {
-    if (m_readyState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING) != ws_base::_OPEN)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     if (code != 1000 && (code < 3000 || code > 4999))
         return CHECK_ERROR(Runtime::setError("websocket: The code must be either 1000, or between 3000 and 4999."));
+
+    if (m_readyState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING) != ws_base::_OPEN)
+        return 0;
 
     new asyncSend(this, code, reason);
     return 0;
