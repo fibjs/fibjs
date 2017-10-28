@@ -5,6 +5,25 @@
  ```JavaScript
  var ws = require('ws');
  ```
+ 创建一个服务器：
+ ```JavaScript
+ var ws = require('ws');
+ var http = require('http');
+
+ var svr = new http.Server(80, {
+     '/ws': ws.upgrade((conn, req) => {
+         conn.onmessage = e => console.log(e.data);
+     })
+ });
+ svr.run();
+ ```
+ 使用 WebSocket 客户端：
+ ```JavaScript
+ var ws = require('ws');
+ 
+ var conn = new ws.Socket('ws://127.0.0.1/ws');
+ conn.ommessage = e => console.log(e.data);
+ ```
  */
 module ws
 {
@@ -45,7 +64,8 @@ module ws
     static WebSocket new Socket();
 
     /*! @brief 创建一个 websocket 协议处理器，从 http 接收 upgrade 请求并握手，生成 WebSocket 对象
-     @param accept 连接成功处理函数，参数为 WebSocket 对象
+     accept 函数调用时，将传递两个参数，第一个参数为接收到的 WebSocket 对象，第二个参数为握手时的 HttpRequest 对象。
+     @param accept 连接成功处理函数
      @return 返回协议处理器，可与 HttpServer, Chain, Routing 等对接
      */
     static Handler upgrade(Function accept);
