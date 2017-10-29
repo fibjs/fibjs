@@ -172,7 +172,6 @@ public:
             obj_ptr<Buffer_base> m_data;
             obj_ptr<Buffer_base>& m_retVal;
             obj_ptr<MemoryStream> m_stm;
-            int64_t m_size;
         };
 
         return (new asyncProcess(this, data, retVal, ac))->post(0);
@@ -209,7 +208,6 @@ public:
         private:
             obj_ptr<ZlibStream> m_pThis;
             obj_ptr<Buffer_base> m_data;
-            int64_t m_size;
         };
 
         return (new asyncProcess(this, data, ac))->post(0);
