@@ -18,8 +18,10 @@ struct V8FrameInfo {
 V8FrameInfo save_fi(v8::Isolate* isolate);
 
 exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void* handle);
-
 exlib::string traceInfo(v8::Isolate* isolate, int32_t deep);
+
+void WriteLcovData(v8::Isolate* isolate, exlib::string file);
+void beginCoverage(v8::Isolate* isolate);
 
 } /* namespace fibjs */
 
