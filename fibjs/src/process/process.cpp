@@ -251,14 +251,10 @@ result_t process_base::get_stderr(obj_ptr<File_base>& retVal)
     return 0;
 }
 
-result_t process_base::exit(int32_t code)
+result_t process_base::exit()
 {
     Isolate* isolate = Isolate::current();
-
-    if (code != 0)
-        isolate->m_exitCode = code;
-    else
-        code = isolate->m_exitCode;
+    int32_t code = isolate->m_exitCode;
 
     JSTrigger t(isolate->m_isolate, class_info().getModule(isolate));
     v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, code);
@@ -276,6 +272,13 @@ result_t process_base::exit(int32_t code)
 #endif
 
     return 0;
+}
+
+result_t process_base::exit(int32_t code)
+{
+    Isolate* isolate = Isolate::current();
+    isolate->m_exitCode = code;
+    return process_base::exit();
 }
 
 result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)

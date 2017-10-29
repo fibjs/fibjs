@@ -32,7 +32,7 @@ static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
 
     t._emit((const char*)data, NULL, 0, r);
     if (!r)
-        _exit(1);
+        process_base::exit(1);
 }
 
 result_t async_signal(const char* name)

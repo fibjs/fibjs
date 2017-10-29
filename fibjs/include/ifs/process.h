@@ -43,6 +43,7 @@ public:
     static result_t umask(exlib::string mask, int32_t& retVal);
     static result_t umask(int32_t& retVal);
     static result_t hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& retVal);
+    static result_t exit();
     static result_t exit(int32_t code);
     static result_t cwd(exlib::string& retVal);
     static result_t chdir(exlib::string directory);
@@ -342,9 +343,13 @@ inline void process_base::s_exit(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_NAME("process.exit");
     METHOD_ENTER();
 
-    METHOD_OVER(1, 0);
+    METHOD_OVER(0, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    hr = exit();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = exit(v0);
 

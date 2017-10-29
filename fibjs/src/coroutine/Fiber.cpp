@@ -84,8 +84,12 @@ void JSFiber::fiber_proc(void* p)
 
                     isolate->m_pendding.inc();
                     t._emit("beforeExit", &code, 1, r);
-                    if (isolate->m_pendding.dec() == 0)
-                        process_base::exit(hr);
+                    if (isolate->m_pendding.dec() == 0) {
+                        if (hr >= 0)
+                            process_base::exit();
+                        else
+                            process_base::exit(hr);
+                    }
                 }
         }
 
