@@ -41,7 +41,7 @@ fs.writeFile(path.join(__dirname, "../fibjs/src/base/opt_tools.cpp"), `/*
 
 namespace fibjs {
 const char* opt_tools[] = {
-   ${txts.join()}
-   NULL
+    ${txts.join('\n    ')}
+    NULL
 };
 }`);
