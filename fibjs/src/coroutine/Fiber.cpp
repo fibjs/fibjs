@@ -11,10 +11,9 @@
 #include "ifs/os.h"
 #include "ifs/process.h"
 #include "v8_api.h"
+#include "options.h"
 
 namespace fibjs {
-
-extern int32_t stack_size;
 
 #define MAX_IDLE 256
 

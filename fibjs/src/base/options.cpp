@@ -11,6 +11,7 @@
 #include "console.h"
 #include "path.h"
 #include "Fiber.h"
+#include "options.h"
 
 namespace fibjs {
 

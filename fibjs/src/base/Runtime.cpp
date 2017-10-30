@@ -15,12 +15,11 @@
 #include "ifs/coroutine.h"
 #include "ifs/profiler.h"
 #include "v8_api.h"
+#include "options.h"
 
 namespace fibjs {
 
 static int32_t s_tls_rt;
-extern bool g_prof;
-extern int32_t g_prof_interval;
 
 void init_rt()
 {
@@ -58,7 +57,6 @@ public:
 
 exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
-extern int32_t stack_size;
 
 Isolate::rt_base::rt_base(Isolate* cur)
     : m_isolate((cur ? cur : Isolate::current()))

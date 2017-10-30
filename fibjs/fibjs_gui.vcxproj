@@ -351,6 +351,7 @@
     <ClInclude Include="include\mysql.h" />
     <ClInclude Include="include\obj_ptr.h" />
     <ClInclude Include="include\object.h" />
+    <ClInclude Include="include\options.h" />
     <ClInclude Include="include\parse.h" />
     <ClInclude Include="include\path.h" />
     <ClInclude Include="include\qstring.h" />

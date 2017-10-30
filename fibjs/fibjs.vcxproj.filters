@@ -894,6 +894,9 @@
     <ClInclude Include="include\object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\options.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\parse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
