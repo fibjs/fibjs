@@ -169,6 +169,9 @@ void Isolate::init()
 
     v8::Context::Scope context_scope(_context);
 
+    if (g_cov && m_id == 1)
+        beginCoverage(m_isolate);
+
     _context->SetEmbedderData(1, v8::Object::New(m_isolate)->GetPrototype());
 
     static const char* skips[] = { "Master", "repl", "argv", "__filename", "__dirname", NULL };
@@ -183,7 +186,7 @@ void Isolate::start_profiler()
     if (g_prof) {
         char name[32];
         obj_ptr<Timer_base> tm;
-        sprintf(name, "fibjs-%p.log", this);
+        sprintf(name, "fibjs-%08x.log", (uint32_t)(intptr_t)this);
         profiler_base::start(name, -1, g_prof_interval, tm);
         m_pendding.dec();
     }

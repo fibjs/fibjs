@@ -19,7 +19,6 @@
 
 #include "exlib/include/qstring.h"
 #include "v8_api.h"
-#include <fstream>
 
 namespace fibjs {
 
@@ -137,23 +136,23 @@ inline void WriteLcovDataForRange(std::vector<uint32_t>& lines, int start_line,
         lines[k] = count;
 }
 
-inline void WriteLcovDataForNamedRange(std::ostream& sink,
-    std::vector<uint32_t>& lines, std::string name,
-    int start_line, int end_line, uint32_t count)
+inline void WriteLcovDataForNamedRange(FILE* sink,
+    std::vector<uint32_t>& lines, std::string name, int start_line, int end_line, uint32_t count)
 {
     WriteLcovDataForRange(lines, start_line, end_line, count);
-    sink << "FN:" << start_line + 1 << "," << name << std::endl;
-    sink << "FNDA:" << count << "," << name << std::endl;
+    fprintf(sink, "FN:%d,%s\n", start_line + 1, name.c_str());
+    fprintf(sink, "FNDA:%d,%s\n", count, name.c_str());
 }
 
-void WriteLcovData(v8::Isolate* isolate, exlib::string file)
+void WriteLcovData(v8::Isolate* isolate, const char* file)
 {
+    FILE* sink = fopen(file, "a");
+    if (sink == NULL)
+        return;
+
     v8::HandleScope handle_scope(isolate);
-
-    v8::debug::Coverage::SelectMode(isolate, v8::debug::Coverage::kBestEffort);
-
     v8::debug::Coverage coverage = v8::debug::Coverage::CollectPrecise(isolate);
-    std::ofstream sink(file.c_str(), std::ofstream::app);
+
     for (size_t i = 0; i < coverage.ScriptCount(); i++) {
         v8::debug::Coverage::ScriptData script_data = coverage.GetScriptData(i);
         v8::Local<v8::debug::Script> script = script_data.GetScript();
@@ -162,11 +161,7 @@ void WriteLcovData(v8::Isolate* isolate, exlib::string file)
         if (!script->Name().ToLocal(&name))
             continue;
         std::string file_name = ToSTLString(isolate, name);
-        // Skip scripts not backed by a file.
-        if (!std::ifstream(file_name).good())
-            continue;
-        sink << "SF:";
-        sink << file_name << std::endl;
+        fprintf(sink, "SF:%s\n", file_name.c_str());
         std::vector<uint32_t> lines;
         for (size_t j = 0; j < script_data.FunctionCount(); j++) {
             v8::debug::Coverage::FunctionData function_data = script_data.GetFunctionData(j);
@@ -202,10 +197,12 @@ void WriteLcovData(v8::Isolate* isolate, exlib::string file)
             }
         }
         // Write per-line coverage. LCOV uses 1-based line numbers.
-        for (size_t i = 0; i < lines.size(); i++) {
-            sink << "DA:" << (i + 1) << "," << lines[i] << std::endl;
-        }
-        sink << "end_of_record" << std::endl;
+        for (size_t i = 0; i < lines.size(); i++)
+            fprintf(sink, "DA:%d,%d\n", (int32_t)(i + 1), lines[i]);
+
+        fprintf(sink, "end_of_record\n");
     }
+
+    fclose(sink);
 }
 }

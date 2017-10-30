@@ -18,6 +18,8 @@
 #include "SubProcess.h"
 #include <vector>
 #include "process_hrtime.h"
+#include "options.h"
+#include "v8_api.h"
 
 #ifdef _WIN32
 #include <psapi.h>
@@ -264,6 +266,12 @@ result_t process_base::exit()
     t._emit("exit", &v, 1, r);
 
     flushLog();
+
+    if (g_cov && isolate->m_id == 1) {
+        char name[32];
+        sprintf(name, "fibjs-%08x.lcov", (uint32_t)(intptr_t)isolate);
+        WriteLcovData(isolate->m_isolate, name);
+    }
 
 #ifdef _WIN32
     TerminateProcess(GetCurrentProcess(), code);
