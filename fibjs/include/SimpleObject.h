@@ -8,6 +8,8 @@
 #ifndef SIMPLE_OBJECT_H_
 #define SIMPLE_OBJECT_H_
 
+#include <algorithm>
+
 namespace fibjs {
 
 class NObject : public object_base {
