@@ -10,6 +10,8 @@
 
 namespace fibjs {
 
+void InvokeApiInterruptCallbacks(v8::Isolate* isolate);
+
 struct V8FrameInfo {
     void* entry_fp;
     void* handle;

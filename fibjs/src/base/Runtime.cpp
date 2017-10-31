@@ -66,13 +66,10 @@ Isolate::rt_base::rt_base(Isolate* cur)
 
     fb->m_c_entry_fp_ = _fi.entry_fp;
     fb->m_handler_ = _fi.handle;
-
-    m_isolate->m_in_use = 0;
 }
 
 Isolate::rt_base::~rt_base()
 {
-    m_isolate->m_in_use = 1;
 }
 
 static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallbackFlags flags)
@@ -191,72 +188,20 @@ void Isolate::start_profiler()
         m_pendding.dec();
     }
 }
-
-class CallbackData : public obj_base {
-public:
-    CallbackData(Isolate* isolate, v8::InterruptCallback callback, void* data)
-        : m_isolate(isolate)
-        , m_callback(callback)
-        , m_data(data)
-    {
-    }
-
-    void invoke()
-    {
-        if (m_invoked.CompareAndSwap(0, 1) == 0)
-            m_callback(m_isolate->m_isolate, m_data);
-    }
-
-public:
-    Isolate* m_isolate;
-    v8::InterruptCallback m_callback;
-    void* m_data;
-    exlib::atomic m_invoked;
-};
-
-static result_t js_timer(CallbackData* cd)
+void InvokeApiInterruptCallbacks(v8::Isolate* isolate);
+static result_t js_timer(Isolate* isolate)
 {
     JSFiber::scope s;
-    cd->invoke();
-    cd->Unref();
+    isolate->m_has_timer = 0;
+    InvokeApiInterruptCallbacks(isolate->m_isolate);
     return 0;
-}
-
-static void _InterruptCallback(v8::Isolate* isolate, void* data)
-{
-    CallbackData* cd = (CallbackData*)data;
-    cd->invoke();
-    cd->Unref();
 }
 
 void Isolate::RequestInterrupt(v8::InterruptCallback callback, void* data)
 {
-    CallbackData* cd = new CallbackData(this, callback, data);
-    cd->Ref();
-
-    if (IsInUse()) {
-        cd->Ref();
-        m_isolate->RequestInterrupt(_InterruptCallback, cd);
-
-        exlib::OSThread::sleep(1);
-
-        if (!cd->m_invoked) {
-            cd->Ref();
-            syncCall(this, js_timer, cd);
-        }
-    } else {
-        cd->Ref();
-        syncCall(this, js_timer, cd);
-
-        exlib::OSThread::sleep(1);
-
-        if (IsInUse() && !cd->m_invoked) {
-            cd->Ref();
-            m_isolate->RequestInterrupt(_InterruptCallback, cd);
-        }
-    }
-
-    cd->Unref();
+    m_isolate->RequestInterrupt(callback, data);
+    if (m_has_timer.CompareAndSwap(0, 1) == 0)
+        syncCall(this, js_timer, this);
 }
 
 } /* namespace fibjs */

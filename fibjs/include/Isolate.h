@@ -88,11 +88,6 @@ public:
         return m_isolate->GetCurrentContext();
     }
 
-    bool IsInUse()
-    {
-        return m_in_use != 0;
-    }
-
     void start_profiler();
 
 public:
@@ -126,7 +121,7 @@ public:
     int32_t m_idleFibers;
 
     exlib::atomic m_pendding;
-    exlib::atomic m_in_use;
+    exlib::atomic m_has_timer;
 
     int64_t m_fid;
 
