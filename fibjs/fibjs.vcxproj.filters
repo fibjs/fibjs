@@ -129,9 +129,6 @@
     <ClInclude Include="include\AsyncWaitHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\BlockQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -271,9 +268,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\PKey.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\QuickArray.h">
@@ -971,12 +965,6 @@
     <ClCompile Include="src\collection\Map.cpp">
       <Filter>Source Files\collection</Filter>
     </ClCompile>
-    <ClCompile Include="src\collection\Queue.cpp">
-      <Filter>Source Files\collection</Filter>
-    </ClCompile>
-    <ClCompile Include="src\console\TextColor.cpp">
-      <Filter>Source Files\console</Filter>
-    </ClCompile>
     <ClCompile Include="src\console\console.cpp">
       <Filter>Source Files\console</Filter>
     </ClCompile>
@@ -1015,9 +1003,6 @@
     </ClCompile>
     <ClCompile Include="src\console\windows\console_windows_mouse.cpp">
       <Filter>Source Files\console\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="src\coroutine\BlockQueue.cpp">
-      <Filter>Source Files\coroutine</Filter>
     </ClCompile>
     <ClCompile Include="src\coroutine\Condition.cpp">
       <Filter>Source Files\coroutine</Filter>

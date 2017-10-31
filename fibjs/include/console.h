@@ -188,27 +188,25 @@ public:
     }
 
 public:
-    static exlib::string& notice()
+    static exlib::string notice()
     {
-        return get_std_color()->m_notice;
+        return COLOR_GREEN;
     }
 
-    static exlib::string& warn()
+    static exlib::string warn()
     {
-        return get_std_color()->m_warn;
+        return COLOR_YELLOW;
     }
 
-    static exlib::string& error()
+    static exlib::string error()
     {
-        return get_std_color()->m_error;
+        return COLOR_LIGHTRED;
     }
 
-    static exlib::string& highLight()
+    static exlib::string highLight()
     {
-        return get_std_color()->m_highLight;
+        return COLOR_TITLE;
     }
-
-    static TextColor* get_std_color();
 
 protected:
     exlib::List<item> m_workinglogs;

@@ -8,8 +8,6 @@
 #ifndef TEXTCOLOR_H_
 #define TEXTCOLOR_H_
 
-#include "ifs/TextColor.h"
-
 namespace fibjs {
 
 #define COLOR_RESET "\x1b[0m"
@@ -33,34 +31,6 @@ namespace fibjs {
 #define COLOR_LIGHTWHITE "\x1b[1;37m" /* White */
 
 #define COLOR_TITLE "\x1B[1;39m"
-
-class TextColor : public TextColor_base {
-public:
-    TextColor()
-    {
-        m_error = COLOR_LIGHTRED;
-        m_warn = COLOR_YELLOW;
-        m_notice = COLOR_GREEN;
-        m_highLight = COLOR_TITLE;
-    }
-
-public:
-    // TextColor_base
-    virtual result_t get_notice(exlib::string& retVal);
-    virtual result_t set_notice(exlib::string newVal);
-    virtual result_t get_warn(exlib::string& retVal);
-    virtual result_t set_warn(exlib::string newVal);
-    virtual result_t get_error(exlib::string& retVal);
-    virtual result_t set_error(exlib::string newVal);
-    virtual result_t get_highLight(exlib::string& retVal);
-    virtual result_t set_highLight(exlib::string newVal);
-
-public:
-    exlib::string m_notice;
-    exlib::string m_warn;
-    exlib::string m_error;
-    exlib::string m_highLight;
-};
 }
 
 #endif /* STAT_H_ */

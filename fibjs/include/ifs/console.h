@@ -16,8 +16,6 @@
 
 namespace fibjs {
 
-class TextColor_base;
-
 class console_base : public object_base {
     DECLARE_CLASS(console_base);
 
@@ -39,7 +37,6 @@ public:
     // console_base
     static result_t get_loglevel(int32_t& retVal);
     static result_t set_loglevel(int32_t newVal);
-    static result_t get_colors(obj_ptr<TextColor_base>& retVal);
     static result_t get_width(int32_t& retVal);
     static result_t get_height(int32_t& retVal);
     static result_t add(exlib::string type);
@@ -110,7 +107,6 @@ public:
     static void s_get_NOTSET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_loglevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_colors(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_height(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -147,8 +143,6 @@ public:
     ASYNC_STATICVALUE2(console_base, readLine, exlib::string, exlib::string);
 };
 }
-
-#include "TextColor.h"
 
 namespace fibjs {
 inline ClassInfo& console_base::class_info()
@@ -198,7 +192,6 @@ inline ClassInfo& console_base::class_info()
         { "PRINT", s_get_PRINT, block_set, true },
         { "NOTSET", s_get_NOTSET, block_set, true },
         { "loglevel", s_get_loglevel, s_set_loglevel, true },
-        { "colors", s_get_colors, block_set, true },
         { "width", s_get_width, block_set, true },
         { "height", s_get_height, block_set, true }
     };
@@ -314,18 +307,6 @@ inline void console_base::s_set_loglevel(v8::Local<v8::String> property, v8::Loc
     hr = set_loglevel(v0);
 
     PROPERTY_SET_LEAVE();
-}
-
-inline void console_base::s_get_colors(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<TextColor_base> vr;
-
-    METHOD_NAME("console.colors");
-    PROPERTY_ENTER();
-
-    hr = get_colors(vr);
-
-    METHOD_RETURN();
 }
 
 inline void console_base::s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)

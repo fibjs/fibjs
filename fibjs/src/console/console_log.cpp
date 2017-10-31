@@ -87,12 +87,6 @@ result_t console_base::set_loglevel(int32_t newVal)
     return 0;
 }
 
-result_t console_base::get_colors(obj_ptr<TextColor_base>& retVal)
-{
-    retVal = logger::get_std_color();
-    return 0;
-}
-
 result_t console_base::add(exlib::string type)
 {
     Isolate* isolate = Isolate::current();

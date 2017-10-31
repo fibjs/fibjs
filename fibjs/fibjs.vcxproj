@@ -96,7 +96,6 @@
     <ClInclude Include="include\AsyncCall.h" />
     <ClInclude Include="include\AsyncIO.h" />
     <ClInclude Include="include\AsyncWaitHandler.h" />
-    <ClInclude Include="include\BlockQueue.h" />
     <ClInclude Include="include\Buffer.h" />
     <ClInclude Include="include\BufferedStream.h" />
     <ClInclude Include="include\Chain.h" />
@@ -144,7 +143,6 @@
     <ClInclude Include="include\MongoID.h" />
     <ClInclude Include="include\NullHandler.h" />
     <ClInclude Include="include\PKey.h" />
-    <ClInclude Include="include\Queue.h" />
     <ClInclude Include="include\QuickArray.h" />
     <ClInclude Include="include\Redis.h" />
     <ClInclude Include="include\RedisHash.h" />
@@ -381,8 +379,6 @@
     <ClCompile Include="src\base\utils.cpp" />
     <ClCompile Include="src\base\v8_api.cpp" />
     <ClCompile Include="src\collection\Map.cpp" />
-    <ClCompile Include="src\collection\Queue.cpp" />
-    <ClCompile Include="src\console\TextColor.cpp" />
     <ClCompile Include="src\console\console.cpp" />
     <ClCompile Include="src\console\console_event.cpp" />
     <ClCompile Include="src\console\console_file.cpp" />
@@ -396,7 +392,6 @@
     <ClCompile Include="src\console\tty.cpp" />
     <ClCompile Include="src\console\windows\console_windows_key.cpp" />
     <ClCompile Include="src\console\windows\console_windows_mouse.cpp" />
-    <ClCompile Include="src\coroutine\BlockQueue.cpp" />
     <ClCompile Include="src\coroutine\Condition.cpp" />
     <ClCompile Include="src\coroutine\Event.cpp" />
     <ClCompile Include="src\coroutine\Fiber.cpp" />

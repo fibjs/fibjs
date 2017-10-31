@@ -11,16 +11,6 @@
 
 namespace fibjs {
 
-TextColor* logger::get_std_color()
-{
-    static obj_ptr<TextColor> s_tc;
-
-    if (!s_tc)
-        s_tc = new TextColor;
-
-    return s_tc;
-}
-
 #ifdef _WIN32
 
 void std_logger::out(exlib::string& txt)

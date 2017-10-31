@@ -47,9 +47,6 @@ module console
      */
     static Integer loglevel;
 
-    /*! @brief 终端输出颜色配置对象，详见 TextColor */
-    static readonly TextColor colors;
-
     /*! @brief 查询终端每行字符数 */
     static readonly Integer width;
 
