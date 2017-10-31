@@ -37,7 +37,6 @@ public:
     virtual result_t runCommand(exlib::string cmd, v8::Local<v8::Value> arg, v8::Local<v8::Object>& retVal);
     virtual result_t _named_getter(exlib::string property, obj_ptr<MongoCollection_base>& retVal);
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal);
-    virtual result_t get_fs(obj_ptr<GridFS_base>& retVal);
     virtual result_t oid(exlib::string hexStr, obj_ptr<MongoID_base>& retVal);
     virtual result_t close(AsyncEvent* ac);
 

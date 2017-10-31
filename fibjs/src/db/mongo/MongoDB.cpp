@@ -9,7 +9,6 @@
 #include "ifs/db.h"
 #include "MongoDB.h"
 #include "MongoCollection.h"
-#include "GridFS.h"
 #include "Socket_api.h"
 #include <mongo/include/env.h>
 #include "Url.h"
@@ -302,12 +301,6 @@ result_t MongoDB::_named_getter(exlib::string property,
 
 result_t MongoDB::_named_enumerator(v8::Local<v8::Array>& retVal)
 {
-    return 0;
-}
-
-result_t MongoDB::get_fs(obj_ptr<GridFS_base>& retVal)
-{
-    retVal = new GridFS(this);
     return 0;
 }
 

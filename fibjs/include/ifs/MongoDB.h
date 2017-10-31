@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class MongoCollection_base;
-class GridFS_base;
 class MongoID_base;
 
 class MongoDB_base : public object_base {
@@ -30,7 +29,6 @@ public:
     virtual result_t runCommand(exlib::string cmd, v8::Local<v8::Value> arg, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t _named_getter(exlib::string property, obj_ptr<MongoCollection_base>& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
-    virtual result_t get_fs(obj_ptr<GridFS_base>& retVal) = 0;
     virtual result_t oid(exlib::string hexStr, obj_ptr<MongoID_base>& retVal) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
 
@@ -50,7 +48,6 @@ public:
     static void s_runCommand(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args);
-    static void s_get_fs(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_oid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -60,7 +57,6 @@ public:
 }
 
 #include "MongoCollection.h"
-#include "GridFS.h"
 #include "MongoID.h"
 
 namespace fibjs {
@@ -74,17 +70,13 @@ inline ClassInfo& MongoDB_base::class_info()
         { "closeSync", s_close, false }
     };
 
-    static ClassData::ClassProperty s_property[] = {
-        { "fs", s_get_fs, block_set, false }
-    };
-
     static ClassData::ClassNamed s_named = {
         i_NamedGetter, i_NamedSetter, i_NamedDeleter, i_NamedEnumerator
     };
 
     static ClassData s_cd = {
         "MongoDB", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, &s_named,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, &s_named,
         &object_base::class_info()
     };
 
@@ -164,19 +156,6 @@ inline void MongoDB_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::A
     hr = pInst->_named_enumerator(vr);
 
     METHOD_RETURN1();
-}
-
-inline void MongoDB_base::s_get_fs(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<GridFS_base> vr;
-
-    METHOD_NAME("MongoDB.fs");
-    METHOD_INSTANCE(MongoDB_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_fs(vr);
-
-    METHOD_RETURN();
 }
 
 inline void MongoDB_base::s_oid(const v8::FunctionCallbackInfo<v8::Value>& args)

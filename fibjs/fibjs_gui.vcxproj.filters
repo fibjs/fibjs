@@ -168,9 +168,6 @@
     <ClInclude Include="include\File.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\GridFS.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\HeapGraphEdge.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -478,9 +475,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\File.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\GridFS.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Handler.h">
@@ -1033,9 +1027,6 @@
     </ClCompile>
     <ClCompile Include="src\db\db.cpp">
       <Filter>Source Files\db</Filter>
-    </ClCompile>
-    <ClCompile Include="src\db\mongo\GridFS.cpp">
-      <Filter>Source Files\db\mongo</Filter>
     </ClCompile>
     <ClCompile Include="src\db\mongo\MongoCollection.cpp">
       <Filter>Source Files\db\mongo</Filter>

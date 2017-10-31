@@ -110,7 +110,6 @@
     <ClInclude Include="include\EventInfo.h" />
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
-    <ClInclude Include="include\GridFS.h" />
     <ClInclude Include="include\HeapGraphEdge.h" />
     <ClInclude Include="include\HeapGraphNode.h" />
     <ClInclude Include="include\HeapProxy.h" />
@@ -214,7 +213,6 @@
     <ClInclude Include="include\ifs\EventInfo.h" />
     <ClInclude Include="include\ifs\Fiber.h" />
     <ClInclude Include="include\ifs\File.h" />
-    <ClInclude Include="include\ifs\GridFS.h" />
     <ClInclude Include="include\ifs\Handler.h" />
     <ClInclude Include="include\ifs\HandlerEx.h" />
     <ClInclude Include="include\ifs\HeapGraphEdge.h" />
@@ -403,7 +401,6 @@
     <ClCompile Include="src\crypto\root_ca.cpp" />
     <ClCompile Include="src\db\LevelDB.cpp" />
     <ClCompile Include="src\db\db.cpp" />
-    <ClCompile Include="src\db\mongo\GridFS.cpp" />
     <ClCompile Include="src\db\mongo\MongoCollection.cpp" />
     <ClCompile Include="src\db\mongo\MongoCursor.cpp" />
     <ClCompile Include="src\db\mongo\MongoDB.cpp" />
