@@ -51,7 +51,7 @@ public:
     virtual result_t remove(int32_t count, Buffer_base* value, int32_t& retVal);
     virtual result_t trim(int32_t start, int32_t stop);
     virtual result_t len(int32_t& retVal);
-    virtual result_t range(int32_t start, int32_t stop, obj_ptr<List_base>& retVal);
+    virtual result_t range(int32_t start, int32_t stop, obj_ptr<NArray>& retVal);
 
 private:
     exlib::string m_key;

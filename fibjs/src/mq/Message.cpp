@@ -7,7 +7,6 @@
 
 #include "object.h"
 #include "Message.h"
-#include "List.h"
 #include "MemoryStream.h"
 #include "Buffer.h"
 #include "ifs/json.h"
@@ -26,18 +25,12 @@ result_t Message::set_value(exlib::string newVal)
     return 0;
 }
 
-result_t Message::get_params(obj_ptr<List_base>& retVal)
+result_t Message::get_params(obj_ptr<NArray>& retVal)
 {
     if (m_params == NULL)
-        m_params = new List();
+        m_params = new NArray();
 
     retVal = m_params;
-    return 0;
-}
-
-result_t Message::set_params(List_base* newVal)
-{
-    m_params = newVal;
     return 0;
 }
 

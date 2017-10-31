@@ -16,7 +16,6 @@
 
 namespace fibjs {
 
-class List_base;
 class Buffer_base;
 
 class registry_base : public object_base {
@@ -37,8 +36,8 @@ public:
 
 public:
     // registry_base
-    static result_t listSubKey(int32_t root, exlib::string key, obj_ptr<List_base>& retVal);
-    static result_t listValue(int32_t root, exlib::string key, obj_ptr<List_base>& retVal);
+    static result_t listSubKey(int32_t root, exlib::string key, obj_ptr<NArray>& retVal);
+    static result_t listValue(int32_t root, exlib::string key, obj_ptr<NArray>& retVal);
     static result_t get(int32_t root, exlib::string key, v8::Local<v8::Value>& retVal);
     static result_t set(int32_t root, exlib::string key, double value, int32_t type);
     static result_t set(int32_t root, exlib::string key, exlib::string value, int32_t type);
@@ -75,7 +74,6 @@ public:
 };
 }
 
-#include "List.h"
 #include "Buffer.h"
 
 namespace fibjs {
@@ -185,7 +183,7 @@ inline void registry_base::s_get_QWORD(v8::Local<v8::String> property, const v8:
 
 inline void registry_base::s_listSubKey(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("registry.listSubKey");
     METHOD_ENTER();
@@ -202,7 +200,7 @@ inline void registry_base::s_listSubKey(const v8::FunctionCallbackInfo<v8::Value
 
 inline void registry_base::s_listValue(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("registry.listValue");
     METHOD_ENTER();

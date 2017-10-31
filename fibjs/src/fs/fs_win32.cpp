@@ -1,7 +1,6 @@
 #ifdef _WIN32
 
 #include "ifs/fs.h"
-#include "List.h"
 #include "path.h"
 #include "File.h"
 
@@ -578,7 +577,7 @@ result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
     return 0;
 }
 
-result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac)
+result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -586,7 +585,7 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncE
     WIN32_FIND_DATAW fd;
     HANDLE hFind;
     exlib::wstring fpath;
-    obj_ptr<List> oa;
+    obj_ptr<NArray> oa;
 
     fpath = utf8to16String(path);
     fpath.append(L"\\*", 2);
@@ -595,7 +594,7 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncE
     if (hFind == INVALID_HANDLE_VALUE)
         return CHECK_ERROR(LastError());
 
-    oa = new List();
+    oa = new NArray();
 
     do {
         if (qstrcmp(fd.cFileName, L".") && qstrcmp(fd.cFileName, L"..")) {

@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class Buffer_base;
-class List_base;
 
 class LevelDB_base : public object_base {
     DECLARE_CLASS(LevelDB_base);
@@ -26,7 +25,7 @@ public:
     // LevelDB_base
     virtual result_t has(Buffer_base* key, bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal) = 0;
     virtual result_t set(Buffer_base* key, Buffer_base* value, AsyncEvent* ac) = 0;
     virtual result_t mset(v8::Local<v8::Object> map) = 0;
     virtual result_t mremove(v8::Local<v8::Array> keys) = 0;
@@ -72,7 +71,6 @@ public:
 }
 
 #include "Buffer.h"
-#include "List.h"
 
 namespace fibjs {
 inline ClassInfo& LevelDB_base::class_info()
@@ -151,7 +149,7 @@ inline void LevelDB_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void LevelDB_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("LevelDB.mget");
     METHOD_INSTANCE(LevelDB_base);

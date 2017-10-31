@@ -13,7 +13,6 @@
 #include "utf8.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
-#include "List.h"
 
 namespace fibjs {
 
@@ -314,7 +313,7 @@ result_t ZipFile::get_info(obj_ptr<Info>& retVal)
     return 0;
 }
 
-result_t ZipFile::namelist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
+result_t ZipFile::namelist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_unz)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -326,7 +325,7 @@ result_t ZipFile::namelist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
     unz_global_info64 gi;
     int32_t err;
     uint32_t i;
-    obj_ptr<List> names = new List();
+    obj_ptr<NArray> names = new NArray();
 
     if (m_mod != "r")
         return CHECK_ERROR(Runtime::setError("can not read!"));
@@ -359,7 +358,7 @@ result_t ZipFile::namelist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t ZipFile::infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
+result_t ZipFile::infolist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_unz)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -371,7 +370,7 @@ result_t ZipFile::infolist(obj_ptr<List_base>& retVal, AsyncEvent* ac)
     unz_global_info64 gi;
     int32_t err;
     uint32_t i;
-    obj_ptr<List> names = new List();
+    obj_ptr<NArray> names = new NArray();
 
     if (m_mod != "r")
         return CHECK_ERROR(Runtime::setError("can not read!"));
@@ -641,7 +640,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncEv
     return 0;
 }
 
-result_t ZipFile::readAll(exlib::string password, obj_ptr<List_base>& retVal, AsyncEvent* ac)
+result_t ZipFile::readAll(exlib::string password, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_unz)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -653,7 +652,7 @@ result_t ZipFile::readAll(exlib::string password, obj_ptr<List_base>& retVal, As
     unz_global_info64 gi;
     int32_t err;
     uint32_t i;
-    obj_ptr<List> datas = new List();
+    obj_ptr<NArray> datas = new NArray();
 
     err = unzGetGlobalInfo64(m_unz, &gi);
     if (err != UNZ_OK)

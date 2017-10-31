@@ -65,7 +65,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
     while (true) {
         v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(hdlr);
-        obj_ptr<List_base> params;
+        obj_ptr<NArray> params;
         std::vector<v8::Local<v8::Value>> argv;
         v8::Local<v8::Value>* pargv;
         int32_t len = 0, i;

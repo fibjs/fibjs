@@ -35,8 +35,8 @@ public:
     virtual result_t strlen(Buffer_base* key, int32_t& retVal);
     virtual result_t bitcount(Buffer_base* key, int32_t start, int32_t end, int32_t& retVal);
     virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal);
-    virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal);
-    virtual result_t mget(OptArgs keys, obj_ptr<List_base>& retVal);
+    virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal);
+    virtual result_t mget(OptArgs keys, obj_ptr<NArray>& retVal);
     virtual result_t getset(Buffer_base* key, Buffer_base* value, obj_ptr<Buffer_base>& retVal);
     virtual result_t decr(Buffer_base* key, int64_t num, int64_t& retVal);
     virtual result_t incr(Buffer_base* key, int64_t num, int64_t& retVal);
@@ -44,7 +44,7 @@ public:
     virtual result_t getBit(Buffer_base* key, int32_t offset, int32_t& retVal);
     virtual result_t exists(Buffer_base* key, bool& retVal);
     virtual result_t type(Buffer_base* key, exlib::string& retVal);
-    virtual result_t keys(exlib::string pattern, obj_ptr<List_base>& retVal);
+    virtual result_t keys(exlib::string pattern, obj_ptr<NArray>& retVal);
     virtual result_t del(v8::Local<v8::Array> keys, int32_t& retVal);
     virtual result_t del(OptArgs keys, int32_t& retVal);
     virtual result_t expire(Buffer_base* key, int64_t ttl, bool& retVal);
@@ -237,9 +237,9 @@ public:
         return 0;
     }
 
-    static result_t retValue(Variant& v, obj_ptr<List_base>& retVal)
+    static result_t retValue(Variant& v, obj_ptr<NArray>& retVal)
     {
-        retVal = List_base::getInstance(v.object());
+        retVal = (NArray*)v.object();
         return retVal ? 0 : CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 

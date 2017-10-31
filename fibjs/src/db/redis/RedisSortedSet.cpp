@@ -76,7 +76,7 @@ result_t RedisSortedSet::count(int32_t min, int32_t max, int32_t& retVal)
 }
 
 result_t RedisSortedSet::range(int32_t start, int32_t stop, bool withScores,
-    obj_ptr<List_base>& retVal)
+    obj_ptr<NArray>& retVal)
 {
     if (withScores)
         return m_rdb->doCommand("ZRANGE", m_key, start, stop, "WITHSCORES", retVal);
@@ -85,7 +85,7 @@ result_t RedisSortedSet::range(int32_t start, int32_t stop, bool withScores,
 }
 
 result_t RedisSortedSet::rangeRev(int32_t start, int32_t stop, bool withScores,
-    obj_ptr<List_base>& retVal)
+    obj_ptr<NArray>& retVal)
 {
     if (withScores)
         return m_rdb->doCommand("ZREVRANGE", m_key, start, stop, "WITHSCORES", retVal);

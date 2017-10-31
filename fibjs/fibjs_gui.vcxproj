@@ -133,7 +133,6 @@
     <ClInclude Include="include\Isolate.h" />
     <ClInclude Include="include\JSHandler.h" />
     <ClInclude Include="include\LevelDB.h" />
-    <ClInclude Include="include\List.h" />
     <ClInclude Include="include\Lock.h" />
     <ClInclude Include="include\LruCache.h" />
     <ClInclude Include="include\Map.h" />
@@ -381,7 +380,6 @@
     <ClCompile Include="src\base\utf8.cpp" />
     <ClCompile Include="src\base\utils.cpp" />
     <ClCompile Include="src\base\v8_api.cpp" />
-    <ClCompile Include="src\collection\List.cpp" />
     <ClCompile Include="src\collection\Map.cpp" />
     <ClCompile Include="src\collection\Queue.cpp" />
     <ClCompile Include="src\console\TextColor.cpp" />

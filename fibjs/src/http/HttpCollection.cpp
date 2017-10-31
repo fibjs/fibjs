@@ -7,7 +7,6 @@
 
 #include "object.h"
 #include "HttpCollection.h"
-#include "List.h"
 #include "Map.h"
 #include "Url.h"
 #include <string.h>
@@ -206,12 +205,12 @@ result_t HttpCollection::first(exlib::string name, Variant& retVal)
     return CALL_RETURN_NULL;
 }
 
-result_t HttpCollection::all(exlib::string name, obj_ptr<List_base>& retVal)
+result_t HttpCollection::all(exlib::string name, obj_ptr<NArray>& retVal)
 {
-    obj_ptr<List> list;
+    obj_ptr<NArray> list;
     int32_t i;
 
-    list = new List();
+    list = new NArray();
 
     for (i = 0; i < m_count; i++)
         if (!qstricmp(m_names[i].c_str(), name.c_str()))

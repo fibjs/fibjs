@@ -26,5 +26,5 @@ interface HeapSnapshot : object
     readonly HeapGraphNode root;
 
     /*! @brief 堆视图节点组成的列表 */
-    readonly List nodes;
+    readonly NArray nodes;
 };

@@ -216,8 +216,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_dir->get_length(length);
 
             if (pThis->m_dirPos == 0) {
-                obj_ptr<List_base> _dir = pThis->m_dir;
-                _dir->sort(pThis->m_dir);
+                pThis->m_dir->sort();
 
                 pThis->m_file = new MemoryStream();
                 pThis->m_file->cc_write(new Buffer("<html>\n<head><title>Index of "
@@ -383,7 +382,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         bool m_autoIndex;
         bool m_pre_gz;
         bool m_index;
-        obj_ptr<List_base> m_dir;
+        obj_ptr<NArray> m_dir;
         int32_t m_dirPos;
     };
 

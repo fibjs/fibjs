@@ -9,7 +9,6 @@
 #include "HttpResponse.h"
 #include "HttpCookie.h"
 #include "Buffer.h"
-#include "List.h"
 
 namespace fibjs {
 
@@ -130,7 +129,7 @@ result_t HttpResponse::firstHeader(exlib::string name, Variant& retVal)
     return m_message->firstHeader(name, retVal);
 }
 
-result_t HttpResponse::allHeader(exlib::string name, obj_ptr<List_base>& retVal)
+result_t HttpResponse::allHeader(exlib::string name, obj_ptr<NArray>& retVal)
 {
     return m_message->allHeader(name, retVal);
 }
@@ -170,14 +169,9 @@ result_t HttpResponse::set_value(exlib::string newVal)
     return m_message->set_value(newVal);
 }
 
-result_t HttpResponse::get_params(obj_ptr<List_base>& retVal)
+result_t HttpResponse::get_params(obj_ptr<NArray>& retVal)
 {
     return m_message->get_params(retVal);
-}
-
-result_t HttpResponse::set_params(List_base* newVal)
-{
-    return m_message->set_params(newVal);
 }
 
 result_t HttpResponse::get_type(int32_t& retVal)
@@ -441,13 +435,13 @@ result_t HttpResponse::writeHead(int32_t statusCode, v8::Local<v8::Object> heade
     return 0;
 }
 
-result_t HttpResponse::get_cookies(obj_ptr<List_base>& retVal)
+result_t HttpResponse::get_cookies(obj_ptr<NArray>& retVal)
 {
     if (!m_cookies) {
-        obj_ptr<List> cookies = new List();
+        obj_ptr<NArray> cookies = new NArray();
 
         int32_t len, i;
-        obj_ptr<List_base> headers;
+        obj_ptr<NArray> headers;
 
         allHeader("Set-Cookie", headers);
         removeHeader("Set-Cookie");
@@ -476,13 +470,12 @@ result_t HttpResponse::get_cookies(obj_ptr<List_base>& retVal)
 
 result_t HttpResponse::addCookie(HttpCookie_base* cookie)
 {
-    obj_ptr<List_base> cookies;
+    obj_ptr<NArray> cookies;
     Variant v;
-    int32_t r;
 
     v = cookie;
     get_cookies(cookies);
-    cookies->push(v, r);
+    cookies->append(v);
 
     return 0;
 }

@@ -47,7 +47,7 @@ public:
     result_t get_socket(obj_ptr<Stream_base>& retVal);
     result_t hasHeader(exlib::string name, bool& retVal);
     result_t firstHeader(exlib::string name, Variant& retVal);
-    result_t allHeader(exlib::string name, obj_ptr<List_base>& retVal);
+    result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal);
     result_t addHeader(v8::Local<v8::Object> map);
     result_t addHeader(exlib::string name, Variant value);
     result_t setHeader(v8::Local<v8::Object> map);

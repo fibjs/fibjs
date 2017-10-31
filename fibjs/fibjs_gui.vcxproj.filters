@@ -240,9 +240,6 @@
     <ClInclude Include="include\LevelDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\List.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Lock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -970,9 +967,6 @@
     </ClCompile>
     <ClCompile Include="src\base\v8_api.cpp">
       <Filter>Source Files\base</Filter>
-    </ClCompile>
-    <ClCompile Include="src\collection\List.cpp">
-      <Filter>Source Files\collection</Filter>
     </ClCompile>
     <ClCompile Include="src\collection\Map.cpp">
       <Filter>Source Files\collection</Filter>

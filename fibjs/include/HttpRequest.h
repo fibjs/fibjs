@@ -29,8 +29,7 @@ public:
     // Message_base
     virtual result_t get_value(exlib::string& retVal);
     virtual result_t set_value(exlib::string newVal);
-    virtual result_t get_params(obj_ptr<List_base>& retVal);
-    virtual result_t set_params(List_base* newVal);
+    virtual result_t get_params(obj_ptr<NArray>& retVal);
     virtual result_t get_type(int32_t& retVal);
     virtual result_t set_type(int32_t newVal);
     virtual result_t get_data(v8::Local<v8::Value>& retVal);
@@ -68,7 +67,7 @@ public:
     virtual result_t get_socket(obj_ptr<Stream_base>& retVal);
     virtual result_t hasHeader(exlib::string name, bool& retVal);
     virtual result_t firstHeader(exlib::string name, Variant& retVal);
-    virtual result_t allHeader(exlib::string name, obj_ptr<List_base>& retVal);
+    virtual result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal);
     virtual result_t addHeader(v8::Local<v8::Object> map);
     virtual result_t addHeader(exlib::string name, Variant value);
     virtual result_t setHeader(v8::Local<v8::Object> map);

@@ -16,8 +16,6 @@
 
 namespace fibjs {
 
-class List_base;
-
 class HttpCollection_base : public object_base {
     DECLARE_CLASS(HttpCollection_base);
 
@@ -26,7 +24,7 @@ public:
     virtual result_t clear() = 0;
     virtual result_t has(exlib::string name, bool& retVal) = 0;
     virtual result_t first(exlib::string name, Variant& retVal) = 0;
-    virtual result_t all(exlib::string name, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t all(exlib::string name, obj_ptr<NArray>& retVal) = 0;
     virtual result_t add(v8::Local<v8::Object> map) = 0;
     virtual result_t add(exlib::string name, Variant value) = 0;
     virtual result_t set(v8::Local<v8::Object> map) = 0;
@@ -62,8 +60,6 @@ public:
     static void i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& args);
 };
 }
-
-#include "List.h"
 
 namespace fibjs {
 inline ClassInfo& HttpCollection_base::class_info()
@@ -141,7 +137,7 @@ inline void HttpCollection_base::s_first(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("HttpCollection.all");
     METHOD_INSTANCE(HttpCollection_base);

@@ -40,7 +40,7 @@ result_t RedisSet::exists(Buffer_base* member, bool& retVal)
     return m_rdb->doCommand("SISMEMBER", m_key, member, retVal);
 }
 
-result_t RedisSet::members(obj_ptr<List_base>& retVal)
+result_t RedisSet::members(obj_ptr<NArray>& retVal)
 {
     return m_rdb->doCommand("SMEMBERS", m_key, retVal);
 }
@@ -66,7 +66,7 @@ result_t RedisSet::randMember(v8::Local<v8::Value>& retVal)
 
 result_t RedisSet::randMember(int32_t count, v8::Local<v8::Value>& retVal)
 {
-    obj_ptr<List_base> v;
+    obj_ptr<NArray> v;
     result_t hr;
 
     hr = m_rdb->doCommand("SRANDMEMBER", m_key, count, v);

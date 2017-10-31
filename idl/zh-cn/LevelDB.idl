@@ -25,7 +25,7 @@ interface LevelDB : object
      @param keys 指定要查询的键值数组
      @return 返回包含键值得数组
      */
-    List mget(Array keys);
+    NArray mget(Array keys);
 
     /*! @brief 设定一个键值数据，键值不存在则插入新数据
      @param key 指定要设定的键值

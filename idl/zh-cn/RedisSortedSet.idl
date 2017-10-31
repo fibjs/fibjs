@@ -56,14 +56,14 @@ interface RedisSortedSet : object
      @param stop 指定查询的结束下标，0 表示第一个元素，-1 表示最后一个元素
      @param withScores 指定是否在结果中包含 score
      @return 指定区间内，带有 score 值(可选)的有序集成员的列表 */
-    List range(Integer start, Integer stop, Boolean withScores = false);
+    NArray range(Integer start, Integer stop, Boolean withScores = false);
 
     /*! @brief 返回有序集中，指定区间内的成员，成员的位置按 score 值递减(从大到小)来排序
      @param start 指定查询的起始下标，0 表示第一个元素，-1 表示最后一个元素
      @param stop 指定查询的结束下标，0 表示第一个元素，-1 表示最后一个元素
      @param withScores 指定是否在结果中包含 score
      @return 指定区间内，带有 score 值(可选)的有序集成员的列表 */
-    List rangeRev(Integer start, Integer stop, Boolean withScores = false);
+    NArray rangeRev(Integer start, Integer stop, Boolean withScores = false);
 
     /*! @brief 有序集中成员 member 的排名。其中有序集成员按 score 值递增(从小到大)顺序排列
      @param member 指定要查询的 member

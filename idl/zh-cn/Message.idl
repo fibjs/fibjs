@@ -22,7 +22,7 @@ interface Message : object
     String value;
 
     /*! @brief 消息的基本参数 */
-    List params;
+    readonly NArray params;
 
     /*! @brief 消息类型 */
     Integer type;

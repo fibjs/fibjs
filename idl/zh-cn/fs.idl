@@ -166,7 +166,7 @@ module fs
      @param path 指定查询的目录
      @return 返回目录的文件信息数组
      */
-    static List readdir(String path) async;
+    static NArray readdir(String path) async;
 
     /*! @brief 打开文件，用于读取，写入，或者同时读写
 

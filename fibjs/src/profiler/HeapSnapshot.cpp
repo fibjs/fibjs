@@ -249,7 +249,7 @@ result_t HeapSnapshot::load(exlib::string fname)
 
     int32_t node_pos = 0, edge_pos = 0;
 
-    m_nodes = new List();
+    m_nodes = new NArray();
     while (node_pos < node_count) {
         int32_t _base = node_pos * (int32_t)node_fields.size();
         int32_t _node_type = nodes[_base];
@@ -260,7 +260,7 @@ result_t HeapSnapshot::load(exlib::string fname)
         int32_t _node_id = nodes[_base + 2];
         int32_t _node_size = nodes[_base + 3];
         int32_t _node_edge = nodes[_base + 4];
-        obj_ptr<List> _edges = new List();
+        obj_ptr<NArray> _edges = new NArray();
 
         if (edge_pos + _node_edge > edge_count)
             return CHECK_ERROR(CALL_E_INVALID_DATA);
@@ -291,8 +291,6 @@ result_t HeapSnapshot::load(exlib::string fname)
             edge_pos++;
         }
 
-        _edges->freeze();
-
         obj_ptr<HeapGraphNode> _node = new HeapGraphNode(_node_type,
             _node_name, _node_id, _node_size, _edges);
 
@@ -301,8 +299,6 @@ result_t HeapSnapshot::load(exlib::string fname)
 
         node_pos++;
     }
-
-    m_nodes->freeze();
 
     return 0;
 }
@@ -417,7 +413,7 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
 
     name_ids _ids;
     QuickArray<HeapGraphNode_base*> nodes;
-    obj_ptr<List_base> childs;
+    obj_ptr<NArray> childs;
     buf_file bufs;
     int32_t count, child_count = 0;
     int32_t n;
@@ -559,7 +555,7 @@ result_t HeapSnapshot::get_root(obj_ptr<HeapGraphNode_base>& retVal)
     return getNodeById(1, retVal);
 }
 
-result_t HeapSnapshot::get_nodes(obj_ptr<List_base>& retVal)
+result_t HeapSnapshot::get_nodes(obj_ptr<NArray>& retVal)
 {
     retVal = m_nodes;
     return 0;

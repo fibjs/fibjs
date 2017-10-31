@@ -30,7 +30,7 @@ public:
     // LevelDB_base
     virtual result_t has(Buffer_base* key, bool& retVal, AsyncEvent* ac);
     virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal);
+    virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal);
     virtual result_t set(Buffer_base* key, Buffer_base* value, AsyncEvent* ac);
     virtual result_t mset(v8::Local<v8::Object> map);
     virtual result_t mremove(v8::Local<v8::Array> keys);
@@ -57,8 +57,8 @@ private:
     result_t _commit(leveldb::WriteBatch* batch, AsyncEvent* ac);
     ASYNC_MEMBER1_AC(LevelDB, _commit, leveldb::WriteBatch*);
 
-    result_t _mget(std::vector<exlib::string>* keys, obj_ptr<List_base>& retVal, AsyncEvent* ac);
-    ASYNC_MEMBERVALUE2_AC(LevelDB, _mget, std::vector<exlib::string>*, obj_ptr<List_base>);
+    result_t _mget(std::vector<exlib::string>* keys, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    ASYNC_MEMBERVALUE2_AC(LevelDB, _mget, std::vector<exlib::string>*, obj_ptr<NArray>);
 
     leveldb::DB* db()
     {

@@ -18,7 +18,7 @@ typedef std::set<int32_t> idset;
 
 inline void buildIDSet(idset* seen, HeapSnapshot_base* snapshot, intptr_t& s)
 {
-    obj_ptr<List_base> nodes;
+    obj_ptr<NArray> nodes;
     int32_t _count;
 
     snapshot->get_nodes(nodes);
@@ -148,7 +148,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
 {
     Isolate* isolate = Isolate::current();
     intptr_t s, diffBytes;
-    obj_ptr<List_base> nodes;
+    obj_ptr<NArray> nodes;
     int32_t _count;
     date_t d;
 

@@ -836,12 +836,6 @@ describe('util', () => {
             assert.equal(util.format(new Int64(12345678)), '12345678');
         });
 
-        it("List", () => {
-            var a = new collection.List();
-            a.push(100, 200);
-            assert.equal(util.format(a), '[\n  100,\n  200\n]');
-        });
-
         it("levels", () => {
             assert.equal(util.format({}), '{}');
             assert.equal(util.format([

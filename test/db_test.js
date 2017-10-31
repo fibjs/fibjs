@@ -310,7 +310,7 @@ describe("db", () => {
             assert.equal(ldb.get("ccc").toString(), "ccc value");
             assert.equal(ldb.get("ddd").toString(), "ddd value");
 
-            assert.deepEqual(ldb.mget(['aaa', 'ccc', 'eee']).toArray(), [
+            assert.deepEqual(ldb.mget(['aaa', 'ccc', 'eee']), [
                 new Buffer('aaa value'), new Buffer('ccc value'), null
             ]);
 

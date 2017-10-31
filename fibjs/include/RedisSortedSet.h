@@ -46,8 +46,8 @@ public:
     virtual result_t remove(OptArgs members, int32_t& retVal);
     virtual result_t len(int32_t& retVal);
     virtual result_t count(int32_t min, int32_t max, int32_t& retVal);
-    virtual result_t range(int32_t start, int32_t stop, bool withScores, obj_ptr<List_base>& retVal);
-    virtual result_t rangeRev(int32_t start, int32_t stop, bool withScores, obj_ptr<List_base>& retVal);
+    virtual result_t range(int32_t start, int32_t stop, bool withScores, obj_ptr<NArray>& retVal);
+    virtual result_t rangeRev(int32_t start, int32_t stop, bool withScores, obj_ptr<NArray>& retVal);
     virtual result_t rank(Buffer_base* member, int32_t& retVal);
     virtual result_t rankRev(Buffer_base* member, int32_t& retVal);
 

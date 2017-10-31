@@ -9,7 +9,6 @@
 
 #include "ifs/HttpClient.h"
 #include "HttpCookie.h"
-#include "List.h"
 
 namespace fibjs {
 
@@ -23,13 +22,13 @@ public:
         , m_autoRedirect(true)
         , m_maxBodySize(-1)
     {
-        m_cookies = new List();
+        m_cookies = new NArray();
         m_userAgent = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36";
     }
 
 public:
     // HttpClient_base
-    virtual result_t get_cookies(obj_ptr<List_base>& retVal);
+    virtual result_t get_cookies(obj_ptr<NArray>& retVal);
     virtual result_t get_timeout(int32_t& retVal);
     virtual result_t set_timeout(int32_t newVal);
     virtual result_t get_enableCookie(bool& retVal);
@@ -51,7 +50,7 @@ public:
     virtual result_t find(exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 public:
-    result_t update_cookies(exlib::string url, obj_ptr<List_base> cookies);
+    result_t update_cookies(exlib::string url, obj_ptr<NArray> cookies);
     result_t get_cookie(exlib::string url, exlib::string& retVal);
 
     exlib::string agent()
@@ -63,7 +62,7 @@ private:
     result_t update(obj_ptr<HttpCookie_base> cookie);
 
 private:
-    obj_ptr<List> m_cookies;
+    obj_ptr<NArray> m_cookies;
     int32_t m_timeout;
     bool m_enableCookie;
     bool m_autoRedirect;

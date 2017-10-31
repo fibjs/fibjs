@@ -43,11 +43,11 @@ public:
     virtual result_t mset(v8::Local<v8::Object> kvs);
     virtual result_t mset(OptArgs kvs);
     virtual result_t get(Buffer_base* field, obj_ptr<Buffer_base>& retVal);
-    virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<List_base>& retVal);
-    virtual result_t mget(OptArgs fields, obj_ptr<List_base>& retVal);
+    virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<NArray>& retVal);
+    virtual result_t mget(OptArgs fields, obj_ptr<NArray>& retVal);
     virtual result_t incr(Buffer_base* field, int64_t num, int64_t& retVal);
-    virtual result_t getAll(obj_ptr<List_base>& retVal);
-    virtual result_t keys(obj_ptr<List_base>& retVal);
+    virtual result_t getAll(obj_ptr<NArray>& retVal);
+    virtual result_t keys(obj_ptr<NArray>& retVal);
     virtual result_t len(int32_t& retVal);
     virtual result_t exists(Buffer_base* field, bool& retVal);
     virtual result_t del(v8::Local<v8::Array> fields, int32_t& retVal);

@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class Buffer_base;
-class List_base;
 class RedisHash_base;
 class RedisList_base;
 class RedisSet_base;
@@ -42,8 +41,8 @@ public:
     virtual result_t strlen(Buffer_base* key, int32_t& retVal) = 0;
     virtual result_t bitcount(Buffer_base* key, int32_t start, int32_t end, int32_t& retVal) = 0;
     virtual result_t get(Buffer_base* key, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal) = 0;
-    virtual result_t mget(OptArgs keys, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal) = 0;
+    virtual result_t mget(OptArgs keys, obj_ptr<NArray>& retVal) = 0;
     virtual result_t getset(Buffer_base* key, Buffer_base* value, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t decr(Buffer_base* key, int64_t num, int64_t& retVal) = 0;
     virtual result_t incr(Buffer_base* key, int64_t num, int64_t& retVal) = 0;
@@ -51,7 +50,7 @@ public:
     virtual result_t getBit(Buffer_base* key, int32_t offset, int32_t& retVal) = 0;
     virtual result_t exists(Buffer_base* key, bool& retVal) = 0;
     virtual result_t type(Buffer_base* key, exlib::string& retVal) = 0;
-    virtual result_t keys(exlib::string pattern, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t keys(exlib::string pattern, obj_ptr<NArray>& retVal) = 0;
     virtual result_t del(v8::Local<v8::Array> keys, int32_t& retVal) = 0;
     virtual result_t del(OptArgs keys, int32_t& retVal) = 0;
     virtual result_t expire(Buffer_base* key, int64_t ttl, bool& retVal) = 0;
@@ -139,7 +138,6 @@ public:
 }
 
 #include "Buffer.h"
-#include "List.h"
 #include "RedisHash.h"
 #include "RedisList.h"
 #include "RedisSet.h"
@@ -426,7 +424,7 @@ inline void Redis_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Redis_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("Redis.mget");
     METHOD_INSTANCE(Redis_base);
@@ -574,7 +572,7 @@ inline void Redis_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Redis_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("Redis.keys");
     METHOD_INSTANCE(Redis_base);

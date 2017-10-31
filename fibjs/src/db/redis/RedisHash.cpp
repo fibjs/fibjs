@@ -38,12 +38,12 @@ result_t RedisHash::get(Buffer_base* field, obj_ptr<Buffer_base>& retVal)
     return m_rdb->doCommand("HGET", m_key, field, retVal);
 }
 
-result_t RedisHash::mget(v8::Local<v8::Array> fields, obj_ptr<List_base>& retVal)
+result_t RedisHash::mget(v8::Local<v8::Array> fields, obj_ptr<NArray>& retVal)
 {
     return m_rdb->doCommand("HMGET", m_key, fields, retVal);
 }
 
-result_t RedisHash::mget(OptArgs fields, obj_ptr<List_base>& retVal)
+result_t RedisHash::mget(OptArgs fields, obj_ptr<NArray>& retVal)
 {
     return m_rdb->doCommand("HMGET", m_key, fields, retVal);
 }
@@ -53,12 +53,12 @@ result_t RedisHash::incr(Buffer_base* field, int64_t num, int64_t& retVal)
     return m_rdb->doCommand("HINCRBY", m_key, field, num, retVal);
 }
 
-result_t RedisHash::getAll(obj_ptr<List_base>& retVal)
+result_t RedisHash::getAll(obj_ptr<NArray>& retVal)
 {
     return m_rdb->doCommand("HGETALL", m_key, retVal);
 }
 
-result_t RedisHash::keys(obj_ptr<List_base>& retVal)
+result_t RedisHash::keys(obj_ptr<NArray>& retVal)
 {
     return m_rdb->doCommand("HKEYS", m_key, retVal);
 }

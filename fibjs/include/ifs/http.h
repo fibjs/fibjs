@@ -23,7 +23,6 @@ class HttpServer_base;
 class HttpClient_base;
 class HttpsServer_base;
 class HttpHandler_base;
-class List_base;
 class Handler_base;
 class Stream_base;
 class SeekableStream_base;
@@ -34,7 +33,7 @@ class http_base : public object_base {
 
 public:
     // http_base
-    static result_t get_cookies(obj_ptr<List_base>& retVal);
+    static result_t get_cookies(obj_ptr<NArray>& retVal);
     static result_t get_timeout(int32_t& retVal);
     static result_t set_timeout(int32_t newVal);
     static result_t get_enableCookie(bool& retVal);
@@ -108,7 +107,6 @@ public:
 #include "HttpClient.h"
 #include "HttpsServer.h"
 #include "HttpHandler.h"
-#include "List.h"
 #include "Handler.h"
 #include "Stream.h"
 #include "SeekableStream.h"
@@ -166,7 +164,7 @@ inline ClassInfo& http_base::class_info()
 
 inline void http_base::s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("http.cookies");
     PROPERTY_ENTER();

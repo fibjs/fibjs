@@ -9,7 +9,6 @@
 #include "Routing.h"
 #include "ifs/Message.h"
 #include "ifs/HttpRequest.h"
-#include "List.h"
 #include "parse.h"
 
 namespace fibjs {
@@ -62,7 +61,9 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         rc = pcre_exec(r->m_re, NULL, value.c_str(), (int32_t)value.length(),
             0, 0, ovector, RE_SIZE);
         if (rc > 0) {
-            obj_ptr<List> list = new List();
+            obj_ptr<NArray> list;
+
+            msg->get_params(list);
 
             if (rc > 1) {
                 int32_t levelCount[RE_SIZE] = { 0 };
@@ -91,23 +92,20 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     } else
                         msg->set_value("");
 
-                    int32_t toDrop;
                     if (levelCount[p]) {
                         Variant vUndefined;
                         for (i = 0; i < rc; i++)
                             if (level[i] == p) {
                                 if (ovector[i * 2 + 1] - ovector[i * 2] > 0)
-                                    list->push(value.substr(ovector[i * 2],
-                                                   ovector[i * 2 + 1] - ovector[i * 2]),
-                                        toDrop);
+                                    list->append(value.substr(ovector[i * 2],
+                                        ovector[i * 2 + 1] - ovector[i * 2]));
                                 else
-                                    list->push(vUndefined, toDrop);
+                                    list->append(vUndefined);
                             }
                     }
                 }
             }
 
-            msg->set_params(list);
             retVal = r->m_hdlr;
             return 0;
         }

@@ -39,14 +39,14 @@ module registry
      @param key 指定键值
      @return 返回该键值下所有子健
      */
-    static List listSubKey(Integer root, String key);
+    static NArray listSubKey(Integer root, String key);
 
     /*! @brief 返回指定键值下的所有数据的健
      @param root 指定注册表根
      @param key 指定键值
      @return 返回该键值下所有数据的健
      */
-    static List listValue(Integer root, String key);
+    static NArray listValue(Integer root, String key);
 
     /*! @brief 查询指定键值的数值
      @param root 指定注册表根

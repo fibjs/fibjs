@@ -7,7 +7,6 @@
 
 #include "ifs/HeapSnapshot.h"
 #include "ifs/HeapGraphEdge.h"
-#include "List.h"
 #include <v8/include/v8-profiler.h>
 #include <map>
 
@@ -41,7 +40,7 @@ public:
     virtual result_t save(exlib::string fname, AsyncEvent* ac);
     virtual result_t get_time(date_t& retVal);
     virtual result_t get_root(obj_ptr<HeapGraphNode_base>& retVal);
-    virtual result_t get_nodes(obj_ptr<List_base>& retVal);
+    virtual result_t get_nodes(obj_ptr<NArray>& retVal);
 
 private:
     void fill_nodes();
@@ -50,7 +49,7 @@ private:
     const v8::HeapSnapshot* m_snapshot;
     date_t m_d;
     std::map<int32_t, int32_t> _nodes;
-    obj_ptr<List> m_nodes;
+    obj_ptr<NArray> m_nodes;
 };
 
 class HeapGraphNodeProxy : public HeapGraphNode_base {
@@ -68,12 +67,12 @@ public:
     virtual result_t get_description(exlib::string& retVal);
     virtual result_t get_id(int32_t& retVal);
     virtual result_t get_shallowSize(int32_t& retVal);
-    virtual result_t get_childs(obj_ptr<List_base>& retVal);
+    virtual result_t get_childs(obj_ptr<NArray>& retVal);
 
 private:
     weak_ptr<HeapSnapshotProxy> m_snapshot;
     const v8::HeapGraphNode* m_node;
-    obj_ptr<List> m_childs;
+    obj_ptr<NArray> m_childs;
 };
 
 class HeapGraphEdgeProxy : public HeapGraphEdge_base {

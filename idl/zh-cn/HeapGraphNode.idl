@@ -33,5 +33,5 @@ interface HeapGraphNode : object
     readonly Integer shallowSize;
 
     /*! @brief 子节点列表，由HeapGraphEdge类型对象组成 */
-    readonly List childs;
+    readonly NArray childs;
 };

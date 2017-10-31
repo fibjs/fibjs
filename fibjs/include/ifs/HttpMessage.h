@@ -20,7 +20,6 @@ namespace fibjs {
 class Message_base;
 class HttpCollection_base;
 class Stream_base;
-class List_base;
 
 class HttpMessage_base : public Message_base {
     DECLARE_CLASS(HttpMessage_base);
@@ -41,7 +40,7 @@ public:
     virtual result_t get_socket(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t hasHeader(exlib::string name, bool& retVal) = 0;
     virtual result_t firstHeader(exlib::string name, Variant& retVal) = 0;
-    virtual result_t allHeader(exlib::string name, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal) = 0;
     virtual result_t addHeader(v8::Local<v8::Object> map) = 0;
     virtual result_t addHeader(exlib::string name, Variant value) = 0;
     virtual result_t setHeader(v8::Local<v8::Object> map) = 0;
@@ -83,7 +82,6 @@ public:
 
 #include "HttpCollection.h"
 #include "Stream.h"
-#include "List.h"
 
 namespace fibjs {
 inline ClassInfo& HttpMessage_base::class_info()
@@ -304,7 +302,7 @@ inline void HttpMessage_base::s_firstHeader(const v8::FunctionCallbackInfo<v8::V
 
 inline void HttpMessage_base::s_allHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("HttpMessage.allHeader");
     METHOD_INSTANCE(HttpMessage_base);

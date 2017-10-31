@@ -89,12 +89,12 @@ interface Redis : object
     /*! @brief 返回所有(一个或多个)给定 key 的值。如果给定的 key 里面，有某个 key 不存在，那么这个 key 返回特殊值 nil 。
      @param keys 指定要查询的 key 数组
      @return 一个包含所有给定 key 的值的列表 */
-    List mget(Array keys);
+    NArray mget(Array keys);
 
     /*! @brief 返回所有(一个或多个)给定 key 的值。如果给定的 key 里面，有某个 key 不存在，那么这个 key 返回特殊值 nil 。
      @param keys 指定要查询的 key 列表
      @return 一个包含所有给定 key 的值的列表 */
-    List mget(...keys);
+    NArray mget(...keys);
 
     /*! @brief 将给定 key 的值设为 value ，并返回 key 的旧值(old value)
      @param key 指定要查询修改的 key
@@ -140,7 +140,7 @@ interface Redis : object
     /*! @brief 查找所有符合给定模式 pattern 的 key
      @param pattern 指定查询模式
      @return 符合给定模式的 key 列表 */
-    List keys(String pattern);
+    NArray keys(String pattern);
 
     /*! @brief 删除给定的一个或多个 key，不存在的 key 会被忽略
      @param keys 指定要删除的 key 数组

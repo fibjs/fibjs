@@ -4,12 +4,12 @@ interface ZipFile : object
     /*! @brief 获取文件名列表
 	 @return 返回包含文件名的列表对象
 	 */
-    List namelist() async;
+    NArray namelist() async;
 
     /*! @brief 获取文件信息列表 
 	 @return 返回包含文件信息的列表对象
 	 */
-    List infolist() async;
+    NArray infolist() async;
 
     /*! @brief 获取文件信息
 	 @param member 指定要获取信息的文件名
@@ -28,7 +28,7 @@ interface ZipFile : object
 	 @param password 解压密码, 默认没有密码
 	 @return 包含所有文件数据及信息的列表
      */
-    List readAll(String password = "") async;
+    NArray readAll(String password = "") async;
 
     /*! @brief 解压指定文件
 	 @param member 指定要解压的文件名

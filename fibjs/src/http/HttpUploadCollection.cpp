@@ -9,7 +9,6 @@
 #include "HttpUploadCollection.h"
 #include "HttpUploadData.h"
 #include "MemoryStream.h"
-#include "List.h"
 #include "Map.h"
 #include <string.h>
 
@@ -240,12 +239,12 @@ result_t HttpUploadCollection::first(exlib::string name, Variant& retVal)
     return CALL_RETURN_NULL;
 }
 
-result_t HttpUploadCollection::all(exlib::string name, obj_ptr<List_base>& retVal)
+result_t HttpUploadCollection::all(exlib::string name, obj_ptr<NArray>& retVal)
 {
-    obj_ptr<List> list;
+    obj_ptr<NArray> list;
     int32_t i;
 
-    list = new List();
+    list = new NArray();
 
     for (i = 0; i < m_count; i++)
         if (!qstricmp(m_names[i].c_str(), name.c_str()))

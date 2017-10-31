@@ -36,12 +36,12 @@ interface RedisHash : object
     /*! @brief 返回哈希表中，一个或多个给定域的值
      @param fields 指定要查询的域数组
      @return 一个包含所有给定域的值的列表 */
-    List mget(Array fields);
+    NArray mget(Array fields);
 
     /*! @brief 返回哈希表中，一个或多个给定域的值
      @param fields 指定要查询的域列表
      @return 一个包含所有给定域的值的列表 */
-    List mget(...fields);
+    NArray mget(...fields);
 
     /*! @brief 将域所储存的值加上增量
      @param field 指定要修改的域
@@ -51,11 +51,11 @@ interface RedisHash : object
 
     /*! @brief 返回哈希表中，所有的域和值
      @return 返回一个包含哈希表中所有域的列表 */
-    List getAll();
+    NArray getAll();
 
     /*! @brief 返回哈希表中的所有域
      @return 返回值里，紧跟每个域名(field name)之后是域的值(value)，所以返回值的长度是哈希表大小的两倍 */
-    List keys();
+    NArray keys();
 
     /*! @brief 返回哈希表中域的数量
      @return 返回哈希表中域的数量 */

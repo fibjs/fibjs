@@ -635,7 +635,7 @@ describe('fs', () => {
     });
 
     it("readdir", () => {
-        var fl = fs.readdir(path.join(__dirname, 'vm_test')).toJSON();
+        var fl = fs.readdir(path.join(__dirname, 'vm_test'));
         fl.sort((a, b) => {
             if (a > b)
                 return 1;

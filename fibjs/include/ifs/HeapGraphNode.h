@@ -16,8 +16,6 @@
 
 namespace fibjs {
 
-class List_base;
-
 class HeapGraphNode_base : public object_base {
     DECLARE_CLASS(HeapGraphNode_base);
 
@@ -28,7 +26,7 @@ public:
     virtual result_t get_description(exlib::string& retVal) = 0;
     virtual result_t get_id(int32_t& retVal) = 0;
     virtual result_t get_shallowSize(int32_t& retVal) = 0;
-    virtual result_t get_childs(obj_ptr<List_base>& retVal) = 0;
+    virtual result_t get_childs(obj_ptr<NArray>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -50,8 +48,6 @@ public:
     static void s_get_childs(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
-
-#include "List.h"
 
 namespace fibjs {
 inline ClassInfo& HeapGraphNode_base::class_info()
@@ -142,7 +138,7 @@ inline void HeapGraphNode_base::s_get_shallowSize(v8::Local<v8::String> property
 
 inline void HeapGraphNode_base::s_get_childs(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("HeapGraphNode.childs");
     METHOD_INSTANCE(HeapGraphNode_base);

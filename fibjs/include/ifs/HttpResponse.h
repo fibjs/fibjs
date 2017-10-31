@@ -18,7 +18,6 @@
 namespace fibjs {
 
 class HttpMessage_base;
-class List_base;
 class HttpCookie_base;
 class Stream_base;
 
@@ -34,7 +33,7 @@ public:
     virtual result_t set_statusMessage(exlib::string newVal) = 0;
     virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers) = 0;
     virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers) = 0;
-    virtual result_t get_cookies(obj_ptr<List_base>& retVal) = 0;
+    virtual result_t get_cookies(obj_ptr<NArray>& retVal) = 0;
     virtual result_t addCookie(HttpCookie_base* cookie) = 0;
     virtual result_t redirect(exlib::string url) = 0;
     virtual result_t sendHeader(Stream_base* stm, AsyncEvent* ac) = 0;
@@ -60,7 +59,6 @@ public:
 };
 }
 
-#include "List.h"
 #include "HttpCookie.h"
 #include "Stream.h"
 
@@ -188,7 +186,7 @@ inline void HttpResponse_base::s_writeHead(const v8::FunctionCallbackInfo<v8::Va
 
 inline void HttpResponse_base::s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("HttpResponse.cookies");
     METHOD_INSTANCE(HttpResponse_base);

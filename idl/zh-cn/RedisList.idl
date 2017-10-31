@@ -78,5 +78,5 @@ interface RedisList : object
      @param start 指定查询的起始下标，0 表示第一个元素，-1 表示最后一个元素
      @param stop 指定查询的结束下标，0 表示第一个元素，-1 表示最后一个元素
      @return 包含指定区间内的元素的数组 */
-    List range(Integer start, Integer stop);
+    NArray range(Integer start, Integer stop);
 };

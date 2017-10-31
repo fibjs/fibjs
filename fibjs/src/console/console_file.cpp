@@ -94,7 +94,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
 
 void file_logger::clearFile()
 {
-    obj_ptr<List_base> fd;
+    obj_ptr<NArray> fd;
     result_t hr;
 
     exlib::string name;

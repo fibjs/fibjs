@@ -50,7 +50,7 @@ result_t HttpClient::set_timeout(int32_t newVal)
     return 0;
 }
 
-result_t HttpClient::get_cookies(obj_ptr<List_base>& retVal)
+result_t HttpClient::get_cookies(obj_ptr<NArray>& retVal)
 {
     retVal = m_cookies;
     return 0;
@@ -151,7 +151,7 @@ result_t HttpClient::update(obj_ptr<HttpCookie_base> cookie)
     return 0;
 }
 
-result_t HttpClient::update_cookies(exlib::string url, obj_ptr<List_base> cookies)
+result_t HttpClient::update_cookies(exlib::string url, obj_ptr<NArray> cookies)
 {
     result_t hr;
     int32_t length, i;
@@ -441,7 +441,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
             pThis->m_hc->get_enableCookie(enableCookie);
             if (enableCookie) {
-                obj_ptr<List_base> cookies;
+                obj_ptr<NArray> cookies;
                 pThis->m_retVal->get_cookies(cookies);
                 pThis->m_hc->update_cookies(pThis->m_url, cookies);
             }

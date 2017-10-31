@@ -16,7 +16,7 @@ public:
     void add(exlib::string key, Variant value)
     {
         m_keys.push_back(key);
-        m_values.append(value);
+        m_values.push_back(value);
     }
 
 public:
@@ -37,11 +37,10 @@ public:
 
 protected:
     std::vector<exlib::string> m_keys;
-    QuickArray<Variant> m_values;
+    std::vector<Variant> m_values;
 };
 
 class NArray : public NObject {
-
 public:
     void resize(size_t sz)
     {
@@ -50,7 +49,25 @@ public:
 
     void append(Variant value)
     {
-        m_array.append(value);
+        m_array.push_back(value);
+    }
+
+    result_t get_length(int32_t& retVal)
+    {
+        retVal = (int32_t)m_array.size();
+        return 0;
+    }
+
+    result_t _indexed_getter(int32_t idx, Variant& retVal)
+    {
+        retVal = m_array[idx];
+        return 0;
+    }
+
+    result_t sort()
+    {
+        std::sort(m_array.begin(), m_array.end(), compare1);
+        return 0;
     }
 
 public:
@@ -72,8 +89,19 @@ public:
         return 0;
     }
 
+private:
+    static bool compare1(const Variant& v1, const Variant& v2)
+    {
+        exlib::string s1, s2;
+
+        v1.toString(s1);
+        v2.toString(s2);
+
+        return s1.compare(s2) < 0;
+    }
+
 protected:
-    QuickArray<Variant> m_array;
+    std::vector<Variant> m_array;
 };
 
 class NType : public object_base {

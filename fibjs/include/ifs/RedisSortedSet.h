@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class Buffer_base;
-class List_base;
 
 class RedisSortedSet_base : public object_base {
     DECLARE_CLASS(RedisSortedSet_base);
@@ -32,8 +31,8 @@ public:
     virtual result_t remove(OptArgs members, int32_t& retVal) = 0;
     virtual result_t len(int32_t& retVal) = 0;
     virtual result_t count(int32_t min, int32_t max, int32_t& retVal) = 0;
-    virtual result_t range(int32_t start, int32_t stop, bool withScores, obj_ptr<List_base>& retVal) = 0;
-    virtual result_t rangeRev(int32_t start, int32_t stop, bool withScores, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t range(int32_t start, int32_t stop, bool withScores, obj_ptr<NArray>& retVal) = 0;
+    virtual result_t rangeRev(int32_t start, int32_t stop, bool withScores, obj_ptr<NArray>& retVal) = 0;
     virtual result_t rank(Buffer_base* member, int32_t& retVal) = 0;
     virtual result_t rankRev(Buffer_base* member, int32_t& retVal) = 0;
 
@@ -63,7 +62,6 @@ public:
 }
 
 #include "Buffer.h"
-#include "List.h"
 
 namespace fibjs {
 inline ClassInfo& RedisSortedSet_base::class_info()
@@ -207,7 +205,7 @@ inline void RedisSortedSet_base::s_count(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void RedisSortedSet_base::s_range(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("RedisSortedSet.range");
     METHOD_INSTANCE(RedisSortedSet_base);
@@ -226,7 +224,7 @@ inline void RedisSortedSet_base::s_range(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void RedisSortedSet_base::s_rangeRev(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("RedisSortedSet.rangeRev");
     METHOD_INSTANCE(RedisSortedSet_base);

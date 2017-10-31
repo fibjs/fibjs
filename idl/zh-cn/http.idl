@@ -24,7 +24,7 @@ module http
     static HttpHandler new Handler();
 
     /*! @brief 返回http客户端的 HttpCookie 对象列表 */
-    static readonly List cookies;
+    static readonly NArray cookies;
 
     /*! @brief 查询和设置超时时间 */
     static Integer timeout;

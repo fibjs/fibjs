@@ -9,7 +9,6 @@
 #include "LevelDB.h"
 #include "ifs/db.h"
 #include "Buffer.h"
-#include "List.h"
 
 namespace fibjs {
 
@@ -113,10 +112,10 @@ result_t LevelDB::get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent
 }
 
 result_t LevelDB::_mget(std::vector<exlib::string>* keys,
-    obj_ptr<List_base>& retVal, AsyncEvent* ac)
+    obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     std::vector<exlib::string>& ks = *keys;
-    obj_ptr<List> list = new List();
+    obj_ptr<NArray> list = new NArray();
     int32_t i;
 
     Variant nil;
@@ -141,7 +140,7 @@ result_t LevelDB::_mget(std::vector<exlib::string>* keys,
     return 0;
 }
 
-result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal)
+result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
 {
     std::vector<exlib::string> ks;
     int32_t len = keys->Length();

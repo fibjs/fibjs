@@ -62,7 +62,6 @@ describe("http", () => {
     var ss = [];
 
     after(() => {
-        http.cookies.resize(0);
         http.autoRedirect = true;
         http.enableCookie = true;
 
@@ -91,7 +90,7 @@ describe("http", () => {
 
         it("all", () => {
             var a = d.all('a');
-            assert.deepEqual(a.toArray(), ['100', '300']);
+            assert.deepEqual(a, ['100', '300']);
         });
 
         it("remove", () => {
@@ -104,7 +103,7 @@ describe("http", () => {
             assert.equal(d.first('c'), '400');
 
             var a = d.all('c');
-            assert.deepEqual(a.toArray(), ['400', '600']);
+            assert.deepEqual(a, ['400', '600']);
         });
 
         it("set", () => {
@@ -124,10 +123,10 @@ describe("http", () => {
             });
 
             var a = d.all('d');
-            assert.deepEqual(a.toArray(), ['500', '700', '900']);
+            assert.deepEqual(a, ['500', '700', '900']);
 
             a = d.all('b');
-            assert.deepEqual(a.toArray(), ['200', '1000']);
+            assert.deepEqual(a, ['200', '1000']);
         });
 
         it("set({})", () => {
@@ -137,16 +136,16 @@ describe("http", () => {
             });
 
             var a = d.all('d');
-            assert.deepEqual(a.toArray(), ['900']);
+            assert.deepEqual(a, ['900']);
 
             a = d.all('b');
-            assert.deepEqual(a.toArray(), ['1000']);
+            assert.deepEqual(a, ['1000']);
         });
 
         it("set other type", () => {
             d.set('e', 2000);
             var a = d.all('e');
-            assert.deepEqual(a.toArray(), ['2000']);
+            assert.deepEqual(a, ['2000']);
 
             d.set('f', 214748364700);
             assert.equal(d['f'], '214748364700');

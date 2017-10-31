@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class Buffer_base;
-class List_base;
 
 class RedisList_base : public object_base {
     DECLARE_CLASS(RedisList_base);
@@ -37,7 +36,7 @@ public:
     virtual result_t remove(int32_t count, Buffer_base* value, int32_t& retVal) = 0;
     virtual result_t trim(int32_t start, int32_t stop) = 0;
     virtual result_t len(int32_t& retVal) = 0;
-    virtual result_t range(int32_t start, int32_t stop, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t range(int32_t start, int32_t stop, obj_ptr<NArray>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -67,7 +66,6 @@ public:
 }
 
 #include "Buffer.h"
-#include "List.h"
 
 namespace fibjs {
 inline ClassInfo& RedisList_base::class_info()
@@ -293,7 +291,7 @@ inline void RedisList_base::s_len(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void RedisList_base::s_range(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("RedisList.range");
     METHOD_INSTANCE(RedisList_base);

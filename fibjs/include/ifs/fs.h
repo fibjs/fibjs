@@ -18,7 +18,6 @@ namespace fibjs {
 
 class Stat_base;
 class Buffer_base;
-class List_base;
 class SeekableStream_base;
 class BufferedStream_base;
 
@@ -58,7 +57,7 @@ public:
     static result_t fchown(int32_t fd, int32_t uid, int32_t gid, AsyncEvent* ac);
     static result_t fdatasync(int32_t fd, AsyncEvent* ac);
     static result_t fsync(int32_t fd, AsyncEvent* ac);
-    static result_t readdir(exlib::string path, obj_ptr<List_base>& retVal, AsyncEvent* ac);
+    static result_t readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEvent* ac);
     static result_t openFile(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t open(exlib::string fname, exlib::string flags, int32_t mode, int32_t& retVal, AsyncEvent* ac);
     static result_t close(int32_t fd, AsyncEvent* ac);
@@ -145,7 +144,7 @@ public:
     ASYNC_STATIC3(fs_base, fchown, int32_t, int32_t, int32_t);
     ASYNC_STATIC1(fs_base, fdatasync, int32_t);
     ASYNC_STATIC1(fs_base, fsync, int32_t);
-    ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<List_base>);
+    ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<NArray>);
     ASYNC_STATICVALUE3(fs_base, openFile, exlib::string, exlib::string, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE4(fs_base, open, exlib::string, exlib::string, int32_t, int32_t);
     ASYNC_STATIC1(fs_base, close, int32_t);
@@ -160,7 +159,6 @@ public:
 
 #include "Stat.h"
 #include "Buffer.h"
-#include "List.h"
 #include "SeekableStream.h"
 #include "BufferedStream.h"
 
@@ -739,7 +737,7 @@ inline void fs_base::s_fsync(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void fs_base::s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("fs.readdir");
     METHOD_ENTER();

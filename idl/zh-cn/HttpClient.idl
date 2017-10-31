@@ -16,7 +16,7 @@ interface HttpClient : object
     HttpClient();
 
     /*! @brief 返回http客户端的 HttpCookie 对象列表 */
-    readonly List cookies;
+    readonly NArray cookies;
 
     /*! @brief 查询和设置超时时间 单位毫秒*/
     Integer timeout;

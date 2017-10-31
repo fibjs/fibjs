@@ -24,7 +24,7 @@ result_t HeapSnapshotProxy::diff(HeapSnapshot_base* before,
 void HeapSnapshotProxy::fill_nodes()
 {
     if (m_nodes == 0) {
-        m_nodes = new List();
+        m_nodes = new NArray();
         int32_t cnt = m_snapshot->GetNodesCount();
 
         for (int32_t i = 0; i < cnt; i++) {
@@ -34,8 +34,6 @@ void HeapSnapshotProxy::fill_nodes()
             _nodes.insert(std::pair<int32_t, int32_t>(_node->GetId(), i));
             m_nodes->append(new HeapGraphNodeProxy(this, _node));
         }
-
-        m_nodes->freeze();
     }
 }
 
@@ -98,7 +96,7 @@ result_t HeapSnapshotProxy::get_root(obj_ptr<HeapGraphNode_base>& retVal)
     return 0;
 }
 
-result_t HeapSnapshotProxy::get_nodes(obj_ptr<List_base>& retVal)
+result_t HeapSnapshotProxy::get_nodes(obj_ptr<NArray>& retVal)
 {
     fill_nodes();
     retVal = m_nodes;
@@ -146,19 +144,17 @@ result_t HeapGraphNodeProxy::get_shallowSize(int32_t& retVal)
     return 0;
 }
 
-result_t HeapGraphNodeProxy::get_childs(obj_ptr<List_base>& retVal)
+result_t HeapGraphNodeProxy::get_childs(obj_ptr<NArray>& retVal)
 {
     if (m_snapshot == 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (m_childs == 0) {
-        m_childs = new List();
+        m_childs = new NArray();
         int32_t cnt = m_node->GetChildrenCount();
 
         for (int32_t i = 0; i < cnt; i++)
             m_childs->append(new HeapGraphEdgeProxy(m_snapshot, m_node->GetChild(i)));
-
-        m_childs->freeze();
     }
 
     retVal = m_childs;

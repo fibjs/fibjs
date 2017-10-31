@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class Map_base;
-class List_base;
 class Queue_base;
 
 class collection_base : public object_base {
@@ -37,7 +36,6 @@ public:
 }
 
 #include "Map.h"
-#include "List.h"
 #include "Queue.h"
 
 namespace fibjs {
@@ -45,7 +43,6 @@ inline ClassInfo& collection_base::class_info()
 {
     static ClassData::ClassObject s_object[] = {
         { "Map", Map_base::class_info },
-        { "List", List_base::class_info },
         { "Queue", Queue_base::class_info }
     };
 

@@ -1,7 +1,6 @@
 #ifndef _WIN32
 
 #include "ifs/fs.h"
-#include "List.h"
 #include "File.h"
 
 #include <dirent.h>
@@ -330,7 +329,7 @@ result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
     return 0;
 }
 
-result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal,
+result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal,
     AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -339,13 +338,13 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<List_base>& retVal,
     DIR* dp;
     struct dirent* ep;
     exlib::string fpath;
-    obj_ptr<List> oa;
+    obj_ptr<NArray> oa;
 
     dp = ::opendir(path.c_str());
     if (dp == NULL)
         return CHECK_ERROR(LastError());
 
-    oa = new List();
+    oa = new NArray();
 
     while ((ep = ::readdir(dp)))
         if (qstrcmp(ep->d_name, ".") && qstrcmp(ep->d_name, ".."))

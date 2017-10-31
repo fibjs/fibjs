@@ -547,7 +547,7 @@ result_t HttpMessage::firstHeader(exlib::string name, Variant& retVal)
     return m_headers->first(name, retVal);
 }
 
-result_t HttpMessage::allHeader(exlib::string name, obj_ptr<List_base>& retVal)
+result_t HttpMessage::allHeader(exlib::string name, obj_ptr<NArray>& retVal)
 {
     return m_headers->all(name, retVal);
 }

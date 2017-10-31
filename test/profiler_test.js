@@ -37,18 +37,6 @@ describe("profiler", () => {
         profiler.takeSnapshot();
     });
 
-    it("disable change on proxy", () => {
-        var ss = profiler.takeSnapshot();
-        assert.throws(() => {
-            ss.nodes[0] = 100;
-        });
-
-        assert.throws(() => {
-            ss.nodes[0].childs[0] = 100;
-        });
-        ss.dispose();
-    });
-
     it("serialize", () => {
         profiler.saveSnapshot(path.join(__dirname, "test.heapsnapshot" + vmid));
 
@@ -60,18 +48,6 @@ describe("profiler", () => {
 
         assert.equal(fs.readTextFile(path.join(__dirname, "test1.heapsnapshot" + vmid)),
             fs.readTextFile(path.join(__dirname, "test2.heapsnapshot" + vmid)));
-    });
-
-    it("disable change", () => {
-        var ss = profiler.loadSnapshot(path.join(__dirname, "test.heapsnapshot" + vmid));
-        assert.throws(() => {
-            ss.nodes[0] = 100;
-        });
-
-        assert.throws(() => {
-            ss.nodes[0].childs[0] = 100;
-        });
-        ss.dispose();
     });
 
     it("diff", () => {

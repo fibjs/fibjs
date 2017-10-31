@@ -16,7 +16,6 @@
 
 namespace fibjs {
 
-class List_base;
 class HttpResponse_base;
 class Stream_base;
 class HttpRequest_base;
@@ -29,7 +28,7 @@ class HttpClient_base : public object_base {
 public:
     // HttpClient_base
     static result_t _new(obj_ptr<HttpClient_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t get_cookies(obj_ptr<List_base>& retVal) = 0;
+    virtual result_t get_cookies(obj_ptr<NArray>& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
     virtual result_t get_maxBodySize(int32_t& retVal) = 0;
@@ -88,7 +87,6 @@ public:
 };
 }
 
-#include "List.h"
 #include "HttpResponse.h"
 #include "Stream.h"
 #include "HttpRequest.h"
@@ -157,7 +155,7 @@ void HttpClient_base::__new(const T& args)
 
 inline void HttpClient_base::s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("HttpClient.cookies");
     METHOD_INSTANCE(HttpClient_base);

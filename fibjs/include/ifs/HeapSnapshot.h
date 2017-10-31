@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class HeapGraphNode_base;
-class List_base;
 
 class HeapSnapshot_base : public object_base {
     DECLARE_CLASS(HeapSnapshot_base);
@@ -29,7 +28,7 @@ public:
     virtual result_t save(exlib::string fname, AsyncEvent* ac) = 0;
     virtual result_t get_time(date_t& retVal) = 0;
     virtual result_t get_root(obj_ptr<HeapGraphNode_base>& retVal) = 0;
-    virtual result_t get_nodes(obj_ptr<List_base>& retVal) = 0;
+    virtual result_t get_nodes(obj_ptr<NArray>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -56,7 +55,6 @@ public:
 }
 
 #include "HeapGraphNode.h"
-#include "List.h"
 
 namespace fibjs {
 inline ClassInfo& HeapSnapshot_base::class_info()
@@ -165,7 +163,7 @@ inline void HeapSnapshot_base::s_get_root(v8::Local<v8::String> property, const 
 
 inline void HeapSnapshot_base::s_get_nodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("HeapSnapshot.nodes");
     METHOD_INSTANCE(HeapSnapshot_base);

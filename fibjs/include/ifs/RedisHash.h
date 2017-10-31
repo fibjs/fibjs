@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class Buffer_base;
-class List_base;
 
 class RedisHash_base : public object_base {
     DECLARE_CLASS(RedisHash_base);
@@ -29,11 +28,11 @@ public:
     virtual result_t mset(v8::Local<v8::Object> kvs) = 0;
     virtual result_t mset(OptArgs kvs) = 0;
     virtual result_t get(Buffer_base* field, obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<List_base>& retVal) = 0;
-    virtual result_t mget(OptArgs fields, obj_ptr<List_base>& retVal) = 0;
+    virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<NArray>& retVal) = 0;
+    virtual result_t mget(OptArgs fields, obj_ptr<NArray>& retVal) = 0;
     virtual result_t incr(Buffer_base* field, int64_t num, int64_t& retVal) = 0;
-    virtual result_t getAll(obj_ptr<List_base>& retVal) = 0;
-    virtual result_t keys(obj_ptr<List_base>& retVal) = 0;
+    virtual result_t getAll(obj_ptr<NArray>& retVal) = 0;
+    virtual result_t keys(obj_ptr<NArray>& retVal) = 0;
     virtual result_t len(int32_t& retVal) = 0;
     virtual result_t exists(Buffer_base* field, bool& retVal) = 0;
     virtual result_t del(v8::Local<v8::Array> fields, int32_t& retVal) = 0;
@@ -66,7 +65,6 @@ public:
 }
 
 #include "Buffer.h"
-#include "List.h"
 
 namespace fibjs {
 inline ClassInfo& RedisHash_base::class_info()
@@ -167,7 +165,7 @@ inline void RedisHash_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void RedisHash_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("RedisHash.mget");
     METHOD_INSTANCE(RedisHash_base);
@@ -208,7 +206,7 @@ inline void RedisHash_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void RedisHash_base::s_getAll(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("RedisHash.getAll");
     METHOD_INSTANCE(RedisHash_base);
@@ -223,7 +221,7 @@ inline void RedisHash_base::s_getAll(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void RedisHash_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<List_base> vr;
+    obj_ptr<NArray> vr;
 
     METHOD_NAME("RedisHash.keys");
     METHOD_INSTANCE(RedisHash_base);

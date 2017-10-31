@@ -129,7 +129,7 @@ result_t HttpRequest::firstHeader(exlib::string name, Variant& retVal)
     return m_message->firstHeader(name, retVal);
 }
 
-result_t HttpRequest::allHeader(exlib::string name, obj_ptr<List_base>& retVal)
+result_t HttpRequest::allHeader(exlib::string name, obj_ptr<NArray>& retVal)
 {
     return m_message->allHeader(name, retVal);
 }
@@ -169,14 +169,9 @@ result_t HttpRequest::set_value(exlib::string newVal)
     return m_message->set_value(newVal);
 }
 
-result_t HttpRequest::get_params(obj_ptr<List_base>& retVal)
+result_t HttpRequest::get_params(obj_ptr<NArray>& retVal)
 {
     return m_message->get_params(retVal);
-}
-
-result_t HttpRequest::set_params(List_base* newVal)
-{
-    return m_message->set_params(newVal);
 }
 
 result_t HttpRequest::get_type(int32_t& retVal)

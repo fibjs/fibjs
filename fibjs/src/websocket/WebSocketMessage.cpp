@@ -32,14 +32,9 @@ result_t WebSocketMessage::set_value(exlib::string newVal)
     return m_message->set_value(newVal);
 }
 
-result_t WebSocketMessage::get_params(obj_ptr<List_base>& retVal)
+result_t WebSocketMessage::get_params(obj_ptr<NArray>& retVal)
 {
     return m_message->get_params(retVal);
-}
-
-result_t WebSocketMessage::set_params(List_base* newVal)
-{
-    return m_message->set_params(newVal);
 }
 
 result_t WebSocketMessage::get_body(obj_ptr<SeekableStream_base>& retVal)

@@ -41,7 +41,7 @@ interface RedisSet : object
 
     /*! @brief 返回集合中的所有成员
      @return 集合中所有成员的列表 */
-    List members();
+    NArray members();
 
     /*! @brief 移除并返回集合中的一个随机元素
      @return 被移除的随机元素。当集合是空集时，返回 null */

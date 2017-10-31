@@ -14,7 +14,6 @@
 #include "path.h"
 #include "utf8.h"
 #include "Buffer.h"
-#include "List.h"
 
 namespace fibjs {
 
@@ -106,7 +105,7 @@ public:
 
 #define MAX_KEY_LENGTH 255
 
-result_t registry_base::listSubKey(int32_t root, exlib::string key, obj_ptr<List_base>& retVal)
+result_t registry_base::listSubKey(int32_t root, exlib::string key, obj_ptr<NArray>& retVal)
 {
     Registry r;
     result_t hr = r.open(root, key + "\\*");
@@ -128,7 +127,7 @@ result_t registry_base::listSubKey(int32_t root, exlib::string key, obj_ptr<List
     wchar_t achValue[MAX_KEY_LENGTH];
     DWORD cchValue;
 
-    obj_ptr<List> l = new List();
+    obj_ptr<NArray> l = new NArray();
 
     if (cSubKeys)
         for (i = 0; i < cSubKeys; i++) {
@@ -144,7 +143,7 @@ result_t registry_base::listSubKey(int32_t root, exlib::string key, obj_ptr<List
     return 0;
 }
 
-result_t registry_base::listValue(int32_t root, exlib::string key, obj_ptr<List_base>& retVal)
+result_t registry_base::listValue(int32_t root, exlib::string key, obj_ptr<NArray>& retVal)
 {
     Registry r;
     result_t hr = r.open(root, key + "\\*");
@@ -166,7 +165,7 @@ result_t registry_base::listValue(int32_t root, exlib::string key, obj_ptr<List_
     wchar_t achValue[MAX_KEY_LENGTH];
     DWORD cchValue;
 
-    obj_ptr<List> l = new List();
+    obj_ptr<NArray> l = new NArray();
 
     if (cValues)
         for (i = 0; i < cValues; i++) {

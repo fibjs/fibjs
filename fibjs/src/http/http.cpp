@@ -32,7 +32,7 @@ static HttpClient* get_httpClient(Isolate* isolate = NULL)
     return (HttpClient*)(obj_base*)isolate->m_httpclient;
 }
 
-result_t http_base::get_cookies(obj_ptr<List_base>& retVal)
+result_t http_base::get_cookies(obj_ptr<NArray>& retVal)
 {
     return get_httpClient()->get_cookies(retVal);
 }

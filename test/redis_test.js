@@ -29,7 +29,7 @@ describe("redis", () => {
 
     before(() => {
         rdb = db.open(dbs);
-        var keys = rdb.command("keys", "*").toArray();
+        var keys = rdb.command("keys", "*");
         if (keys.length)
             rdb.del(keys);
     });
@@ -41,10 +41,10 @@ describe("redis", () => {
             assert.equal(rdb.command("get", "test"), "aaa");
 
             assert.equal(rdb.command("exists", "test"), 1);
-            listEquals(rdb.command("keys", "*").toArray().sort(), ["test", "test1"]);
-            listEquals(rdb.command("keys", "aa*").toArray(), []);
+            listEquals(rdb.command("keys", "*").sort(), ["test", "test1"]);
+            listEquals(rdb.command("keys", "aa*"), []);
 
-            listEquals(rdb.command("scan", "0")[1].toArray().sort(), ["test", "test1"]);
+            listEquals(rdb.command("scan", "0")[1].sort(), ["test", "test1"]);
         });
 
         it("exists", () => {
@@ -63,9 +63,9 @@ describe("redis", () => {
         });
 
         it("mget", () => {
-            listEquals(rdb.mget("test", "test1").toArray(), ["aaa", "aaa"]);
-            listEquals(rdb.mget(["test", "test1"]).toArray(), ["aaa", "aaa"]);
-            listEquals(rdb.mget("test", "test2").toArray(), ["aaa", null]);
+            listEquals(rdb.mget("test", "test1"), ["aaa", "aaa"]);
+            listEquals(rdb.mget(["test", "test1"]), ["aaa", "aaa"]);
+            listEquals(rdb.mget("test", "test2"), ["aaa", null]);
         });
 
         it("set", () => {
@@ -80,18 +80,18 @@ describe("redis", () => {
 
         it("mset", () => {
             rdb.mset("test", "bbb", "test1", "bbb1");
-            listEquals(rdb.mget("test", "test1").toArray(), ["bbb", "bbb1"]);
+            listEquals(rdb.mget("test", "test1"), ["bbb", "bbb1"]);
 
             rdb.mset({
                 "test": "bbb1",
                 "test1": "bbb2"
             });
-            listEquals(rdb.mget("test", "test1").toArray(), ["bbb1", "bbb2"]);
+            listEquals(rdb.mget("test", "test1"), ["bbb1", "bbb2"]);
         });
 
         it("msetNX", () => {
             rdb.msetNX("test", "bbb", "test2", "bbb1");
-            listEquals(rdb.mget("test", "test1", "test2").toArray(), ["bbb1", "bbb2", null]);
+            listEquals(rdb.mget("test", "test1", "test2"), ["bbb1", "bbb2", null]);
         });
 
         it("setNX", () => {
@@ -226,20 +226,20 @@ describe("redis", () => {
         });
 
         it("keys", () => {
-            listEquals(rdb.keys("*").toArray().sort(), ["test", "test1"]);
+            listEquals(rdb.keys("*").sort(), ["test", "test1"]);
         });
 
         it("del", () => {
-            listEquals(rdb.command("keys", "*").toArray().sort(), ["test", "test1"]);
+            listEquals(rdb.command("keys", "*").sort(), ["test", "test1"]);
             assert.equal(rdb.del("test", "test1"), 2);
-            listEquals(rdb.command("keys", "*").toArray(), []);
+            listEquals(rdb.command("keys", "*"), []);
 
             rdb.set("test", "aaa");
             rdb.set("test1", "aaa");
 
-            listEquals(rdb.command("keys", "*").toArray().sort(), ["test", "test1"]);
+            listEquals(rdb.command("keys", "*").sort(), ["test", "test1"]);
             assert.equal(rdb.del(["test", "test1"]), 2);
-            listEquals(rdb.command("keys", "*").toArray(), []);
+            listEquals(rdb.command("keys", "*"), []);
 
             assert.equal(rdb.del(["test", "test1"]), 0);
         });
@@ -282,13 +282,13 @@ describe("redis", () => {
         it("keys", () => {
             var hash = rdb.getHash("testHash");
 
-            listEquals(hash.keys().toArray(), ["test"]);
+            listEquals(hash.keys(), ["test"]);
         });
 
         it("getAll", () => {
             var hash = rdb.getHash("testHash");
 
-            listEquals(hash.getAll().toArray(), ["test", "hash aaaa"]);
+            listEquals(hash.getAll(), ["test", "hash aaaa"]);
         });
 
         it("setNX", () => {
@@ -309,8 +309,8 @@ describe("redis", () => {
                 "test4": "bbb4"
             });
 
-            listEquals(hash.mget("test1", "test2").toArray(), ["bbb1", "bbb2"]);
-            listEquals(hash.mget(["test1", "test2"]).toArray(), ["bbb1", "bbb2"]);
+            listEquals(hash.mget("test1", "test2"), ["bbb1", "bbb2"]);
+            listEquals(hash.mget(["test1", "test2"]), ["bbb1", "bbb2"]);
         });
 
         it("incr", () => {
@@ -360,31 +360,31 @@ describe("redis", () => {
 
         it("range", () => {
             var list = rdb.getList("testList");
-            listEquals(list.range(0, 4).toArray(), ["hash aaaa", "a4", "a2", "a1", "a0"]);
+            listEquals(list.range(0, 4), ["hash aaaa", "a4", "a2", "a1", "a0"]);
         });
 
         it("insert", () => {
             var list = rdb.getList("testList");
 
             assert.equal(list.insertBefore("a4", "a3"), 6);
-            listEquals(list.range(0, 4).toArray(), ["hash aaaa", "a3", "a4", "a2", "a1"]);
+            listEquals(list.range(0, 4), ["hash aaaa", "a3", "a4", "a2", "a1"]);
 
             assert.equal(list.insertAfter("a4", "a9"), 7);
-            listEquals(list.range(0, 4).toArray(), ["hash aaaa", "a3", "a4", "a9", "a2"]);
+            listEquals(list.range(0, 4), ["hash aaaa", "a3", "a4", "a9", "a2"]);
         });
 
         it("remove", () => {
             var list = rdb.getList("testList");
 
             assert.equal(list.remove(1, "a4"), 1);
-            listEquals(list.range(0, 4).toArray(), ["hash aaaa", "a3", "a9", "a2", "a1"]);
+            listEquals(list.range(0, 4), ["hash aaaa", "a3", "a9", "a2", "a1"]);
         });
 
         it("trim", () => {
             var list = rdb.getList("testList");
 
             list.trim(1, 3);
-            listEquals(list.range(0, 2).toArray(), ["a3", "a9", "a2"]);
+            listEquals(list.range(0, 2), ["a3", "a9", "a2"]);
         });
 
         it("rpush", () => {
@@ -436,7 +436,7 @@ describe("redis", () => {
         it("members", () => {
             var set = rdb.getSet("testSet");
 
-            listEquals(set.members().toArray().sort(), ["a0", "a6"]);
+            listEquals(set.members().sort(), ["a0", "a6"]);
         });
 
         it("pop", () => {
@@ -482,14 +482,14 @@ describe("redis", () => {
 
         it("range", () => {
             var zset = rdb.getSortedSet("testSortedSet");
-            listEquals(zset.range(2, 5).toArray(), ["a2", "a4", "a5", "a6"]);
-            listEquals(zset.range(2, 5, true).toArray(), ["a2", "3", "a4", "4", "a5", "5", "a6", "6"]);
+            listEquals(zset.range(2, 5), ["a2", "a4", "a5", "a6"]);
+            listEquals(zset.range(2, 5, true), ["a2", "3", "a4", "4", "a5", "5", "a6", "6"]);
         });
 
         it("rangeRev", () => {
             var zset = rdb.getSortedSet("testSortedSet");
-            listEquals(zset.rangeRev(2, 5).toArray(), ["a4", "a2", "a1", "a0"]);
-            listEquals(zset.rangeRev(2, 5, true).toArray(), ["a4", "4", "a2", "3", "a1", "2", "a0", "1"]);
+            listEquals(zset.rangeRev(2, 5), ["a4", "a2", "a1", "a0"]);
+            listEquals(zset.rangeRev(2, 5, true), ["a4", "4", "a2", "3", "a1", "2", "a0", "1"]);
         });
 
         it("rank", () => {

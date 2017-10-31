@@ -6,9 +6,12 @@
  */
 
 #include "object.h"
+#include "ifs/collection.h"
 #include "Map.h"
 
 namespace fibjs {
+
+DECLARE_MODULE(collection);
 
 result_t Map_base::_new(obj_ptr<Map_base>& retVal, v8::Local<v8::Object> This)
 {

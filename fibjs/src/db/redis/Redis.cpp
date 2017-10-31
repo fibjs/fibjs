@@ -10,7 +10,6 @@
 #include "ifs/db.h"
 #include "Url.h"
 #include "Buffer.h"
-#include "List.h"
 #include "RedisHash.h"
 #include "RedisList.h"
 #include "RedisSet.h"
@@ -116,7 +115,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
 
         void _emit()
         {
-            obj_ptr<List_base> list = List_base::getInstance(m_val.object());
+            obj_ptr<NArray> list = (NArray*)m_val.object();
 
             if (list) {
                 Variant vs[3];
@@ -165,10 +164,9 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
 
         int32_t setResult(int32_t hr = 0)
         {
-            int32_t r;
             while (m_lists.size()) {
                 int32_t idx = (int32_t)m_lists.size() - 1;
-                m_lists[idx]->push(m_val, r);
+                m_lists[idx]->append(m_val);
                 m_counts[idx]--;
 
                 if (m_counts[idx]) {
@@ -242,11 +240,11 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
                 }
 
                 if (sz == 0) {
-                    pThis->m_val = new List();
+                    pThis->m_val = new NArray();
                     return pThis->setResult();
                 }
 
-                pThis->m_lists.append(new List());
+                pThis->m_lists.append(new NArray());
                 pThis->m_counts.append(sz);
 
                 pThis->set(read);
@@ -287,7 +285,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
         Variant m_val;
         obj_ptr<BufferedStream_base> m_stmBuffered;
         obj_ptr<Buffer_base> m_buffer;
-        QuickArray<obj_ptr<List_base>> m_lists;
+        QuickArray<obj_ptr<NArray>> m_lists;
         QuickArray<int32_t> m_counts;
         exlib::string m_strLine;
         int32_t m_subMode;
@@ -394,12 +392,12 @@ result_t Redis::get(Buffer_base* key, obj_ptr<Buffer_base>& retVal)
     return doCommand("GET", key, retVal);
 }
 
-result_t Redis::mget(v8::Local<v8::Array> keys, obj_ptr<List_base>& retVal)
+result_t Redis::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
 {
     return doCommand("MGET", keys, retVal);
 }
 
-result_t Redis::mget(OptArgs keys, obj_ptr<List_base>& retVal)
+result_t Redis::mget(OptArgs keys, obj_ptr<NArray>& retVal)
 {
     return doCommand("MGET", keys, retVal);
 }
@@ -445,7 +443,7 @@ result_t Redis::type(Buffer_base* key, exlib::string& retVal)
     return doCommand("TYPE", key, retVal);
 }
 
-result_t Redis::keys(exlib::string pattern, obj_ptr<List_base>& retVal)
+result_t Redis::keys(exlib::string pattern, obj_ptr<NArray>& retVal)
 {
     return doCommand("KEYS", pattern, retVal);
 }

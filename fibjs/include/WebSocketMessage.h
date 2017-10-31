@@ -33,8 +33,7 @@ public:
     // Message_base
     virtual result_t get_value(exlib::string& retVal);
     virtual result_t set_value(exlib::string newVal);
-    virtual result_t get_params(obj_ptr<List_base>& retVal);
-    virtual result_t set_params(List_base* newVal);
+    virtual result_t get_params(obj_ptr<NArray>& retVal);
     virtual result_t get_type(int32_t& retVal);
     virtual result_t set_type(int32_t newVal);
     virtual result_t get_data(v8::Local<v8::Value>& retVal);

@@ -10,7 +10,6 @@
 #include "ifs/iconv.h"
 #include "path.h"
 #include "Stat.h"
-#include "List.h"
 #include "File.h"
 #include "BufferedStream.h"
 #include "MemoryStream.h"
@@ -30,7 +29,7 @@ public:
     exlib::string m_name;
     date_t m_date;
     date_t m_mtime;
-    obj_ptr<List_base> m_list;
+    obj_ptr<NArray> m_list;
 };
 
 static std::list<obj_ptr<cache_node>> s_cache;
@@ -122,7 +121,7 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
             if (hr < 0)
                 return hr;
 
-            obj_ptr<List_base> list;
+            obj_ptr<NArray> list;
             hr = zfile->cc_readAll("", list);
             if (hr < 0)
                 return hr;
