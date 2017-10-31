@@ -20,9 +20,6 @@ module coroutine
     /*! @brief 事件对象，参见 Event */
     static Event;
 
-    /*! @brief 阻塞队列对象，参见 BlockQueue */
-    static BlockQueue;
-
     /*! @brief 独立线程工作对象，参见 Worker */
     static Worker;
 

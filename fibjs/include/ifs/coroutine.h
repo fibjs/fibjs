@@ -20,7 +20,6 @@ class Lock_base;
 class Semaphore_base;
 class Condition_base;
 class Event_base;
-class BlockQueue_base;
 class Worker_base;
 class Fiber_base;
 
@@ -75,7 +74,6 @@ public:
 #include "Semaphore.h"
 #include "Condition.h"
 #include "Event.h"
-#include "BlockQueue.h"
 #include "Worker.h"
 #include "Fiber.h"
 
@@ -95,7 +93,6 @@ inline ClassInfo& coroutine_base::class_info()
         { "Semaphore", Semaphore_base::class_info },
         { "Condition", Condition_base::class_info },
         { "Event", Event_base::class_info },
-        { "BlockQueue", BlockQueue_base::class_info },
         { "Worker", Worker_base::class_info }
     };
 
