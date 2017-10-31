@@ -288,7 +288,6 @@
     <ClInclude Include="include\ifs\XmlProcessingInstruction.h" />
     <ClInclude Include="include\ifs\XmlText.h" />
     <ClInclude Include="include\ifs\ZipFile.h" />
-    <ClInclude Include="include\ifs\ZipInfo.h" />
     <ClInclude Include="include\ifs\ZmqSocket.h" />
     <ClInclude Include="include\ifs\assert.h" />
     <ClInclude Include="include\ifs\base32.h" />

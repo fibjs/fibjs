@@ -702,9 +702,6 @@
     <ClInclude Include="include\ifs\ZipFile.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\ZipInfo.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\ZmqSocket.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>

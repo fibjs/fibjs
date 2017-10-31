@@ -7,15 +7,17 @@ interface ZipFile : object
     NArray namelist() async;
 
     /*! @brief 获取文件信息列表 
+	 文件信息包含字段有：filename, date, compress_type, compress_size, file_size, password, data
 	 @return 返回包含文件信息的列表对象
 	 */
     NArray infolist() async;
 
     /*! @brief 获取文件信息
+	 文件信息包含字段有：filename, date, compress_type, compress_size, file_size, password, data
 	 @param member 指定要获取信息的文件名
 	 @return 返回文件信息对象
 	*/
-    ZipInfo getinfo(String member) async;
+    NObject getinfo(String member) async;
 
     /*! @brief 返回从压缩文件读取的数据
 	 @param member 指定要读取的文件名

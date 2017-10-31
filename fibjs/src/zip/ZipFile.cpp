@@ -216,70 +216,6 @@ result_t zip_base::open(SeekableStream_base* strm, exlib::string mod, int32_t co
     return 0;
 }
 
-ZipFile::Info::Info(exlib::string name, unz_file_info64& info)
-{
-    m_name = name;
-    m_date.fromDosTime(info.dosDate);
-
-    if (info.compression_method == 0)
-        m_compress_type = "Stored";
-    else if (info.compression_method == Z_DEFLATED)
-        m_compress_type = "Deflate";
-    else if (info.compression_method == Z_BZIP2ED)
-        m_compress_type = "BZip2";
-    else
-        m_compress_type = "Unknown";
-
-    m_file_size = info.uncompressed_size;
-    m_compress_size = info.compressed_size;
-    m_password = info.flag & 1;
-}
-
-result_t ZipFile::Info::get_filename(exlib::string& retVal)
-{
-    retVal = m_name;
-    return 0;
-}
-
-result_t ZipFile::Info::get_date(date_t& retVal)
-{
-    retVal = m_date;
-    return 0;
-}
-
-result_t ZipFile::Info::get_compress_type(exlib::string& retVal)
-{
-    retVal = m_compress_type;
-    return 0;
-}
-
-result_t ZipFile::Info::get_compress_size(int64_t& retVal)
-{
-    retVal = m_compress_size;
-    return 0;
-}
-
-result_t ZipFile::Info::get_file_size(int64_t& retVal)
-{
-    retVal = m_file_size;
-    return 0;
-}
-
-result_t ZipFile::Info::get_password(bool& retVal)
-{
-    retVal = m_password;
-    return 0;
-}
-
-result_t ZipFile::Info::get_data(obj_ptr<Buffer_base>& retVal)
-{
-    if (!m_data)
-        return CALL_RETURN_NULL;
-
-    retVal = m_data;
-    return 0;
-}
-
 ZipFile::ZipFile(SeekableStream_base* strm, exlib::string mod, int32_t compress_type)
     : m_unz(NULL)
     , m_zip(NULL)
@@ -403,7 +339,7 @@ result_t ZipFile::infolist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac)
+result_t ZipFile::getinfo(exlib::string member, obj_ptr<NObject>& retVal, AsyncEvent* ac)
 {
     if (!m_unz)
         return CHECK_ERROR(CALL_E_INVALID_CALL);

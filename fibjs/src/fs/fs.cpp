@@ -13,6 +13,7 @@
 #include "File.h"
 #include "BufferedStream.h"
 #include "MemoryStream.h"
+#include "ZipFile.h"
 
 #ifndef _WIN32
 #include <dirent.h>
@@ -145,7 +146,7 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
 
         int32_t len, i;
         bool bFound = false;
-        obj_ptr<ZipInfo_base> zi;
+        obj_ptr<ZipFile::Info> zi;
 
         _node->m_list->get_length(len);
 
@@ -154,7 +155,7 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
             exlib::string s;
 
             _node->m_list->_indexed_getter(i, v);
-            zi = ZipInfo_base::getInstance(v.object());
+            zi = (ZipFile::Info*)v.object();
 
             zi->get_filename(s);
 

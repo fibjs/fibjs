@@ -16,7 +16,6 @@
 
 namespace fibjs {
 
-class ZipInfo_base;
 class Buffer_base;
 class SeekableStream_base;
 
@@ -27,7 +26,7 @@ public:
     // ZipFile_base
     virtual result_t namelist(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
     virtual result_t infolist(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t getinfo(exlib::string member, obj_ptr<ZipInfo_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t getinfo(exlib::string member, obj_ptr<NObject>& retVal, AsyncEvent* ac) = 0;
     virtual result_t read(exlib::string member, exlib::string password, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t readAll(exlib::string password, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
     virtual result_t extract(exlib::string member, exlib::string path, exlib::string password, AsyncEvent* ac) = 0;
@@ -63,7 +62,7 @@ public:
 public:
     ASYNC_MEMBERVALUE1(ZipFile_base, namelist, obj_ptr<NArray>);
     ASYNC_MEMBERVALUE1(ZipFile_base, infolist, obj_ptr<NArray>);
-    ASYNC_MEMBERVALUE2(ZipFile_base, getinfo, exlib::string, obj_ptr<ZipInfo_base>);
+    ASYNC_MEMBERVALUE2(ZipFile_base, getinfo, exlib::string, obj_ptr<NObject>);
     ASYNC_MEMBERVALUE3(ZipFile_base, read, exlib::string, exlib::string, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(ZipFile_base, readAll, exlib::string, obj_ptr<NArray>);
     ASYNC_MEMBER3(ZipFile_base, extract, exlib::string, exlib::string, exlib::string);
@@ -76,7 +75,6 @@ public:
 };
 }
 
-#include "ZipInfo.h"
 #include "Buffer.h"
 #include "SeekableStream.h"
 
@@ -154,7 +152,7 @@ inline void ZipFile_base::s_infolist(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void ZipFile_base::s_getinfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<ZipInfo_base> vr;
+    obj_ptr<NObject> vr;
 
     METHOD_NAME("ZipFile.getinfo");
     METHOD_INSTANCE(ZipFile_base);
