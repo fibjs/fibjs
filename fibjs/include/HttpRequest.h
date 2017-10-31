@@ -9,7 +9,6 @@
 #include "HttpMessage.h"
 #include "HttpResponse.h"
 #include "HttpCollection.h"
-#include "Map.h"
 
 #ifndef HTTPREQUEST_H_
 #define HTTPREQUEST_H_
@@ -87,9 +86,13 @@ public:
     virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal);
 
 public:
-    result_t addHeader(Map_base* map)
+    result_t addHeader(NObject* map)
     {
-        return ((Map*)map)->map(this, &HttpRequest::addHeader);
+        std::map<exlib::string, Variant>::iterator iter;
+        for (iter = map->m_datas.begin(); iter != map->m_datas.end(); iter++)
+            addHeader(iter->first, iter->second);
+
+        return 0;
     }
 
     void header(const char* name, exlib::string& retVal)

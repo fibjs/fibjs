@@ -12,7 +12,6 @@
 #include "ifs/io.h"
 #include "ifs/http.h"
 #include "ifs/zlib.h"
-#include "Map.h"
 #include <mbedtls/mbedtls/sha1.h>
 #include "encoding.h"
 #include "MemoryStream.h"
@@ -21,6 +20,10 @@
 namespace fibjs {
 
 DECLARE_MODULE(ws);
+
+result_t http_request(exlib::string method, exlib::string url,
+    SeekableStream_base* body, NObject* headers,
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 class asyncSend : public AsyncState {
 public:
@@ -202,15 +205,15 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
                 return CHECK_ERROR(Runtime::setError("websocket: unknown protocol"));
             }
 
-            pThis->m_headers = new Map();
+            pThis->m_headers = new NObject();
 
-            pThis->m_headers->put("Upgrade", "websocket");
-            pThis->m_headers->put("Connection", "Upgrade");
-            pThis->m_headers->put("Sec-WebSocket-Version", "13");
-            pThis->m_headers->put("Sec-WebSocket-Extensions", "permessage-deflate");
+            pThis->m_headers->add("Upgrade", "websocket");
+            pThis->m_headers->add("Connection", "Upgrade");
+            pThis->m_headers->add("Sec-WebSocket-Version", "13");
+            pThis->m_headers->add("Sec-WebSocket-Extensions", "permessage-deflate");
 
             if (!pThis->m_this->m_origin.empty())
-                pThis->m_headers->put("Origin", pThis->m_this->m_origin);
+                pThis->m_headers->add("Origin", pThis->m_this->m_origin);
 
             char keys[16];
             int32_t i;
@@ -223,7 +226,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
                 6, (const char*)&keys, sizeof(keys), key);
 
-            pThis->m_headers->put("Sec-WebSocket-Key", key);
+            pThis->m_headers->add("Sec-WebSocket-Key", key);
 
             key.append("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
 
@@ -235,7 +238,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
                 6, (const char*)output, 20, pThis->m_accept);
 
             pThis->set(response);
-            return http_base::request("GET", url, NULL, pThis->m_headers,
+            return http_request("GET", url, NULL, pThis->m_headers,
                 pThis->m_httprep, pThis);
         }
 
@@ -315,7 +318,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
         Isolate* m_isolate;
         obj_ptr<WebSocket> m_this;
         obj_ptr<HttpResponse_base> m_httprep;
-        obj_ptr<Map> m_headers;
+        obj_ptr<NObject> m_headers;
         exlib::string m_accept;
     };
 

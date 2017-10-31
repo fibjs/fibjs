@@ -134,7 +134,6 @@
     <ClInclude Include="include\LevelDB.h" />
     <ClInclude Include="include\Lock.h" />
     <ClInclude Include="include\LruCache.h" />
-    <ClInclude Include="include\Map.h" />
     <ClInclude Include="include\MemoryStream.h" />
     <ClInclude Include="include\Message.h" />
     <ClInclude Include="include\MongoCollection.h" />
@@ -203,7 +202,6 @@
     <ClInclude Include="include\encoding_bson.h" />
     <ClInclude Include="include\encoding_iconv.h" />
     <ClInclude Include="include\ifs\AsyncWait.h" />
-    <ClInclude Include="include\ifs\BlockQueue.h" />
     <ClInclude Include="include\ifs\Buffer.h" />
     <ClInclude Include="include\ifs\BufferedStream.h" />
     <ClInclude Include="include\ifs\Chain.h" />
@@ -235,11 +233,9 @@
     <ClInclude Include="include\ifs\Image.h" />
     <ClInclude Include="include\ifs\Int64.h" />
     <ClInclude Include="include\ifs\LevelDB.h" />
-    <ClInclude Include="include\ifs\List.h" />
     <ClInclude Include="include\ifs\Lock.h" />
     <ClInclude Include="include\ifs\LruCache.h" />
     <ClInclude Include="include\ifs\MSSQL.h" />
-    <ClInclude Include="include\ifs\Map.h" />
     <ClInclude Include="include\ifs\MemoryStream.h" />
     <ClInclude Include="include\ifs\Message.h" />
     <ClInclude Include="include\ifs\MongoCollection.h" />
@@ -248,7 +244,6 @@
     <ClInclude Include="include\ifs\MongoID.h" />
     <ClInclude Include="include\ifs\MySQL.h" />
     <ClInclude Include="include\ifs\PKey.h" />
-    <ClInclude Include="include\ifs\Queue.h" />
     <ClInclude Include="include\ifs\Redis.h" />
     <ClInclude Include="include\ifs\RedisHash.h" />
     <ClInclude Include="include\ifs\RedisList.h" />
@@ -271,7 +266,6 @@
     <ClInclude Include="include\ifs\StringDecoder.h" />
     <ClInclude Include="include\ifs\SubProcess.h" />
     <ClInclude Include="include\ifs\TcpServer.h" />
-    <ClInclude Include="include\ifs\TextColor.h" />
     <ClInclude Include="include\ifs\Timer.h" />
     <ClInclude Include="include\ifs\UrlObject.h" />
     <ClInclude Include="include\ifs\WebSocket.h" />
@@ -301,7 +295,6 @@
     <ClInclude Include="include\ifs\base64.h" />
     <ClInclude Include="include\ifs\base64vlq.h" />
     <ClInclude Include="include\ifs\bson.h" />
-    <ClInclude Include="include\ifs\collection.h" />
     <ClInclude Include="include\ifs\console.h" />
     <ClInclude Include="include\ifs\coroutine.h" />
     <ClInclude Include="include\ifs\crypto.h" />
@@ -378,7 +371,6 @@
     <ClCompile Include="src\base\utf8.cpp" />
     <ClCompile Include="src\base\utils.cpp" />
     <ClCompile Include="src\base\v8_api.cpp" />
-    <ClCompile Include="src\collection\Map.cpp" />
     <ClCompile Include="src\console\console.cpp" />
     <ClCompile Include="src\console\console_event.cpp" />
     <ClCompile Include="src\console\console_file.cpp" />

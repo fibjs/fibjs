@@ -9,10 +9,8 @@
 #include "Buffer.h"
 #include "MemoryStream.h"
 #include "Url.h"
-#include "Map.h"
 #include "HttpRequest.h"
 #include "BufferedStream.h"
-#include "map"
 #include "ifs/net.h"
 #include "ifs/zlib.h"
 #include "ifs/json.h"
@@ -92,7 +90,7 @@ result_t HttpClient::set_userAgent(exlib::string newVal)
     return 0;
 }
 
-result_t HttpClient::update(obj_ptr<HttpCookie_base> cookie)
+result_t HttpClient::update(HttpCookie_base* cookie)
 {
     int32_t length, i;
     exlib::string str, str1;
@@ -151,7 +149,7 @@ result_t HttpClient::update(obj_ptr<HttpCookie_base> cookie)
     return 0;
 }
 
-result_t HttpClient::update_cookies(exlib::string url, obj_ptr<NArray> cookies)
+result_t HttpClient::update_cookies(exlib::string url, NArray* cookies)
 {
     result_t hr;
     int32_t length, i;
@@ -336,13 +334,12 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
-    Map_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    NObject* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-
     class asyncRequest : public AsyncState {
     public:
         asyncRequest(HttpClient* hc, exlib::string method, exlib::string url,
-            SeekableStream_base* body, Map_base* headers,
+            SeekableStream_base* body, NObject* headers,
             obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
             : AsyncState(ac)
             , m_method(method)
@@ -490,7 +487,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
         exlib::string m_method;
         exlib::string m_url;
         obj_ptr<SeekableStream_base> m_body;
-        obj_ptr<Map_base> m_headers;
+        obj_ptr<NObject> m_headers;
         obj_ptr<HttpResponse_base>& m_retVal;
         std::map<exlib::string, bool> m_urls;
         obj_ptr<Stream_base> m_conn;
@@ -510,7 +507,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 {
     if (ac->isSync()) {
         Isolate* isolate = holder();
-        obj_ptr<Map_base> map = new Map();
+        obj_ptr<NObject> map = new NObject();
         obj_ptr<SeekableStream_base> stm;
         v8::Local<v8::Object> o;
         v8::Local<v8::Value> v;
@@ -533,7 +530,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         o.Clear();
         hr = GetArgumentValue(opts->Get(isolate->NewString("headers", 7)), o);
         if (hr >= 0)
-            map->put(o);
+            map->add(o);
 
         v = opts->Get(isolate->NewString("body", 4));
         if (!v->IsUndefined()) {
@@ -552,7 +549,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                         return hr;
 
                     buf = new Buffer(s);
-                    map->put("Content-Type", "application/x-www-form-urlencoded");
+                    map->add("Content-Type", "application/x-www-form-urlencoded");
                 } else {
                     hr = GetArgumentValue(isolate->m_isolate, v, buf);
                     if (hr < 0)
@@ -575,7 +572,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 
                 buf = new Buffer(s);
                 stm->cc_write(buf);
-                map->put("Content-Type", "application/json");
+                map->add("Content-Type", "application/json");
             }
         }
         ac->m_ctx[2] = stm;
@@ -584,7 +581,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     }
 
     exlib::string query = ac->m_ctx[0].string();
-    obj_ptr<Map_base> map = Map_base::getInstance(ac->m_ctx[1].object());
+    obj_ptr<NObject> map = (NObject*)ac->m_ctx[1].object();
     obj_ptr<SeekableStream_base> stm = SeekableStream_base::getInstance(ac->m_ctx[2].object());
 
     if (!query.empty())

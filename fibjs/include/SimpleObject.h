@@ -8,6 +8,7 @@
 #ifndef SIMPLE_OBJECT_H_
 #define SIMPLE_OBJECT_H_
 
+#include <map>
 #include <algorithm>
 
 namespace fibjs {
@@ -17,8 +18,37 @@ class NObject : public object_base {
 public:
     void add(exlib::string key, Variant value)
     {
-        m_keys.push_back(key);
-        m_values.push_back(value);
+        std::map<exlib::string, Variant>::iterator it = m_datas.find(key);
+
+        if (it == m_datas.end())
+            m_datas.insert(std::pair<exlib::string, VariantEx>(key, value));
+        else
+            it->second = value;
+    }
+
+    result_t add(v8::Local<v8::Object> m)
+    {
+        v8::Local<v8::Array> ks = m->GetPropertyNames();
+        int32_t len = ks->Length();
+        int32_t i;
+
+        for (i = 0; i < len; i++) {
+            v8::Local<v8::Value> k = ks->Get(i);
+            add(*v8::String::Utf8Value(k), m->Get(k));
+        }
+
+        return 0;
+    }
+
+    result_t get(exlib::string key, Variant& retVal)
+    {
+        std::map<exlib::string, Variant>::iterator it = m_datas.find(key);
+
+        if (it == m_datas.end())
+            return CALL_RETURN_NULL;
+
+        retVal = it->second;
+        return 0;
     }
 
 public:
@@ -26,20 +56,23 @@ public:
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
         Isolate* isolate = Isolate::current();
+        std::map<exlib::string, Variant>::iterator iter;
         v8::Local<v8::Object> obj;
 
-        obj = v8::Object::New(isolate->m_isolate);
+        if (retVal.IsEmpty()) {
+            obj = v8::Object::New(isolate->m_isolate);
+            retVal = obj;
+        } else
+            obj = v8::Local<v8::Object>::Cast(retVal);
 
-        for (int32_t i = 0; i < (int32_t)m_keys.size(); i++)
-            obj->Set(isolate->NewString(m_keys[i]), m_values[i]);
+        for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
+            obj->Set(isolate->NewString(iter->first), iter->second);
 
-        retVal = obj;
         return 0;
     }
 
-protected:
-    std::vector<exlib::string> m_keys;
-    std::vector<Variant> m_values;
+public:
+    std::map<exlib::string, Variant> m_datas;
 };
 
 class NArray : public NObject {
@@ -77,18 +110,14 @@ public:
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
         Isolate* isolate = Isolate::current();
-        v8::Local<v8::Object> obj;
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
-        obj = arr;
 
         for (int32_t i = 0; i < (int32_t)m_array.size(); i++)
             arr->Set(i, m_array[i]);
 
-        for (int32_t i = 0; i < (int32_t)m_keys.size(); i++)
-            obj->Set(isolate->NewString(m_keys[i]), m_values[i]);
+        retVal = arr;
 
-        retVal = obj;
-        return 0;
+        return NObject::valueOf(retVal);
     }
 
 private:

@@ -14,7 +14,6 @@
 #include "ifs/os.h"
 #include "path.h"
 #include "WebView.h"
-#include "Map.h"
 #include "EventInfo.h"
 #include "utf8.h"
 #include <exlib/include/thread.h>
@@ -397,8 +396,8 @@ static result_t async_open(obj_ptr<WebView> w)
 
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    obj_ptr<Map_base> o = new Map();
-    o->set(opt);
+    obj_ptr<NObject> o = new NObject();
+    o->add(opt);
 
     obj_ptr<WebView> w = new WebView(url, o);
     w->wrap();
@@ -435,7 +434,7 @@ static void RegMainClass()
     }
 }
 
-WebView::WebView(exlib::string url, Map_base* opt)
+WebView::WebView(exlib::string url, NObject* opt)
 {
     m_url = url;
     m_opt = opt;

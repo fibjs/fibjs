@@ -6,7 +6,6 @@
  */
 
 #include "ifs/Message.h"
-#include "ifs/List.h"
 #include "ifs/SeekableStream.h"
 
 #ifndef MESSAGE_H_

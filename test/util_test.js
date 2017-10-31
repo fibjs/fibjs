@@ -4,7 +4,6 @@ test.setup();
 var util = require('util');
 var mq = require('mq');
 var coroutine = require('coroutine');
-var collection = require("collection");
 var os = require('os');
 
 describe('util', () => {

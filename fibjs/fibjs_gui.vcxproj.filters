@@ -13,9 +13,6 @@
     <Filter Include="Source Files\base">
       <UniqueIdentifier>{68529cf3-5a67-0bb1-84a4-c91e13c58f94}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\collection">
-      <UniqueIdentifier>{526be7f6-9823-913f-3aa4-88e3930cd372}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\console">
       <UniqueIdentifier>{4ffaa5dd-04e3-091a-71af-ccd4a8994f62}</UniqueIdentifier>
     </Filter>
@@ -243,9 +240,6 @@
     <ClInclude Include="include\LruCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Map.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\MemoryStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -450,9 +444,6 @@
     <ClInclude Include="include\ifs\AsyncWait.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\BlockQueue.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\Buffer.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -546,9 +537,6 @@
     <ClInclude Include="include\ifs\LevelDB.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\List.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\Lock.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -556,9 +544,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\MSSQL.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\Map.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\MemoryStream.h">
@@ -583,9 +568,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\PKey.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\Queue.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Redis.h">
@@ -652,9 +634,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\TcpServer.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\TextColor.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Timer.h">
@@ -742,9 +721,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\bson.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\collection.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\console.h">
@@ -961,9 +937,6 @@
     </ClCompile>
     <ClCompile Include="src\base\v8_api.cpp">
       <Filter>Source Files\base</Filter>
-    </ClCompile>
-    <ClCompile Include="src\collection\Map.cpp">
-      <Filter>Source Files\collection</Filter>
     </ClCompile>
     <ClCompile Include="src\console\console.cpp">
       <Filter>Source Files\console</Filter>

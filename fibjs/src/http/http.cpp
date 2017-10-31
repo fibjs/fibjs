@@ -10,7 +10,6 @@
 #include "Buffer.h"
 #include "MemoryStream.h"
 #include "Url.h"
-#include "Map.h"
 #include "HttpRequest.h"
 #include "HttpClient.h"
 #include "BufferedStream.h"
@@ -30,6 +29,13 @@ static HttpClient* get_httpClient(Isolate* isolate = NULL)
     if (!isolate->m_httpclient)
         isolate->m_httpclient = new HttpClient();
     return (HttpClient*)(obj_base*)isolate->m_httpclient;
+}
+
+result_t http_request(exlib::string method, exlib::string url,
+    SeekableStream_base* body, NObject* headers,
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+{
+    return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
 }
 
 result_t http_base::get_cookies(obj_ptr<NArray>& retVal)
@@ -92,13 +98,6 @@ result_t http_base::request(Stream_base* conn, HttpRequest_base* req,
     AsyncEvent* ac)
 {
     return get_httpClient(ac->isolate())->request(conn, req, retVal, ac);
-}
-
-result_t http_base::request(exlib::string method, exlib::string url,
-    SeekableStream_base* body, Map_base* headers,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
 }
 
 result_t http_base::request(exlib::string method, exlib::string url,

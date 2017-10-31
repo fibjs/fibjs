@@ -27,7 +27,7 @@ class WebView : public WebView_base,
     FIBER_FREE();
 
 public:
-    WebView(exlib::string url, Map_base* opt);
+    WebView(exlib::string url, NObject* opt);
     ~WebView();
 
     HRESULT open();
@@ -193,7 +193,7 @@ private:
 
 protected:
     exlib::string m_url;
-    obj_ptr<Map_base> m_opt;
+    obj_ptr<NObject> m_opt;
 
     IStorage* storage;
     IOleObject* oleObject;

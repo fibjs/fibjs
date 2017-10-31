@@ -19,8 +19,6 @@ namespace fibjs {
 class HttpResponse_base;
 class Stream_base;
 class HttpRequest_base;
-class SeekableStream_base;
-class Map_base;
 
 class HttpClient_base : public object_base {
     DECLARE_CLASS(HttpClient_base);
@@ -41,7 +39,6 @@ public:
     virtual result_t set_userAgent(exlib::string newVal) = 0;
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t request(exlib::string method, exlib::string url, SeekableStream_base* body, Map_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t get(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t post(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t del(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
@@ -77,7 +74,6 @@ public:
 public:
     ASYNC_MEMBERVALUE3(HttpClient_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE4(HttpClient_base, request, exlib::string, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
-    ASYNC_MEMBERVALUE5(HttpClient_base, request, exlib::string, exlib::string, SeekableStream_base*, Map_base*, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, get, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, post, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, del, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
@@ -90,8 +86,6 @@ public:
 #include "HttpResponse.h"
 #include "Stream.h"
 #include "HttpRequest.h"
-#include "SeekableStream.h"
-#include "Map.h"
 
 namespace fibjs {
 inline ClassInfo& HttpClient_base::class_info()
@@ -321,19 +315,6 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
         hr = CALL_RETURN_NULL;
     } else
         hr = pInst->ac_request(v0, v1, v2, vr);
-
-    ASYNC_METHOD_OVER(4, 4);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    ARG(obj_ptr<SeekableStream_base>, 2);
-    ARG(obj_ptr<Map_base>, 3);
-
-    if (!cb.IsEmpty()) {
-        pInst->acb_request(v0, v1, v2, v3, cb);
-        hr = CALL_RETURN_NULL;
-    } else
-        hr = pInst->ac_request(v0, v1, v2, v3, vr);
 
     METHOD_RETURN();
 }

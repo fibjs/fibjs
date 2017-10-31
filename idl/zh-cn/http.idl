@@ -77,15 +77,6 @@ module http
      */
     static HttpResponse request(String method, String url, Object opts = {}) async;
 
-    /*! @brief 请求指定的 url，并返回结果
-     @param method 指定 http 请求方法：GET, POST 等
-     @param url 指定 url，必须是包含主机的完整 url
-     @param body 指定发送的 body 内容
-     @param headers 指定附加的 http 头
-     @return 返回服务器响应
-     */
-    static HttpResponse request(String method, String url, SeekableStream body, Map headers) async;
-
     /*! @brief 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript

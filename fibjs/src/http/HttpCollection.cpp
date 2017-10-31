@@ -7,7 +7,6 @@
 
 #include "object.h"
 #include "HttpCollection.h"
-#include "Map.h"
 #include "Url.h"
 #include <string.h>
 #include <set>
