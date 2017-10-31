@@ -29,6 +29,8 @@ public:
     }
 #endif
 
+    FIBER_FREE();
+
 public:
     // Stream_base
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
