@@ -23,7 +23,7 @@ exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void
 exlib::string traceInfo(v8::Isolate* isolate, int32_t deep);
 
 void beginCoverage(v8::Isolate* isolate);
-void WriteLcovData(v8::Isolate* isolate, const char* file);
+void WriteLcovData(v8::Isolate* isolate, FILE* file);
 
 } /* namespace fibjs */
 

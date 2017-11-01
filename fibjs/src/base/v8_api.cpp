@@ -150,12 +150,8 @@ inline void WriteLcovDataForNamedRange(FILE* sink,
     fprintf(sink, "FNDA:%d,%s\n", count, name.c_str());
 }
 
-void WriteLcovData(v8::Isolate* isolate, const char* file)
+void WriteLcovData(v8::Isolate* isolate, FILE* file)
 {
-    FILE* sink = fopen(file, "a");
-    if (sink == NULL)
-        return;
-
     v8::HandleScope handle_scope(isolate);
     v8::debug::Coverage coverage = v8::debug::Coverage::CollectPrecise(isolate);
 
@@ -167,7 +163,7 @@ void WriteLcovData(v8::Isolate* isolate, const char* file)
         if (!script->Name().ToLocal(&name))
             continue;
         std::string file_name = ToSTLString(isolate, name);
-        fprintf(sink, "SF:%s\n", file_name.c_str());
+        fprintf(file, "SF:%s\n", file_name.c_str());
         std::vector<uint32_t> lines;
         for (size_t j = 0; j < script_data.FunctionCount(); j++) {
             v8::debug::Coverage::FunctionData function_data = script_data.GetFunctionData(j);
@@ -189,7 +185,7 @@ void WriteLcovData(v8::Isolate* isolate, const char* file)
                     name_stream << start.GetColumnNumber() << ">";
                 }
 
-                WriteLcovDataForNamedRange(sink, lines, name_stream.str(), start_line,
+                WriteLcovDataForNamedRange(file, lines, name_stream.str(), start_line,
                     end_line, count);
             }
 
@@ -204,11 +200,11 @@ void WriteLcovData(v8::Isolate* isolate, const char* file)
         }
         // Write per-line coverage. LCOV uses 1-based line numbers.
         for (size_t i = 0; i < lines.size(); i++)
-            fprintf(sink, "DA:%d,%d\n", (int32_t)(i + 1), lines[i]);
+            fprintf(file, "DA:%d,%d\n", (int32_t)(i + 1), lines[i]);
 
-        fprintf(sink, "end_of_record\n");
+        fprintf(file, "end_of_record\n");
     }
 
-    fclose(sink);
+    fclose(file);
 }
 }

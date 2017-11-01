@@ -267,14 +267,8 @@ result_t process_base::exit()
 
     flushLog();
 
-    if (g_cov && isolate->m_id == 1) {
-        if (g_cov_filename.length() > 0) {
-            WriteLcovData(isolate->m_isolate, g_cov_filename.c_str());
-        } else {
-            char name[32];
-            sprintf(name, "fibjs-%08x.lcov", (uint32_t)(intptr_t)isolate);
-            WriteLcovData(isolate->m_isolate, name);
-        }
+    if (g_cov != nullptr && isolate->m_id == 1) {
+        WriteLcovData(isolate->m_isolate, g_cov);
     }
 
 #ifdef _WIN32
