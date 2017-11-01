@@ -44,7 +44,7 @@ interface HttpClient : object
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript
      {
-         “query”: {},
+         "query": {},
          "body": SeekedStream | Buffer | String | {},
          "json": {},
          "headers": {}
@@ -62,7 +62,7 @@ interface HttpClient : object
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript
      {
-         “query”: {},
+         "query": {},
          "body": SeekedStream | Buffer | String | {},
          "json": {},
          "headers": {}
@@ -79,7 +79,7 @@ interface HttpClient : object
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript
      {
-         “query”: {},
+         "query": {},
          "body": SeekedStream | Buffer | String | {},
          "json": {},
          "headers": {}
@@ -96,7 +96,7 @@ interface HttpClient : object
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript
      {
-         “query”: {},
+         "query": {},
          "body": SeekedStream | Buffer | String | {},
          "json": {},
          "headers": {}
@@ -113,7 +113,7 @@ interface HttpClient : object
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript
      {
-         “query”: {},
+         "query": {},
          "body": SeekedStream | Buffer | String | {},
          "json": {},
          "headers": {}
@@ -130,7 +130,7 @@ interface HttpClient : object
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript
      {
-         “query”: {},
+         "query": {},
          "body": SeekedStream | Buffer | String | {},
          "json": {},
          "headers": {}
@@ -147,7 +147,7 @@ interface HttpClient : object
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript
      {
-         “query”: {},
+         "query": {},
          "body": SeekedStream | Buffer | String | {},
          "json": {},
          "headers": {}
