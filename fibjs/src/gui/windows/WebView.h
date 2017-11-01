@@ -6,7 +6,6 @@
  */
 
 #include "ifs/WebView.h"
-#include "ifs/Map.h"
 #include <comdef.h>
 #include <Exdisp.h>
 #include <mshtmhst.h>

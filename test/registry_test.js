@@ -49,8 +49,8 @@ if (win) {
         });
 
         it("list", () => {
-            assert.deepEqual(registry.listSubKey(registry.CURRENT_USER, "Software\\fibjs_test").toArray(), ["test_key"]);
-            assert.deepEqual(registry.listValue(registry.CURRENT_USER, "Software\\fibjs_test\\test_key").toArray().sort(), [
+            assert.deepEqual(registry.listSubKey(registry.CURRENT_USER, "Software\\fibjs_test"), ["test_key"]);
+            assert.deepEqual(registry.listValue(registry.CURRENT_USER, "Software\\fibjs_test\\test_key").sort(), [
                 "a",
                 "b",
                 "ms",
@@ -60,14 +60,14 @@ if (win) {
 
         it("del", () => {
             registry.del(registry.CURRENT_USER, "Software\\fibjs_test\\test_key\\ms");
-            assert.deepEqual(registry.listValue(registry.CURRENT_USER, "Software\\fibjs_test\\test_key").toArray().sort(), [
+            assert.deepEqual(registry.listValue(registry.CURRENT_USER, "Software\\fibjs_test\\test_key").sort(), [
                 "a",
                 "b",
                 "s"
             ]);
 
             registry.del(registry.CURRENT_USER, "Software\\fibjs_test\\test_key");
-            assert.deepEqual(registry.listSubKey(registry.CURRENT_USER, "Software\\fibjs_test").toArray(), []);
+            assert.deepEqual(registry.listSubKey(registry.CURRENT_USER, "Software\\fibjs_test"), []);
         });
     });
 }
