@@ -574,6 +574,12 @@ interface Buffer : object
      */
     Buffer reverse();
 
+    /*! @brief 比较当前对象与给定的对象是否相等
+     @param expected 制定比较的目标对象
+     @return 返回对象比较的结果
+    */
+    Boolean equals(object expected);
+
     /*! @brief 使用 16 进制编码缓存对象内容
      @return 返回编码字符串
      */

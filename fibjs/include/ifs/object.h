@@ -22,7 +22,6 @@ class object_base {
 public:
     // object_base
     virtual result_t dispose() = 0;
-    virtual result_t equals(object_base* expected, bool& retVal) = 0;
     virtual result_t toString(exlib::string& retVal) = 0;
     virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal) = 0;
 
@@ -39,7 +38,6 @@ public:
 
 public:
     static void s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -50,7 +48,6 @@ inline ClassInfo& object_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "dispose", s_dispose, false },
-        { "equals", s_equals, false },
         { "toString", s_toString, false },
         { "toJSON", s_toJSON, false }
     };
@@ -76,23 +73,6 @@ inline void object_base::s_dispose(const v8::FunctionCallbackInfo<v8::Value>& ar
     hr = pInst->dispose();
 
     METHOD_VOID();
-}
-
-inline void object_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    bool vr;
-
-    METHOD_NAME("object.equals");
-    METHOD_INSTANCE(object_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<object_base>, 0);
-
-    hr = pInst->equals(v0, vr);
-
-    METHOD_RETURN();
 }
 
 inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& args)

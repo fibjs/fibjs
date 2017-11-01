@@ -95,6 +95,12 @@ interface Int64 : object
     */
     Int64 div(Int64 num);
 
+    /*! @brief 比较当前对象与给定的对象是否相等
+     @param expected 制定比较的目标对象
+     @return 返回对象比较的结果
+    */
+    Boolean equals(object expected);
+
     /*! @brief 转换成数字类型
       @return 返回转换后的数字
      */

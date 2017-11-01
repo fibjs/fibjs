@@ -39,6 +39,7 @@ public:
     virtual result_t sub(Int64_base* num, obj_ptr<Int64_base>& retVal) = 0;
     virtual result_t multi(Int64_base* num, obj_ptr<Int64_base>& retVal) = 0;
     virtual result_t div(Int64_base* num, obj_ptr<Int64_base>& retVal) = 0;
+    virtual result_t equals(object_base* expected, bool& retVal) = 0;
     virtual result_t toNumber(double& retVal) = 0;
     virtual result_t toString(int32_t base, exlib::string& retVal) = 0;
 
@@ -62,6 +63,7 @@ public:
     static void s_sub(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_multi(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_div(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toNumber(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -81,6 +83,7 @@ inline ClassInfo& Int64_base::class_info()
         { "sub", s_sub, false },
         { "multi", s_multi, false },
         { "div", s_div, false },
+        { "equals", s_equals, false },
         { "toNumber", s_toNumber, false },
         { "toString", s_toString, false }
     };
@@ -359,6 +362,23 @@ inline void Int64_base::s_div(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Int64_base>, 0);
 
     hr = pInst->div(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Int64_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("Int64.equals");
+    METHOD_INSTANCE(Int64_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<object_base>, 0);
+
+    hr = pInst->equals(v0, vr);
 
     METHOD_RETURN();
 }

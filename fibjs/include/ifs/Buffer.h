@@ -105,6 +105,7 @@ public:
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t reverse(obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t equals(object_base* expected, bool& retVal) = 0;
     virtual result_t hex(exlib::string& retVal) = 0;
     virtual result_t base64(exlib::string& retVal) = 0;
     virtual result_t keys(v8::Local<v8::Object>& retVal) = 0;
@@ -181,6 +182,7 @@ public:
     static void s_writeDoubleBE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_reverse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hex(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_base64(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -254,6 +256,7 @@ inline ClassInfo& Buffer_base::class_info()
         { "writeDoubleBE", s_writeDoubleBE, false },
         { "slice", s_slice, false },
         { "reverse", s_reverse, false },
+        { "equals", s_equals, false },
         { "hex", s_hex, false },
         { "base64", s_base64, false },
         { "keys", s_keys, false },
@@ -1518,6 +1521,23 @@ inline void Buffer_base::s_reverse(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_OVER(0, 0);
 
     hr = pInst->reverse(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("Buffer.equals");
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<object_base>, 0);
+
+    hr = pInst->equals(v0, vr);
 
     METHOD_RETURN();
 }

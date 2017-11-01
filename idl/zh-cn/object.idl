@@ -4,12 +4,6 @@ interface object
     /*! @brief 强制回收对象，调用此方法后，对象资源将立即释放*/
     dispose();
 
-    /*! @brief 比较当前对象与给定的对象是否相等
-     @param expected 制定比较的目标对象
-     @return 返回对象比较的结果
-    */
-    Boolean equals(object expected);
-
     /*! @brief 返回对象的字符串表示，一般返回 "[Native Object]"，对象可以根据自己的特性重新实现
      @return 返回对象的字符串表示
     */
