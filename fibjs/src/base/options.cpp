@@ -24,8 +24,7 @@ int32_t stack_size = 256;
 bool g_prof = false;
 int32_t g_prof_interval = 1000;
 
-bool g_cov = false;
-exlib::string g_cov_filename;
+FILE* g_cov = nullptr;
 
 bool g_tracetcp = false;
 
@@ -94,11 +93,20 @@ void options(int32_t& pos, char* argv[])
                 g_prof_interval = 50;
             df++;
         } else if (!qstrcmp(arg, "--cov=", 6)) {
-            g_cov = true;
-            g_cov_filename = arg + 6;
+            g_cov = fopen(arg + 6, "a");
+            if (g_cov == nullptr) {
+                printf("Invalid filename: %s\n", arg + 6);
+                _exit(0);
+            }
             df++;
         } else if (!qstrcmp(arg, "--cov")) {
-            g_cov = true;
+            char name[32];
+            sprintf(name, "fibjs-%08x.lcov", (uint32_t)(intptr_t)arg);
+            g_cov = fopen(name, "a");
+            if (g_cov == nullptr) {
+                printf("Can't open file: %s, please try again", name);
+                _exit(0);
+            }
             df++;
         } else if (!qstrcmp(arg, "--v8-options")) {
             v8::internal::FlagList::PrintHelp();
