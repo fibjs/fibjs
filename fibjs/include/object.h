@@ -421,7 +421,6 @@ public:
     DECLARE_CLASSINFO(object_base);
 
 private:
-    static void s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -474,7 +473,6 @@ inline void* ClassInfo::getInstance(void* o)
 inline ClassInfo& object_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "dispose", s_dispose },
         { "toString", s_toString },
         { "toJSON", s_toJSON }
     };
@@ -487,19 +485,6 @@ inline ClassInfo& object_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void object_base::s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("object.dispose");
-    METHOD_INSTANCE(object_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->dispose();
-
-    METHOD_VOID();
 }
 
 inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& args)

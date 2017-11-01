@@ -29,7 +29,6 @@ describe("profiler", () => {
 
     it("take snapshot & dispose", () => {
         var ss = profiler.takeSnapshot();
-        ss.dispose();
     });
 
     it("crash when double take", () => {

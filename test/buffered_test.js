@@ -42,7 +42,6 @@ describe("buffered stream", () => {
                 break;
             assert.equal(d.toString(), s.substring(p, p + sz));
             p += sz;
-            d.dispose();
         }
         f.close();
     }

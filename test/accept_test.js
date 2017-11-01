@@ -15,7 +15,6 @@ function f() {
 		s1.write("GET / HTTP/1.0\r\n\r\n");
 		s1.read(10240);
 		s1.close();
-		s1.dispose();
 		t = new Date().getTime() - t;
 		if (t > mt) mt = t;
 		sum += t;

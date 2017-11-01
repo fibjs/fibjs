@@ -21,7 +21,6 @@ class object_base {
 
 public:
     // object_base
-    virtual result_t dispose() = 0;
     virtual result_t toString(exlib::string& retVal) = 0;
     virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal) = 0;
 
@@ -37,7 +36,6 @@ public:
     }
 
 public:
-    static void s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -47,7 +45,6 @@ namespace fibjs {
 inline ClassInfo& object_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "dispose", s_dispose, false },
         { "toString", s_toString, false },
         { "toJSON", s_toJSON, false }
     };
@@ -60,19 +57,6 @@ inline ClassInfo& object_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void object_base::s_dispose(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("object.dispose");
-    METHOD_INSTANCE(object_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->dispose();
-
-    METHOD_VOID();
 }
 
 inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& args)

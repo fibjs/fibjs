@@ -29,7 +29,8 @@ describe('os', () => {
         var no1 = test_util.countObject('Buffer');
         var b = new Buffer();
         assert.equal(no1 + 1, test_util.countObject('Buffer'));
-        b.dispose();
+        b = undefined;
+        GC();
         assert.equal(no1, test_util.countObject('Buffer'));
     });
 

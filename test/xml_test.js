@@ -652,9 +652,6 @@ describe('xml', () => {
             var childs = e.childNodes;
             assert.equal(childs.length, 1);
             assert.equal(e1.parentNode, e);
-            e.dispose();
-            assert.equal(childs.length, 0);
-            assert.equal(e1.parentNode, null);
         });
     });
 

@@ -73,7 +73,6 @@ describe("net", () => {
                     c.send(b);
             } finally {
                 c.close();
-                c.dispose();
             }
         }
 
@@ -99,7 +98,6 @@ describe("net", () => {
             s1.send(new Buffer("GET / HTTP/1.0"));
             assert.equal("GET / HTTP/1.0", s1.recv());
             s1.close();
-            s1.dispose();
         }
 
         function conn() {
@@ -110,7 +108,6 @@ describe("net", () => {
             s1.send(new Buffer("GET / HTTP/1.0"));
             assert.equal("GET / HTTP/1.0", s1.recv());
             s1.close();
-            s1.dispose();
         }
 
         conn_socket();
