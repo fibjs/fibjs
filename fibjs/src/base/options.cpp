@@ -103,7 +103,7 @@ void options(int32_t& pos, char* argv[])
             char name[22];
             date_t d;
             d.now();
-            sprintf(name, "fibjs-%d.lcov", d.date());
+            sprintf(name, "fibjs-%d.lcov", (int32_t)d.date());
             g_cov = fopen(name, "a");
             if (g_cov == nullptr) {
                 printf("Can't open file: %s, please try again", name);
