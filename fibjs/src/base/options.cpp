@@ -26,6 +26,8 @@ int32_t g_prof_interval = 1000;
 
 bool g_cov = false;
 
+bool g_tracetcp = false;
+
 #ifdef DEBUG
 #define GUARD_SIZE 32
 #else

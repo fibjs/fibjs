@@ -11,13 +11,29 @@
 #include "utils.h"
 #include "Socket.h"
 #include "ifs/net.h"
+#include "ifs/console.h"
 #include "Buffer.h"
 #include <fcntl.h>
 #include <mswsock.h>
 #include <mstcpip.h>
 #include <exlib/include/thread.h>
+#include "options.h"
 
 namespace fibjs {
+
+exlib::string clean_string(exlib::string s)
+{
+    exlib::string s1(s);
+
+    char* c_buf = s1.c_buffer();
+    int32_t len = (int32_t)s1.length();
+
+    for (int32_t i = 0; i < len; i++)
+        if ((c_buf[i] < 32 && c_buf[i] != 0xd && c_buf[i] != 0xa) || c_buf[i] > 127)
+            c_buf[i] = '.';
+
+    return s1;
+}
 
 void setOption(SOCKET s)
 {
@@ -394,6 +410,9 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                 if (m_pos) {
                     m_buf.resize(m_pos);
                     m_retVal = new Buffer(m_buf);
+
+                    if (g_tracetcp)
+                        outLog(console_base::_NOTICE, clean_string(m_buf));
                 } else
                     nError = CALL_RETURN_NULL;
             }
@@ -432,6 +451,9 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
             data->toString(m_buf);
             m_p = m_buf.c_str();
             m_sz = (int32_t)m_buf.length();
+
+            if (g_tracetcp)
+                outLog(console_base::_WARN, clean_string(m_buf));
         }
 
         virtual result_t process()

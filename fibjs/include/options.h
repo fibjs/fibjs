@@ -18,6 +18,8 @@ extern bool g_prof;
 extern int32_t g_prof_interval;
 
 extern bool g_cov;
+
+extern bool g_tracetcp;
 }
 
 #endif
