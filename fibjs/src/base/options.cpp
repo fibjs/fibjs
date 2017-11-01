@@ -95,7 +95,7 @@ void options(int32_t& pos, char* argv[])
             df++;
         } else if (!qstrcmp(arg, "--cov=", 6)) {
             g_cov = true;
-            g_cov_filename = qstrchr(arg, '=') + 1;
+            g_cov_filename = arg + 6;
             df++;
         } else if (!qstrcmp(arg, "--cov")) {
             g_cov = true;
