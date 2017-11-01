@@ -101,8 +101,9 @@ void options(int32_t& pos, char* argv[])
             df++;
         } else if (!qstrcmp(arg, "--cov")) {
             char name[22];
-            sprintf(name, "fibjs-%d.lcov",
-                std::chrono::system_clock::now().time_since_epoch());
+            date_t d;
+            d.now();
+            sprintf(name, "fibjs-%d.lcov", d.date());
             g_cov = fopen(name, "a");
             if (g_cov == nullptr) {
                 printf("Can't open file: %s, please try again", name);
