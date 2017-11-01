@@ -220,4 +220,26 @@ void ReportException(TryCatch& try_catch, result_t hr)
     if (try_catch.HasCaught() || hr < 0)
         errorLog(GetException(try_catch, hr));
 }
+
+result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)
+{
+    v8::Local<v8::Array> ks = opts->GetPropertyNames();
+    int32_t len = ks->Length();
+    int32_t i;
+
+    for (i = 0; i < len; i++) {
+        v8::String::Utf8Value k(ks->Get(i));
+        const char** p = keys;
+
+        while (p[0]) {
+            if (!qstrcmp(*k, p[0]))
+                break;
+            p++;
+        }
+        if (!p[0])
+            return CHECK_ERROR(Runtime::setError(exlib::string("unknown option \'") + *k + "\'."));
+    }
+
+    return 0;
+}
 }

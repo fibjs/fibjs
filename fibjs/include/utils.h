@@ -919,6 +919,8 @@ result_t GetConfigValue(v8::Isolate* isolate, v8::Local<v8::Object> o,
     return GetArgumentValue(isolate, v, n, bStrict);
 }
 
+result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys);
+
 inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, int32_t v)
 {
     return v8::Int32::New(isolate, v);

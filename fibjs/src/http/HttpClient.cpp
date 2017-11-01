@@ -505,6 +505,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 result_t HttpClient::request(exlib::string method, exlib::string url,
     v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
+    static const char* s_keys[] = {
+        "query", "headers", "body", "json", NULL
+    };
+
     if (ac->isSync()) {
         Isolate* isolate = holder();
         obj_ptr<NObject> map = new NObject();
@@ -512,6 +516,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         v8::Local<v8::Object> o;
         v8::Local<v8::Value> v;
         result_t hr;
+
+        hr = CheckConfig(opts, s_keys);
+        if (hr < 0)
+            return hr;
 
         ac->m_ctx.resize(3);
 
