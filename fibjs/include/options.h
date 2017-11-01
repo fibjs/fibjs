@@ -18,6 +18,7 @@ extern bool g_prof;
 extern int32_t g_prof_interval;
 
 extern bool g_cov;
+extern exlib::string g_cov_filename;
 
 extern bool g_tracetcp;
 }
