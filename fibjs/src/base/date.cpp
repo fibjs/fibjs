@@ -457,7 +457,7 @@ void date_t::parse(const char* str, int32_t len)
 
     create(wYear, wMonth + 1, wDay + 1, wHour, wMinute, wSecond, wMicroSecond);
 
-    if (isnan(d))
+    if (std::isnan(d))
         return;
 
     if (bLocal)
@@ -542,7 +542,7 @@ date_t::Part date_t::getdate() const
 
 void date_t::toGMTString(exlib::string& retVal)
 {
-    if (isnan(d))
+    if (std::isnan(d))
         return;
 
     static char szMonth[][4] = {
@@ -574,7 +574,7 @@ void date_t::toGMTString(exlib::string& retVal)
 
 void date_t::toX509String(exlib::string& retVal)
 {
-    if (isnan(d))
+    if (std::isnan(d))
         return;
 
     Part ds = _getdate(d);
@@ -592,7 +592,7 @@ void date_t::toX509String(exlib::string& retVal)
 
 void date_t::sqlString(exlib::string& retVal)
 {
-    if (isnan(d))
+    if (std::isnan(d))
         return;
 
     Part ds = _getdate((double)s_dc->ToLocal((int64_t)d));
@@ -615,7 +615,7 @@ void date_t::sqlString(exlib::string& retVal)
 
 void date_t::stamp(exlib::string& retVal)
 {
-    if (isnan(d))
+    if (std::isnan(d))
         return;
 
     Part ds = _getdate((double)s_dc->ToLocal((int64_t)d));
@@ -633,7 +633,7 @@ void date_t::stamp(exlib::string& retVal)
 
 void date_t::add(int32_t num, int32_t part)
 {
-    if (isnan(d))
+    if (std::isnan(d))
         return;
 
     if (part == _MICROSECOND)
@@ -678,7 +678,7 @@ void date_t::add(int32_t num, int32_t part)
 
 void date_t::fix(int32_t part)
 {
-    if (isnan(d))
+    if (std::isnan(d))
         return;
 
     if (part == _SECOND)
@@ -701,7 +701,7 @@ void date_t::fix(int32_t part)
 
 void date_t::toLocal()
 {
-    if (isnan(d))
+    if (std::isnan(d))
         return;
 
     d = (double)s_dc->ToLocal((int64_t)d);
@@ -709,7 +709,7 @@ void date_t::toLocal()
 
 void date_t::toUTC()
 {
-    if (isnan(d))
+    if (std::isnan(d))
         return;
 
     d = (double)s_dc->ToUTC((int64_t)d);

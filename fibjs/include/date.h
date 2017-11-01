@@ -91,7 +91,7 @@ public:
 
     bool empty() const
     {
-        return isnan(d);
+        return std::isnan(d);
     }
 
     double diff(date_t d1) const

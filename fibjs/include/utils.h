@@ -81,7 +81,7 @@ typedef int32_t SOCKET;
 #include "obj_ptr.h"
 #include <Isolate.h>
 
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 #ifdef _WIN32
@@ -93,10 +93,6 @@ typedef int32_t SOCKET;
 #ifndef NAN
 #define NAN (INFINITY - INFINITY)
 #endif // NAN
-
-#ifndef isnan
-#define isnan !!_isnan
-#endif // isnan
 
 #endif // _WIN32
 
@@ -576,7 +572,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, double& n, bool bStrict
     }
 
     n = v->NumberValue();
-    if (isnan(n))
+    if (std::isnan(n))
         n = 0;
 
     return 0;

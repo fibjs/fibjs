@@ -5,10 +5,10 @@
  *      Author: lion
  */
 
+#include "object.h"
 #include "DateCache.h"
 #include <stdint.h>
 #include <limits>
-#include <cmath>
 #include <time.h>
 
 #ifdef _WIN32

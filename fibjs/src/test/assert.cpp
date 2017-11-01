@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "utils.h"
 #include "object.h"
 #include "ifs/assert.h"
 #include "ifs/encoding.h"
@@ -173,12 +174,12 @@ bool regexpEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
     return src1->StrictEquals(src2) && flgs1 == flgs2;
 }
 
-bool deepEquals(QuickArray<v8::Local<v8::Object> >& acts,
-    QuickArray<v8::Local<v8::Object> >& exps,
+bool deepEquals(QuickArray<v8::Local<v8::Object>>& acts,
+    QuickArray<v8::Local<v8::Object>>& exps,
     v8::Local<v8::Value> actual, v8::Local<v8::Value> expected);
 
-int32_t checkStack(QuickArray<v8::Local<v8::Object> >& acts,
-    QuickArray<v8::Local<v8::Object> >& exps,
+int32_t checkStack(QuickArray<v8::Local<v8::Object>>& acts,
+    QuickArray<v8::Local<v8::Object>>& exps,
     v8::Local<v8::Object> actual, v8::Local<v8::Object> expected)
 {
     int32_t i;
@@ -196,8 +197,8 @@ int32_t checkStack(QuickArray<v8::Local<v8::Object> >& acts,
     return 1;
 }
 
-bool arrayEquals(QuickArray<v8::Local<v8::Object> >& acts,
-    QuickArray<v8::Local<v8::Object> >& exps,
+bool arrayEquals(QuickArray<v8::Local<v8::Object>>& acts,
+    QuickArray<v8::Local<v8::Object>>& exps,
     v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
     v8::Local<v8::Array> act = v8::Local<v8::Array>::Cast(actual);
@@ -229,8 +230,8 @@ bool arrayEquals(QuickArray<v8::Local<v8::Object> >& acts,
     return true;
 }
 
-bool objectEquals(QuickArray<v8::Local<v8::Object> >& acts,
-    QuickArray<v8::Local<v8::Object> >& exps,
+bool objectEquals(QuickArray<v8::Local<v8::Object>>& acts,
+    QuickArray<v8::Local<v8::Object>>& exps,
     v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
     v8::Local<v8::Object> act = v8::Local<v8::Object>::Cast(actual);
@@ -267,8 +268,8 @@ bool objectEquals(QuickArray<v8::Local<v8::Object> >& acts,
     return true;
 }
 
-bool deepEquals(QuickArray<v8::Local<v8::Object> >& acts,
-    QuickArray<v8::Local<v8::Object> >& exps,
+bool deepEquals(QuickArray<v8::Local<v8::Object>>& acts,
+    QuickArray<v8::Local<v8::Object>>& exps,
     v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
     if (!IsEmpty(actual) && !IsEmpty(expected) && !actual->IsFunction()
@@ -340,8 +341,8 @@ result_t assert_base::notStrictEqual(v8::Local<v8::Value> actual,
 result_t assert_base::deepEqual(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, exlib::string msg)
 {
-    QuickArray<v8::Local<v8::Object> > acts;
-    QuickArray<v8::Local<v8::Object> > exps;
+    QuickArray<v8::Local<v8::Object>> acts;
+    QuickArray<v8::Local<v8::Object>> exps;
 
     _test(deepEquals(acts, exps, actual, expected),
         _msg(msg, "expected ", actual, " to deeply equal ", expected));
@@ -351,8 +352,8 @@ result_t assert_base::deepEqual(v8::Local<v8::Value> actual,
 result_t assert_base::notDeepEqual(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, exlib::string msg)
 {
-    QuickArray<v8::Local<v8::Object> > acts;
-    QuickArray<v8::Local<v8::Object> > exps;
+    QuickArray<v8::Local<v8::Object>> acts;
+    QuickArray<v8::Local<v8::Object>> exps;
 
     _test(!deepEquals(acts, exps, actual, expected),
         _msg(msg, "expected ", actual, " to not deeply equal ", expected));
@@ -366,17 +367,17 @@ result_t assert_base::closeTo(v8::Local<v8::Value> actual,
     double n, n1;
 
     n = actual->NumberValue();
-    if (isnan(n))
+    if (std::isnan(n))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     n1 = expected->NumberValue();
-    if (isnan(n1))
+    if (std::isnan(n1))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     n -= n1;
 
     n1 = delta->NumberValue();
-    if (isnan(n1))
+    if (std::isnan(n1))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (n < 0)
@@ -394,17 +395,17 @@ result_t assert_base::notCloseTo(v8::Local<v8::Value> actual,
     double n, n1;
 
     n = actual->NumberValue();
-    if (isnan(n))
+    if (std::isnan(n))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     n1 = expected->NumberValue();
-    if (isnan(n1))
+    if (std::isnan(n1))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     n -= n1;
 
     n1 = delta->NumberValue();
-    if (isnan(n1))
+    if (std::isnan(n1))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (n < 0)
@@ -426,11 +427,11 @@ double valcmp(v8::Local<v8::Value>& val1, v8::Local<v8::Value>& val2)
 
     if (n1) {
         v1 = val2->NumberValue();
-        if (!isnan(v1))
+        if (!std::isnan(v1))
             return val1->NumberValue() - v1;
     } else if (n2) {
         v1 = val1->NumberValue();
-        if (!isnan(v1))
+        if (!std::isnan(v1))
             return v1 - val2->NumberValue();
     }
 
@@ -448,7 +449,7 @@ result_t assert_base::lessThan(v8::Local<v8::Value> actual,
 {
     double r = valcmp(actual, expected);
 
-    if (isnan(r))
+    if (std::isnan(r))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     _test(r < 0, _msg(msg, "expected ", actual, " to be below ", expected));
@@ -460,7 +461,7 @@ result_t assert_base::notLessThan(v8::Local<v8::Value> actual,
 {
     double r = valcmp(actual, expected);
 
-    if (isnan(r))
+    if (std::isnan(r))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     _test(r >= 0, _msg(msg, "expected ", actual, " to be at least ", expected));
@@ -472,7 +473,7 @@ result_t assert_base::greaterThan(v8::Local<v8::Value> actual,
 {
     double r = valcmp(actual, expected);
 
-    if (isnan(r))
+    if (std::isnan(r))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     _test(r > 0, _msg(msg, "expected ", actual, " to be above ", expected));
@@ -484,7 +485,7 @@ result_t assert_base::notGreaterThan(v8::Local<v8::Value> actual,
 {
     double r = valcmp(actual, expected);
 
-    if (isnan(r))
+    if (std::isnan(r))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     _test(r <= 0, _msg(msg, "expected ", actual, " to be at most ", expected));
@@ -917,7 +918,7 @@ result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
 
 result_t assert_base::ifError(v8::Local<v8::Value> object)
 {
-    if(object->BooleanValue()){
+    if (object->BooleanValue()) {
         ThrowError(object);
     }
 
