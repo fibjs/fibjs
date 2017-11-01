@@ -25,7 +25,7 @@ bool g_prof = false;
 int32_t g_prof_interval = 1000;
 
 bool g_cov = false;
-const char *g_cov_filename;
+exlib::string g_cov_filename;
 
 bool g_tracetcp = false;
 

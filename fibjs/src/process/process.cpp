@@ -268,8 +268,8 @@ result_t process_base::exit()
     flushLog();
 
     if (g_cov && isolate->m_id == 1) {
-        if ((uint32_t)qstrlen(g_cov_filename) > 0) {
-            WriteLcovData(isolate->m_isolate, g_cov_filename);
+        if (g_cov_filename.length() > 0) {
+            WriteLcovData(isolate->m_isolate, g_cov_filename.c_str());
         } else {
             char name[32];
             sprintf(name, "fibjs-%08x.lcov", (uint32_t)(intptr_t)isolate);
