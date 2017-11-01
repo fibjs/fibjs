@@ -135,10 +135,4 @@ result_t http_base::patch(exlib::string url, v8::Local<v8::Object> headers,
 {
     return get_httpClient(ac->isolate())->patch(url, headers, retVal, ac);
 }
-
-result_t http_base::find(exlib::string url, v8::Local<v8::Object> headers,
-    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
-{
-    return get_httpClient(ac->isolate())->find(url, headers, retVal, ac);
-}
 }

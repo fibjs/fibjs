@@ -44,7 +44,6 @@ public:
     virtual result_t del(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t put(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t patch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t find(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     template <typename T>
@@ -69,7 +68,6 @@ public:
     static void s_del(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_patch(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_find(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE3(HttpClient_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
@@ -79,7 +77,6 @@ public:
     ASYNC_MEMBERVALUE3(HttpClient_base, del, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, put, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, patch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
-    ASYNC_MEMBERVALUE3(HttpClient_base, find, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
 };
 }
 
@@ -102,9 +99,7 @@ inline ClassInfo& HttpClient_base::class_info()
         { "put", s_put, false },
         { "putSync", s_put, false },
         { "patch", s_patch, false },
-        { "patchSync", s_patch, false },
-        { "find", s_find, false },
-        { "findSync", s_find, false }
+        { "patchSync", s_patch, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -425,28 +420,6 @@ inline void HttpClient_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& 
         hr = CALL_RETURN_NULL;
     } else
         hr = pInst->ac_patch(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
-inline void HttpClient_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<HttpResponse_base> vr;
-
-    METHOD_NAME("HttpClient.find");
-    METHOD_INSTANCE(HttpClient_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
-
-    if (!cb.IsEmpty()) {
-        pInst->acb_find(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
-        hr = pInst->ac_find(v0, v1, vr);
 
     METHOD_RETURN();
 }
