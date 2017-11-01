@@ -257,52 +257,46 @@ result_t gd_base::hsla(double hue, double saturation, double lightness,
     return 0;
 }
 
-inline int32_t hsb2rgb(double h, double s, double b)
+inline int32_t hsb2rgb(double h, double s, double v)
 {
-    double cr = 0, cg = 0, cb = 0;
-    int32_t i = (int32_t)round(h / 60) % 6;
-    double f = (h / 60) - i;
-    double p = b * (1 - s);
-    double q = b * (1 - f * s);
-    double t = b * (1 - (1 - f) * s);
+    double c = 0.0, m = 0.0, x = 0.0;
+    double cr, cg, cb;
 
-    switch (i) {
-    case 0:
-        cr = b;
-        cg = t;
-        cb = p;
-        break;
-    case 1:
-        cr = q;
-        cg = b;
-        cb = p;
-        break;
-    case 2:
-        cr = p;
-        cg = b;
-        cb = t;
-        break;
-    case 3:
-        cr = p;
-        cg = q;
-        cb = b;
-        break;
-    case 4:
-        cr = t;
-        cg = p;
-        cb = b;
-        break;
-    case 5:
-        cr = b;
-        cg = p;
-        cb = q;
-        break;
-    default:
-        break;
+    c = v * s;
+    x = c * (1.0 - fabs(fmod(h / 60.0, 2) - 1.0));
+    m = v - c;
+
+    if (h >= 0.0 && h < 60.0) {
+        cr = c + m;
+        cg = x + m;
+        cb = m;
+    } else if (h >= 60.0 && h < 120.0) {
+        cr = x + m;
+        cg = c + m;
+        cb = m;
+    } else if (h >= 120.0 && h < 180.0) {
+        cr = m;
+        cg = c + m;
+        cb = x + m;
+    } else if (h >= 180.0 && h < 240.0) {
+        cr = m;
+        cg = x + m;
+        cb = c + m;
+    } else if (h >= 240.0 && h < 300.0) {
+        cr = x + m;
+        cg = m;
+        cb = c + m;
+    } else if (h >= 300.0 && h < 360.0) {
+        cr = c + m;
+        cg = m;
+        cb = x + m;
+    } else {
+        cr = m;
+        cg = m;
+        cb = m;
     }
 
-    return gdTrueColor((int32_t)round(cr * 255.0),
-        (int32_t)round(cg * 255.0),
+    return gdTrueColor((int32_t)round(cr * 255.0), (int32_t)round(cg * 255.0),
         (int32_t)round(cb * 255.0));
 }
 

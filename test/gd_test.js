@@ -64,7 +64,7 @@ describe("gd", () => {
         assert.equal(gd.hsb(240, 1, .5), 0x000080);
 
         assert.equal(gd.hsb(0, 0, .8), 0xcccccc);
-        assert.equal(gd.hsb(210, .5, .6), 0x264d99);
+        assert.equal(gd.hsb(210, .5, .6), 0x4d7399);
 
         assert.equal(gd.hsba(120, 1, .5, .5), 0x40008000);
     });
