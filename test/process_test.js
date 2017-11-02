@@ -10,7 +10,7 @@ var cmd;
 var s;
 
 describe('process', () => {
-    it("execPath", () => {
+    before(() => {
         cmd = process.execPath;
     });
 
@@ -111,6 +111,15 @@ describe('process', () => {
         var t1 = new Date().getTime();
         process.start(cmd, [path.join(__dirname, 'process', 'exec.js')]);
         assert.lessThan(new Date().getTime() - t1, 100);
+    });
+
+    it("kill", () => {
+        var t1 = new Date().getTime();
+        var p = process.start(cmd, [path.join(__dirname, 'process', 'exec.js')]);
+        coroutine.sleep(500);
+        p.kill(15);
+        p.wait();
+        assert.lessThan(new Date().getTime() - t1, 1000);
     });
 
     it("memoryUsage", () => {
