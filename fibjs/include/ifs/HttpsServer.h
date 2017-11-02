@@ -61,7 +61,7 @@ inline ClassInfo& HttpsServer_base::class_info()
 
     static ClassData s_cd = {
         "HttpsServer", false, s__new, NULL,
-        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &HttpServer_base::class_info()
     };
 

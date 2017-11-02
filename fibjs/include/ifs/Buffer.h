@@ -276,7 +276,7 @@ inline ClassInfo& Buffer_base::class_info()
 
     static ClassData s_cd = {
         "Buffer", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, &s_indexed, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, &s_indexed, NULL,
         &object_base::class_info()
     };
 

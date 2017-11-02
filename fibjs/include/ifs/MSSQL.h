@@ -55,7 +55,7 @@ inline ClassInfo& MSSQL_base::class_info()
 
     static ClassData s_cd = {
         "MSSQL", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &DbConnection_base::class_info()
     };
 

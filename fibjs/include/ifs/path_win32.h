@@ -84,7 +84,7 @@ inline ClassInfo& path_win32_base::class_info()
 
     static ClassData s_cd = {
         "path_win32", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };
 

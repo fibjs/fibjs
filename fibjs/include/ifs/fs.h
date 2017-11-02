@@ -81,9 +81,6 @@ public:
     }
 
 public:
-    static void s_get_SEEK_SET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_SEEK_END(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_constants(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_access(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -236,44 +233,23 @@ inline ClassInfo& fs_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "SEEK_SET", s_get_SEEK_SET, block_set, true },
-        { "SEEK_CUR", s_get_SEEK_CUR, block_set, true },
-        { "SEEK_END", s_get_SEEK_END, block_set, true },
         { "constants", s_get_constants, block_set, true }
+    };
+
+    static ClassData::ClassConst s_const[] = {
+        { "SEEK_SET", _SEEK_SET },
+        { "SEEK_CUR", _SEEK_CUR },
+        { "SEEK_END", _SEEK_END }
     };
 
     static ClassData s_cd = {
         "fs", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void fs_base::s_get_SEEK_SET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("fs.SEEK_SET");
-    int32_t vr = _SEEK_SET;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void fs_base::s_get_SEEK_CUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("fs.SEEK_CUR");
-    int32_t vr = _SEEK_CUR;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void fs_base::s_get_SEEK_END(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("fs.SEEK_END");
-    int32_t vr = _SEEK_END;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void fs_base::s_get_constants(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)

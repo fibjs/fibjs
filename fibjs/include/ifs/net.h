@@ -58,10 +58,6 @@ public:
     }
 
 public:
-    static void s_get_AF_INET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_AF_INET6(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_info(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_ip(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -116,53 +112,21 @@ inline ClassInfo& net_base::class_info()
         { "Url", UrlObject_base::class_info }
     };
 
-    static ClassData::ClassProperty s_property[] = {
-        { "AF_INET", s_get_AF_INET, block_set, true },
-        { "AF_INET6", s_get_AF_INET6, block_set, true },
-        { "SOCK_STREAM", s_get_SOCK_STREAM, block_set, true },
-        { "SOCK_DGRAM", s_get_SOCK_DGRAM, block_set, true }
+    static ClassData::ClassConst s_const[] = {
+        { "AF_INET", _AF_INET },
+        { "AF_INET6", _AF_INET6 },
+        { "SOCK_STREAM", _SOCK_STREAM },
+        { "SOCK_DGRAM", _SOCK_DGRAM }
     };
 
     static ClassData s_cd = {
         "net", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void net_base::s_get_AF_INET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("net.AF_INET");
-    int32_t vr = _AF_INET;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void net_base::s_get_AF_INET6(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("net.AF_INET6");
-    int32_t vr = _AF_INET6;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void net_base::s_get_SOCK_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("net.SOCK_STREAM");
-    int32_t vr = _SOCK_STREAM;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void net_base::s_get_SOCK_DGRAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("net.SOCK_DGRAM");
-    int32_t vr = _SOCK_DGRAM;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void net_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args)

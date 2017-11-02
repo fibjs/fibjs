@@ -37,7 +37,7 @@ inline ClassInfo& MongoID_base::class_info()
 {
     static ClassData s_cd = {
         "MongoID", false, s__new, NULL,
-        0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };
 

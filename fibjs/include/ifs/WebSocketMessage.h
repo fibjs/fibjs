@@ -61,7 +61,7 @@ inline ClassInfo& WebSocketMessage_base::class_info()
 
     static ClassData s_cd = {
         "WebSocketMessage", false, s__new, NULL,
-        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &Message_base::class_info()
     };
 

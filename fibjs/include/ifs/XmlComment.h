@@ -40,7 +40,7 @@ inline ClassInfo& XmlComment_base::class_info()
 {
     static ClassData s_cd = {
         "XmlComment", false, s__new, NULL,
-        0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &XmlCharacterData_base::class_info()
     };
 

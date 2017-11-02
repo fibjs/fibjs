@@ -478,9 +478,7 @@ inline ClassInfo& object_base::class_info()
     };
 
     static ClassData s_cd = {
-        "object", false, NULL, NULL,
-        ARRAYSIZE(s_method), s_method, 0,
-        NULL, 0, NULL, NULL, NULL, NULL
+        "object", false, NULL, NULL, ARRAYSIZE(s_method), s_method
     };
 
     static ClassInfo s_ci(s_cd);

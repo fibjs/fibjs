@@ -71,15 +71,6 @@ public:
     }
 
 public:
-    static void s_get_MD2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_MD4(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_MD5(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_SHA1(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_SHA224(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_SHA256(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_SHA384(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_SHA512(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_RIPEMD160(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_digest(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_md2(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_md4(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -132,98 +123,26 @@ inline ClassInfo& hash_base::class_info()
         { "hmac_ripemd160", s_hmac_ripemd160, true }
     };
 
-    static ClassData::ClassProperty s_property[] = {
-        { "MD2", s_get_MD2, block_set, true },
-        { "MD4", s_get_MD4, block_set, true },
-        { "MD5", s_get_MD5, block_set, true },
-        { "SHA1", s_get_SHA1, block_set, true },
-        { "SHA224", s_get_SHA224, block_set, true },
-        { "SHA256", s_get_SHA256, block_set, true },
-        { "SHA384", s_get_SHA384, block_set, true },
-        { "SHA512", s_get_SHA512, block_set, true },
-        { "RIPEMD160", s_get_RIPEMD160, block_set, true }
+    static ClassData::ClassConst s_const[] = {
+        { "MD2", _MD2 },
+        { "MD4", _MD4 },
+        { "MD5", _MD5 },
+        { "SHA1", _SHA1 },
+        { "SHA224", _SHA224 },
+        { "SHA256", _SHA256 },
+        { "SHA384", _SHA384 },
+        { "SHA512", _SHA512 },
+        { "RIPEMD160", _RIPEMD160 }
     };
 
     static ClassData s_cd = {
         "hash", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void hash_base::s_get_MD2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("hash.MD2");
-    int32_t vr = _MD2;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void hash_base::s_get_MD4(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("hash.MD4");
-    int32_t vr = _MD4;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void hash_base::s_get_MD5(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("hash.MD5");
-    int32_t vr = _MD5;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void hash_base::s_get_SHA1(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("hash.SHA1");
-    int32_t vr = _SHA1;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void hash_base::s_get_SHA224(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("hash.SHA224");
-    int32_t vr = _SHA224;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void hash_base::s_get_SHA256(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("hash.SHA256");
-    int32_t vr = _SHA256;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void hash_base::s_get_SHA384(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("hash.SHA384");
-    int32_t vr = _SHA384;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void hash_base::s_get_SHA512(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("hash.SHA512");
-    int32_t vr = _SHA512;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void hash_base::s_get_RIPEMD160(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("hash.RIPEMD160");
-    int32_t vr = _RIPEMD160;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void hash_base::s_digest(const v8::FunctionCallbackInfo<v8::Value>& args)

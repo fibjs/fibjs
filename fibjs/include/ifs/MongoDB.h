@@ -76,7 +76,7 @@ inline ClassInfo& MongoDB_base::class_info()
 
     static ClassData s_cd = {
         "MongoDB", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, &s_named,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, &s_named,
         &object_base::class_info()
     };
 

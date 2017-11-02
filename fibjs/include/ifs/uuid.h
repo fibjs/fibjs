@@ -51,10 +51,6 @@ public:
     }
 
 public:
-    static void s_get_DNS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_URL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_OID(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_X509(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_node(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_md5(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_random(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -79,53 +75,24 @@ inline ClassInfo& uuid_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "DNS", s_get_DNS, block_set, true },
-        { "URL", s_get_URL, block_set, true },
-        { "OID", s_get_OID, block_set, true },
-        { "X509", s_get_X509, block_set, true },
         { "hostID", s_get_hostID, s_set_hostID, true }
+    };
+
+    static ClassData::ClassConst s_const[] = {
+        { "DNS", _DNS },
+        { "URL", _URL },
+        { "OID", _OID },
+        { "X509", _X509 }
     };
 
     static ClassData s_cd = {
         "uuid", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void uuid_base::s_get_DNS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("uuid.DNS");
-    int32_t vr = _DNS;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void uuid_base::s_get_URL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("uuid.URL");
-    int32_t vr = _URL;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void uuid_base::s_get_OID(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("uuid.OID");
-    int32_t vr = _OID;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void uuid_base::s_get_X509(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("uuid.X509");
-    int32_t vr = _X509;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void uuid_base::s_node(const v8::FunctionCallbackInfo<v8::Value>& args)

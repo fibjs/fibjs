@@ -55,7 +55,7 @@ inline ClassInfo& bson_base::class_info()
 
     static ClassData s_cd = {
         "bson", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };
 

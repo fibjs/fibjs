@@ -1,7 +1,11 @@
 console.log('exec testing....');
 
 var coroutine = require('coroutine');
-var process = require('process');
+
+process.on("SIGTERM", () => {
+	console.log("killed");
+	process.exit(0);
+});
 
 for (var i = 0; i < 2; i++) {
 	coroutine.sleep(1000);

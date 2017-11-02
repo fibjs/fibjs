@@ -67,27 +67,6 @@ public:
     }
 
 public:
-    static void s_get_Node_Hidden(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_Array(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_String(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_Object(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_Code(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_Closure(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_RegExp(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_HeapNumber(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_Native(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_Synthetic(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_ConsString(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_SlicedString(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_Symbol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Node_SimdValue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Edge_ContextVariable(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Edge_Element(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Edge_Property(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Edge_Internal(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Edge_Hidden(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Edge_Shortcut(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_Edge_Weak(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_takeSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -110,206 +89,38 @@ inline ClassInfo& profiler_base::class_info()
         { "start", s_start, true }
     };
 
-    static ClassData::ClassProperty s_property[] = {
-        { "Node_Hidden", s_get_Node_Hidden, block_set, true },
-        { "Node_Array", s_get_Node_Array, block_set, true },
-        { "Node_String", s_get_Node_String, block_set, true },
-        { "Node_Object", s_get_Node_Object, block_set, true },
-        { "Node_Code", s_get_Node_Code, block_set, true },
-        { "Node_Closure", s_get_Node_Closure, block_set, true },
-        { "Node_RegExp", s_get_Node_RegExp, block_set, true },
-        { "Node_HeapNumber", s_get_Node_HeapNumber, block_set, true },
-        { "Node_Native", s_get_Node_Native, block_set, true },
-        { "Node_Synthetic", s_get_Node_Synthetic, block_set, true },
-        { "Node_ConsString", s_get_Node_ConsString, block_set, true },
-        { "Node_SlicedString", s_get_Node_SlicedString, block_set, true },
-        { "Node_Symbol", s_get_Node_Symbol, block_set, true },
-        { "Node_SimdValue", s_get_Node_SimdValue, block_set, true },
-        { "Edge_ContextVariable", s_get_Edge_ContextVariable, block_set, true },
-        { "Edge_Element", s_get_Edge_Element, block_set, true },
-        { "Edge_Property", s_get_Edge_Property, block_set, true },
-        { "Edge_Internal", s_get_Edge_Internal, block_set, true },
-        { "Edge_Hidden", s_get_Edge_Hidden, block_set, true },
-        { "Edge_Shortcut", s_get_Edge_Shortcut, block_set, true },
-        { "Edge_Weak", s_get_Edge_Weak, block_set, true }
+    static ClassData::ClassConst s_const[] = {
+        { "Node_Hidden", _Node_Hidden },
+        { "Node_Array", _Node_Array },
+        { "Node_String", _Node_String },
+        { "Node_Object", _Node_Object },
+        { "Node_Code", _Node_Code },
+        { "Node_Closure", _Node_Closure },
+        { "Node_RegExp", _Node_RegExp },
+        { "Node_HeapNumber", _Node_HeapNumber },
+        { "Node_Native", _Node_Native },
+        { "Node_Synthetic", _Node_Synthetic },
+        { "Node_ConsString", _Node_ConsString },
+        { "Node_SlicedString", _Node_SlicedString },
+        { "Node_Symbol", _Node_Symbol },
+        { "Node_SimdValue", _Node_SimdValue },
+        { "Edge_ContextVariable", _Edge_ContextVariable },
+        { "Edge_Element", _Edge_Element },
+        { "Edge_Property", _Edge_Property },
+        { "Edge_Internal", _Edge_Internal },
+        { "Edge_Hidden", _Edge_Hidden },
+        { "Edge_Shortcut", _Edge_Shortcut },
+        { "Edge_Weak", _Edge_Weak }
     };
 
     static ClassData s_cd = {
         "profiler", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void profiler_base::s_get_Node_Hidden(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_Hidden");
-    int32_t vr = _Node_Hidden;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_Array(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_Array");
-    int32_t vr = _Node_Array;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_String(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_String");
-    int32_t vr = _Node_String;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_Object(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_Object");
-    int32_t vr = _Node_Object;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_Code(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_Code");
-    int32_t vr = _Node_Code;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_Closure(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_Closure");
-    int32_t vr = _Node_Closure;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_RegExp(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_RegExp");
-    int32_t vr = _Node_RegExp;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_HeapNumber(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_HeapNumber");
-    int32_t vr = _Node_HeapNumber;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_Native(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_Native");
-    int32_t vr = _Node_Native;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_Synthetic(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_Synthetic");
-    int32_t vr = _Node_Synthetic;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_ConsString(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_ConsString");
-    int32_t vr = _Node_ConsString;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_SlicedString(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_SlicedString");
-    int32_t vr = _Node_SlicedString;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_Symbol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_Symbol");
-    int32_t vr = _Node_Symbol;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Node_SimdValue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Node_SimdValue");
-    int32_t vr = _Node_SimdValue;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Edge_ContextVariable(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Edge_ContextVariable");
-    int32_t vr = _Edge_ContextVariable;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Edge_Element(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Edge_Element");
-    int32_t vr = _Edge_Element;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Edge_Property(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Edge_Property");
-    int32_t vr = _Edge_Property;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Edge_Internal(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Edge_Internal");
-    int32_t vr = _Edge_Internal;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Edge_Hidden(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Edge_Hidden");
-    int32_t vr = _Edge_Hidden;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Edge_Shortcut(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Edge_Shortcut");
-    int32_t vr = _Edge_Shortcut;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void profiler_base::s_get_Edge_Weak(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("profiler.Edge_Weak");
-    int32_t vr = _Edge_Weak;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void profiler_base::s_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)

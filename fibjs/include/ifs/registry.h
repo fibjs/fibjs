@@ -57,15 +57,6 @@ public:
     }
 
 public:
-    static void s_get_CLASSES_ROOT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_CURRENT_USER(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_LOCAL_MACHINE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_USERS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_CURRENT_CONFIG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_SZ(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_EXPAND_SZ(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_DWORD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_QWORD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_listSubKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_listValue(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -87,98 +78,26 @@ inline ClassInfo& registry_base::class_info()
         { "del", s_del, true }
     };
 
-    static ClassData::ClassProperty s_property[] = {
-        { "CLASSES_ROOT", s_get_CLASSES_ROOT, block_set, true },
-        { "CURRENT_USER", s_get_CURRENT_USER, block_set, true },
-        { "LOCAL_MACHINE", s_get_LOCAL_MACHINE, block_set, true },
-        { "USERS", s_get_USERS, block_set, true },
-        { "CURRENT_CONFIG", s_get_CURRENT_CONFIG, block_set, true },
-        { "SZ", s_get_SZ, block_set, true },
-        { "EXPAND_SZ", s_get_EXPAND_SZ, block_set, true },
-        { "DWORD", s_get_DWORD, block_set, true },
-        { "QWORD", s_get_QWORD, block_set, true }
+    static ClassData::ClassConst s_const[] = {
+        { "CLASSES_ROOT", _CLASSES_ROOT },
+        { "CURRENT_USER", _CURRENT_USER },
+        { "LOCAL_MACHINE", _LOCAL_MACHINE },
+        { "USERS", _USERS },
+        { "CURRENT_CONFIG", _CURRENT_CONFIG },
+        { "SZ", _SZ },
+        { "EXPAND_SZ", _EXPAND_SZ },
+        { "DWORD", _DWORD },
+        { "QWORD", _QWORD }
     };
 
     static ClassData s_cd = {
         "registry", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void registry_base::s_get_CLASSES_ROOT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("registry.CLASSES_ROOT");
-    int32_t vr = _CLASSES_ROOT;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void registry_base::s_get_CURRENT_USER(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("registry.CURRENT_USER");
-    int32_t vr = _CURRENT_USER;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void registry_base::s_get_LOCAL_MACHINE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("registry.LOCAL_MACHINE");
-    int32_t vr = _LOCAL_MACHINE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void registry_base::s_get_USERS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("registry.USERS");
-    int32_t vr = _USERS;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void registry_base::s_get_CURRENT_CONFIG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("registry.CURRENT_CONFIG");
-    int32_t vr = _CURRENT_CONFIG;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void registry_base::s_get_SZ(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("registry.SZ");
-    int32_t vr = _SZ;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void registry_base::s_get_EXPAND_SZ(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("registry.EXPAND_SZ");
-    int32_t vr = _EXPAND_SZ;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void registry_base::s_get_DWORD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("registry.DWORD");
-    int32_t vr = _DWORD;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void registry_base::s_get_QWORD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("registry.QWORD");
-    int32_t vr = _QWORD;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void registry_base::s_listSubKey(const v8::FunctionCallbackInfo<v8::Value>& args)

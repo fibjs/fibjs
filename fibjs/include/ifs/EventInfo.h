@@ -65,7 +65,7 @@ inline ClassInfo& EventInfo_base::class_info()
 
     static ClassData s_cd = {
         "EventInfo", false, s__new, NULL,
-        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, &s_named,
+        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, &s_named,
         &object_base::class_info()
     };
 
