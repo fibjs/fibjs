@@ -83,7 +83,7 @@ inline ClassInfo& encoding_base::class_info()
 
     static ClassData s_cd = {
         "encoding", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };
 

@@ -95,16 +95,6 @@ public:
     }
 
 public:
-    static void s_get_FATAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ALERT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_CRIT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ERROR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_WARN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_NOTICE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_INFO(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_DEBUG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_PRINT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_NOTSET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_loglevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_loglevel(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -181,109 +171,32 @@ inline ClassInfo& console_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "FATAL", s_get_FATAL, block_set, true },
-        { "ALERT", s_get_ALERT, block_set, true },
-        { "CRIT", s_get_CRIT, block_set, true },
-        { "ERROR", s_get_ERROR, block_set, true },
-        { "WARN", s_get_WARN, block_set, true },
-        { "NOTICE", s_get_NOTICE, block_set, true },
-        { "INFO", s_get_INFO, block_set, true },
-        { "DEBUG", s_get_DEBUG, block_set, true },
-        { "PRINT", s_get_PRINT, block_set, true },
-        { "NOTSET", s_get_NOTSET, block_set, true },
         { "loglevel", s_get_loglevel, s_set_loglevel, true },
         { "width", s_get_width, block_set, true },
         { "height", s_get_height, block_set, true }
     };
 
+    static ClassData::ClassConst s_const[] = {
+        { "FATAL", _FATAL },
+        { "ALERT", _ALERT },
+        { "CRIT", _CRIT },
+        { "ERROR", _ERROR },
+        { "WARN", _WARN },
+        { "NOTICE", _NOTICE },
+        { "INFO", _INFO },
+        { "DEBUG", _DEBUG },
+        { "PRINT", _PRINT },
+        { "NOTSET", _NOTSET }
+    };
+
     static ClassData s_cd = {
         "console", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void console_base::s_get_FATAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.FATAL");
-    int32_t vr = _FATAL;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void console_base::s_get_ALERT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.ALERT");
-    int32_t vr = _ALERT;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void console_base::s_get_CRIT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.CRIT");
-    int32_t vr = _CRIT;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void console_base::s_get_ERROR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.ERROR");
-    int32_t vr = _ERROR;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void console_base::s_get_WARN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.WARN");
-    int32_t vr = _WARN;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void console_base::s_get_NOTICE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.NOTICE");
-    int32_t vr = _NOTICE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void console_base::s_get_INFO(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.INFO");
-    int32_t vr = _INFO;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void console_base::s_get_DEBUG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.DEBUG");
-    int32_t vr = _DEBUG;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void console_base::s_get_PRINT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.PRINT");
-    int32_t vr = _PRINT;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void console_base::s_get_NOTSET(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.NOTSET");
-    int32_t vr = _NOTSET;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void console_base::s_get_loglevel(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)

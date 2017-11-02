@@ -67,17 +67,6 @@ public:
     }
 
 public:
-    static void s_get_VERIFY_NONE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_VERIFY_OPTIONAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_VERIFY_REQUIRED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_BADCERT_EXPIRED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_BADCERT_REVOKED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_BADCERT_CN_MISMATCH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_BADCERT_NOT_TRUSTED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ssl3(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_tls1(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_tls1_1(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_tls1_2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadClientCertFile(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -120,119 +109,34 @@ inline ClassInfo& ssl_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "VERIFY_NONE", s_get_VERIFY_NONE, block_set, true },
-        { "VERIFY_OPTIONAL", s_get_VERIFY_OPTIONAL, block_set, true },
-        { "VERIFY_REQUIRED", s_get_VERIFY_REQUIRED, block_set, true },
-        { "BADCERT_EXPIRED", s_get_BADCERT_EXPIRED, block_set, true },
-        { "BADCERT_REVOKED", s_get_BADCERT_REVOKED, block_set, true },
-        { "BADCERT_CN_MISMATCH", s_get_BADCERT_CN_MISMATCH, block_set, true },
-        { "BADCERT_NOT_TRUSTED", s_get_BADCERT_NOT_TRUSTED, block_set, true },
-        { "ssl3", s_get_ssl3, block_set, true },
-        { "tls1", s_get_tls1, block_set, true },
-        { "tls1_1", s_get_tls1_1, block_set, true },
-        { "tls1_2", s_get_tls1_2, block_set, true },
         { "ca", s_get_ca, block_set, true },
         { "verification", s_get_verification, s_set_verification, true },
         { "min_version", s_get_min_version, s_set_min_version, true },
         { "max_version", s_get_max_version, s_set_max_version, true }
     };
 
+    static ClassData::ClassConst s_const[] = {
+        { "VERIFY_NONE", _VERIFY_NONE },
+        { "VERIFY_OPTIONAL", _VERIFY_OPTIONAL },
+        { "VERIFY_REQUIRED", _VERIFY_REQUIRED },
+        { "BADCERT_EXPIRED", _BADCERT_EXPIRED },
+        { "BADCERT_REVOKED", _BADCERT_REVOKED },
+        { "BADCERT_CN_MISMATCH", _BADCERT_CN_MISMATCH },
+        { "BADCERT_NOT_TRUSTED", _BADCERT_NOT_TRUSTED },
+        { "ssl3", _ssl3 },
+        { "tls1", _tls1 },
+        { "tls1_1", _tls1_1 },
+        { "tls1_2", _tls1_2 }
+    };
+
     static ClassData s_cd = {
         "ssl", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void ssl_base::s_get_VERIFY_NONE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("ssl.VERIFY_NONE");
-    int32_t vr = _VERIFY_NONE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void ssl_base::s_get_VERIFY_OPTIONAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("ssl.VERIFY_OPTIONAL");
-    int32_t vr = _VERIFY_OPTIONAL;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void ssl_base::s_get_VERIFY_REQUIRED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("ssl.VERIFY_REQUIRED");
-    int32_t vr = _VERIFY_REQUIRED;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void ssl_base::s_get_BADCERT_EXPIRED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("ssl.BADCERT_EXPIRED");
-    int32_t vr = _BADCERT_EXPIRED;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void ssl_base::s_get_BADCERT_REVOKED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("ssl.BADCERT_REVOKED");
-    int32_t vr = _BADCERT_REVOKED;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void ssl_base::s_get_BADCERT_CN_MISMATCH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("ssl.BADCERT_CN_MISMATCH");
-    int32_t vr = _BADCERT_CN_MISMATCH;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void ssl_base::s_get_BADCERT_NOT_TRUSTED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("ssl.BADCERT_NOT_TRUSTED");
-    int32_t vr = _BADCERT_NOT_TRUSTED;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void ssl_base::s_get_ssl3(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("ssl.ssl3");
-    int32_t vr = _ssl3;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void ssl_base::s_get_tls1(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("ssl.tls1");
-    int32_t vr = _tls1;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void ssl_base::s_get_tls1_1(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("ssl.tls1_1");
-    int32_t vr = _tls1_1;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void ssl_base::s_get_tls1_2(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("ssl.tls1_2");
-    int32_t vr = _tls1_2;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void ssl_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)

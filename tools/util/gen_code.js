@@ -320,18 +320,8 @@ module.exports = function (defs, baseFolder) {
             },
             "const": {
                 "declare": () => {},
-                "stub": fn => {
-                    var fname = fn.name;
-                    txts.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
-                },
-                "stub_func": fn => {
-                    var fname = fn.name;
-                    txts.push('inline void ' + cls + '_base::s_get_' + fname + '(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');
-                    if (fn.deprecated)
-                        txts.push('    DEPRECATED_SOON("' + cls + '.' + fname + '");\n');
-                    txts.push(`    METHOD_NAME("${cls}.${fname}");`);
-                    txts.push(`    int32_t vr = _${fname};\n    PROPERTY_ENTER();\n    METHOD_RETURN();\n}\n`);
-                }
+                "stub": fn => {},
+                "stub_func": fn => {}
             },
             "operator": {
                 "declare": fn => {
@@ -637,6 +627,7 @@ module.exports = function (defs, baseFolder) {
             var method_count = 0;
             var object_count = 0;
             var prop_count = 0;
+            var const_count = 0;
 
             function gen_method_info() {
                 var deflist = [];
@@ -691,15 +682,30 @@ module.exports = function (defs, baseFolder) {
                         deflist.push('        { "' + fname + '", s_get_' + fname + ', ' +
                             (fn.readonly ? 'block_set' : 's_set_' + fname) + ', ' +
                             (fn.static ? 'true' : 'false') + ' }');
-                    } else if (fn.memType == 'const') {
-                        var fname = fn.name;
-                        deflist.push('        { "' + fname + '", s_get_' + fname + ', block_set, true }');
                     }
                 });
 
                 if (deflist.length) {
                     prop_count = deflist.length;
                     txts.push('    static ClassData::ClassProperty s_property[] = {');
+                    txts.push(deflist.join(",\n"));
+                    txts.push('    };\n');
+                }
+            }
+
+            function gen_const_info() {
+                var deflist = [];
+
+                def.members.forEach(fn => {
+                    if (fn.memType == 'const') {
+                        var fname = fn.name;
+                        deflist.push(`        { "${fname}", _${fname} }`);
+                    }
+                });
+
+                if (deflist.length) {
+                    const_count = deflist.length;
+                    txts.push('    static ClassData::ClassConst s_const[] = {');
                     txts.push(deflist.join(",\n"));
                     txts.push('    };\n');
                 }
@@ -723,6 +729,7 @@ module.exports = function (defs, baseFolder) {
                 ds += method_count ? ('ARRAYSIZE(s_method), s_method, ') : '0, NULL, ';
                 ds += object_count ? ('ARRAYSIZE(s_object), s_object, ') : '0, NULL, ';
                 ds += prop_count ? ('ARRAYSIZE(s_property), s_property, ') : '0, NULL, ';
+                ds += const_count ? ('ARRAYSIZE(s_const), s_const, ') : '0, NULL, ';
                 ds += fnIndexed ? '&s_indexed, ' : 'NULL, ';
                 ds += fnNamed ? '&s_named,' : 'NULL,';
                 txts.push(ds);
@@ -737,6 +744,7 @@ module.exports = function (defs, baseFolder) {
             gen_method_info();
             gen_object_info();
             gen_prop_info();
+            gen_const_info();
             gen_operator_info();
 
             gen_def_info();

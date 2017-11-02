@@ -45,7 +45,7 @@ inline ClassInfo& string_decoder_base::class_info()
 
     static ClassData s_cd = {
         "string_decoder", true, s__new, NULL,
-        0, NULL, ARRAYSIZE(s_object), s_object, 0, NULL, NULL, NULL,
+        0, NULL, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };
 

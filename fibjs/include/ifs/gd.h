@@ -82,35 +82,6 @@ public:
     }
 
 public:
-    static void s_get_NONE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_JPEG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_GIF(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_PNG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_TIFF(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_BMP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_WEBP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_TRUECOLOR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_PALETTE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ARC(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_CHORD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_NOFILL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_EDGED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_HORIZONTAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_VERTICAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_BOTH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_LEFT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_RIGHT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_MEAN_REMOVAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_EDGEDETECT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_EMBOSS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_SELECTIVE_BLUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_GAUSSIAN_BLUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_NEGATE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_GRAYSCALE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_SMOOTH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_BRIGHTNESS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_CONTRAST(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_COLORIZE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_create(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_load(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rgb(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -150,278 +121,46 @@ inline ClassInfo& gd_base::class_info()
         { "color", s_color, true }
     };
 
-    static ClassData::ClassProperty s_property[] = {
-        { "NONE", s_get_NONE, block_set, true },
-        { "JPEG", s_get_JPEG, block_set, true },
-        { "GIF", s_get_GIF, block_set, true },
-        { "PNG", s_get_PNG, block_set, true },
-        { "TIFF", s_get_TIFF, block_set, true },
-        { "BMP", s_get_BMP, block_set, true },
-        { "WEBP", s_get_WEBP, block_set, true },
-        { "TRUECOLOR", s_get_TRUECOLOR, block_set, true },
-        { "PALETTE", s_get_PALETTE, block_set, true },
-        { "ARC", s_get_ARC, block_set, true },
-        { "CHORD", s_get_CHORD, block_set, true },
-        { "NOFILL", s_get_NOFILL, block_set, true },
-        { "EDGED", s_get_EDGED, block_set, true },
-        { "HORIZONTAL", s_get_HORIZONTAL, block_set, true },
-        { "VERTICAL", s_get_VERTICAL, block_set, true },
-        { "BOTH", s_get_BOTH, block_set, true },
-        { "LEFT", s_get_LEFT, block_set, true },
-        { "RIGHT", s_get_RIGHT, block_set, true },
-        { "MEAN_REMOVAL", s_get_MEAN_REMOVAL, block_set, true },
-        { "EDGEDETECT", s_get_EDGEDETECT, block_set, true },
-        { "EMBOSS", s_get_EMBOSS, block_set, true },
-        { "SELECTIVE_BLUR", s_get_SELECTIVE_BLUR, block_set, true },
-        { "GAUSSIAN_BLUR", s_get_GAUSSIAN_BLUR, block_set, true },
-        { "NEGATE", s_get_NEGATE, block_set, true },
-        { "GRAYSCALE", s_get_GRAYSCALE, block_set, true },
-        { "SMOOTH", s_get_SMOOTH, block_set, true },
-        { "BRIGHTNESS", s_get_BRIGHTNESS, block_set, true },
-        { "CONTRAST", s_get_CONTRAST, block_set, true },
-        { "COLORIZE", s_get_COLORIZE, block_set, true }
+    static ClassData::ClassConst s_const[] = {
+        { "NONE", _NONE },
+        { "JPEG", _JPEG },
+        { "GIF", _GIF },
+        { "PNG", _PNG },
+        { "TIFF", _TIFF },
+        { "BMP", _BMP },
+        { "WEBP", _WEBP },
+        { "TRUECOLOR", _TRUECOLOR },
+        { "PALETTE", _PALETTE },
+        { "ARC", _ARC },
+        { "CHORD", _CHORD },
+        { "NOFILL", _NOFILL },
+        { "EDGED", _EDGED },
+        { "HORIZONTAL", _HORIZONTAL },
+        { "VERTICAL", _VERTICAL },
+        { "BOTH", _BOTH },
+        { "LEFT", _LEFT },
+        { "RIGHT", _RIGHT },
+        { "MEAN_REMOVAL", _MEAN_REMOVAL },
+        { "EDGEDETECT", _EDGEDETECT },
+        { "EMBOSS", _EMBOSS },
+        { "SELECTIVE_BLUR", _SELECTIVE_BLUR },
+        { "GAUSSIAN_BLUR", _GAUSSIAN_BLUR },
+        { "NEGATE", _NEGATE },
+        { "GRAYSCALE", _GRAYSCALE },
+        { "SMOOTH", _SMOOTH },
+        { "BRIGHTNESS", _BRIGHTNESS },
+        { "CONTRAST", _CONTRAST },
+        { "COLORIZE", _COLORIZE }
     };
 
     static ClassData s_cd = {
         "gd", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void gd_base::s_get_NONE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.NONE");
-    int32_t vr = _NONE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_JPEG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.JPEG");
-    int32_t vr = _JPEG;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_GIF(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.GIF");
-    int32_t vr = _GIF;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_PNG(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.PNG");
-    int32_t vr = _PNG;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_TIFF(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.TIFF");
-    int32_t vr = _TIFF;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_BMP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.BMP");
-    int32_t vr = _BMP;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_WEBP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.WEBP");
-    int32_t vr = _WEBP;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_TRUECOLOR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.TRUECOLOR");
-    int32_t vr = _TRUECOLOR;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_PALETTE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.PALETTE");
-    int32_t vr = _PALETTE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_ARC(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.ARC");
-    int32_t vr = _ARC;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_CHORD(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.CHORD");
-    int32_t vr = _CHORD;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_NOFILL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.NOFILL");
-    int32_t vr = _NOFILL;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_EDGED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.EDGED");
-    int32_t vr = _EDGED;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_HORIZONTAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.HORIZONTAL");
-    int32_t vr = _HORIZONTAL;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_VERTICAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.VERTICAL");
-    int32_t vr = _VERTICAL;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_BOTH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.BOTH");
-    int32_t vr = _BOTH;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_LEFT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.LEFT");
-    int32_t vr = _LEFT;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_RIGHT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.RIGHT");
-    int32_t vr = _RIGHT;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_MEAN_REMOVAL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.MEAN_REMOVAL");
-    int32_t vr = _MEAN_REMOVAL;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_EDGEDETECT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.EDGEDETECT");
-    int32_t vr = _EDGEDETECT;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_EMBOSS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.EMBOSS");
-    int32_t vr = _EMBOSS;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_SELECTIVE_BLUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.SELECTIVE_BLUR");
-    int32_t vr = _SELECTIVE_BLUR;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_GAUSSIAN_BLUR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.GAUSSIAN_BLUR");
-    int32_t vr = _GAUSSIAN_BLUR;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_NEGATE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.NEGATE");
-    int32_t vr = _NEGATE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_GRAYSCALE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.GRAYSCALE");
-    int32_t vr = _GRAYSCALE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_SMOOTH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.SMOOTH");
-    int32_t vr = _SMOOTH;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_BRIGHTNESS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.BRIGHTNESS");
-    int32_t vr = _BRIGHTNESS;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_CONTRAST(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.CONTRAST");
-    int32_t vr = _CONTRAST;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void gd_base::s_get_COLORIZE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("gd.COLORIZE");
-    int32_t vr = _COLORIZE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void gd_base::s_create(const v8::FunctionCallbackInfo<v8::Value>& args)

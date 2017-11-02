@@ -53,14 +53,6 @@ public:
     }
 
 public:
-    static void s_get_ELEMENT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ATTRIBUTE_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_TEXT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_CDATA_SECTION_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_PROCESSING_INSTRUCTION_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_COMMENT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_DOCUMENT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_DOCUMENT_TYPE_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_serialize(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -82,89 +74,25 @@ inline ClassInfo& xml_base::class_info()
         { "Document", XmlDocument_base::class_info }
     };
 
-    static ClassData::ClassProperty s_property[] = {
-        { "ELEMENT_NODE", s_get_ELEMENT_NODE, block_set, true },
-        { "ATTRIBUTE_NODE", s_get_ATTRIBUTE_NODE, block_set, true },
-        { "TEXT_NODE", s_get_TEXT_NODE, block_set, true },
-        { "CDATA_SECTION_NODE", s_get_CDATA_SECTION_NODE, block_set, true },
-        { "PROCESSING_INSTRUCTION_NODE", s_get_PROCESSING_INSTRUCTION_NODE, block_set, true },
-        { "COMMENT_NODE", s_get_COMMENT_NODE, block_set, true },
-        { "DOCUMENT_NODE", s_get_DOCUMENT_NODE, block_set, true },
-        { "DOCUMENT_TYPE_NODE", s_get_DOCUMENT_TYPE_NODE, block_set, true }
+    static ClassData::ClassConst s_const[] = {
+        { "ELEMENT_NODE", _ELEMENT_NODE },
+        { "ATTRIBUTE_NODE", _ATTRIBUTE_NODE },
+        { "TEXT_NODE", _TEXT_NODE },
+        { "CDATA_SECTION_NODE", _CDATA_SECTION_NODE },
+        { "PROCESSING_INSTRUCTION_NODE", _PROCESSING_INSTRUCTION_NODE },
+        { "COMMENT_NODE", _COMMENT_NODE },
+        { "DOCUMENT_NODE", _DOCUMENT_NODE },
+        { "DOCUMENT_TYPE_NODE", _DOCUMENT_TYPE_NODE }
     };
 
     static ClassData s_cd = {
         "xml", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void xml_base::s_get_ELEMENT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("xml.ELEMENT_NODE");
-    int32_t vr = _ELEMENT_NODE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void xml_base::s_get_ATTRIBUTE_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("xml.ATTRIBUTE_NODE");
-    int32_t vr = _ATTRIBUTE_NODE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void xml_base::s_get_TEXT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("xml.TEXT_NODE");
-    int32_t vr = _TEXT_NODE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void xml_base::s_get_CDATA_SECTION_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("xml.CDATA_SECTION_NODE");
-    int32_t vr = _CDATA_SECTION_NODE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void xml_base::s_get_PROCESSING_INSTRUCTION_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("xml.PROCESSING_INSTRUCTION_NODE");
-    int32_t vr = _PROCESSING_INSTRUCTION_NODE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void xml_base::s_get_COMMENT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("xml.COMMENT_NODE");
-    int32_t vr = _COMMENT_NODE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void xml_base::s_get_DOCUMENT_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("xml.DOCUMENT_NODE");
-    int32_t vr = _DOCUMENT_NODE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void xml_base::s_get_DOCUMENT_TYPE_NODE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("xml.DOCUMENT_TYPE_NODE");
-    int32_t vr = _DOCUMENT_TYPE_NODE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void xml_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)

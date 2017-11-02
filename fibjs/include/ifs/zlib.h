@@ -69,10 +69,6 @@ public:
     }
 
 public:
-    static void s_get_NO_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_BEST_SPEED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_BEST_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_DEFAULT_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_createDeflate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_createDeflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_createGunzip(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -153,53 +149,21 @@ inline ClassInfo& zlib_base::class_info()
         { "inflateRawToSync", s_inflateRawTo, true }
     };
 
-    static ClassData::ClassProperty s_property[] = {
-        { "NO_COMPRESSION", s_get_NO_COMPRESSION, block_set, true },
-        { "BEST_SPEED", s_get_BEST_SPEED, block_set, true },
-        { "BEST_COMPRESSION", s_get_BEST_COMPRESSION, block_set, true },
-        { "DEFAULT_COMPRESSION", s_get_DEFAULT_COMPRESSION, block_set, true }
+    static ClassData::ClassConst s_const[] = {
+        { "NO_COMPRESSION", _NO_COMPRESSION },
+        { "BEST_SPEED", _BEST_SPEED },
+        { "BEST_COMPRESSION", _BEST_COMPRESSION },
+        { "DEFAULT_COMPRESSION", _DEFAULT_COMPRESSION }
     };
 
     static ClassData s_cd = {
         "zlib", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void zlib_base::s_get_NO_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("zlib.NO_COMPRESSION");
-    int32_t vr = _NO_COMPRESSION;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void zlib_base::s_get_BEST_SPEED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("zlib.BEST_SPEED");
-    int32_t vr = _BEST_SPEED;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void zlib_base::s_get_BEST_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("zlib.BEST_COMPRESSION");
-    int32_t vr = _BEST_COMPRESSION;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void zlib_base::s_get_DEFAULT_COMPRESSION(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("zlib.DEFAULT_COMPRESSION");
-    int32_t vr = _DEFAULT_COMPRESSION;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void zlib_base::s_createDeflate(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -58,7 +58,7 @@ inline ClassInfo& Event_base::class_info()
 
     static ClassData s_cd = {
         "Event", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &Lock_base::class_info()
     };
 

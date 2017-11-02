@@ -61,8 +61,6 @@ public:
     static void __new(const T& args);
 
 public:
-    static void s_get_TEXT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_BINARY(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_value(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
@@ -121,8 +119,6 @@ inline ClassInfo& Message_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "TEXT", s_get_TEXT, block_set, true },
-        { "BINARY", s_get_BINARY, block_set, true },
         { "value", s_get_value, s_set_value, false },
         { "params", s_get_params, block_set, false },
         { "type", s_get_type, s_set_type, false },
@@ -134,30 +130,19 @@ inline ClassInfo& Message_base::class_info()
         { "lastError", s_get_lastError, s_set_lastError, false }
     };
 
+    static ClassData::ClassConst s_const[] = {
+        { "TEXT", _TEXT },
+        { "BINARY", _BINARY }
+    };
+
     static ClassData s_cd = {
         "Message", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void Message_base::s_get_TEXT(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("Message.TEXT");
-    int32_t vr = _TEXT;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void Message_base::s_get_BINARY(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("Message.BINARY");
-    int32_t vr = _BINARY;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void Message_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)

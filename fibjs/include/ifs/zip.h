@@ -48,8 +48,6 @@ public:
     }
 
 public:
-    static void s_get_ZIP_STORED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ZIP_DEFLATED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_isZipFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -75,35 +73,19 @@ inline ClassInfo& zip_base::class_info()
         { "openSync", s_open, true }
     };
 
-    static ClassData::ClassProperty s_property[] = {
-        { "ZIP_STORED", s_get_ZIP_STORED, block_set, true },
-        { "ZIP_DEFLATED", s_get_ZIP_DEFLATED, block_set, true }
+    static ClassData::ClassConst s_const[] = {
+        { "ZIP_STORED", _ZIP_STORED },
+        { "ZIP_DEFLATED", _ZIP_DEFLATED }
     };
 
     static ClassData s_cd = {
         "zip", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void zip_base::s_get_ZIP_STORED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("zip.ZIP_STORED");
-    int32_t vr = _ZIP_STORED;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void zip_base::s_get_ZIP_DEFLATED(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("zip.ZIP_DEFLATED");
-    int32_t vr = _ZIP_DEFLATED;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void zip_base::s_isZipFile(const v8::FunctionCallbackInfo<v8::Value>& args)

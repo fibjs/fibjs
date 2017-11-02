@@ -61,7 +61,7 @@ inline ClassInfo& SslServer_base::class_info()
 
     static ClassData s_cd = {
         "SslServer", false, s__new, NULL,
-        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &TcpServer_base::class_info()
     };
 

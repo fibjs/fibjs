@@ -85,7 +85,7 @@ inline ClassInfo& SeekableStream_base::class_info()
 
     static ClassData s_cd = {
         "SeekableStream", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &Stream_base::class_info()
     };
 

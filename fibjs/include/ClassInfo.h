@@ -26,6 +26,11 @@ struct ClassData {
         bool is_static;
     };
 
+    struct ClassConst {
+        const char* name;
+        int32_t value;
+    };
+
     struct ClassMethod {
         const char* name;
         v8::FunctionCallback invoker;
@@ -59,6 +64,8 @@ struct ClassData {
     const ClassObject* cos;
     int32_t pc;
     const ClassProperty* cps;
+    int32_t cc;
+    const ClassConst* ccs;
     const ClassIndexed* cis;
     const ClassNamed* cns;
     ClassInfo* base;
@@ -174,6 +181,10 @@ public:
             if (!qstrcmp(name, m_cd.cps[i].name))
                 return true;
 
+        for (i = 0; i < m_cd.cc; i++)
+            if (!qstrcmp(name, m_cd.ccs[i].name))
+                return true;
+
         if (m_cd.base)
             return m_cd.base->has(name);
 
@@ -187,8 +198,6 @@ public:
 
     void Attach(Isolate* isolate, v8::Local<v8::Object> o, const char** skips = NULL)
     {
-        v8::Local<v8::Context> _context = isolate->context();
-
         int32_t i, j;
 
         for (i = 0; i < m_cd.mc; i++) {
@@ -198,9 +207,8 @@ public:
                         ;
 
                 if (!skips || !skips[j])
-                    o->DefineOwnProperty(_context, isolate->NewString(m_cd.cms[i].name),
-                         isolate->NewFunction(m_cd.name, m_cd.cms[i].invoker))
-                        .IsJust();
+                    o->Set(isolate->NewString(m_cd.cms[i].name),
+                        isolate->NewFunction(m_cd.name, m_cd.cms[i].invoker));
             }
         }
 
@@ -210,9 +218,8 @@ public:
                     ;
 
             if (!skips || !skips[j])
-                o->DefineOwnProperty(_context, isolate->NewString(m_cd.cos[i].name),
-                     m_cd.cos[i].invoker().getModule(isolate))
-                    .IsJust();
+                o->Set(isolate->NewString(m_cd.cos[i].name),
+                    m_cd.cos[i].invoker().getModule(isolate));
         }
 
         for (i = 0; i < m_cd.pc; i++)
@@ -225,6 +232,16 @@ public:
                     o->SetAccessor(isolate->NewString(m_cd.cps[i].name),
                         m_cd.cps[i].getter, m_cd.cps[i].setter);
             }
+
+        for (i = 0; i < m_cd.cc; i++) {
+            if (skips)
+                for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.ccs[i].name); j++)
+                    ;
+
+            if (!skips || !skips[j])
+                o->Set(isolate->NewString(m_cd.ccs[i].name),
+                    v8::Number::New(isolate->m_isolate, m_cd.ccs[i].value));
+        }
 
         if (m_cd.base)
             m_cd.base->Attach(isolate, o, skips);
@@ -326,6 +343,11 @@ private:
                 pt->SetAccessor(isolate->NewString(m_cd.cps[i].name),
                     m_cd.cps[i].getter, m_cd.cps[i].setter,
                     v8::Local<v8::Value>(), v8::DEFAULT, v8::DontDelete);
+
+            for (i = 0; i < m_cd.cc; i++) {
+                pt->Set(isolate->NewString(m_cd.ccs[i].name),
+                    v8::Number::New(isolate->m_isolate, m_cd.ccs[i].value));
+            }
 
             v8::Local<v8::ObjectTemplate> ot = _class->InstanceTemplate();
             ot->SetInternalFieldCount(1);

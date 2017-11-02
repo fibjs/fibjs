@@ -107,7 +107,7 @@ inline ClassInfo& HttpMessage_base::class_info()
 
     static ClassData s_cd = {
         "HttpMessage", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &Message_base::class_info()
     };
 

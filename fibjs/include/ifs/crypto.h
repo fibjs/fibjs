@@ -81,27 +81,6 @@ public:
     }
 
 public:
-    static void s_get_AES(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_CAMELLIA(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_DES(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_DES_EDE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_DES_EDE3(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_BLOWFISH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ARC4(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ECB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_CBC(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_CFB64(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_CFB128(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_OFB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_CTR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_GCM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_CCM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_PKCS7(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ONE_AND_ZEROS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ZEROS_AND_LEN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ZEROS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_NOPADDING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_createHash(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_createHmac(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -165,206 +144,38 @@ inline ClassInfo& crypto_base::class_info()
         { "X509Req", X509Req_base::class_info }
     };
 
-    static ClassData::ClassProperty s_property[] = {
-        { "AES", s_get_AES, block_set, true },
-        { "CAMELLIA", s_get_CAMELLIA, block_set, true },
-        { "DES", s_get_DES, block_set, true },
-        { "DES_EDE", s_get_DES_EDE, block_set, true },
-        { "DES_EDE3", s_get_DES_EDE3, block_set, true },
-        { "BLOWFISH", s_get_BLOWFISH, block_set, true },
-        { "ARC4", s_get_ARC4, block_set, true },
-        { "ECB", s_get_ECB, block_set, true },
-        { "CBC", s_get_CBC, block_set, true },
-        { "CFB64", s_get_CFB64, block_set, true },
-        { "CFB128", s_get_CFB128, block_set, true },
-        { "OFB", s_get_OFB, block_set, true },
-        { "CTR", s_get_CTR, block_set, true },
-        { "GCM", s_get_GCM, block_set, true },
-        { "STREAM", s_get_STREAM, block_set, true },
-        { "CCM", s_get_CCM, block_set, true },
-        { "PKCS7", s_get_PKCS7, block_set, true },
-        { "ONE_AND_ZEROS", s_get_ONE_AND_ZEROS, block_set, true },
-        { "ZEROS_AND_LEN", s_get_ZEROS_AND_LEN, block_set, true },
-        { "ZEROS", s_get_ZEROS, block_set, true },
-        { "NOPADDING", s_get_NOPADDING, block_set, true }
+    static ClassData::ClassConst s_const[] = {
+        { "AES", _AES },
+        { "CAMELLIA", _CAMELLIA },
+        { "DES", _DES },
+        { "DES_EDE", _DES_EDE },
+        { "DES_EDE3", _DES_EDE3 },
+        { "BLOWFISH", _BLOWFISH },
+        { "ARC4", _ARC4 },
+        { "ECB", _ECB },
+        { "CBC", _CBC },
+        { "CFB64", _CFB64 },
+        { "CFB128", _CFB128 },
+        { "OFB", _OFB },
+        { "CTR", _CTR },
+        { "GCM", _GCM },
+        { "STREAM", _STREAM },
+        { "CCM", _CCM },
+        { "PKCS7", _PKCS7 },
+        { "ONE_AND_ZEROS", _ONE_AND_ZEROS },
+        { "ZEROS_AND_LEN", _ZEROS_AND_LEN },
+        { "ZEROS", _ZEROS },
+        { "NOPADDING", _NOPADDING }
     };
 
     static ClassData s_cd = {
         "crypto", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void crypto_base::s_get_AES(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.AES");
-    int32_t vr = _AES;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_CAMELLIA(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.CAMELLIA");
-    int32_t vr = _CAMELLIA;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_DES(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.DES");
-    int32_t vr = _DES;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_DES_EDE(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.DES_EDE");
-    int32_t vr = _DES_EDE;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_DES_EDE3(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.DES_EDE3");
-    int32_t vr = _DES_EDE3;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_BLOWFISH(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.BLOWFISH");
-    int32_t vr = _BLOWFISH;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_ARC4(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.ARC4");
-    int32_t vr = _ARC4;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_ECB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.ECB");
-    int32_t vr = _ECB;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_CBC(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.CBC");
-    int32_t vr = _CBC;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_CFB64(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.CFB64");
-    int32_t vr = _CFB64;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_CFB128(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.CFB128");
-    int32_t vr = _CFB128;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_OFB(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.OFB");
-    int32_t vr = _OFB;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_CTR(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.CTR");
-    int32_t vr = _CTR;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_GCM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.GCM");
-    int32_t vr = _GCM;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_STREAM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.STREAM");
-    int32_t vr = _STREAM;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_CCM(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.CCM");
-    int32_t vr = _CCM;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_PKCS7(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.PKCS7");
-    int32_t vr = _PKCS7;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_ONE_AND_ZEROS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.ONE_AND_ZEROS");
-    int32_t vr = _ONE_AND_ZEROS;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_ZEROS_AND_LEN(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.ZEROS_AND_LEN");
-    int32_t vr = _ZEROS_AND_LEN;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_ZEROS(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.ZEROS");
-    int32_t vr = _ZEROS;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_get_NOPADDING(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("crypto.NOPADDING");
-    int32_t vr = _NOPADDING;
-    PROPERTY_ENTER();
-    METHOD_RETURN();
 }
 
 inline void crypto_base::s_createHash(const v8::FunctionCallbackInfo<v8::Value>& args)
