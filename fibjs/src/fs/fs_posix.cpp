@@ -215,8 +215,13 @@ result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
 #if defined(Darwin) || defined(FreeBSD)
+#ifdef F_FULLFSYNC 
     if (::fcntl(fd, F_FULLFSYNC))
         return CHECK_ERROR(LastError());
+#else
+    if (::fsync(fd))
+        return CHECK_ERROR(LastError());
+#endif
 #else
     if (::fdatasync(fd))
         return CHECK_ERROR(LastError());
