@@ -284,16 +284,15 @@ result_t AsyncIO::close(intptr_t& s, AsyncEvent* ac)
         virtual void start()
         {
             if (m_s != INVALID_SOCKET) {
+                ::closesocket(m_s);
+                m_s = INVALID_SOCKET;
+
                 if (m_opt1)
                     ((asyncProc*)m_opt1)->onready();
 
                 if (m_opt2)
                     ((asyncProc*)m_opt2)->onready();
-
-                ::closesocket(m_s);
             }
-
-            m_s = INVALID_SOCKET;
 
             m_ac->apost(0);
             delete this;
