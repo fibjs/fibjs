@@ -44,10 +44,4 @@ result_t AsyncWaitHandler::end()
     return 0;
 }
 
-result_t mq_base::await(obj_ptr<Handler_base>& retVal)
-{
-    retVal = new AsyncWaitHandler();
-    return 0;
-}
-
 } /* namespace fibjs */

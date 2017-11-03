@@ -8,12 +8,12 @@
 #ifndef ASYNCWAITHANDLER_H_
 #define ASYNCWAITHANDLER_H_
 
-#include "ifs/AsyncWait.h"
+#include "ifs/Handler.h"
 #include "Event.h"
 
 namespace fibjs {
 
-class AsyncWaitHandler : public AsyncWait_base {
+class AsyncWaitHandler : public Handler_base {
 
     FIBER_FREE();
 

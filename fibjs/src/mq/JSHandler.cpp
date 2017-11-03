@@ -19,9 +19,7 @@ namespace fibjs {
 
 static void _done(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    AsyncWait_base* v = AsyncWait_base::getInstance(args.Data()->ToObject());
-    if (v)
-        v->end();
+    ((AsyncWaitHandler*)Handler_base::getInstance(args.Data()->ToObject()))->end();
     args.GetReturnValue().SetUndefined();
 }
 

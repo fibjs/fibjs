@@ -27,7 +27,6 @@ class mq_base : public object_base {
 
 public:
     // mq_base
-    static result_t await(obj_ptr<Handler_base>& retVal);
     static result_t nullHandler(obj_ptr<Handler_base>& retVal);
     static result_t invoke(Handler_base* hdlr, object_base* v, AsyncEvent* ac);
 
@@ -43,7 +42,6 @@ public:
     }
 
 public:
-    static void s_await(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -62,7 +60,6 @@ namespace fibjs {
 inline ClassInfo& mq_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "await", s_await, true },
         { "nullHandler", s_nullHandler, true },
         { "invoke", s_invoke, true },
         { "invokeSync", s_invoke, true }
@@ -84,20 +81,6 @@ inline ClassInfo& mq_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void mq_base::s_await(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Handler_base> vr;
-
-    METHOD_NAME("mq.await");
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = await(vr);
-
-    METHOD_RETURN();
 }
 
 inline void mq_base::s_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& args)

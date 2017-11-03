@@ -39,25 +39,6 @@ module mq
     /*! @brief 创建一个消息处理器路由对象，参见 Routing*/
     static Routing;
 
-    /*! @brief 创建一个异步等待处理器
-
-     异步等待处理器用于需要异步处理的消息处理模式，示例如下：
-     ```JavaScript
-     function func(v){
-         var await = mq.await();
-
-         call_some_async_func(v1, v2, v3, function() {
-                 await.end();
-             });
-
-         return await;
-     }
-     ```
-     示例是一个 javascript 消息处理函数，当函数返回时，消息处理引擎将等待 await，直到 await.end 被调用，才继续下一阶段的处理。
-      @return 返回创建的处理器
-     */
-    static Handler await();
-
     /*! @brief 创建一个空处理器对象，次处理对象不做任何处理直接返回
      @return 返回空处理函数
      */

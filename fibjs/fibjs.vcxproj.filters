@@ -438,9 +438,6 @@
     <ClInclude Include="include\encoding_iconv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\AsyncWait.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\Buffer.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
