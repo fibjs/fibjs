@@ -1083,36 +1083,6 @@ describe("mq", () => {
         });
     });
 
-    it("await", () => {
-        var n = 100;
-
-        mq.invoke((r) => {
-            var aw = mq.await();
-
-            function delayend() {
-                assert.equal(n, 100);
-                n = 200;
-                aw.end();
-            }
-            coroutine.start(delayend);
-
-            return aw;
-        }, m);
-        assert.equal(n, 200);
-
-        n = 300;
-        mq.invoke((r) => {
-            var aw = mq.await();
-
-            assert.equal(n, 300);
-            n = 400;
-            aw.end();
-
-            return aw;
-        }, m);
-        assert.equal(n, 400);
-    });
-
     it("sync(func)", () => {
         var n = 100;
 
@@ -1133,6 +1103,21 @@ describe("mq", () => {
             done();
         }), m);
         assert.equal(n, 400);
+    });
+
+    it("sync(func) with params", () => {
+        var n;
+        var r = new mq.Routing({
+            '/:a/:b': util.sync(function (req, a, b, done) {
+                n = a + b;
+                done();
+            })
+        });
+
+        var msg = new mq.Message();
+        msg.value = '/123/456';
+        mq.invoke(r, msg);
+        assert.equal(n, '123456');
     });
 });
 

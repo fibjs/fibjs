@@ -37,30 +37,42 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     if (ac->isAsync())
         return CHECK_ERROR(CALL_E_NOASYNC);
 
+    v8::Local<v8::Object> o = v->wrap();
+    Isolate* isolate = holder();
+    obj_ptr<Message_base> msg = Message_base::getInstance(v);
+    v8::Local<v8::Value> a = v8::Local<v8::Value>::New(isolate->m_isolate, o);
+
     if (m_async) {
         v8::Local<v8::Value> v1 = GetPrivate("handler");
         if (IsEmpty(v1))
             return CALL_RETURN_NULL;
 
-        Isolate* isolate = holder();
-
         retVal = new AsyncWaitHandler();
         v8::Local<v8::Function> proc = v8::Local<v8::Function>::Cast(v1);
 
-        v8::Local<v8::Value> args[2];
+        obj_ptr<NArray> params;
+        std::vector<v8::Local<v8::Value>> argv;
+        int32_t len = 0, i;
 
-        args[0] = v->wrap();
-        args[1] = isolate->NewFunction("done", _done, retVal->wrap());
+        if (msg != NULL) {
+            msg->get_params(params);
+            params->get_length(len);
+        }
 
-        proc->Call(args[0], 2, args);
+        argv.resize(len + 2);
+
+        argv[0] = a;
+        for (i = 0; i < len; i++) {
+            Variant v;
+            params->_indexed_getter(i, v);
+            argv[i + 1] = v;
+        }
+        argv[len + 1] = isolate->NewFunction("done", _done, retVal->wrap());
+
+        proc->Call(v8::Undefined(isolate->m_isolate), len + 2, argv.data());
         return 0;
     }
 
-    v8::Local<v8::Object> o = v->wrap();
-    Isolate* isolate = holder();
-
-    obj_ptr<Message_base> msg = Message_base::getInstance(v);
-    v8::Local<v8::Value> a = v8::Local<v8::Value>::New(isolate->m_isolate, o);
     v8::Local<v8::Value> hdlr = GetPrivate("handler");
 
     while (true) {
