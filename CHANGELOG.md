@@ -1,3 +1,121 @@
+## 2017-11-3, Version v0.18.0
+
+* **feature** :
+    * core:
+      - support --cov=filename to specify the cov filename (#368)(Hengfei Zhuang)
+      - support --cov-process tool to generate code coverage analysis report.(xicilion)
+      - support collecting code coverage information.(xicilion)
+      - support v8 code coverage.(xicilion)
+      - support OnEventEmit in Trigger.(xicilion)
+    * http - check option items, throw unknown option.(xicilion)
+    * process:
+      - add test case of kill.(xicilion)
+      - process.exit support return 0;(xicilion)
+    * v8 - upgrade to 6.4.185.(xicilion)
+    * websocket:
+      - add come documents.(xicilion)
+      - change readyState to CLOSED in js thread.(xicilion)
+      - close a closed socket not throw error.(xicilion)
+      - ws.upgrade add req as the second argument in callback.(xicilion)
+
+* **breakchange** :
+    * collection:
+      - deprecated collection module and Map object.(xicilion)
+      - deprecated  Queue.(xicilion)
+      - deprecated List object.(xicilion)
+    * console - deprecated TextColor object.(xicilion)
+    * core - deprecated object.dispose(xicilion)
+    * coroutine - deprecated BlockedQueue.(xicilion)
+    * http - deprecated http.find.(xicilion)
+    * mongodb - deprecated GridFS.(xicilion)
+    * mq - deprecated mq.await.(xicilion)
+    * websocket - deprecated ws.connect.(xicilion)
+    * zip - deprecated ZipInfo object.(xicilion)
+
+* **bugfix** :
+    * assert - compile error on Linux.(xicilion)
+    * core:
+      - closesocket before canceling io operation.(xicilion)
+      - ensure the coverage report could be generated successfully. (#369)(Hengfei Zhuang)
+      - ensure the coverage report could be generated successfully. (#369)(Hengfei Zhuang)
+      - compile error on Linux and windows.(xicilion)
+    * docs - fix wrong “.(xicilion)
+    * fs - compile error on FreeBSD.(xicilion)
+    * gb - fix hsb2rgb algorithm error.(xicilion)
+    * mq - params lost in asynchronous js handler.(xicilion)
+    * SubProcess - SubProcess not allow reenter.(xicilion)
+    * websocket - not compress control message.(xicilion)
+    * WebView - compile error on windows.(xicilion)
+
+* **refactor** :
+    * core:
+      - use JavaScript property to implement const.(xicilion)
+      - add trace_tcp option.(xicilion)
+      - remove equals from object to Buffer and Int64.(xicilion)
+      - revert to the previous code (v8 fixed the deadlock error).(xicilion)
+      - add options.h to define extern options variable.(xicilion)
+    * events - save the wrapper function into data object to avoid using Callee.(xicilion)
+    * websocket - remove nouse variable.(xicilion)
+    * zlib - remove nouse variable.(xicilion)
+
+* **others** :
+    * Merge branch 'dev' of https - //github.com/fibjs/fibjs into dev(xicilion)
+    * typo.(xicilion)
+    * Merge branch 'master' into dev(响马)
+
+* **chore** :
+    * doc - remove unused file (#370)(Hengfei Zhuang)
+
+### Commits
+* [[`414adf4074`](https://github.com/fibjs/fibjs/commit/414adf4074)] - **v8, feat**: upgrade to 6.4.185.(xicilion)
+* [[`5da1a51ad2`](https://github.com/fibjs/fibjs/commit/5da1a51ad2)] - **mq, break**: deprecated mq.await.(xicilion)
+* [[`4fc8482a99`](https://github.com/fibjs/fibjs/commit/4fc8482a99)] - **mq, bugfix**: params lost in asynchronous js handler.(xicilion)
+* [[`25c6e682e1`](https://github.com/fibjs/fibjs/commit/25c6e682e1)] - **Merge branch 'dev' of https**: //github.com/fibjs/fibjs into dev(xicilion)
+* [[`7f3d5742d8`](https://github.com/fibjs/fibjs/commit/7f3d5742d8)] - **doc, chore**: remove unused file (#370)(Hengfei Zhuang)
+* [[`6a2b51e03c`](https://github.com/fibjs/fibjs/commit/6a2b51e03c)] - **process, feat**: add test case of kill.(xicilion)
+* [[`f551793d42`](https://github.com/fibjs/fibjs/commit/f551793d42)] - **events, refactor**: save the wrapper function into data object to avoid using Callee.(xicilion)
+* [[`d860ada40f`](https://github.com/fibjs/fibjs/commit/d860ada40f)] - **core, refactor**: use JavaScript property to implement const.(xicilion)
+* [[`00440c1632`](https://github.com/fibjs/fibjs/commit/00440c1632)] - **core, bugfix**: closesocket before canceling io operation.(xicilion)
+* [[`98e4d2e06c`](https://github.com/fibjs/fibjs/commit/98e4d2e06c)] - **fs, bugfix**: compile error on FreeBSD.(xicilion)
+* [[`5c42bd478a`](https://github.com/fibjs/fibjs/commit/5c42bd478a)] - **core, bugfix**: ensure the coverage report could be generated successfully. (#369)(Hengfei Zhuang)
+* [[`7d5f6d3019`](https://github.com/fibjs/fibjs/commit/7d5f6d3019)] - **core, bugfix**: ensure the coverage report could be generated successfully. (#369)(Hengfei Zhuang)
+* [[`95cf94caa8`](https://github.com/fibjs/fibjs/commit/95cf94caa8)] - **core, feat**: support --cov=filename to specify the cov filename (#368)(Hengfei Zhuang)
+* [[`c8ac686ee9`](https://github.com/fibjs/fibjs/commit/c8ac686ee9)] - **gb, bugfix**: fix hsb2rgb algorithm error.(xicilion)
+* [[`f4be9559eb`](https://github.com/fibjs/fibjs/commit/f4be9559eb)] - **core, refactor**: add trace_tcp option.(xicilion)
+* [[`0fe6b96a54`](https://github.com/fibjs/fibjs/commit/0fe6b96a54)] - **http, break**: deprecated http.find.(xicilion)
+* [[`a3e91bb949`](https://github.com/fibjs/fibjs/commit/a3e91bb949)] - **core, break**: deprecated object.dispose(xicilion)
+* [[`a1ef84dd74`](https://github.com/fibjs/fibjs/commit/a1ef84dd74)] - **core, refactor**: remove equals from object to Buffer and Int64.(xicilion)
+* [[`d8113504db`](https://github.com/fibjs/fibjs/commit/d8113504db)] - **http, feat**: check option items, throw unknown option.(xicilion)
+* [[`b6f1aefc5f`](https://github.com/fibjs/fibjs/commit/b6f1aefc5f)] - **assert, bugfix**: compile error on Linux.(xicilion)
+* [[`7c56f7f95b`](https://github.com/fibjs/fibjs/commit/7c56f7f95b)] - **WebView, bugfix**: compile error on windows.(xicilion)
+* [[`e3df9ee921`](https://github.com/fibjs/fibjs/commit/e3df9ee921)] - **docs, bugfix**: fix wrong “.(xicilion)
+* [[`2290e365d4`](https://github.com/fibjs/fibjs/commit/2290e365d4)] - **mongodb, break**: deprecated GridFS.(xicilion)
+* [[`c445485c98`](https://github.com/fibjs/fibjs/commit/c445485c98)] - **zip, break**: deprecated ZipInfo object.(xicilion)
+* [[`590b76a47f`](https://github.com/fibjs/fibjs/commit/590b76a47f)] - **collection, break**: deprecated collection module and Map object.(xicilion)
+* [[`1f62211b25`](https://github.com/fibjs/fibjs/commit/1f62211b25)] - **console, break**: deprecated TextColor object.(xicilion)
+* [[`3e13010e35`](https://github.com/fibjs/fibjs/commit/3e13010e35)] - **core, bugfix**: compile error on Linux and windows.(xicilion)
+* [[`0ef8e161b6`](https://github.com/fibjs/fibjs/commit/0ef8e161b6)] - **collection, break**: deprecated  Queue.(xicilion)
+* [[`7b8797fbf6`](https://github.com/fibjs/fibjs/commit/7b8797fbf6)] - **coroutine, break**: deprecated BlockedQueue.(xicilion)
+* [[`aaa56a6bd9`](https://github.com/fibjs/fibjs/commit/aaa56a6bd9)] - **collection, break**: deprecated List object.(xicilion)
+* [[`bfe47e8bed`](https://github.com/fibjs/fibjs/commit/bfe47e8bed)] - **SubProcess, bugfix**: SubProcess not allow reenter.(xicilion)
+* [[`b4cd3c1bfd`](https://github.com/fibjs/fibjs/commit/b4cd3c1bfd)] - **core, refactor**: revert to the previous code (v8 fixed the deadlock error).(xicilion)
+* [[`6ddc436f19`](https://github.com/fibjs/fibjs/commit/6ddc436f19)] - **core, feat**: support --cov-process tool to generate code coverage analysis report.(xicilion)
+* [[`e83d0b1a09`](https://github.com/fibjs/fibjs/commit/e83d0b1a09)] - typo.(xicilion)
+* [[`b385d6939f`](https://github.com/fibjs/fibjs/commit/b385d6939f)] - **core, feat**: support collecting code coverage information.(xicilion)
+* [[`600764b2da`](https://github.com/fibjs/fibjs/commit/600764b2da)] - **core, refactor**: add options.h to define extern options variable.(xicilion)
+* [[`c4be76a406`](https://github.com/fibjs/fibjs/commit/c4be76a406)] - **process, feat**: process.exit support return 0;(xicilion)
+* [[`04f0b5dcb2`](https://github.com/fibjs/fibjs/commit/04f0b5dcb2)] - **core, feat**: support v8 code coverage.(xicilion)
+* [[`fce9a81732`](https://github.com/fibjs/fibjs/commit/fce9a81732)] - **zlib, refactor**: remove nouse variable.(xicilion)
+* [[`a36cdd9e69`](https://github.com/fibjs/fibjs/commit/a36cdd9e69)] - **websocket, feat**: add come documents.(xicilion)
+* [[`5e90fb993b`](https://github.com/fibjs/fibjs/commit/5e90fb993b)] - **websocket, break**: deprecated ws.connect.(xicilion)
+* [[`44e7657727`](https://github.com/fibjs/fibjs/commit/44e7657727)] - **websocket, feat**: change readyState to CLOSED in js thread.(xicilion)
+* [[`3240d9dd37`](https://github.com/fibjs/fibjs/commit/3240d9dd37)] - **core, feat**: support OnEventEmit in Trigger.(xicilion)
+* [[`1f02198883`](https://github.com/fibjs/fibjs/commit/1f02198883)] - **websocket, refactor**: remove nouse variable.(xicilion)
+* [[`8bdf4ccb04`](https://github.com/fibjs/fibjs/commit/8bdf4ccb04)] - **websocket, bugfix**: not compress control message.(xicilion)
+* [[`e033057f5c`](https://github.com/fibjs/fibjs/commit/e033057f5c)] - **websocket, feat**: close a closed socket not throw error.(xicilion)
+* [[`353d9a7490`](https://github.com/fibjs/fibjs/commit/353d9a7490)] - **websocket, feat**: ws.upgrade add req as the second argument in callback.(xicilion)
+* [[`0a6acf69f3`](https://github.com/fibjs/fibjs/commit/0a6acf69f3)] - Merge branch 'master' into dev(响马)
+
 ## 2017-10-27, Version v0.17.0
 
 * **feature** :
