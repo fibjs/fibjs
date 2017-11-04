@@ -86,6 +86,8 @@ void Stat::fill(exlib::string path, BY_HANDLE_FILE_INFORMATION& fd)
 
 result_t Stat::getStat(exlib::string path)
 {
+    if (path.length() > 0 && isWin32PathSlash(path.c_str()[path.length() - 1]))
+        path.resize(path.length() - 1);
 
     WIN32_FIND_DATAW fd;
     HANDLE hFind;

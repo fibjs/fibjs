@@ -41,6 +41,14 @@ describe('fs', () => {
         assert.equal(st.isExecutable(), true);
         assert.equal(st.isReadable(), true);
         assert.equal(st.isWritable(), true);
+
+        st = fs.stat(path.join(__dirname, 'abc', '../'));
+        
+        assert.equal(st.isDirectory(), true);
+        assert.equal(st.isFile(), false);
+        assert.equal(st.isExecutable(), true);
+        assert.equal(st.isReadable(), true);
+        assert.equal(st.isWritable(), true);
     });
 
     it("file open & close", () => {
