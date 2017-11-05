@@ -169,6 +169,29 @@ describe('path', () => {
                 '\\\\unc\\share\\bar\\');
             assert.equal(fn('\\\\unc\\share\\'), '\\\\unc\\share\\');
             assert.equal(fn('\\\\unc\\share'), '\\\\unc\\share\\');
+
+            assert.strictEqual(fn('./fixtures///b/../b/c.js'),
+                'fixtures\\b\\c.js');
+            assert.strictEqual(fn('/foo/../../../bar'), '\\bar');
+            assert.strictEqual(fn('a//b//../b'), 'a\\b');
+            assert.strictEqual(fn('a//b//./c'), 'a\\b\\c');
+            assert.strictEqual(fn('a//b//.'), 'a\\b');
+            assert.strictEqual(fn('//server/share/dir/file.ext'),
+                '\\\\server\\share\\dir\\file.ext');
+            assert.strictEqual(fn('/a/b/c/../../../x/y/z'), '\\x\\y\\z');
+            assert.strictEqual(fn('C:'), 'C:.');
+            assert.strictEqual(fn('C:..\\abc'), 'C:..\\abc');
+            assert.strictEqual(fn('C:..\\..\\abc\\..\\def'), 'C:..\\..\\def');
+            assert.strictEqual(fn('C:\\.'), 'C:\\');
+            assert.strictEqual(fn('file:stream'), 'file:stream');
+            assert.strictEqual(fn('bar\\foo..\\..\\'), 'bar\\');
+            assert.strictEqual(fn('bar\\foo..\\..'), 'bar');
+            assert.strictEqual(fn('bar\\foo..\\..\\baz'), 'bar\\baz');
+            assert.strictEqual(fn('bar\\foo..\\'), 'bar\\foo..\\');
+            assert.strictEqual(fn('bar\\foo..'), 'bar\\foo..');
+            assert.strictEqual(fn('..\\foo..\\..\\..\\bar'),
+                '..\\..\\bar');
+            assert.strictEqual(fn('..\\...\\..\\.\\...\\..\\..\\bar'), '..\\..\\bar');
         }
 
         testWin32(path.win32.normalize.bind(path.win32));
@@ -188,6 +211,23 @@ describe('path', () => {
             assert.equal(fn('a//b//../b'), 'a/b');
             assert.equal(fn('a//b//./c'), 'a/b/c');
             assert.equal(fn('a//b//.'), 'a/b');
+            assert.equal(fn('/a/b/../'), '/a/');
+            assert.equal(fn('/a/b/..'), '/a');
+
+            assert.strictEqual(fn('./fixtures///b/../b/c.js'), 'fixtures/b/c.js');
+            assert.strictEqual(fn('/foo/../../../bar'), '/bar');
+            assert.strictEqual(fn('a//b//../b'), 'a/b');
+            assert.strictEqual(fn('a//b//./c'), 'a/b/c');
+            assert.strictEqual(fn('a//b//.'), 'a/b');
+            assert.strictEqual(fn('/a/b/c/../../../x/y/z'), '/x/y/z');
+            assert.strictEqual(fn('///..//./foo/.//bar'), '/foo/bar');
+            assert.strictEqual(fn('bar/foo../../'), 'bar/');
+            assert.strictEqual(fn('bar/foo../..'), 'bar');
+            assert.strictEqual(fn('bar/foo../../baz'), 'bar/baz');
+            assert.strictEqual(fn('bar/foo../'), 'bar/foo../');
+            assert.strictEqual(fn('bar/foo..'), 'bar/foo..');
+            assert.strictEqual(fn('../foo../../../bar'), '../../bar');
+            assert.strictEqual(fn('../.../.././.../../../bar'), '../../bar');
         }
 
         testPosix(path.posix.normalize.bind(path.posix));
@@ -197,6 +237,10 @@ describe('path', () => {
         } else {
             testPosix(path.normalize.bind(path));
         }
+
+
+
+
     });
 
     it('isAbsolute', () => {
@@ -217,126 +261,101 @@ describe('path', () => {
     it('join', () => {
         var failures = [];
         var joinTests = [
-            [
-                ['.', 'x/b', '..', 'b/c.js'], 'x/b/c.js'
-            ],
-            [
-                ['/.', 'x/b', '..', 'b/c.js'], '/x/b/c.js'
-            ],
-            [
-                ['/.', 'x/b', '..', '/b/c.js'], '/x/b/c.js'
-            ],
-            [
-                ['/foo', '../../../bar'], '/bar'
-            ],
-            [
-                ['foo', '../../../bar'], '../../bar'
-            ],
-            [
-                ['foo/', '../../../bar'], '../../bar'
-            ],
-            [
-                ['foo/x', '../../../bar'], '../bar'
-            ],
-            [
-                ['foo/x', './bar'], 'foo/x/bar'
-            ],
-            [
-                ['foo/x/', './bar'], 'foo/x/bar'
-            ],
-            [
-                ['foo/x/', '.', 'bar'], 'foo/x/bar'
-            ],
-            [
-                ['./'], './'
-            ],
-            [
-                ['.', './'], './'
-            ],
-            [
-                ['.', '.', '.'], '.'
-            ],
-            [
-                ['.', './', '.'], '.'
-            ],
-            [
-                ['.', '/./', '.'], '.'
-            ],
-            [
-                ['.'], '.'
-            ],
-            [
-                ['', '.'], '.'
-            ],
-            [
-                ['', 'foo'], 'foo'
-            ],
-            [
-                ['foo', '/bar'], 'foo/bar'
-            ],
-            [
-                ['', '/foo'], '/foo'
-            ],
-            [
-                ['', '', '/foo'], '/foo'
-            ],
-            [
-                ['', '', 'foo'], 'foo'
-            ],
-            [
-                ['foo', ''], 'foo'
-            ],
-            [
-                ['foo/', ''], 'foo/'
-            ],
-            [
-                ['foo', '', '/bar'], 'foo/bar'
-            ],
-            [
-                ['./', '..', '/foo'], '../foo'
-            ],
-            [
-                ['./', '..', '..', 'foo'], '../../foo'
-            ],
-            [
-                ['.', '..', '..', 'foo'], '../../foo'
-            ],
-            [
-                ['', '..', '..', 'foo'], '../../foo'
-            ],
-            [
-                ['/'], '/'
-            ],
-            [
-                ['/', '.'], '/'
-            ],
-            [
-                ['/', '..'], '/'
-            ],
-            [
-                ['/', '..', '..'], '/'
-            ],
-            [
-                [''], '.'
-            ],
-            [
-                ['', ''], '.'
-            ],
-            [
-                [' /foo'], ' /foo'
-            ],
-            [
-                [' ', 'foo'], ' /foo'
-            ],
-            [
-                [' ', '.'], ' '
-            ],
-            [
-                [' ', '/'], ' /'
-            ],
-            [
-                [' ', ''], ' '
-            ]
+            [['.', 'x/b', '..', '/b/c.js'], 'x/b/c.js'],
+            [[], '.'],
+            [['/.', 'x/b', '..', '/b/c.js'], '/x/b/c.js'],
+            [['/foo', '../../../bar'], '/bar'],
+            [['foo', '../../../bar'], '../../bar'],
+            [['foo/', '../../../bar'], '../../bar'],
+            [['foo/x', '../../../bar'], '../bar'],
+            [['foo/x', './bar'], 'foo/x/bar'],
+            [['foo/x/', './bar'], 'foo/x/bar'],
+            [['foo/x/', '.', 'bar'], 'foo/x/bar'],
+            [['./'], './'],
+            [['.', './'], './'],
+            [['.', '.', '.'], '.'],
+            [['.', './', '.'], '.'],
+            [['.', '/./', '.'], '.'],
+            [['.', '/////./', '.'], '.'],
+            [['.'], '.'],
+            [['', '.'], '.'],
+            [['', 'foo'], 'foo'],
+            [['foo', '/bar'], 'foo/bar'],
+            [['', '/foo'], '/foo'],
+            [['', '', '/foo'], '/foo'],
+            [['', '', 'foo'], 'foo'],
+            [['foo', ''], 'foo'],
+            [['foo/', ''], 'foo/'],
+            [['foo', '', '/bar'], 'foo/bar'],
+            [['./', '..', '/foo'], '../foo'],
+            [['./', '..', '..', '/foo'], '../../foo'],
+            [['.', '..', '..', '/foo'], '../../foo'],
+            [['', '..', '..', '/foo'], '../../foo'],
+            [['/'], '/'],
+            [['/', '.'], '/'],
+            [['/', '..'], '/'],
+            [['/', '..', '..'], '/'],
+            [[''], '.'],
+            [['', ''], '.'],
+            [[' /foo'], ' /foo'],
+            [[' ', 'foo'], ' /foo'],
+            [[' ', '.'], ' '],
+            [[' ', '/'], ' /'],
+            [[' ', ''], ' '],
+            [['/', 'foo'], '/foo'],
+            [['/', '/foo'], '/foo'],
+            [['/', '//foo'], '/foo'],
+            [['/', '', '/foo'], '/foo'],
+            [['', '/', 'foo'], '/foo'],
+            [['', '/', '/foo'], '/foo']
+        ];
+
+        var joinTestsWin32 = [
+            // UNC path expected
+            [['//foo/bar'], '\\\\foo\\bar\\'],
+            [['\\/foo/bar'], '\\\\foo\\bar\\'],
+            [['\\\\foo/bar'], '\\\\foo\\bar\\'],
+            // UNC path expected - server and share separate
+            [['//foo', 'bar'], '\\\\foo\\bar\\'],
+            [['//foo/', 'bar'], '\\\\foo\\bar\\'],
+            [['//foo', '/bar'], '\\\\foo\\bar\\'],
+            // UNC path expected - questionable
+            [['//foo', '', 'bar'], '\\\\foo\\bar\\'],
+            [['//foo/', '', 'bar'], '\\\\foo\\bar\\'],
+            [['//foo/', '', '/bar'], '\\\\foo\\bar\\'],
+            // UNC path expected - even more questionable
+            [['', '//foo', 'bar'], '\\\\foo\\bar\\'],
+            [['', '//foo/', 'bar'], '\\\\foo\\bar\\'],
+            [['', '//foo/', '/bar'], '\\\\foo\\bar\\'],
+            // No UNC path expected (no double slash in first component)
+            [['\\', 'foo/bar'], '\\foo\\bar'],
+            [['\\', '/foo/bar'], '\\foo\\bar'],
+            [['', '/', '/foo/bar'], '\\foo\\bar'],
+            // No UNC path expected (no non-slashes in first component -
+            // questionable)
+            [['//', 'foo/bar'], '\\foo\\bar'],
+            [['//', '/foo/bar'], '\\foo\\bar'],
+            [['\\\\', '/', '/foo/bar'], '\\foo\\bar'],
+            [['//'], '/'],
+            // No UNC path expected (share name missing - questionable).
+            [['//foo'], '\\foo'],
+            [['//foo/'], '\\foo\\'],
+            [['//foo', '/'], '\\foo\\'],
+            [['//foo', '', '/'], '\\foo\\'],
+            // No UNC path expected (too many leading slashes - questionable)
+            [['///foo/bar'], '\\foo\\bar'],
+            [['////foo', 'bar'], '\\foo\\bar'],
+            [['\\\\\\/foo/bar'], '\\foo\\bar'],
+            // Drive-relative vs drive-absolute paths. This merely describes the
+            // status quo, rather than being obviously right
+            [['c:'], 'c:.'],
+            [['c:.'], 'c:.'],
+            [['c:', ''], 'c:.'],
+            [['', 'c:'], 'c:.'],
+            [['c:.', '/'], 'c:.\\'],
+            [['c:.', 'file'], 'c:file'],
+            [['c:', '/'], 'c:\\'],
+            [['c:', 'file'], 'c:\\file']
         ];
 
         // path.join
@@ -350,7 +369,7 @@ describe('path', () => {
         assert.equal(failures.length, 0, failures.join(''));
 
         // path.win32.join
-        joinTests.forEach((test) => {
+        [...joinTests, ...joinTestsWin32].forEach((test) => {
             var actual = path.win32.join.apply(path.win32, test[0]);
             var expected = test[1].replace(/\//g, '\\');
             var message = 'path.win32.join(' + test[0].map(JSON.stringify).join(',') + ')' + '\n  expect=' + JSON.stringify(expected) + '\n  actual=' + JSON.stringify(actual);
