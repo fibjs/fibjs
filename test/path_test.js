@@ -237,10 +237,6 @@ describe('path', () => {
         } else {
             testPosix(path.normalize.bind(path));
         }
-
-
-
-
     });
 
     it('isAbsolute', () => {
