@@ -95,54 +95,67 @@ describe('path', () => {
     });
 
     it('dirname', () => {
-        function test(fn) {
-            assert.equal(fn('/a/b/'), '/a');
-            assert.equal(fn('/a/b'), '/a');
-            assert.equal(fn('/a'), '/');
-            assert.equal(fn('/'), '/');
-            assert.equal(fn('main.js'), '');
-
+        function testPosix(fn) {
+            assert.strictEqual(fn('/a/b/'), '/a');
+            assert.strictEqual(fn('/a/b'), '/a');
+            assert.strictEqual(fn('/a'), '/');
+            assert.strictEqual(fn(''), '.');
+            assert.strictEqual(fn('/'), '/');
+            assert.strictEqual(fn('////'), '/');
+            assert.strictEqual(fn('//a'), '//');
+            assert.strictEqual(fn('foo'), '.');
         }
-
-        test(path.dirname.bind(path));
-        test(path.win32.dirname.bind(path.win32));
-        test(path.posix.dirname.bind(path.posix));
 
         function testWin32(fn) {
-            assert.equal(fn('c:\\'), 'c:\\');
-            assert.equal(fn('c:\\foo'), 'c:\\');
-            assert.equal(fn('c:\\foo\\'), 'c:\\');
-            assert.equal(fn('c:\\foo\\bar'), 'c:\\foo');
-            assert.equal(fn('c:\\foo\\bar\\'), 'c:\\foo');
-            assert.equal(fn('c:\\foo\\bar\\baz'), 'c:\\foo\\bar');
-            assert.equal(fn('\\'), '\\');
-            assert.equal(fn('\\foo'), '\\');
-            assert.equal(fn('\\foo\\'), '\\');
-            assert.equal(fn('\\foo\\bar'), '\\foo');
-            assert.equal(fn('\\foo\\bar\\'), '\\foo');
-            assert.equal(fn('\\foo\\bar\\baz'), '\\foo\\bar');
-            assert.equal(fn('c:'), 'c:');
-            assert.equal(fn('c:foo'), 'c:');
-            assert.equal(fn('c:foo\\'), 'c:');
-            assert.equal(fn('c:foo\\bar'), 'c:foo');
-            assert.equal(fn('c:foo\\bar\\'), 'c:foo');
-            assert.equal(fn('c:foo\\bar\\baz'), 'c:foo\\bar');
-            assert.equal(fn('\\\\unc\\share'), '\\\\unc\\share');
-            assert.equal(fn('\\\\unc\\share\\foo'), '\\\\unc\\share\\');
-            assert.equal(fn('\\\\unc\\share\\foo\\'), '\\\\unc\\share\\');
-            assert.equal(fn('\\\\unc\\share\\foo\\bar'),
-                '\\\\unc\\share\\foo');
-            assert.equal(fn('\\\\unc\\share\\foo\\bar\\'),
-                '\\\\unc\\share\\foo');
-            assert.equal(fn('\\\\unc\\share\\foo\\bar\\baz'),
-                '\\\\unc\\share\\foo\\bar');
+            assert.strictEqual(fn('c:\\'), 'c:\\');
+            assert.strictEqual(fn('c:\\foo'), 'c:\\');
+            assert.strictEqual(fn('c:\\foo\\'), 'c:\\');
+            assert.strictEqual(fn('c:\\foo\\bar'), 'c:\\foo');
+            assert.strictEqual(fn('c:\\foo\\bar\\'), 'c:\\foo');
+            assert.strictEqual(fn('c:\\foo\\bar\\baz'), 'c:\\foo\\bar');
+            assert.strictEqual(fn('\\'), '\\');
+            assert.strictEqual(fn('\\foo'), '\\');
+            assert.strictEqual(fn('\\foo\\'), '\\');
+            assert.strictEqual(fn('\\foo\\bar'), '\\foo');
+            assert.strictEqual(fn('\\foo\\bar\\'), '\\foo');
+            assert.strictEqual(fn('\\foo\\bar\\baz'), '\\foo\\bar');
+            assert.strictEqual(fn('c:'), 'c:');
+            assert.strictEqual(fn('c:foo'), 'c:');
+            assert.strictEqual(fn('c:foo\\'), 'c:');
+            assert.strictEqual(fn('c:foo\\bar'), 'c:foo');
+            assert.strictEqual(fn('c:foo\\bar\\'), 'c:foo');
+            assert.strictEqual(fn('c:foo\\bar\\baz'), 'c:foo\\bar');
+            assert.strictEqual(fn('file:stream'), '.');
+            assert.strictEqual(fn('dir\\file:stream'), 'dir');
+            assert.strictEqual(fn('\\\\unc\\share'),
+                               '\\\\unc\\share');
+            assert.strictEqual(fn('\\\\unc\\share\\foo'),
+                               '\\\\unc\\share\\');
+            assert.strictEqual(fn('\\\\unc\\share\\foo\\'),
+                               '\\\\unc\\share\\');
+            assert.strictEqual(fn('\\\\unc\\share\\foo\\bar'),
+                               '\\\\unc\\share\\foo');
+            assert.strictEqual(fn('\\\\unc\\share\\foo\\bar\\'),
+                               '\\\\unc\\share\\foo');
+            assert.strictEqual(fn('\\\\unc\\share\\foo\\bar\\baz'),
+                               '\\\\unc\\share\\foo\\bar');
+            assert.strictEqual(fn('/a/b/'), '/a');
+            assert.strictEqual(fn('/a/b'), '/a');
+            assert.strictEqual(fn('/a'), '/');
+            assert.strictEqual(fn(''), '.');
+            assert.strictEqual(fn('/'), '/');
+            assert.strictEqual(fn('////'), '/');
+            assert.strictEqual(fn('foo'), '.');
         }
+
+        testPosix(path.posix.dirname.bind(path.posix));
+        testWin32(path.win32.dirname.bind(path.win32));
 
         if (isWindows) {
             testWin32(path.dirname.bind(path));
+        }else{
+            testPosix(path.dirname.bind(path));
         }
-
-        testWin32(path.win32.dirname.bind(path.win32));
     });
 
     it('normalize', () => {
@@ -240,18 +253,43 @@ describe('path', () => {
     });
 
     it('isAbsolute', () => {
-        assert.isTrue(path.posix.isAbsolute('/foo/bar'));
-        assert.isTrue(path.posix.isAbsolute('/baz/..'));
-        assert.isFalse(path.posix.isAbsolute('qux/'));
-        assert.isFalse(path.posix.isAbsolute('.'));
+        function testPosix(fn) {
+            assert.isTrue(fn('/foo/bar'));
+            assert.isTrue(fn('/baz/..'));
+            assert.isFalse(fn('qux/'));
+            assert.isFalse(fn('.'));
+            assert.isFalse(fn('./foo'));
+        }
 
-        assert.isTrue(path.win32.isAbsolute('//server'));
-        assert.isTrue(path.win32.isAbsolute('\\\\server'));
-        assert.isTrue(path.win32.isAbsolute('C:/foo/..'));
-        assert.isTrue(path.win32.isAbsolute('C:\\foo\\..'));
-        assert.isFalse(path.win32.isAbsolute('bar\\baz'));
-        assert.isFalse(path.win32.isAbsolute('bar/baz'));
-        assert.isFalse(path.win32.isAbsolute('.'));
+        function testWin32(fn) {
+            assert.isTrue(fn('/'));
+            assert.isTrue(fn('//'));
+            assert.isTrue(fn('//server'));
+            assert.isTrue(fn('//server/file'));
+            assert.isTrue(fn('\\\\server\\file'));
+            assert.isTrue(fn('\\\\server'));
+            assert.isTrue(fn('\\\\'));
+            assert.isFalse(fn('c'));
+            assert.isFalse(fn('c:'));
+            assert.isTrue(fn('c:\\'));
+            assert.isTrue(fn('c:/'));
+            assert.isTrue(fn('c://'));
+            assert.isTrue(fn('C:/Users/'));
+            assert.isTrue(fn('C:\\Users\\'));
+            assert.isFalse(fn('C:cwd/another'));
+            assert.isFalse(fn('C:cwd\\another'));
+            assert.isFalse(fn('directory/directory'));
+            assert.isFalse(fn('directory\\directory'));
+        }
+
+        testPosix(path.posix.isAbsolute.bind(path.posix));
+        testWin32(path.win32.isAbsolute.bind(path.win32));
+
+        if (isWindows) {
+            testWin32(path.isAbsolute.bind(path));
+        }else{
+            testPosix(path.isAbsolute.bind(path));
+        }        
     });
 
     it('join', () => {
