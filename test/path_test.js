@@ -128,17 +128,17 @@ describe('path', () => {
             assert.strictEqual(fn('file:stream'), '.');
             assert.strictEqual(fn('dir\\file:stream'), 'dir');
             assert.strictEqual(fn('\\\\unc\\share'),
-                               '\\\\unc\\share');
+                '\\\\unc\\share');
             assert.strictEqual(fn('\\\\unc\\share\\foo'),
-                               '\\\\unc\\share\\');
+                '\\\\unc\\share\\');
             assert.strictEqual(fn('\\\\unc\\share\\foo\\'),
-                               '\\\\unc\\share\\');
+                '\\\\unc\\share\\');
             assert.strictEqual(fn('\\\\unc\\share\\foo\\bar'),
-                               '\\\\unc\\share\\foo');
+                '\\\\unc\\share\\foo');
             assert.strictEqual(fn('\\\\unc\\share\\foo\\bar\\'),
-                               '\\\\unc\\share\\foo');
+                '\\\\unc\\share\\foo');
             assert.strictEqual(fn('\\\\unc\\share\\foo\\bar\\baz'),
-                               '\\\\unc\\share\\foo\\bar');
+                '\\\\unc\\share\\foo\\bar');
             assert.strictEqual(fn('/a/b/'), '/a');
             assert.strictEqual(fn('/a/b'), '/a');
             assert.strictEqual(fn('/a'), '/');
@@ -153,7 +153,7 @@ describe('path', () => {
 
         if (isWindows) {
             testWin32(path.dirname.bind(path));
-        }else{
+        } else {
             testPosix(path.dirname.bind(path));
         }
     });
@@ -287,9 +287,9 @@ describe('path', () => {
 
         if (isWindows) {
             testWin32(path.isAbsolute.bind(path));
-        }else{
+        } else {
             testPosix(path.isAbsolute.bind(path));
-        }        
+        }
     });
 
     it('join', () => {
@@ -431,7 +431,7 @@ describe('path', () => {
         assert.equal(path.win32.join('c:/path1', 'd:path2'), 'c:\\path1\\d:path2');
     });
 
-    it("resolve", function () {
+    it("resolve", () => {
 
         var resolveTestsWin32 =
             // arguments                                    result
@@ -498,7 +498,7 @@ describe('path', () => {
         var resolveTests = isWindows ? resolveTestsWin32 : resolveTestsPosix;
 
         // path.resolve
-        resolveTests.forEach(function (test) {
+        resolveTests.forEach(test => {
             var actual = path.resolve.apply(path, test[0]);
             var expected = test[1];
             var message = 'path.resolve(' + test[0].map(JSON.stringify).join(',') + ')' +
@@ -516,7 +516,7 @@ describe('path', () => {
         assert.equal(failures.length, 0, failures.join(''));
 
         // path.posix.resolve
-        resolveTestsPosix.forEach(function (test) {
+        resolveTestsPosix.forEach(test => {
             var actual = path.posix.resolve.apply(path.posix, test[0]);
             var expected = test[1];
             var message = 'path.posix.resolve(' + test[0].map(JSON.stringify).join(',') + ')' +
@@ -529,7 +529,7 @@ describe('path', () => {
         assert.equal(failures.length, 0, failures.join(''));
 
         // path.win32.resolve
-        resolveTestsWin32.forEach(function (test) {
+        resolveTestsWin32.forEach(test => {
             var actual = path.win32.resolve.apply(path.win32, test[0]);
             var expected = test[1];
             var message = 'path.win32.resolve(' + test[0].map(JSON.stringify).join(',') + ')' +
