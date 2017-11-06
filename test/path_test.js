@@ -144,7 +144,6 @@ describe('path', () => {
 
         testWin32(path.win32.dirname.bind(path.win32));
     });
-
     it('normalize', () => {
         function testWin32(fn) {
             assert.equal(fn(''), '.');
@@ -169,6 +168,36 @@ describe('path', () => {
                 '\\\\unc\\share\\bar\\');
             assert.equal(fn('\\\\unc\\share\\'), '\\\\unc\\share\\');
             assert.equal(fn('\\\\unc\\share'), '\\\\unc\\share\\');
+            assert.equal(fn('\\\\unc\\..\\folder'), '\\\\unc\\..\\folder');
+            assert.equal(fn('\\\\unc\\.\\folder'), '\\\\unc\\.\\folder');
+            assert.equal(fn('\\\\unc\\\\folder'), '\\\\unc\\folder\\');
+            assert.equal(fn('\\\\unc\\\\'), '\\unc\\');
+            assert.equal(fn('\\\\\\unc\\\\folder'), '\\unc\\folder');
+            assert.equal(fn('\\\\.\\\\folder'), '\\\\.\\folder\\');
+            assert.equal(fn('\\\\..\\\\folder'), '\\\\..\\folder\\');
+
+            assert.strictEqual(fn('./fixtures///b/../b/c.js'),
+                'fixtures\\b\\c.js');
+            assert.strictEqual(fn('/foo/../../../bar'), '\\bar');
+            assert.strictEqual(fn('a//b//../b'), 'a\\b');
+            assert.strictEqual(fn('a//b//./c'), 'a\\b\\c');
+            assert.strictEqual(fn('a//b//.'), 'a\\b');
+            assert.strictEqual(fn('//server/share/dir/file.ext'),
+                '\\\\server\\share\\dir\\file.ext');
+            assert.strictEqual(fn('/a/b/c/../../../x/y/z'), '\\x\\y\\z');
+            assert.strictEqual(fn('C:'), 'C:.');
+            assert.strictEqual(fn('C:..\\abc'), 'C:..\\abc');
+            assert.strictEqual(fn('C:..\\..\\abc\\..\\def'), 'C:..\\..\\def');
+            assert.strictEqual(fn('C:\\.'), 'C:\\');
+            assert.strictEqual(fn('file:stream'), 'file:stream');
+            assert.strictEqual(fn('bar\\foo..\\..\\'), 'bar\\');
+            assert.strictEqual(fn('bar\\foo..\\..'), 'bar');
+            assert.strictEqual(fn('bar\\foo..\\..\\baz'), 'bar\\baz');
+            assert.strictEqual(fn('bar\\foo..\\'), 'bar\\foo..\\');
+            assert.strictEqual(fn('bar\\foo..'), 'bar\\foo..');
+            assert.strictEqual(fn('..\\foo..\\..\\..\\bar'),
+                '..\\..\\bar');
+            assert.strictEqual(fn('..\\...\\..\\.\\...\\..\\..\\bar'), '..\\..\\bar');
         }
 
         testWin32(path.win32.normalize.bind(path.win32));
@@ -188,6 +217,23 @@ describe('path', () => {
             assert.equal(fn('a//b//../b'), 'a/b');
             assert.equal(fn('a//b//./c'), 'a/b/c');
             assert.equal(fn('a//b//.'), 'a/b');
+            assert.equal(fn('/a/b/../'), '/a/');
+            assert.equal(fn('/a/b/..'), '/a');
+
+            assert.strictEqual(fn('./fixtures///b/../b/c.js'), 'fixtures/b/c.js');
+            assert.strictEqual(fn('/foo/../../../bar'), '/bar');
+            assert.strictEqual(fn('a//b//../b'), 'a/b');
+            assert.strictEqual(fn('a//b//./c'), 'a/b/c');
+            assert.strictEqual(fn('a//b//.'), 'a/b');
+            assert.strictEqual(fn('/a/b/c/../../../x/y/z'), '/x/y/z');
+            assert.strictEqual(fn('///..//./foo/.//bar'), '/foo/bar');
+            assert.strictEqual(fn('bar/foo../../'), 'bar/');
+            assert.strictEqual(fn('bar/foo../..'), 'bar');
+            assert.strictEqual(fn('bar/foo../../baz'), 'bar/baz');
+            assert.strictEqual(fn('bar/foo../'), 'bar/foo../');
+            assert.strictEqual(fn('bar/foo..'), 'bar/foo..');
+            assert.strictEqual(fn('../foo../../../bar'), '../../bar');
+            assert.strictEqual(fn('../.../.././.../../../bar'), '../../bar');
         }
 
         testPosix(path.posix.normalize.bind(path.posix));
@@ -396,13 +442,13 @@ describe('path', () => {
                     ['c:/ignore', 'c:/some/file'], 'c:\\some\\file'
                 ],
                 [
-                    ['d:/ignore', 'd:some/dir//'], 'd:\\ignore\\some\\dir'
+                    ['d:/ignore', 'd:some/dir//'], 'd:\\ignore\\some\\dir\\'
                 ],
                 [
                     ['.'], process.cwd().replace(/\//g, '\\')
                 ],
                 [
-                    ['//server/share', '..', 'relative\\'], '\\\\server\\share\\relative'
+                    ['//server/share', '..', 'relative\\'], '\\\\server\\share\\relative\\'
                 ],
                 // [[‘c:/‘, '//'], 'c:\\'],
                 // [[‘c:/‘, '//dir'], 'c:\\dir'],
@@ -424,10 +470,10 @@ describe('path', () => {
             // arguments                                    result
             [
                 [
-                    ['/var/lib', '../', 'file/'], '/var/file'
+                    ['/var/lib', '../', 'file/'], '/var/file/'
                 ],
                 [
-                    ['/var/lib', '/../', 'file/'], '/file'
+                    ['/var/lib', '/../', 'file/'], '/file/'
                 ],
                 [
                     ['a/b/c/', '../../..'], process.cwd()
@@ -436,7 +482,7 @@ describe('path', () => {
                     ['.'], process.cwd()
                 ],
                 [
-                    ['/some/dir', '.', '/absolute/'], '/absolute'
+                    ['/some/dir', '.', '/absolute/'], '/absolute/'
                 ]
             ];
 
