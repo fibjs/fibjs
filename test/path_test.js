@@ -580,7 +580,7 @@ describe('path', () => {
         assert.equal(path.win32.join('c:/path1', 'd:path2'), 'c:\\path1\\d:path2');
     });
 
-    it("resolve", () => {
+    it('resolve', () => {
         var resolveTestsWin32 =
             // arguments                               result
             [[['c:/blah\\blah', 'd:/games', 'c:../a'], 'c:\\blah\\a'],
@@ -660,12 +660,109 @@ describe('path', () => {
         assert.equal(failures.length, 0, failures.join(''));
     });
 
-    it("fullpath", () => {
+    it('fullpath', () => {
         assert.equal(path.join(process.cwd(), "not_exists"), path.fullpath("not_exists"));
         assert.equal(path.join(process.cwd(), "not_exists"), path.posix.fullpath("not_exists"));
         if (isWindows) {
             assert.equal(path.join(process.cwd(), "not_exists"), path.win32.fullpath("not_exists"));
         }
+    });
+
+    it('relative', () => {
+        const failures = [];
+
+        const relativeTests = [
+            [path.win32.relative,
+            // arguments                     result
+            [['c:/blah\\blah', 'd:/games', 'd:\\games'],
+            ['c:/aaaa/bbbb', 'c:/aaaa', '..'],
+            ['c:/aaaa/bbbb', 'c:/cccc', '..\\..\\cccc'],
+            ['c:/aaaa/bbbb', 'c:/aaaa/bbbb', ''],
+            ['c:/aaaa/bbbb', 'c:/aaaa/cccc', '..\\cccc'],
+            ['c:/aaaa/', 'c:/aaaa/cccc', 'cccc'],
+            ['c:/', 'c:\\aaaa\\bbbb', 'aaaa\\bbbb'],
+            ['c:/aaaa/bbbb', 'd:\\', 'd:\\'],
+            ['c:/AaAa/bbbb', 'c:/aaaa/bbbb', ''],
+            ['c:/aaaaa/', 'c:/aaaa/cccc', '..\\aaaa\\cccc'],
+            ['C:\\foo\\bar\\baz\\quux', 'C:\\', '..\\..\\..\\..'],
+            ['C:\\foo\\test', 'C:\\foo\\test\\bar\\package.json', 'bar\\package.json'],
+            ['C:\\foo\\bar\\baz-quux', 'C:\\foo\\bar\\baz', '..\\baz'],
+            ['C:\\foo\\bar\\baz', 'C:\\foo\\bar\\baz-quux', '..\\baz-quux'],
+            ['\\\\foo\\bar', '\\\\foo\\bar\\baz', 'baz'],
+            ['\\\\foo\\bar\\baz', '\\\\foo\\bar', '..'],
+            ['\\\\foo\\bar\\baz-quux', '\\\\foo\\bar\\baz', '..\\baz'],
+            ['\\\\foo\\bar\\baz', '\\\\foo\\bar\\baz-quux', '..\\baz-quux'],
+            ['C:\\baz-quux', 'C:\\baz', '..\\baz'],
+            ['C:\\baz', 'C:\\baz-quux', '..\\baz-quux'],
+            ['\\\\foo\\baz-quux', '\\\\foo\\baz', '..\\baz'],
+            ['\\\\foo\\baz', '\\\\foo\\baz-quux', '..\\baz-quux'],
+            ['C:\\baz', '\\\\foo\\bar\\baz', '\\\\foo\\bar\\baz'],
+            ['\\\\foo\\bar\\baz', 'C:\\baz', 'C:\\baz']
+            ]
+            ],
+            [path.posix.relative,
+            // arguments          result
+            [['/var/lib', '/var', '..'],
+            ['/var/lib', '/bin', '../../bin'],
+            ['/var/lib', '/var/lib', ''],
+            ['/var/lib', '/var/apache', '../apache'],
+            ['/var/', '/var/lib', 'lib'],
+            ['/', '/var/lib', 'var/lib'],
+            ['/foo/test', '/foo/test/bar/package.json', 'bar/package.json'],
+            ['/Users/a/web/b/test/mails', '/Users/a/web/b', '../..'],
+            ['/foo/bar/baz-quux', '/foo/bar/baz', '../baz'],
+            ['/foo/bar/baz', '/foo/bar/baz-quux', '../baz-quux'],
+            ['/baz-quux', '/baz', '../baz'],
+            ['/baz', '/baz-quux', '../baz-quux']
+            ]
+            ]
+        ];
+        relativeTests.forEach((test) => {
+            const relative = test[0];
+            test[1].forEach((test) => {
+                const actual = relative(test[0], test[1]);
+                const expected = test[2];
+                const os = relative === path.win32.relative ? 'win32' : 'posix';
+                const message = `path.${os}.relative(${
+                    test.slice(0, 2).map(JSON.stringify).join(',')})\n  expect=${
+                    JSON.stringify(expected)}\n  actual=${JSON.stringify(actual)}`;
+                if (actual !== expected)
+                    failures.push(`\n${message}`);
+            });
+        });
+        assert.strictEqual(failures.length, 0, failures.join(''));
+    });
+
+    it('zero', () => {
+        const pwd = process.cwd();
+
+        // join will internally ignore all the zero-length strings and it will return
+        // '.' if the joined string is a zero-length string.
+        assert.strictEqual(path.posix.join(''), '.');
+        assert.strictEqual(path.posix.join('', ''), '.');
+        assert.strictEqual(path.win32.join(''), '.');
+        assert.strictEqual(path.win32.join('', ''), '.');
+        assert.strictEqual(path.join(pwd), pwd);
+        assert.strictEqual(path.join(pwd, ''), pwd);
+
+        // normalize will return '.' if the input is a zero-length string
+        assert.strictEqual(path.posix.normalize(''), '.');
+        assert.strictEqual(path.win32.normalize(''), '.');
+        assert.strictEqual(path.normalize(pwd), pwd);
+
+        // Since '' is not a valid path in any of the common environments, return false
+        assert.strictEqual(path.posix.isAbsolute(''), false);
+        assert.strictEqual(path.win32.isAbsolute(''), false);
+
+        // resolve, internally ignores all the zero-length strings and returns the
+        // current working directory
+        assert.strictEqual(path.resolve(''), pwd);
+        assert.strictEqual(path.resolve('', ''), pwd);
+
+        // relative, internally calls resolve. So, '' is actually the current directory
+        assert.strictEqual(path.relative('', pwd), '');
+        assert.strictEqual(path.relative(pwd, ''), '');
+        assert.strictEqual(path.relative(pwd, pwd), '');
     });
 });
 
