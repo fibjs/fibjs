@@ -150,7 +150,12 @@ result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* a
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     unzFile unz;
-    if ((unz = unzOpen64(filename.c_str())) == NULL)
+    result_t hr;
+    obj_ptr<SeekableStream_base> file;
+    if((hr = fs_base::cc_openFile(filename, "r", file)))
+        return hr;
+    StreamIO sio(file);
+    if ((unz = unzOpen2_64("", &sio)) == NULL)
         retVal = false;
     else {
         retVal = true;
