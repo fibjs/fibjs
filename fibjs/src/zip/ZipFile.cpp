@@ -33,11 +33,19 @@ public:
     }
 
 private:
+#ifndef _WIN32
     static voidpf ZCALLBACK fopen64_file_func(voidpf opaque, const void* filename, int mode)
     {
         return opaque;
     }
-
+#else
+    static voidpf ZCALLBACK fopen64_file_func(voidpf opaque, const void* filename, int mode)
+    {
+        exlib::wstring wfilename = filename;
+        exlib::wstring wmode = "r";
+        return (voidpf)_wfopen(wfilename, wmode);
+    }
+#endif
     static uLong ZCALLBACK fread_file_func(voidpf opaque, voidpf stream, void* buf, uLong size)
     {
         result_t hr;
@@ -150,12 +158,8 @@ result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* a
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     unzFile unz;
-    result_t hr;
-    obj_ptr<SeekableStream_base> file;
-    if((hr = fs_base::cc_openFile(filename, "r", file)))
-        return hr;
-    StreamIO sio(file);
-    if ((unz = unzOpen2_64("", &sio)) == NULL)
+    StreamIO sio(NULL);    
+    if ((unz = unzOpen2_64(filename.c_str(), &sio)) == NULL)
         retVal = false;
     else {
         retVal = true;
