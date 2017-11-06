@@ -12,19 +12,82 @@ describe('path', () => {
             assert.equal(path, path.posix);
     });
 
-    it('basename', () => {
+    oit('basename', () => {
         function test(fn) {
-            assert.equal(fn('./test.js'), 'test.js');
-            assert.equal(fn('./test.js', 'js'), 'test.');
-            assert.equal(fn('./test.js', '.js'), 'test');
-            assert.equal(fn('./test.js', 't.js'), 'tes');
-            assert.equal(fn('./.js', '.js'), '');
-            assert.equal(fn('./test/'), 'test');
-            assert.equal(fn('./test.js/', '.js'), 'test');
+            assert.strictEqual(fn(__filename), 'path_test.js');
+            assert.strictEqual(fn(__filename, '.js'), 'path_test');
+            assert.strictEqual(fn('.js', '.js'), '');
+            assert.strictEqual(fn(''), '');
+            assert.strictEqual(fn('/dir/basename.ext'), 'basename.ext');
+            assert.strictEqual(fn('/basename.ext'), 'basename.ext');
+            assert.strictEqual(fn('basename.ext'), 'basename.ext');
+            assert.strictEqual(fn('basename.ext/'), 'basename.ext');
+            assert.strictEqual(fn('basename.ext//'), 'basename.ext');
+            assert.strictEqual(fn('aaa/bbb', '/bbb'), 'bbb');
+            assert.strictEqual(fn('aaa/bbb', 'a/bbb'), 'bbb');
+            assert.strictEqual(fn('aaa/bbb', 'bbb'), 'bbb');
+            assert.strictEqual(fn('aaa/bbb//', 'bbb'), 'bbb');
+            assert.strictEqual(fn('aaa/bbb', 'bb'), 'b');
+            assert.strictEqual(fn('aaa/bbb', 'b'), 'bb');
+            assert.strictEqual(fn('/aaa/bbb', '/bbb'), 'bbb');
+            assert.strictEqual(fn('/aaa/bbb', 'a/bbb'), 'bbb');
+            assert.strictEqual(fn('/aaa/bbb', 'bbb'), 'bbb');
+            assert.strictEqual(fn('/aaa/bbb//', 'bbb'), 'bbb');
+            assert.strictEqual(fn('/aaa/bbb', 'bb'), 'b');
+            assert.strictEqual(fn('/aaa/bbb', 'b'), 'bb');
+            assert.strictEqual(fn('/aaa/bbb'), 'bbb');
+            assert.strictEqual(fn('/aaa/'), 'aaa');
+            assert.strictEqual(fn('/aaa/b'), 'b');
+            assert.strictEqual(fn('/a/b'), 'b');
+            assert.strictEqual(fn('//a'), 'a');
         }
         test(path.basename.bind(path));
         test(path.win32.basename.bind(path.win32));
         test(path.posix.basename.bind(path.posix));
+
+        function testPosix(fn) {
+            assert.strictEqual(fn('\\dir\\basename.ext'),
+                '\\dir\\basename.ext');
+            assert.strictEqual(fn('\\basename.ext'), '\\basename.ext');
+            assert.strictEqual(fn('basename.ext'), 'basename.ext');
+            assert.strictEqual(fn('basename.ext\\'), 'basename.ext\\');
+            assert.strictEqual(fn('basename.ext\\\\'), 'basename.ext\\\\');
+            assert.strictEqual(fn('foo'), 'foo');
+        }
+
+        function testWin32(fn) {
+            assert.strictEqual(fn('\\dir\\basename.ext'), 'basename.ext');
+            assert.strictEqual(fn('\\basename.ext'), 'basename.ext');
+            assert.strictEqual(fn('basename.ext'), 'basename.ext');
+            assert.strictEqual(fn('basename.ext\\'), 'basename.ext');
+            assert.strictEqual(fn('basename.ext\\\\'), 'basename.ext');
+            assert.strictEqual(fn('foo'), 'foo');
+            assert.strictEqual(fn('aaa\\bbb', '\\bbb'), 'bbb');
+            assert.strictEqual(fn('aaa\\bbb', 'a\\bbb'), 'bbb');
+            assert.strictEqual(fn('aaa\\bbb', 'bbb'), 'bbb');
+            assert.strictEqual(fn('aaa\\bbb\\\\\\\\', 'bbb'), 'bbb');
+            assert.strictEqual(fn('aaa\\bbb', 'bb'), 'b');
+            assert.strictEqual(fn('aaa\\bbb', 'b'), 'bb');
+            assert.strictEqual(fn('C:'), '');
+            assert.strictEqual(fn('C:.'), '.');
+            assert.strictEqual(fn('C:\\'), '');
+            assert.strictEqual(fn('C:\\dir\\base.ext'), 'base.ext');
+            assert.strictEqual(fn('C:\\basename.ext'), 'basename.ext');
+            assert.strictEqual(fn('C:basename.ext'), 'basename.ext');
+            assert.strictEqual(fn('C:basename.ext\\'), 'basename.ext');
+            assert.strictEqual(fn('C:basename.ext\\\\'), 'basename.ext');
+            assert.strictEqual(fn('C:foo'), 'foo');
+            assert.strictEqual(fn('file:stream'), 'file:stream');
+        }
+
+        testPosix(path.posix.basename.bind(path.posix));
+        testWin32(path.win32.basename.bind(path.win32));
+
+        if (isWindows) {
+            testWin32(path.basename.bind(path));
+        } else {
+            testPosix(path.basename.bind(path));
+        }
     });
 
     it('extname', () => {
