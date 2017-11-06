@@ -12,7 +12,7 @@ describe('path', () => {
             assert.equal(path, path.posix);
     });
 
-    oit('basename', () => {
+    it('basename', () => {
         function test(fn) {
             assert.strictEqual(fn(__filename), 'path_test.js');
             assert.strictEqual(fn(__filename, '.js'), 'path_test');
