@@ -36,7 +36,8 @@ public:
 
         const char* c_str = other.c_str();
 
-        if (isWin32PathSlash(c_str[0]) && isWin32PathSlash(c_str[1])) {
+        if (isWin32PathSlash(c_str[0]) && isWin32PathSlash(c_str[1])
+            && !isWin32PathSlash(c_str[2])) {
             m_buf = other;
             return;
         }
@@ -239,7 +240,7 @@ inline const char* split_path_win32(const char* p)
     return p2;
 }
 
-inline void _normalize_array(std::vector<exlib::string>& a)
+inline void _normalize_array(std::vector<exlib::string>& a, bool removeSlash)
 {
     int32_t i;
 
@@ -288,9 +289,15 @@ inline void _normalize_array(std::vector<exlib::string>& a)
         } else
             i++;
     }
+
+    if (removeSlash && a.size() > 1) {
+        i = (int32_t)a.size();
+        if (i > 1 && a[i - 1].empty() && !a[i - 2].empty())
+            a.erase(a.begin() + i - 1);
+    }
 }
 
-inline result_t _normalize(exlib::string path, exlib::string& retVal)
+inline result_t _normalize(exlib::string path, exlib::string& retVal, bool removeSlash = false)
 {
     const char* p = path.c_str();
     int32_t len = (int32_t)path.length();
@@ -306,7 +313,7 @@ inline result_t _normalize(exlib::string path, exlib::string& retVal)
         }
     a.push_back(exlib::string(p + p1, i - p1));
 
-    _normalize_array(a);
+    _normalize_array(a, removeSlash);
 
     retVal.clear();
     for (i = 0; i < (int32_t)a.size(); i++) {
@@ -318,7 +325,7 @@ inline result_t _normalize(exlib::string path, exlib::string& retVal)
     return 0;
 }
 
-inline result_t _normalize_win32(exlib::string path, exlib::string& retVal)
+inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool removeSlash = false)
 {
     const char* p = path.c_str();
     int32_t len = (int32_t)path.length();
@@ -357,7 +364,7 @@ inline result_t _normalize_win32(exlib::string path, exlib::string& retVal)
         }
     }
 
-    _normalize_array(a);
+    _normalize_array(a, removeSlash);
 
     retVal.clear();
 
@@ -546,7 +553,7 @@ inline result_t _resolve(OptArgs ps, exlib::string& retVal)
         p.resolvePosix(s);
     }
 
-    return _normalize(p.str(), retVal);
+    return _normalize(p.str(), retVal, true);
 }
 
 inline result_t _resolve_win32(OptArgs ps, exlib::string& retVal)
@@ -566,7 +573,7 @@ inline result_t _resolve_win32(OptArgs ps, exlib::string& retVal)
         p.resolveWin32(s);
     }
 
-    return _normalize_win32(p.str(), retVal);
+    return _normalize_win32(p.str(), retVal, true);
 }
 
 inline result_t _sep(exlib::string& retVal)

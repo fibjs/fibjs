@@ -561,16 +561,12 @@ describe('path', () => {
         assert.equal(path.win32.join('c:/path1', 'd:path2'), 'c:\\path1\\d:path2');
     });
 
-    it("resolve", function () {
-
+    it('resolve', () => {
         var resolveTestsWin32 =
-            // arguments                                    result
+            // arguments                               result
             [
                 [
                     ['c:/blah\\blah', 'd:/games', 'c:../a'], 'c:\\blah\\a'
-                ],
-                [
-                    ['c:blah\\blah', '/path'], 'c:\\path'
                 ],
                 [
                     ['c:/ignore', 'd:\\a/b\\c/d', '\\e.exe'], 'd:\\e.exe'
@@ -579,27 +575,29 @@ describe('path', () => {
                     ['c:/ignore', 'c:/some/file'], 'c:\\some\\file'
                 ],
                 [
-                    ['d:/ignore', 'd:some/dir//'], 'd:\\ignore\\some\\dir\\'
+                    ['d:/ignore', 'd:some/dir//'], 'd:\\ignore\\some\\dir'
                 ],
                 [
-                    ['.'], process.cwd().replace(/\//g, '\\')
+                    ['//server/share', '..', 'relative\\'], '\\\\server\\share\\relative'
                 ],
+                // [
+                //     ['c:/', '//'], 'c:\\'
+                // ],
+                // [
+                //     ['c:/', '//dir'], 'c:\\dir'
+                // ],
                 [
-                    ['//server/share', '..', 'relative\\'], '\\\\server\\share\\relative\\'
-                ],
-                // [[‘c:/‘, '//'], 'c:\\'],
-                // [[‘c:/‘, '//dir'], 'c:\\dir'],
-                [
-                    ['c:/', '//server/share'], '\\\\server\\share\\'
-                ],
-                [
-                    ['c:/', '//server/share/file'], '\\\\server\\share\\file'
+                    ['', '//server/share'], '\\\\server\\share\\'
                 ],
                 [
                     ['c:/', '//server//share'], '\\\\server\\share\\'
                 ],
                 [
-                    ['c:/', '/some//dir'], 'c:\\some\\dir'
+                    ['c:/', '///some//dir'], 'c:\\some\\dir'
+                ],
+                [
+                    ['C:\\foo\\tmp.3\\', '..\\tmp.3\\cycles\\root.js'],
+                    'C:\\foo\\tmp.3\\cycles\\root.js'
                 ]
             ];
         // Posix
@@ -607,10 +605,10 @@ describe('path', () => {
             // arguments                                    result
             [
                 [
-                    ['/var/lib', '../', 'file/'], '/var/file/'
+                    ['/var/lib', '../', 'file/'], '/var/file'
                 ],
                 [
-                    ['/var/lib', '/../', 'file/'], '/file/'
+                    ['/var/lib', '/../', 'file/'], '/file'
                 ],
                 [
                     ['a/b/c/', '../../..'], process.cwd()
@@ -619,7 +617,10 @@ describe('path', () => {
                     ['.'], process.cwd()
                 ],
                 [
-                    ['/some/dir', '.', '/absolute/'], '/absolute/'
+                    ['/some/dir', '.', '/absolute/'], '/absolute'
+                ],
+                [
+                    ['/foo/tmp.3/', '../tmp.3/cycles/root.js'], '/foo/tmp.3/cycles/root.js'
                 ]
             ];
 
@@ -628,7 +629,7 @@ describe('path', () => {
         var resolveTests = isWindows ? resolveTestsWin32 : resolveTestsPosix;
 
         // path.resolve
-        resolveTests.forEach(function (test) {
+        resolveTests.forEach(test => {
             var actual = path.resolve.apply(path, test[0]);
             var expected = test[1];
             var message = 'path.resolve(' + test[0].map(JSON.stringify).join(',') + ')' +
@@ -646,7 +647,7 @@ describe('path', () => {
         assert.equal(failures.length, 0, failures.join(''));
 
         // path.posix.resolve
-        resolveTestsPosix.forEach(function (test) {
+        resolveTestsPosix.forEach(test => {
             var actual = path.posix.resolve.apply(path.posix, test[0]);
             var expected = test[1];
             var message = 'path.posix.resolve(' + test[0].map(JSON.stringify).join(',') + ')' +
@@ -659,7 +660,7 @@ describe('path', () => {
         assert.equal(failures.length, 0, failures.join(''));
 
         // path.win32.resolve
-        resolveTestsWin32.forEach(function (test) {
+        resolveTestsWin32.forEach(test => {
             var actual = path.win32.resolve.apply(path.win32, test[0]);
             var expected = test[1];
             var message = 'path.win32.resolve(' + test[0].map(JSON.stringify).join(',') + ')' +
