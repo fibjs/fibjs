@@ -65,7 +65,7 @@ public:
         if (is_root || base.empty())
             base = c_str;
         else {
-            if (!isWin32PathSlash(base.c_str()[base.length() - 1]))
+            if (!isWin32PathSlash(base[base.length() - 1]))
                 base.append(1, PATH_SLASH_WIN32);
 
             base.append(c_str);
@@ -91,7 +91,7 @@ public:
         if (isPosixPathSlash(c_str[0]) || m_buf.empty())
             m_buf = other;
         else {
-            if (!isPosixPathSlash(m_buf.c_str()[m_buf.length() - 1]))
+            if (!isPosixPathSlash(m_buf[m_buf.length() - 1]))
                 m_buf.append(1, PATH_SLASH_POSIX);
 
             m_buf.append(other);
@@ -103,7 +103,14 @@ public:
         if (other.empty())
             return;
 
-        if (m_buf.length() > 0 && !isWin32PathSlash(m_buf.c_str()[m_buf.length() - 1]))
+        if (m_buf.length() == 0 && other.length() == 2
+            && isWin32PathSlash(other[0]) && isWin32PathSlash(other[1])) {
+            m_buf.append(1, PATH_SLASH_WIN32);
+            return;
+        } else if (m_buf.length() == 1 && isWin32PathSlash(m_buf[0])) {
+            if (isWin32PathSlash(other[0]))
+                m_buf.clear();
+        } else if (m_buf.length() > 0 && !isWin32PathSlash(m_buf[m_buf.length() - 1]))
             m_buf.append(1, PATH_SLASH_WIN32);
 
         m_buf.append(other);
@@ -114,7 +121,7 @@ public:
         if (other.empty())
             return;
 
-        if (m_buf.length() > 0 && !isPosixPathSlash(m_buf.c_str()[m_buf.length() - 1]))
+        if (m_buf.length() > 0 && !isPosixPathSlash(m_buf[m_buf.length() - 1]))
             m_buf.append(1, PATH_SLASH_POSIX);
 
         m_buf.append(other);
@@ -248,26 +255,32 @@ inline void _normalize_array(std::vector<exlib::string>& a)
         else
             i++;
 
-    if ((int32_t)a.size() == 2) {
-        if (a[0] == "." && a[1].empty())
-            return;
-
-        if (a[0].empty() && a[1] == ".") {
-            a[1] = "";
-            return;
-        }
-    }
-
     i = 0;
     while (i < (int32_t)a.size()) {
         exlib::string n = a[i];
 
-        if (n == ".")
+        if (n == ".") {
+            if ((int32_t)a.size() == 1)
+                return;
+
+            if (i == 0 && (int32_t)a.size() == 2 && a[1].empty())
+                return;
+
+            if (i == 1 && (int32_t)a.size() == 2 && a[0].empty()) {
+                a[1] = "";
+                return;
+            }
+
             a.erase(a.begin() + i);
-        else if (n == "..") {
-            if (i == 1 && a[0].empty())
+        } else if (n == "..") {
+            if (i == 1 && a[0].empty()) {
+                if ((int32_t)a.size() == 2) {
+                    a[1] = "";
+                    return;
+                }
+
                 a.erase(a.begin() + i);
-            else if (i > 0 && !a[i - 1].empty() && a[i - 1] != "..") {
+            } else if (i > 0 && !a[i - 1].empty() && a[i - 1] != "..") {
                 a.erase(a.begin() + i - 1, a.begin() + i + 1);
                 i--;
             } else
@@ -298,7 +311,7 @@ inline result_t _normalize(exlib::string path, exlib::string& retVal)
     retVal.clear();
     for (i = 0; i < (int32_t)a.size(); i++) {
         if (i > 0)
-            retVal.append(1, '/');
+            retVal.append(1, PATH_SLASH_POSIX);
         retVal.append(a[i]);
     }
 
@@ -352,123 +365,20 @@ inline result_t _normalize_win32(exlib::string path, exlib::string& retVal)
         retVal.append(1, drv_no);
         retVal.append(1, ':');
     } else if (!share.empty()) {
-        retVal.append("\\\\", 2);
+        retVal.append(1, PATH_SLASH_WIN32);
+        retVal.append(1, PATH_SLASH_WIN32);
         retVal.append(domain);
-        retVal.append(1, '\\');
+        retVal.append(1, PATH_SLASH_WIN32);
         retVal.append(share);
     }
 
     for (i = 0; i < (int32_t)a.size(); i++) {
         if (i > 0)
-            retVal.append(1, '\\');
+            retVal.append(1, PATH_SLASH_WIN32);
         retVal.append(a[i]);
     }
 
     return 0;
-
-    // if (!path.length()) {
-    //     retVal = ".";
-    //     return 0;
-    // }
-
-    // exlib::string str;
-    // const char* p1 = path.c_str();
-    // char* pstr;
-    // int32_t pos = 0;
-    // int32_t root = 0;
-    // bool bRoot = false;
-
-    // str.resize(path.length());
-    // pstr = &str[0];
-
-    // if (p1[0] != 0 && p1[1] == ':') {
-    //     pstr[pos++] = p1[0];
-    //     pstr[pos++] = ':';
-    //     p1 += 2;
-
-    //     if (isWin32PathSlash(*p1)) {
-    //         pstr[pos++] = PATH_SLASH_WIN32;
-    //         p1++;
-    //         bRoot = true;
-    //     }
-    // } else if (isWin32PathSlash(p1[0]) && isWin32PathSlash(p1[1])) {
-    //     pstr[pos++] = PATH_SLASH_WIN32;
-    //     pstr[pos++] = PATH_SLASH_WIN32;
-    //     p1 += 2;
-
-    //     while (*p1 && !isWin32PathSlash(*p1))
-    //         pstr[pos++] = *p1++;
-
-    //     if (*p1) {
-    //         pstr[pos++] = PATH_SLASH_WIN32;
-    //         p1++;
-
-    //         while (isWin32PathSlash(*p1))
-    //             p1++;
-
-    //         while (*p1 && !isWin32PathSlash(*p1))
-    //             pstr[pos++] = *p1++;
-
-    //         pstr[pos++] = PATH_SLASH_WIN32;
-    //         bRoot = true;
-
-    //         if (*p1)
-    //             p1++;
-    //     }
-    // } else if (isWin32PathSlash(p1[0])) {
-    //     pstr[pos++] = PATH_SLASH_WIN32;
-    //     p1++;
-    //     bRoot = true;
-    // }
-
-    // root = pos;
-
-    // while (*p1) {
-    //     if (isWin32PathSlash(p1[0])) {
-    //         p1++;
-    //     } else if (p1[0] == '.' && (!p1[1] || isWin32PathSlash(p1[1]))) {
-    //         if (pos == 0 && (!p1[1] || !p1[2])) {
-    //             pstr[pos++] = '.';
-    //             if (p1[1])
-    //                 pstr[pos++] = PATH_SLASH_WIN32;
-    //         } else {
-    //             if (pos > root && !p1[1])
-    //                 pos--;
-    //         }
-    //         p1 += p1[1] ? 2 : 1;
-    //     } else if ((p1[0] == '.') && (p1[1] == '.') && (!p1[2] || isWin32PathSlash(p1[2]))) {
-    //         if (pos > root) {
-    //             if ((pstr[pos - 2] == '.') && (pstr[pos - 3] == '.')
-    //                 && ((root == pos - 3) || (pstr[pos - 4] == PATH_SLASH_WIN32))) {
-    //                 pstr[pos++] = '.';
-    //                 pstr[pos++] = '.';
-    //                 pstr[pos++] = PATH_SLASH_WIN32;
-    //             } else {
-    //                 pos--;
-    //                 while (pos > root && !isWin32PathSlash(pstr[pos - 1]))
-    //                     pos--;
-    //             }
-    //         } else if (!bRoot) {
-    //             pstr[pos++] = '.';
-    //             pstr[pos++] = '.';
-    //             pstr[pos++] = PATH_SLASH_WIN32;
-    //         }
-
-    //         p1 += p1[2] ? 3 : 2;
-    //     } else {
-    //         while (*p1 && !isWin32PathSlash(*p1))
-    //             pstr[pos++] = *p1++;
-    //         if (*p1) {
-    //             p1++;
-    //             pstr[pos++] = PATH_SLASH_WIN32;
-    //         }
-    //     }
-    // }
-
-    // str.resize(pos);
-    // retVal = str;
-
-    // return 0;
 }
 
 inline result_t _basename(exlib::string path, exlib::string ext,
@@ -673,7 +583,7 @@ inline result_t _delimiter(exlib::string& retVal)
 
 inline result_t _fullpath(exlib::string path, exlib::string& retVal)
 {
-    if (isPathSlash(path.c_str()[0]))
+    if (isPathSlash(path[0]))
         return _normalize(path, retVal);
 
     exlib::string str;

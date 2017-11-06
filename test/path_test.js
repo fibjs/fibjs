@@ -264,10 +264,10 @@ describe('path', () => {
         var failures = [];
         var joinTests = [
             [
-                ['.', 'x/b', '..', 'b/c.js'], 'x/b/c.js'
+                ['.', 'x/b', '..', '/b/c.js'], 'x/b/c.js'
             ],
             [
-                ['/.', 'x/b', '..', 'b/c.js'], '/x/b/c.js'
+                [], '.'
             ],
             [
                 ['/.', 'x/b', '..', '/b/c.js'], '/x/b/c.js'
@@ -309,6 +309,9 @@ describe('path', () => {
                 ['.', '/./', '.'], '.'
             ],
             [
+                ['.', '/////./', '.'], '.'
+            ],
+            [
                 ['.'], '.'
             ],
             [
@@ -342,13 +345,13 @@ describe('path', () => {
                 ['./', '..', '/foo'], '../foo'
             ],
             [
-                ['./', '..', '..', 'foo'], '../../foo'
+                ['./', '..', '..', '/foo'], '../../foo'
             ],
             [
-                ['.', '..', '..', 'foo'], '../../foo'
+                ['.', '..', '..', '/foo'], '../../foo'
             ],
             [
-                ['', '..', '..', 'foo'], '../../foo'
+                ['', '..', '..', '/foo'], '../../foo'
             ],
             [
                 ['/'], '/'
@@ -382,6 +385,140 @@ describe('path', () => {
             ],
             [
                 [' ', ''], ' '
+            ],
+            [
+                ['/', 'foo'], '/foo'
+            ],
+            [
+                ['/', '/foo'], '/foo'
+            ],
+            [
+                ['/', '//foo'], '/foo'
+            ],
+            [
+                ['/', '', '/foo'], '/foo'
+            ],
+            [
+                ['', '/', 'foo'], '/foo'
+            ],
+            [
+                ['', '/', '/foo'], '/foo'
+            ]
+        ];
+
+        var joinTestsWin32 = [
+            // UNC path expected
+            [
+                ['//foo/bar'], '\\\\foo\\bar\\'
+            ],
+            [
+                ['\\/foo/bar'], '\\\\foo\\bar\\'
+            ],
+            [
+                ['\\\\foo/bar'], '\\\\foo\\bar\\'
+            ],
+            // UNC path expected - server and share separate
+            [
+                ['//foo', 'bar'], '\\\\foo\\bar\\'
+            ],
+            [
+                ['//foo/', 'bar'], '\\\\foo\\bar\\'
+            ],
+            [
+                ['//foo', '/bar'], '\\\\foo\\bar\\'
+            ],
+            // UNC path expected - questionable
+            [
+                ['//foo', '', 'bar'], '\\\\foo\\bar\\'
+            ],
+            [
+                ['//foo/', '', 'bar'], '\\\\foo\\bar\\'
+            ],
+            [
+                ['//foo/', '', '/bar'], '\\\\foo\\bar\\'
+            ],
+            // UNC path expected - even more questionable
+            [
+                ['', '//foo', 'bar'], '\\\\foo\\bar\\'
+            ],
+            [
+                ['', '//foo/', 'bar'], '\\\\foo\\bar\\'
+            ],
+            [
+                ['', '//foo/', '/bar'], '\\\\foo\\bar\\'
+            ],
+            // No UNC path expected (no double slash in first component)
+            [
+                ['\\', 'foo/bar'], '\\foo\\bar'
+            ],
+            [
+                ['\\', '/foo/bar'], '\\foo\\bar'
+            ],
+            [
+                ['', '/', '/foo/bar'], '\\foo\\bar'
+            ],
+            // No UNC path expected (no non-slashes in first component -
+            // questionable)
+            [
+                ['//', 'foo/bar'], '\\foo\\bar'
+            ],
+            [
+                ['//', '/foo/bar'], '\\foo\\bar'
+            ],
+            [
+                ['\\\\', '/', '/foo/bar'], '\\foo\\bar'
+            ],
+            [
+                ['//'], '/'
+            ],
+            // No UNC path expected (share name missing - questionable).
+            [
+                ['//foo'], '\\foo'
+            ],
+            [
+                ['//foo/'], '\\foo\\'
+            ],
+            [
+                ['//foo', '/'], '\\foo\\'
+            ],
+            [
+                ['//foo', '', '/'], '\\foo\\'
+            ],
+            // No UNC path expected (too many leading slashes - questionable)
+            [
+                ['///foo/bar'], '\\foo\\bar'
+            ],
+            [
+                ['////foo', 'bar'], '\\foo\\bar'
+            ],
+            [
+                ['\\\\\\/foo/bar'], '\\foo\\bar'
+            ],
+            // Drive-relative vs drive-absolute paths. This merely describes the
+            // status quo, rather than being obviously right
+            [
+                ['c:'], 'c:.'
+            ],
+            [
+                ['c:.'], 'c:.'
+            ],
+            [
+                ['c:', ''], 'c:.'
+            ],
+            [
+                ['', 'c:'], 'c:.'
+            ],
+            [
+                ['c:.', '/'], 'c:.\\'
+            ],
+            [
+                ['c:.', 'file'], 'c:file'
+            ],
+            [
+                ['c:', '/'], 'c:\\'
+            ],
+            [
+                ['c:', 'file'], 'c:\\file'
             ]
         ];
 
@@ -396,7 +533,7 @@ describe('path', () => {
         assert.equal(failures.length, 0, failures.join(''));
 
         // path.win32.join
-        joinTests.forEach((test) => {
+        [...joinTests, ...joinTestsWin32].forEach((test) => {
             var actual = path.win32.join.apply(path.win32, test[0]);
             var expected = test[1].replace(/\//g, '\\');
             var message = 'path.win32.join(' + test[0].map(JSON.stringify).join(',') + ')' + '\n  expect=' + JSON.stringify(expected) + '\n  actual=' + JSON.stringify(actual);
