@@ -38,8 +38,8 @@ private:
 #ifndef _WIN32
         return opaque;
 #else
-        exlib::qstring fn = (const char*)filename;
-        exlib::qstring md = (const char*)"rb";
+        exlib::string fn = (const char*)filename;
+        exlib::string md = (const char*)"rb";
         return (voidpf)::_wfopen(UTF8_W(fn), UTF8_W(md));
 #endif
     }
