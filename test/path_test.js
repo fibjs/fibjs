@@ -583,6 +583,8 @@ describe('path', () => {
             [['C:\\foo\\tmp.3\\', '..\\tmp.3\\cycles\\root.js'],
                 'C:\\foo\\tmp.3\\cycles\\root.js']
             ]
+            [['c:/', 'C://'], 'C:\\'],
+            [['C:/', 'c://'], 'c:\\'],
             ],
             [path.posix.resolve,
             // arguments                    result

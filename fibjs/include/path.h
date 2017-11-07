@@ -53,6 +53,7 @@ public:
         if (qisascii(c_str[0]) && c_str[1] == ':') {
             diskId = c_str[0];
             m_buf = m_disks[diskId & 0x1f];
+            m_buf[0] = c_str[0];
             c_str += 2;
         }
 
@@ -164,7 +165,7 @@ inline const char* split_path(const char* p)
     const char* p1 = p;
     const char* p2 = NULL;
 
-    if (p[0] != 0 && p[1] == ':') {
+    if (qisascii(p[0]) && p[1] == ':') {
         p += 2;
         if (isPosixPathSlash(*p))
             p++;
@@ -208,7 +209,7 @@ inline const char* split_path_win32(const char* p)
     const char* p1 = p;
     const char* p2 = NULL;
 
-    if (p[0] != 0 && p[1] == ':') {
+    if (qisascii(p[0]) && p[1] == ':') {
         p += 2;
         if (isWin32PathSlash(*p))
             p++;
@@ -340,7 +341,7 @@ inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool
     exlib::string domain;
     exlib::string share;
 
-    if (p[0] != 0 && p[1] == ':') {
+    if (qisascii(p[0]) && p[1] == ':') {
         drv_no = p[0];
         p += 2;
         len -= 2;
