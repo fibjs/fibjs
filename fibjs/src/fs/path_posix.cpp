@@ -55,6 +55,13 @@ result_t path_posix_base::resolve(OptArgs ps, exlib::string& retVal)
     return _resolve(ps, retVal);
 }
 
+result_t path_posix_base::toNamespacedPath(v8::Local<v8::Value> path,
+    v8::Local<v8::Value>& retVal)
+{
+    retVal = path;
+    return 0;
+}
+
 result_t path_posix_base::get_sep(exlib::string& retVal)
 {
     retVal.assign(1, PATH_SLASH_POSIX);

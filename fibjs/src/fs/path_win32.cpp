@@ -68,6 +68,43 @@ result_t path_win32_base::resolve(OptArgs ps, exlib::string& retVal)
     return _resolve_win32(ps, retVal);
 }
 
+result_t path_win32_base::toNamespacedPath(v8::Local<v8::Value> path,
+    v8::Local<v8::Value>& retVal)
+{
+    if (!path->IsString()) {
+        retVal = path;
+        return 0;
+    }
+
+    exlib::string str;
+    GetArgumentValue(path, str);
+
+    if (str.length() >= 3) {
+        Isolate* isolate = Isolate::current();
+        Path p;
+        p.resolveWin32(str);
+        result_t hr = normalize(p.str(), str);
+        if (hr < 0)
+            return hr;
+        if (str[0] == '\\' && str[1] == '\\') {
+            if (str[2] != '?' && str[2] != '.') {
+                str = "\\\\?\\UNC\\" + str.substr(2);
+                retVal = GetReturnValue(isolate->m_isolate, str);
+                return 0;
+            }
+        } else if (qisascii(str[0])) {
+            if (str[1] == ':' && str[2] == '\\') {
+                str = "\\\\?\\" + str.substr(0);
+                retVal = GetReturnValue(isolate->m_isolate, str);
+                return 0;
+            }
+        }
+    }
+
+    retVal = path;
+    return 0;
+}
+
 result_t path_win32_base::get_sep(exlib::string& retVal)
 {
     retVal.assign(1, PATH_SLASH_WIN32);
