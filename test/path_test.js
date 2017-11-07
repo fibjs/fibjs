@@ -408,18 +408,43 @@ describe('path', () => {
     });
 
     it('isAbsolute', () => {
-        assert.isTrue(path.posix.isAbsolute('/foo/bar'));
-        assert.isTrue(path.posix.isAbsolute('/baz/..'));
-        assert.isFalse(path.posix.isAbsolute('qux/'));
-        assert.isFalse(path.posix.isAbsolute('.'));
+        function testPosix(fn) {
+            assert.isTrue(fn('/foo/bar'));
+            assert.isTrue(fn('/baz/..'));
+            assert.isFalse(fn('qux/'));
+            assert.isFalse(fn('.'));
+            assert.isFalse(fn('./foo'));
+        }
 
-        assert.isTrue(path.win32.isAbsolute('//server'));
-        assert.isTrue(path.win32.isAbsolute('\\\\server'));
-        assert.isTrue(path.win32.isAbsolute('C:/foo/..'));
-        assert.isTrue(path.win32.isAbsolute('C:\\foo\\..'));
-        assert.isFalse(path.win32.isAbsolute('bar\\baz'));
-        assert.isFalse(path.win32.isAbsolute('bar/baz'));
-        assert.isFalse(path.win32.isAbsolute('.'));
+        function testWin32(fn) {
+            assert.isTrue(fn('/'));
+            assert.isTrue(fn('//'));
+            assert.isTrue(fn('//server'));
+            assert.isTrue(fn('//server/file'));
+            assert.isTrue(fn('\\\\server\\file'));
+            assert.isTrue(fn('\\\\server'));
+            assert.isTrue(fn('\\\\'));
+            assert.isFalse(fn('c'));
+            assert.isFalse(fn('c:'));
+            assert.isTrue(fn('c:\\'));
+            assert.isTrue(fn('c:/'));
+            assert.isTrue(fn('c://'));
+            assert.isTrue(fn('C:/Users/'));
+            assert.isTrue(fn('C:\\Users\\'));
+            assert.isFalse(fn('C:cwd/another'));
+            assert.isFalse(fn('C:cwd\\another'));
+            assert.isFalse(fn('directory/directory'));
+            assert.isFalse(fn('directory\\directory'));
+        }
+
+        testPosix(path.posix.isAbsolute.bind(path.posix));
+        testWin32(path.win32.isAbsolute.bind(path.win32));
+
+        if (isWindows) {
+            testWin32(path.isAbsolute.bind(path));
+        } else {
+            testPosix(path.isAbsolute.bind(path));
+        }
     });
 
     it('join', () => {

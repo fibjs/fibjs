@@ -42,7 +42,19 @@ result_t path_win32_base::fullpath(exlib::string path, exlib::string& retVal)
 result_t path_win32_base::isAbsolute(exlib::string path, bool& retVal)
 {
     const char* c_str = path.c_str();
-    retVal = isWin32PathSlash(c_str[0]) || (qisascii(c_str[0]) && c_str[1] == ':');
+
+    if (isWin32PathSlash(c_str[0])) {
+        retVal = true;
+        return 0;
+    }
+
+    if (qisascii(c_str[0]) && c_str[1] == ':' && isWin32PathSlash(c_str[2])) {
+        retVal = true;
+        return 0;
+    }
+
+    retVal = false;
+
     return 0;
 }
 
