@@ -163,8 +163,8 @@ result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* a
     if ((unz = unzOpen2_64(filename.c_str(), NULL)) == NULL)
 #else
     zlib_filefunc64_def io;
+    fill_fopen64_filefunc(&io);
     io.zopen64_file = fopen64_file_func;
-
     if ((unz = unzOpen2_64(filename.c_str(), &io)) == NULL)
 #endif
         retVal = false;

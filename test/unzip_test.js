@@ -69,6 +69,15 @@ describe("zip", () => {
         assert.equal(zip.isZipFile(path.join(__dirname, 'unzip_test.zip' + vmid)), true);
     });
 
+    it("zip filename in unicode", () => {
+        var fname = "测试.zip" + vmid;
+        var f = zip.open(path.join(__dirname, fname), "w");
+        f.write(path.join(__dirname, 'unzip_test.js'), 'unzip_test.js');
+        f.close();
+        assert.equal(zip.isZipFile(path.join(__dirname, fname)), true);
+        fs.unlink(path.join(__dirname, fname));
+    })
+
     it("namelist & infolist & getinfo", () => {
         zipfile = zip.open(path.join(__dirname, 'unzip_test.zip' + vmid));
         var namelist = zipfile.namelist();
