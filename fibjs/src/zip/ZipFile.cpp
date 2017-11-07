@@ -38,9 +38,9 @@ private:
 #ifndef _WIN32
         return opaque;
 #else
-        exlib::wstring wfilename = (const char*)filename;
-        exlib::wstring wmode = (const char*)"rb";
-        return (voidpf)_wfopen(wfilename.c_str(), wmode.c_str());
+        exlib::qstring fn = (const char*)filename;
+        exlib::qstring md = (const char*)"rb";
+        return (voidpf)::_wfopen(UTF8_W(fn), UTF8_W(md));
 #endif
     }
     static uLong ZCALLBACK fread_file_func(voidpf opaque, voidpf stream, void* buf, uLong size)
