@@ -14,8 +14,11 @@ describe('path', () => {
 
     it('basename', () => {
         function test(fn) {
-            assert.strictEqual(fn(__filename), 'path_test.js');
-            assert.strictEqual(fn(__filename, '.js'), 'path_test');
+            if (!isWindows) {
+                assert.strictEqual(fn(__filename), 'path_test.js');
+                assert.strictEqual(fn(__filename, '.js'), 'path_test');
+            }
+
             assert.strictEqual(fn('.js', '.js'), '');
             assert.strictEqual(fn(''), '');
             assert.strictEqual(fn('/dir/basename.ext'), 'basename.ext');
@@ -213,7 +216,7 @@ describe('path', () => {
             // On windows, backspace is a path separator.
             assert.equal(path.extname('.\\'), '');
             assert.equal(path.extname('..\\'), '');
-            assert.equal(path.extname('file.ext\\'), '');
+            assert.equal(path.extname('file.ext\\'), '.ext');
         } else {
             // On unix, backspace is a valid name component like any other character.
             assert.equal(path.extname('.\\'), '');
