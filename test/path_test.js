@@ -830,6 +830,38 @@ describe('path', () => {
             assert.equal(path.join(process.cwd(), "not_exists"), path.win32.fullpath("not_exists"));
         }
     });
+
+    it('zero', () => {
+        const pwd = process.cwd();
+
+        // join will internally ignore all the zero-length strings and it will return
+        // '.' if the joined string is a zero-length string.
+        assert.strictEqual(path.posix.join(''), '.');
+        assert.strictEqual(path.posix.join('', ''), '.');
+        assert.strictEqual(path.win32.join(''), '.');
+        assert.strictEqual(path.win32.join('', ''), '.');
+        assert.strictEqual(path.join(pwd), pwd);
+        assert.strictEqual(path.join(pwd, ''), pwd);
+
+        // normalize will return '.' if the input is a zero-length string
+        assert.strictEqual(path.posix.normalize(''), '.');
+        assert.strictEqual(path.win32.normalize(''), '.');
+        assert.strictEqual(path.normalize(pwd), pwd);
+
+        // Since '' is not a valid path in any of the common environments, return false
+        assert.strictEqual(path.posix.isAbsolute(''), false);
+        assert.strictEqual(path.win32.isAbsolute(''), false);
+
+        // resolve, internally ignores all the zero-length strings and returns the
+        // current working directory
+        assert.strictEqual(path.resolve(''), pwd);
+        assert.strictEqual(path.resolve('', ''), pwd);
+
+        // relative, internally calls resolve. So, '' is actually the current directory
+        // assert.strictEqual(path.relative('', pwd), '');
+        // assert.strictEqual(path.relative(pwd, ''), '');
+        // assert.strictEqual(path.relative(pwd, pwd), '');
+    });
 });
 
 repl && test.run(console.DEBUG);
