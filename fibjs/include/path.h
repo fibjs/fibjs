@@ -36,10 +36,16 @@ public:
 
         const char* c_str = other.c_str();
 
-        if (isWin32PathSlash(c_str[0]) && isWin32PathSlash(c_str[1])
-            && !isWin32PathSlash(c_str[2])) {
-            m_buf = other;
-            return;
+        if (other.length() > 2) {
+            if (isWin32PathSlash(c_str[0]) && isWin32PathSlash(c_str[1])
+                && !isWin32PathSlash(c_str[2])) {
+                for (int i = 3; i < other.length(); i++) {
+                    if (isWin32PathSlash(c_str[i])) {
+                        m_buf = other;
+                        return;
+                    }
+                }
+            }
         }
 
         char diskId = 0;
