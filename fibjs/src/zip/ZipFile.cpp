@@ -39,7 +39,7 @@ private:
         return opaque;
 #else
         exlib::wstring wfilename = (const char*)filename;
-        exlib::wstring wmode = "rb, ccs=UNICODE";
+        exlib::wstring wmode = (const char*)"rb, ccs=UNICODE";
         return (voidpf)_wfopen(wfilename.c_str(), wmode.c_str());
 #endif
     }
