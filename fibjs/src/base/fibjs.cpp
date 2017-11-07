@@ -31,6 +31,7 @@ void init_fs();
 void init_fiber();
 void init_signal();
 void options(int32_t& pos, char* argv[]);
+result_t ifZipFile(exlib::string filename, bool& retVal);
 
 exlib::string s_root;
 
@@ -94,9 +95,9 @@ void main(int32_t argc, char* argv[])
 
     process_base::get_execPath(exePath);
 
-    unzFile unz;
-    if ((unz = unzOpen64(exePath.c_str())) != NULL) {
-        unzClose(unz);
+    bool bZip;
+    ifZipFile(exePath, bZip);
+    if (bZip) {
 
         exePath.append(1, '$');
         ptrArg.resize(argc + 1);

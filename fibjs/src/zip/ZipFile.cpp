@@ -147,17 +147,12 @@ const char* zip_error(int32_t err)
 #ifdef _WIN32
 static voidpf ZCALLBACK fopen64_file_func(voidpf opaque, const void* filename, int mode)
 {
-    exlib::string fn = (const char*)filename;
-    exlib::string md = (const char*)"rb";
-    return (voidpf)::_wfopen(UTF8_W(fn), UTF8_W(md));
+    return (voidpf)::_wfopen(UTF8_W((const char*)filename), UTF8_W((const char*)"rb"));
 }
 #endif
 
-result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* ac)
+result_t ifZipFile(exlib::string filename, bool& retVal)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
     unzFile unz;
 #ifndef _WIN32
     if ((unz = unzOpen2_64(filename.c_str(), NULL)) == NULL)
@@ -174,6 +169,14 @@ result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* a
     }
 
     return 0;
+}
+
+result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return ifZipFile(filename, retVal);
 }
 
 result_t zip_base::open(exlib::string path, exlib::string mod, int32_t compress_type,
