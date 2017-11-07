@@ -35,14 +35,9 @@ public:
 private:
     static voidpf ZCALLBACK fopen64_file_func(voidpf opaque, const void* filename, int mode)
     {
-#ifndef _WIN32
         return opaque;
-#else
-        exlib::string fn = (const char*)filename;
-        exlib::string md = (const char*)"rb";
-        return (voidpf)::_wfopen(UTF8_W(fn), UTF8_W(md));
-#endif
     }
+
     static uLong ZCALLBACK fread_file_func(voidpf opaque, voidpf stream, void* buf, uLong size)
     {
         result_t hr;
@@ -149,14 +144,29 @@ const char* zip_error(int32_t err)
     return zError(err);
 }
 
+#ifdef _WIN32
+static voidpf ZCALLBACK fopen64_file_func(voidpf opaque, const void* filename, int mode)
+{
+    exlib::string fn = (const char*)filename;
+    exlib::string md = (const char*)"rb";
+    return (voidpf)::_wfopen(UTF8_W(fn), UTF8_W(md));
+}
+#endif
+
 result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     unzFile unz;
-    StreamIO sio(NULL);
-    if ((unz = unzOpen2_64(filename.c_str(), &sio)) == NULL)
+#ifndef _WIN32
+    if ((unz = unzOpen2_64(filename.c_str(), NULL)) == NULL)
+#else
+    zlib_filefunc64_def io;
+    io.zopen64_file = fopen64_file_func;
+
+    if ((unz = unzOpen2_64(filename.c_str(), &io)) == NULL)
+#endif
         retVal = false;
     else {
         retVal = true;
