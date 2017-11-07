@@ -144,13 +144,24 @@ const char* zip_error(int32_t err)
     return zError(err);
 }
 
-result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* ac)
+#ifdef _WIN32
+static voidpf ZCALLBACK fopen64_file_func(voidpf opaque, const void* filename, int mode)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    return (voidpf)::_wfopen(UTF8_W((const char*)filename), UTF8_W((const char*)"rb"));
+}
+#endif
 
+result_t ifZipFile(exlib::string filename, bool& retVal)
+{
     unzFile unz;
-    if ((unz = unzOpen64(filename.c_str())) == NULL)
+#ifndef _WIN32
+    if ((unz = unzOpen2_64(filename.c_str(), NULL)) == NULL)
+#else
+    zlib_filefunc64_def io;
+    fill_fopen64_filefunc(&io);
+    io.zopen64_file = fopen64_file_func;
+    if ((unz = unzOpen2_64(filename.c_str(), &io)) == NULL)
+#endif
         retVal = false;
     else {
         retVal = true;
@@ -158,6 +169,14 @@ result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* a
     }
 
     return 0;
+}
+
+result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return ifZipFile(filename, retVal);
 }
 
 result_t zip_base::open(exlib::string path, exlib::string mod, int32_t compress_type,
