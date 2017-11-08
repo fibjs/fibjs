@@ -12,7 +12,7 @@ var isWin32 = process.platform === 'win32';
 function unlink(pathname) {
     try {
         fs.rmdir(pathname);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 var pathname = 'test_dir' + vmid;
@@ -30,7 +30,7 @@ describe('fs', () => {
     after(() => {
         try {
             fs.unlink(path.join(__dirname, 'unzip_test.zip'));
-        } catch (e) {}
+        } catch (e) { }
     });
 
     it("stat", () => {
@@ -43,7 +43,7 @@ describe('fs', () => {
         assert.equal(st.isWritable(), true);
 
         st = fs.stat(path.join(__dirname, 'abc', '../'));
-        
+
         assert.equal(st.isDirectory(), true);
         assert.equal(st.isFile(), false);
         assert.equal(st.isExecutable(), true);
@@ -198,9 +198,7 @@ describe('fs', () => {
                     fs.chown(fn, 23, 45)
                 });
             else {
-                assert.doesNotThrow(function () {
-                    fs.chown(fn, 23, 45)
-                });
+                assert.doesNotThrow(() => fs.chown(fn, 23, 45));
                 var st = fs.stat(fn);
                 assert.equal(st.uid, 23);
                 assert.equal(st.gid, 45);
@@ -219,9 +217,7 @@ describe('fs', () => {
                     fs.lchown(fn, 23, 45)
                 });
             else {
-                assert.doesNotThrow(function () {
-                    fs.lchown(fn, 23, 45)
-                });
+                assert.doesNotThrow(() => fs.lchown(fn, 23, 45));
                 var st = fs.stat(path.join(__dirname, 'fs_test.js'));
                 var lst = fs.lstat(fn);
                 assert.notEqual(st.uid, 23);
