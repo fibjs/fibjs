@@ -29,6 +29,7 @@ public:
     static result_t isAbsolute(exlib::string path, bool& retVal);
     static result_t join(OptArgs ps, exlib::string& retVal);
     static result_t resolve(OptArgs ps, exlib::string& retVal);
+    static result_t toNamespacedPath(v8::Local<v8::Value> path, v8::Local<v8::Value>& retVal);
     static result_t get_sep(exlib::string& retVal);
     static result_t get_delimiter(exlib::string& retVal);
     static result_t get_posix(v8::Local<v8::Object>& retVal);
@@ -54,6 +55,7 @@ public:
     static void s_isAbsolute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_join(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_toNamespacedPath(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_sep(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_delimiter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_posix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -72,7 +74,8 @@ inline ClassInfo& path_win32_base::class_info()
         { "fullpath", s_fullpath, true },
         { "isAbsolute", s_isAbsolute, true },
         { "join", s_join, true },
-        { "resolve", s_resolve, true }
+        { "resolve", s_resolve, true },
+        { "toNamespacedPath", s_toNamespacedPath, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -217,6 +220,22 @@ inline void path_win32_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>
     ARG_LIST(0);
 
     hr = resolve(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void path_win32_base::s_toNamespacedPath(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_NAME("path_win32.toNamespacedPath");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+
+    hr = toNamespacedPath(v0, vr);
 
     METHOD_RETURN();
 }

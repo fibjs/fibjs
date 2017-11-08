@@ -42,7 +42,19 @@ result_t path_win32_base::fullpath(exlib::string path, exlib::string& retVal)
 result_t path_win32_base::isAbsolute(exlib::string path, bool& retVal)
 {
     const char* c_str = path.c_str();
-    retVal = isWin32PathSlash(c_str[0]) || (qisascii(c_str[0]) && c_str[1] == ':');
+
+    if (isWin32PathSlash(c_str[0])) {
+        retVal = true;
+        return 0;
+    }
+
+    if (qisascii(c_str[0]) && c_str[1] == ':' && isWin32PathSlash(c_str[2])) {
+        retVal = true;
+        return 0;
+    }
+
+    retVal = false;
+
     return 0;
 }
 
@@ -54,6 +66,41 @@ result_t path_win32_base::join(OptArgs ps, exlib::string& retVal)
 result_t path_win32_base::resolve(OptArgs ps, exlib::string& retVal)
 {
     return _resolve_win32(ps, retVal);
+}
+
+result_t path_win32_base::toNamespacedPath(v8::Local<v8::Value> path,
+    v8::Local<v8::Value>& retVal)
+{
+    if (!path->IsString()) {
+        retVal = path;
+        return 0;
+    }
+
+    exlib::string str;
+    GetArgumentValue(path, str);
+
+    if (str.length() >= 3) {
+        Isolate* isolate = Isolate::current();
+        result_t hr = _resolve_win32(str);
+        if (hr < 0)
+            return hr;
+        if (str[0] == '\\' && str[1] == '\\') {
+            if (str[2] != '?' && str[2] != '.') {
+                str = "\\\\?\\UNC" + str.substr(1);
+                retVal = GetReturnValue(isolate->m_isolate, str);
+                return 0;
+            }
+        } else if (qisascii(str[0])) {
+            if (str[1] == ':' && str[2] == '\\') {
+                str = "\\\\?\\" + str.substr(0);
+                retVal = GetReturnValue(isolate->m_isolate, str);
+                return 0;
+            }
+        }
+    }
+
+    retVal = path;
+    return 0;
 }
 
 result_t path_win32_base::get_sep(exlib::string& retVal)
