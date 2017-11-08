@@ -6,7 +6,7 @@
  var path = require('path');
  @endcode
  */
-module path
+module path_posix
 {
     /*! @brief Normalize path
 

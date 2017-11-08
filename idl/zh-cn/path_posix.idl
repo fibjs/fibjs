@@ -65,6 +65,13 @@ module path_posix
      */
     static String resolve(...ps);
 
+    /*! @brief 转换成 namespace-prefixed 路径。只在 windows 有效，其他系统直接返回。
+    see: https://msdn.microsoft.com/library/windows/desktop/aa365247(v=vs.85).aspx#namespaces
+     @param path 给定的路径。
+     @return 返回得到的新路径
+     */
+    static Value toNamespacedPath(Value path = undefined);
+
     /*! @brief 查询当前操作系统的路径分割字符，posix 返回 '/', windows 返回  '\\'
      */
     static readonly String sep;

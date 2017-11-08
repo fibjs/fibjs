@@ -588,6 +588,18 @@ inline result_t _resolve_win32(OptArgs ps, exlib::string& retVal)
     return _normalize_win32(p.str(), retVal, true);
 }
 
+inline result_t _resolve_win32(exlib::string& path)
+{
+    exlib::string str;
+    process_base::cwd(str);
+
+    Path p;
+    p.resolveWin32(str);
+    p.resolveWin32(path);
+
+    return _normalize_win32(p.str(), path, true);
+}
+
 inline result_t _sep(exlib::string& retVal)
 {
     retVal.assign(1, PATH_SLASH);
