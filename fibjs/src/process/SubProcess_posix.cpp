@@ -7,6 +7,7 @@
 
 #ifndef _WIN32
 
+#include "config.h"
 #include "object.h"
 #include "ifs/process.h"
 #include "SubProcess.h"
@@ -35,16 +36,12 @@ private:
     intptr_t m_pid;
 };
 
-#ifdef Linux
-
-#ifdef amd64
+#ifdef HAVE_GLIB_C_225_H
 __asm__(".symver posix_spawnp,posix_spawnp@GLIBC_2.2.5");
 #endif
 
-#ifdef i386
+#ifdef HAVE_GLIB_C_22_H
 __asm__(".symver posix_spawnp,posix_spawnp@GLIBC_2.2");
-#endif
-
 #endif
 
 result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,

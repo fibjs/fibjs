@@ -2,3 +2,4 @@
 
 #cmakedefine HAVE_ICONV_H 1
 #cmakedefine HAVE_GLIB_C_225_H 1
+#cmakedefine HAVE_GLIB_C_22_H 1
