@@ -81,14 +81,12 @@ result_t path_win32_base::toNamespacedPath(v8::Local<v8::Value> path,
 
     if (str.length() >= 3) {
         Isolate* isolate = Isolate::current();
-        Path p;
-        p.resolveWin32(str);
-        result_t hr = normalize(p.str(), str);
+        result_t hr = _resolve_win32(str);
         if (hr < 0)
             return hr;
         if (str[0] == '\\' && str[1] == '\\') {
             if (str[2] != '?' && str[2] != '.') {
-                str = "\\\\?\\UNC\\" + str.substr(2);
+                str = "\\\\?\\UNC" + str.substr(1);
                 retVal = GetReturnValue(isolate->m_isolate, str);
                 return 0;
             }

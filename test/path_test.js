@@ -891,15 +891,17 @@ describe('path', () => {
         // assert.strictEqual(path.relative(pwd, pwd), '');
     });
 
-    oit("toNamespacedPath", () => {
-        if (isWindows) {
-            const file = __filename;
-            const resolvedFile = path.resolve(file);
+    it("toNamespacedPath", () => {
+        const file1 = '\\\\psf\\Home\\Documents\\workspace';
+        const file2 = 'c:\\Home\\Documents\\workspace';
+        const resolvedFile1 = path.resolve(file1);
+        const resolvedFile2 = path.resolve(file2);
 
-            assert.strictEqual(`\\\\?\\${resolvedFile}`,
-                path.toNamespacedPath(file));
-            // assert.strictEqual(`\\\\?\\${resolvedFile}`,
-            //     path.toNamespacedPath(`\\\\?\\${file}`));
+        if (isWindows) {
+            assert.strictEqual(`\\\\?\\UNC${resolvedFile1.slice(1)}`,
+                path.toNamespacedPath(file1));
+            assert.strictEqual(`\\\\?\\${resolvedFile2}`,
+                path.toNamespacedPath(`\\\\?\\${file2}`));
             assert.strictEqual('\\\\?\\UNC\\someserver\\someshare\\somefile',
                 path.toNamespacedPath(
                     '\\\\someserver\\someshare\\somefile'));
@@ -926,10 +928,10 @@ describe('path', () => {
         if (isWindows) {
             // These tests cause resolve() to insert the cwd, so we cannot test them from
             // non-Windows platforms (easily)
-            // assert.strictEqual(path.win32.toNamespacedPath('foo\\bar').toLowerCase(),
-            //     `\\\\?\\${process.cwd().toLowerCase()}\\foo\\bar`);
-            // assert.strictEqual(path.win32.toNamespacedPath('foo/bar').toLowerCase(),
-            //     `\\\\?\\${process.cwd().toLowerCase()}\\foo\\bar`);
+            assert.strictEqual(path.win32.toNamespacedPath('foo\\bar').toLowerCase(),
+                `\\\\?\\${process.cwd().toLowerCase()}\\foo\\bar`);
+            assert.strictEqual(path.win32.toNamespacedPath('foo/bar').toLowerCase(),
+                `\\\\?\\${process.cwd().toLowerCase()}\\foo\\bar`);
             // const currentDeviceLetter = path.parse(process.cwd()).root.substring(0, 2);
             // assert.strictEqual(
             //     path.win32.toNamespacedPath(currentDeviceLetter).toLowerCase(),
