@@ -13,40 +13,32 @@ describe('path', () => {
     });
 
     it('basename', () => {
-        function test(fn) {
-            if (!isWindows) {
-                assert.strictEqual(fn(__filename), 'path_test.js');
-                assert.strictEqual(fn(__filename, '.js'), 'path_test');
-            }
-
-            assert.strictEqual(fn('.js', '.js'), '');
-            assert.strictEqual(fn(''), '');
-            assert.strictEqual(fn('/dir/basename.ext'), 'basename.ext');
-            assert.strictEqual(fn('/basename.ext'), 'basename.ext');
-            assert.strictEqual(fn('basename.ext'), 'basename.ext');
-            assert.strictEqual(fn('basename.ext/'), 'basename.ext');
-            assert.strictEqual(fn('basename.ext//'), 'basename.ext');
-            assert.strictEqual(fn('aaa/bbb', '/bbb'), 'bbb');
-            assert.strictEqual(fn('aaa/bbb', 'a/bbb'), 'bbb');
-            assert.strictEqual(fn('aaa/bbb', 'bbb'), 'bbb');
-            assert.strictEqual(fn('aaa/bbb//', 'bbb'), 'bbb');
-            assert.strictEqual(fn('aaa/bbb', 'bb'), 'b');
-            assert.strictEqual(fn('aaa/bbb', 'b'), 'bb');
-            assert.strictEqual(fn('/aaa/bbb', '/bbb'), 'bbb');
-            assert.strictEqual(fn('/aaa/bbb', 'a/bbb'), 'bbb');
-            assert.strictEqual(fn('/aaa/bbb', 'bbb'), 'bbb');
-            assert.strictEqual(fn('/aaa/bbb//', 'bbb'), 'bbb');
-            assert.strictEqual(fn('/aaa/bbb', 'bb'), 'b');
-            assert.strictEqual(fn('/aaa/bbb', 'b'), 'bb');
-            assert.strictEqual(fn('/aaa/bbb'), 'bbb');
-            assert.strictEqual(fn('/aaa/'), 'aaa');
-            assert.strictEqual(fn('/aaa/b'), 'b');
-            assert.strictEqual(fn('/a/b'), 'b');
-            assert.strictEqual(fn('//a'), 'a');
-        }
-        test(path.basename.bind(path));
-        test(path.win32.basename.bind(path.win32));
-        test(path.posix.basename.bind(path.posix));
+        assert.strictEqual(path.basename(__filename), 'path_test.js');
+        assert.strictEqual(path.basename(__filename, '.js'), 'path_test');
+        assert.strictEqual(path.basename('.js', '.js'), '');
+        assert.strictEqual(path.basename(''), '');
+        assert.strictEqual(path.basename('/dir/basename.ext'), 'basename.ext');
+        assert.strictEqual(path.basename('/basename.ext'), 'basename.ext');
+        assert.strictEqual(path.basename('basename.ext'), 'basename.ext');
+        assert.strictEqual(path.basename('basename.ext/'), 'basename.ext');
+        assert.strictEqual(path.basename('basename.ext//'), 'basename.ext');
+        assert.strictEqual(path.basename('aaa/bbb', '/bbb'), 'bbb');
+        assert.strictEqual(path.basename('aaa/bbb', 'a/bbb'), 'bbb');
+        assert.strictEqual(path.basename('aaa/bbb', 'bbb'), 'bbb');
+        assert.strictEqual(path.basename('aaa/bbb//', 'bbb'), 'bbb');
+        assert.strictEqual(path.basename('aaa/bbb', 'bb'), 'b');
+        assert.strictEqual(path.basename('aaa/bbb', 'b'), 'bb');
+        assert.strictEqual(path.basename('/aaa/bbb', '/bbb'), 'bbb');
+        assert.strictEqual(path.basename('/aaa/bbb', 'a/bbb'), 'bbb');
+        assert.strictEqual(path.basename('/aaa/bbb', 'bbb'), 'bbb');
+        assert.strictEqual(path.basename('/aaa/bbb//', 'bbb'), 'bbb');
+        assert.strictEqual(path.basename('/aaa/bbb', 'bb'), 'b');
+        assert.strictEqual(path.basename('/aaa/bbb', 'b'), 'bb');
+        assert.strictEqual(path.basename('/aaa/bbb'), 'bbb');
+        assert.strictEqual(path.basename('/aaa/'), 'aaa');
+        assert.strictEqual(path.basename('/aaa/b'), 'b');
+        assert.strictEqual(path.basename('/a/b'), 'b');
+        assert.strictEqual(path.basename('//a'), 'a');
 
         function testPosix(fn) {
             assert.strictEqual(fn('\\dir\\basename.ext'),
@@ -864,50 +856,50 @@ describe('path', () => {
 
         const relativeTests = [
             [path.win32.relative,
-                // arguments                     result
-                [
-                    ['c:/blah\\blah', 'd:/games', 'd:\\games'],
-                    ['c:/aaaa/bbbb', 'c:/aaaa', '..'],
-                    ['c:/aaaa/bbbb', 'c:/cccc', '..\\..\\cccc'],
-                    ['c:/aaaa/bbbb', 'c:/aaaa/bbbb', ''],
-                    ['c:/aaaa/bbbb', 'c:/aaaa/cccc', '..\\cccc'],
-                    ['c:/aaaa/', 'c:/aaaa/cccc', 'cccc'],
-                    ['c:/', 'c:\\aaaa\\bbbb', 'aaaa\\bbbb'],
-                    ['c:/aaaa/bbbb', 'd:\\', 'd:\\'],
-                    ['c:/AaAa/bbbb', 'c:/aaaa/bbbb', ''],
-                    ['c:/aaaaa/', 'c:/aaaa/cccc', '..\\aaaa\\cccc'],
-                    ['C:\\foo\\bar\\baz\\quux', 'C:\\', '..\\..\\..\\..'],
-                    ['C:\\foo\\test', 'C:\\foo\\test\\bar\\package.json', 'bar\\package.json'],
-                    ['C:\\foo\\bar\\baz-quux', 'C:\\foo\\bar\\baz', '..\\baz'],
-                    ['C:\\foo\\bar\\baz', 'C:\\foo\\bar\\baz-quux', '..\\baz-quux'],
-                    ['\\\\foo\\bar', '\\\\foo\\bar\\baz', 'baz'],
-                    ['\\\\foo\\bar\\baz', '\\\\foo\\bar', '..'],
-                    ['\\\\foo\\bar\\baz-quux', '\\\\foo\\bar\\baz', '..\\baz'],
-                    ['\\\\foo\\bar\\baz', '\\\\foo\\bar\\baz-quux', '..\\baz-quux'],
-                    ['C:\\baz-quux', 'C:\\baz', '..\\baz'],
-                    ['C:\\baz', 'C:\\baz-quux', '..\\baz-quux'],
-                    ['\\\\foo\\baz-quux', '\\\\foo\\baz', '..\\baz'],
-                    ['\\\\foo\\baz', '\\\\foo\\baz-quux', '..\\baz-quux'],
-                    ['C:\\baz', '\\\\foo\\bar\\baz', '\\\\foo\\bar\\baz'],
-                    ['\\\\foo\\bar\\baz', 'C:\\baz', 'C:\\baz']
-                ]
+            // arguments                     result
+            [
+                ['c:/blah\\blah', 'd:/games', 'd:\\games'],
+                ['c:/aaaa/bbbb', 'c:/aaaa', '..'],
+                ['c:/aaaa/bbbb', 'c:/cccc', '..\\..\\cccc'],
+                ['c:/aaaa/bbbb', 'c:/aaaa/bbbb', ''],
+                ['c:/aaaa/bbbb', 'c:/aaaa/cccc', '..\\cccc'],
+                ['c:/aaaa/', 'c:/aaaa/cccc', 'cccc'],
+                ['c:/', 'c:\\aaaa\\bbbb', 'aaaa\\bbbb'],
+                ['c:/aaaa/bbbb', 'd:\\', 'd:\\'],
+                ['c:/AaAa/bbbb', 'c:/aaaa/bbbb', ''],
+                ['c:/aaaaa/', 'c:/aaaa/cccc', '..\\aaaa\\cccc'],
+                ['C:\\foo\\bar\\baz\\quux', 'C:\\', '..\\..\\..\\..'],
+                ['C:\\foo\\test', 'C:\\foo\\test\\bar\\package.json', 'bar\\package.json'],
+                ['C:\\foo\\bar\\baz-quux', 'C:\\foo\\bar\\baz', '..\\baz'],
+                ['C:\\foo\\bar\\baz', 'C:\\foo\\bar\\baz-quux', '..\\baz-quux'],
+                ['\\\\foo\\bar', '\\\\foo\\bar\\baz', 'baz'],
+                ['\\\\foo\\bar\\baz', '\\\\foo\\bar', '..'],
+                ['\\\\foo\\bar\\baz-quux', '\\\\foo\\bar\\baz', '..\\baz'],
+                ['\\\\foo\\bar\\baz', '\\\\foo\\bar\\baz-quux', '..\\baz-quux'],
+                ['C:\\baz-quux', 'C:\\baz', '..\\baz'],
+                ['C:\\baz', 'C:\\baz-quux', '..\\baz-quux'],
+                ['\\\\foo\\baz-quux', '\\\\foo\\baz', '..\\baz'],
+                ['\\\\foo\\baz', '\\\\foo\\baz-quux', '..\\baz-quux'],
+                ['C:\\baz', '\\\\foo\\bar\\baz', '\\\\foo\\bar\\baz'],
+                ['\\\\foo\\bar\\baz', 'C:\\baz', 'C:\\baz']
+            ]
             ],
             [path.posix.relative,
-                // arguments          result
-                [
-                    ['/var/lib', '/var', '..'],
-                    ['/var/lib', '/bin', '../../bin'],
-                    ['/var/lib', '/var/lib', ''],
-                    ['/var/lib', '/var/apache', '../apache'],
-                    ['/var/', '/var/lib', 'lib'],
-                    ['/', '/var/lib', 'var/lib'],
-                    ['/foo/test', '/foo/test/bar/package.json', 'bar/package.json'],
-                    ['/Users/a/web/b/test/mails', '/Users/a/web/b', '../..'],
-                    ['/foo/bar/baz-quux', '/foo/bar/baz', '../baz'],
-                    ['/foo/bar/baz', '/foo/bar/baz-quux', '../baz-quux'],
-                    ['/baz-quux', '/baz', '../baz'],
-                    ['/baz', '/baz-quux', '../baz-quux']
-                ]
+            // arguments          result
+            [
+                ['/var/lib', '/var', '..'],
+                ['/var/lib', '/bin', '../../bin'],
+                ['/var/lib', '/var/lib', ''],
+                ['/var/lib', '/var/apache', '../apache'],
+                ['/var/', '/var/lib', 'lib'],
+                ['/', '/var/lib', 'var/lib'],
+                ['/foo/test', '/foo/test/bar/package.json', 'bar/package.json'],
+                ['/Users/a/web/b/test/mails', '/Users/a/web/b', '../..'],
+                ['/foo/bar/baz-quux', '/foo/bar/baz', '../baz'],
+                ['/foo/bar/baz', '/foo/bar/baz-quux', '../baz-quux'],
+                ['/baz-quux', '/baz', '../baz'],
+                ['/baz', '/baz-quux', '../baz-quux']
+            ]
             ]
         ];
         relativeTests.forEach((test) => {
