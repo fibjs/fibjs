@@ -19,7 +19,13 @@ set(BIN_DIR ${PROJECT_SOURCE_DIR}/../bin/${OS}_${ARCH}_${BUILD_TYPE})
 set(EXECUTABLE_OUTPUT_PATH ${BIN_DIR})
 
 include(CheckIncludeFiles)
+include(CheckCSourceCompiles)
+
 check_include_files(iconv.h HAVE_ICONV_H)
+check_c_source_compiles("#include <string.h>
+	__asm__(\".symver memcpy,memcpy@GLIBC_2.2.5\");
+	void main(void){char buf[4]; memcpy(buf, \"1234\", 4);}" HAVE_GLIB_C_225_H)
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/gitinfo.h.in ${CMAKE_CURRENT_BINARY_DIR}/gitinfo.h)
 
@@ -54,7 +60,7 @@ if(${BUILD_TYPE} STREQUAL "release")
 	set(link_flags "${link_flags} ${BUILD_OPTION}")
 	add_definitions(-DNDEBUG=1)
 
-	if(${OS} STREQUAL "Linux" AND ${ARCH} STREQUAL "amd64")
+	if(HAVE_GLIB_C_225_H)
 		set(link_flags "${link_flags} -Wl,--wrap=memcpy")
 	endif()
 

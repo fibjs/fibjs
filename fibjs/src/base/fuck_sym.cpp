@@ -1,15 +1,13 @@
-#include <exlib/include/osconfig.h>
+#include "config.h"
 
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef Linux
-
 extern "C" {
 
-#if defined(amd64)
+#ifdef HAVE_GLIB_C_225_H
 __asm__(".symver memcpy,memcpy@GLIBC_2.2.5");
 void* __wrap_memcpy(void* dest, const void* src, size_t n)
 {
@@ -17,12 +15,7 @@ void* __wrap_memcpy(void* dest, const void* src, size_t n)
 }
 #endif
 
-void __longjmp_chk()
-{
-    puts("unexpected __longjmp_chk.");
-    exit(-1);
-}
-
+// GLIBC_2.7
 size_t __fread_chk(void*, size_t, size_t, size_t, FILE*)
 {
     puts("unexpected __fread_chk.");
@@ -30,10 +23,18 @@ size_t __fread_chk(void*, size_t, size_t, size_t, FILE*)
     return 0;
 }
 
-int32_t __isoc99_sscanf(const char* s, const char* format, ...)
+// GLIBC_2.11
+void __longjmp_chk()
+{
+    puts("unexpected __longjmp_chk.");
+    exit(-1);
+}
+
+// GLIBC_2.11
+int __isoc99_sscanf(const char* s, const char* format, ...)
 {
     va_list arg;
-    int32_t done;
+    int done;
 
     va_start(arg, format);
     done = vsscanf(s, format, arg);
@@ -42,5 +43,3 @@ int32_t __isoc99_sscanf(const char* s, const char* format, ...)
     return done;
 }
 }
-
-#endif
