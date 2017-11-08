@@ -1,3 +1,5 @@
+#ifndef _WIN32
+
 #include "config.h"
 
 #include <string.h>
@@ -43,3 +45,5 @@ int __isoc99_sscanf(const char* s, const char* format, ...)
     return done;
 }
 }
+
+#endif
