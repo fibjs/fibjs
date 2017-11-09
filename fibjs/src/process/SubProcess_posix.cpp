@@ -150,6 +150,7 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         posix_spawn_file_actions_destroy(&fops);
     }
 
+#ifdef Linux
     if (err == 0) {
         int32_t status = 0;
         waitpid(pid, &status, WNOHANG);
@@ -159,6 +160,7 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         if (status == 127)
             err = 2;
     }
+#endif
 
     if (err != 0) {
         if (redirect) {
