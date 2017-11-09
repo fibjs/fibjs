@@ -59,7 +59,7 @@ describe('process', () => {
         assert.equal(process.run(cmd, [path.join(__dirname, 'process', 'exec14.js')]), 101);
     });
 
-    xit("run throw error", () => {
+    it("run throw error", () => {
         assert.throws(() => {
             process.run("not_exists_exec_file");
         });

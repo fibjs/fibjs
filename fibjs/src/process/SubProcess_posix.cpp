@@ -150,6 +150,16 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         posix_spawn_file_actions_destroy(&fops);
     }
 
+    if (err == 0) {
+        int32_t status = 0;
+        waitpid(pid, &status, WNOHANG);
+        if (WIFEXITED(status))
+            status = WEXITSTATUS(status);
+
+        if (status == 127)
+            err = 2;
+    }
+
     if (err != 0) {
         if (redirect) {
             ::close(cin_pipe[1]);
@@ -198,7 +208,6 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
     int32_t status;
-
     waitpid(m_pid, &status, 0);
 
     if (!WIFEXITED(status))
