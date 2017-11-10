@@ -93,8 +93,7 @@ class asyncEv;
 static ev_async s_asEvent;
 static exlib::LockedList<asyncEv> s_evWait;
 
-class asyncEv : public ev_io,
-                public exlib::linkitem {
+class asyncEv : public exlib::Task_base {
 public:
     virtual ~asyncEv()
     {
@@ -109,10 +108,15 @@ public:
     virtual void start()
     {
     }
+
+public:
+    virtual void resume()
+    {
+        post();
+    }
 };
 
-class asyncProc : public asyncEv,
-                  public exlib::Task_base {
+class asyncProc : public asyncEv {
 public:
     asyncProc(intptr_t& s, int32_t op, AsyncEvent* ac, exlib::Locker& locker, void*& opt)
         : m_s(s)
@@ -132,15 +136,9 @@ public:
         }
 
         m_opt = this;
-        ev_io* io = (ev_io*)this;
-        ev_io_init(io, io_cb, m_s, m_op);
-        ev_io_start(s_loop, this);
-    }
 
-public:
-    virtual void resume()
-    {
-        post();
+        ev_io_init(&m_io, io_cb, m_s, m_op);
+        ev_io_start(s_loop, &m_io);
     }
 
 public:
@@ -181,7 +179,7 @@ public:
 
     void onready()
     {
-        ev_io_stop(s_loop, this);
+        ev_io_stop(s_loop, &m_io);
         proc();
     }
 
@@ -191,11 +189,13 @@ public:
     AsyncEvent* m_ac;
     exlib::Locker& m_locker;
     void*& m_opt;
+    ev_io m_io;
 
 private:
     static void io_cb(struct ev_loop* loop, struct ev_io* watcher, int32_t revents)
     {
-        ((asyncProc*)watcher)->onready();
+        asyncProc* p = NULL;
+        ((asyncProc*)((intptr_t)watcher - (intptr_t)&p->m_io))->onready();
     }
 };
 
