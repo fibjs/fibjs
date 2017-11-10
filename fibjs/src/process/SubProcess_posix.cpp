@@ -206,21 +206,49 @@ result_t SubProcess::kill(int32_t signal)
 
 result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
 {
+    class asyncWaitPid : public AsyncState {
+    public:
+        asyncWaitPid(intptr_t pid, Timer* timer, int32_t& retVal, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_pid(pid)
+            , m_timer(timer)
+            , m_retVal(retVal)
+        {
+            set(wait);
+        }
+
+    public:
+        static int32_t wait(AsyncState* pState, int32_t n)
+        {
+            asyncWaitPid* pThis = (asyncWaitPid*)pState;
+
+            pThis->set(result);
+            return AsyncIO::waitpid(pThis->m_pid, pThis->m_retVal, pThis);
+        }
+
+        static int32_t result(AsyncState* pState, int32_t n)
+        {
+            asyncWaitPid* pThis = (asyncWaitPid*)pState;
+
+            if (WIFEXITED(pThis->m_retVal))
+                pThis->m_retVal = WEXITSTATUS(pThis->m_retVal);
+
+            if (pThis->m_timer)
+                pThis->m_timer->clear();
+
+            return pThis->done();
+        }
+
+    private:
+        intptr_t m_pid;
+        obj_ptr<Timer> m_timer;
+        int32_t& m_retVal;
+    };
+
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
-    int32_t status;
-    waitpid(m_pid, &status, 0);
-
-    if (!WIFEXITED(status))
-        retVal = status;
-    else
-        retVal = WEXITSTATUS(status);
-
-    if (m_timer)
-        m_timer->clear();
-
-    return 0;
+    return (new asyncWaitPid(m_pid, m_timer, retVal, ac))->post(0);
 }
 
 result_t SubProcess::findWindow(exlib::string name, v8::Local<v8::Value>& retVal)

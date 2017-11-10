@@ -69,6 +69,8 @@ public:
     }
 #endif
 
+    static result_t waitpid(intptr_t pid, int32_t& retVal, AsyncEvent* ac);
+
 public:
     intptr_t m_fd;
     int32_t m_family;
