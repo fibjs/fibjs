@@ -236,39 +236,6 @@ void init_aio()
     s_acIO.start();
 }
 
-result_t AsyncIO::cancel(AsyncEvent* ac)
-{
-    class asyncCancel : public asyncEv {
-    public:
-        asyncCancel(void*& opt1, void*& opt2, AsyncEvent* ac)
-            : m_ac(ac)
-            , m_opt1(opt1)
-            , m_opt2(opt2)
-        {
-        }
-
-        virtual void start()
-        {
-            if (m_opt1)
-                ((asyncProc*)m_opt1)->onready();
-
-            if (m_opt2)
-                ((asyncProc*)m_opt2)->onready();
-
-            m_ac->apost(0);
-            delete this;
-        }
-
-    public:
-        AsyncEvent* m_ac;
-        void*& m_opt1;
-        void*& m_opt2;
-    };
-
-    (new asyncCancel(m_RecvOpt, m_SendOpt, ac))->post();
-    return CALL_E_PENDDING;
-}
-
 result_t AsyncIO::close(intptr_t& s, AsyncEvent* ac)
 {
     class asyncClose : public asyncEv {

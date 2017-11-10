@@ -72,14 +72,18 @@ public:
 
     public:
         Pipe(intptr_t fd)
-            : m_aio(fd, 0, 0)
+            : m_aio(fd, 0, -1)
         {
         }
 
         ~Pipe()
         {
             if (m_aio.m_fd != INVALID_SOCKET)
-                asyncCall(close_pipe, m_aio.m_fd);
+#ifdef _WIN32
+                asyncCall(::CloseHandle, (HANDLE)m_aio.m_fd);
+#else
+                asyncCall(::close, m_aio.m_fd);
+#endif
         }
 
     public:
@@ -108,16 +112,7 @@ public:
             if (ac->isSync())
                 return CHECK_ERROR(CALL_E_NOSYNC);
 
-            if (m_aio.m_fd != INVALID_SOCKET)
-                close_pipe(m_aio.m_fd);
-
-            m_aio.m_fd = INVALID_SOCKET;
-
-#ifndef _WIN32
-            return m_aio.cancel(ac);
-#else
-            return 0;
-#endif
+            return m_aio.close(m_aio.m_fd, ac);
         }
 
         virtual result_t copyTo(Stream_base* stm, int64_t bytes,
@@ -127,17 +122,6 @@ public:
                 return CHECK_ERROR(CALL_E_INVALID_CALL);
 
             return io_base::copyStream(this, stm, bytes, retVal, ac);
-        }
-
-    private:
-        static result_t close_pipe(intptr_t fd)
-        {
-#ifdef _WIN32
-            ::CloseHandle((HANDLE)fd);
-#else
-            ::close(fd);
-#endif
-            return 0;
         }
 
     private:
