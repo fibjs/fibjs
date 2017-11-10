@@ -63,6 +63,7 @@ private:
 
 private:
     obj_ptr<NArray> m_cookies;
+    exlib::spinlock m_lock_cookies;
     int32_t m_timeout;
     bool m_enableCookie;
     bool m_autoRedirect;

@@ -161,9 +161,13 @@ result_t HttpClient::update_cookies(exlib::string url, NArray* cookies)
     if (hr < 0)
         return hr;
 
+    m_lock_cookies.lock();
+
     cookies->get_length(length);
-    if (length == 0)
+    if (length == 0) {
+        m_lock_cookies.unlock();
         return 0;
+    }
 
     for (i = 0; i < length; i++) {
         Variant v;
@@ -184,6 +188,8 @@ result_t HttpClient::update_cookies(exlib::string url, NArray* cookies)
         if (update(hc) == 0)
             m_cookies->append(hc);
     }
+
+    m_lock_cookies.unlock();
     return 0;
 }
 
@@ -197,14 +203,17 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
     exlib::string s2;
     date_t now;
 
-    m_cookies->get_length(length);
-    if (length == 0)
-        return 0;
-
     obj_ptr<Url> u = new Url();
     hr = u->parse(url);
     if (hr < 0)
         return hr;
+
+    m_lock_cookies.lock();
+    m_cookies->get_length(length);
+    if (length == 0) {
+        m_lock_cookies.unlock();
+        return 0;
+    }
 
     now.now();
 
@@ -239,6 +248,7 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
     if (s.length() > 0)
         retVal = s.substr(0, s.length() - 2);
 
+    m_lock_cookies.unlock();
     return 0;
 }
 
