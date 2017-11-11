@@ -23,7 +23,7 @@ result_t db_base::openMSSQL(exlib::string connString, obj_ptr<MSSQL_base>& retVa
     AsyncEvent* ac)
 {
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     if (qstrcmp(connString.c_str(), "mssql:", 6))
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -108,7 +108,7 @@ result_t mssql::close(AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     m_conn->Close();
     m_conn->Release();
@@ -123,7 +123,7 @@ result_t mssql::use(exlib::string dbName, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     bstr_t bstrName(utf8to16String(dbName).c_str());
     HRESULT hr;
@@ -141,7 +141,7 @@ result_t mssql::begin(AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     HRESULT hr;
     long level = 0;
@@ -159,7 +159,7 @@ result_t mssql::commit(AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     HRESULT hr;
 
@@ -176,7 +176,7 @@ result_t mssql::rollback(AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     HRESULT hr;
 
@@ -335,7 +335,7 @@ result_t mssql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* 
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     return execute(sql.c_str(), (int32_t)sql.length(), retVal);
 }

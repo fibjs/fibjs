@@ -31,13 +31,23 @@ describe("db", () => {
             try {
                 conn.execute('drop table test;');
             } catch (e) {}
+
+            try {
+                conn.execute('drop table test_null;');
+            } catch (e) {}
+
         });
 
         after(() => {
             try {
                 conn.execute('drop table test;');
-                conn.close();
             } catch (e) {}
+
+            try {
+                conn.execute('drop table test_null;');
+            } catch (e) {}
+
+            conn.close();
         });
 
         it("empty sql", () => {
