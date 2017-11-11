@@ -210,22 +210,67 @@ result_t SubProcess::kill(int32_t signal)
 
 result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
 {
+    class asyncWaitHandle : public AsyncState {
+    public:
+        asyncWaitHandle(intptr_t pid, Timer* timer, int32_t& retVal, AsyncEvent* ac)
+            : AsyncState(ac)
+            , m_hProcess((HANDLE)pid)
+            , m_timer(timer)
+            , m_retVal(retVal)
+        {
+            set(wait);
+        }
+
+    public:
+        static int32_t wait(AsyncState* pState, int32_t n)
+        {
+            asyncWaitHandle* pThis = (asyncWaitHandle*)pState;
+
+            pThis->set(result);
+            BOOL result = RegisterWaitForSingleObject(&pThis->m_hWait, pThis->m_hProcess, OnExited, pThis, INFINITE, WT_EXECUTEONLYONCE);
+            if (!result)
+                return CHECK_ERROR(LastError());
+
+            return CALL_E_PENDDING;
+        }
+
+        static int32_t result(AsyncState* pState, int32_t n)
+        {
+            asyncWaitHandle* pThis = (asyncWaitHandle*)pState;
+
+            ::UnregisterWaitEx(pThis->m_hWait, INVALID_HANDLE_VALUE);
+
+            DWORD dwCode;
+
+            GetExitCodeProcess(pThis->m_hProcess, &dwCode);
+            pThis->m_retVal = (int32_t)dwCode;
+
+            if (pThis->m_timer)
+                pThis->m_timer->clear();
+
+            return pThis->done();
+        }
+
+    private:
+        static void OnExited(void* context, BOOLEAN isTimeOut)
+        {
+            ((asyncWaitHandle*)context)->apost(0);
+        }
+
+    private:
+        HANDLE m_hProcess;
+        HANDLE m_hWait;
+        obj_ptr<Timer> m_timer;
+        int32_t& m_retVal;
+    };
+
     if (m_pid == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
-    DWORD dwCode;
-
-    WaitForSingleObject((HANDLE)m_pid, INFINITE);
-    GetExitCodeProcess((HANDLE)m_pid, &dwCode);
-    retVal = (int32_t)dwCode;
-
-    if (m_timer)
-        m_timer->clear();
-
-    return 0;
+    return (new asyncWaitHandle(m_pid, m_timer, retVal, ac))->post(0);
 }
 
 struct enumdata {
