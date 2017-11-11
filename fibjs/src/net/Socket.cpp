@@ -136,7 +136,7 @@ result_t Socket::close(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return m_aio.close(m_aio.m_fd, ac);
+    return m_aio.close(ac);
 }
 
 result_t Socket::get_family(int32_t& retVal)

@@ -52,18 +52,18 @@ public:
     result_t recvfrom(int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac);
 
 #ifndef _WIN32
-    result_t close(intptr_t& s, AsyncEvent* ac);
+    result_t close(AsyncEvent* ac);
 #else
-    result_t close(intptr_t& s, AsyncEvent* ac)
+    result_t close(AsyncEvent* ac)
     {
-        if (s != INVALID_SOCKET) {
+        if (m_fd != INVALID_SOCKET) {
             if (m_type == -1)
-                ::CloseHandle((HANDLE)s);
+                ::CloseHandle((HANDLE)m_fd);
             else
-                ::closesocket(s);
+                ::closesocket(m_fd);
         }
 
-        s = INVALID_SOCKET;
+        m_fd = INVALID_SOCKET;
 
         return 0;
     }

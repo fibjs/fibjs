@@ -112,7 +112,7 @@ public:
             if (ac->isSync())
                 return CHECK_ERROR(CALL_E_NOSYNC);
 
-            return m_aio.close(m_aio.m_fd, ac);
+            return m_aio.close(ac);
         }
 
         virtual result_t copyTo(Stream_base* stm, int64_t bytes,

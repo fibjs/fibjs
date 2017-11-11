@@ -236,7 +236,7 @@ void init_aio()
     s_acIO.start();
 }
 
-result_t AsyncIO::close(intptr_t& s, AsyncEvent* ac)
+result_t AsyncIO::close(AsyncEvent* ac)
 {
     class asyncClose : public asyncEv {
     public:
@@ -272,7 +272,7 @@ result_t AsyncIO::close(intptr_t& s, AsyncEvent* ac)
         void*& m_opt2;
     };
 
-    (new asyncClose(s, m_RecvOpt, m_SendOpt, ac))->post();
+    (new asyncClose(m_fd, m_RecvOpt, m_SendOpt, ac))->post();
     return CALL_E_PENDDING;
 }
 
