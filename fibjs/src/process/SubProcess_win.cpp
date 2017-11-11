@@ -252,7 +252,7 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
         }
 
     private:
-        static void OnExited(void* context, BOOLEAN isTimeOut)
+        static void CALLBACK OnExited(void* context, BOOLEAN isTimeOut)
         {
             ((asyncWaitHandle*)context)->apost(0);
         }

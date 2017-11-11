@@ -39,7 +39,7 @@ public:
         if (other.length() > 2) {
             if (isWin32PathSlash(c_str[0]) && isWin32PathSlash(c_str[1])
                 && !isWin32PathSlash(c_str[2])) {
-                for (int i = 3; i < other.length(); i++) {
+                for (int i = 3; i < (int32_t)other.length(); i++) {
                     if (isWin32PathSlash(c_str[i])) {
                         m_buf = other;
                         return;
