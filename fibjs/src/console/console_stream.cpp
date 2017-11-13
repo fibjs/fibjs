@@ -10,8 +10,6 @@
 
 namespace fibjs {
 
-extern exlib::string COLOR_RESET;
-
 result_t stream_logger::write(AsyncEvent* ac)
 {
     class asyncWrite : public AsyncState {

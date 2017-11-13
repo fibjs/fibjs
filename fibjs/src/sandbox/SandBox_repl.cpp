@@ -17,8 +17,6 @@
 
 namespace fibjs {
 
-extern exlib::string COLOR_RESET;
-
 void asyncLog(int32_t priority, exlib::string msg);
 
 void output(int32_t priority, exlib::string msg)

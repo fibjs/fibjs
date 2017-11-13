@@ -189,8 +189,6 @@ void std_logger::out(exlib::string& txt)
 
 #endif
 
-extern exlib::string COLOR_RESET;
-
 result_t std_logger::write(AsyncEvent* ac)
 {
     item* p1;

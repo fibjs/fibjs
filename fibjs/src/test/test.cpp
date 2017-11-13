@@ -25,8 +25,6 @@ static int32_t s_slow = 75;
 
 void asyncLog(int32_t priority, exlib::string msg);
 
-extern exlib::string COLOR_RESET;
-
 class TestData {
 public:
     obj_ptr<_case> m_root;
