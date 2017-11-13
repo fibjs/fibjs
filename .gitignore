@@ -5,5 +5,3 @@
 *.sdf
 *.suo
 node_modules
-test/message.1
-test/message
