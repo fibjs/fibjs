@@ -11,6 +11,7 @@
 #include "ifs/encoding.h"
 #include "ifs/process.h"
 #include "ifs/util.h"
+#include "ifs/tty.h"
 #include "v8_api.h"
 #include <map>
 #include "console.h"
@@ -76,12 +77,9 @@ exlib::string COLOR_TITLE = "";
 
 void init_color()
 {
-#ifndef _WIN32
-    int32_t hr = ::isatty(1);
-#else
-    int32_t hr = _isatty(1);
-#endif
-    if (hr) {
+    bool isatty = false;
+    tty_base::isatty(1, isatty);
+    if (isatty) {
         COLOR_RESET = "\x1b[0m";
         COLOR_BLACK = "\x1b[0;30m"; /* Black */
         COLOR_RED = "\x1b[0;31m"; /* Red */
