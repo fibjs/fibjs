@@ -261,7 +261,7 @@ public:
                     } else {
                         double n = d2.diff(d1);
 
-                        str.append(logger::notice() + "\xe2\x88\x9a " COLOR_RESET);
+                        str.append(logger::notice() + "\xe2\x88\x9a " + COLOR_RESET);
                         str.append(p1->m_name);
                         if (n > s_slow / 2) {
                             sprintf(buf, " (%dms) ", (int32_t)n);
@@ -316,11 +316,11 @@ public:
         da2.now();
         if (errcnt == 0) {
             sprintf(buf,
-                (logger::notice() + "  \xe2\x88\x9a %d tests completed" COLOR_RESET " (%dms)").c_str(),
+                (logger::notice() + "  \xe2\x88\x9a %d tests completed" + COLOR_RESET + " (%dms)").c_str(),
                 cnt, (int32_t)da2.diff(da1));
             asyncLog(console_base::_INFO, buf);
         } else {
-            sprintf(buf, (logger::error() + "  × %d of %d tests failed" COLOR_RESET " (%dms)").c_str(),
+            sprintf(buf, (logger::error() + "  × %d of %d tests failed" + COLOR_RESET + " (%dms)").c_str(),
                 errcnt, cnt, (int32_t)da2.diff(da1));
             asyncLog(console_base::_ERROR, buf);
         }

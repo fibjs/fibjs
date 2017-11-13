@@ -1177,6 +1177,11 @@ inline exlib::string niceSize(intptr_t sz)
 
 void flushLog();
 
+// Converts a V8 value to a C string.
+const auto ToCString = [](const v8::String::Utf8Value& value) {
+    return *value ? *value : "<string conversion failed>";
+};
+
 class save_method_name {
 public:
     save_method_name(const char* name);

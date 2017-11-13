@@ -115,61 +115,87 @@ v8::Local<v8::Value> ThrowResult(result_t hr)
     return isolate->m_isolate->ThrowException(e);
 }
 
-inline const char* ToCString(const v8::String::Utf8Value& value)
-{
-    return *value ? *value : "<string conversion failed>";
-}
-
 exlib::string GetException(TryCatch& try_catch, result_t hr)
 {
+    Isolate* isolate = Isolate::current();
+    v8::HandleScope handle_scope(isolate->m_isolate);
+    v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
     if (try_catch.HasCaught()) {
-        v8::String::Utf8Value exception(try_catch.Exception());
-
+        v8::Local<v8::Value> err = try_catch.Exception();
+        v8::Local<v8::Object> err_obj = err.As<v8::Object>();
+        v8::String::Utf8Value exception(err_obj);
         v8::Local<v8::Message> message = try_catch.Message();
+
         if (message.IsEmpty())
             return ToCString(exception);
-        else {
-            v8::Local<v8::Value> trace_value = try_catch.StackTrace();
 
-            if (!IsEmpty(trace_value)) {
-                v8::String::Utf8Value stack_trace(trace_value);
-                const char* s = ToCString(stack_trace);
-                const char* s1 = qstrchr(s, '\n');
-
-                while (s1 && qstrcmp(s1 + 1, "    at ", 7))
-                    s1 = qstrchr(s1 + 1, '\n');
-
-                if (s1)
-                    return exlib::string(ToCString(exception)) + s1;
-            }
-
-            exlib::string strError;
-
-            v8::String::Utf8Value filename(message->GetScriptResourceName());
-
-            if (qstrcmp(ToCString(exception), "SyntaxError: ", 13)) {
-                strError.append(ToCString(exception));
-                strError.append("\n    at ");
-            } else {
-                strError.append((ToCString(exception) + 13));
-                strError.append("\n    at ");
-            }
-
-            strError.append(ToCString(filename));
-            int32_t lineNumber = message->GetLineNumber();
-            if (lineNumber > 0) {
-                char numStr[32];
-
-                strError.append(1, ':');
-                sprintf(numStr, "%d", lineNumber);
-                strError.append(numStr);
-                strError.append(1, ':');
-                sprintf(numStr, "%d", message->GetStartColumn() + 1);
-                strError.append(numStr);
-            }
-
-            return strError;
+        exlib::string strError;
+        v8::String::Utf8Value filename(message->GetScriptResourceName());
+        strError.append(ToCString(filename));
+        int32_t lineNumber = message->GetLineNumber();
+        if (lineNumber > 0) {
+            char numStr[32];
+            strError.append(1, ':');
+            sprintf(numStr, "%d", lineNumber);
+            strError.append(numStr);
+            strError.append(1, ':');
+            sprintf(numStr, "%d", message->GetStartColumn() + 1);
+            strError.append(numStr);
         }
+        strError.append("\n");
+
+        v8::Local<v8::String> sourceline;
+        if (message->GetSourceLine(context).ToLocal(&sourceline)) {
+            // Print line of source code.
+            v8::String::Utf8Value sourcelinevalue(isolate->m_isolate, sourceline);
+            const char* sourceline_string = ToCString(sourcelinevalue);
+            strError.append(sourceline_string);
+            strError.append("\n");
+            // Print wavy underline (GetUnderline is deprecated).
+            int start = message->GetStartColumn(context).FromJust();
+            for (int i = 0; i < start; i++) {
+                if (sourceline_string[i] == '\0') {
+                    break;
+                }
+                strError.append((sourceline_string[i] == '\t') ? "\t" : " ");
+            }
+            int end = message->GetEndColumn(context).FromJust();
+            for (int i = start; i < end; i++) {
+                strError.append("^");
+            }
+            strError.append("\n");
+        }
+
+        if (err_obj->IsNativeError()) {
+            v8::Local<v8::Value> stack_trace_string;
+            try_catch.StackTrace(context).ToLocal(&stack_trace_string);
+            v8::String::Utf8Value stack_trace(isolate->m_isolate,
+                stack_trace_string.As<v8::String>());
+            strError.append(ToCString(stack_trace));
+        } else {
+            v8::Local<v8::Value> message;
+            v8::Local<v8::Value> name;
+
+            if (err->IsObject()) {
+                message = err_obj->Get(isolate->NewString("message"));
+                name = err_obj->Get(isolate->NewString("name"));
+            }
+
+            if (message.IsEmpty() || message->IsUndefined() || name.IsEmpty() || name->IsUndefined()) {
+                // Not an error object. Just print as-is.
+                v8::String::Utf8Value message(err);
+                strError.append(*message ? *message : "<toString() threw exception>");
+                strError.append("\n");
+            } else {
+                v8::String::Utf8Value message_string(isolate->m_isolate, message);
+                v8::String::Utf8Value name_string(isolate->m_isolate, name);
+                strError.append(ToCString(name_string));
+                strError.append(": ");
+                strError.append(ToCString(message_string));
+            }
+        }
+
+        return strError;
     } else if (hr < 0)
         return getResultMessage(hr);
 
@@ -184,32 +210,7 @@ result_t throwSyntaxError(TryCatch& try_catch)
     if (message.IsEmpty())
         ThrowError(ToCString(exception));
     else {
-        exlib::string strError;
-
-        v8::String::Utf8Value filename(message->GetScriptResourceName());
-
-        if (qstrcmp(ToCString(exception), "SyntaxError: ", 13)) {
-            strError.append(ToCString(exception));
-            strError.append("\n    at ");
-        } else {
-            strError.append((ToCString(exception) + 13));
-            strError.append("\n    at ");
-        }
-
-        strError.append(ToCString(filename));
-        int32_t lineNumber = message->GetLineNumber();
-        if (lineNumber > 0) {
-            char numStr[32];
-
-            strError.append(1, ':');
-            sprintf(numStr, "%d", lineNumber);
-            strError.append(numStr);
-            strError.append(1, ':');
-            sprintf(numStr, "%d", message->GetStartColumn() + 1);
-            strError.append(numStr);
-        }
-
-        return Runtime::setError(strError);
+        return Runtime::setError(GetException(try_catch, 0));
     }
 
     return CALL_E_JAVASCRIPT;

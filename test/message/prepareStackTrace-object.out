@@ -1,0 +1,4 @@
+*test*message*prepareStackTrace-object.js:*
+throw new Error();
+^
+Error: custom Error Object!

@@ -9,18 +9,13 @@
 #include "encoding_bson.h"
 #include "ifs/encoding.h"
 #include "Buffer.h"
+#include "utils.h"
 #include "MongoID.h"
 #include "Int64.h"
 
 namespace fibjs {
 
 DECLARE_MODULE(bson);
-
-inline const char*
-ToCString(const v8::String::Utf8Value& value)
-{
-    return *value ? *value : "<string conversion failed>";
-}
 
 void encodeArray(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Value> element);
 bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Value> element,
@@ -143,8 +138,7 @@ bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Va
 
         if (!IsEmpty(jsonFun) && jsonFun->IsFunction()) {
             v8::Local<v8::Value> p = isolate->NewString(name ? name : "");
-            v8::Local<v8::Value> element1 = v8::Local<v8::Function>::Cast(
-                jsonFun)->Call(object, 1, &p);
+            v8::Local<v8::Value> element1 = v8::Local<v8::Function>::Cast(jsonFun)->Call(object, 1, &p);
 
             if (name) {
                 encodeValue(isolate, bb, name, element1, false);
