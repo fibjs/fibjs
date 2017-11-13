@@ -9,7 +9,6 @@
 #define _fj_CONSOLE_H
 
 #include "utils.h"
-#include "TextColor.h"
 #include "ifs/console.h"
 #include "ifs/coroutine.h"
 #include "ifs/fs.h"
@@ -18,6 +17,11 @@
 namespace fibjs {
 
 #define LOGTIME true
+
+extern exlib::string COLOR_GREEN;
+extern exlib::string COLOR_YELLOW;
+extern exlib::string COLOR_LIGHTRED;
+extern exlib::string COLOR_TITLE;
 
 class logger : public AsyncEvent {
 public:

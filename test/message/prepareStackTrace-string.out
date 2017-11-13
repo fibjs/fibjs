@@ -1,0 +1,4 @@
+*test*message*prepareStackTrace-string.js:*
+throw new Error();
+^
+custom Error String!

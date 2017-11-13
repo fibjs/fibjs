@@ -336,9 +336,6 @@
     <ClInclude Include="include\TcpServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\TextColor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>

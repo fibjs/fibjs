@@ -30,6 +30,7 @@ void init_aio();
 void init_fs();
 void init_fiber();
 void init_signal();
+void init_color();
 void options(int32_t& pos, char* argv[]);
 result_t ifZipFile(exlib::string filename, bool& retVal);
 
@@ -60,6 +61,7 @@ void init()
     init_fs();
     init_fiber();
     init_signal();
+    init_color();
 
     srand((unsigned int)time(0));
 
