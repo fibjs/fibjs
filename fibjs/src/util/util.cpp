@@ -18,25 +18,23 @@ DECLARE_MODULE(util);
 result_t util_base::inherits(v8::Local<v8::Value> constructor,
     v8::Local<v8::Value> superConstructor)
 {
-    if (!constructor->IsObject() || !superConstructor->IsObject())
+    if (!constructor->IsObject() || !superConstructor->IsObject()
+        || constructor->IsNullOrUndefined() || superConstructor->IsNullOrUndefined())
         return CALL_E_TYPEMISMATCH;
 
-    v8::Local<v8::Object> _constructor = v8::Local<v8::Object>::Cast(constructor);
-    v8::Local<v8::Object> _superConstructor = v8::Local<v8::Object>::Cast(superConstructor);
-
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Function> temp = v8::Function::New(isolate->m_isolate, NULL);
 
-    temp->Set(isolate->NewString("prototype"),
-        _superConstructor->Get(isolate->NewString("prototype")));
+    v8::Local<v8::Object> _constructor = constructor.As<v8::Object>();
+    v8::Local<v8::Object> _superConstructor = superConstructor.As<v8::Object>();
 
-    v8::Local<v8::Object> proto = temp->NewInstance();
+    v8::Local<v8::Object> constructor_proto = (_constructor->Get(isolate->NewString("prototype"))).As<v8::Object>();
+    v8::Local<v8::Object> superConstructor_proto = (_superConstructor->Get(isolate->NewString("prototype"))).As<v8::Object>();
 
-    proto->Set(isolate->NewString("constructor"), _constructor);
+    if (superConstructor_proto->IsUndefined())
+        return CALL_E_TYPEMISMATCH;
 
-    _constructor->Set(isolate->NewString("prototype"), proto);
-    _constructor->Set(isolate->NewString("super_"), _superConstructor);
-
+    _constructor->Set(isolate->NewString("super_"),  _superConstructor);
+    constructor_proto->Set(isolate->NewString("__proto__"),  superConstructor_proto);
     return 0;
 }
 
