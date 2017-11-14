@@ -998,59 +998,131 @@ inline v8::Local<v8::Object> GetIteratorReturnValue(v8::Isolate* isolate, v8::Lo
         .ToLocalChecked();
 }
 
-inline v8::Local<v8::Value> ThrowError(const char* msg)
-{
-    Isolate* isolate = Isolate::current();
-
-    return isolate->m_isolate->ThrowException(v8::Exception::Error(
-        isolate->NewString(msg)));
-}
-
 inline v8::Local<v8::Value> ThrowError(v8::Local<v8::Value> exception)
 {
     Isolate* isolate = Isolate::current();
-
     return isolate->m_isolate->ThrowException(exception);
+}
+
+inline v8::Local<v8::Value> ThrowError(result_t hr, exlib::string msg)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Value> exception = v8::Exception::Error(isolate->NewString(msg));
+    exception->ToObject()->Set(isolate->NewString("number"),
+        v8::Int32::New(isolate->m_isolate, -hr));
+    return ThrowError(exception);
+}
+
+inline v8::Local<v8::Value> ThrowError(const char* msg)
+{
+    Isolate* isolate = Isolate::current();
+    return ThrowError(v8::Exception::Error(isolate->NewString(msg)));
+}
+
+inline v8::Local<v8::Value> ThrowError(exlib::string msg)
+{
+    return ThrowError(msg.c_str());
 }
 
 inline v8::Local<v8::Value> ThrowTypeError(const char* msg)
 {
     Isolate* isolate = Isolate::current();
+    return ThrowError(v8::Exception::TypeError(isolate->NewString(msg)));
+}
 
-    return isolate->m_isolate->ThrowException(v8::Exception::TypeError(
-        isolate->NewString(msg)));
+inline v8::Local<v8::Value> ThrowTypeError(exlib::string msg)
+{
+    return ThrowTypeError(msg.c_str());
 }
 
 inline v8::Local<v8::Value> ThrowRangeError(const char* msg)
 {
     Isolate* isolate = Isolate::current();
-
-    return isolate->m_isolate->ThrowException(v8::Exception::RangeError(
-        isolate->NewString(msg)));
-}
-
-inline v8::Local<v8::Value> ThrowError(exlib::string msg)
-{
-    Isolate* isolate = Isolate::current();
-
-    return isolate->m_isolate->ThrowException(v8::Exception::Error(
-        isolate->NewString(msg)));
-}
-
-inline v8::Local<v8::Value> ThrowTypeError(exlib::string msg)
-{
-    Isolate* isolate = Isolate::current();
-
-    return isolate->m_isolate->ThrowException(v8::Exception::TypeError(
-        isolate->NewString(msg)));
+    return ThrowError(v8::Exception::RangeError(isolate->NewString(msg)));
 }
 
 inline v8::Local<v8::Value> ThrowRangeError(exlib::string msg)
 {
-    Isolate* isolate = Isolate::current();
+    return ThrowRangeError(msg.c_str());
+}
 
-    return isolate->m_isolate->ThrowException(v8::Exception::RangeError(
-        isolate->NewString(msg)));
+inline v8::Local<v8::Value> ThrowReferenceError(const char* msg)
+{
+    Isolate* isolate = Isolate::current();
+    return ThrowError(v8::Exception::ReferenceError(isolate->NewString(msg)));
+}
+
+inline v8::Local<v8::Value> ThrowReferenceError(exlib::string msg)
+{
+    return ThrowReferenceError(msg.c_str());
+}
+
+inline v8::Local<v8::Value> ThrowSyntaxError(const char* msg)
+{
+    Isolate* isolate = Isolate::current();
+    return ThrowError(v8::Exception::SyntaxError(isolate->NewString(msg)));
+}
+
+inline v8::Local<v8::Value> ThrowSyntaxError(exlib::string msg)
+{
+    return ThrowSyntaxError(msg.c_str());
+}
+
+inline v8::Local<v8::Value> ThrowURIError(const char* msg)
+{
+    Isolate* isolate = Isolate::current();
+    auto _context = isolate->context();
+    auto glob = _context->Global();
+    auto URIError = (glob->Get(isolate->NewString("URIError"))).As<v8::Object>();
+
+    v8::Local<v8::Value> args[] = { isolate->NewString(msg) };
+    auto error = URIError->CallAsConstructor(1, args);
+    return ThrowError(error);
+}
+
+inline v8::Local<v8::Value> ThrowURIError(exlib::string msg)
+{
+    return ThrowURIError(msg.c_str());
+}
+
+inline v8::Local<v8::Value> ThrowEvalError(const char* msg)
+{
+    Isolate* isolate = Isolate::current();
+    auto _context = isolate->context();
+    auto glob = _context->Global();
+    auto EvalError = (glob->Get(isolate->NewString("EvalError"))).As<v8::Object>();
+
+    v8::Local<v8::Value> args[] = { isolate->NewString(msg) };
+    auto error = EvalError->CallAsConstructor(1, args);
+    return ThrowError(error);
+}
+
+inline v8::Local<v8::Value> ThrowEvalError(exlib::string msg)
+{
+    return ThrowEvalError(msg.c_str());
+}
+
+/**
+ *  v8::Local<v8::Object> e = v8::Object::New(isolate->m_isolate);
+ *  e->Set(isolate->NewString("actual"), isolate->NewString("actual msg"));
+ *  e->Set(isolate->NewString("expected"), isolate->NewString("expected msg"));
+ *  e->Set(isolate->NewString("message"), isolate->NewString("message msg"));
+ *  e->Set(isolate->NewString("operator"), isolate->NewString("operator msg"));
+ *  ThrowAssertionError(e);
+ **/
+inline v8::Local<v8::Value> ThrowAssertionError(v8::Local<v8::Object> msg)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Value> args[] = { msg };
+    v8::Local<v8::Value> error;
+
+    {
+        v8::Local<v8::Object> AssertionError =
+            v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_AssertionError);
+        error = AssertionError->CallAsConstructor(1, args);
+    }
+
+    return ThrowError(error);
 }
 
 inline result_t LastError()

@@ -103,6 +103,8 @@ public:
     v8::Global<v8::Context> m_context;
     v8::Global<v8::Object> m_env;
 
+    v8::Global<v8::Object> m_AssertionError;
+
     obj_ptr<LruCache> m_script_cache;
     obj_ptr<SandBox> m_topSandbox;
     obj_ptr<obj_base> m_httpclient;
