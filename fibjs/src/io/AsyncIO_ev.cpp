@@ -18,6 +18,7 @@
 #include <fcntl.h>
 #include <exlib/include/thread.h>
 #include "options.h"
+#include <sys/wait.h>
 
 namespace fibjs {
 
@@ -669,6 +670,11 @@ result_t AsyncIO::waitpid(intptr_t pid, int32_t& retVal, AsyncEvent* ac)
         {
             ev_child_init(&cw, child_cb, m_pid, 0);
             ev_child_start(s_loop, &cw);
+
+            cw.rstatus = 0;
+            pid_t pid1 = ::waitpid(m_pid, &cw.rstatus, WNOHANG);
+            if (pid1 == -1 || pid1 == m_pid)
+                child_cb(s_loop, &cw, 0);
         }
 
     private:

@@ -153,11 +153,11 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
 #ifdef Linux
     if (err == 0) {
         int32_t status = 0;
-        waitpid(pid, &status, WNOHANG);
+        pid_t pid1 = waitpid(pid, &status, WNOHANG);
         if (WIFEXITED(status))
             status = WEXITSTATUS(status);
 
-        if (status == 127)
+        if (pid1 == -1 || status == 127)
             err = 2;
     }
 #endif
