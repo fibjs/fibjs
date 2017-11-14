@@ -1110,7 +1110,7 @@ inline v8::Local<v8::Value> ThrowEvalError(exlib::string msg)
  *  e->Set(isolate->NewString("operator"), isolate->NewString("operator msg"));
  *  ThrowAssertionError(e);
  **/
-inline v8::Local<v8::Value> ThrowAssertionError(v8::Local<v8::Object> msg)
+inline v8::Local<v8::Value> ThrowAssertionError(v8::Local<v8::Object>& msg)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Value> args[] = { msg };
