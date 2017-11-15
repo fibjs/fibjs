@@ -35,7 +35,7 @@ static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
         process_base::exit(1);
 }
 
-result_t async_signal(const char* name)
+static result_t async_signal(const char* name)
 {
     Isolate* isolate = s_isolates.head();
 

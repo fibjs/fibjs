@@ -130,6 +130,10 @@ public:
 
     static void wrap_pipe(intptr_t fd, obj_ptr<BufferedStream_base>& bs);
 
+public:
+    exlib::Event m_exit;
+    int32_t m_status;
+
 private:
     obj_ptr<BufferedStream_base> m_stdin;
     obj_ptr<BufferedStream_base> m_stdout;

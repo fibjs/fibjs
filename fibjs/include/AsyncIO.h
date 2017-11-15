@@ -71,6 +71,8 @@ public:
 
     static result_t waitpid(intptr_t pid, int32_t& retVal, AsyncEvent* ac);
 
+    static void run(void (*proc)(void*));
+
 public:
     intptr_t m_fd;
     int32_t m_family;

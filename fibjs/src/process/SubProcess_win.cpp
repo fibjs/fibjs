@@ -17,6 +17,10 @@
 
 namespace fibjs {
 
+void init_process()
+{
+}
+
 class PSTimer : public Timer {
 public:
     PSTimer(int32_t timeout, HANDLE pid)

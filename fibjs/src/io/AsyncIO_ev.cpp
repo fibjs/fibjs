@@ -204,6 +204,7 @@ class _acIO : public exlib::OSThread {
 public:
     _acIO()
     {
+        m_lock.lock();
         s_loop = EV_DEFAULT;
     }
 
@@ -214,6 +215,7 @@ public:
         ev_async_init(&s_asEvent, as_cb);
         ev_async_start(s_loop, &s_asEvent);
 
+        m_lock.unlock();
         ev_run(s_loop, 0);
     }
 
@@ -229,12 +231,17 @@ private:
         while ((p1 = jobs.getHead()) != 0)
             p1->start();
     }
+
+public:
+    exlib::spinlock m_lock;
 };
 
 void init_aio()
 {
     static _acIO s_acIO;
+
     s_acIO.start();
+    s_acIO.m_lock.lock();
 }
 
 result_t AsyncIO::close(AsyncEvent* ac)
@@ -655,50 +662,26 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
     return (new asyncRecvFrom(m_fd, bytes, retVal, ac, m_lockRecv, m_RecvOpt))->call();
 }
 
-result_t AsyncIO::waitpid(intptr_t pid, int32_t& retVal, AsyncEvent* ac)
+void AsyncIO::run(void (*proc)(void*))
 {
-    class asyncWaitPid : public asyncEv {
+    class asyncRun : public asyncEv {
     public:
-        asyncWaitPid(intptr_t pid, int32_t& retVal, AsyncEvent* ac)
-            : m_ac(ac)
-            , m_pid(pid)
-            , m_retVal(retVal)
+        asyncRun(void (*proc)(void*))
+            : m_proc(proc)
         {
         }
 
         virtual void start()
         {
-            ev_child_init(&cw, child_cb, m_pid, 0);
-            ev_child_start(s_loop, &cw);
-
-            cw.rstatus = 0;
-            pid_t pid1 = ::waitpid(m_pid, &cw.rstatus, WNOHANG);
-            if (pid1 == -1 || pid1 == m_pid)
-                child_cb(s_loop, &cw, 0);
-        }
-
-    private:
-        static void child_cb(struct ev_loop* loop, struct ev_child* w, int revents)
-        {
-            asyncWaitPid* pThis = NULL;
-            pThis = (asyncWaitPid*)((intptr_t)w - (intptr_t)&pThis->cw);
-            pThis->m_retVal = w->rstatus;
-
-            ev_child_stop(loop, w);
-
-            pThis->m_ac->apost(0);
-            delete pThis;
+            m_proc(s_loop);
+            delete this;
         }
 
     public:
-        AsyncEvent* m_ac;
-        intptr_t m_pid;
-        int32_t& m_retVal;
-        ev_child cw;
+        void (*m_proc)(void*);
     };
 
-    (new asyncWaitPid(pid, retVal, ac))->post();
-    return CALL_E_PENDDING;
+    (new asyncRun(proc))->post();
 }
 }
 

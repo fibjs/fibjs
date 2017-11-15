@@ -15,8 +15,52 @@
 #include <vector>
 #include <sys/wait.h>
 #include <signal.h>
+#include <ev/ev.h>
 
 namespace fibjs {
+
+static exlib::spinlock s_lock;
+static std::map<pid_t, obj_ptr<SubProcess>> s_ids;
+
+static result_t async_signal_handler(int32_t n)
+{
+    int32_t status = 0;
+    pid_t pid;
+
+    s_lock.lock();
+
+    while ((pid = waitpid(0, &status, WNOHANG | WUNTRACED | WCONTINUED)) > 0) {
+        std::map<pid_t, obj_ptr<SubProcess>>::iterator it = s_ids.find(pid);
+        if (it != s_ids.end()) {
+            it->second->m_status = status;
+            it->second->m_exit.set();
+            s_ids.erase(it);
+        }
+    }
+
+    s_lock.unlock();
+    return 0;
+}
+
+static void signal_handler(struct ev_loop* main_loop, ev_signal* signal_w, int e)
+{
+    asyncCall(async_signal_handler, 0);
+}
+
+static void async_init_sprocess(void* v)
+{
+    struct ev_loop* s_loop = (struct ev_loop*)v;
+
+    static ev_signal signal_chld;
+    ev_init(&signal_chld, signal_handler);
+    ev_signal_set(&signal_chld, SIGCHLD);
+    ev_signal_start(s_loop, &signal_chld);
+}
+
+void init_process()
+{
+    AsyncIO::run(async_init_sprocess);
+}
 
 class PSTimer : public Timer {
 public:
@@ -140,6 +184,7 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
     envp.push_back(NULL);
 
     errno = 0;
+    s_lock.lock();
     err = posix_spawnp(&pid, command.c_str(), redirect ? &fops : NULL,
         NULL, _args.data(), &envp[0]);
 
@@ -157,12 +202,14 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         if (WIFEXITED(status))
             status = WEXITSTATUS(status);
 
-        if (pid1 == -1 || status == 127)
+        if (status == 127)
             err = 2;
     }
 #endif
 
     if (err != 0) {
+        s_lock.unlock();
+
         if (redirect) {
             ::close(cin_pipe[1]);
             ::close(cout_pipe[0]);
@@ -172,6 +219,10 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
     }
 
     obj_ptr<SubProcess> sub = new SubProcess(pid);
+    s_ids.insert(std::pair<pid_t, obj_ptr<SubProcess>>(pid, sub));
+
+    s_lock.unlock();
+
     if (redirect) {
         wrap_pipe(cin_pipe[1], sub->m_stdin);
         wrap_pipe(cout_pipe[0], sub->m_stdout);
@@ -206,49 +257,45 @@ result_t SubProcess::kill(int32_t signal)
 
 result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
 {
-    class asyncWaitPid : public AsyncState {
+    class asyncWaitPid : public exlib::Task_base {
     public:
-        asyncWaitPid(intptr_t pid, Timer* timer, int32_t& retVal, AsyncEvent* ac)
-            : AsyncState(ac)
-            , m_pid(pid)
-            , m_timer(timer)
+        asyncWaitPid(SubProcess* sub, int32_t& retVal, AsyncEvent* ac)
+            : m_sub(sub)
             , m_retVal(retVal)
+            , m_ac(ac)
         {
-            set(wait);
         }
 
     public:
-        static int32_t wait(AsyncState* pState, int32_t n)
+        virtual void resume()
         {
-            asyncWaitPid* pThis = (asyncWaitPid*)pState;
+            if (WIFEXITED(m_sub->m_status))
+                m_retVal = WEXITSTATUS(m_sub->m_status);
+            else
+                m_retVal = m_sub->m_status;
 
-            pThis->set(result);
-            return AsyncIO::waitpid(pThis->m_pid, pThis->m_retVal, pThis);
-        }
+            if (m_sub->m_timer)
+                m_sub->m_timer->clear();
 
-        static int32_t result(AsyncState* pState, int32_t n)
-        {
-            asyncWaitPid* pThis = (asyncWaitPid*)pState;
+            m_ac->apost(0);
 
-            if (WIFEXITED(pThis->m_retVal))
-                pThis->m_retVal = WEXITSTATUS(pThis->m_retVal);
-
-            if (pThis->m_timer)
-                pThis->m_timer->clear();
-
-            return pThis->done();
+            delete this;
         }
 
     private:
-        intptr_t m_pid;
-        obj_ptr<Timer> m_timer;
+        obj_ptr<SubProcess> m_sub;
         int32_t& m_retVal;
+        AsyncEvent* m_ac;
     };
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncWaitPid(m_pid, m_timer, retVal, ac))->post(0);
+    asyncWaitPid* awp = new asyncWaitPid(this, retVal, ac);
+    if (m_exit.wait(awp))
+        awp->resume();
+
+    return CALL_E_PENDDING;
 }
 
 result_t SubProcess::findWindow(exlib::string name, v8::Local<v8::Value>& retVal)
