@@ -1,3 +1,97 @@
+## 2017-11-15, Version v0.19.0
+* **feature** :
+    * build - update task.json to version 2.0.(xicilion)
+    * core:
+      - add full error type support (#381)(Hengfei Zhuang)
+      - disable bigobj compile option on windows.(xicilion)
+    * db - switch mysql to fiber worker.(xicilion)
+    * path:
+      - add path.toNamespacedPath  (#375)(Hengfei Zhuang)
+      - add relative test case (not use).(xicilion)
+      - add zero test case.(xicilion)
+    * process:
+      - use RegisterWaitForSingleObject to wait child process in real async mode on windows.(xicilion)
+      - use ev to wait child process in real async mode.(xicilion)
+      - only check exit code on linux.(xicilion)
+    * repl - add all the builtin modules to the repl global (#377)(Hengfei Zhuang)
+
+* **bugfix** :
+    * core:
+      - compile error on windows.(xicilion)
+      - use posix_spawnp to check glibc_2.2, fix compile on i386.(xicilion)
+      - use check_c_source_compiles to check glibc_2.2.5, fix alpine compile error.(xicilion)
+    * fs - fix fs stat when path endsWith slash (#371)(Hengfei Zhuang)
+    * gui - fix the gui testcase (#379)(Hengfei Zhuang)
+    * http - parallel request in HttpClient will crash when response cookies.(xicilion)
+    * path:
+      - fix test case error on windows.(xicilion)
+      - keep the disk no of the last path.(xicilion)
+    * process:
+      - SubProcess.wait return wrong status some times on linux.(xicilion)
+      - process.wait not return while process is already exit.(xicilion)
+      - compile error on windows i386.(xicilion)
+      - process.run not throw error when exec file not exists on linux.(xicilion)
+    * unzip - fix isZipFile error if filename is in unicode (#373)(王爱科)
+
+* **refactor** :
+    * core:
+      - ThrowAssertionError use reference to avoid copy (#383)(Hengfei Zhuang)
+      - more powerful error system (#378)(Hengfei Zhuang)
+      - Refactor the asyncEv class.(xicilion)
+    * net - remove no use argument in function AsyncIO::close.(xicilion)
+    * path:
+      - rewrite path.isAbsolute, more compatible with node.js(xicilion)
+      - rewrite path.basename/extname/dirname, more compatible with node.js(xicilion)
+      - rewrite path.resolve, more compatible with node.js (#374)(Hengfei Zhuang)
+      - rewrite path.resolve, more compatible with node.js(xicilion)
+      - rewrite path.join, more compatible with node.js(xicilion)
+      - rewrite path.normalize, more compatible with node.js(xicilion)
+    * process - use AsyncIO.close to close process pipe.(xicilion)
+    * util - make inherits more compact with node.js (#380)(Hengfei Zhuang)
+
+* **test** :
+    * path - adjust path.basename test case (#376)(Hengfei Zhuang)
+
+### Commits
+* [[`7f5b2482fc`](https://github.com/fibjs/fibjs/commit/7f5b2482fc)] - Release v0.19.0(xicilion)
+* [[`1aa840c663`](https://github.com/fibjs/fibjs/commit/1aa840c663)] - **process, bugfix**: SubProcess.wait return wrong status some times on linux.(xicilion)
+* [[`3f19c1fac3`](https://github.com/fibjs/fibjs/commit/3f19c1fac3)] - **core, refactor**: ThrowAssertionError use reference to avoid copy (#383)(Hengfei Zhuang)
+* [[`dbe3c74ebd`](https://github.com/fibjs/fibjs/commit/dbe3c74ebd)] - **core, feat**: add full error type support (#381)(Hengfei Zhuang)
+* [[`89454b908a`](https://github.com/fibjs/fibjs/commit/89454b908a)] - **process, bugfix**: process.wait not return while process is already exit.(xicilion)
+* [[`197375424c`](https://github.com/fibjs/fibjs/commit/197375424c)] - **util, refactor**: make inherits more compact with node.js (#380)(Hengfei Zhuang)
+* [[`7b200e800e`](https://github.com/fibjs/fibjs/commit/7b200e800e)] - **gui, bugfix**: fix the gui testcase (#379)(Hengfei Zhuang)
+* [[`b41dfd973e`](https://github.com/fibjs/fibjs/commit/b41dfd973e)] - **core, refactor**: more powerful error system (#378)(Hengfei Zhuang)
+* [[`f5d12cdcfc`](https://github.com/fibjs/fibjs/commit/f5d12cdcfc)] - **build, feat**: update task.json to version 2.0.(xicilion)
+* [[`4f7959a4af`](https://github.com/fibjs/fibjs/commit/4f7959a4af)] - **repl, feat**: add all the builtin modules to the repl global (#377)(Hengfei Zhuang)
+* [[`c630e3b2b1`](https://github.com/fibjs/fibjs/commit/c630e3b2b1)] - **process, bugfix**: compile error on windows i386.(xicilion)
+* [[`5f33537c67`](https://github.com/fibjs/fibjs/commit/5f33537c67)] - **db, feat**: switch mysql to fiber worker.(xicilion)
+* [[`d89d4d96d6`](https://github.com/fibjs/fibjs/commit/d89d4d96d6)] - **process, feat**: use RegisterWaitForSingleObject to wait child process in real async mode on windows.(xicilion)
+* [[`e71a1bf382`](https://github.com/fibjs/fibjs/commit/e71a1bf382)] - **net, refactor**: remove no use argument in function AsyncIO::close.(xicilion)
+* [[`2dbe78cd29`](https://github.com/fibjs/fibjs/commit/2dbe78cd29)] - **process, feat**: use ev to wait child process in real async mode.(xicilion)
+* [[`a4659645de`](https://github.com/fibjs/fibjs/commit/a4659645de)] - **core, refactor**: Refactor the asyncEv class.(xicilion)
+* [[`b82e545c1c`](https://github.com/fibjs/fibjs/commit/b82e545c1c)] - **http, bugfix**: parallel request in HttpClient will crash when response cookies.(xicilion)
+* [[`910b473727`](https://github.com/fibjs/fibjs/commit/910b473727)] - **process, refactor**: use AsyncIO.close to close process pipe.(xicilion)
+* [[`8bff4df01c`](https://github.com/fibjs/fibjs/commit/8bff4df01c)] - **process, feat**: only check exit code on linux.(xicilion)
+* [[`261ddfee1a`](https://github.com/fibjs/fibjs/commit/261ddfee1a)] - **process, bugfix**: process.run not throw error when exec file not exists on linux.(xicilion)
+* [[`cb0ef916ba`](https://github.com/fibjs/fibjs/commit/cb0ef916ba)] - **core, bugfix**: compile error on windows.(xicilion)
+* [[`ce343b409e`](https://github.com/fibjs/fibjs/commit/ce343b409e)] - **core, bugfix**: use posix_spawnp to check glibc_2.2, fix compile on i386.(xicilion)
+* [[`c301b9085c`](https://github.com/fibjs/fibjs/commit/c301b9085c)] - **core, bugfix**: use check_c_source_compiles to check glibc_2.2.5, fix alpine compile error.(xicilion)
+* [[`ad39cae7c9`](https://github.com/fibjs/fibjs/commit/ad39cae7c9)] - **path, test**: adjust path.basename test case (#376)(Hengfei Zhuang)
+* [[`2bdd279eae`](https://github.com/fibjs/fibjs/commit/2bdd279eae)] - **fs, bugfix**: fix fs stat when path endsWith slash (#371)(Hengfei Zhuang)
+* [[`e067af4a17`](https://github.com/fibjs/fibjs/commit/e067af4a17)] - **path, feat**: add path.toNamespacedPath  (#375)(Hengfei Zhuang)
+* [[`fc7b7b974b`](https://github.com/fibjs/fibjs/commit/fc7b7b974b)] - **path, feat**: add relative test case (not use).(xicilion)
+* [[`e5bb49aa20`](https://github.com/fibjs/fibjs/commit/e5bb49aa20)] - **unzip, bugfix**: fix isZipFile error if filename is in unicode (#373)(王爱科)
+* [[`0f4adf5519`](https://github.com/fibjs/fibjs/commit/0f4adf5519)] - **path, bugfix**: fix test case error on windows.(xicilion)
+* [[`c3ba036c2f`](https://github.com/fibjs/fibjs/commit/c3ba036c2f)] - **path, refactor**: rewrite path.isAbsolute, more compatible with node.js(xicilion)
+* [[`780ba6be1e`](https://github.com/fibjs/fibjs/commit/780ba6be1e)] - **path, feat**: add zero test case.(xicilion)
+* [[`eee418d9f4`](https://github.com/fibjs/fibjs/commit/eee418d9f4)] - **path, refactor**: rewrite path.basename/extname/dirname, more compatible with node.js(xicilion)
+* [[`bf6a56159b`](https://github.com/fibjs/fibjs/commit/bf6a56159b)] - **path, refactor**: rewrite path.resolve, more compatible with node.js (#374)(Hengfei Zhuang)
+* [[`402f7727d1`](https://github.com/fibjs/fibjs/commit/402f7727d1)] - **path, bugfix**: keep the disk no of the last path.(xicilion)
+* [[`ddd6eaa1dd`](https://github.com/fibjs/fibjs/commit/ddd6eaa1dd)] - **path, refactor**: rewrite path.resolve, more compatible with node.js(xicilion)
+* [[`4afd2903a2`](https://github.com/fibjs/fibjs/commit/4afd2903a2)] - **path, refactor**: rewrite path.join, more compatible with node.js(xicilion)
+* [[`6c7aaa7c8c`](https://github.com/fibjs/fibjs/commit/6c7aaa7c8c)] - **path, refactor**: rewrite path.normalize, more compatible with node.js(xicilion)
+* [[`887ac99e4b`](https://github.com/fibjs/fibjs/commit/887ac99e4b)] - **core, feat**: disable bigobj compile option on windows.(xicilion)
+
 ## 2017-11-3, Version v0.18.0
 
 * **feature** :
