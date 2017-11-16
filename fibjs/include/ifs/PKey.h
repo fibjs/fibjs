@@ -24,6 +24,9 @@ class PKey_base : public object_base {
 public:
     // PKey_base
     static result_t _new(obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Buffer_base* DerKey, exlib::string password, obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t get_keySize(int32_t& retVal) = 0;
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
@@ -136,6 +139,26 @@ void PKey_base::__new(const T& args)
     METHOD_OVER(0, 0);
 
     hr = _new(vr, args.This());
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(exlib::string, 1, "");
+
+    hr = _new(v0, v1, vr, args.This());
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
+
+    hr = _new(v0, v1, vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }

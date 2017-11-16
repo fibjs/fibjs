@@ -22,6 +22,42 @@ result_t PKey_base::_new(obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This)
     return 0;
 }
 
+result_t PKey_base::_new(Buffer_base* DerKey, exlib::string password, obj_ptr<PKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<PKey> pk = new PKey();
+    result_t hr = pk->importKey(DerKey, password);
+    if (hr < 0)
+        return hr;
+
+    retVal = pk;
+    return 0;
+}
+
+result_t PKey_base::_new(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<PKey> pk = new PKey();
+    result_t hr = pk->importKey(pemKey, password);
+    if (hr < 0)
+        return hr;
+
+    retVal = pk;
+    return 0;
+}
+
+result_t PKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<PKey> pk = new PKey();
+    result_t hr = pk->importKey(jsonKey);
+    if (hr < 0)
+        return hr;
+
+    retVal = pk;
+    return 0;
+}
+
 PKey::PKey()
 {
     mbedtls_pk_init(&m_key);
