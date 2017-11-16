@@ -292,6 +292,7 @@
     <ClInclude Include="include\ifs\base64vlq.h" />
     <ClInclude Include="include\ifs\bson.h" />
     <ClInclude Include="include\ifs\console.h" />
+    <ClInclude Include="include\ifs\constants.h" />
     <ClInclude Include="include\ifs\coroutine.h" />
     <ClInclude Include="include\ifs\crypto.h" />
     <ClInclude Include="include\ifs\db.h" />
@@ -476,6 +477,7 @@
     <ClCompile Include="src\os\os_win.cpp" />
     <ClCompile Include="src\os\registry.cpp" />
     <ClCompile Include="src\other\Image.cpp" />
+    <ClCompile Include="src\other\constants.cpp" />
     <ClCompile Include="src\other\uuid.cpp" />
     <ClCompile Include="src\process\SubProcess.cpp" />
     <ClCompile Include="src\process\SubProcess_posix.cpp" />
