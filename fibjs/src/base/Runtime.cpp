@@ -177,29 +177,28 @@ void Isolate::init()
     m_topSandbox = new SandBox();
     m_topSandbox->initRoot();
 
-    auto assertion_error =
-        "class AssertionError extends Error {"
-            "constructor(options) {"
-                "var { actual, expected, message, operator } = options;"
-                "if (message) {"
-                    "super(message);"
-                "} else {"
-                    "if (actual && actual.stack && actual instanceof Error)"
-                        "actual = `${actual.name}: ${actual.message}`;"
-                    "if (expected && expected.stack && expected instanceof Error)"
-                        "expected = `${expected.name}: ${expected.message}`;"
-                    "super(`${JSON.stringify(actual).slice(0, 128)} ` +"
-                        "`${operator} ${JSON.stringify(expected).slice(0, 128)}`);"
-                "}"
-                "this.generatedMessage = !message;"
-                "this.name = 'AssertionError [ERR_ASSERTION]';"
-                "this.code = 'ERR_ASSERTION';"
-                "this.actual = actual;"
-                "this.expected = expected;"
-                "this.operator = operator;"
-            "}"
-        "}"
-        "AssertionError;";
+    auto assertion_error = "class AssertionError extends Error {"
+                           "   constructor(options) {"
+                           "       var { actual, expected, message, operator } = options;"
+                           "       if (message) {"
+                           "           super(message);"
+                           "       } else {"
+                           "           if (actual && actual.stack && actual instanceof Error)"
+                           "               actual = `${actual.name}: ${actual.message}`;"
+                           "           if (expected && expected.stack && expected instanceof Error)"
+                           "               expected = `${expected.name}: ${expected.message}`;"
+                           "           super(`${JSON.stringify(actual).slice(0, 128)} ` +"
+                           "               `${operator} ${JSON.stringify(expected).slice(0, 128)}`);"
+                           "       }"
+                           "       this.generatedMessage = !message;"
+                           "       this.name = 'AssertionError [ERR_ASSERTION]';"
+                           "       this.code = 'ERR_ASSERTION';"
+                           "       this.actual = actual;"
+                           "       this.expected = expected;"
+                           "       this.operator = operator;"
+                           "   }"
+                           "}"
+                           "AssertionError;";
 
     v8::Local<v8::Script> script = v8::Script::Compile(NewString(assertion_error));
     v8::Local<v8::Object> AssertionError = script->Run().As<v8::Object>();
