@@ -121,6 +121,7 @@ void options(int32_t& pos, char* argv[])
 
     v8::internal::FLAG_wasm_async_compilation = false;
     v8::internal::FLAG_parallel_scavenge = false;
+    v8::internal::FLAG_parallel_marking = false;
 
     if (df)
         argc -= df;
