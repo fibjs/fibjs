@@ -242,6 +242,26 @@ describe("db", () => {
             assert.equal(journal_mode, "wal");
         });
 
+        it("fulltext search", () => {
+            var conn = db.open(conn_str);
+
+            conn.execute('CREATE VIRTUAL TABLE email USING fts5(sender, title, body)');
+            conn.execute('insert into email(sender, title, body) values("tom cat", "some titles", "this is body")');
+            conn.execute('insert into email(sender, title, body) values("响马", "这里是标题yes", "this这里是身体")');
+            assert.deepEqual(conn.execute('SELECT * FROM email WHERE email MATCH "这里"'), []);
+
+            conn.execute('CREATE VIRTUAL TABLE email1 USING fts5(sender, title, body, tokenize = porter)');
+            conn.execute('insert into email1(sender, title, body) values("tom cat", "some titles", "this is body")');
+            conn.execute('insert into email1(sender, title, body) values("响马", "这里是标题yes", "this这里是身体")');
+            assert.deepEqual(conn.execute('SELECT * FROM email1 WHERE email1 MATCH "这里"'), [{
+                "body": "this这里是身体",
+                "sender": "响马",
+                "title": "这里是标题yes"
+            }]);
+
+            conn.close();
+        });
+
         it("backup", () => {
             var conn = db.open(conn_str);
             conn.backup(conn_str + ".backup");

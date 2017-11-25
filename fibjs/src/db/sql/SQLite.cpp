@@ -15,6 +15,79 @@
 
 namespace fibjs {
 
+#define TOKEN(s, n) pCtx1->xToken(pCtx1->pCtx, tflags, s, (int)(n - s), (int)(s - pToken) + iStart, (int)(n - pToken) + iStart)
+
+struct MyCtx {
+    void* pCtx;
+    int (*xToken)(void*, int, const char*, int, int, int);
+};
+
+static int new_Token_cb(void* pCtx, int tflags, const char* pToken, int nToken, int iStart, int iEnd)
+{
+    MyCtx* pCtx1 = (MyCtx*)pCtx;
+
+    const char* pStart = pToken;
+    const char* pEnd = pToken + nToken;
+    const char* pAscii = pStart;
+
+    while (pStart < pEnd) {
+        const char* p = pStart;
+        exlib::wchar32 ch = utf_getchar(pStart, pEnd);
+
+        if (ch >= 0x4e00 && ch <= 0xa000) {
+            if (p > pAscii)
+                TOKEN(pAscii, p);
+            TOKEN(p, pStart);
+
+            pAscii = pStart;
+        }
+    }
+    if (pEnd > pAscii)
+        TOKEN(pAscii, pEnd);
+
+    return 0;
+}
+
+static int (*old_tokenize)(Fts5Tokenizer*, void* pCtx, int flags, const char* pText, int nText,
+    int (*xToken)(void*, int, const char*, int, int, int));
+static int new_tokenize(Fts5Tokenizer* pTokenizer, void* pCtx, int iUnused, const char* pText, int nText,
+    int (*xToken)(void*, int, const char*, int nToken, int iStart, int iEnd))
+{
+    MyCtx ctx = { pCtx, xToken };
+    return old_tokenize(pTokenizer, &ctx, iUnused, pText, nText, new_Token_cb);
+}
+
+static int (*old_fts5FindTokenizer)(fts5_api* pApi, const char* zName, void** ppUserData, fts5_tokenizer* pTokenizer);
+static int new_fts5FindTokenizer(fts5_api* pApi, const char* zName, void** ppUserData, fts5_tokenizer* pTokenizer)
+{
+    int rc = old_fts5FindTokenizer(pApi, zName, ppUserData, pTokenizer);
+    if (rc == 0 && !qstrcmp(zName, "unicode61")) {
+        if (old_tokenize == NULL)
+            old_tokenize = pTokenizer->xTokenize;
+        pTokenizer->xTokenize = new_tokenize;
+    }
+
+    return rc;
+}
+
+static void hook_fts5_api(sqlite3* db)
+{
+    fts5_api* pApi = 0;
+    sqlite3_stmt* pStmt = 0;
+    void* pUserdata = 0;
+
+    if (SQLITE_OK == sqlite3_prepare(db, "SELECT fts5(?)", -1, &pStmt, 0)) {
+        sqlite3_bind_pointer(pStmt, 1, (void*)&pApi, "fts5_api_ptr", NULL);
+        sqlite3_step(pStmt);
+    }
+
+    if (old_fts5FindTokenizer == NULL)
+        old_fts5FindTokenizer = pApi->xFindTokenizer;
+    pApi->xFindTokenizer = new_fts5FindTokenizer;
+
+    sqlite3_finalize(pStmt);
+}
+
 #define SQLITE_OPEN_FLAGS \
     SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_SHAREDCACHE | SQLITE_OPEN_NOMUTEX
 
@@ -50,6 +123,8 @@ result_t SQLite::open(const char* file)
         m_db = NULL;
         return hr;
     }
+
+    hook_fts5_api(m_db);
 
     obj_ptr<NArray> retVal;
     execute("PRAGMA journal_mode=WAL;", 24, retVal);
