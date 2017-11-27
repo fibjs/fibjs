@@ -184,6 +184,10 @@ describe("module", () => {
     it("strack", () => {
         assert.ok(require("./module/stack").func().match(/module_test/));
     });
+
+    it("support exports in script", () => {
+        run('./module/exec18');
+    });
 });
 
 repl && test.run(console.DEBUG);

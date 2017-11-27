@@ -206,13 +206,8 @@ public:
 
 public:
     static const char* script_args;
-    static const int32_t script_args_count;
-
     static const char* worker_args;
-    static const int32_t worker_args_count;
-
     static const char* module_args;
-    static const int32_t module_args_count;
 
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;
