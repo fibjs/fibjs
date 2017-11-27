@@ -10,6 +10,7 @@
 #include "SandBox.h"
 #include "console.h"
 #include "LruCache.h"
+#include "Trigger.h"
 #include "ifs/global.h"
 #include "ifs/process.h"
 #include "ifs/coroutine.h"
@@ -205,6 +206,27 @@ void Isolate::init()
     m_AssertionError.Reset(m_isolate, AssertionError);
 }
 
+void Isolate::Unref(int32_t hr)
+{
+    if (m_pendding.dec() == 0)
+        if (m_id == 1) {
+            v8::HandleScope handle_scope(m_isolate);
+            JSFiber::scope s;
+            JSTrigger t(m_isolate, process_base::class_info().getModule(this));
+            v8::Local<v8::Value> code = v8::Number::New(m_isolate, m_exitCode);
+            bool r;
+
+            Ref();
+            t._emit("beforeExit", &code, 1, r);
+            if (m_pendding.dec() == 0) {
+                if (hr >= 0)
+                    process_base::exit();
+                else
+                    process_base::exit(hr);
+            }
+        }
+}
+
 void Isolate::start_profiler()
 {
     if (g_prof) {
@@ -212,7 +234,7 @@ void Isolate::start_profiler()
         obj_ptr<Timer_base> tm;
         sprintf(name, "fibjs-%08x.log", (uint32_t)(intptr_t)this);
         profiler_base::start(name, -1, g_prof_interval, tm);
-        m_pendding.dec();
+        Unref();
     }
 }
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate);

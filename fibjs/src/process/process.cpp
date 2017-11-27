@@ -262,7 +262,7 @@ result_t process_base::exit()
     v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, code);
     bool r;
 
-    isolate->m_pendding.inc();
+    isolate->Ref();
     t._emit("exit", &v, 1, r);
 
     flushLog();

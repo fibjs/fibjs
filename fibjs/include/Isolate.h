@@ -90,6 +90,13 @@ public:
 
     void start_profiler();
 
+    void Ref()
+    {
+        m_pendding.inc();
+    }
+
+    void Unref(int32_t hr = 0);
+
 public:
     int32_t m_id;
     exlib::string m_fname;

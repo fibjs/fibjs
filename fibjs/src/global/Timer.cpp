@@ -31,7 +31,7 @@ public:
         for (int i = 0; i < nArgCount; i++)
             m_argv[i].Reset(isolate->m_isolate, args[i]);
 
-        isolate->m_pendding.inc();
+        isolate->Ref();
         m_callback.Reset(isolate->m_isolate, callback);
     }
 
@@ -81,7 +81,7 @@ public:
         m_callback.Reset();
         if (!m_clear_pendding) {
             m_clear_pendding = true;
-            holder()->m_pendding.dec();
+            holder()->Unref();
         }
     }
 

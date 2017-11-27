@@ -125,7 +125,7 @@ AsyncCallBack::AsyncCallBack(object_base* pThis, v8::Local<v8::Function> cb)
 {
     m_pThis = pThis;
     m_isolate = pThis->holder();
-    m_isolate->m_pendding.inc();
+    m_isolate->Ref();
     m_cb.Reset(m_isolate->m_isolate, cb);
 }
 

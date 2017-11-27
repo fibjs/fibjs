@@ -27,7 +27,7 @@ public:
 public:
     void sync(Isolate* isolate)
     {
-        isolate->m_pendding.inc();
+        isolate->Ref();
         isolate->m_jobs.putTail(this);
         isolate->m_sem.post();
     }
@@ -357,7 +357,7 @@ public:
     AsyncCallBack(v8::Local<v8::Function> cb)
     {
         m_isolate = Isolate::current();
-        m_isolate->m_pendding.inc();
+        m_isolate->Ref();
         m_cb.Reset(m_isolate->m_isolate, cb);
     }
 
@@ -365,7 +365,7 @@ public:
 
     ~AsyncCallBack()
     {
-        m_isolate->m_pendding.dec();
+        m_isolate->Unref();
         m_cb.Reset();
     }
 

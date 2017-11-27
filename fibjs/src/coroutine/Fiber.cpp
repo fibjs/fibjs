@@ -7,7 +7,6 @@
 
 #include "object.h"
 #include "Fiber.h"
-#include "Trigger.h"
 #include "ifs/os.h"
 #include "ifs/process.h"
 #include "v8_api.h"
@@ -71,23 +70,7 @@ void JSFiber::fiber_proc(void* p)
                 hr = ae->js_invoke();
             }
 
-            if (isolate->m_pendding.dec() == 0)
-                if (isolate->m_id == 1) {
-                    v8::HandleScope handle_scope(isolate->m_isolate);
-                    JSFiber::scope s;
-                    JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
-                    v8::Local<v8::Value> code = v8::Number::New(isolate->m_isolate, isolate->m_exitCode);
-                    bool r;
-
-                    isolate->m_pendding.inc();
-                    t._emit("beforeExit", &code, 1, r);
-                    if (isolate->m_pendding.dec() == 0) {
-                        if (hr >= 0)
-                            process_base::exit();
-                        else
-                            process_base::exit(hr);
-                    }
-                }
+            isolate->Unref(hr);
         }
 
         isolate->m_currentFibers--;
@@ -122,7 +105,7 @@ void JSFiber::start()
 
     set_caller(JSFiber::current());
 
-    isolate->m_pendding.inc();
+    isolate->Ref();
     isolate->m_jobs.putTail(this);
     isolate->m_sem.post();
     Ref();
