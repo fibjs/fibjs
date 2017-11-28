@@ -121,10 +121,14 @@ void AsyncEvent::async(int32_t type)
         putGuiPool(this);
 }
 
-AsyncCallBack::AsyncCallBack(object_base* pThis, v8::Local<v8::Function> cb)
+AsyncCallBack::AsyncCallBack(v8::Local<v8::Function> cb, object_base* pThis)
 {
-    m_pThis = pThis;
-    m_isolate = pThis->holder();
+    if (pThis) {
+        m_pThis = pThis;
+        m_isolate = pThis->holder();
+    } else
+        m_isolate = Isolate::current();
+
     m_isolate->Ref();
     m_cb.Reset(m_isolate->m_isolate, cb);
 }

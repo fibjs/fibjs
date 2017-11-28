@@ -80,8 +80,9 @@ public:
     {
         m_callback.Reset();
         if (!m_clear_pendding) {
+            Isolate* isolate = holder();
             m_clear_pendding = true;
-            holder()->Unref();
+            isolate->Unref();
         }
     }
 

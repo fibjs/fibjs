@@ -354,14 +354,7 @@ private:
 class NType;
 class AsyncCallBack : public AsyncEvent {
 public:
-    AsyncCallBack(v8::Local<v8::Function> cb)
-    {
-        m_isolate = Isolate::current();
-        m_isolate->Ref();
-        m_cb.Reset(m_isolate->m_isolate, cb);
-    }
-
-    AsyncCallBack(object_base* pThis, v8::Local<v8::Function> cb);
+    AsyncCallBack(v8::Local<v8::Function> cb, object_base* pThis = NULL);
 
     ~AsyncCallBack()
     {

@@ -134,7 +134,7 @@ function gen_stub(argn, bInst, bRet) {
         s += 'v8::Local<v8::Function> cb) : \\';
         txt.push(s);
 
-        s = '			AsyncCallBack(' + (bInst ? 'pThis, ' : '') + 'cb)';
+        s = '			AsyncCallBack(cb' + (bInst ? ', pThis' : '') + ')';
         for (i = 0; i < argn1; i++)
             s += ', m_v' + i + '(v' + i + ')';
         s += ' \\';
