@@ -222,6 +222,8 @@ static result_t syncExit(Isolate* isolate)
             process_base::exit();
         else
             process_base::exit(isolate->m_hr);
+
+    return 0;
 }
 
 void Isolate::Ref()
