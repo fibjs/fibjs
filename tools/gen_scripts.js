@@ -4,30 +4,26 @@ var encoding = require('encoding');
 
 var txts = [];
 
-function c_encode(s) {
-    return s.replace(/[\\\n'"]/g, (c) => {
-        if (c == '\n')
-            return "\\n"
-        return "\\" + c;
-    });
-}
-
 fs.readdir(path.join(__dirname, "../fibjs/scripts")).forEach(f => {
     console.log("encoding", f);
     var code = fs.readTextFile(path.join(__dirname, "../fibjs/scripts", f));
-    var src = [];
 
     var pos = 0;
-    var sz = 80;
+    var sz = 20;
 
-    while (pos < code.length - sz) {
-        src.push(c_encode(code.substr(pos, sz)));
-        pos += sz;
-    }
+    var hex = new Buffer(code).hex();
 
-    src.push(c_encode(code.substr(pos)));
+    var cnt = 0;
+    hex = '"' + hex.replace(/../g, s => {
+        cnt++;
+        if (cnt == 30) {
+            cnt = 0;
+            return "\\x" + s + '"\n    "';
+        }
+        return "\\x" + s;
+    }) + '"';
 
-    txts.push('"--' + path.basename(f, ".js") + '", "' + src.join('"\n        "') + '",');
+    txts.push('"--' + path.basename(f, ".js") + '",\n    ' + hex + ',');
 });
 
 fs.writeFile(path.join(__dirname, "../fibjs/src/base/opt_tools.cpp"), `/*
