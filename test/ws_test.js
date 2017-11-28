@@ -337,6 +337,7 @@ describe('ws', () => {
 
                 assert.equal(rep.statusCode, 101);
                 assert.equal(rep.firstHeader("Sec-WebSocket-Extensions"), "permessage-deflate");
+                rep.socket.close();
 
                 var rep = http.get("http://127.0.0.1:" + (8813 + base_port) + "/ws", {
                     headers: {
@@ -350,6 +351,7 @@ describe('ws', () => {
 
                 assert.equal(rep.statusCode, 101);
                 assert.equal(rep.firstHeader("Sec-WebSocket-Extensions"), "permessage-deflate");
+                rep.socket.close();
             });
         });
 
@@ -690,6 +692,7 @@ describe('ws', () => {
 
             ev.wait();
             console.timeEnd('ws');
+            s.close();
         });
 
         describe('onerror', () => {

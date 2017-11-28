@@ -177,12 +177,18 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 {
     class asyncConnect : public AsyncState {
     public:
-        asyncConnect(WebSocket* pThis)
+        asyncConnect(WebSocket* pThis, Isolate* isolate)
             : AsyncState(NULL)
             , m_this(pThis)
         {
-            m_isolate = Isolate::current();
+            m_isolate = isolate;
+            m_isolate->Ref();
             set(handshake);
+        }
+
+        ~asyncConnect()
+        {
+            m_isolate->Unref();
         }
 
         virtual Isolate* isolate()
@@ -303,7 +309,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
             pThis->m_this->m_readyState = ws_base::_OPEN;
             pThis->m_this->_emit("open", NULL, 0);
 
-            pThis->m_this->startRecv();
+            pThis->m_this->startRecv(pThis->m_isolate);
 
             return pThis->done(0);
         }
@@ -325,22 +331,29 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
     obj_ptr<WebSocket> sock = new WebSocket(url, protocol, origin);
     sock->wrap(This);
 
-    (new asyncConnect(sock))->apost(0);
+    (new asyncConnect(sock, sock->holder()))->apost(0);
 
     retVal = sock;
 
     return 0;
 }
 
-void WebSocket::startRecv()
+void WebSocket::startRecv(Isolate* isolate)
 {
     class asyncRead : public AsyncState {
     public:
-        asyncRead(WebSocket* pThis)
+        asyncRead(WebSocket* pThis, Isolate* isolate)
             : AsyncState(NULL)
             , m_this(pThis)
         {
+            m_isolate = isolate;
+            m_isolate->Ref();
             set(recv);
+        }
+
+        ~asyncRead()
+        {
+            m_isolate->Unref();
         }
 
         static int32_t recv(AsyncState* pState, int32_t n)
@@ -407,12 +420,13 @@ void WebSocket::startRecv()
         }
 
     private:
+        Isolate* m_isolate;
         obj_ptr<WebSocket> m_this;
         obj_ptr<WebSocketMessage> m_msg;
     };
 
     if (m_stream && m_readState.xchg(ws_base::_OPEN) != ws_base::_OPEN)
-        (new asyncRead(this))->apost(0);
+        (new asyncRead(this, isolate))->apost(0);
 }
 
 void WebSocket::endConnect(int32_t code, exlib::string reason)

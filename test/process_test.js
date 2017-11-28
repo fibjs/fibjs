@@ -5,6 +5,8 @@ var process = require('process');
 var coroutine = require("coroutine");
 var path = require('path');
 var json = require('json');
+var ws = require('ws');
+var http = require('http');
 
 var cmd;
 var s;
@@ -12,6 +14,14 @@ var s;
 describe('process', () => {
     before(() => {
         cmd = process.execPath;
+    });
+
+    var ss = [];
+
+    after(() => {
+        ss.forEach((s) => {
+            s.close();
+        });
     });
 
     it("hrtime", () => {
@@ -71,40 +81,64 @@ describe('process', () => {
         });
     });
 
-    it("multi fiber", () => {
-        var p = process.open(cmd, [path.join(__dirname, 'process', 'exec7.js')]);
-        assert.equal(p.readLine(), "100");
-        assert.equal(p.wait(), 7);
-    });
+    describe('process holding', () => {
+        it("multi fiber", () => {
+            var p = process.open(cmd, [path.join(__dirname, 'process', 'exec7.js')]);
+            assert.equal(p.readLine(), "100");
+            assert.equal(p.wait(), 7);
+        });
 
-    it("pendding async", () => {
-        var p = process.open(cmd, [path.join(__dirname, 'process', 'exec8.js')]);
-        assert.equal(p.readLine(), "200");
-        assert.equal(p.wait(), 8);
-    });
+        it("pendding callback", () => {
+            var p = process.open(cmd, [path.join(__dirname, 'process', 'exec8.js')]);
+            assert.equal(p.readLine(), "200");
+            assert.equal(p.wait(), 8);
+        });
 
-    it("setTimeout", () => {
-        var p = process.open(cmd, [path.join(__dirname, 'process', 'exec9.js')]);
-        assert.equal(p.readLine(), "300");
-        assert.equal(p.wait(), 9);
-    });
+        it("setTimeout", () => {
+            var p = process.open(cmd, [path.join(__dirname, 'process', 'exec9.js')]);
+            assert.equal(p.readLine(), "300");
+            assert.equal(p.wait(), 9);
+        });
 
-    it("setInterval", () => {
-        var p = process.open(cmd, [path.join(__dirname, 'process', 'exec10.js')]);
-        assert.equal(p.readLine(), "400");
-        assert.equal(p.wait(), 10);
-    });
+        it("setInterval", () => {
+            var p = process.open(cmd, [path.join(__dirname, 'process', 'exec10.js')]);
+            assert.equal(p.readLine(), "400");
+            assert.equal(p.wait(), 10);
+        });
 
-    it("setImmediate", () => {
-        var p = process.open(cmd, [path.join(__dirname, 'process', 'exec11.js')]);
-        assert.equal(p.readLine(), "500");
-        assert.equal(p.wait(), 11);
-    });
+        it("setImmediate", () => {
+            var p = process.open(cmd, [path.join(__dirname, 'process', 'exec11.js')]);
+            assert.equal(p.readLine(), "500");
+            assert.equal(p.wait(), 11);
+        });
 
-    it("bugfix: multi fiber async", () => {
-        var p = process.open(cmd, [path.join(__dirname, 'process', 'exec12.js')]);
-        assert.equal(p.readLine(), "600");
-        assert.equal(p.wait(), 12);
+        it("websocket connect", () => {
+            var p = process.open(cmd, [path.join(__dirname, 'process', 'exec18.js')]);
+            assert.equal(p.readLine(), "1800");
+            assert.equal(p.wait(), 18);
+        });
+
+        it("websocket disconnect", () => {
+            var httpd = new http.Server(8899, {
+                "/ws": ws.upgrade((s) => {
+                    s.onmessage = function (msg) {
+                        s.send(msg);
+                    };
+                })
+            });
+            ss.push(httpd.socket);
+            httpd.run(() => {});
+
+            var p = process.open(cmd, [path.join(__dirname, 'process', 'exec19.js')]);
+            assert.equal(p.readLine(), "1900");
+            assert.equal(p.wait(), 19);
+        });
+
+        it("bugfix: multi fiber async", () => {
+            var p = process.open(cmd, [path.join(__dirname, 'process', 'exec12.js')]);
+            assert.equal(p.readLine(), "600");
+            assert.equal(p.wait(), 12);
+        });
     });
 
     it("start", () => {

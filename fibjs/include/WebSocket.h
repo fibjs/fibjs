@@ -48,7 +48,7 @@ public:
     // object_base
     virtual result_t onEventChange(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
     {
-        startRecv();
+        startRecv(holder());
         return 0;
     }
 
@@ -76,7 +76,7 @@ public:
     EVENT_FUNC(error);
 
 public:
-    void startRecv();
+    void startRecv(Isolate* isolate);
     void endConnect(int32_t code, exlib::string reason);
     void endConnect(SeekableStream_base* body);
     void enableCompress();
