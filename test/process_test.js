@@ -134,6 +134,12 @@ describe('process', () => {
             assert.equal(p.wait(), 19);
         });
 
+        it("worker", () => {
+            var p = process.open(cmd, [path.join(__dirname, 'process', 'exec20.js')]);
+            assert.equal(p.readLine(), "2000");
+            assert.equal(p.wait(), 20);
+        });
+
         it("bugfix: multi fiber async", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec12.js')]);
             assert.equal(p.readLine(), "600");

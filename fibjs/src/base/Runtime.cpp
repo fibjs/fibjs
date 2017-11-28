@@ -58,6 +58,7 @@ public:
 
 exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
+exlib::atomic s_iso_ref;
 
 Isolate::rt_base::rt_base(Isolate* cur)
     : m_isolate((cur ? cur : Isolate::current()))
@@ -103,6 +104,7 @@ void init_proc(void* p)
 
 Isolate::Isolate(exlib::string fname)
     : m_id((int32_t)s_iso_id.inc())
+    , m_hr(0)
     , m_test(NULL)
     , m_currentFibers(0)
     , m_idleFibers(0)
@@ -206,25 +208,34 @@ void Isolate::init()
     m_AssertionError.Reset(m_isolate, AssertionError);
 }
 
+static result_t syncExit(Isolate* isolate)
+{
+    v8::HandleScope handle_scope(isolate->m_isolate);
+    JSFiber::scope s;
+    JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
+    v8::Local<v8::Value> code = v8::Number::New(isolate->m_isolate, isolate->m_exitCode);
+    bool r;
+
+    t._emit("beforeExit", &code, 1, r);
+    if (s_iso_ref == 1)
+        if (isolate->m_hr == 0)
+            process_base::exit();
+        else
+            process_base::exit(isolate->m_hr);
+}
+
+void Isolate::Ref()
+{
+    s_iso_ref.inc();
+}
+
 void Isolate::Unref(int32_t hr)
 {
-    if (m_pendding.dec() == 0)
-        if (m_id == 1) {
-            v8::HandleScope handle_scope(m_isolate);
-            JSFiber::scope s;
-            JSTrigger t(m_isolate, process_base::class_info().getModule(this));
-            v8::Local<v8::Value> code = v8::Number::New(m_isolate, m_exitCode);
-            bool r;
-
-            Ref();
-            t._emit("beforeExit", &code, 1, r);
-            if (m_pendding.dec() == 0) {
-                if (hr >= 0)
-                    process_base::exit();
-                else
-                    process_base::exit(hr);
-            }
-        }
+    if (s_iso_ref.dec() == 0) {
+        Isolate* isolate = s_isolates.head();
+        isolate->m_hr = hr;
+        syncCall(isolate, syncExit, isolate);
+    }
 }
 
 void Isolate::start_profiler()

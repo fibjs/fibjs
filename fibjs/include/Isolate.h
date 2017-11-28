@@ -90,15 +90,12 @@ public:
 
     void start_profiler();
 
-    void Ref()
-    {
-        m_pendding.inc();
-    }
-
+    void Ref();
     void Unref(int32_t hr = 0);
 
 public:
     int32_t m_id;
+    int32_t m_hr;
     exlib::string m_fname;
 
     QuickArray<void*> m_classInfo;
@@ -129,7 +126,6 @@ public:
     int32_t m_currentFibers;
     int32_t m_idleFibers;
 
-    exlib::atomic m_pendding;
     exlib::atomic m_has_timer;
 
     int64_t m_fid;
