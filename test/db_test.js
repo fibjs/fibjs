@@ -14,13 +14,15 @@ describe("db", () => {
             '123456\r\n\'\"\x1acccds', true));
     });
 
+    it("format", () => {
+        assert.equal(db.format("test?", [1, 2, 3, 4]), "test(1,2,3,4)");
+        assert.equal(db.format("test?", [1, [2, 3], 4]), "test(1,(2,3),4)");
+    });
+
     it("formatMySQL", () => {
         assert.equal(db.formatMySQL("test?, ?, ?, ?", 123, 'ds\r\na',
                 new Date('1998-4-14 12:12:12')),
             "test123, 'ds\\r\\na', '1998-04-14 12:12:12', ''");
-
-        assert.equal(db.formatMySQL("test?", [1, 2, 3, 4]),
-            "test(1,2,3,4)");
     });
 
     function _test(conn_str) {

@@ -105,11 +105,40 @@ inline void _escape(const char* str, int32_t sz, bool mysql, exlib::string& retV
     }
 }
 
-void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql)
+void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql, bool mssql)
 {
-    bool bNumber = v->IsNumber() || v->IsNumberObject();
+    obj_ptr<Buffer_base> bin = Buffer_base::getInstance(v);
 
-    if (bNumber) {
+    if (bin) {
+        exlib::string s;
+
+        if (mssql) {
+            str.append("0x", 2);
+            bin->hex(s);
+            str.append(s);
+        } else {
+            str.append("x\'", 2);
+            bin->hex(s);
+            str.append(s);
+            str += '\'';
+        }
+    } else if (v->IsArray()) {
+        v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
+        int32_t len = a->Length();
+        int32_t i;
+
+        str += '(';
+
+        for (i = 0; i < len; i++) {
+            v8::Local<v8::Value> v1 = a->Get(i);
+
+            if (i > 0)
+                str += ',';
+            _appendValue(str, v1, mysql, mssql);
+        }
+
+        str += ')';
+    } else if (v->IsNumber() || v->IsNumberObject()) {
         v8::String::Utf8Value s1(v);
         str.append(*s1, s1.length());
     } else if (v->IsUndefined() || v->IsNull()) {
@@ -131,8 +160,8 @@ void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql)
     }
 }
 
-result_t _format(const char* sql, OptArgs args, bool mysql,
-    bool mssql, exlib::string& retVal)
+result_t _format(const char* sql, OptArgs args, bool mysql, bool mssql,
+    exlib::string& retVal)
 {
     exlib::string str;
     const char *p, *p1;
@@ -155,39 +184,7 @@ result_t _format(const char* sql, OptArgs args, bool mysql,
                 if (v->IsFunction())
                     return CHECK_ERROR(CALL_E_INVALIDARG);
 
-                obj_ptr<Buffer_base> bin = Buffer_base::getInstance(v);
-
-                if (bin) {
-                    exlib::string s;
-
-                    if (mssql) {
-                        str.append("0x", 2);
-                        bin->hex(s);
-                        str.append(s);
-                    } else {
-                        str.append("x\'", 2);
-                        bin->hex(s);
-                        str.append(s);
-                        str += '\'';
-                    }
-                } else if (v->IsArray()) {
-                    v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
-                    int32_t len = a->Length();
-                    int32_t i;
-
-                    str += '(';
-
-                    for (i = 0; i < len; i++) {
-                        v8::Local<v8::Value> v1 = a->Get(i);
-
-                        if (i > 0)
-                            str += ',';
-                        _appendValue(str, v1, mysql);
-                    }
-
-                    str += ')';
-                } else
-                    _appendValue(str, v, mysql);
+                _appendValue(str, v, mysql, mssql);
             } else
                 str.append("\'\'", 2);
 
