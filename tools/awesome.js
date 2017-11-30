@@ -27,7 +27,9 @@ fs.mkdir(path.join(docsFolder, 'module'));
 var token = 'xxxxxxxxxxxxxx';
 
 var list = new Buffer(http.get("https://api.github.com/repos/fibjs/awesome/readme", {
-    "Authorization": "token " + token
+    headers: {
+        "Authorization": "token " + token
+    }
 }).json().content, 'base64').toString();
 
 var ls = [];
@@ -36,7 +38,9 @@ list = list.replace(/- \[(.+?)\]\((.+?)\)/g, (s, s1, s2) => {
     console.log('getting', u);
     coroutine.sleep(100);
     var doc = new Buffer(http.get(u, {
-        "Authorization": "token " + token
+        headers: {
+            "Authorization": "token " + token
+        }
     }).json().content, 'base64').toString();
     fs.writeTextFile(path.join(docsFolder, 'module', s1 + '.md'), doc);
 
