@@ -9,6 +9,7 @@ var os = require('os');
 describe('util', () => {
     it("inherits", () => {
         const inherits = util.inherits;
+
         function Child() {
             console.log("in child");
         }
@@ -32,7 +33,9 @@ describe('util', () => {
         function A() {
             this._a = 'a';
         }
-        A.prototype.a = function() { return this._a; };
+        A.prototype.a = function () {
+            return this._a;
+        };
 
         // one level of inheritance
         function B(value) {
@@ -40,7 +43,9 @@ describe('util', () => {
             this._b = value;
         }
         inherits(B, A);
-        B.prototype.b = function() { return this._b; };
+        B.prototype.b = function () {
+            return this._b;
+        };
 
         assert.strictEqual(B.super_, A);
 
@@ -55,8 +60,12 @@ describe('util', () => {
             this._c = 'c';
         }
         inherits(C, B);
-        C.prototype.c = function() { return this._c; };
-        C.prototype.getValue = function() { return this.a() + this.b() + this.c(); };
+        C.prototype.c = function () {
+            return this._c;
+        };
+        C.prototype.getValue = function () {
+            return this.a() + this.b() + this.c();
+        };
 
         assert.strictEqual(C.super_, B);
 
@@ -70,7 +79,9 @@ describe('util', () => {
             this._d = 'd';
         }
 
-        D.prototype.d = function() { return this._d; };
+        D.prototype.d = function () {
+            return this._d;
+        };
         inherits(D, C);
 
         assert.strictEqual(D.super_, C);
@@ -86,7 +97,9 @@ describe('util', () => {
                 D.call(this);
                 this._e = 'e';
             }
-            e() { return this._e; }
+            e() {
+                return this._e;
+            }
         }
         inherits(E, D);
 
@@ -99,13 +112,13 @@ describe('util', () => {
         assert.strictEqual(e.constructor, E);
 
         // should throw with invalid arguments
-        assert.throws(function() {
+        assert.throws(function () {
             inherits(A, {});
         });
-        assert.throws(function() {
+        assert.throws(function () {
             inherits(A, null);
         });
-        assert.throws(function() {
+        assert.throws(function () {
             inherits(null, A);
         });
     });
@@ -1369,6 +1382,42 @@ describe('util', () => {
                 return 100;
             }), 100);
             assert.equal(c.get("c1"), 200);
+        });
+
+        it("BUG: not lock object in updater", () => {
+            var call_num = 0;
+            var enter_num = 0;
+
+            function updater(name) {
+                enter_num++;
+                coroutine.sleep(30);
+                call_num++;
+                return name + "_value";
+            }
+            c = new util.LruCache(3);
+
+            coroutine.start(() => {
+                c.get("a", updater);
+            });
+
+            assert.equal(call_num, 0);
+            coroutine.sleep(1);
+            assert.isUndefined(c.get("b"));
+            assert.equal(call_num, 0);
+            assert.equal(c.get("a"), "a_value");
+            assert.equal(call_num, 1);
+
+            coroutine.start(() => {
+                c.get("b", updater);
+            });
+            coroutine.start(() => {
+                c.get("c", updater);
+            });
+
+            assert.equal(enter_num, 1);
+            coroutine.sleep(1);
+            assert.equal(enter_num, 3);
+            assert.equal(call_num, 1);
         });
 
         it("Garbage Collection", () => {
