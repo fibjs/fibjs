@@ -25,7 +25,7 @@ public:
     virtual result_t get_reason(exlib::string& retVal) = 0;
     virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t get_target(v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t _named_getter(exlib::string property, int32_t& retVal) = 0;
+    virtual result_t _named_getter(exlib::string property, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
 
 public:
@@ -127,7 +127,7 @@ inline void EventInfo_base::s_get_target(v8::Local<v8::String> property, const v
 
 inline void EventInfo_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    int32_t vr;
+    v8::Local<v8::Value> vr;
 
     METHOD_NAME("EventInfo.undefined[]");
     METHOD_INSTANCE(EventInfo_base);

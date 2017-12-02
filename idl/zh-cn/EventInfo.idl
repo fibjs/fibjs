@@ -14,5 +14,5 @@ interface EventInfo : object
     readonly Object target;
 
     /*! @brief 根据事件类型返回的详细信息 */
-    readonly Integer operator[String];
+    readonly Value operator[String];
 };
