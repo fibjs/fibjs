@@ -6,7 +6,7 @@
  var c = new util.LruCache(10, 100);
  ```
  */
-interface LruCache : object
+interface LruCache : EventEmitter
 {
     /*! @brief LruCache 对象构造函数
      @param size 缓存最大尺寸
@@ -62,4 +62,7 @@ interface LruCache : object
      @return 容器内无数值则返回 true
      */
     Boolean isEmpty();
+
+    /*! @brief 查询和绑定数据超时事件，相当于 on("expire", func); */
+    Function onexpire;
 };

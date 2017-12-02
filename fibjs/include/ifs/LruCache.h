@@ -13,10 +13,13 @@
  */
 
 #include "../object.h"
+#include "EventEmitter.h"
 
 namespace fibjs {
 
-class LruCache_base : public object_base {
+class EventEmitter_base;
+
+class LruCache_base : public EventEmitter_base {
     DECLARE_CLASS(LruCache_base);
 
 public:
@@ -33,6 +36,8 @@ public:
     virtual result_t set(v8::Local<v8::Object> map) = 0;
     virtual result_t remove(exlib::string name) = 0;
     virtual result_t isEmpty(bool& retVal) = 0;
+    virtual result_t get_onexpire(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_onexpire(v8::Local<v8::Function> newVal) = 0;
 
 public:
     template <typename T>
@@ -49,6 +54,8 @@ public:
     static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onexpire(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onexpire(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
 }
 
@@ -66,13 +73,14 @@ inline ClassInfo& LruCache_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "size", s_get_size, block_set, false },
-        { "timeout", s_get_timeout, s_set_timeout, false }
+        { "timeout", s_get_timeout, s_set_timeout, false },
+        { "onexpire", s_get_onexpire, s_set_onexpire, false }
     };
 
     static ClassData s_cd = {
         "LruCache", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
-        &object_base::class_info()
+        &EventEmitter_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
@@ -245,6 +253,31 @@ inline void LruCache_base::s_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& 
     hr = pInst->isEmpty(vr);
 
     METHOD_RETURN();
+}
+
+inline void LruCache_base::s_get_onexpire(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_NAME("LruCache.onexpire");
+    METHOD_INSTANCE(LruCache_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_onexpire(vr);
+
+    METHOD_RETURN();
+}
+
+inline void LruCache_base::s_set_onexpire(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("LruCache.onexpire");
+    METHOD_INSTANCE(LruCache_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(v8::Local<v8::Function>);
+
+    hr = pInst->set_onexpire(v0);
+
+    PROPERTY_SET_LEAVE();
 }
 }
 

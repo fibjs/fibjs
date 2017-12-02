@@ -7,6 +7,7 @@
 
 #include "ifs/LruCache.h"
 #include "ifs/Event.h"
+#include "EventInfo.h"
 #include "map"
 
 #ifndef LRUCACHE_H_
@@ -35,6 +36,8 @@ public:
     // object_base
     virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
 
+    EVENT_SUPPORT();
+
 public:
     // LruCache_base
     virtual result_t get_size(int32_t& retVal);
@@ -49,11 +52,14 @@ public:
     virtual result_t remove(exlib::string name);
     virtual result_t isEmpty(bool& retVal);
 
+public:
+    EVENT_FUNC(expire);
+
 private:
     class _linkedNode {
     public:
         date_t insert;
-        std::map<exlib::string, void *>::iterator m_prev, m_next, m_prev1, m_next1;
+        std::map<exlib::string, void*>::iterator m_prev, m_next, m_prev1, m_next1;
     };
 
     inline std::map<exlib::string, void*>::iterator _generalize(std::map<exlib::string, _linkedNode>::iterator it)
@@ -178,6 +184,18 @@ private:
         }
     }
 
+    void expire(std::map<exlib::string, _linkedNode>::iterator it)
+    {
+        obj_ptr<EventInfo> ei = new EventInfo(this, "expire");
+        ei->put("key", it->first);
+        ei->put("value", GetPrivate(it->first));
+
+        Variant v = ei;
+        _emit("expire", &v, 1);
+
+        remove(it);
+    }
+
     void cleanup();
 
     std::map<exlib::string, _linkedNode> m_datas;
@@ -187,7 +205,7 @@ private:
     std::map<exlib::string, _linkedNode>::iterator m_begin;
     std::map<exlib::string, _linkedNode>::iterator m_end;
 
-    std::map<exlib::string, obj_ptr<Event_base> > m_paddings;
+    std::map<exlib::string, obj_ptr<Event_base>> m_paddings;
 
     int32_t m_size;
     int32_t m_timeout;

@@ -27,12 +27,12 @@ void LruCache::cleanup()
         t.now();
 
         while ((it = m_end) != m_datas.end() && t.diff(it->second.insert) > m_timeout)
-            remove(it);
+            expire(it);
     }
 
     if (m_size > 0) {
         while ((int32_t)m_datas.size() > m_size)
-            remove(m_end_lru);
+            expire(m_end_lru);
     }
 }
 

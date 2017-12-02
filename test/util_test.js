@@ -1260,6 +1260,15 @@ describe('util', () => {
         });
 
         it("size", () => {
+            c = new util.LruCache(3);
+            var vs = [],
+                ks = [];
+
+            c.onexpire = evt => {
+                ks.push(evt.key);
+                vs.push(evt.value);
+            };
+
             assert.equal(c.size, 0);
 
             c.set('a', 100);
@@ -1271,6 +1280,9 @@ describe('util', () => {
             c.set('e', 400);
 
             assert.equal(c.size, 3);
+            coroutine.sleep(1);
+            assert.deepEqual(ks, ['a', 'b']);
+            assert.deepEqual(vs, [100, 100]);
 
             deepEqual(c.toJSON(), {
                 "e": 400,
