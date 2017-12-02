@@ -102,12 +102,12 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
         if (find != m_datas.end())
             break;
 
-        if (updater.IsEmpty())
-            return 0;
-
         std::map<exlib::string, obj_ptr<Event_base>>::iterator padding;
         padding = m_paddings.find(sname);
         if (padding == m_paddings.end()) {
+            if (updater.IsEmpty())
+                return 0;
+
             e = new Event();
             padding = m_paddings.insert(std::pair<exlib::string, obj_ptr<Event_base>>(sname, e)).first;
             v8::Local<v8::Value> v = updater->Call(o, 1, &a);

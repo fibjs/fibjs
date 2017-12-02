@@ -29,6 +29,8 @@ public:
         m_checkTime.now();
     }
 
+    FIBER_FREE();
+
 public:
     // object_base
     virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
