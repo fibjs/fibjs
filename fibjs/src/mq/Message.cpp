@@ -172,9 +172,6 @@ result_t Message::end()
 result_t Message::isEnded(bool& retVal)
 {
     retVal = m_end;
-    if (!m_end && m_response)
-        m_response->isEnded(retVal);
-
     return 0;
 }
 
@@ -184,9 +181,6 @@ result_t Message::clear()
     m_params.Release();
     m_value.clear();
     m_body.Release();
-
-    if (m_response)
-        m_response->clear();
 
     return 0;
 }
@@ -204,18 +198,6 @@ result_t Message::readFrom(Stream_base* stm, AsyncEvent* ac)
 result_t Message::get_stream(obj_ptr<Stream_base>& retVal)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
-}
-
-result_t Message::get_response(obj_ptr<Message_base>& retVal)
-{
-    if (m_bRep)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (!m_response)
-        m_response = new Message(true);
-
-    retVal = m_response;
-    return 0;
 }
 
 result_t Message::get_lastError(exlib::string& retVal)

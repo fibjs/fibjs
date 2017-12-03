@@ -42,11 +42,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             , m_httpreq(req)
             , m_compress(false)
         {
-            obj_ptr<Message_base> rep;
-
-            m_httpreq->get_response(rep);
-            m_httprep = (HttpResponse_base*)(Message_base*)rep;
-
+            m_httpreq->get_response(m_httprep);
             m_httpreq->get_stream(m_stm);
 
             set(handshake);

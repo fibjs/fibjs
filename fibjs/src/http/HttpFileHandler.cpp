@@ -155,9 +155,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             , m_index(false)
             , m_dirPos(0)
         {
-            obj_ptr<Message_base> m;
-            req->get_response(m);
-            m_rep = (HttpResponse_base*)(Message_base*)m;
+            req->get_response(m_rep);
 
             Variant hdr;
 

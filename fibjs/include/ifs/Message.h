@@ -52,7 +52,6 @@ public:
     virtual result_t sendTo(Stream_base* stm, AsyncEvent* ac) = 0;
     virtual result_t readFrom(Stream_base* stm, AsyncEvent* ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
-    virtual result_t get_response(obj_ptr<Message_base>& retVal) = 0;
     virtual result_t get_lastError(exlib::string& retVal) = 0;
     virtual result_t set_lastError(exlib::string newVal) = 0;
 
@@ -81,7 +80,6 @@ public:
     static void s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_response(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_lastError(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_lastError(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 
@@ -126,7 +124,6 @@ inline ClassInfo& Message_base::class_info()
         { "body", s_get_body, s_set_body, false },
         { "length", s_get_length, block_set, false },
         { "stream", s_get_stream, block_set, false },
-        { "response", s_get_response, block_set, false },
         { "lastError", s_get_lastError, s_set_lastError, false }
     };
 
@@ -448,19 +445,6 @@ inline void Message_base::s_get_stream(v8::Local<v8::String> property, const v8:
     PROPERTY_ENTER();
 
     hr = pInst->get_stream(vr);
-
-    METHOD_RETURN();
-}
-
-inline void Message_base::s_get_response(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Message_base> vr;
-
-    METHOD_NAME("Message.response");
-    METHOD_INSTANCE(Message_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_response(vr);
 
     METHOD_RETURN();
 }

@@ -36,7 +36,6 @@ public:
     virtual result_t sendTo(Stream_base* stm, AsyncEvent* ac);
     virtual result_t readFrom(Stream_base* stm, AsyncEvent* ac);
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
-    virtual result_t get_response(obj_ptr<Message_base>& retVal);
     virtual result_t get_lastError(exlib::string& retVal);
     virtual result_t set_lastError(exlib::string newVal);
 
@@ -53,9 +52,6 @@ public:
     {
         return m_body;
     }
-
-public:
-    obj_ptr<Message_base> m_response;
 
 private:
     int32_t m_type;

@@ -18,6 +18,7 @@
 namespace fibjs {
 
 class HttpMessage_base;
+class HttpResponse_base;
 class HttpCollection_base;
 
 class HttpRequest_base : public HttpMessage_base {
@@ -26,6 +27,7 @@ class HttpRequest_base : public HttpMessage_base {
 public:
     // HttpRequest_base
     static result_t _new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t get_response(obj_ptr<HttpResponse_base>& retVal) = 0;
     virtual result_t get_method(exlib::string& retVal) = 0;
     virtual result_t set_method(exlib::string newVal) = 0;
     virtual result_t get_address(exlib::string& retVal) = 0;
@@ -42,6 +44,7 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_response(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_method(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_method(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_address(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -54,12 +57,14 @@ public:
 };
 }
 
+#include "HttpResponse.h"
 #include "HttpCollection.h"
 
 namespace fibjs {
 inline ClassInfo& HttpRequest_base::class_info()
 {
     static ClassData::ClassProperty s_property[] = {
+        { "response", s_get_response, block_set, false },
         { "method", s_get_method, s_set_method, false },
         { "address", s_get_address, s_set_address, false },
         { "queryString", s_get_queryString, s_set_queryString, false },
@@ -97,6 +102,19 @@ void HttpRequest_base::__new(const T& args)
     hr = _new(vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline void HttpRequest_base::s_get_response(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpResponse_base> vr;
+
+    METHOD_NAME("HttpRequest.response");
+    METHOD_INSTANCE(HttpRequest_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_response(vr);
+
+    METHOD_RETURN();
 }
 
 inline void HttpRequest_base::s_get_method(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)

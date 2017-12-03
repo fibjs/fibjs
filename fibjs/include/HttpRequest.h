@@ -46,7 +46,6 @@ public:
     virtual result_t sendTo(Stream_base* stm, AsyncEvent* ac);
     virtual result_t readFrom(Stream_base* stm, AsyncEvent* ac);
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
-    virtual result_t get_response(obj_ptr<Message_base>& retVal);
     virtual result_t get_lastError(exlib::string& retVal);
     virtual result_t set_lastError(exlib::string newVal);
 
@@ -75,6 +74,7 @@ public:
 
 public:
     // HttpRequest_base
+    virtual result_t get_response(obj_ptr<HttpResponse_base>& retVal);
     virtual result_t get_method(exlib::string& retVal);
     virtual result_t set_method(exlib::string newVal);
     virtual result_t get_address(exlib::string& retVal);
@@ -106,6 +106,7 @@ public:
     }
 
 private:
+    obj_ptr<HttpResponse_base> m_response;
     obj_ptr<HttpMessage> m_message;
     exlib::string m_method;
     exlib::string m_address;

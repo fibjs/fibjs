@@ -97,11 +97,6 @@ result_t WorkerMessage::get_stream(obj_ptr<Stream_base>& retVal)
     return m_message->get_stream(retVal);
 }
 
-result_t WorkerMessage::get_response(obj_ptr<Message_base>& retVal)
-{
-    return m_message->get_response(retVal);
-}
-
 result_t WorkerMessage::get_type(int32_t& retVal)
 {
     return m_message->get_type(retVal);

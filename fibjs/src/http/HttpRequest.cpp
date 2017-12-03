@@ -206,11 +206,20 @@ result_t HttpRequest::end()
 
 result_t HttpRequest::isEnded(bool& retVal)
 {
+    if (m_response) {
+        m_response->isEnded(retVal);
+        if (retVal)
+            return 0;
+    }
+
     return m_message->isEnded(retVal);
 }
 
 result_t HttpRequest::clear()
 {
+    if (m_response)
+        m_response->clear();
+
     m_message->clear();
 
     m_method.assign("GET", 3);
@@ -371,12 +380,13 @@ result_t HttpRequest::set_queryString(exlib::string newVal)
     return 0;
 }
 
-result_t HttpRequest::get_response(obj_ptr<Message_base>& retVal)
+result_t HttpRequest::get_response(obj_ptr<HttpResponse_base>& retVal)
 {
-    if (!m_message->m_response)
-        m_message->m_response = new HttpResponse();
+    if (!m_response)
+        m_response = new HttpResponse();
 
-    return m_message->get_response(retVal);
+    retVal = m_response;
+    return 0;
 }
 
 result_t HttpRequest::get_cookies(obj_ptr<HttpCollection_base>& retVal)

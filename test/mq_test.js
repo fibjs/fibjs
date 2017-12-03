@@ -673,7 +673,7 @@ describe("mq", () => {
                 }
             ]);
 
-            var req = new mq.Message();
+            var req = new http.Request();
             mq.invoke(handler1, req);
             assert.equal(2, n);
         });

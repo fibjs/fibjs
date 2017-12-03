@@ -566,11 +566,6 @@ result_t WebSocketMessage::get_stream(obj_ptr<Stream_base>& retVal)
     return 0;
 }
 
-result_t WebSocketMessage::get_response(obj_ptr<Message_base>& retVal)
-{
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
-}
-
 result_t WebSocketMessage::get_type(int32_t& retVal)
 {
     return m_message->get_type(retVal);

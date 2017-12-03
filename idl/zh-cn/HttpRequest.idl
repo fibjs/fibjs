@@ -5,6 +5,9 @@ interface HttpRequest : HttpMessage
     /*! @brief HttpRequest 构造函数，创建一个新的 HttpRequest 对象 */
     HttpRequest();
 
+    /*! @brief 获取响应消息对象*/
+    readonly HttpResponse response;
+
     /*! @brief 查询和设置请求方法 */
     String method;
 
