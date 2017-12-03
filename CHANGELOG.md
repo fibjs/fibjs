@@ -1,3 +1,62 @@
+## 2017-12-03, Version v0.20.0
+* **feature** :
+    * constants - support constants module.(xicilion)
+    * coroutine - hold the process while at least one worker is working.(xicilion)
+    * crypto - PKey constructor support parameters.(xicilion)
+    * db:
+      - support multi level array in db.format.(xicilion)
+      - enable chinese fulltext search in SQLite.(xicilion)
+    * event - support any type of custom field in EventInfo.(xicilion)
+    * LruCache - support expire event.(xicilion)
+    * mbedtls - upgrade to v2.6.1.(xicilion)
+    * sandbox - support exports in main script.(xicilion)
+    * test - add LruCache lock test.(xicilion)
+    * tool - upgrade awesome sync tool.(xicilion)
+    * v8:
+      - update vender version.(xicilion)
+      - upgrade v8 to v6.4.365.(xicilion)
+      - upgrade to v6.4.309.(xicilion)
+    * websocket - hold the process while websocket is not disconnected.(xicilion)
+
+* **bugfix** :
+    * core:
+      - fix compile waring on windows.(xicilion)
+      - fix compile error on windows.(xicilion)
+    * LruCache - object locked in updater callback.(xicilion)
+    * v8 - disable parallel_marking, fix crash in snapshot creator.(xicilion)
+
+* **refactor** :
+    * core:
+      - uniform the two constructor of AsyncCallback.(xicilion)
+      - support ref/unref in isolate, refactor the logic of holding process.(xicilion)
+      - format JavaScript code.(xicilion)
+    * mq - move Message.response to HttpRequest.response.(xicilion)
+
+### Commits
+* [[`a9a78dd7a6`](https://github.com/fibjs/fibjs/commit/a9a78dd7a6)] - **mq, refactor**: move Message.response to HttpRequest.response.(xicilion)
+* [[`46dd85fec2`](https://github.com/fibjs/fibjs/commit/46dd85fec2)] - **LruCache, feat**: support expire event.(xicilion)
+* [[`205cef37b7`](https://github.com/fibjs/fibjs/commit/205cef37b7)] - **event, feat**: support any type of custom field in EventInfo.(xicilion)
+* [[`f2b6e1fe05`](https://github.com/fibjs/fibjs/commit/f2b6e1fe05)] - **test, feat**: add LruCache lock test.(xicilion)
+* [[`8376932226`](https://github.com/fibjs/fibjs/commit/8376932226)] - **LruCache, bugfix**: object locked in updater callback.(xicilion)
+* [[`66a518641b`](https://github.com/fibjs/fibjs/commit/66a518641b)] - **mbedtls, feat**: upgrade to v2.6.1.(xicilion)
+* [[`d59b73839f`](https://github.com/fibjs/fibjs/commit/d59b73839f)] - **tool, feat**: upgrade awesome sync tool.(xicilion)
+* [[`ac25be15bd`](https://github.com/fibjs/fibjs/commit/ac25be15bd)] - **core, bugfix**: fix compile waring on windows.(xicilion)
+* [[`f6caafc9d4`](https://github.com/fibjs/fibjs/commit/f6caafc9d4)] - **core, bugfix**: fix compile error on windows.(xicilion)
+* [[`5ac83f7b29`](https://github.com/fibjs/fibjs/commit/5ac83f7b29)] - **db, feat**: support multi level array in db.format.(xicilion)
+* [[`e20a32ea10`](https://github.com/fibjs/fibjs/commit/e20a32ea10)] - **coroutine, feat**: hold the process while at least one worker is working.(xicilion)
+* [[`38bdf89608`](https://github.com/fibjs/fibjs/commit/38bdf89608)] - **websocket, feat**: hold the process while websocket is not disconnected.(xicilion)
+* [[`c73b24caaf`](https://github.com/fibjs/fibjs/commit/c73b24caaf)] - **core, refactor**: uniform the two constructor of AsyncCallback.(xicilion)
+* [[`ff75686678`](https://github.com/fibjs/fibjs/commit/ff75686678)] - **core, refactor**: support ref/unref in isolate, refactor the logic of holding process.(xicilion)
+* [[`b617bb877a`](https://github.com/fibjs/fibjs/commit/b617bb877a)] - **sandbox, feat**: support exports in main script.(xicilion)
+* [[`9a240973b8`](https://github.com/fibjs/fibjs/commit/9a240973b8)] - **db, feat**: enable chinese fulltext search in SQLite.(xicilion)
+* [[`7886dc4bac`](https://github.com/fibjs/fibjs/commit/7886dc4bac)] - **v8, bugfix**: disable parallel_marking, fix crash in snapshot creator.(xicilion)
+* [[`62ca518a70`](https://github.com/fibjs/fibjs/commit/62ca518a70)] - **v8, feat**: update vender version.(xicilion)
+* [[`aa2d8bbe86`](https://github.com/fibjs/fibjs/commit/aa2d8bbe86)] - **v8, feat**: upgrade v8 to v6.4.365.(xicilion)
+* [[`8f0bc1f271`](https://github.com/fibjs/fibjs/commit/8f0bc1f271)] - **core, refactor**: format JavaScript code.(xicilion)
+* [[`3f895d267b`](https://github.com/fibjs/fibjs/commit/3f895d267b)] - **v8, feat**: upgrade to v6.4.309.(xicilion)
+* [[`076830eaa1`](https://github.com/fibjs/fibjs/commit/076830eaa1)] - **crypto, feat**: PKey constructor support parameters.(xicilion)
+* [[`575deddaac`](https://github.com/fibjs/fibjs/commit/575deddaac)] - **constants, feat**: support constants module.(xicilion)
+
 ## 2017-11-15, Version v0.19.0
 * **feature** :
     * build - update task.json to version 2.0.(xicilion)
