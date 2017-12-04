@@ -115,7 +115,7 @@ v8::Local<v8::Value> ThrowResult(result_t hr)
     return isolate->m_isolate->ThrowException(e);
 }
 
-exlib::string GetException(TryCatch& try_catch, result_t hr)
+exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
 {
     Isolate* isolate = Isolate::current();
     v8::HandleScope handle_scope(isolate->m_isolate);
@@ -176,7 +176,11 @@ exlib::string GetException(TryCatch& try_catch, result_t hr)
             v8::Local<v8::Value> message;
             v8::Local<v8::Value> name;
 
-            if (err->IsObject()) {
+            if (repl) {
+                strError.append("Thrown: ");
+            }
+
+            if (!repl && err->IsObject()) {
                 message = err_obj->Get(isolate->NewString("message"));
                 name = err_obj->Get(isolate->NewString("name"));
             }
@@ -216,10 +220,10 @@ result_t throwSyntaxError(TryCatch& try_catch)
     return CALL_E_JAVASCRIPT;
 }
 
-void ReportException(TryCatch& try_catch, result_t hr)
+void ReportException(TryCatch& try_catch, result_t hr, bool repl)
 {
     if (try_catch.HasCaught() || hr < 0)
-        errorLog(GetException(try_catch, hr));
+        errorLog(GetException(try_catch, hr, repl));
 }
 
 result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)

@@ -1145,8 +1145,8 @@ inline result_t SocketError()
 
 exlib::string getResultMessage(result_t hr);
 v8::Local<v8::Value> ThrowResult(result_t hr);
-void ReportException(TryCatch& try_catch, result_t hr);
-exlib::string GetException(TryCatch& try_catch, result_t hr);
+void ReportException(TryCatch& try_catch, result_t hr, bool repl = false);
+exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl = false);
 result_t throwSyntaxError(TryCatch& try_catch);
 
 #ifdef _WIN32
