@@ -186,6 +186,18 @@ describe("db", () => {
                     assert.equal(rs[0].t2, "test101.2");
                 });
 
+                it("auto commit with fiber", () => {
+                    conn.trans(function () {
+                        assert.equal(this, conn);
+                        coroutine.parallel(() => {
+                            this.execute("update test set t2='test101.2.1' where t1=101");
+                        });
+                    });
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.2.1");
+                });
+
                 it("auto rollback", () => {
                     conn.trans(function () {
                         this.execute("update test set t2='test101.3' where t1=101");
@@ -193,7 +205,7 @@ describe("db", () => {
                     });
 
                     var rs = conn.execute("select * from test where t1=101");
-                    assert.equal(rs[0].t2, "test101.2");
+                    assert.equal(rs[0].t2, "test101.2.1");
                 });
 
                 it("rollback when throw", () => {
@@ -205,7 +217,7 @@ describe("db", () => {
                     });
 
                     var rs = conn.execute("select * from test where t1=101");
-                    assert.equal(rs[0].t2, "test101.2");
+                    assert.equal(rs[0].t2, "test101.2.1");
                 });
             });
         });
