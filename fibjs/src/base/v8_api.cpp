@@ -7,6 +7,7 @@
 
 #ifdef _WIN32
 #pragma warning(disable : 4800)
+#pragma warning(disable : 4101)
 #endif
 
 #include "v8.h"
