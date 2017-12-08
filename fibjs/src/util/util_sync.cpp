@@ -108,18 +108,31 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
     if (result.IsEmpty())
         return;
 
-    if (!result->IsPromise()) {
+    v8::Local<v8::Function> _then;
+    v8::Local<v8::Function> _catch;
+    v8::Local<v8::Value> v;
+
+    if (result->IsObject()) {
+        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(result);
+
+        v = o->Get(isolate->NewString("then"));
+        if (v->IsFunction())
+            _then = v8::Local<v8::Function>::Cast(v);
+
+        v = o->Get(isolate->NewString("catch"));
+        if (v->IsFunction())
+            _catch = v8::Local<v8::Function>::Cast(v);
+    }
+
+    if (_then.IsEmpty() || _catch.IsEmpty()) {
         ThrowError("not async function.");
         return;
     }
 
-    v8::Local<v8::Promise> p = v8::Local<v8::Promise>::Cast(result);
-    v8::Local<v8::Context> _context = p->CreationContext();
-
-    p->Then(_context, isolate->NewFunction("promise_then", promise_then, args[len - 1]))
-        .ToLocalChecked();
-    p->Catch(_context, isolate->NewFunction("promise_catch", promise_catch, args[len - 1]))
-        .ToLocalChecked();
+    v = isolate->NewFunction("promise_then", promise_then, args[len - 1]);
+    _then->Call(result, 1, &v);
+    v = isolate->NewFunction("promise_catch", promise_catch, args[len - 1]);
+    _catch->Call(result, 1, &v);
 }
 
 result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Local<v8::Function>& retVal)

@@ -1180,6 +1180,42 @@ describe('util', () => {
             assert.equal(t1, 300);
         });
 
+        it('custom promise', () => {
+            class SimplePromise {
+                constructor(fn) {
+                    this.callbacks = [];
+                    this.failbacks = [];
+
+                    setImmediate(() => {
+                        fn(this.resolve.bind(this), this.reject.bind(this));
+                    });
+                }
+                resolve(res) {
+                    if (this.callbacks.length > 0) this.callbacks.shift()(res, this.resolve.bind(this), this.reject.bind(this));
+                }
+                reject(res) {
+                    this.callbacks = [];
+                    if (this.failbacks.length > 0) this.failbacks.shift()(res, this.resolve.bind(this), this.reject.bind(this));
+                }
+                catch (fn) {
+                    this.failbacks.push(fn);
+                }
+                then(fn) {
+                    this.callbacks.push(fn);
+                    return this;
+                }
+            };
+
+            function async_test(a, b) {
+                return new SimplePromise(function (resolve, reject) {
+                    resolve(a + b);
+                });
+            }
+
+            var t1 = util.sync(async_test, true)(100, 200);
+            assert.equal(t1, 300);
+        });
+
         it("err func", () => {
             function async_test(a, b) {
                 return 100;
