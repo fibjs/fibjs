@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include "ifs/dns.h"
 #include "ifs/ssl.h"
 #include "ifs/os.h"
 #include "Socket.h"
@@ -18,6 +19,36 @@
 #endif
 
 namespace fibjs {
+
+DECLARE_MODULE(dns);
+
+result_t dns_base::resolve(exlib::string name, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
+    addrinfo* result = NULL;
+    addrinfo* ptr = NULL;
+
+    if (getaddrinfo(name.c_str(), NULL, &hints, &result))
+        return CHECK_ERROR(SocketError());
+
+    obj_ptr<NArray> arr = new NArray();
+    for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
+        inetAddr addr_info;
+        addr_info.init(addr_info.addr4.sin_family);
+
+        memcpy(&addr_info, ptr->ai_addr, addr_info.size());
+        arr->append(addr_info.str());
+    }
+
+    freeaddrinfo(result);
+
+    retVal = arr;
+
+    return 0;
+}
 
 DECLARE_MODULE(net);
 
