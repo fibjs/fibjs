@@ -188,6 +188,12 @@ describe("module", () => {
     it("support exports in script", () => {
         run('./module/exec18');
     });
+
+    it("support embed script module", () => {
+        var s = require('stream');
+        var s1 = require('stream.js');
+        assert.equal(s, s1);
+    });
 });
 
 repl && test.run(console.DEBUG);

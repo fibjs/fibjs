@@ -61,13 +61,14 @@ void options(int32_t& pos, char* argv[])
     int32_t argc = pos;
     int32_t i;
 
-    for (pos = 1; (pos < argc) && (argv[pos][0] == '-'); pos++) {
-        for (i = 0; opt_tools[i] && qstrcmp(opt_tools[i], argv[pos]); i += 2)
-            ;
+    for (pos = 1; (pos < argc) && (argv[pos][0] == '-'); pos++)
+        if (argv[pos][1] == '-') {
+            for (i = 0; opt_tools[i] && qstrcmp(opt_tools[i], argv[pos] + 2); i += 2)
+                ;
 
-        if (opt_tools[i])
-            break;
-    }
+            if (opt_tools[i])
+                break;
+        }
 
     argc = pos;
     int32_t df = 0;

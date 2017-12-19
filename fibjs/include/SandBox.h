@@ -212,6 +212,7 @@ public:
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;
     bool m_global;
+    bool m_init;
 };
 
 } /* namespace fibjs */

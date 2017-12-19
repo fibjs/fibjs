@@ -220,13 +220,42 @@ result_t SandBox::resolveId(exlib::string& id, obj_ptr<Buffer_base>& data,
     return CALL_E_FILE_NOT_FOUND;
 }
 
+extern const char* opt_tools[];
+
 result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Value>& retVal)
 {
     result_t hr;
     exlib::string fname;
+    int32_t i;
 
     if (!base.empty()) {
+        if (m_init) {
+            fname = id;
+
+            if (fname.substr(fname.length() - 3) == ".js")
+                fname.resize(fname.length() - 3);
+
+#ifdef _WIN32
+            {
+                exlib::string fname1 = fname;
+                int32_t sz = (int32_t)fname1.length();
+                const char* buf = fname1.c_str();
+                for (int32_t i = 0; i < sz; i++)
+                    if (buf[i] == PATH_SLASH)
+                        fname[i] = '/';
+            }
+#endif
+
+            for (i = 0; opt_tools[i] && qstrcmp(opt_tools[i], fname.c_str()); i += 2)
+                ;
+
+            if (opt_tools[i]) {
+                data = new Buffer(opt_tools[i + 1]);
+                return 0;
+            }
+        }
+
         if (isPathSlash(base[base.length() - 1]))
             base.resize(base.length() - 1);
         fname = base;
