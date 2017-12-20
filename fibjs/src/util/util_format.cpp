@@ -96,6 +96,12 @@ exlib::string json_format(v8::Local<v8::Value> obj)
             do {
                 v8::Local<v8::Object> obj = v->ToObject();
 
+                if (obj->IsNativeError()) {
+                    v8::String::Utf8Value msg(obj);
+                    strBuffer.append(*msg);
+                    break;
+                }
+
                 obj_ptr<Buffer_base> buf = Buffer_base::getInstance(v);
                 if (buf) {
                     static char hexs[] = "0123456789abcdef";
