@@ -117,6 +117,11 @@ void beginCoverage(v8::Isolate* isolate)
     v8::debug::Coverage::SelectMode(isolate, v8::debug::Coverage::kBlockCount);
 }
 
+void pauseCoverage(v8::Isolate* isolate)
+{
+    v8::debug::Coverage::SelectMode(isolate, v8::debug::Coverage::kBestEffort);
+}
+
 inline std::string ToSTLString(v8::Isolate* isolate, v8::Local<v8::String> v8_str)
 {
     v8::String::Utf8Value utf8(isolate, v8_str);

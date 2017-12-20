@@ -14,6 +14,8 @@
 #include "ifs/Buffer.h"
 #include "ifs/EventEmitter.h"
 #include "loaders/loaders.h"
+#include "v8_api.h"
+#include "options.h"
 
 namespace fibjs {
 
@@ -113,6 +115,9 @@ void SandBox::initRoot()
 
     Isolate* isolate = holder();
 
+    if (g_cov && isolate->m_id == 1)
+        pauseCoverage(isolate->m_isolate);
+
     RootModule* pModule = RootModule::g_root;
 
     while (pModule) {
@@ -130,6 +135,9 @@ void SandBox::initRoot()
     run_module("stream.js", "/", m);
 
     m_init = false;
+
+    if (g_cov && isolate->m_id == 1)
+        beginCoverage(isolate->m_isolate);
 }
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
