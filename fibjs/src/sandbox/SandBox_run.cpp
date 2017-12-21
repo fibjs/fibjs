@@ -21,8 +21,10 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
 
     if (fname[0] == '-' && fname[1] == '-') {
         int32_t i;
+        exlib::string tmp("opt_tools/");
+        tmp += fname.c_str() + 2;
 
-        for (i = 0; opt_tools[i] && qstrcmp(opt_tools[i], fname.c_str() + 2); i += 2)
+        for (i = 0; opt_tools[i] && qstrcmp(opt_tools[i], tmp.c_str()); i += 2)
             ;
         bin = new Buffer(opt_tools[i + 1]);
     } else {

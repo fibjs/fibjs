@@ -63,7 +63,10 @@ void options(int32_t& pos, char* argv[])
 
     for (pos = 1; (pos < argc) && (argv[pos][0] == '-'); pos++)
         if (argv[pos][1] == '-') {
-            for (i = 0; opt_tools[i] && qstrcmp(opt_tools[i], argv[pos] + 2); i += 2)
+            exlib::string tmp("opt_tools/");
+            tmp += argv[pos] + 2;
+
+            for (i = 0; opt_tools[i] && qstrcmp(opt_tools[i], tmp.c_str()); i += 2)
                 ;
 
             if (opt_tools[i])
