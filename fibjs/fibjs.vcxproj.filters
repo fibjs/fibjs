@@ -726,6 +726,9 @@
     <ClInclude Include="include\ifs\db.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\dns.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\encoding.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -884,9 +887,6 @@
     </ClInclude>
     <ClInclude Include="src\gui\windows\WebView.h">
       <Filter>Source Files\gui\windows</Filter>
-    </ClInclude>
-    <ClInclude Include="src\process\process_hrtime.h">
-      <Filter>Source Files\process</Filter>
     </ClInclude>
     <ClInclude Include="src\sandbox\loaders\loaders.h">
       <Filter>Source Files\sandbox\loaders</Filter>

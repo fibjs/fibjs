@@ -296,6 +296,7 @@
     <ClInclude Include="include\ifs\coroutine.h" />
     <ClInclude Include="include\ifs\crypto.h" />
     <ClInclude Include="include\ifs\db.h" />
+    <ClInclude Include="include\ifs\dns.h" />
     <ClInclude Include="include\ifs\encoding.h" />
     <ClInclude Include="include\ifs\fs.h" />
     <ClInclude Include="include\ifs\gd.h" />
@@ -349,7 +350,6 @@
     <ClInclude Include="include\version.h" />
     <ClInclude Include="src\db\sql\trans.h" />
     <ClInclude Include="src\gui\windows\WebView.h" />
-    <ClInclude Include="src\process\process_hrtime.h" />
     <ClInclude Include="src\sandbox\loaders\loaders.h" />
   </ItemGroup>
   <ItemGroup>

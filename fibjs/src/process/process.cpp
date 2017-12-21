@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "version.h"
+#include "exlib/include/hrtime.h"
 #include "ifs/process.h"
 #include "ifs/os.h"
 #include "ifs/global.h"
@@ -17,7 +18,6 @@
 #include "BufferedStream.h"
 #include "SubProcess.h"
 #include <vector>
-#include "process_hrtime.h"
 #include "options.h"
 #include "v8_api.h"
 
@@ -163,7 +163,7 @@ result_t process_base::umask(int32_t& retVal)
 
 result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& retVal)
 {
-    uint64_t t = _hrtime();
+    uint64_t t = exlib::_hrtime();
 
     if (diff->Length() == 2) {
         uint64_t seconds = diff->Get(0)->Uint32Value();
