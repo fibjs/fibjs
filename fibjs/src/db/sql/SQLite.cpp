@@ -74,7 +74,6 @@ static void hook_fts5_api(sqlite3* db)
 {
     fts5_api* pApi = 0;
     sqlite3_stmt* pStmt = 0;
-    void* pUserdata = 0;
 
     if (SQLITE_OK == sqlite3_prepare(db, "SELECT fts5(?)", -1, &pStmt, 0)) {
         sqlite3_bind_pointer(pStmt, 1, (void*)&pApi, "fts5_api_ptr", NULL);

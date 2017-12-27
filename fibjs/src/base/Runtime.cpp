@@ -219,11 +219,12 @@ static result_t syncExit(Isolate* isolate)
     bool r;
 
     t._emit("beforeExit", &code, 1, r);
-    if (s_iso_ref == 1)
+    if (s_iso_ref == 1) {
         if (isolate->m_hr == 0)
             process_base::exit();
         else
             process_base::exit(isolate->m_hr);
+    }
 
     return 0;
 }

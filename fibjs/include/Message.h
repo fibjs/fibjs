@@ -40,9 +40,8 @@ public:
     virtual result_t set_lastError(exlib::string newVal);
 
 public:
-    Message(bool bRep = false)
+    Message()
         : m_type(_BINARY)
-        , m_bRep(bRep)
         , m_end(false)
     {
     }
@@ -59,7 +58,6 @@ private:
     exlib::string m_value;
     obj_ptr<SeekableStream_base> m_body;
     exlib::string m_lastError;
-    bool m_bRep;
     bool m_end;
 };
 
