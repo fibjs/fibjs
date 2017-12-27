@@ -25,7 +25,6 @@ namespace fibjs {
 
 #define JSOBJECT_JSVALUE 1
 #define JSOBJECT_JSHANDLE 2
-#define JSOBJECT_JSREFFER 4
 
 class object_base : public obj_base {
 public:
@@ -40,8 +39,6 @@ public:
 
     virtual ~object_base()
     {
-        assert(!(m_isJSObject & JSOBJECT_JSREFFER));
-
         clear_handle();
         object_base::class_info().Unref();
     }
@@ -101,21 +98,6 @@ public:
     }
 
 private:
-    static void WeakCallback(const v8::WeakCallbackInfo<object_base>& data)
-    {
-        assert(!data.GetParameter()->handle_.IsEmpty());
-        object_base* pThis = data.GetParameter();
-
-        assert(pThis->m_isJSObject & JSOBJECT_JSREFFER);
-
-        pThis->handle_.ClearWeak();
-
-        pThis->m_isJSObject &= ~JSOBJECT_JSREFFER;
-        if (pThis->internalUnref() == 0)
-            delete pThis;
-    }
-
-private:
     Isolate* m_isolate;
     int32_t m_isJSObject;
 
@@ -142,10 +124,35 @@ public:
 
     void setJSObject()
     {
-        m_isJSObject |= 1;
+        m_isJSObject |= JSOBJECT_JSVALUE;
         holder();
 
         assert(m_isolate != 0);
+    }
+
+private:
+    void clear_handle()
+    {
+        if (m_isJSObject & JSOBJECT_JSHANDLE) {
+            m_isJSObject &= ~JSOBJECT_JSHANDLE;
+
+            Isolate* isolate = holder();
+            v8::Isolate* v8_isolate = isolate->m_isolate;
+
+            handle_.ClearWeak();
+            handle_.Reset();
+
+            v8_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
+
+            if (internalUnref() == 0)
+                delete this;
+        }
+    }
+
+    static void WeakCallback(const v8::WeakCallbackInfo<object_base>& data)
+    {
+        assert(!data.GetParameter()->handle_.IsEmpty());
+        data.GetParameter()->clear_handle();
     }
 
 public:
@@ -162,15 +169,12 @@ public:
 
             v8_isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
 
+            internalRef();
+            handle_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kParameter);
+
             m_isJSObject |= JSOBJECT_JSHANDLE;
         } else
             o = v8::Local<v8::Object>::New(v8_isolate, handle_);
-
-        if (!(m_isJSObject & JSOBJECT_JSREFFER)) {
-            m_isJSObject |= JSOBJECT_JSREFFER;
-            internalRef();
-            handle_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kFinalizer);
-        }
 
         return o;
     }
@@ -260,22 +264,6 @@ public:
     template <typename T>
     static void __new(const T& args) {}
 
-private:
-    void clear_handle()
-    {
-        if (m_isJSObject & JSOBJECT_JSHANDLE) {
-            m_isJSObject &= ~JSOBJECT_JSHANDLE;
-
-            Isolate* isolate = holder();
-            v8::Isolate* v8_isolate = isolate->m_isolate;
-
-            v8::Local<v8::Object>::New(v8_isolate, handle_)->SetAlignedPointerInInternalField(0, 0);
-            handle_.Reset();
-
-            v8_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
-        }
-    }
-
 public:
     v8::Local<v8::Value> GetPrivate(exlib::string key)
     {
@@ -307,20 +295,6 @@ public:
     }
 
 public:
-    // object_base
-    virtual result_t dispose()
-    {
-        clear_handle();
-
-        if (m_isJSObject & JSOBJECT_JSREFFER) {
-            m_isJSObject &= ~JSOBJECT_JSREFFER;
-            if (internalUnref() == 0)
-                delete this;
-        }
-
-        return 0;
-    }
-
     virtual result_t equals(object_base* expected, bool& retVal)
     {
         retVal = expected == this;
@@ -357,19 +331,21 @@ public:
 
     result_t unbind_dispose(obj_ptr<object_base>& retVal)
     {
-        dispose();
+        Isolate* isolate = holder();
+        v8::Isolate* v8_isolate = isolate->m_isolate;
 
-        Isolate* isolate = m_isolate;
+        if (m_isJSObject & JSOBJECT_JSHANDLE)
+            v8::Local<v8::Object>::New(v8_isolate, handle_)->SetAlignedPointerInInternalField(0, 0);
 
-        if (isolate) {
-            isolate->m_weakLock.lock();
+        clear_handle();
+
+        isolate->m_weakLock.lock();
 #ifdef DEBUG
-            if (m_weak.m_inlist)
+        if (m_weak.m_inlist)
 #endif
-                isolate->m_weak.remove(&m_weak);
-            isolate->m_weakLock.unlock();
-            m_isolate = NULL;
-        }
+            isolate->m_weak.remove(&m_weak);
+        isolate->m_weakLock.unlock();
+        m_isolate = NULL;
 
         retVal = this;
 
