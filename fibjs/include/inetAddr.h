@@ -42,6 +42,14 @@ union inetAddr {
             addr6.sin6_family = PF_INET6;
     }
 
+    void init(sockaddr* addr)
+    {
+        if (addr->sa_family == PF_INET)
+            memmove(this, addr, sizeof(addr4));
+        else
+            memmove(this, addr, sizeof(addr6));
+    }
+
     void setPort(int32_t port)
     {
         addr4.sin_port = htons(port);

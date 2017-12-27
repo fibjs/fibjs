@@ -37,9 +37,7 @@ result_t dns_base::resolve(exlib::string name, obj_ptr<NArray>& retVal, AsyncEve
     obj_ptr<NArray> arr = new NArray();
     for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
         inetAddr addr_info;
-        addr_info.init(addr_info.addr4.sin_family);
-
-        memcpy(&addr_info, ptr->ai_addr, addr_info.size());
+        addr_info.init(ptr->ai_addr);
         arr->append(addr_info.str());
     }
 
