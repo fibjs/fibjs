@@ -572,7 +572,7 @@ result_t Buffer::copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t so
     int32_t sourceLen = sourceEnd - sourceStart;
     int32_t sz = MIN(MIN(sourceLen, targetSz), sourceSz);
 
-    memcpy(&buf->m_data[targetStart], m_data.c_str() + sourceStart, sz);
+    memmove(&buf->m_data[targetStart], m_data.c_str() + sourceStart, sz);
 
     retVal = sz;
 
