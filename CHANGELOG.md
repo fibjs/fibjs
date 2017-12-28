@@ -1,3 +1,66 @@
+## 2017-12-28, Version v0.21.0
+* **feature** :
+    * core - disable code coverage for embed script module.(xicilion)
+    * coroutine - use hrtime to implement sleep.(xicilion)
+    * crypto - update root ca.(xicilion)
+    * dns - add module dns, support dns.resolve.(xicilion)
+    * expat - upgrade to v2.2.5(xicilion)
+    * git - commit .jsc file as binary file.(xicilion)
+    * repl - add 'Thown:' prefix in repl (#385)(Hengfei Zhuang)
+    * stream - port script module stream from node.(xicilion)
+    * util:
+      - output Error object friendly.(xicilion)
+      - support custom Promise object in util.syn.(xicilion)
+    * v8:
+      - upgrade to v6.5.108.(xicilion)
+      - upgrade to v6.5.26.(xicilion)
+
+* **bugfix** :
+    * core:
+      - refactor object manager, fix runtime error in debug mode.(xicilion)
+      - fix compile waring in debug mode.(xicilion)
+    * db - deadlock when multi fiber access in db.trans.(xicilion)
+    * dns - fix ipv6 address error.(xicilion)
+    * exlib - fix sleep time error.(xicilion)
+    * test - compile new amd64 jsc test file.(xicilion)
+    * v8:
+      - fix compile error in debug mode on windows.(xicilion)
+      - fix compile warning on windows.(xicilion)
+
+* **refactor** :
+    * core - move opt_tools script to sub folder.(xicilion)
+    * mq - remove unused code.(xicilion)
+
+* **others** :
+    * change memcpy to memmove (#391)(zywww)
+    * Merge branch 'master' into dev(xicilion)
+
+### Commits
+* [[`2e6be70555`](https://github.com/fibjs/fibjs/commit/2e6be70555)] - **v8, bugfix**: fix compile error in debug mode on windows.(xicilion)
+* [[`2a1d13f2c4`](https://github.com/fibjs/fibjs/commit/2a1d13f2c4)] - **v8, feat**: upgrade to v6.5.108.(xicilion)
+* [[`19763e6253`](https://github.com/fibjs/fibjs/commit/19763e6253)] - **dns, bugfix**: fix ipv6 address error.(xicilion)
+* [[`02992c421b`](https://github.com/fibjs/fibjs/commit/02992c421b)] - **expat, feat**: upgrade to v2.2.5(xicilion)
+* [[`4523884506`](https://github.com/fibjs/fibjs/commit/4523884506)] - **core, bugfix**: refactor object manager, fix runtime error in debug mode.(xicilion)
+* [[`6de34423b4`](https://github.com/fibjs/fibjs/commit/6de34423b4)] - **mq, refactor**: remove unused code.(xicilion)
+* [[`5b071a3987`](https://github.com/fibjs/fibjs/commit/5b071a3987)] - change memcpy to memmove (#391)(zywww)
+* [[`5b694853b0`](https://github.com/fibjs/fibjs/commit/5b694853b0)] - **core, bugfix**: fix compile waring in debug mode.(xicilion)
+* [[`3a8ba731d7`](https://github.com/fibjs/fibjs/commit/3a8ba731d7)] - **test, bugfix**: compile new amd64 jsc test file.(xicilion)
+* [[`5d2d96baac`](https://github.com/fibjs/fibjs/commit/5d2d96baac)] - **git, feat**: commit .jsc file as binary file.(xicilion)
+* [[`1288a3d8ed`](https://github.com/fibjs/fibjs/commit/1288a3d8ed)] - **crypto, feat**: update root ca.(xicilion)
+* [[`97e25de6a3`](https://github.com/fibjs/fibjs/commit/97e25de6a3)] - **exlib, bugfix**: fix sleep time error.(xicilion)
+* [[`6a105104b4`](https://github.com/fibjs/fibjs/commit/6a105104b4)] - **core, refactor**: move opt_tools script to sub folder.(xicilion)
+* [[`4ded2bd6ca`](https://github.com/fibjs/fibjs/commit/4ded2bd6ca)] - **coroutine, feat**: use hrtime to implement sleep.(xicilion)
+* [[`9abe80fe9d`](https://github.com/fibjs/fibjs/commit/9abe80fe9d)] - **core, feat**: disable code coverage for embed script module.(xicilion)
+* [[`2e6e961dbb`](https://github.com/fibjs/fibjs/commit/2e6e961dbb)] - **util, feat**: output Error object friendly.(xicilion)
+* [[`52b984cb66`](https://github.com/fibjs/fibjs/commit/52b984cb66)] - **dns, feat**: add module dns, support dns.resolve.(xicilion)
+* [[`b85cc934d6`](https://github.com/fibjs/fibjs/commit/b85cc934d6)] - **stream, feat**: port script module stream from node.(xicilion)
+* [[`29f5cb6fe4`](https://github.com/fibjs/fibjs/commit/29f5cb6fe4)] - **util, feat**: support custom Promise object in util.syn.(xicilion)
+* [[`0c97518e05`](https://github.com/fibjs/fibjs/commit/0c97518e05)] - **v8, bugfix**: fix compile warning on windows.(xicilion)
+* [[`782bd434fe`](https://github.com/fibjs/fibjs/commit/782bd434fe)] - **v8, feat**: upgrade to v6.5.26.(xicilion)
+* [[`68a1cb5bc4`](https://github.com/fibjs/fibjs/commit/68a1cb5bc4)] - **db, bugfix**: deadlock when multi fiber access in db.trans.(xicilion)
+* [[`4394b5e029`](https://github.com/fibjs/fibjs/commit/4394b5e029)] - Merge branch 'master' into dev(xicilion)
+* [[`33f3c01fc4`](https://github.com/fibjs/fibjs/commit/33f3c01fc4)] - **repl, feat**: add 'Thown:' prefix in repl (#385)(Hengfei Zhuang)
+
 ## 2017-12-03, Version v0.20.0
 * **feature** :
     * constants - support constants module.(xicilion)
