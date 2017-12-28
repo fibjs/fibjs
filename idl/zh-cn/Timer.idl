@@ -1,7 +1,17 @@
 /*! @brief 定时器处理器对象 */
 interface Timer : object
 {
-    /*! @brief 取消当前定时器	 */
+    /*! @brief 维持 fibjs 进程不退出，在定时器等待期间阻止 fibjs 进程退出
+     @return 返回定时器对象
+    */
+    Timer ref();
+
+    /*! @brief 允许 fibjs 进程退出，在定时器等待期间允许 fibjs 进程退出
+     @return 返回定时器对象
+    */
+    Timer unref();
+
+    /*! @brief 取消当前定时器 */
     clear();
 
     /*! @brief 查询当前定时器是否已经终止 */

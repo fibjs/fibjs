@@ -22,16 +22,17 @@ public:
         bool repeat = false, bool hr = false)
         : Timer(timeout, repeat)
         , m_hr(hr)
-        , m_clear_pendding(false)
     {
         Isolate* isolate = holder();
+        obj_ptr<Timer_base> retVal;
 
         int32_t nArgCount = args.Length();
         m_argv.resize(nArgCount);
         for (int i = 0; i < nArgCount; i++)
             m_argv[i].Reset(isolate->m_isolate, args[i]);
 
-        isolate->Ref();
+        ref(retVal);
+
         m_callback.Reset(isolate->m_isolate, callback);
     }
 
@@ -49,6 +50,22 @@ public:
     static void _InterruptCallback(v8::Isolate* isolate, void* data)
     {
         _callback((JSTimer*)data);
+    }
+
+public:
+    // Timer_base
+    virtual result_t ref(obj_ptr<Timer_base>& retVal)
+    {
+        isolate_ref();
+        retVal = this;
+        return 0;
+    }
+
+    virtual result_t unref(obj_ptr<Timer_base>& retVal)
+    {
+        isolate_unref();
+        retVal = this;
+        return 0;
     }
 
 public:
@@ -78,17 +95,14 @@ public:
 
     virtual void on_clean()
     {
+        obj_ptr<Timer_base> retVal;
+
         m_callback.Reset();
-        if (!m_clear_pendding) {
-            Isolate* isolate = holder();
-            m_clear_pendding = true;
-            isolate->Unref();
-        }
+        unref(retVal);
     }
 
 private:
     bool m_hr;
-    bool m_clear_pendding;
     QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Function> m_callback;
 };

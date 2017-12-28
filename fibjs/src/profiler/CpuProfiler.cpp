@@ -69,7 +69,10 @@ result_t profiler_base::start(exlib::string fname, int32_t time, int32_t interva
     } else
         _data->Set(isolate->NewString("_time"), v8::Number::New(isolate->m_isolate, INFINITY));
 
-    return timers_base::setHrInterval(isolate->NewFunction("_cpu_profiler", cpu_profiler, _data),
-        interval, args, retVal);
+    obj_ptr<Timer_base> t;
+    timers_base::setHrInterval(isolate->NewFunction("_cpu_profiler", cpu_profiler, _data),
+        interval, args, t);
+
+    return t->unref(retVal);
 }
 }

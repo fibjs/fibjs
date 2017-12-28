@@ -33,6 +33,7 @@ public:
         , m_isJSObject(0)
         , m_nExtMemory(sizeof(object_base) * 2)
         , m_nExtMemoryDelay(0)
+        , m_holding(false)
     {
         object_base::class_info().Ref();
     }
@@ -252,6 +253,22 @@ public:
         }
     }
 
+    void isolate_ref()
+    {
+        if (!m_holding) {
+            m_holding = true;
+            holder()->Ref();
+        }
+    }
+
+    void isolate_unref()
+    {
+        if (m_holding) {
+            m_holding = false;
+            holder()->Unref();
+        }
+    }
+
 private:
     v8::Local<v8::Array> GetHiddenList(const char* k, bool create = false,
         bool autoDelete = false);
@@ -259,6 +276,7 @@ private:
 private:
     int32_t m_nExtMemory;
     int32_t m_nExtMemoryDelay;
+    bool m_holding;
 
 public:
     template <typename T>

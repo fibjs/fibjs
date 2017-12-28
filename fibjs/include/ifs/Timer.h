@@ -21,6 +21,8 @@ class Timer_base : public object_base {
 
 public:
     // Timer_base
+    virtual result_t ref(obj_ptr<Timer_base>& retVal) = 0;
+    virtual result_t unref(obj_ptr<Timer_base>& retVal) = 0;
     virtual result_t clear() = 0;
     virtual result_t get_stopped(bool& retVal) = 0;
 
@@ -36,6 +38,8 @@ public:
     }
 
 public:
+    static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_stopped(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
@@ -45,6 +49,8 @@ namespace fibjs {
 inline ClassInfo& Timer_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "ref", s_ref, false },
+        { "unref", s_unref, false },
         { "clear", s_clear, false }
     };
 
@@ -60,6 +66,36 @@ inline ClassInfo& Timer_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
+}
+
+inline void Timer_base::s_ref(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Timer_base> vr;
+
+    METHOD_NAME("Timer.ref");
+    METHOD_INSTANCE(Timer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->ref(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Timer_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Timer_base> vr;
+
+    METHOD_NAME("Timer.unref");
+    METHOD_INSTANCE(Timer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->unref(vr);
+
+    METHOD_RETURN();
 }
 
 inline void Timer_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)

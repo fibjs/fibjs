@@ -100,6 +100,18 @@ describe('process', () => {
             assert.equal(p.wait(), 9);
         });
 
+        it("setTimeout unref", () => {
+            var p = process.open(cmd, [path.join(__dirname, 'process', 'exec9.1.js')]);
+            assert.equal(p.readLine(), "301");
+            assert.equal(p.wait(), 0);
+        });
+
+        it("setTimeout ref", () => {
+            var p = process.open(cmd, [path.join(__dirname, 'process', 'exec9.2.js')]);
+            assert.equal(p.readLine(), "302");
+            assert.equal(p.wait(), 9);
+        });
+
         it("setInterval", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec10.js')]);
             assert.equal(p.readLine(), "400");

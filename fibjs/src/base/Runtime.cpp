@@ -250,7 +250,6 @@ void Isolate::start_profiler()
         obj_ptr<Timer_base> tm;
         sprintf(name, "fibjs-%08x.log", (uint32_t)(intptr_t)this);
         profiler_base::start(name, -1, g_prof_interval, tm);
-        Unref();
     }
 }
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate);

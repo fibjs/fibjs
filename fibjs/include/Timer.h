@@ -27,6 +27,16 @@ public:
 
 public:
     // Timer_base
+    virtual result_t ref(obj_ptr<Timer_base>& retVal)
+    {
+        return 0;
+    }
+
+    virtual result_t unref(obj_ptr<Timer_base>& retVal)
+    {
+        return 0;
+    }
+
     virtual result_t clear()
     {
         if (m_cancel.CompareAndSwap(0, 1) == 0)
