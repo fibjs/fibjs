@@ -75,8 +75,10 @@ result_t Buffer_base::_new(v8::Local<v8::ArrayBuffer> datas,
 result_t Buffer_base::_new(v8::Local<v8::TypedArray> datas,
     obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
 {
-    if (datas->IsUint8Array() || datas->IsInt8Array())
-        return _new(datas->Buffer(), retVal, This);
+    if (datas->IsUint8Array() || datas->IsInt8Array()) {
+        v8::Local<v8::ArrayBufferView> datas1 = datas;
+        return _new(datas1, retVal, This);
+    }
 
     obj_ptr<Buffer> buf;
     retVal = buf = new Buffer();
@@ -86,9 +88,6 @@ result_t Buffer_base::_new(v8::Local<v8::TypedArray> datas,
 result_t Buffer_base::_new(v8::Local<v8::ArrayBufferView> datas,
     obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
 {
-    if (datas->ByteOffset() == 0)
-        return _new(datas->Buffer(), retVal, This);
-
     exlib::string str;
     str.resize(datas->ByteLength());
     datas->CopyContents(str.c_buffer(), str.length());

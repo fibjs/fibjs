@@ -52,6 +52,12 @@ describe('Buffer', () => {
 
         assert.equal(buf.length, 2);
         assert.equal(buf.hex(), "88a0");
+
+        var arr = new Uint8Array([0x10, 0x20, 0x30]);
+        var arr1 = new Uint8Array(arr.buffer, 1, 2);
+        var buf = new Buffer(arr1);
+        assert.equal(buf.length, 2);
+        assert.equal(buf.hex(), "2030");
     });
 
     it('new Buffer(ArrayBuffer)', () => {
