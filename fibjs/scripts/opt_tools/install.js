@@ -1346,6 +1346,16 @@ function get_version(m, v, parent) {
     }
 }
 
+function find_version(m, v, parent) {
+    while (parent !== undefined) {
+        var info = parent.node_modules[m];
+        if (info !== undefined)
+            return semvar.satisfies(info.version, v);
+
+        parent = parent.parent;
+    }
+}
+
 function get_root() {
     var p = process.cwd();
     var info = JSON.parse(fs.readTextFile(path.join(p, 'package.json')));
@@ -1372,8 +1382,10 @@ function get_deps(info) {
             var v = deps[d];
             var m = info.node_modules[d];
 
-            if (m === undefined || !semvar.satisfies(m.version, v))
-                info.node_modules[d] = get_version(d, v);
+            if (m === undefined || !semvar.satisfies(m.version, v)) {
+                if (!find_version(d, v, info))
+                    info.node_modules[d] = get_version(d, v, info);
+            }
         }, 10);
 
         for (var k in info.node_modules)
@@ -1452,10 +1464,11 @@ function download_module() {
             process.exit();
         }
 
-        var t = tgz;
-        try {
+        var t;
+        if (tgz[0] === 0x1f && tgz[1] === 0x8b)
             t = zlib.gunzip(tgz);
-        } catch (e) {}
+        else
+            t = tgz;
 
         untar(t).map(function (file) {
             var ps = file.filename.split('/');
