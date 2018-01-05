@@ -1323,8 +1323,9 @@ function get_version(m, v, parent) {
     var info = infos[m];
 
     if (info === undefined) {
-        console.log('fetch metadata:', m, "=>", snap.registry + m);
-        infos[m] = info = http.get(snap.registry + m).json();
+        var url = snap.registry + m.replace(/\//g, '%2F');
+        console.log('fetch metadata:', m, "=>", url);
+        infos[m] = info = http.get(url).json();
     }
 
     var vers = [];
