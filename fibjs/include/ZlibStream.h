@@ -298,12 +298,17 @@ public:
     virtual int32_t do_process(int32_t flush)
     {
         int32_t ret = ::inflate(&strm, flush);
+
+        if (ret == Z_DATA_ERROR) {
+            ret = inflateSync(&strm);
+            if (ret == Z_DATA_ERROR)
+                ret = Z_STREAM_END;
+        }
+
         if (ret == Z_STREAM_END) {
             inflateReset(&strm);
             return Z_OK;
         }
-        if (ret == Z_DATA_ERROR)
-            ret = inflateSync(&strm);
 
         return ret;
     }
