@@ -48,6 +48,30 @@ result_t dns_base::resolve(exlib::string name, obj_ptr<NArray>& retVal, AsyncEve
     return 0;
 }
 
+result_t dns_base::lookup(exlib::string name, exlib::string& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
+    addrinfo* result = NULL;
+    addrinfo* ptr = NULL;
+
+    if (getaddrinfo(name.c_str(), NULL, &hints, &result))
+        return CHECK_ERROR(SocketError());
+
+    for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
+        inetAddr addr_info;
+        addr_info.init(ptr->ai_addr);
+        retVal = addr_info.str();
+        break;
+    }
+
+    freeaddrinfo(result);
+
+    return 0;
+}
+
 DECLARE_MODULE(net);
 
 result_t net_base::info(v8::Local<v8::Object>& retVal)
