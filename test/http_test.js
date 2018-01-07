@@ -827,6 +827,13 @@ describe("http", () => {
             assert.equal(ms.read(), 'HTTP/1.1 404 File Not Found\r\nConnection: keep-alive\r\nContent-Length: 0\r\n\r\n');
         });
 
+        it("bug statusCode bug", () => {
+            var ms = new io.MemoryStream();
+            var r = new http.Response();
+            r.statusCode = 5000002;
+            r.sendTo(ms);
+        });
+
         it("unknown statusCode", () => {
             var ms = new io.MemoryStream();
 

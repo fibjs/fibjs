@@ -305,12 +305,12 @@ result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
         }
 
         if (statusMessage.empty()) {
-            char buf[16];
+            char buf[32];
             sprintf(buf, " %d Unknown", statusCode);
             statusMessage = buf;
         }
     } else {
-        char buf[16];
+        char buf[32];
 
         sprintf(buf, " %d ", m_statusCode);
         statusMessage = buf;
