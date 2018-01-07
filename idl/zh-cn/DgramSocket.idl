@@ -11,6 +11,11 @@ interface DgramSocket : EventEmitter
     bind(Integer port = 0, String addr = "") async;
     bind(Object opts) async;
 
+    send(Buffer msg, Integer port, String address = "") async;
+    send(Buffer msg, Integer offset, Integer length, Integer port, String address = "") async;
+
+    NObject address();
+
     close();
     close(Function callback);
 

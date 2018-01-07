@@ -152,10 +152,57 @@ result_t DgramSocket::create(int32_t type, bool reuseAddr)
 
 result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
 {
+    class asyncRecv : public AsyncState {
+    public:
+        asyncRecv(DgramSocket* pThis)
+            : AsyncState(NULL)
+            , m_pThis(pThis)
+        {
+            m_pThis->_emit("listening", NULL, 0);
+            m_pThis->isolate_ref();
+            set(recv);
+        }
+
+        ~asyncRecv()
+        {
+            m_pThis->isolate_unref();
+        }
+
+    public:
+        static int32_t recv(AsyncState* pState, int32_t n)
+        {
+            asyncRecv* pThis = (asyncRecv*)pState;
+
+            if (pThis->m_msg) {
+                Variant v[2];
+
+                pThis->m_msg->get("data", v[0]);
+                v[1] = pThis->m_msg;
+
+                pThis->m_pThis->_emit("message", v, 2);
+
+                pThis->m_msg.Release();
+            }
+
+            return pThis->m_pThis->m_aio.recvfrom(-1, pThis->m_msg, pThis);
+        }
+
+        virtual int32_t error(int32_t v)
+        {
+            m_pThis->_emit("error", NULL, 0);
+            return v;
+        }
+
+    private:
+        obj_ptr<DgramSocket> m_pThis;
+        obj_ptr<NObject> m_msg;
+    };
+
+    if (m_closed || m_bound)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
-    else if (m_bound)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     inetAddr addr_info;
 
@@ -174,6 +221,8 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
 
     if (::bind(m_aio.m_fd, (struct sockaddr*)&addr_info, addr_info.size()) == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
+
+    (new asyncRecv(this))->post(0);
 
     m_bound = true;
 
@@ -206,6 +255,79 @@ result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncEvent* ac)
     exlib::string addr = ac->m_ctx[1].string();
 
     return bind(port, addr, ac);
+}
+
+result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address, AsyncEvent* ac)
+{
+    if (m_closed)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    result_t hr;
+
+    if (!m_bound) {
+        hr = bind(0, "", ac);
+        if (hr < 0)
+            return hr;
+    }
+
+    inetAddr addr_info;
+
+    addr_info.init(m_aio.m_family);
+    addr_info.setPort(port);
+    if (addr_info.addr(address.c_str()) < 0) {
+        exlib::string strAddr;
+        hr = net_base::cc_resolve(address, m_aio.m_family, strAddr);
+        if (hr < 0)
+            return hr;
+
+        if (addr_info.addr(strAddr.c_str()) < 0)
+            return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+
+    exlib::string strData;
+    msg->toString(strData);
+
+    if (::sendto(m_aio.m_fd, strData.c_str(), (int32_t)strData.length(), 0,
+            (sockaddr*)&addr_info, addr_info.size())
+        == SOCKET_ERROR)
+        return CHECK_ERROR(SocketError());
+
+    return 0;
+}
+
+result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int32_t port,
+    exlib::string address, AsyncEvent* ac)
+{
+    if (offset < 0 || length <= 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Buffer_base> msg1;
+    msg->slice(offset, offset + length, msg1);
+
+    return send(msg1, port, address, ac);
+}
+
+result_t DgramSocket::address(obj_ptr<NObject>& retVal)
+{
+    inetAddr addr_info;
+    socklen_t sz = sizeof(addr_info);
+
+    if (::getsockname(m_aio.m_fd, (sockaddr*)&addr_info, &sz) == SOCKET_ERROR)
+        return CHECK_ERROR(SocketError());
+
+    retVal = new NObject();
+
+    retVal->add("family", addr_info.family() == net_base::_AF_INET6 ? "IPv4" : "IPv4");
+    retVal->add("address", addr_info.str());
+    retVal->add("port", addr_info.port());
+
+    return 0;
 }
 
 result_t DgramSocket::close()
@@ -263,31 +385,61 @@ result_t DgramSocket::close(v8::Local<v8::Function> callback)
 
 result_t DgramSocket::getRecvBufferSize(int32_t& retVal)
 {
+    if (m_closed)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    socklen_t len = sizeof(retVal);
+    if (::getsockopt(m_aio.m_fd, SOL_SOCKET, SO_RCVBUF, &retVal, &len) == SOCKET_ERROR)
+        return CHECK_ERROR(SocketError());
+
     return 0;
 }
 
 result_t DgramSocket::getSendBufferSize(int32_t& retVal)
 {
+    if (m_closed)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    socklen_t len = sizeof(retVal);
+    if (::getsockopt(m_aio.m_fd, SOL_SOCKET, SO_SNDBUF, &retVal, &len) == SOCKET_ERROR)
+        return CHECK_ERROR(SocketError());
+
     return 0;
 }
 
 result_t DgramSocket::setRecvBufferSize(int32_t size)
 {
+    if (m_closed)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (::setsockopt(m_aio.m_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size)) == SOCKET_ERROR)
+        return CHECK_ERROR(SocketError());
+
     return 0;
 }
 
 result_t DgramSocket::setSendBufferSize(int32_t size)
 {
+    if (m_closed)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (::setsockopt(m_aio.m_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size)) == SOCKET_ERROR)
+        return CHECK_ERROR(SocketError());
+
     return 0;
 }
 
 result_t DgramSocket::ref(obj_ptr<DgramSocket_base>& retVal)
 {
+    isolate_ref();
+    retVal = this;
     return 0;
 }
 
 result_t DgramSocket::unref(obj_ptr<DgramSocket_base>& retVal)
 {
+    isolate_unref();
+    retVal = this;
     return 0;
 }
 }
