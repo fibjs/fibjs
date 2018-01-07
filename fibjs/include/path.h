@@ -390,7 +390,7 @@ inline result_t _basename(exlib::string path, exlib::string ext, exlib::string& 
         p3--;
 
     if (extlen) {
-        if (p1 == p2 && extlen == path.length()
+        if (p1 == p2 && extlen == (int32_t)path.length()
             && !qstrcmp(ext.c_str(), p3 - extlen, extlen))
             p3 -= extlen;
         else if ((int32_t)(p3 - p2) > extlen
@@ -417,7 +417,7 @@ inline result_t _basename_win32(exlib::string path, exlib::string ext, exlib::st
         p3--;
 
     if (extlen) {
-        if (p1 == p2 && extlen == path.length()
+        if (p1 == p2 && extlen == (int32_t)path.length()
             && !qstrcmp(ext.c_str(), p3 - extlen, extlen))
             p3 -= extlen;
         else if ((int32_t)(p3 - p2) > extlen
