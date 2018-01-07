@@ -1,0 +1,25 @@
+/*! @brief UDP Socket 对象
+
+创建方法：
+```JavaScript
+var dgram = require('dgram');
+var sock = dgram.createSocket('udp4');
+```
+ */
+interface DgramSocket : EventEmitter
+{
+    bind(Integer port = 0, String addr = "") async;
+    bind(Object opts) async;
+
+    close();
+    close(Function callback);
+
+    Integer getRecvBufferSize();
+    Integer getSendBufferSize();
+
+    setRecvBufferSize(Integer size);
+    setSendBufferSize(Integer size);
+
+    DgramSocket ref();
+    DgramSocket unref();
+};

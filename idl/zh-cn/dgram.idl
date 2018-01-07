@@ -1,0 +1,14 @@
+/*! @brief dgram 模块提供了 UDP 数据包 socket 的实现
+
+ 基础模块，引用方式：
+ ```JavaScript
+ var dgram = require('dgram');
+ ```
+ */
+module dgram
+{
+    static DgramSocket createSocket(Object opts);
+    static DgramSocket createSocket(Object opts, Function callback);
+    static DgramSocket createSocket(String type);
+    static DgramSocket createSocket(String type, Function callback);
+};

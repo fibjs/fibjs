@@ -105,6 +105,7 @@
     <ClInclude Include="include\DBField.h" />
     <ClInclude Include="include\DBResult.h" />
     <ClInclude Include="include\DateCache.h" />
+    <ClInclude Include="include\DgramSocket.h" />
     <ClInclude Include="include\Digest.h" />
     <ClInclude Include="include\Event.h" />
     <ClInclude Include="include\EventInfo.h" />
@@ -206,6 +207,7 @@
     <ClInclude Include="include\ifs\Cipher.h" />
     <ClInclude Include="include\ifs\Condition.h" />
     <ClInclude Include="include\ifs\DbConnection.h" />
+    <ClInclude Include="include\ifs\DgramSocket.h" />
     <ClInclude Include="include\ifs\Digest.h" />
     <ClInclude Include="include\ifs\Event.h" />
     <ClInclude Include="include\ifs\EventEmitter.h" />
@@ -296,6 +298,7 @@
     <ClInclude Include="include\ifs\coroutine.h" />
     <ClInclude Include="include\ifs\crypto.h" />
     <ClInclude Include="include\ifs\db.h" />
+    <ClInclude Include="include\ifs\dgram.h" />
     <ClInclude Include="include\ifs\dns.h" />
     <ClInclude Include="include\ifs\encoding.h" />
     <ClInclude Include="include\ifs\fs.h" />
@@ -459,6 +462,7 @@
     <ClCompile Include="src\mq\Routing.cpp" />
     <ClCompile Include="src\mq\ZmqSocket.cpp" />
     <ClCompile Include="src\mq\mq.cpp" />
+    <ClCompile Include="src\net\DgramSocket.cpp" />
     <ClCompile Include="src\net\Smtp.cpp" />
     <ClCompile Include="src\net\Socket.cpp" />
     <ClCompile Include="src\net\Socket_api.cpp" />

@@ -153,6 +153,9 @@
     <ClInclude Include="include\DateCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\DgramSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\Digest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -456,6 +459,9 @@
     <ClInclude Include="include\ifs\DbConnection.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\DgramSocket.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\Digest.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -724,6 +730,9 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\db.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\dgram.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\dns.h">
@@ -1201,6 +1210,9 @@
     </ClCompile>
     <ClCompile Include="src\mq\mq.cpp">
       <Filter>Source Files\mq</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net\DgramSocket.cpp">
+      <Filter>Source Files\net</Filter>
     </ClCompile>
     <ClCompile Include="src\net\Smtp.cpp">
       <Filter>Source Files\net</Filter>
