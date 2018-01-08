@@ -44,21 +44,29 @@ describe('dgram', () => {
     it('setRecvBufferSize', () => {
         const s = dgram.createSocket('udp4');
 
-        s.setRecvBufferSize(1024);
-        assert.equal(s.getRecvBufferSize(), 1024);
+        s.setRecvBufferSize(5120);
 
-        s.setRecvBufferSize(2048);
-        assert.equal(s.getRecvBufferSize(), 2048);
+        var sz = s.getRecvBufferSize();
+        s.setRecvBufferSize(1024);
+        assert.notEqual(s.getRecvBufferSize(), sz);
+
+        sz = s.getRecvBufferSize();
+        s.setRecvBufferSize(4096);
+        assert.notEqual(s.getRecvBufferSize(), sz);
     });
 
     it('setSendBufferSize', () => {
         const s = dgram.createSocket('udp4');
 
-        s.setSendBufferSize(1024);
-        assert.equal(s.getSendBufferSize(), 1024);
+        s.setSendBufferSize(5120);
 
-        s.setSendBufferSize(2048);
-        assert.equal(s.getSendBufferSize(), 2048);
+        var sz = s.getSendBufferSize();
+        s.setSendBufferSize(1024);
+        assert.notEqual(s.getSendBufferSize(), sz);
+
+        sz = s.getSendBufferSize();
+        s.setSendBufferSize(4096);
+        assert.notEqual(s.getSendBufferSize(), sz);
     });
 
     it('send/message', () => {
