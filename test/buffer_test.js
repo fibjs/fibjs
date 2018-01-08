@@ -147,6 +147,11 @@ describe('Buffer', () => {
         });
     });
 
+    it('concat error', () => {
+        var buf2 = Buffer.concat([]);
+        assert.equal(buf2.length, 0);
+    });
+
     it('Buffer.from(String)', () => {
         var buf = Buffer.from("abcd");
         assert.equal(buf.length, 4);

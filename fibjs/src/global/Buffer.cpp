@@ -243,8 +243,10 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     int32_t total_length = cutLength;
     int32_t sz = buflist->Length();
 
-    if (!sz)
+    if (!sz) {
+        retVal = new Buffer();
         return 0;
+    }
     if (cutLength < -1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
