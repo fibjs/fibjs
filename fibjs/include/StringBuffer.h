@@ -61,7 +61,7 @@ public:
         }
     }
 
-    void append(const char* s, int32_t sz)
+    void append(const char* s, int32_t sz = -1)
     {
         if (sz < 0)
             sz = (int32_t)qstrlen(s);

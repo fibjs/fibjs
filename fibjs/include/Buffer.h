@@ -101,6 +101,7 @@ public:
     virtual result_t writeDoubleBE(double value, int32_t offset, bool noAssert, int32_t& retVal);
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal);
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal);
+    virtual result_t join(exlib::string separator, exlib::string& retVal);
     virtual result_t reverse(obj_ptr<Buffer_base>& retVal);
     virtual result_t hex(exlib::string& retVal);
     virtual result_t base64(exlib::string& retVal);

@@ -569,6 +569,12 @@ interface Buffer : object
      */
     Buffer slice(Integer start, Integer end);
 
+    /*! @brief 把当前对象中的所有元素放入一个字符串
+     @param separator 分割字符，缺省为 ","
+     @return 返回生成的字符串
+     */
+    String join(String separator = ",");
+
     /*! @brief 返回一个新缓存对象，包含当前对象数据的倒序
      @return 返回新的缓存对象
      */

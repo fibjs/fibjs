@@ -1,5 +1,6 @@
 #include "object.h"
 #include "Buffer.h"
+#include "StringBuffer.h"
 #include "encoding_iconv.h"
 #include "encoding.h"
 #include "Int64.h"
@@ -942,6 +943,25 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal)
         pNew->extMemory((int32_t)(end - start));
     }
     retVal = pNew;
+
+    return 0;
+}
+
+result_t Buffer::join(exlib::string separator, exlib::string& retVal)
+{
+    StringBuffer sb;
+    int32_t length = (int32_t)m_data.length();
+    const char* c_str = m_data.c_str();
+    char buf[32];
+
+    for (int32_t i = 0; i < length; i++) {
+        sprintf(buf, "%d", (unsigned char)c_str[i]);
+        if (i > 0)
+            sb.append(separator);
+        sb.append(buf);
+    }
+
+    retVal = sb.str();
 
     return 0;
 }

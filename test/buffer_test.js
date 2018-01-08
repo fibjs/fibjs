@@ -913,6 +913,12 @@ describe('Buffer', () => {
         })
     });
 
+    it('join', () => {
+        var a = new Buffer([192, 168, 0, 1]);
+        assert.equal(a.join('.'), '192.168.0.1');
+        assert.equal(a.join(), '192,168,0,1');
+    });
+
     it('indexed setter', () => {
         const b = new Buffer([1, 2]);
         b[0] = -1;

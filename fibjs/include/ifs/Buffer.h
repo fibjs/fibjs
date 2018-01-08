@@ -104,6 +104,7 @@ public:
     virtual result_t writeDoubleBE(double value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t join(exlib::string separator, exlib::string& retVal) = 0;
     virtual result_t reverse(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t equals(object_base* expected, bool& retVal) = 0;
     virtual result_t hex(exlib::string& retVal) = 0;
@@ -181,6 +182,7 @@ public:
     static void s_writeDoubleLE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeDoubleBE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_join(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_reverse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hex(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -255,6 +257,7 @@ inline ClassInfo& Buffer_base::class_info()
         { "writeDoubleLE", s_writeDoubleLE, false },
         { "writeDoubleBE", s_writeDoubleBE, false },
         { "slice", s_slice, false },
+        { "join", s_join, false },
         { "reverse", s_reverse, false },
         { "equals", s_equals, false },
         { "hex", s_hex, false },
@@ -1506,6 +1509,23 @@ inline void Buffer_base::s_slice(const v8::FunctionCallbackInfo<v8::Value>& args
     ARG(int32_t, 1);
 
     hr = pInst->slice(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("Buffer.join");
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, ",");
+
+    hr = pInst->join(v0, vr);
 
     METHOD_RETURN();
 }
