@@ -389,7 +389,7 @@ result_t DgramSocket::getRecvBufferSize(int32_t& retVal)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     socklen_t len = sizeof(retVal);
-    if (::getsockopt(m_aio.m_fd, SOL_SOCKET, SO_RCVBUF, &retVal, &len) == SOCKET_ERROR)
+    if (::getsockopt(m_aio.m_fd, SOL_SOCKET, SO_RCVBUF, (char*)&retVal, &len) == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
 
     return 0;
@@ -401,7 +401,7 @@ result_t DgramSocket::getSendBufferSize(int32_t& retVal)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     socklen_t len = sizeof(retVal);
-    if (::getsockopt(m_aio.m_fd, SOL_SOCKET, SO_SNDBUF, &retVal, &len) == SOCKET_ERROR)
+    if (::getsockopt(m_aio.m_fd, SOL_SOCKET, SO_SNDBUF, (char*)&retVal, &len) == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
 
     return 0;
@@ -412,7 +412,7 @@ result_t DgramSocket::setRecvBufferSize(int32_t size)
     if (m_closed)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (::setsockopt(m_aio.m_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size)) == SOCKET_ERROR)
+    if (::setsockopt(m_aio.m_fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(size)) == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
 
     return 0;
@@ -423,7 +423,7 @@ result_t DgramSocket::setSendBufferSize(int32_t size)
     if (m_closed)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (::setsockopt(m_aio.m_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size)) == SOCKET_ERROR)
+    if (::setsockopt(m_aio.m_fd, SOL_SOCKET, SO_SNDBUF, (char*)&size, sizeof(size)) == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
 
     return 0;
