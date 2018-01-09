@@ -9,6 +9,7 @@
 #include "ifs/dgram.h"
 #include "DgramSocket.h"
 #include "Buffer.h"
+#include "SimpleObject.h"
 #include <fcntl.h>
 
 namespace fibjs {
@@ -189,7 +190,12 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
 
         virtual int32_t error(int32_t v)
         {
-            m_pThis->_emit("error", NULL, 0);
+            obj_ptr<NObject> o = new NObject();
+            o->add("code", v);
+
+            Variant e;
+            e = o;
+            m_pThis->_emit("error", &e, 1);
             return v;
         }
 
@@ -364,7 +370,12 @@ result_t DgramSocket::close()
 
         virtual int32_t error(int32_t v)
         {
-            m_pThis->_emit("error", NULL, 0);
+            obj_ptr<NObject> o = new NObject();
+            o->add("code", v);
+
+            Variant e;
+            e = o;
+            m_pThis->_emit("error", &e, 1);
             return v;
         }
 
