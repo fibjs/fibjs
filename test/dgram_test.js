@@ -89,6 +89,25 @@ describe('dgram', () => {
         s.close();
     });
 
+    xit('send/message ipv6', () => {
+        var t = false;
+        const s = dgram.createSocket('udp6');
+        s.on('message', (msg, addr) => {
+            assert.equal(msg.toString(), '123456');
+            t = true;
+        });
+
+        s.bind(10003);
+
+        const c = dgram.createSocket('udp6');
+        c.send('123456', 10003);
+
+        coroutine.sleep(100);
+        assert.isTrue(t);
+
+        c.close();
+        s.close();
+    });
 });
 
 repl && test.run(console.DEBUG);

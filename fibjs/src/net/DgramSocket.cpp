@@ -277,6 +277,10 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
 
     addr_info.init(m_aio.m_family);
     addr_info.setPort(port);
+
+    if (address.empty())
+        address = m_aio.m_family == net_base::_AF_INET6 ? "::1" : "127.0.0.1";
+
     if (addr_info.addr(address.c_str()) < 0) {
         exlib::string strAddr;
         hr = net_base::cc_resolve(address, m_aio.m_family, strAddr);
