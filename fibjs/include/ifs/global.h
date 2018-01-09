@@ -37,13 +37,13 @@ public:
     static result_t get___filename(exlib::string& retVal);
     static result_t get___dirname(exlib::string& retVal);
     static result_t setTimeout(v8::Local<v8::Function> callback, double timeout, OptArgs args, obj_ptr<Timer_base>& retVal);
-    static result_t clearTimeout(Timer_base* t);
+    static result_t clearTimeout(v8::Local<v8::Value> t);
     static result_t setInterval(v8::Local<v8::Function> callback, double timeout, OptArgs args, obj_ptr<Timer_base>& retVal);
-    static result_t clearInterval(Timer_base* t);
+    static result_t clearInterval(v8::Local<v8::Value> t);
     static result_t setHrInterval(v8::Local<v8::Function> callback, double timeout, OptArgs args, obj_ptr<Timer_base>& retVal);
-    static result_t clearHrInterval(Timer_base* t);
+    static result_t clearHrInterval(v8::Local<v8::Value> t);
     static result_t setImmediate(v8::Local<v8::Function> callback, OptArgs args, obj_ptr<Timer_base>& retVal);
-    static result_t clearImmediate(Timer_base* t);
+    static result_t clearImmediate(v8::Local<v8::Value> t);
     static result_t GC();
     static result_t repl(v8::Local<v8::Array> cmds);
     static result_t repl(Stream_base* out, v8::Local<v8::Array> cmds);
@@ -247,7 +247,7 @@ inline void global_base::s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Timer_base>, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = clearTimeout(v0);
 
@@ -279,7 +279,7 @@ inline void global_base::s_clearInterval(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Timer_base>, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = clearInterval(v0);
 
@@ -311,7 +311,7 @@ inline void global_base::s_clearHrInterval(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Timer_base>, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = clearHrInterval(v0);
 
@@ -342,7 +342,7 @@ inline void global_base::s_clearImmediate(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Timer_base>, 0);
+    ARG(v8::Local<v8::Value>, 0);
 
     hr = clearImmediate(v0);
 

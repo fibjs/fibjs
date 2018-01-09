@@ -109,24 +109,40 @@ private:
 
 DECLARE_MODULE(timers);
 
-result_t timers_base::clearInterval(Timer_base* t)
+result_t timers_base::clearInterval(v8::Local<v8::Value> t)
 {
-    return t->clear();
+    obj_ptr<Timer_base> _t = Timer_base::getInstance(t);
+    if (!_t)
+        return 0;
+
+    return _t->clear();
 }
 
-result_t timers_base::clearHrInterval(Timer_base* t)
+result_t timers_base::clearHrInterval(v8::Local<v8::Value> t)
 {
-    return t->clear();
+    obj_ptr<Timer_base> _t = Timer_base::getInstance(t);
+    if (!_t)
+        return 0;
+
+    return _t->clear();
 }
 
-result_t timers_base::clearTimeout(Timer_base* t)
+result_t timers_base::clearTimeout(v8::Local<v8::Value> t)
 {
-    return t->clear();
+    obj_ptr<Timer_base> _t = Timer_base::getInstance(t);
+    if (!_t)
+        return 0;
+
+    return _t->clear();
 }
 
-result_t timers_base::clearImmediate(Timer_base* t)
+result_t timers_base::clearImmediate(v8::Local<v8::Value> t)
 {
-    return t->clear();
+    obj_ptr<Timer_base> _t = Timer_base::getInstance(t);
+    if (!_t)
+        return 0;
+
+    return _t->clear();
 }
 
 result_t timers_base::setInterval(v8::Local<v8::Function> callback,
@@ -178,22 +194,22 @@ result_t timers_base::setImmediate(v8::Local<v8::Function> callback,
     return 0;
 }
 
-result_t global_base::clearInterval(Timer_base* t)
+result_t global_base::clearInterval(v8::Local<v8::Value> t)
 {
     return timers_base::clearInterval(t);
 }
 
-result_t global_base::clearHrInterval(Timer_base* t)
+result_t global_base::clearHrInterval(v8::Local<v8::Value> t)
 {
     return timers_base::clearHrInterval(t);
 }
 
-result_t global_base::clearTimeout(Timer_base* t)
+result_t global_base::clearTimeout(v8::Local<v8::Value> t)
 {
     return timers_base::clearTimeout(t);
 }
 
-result_t global_base::clearImmediate(Timer_base* t)
+result_t global_base::clearImmediate(v8::Local<v8::Value> t)
 {
     return timers_base::clearImmediate(t);
 }
