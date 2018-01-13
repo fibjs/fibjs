@@ -1,3 +1,89 @@
+//--------------------- json_format -----------------------------
+var json_format = (function () {
+    var p = [],
+        indentConfig = {
+            tab: {
+                char: '\t',
+                size: 1
+            },
+            space: {
+                char: ' ',
+                size: 4
+            }
+        },
+        configDefault = {
+            type: 'tab'
+        },
+        push = function (m) {
+            return '\\' + p.push(m) + '\\';
+        },
+        pop = function (m, i) {
+            return p[i - 1]
+        },
+        tabs = function (count, indentType) {
+            return new Array(count + 1).join(indentType);
+        };
+
+    function JSONFormat(json, indentType) {
+        p = [];
+        var out = "",
+            indent = 0;
+
+        // Extract backslashes and strings
+        json = json
+            .replace(/\\./g, push)
+            .replace(/(".*?"|'.*?')/g, push)
+            .replace(/\s+/, '');
+
+        // Indent and insert newlines
+        for (var i = 0; i < json.length; i++) {
+            var c = json.charAt(i);
+
+            switch (c) {
+                case '{':
+                case '[':
+                    out += c + "\n" + tabs(++indent, indentType);
+                    break;
+                case '}':
+                case ']':
+                    out += "\n" + tabs(--indent, indentType) + c;
+                    break;
+                case ',':
+                    out += ",\n" + tabs(indent, indentType);
+                    break;
+                case ':':
+                    out += ": ";
+                    break;
+                default:
+                    out += c;
+                    break;
+            }
+        }
+
+        // Strip whitespace from numeric arrays and put backslashes 
+        // and strings back in
+        out = out
+            .replace(/\[[\d,\s]+?\]/g, function (m) {
+                return m.replace(/\s/g, '');
+            })
+            .replace(/\\(\d+)\\/g, pop) // strings
+            .replace(/\\(\d+)\\/g, pop); // backslashes in strings
+
+        return out;
+    };
+
+    return function (json, config) {
+        config = config || configDefault;
+        var indent = indentConfig[config.type];
+
+        if (indent == null) {
+            throw new Error('Unrecognized indent type: "' + config.type + '"');
+        }
+        var indentType = new Array((config.size || indent.size) + 1).join(indent.char);
+        return JSONFormat(JSON.stringify(json), indentType);
+    }
+})();
+
 //--------------------- untar -----------------------------
 var untar = (function () {
     /*
@@ -1381,7 +1467,8 @@ function get_root() {
         version: info.version,
         deps: deps,
         new_module: true,
-        registry: info.registry || 'https://registry.npmjs.org/'
+        registry: info.registry || 'https://registry.npmjs.org/',
+        info: info
     };
     m.node_modules = read_module(p, m);
 
@@ -1520,9 +1607,34 @@ function dump_snap() {
 ssl.loadRootCerts();
 
 var snap = get_root();
+
+if (process.argv.length > 2 && snap.deps[process.argv[2]] === undefined)
+    snap.deps[process.argv[2]] = '*';
+
 get_deps(snap);
 move_up(snap);
 get_paths(snap, process.cwd());
 download_module();
 
 dump_snap();
+
+if (process.argv.length > 3) {
+    var info = snap.info;
+    var k = '';
+    if (process.argv[3] === '--save')
+        k = 'dependencies';
+    else if (process.argv[3] === '--save-dev')
+        k = 'devDependencies';
+
+    if (k !== '') {
+        if (info[k] === undefined)
+            info[k] = {};
+        if (info[k][process.argv[2]] == undefined)
+            info[k][process.argv[2]] = '^' + snap.node_modules[process.argv[2]].version;
+
+        fs.writeFile('package.json', json_format(info, {
+            type: 'space',
+            size: 2
+        }));
+    }
+}
