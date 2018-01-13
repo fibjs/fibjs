@@ -1319,13 +1319,27 @@ function read_module(p, parent) {
 
 var infos = {};
 
+function http_get(u) {
+    var cnt = 0;
+
+    while (cnt < 3)
+        try {
+            return http.get(u);
+        } catch (e) {
+            console.warn("download error. retry ", u);
+        }
+
+    console.error("download error.", u);
+    process.exit(-1);
+}
+
 function get_version(m, v, parent) {
     var info = infos[m];
 
     if (info === undefined) {
         var url = snap.registry + m.replace(/\//g, '%2F');
         console.log('fetch metadata:', m, "=>", url);
-        infos[m] = info = http.get(url).json();
+        infos[m] = info = http_get(url).json();
     }
 
     var vers = [];
@@ -1451,7 +1465,7 @@ function mkdir(p) {
 function download_module() {
     coroutine.parallel(Object.keys(paths), m => {
         m = paths[m];
-        var r = http.get(m.dist.tarball);
+        var r = http_get(m.dist.tarball);
         if (r.statusCode !== 200) {
             console.error('doenload error::', m.dist.tarball);
             process.exit();
