@@ -61,6 +61,8 @@ result_t SandBox::ExtLoader::run_main(Context* ctx, Buffer_base* src, exlib::str
     module->Set(strExports, exports);
     module->Set(strRequire, ctx->m_fnRequest);
 
+    ctx->m_fnRequest->Set(isolate->NewString("main"), module);
+
     v8::Local<v8::Value> replFunc = global_base::class_info().getModule(isolate)->Get(
         isolate->NewString("repl"));
 

@@ -211,11 +211,13 @@ function writeSequences(length, start, sequence) {
     }
     let sequences = [];
     for (let end = length; end > start; end--) {
-        const subSequence = sequence.concat([[start, end]]);
+        const subSequence = sequence.concat([
+            [start, end]
+        ]);
         const subSequences = writeSequences(length, end, subSequence, sequences);
         sequences = sequences.concat(subSequences);
     }
     return sequences;
 }
 
-repl && t.run(console.DEBUG);
+require.main === module && t.run(console.DEBUG);
