@@ -46,8 +46,9 @@ interface DgramSocket : EventEmitter
      @param msg 指定发送的数据
      @param port 指定发送的目的端口
      @param address 指定发送的目的地址
+     @return 返回发送尺寸
     */
-    send(Buffer msg, Integer port, String address = "") async;
+    Integer send(Buffer msg, Integer port, String address = "") async;
 
     /*! @brief 在 socket 上发送一个数据包
      @param msg 指定发送的数据
@@ -55,8 +56,9 @@ interface DgramSocket : EventEmitter
      @param length 之发送指定长度
      @param port 指定发送的目的端口
      @param address 指定发送的目的地址
+     @return 返回发送尺寸
     */
-    send(Buffer msg, Integer offset, Integer length, Integer port, String address = "") async;
+    Integer send(Buffer msg, Integer offset, Integer length, Integer port, String address = "") async;
 
     /*! @brief 返回一个包含 socket 地址信息的对象。对于 UDP socket，该对象将包含 address、family 和 port 属性。 
      @return 返回对象绑定地址

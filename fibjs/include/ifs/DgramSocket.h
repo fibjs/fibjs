@@ -27,8 +27,8 @@ public:
     // DgramSocket_base
     virtual result_t bind(int32_t port, exlib::string addr, AsyncEvent* ac) = 0;
     virtual result_t bind(v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
-    virtual result_t send(Buffer_base* msg, int32_t port, exlib::string address, AsyncEvent* ac) = 0;
-    virtual result_t send(Buffer_base* msg, int32_t offset, int32_t length, int32_t port, exlib::string address, AsyncEvent* ac) = 0;
+    virtual result_t send(Buffer_base* msg, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t send(Buffer_base* msg, int32_t offset, int32_t length, int32_t port, exlib::string address, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t address(obj_ptr<NObject>& retVal) = 0;
     virtual result_t close() = 0;
     virtual result_t close(v8::Local<v8::Function> callback) = 0;
@@ -65,8 +65,8 @@ public:
 public:
     ASYNC_MEMBER2(DgramSocket_base, bind, int32_t, exlib::string);
     ASYNC_MEMBER1(DgramSocket_base, bind, v8::Local<v8::Object>);
-    ASYNC_MEMBER3(DgramSocket_base, send, Buffer_base*, int32_t, exlib::string);
-    ASYNC_MEMBER5(DgramSocket_base, send, Buffer_base*, int32_t, int32_t, int32_t, exlib::string);
+    ASYNC_MEMBERVALUE4(DgramSocket_base, send, Buffer_base*, int32_t, exlib::string, int32_t);
+    ASYNC_MEMBERVALUE6(DgramSocket_base, send, Buffer_base*, int32_t, int32_t, int32_t, exlib::string, int32_t);
 };
 }
 
@@ -132,6 +132,8 @@ inline void DgramSocket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_NAME("DgramSocket.send");
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
@@ -146,7 +148,7 @@ inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
         pInst->acb_send(v0, v1, v2, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = pInst->ac_send(v0, v1, v2);
+        hr = pInst->ac_send(v0, v1, v2, vr);
 
     ASYNC_METHOD_OVER(5, 4);
 
@@ -160,9 +162,9 @@ inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
         pInst->acb_send(v0, v1, v2, v3, v4, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = pInst->ac_send(v0, v1, v2, v3, v4);
+        hr = pInst->ac_send(v0, v1, v2, v3, v4, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void DgramSocket_base::s_address(const v8::FunctionCallbackInfo<v8::Value>& args)

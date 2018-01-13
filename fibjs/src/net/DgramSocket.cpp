@@ -263,7 +263,8 @@ result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncEvent* ac)
     return bind(port, addr, ac);
 }
 
-result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address, AsyncEvent* ac)
+result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address,
+    int32_t& retVal, AsyncEvent* ac)
 {
     if (m_closed)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -305,11 +306,13 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
         == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
 
+    retVal = (int32_t)strData.length();
+
     return 0;
 }
 
 result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int32_t port,
-    exlib::string address, AsyncEvent* ac)
+    exlib::string address, int32_t& retVal, AsyncEvent* ac)
 {
     if (offset < 0 || length <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -320,7 +323,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int
     obj_ptr<Buffer_base> msg1;
     msg->slice(offset, offset + length, msg1);
 
-    return send(msg1, port, address, ac);
+    return send(msg1, port, address, retVal, ac);
 }
 
 result_t DgramSocket::address(obj_ptr<NObject>& retVal)
