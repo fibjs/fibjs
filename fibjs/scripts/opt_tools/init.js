@@ -88,7 +88,12 @@ var path = require('path');
 
 console.log('Press ^C at any time to quit.');
 
-var info = JSON.parse(fs.readTextFile('package.json'));
+var info;
+
+try {
+    info = JSON.parse(fs.readTextFile('package.json'));
+} catch (e) {}
+
 if (info === undefined) {
     info = {
         "name": path.basename(process.cwd()),
