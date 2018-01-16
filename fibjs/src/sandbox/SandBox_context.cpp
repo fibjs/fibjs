@@ -14,10 +14,7 @@ namespace fibjs {
 void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t argc = args.Length();
-    if (argc > 1) {
-        ThrowResult(CALL_E_BADPARAMCOUNT);
-        return;
-    }
+
     if (argc < 1) {
         ThrowResult(CALL_E_PARAMNOTOPTIONAL);
         return;
@@ -58,10 +55,7 @@ void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t argc = args.Length();
-    if (argc > 1) {
-        ThrowResult(CALL_E_BADPARAMCOUNT);
-        return;
-    }
+
     if (argc < 1) {
         ThrowResult(CALL_E_PARAMNOTOPTIONAL);
         return;
@@ -104,11 +98,6 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Isolate* isolate = args.GetIsolate();
     int32_t argc = args.Length();
 
-    if (argc > 2) {
-        ThrowResult(CALL_E_BADPARAMCOUNT);
-        return;
-    }
-
     if (argc < 1) {
         ThrowResult(CALL_E_PARAMNOTOPTIONAL);
         return;
@@ -122,7 +111,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Array> argv;
-    if (argc == 2) {
+    if (argc > 1) {
         result_t hr = GetArgumentValue(args[1], argv);
         if (hr < 0) {
             ThrowResult(hr);
