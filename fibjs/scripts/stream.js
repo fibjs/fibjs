@@ -54,7 +54,7 @@ try {
 
 if (!Stream._isUint8Array) {
   Stream._isUint8Array = function _isUint8Array(obj) {
-    return Object.prototype.toString.call(obj) === '[object Uint8Array]';
+    return Object.prototype.toString.call(obj) === '[object Uint8Array]' || Buffer.isBuffer(obj);
   };
 }
 
