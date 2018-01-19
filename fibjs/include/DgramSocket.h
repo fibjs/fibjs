@@ -40,6 +40,7 @@ public:
     virtual result_t getSendBufferSize(int32_t& retVal);
     virtual result_t setRecvBufferSize(int32_t size);
     virtual result_t setSendBufferSize(int32_t size);
+    virtual result_t setBroadcast(bool flag);
     virtual result_t ref(obj_ptr<DgramSocket_base>& retVal);
     virtual result_t unref(obj_ptr<DgramSocket_base>& retVal);
 

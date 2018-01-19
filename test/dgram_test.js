@@ -108,6 +108,32 @@ describe('dgram', () => {
         c.close();
         s.close();
     });
+
+    it("broadcast", () => {
+        var t = false;
+        const s = dgram.createSocket('udp4');
+        s.on('message', (msg, addr) => {
+            assert.equal(msg.toString(), '123456');
+            t = true;
+        });
+
+        s.bind(10004);
+
+        const c = dgram.createSocket('udp4');
+
+        assert.throws(() => {
+            c.send('123456', 10004, "255.255.255.255");
+        });
+
+        c.setBroadcast(true);
+        c.send('123456', 10004, "255.255.255.255");
+
+        coroutine.sleep(100);
+        assert.isTrue(t);
+
+        c.close();
+        s.close();
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

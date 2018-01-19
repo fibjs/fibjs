@@ -36,6 +36,7 @@ public:
     virtual result_t getSendBufferSize(int32_t& retVal) = 0;
     virtual result_t setRecvBufferSize(int32_t size) = 0;
     virtual result_t setSendBufferSize(int32_t size) = 0;
+    virtual result_t setBroadcast(bool flag) = 0;
     virtual result_t ref(obj_ptr<DgramSocket_base>& retVal) = 0;
     virtual result_t unref(obj_ptr<DgramSocket_base>& retVal) = 0;
 
@@ -59,6 +60,7 @@ public:
     static void s_getSendBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setRecvBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setSendBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setBroadcast(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -86,6 +88,7 @@ inline ClassInfo& DgramSocket_base::class_info()
         { "getSendBufferSize", s_getSendBufferSize, false },
         { "setRecvBufferSize", s_setRecvBufferSize, false },
         { "setSendBufferSize", s_setSendBufferSize, false },
+        { "setBroadcast", s_setBroadcast, false },
         { "ref", s_ref, false },
         { "unref", s_unref, false }
     };
@@ -257,6 +260,21 @@ inline void DgramSocket_base::s_setSendBufferSize(const v8::FunctionCallbackInfo
     ARG(int32_t, 0);
 
     hr = pInst->setSendBufferSize(v0);
+
+    METHOD_VOID();
+}
+
+inline void DgramSocket_base::s_setBroadcast(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("DgramSocket.setBroadcast");
+    METHOD_INSTANCE(DgramSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(bool, 0);
+
+    hr = pInst->setBroadcast(v0);
 
     METHOD_VOID();
 }

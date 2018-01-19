@@ -93,6 +93,11 @@ interface DgramSocket : EventEmitter
     */
     setSendBufferSize(Integer size);
 
+    /*! @brief 设置或清除 SO_BROADCAST socket 选项
+     @param flag 当设置为 true, UDP包会被发送到一个本地接口的广播地址
+    */
+    setBroadcast(Boolean flag);
+
     /*! @brief 维持 fibjs 进程不退出，在 `socket` 绑定期间阻止 fibjs 进程退出
      @return 返回当前对象
     */

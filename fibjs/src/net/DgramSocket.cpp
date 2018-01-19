@@ -447,6 +447,19 @@ result_t DgramSocket::setSendBufferSize(int32_t size)
     return 0;
 }
 
+result_t DgramSocket::setBroadcast(bool flag)
+{
+    if (m_closed)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    int broadcastEnable = flag ? 1 : 0;
+    if (::setsockopt(m_aio.m_fd, SOL_SOCKET, SO_BROADCAST, (const char*)&broadcastEnable, sizeof(broadcastEnable))
+        == SOCKET_ERROR)
+        return CHECK_ERROR(SocketError());
+
+    return 0;
+}
+
 result_t DgramSocket::ref(obj_ptr<DgramSocket_base>& retVal)
 {
     isolate_ref();
