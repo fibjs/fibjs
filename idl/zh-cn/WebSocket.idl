@@ -73,4 +73,14 @@ interface WebSocket : EventEmitter
 
     /*! @brief 查询和绑定错误发生的事件，相当于 on("error", func); */
     Function onerror;
+
+    /*! @brief 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
+     @return 返回当前对象
+    */
+    WebSocket ref();
+
+    /*! @brief 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
+     @return 返回当前对象
+    */
+    WebSocket unref();
 };

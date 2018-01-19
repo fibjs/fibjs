@@ -41,6 +41,8 @@ public:
     virtual result_t set_onclose(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onerror(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onerror(v8::Local<v8::Function> newVal) = 0;
+    virtual result_t ref(obj_ptr<WebSocket_base>& retVal) = 0;
+    virtual result_t unref(obj_ptr<WebSocket_base>& retVal) = 0;
 
 public:
     template <typename T>
@@ -62,6 +64,8 @@ public:
     static void s_set_onclose(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_onerror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_onerror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -72,7 +76,9 @@ inline ClassInfo& WebSocket_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "close", s_close, false },
-        { "send", s_send, false }
+        { "send", s_send, false },
+        { "ref", s_ref, false },
+        { "unref", s_unref, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -308,6 +314,36 @@ inline void WebSocket_base::s_set_onerror(v8::Local<v8::String> property, v8::Lo
     hr = pInst->set_onerror(v0);
 
     PROPERTY_SET_LEAVE();
+}
+
+inline void WebSocket_base::s_ref(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<WebSocket_base> vr;
+
+    METHOD_NAME("WebSocket.ref");
+    METHOD_INSTANCE(WebSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->ref(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebSocket_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<WebSocket_base> vr;
+
+    METHOD_NAME("WebSocket.unref");
+    METHOD_INSTANCE(WebSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->unref(vr);
+
+    METHOD_RETURN();
 }
 }
 

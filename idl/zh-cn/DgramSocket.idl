@@ -98,12 +98,12 @@ interface DgramSocket : EventEmitter
     */
     setBroadcast(Boolean flag);
 
-    /*! @brief 维持 fibjs 进程不退出，在 `socket` 绑定期间阻止 fibjs 进程退出
+    /*! @brief 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出
      @return 返回当前对象
     */
     DgramSocket ref();
 
-    /*! @brief 允许 fibjs 进程退出，在 `socket` 绑定期间允许 fibjs 进程退出
+    /*! @brief 允许 fibjs 进程退出，在对象绑定期间允许 fibjs 进程退出
      @return 返回当前对象
     */
     DgramSocket unref();

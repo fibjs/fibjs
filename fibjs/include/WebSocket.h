@@ -68,6 +68,8 @@ public:
     virtual result_t close(int32_t code, exlib::string reason);
     virtual result_t send(exlib::string data);
     virtual result_t send(Buffer_base* data);
+    virtual result_t ref(obj_ptr<WebSocket_base>& retVal);
+    virtual result_t unref(obj_ptr<WebSocket_base>& retVal);
 
 public:
     EVENT_FUNC(open);

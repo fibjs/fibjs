@@ -182,13 +182,8 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
             , m_this(pThis)
         {
             m_isolate = isolate;
-            m_isolate->Ref();
+            m_this->isolate_ref();
             set(handshake);
-        }
-
-        ~asyncConnect()
-        {
-            m_isolate->Unref();
         }
 
         virtual Isolate* isolate()
@@ -316,6 +311,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 
         virtual int32_t error(int32_t v)
         {
+            m_this->isolate_unref();
             m_this->endConnect(1002, "");
             return v;
         }
@@ -347,13 +343,12 @@ void WebSocket::startRecv(Isolate* isolate)
             , m_this(pThis)
         {
             m_isolate = isolate;
-            m_isolate->Ref();
             set(recv);
         }
 
         ~asyncRead()
         {
-            m_isolate->Unref();
+            m_this->isolate_unref();
         }
 
         static int32_t recv(AsyncState* pState, int32_t n)
@@ -543,6 +538,20 @@ result_t WebSocket::send(Buffer_base* data)
         return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CONNECTING, CLOSING or CLOSED state."));
 
     new asyncSend(this, data);
+    return 0;
+}
+
+result_t WebSocket::ref(obj_ptr<WebSocket_base>& retVal)
+{
+    isolate_ref();
+    retVal = this;
+    return 0;
+}
+
+result_t WebSocket::unref(obj_ptr<WebSocket_base>& retVal)
+{
+    isolate_unref();
+    retVal = this;
     return 0;
 }
 }
