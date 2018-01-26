@@ -49,11 +49,11 @@ public:
     static void s_readUntil(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeText(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeLine(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_charset(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_charset(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_stream(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_charset(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_charset(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_EOL(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_EOL(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 
 public:
     ASYNC_MEMBERVALUE2(BufferedStream_base, readText, int32_t, exlib::string);
@@ -239,7 +239,7 @@ inline void BufferedStream_base::s_writeLine(const v8::FunctionCallbackInfo<v8::
     METHOD_VOID();
 }
 
-inline void BufferedStream_base::s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void BufferedStream_base::s_get_stream(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
@@ -252,7 +252,7 @@ inline void BufferedStream_base::s_get_stream(v8::Local<v8::String> property, co
     METHOD_RETURN();
 }
 
-inline void BufferedStream_base::s_get_charset(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void BufferedStream_base::s_get_charset(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -265,7 +265,7 @@ inline void BufferedStream_base::s_get_charset(v8::Local<v8::String> property, c
     METHOD_RETURN();
 }
 
-inline void BufferedStream_base::s_set_charset(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void BufferedStream_base::s_set_charset(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("BufferedStream.charset");
     METHOD_INSTANCE(BufferedStream_base);
@@ -277,7 +277,7 @@ inline void BufferedStream_base::s_set_charset(v8::Local<v8::String> property, v
     PROPERTY_SET_LEAVE();
 }
 
-inline void BufferedStream_base::s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void BufferedStream_base::s_get_EOL(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -290,7 +290,7 @@ inline void BufferedStream_base::s_get_EOL(v8::Local<v8::String> property, const
     METHOD_RETURN();
 }
 
-inline void BufferedStream_base::s_set_EOL(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void BufferedStream_base::s_set_EOL(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("BufferedStream.EOL");
     METHOD_INSTANCE(BufferedStream_base);

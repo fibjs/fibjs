@@ -56,10 +56,10 @@ public:
     static void s_join(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toNamespacedPath(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_sep(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_delimiter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_posix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_win32(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_sep(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_delimiter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_posix(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_win32(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -240,7 +240,7 @@ inline void path_posix_base::s_toNamespacedPath(const v8::FunctionCallbackInfo<v
     METHOD_RETURN();
 }
 
-inline void path_posix_base::s_get_sep(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void path_posix_base::s_get_sep(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -252,7 +252,7 @@ inline void path_posix_base::s_get_sep(v8::Local<v8::String> property, const v8:
     METHOD_RETURN();
 }
 
-inline void path_posix_base::s_get_delimiter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void path_posix_base::s_get_delimiter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -264,7 +264,7 @@ inline void path_posix_base::s_get_delimiter(v8::Local<v8::String> property, con
     METHOD_RETURN();
 }
 
-inline void path_posix_base::s_get_posix(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void path_posix_base::s_get_posix(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -276,7 +276,7 @@ inline void path_posix_base::s_get_posix(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void path_posix_base::s_get_win32(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void path_posix_base::s_get_win32(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 

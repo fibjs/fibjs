@@ -43,14 +43,14 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_enableCrossOrigin(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_forceGZIP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_forceGZIP(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_maxBodySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_maxBodySize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_serverName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_serverName(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_forceGZIP(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_forceGZIP(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_maxHeadersCount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_maxHeadersCount(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_maxBodySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_serverName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_serverName(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
 }
 
@@ -118,7 +118,7 @@ inline void HttpHandler_base::s_enableCrossOrigin(const v8::FunctionCallbackInfo
     METHOD_VOID();
 }
 
-inline void HttpHandler_base::s_get_forceGZIP(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpHandler_base::s_get_forceGZIP(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -131,7 +131,7 @@ inline void HttpHandler_base::s_get_forceGZIP(v8::Local<v8::String> property, co
     METHOD_RETURN();
 }
 
-inline void HttpHandler_base::s_set_forceGZIP(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpHandler_base::s_set_forceGZIP(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpHandler.forceGZIP");
     METHOD_INSTANCE(HttpHandler_base);
@@ -143,7 +143,7 @@ inline void HttpHandler_base::s_set_forceGZIP(v8::Local<v8::String> property, v8
     PROPERTY_SET_LEAVE();
 }
 
-inline void HttpHandler_base::s_get_maxHeadersCount(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpHandler_base::s_get_maxHeadersCount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -156,7 +156,7 @@ inline void HttpHandler_base::s_get_maxHeadersCount(v8::Local<v8::String> proper
     METHOD_RETURN();
 }
 
-inline void HttpHandler_base::s_set_maxHeadersCount(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpHandler_base::s_set_maxHeadersCount(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpHandler.maxHeadersCount");
     METHOD_INSTANCE(HttpHandler_base);
@@ -168,7 +168,7 @@ inline void HttpHandler_base::s_set_maxHeadersCount(v8::Local<v8::String> proper
     PROPERTY_SET_LEAVE();
 }
 
-inline void HttpHandler_base::s_get_maxBodySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpHandler_base::s_get_maxBodySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -181,7 +181,7 @@ inline void HttpHandler_base::s_get_maxBodySize(v8::Local<v8::String> property, 
     METHOD_RETURN();
 }
 
-inline void HttpHandler_base::s_set_maxBodySize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpHandler_base::s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpHandler.maxBodySize");
     METHOD_INSTANCE(HttpHandler_base);
@@ -193,7 +193,7 @@ inline void HttpHandler_base::s_set_maxBodySize(v8::Local<v8::String> property, 
     PROPERTY_SET_LEAVE();
 }
 
-inline void HttpHandler_base::s_get_serverName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpHandler_base::s_get_serverName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -206,7 +206,7 @@ inline void HttpHandler_base::s_get_serverName(v8::Local<v8::String> property, c
     METHOD_RETURN();
 }
 
-inline void HttpHandler_base::s_set_serverName(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpHandler_base::s_set_serverName(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpHandler.serverName");
     METHOD_INSTANCE(HttpHandler_base);

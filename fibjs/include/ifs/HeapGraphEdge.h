@@ -41,9 +41,9 @@ public:
     }
 
 public:
-    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_description(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_description(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_getFromNode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getToNode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -75,7 +75,7 @@ inline ClassInfo& HeapGraphEdge_base::class_info()
     return s_ci;
 }
 
-inline void HeapGraphEdge_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HeapGraphEdge_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -88,7 +88,7 @@ inline void HeapGraphEdge_base::s_get_type(v8::Local<v8::String> property, const
     METHOD_RETURN();
 }
 
-inline void HeapGraphEdge_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HeapGraphEdge_base::s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -101,7 +101,7 @@ inline void HeapGraphEdge_base::s_get_name(v8::Local<v8::String> property, const
     METHOD_RETURN();
 }
 
-inline void HeapGraphEdge_base::s_get_description(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HeapGraphEdge_base::s_get_description(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 

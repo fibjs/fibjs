@@ -67,8 +67,8 @@ public:
     static void s_release(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_homedir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_timezone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_timezone(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_EOL(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -83,7 +83,7 @@ public:
     static void s_platform(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_time(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -226,7 +226,7 @@ inline void os_base::s_arch(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_get_timezone(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void os_base::s_get_timezone(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -238,7 +238,7 @@ inline void os_base::s_get_timezone(v8::Local<v8::String> property, const v8::Pr
     METHOD_RETURN();
 }
 
-inline void os_base::s_get_EOL(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void os_base::s_get_EOL(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -460,7 +460,7 @@ inline void os_base::s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_get_execPath(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void os_base::s_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 

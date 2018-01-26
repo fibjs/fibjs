@@ -49,14 +49,14 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_name(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onstop(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onstop(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onpause(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onpause(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_oncontinue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_oncontinue(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_name(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onstop(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onstop(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onpause(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onpause(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_oncontinue(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_oncontinue(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_install(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -144,7 +144,7 @@ inline void Service_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void Service_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Service_base::s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -157,7 +157,7 @@ inline void Service_base::s_get_name(v8::Local<v8::String> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void Service_base::s_set_name(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Service_base::s_set_name(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Service.name");
     METHOD_INSTANCE(Service_base);
@@ -169,7 +169,7 @@ inline void Service_base::s_set_name(v8::Local<v8::String> property, v8::Local<v
     PROPERTY_SET_LEAVE();
 }
 
-inline void Service_base::s_get_onstop(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Service_base::s_get_onstop(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -182,7 +182,7 @@ inline void Service_base::s_get_onstop(v8::Local<v8::String> property, const v8:
     METHOD_RETURN();
 }
 
-inline void Service_base::s_set_onstop(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Service_base::s_set_onstop(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Service.onstop");
     METHOD_INSTANCE(Service_base);
@@ -194,7 +194,7 @@ inline void Service_base::s_set_onstop(v8::Local<v8::String> property, v8::Local
     PROPERTY_SET_LEAVE();
 }
 
-inline void Service_base::s_get_onpause(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Service_base::s_get_onpause(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -207,7 +207,7 @@ inline void Service_base::s_get_onpause(v8::Local<v8::String> property, const v8
     METHOD_RETURN();
 }
 
-inline void Service_base::s_set_onpause(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Service_base::s_set_onpause(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Service.onpause");
     METHOD_INSTANCE(Service_base);
@@ -219,7 +219,7 @@ inline void Service_base::s_set_onpause(v8::Local<v8::String> property, v8::Loca
     PROPERTY_SET_LEAVE();
 }
 
-inline void Service_base::s_get_oncontinue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Service_base::s_get_oncontinue(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -232,7 +232,7 @@ inline void Service_base::s_get_oncontinue(v8::Local<v8::String> property, const
     METHOD_RETURN();
 }
 
-inline void Service_base::s_set_oncontinue(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Service_base::s_set_oncontinue(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Service.oncontinue");
     METHOD_INSTANCE(Service_base);

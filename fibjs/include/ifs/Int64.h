@@ -49,10 +49,10 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_hi(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_hi(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_lo(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_lo(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_hi(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_hi(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_lo(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_lo(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_shiftLeft(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_shiftRight(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -146,7 +146,7 @@ void Int64_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void Int64_base::s_get_hi(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Int64_base::s_get_hi(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
@@ -159,7 +159,7 @@ inline void Int64_base::s_get_hi(v8::Local<v8::String> property, const v8::Prope
     METHOD_RETURN();
 }
 
-inline void Int64_base::s_set_hi(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Int64_base::s_set_hi(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Int64.hi");
     METHOD_INSTANCE(Int64_base);
@@ -171,7 +171,7 @@ inline void Int64_base::s_set_hi(v8::Local<v8::String> property, v8::Local<v8::V
     PROPERTY_SET_LEAVE();
 }
 
-inline void Int64_base::s_get_lo(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Int64_base::s_get_lo(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
@@ -184,7 +184,7 @@ inline void Int64_base::s_get_lo(v8::Local<v8::String> property, const v8::Prope
     METHOD_RETURN();
 }
 
-inline void Int64_base::s_set_lo(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Int64_base::s_set_lo(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Int64.lo");
     METHOD_INSTANCE(Int64_base);

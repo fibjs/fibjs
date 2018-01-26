@@ -67,6 +67,7 @@ exlib::string json_format(v8::Local<v8::Value> obj)
     int32_t padding = 0;
     const int32_t tab_size = 2;
     _item* it = NULL;
+    v8::Local<v8::Context> _context = isolate->context();
 
     while (true) {
         if (v.IsEmpty())
@@ -74,7 +75,7 @@ exlib::string json_format(v8::Local<v8::Value> obj)
         else if (v->IsUndefined() || v->IsNull() || v->IsDate() || v->IsBoolean() || v->IsBooleanObject())
             strBuffer.append(*v8::String::Utf8Value(v));
         else if (v->IsNumber() || v->IsNumberObject())
-            strBuffer.append(*v8::String::Utf8Value(v->ToNumber()));
+            strBuffer.append(*v8::String::Utf8Value(v->ToNumber(_context).ToLocalChecked()));
         else if (v->IsString() || v->IsStringObject())
             string_format(strBuffer, v);
         else if (v->IsRegExp()) {
@@ -297,6 +298,7 @@ result_t util_base::format(exlib::string fmt, OptArgs args, exlib::string& retVa
     char ch;
     int32_t argc = args.Length();
     int32_t idx = 0;
+    v8::Local<v8::Context> _context = Isolate::current()->context();
 
     if (argc == 0) {
         retVal = fmt;
@@ -328,7 +330,7 @@ result_t util_base::format(exlib::string fmt, OptArgs args, exlib::string& retVa
                 break;
             case 'd':
                 if (idx < argc) {
-                    v8::String::Utf8Value s(args[idx++]->ToNumber());
+                    v8::String::Utf8Value s(args[idx++]->ToNumber(_context).ToLocalChecked());
                     if (*s)
                         retVal.append(*s, s.length());
                 } else

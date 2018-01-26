@@ -61,27 +61,27 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_value(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_params(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_type(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_body(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_body(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_value(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_value(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_params(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_type(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_data(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_body(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_body(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_length(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_end(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isEnded(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_lastError(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_lastError(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_stream(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_lastError(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_lastError(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 
 public:
     ASYNC_MEMBERVALUE2(Message_base, read, int32_t, obj_ptr<Buffer_base>);
@@ -163,7 +163,7 @@ void Message_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void Message_base::s_get_value(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Message_base::s_get_value(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -176,7 +176,7 @@ inline void Message_base::s_get_value(v8::Local<v8::String> property, const v8::
     METHOD_RETURN();
 }
 
-inline void Message_base::s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Message_base::s_set_value(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Message.value");
     METHOD_INSTANCE(Message_base);
@@ -188,7 +188,7 @@ inline void Message_base::s_set_value(v8::Local<v8::String> property, v8::Local<
     PROPERTY_SET_LEAVE();
 }
 
-inline void Message_base::s_get_params(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Message_base::s_get_params(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
 
@@ -201,7 +201,7 @@ inline void Message_base::s_get_params(v8::Local<v8::String> property, const v8:
     METHOD_RETURN();
 }
 
-inline void Message_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Message_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -214,7 +214,7 @@ inline void Message_base::s_get_type(v8::Local<v8::String> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void Message_base::s_set_type(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Message_base::s_set_type(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Message.type");
     METHOD_INSTANCE(Message_base);
@@ -226,7 +226,7 @@ inline void Message_base::s_set_type(v8::Local<v8::String> property, v8::Local<v
     PROPERTY_SET_LEAVE();
 }
 
-inline void Message_base::s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Message_base::s_get_data(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
@@ -239,7 +239,7 @@ inline void Message_base::s_get_data(v8::Local<v8::String> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void Message_base::s_get_body(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Message_base::s_get_body(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<SeekableStream_base> vr;
 
@@ -252,7 +252,7 @@ inline void Message_base::s_get_body(v8::Local<v8::String> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void Message_base::s_set_body(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Message_base::s_set_body(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Message.body");
     METHOD_INSTANCE(Message_base);
@@ -344,7 +344,7 @@ inline void Message_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void Message_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Message_base::s_get_length(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
@@ -436,7 +436,7 @@ inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_VOID();
 }
 
-inline void Message_base::s_get_stream(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Message_base::s_get_stream(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
@@ -449,7 +449,7 @@ inline void Message_base::s_get_stream(v8::Local<v8::String> property, const v8:
     METHOD_RETURN();
 }
 
-inline void Message_base::s_get_lastError(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Message_base::s_get_lastError(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -462,7 +462,7 @@ inline void Message_base::s_get_lastError(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void Message_base::s_set_lastError(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Message_base::s_set_lastError(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Message.lastError");
     METHOD_INSTANCE(Message_base);

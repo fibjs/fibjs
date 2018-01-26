@@ -40,8 +40,8 @@ public:
     }
 
 public:
-    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_fd(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_fd(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -72,7 +72,7 @@ inline ClassInfo& File_base::class_info()
     return s_ci;
 }
 
-inline void File_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void File_base::s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -85,7 +85,7 @@ inline void File_base::s_get_name(v8::Local<v8::String> property, const v8::Prop
     METHOD_RETURN();
 }
 
-inline void File_base::s_get_fd(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void File_base::s_get_fd(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 

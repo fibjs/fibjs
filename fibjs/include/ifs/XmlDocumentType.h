@@ -40,9 +40,9 @@ public:
     }
 
 public:
-    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_publicId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_systemId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_publicId(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_systemId(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -65,7 +65,7 @@ inline ClassInfo& XmlDocumentType_base::class_info()
     return s_ci;
 }
 
-inline void XmlDocumentType_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlDocumentType_base::s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -78,7 +78,7 @@ inline void XmlDocumentType_base::s_get_name(v8::Local<v8::String> property, con
     METHOD_RETURN();
 }
 
-inline void XmlDocumentType_base::s_get_publicId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlDocumentType_base::s_get_publicId(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -91,7 +91,7 @@ inline void XmlDocumentType_base::s_get_publicId(v8::Local<v8::String> property,
     METHOD_RETURN();
 }
 
-inline void XmlDocumentType_base::s_get_systemId(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlDocumentType_base::s_get_systemId(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 

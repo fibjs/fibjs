@@ -33,8 +33,8 @@ result_t util_base::inherits(v8::Local<v8::Value> constructor,
     if (superConstructor_proto->IsUndefined())
         return CALL_E_TYPEMISMATCH;
 
-    _constructor->Set(isolate->NewString("super_"),  _superConstructor);
-    constructor_proto->Set(isolate->NewString("__proto__"),  superConstructor_proto);
+    _constructor->Set(isolate->NewString("super_"), _superConstructor);
+    constructor_proto->Set(isolate->NewString("__proto__"), superConstructor_proto);
     return 0;
 }
 
@@ -49,7 +49,7 @@ result_t util_base::has(v8::Local<v8::Value> v, exlib::string key, bool& retVal)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> obj = v->ToObject();
-    retVal = obj->HasOwnProperty(Isolate::current()->NewString(key));
+    retVal = obj->HasOwnProperty(obj->CreationContext(), Isolate::current()->NewString(key)).ToChecked();
     return 0;
 }
 
@@ -99,13 +99,14 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
 {
     if (!v->IsProxy() && v->IsObject() && !object_base::getInstance(v)) {
         Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> _context = isolate->context();
 
         if (v->IsFunction() || v->IsArgumentsObject() || v->IsSymbolObject())
             retVal = v;
         else if (v->IsDate())
             retVal = v8::Date::New(isolate->m_isolate, v->NumberValue());
         else if (v->IsBooleanObject())
-            retVal = v8::BooleanObject::New(v->BooleanValue());
+            retVal = v8::BooleanObject::New(isolate->m_isolate, v->BooleanValue(_context).ToChecked());
         else if (v->IsNumberObject())
             retVal = v8::NumberObject::New(isolate->m_isolate, v->NumberValue());
         else if (v->IsStringObject())

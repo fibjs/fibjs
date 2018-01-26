@@ -371,7 +371,7 @@ public:
     }
 
 public:
-    static void block_set(v8::Local<v8::String> property,
+    static void block_set(v8::Local<v8::Name> property,
         v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info)
     {
         Isolate* isolate = Isolate::current();

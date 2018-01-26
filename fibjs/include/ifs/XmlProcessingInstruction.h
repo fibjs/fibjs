@@ -40,9 +40,9 @@ public:
     }
 
 public:
-    static void s_get_target(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_target(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_data(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_data(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
 }
 
@@ -64,7 +64,7 @@ inline ClassInfo& XmlProcessingInstruction_base::class_info()
     return s_ci;
 }
 
-inline void XmlProcessingInstruction_base::s_get_target(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlProcessingInstruction_base::s_get_target(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -77,7 +77,7 @@ inline void XmlProcessingInstruction_base::s_get_target(v8::Local<v8::String> pr
     METHOD_RETURN();
 }
 
-inline void XmlProcessingInstruction_base::s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlProcessingInstruction_base::s_get_data(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -90,7 +90,7 @@ inline void XmlProcessingInstruction_base::s_get_data(v8::Local<v8::String> prop
     METHOD_RETURN();
 }
 
-inline void XmlProcessingInstruction_base::s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void XmlProcessingInstruction_base::s_set_data(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("XmlProcessingInstruction.data");
     METHOD_INSTANCE(XmlProcessingInstruction_base);

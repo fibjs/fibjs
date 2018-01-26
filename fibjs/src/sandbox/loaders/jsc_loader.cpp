@@ -75,8 +75,9 @@ result_t JscLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
         v8::ScriptCompiler::Source source(isolate->NewString(s_temp_source),
             v8::ScriptOrigin(soname), cache);
 
-        script = v8::ScriptCompiler::Compile(isolate->m_isolate, &source,
-            v8::ScriptCompiler::kConsumeCodeCache);
+        script = v8::ScriptCompiler::Compile(isolate->context(), &source,
+            v8::ScriptCompiler::kConsumeCodeCache)
+                     .ToLocalChecked();
 
         if (script.IsEmpty())
             return throwSyntaxError(try_catch);

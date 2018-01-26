@@ -104,17 +104,17 @@ public:
     }
 
 public:
-    static void s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_height(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_format(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_colorsTotal(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_transparent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_progressive(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_progressive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_alphaBlending(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_alphaBlending(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_width(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_height(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_format(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_colorsTotal(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_transparent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_transparent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_progressive(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_progressive(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_alphaBlending(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_alphaBlending(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_getData(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_save(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_colorAllocate(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -278,7 +278,7 @@ inline ClassInfo& Image_base::class_info()
     return s_ci;
 }
 
-inline void Image_base::s_get_width(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Image_base::s_get_width(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -291,7 +291,7 @@ inline void Image_base::s_get_width(v8::Local<v8::String> property, const v8::Pr
     METHOD_RETURN();
 }
 
-inline void Image_base::s_get_height(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Image_base::s_get_height(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -304,7 +304,7 @@ inline void Image_base::s_get_height(v8::Local<v8::String> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void Image_base::s_get_format(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Image_base::s_get_format(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -317,7 +317,7 @@ inline void Image_base::s_get_format(v8::Local<v8::String> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void Image_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Image_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -330,7 +330,7 @@ inline void Image_base::s_get_type(v8::Local<v8::String> property, const v8::Pro
     METHOD_RETURN();
 }
 
-inline void Image_base::s_get_colorsTotal(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Image_base::s_get_colorsTotal(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -343,7 +343,7 @@ inline void Image_base::s_get_colorsTotal(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void Image_base::s_get_transparent(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Image_base::s_get_transparent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -356,7 +356,7 @@ inline void Image_base::s_get_transparent(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void Image_base::s_set_transparent(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Image_base::s_set_transparent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Image.transparent");
     METHOD_INSTANCE(Image_base);
@@ -368,7 +368,7 @@ inline void Image_base::s_set_transparent(v8::Local<v8::String> property, v8::Lo
     PROPERTY_SET_LEAVE();
 }
 
-inline void Image_base::s_get_progressive(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Image_base::s_get_progressive(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -381,7 +381,7 @@ inline void Image_base::s_get_progressive(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void Image_base::s_set_progressive(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Image_base::s_set_progressive(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Image.progressive");
     METHOD_INSTANCE(Image_base);
@@ -393,7 +393,7 @@ inline void Image_base::s_set_progressive(v8::Local<v8::String> property, v8::Lo
     PROPERTY_SET_LEAVE();
 }
 
-inline void Image_base::s_get_alphaBlending(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Image_base::s_get_alphaBlending(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -406,7 +406,7 @@ inline void Image_base::s_get_alphaBlending(v8::Local<v8::String> property, cons
     METHOD_RETURN();
 }
 
-inline void Image_base::s_set_alphaBlending(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Image_base::s_set_alphaBlending(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Image.alphaBlending");
     METHOD_INSTANCE(Image_base);

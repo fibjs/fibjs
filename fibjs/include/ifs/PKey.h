@@ -52,9 +52,9 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_keySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_keySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -163,7 +163,7 @@ void PKey_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void PKey_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void PKey_base::s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -176,7 +176,7 @@ inline void PKey_base::s_get_name(v8::Local<v8::String> property, const v8::Prop
     METHOD_RETURN();
 }
 
-inline void PKey_base::s_get_keySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void PKey_base::s_get_keySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -189,7 +189,7 @@ inline void PKey_base::s_get_keySize(v8::Local<v8::String> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void PKey_base::s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void PKey_base::s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<PKey_base> vr;
 

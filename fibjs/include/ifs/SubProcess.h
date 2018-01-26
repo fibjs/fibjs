@@ -46,9 +46,9 @@ public:
     static void s_kill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_findWindow(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_pid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE1(SubProcess_base, wait, int32_t);
@@ -132,7 +132,7 @@ inline void SubProcess_base::s_findWindow(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
-inline void SubProcess_base::s_get_pid(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SubProcess_base::s_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -145,7 +145,7 @@ inline void SubProcess_base::s_get_pid(v8::Local<v8::String> property, const v8:
     METHOD_RETURN();
 }
 
-inline void SubProcess_base::s_get_stdin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SubProcess_base::s_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<BufferedStream_base> vr;
 
@@ -158,7 +158,7 @@ inline void SubProcess_base::s_get_stdin(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void SubProcess_base::s_get_stdout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SubProcess_base::s_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<BufferedStream_base> vr;
 

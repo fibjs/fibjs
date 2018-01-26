@@ -43,9 +43,9 @@ public:
 
 public:
     static void s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_handler(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_handler(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_stats(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -88,7 +88,7 @@ inline void HandlerEx_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_VOID();
 }
 
-inline void HandlerEx_base::s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HandlerEx_base::s_get_handler(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Handler_base> vr;
 
@@ -101,7 +101,7 @@ inline void HandlerEx_base::s_get_handler(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void HandlerEx_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HandlerEx_base::s_set_handler(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HandlerEx.handler");
     METHOD_INSTANCE(HandlerEx_base);
@@ -113,7 +113,7 @@ inline void HandlerEx_base::s_set_handler(v8::Local<v8::String> property, v8::Lo
     PROPERTY_SET_LEAVE();
 }
 
-inline void HandlerEx_base::s_get_stats(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HandlerEx_base::s_get_stats(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stats_base> vr;
 

@@ -45,9 +45,9 @@ public:
     static void s_diff(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getNodeById(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_save(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_time(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_root(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_nodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_time(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_root(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_nodes(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER1(HeapSnapshot_base, save, exlib::string);
@@ -135,7 +135,7 @@ inline void HeapSnapshot_base::s_save(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_VOID();
 }
 
-inline void HeapSnapshot_base::s_get_time(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HeapSnapshot_base::s_get_time(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     date_t vr;
 
@@ -148,7 +148,7 @@ inline void HeapSnapshot_base::s_get_time(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void HeapSnapshot_base::s_get_root(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HeapSnapshot_base::s_get_root(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HeapGraphNode_base> vr;
 
@@ -161,7 +161,7 @@ inline void HeapSnapshot_base::s_get_root(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void HeapSnapshot_base::s_get_nodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HeapSnapshot_base::s_get_nodes(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
 

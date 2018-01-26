@@ -40,11 +40,11 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_verification(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_verification(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_handler(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_handler(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
 }
 
@@ -102,7 +102,7 @@ void SslHandler_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void SslHandler_base::s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SslHandler_base::s_get_verification(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -115,7 +115,7 @@ inline void SslHandler_base::s_get_verification(v8::Local<v8::String> property, 
     METHOD_RETURN();
 }
 
-inline void SslHandler_base::s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void SslHandler_base::s_set_verification(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("SslHandler.verification");
     METHOD_INSTANCE(SslHandler_base);
@@ -127,7 +127,7 @@ inline void SslHandler_base::s_set_verification(v8::Local<v8::String> property, 
     PROPERTY_SET_LEAVE();
 }
 
-inline void SslHandler_base::s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SslHandler_base::s_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<X509Cert_base> vr;
 
@@ -140,7 +140,7 @@ inline void SslHandler_base::s_get_ca(v8::Local<v8::String> property, const v8::
     METHOD_RETURN();
 }
 
-inline void SslHandler_base::s_get_handler(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SslHandler_base::s_get_handler(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Handler_base> vr;
 
@@ -153,7 +153,7 @@ inline void SslHandler_base::s_get_handler(v8::Local<v8::String> property, const
     METHOD_RETURN();
 }
 
-inline void SslHandler_base::s_set_handler(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void SslHandler_base::s_set_handler(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("SslHandler.handler");
     METHOD_INSTANCE(SslHandler_base);

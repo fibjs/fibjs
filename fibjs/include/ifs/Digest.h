@@ -42,7 +42,7 @@ public:
 public:
     static void s_update(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_digest(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_size(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -108,7 +108,7 @@ inline void Digest_base::s_digest(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void Digest_base::s_get_size(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Digest_base::s_get_size(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 

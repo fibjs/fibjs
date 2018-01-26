@@ -39,12 +39,12 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_masked(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_masked(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_compress(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_compress(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_maxSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_masked(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_masked(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_compress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_compress(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_maxSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_maxSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
 }
 
@@ -95,7 +95,7 @@ void WebSocketMessage_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void WebSocketMessage_base::s_get_masked(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocketMessage_base::s_get_masked(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -108,7 +108,7 @@ inline void WebSocketMessage_base::s_get_masked(v8::Local<v8::String> property, 
     METHOD_RETURN();
 }
 
-inline void WebSocketMessage_base::s_set_masked(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebSocketMessage_base::s_set_masked(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebSocketMessage.masked");
     METHOD_INSTANCE(WebSocketMessage_base);
@@ -120,7 +120,7 @@ inline void WebSocketMessage_base::s_set_masked(v8::Local<v8::String> property, 
     PROPERTY_SET_LEAVE();
 }
 
-inline void WebSocketMessage_base::s_get_compress(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocketMessage_base::s_get_compress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -133,7 +133,7 @@ inline void WebSocketMessage_base::s_get_compress(v8::Local<v8::String> property
     METHOD_RETURN();
 }
 
-inline void WebSocketMessage_base::s_set_compress(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebSocketMessage_base::s_set_compress(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebSocketMessage.compress");
     METHOD_INSTANCE(WebSocketMessage_base);
@@ -145,7 +145,7 @@ inline void WebSocketMessage_base::s_set_compress(v8::Local<v8::String> property
     PROPERTY_SET_LEAVE();
 }
 
-inline void WebSocketMessage_base::s_get_maxSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocketMessage_base::s_get_maxSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -158,7 +158,7 @@ inline void WebSocketMessage_base::s_get_maxSize(v8::Local<v8::String> property,
     METHOD_RETURN();
 }
 
-inline void WebSocketMessage_base::s_set_maxSize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebSocketMessage_base::s_set_maxSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebSocketMessage.maxSize");
     METHOD_INSTANCE(WebSocketMessage_base);

@@ -71,13 +71,13 @@ public:
     static void s_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadClientCertFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_min_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_min_version(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_max_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_max_version(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_verification(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_verification(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_min_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_min_version(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_max_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_max_version(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 
 public:
     ASYNC_STATICVALUE3(ssl_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
@@ -203,7 +203,7 @@ inline void ssl_base::s_loadRootCerts(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_VOID();
 }
 
-inline void ssl_base::s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ssl_base::s_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<X509Cert_base> vr;
 
@@ -215,7 +215,7 @@ inline void ssl_base::s_get_ca(v8::Local<v8::String> property, const v8::Propert
     METHOD_RETURN();
 }
 
-inline void ssl_base::s_get_verification(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ssl_base::s_get_verification(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -227,7 +227,7 @@ inline void ssl_base::s_get_verification(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void ssl_base::s_set_verification(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void ssl_base::s_set_verification(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("ssl.verification");
     PROPERTY_ENTER();
@@ -238,7 +238,7 @@ inline void ssl_base::s_set_verification(v8::Local<v8::String> property, v8::Loc
     PROPERTY_SET_LEAVE();
 }
 
-inline void ssl_base::s_get_min_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ssl_base::s_get_min_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -250,7 +250,7 @@ inline void ssl_base::s_get_min_version(v8::Local<v8::String> property, const v8
     METHOD_RETURN();
 }
 
-inline void ssl_base::s_set_min_version(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void ssl_base::s_set_min_version(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("ssl.min_version");
     PROPERTY_ENTER();
@@ -261,7 +261,7 @@ inline void ssl_base::s_set_min_version(v8::Local<v8::String> property, v8::Loca
     PROPERTY_SET_LEAVE();
 }
 
-inline void ssl_base::s_get_max_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ssl_base::s_get_max_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -273,7 +273,7 @@ inline void ssl_base::s_get_max_version(v8::Local<v8::String> property, const v8
     METHOD_RETURN();
 }
 
-inline void ssl_base::s_set_max_version(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void ssl_base::s_set_max_version(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("ssl.max_version");
     PROPERTY_ENTER();

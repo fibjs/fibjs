@@ -17,6 +17,11 @@ namespace fibjs {
 
 class TryCatch : public v8::TryCatch {
 public:
+    TryCatch()
+        : v8::TryCatch(Isolate::current()->m_isolate)
+    {
+    }
+
     ~TryCatch()
     {
         Reset();

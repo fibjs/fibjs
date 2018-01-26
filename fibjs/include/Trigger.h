@@ -143,7 +143,7 @@ public:
         int32_t len = esa->Length();
         for (i = index; i < len - 1; i++)
             esa->Set(i, esa->Get(i + 1));
-        esa->Delete(len - 1);
+        esa->Delete(esa->CreationContext(), len - 1);
         esa->Set(NewString("length"),
             v8::Integer::New(isolate, len - 1));
     }
@@ -676,7 +676,7 @@ public:
         METHOD_RETURN();
     }
 
-    static void s_get_defaultMaxListeners(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+    static void s_get_defaultMaxListeners(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
     {
         int32_t vr;
 
@@ -688,7 +688,7 @@ public:
         METHOD_RETURN();
     }
 
-    static void s_set_defaultMaxListeners(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+    static void s_set_defaultMaxListeners(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
     {
         METHOD_NAME("EventEmitter.defaultMaxListeners");
         PROPERTY_ENTER();

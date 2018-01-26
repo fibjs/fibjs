@@ -58,18 +58,18 @@ public:
     }
 
 public:
-    static void s_get_nodeType(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_nodeName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_nodeValue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_nodeValue(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_ownerDocument(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_parentNode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_nodeType(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_nodeName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_nodeValue(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_nodeValue(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_ownerDocument(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_parentNode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_hasChildNodes(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_childNodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_firstChild(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_lastChild(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_previousSibling(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_nextSibling(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_childNodes(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_firstChild(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_lastChild(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_previousSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_nextSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_cloneNode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_lookupPrefix(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -124,7 +124,7 @@ inline ClassInfo& XmlNode_base::class_info()
     return s_ci;
 }
 
-inline void XmlNode_base::s_get_nodeType(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlNode_base::s_get_nodeType(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -137,7 +137,7 @@ inline void XmlNode_base::s_get_nodeType(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void XmlNode_base::s_get_nodeName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlNode_base::s_get_nodeName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -150,7 +150,7 @@ inline void XmlNode_base::s_get_nodeName(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void XmlNode_base::s_get_nodeValue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlNode_base::s_get_nodeValue(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -163,7 +163,7 @@ inline void XmlNode_base::s_get_nodeValue(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void XmlNode_base::s_set_nodeValue(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void XmlNode_base::s_set_nodeValue(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("XmlNode.nodeValue");
     METHOD_INSTANCE(XmlNode_base);
@@ -175,7 +175,7 @@ inline void XmlNode_base::s_set_nodeValue(v8::Local<v8::String> property, v8::Lo
     PROPERTY_SET_LEAVE();
 }
 
-inline void XmlNode_base::s_get_ownerDocument(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlNode_base::s_get_ownerDocument(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlDocument_base> vr;
 
@@ -188,7 +188,7 @@ inline void XmlNode_base::s_get_ownerDocument(v8::Local<v8::String> property, co
     METHOD_RETURN();
 }
 
-inline void XmlNode_base::s_get_parentNode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlNode_base::s_get_parentNode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlNode_base> vr;
 
@@ -216,7 +216,7 @@ inline void XmlNode_base::s_hasChildNodes(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
-inline void XmlNode_base::s_get_childNodes(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlNode_base::s_get_childNodes(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlNodeList_base> vr;
 
@@ -229,7 +229,7 @@ inline void XmlNode_base::s_get_childNodes(v8::Local<v8::String> property, const
     METHOD_RETURN();
 }
 
-inline void XmlNode_base::s_get_firstChild(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlNode_base::s_get_firstChild(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlNode_base> vr;
 
@@ -242,7 +242,7 @@ inline void XmlNode_base::s_get_firstChild(v8::Local<v8::String> property, const
     METHOD_RETURN();
 }
 
-inline void XmlNode_base::s_get_lastChild(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlNode_base::s_get_lastChild(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlNode_base> vr;
 
@@ -255,7 +255,7 @@ inline void XmlNode_base::s_get_lastChild(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void XmlNode_base::s_get_previousSibling(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlNode_base::s_get_previousSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlNode_base> vr;
 
@@ -268,7 +268,7 @@ inline void XmlNode_base::s_get_previousSibling(v8::Local<v8::String> property, 
     METHOD_RETURN();
 }
 
-inline void XmlNode_base::s_get_nextSibling(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlNode_base::s_get_nextSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlNode_base> vr;
 

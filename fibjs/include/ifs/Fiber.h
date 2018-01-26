@@ -39,9 +39,9 @@ public:
 
 public:
     static void s_join(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_id(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_caller(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_stack(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_id(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_caller(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_stack(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -81,7 +81,7 @@ inline void Fiber_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void Fiber_base::s_get_id(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Fiber_base::s_get_id(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
@@ -94,7 +94,7 @@ inline void Fiber_base::s_get_id(v8::Local<v8::String> property, const v8::Prope
     METHOD_RETURN();
 }
 
-inline void Fiber_base::s_get_caller(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Fiber_base::s_get_caller(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Fiber_base> vr;
 
@@ -107,7 +107,7 @@ inline void Fiber_base::s_get_caller(v8::Local<v8::String> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void Fiber_base::s_get_stack(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Fiber_base::s_get_stack(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 

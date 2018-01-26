@@ -50,20 +50,20 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_url(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_protocol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_origin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_readyState(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_url(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_protocol(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_origin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_readyState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_onopen(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onopen(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onmessage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onmessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onclose(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onclose(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onerror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onerror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onopen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onopen(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onclose(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onclose(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onerror(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onerror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -127,7 +127,7 @@ void WebSocket_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void WebSocket_base::s_get_url(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocket_base::s_get_url(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -140,7 +140,7 @@ inline void WebSocket_base::s_get_url(v8::Local<v8::String> property, const v8::
     METHOD_RETURN();
 }
 
-inline void WebSocket_base::s_get_protocol(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocket_base::s_get_protocol(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -153,7 +153,7 @@ inline void WebSocket_base::s_get_protocol(v8::Local<v8::String> property, const
     METHOD_RETURN();
 }
 
-inline void WebSocket_base::s_get_origin(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocket_base::s_get_origin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -166,7 +166,7 @@ inline void WebSocket_base::s_get_origin(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void WebSocket_base::s_get_readyState(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocket_base::s_get_readyState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -216,7 +216,7 @@ inline void WebSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_VOID();
 }
 
-inline void WebSocket_base::s_get_onopen(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocket_base::s_get_onopen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -229,7 +229,7 @@ inline void WebSocket_base::s_get_onopen(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void WebSocket_base::s_set_onopen(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebSocket_base::s_set_onopen(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebSocket.onopen");
     METHOD_INSTANCE(WebSocket_base);
@@ -241,7 +241,7 @@ inline void WebSocket_base::s_set_onopen(v8::Local<v8::String> property, v8::Loc
     PROPERTY_SET_LEAVE();
 }
 
-inline void WebSocket_base::s_get_onmessage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocket_base::s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -254,7 +254,7 @@ inline void WebSocket_base::s_get_onmessage(v8::Local<v8::String> property, cons
     METHOD_RETURN();
 }
 
-inline void WebSocket_base::s_set_onmessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebSocket_base::s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebSocket.onmessage");
     METHOD_INSTANCE(WebSocket_base);
@@ -266,7 +266,7 @@ inline void WebSocket_base::s_set_onmessage(v8::Local<v8::String> property, v8::
     PROPERTY_SET_LEAVE();
 }
 
-inline void WebSocket_base::s_get_onclose(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocket_base::s_get_onclose(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -279,7 +279,7 @@ inline void WebSocket_base::s_get_onclose(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void WebSocket_base::s_set_onclose(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebSocket_base::s_set_onclose(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebSocket.onclose");
     METHOD_INSTANCE(WebSocket_base);
@@ -291,7 +291,7 @@ inline void WebSocket_base::s_set_onclose(v8::Local<v8::String> property, v8::Lo
     PROPERTY_SET_LEAVE();
 }
 
-inline void WebSocket_base::s_get_onerror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocket_base::s_get_onerror(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -304,7 +304,7 @@ inline void WebSocket_base::s_get_onerror(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void WebSocket_base::s_set_onerror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebSocket_base::s_set_onerror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebSocket.onerror");
     METHOD_INSTANCE(WebSocket_base);

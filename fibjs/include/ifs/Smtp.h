@@ -50,9 +50,9 @@ public:
     static void s_to(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_data(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_quit(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_timeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_timeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_socket(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER1(Smtp_base, connect, exlib::string);
@@ -280,7 +280,7 @@ inline void Smtp_base::s_quit(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void Smtp_base::s_get_timeout(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Smtp_base::s_get_timeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -293,7 +293,7 @@ inline void Smtp_base::s_get_timeout(v8::Local<v8::String> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void Smtp_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Smtp_base::s_set_timeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Smtp.timeout");
     METHOD_INSTANCE(Smtp_base);
@@ -305,7 +305,7 @@ inline void Smtp_base::s_set_timeout(v8::Local<v8::String> property, v8::Local<v
     PROPERTY_SET_LEAVE();
 }
 
-inline void Smtp_base::s_get_socket(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Smtp_base::s_get_socket(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 

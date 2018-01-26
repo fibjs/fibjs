@@ -48,20 +48,20 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_match(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_name(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_value(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_domain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_domain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_path(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_path(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_expires(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_expires(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_httpOnly(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_httpOnly(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_secure(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_secure(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_name(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_value(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_value(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_domain(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_domain(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_path(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_path(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_expires(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_expires(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_httpOnly(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_httpOnly(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_secure(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_secure(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
 }
 
@@ -156,7 +156,7 @@ inline void HttpCookie_base::s_match(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
-inline void HttpCookie_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpCookie_base::s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -169,7 +169,7 @@ inline void HttpCookie_base::s_get_name(v8::Local<v8::String> property, const v8
     METHOD_RETURN();
 }
 
-inline void HttpCookie_base::s_set_name(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpCookie_base::s_set_name(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpCookie.name");
     METHOD_INSTANCE(HttpCookie_base);
@@ -181,7 +181,7 @@ inline void HttpCookie_base::s_set_name(v8::Local<v8::String> property, v8::Loca
     PROPERTY_SET_LEAVE();
 }
 
-inline void HttpCookie_base::s_get_value(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpCookie_base::s_get_value(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -194,7 +194,7 @@ inline void HttpCookie_base::s_get_value(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void HttpCookie_base::s_set_value(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpCookie_base::s_set_value(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpCookie.value");
     METHOD_INSTANCE(HttpCookie_base);
@@ -206,7 +206,7 @@ inline void HttpCookie_base::s_set_value(v8::Local<v8::String> property, v8::Loc
     PROPERTY_SET_LEAVE();
 }
 
-inline void HttpCookie_base::s_get_domain(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpCookie_base::s_get_domain(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -219,7 +219,7 @@ inline void HttpCookie_base::s_get_domain(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void HttpCookie_base::s_set_domain(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpCookie_base::s_set_domain(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpCookie.domain");
     METHOD_INSTANCE(HttpCookie_base);
@@ -231,7 +231,7 @@ inline void HttpCookie_base::s_set_domain(v8::Local<v8::String> property, v8::Lo
     PROPERTY_SET_LEAVE();
 }
 
-inline void HttpCookie_base::s_get_path(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpCookie_base::s_get_path(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -244,7 +244,7 @@ inline void HttpCookie_base::s_get_path(v8::Local<v8::String> property, const v8
     METHOD_RETURN();
 }
 
-inline void HttpCookie_base::s_set_path(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpCookie_base::s_set_path(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpCookie.path");
     METHOD_INSTANCE(HttpCookie_base);
@@ -256,7 +256,7 @@ inline void HttpCookie_base::s_set_path(v8::Local<v8::String> property, v8::Loca
     PROPERTY_SET_LEAVE();
 }
 
-inline void HttpCookie_base::s_get_expires(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpCookie_base::s_get_expires(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     date_t vr;
 
@@ -269,7 +269,7 @@ inline void HttpCookie_base::s_get_expires(v8::Local<v8::String> property, const
     METHOD_RETURN();
 }
 
-inline void HttpCookie_base::s_set_expires(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpCookie_base::s_set_expires(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpCookie.expires");
     METHOD_INSTANCE(HttpCookie_base);
@@ -281,7 +281,7 @@ inline void HttpCookie_base::s_set_expires(v8::Local<v8::String> property, v8::L
     PROPERTY_SET_LEAVE();
 }
 
-inline void HttpCookie_base::s_get_httpOnly(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpCookie_base::s_get_httpOnly(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -294,7 +294,7 @@ inline void HttpCookie_base::s_get_httpOnly(v8::Local<v8::String> property, cons
     METHOD_RETURN();
 }
 
-inline void HttpCookie_base::s_set_httpOnly(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpCookie_base::s_set_httpOnly(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpCookie.httpOnly");
     METHOD_INSTANCE(HttpCookie_base);
@@ -306,7 +306,7 @@ inline void HttpCookie_base::s_set_httpOnly(v8::Local<v8::String> property, v8::
     PROPERTY_SET_LEAVE();
 }
 
-inline void HttpCookie_base::s_get_secure(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpCookie_base::s_get_secure(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -319,7 +319,7 @@ inline void HttpCookie_base::s_get_secure(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void HttpCookie_base::s_set_secure(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpCookie_base::s_set_secure(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpCookie.secure");
     METHOD_INSTANCE(HttpCookie_base);

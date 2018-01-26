@@ -44,12 +44,12 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_statusCode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_statusCode(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_statusMessage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_statusMessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_statusCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_statusCode(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_statusMessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_statusMessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_writeHead(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_cookies(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_addCookie(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_redirect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_sendHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -110,7 +110,7 @@ void HttpResponse_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void HttpResponse_base::s_get_statusCode(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpResponse_base::s_get_statusCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -123,7 +123,7 @@ inline void HttpResponse_base::s_get_statusCode(v8::Local<v8::String> property, 
     METHOD_RETURN();
 }
 
-inline void HttpResponse_base::s_set_statusCode(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpResponse_base::s_set_statusCode(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpResponse.statusCode");
     METHOD_INSTANCE(HttpResponse_base);
@@ -135,7 +135,7 @@ inline void HttpResponse_base::s_set_statusCode(v8::Local<v8::String> property, 
     PROPERTY_SET_LEAVE();
 }
 
-inline void HttpResponse_base::s_get_statusMessage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpResponse_base::s_get_statusMessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -148,7 +148,7 @@ inline void HttpResponse_base::s_get_statusMessage(v8::Local<v8::String> propert
     METHOD_RETURN();
 }
 
-inline void HttpResponse_base::s_set_statusMessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpResponse_base::s_set_statusMessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("HttpResponse.statusMessage");
     METHOD_INSTANCE(HttpResponse_base);
@@ -184,7 +184,7 @@ inline void HttpResponse_base::s_writeHead(const v8::FunctionCallbackInfo<v8::Va
     METHOD_VOID();
 }
 
-inline void HttpResponse_base::s_get_cookies(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpResponse_base::s_get_cookies(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
 

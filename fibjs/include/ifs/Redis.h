@@ -124,8 +124,8 @@ public:
     static void s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_psub(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_onsuberror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onsuberror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onsuberror(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onsuberror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_pub(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getHash(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getList(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -808,7 +808,7 @@ inline void Redis_base::s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void Redis_base::s_get_onsuberror(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Redis_base::s_get_onsuberror(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -821,7 +821,7 @@ inline void Redis_base::s_get_onsuberror(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void Redis_base::s_set_onsuberror(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Redis_base::s_set_onsuberror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("Redis.onsuberror");
     METHOD_INSTANCE(Redis_base);

@@ -59,18 +59,18 @@ public:
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_visible(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_visible(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onload(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onload(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onmove(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onmove(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onresize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onresize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onclosed(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onclosed(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onmessage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onmessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_visible(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_visible(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onload(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onload(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onmove(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onmove(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onresize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onresize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onclosed(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onclosed(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 
 public:
     ASYNC_MEMBER1(WebView_base, setHtml, exlib::string);
@@ -207,7 +207,7 @@ inline void WebView_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value
     METHOD_VOID();
 }
 
-inline void WebView_base::s_get_visible(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebView_base::s_get_visible(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -220,7 +220,7 @@ inline void WebView_base::s_get_visible(v8::Local<v8::String> property, const v8
     METHOD_RETURN();
 }
 
-inline void WebView_base::s_set_visible(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebView_base::s_set_visible(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebView.visible");
     METHOD_INSTANCE(WebView_base);
@@ -232,7 +232,7 @@ inline void WebView_base::s_set_visible(v8::Local<v8::String> property, v8::Loca
     PROPERTY_SET_LEAVE();
 }
 
-inline void WebView_base::s_get_onload(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebView_base::s_get_onload(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -245,7 +245,7 @@ inline void WebView_base::s_get_onload(v8::Local<v8::String> property, const v8:
     METHOD_RETURN();
 }
 
-inline void WebView_base::s_set_onload(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebView_base::s_set_onload(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebView.onload");
     METHOD_INSTANCE(WebView_base);
@@ -257,7 +257,7 @@ inline void WebView_base::s_set_onload(v8::Local<v8::String> property, v8::Local
     PROPERTY_SET_LEAVE();
 }
 
-inline void WebView_base::s_get_onmove(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebView_base::s_get_onmove(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -270,7 +270,7 @@ inline void WebView_base::s_get_onmove(v8::Local<v8::String> property, const v8:
     METHOD_RETURN();
 }
 
-inline void WebView_base::s_set_onmove(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebView_base::s_set_onmove(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebView.onmove");
     METHOD_INSTANCE(WebView_base);
@@ -282,7 +282,7 @@ inline void WebView_base::s_set_onmove(v8::Local<v8::String> property, v8::Local
     PROPERTY_SET_LEAVE();
 }
 
-inline void WebView_base::s_get_onresize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebView_base::s_get_onresize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -295,7 +295,7 @@ inline void WebView_base::s_get_onresize(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void WebView_base::s_set_onresize(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebView_base::s_set_onresize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebView.onresize");
     METHOD_INSTANCE(WebView_base);
@@ -307,7 +307,7 @@ inline void WebView_base::s_set_onresize(v8::Local<v8::String> property, v8::Loc
     PROPERTY_SET_LEAVE();
 }
 
-inline void WebView_base::s_get_onclosed(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebView_base::s_get_onclosed(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -320,7 +320,7 @@ inline void WebView_base::s_get_onclosed(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void WebView_base::s_set_onclosed(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebView_base::s_set_onclosed(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebView.onclosed");
     METHOD_INSTANCE(WebView_base);
@@ -332,7 +332,7 @@ inline void WebView_base::s_set_onclosed(v8::Local<v8::String> property, v8::Loc
     PROPERTY_SET_LEAVE();
 }
 
-inline void WebView_base::s_get_onmessage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebView_base::s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -345,7 +345,7 @@ inline void WebView_base::s_get_onmessage(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void WebView_base::s_set_onmessage(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebView_base::s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("WebView.onmessage");
     METHOD_INSTANCE(WebView_base);

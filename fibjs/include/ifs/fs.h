@@ -81,7 +81,7 @@ public:
     }
 
 public:
-    static void s_get_constants(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_constants(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_access(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_link(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -252,7 +252,7 @@ inline ClassInfo& fs_base::class_info()
     return s_ci;
 }
 
-inline void fs_base::s_get_constants(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void fs_base::s_get_constants(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 

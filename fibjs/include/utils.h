@@ -568,7 +568,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, double& n, bool bStrict
         if (bStrict)
             return CALL_E_TYPEMISMATCH;
 
-        v = v->ToNumber();
+        v = v->ToNumber(Isolate::current()->m_isolate);
     }
 
     n = v->NumberValue();
@@ -1076,7 +1076,7 @@ inline v8::Local<v8::Value> ThrowURIError(const char* msg)
     auto URIError = (glob->Get(isolate->NewString("URIError"))).As<v8::Object>();
 
     v8::Local<v8::Value> args[] = { isolate->NewString(msg) };
-    auto error = URIError->CallAsConstructor(1, args);
+    auto error = URIError->CallAsConstructor(_context, 1, args).ToLocalChecked();
     return ThrowError(error);
 }
 
@@ -1093,7 +1093,7 @@ inline v8::Local<v8::Value> ThrowEvalError(const char* msg)
     auto EvalError = (glob->Get(isolate->NewString("EvalError"))).As<v8::Object>();
 
     v8::Local<v8::Value> args[] = { isolate->NewString(msg) };
-    auto error = EvalError->CallAsConstructor(1, args);
+    auto error = EvalError->CallAsConstructor(_context, 1, args).ToLocalChecked();
     return ThrowError(error);
 }
 
@@ -1113,13 +1113,13 @@ inline v8::Local<v8::Value> ThrowEvalError(exlib::string msg)
 inline v8::Local<v8::Value> ThrowAssertionError(v8::Local<v8::Object>& msg)
 {
     Isolate* isolate = Isolate::current();
+    auto _context = isolate->context();
     v8::Local<v8::Value> args[] = { msg };
     v8::Local<v8::Value> error;
 
     {
-        v8::Local<v8::Object> AssertionError =
-            v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_AssertionError);
-        error = AssertionError->CallAsConstructor(1, args);
+        v8::Local<v8::Object> AssertionError = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_AssertionError);
+        error = AssertionError->CallAsConstructor(_context, 1, args).ToLocalChecked();
     }
 
     return ThrowError(error);

@@ -40,10 +40,10 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_keySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ivSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_blockSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_keySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_ivSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_blockSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_paddingMode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -125,7 +125,7 @@ void Cipher_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void Cipher_base::s_get_name(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Cipher_base::s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -138,7 +138,7 @@ inline void Cipher_base::s_get_name(v8::Local<v8::String> property, const v8::Pr
     METHOD_RETURN();
 }
 
-inline void Cipher_base::s_get_keySize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Cipher_base::s_get_keySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -151,7 +151,7 @@ inline void Cipher_base::s_get_keySize(v8::Local<v8::String> property, const v8:
     METHOD_RETURN();
 }
 
-inline void Cipher_base::s_get_ivSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Cipher_base::s_get_ivSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -164,7 +164,7 @@ inline void Cipher_base::s_get_ivSize(v8::Local<v8::String> property, const v8::
     METHOD_RETURN();
 }
 
-inline void Cipher_base::s_get_blockSize(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Cipher_base::s_get_blockSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 

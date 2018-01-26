@@ -269,16 +269,16 @@ module.exports = function (defs, baseFolder) {
                     var fstatic = fn.static;
 
                     if (fname) {
-                        txts.push("    static void s_get_" + fname + "(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
+                        txts.push("    static void s_get_" + fname + "(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
                         if (!fn.readonly)
-                            txts.push("    static void s_set_" + fname + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);");
+                            txts.push("    static void s_set_" + fname + "(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);");
                     }
                 },
                 "stub_func": fn => {
                     var fname = fn.name;
                     var fstatic = fn.static;
 
-                    txts.push('inline void ' + cls + '_base::s_get_' + fname + '(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ' + get_rtype(fn.type) + ' vr;\n');
+                    txts.push('inline void ' + cls + '_base::s_get_' + fname + '(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ' + get_rtype(fn.type) + ' vr;\n');
 
                     txts.push(`    METHOD_NAME("${cls}.${fname}");`);
                     if (!fstatic)
@@ -295,7 +295,7 @@ module.exports = function (defs, baseFolder) {
                     txts.push('    METHOD_RETURN();\n}\n');
 
                     if (!fn.readonly) {
-                        txts.push('inline void ' + cls + '_base::s_set_' + fname + '(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)\n{');
+                        txts.push('inline void ' + cls + '_base::s_set_' + fname + '(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)\n{');
                         txts.push(`    METHOD_NAME("${cls}.${fname}");`);
                         if (!fstatic)
                             txts.push(`    METHOD_INSTANCE(${cls}_base);`);

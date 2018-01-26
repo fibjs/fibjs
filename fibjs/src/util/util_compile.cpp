@@ -37,7 +37,7 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
             v8::ScriptCompiler::Source script_source(
                 isolate->NewString(script));
 
-            if (v8::ScriptCompiler::CompileUnbound(
+            if (v8::ScriptCompiler::CompileUnboundScript(
                     isolate->m_isolate, &script_source)
                     .IsEmpty())
                 return throwSyntaxError(try_catch);
@@ -65,7 +65,7 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
                 v8::String::kNormalString, (int32_t)wscript.length()),
             v8::ScriptOrigin(soname));
 
-        if (v8::ScriptCompiler::CompileUnbound(
+        if (v8::ScriptCompiler::CompileUnboundScript(
                 isolate->m_isolate, &script_source,
                 v8::ScriptCompiler::kProduceCodeCache)
                 .IsEmpty())

@@ -57,18 +57,18 @@ public:
     static void s_verify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_dump(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_serial(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_issuer(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_subject(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_notBefore(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_notAfter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_pathlen(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_usage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_next(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_serial(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_issuer(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_subject(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_notBefore(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_notAfter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_pathlen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_usage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_next(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE2(X509Cert_base, verify, X509Cert_base*, bool);
@@ -235,7 +235,7 @@ inline void X509Cert_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_VOID();
 }
 
-inline void X509Cert_base::s_get_version(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_get_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -248,7 +248,7 @@ inline void X509Cert_base::s_get_version(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void X509Cert_base::s_get_serial(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_get_serial(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -261,7 +261,7 @@ inline void X509Cert_base::s_get_serial(v8::Local<v8::String> property, const v8
     METHOD_RETURN();
 }
 
-inline void X509Cert_base::s_get_issuer(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_get_issuer(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -274,7 +274,7 @@ inline void X509Cert_base::s_get_issuer(v8::Local<v8::String> property, const v8
     METHOD_RETURN();
 }
 
-inline void X509Cert_base::s_get_subject(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_get_subject(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -287,7 +287,7 @@ inline void X509Cert_base::s_get_subject(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void X509Cert_base::s_get_notBefore(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_get_notBefore(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     date_t vr;
 
@@ -300,7 +300,7 @@ inline void X509Cert_base::s_get_notBefore(v8::Local<v8::String> property, const
     METHOD_RETURN();
 }
 
-inline void X509Cert_base::s_get_notAfter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_get_notAfter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     date_t vr;
 
@@ -313,7 +313,7 @@ inline void X509Cert_base::s_get_notAfter(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void X509Cert_base::s_get_ca(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -326,7 +326,7 @@ inline void X509Cert_base::s_get_ca(v8::Local<v8::String> property, const v8::Pr
     METHOD_RETURN();
 }
 
-inline void X509Cert_base::s_get_pathlen(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_get_pathlen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -339,7 +339,7 @@ inline void X509Cert_base::s_get_pathlen(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void X509Cert_base::s_get_usage(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_get_usage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -352,7 +352,7 @@ inline void X509Cert_base::s_get_usage(v8::Local<v8::String> property, const v8:
     METHOD_RETURN();
 }
 
-inline void X509Cert_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -365,7 +365,7 @@ inline void X509Cert_base::s_get_type(v8::Local<v8::String> property, const v8::
     METHOD_RETURN();
 }
 
-inline void X509Cert_base::s_get_publicKey(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<PKey_base> vr;
 
@@ -378,7 +378,7 @@ inline void X509Cert_base::s_get_publicKey(v8::Local<v8::String> property, const
     METHOD_RETURN();
 }
 
-inline void X509Cert_base::s_get_next(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_get_next(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<X509Cert_base> vr;
 

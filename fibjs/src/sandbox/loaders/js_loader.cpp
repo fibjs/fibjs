@@ -46,7 +46,7 @@ result_t JsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
                 isolate->NewString(strScript),
                 v8::ScriptOrigin(soname));
 
-            if (v8::ScriptCompiler::CompileUnbound(
+            if (v8::ScriptCompiler::CompileUnboundScript(
                     isolate->m_isolate, &script_source)
                     .IsEmpty()) {
                 try_catch.Reset();

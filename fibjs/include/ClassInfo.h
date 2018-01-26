@@ -21,8 +21,8 @@ class ClassInfo;
 struct ClassData {
     struct ClassProperty {
         const char* name;
-        v8::AccessorGetterCallback getter;
-        v8::AccessorSetterCallback setter;
+        v8::AccessorNameGetterCallback getter;
+        v8::AccessorNameSetterCallback setter;
         bool is_static;
     };
 
@@ -144,7 +144,9 @@ public:
         cache* _cache = _init(isolate);
 
         if (_cache->m_cache.IsEmpty()) {
-            o = v8::Local<v8::Function>::New(isolate->m_isolate, _cache->m_function)->NewInstance();
+            o = v8::Local<v8::Function>::New(isolate->m_isolate, _cache->m_function)
+                    ->NewInstance(isolate->context())
+                    .ToLocalChecked();
             o->SetAlignedPointerInInternalField(0, 0);
             _cache->m_cache.Reset(isolate->m_isolate, o);
 
@@ -199,6 +201,7 @@ public:
     void Attach(Isolate* isolate, v8::Local<v8::Object> o, const char** skips = NULL)
     {
         int32_t i, j;
+        v8::Local<v8::Context> _context = isolate->context();
 
         for (i = 0; i < m_cd.mc; i++) {
             if (m_cd.cms[i].is_static) {
@@ -229,7 +232,7 @@ public:
                         ;
 
                 if (!skips || !skips[j])
-                    o->SetAccessor(isolate->NewString(m_cd.cps[i].name),
+                    o->SetAccessor(_context, isolate->NewString(m_cd.cps[i].name),
                         m_cd.cps[i].getter, m_cd.cps[i].setter);
             }
 
@@ -377,7 +380,7 @@ private:
             _cache->m_function.Reset(isolate->m_isolate, _function);
 
             if (m_cd.cor) {
-                v8::Local<v8::Object> o = _function->NewInstance();
+                v8::Local<v8::Object> o = _function->NewInstance(isolate->context()).ToLocalChecked();
                 o->SetAlignedPointerInInternalField(0, 0);
                 _cache->m_cache.Reset(isolate->m_isolate, o);
             }

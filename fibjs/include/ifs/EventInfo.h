@@ -40,10 +40,10 @@ public:
     }
 
 public:
-    static void s_get_code(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_reason(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_target(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_code(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_reason(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_target(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args);
 };
@@ -73,7 +73,7 @@ inline ClassInfo& EventInfo_base::class_info()
     return s_ci;
 }
 
-inline void EventInfo_base::s_get_code(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void EventInfo_base::s_get_code(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -86,7 +86,7 @@ inline void EventInfo_base::s_get_code(v8::Local<v8::String> property, const v8:
     METHOD_RETURN();
 }
 
-inline void EventInfo_base::s_get_reason(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void EventInfo_base::s_get_reason(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -99,7 +99,7 @@ inline void EventInfo_base::s_get_reason(v8::Local<v8::String> property, const v
     METHOD_RETURN();
 }
 
-inline void EventInfo_base::s_get_type(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void EventInfo_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -112,7 +112,7 @@ inline void EventInfo_base::s_get_type(v8::Local<v8::String> property, const v8:
     METHOD_RETURN();
 }
 
-inline void EventInfo_base::s_get_target(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void EventInfo_base::s_get_target(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 

@@ -60,13 +60,13 @@ public:
     }
 
 public:
-    static void s_get_Master(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_global(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_Master(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_global(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get___filename(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get___dirname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get___filename(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get___dirname(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -131,7 +131,7 @@ inline ClassInfo& global_base::class_info()
     return s_ci;
 }
 
-inline void global_base::s_get_Master(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void global_base::s_get_Master(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Worker_base> vr;
 
@@ -143,7 +143,7 @@ inline void global_base::s_get_Master(v8::Local<v8::String> property, const v8::
     METHOD_RETURN();
 }
 
-inline void global_base::s_get_global(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void global_base::s_get_global(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -186,7 +186,7 @@ inline void global_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void global_base::s_get_argv(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void global_base::s_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -198,7 +198,7 @@ inline void global_base::s_get_argv(v8::Local<v8::String> property, const v8::Pr
     METHOD_RETURN();
 }
 
-inline void global_base::s_get___filename(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void global_base::s_get___filename(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -210,7 +210,7 @@ inline void global_base::s_get___filename(v8::Local<v8::String> property, const 
     METHOD_RETURN();
 }
 
-inline void global_base::s_get___dirname(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void global_base::s_get___dirname(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 

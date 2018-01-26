@@ -45,9 +45,9 @@ public:
     }
 
 public:
-    static void s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_data(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_data(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_length(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_substringData(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_appendData(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_insertData(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -82,7 +82,7 @@ inline ClassInfo& XmlCharacterData_base::class_info()
     return s_ci;
 }
 
-inline void XmlCharacterData_base::s_get_data(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlCharacterData_base::s_get_data(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -95,7 +95,7 @@ inline void XmlCharacterData_base::s_get_data(v8::Local<v8::String> property, co
     METHOD_RETURN();
 }
 
-inline void XmlCharacterData_base::s_set_data(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void XmlCharacterData_base::s_set_data(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("XmlCharacterData.data");
     METHOD_INSTANCE(XmlCharacterData_base);
@@ -107,7 +107,7 @@ inline void XmlCharacterData_base::s_set_data(v8::Local<v8::String> property, v8
     PROPERTY_SET_LEAVE();
 }
 
-inline void XmlCharacterData_base::s_get_length(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlCharacterData_base::s_get_length(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
