@@ -114,8 +114,10 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
         else if (v->IsRegExp()) {
             v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(v);
             retVal = v8::RegExp::New(re->GetSource(), re->GetFlags());
-        } else
+        } else if (v->IsFunction() || v->IsArray() || IsJSObject(v))
             retVal = v8::Local<v8::Object>::Cast(v)->Clone();
+        else
+            retVal = v;
     } else
         retVal = v;
 

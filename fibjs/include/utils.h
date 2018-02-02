@@ -784,21 +784,26 @@ result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object>& vr, bool bStrict = false)
+inline bool IsJSObject(v8::Local<v8::Value> v)
 {
-    if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
-
     if (!v->IsObject())
-        return CALL_E_TYPEMISMATCH;
+        return false;
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
     v8::Local<v8::Context> _context = o->CreationContext();
     v8::Local<v8::Value> proto = _context->GetEmbedderData(1);
     if (!proto->Equals(o->GetPrototype()))
+        return false;
+
+    return true;
+}
+
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object>& vr, bool bStrict = false)
+{
+    if (v.IsEmpty() || !IsJSObject(v))
         return CALL_E_TYPEMISMATCH;
 
-    vr = o;
+    vr = v8::Local<v8::Object>::Cast(v);
     return 0;
 }
 

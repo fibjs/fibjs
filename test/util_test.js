@@ -322,7 +322,7 @@ describe('util', () => {
     });
 
     it('isAsyncFunction', () => {
-        assert.isTrue(util.isAsyncFunction(async() => {}));
+        assert.isTrue(util.isAsyncFunction(async () => {}));
         assert.isTrue(util.isAsyncFunction(async function () {}));
         assert.isTrue(util.isAsyncFunction(async function demo() {}));
 
@@ -480,6 +480,10 @@ describe('util', () => {
         assert.strictEqual(util.clone(void 0), void 0, 'non objects should not be changed by clone');
         assert.strictEqual(util.clone(1), 1, 'non objects should not be changed by clone');
         assert.strictEqual(util.clone(null), null, 'non objects should not be changed by clone');
+    });
+
+    it('clone crash', () => {
+        util.clone(new Map());
     });
 
     it('extend', () => {
@@ -1159,7 +1163,7 @@ describe('util', () => {
 
             var t2 = 0;
             try {
-                util.sync(async() => {
+                util.sync(async () => {
                     throw 500;
                 })();
             } catch (e) {
