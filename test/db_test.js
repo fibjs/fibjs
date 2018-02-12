@@ -67,15 +67,18 @@ describe("db", () => {
             if (conn.type == 'mssql')
                 conn.execute('create table test(t1 int, t2 varchar(128), t3 VARBINARY(100), t4 datetime);');
             else {
-                conn.execute('create table test(t1 int, t2 varchar(128), t3 BLOB, t4 datetime);');
+                conn.execute('create table test(t0 INTEGER AUTO_INCREMENT PRIMARY KEY, t1 int, t2 varchar(128), t3 BLOB, t4 datetime);');
                 conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 BLOB NULL, t4 datetime NULL);');
             }
         });
 
         it("insert", () => {
-            conn.execute("insert into test values(?,?,?,?);", 1123,
+            var rs = conn.execute("insert into test(t1, t2, t3, t4) values(?,?,?,?);", 1123,
                 'aaaaa', new Buffer('DDDDDDDDDD'), new Date(
                     '1998-04-14 12:12:12'));
+
+            if (conn.type != 'mssql')
+                assert.equal(rs.insertId, 1);
 
             if (conn.type != 'mssql') {
                 conn.execute("insert into test_null values(?,?,?,?);", null,
@@ -104,6 +107,7 @@ describe("db", () => {
             assert.deepEqual(r['t4'], new Date('1998-04-14 12:12:12'));
 
             assert.deepEqual(Object.keys(r), [
+                "t0",
                 "t1",
                 "t2",
                 "t3",
@@ -141,7 +145,7 @@ describe("db", () => {
             for (var i = 0; i < 256; i++) {
                 b[0] = i;
                 conn.execute("delete from test;");
-                conn.execute("insert into test values(1,'aa', ?, ?);",
+                conn.execute("insert into test(t1, t2, t3, t4) values(1,'aa', ?, ?);",
                     b, new Date());
                 var rs = conn.execute("select * from test;");
                 assert.equal(rs[0].t3.length, 1);
@@ -153,7 +157,7 @@ describe("db", () => {
             before(() => {
                 try {
                     var b = new Buffer();
-                    conn.execute("insert into test values(?,?,?,?);", 101, 'test101', b, new Date());
+                    conn.execute("insert into test(t1, t2, t3, t4) values(?,?,?,?);", 101, 'test101', b, new Date());
                 } catch (e) {}
             });
 
