@@ -525,8 +525,14 @@ result_t WebSocket::close(int32_t code, exlib::string reason)
 
 result_t WebSocket::send(exlib::string data)
 {
-    if (m_readyState != ws_base::_OPEN)
-        return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CONNECTING, CLOSING or CLOSED state."));
+    switch (m_readyState) {
+    case ws_base::_CONNECTING:
+        return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CONNECTING state."));
+    case ws_base::_CLOSING:
+        return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CLOSING state."));
+    case ws_base::_CLOSED:
+        return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CLOSED state."));
+    }
 
     new asyncSend(this, data);
     return 0;
@@ -534,8 +540,14 @@ result_t WebSocket::send(exlib::string data)
 
 result_t WebSocket::send(Buffer_base* data)
 {
-    if (m_readyState != ws_base::_OPEN)
-        return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CONNECTING, CLOSING or CLOSED state."));
+    switch (m_readyState) {
+    case ws_base::_CONNECTING:
+        return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CONNECTING state."));
+    case ws_base::_CLOSING:
+        return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CLOSING state."));
+    case ws_base::_CLOSED:
+        return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CLOSED state."));
+    }
 
     new asyncSend(this, data);
     return 0;
