@@ -233,7 +233,8 @@ public:
 
                 if (!skips || !skips[j])
                     o->SetAccessor(_context, isolate->NewString(m_cd.cps[i].name),
-                        m_cd.cps[i].getter, m_cd.cps[i].setter);
+                         m_cd.cps[i].getter, m_cd.cps[i].setter)
+                        .ToChecked();
             }
 
         for (i = 0; i < m_cd.cc; i++) {

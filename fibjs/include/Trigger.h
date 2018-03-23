@@ -143,7 +143,7 @@ public:
         int32_t len = esa->Length();
         for (i = index; i < len - 1; i++)
             esa->Set(i, esa->Get(i + 1));
-        esa->Delete(esa->CreationContext(), len - 1);
+        esa->Delete(esa->CreationContext(), len - 1).ToChecked();
         esa->Set(NewString("length"),
             v8::Integer::New(isolate, len - 1));
     }
