@@ -60,18 +60,18 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
 
         exlib::wstring wscript(utf8to16String(script));
 
-        v8::ScriptCompiler::Source script_source(
-            v8::String::NewFromTwoByte(isolate->m_isolate, (const uint16_t*)wscript.c_str(),
-                v8::String::kNormalString, (int32_t)wscript.length()),
-            v8::ScriptOrigin(soname));
+        v8::Local<v8::String> v8src = v8::String::NewFromTwoByte(isolate->m_isolate, (const uint16_t*)wscript.c_str(),
+            v8::String::kNormalString, (int32_t)wscript.length());
+        v8::ScriptCompiler::Source script_source(v8src, v8::ScriptOrigin(soname));
 
-        if (v8::ScriptCompiler::CompileUnboundScript(
-                isolate->m_isolate, &script_source,
-                v8::ScriptCompiler::kProduceCodeCache)
-                .IsEmpty())
+        v8::MaybeLocal<v8::UnboundScript> ubs = v8::ScriptCompiler::CompileUnboundScript(
+            isolate->m_isolate, &script_source,
+            v8::ScriptCompiler::kEagerCompile);
+        if (ubs.IsEmpty())
             return throwSyntaxError(try_catch);
 
-        const v8::ScriptCompiler::CachedData* cache = script_source.GetCachedData();
+        const v8::ScriptCompiler::CachedData* cache;
+        cache = v8::ScriptCompiler::CreateCodeCache(ubs.ToLocalChecked(), v8src);
 
         exlib::string buf((const char*)cache->data, cache->length);
 
