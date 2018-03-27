@@ -260,6 +260,14 @@ describe('encoding', () => {
         assert.isTrue(Buffer.isBuffer(json.decode(j)));
     });
 
+    it('json encode error when circular', () => {
+        var a = {};
+        a.aa = a;
+        assert.throws(() => {
+            json.encode(a);
+        })
+    });
+
     it('jsstr', () => {
         assert.equal(encoding.jsstr("[\r\n\t\\\'\"]"), "[\\r\\n\\t\\\\\\'\\\"]");
         assert.equal(encoding.jsstr("[abcd汉字]"), "[abcd汉字]");

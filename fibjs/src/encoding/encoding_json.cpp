@@ -28,11 +28,11 @@ inline result_t _jsonEncode(v8::Local<v8::Value> data, exlib::string& retVal)
 {
     Isolate* isolate = Isolate::current();
 
-    v8::Local<v8::String> str = v8::JSON::Stringify(isolate->context(), data).ToLocalChecked();
+    v8::MaybeLocal<v8::String> str = v8::JSON::Stringify(isolate->context(), data);
     if (str.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    return GetArgumentValue(isolate->m_isolate, str, retVal);
+    return GetArgumentValue(isolate->m_isolate, str.ToLocalChecked(), retVal);
 }
 
 result_t json_base::encode(v8::Local<v8::Value> data,
