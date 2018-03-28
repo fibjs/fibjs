@@ -65,7 +65,7 @@ result_t JscLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
         pos++;
     }
 
-    v8::Local<v8::Script> script;
+    v8::MaybeLocal<v8::Script> script;
     {
         TryCatch try_catch;
 
@@ -76,14 +76,13 @@ result_t JscLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
             v8::ScriptOrigin(soname), cache);
 
         script = v8::ScriptCompiler::Compile(isolate->context(), &source,
-            v8::ScriptCompiler::kConsumeCodeCache)
-                     .ToLocalChecked();
+            v8::ScriptCompiler::kConsumeCodeCache);
 
         if (script.IsEmpty())
             return throwSyntaxError(try_catch);
     }
 
-    v8::Local<v8::Value> v = script->Run();
+    v8::Local<v8::Value> v = script.ToLocalChecked()->Run();
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
