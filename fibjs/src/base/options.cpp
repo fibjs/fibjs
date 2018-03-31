@@ -44,6 +44,8 @@ static void printHelp()
          "  -h, --help           print fibjs command line options.\n"
          "  -v, --version        print fibjs version.\n"
          "\n"
+         "  --use-thread         run fibjs in thread mode.\n"
+         "\n"
          "  --init               write a package.json file.\n"
          "  --install            install the dependencies in the local node_modules folder.\n"
          "\n"
@@ -91,6 +93,9 @@ void options(int32_t& pos, char* argv[])
         } else if (!qstrcmp(arg, "--version") || !qstrcmp(arg, "-v")) {
             printf("v%s\n", fibjs_version);
             _exit(0);
+        } else if (!qstrcmp(arg, "--use-thread")) {
+            exlib::Service::use_thread = true;
+            df++;
         } else if (!qstrcmp(arg, "--prof")) {
             g_prof = true;
             df++;
