@@ -609,6 +609,28 @@ describe("mq", () => {
             assert.equal(7, n);
         });
 
+        it("run js in same fiber", () => {
+            var f;
+            var chain = new mq.Handler([() => {
+                f = coroutine.current();
+            }, () => {
+                assert.equal(f, coroutine.current());
+            }]);
+
+            chain.invoke(v);
+        });
+
+        it("run chain in different fiber", () => {
+            var f;
+            var chain = new mq.Handler([() => {
+                f = coroutine.current();
+            }, new mq.Handler([() => {
+                assert.notEqual(f, coroutine.current());
+            }])]);
+
+            chain.invoke(v);
+        });
+
         xit("params", () => {
             function chain_params(v, p1, p2) {
                 assert.equal(v.value, '');

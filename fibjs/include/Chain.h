@@ -22,7 +22,7 @@ public:
         asyncInvoke(Handler_base* hdlr, object_base* v, AsyncEvent* ac)
             : AsyncState(ac)
             , m_v(v)
-            , m_hr(0)
+            , m_hr(CALL_RETURN_NULL)
             , m_pos(0)
         {
             m_msg = Message_base::getInstance(m_v);
@@ -30,13 +30,13 @@ public:
             m_hdrs.resize(1);
             m_hdrs[0] = hdlr;
 
-            set(pick);
+            set(invoke);
         }
 
         asyncInvoke(QuickArray<obj_ptr<Handler_base>>& hdlrs, object_base* v, AsyncEvent* ac)
             : AsyncState(ac)
             , m_v(v)
-            , m_hr(0)
+            , m_hr(CALL_RETURN_NULL)
             , m_pos(0)
         {
             int32_t i;
@@ -47,35 +47,26 @@ public:
             for (i = 0; i < (int32_t)hdlrs.size(); i++)
                 m_hdrs[i] = hdlrs[i];
 
-            set(pick);
+            set(invoke);
         }
 
     public:
-        static int32_t pick(AsyncState* pState, int32_t n)
-        {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-            bool end = false;
-
-            if (pThis->m_msg)
-                pThis->m_msg->isEnded(end);
-            if (end || (pThis->m_pos == (int32_t)pThis->m_hdrs.size()))
-                return pThis->done(CALL_RETURN_NULL);
-
-            pThis->m_next = pThis->m_hdrs[pThis->m_pos++];
-
-            pThis->set(call);
-            return 0;
-        }
-
-        static int32_t call(AsyncState* pState, int32_t n)
+        static int32_t invoke(AsyncState* pState, int32_t n)
         {
             asyncInvoke* pThis = (asyncInvoke*)pState;
             result_t hr;
 
             if (n == CALL_RETURN_NULL || pThis->m_hr == CALL_RETURN_NULL) {
+                bool end = false;
+
                 pThis->m_hr = 0;
-                pThis->set(pick);
-                return 0;
+
+                if (pThis->m_msg)
+                    pThis->m_msg->isEnded(end);
+                if (end || (pThis->m_pos == (int32_t)pThis->m_hdrs.size()))
+                    return pThis->done(CALL_RETURN_NULL);
+
+                pThis->m_next = pThis->m_hdrs[pThis->m_pos++];
             }
 
             if (pThis->m_hr == CALL_E_EXCEPTION)
@@ -127,10 +118,20 @@ public:
                     return 0;
                 }
 
-                if (hr < 0 || hr == CALL_RETURN_NULL)
+                if (hr < 0)
                     return hr;
 
-                hdlr1 = hdlr2;
+                if (hr == CALL_RETURN_NULL) {
+                    bool end = false;
+
+                    if (m_msg)
+                        m_msg->isEnded(end);
+                    if (end || (m_pos == (int32_t)m_hdrs.size()))
+                        return hr;
+
+                    hdlr1 = m_hdrs[m_pos++];
+                } else
+                    hdlr1 = hdlr2;
             }
 
             return 0;
