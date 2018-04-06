@@ -145,13 +145,18 @@ result_t JSFiber::get_stack(exlib::string& retVal)
     if (JSFiber::current() == this)
         retVal = traceInfo(holder()->m_isolate, 300);
     else {
-        exlib::string str("    at ");
-        str += m_native_name;
-        str += " (native code)";
+        exlib::string str;
+
+        if (m_native_name) {
+            str = "    at ";
+            str += m_native_name;
+            str += " (native code)";
+        }
 
         exlib::string str1 = traceInfo(holder()->m_isolate, 300, m_c_entry_fp_, m_handler_);
         if (!str1.empty()) {
-            str += '\n';
+            if (m_native_name)
+                str += '\n';
             str += str1;
         }
 
