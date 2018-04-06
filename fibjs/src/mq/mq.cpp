@@ -69,6 +69,7 @@ result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
             : AsyncState(ac)
             , m_next(hdlr)
             , m_v(v)
+            , m_hr(0)
         {
             set(call);
         }
@@ -79,24 +80,73 @@ result_t mq_base::invoke(Handler_base* hdlr, object_base* v,
             asyncInvoke* pThis = (asyncInvoke*)pState;
             result_t hr;
 
-            if (n == CALL_RETURN_NULL)
+            if (n == CALL_RETURN_NULL || pThis->m_hr == CALL_RETURN_NULL)
                 return pThis->done();
+
+            if (pThis->m_hr == CALL_E_EXCEPTION)
+                Runtime::setError(pThis->m_message);
+
+            if (pThis->m_hr < 0)
+                return pThis->m_hr;
 
             pThis->m_hdlr = pThis->m_next;
             pThis->m_next.Release();
 
             hr = pThis->m_hdlr->invoke(pThis->m_v, pThis->m_next, pThis);
-            if (hr == CALL_E_NOASYNC)
-                return JSHandler::js_invoke(pThis->m_hdlr, pThis->m_v, pThis->m_next,
-                    pThis);
+            if (hr == CALL_E_NOASYNC) {
+                pThis->sync(pThis->m_hdlr->holder());
+                return CALL_E_PENDDING;
+            }
 
             return hr;
+        }
+
+    public:
+        virtual result_t js_invoke()
+        {
+            {
+                JSFiber::scope s;
+
+                m_hr = js_run();
+                if (m_hr == CALL_E_EXCEPTION)
+                    m_message = Runtime::errMessage();
+            }
+
+            apost(0);
+
+            return m_hr;
+        }
+
+    private:
+        result_t js_run()
+        {
+            result_t hr;
+            obj_ptr<Handler_base> hdlr1 = m_hdlr;
+            obj_ptr<Handler_base> hdlr2;
+            AsyncEvent ac;
+
+            while (true) {
+                hr = hdlr1->invoke(m_v, hdlr2, &ac);
+                if (hr == CALL_E_NOSYNC) {
+                    m_next = hdlr1;
+                    return 0;
+                }
+
+                if (hr < 0 || hr == CALL_RETURN_NULL)
+                    return hr;
+
+                hdlr1 = hdlr2;
+            }
+
+            return 0;
         }
 
     private:
         obj_ptr<Handler_base> m_hdlr;
         obj_ptr<Handler_base> m_next;
         obj_ptr<object_base> m_v;
+        result_t m_hr;
+        exlib::string m_message;
     };
 
     if (ac->isSync())

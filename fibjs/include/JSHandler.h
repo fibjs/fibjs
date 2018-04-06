@@ -74,10 +74,6 @@ public:
         return 0;
     }
 
-public:
-    static result_t js_invoke(Handler_base* hdlr, object_base* v,
-        obj_ptr<Handler_base>& retVal, AsyncEvent* ac);
-
 private:
     bool m_async;
 };
