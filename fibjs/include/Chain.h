@@ -18,6 +18,12 @@ namespace fibjs {
 class Chain : public Chain_base {
 public:
     class asyncInvoke : public AsyncState {
+    private:
+        class ValueHolder : public object_base {
+        public:
+            v8::Global<v8::Value> m_v;
+        };
+
     public:
         asyncInvoke(Handler_base* hdlr, object_base* v, AsyncEvent* ac)
             : AsyncState(ac)
@@ -114,6 +120,12 @@ public:
             while (true) {
                 hr = hdlr1->invoke(m_v, hdlr2, &ac);
                 if (hr == CALL_E_NOSYNC) {
+                    if (!m_vholder) {
+                        m_vholder = new ValueHolder();
+                        m_vholder->m_v.Reset(m_v->holder()->m_isolate, m_v->wrap());
+                        m_vholder->setJSObject();
+                    }
+
                     m_next = hdlr1;
                     return 0;
                 }
@@ -142,6 +154,7 @@ public:
         obj_ptr<Handler_base> m_next;
         obj_ptr<object_base> m_v;
         obj_ptr<Message_base> m_msg;
+        obj_ptr<ValueHolder> m_vholder;
         result_t m_hr;
         exlib::string m_message;
         std::vector<obj_ptr<Handler_base>> m_hdrs;
