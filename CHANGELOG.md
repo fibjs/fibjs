@@ -1,3 +1,46 @@
+## 2018-04-11, Version v0.23.0
+* **feature** :
+    * core:
+      - support use_thread mode.(xicilion)
+      - disable parallel scavange.(xicilion)
+    * mq:
+      - save js value before switch to background worker.(xicilion)
+      - Integrate js_invoke into the invoke.(xicilion)
+    * sqlite - upgrade to v3.23.0(xicilion)
+    * util - use CreateCodeCache to compile code.(xicilion)
+    * v8 - upgrade to v6.7.192.(xicilion)
+    * websocket - throw different error message.(xicilion)
+
+* **bugfix** :
+    * core:
+      - disable concurrent marking to fix v8 deadlock in gc.(xicilion)
+      - compile warning in debug mode.(xicilion)
+    * coroutine - crash when querying the stack of dead fiber.(xicilion)
+    * json - crash when json.encode circular structure.(xicilion)
+    * sandbox - jsc loader crash when load error.(xicilion)
+
+* **refactor** :
+    * mq:
+      - not switch fiber when invoke js handler in Chain.(xicilion)
+      - Integrate invoke into the Chain.(xicilion)
+
+### Commits
+* [[`305adbac3e`](https://github.com/fibjs/fibjs/commit/305adbac3e)] - **core, bugfix**: disable concurrent marking to fix v8 deadlock in gc.(xicilion)
+* [[`aaffa6095b`](https://github.com/fibjs/fibjs/commit/aaffa6095b)] - **mq, feat**: save js value before switch to background worker.(xicilion)
+* [[`2d9b747482`](https://github.com/fibjs/fibjs/commit/2d9b747482)] - **mq, refactor**: not switch fiber when invoke js handler in Chain.(xicilion)
+* [[`908656e964`](https://github.com/fibjs/fibjs/commit/908656e964)] - **coroutine, bugfix**: crash when querying the stack of dead fiber.(xicilion)
+* [[`eec7f12ceb`](https://github.com/fibjs/fibjs/commit/eec7f12ceb)] - **mq, refactor**: Integrate invoke into the Chain.(xicilion)
+* [[`e85831e980`](https://github.com/fibjs/fibjs/commit/e85831e980)] - **mq, feat**: Integrate js_invoke into the invoke.(xicilion)
+* [[`62b6581e97`](https://github.com/fibjs/fibjs/commit/62b6581e97)] - **core, feat**: support use_thread mode.(xicilion)
+* [[`24de807386`](https://github.com/fibjs/fibjs/commit/24de807386)] - **sqlite, feat**: upgrade to v3.23.0(xicilion)
+* [[`23273aa91c`](https://github.com/fibjs/fibjs/commit/23273aa91c)] - **v8, feat**: upgrade to v6.7.192.(xicilion)
+* [[`b9a80d2838`](https://github.com/fibjs/fibjs/commit/b9a80d2838)] - **sandbox, bugfix**: jsc loader crash when load error.(xicilion)
+* [[`43d92facd1`](https://github.com/fibjs/fibjs/commit/43d92facd1)] - **util, feat**: use CreateCodeCache to compile code.(xicilion)
+* [[`36197f785f`](https://github.com/fibjs/fibjs/commit/36197f785f)] - **json, bugfix**: crash when json.encode circular structure.(xicilion)
+* [[`276ce295c8`](https://github.com/fibjs/fibjs/commit/276ce295c8)] - **core, bugfix**: compile warning in debug mode.(xicilion)
+* [[`8d9656cc86`](https://github.com/fibjs/fibjs/commit/8d9656cc86)] - **core, feat**: disable parallel scavange.(xicilion)
+* [[`28cfb8c27c`](https://github.com/fibjs/fibjs/commit/28cfb8c27c)] - **websocket, feat**: throw different error message.(xicilion)
+
 ## 2018-02-06, Version v0.22.0
 * **feature** :
     * Buffer - support Buffer.join method.(xicilion)
