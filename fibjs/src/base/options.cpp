@@ -136,6 +136,7 @@ void options(int32_t& pos, char* argv[])
 
     v8::internal::FLAG_parallel_scavenge = false;
     v8::internal::FLAG_parallel_marking = false;
+    v8::internal::FLAG_concurrent_marking = false;
 
     if (df)
         argc -= df;
