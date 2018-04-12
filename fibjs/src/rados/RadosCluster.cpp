@@ -128,6 +128,9 @@ result_t RadosCluster::connect(AsyncEvent* ac)
 
 result_t RadosCluster::createPool(exlib::string poolName, int64_t auid, int32_t crushRule, AsyncEvent* ac)
 {
+    if (!m_cluster)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -142,6 +145,9 @@ result_t RadosCluster::createPool(exlib::string poolName, int64_t auid, int32_t 
 
 result_t RadosCluster::listPool(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
+    if (!m_cluster)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -170,6 +176,9 @@ result_t RadosCluster::listPool(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 
 result_t RadosCluster::deletePool(exlib::string poolName, AsyncEvent* ac)
 {
+    if (!m_cluster)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -184,6 +193,9 @@ result_t RadosCluster::deletePool(exlib::string poolName, AsyncEvent* ac)
 
 result_t RadosCluster::createIoCtx(exlib::string poolName, obj_ptr<RadosIoCtx_base>& retVal, AsyncEvent* ac)
 {
+    if (!m_cluster)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     result_t hr;
 
     obj_ptr<RadosIoCtx> ioCtx = new RadosIoCtx();
@@ -201,8 +213,10 @@ result_t RadosCluster::shutdown(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    if (m_cluster)
+    if (m_cluster) {
         _rados_shutdown(m_cluster);
+        m_cluster = NULL;
+    }
     return 0;
 }
 

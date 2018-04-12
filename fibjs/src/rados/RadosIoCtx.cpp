@@ -162,6 +162,9 @@ static inline int32_t load_librbd(void)
 
 result_t RadosIoCtx::createImage(exlib::string name, int64_t size, int64_t stripe_unit, int64_t stripe_count, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -187,6 +190,9 @@ result_t RadosIoCtx::createImage(exlib::string name, int64_t size, int64_t strip
 
 result_t RadosIoCtx::cloneImage(exlib::string pName, exlib::string pSnapshot, RadosIoCtx_base* dstio, exlib::string cName, int64_t stripe_unit, int32_t stripe_count, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -216,6 +222,9 @@ result_t RadosIoCtx::cloneImage(exlib::string pName, exlib::string pSnapshot, Ra
 
 result_t RadosIoCtx::removeImage(exlib::string name, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -234,6 +243,9 @@ result_t RadosIoCtx::removeImage(exlib::string name, AsyncEvent* ac)
 
 result_t RadosIoCtx::renameImage(exlib::string src, exlib::string dst, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -252,6 +264,9 @@ result_t RadosIoCtx::renameImage(exlib::string src, exlib::string dst, AsyncEven
 
 result_t RadosIoCtx::listImages(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -292,6 +307,9 @@ result_t RadosIoCtx::listImages(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 
 result_t RadosIoCtx::openImage(exlib::string name, exlib::string snapshot, obj_ptr<RbdImage_base>& retVal, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -332,6 +350,9 @@ result_t RadosIoCtx::version(exlib::string& retVal)
 
 result_t RadosIoCtx::open(exlib::string key, obj_ptr<RadosStream_base>& retVal)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     result_t hr;
 
     obj_ptr<RadosStream> s = new RadosStream();
@@ -346,6 +367,9 @@ result_t RadosIoCtx::open(exlib::string key, obj_ptr<RadosStream_base>& retVal)
 
 result_t RadosIoCtx::createSnap(exlib::string snapname, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -360,6 +384,9 @@ result_t RadosIoCtx::createSnap(exlib::string snapname, AsyncEvent* ac)
 
 result_t RadosIoCtx::removeSnap(exlib::string snapname, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -374,6 +401,9 @@ result_t RadosIoCtx::removeSnap(exlib::string snapname, AsyncEvent* ac)
 
 result_t RadosIoCtx::rollbackSnap(exlib::string oid, exlib::string snapname, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -388,6 +418,9 @@ result_t RadosIoCtx::rollbackSnap(exlib::string oid, exlib::string snapname, Asy
 
 result_t RadosIoCtx::listOids(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -418,6 +451,9 @@ result_t RadosIoCtx::listOids(obj_ptr<NArray>& retVal, AsyncEvent* ac)
 #endif
 result_t RadosIoCtx::listOids(exlib::string pattern, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -464,6 +500,9 @@ result_t RadosIoCtx::listOids(exlib::string pattern, obj_ptr<NArray>& retVal, As
 
 result_t RadosIoCtx::getXattr(exlib::string oid, exlib::string attr, exlib::string& retVal, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -482,6 +521,9 @@ result_t RadosIoCtx::getXattr(exlib::string oid, exlib::string attr, exlib::stri
 
 result_t RadosIoCtx::setXattr(exlib::string oid, exlib::string attr, exlib::string value, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -496,6 +538,9 @@ result_t RadosIoCtx::setXattr(exlib::string oid, exlib::string attr, exlib::stri
 
 result_t RadosIoCtx::rmXattr(exlib::string oid, exlib::string attr, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -510,6 +555,9 @@ result_t RadosIoCtx::rmXattr(exlib::string oid, exlib::string attr, AsyncEvent* 
 
 result_t RadosIoCtx::getXattrs(exlib::string oid, obj_ptr<NObject>& retVal, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     result_t hr;
     rados_xattrs_iter_t iter;
     obj_ptr<Attrs> attrs;
@@ -553,6 +601,9 @@ result_t RadosIoCtx::destroy(AsyncEvent* ac)
 
 result_t RadosIoCtx::remove(exlib::string key, AsyncEvent* ac)
 {
+    if (!m_ioctx)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
