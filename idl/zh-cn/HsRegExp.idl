@@ -1,0 +1,19 @@
+
+/*! @brief hyperscan 正则搜索对象，用于处理大文本高速正则搜索
+
+ HsRegExp 对象属于 hyperscan 模块，创建：
+ ```JavaScript
+ var reg = hyperscan.compile("hello");
+ var reg1 = hyperscan.compile(["hello"]);
+ ```
+ */
+
+interface HsRegExp : object
+{
+	/* 使用hyperscan对二进制buffer进行扫描
+	 @param buff 需要扫描的缓冲区
+	 @param codec buff的编码格式
+	 @return 返回扫描结果。返回扫描结果。未匹配到则返回null, 匹配到返回一个kv对象，其中k为正则字符串，v是一个数组，为匹配到的正则在文本中出现的位置。如[[0, 1]]，第一个元素是[0, 1], 代表该正则匹配到的字符串从位置0开始从位置1结束。数组的长度为1，代表匹配到了一处。如果在编译正则时使用了'H'选项，则匹配到一次后停止。
+	*/
+	Value scan(Buffer buff, String codec = "utf8");
+};

@@ -1,0 +1,134 @@
+/*! @brief rados 集群读写io上下文对象，用于打开和关闭kv存储
+
+ rados集群读写io上下文对象，可使用 RadosCluster 对象创建
+```
+ var rados = require('rados');
+ var cluster = new rados.Rados('clusterName', 'userName', '/path/to/myceph.conf');
+ cluster.connect();
+ var io = cluster.createIoCtx('poolName');
+ var s = io.open('key');
+ s.write('hello key');
+ console.log(s.readAll().toString());
+ ```
+ */
+interface RadosIoCtx
+{
+    /*! @brief 创建一个rbd image对象 
+     @param name 将要创建镜象的名称
+     @param size 将要创建镜象的大小
+     @param stripe_unit 条带大小, 默认值-1代表和单个object大小相同
+     @param stripe_count 连续写入条带个数, 默认值为1
+    */
+    createImage(String name, Long size, Long stripe_unit = -1, Long stripe_count = 1) async;
+
+    /*! @brief 克隆一个rbd image快照到另一个pool中 
+     @param pName 父镜象的名称
+     @param pSnapshot 父镜象的快照名称
+     @param dstio 目的RadosIoCtx对象, 该对象决定了目的pool
+     @param cName 克隆出的镜像名称
+     @param stripe_unit 条带大小, 默认值-1代表和单个object大小相同
+     @param stripe_count 连续写入条带个数, 默认值为1
+    */
+    cloneImage(String pName, String pSnapshot, RadosIoCtx dstio, String cName, Long stripe_unit = -1, Integer stripe_count = 0) async;
+
+    /*! @brief 删除一个rbd image对象 
+     @param name 将要删除镜象的名称
+    */
+    removeImage(String name) async;
+
+    /*! @brief 重命名一个rbd image对象 
+     @param src 原rbd image名称
+     @param dst 目的rbd image名称
+    */
+    renameImage(String src, String dst) async;
+
+    /*! @brief 列出当前pool中所有的镜像名称
+     @return 返回的镜像名称列表
+    */
+    NArray listImages() async;
+
+    /*! @brief 打开一个rbd image对象 
+     @param name 被打开镜像的名称
+     @param snapshot 被打开镜像的快照名称, 默认没有快照
+     @return 返回一个rbd镜像
+    */
+    RbdImage openImage(String name, String snapshot = "") async;
+
+    /*! @brief 返回librbd c库的版本号 
+     @return 版本号字符串,格式为"major.minor.extra"
+    */
+    String version();
+
+    /*! @brief 打开一个kv对象 
+     @param key 被打开对象的key
+     @return 返回rados对象流
+    */
+    RadosStream open(String key);
+
+    /*! @brief 删除一个kv对象 
+     @param key 被删除的对象的key
+    */
+    remove(String key) async;
+    
+    /*! @brief 为一个pool创建一个快照
+     @param snapname 创建的快照的名称
+    */
+    createSnap(String snapname) async;
+
+    /*! @brief 删除一个快照
+     @param snapname 删除的快照的名称
+    */
+    removeSnap(String snapname) async;
+
+    /*! @brief 回滚某个key到指定的快照的状态
+     @param oid 指定的key
+     @param snapname 回滚的快照名称
+    */
+    rollbackSnap(String oid, String snapname) async;
+  
+    /*! @brief 列出当前pool内所有的key
+     @return 列出的所有key的列表
+    */
+    NArray listOids() async;
+
+    /*! @brief 列出当前pool中匹配reg正则表达式的所有key
+     @param pattern 为列出的key指定正则
+     @return 列出的匹配reg的key的列表
+    */
+    NArray listOids(String pattern) async;
+
+    /*! @brief 获取指定的key的指定属性值
+     @param oid 指定的key
+     @param attr 指定的属性
+     @return 获取的属性值
+    */
+    String getXattr(String oid, String attr) async;
+  
+    /*! @brief 设置指定key的指定属性的值
+     @param oid 指定的key
+     @param attr 指定的属性
+     @param value 设置的属性的值
+    */
+    setXattr(String oid, String attr, String value) async;
+  
+    /*! @brief 删除指定key的指定属性
+     @param oid 指定的key
+     @param attr 指定的属性
+    */
+    rmXattr(String oid, String attr) async;
+  
+    /*! @brief 获取指定key的所有属性
+     @param oid 指定的key
+     @return 获取的所有属性的集合, 格式如下
+     @code
+     {  
+        'foo': 'bar',
+        'foo1': 'bar1'
+     },
+     @endcode
+    */
+    NObject getXattrs(String oid) async;
+
+    /*! @brief 销毁一个io上下文 */
+    destroy() async;
+};

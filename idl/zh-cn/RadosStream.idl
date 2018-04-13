@@ -1,0 +1,33 @@
+/*! @brief rados流操作对象，用于读写rados存储
+
+ rados KV存储对象,用于对rados集群kv存储进行操作，可使用 RadosIoCtx 对象创建
+```
+ var rados = require('rados');
+ var cluster = new rados.Rados('clusterName', 'userName', '/path/to/myceph.conf');
+ cluster.connect();
+ var io = cluster.createIoCtx('poolName');
+ var s = io.open('key');
+ s.write('hello key');
+ console.log(s.readAll().toString());
+ ```
+ */
+interface RadosStream : SeekableStream
+{
+    /*! @brief 查询当前key */
+    readonly String key;
+
+    /*! @brief 返回kv对象的状态
+     @return kv对象的状态仅支持kv对象的大小和最后修改时间
+    */
+    RadosStat radosStat() async;
+
+    /*! @brief 全部重新写入，如果该流里有内容，则被擦除重新写入
+     @param data 将要被写入的数据 
+    */
+    writeFull(Buffer data) async;
+
+    /*! @brief 在原数据之后追加数据
+     @param data 将要被写入的数据 
+    */
+    append(Buffer data) async;
+};

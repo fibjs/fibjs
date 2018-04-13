@@ -1,0 +1,21 @@
+/*! @brief rados流状态对象，用于取出流对象大小和最后修改时间
+
+ rados流状态对象，用于取出流对象大小和最后修改时间，可使用 RadosStream 对象创建
+ ```
+ var rados = require('rados');
+ var cluster = new rados.Rados('clusterName', 'userName', '/path/to/myceph.conf');
+ cluster.connect();
+ var io = cluster.createIoCtx('poolName');
+ var s = io.open('key');
+ var stat = s.radosStat();
+ console.log(stat.size, stat.mtime);
+ ```
+ */
+interface RadosStat : object
+{
+    /*! @brief 查询rados流大小 */
+    readonly Long size;
+
+    /*! @brief 查询rados流最后修改时间 */
+    readonly Date mtime;
+};

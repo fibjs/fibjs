@@ -1,0 +1,77 @@
+/*! @brief rbd image对象，用于读写rbd image
+
+ rbd image对象,用于对rbd image进行操作，可使用 RadosIoCtx 对象创建
+```
+ var rados = require('rados');
+ var cluster = new rados.Rados('clusterName', 'userName', '/path/to/myceph.conf');
+ cluster.connect();
+ var io = cluster.createIoCtx('poolName');
+ io.createImage("myImage");
+ var image = io.openImage('myImage');
+ image.write('hello key');
+ console.log(image.readAll().toString());
+```
+ */
+interface RbdImage : SeekableStream
+{
+    /*! @brief 查询条纹大小 */
+    readonly Long stripe_unit;
+
+    /*! @brief 查询连续写入条纹个数 */
+    readonly Long stripe_count;
+
+    /*! @brief 查询镜像的feature */
+    readonly Long features;
+
+    /*! @brief 查询镜像的feature */
+    readonly Date create_timestamp;
+
+    /*! @brief 查询镜像在pool中全称的前缀 */
+    readonly String block_name_prefix;
+
+    /*! @brief 修改rbd image大小
+      @param bytes 修改后的大小
+     */
+    resize(Long bytes) async;
+
+    /*! @brief  为一个rbd镜像创建一个快照
+     @param snapname 将要创建的快照名称
+    */
+    createSnap(String snapname) async;
+
+    /*! @brief  移除一个rbd镜像的快照
+     @param snapname 将要移除的快照的名称
+    */
+    removeSnap(String snapname) async;
+
+    /*! @brief  回滚到一个rbd镜像的快照
+     @param snapname 将要回滚到的快照的名称
+    */
+    rollbackSnap(String snapname) async;
+
+    /*! @brief  列举一个rbd镜像的所有快照
+     @return 包含所有快照名称的列表
+    */
+    Array listSnaps() async;
+
+    /*! @brief  保护一个rbd镜像的快照以防快照被删除
+     @param snapname 将要被保护的快照的名称
+    */
+    protectSnap(String snapname) async;
+
+    /*! @brief  取消对一个rbd镜像的保护,允许其被删除
+     @param snapname 将要取消保护的快照的名称
+    */
+    unprotectSnap(String snapname) async;
+
+    /*! @brief  设置一个rbd镜像的快照为只读
+     @param snapname 将要设置的快照名称。默认为空，用以取消对快照为只读
+    */
+    setSnap(String snapname = "") async;
+
+    /*! @brief 判断一个快照是否是不可删除的
+     @param snapname 快照名称
+     @return true代表不可删除，false代表可以删除
+     */
+    Boolean isSnapProtected(String snapname) async;
+};

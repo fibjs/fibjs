@@ -1,0 +1,34 @@
+/*! @brief 快速检索模块，提供正则急速匹配搜索方案
+
+引用方法:
+```
+var hs = require('hyperscan');
+var reg = hs.compile('hello.*world', 'gims');
+var res = reg.scan('hello world');
+console.log(res);
+```
+或者
+```
+var hs = require('hyperscan');
+var reg = hs.compile(['hello.*world', '^中文$''], ['gims', '']);
+var res = reg.scan('hello world');
+console.log(res);
+```
+*/
+
+module hyperscan
+{
+    /*! @brief 创建一个 hyperscan 正则对象，参见 HsRegExp 
+     @param pattern 正则字符串
+     @param flag 正则匹配模式 支持"i"(不区分大小写)、"m"(多行匹配)、"g"(全文匹配)、"s"('.'可以匹配换行符'\n')、"8"(utf-8编码)、"W"(unicode编码)
+     @return hyperscan正则对象
+    */
+    static HsRegExp compile(String pattern, String flag = "");
+
+    /*! @brief 使用数组创建一个 hyperscan 正则对象，用于并行匹配正则，参见 HsRegExp 
+     @param patterns 正则字符串数组
+     @param flags 正则匹配模式数组 支持"i"(不区分大小写)、"m"(多行匹配)、"g"(全文匹配)、"s"('.'可以匹配换行符'\n')、"8"(utf-8编码)、"W"(unicode编码)
+     @return hyperscan正则对象
+    */
+    static HsRegExp compile(Array patterns, Array flags = []);
+};
