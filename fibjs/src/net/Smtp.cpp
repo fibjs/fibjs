@@ -29,7 +29,6 @@ public:
         , m_retVal(retVal)
     {
         m_stmBuffered = pThis->m_stmBuffered;
-        set(ok);
     }
 
     asyncSmtp(Smtp* pThis, AsyncEvent* ac)
@@ -38,7 +37,6 @@ public:
         , m_retVal(m_strLine)
     {
         m_stmBuffered = pThis->m_stmBuffered;
-        set(ok);
     }
 
     static int32_t ok(AsyncState* pState, int32_t n)
@@ -73,49 +71,6 @@ public:
         return pThis->m_stmBuffered->readLine(SMTP_MAX_LINE, strLine, pThis);
     }
 
-    static int32_t connected(AsyncState* pState, int32_t n)
-    {
-        asyncSmtp* pThis = (asyncSmtp*)pState;
-
-        pThis->m_pThis->m_stmBuffered = new BufferedStream(pThis->m_pThis->m_conn);
-        pThis->m_pThis->m_stmBuffered->set_EOL("\r\n");
-
-        pThis->m_stmBuffered = pThis->m_pThis->m_stmBuffered;
-
-        return ok(pState, n);
-    }
-
-    int32_t connect(exlib::string url)
-    {
-        set(connected);
-        int32_t r = net_base::connect(url, m_pThis->m_timeout, m_pThis->m_conn, this);
-
-        if (r == CALL_E_PENDDING)
-            return r;
-        return post(r);
-    }
-
-    int32_t send(Buffer_base* data)
-    {
-        int32_t r = m_stmBuffered->write(data, this);
-
-        if (r == CALL_E_PENDDING)
-            return r;
-        return post(r);
-    }
-
-    int32_t command(exlib::string cmd, exlib::string arg)
-    {
-        exlib::string s(cmd);
-
-        s.append(" ", 1);
-        s.append(arg);
-        s.append("\r\n", 2);
-
-        obj_ptr<Buffer> buf = new Buffer(s);
-        return send(buf);
-    }
-
     virtual int32_t recv_ok()
     {
         return done();
@@ -128,15 +83,95 @@ protected:
     exlib::string m_strLine;
 };
 
+class asyncCommand : public asyncSmtp {
+public:
+    asyncCommand(Smtp* pThis, exlib::string cmd, exlib::string arg,
+        exlib::string& retVal, AsyncEvent* ac)
+        : asyncSmtp(pThis, retVal, ac)
+    {
+        exlib::string s(cmd);
+
+        s.append(" ", 1);
+        s.append(arg);
+        s.append("\r\n", 2);
+
+        m_buf = new Buffer(s);
+
+        set(command);
+    }
+
+    asyncCommand(Smtp* pThis, exlib::string cmd, exlib::string arg, AsyncEvent* ac)
+        : asyncSmtp(pThis, ac)
+    {
+        exlib::string s(cmd);
+
+        s.append(" ", 1);
+        s.append(arg);
+        s.append("\r\n", 2);
+
+        m_buf = new Buffer(s);
+
+        set(command);
+    }
+
+public:
+    static int32_t command(AsyncState* pState, int32_t n)
+    {
+        asyncCommand* pThis = (asyncCommand*)pState;
+
+        pThis->set(ok);
+        return pThis->m_stmBuffered->write(pThis->m_buf, pThis);
+    }
+
+private:
+    obj_ptr<Buffer> m_buf;
+};
+
 result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
 {
+    class asyncConnect : public asyncSmtp {
+    public:
+        asyncConnect(Smtp* pThis, exlib::string url, AsyncEvent* ac)
+            : asyncSmtp(pThis, ac)
+            , m_url(url)
+        {
+            set(connect);
+        }
+
+    public:
+        static int32_t connect(AsyncState* pState, int32_t n)
+        {
+            asyncConnect* pThis = (asyncConnect*)pState;
+
+            pThis->set(connected);
+            return net_base::connect(pThis->m_url, pThis->m_pThis->m_timeout,
+                pThis->m_pThis->m_conn, pThis);
+        }
+
+        static int32_t connected(AsyncState* pState, int32_t n)
+        {
+            asyncConnect* pThis = (asyncConnect*)pState;
+
+            pThis->m_pThis->m_stmBuffered = new BufferedStream(pThis->m_pThis->m_conn);
+            pThis->m_pThis->m_stmBuffered->set_EOL("\r\n");
+
+            pThis->m_stmBuffered = pThis->m_pThis->m_stmBuffered;
+
+            pThis->set(ok);
+            return 0;
+        }
+
+    private:
+        exlib::string m_url;
+    };
+
     if (m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncSmtp(this, ac))->connect(url);
+    return (new asyncConnect(this, url, ac))->post(0);
 }
 
 result_t Smtp::command(exlib::string cmd, exlib::string arg, exlib::string& retVal,
@@ -148,7 +183,7 @@ result_t Smtp::command(exlib::string cmd, exlib::string arg, exlib::string& retV
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncSmtp(this, retVal, ac))->command(cmd, arg);
+    return (new asyncCommand(this, cmd, arg, retVal, ac))->post(0);
 }
 
 result_t Smtp::command(exlib::string cmd, exlib::string arg, AsyncEvent* ac)
@@ -159,7 +194,7 @@ result_t Smtp::command(exlib::string cmd, exlib::string arg, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncSmtp(this, ac))->command(cmd, arg);
+    return (new asyncCommand(this, cmd, arg, ac))->post(0);
 }
 
 result_t Smtp::hello(exlib::string hostname, AsyncEvent* ac)
