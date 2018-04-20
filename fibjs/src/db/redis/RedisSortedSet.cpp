@@ -35,14 +35,17 @@ result_t RedisSortedSet::add(OptArgs sms, int32_t& retVal)
     if (sms.Length() & 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
+    std::vector<v8::Local<v8::Value>> mss;
+    sms.GetData(mss);
+
     int32_t i;
-    for (i = 0; i < sms.Length(); i += 2) {
-        v8::Local<v8::Value> v = sms[i];
-        sms[i] = sms[i + 1];
-        sms[i + 1] = v;
+    for (i = 0; i < mss.size(); i += 2) {
+        v8::Local<v8::Value> v = mss[i];
+        mss[i] = mss[i + 1];
+        mss[i + 1] = v;
     }
 
-    return m_rdb->doCommand("ZADD", m_key, sms, retVal);
+    return m_rdb->doCommand("ZADD", m_key, mss, retVal);
 }
 
 result_t RedisSortedSet::score(Buffer_base* member, obj_ptr<Buffer_base>& retVal)

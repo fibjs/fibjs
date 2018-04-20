@@ -181,6 +181,21 @@ public:
             return 0;
         }
 
+        template <typename T>
+        result_t add(std::vector<T>& args)
+        {
+            result_t hr;
+            int32_t i;
+
+            for (i = 0; i < args.size(); i++) {
+                hr = add(args[i]);
+                if (hr < 0)
+                    return hr;
+            }
+
+            return 0;
+        }
+
         result_t add(v8::Local<v8::Value> v)
         {
             result_t hr;
