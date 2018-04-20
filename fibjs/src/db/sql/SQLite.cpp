@@ -350,17 +350,6 @@ result_t SQLite::execute(const char* sql, int32_t sLen,
     return 0;
 }
 
-result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
-{
-    if (!m_db)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    return execute(sql.c_str(), (int32_t)sql.length(), retVal);
-}
-
 result_t SQLite::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,
     AsyncEvent* ac)
 {
@@ -380,7 +369,7 @@ result_t SQLite::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVa
     }
 
     exlib::string str = ac->m_ctx[0].string();
-    return execute(str, retVal, ac);
+    return execute(str.c_str(), (int32_t)str.length(), retVal);
 }
 
 result_t SQLite::format(exlib::string sql, OptArgs args,
