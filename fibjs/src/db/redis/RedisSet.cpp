@@ -72,8 +72,8 @@ result_t RedisSet::randMember(int32_t count, v8::Local<v8::Value>& retVal)
     hr = m_rdb->doCommand("SRANDMEMBER", m_key, count, v);
     if (hr < 0)
         return hr;
-
-    retVal = v->wrap();
+    
+    retVal = GetReturnValue(holder()->m_isolate, v);
 
     return 0;
 }
