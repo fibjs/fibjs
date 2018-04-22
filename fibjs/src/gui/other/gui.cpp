@@ -11,8 +11,12 @@
 
 namespace fibjs {
 
-void init_gui()
+void run_gui()
 {
+    exlib::OSThread th;
+
+    th.bindCurrent();
+    th.suspend();
 }
 
 void putGuiPool(AsyncEvent* ac)

@@ -24,7 +24,6 @@ void init_start_argv(int32_t argc, char** argv);
 void init_prof();
 void init_cipher();
 void init_acThread();
-void init_gui();
 void init_logger();
 void init_aio();
 void init_fs();
@@ -34,6 +33,8 @@ void init_color();
 void init_process();
 void options(int32_t& pos, char* argv[]);
 result_t ifZipFile(exlib::string filename, bool& retVal);
+
+void run_gui();
 
 exlib::string s_root;
 
@@ -53,10 +54,8 @@ void init()
 
     // init_prof();
     init_date();
-    init_rt();
     init_cipher();
     init_acThread();
-    init_gui();
     init_logger();
     init_aio();
     init_fs();
@@ -112,57 +111,84 @@ static void start_fiber(void* p)
     syncCall(isolate, main_fiber, isolate);
 }
 
-void main(int32_t argc, char* argv[])
+void main(int32_t argc, char** argv)
 {
-    exlib::string exePath;
-    std::vector<char*> ptrArg;
-
-    process_base::get_execPath(exePath);
-
-    bool bZip;
-    ifZipFile(exePath, bZip);
-    if (bZip) {
-
-        exePath.append(1, '$');
-        ptrArg.resize(argc + 1);
-
-        ptrArg[0] = argv[0];
-        ptrArg[1] = exePath.c_buffer();
-
-        int32_t i;
-        for (i = 1; i < argc; i++)
-            ptrArg[i + 1] = argv[i];
-
-        argv = &ptrArg[0];
-        argc++;
-    }
-
-    init_start_argv(argc, argv);
-
-    int32_t pos = argc;
-    options(pos, argv);
-
-    init();
-
-    if (pos < argc) {
-        if (argv[pos][0] == '-')
-            s_start = argv[pos];
-        else {
-            s_start = s_root;
-            resolvePath(s_start, argv[pos]);
+    class MainThread : public exlib::OSThread {
+    public:
+        MainThread(int32_t argc, char** argv)
+            : m_argc(argc)
+            , m_argv(argv)
+        {
         }
 
-        if (pos != 1) {
-            int32_t p = 1;
-            for (; pos < argc; pos++)
-                argv[p++] = argv[pos];
-            argc = p;
-        }
-    }
+    public:
+        virtual void Run()
+        {
+            int32_t argc = m_argc;
+            char** argv = m_argv;
 
-    init_argv(argc, argv);
-    exlib::Service::Create(start_fiber, NULL, 256 * 1024, "start");
-    exlib::Service::dispatch();
+            exlib::string exePath;
+            std::vector<char*> ptrArg;
+
+            process_base::get_execPath(exePath);
+
+            bool bZip;
+            ifZipFile(exePath, bZip);
+            if (bZip) {
+
+                exePath.append(1, '$');
+                ptrArg.resize(argc + 1);
+
+                ptrArg[0] = argv[0];
+                ptrArg[1] = exePath.c_buffer();
+
+                int32_t i;
+                for (i = 1; i < argc; i++)
+                    ptrArg[i + 1] = argv[i];
+
+                argv = &ptrArg[0];
+                argc++;
+            }
+
+            init_start_argv(argc, argv);
+
+            int32_t pos = argc;
+            options(pos, argv);
+
+            init();
+
+            if (pos < argc) {
+                if (argv[pos][0] == '-')
+                    s_start = argv[pos];
+                else {
+                    s_start = s_root;
+                    resolvePath(s_start, argv[pos]);
+                }
+
+                if (pos != 1) {
+                    int32_t p = 1;
+                    for (; pos < argc; pos++)
+                        argv[p++] = argv[pos];
+                    argc = p;
+                }
+            }
+
+            init_argv(argc, argv);
+            exlib::Service::Create(start_fiber, NULL, 256 * 1024, "start");
+            exlib::Service::dispatch();
+        }
+
+    private:
+        int32_t m_argc;
+        char** m_argv;
+    };
+
+    init_rt();
+
+    MainThread* main_thread = new MainThread(argc, argv);
+    main_thread->start();
+
+    run_gui();
 }
 }
 

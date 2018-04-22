@@ -366,12 +366,16 @@ public:
     }
 };
 
-void init_gui()
+void run_gui()
 {
     gui_thread* _thGUI = new gui_thread();
-    _thGUI->start();
+
+    _thGUI->bindCurrent();
     s_thread = _thGUI->thread_id;
+
     gui_base::setVersion(99999);
+
+    _thGUI->Run();
 }
 
 result_t gui_base::setVersion(int32_t ver)
