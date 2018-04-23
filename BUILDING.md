@@ -105,10 +105,13 @@ pkg install git
 ## Download
 
 ```sh
-git clone https://github.com/fibjs/fibjs.git
+git clone https://github.com/fibjs/fibjs.git --recursive
+```
+
+If a repository is cloned without the --recursive flag, the submodules can be retrieved after the fact by running this command from within the repo:
+```sh
 cd fibjs
-git submodule init
-git submodule update
+git submodule update --init --recursive
 ```
 
 ## Update
@@ -116,7 +119,7 @@ git submodule update
 ```sh
 cd fibjs
 git pull
-git submodule update
+git submodule update --init --recursive
 ```
 
 ## Build
