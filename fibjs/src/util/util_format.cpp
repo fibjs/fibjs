@@ -76,7 +76,10 @@ exlib::string json_format(v8::Local<v8::Value> obj)
             strBuffer.append(*v8::String::Utf8Value(v));
         else if (v->IsNumber() || v->IsNumberObject())
             strBuffer.append(*v8::String::Utf8Value(v->ToNumber(_context).ToLocalChecked()));
-        else if (v->IsString() || v->IsStringObject())
+        else if (v->IsBigInt() || v->IsBigIntObject()) {
+            strBuffer.append(*v8::String::Utf8Value(v->ToBigInt(_context).ToLocalChecked()));
+            strBuffer.append('n');
+        } else if (v->IsString() || v->IsStringObject())
             string_format(strBuffer, v);
         else if (v->IsRegExp()) {
             v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(v);
