@@ -24,24 +24,26 @@ function clean_folder(p) {
 clean_folder(docsFolder);
 fs.mkdir(path.join(docsFolder, 'module'));
 
-var token = 'xxxxxxxxxxxxxx';
+var basicAuthentication = process.env.GITHUB_AUTH_USER || 'username:token';
 
-var list = new Buffer(http.get("https://api.github.com/repos/fibjs/awesome/readme", {
-    headers: {
-        "Authorization": "token " + token
-    }
-}).json().content, 'base64').toString();
+var token = require('base64').encode(basicAuthentication)
+var headers = {
+    "Authorization": "Basic " + token,
+}
+
+var tokenInfo = http.get(`https://api.github.com/user`, { headers }).json()
+if (!tokenInfo.login) {
+    throw 'github basic authorization failed'
+}
+
+var list = new Buffer(http.get("https://api.github.com/repos/fibjs/awesome/readme", { headers }).json().content, 'base64').toString();
 
 var ls = [];
 list = list.replace(/- \[(.+?)\]\((.+?)\)/g, (s, s1, s2) => {
     var u = s2.replace(/^https:\/\/github.com\//, 'https://api.github.com/repos/') + '/readme';
     console.log('getting', u);
     coroutine.sleep(100);
-    var doc = new Buffer(http.get(u, {
-        headers: {
-            "Authorization": "token " + token
-        }
-    }).json().content, 'base64').toString();
+    var doc = new Buffer(http.get(u, { headers }).json().content, 'base64').toString();
     fs.writeTextFile(path.join(docsFolder, 'module', s1 + '.md'), doc);
 
     var s = `[${s1}](./module/${s1}.md)`
