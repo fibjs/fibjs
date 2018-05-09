@@ -405,7 +405,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             u->get_path(path);
             pThis->m_req->set_address(path);
 
-            pThis->m_req->addHeader("host", u->m_host);
+            pThis->m_req->addHeader("Host", u->m_host);
             pThis->m_req->setHeader("Accept-Encoding", "gzip,deflate");
             pThis->m_hc->get_cookie(pThis->m_url, cookie);
             if (cookie.length() > 0)
