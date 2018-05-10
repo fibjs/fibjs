@@ -610,6 +610,9 @@ describe("http", () => {
             assert.equal(c['b'].fileName, 'test');
             assert.equal(c['b'].contentTransferEncoding, 'base64');
             assert.equal(c['b'].body.read().toString(), '200');
+
+            var c = get_form('GET /test HTTP/1.0\r\nContent-type:multipart/form-data;boundary=7d33a816d302b6\r\nContent-length:82\r\n\r\n--7d33a816d302b6\r\nContent-Disposition: form-data; name="pid"\r\n\r\n--7d33a816d302b6\r\n');
+            assert.equal(c['pid'], '');
         });
 
         it("chunk", () => {

@@ -172,12 +172,15 @@ void HttpUploadCollection::parse(exlib::string& str, const char* boundary)
         p1 = szQueryString;
         szQueryString = p + uiSplitSize;
 
-        p--;
-        ch = *p;
-        if (ch != '\n')
-            return;
-        if (*(p - 1) == '\r')
+        if (p > p1) {
             p--;
+            ch = *p;
+            if (ch != '\n')
+                return;
+
+            if (p > p1 && *(p - 1) == '\r')
+                p--;
+        }
 
         if (!strName.empty()) {
             int32_t uiSize = (int32_t)(p - p1);
