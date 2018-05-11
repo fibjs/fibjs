@@ -187,7 +187,7 @@ public:
             result_t hr;
             int32_t i;
 
-            for (i = 0; i < args.size(); i++) {
+            for (i = 0; i < (int32_t)args.size(); i++) {
                 hr = add(args[i]);
                 if (hr < 0)
                     return hr;

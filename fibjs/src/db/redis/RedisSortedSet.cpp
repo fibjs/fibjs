@@ -39,7 +39,7 @@ result_t RedisSortedSet::add(OptArgs sms, int32_t& retVal)
     sms.GetData(mss);
 
     int32_t i;
-    for (i = 0; i < mss.size(); i += 2) {
+    for (i = 0; i < (int32_t)mss.size(); i += 2) {
         v8::Local<v8::Value> v = mss[i];
         mss[i] = mss[i + 1];
         mss[i + 1] = v;

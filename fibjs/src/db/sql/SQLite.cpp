@@ -206,7 +206,7 @@ inline int32_t _busy(int32_t ms, int32_t count)
 
     int32_t delay;
 
-    if (count < ARRAYSIZE(delays))
+    if (count < (int32_t)ARRAYSIZE(delays))
         delay = delays[count];
     else
         delay = delays[ARRAYSIZE(delays) - 1];
