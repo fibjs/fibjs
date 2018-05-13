@@ -187,9 +187,9 @@ result_t mssql::rollback(AsyncEvent* ac)
     return 0;
 }
 
-result_t mssql::trans(v8::Local<v8::Function> func)
+result_t mssql::trans(v8::Local<v8::Function> func, bool& retVal)
 {
-    return _trans(this, func);
+    return _trans(this, func, retVal);
 }
 
 result_t mssql::execute(const char* sql, int32_t sLen,

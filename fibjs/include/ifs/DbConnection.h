@@ -26,7 +26,7 @@ public:
     virtual result_t begin(AsyncEvent* ac) = 0;
     virtual result_t commit(AsyncEvent* ac) = 0;
     virtual result_t rollback(AsyncEvent* ac) = 0;
-    virtual result_t trans(v8::Local<v8::Function> func) = 0;
+    virtual result_t trans(v8::Local<v8::Function> func, bool& retVal) = 0;
     virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal) = 0;
 
@@ -175,6 +175,8 @@ inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Val
 
 inline void DbConnection_base::s_trans(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    bool vr;
+
     METHOD_NAME("DbConnection.trans");
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
@@ -183,9 +185,9 @@ inline void DbConnection_base::s_trans(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->trans(v0);
+    hr = pInst->trans(v0, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Value>& args)

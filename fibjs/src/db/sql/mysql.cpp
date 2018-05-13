@@ -290,9 +290,9 @@ result_t mysql::rollback(AsyncEvent* ac)
     return execute("ROLLBACK", 8, retVal);
 }
 
-result_t mysql::trans(v8::Local<v8::Function> func)
+result_t mysql::trans(v8::Local<v8::Function> func, bool& retVal)
 {
-    return _trans(this, func);
+    return _trans(this, func, retVal);
 }
 
 result_t mysql::execute(const char* sql, int32_t sLen,

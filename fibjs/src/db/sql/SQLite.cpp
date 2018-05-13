@@ -195,9 +195,9 @@ result_t SQLite::rollback(AsyncEvent* ac)
     return execute("ROLLBACK", 8, retVal);
 }
 
-result_t SQLite::trans(v8::Local<v8::Function> func)
+result_t SQLite::trans(v8::Local<v8::Function> func, bool& retVal)
 {
-    return _trans(this, func);
+    return _trans(this, func, retVal);
 }
 
 inline int32_t _busy(int32_t ms, int32_t count)
