@@ -78,13 +78,13 @@ static void hook_fts5_api(sqlite3* db)
     if (SQLITE_OK == sqlite3_prepare(db, "SELECT fts5(?)", -1, &pStmt, 0)) {
         sqlite3_bind_pointer(pStmt, 1, (void*)&pApi, "fts5_api_ptr", NULL);
         sqlite3_step(pStmt);
+
+        if (old_fts5FindTokenizer == NULL)
+            old_fts5FindTokenizer = pApi->xFindTokenizer;
+        pApi->xFindTokenizer = new_fts5FindTokenizer;
+
+        sqlite3_finalize(pStmt);
     }
-
-    if (old_fts5FindTokenizer == NULL)
-        old_fts5FindTokenizer = pApi->xFindTokenizer;
-    pApi->xFindTokenizer = new_fts5FindTokenizer;
-
-    sqlite3_finalize(pStmt);
 }
 
 #define SQLITE_OPEN_FLAGS \
@@ -123,10 +123,10 @@ result_t SQLite::open(const char* file)
         return hr;
     }
 
-    hook_fts5_api(m_db);
-
     obj_ptr<NArray> retVal;
     execute("PRAGMA journal_mode=WAL;", 24, retVal);
+
+    hook_fts5_api(m_db);
 
     m_file = file;
 
