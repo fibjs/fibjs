@@ -65,7 +65,7 @@ describe("db", () => {
 
         it("create table", () => {
             if (conn.type == 'mssql')
-                conn.execute('create table test(t1 int, t2 varchar(128), t3 VARBINARY(100), t4 datetime);');
+                conn.execute('create table test(t0 INT IDENTITY PRIMARY KEY, t1 int, t2 varchar(128), t3 VARBINARY(100), t4 datetime);');
             else {
                 conn.execute('create table test(t0 INTEGER AUTO_INCREMENT PRIMARY KEY, t1 int, t2 varchar(128), t3 BLOB, t4 datetime);');
                 conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 BLOB NULL, t4 datetime NULL);');
@@ -121,6 +121,25 @@ describe("db", () => {
                 assert.isNull(rs.t3);
                 assert.isNull(rs.t4);
             }
+        });
+
+        it("multi sql", () => {
+            assert.deepEqual(conn.execute('select 100 as n'), [{
+                n: 100
+            }]);
+
+            assert.deepEqual(conn.execute('select 100 as n;select 200 as n'), [
+                [{
+                    n: 100
+                }],
+                [{
+                    n: 200
+                }]
+            ]);
+
+            assert.deepEqual(conn.execute('select 100 as n;      '), [{
+                n: 100
+            }]);
         });
 
         it("execute async", (done) => {
