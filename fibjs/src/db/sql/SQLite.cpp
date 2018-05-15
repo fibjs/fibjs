@@ -241,111 +241,129 @@ int32_t sqlite3_prepare_sleep(sqlite3* db, const char* zSql, int nByte,
     }
 }
 
-result_t SQLite::execute(const char* sql, int32_t sLen,
-    obj_ptr<NArray>& retVal)
+result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
 {
     if (!m_db)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    sqlite3_stmt* stmt = 0;
     const char* pStr1;
 
-    if (sqlite3_prepare_sleep(m_db, sql, sLen, &stmt, &pStr1, m_nCmdTimeout)) {
-        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
-        if (stmt)
-            sqlite3_finalize(stmt);
-        return hr;
-    }
+    do {
+        sqlite3_stmt* stmt = 0;
 
-    if (!stmt)
-        return CHECK_ERROR(Runtime::setError("SQLite: Query was empty"));
-
-    int32_t columns = sqlite3_column_count(stmt);
-    obj_ptr<DBResult> res;
-
-    if (columns > 0) {
-        int32_t i;
-        res = new DBResult(columns);
-
-        for (i = 0; i < columns; i++) {
-            exlib::string s = sqlite3_column_name(stmt, i);
-            res->setField(i, s);
+        if (sqlite3_prepare_sleep(m_db, sql, sLen, &stmt, &pStr1, m_nCmdTimeout)) {
+            result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
+            if (stmt)
+                sqlite3_finalize(stmt);
+            return hr;
         }
 
-        while (true) {
-            int32_t r = sqlite3_step_sleep(stmt, m_nCmdTimeout);
-            if (r == SQLITE_ROW) {
-                res->beginRow();
-                for (i = 0; i < columns; i++) {
-                    Variant v;
+        if (!stmt)
+            return CHECK_ERROR(Runtime::setError("SQLite: Query was empty"));
 
-                    switch (sqlite3_column_type(stmt, i)) {
-                    case SQLITE_NULL:
-                        v.setNull();
-                        break;
+        sLen -= pStr1 - sql;
 
-                    case SQLITE_INTEGER:
-                        v = (int64_t)sqlite3_column_int64(stmt, i);
-                        break;
+        int32_t columns = sqlite3_column_count(stmt);
+        obj_ptr<DBResult> res;
 
-                    case SQLITE_FLOAT:
-                        v = sqlite3_column_double(stmt, i);
-                        break;
+        if (columns > 0) {
+            int32_t i;
+            res = new DBResult(columns);
 
-                    default:
-                        const char* type = sqlite3_column_decltype(stmt, i);
-                        if (type
-                            && (!qstricmp(type, "blob", 4)
-                                   || !qstricmp(type, "tinyblob", 8)
-                                   || !qstricmp(type, "mediumblob", 10)
-                                   || !qstricmp(type, "longblob", 8)
-                                   || !qstricmp(type, "binary", 6)
-                                   || !qstricmp(type, "varbinary", 9))) {
-                            const char* data = (const char*)sqlite3_column_blob(stmt, i);
-                            int32_t size = sqlite3_column_bytes(stmt, i);
+            for (i = 0; i < columns; i++) {
+                exlib::string s = sqlite3_column_name(stmt, i);
+                res->setField(i, s);
+            }
 
-                            v = new Buffer(data, size);
-                        } else if (type
-                            && (!qstricmp(type, "datetime")
-                                   || !qstricmp(type, "date")
-                                   || !qstricmp(type, "time"))) {
-                            const char* data = (const char*)sqlite3_column_text(stmt, i);
-                            int32_t size = sqlite3_column_bytes(stmt, i);
+            while (true) {
+                int32_t r = sqlite3_step_sleep(stmt, m_nCmdTimeout);
+                if (r == SQLITE_ROW) {
+                    res->beginRow();
+                    for (i = 0; i < columns; i++) {
+                        Variant v;
 
-                            v.parseDate(data, size);
-                        } else {
-                            const char* data = (const char*)sqlite3_column_text(stmt, i);
-                            int32_t size = sqlite3_column_bytes(stmt, i);
+                        switch (sqlite3_column_type(stmt, i)) {
+                        case SQLITE_NULL:
+                            v.setNull();
+                            break;
 
-                            v = exlib::string(data, size);
+                        case SQLITE_INTEGER:
+                            v = (int64_t)sqlite3_column_int64(stmt, i);
+                            break;
+
+                        case SQLITE_FLOAT:
+                            v = sqlite3_column_double(stmt, i);
+                            break;
+
+                        default:
+                            const char* type = sqlite3_column_decltype(stmt, i);
+                            if (type
+                                && (!qstricmp(type, "blob", 4)
+                                       || !qstricmp(type, "tinyblob", 8)
+                                       || !qstricmp(type, "mediumblob", 10)
+                                       || !qstricmp(type, "longblob", 8)
+                                       || !qstricmp(type, "binary", 6)
+                                       || !qstricmp(type, "varbinary", 9))) {
+                                const char* data = (const char*)sqlite3_column_blob(stmt, i);
+                                int32_t size = sqlite3_column_bytes(stmt, i);
+
+                                v = new Buffer(data, size);
+                            } else if (type
+                                && (!qstricmp(type, "datetime")
+                                       || !qstricmp(type, "date")
+                                       || !qstricmp(type, "time"))) {
+                                const char* data = (const char*)sqlite3_column_text(stmt, i);
+                                int32_t size = sqlite3_column_bytes(stmt, i);
+
+                                v.parseDate(data, size);
+                            } else {
+                                const char* data = (const char*)sqlite3_column_text(stmt, i);
+                                int32_t size = sqlite3_column_bytes(stmt, i);
+
+                                v = exlib::string(data, size);
+                            }
+                            break;
                         }
-                        break;
-                    }
 
-                    res->rowValue(i, v);
+                        res->rowValue(i, v);
+                    }
+                    res->endRow();
+                } else if (r == SQLITE_DONE)
+                    break;
+                else {
+                    sqlite3_finalize(stmt);
+                    return CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
                 }
-                res->endRow();
-            } else if (r == SQLITE_DONE)
-                break;
+            }
+        } else {
+            int32_t r = sqlite3_step_sleep(stmt, m_nCmdTimeout);
+            if (r == SQLITE_DONE)
+                res = new DBResult(0, sqlite3_changes(m_db),
+                    sqlite3_last_insert_rowid(m_db));
             else {
                 sqlite3_finalize(stmt);
                 return CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
             }
         }
-    } else {
-        int32_t r = sqlite3_step_sleep(stmt, m_nCmdTimeout);
-        if (r == SQLITE_DONE)
-            res = new DBResult(0, sqlite3_changes(m_db),
-                sqlite3_last_insert_rowid(m_db));
-        else {
-            sqlite3_finalize(stmt);
-            return CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
+
+        sqlite3_finalize(stmt);
+
+        while (qisspace(*pStr1)) {
+            pStr1++;
+            sLen--;
         }
-    }
 
-    sqlite3_finalize(stmt);
+        if (!*pStr1 && retVal == NULL) {
+            retVal = res;
+        } else {
+            if (retVal == NULL)
+                retVal = new NArray();
 
-    retVal = res;
+            retVal->append(res);
+
+            sql = pStr1;
+        }
+    } while (*pStr1);
 
     return 0;
 }
