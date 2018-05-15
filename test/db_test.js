@@ -191,7 +191,7 @@ describe("db", () => {
 
             it("begin/rollback", () => {
                 conn.begin();
-                conn.execute("update test set t2='test101.1' where t1=101");
+                conn.execute("update test set t2='test101.2' where t1=101");
                 conn.rollback();
 
                 var rs = conn.execute("select * from test where t1=101");
@@ -200,32 +200,36 @@ describe("db", () => {
 
             describe("trans()", () => {
                 it("auto commit", () => {
-                    conn.trans(function () {
+                    var res = conn.trans(function () {
                         assert.equal(this, conn);
                         this.execute("update test set t2='test101.2' where t1=101");
                     });
+                    assert.equal(res, true);
+
 
                     var rs = conn.execute("select * from test where t1=101");
                     assert.equal(rs[0].t2, "test101.2");
                 });
 
                 it("auto commit with fiber", () => {
-                    conn.trans(function () {
+                    var res = conn.trans(function () {
                         assert.equal(this, conn);
                         coroutine.parallel(() => {
                             this.execute("update test set t2='test101.2.1' where t1=101");
                         });
                     });
+                    assert.equal(res, true);
 
                     var rs = conn.execute("select * from test where t1=101");
                     assert.equal(rs[0].t2, "test101.2.1");
                 });
 
                 it("auto rollback", () => {
-                    conn.trans(function () {
+                    var res = conn.trans(function () {
                         this.execute("update test set t2='test101.3' where t1=101");
                         return false;
                     });
+                    assert.equal(res, false);
 
                     var rs = conn.execute("select * from test where t1=101");
                     assert.equal(rs[0].t2, "test101.2.1");
