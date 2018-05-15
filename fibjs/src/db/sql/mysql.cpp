@@ -305,8 +305,24 @@ result_t mysql::execute(const char* sql, int32_t sLen,
     if (!res)
         return CHECK_ERROR(error());
 
-    retVal = res;
-    res->Unref();
+    if (UMConnection_HasMoreResult(m_conn)) {
+        retVal = new NArray();
+
+        retVal->append(res);
+        res->Unref();
+
+        while (UMConnection_HasMoreResult(m_conn)) {
+            res = (DBResult*)UMConnection_NextResultSet(m_conn);
+            if (!res)
+                return CHECK_ERROR(error());
+
+            retVal->append(res);
+            res->Unref();
+        }
+    } else {
+        retVal = res;
+        res->Unref();
+    }
 
     return 0;
 }
