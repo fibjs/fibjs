@@ -261,7 +261,7 @@ result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
         if (!stmt)
             return CHECK_ERROR(Runtime::setError("SQLite: Query was empty"));
 
-        sLen -= pStr1 - sql;
+        sLen -= (int32_t)(pStr1 - sql);
 
         int32_t columns = sqlite3_column_count(stmt);
         obj_ptr<DBResult> res;
