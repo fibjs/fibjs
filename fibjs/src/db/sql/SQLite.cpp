@@ -225,7 +225,7 @@ int32_t sqlite3_step_sleep(sqlite3_stmt* stmt, int32_t ms)
         int32_t r = sqlite3_step(stmt);
         if ((r != SQLITE_LOCKED && r != SQLITE_BUSY) || ms <= 0)
             return r;
-        ms -= _busy(ms, count--);
+        ms -= _busy(ms, count++);
     }
 }
 
@@ -237,7 +237,7 @@ int32_t sqlite3_prepare_sleep(sqlite3* db, const char* zSql, int nByte,
         int32_t r = sqlite3_prepare_v2(db, zSql, nByte, ppStmt, pzTail);
         if ((r != SQLITE_LOCKED && r != SQLITE_BUSY) || ms <= 0)
             return r;
-        ms -= _busy(ms, count--);
+        ms -= _busy(ms, count++);
     }
 }
 
