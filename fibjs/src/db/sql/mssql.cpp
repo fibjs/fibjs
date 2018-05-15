@@ -200,6 +200,7 @@ result_t mssql::execute(const char* sql, int32_t sLen,
 
     HRESULT hr;
     ADODB::_Recordset* rs = NULL;
+    ADODB::_Recordset* rs1 = NULL;
     bstr_t bstrCom(utf8to16String(sql, sLen).c_str());
     _variant_t affected((long)0);
 
@@ -207,124 +208,141 @@ result_t mssql::execute(const char* sql, int32_t sLen,
     if (FAILED(hr))
         return error(hr);
 
-    obj_ptr<DBResult> res;
+    do {
+        obj_ptr<DBResult> res;
 
-    VARIANT_BOOL bEof = VARIANT_TRUE;
-    rs->get_adoEOF(&bEof);
-    if (bEof == VARIANT_FALSE) {
-        ADODB::Fields* fields = NULL;
+        VARIANT_BOOL bEof = VARIANT_TRUE;
+        rs->get_adoEOF(&bEof);
+        if (bEof == VARIANT_FALSE) {
+            ADODB::Fields* fields = NULL;
 
-        rs->get_Fields(&fields);
-        if (FAILED(hr)) {
-            rs->Release();
-            return error(hr);
-        }
-
-        long columns;
-        fields->get_Count(&columns);
-
-        if (columns > 0) {
-            int32_t i;
-
-            res = new DBResult(columns);
-
-            for (i = 0; i < columns; i++) {
-                ADODB::Field* field = NULL;
-                _variant_t vi((long)i);
-                BSTR bstrName = NULL;
-
-                fields->get_Item(vi, &field);
-
-                field->get_Name(&bstrName);
-                res->setField(i, utf16to8String(bstrName));
-                SysFreeString(bstrName);
-                field->Release();
+            rs->get_Fields(&fields);
+            if (FAILED(hr)) {
+                rs->Release();
+                return error(hr);
             }
 
-            while (bEof == VARIANT_FALSE) {
+            long columns;
+            fields->get_Count(&columns);
+
+            if (columns > 0) {
                 int32_t i;
 
-                res->beginRow();
+                res = new DBResult(columns);
+
                 for (i = 0; i < columns; i++) {
-                    Variant v;
                     ADODB::Field* field = NULL;
                     _variant_t vi((long)i);
+                    BSTR bstrName = NULL;
 
                     fields->get_Item(vi, &field);
-                    if (field) {
-                        _variant_t value;
 
-                        field->get_Value(&value);
-
-                        switch (value.vt) {
-                        case VT_NULL:
-                            v.setNull();
-                            break;
-                        case VT_BOOL:
-                            v = (value.boolVal != VARIANT_FALSE);
-                            break;
-                        case VT_I2:
-                            v = value.iVal;
-                            break;
-                        case VT_UI2:
-                            v = value.uiVal;
-                            break;
-                        case VT_I4:
-                        case VT_INT:
-                            v = value.lVal;
-                            break;
-                        case VT_UI4:
-                        case VT_UINT:
-                            v = (int64_t)value.ulVal;
-                            break;
-                        case VT_R4:
-                            v = value.dblVal;
-                            break;
-                        case VT_BSTR:
-                            v = utf16to8String(value.bstrVal);
-                            break;
-                        case VT_DATE: {
-                            date_t d;
-                            SYSTEMTIME st;
-
-                            VariantTimeToSystemTime(value.date, &st);
-                            d.create(st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
-                            d.toUTC();
-
-                            v = d;
-                            break;
-                        }
-                        case VT_DECIMAL: {
-                            double myDouble = value;
-                            v = myDouble;
-                            break;
-                        }
-                        case VT_UI1 | VT_ARRAY:
-                            v = new Buffer(value.parray->pvData, value.parray->rgsabound[0].cElements);
-                            break;
-                        }
-
-                        field->Release();
-                    }
-
-                    res->rowValue(i, v);
+                    field->get_Name(&bstrName);
+                    res->setField(i, utf16to8String(bstrName));
+                    SysFreeString(bstrName);
+                    field->Release();
                 }
-                res->endRow();
 
-                rs->MoveNext();
-                rs->get_adoEOF(&bEof);
-            }
+                while (bEof == VARIANT_FALSE) {
+                    int32_t i;
+
+                    res->beginRow();
+                    for (i = 0; i < columns; i++) {
+                        Variant v;
+                        ADODB::Field* field = NULL;
+                        _variant_t vi((long)i);
+
+                        fields->get_Item(vi, &field);
+                        if (field) {
+                            _variant_t value;
+
+                            field->get_Value(&value);
+
+                            switch (value.vt) {
+                            case VT_NULL:
+                                v.setNull();
+                                break;
+                            case VT_BOOL:
+                                v = (value.boolVal != VARIANT_FALSE);
+                                break;
+                            case VT_I2:
+                                v = value.iVal;
+                                break;
+                            case VT_UI2:
+                                v = value.uiVal;
+                                break;
+                            case VT_I4:
+                            case VT_INT:
+                                v = value.lVal;
+                                break;
+                            case VT_UI4:
+                            case VT_UINT:
+                                v = (int64_t)value.ulVal;
+                                break;
+                            case VT_R4:
+                                v = value.dblVal;
+                                break;
+                            case VT_BSTR:
+                                v = utf16to8String(value.bstrVal);
+                                break;
+                            case VT_DATE: {
+                                date_t d;
+                                SYSTEMTIME st;
+
+                                VariantTimeToSystemTime(value.date, &st);
+                                d.create(st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+                                d.toUTC();
+
+                                v = d;
+                                break;
+                            }
+                            case VT_DECIMAL: {
+                                double myDouble = value;
+                                v = myDouble;
+                                break;
+                            }
+                            case VT_UI1 | VT_ARRAY:
+                                v = new Buffer(value.parray->pvData, value.parray->rgsabound[0].cElements);
+                                break;
+                            }
+
+                            field->Release();
+                        }
+
+                        res->rowValue(i, v);
+                    }
+                    res->endRow();
+
+                    rs->MoveNext();
+                    rs->get_adoEOF(&bEof);
+                }
+            } else
+                res = new DBResult(0, affected);
+
+            fields->Release();
+
         } else
             res = new DBResult(0, affected);
 
-        fields->Release();
+        rs1 = NULL;
+        affected = (long)0;
+        hr = rs->NextRecordset(&affected, &rs1);
+        if (FAILED(hr))
+            return error(hr);
 
-    } else
-        res = new DBResult(0, affected);
+        rs->Release();
 
-    rs->Release();
+        if (rs1 == NULL && retVal == NULL) {
+            retVal = res;
+        } else {
+            if (retVal == NULL)
+                retVal = new NArray();
 
-    retVal = res;
+            retVal->append(res);
+
+            rs = rs1;
+        }
+    } while (rs1 != NULL);
 
     return 0;
 }
