@@ -134,8 +134,6 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             vs[1] = pThis->m_httpreq;
             pHandler->_emit("accept", vs, 2);
 
-            // sock->startRecv();
-
             return CALL_E_PENDDING;
         }
 

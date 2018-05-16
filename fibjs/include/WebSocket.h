@@ -110,6 +110,8 @@ public:
 
     int32_t m_code;
     exlib::string m_reason;
+
+    obj_ptr<ValueHolder> m_holder;
 };
 
 } /* namespace fibjs */

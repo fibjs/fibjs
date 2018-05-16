@@ -6,6 +6,7 @@ var io = require('io');
 var http = require('http');
 var mq = require('mq');
 var coroutine = require('coroutine');
+var test_util = require('./test_util');
 
 var base_port = coroutine.vmid * 10000;
 
@@ -763,6 +764,81 @@ describe('ws', () => {
             });
         });
 
+        describe('gc', () => {
+            it("gc on close", () => {
+                var t = false;
+                GC();
+
+                var no1 = test_util.countObject('WebSocket');
+                var httpd = new http.Server(8816 + base_port, {
+                    "/ws": ws.upgrade((s, req) => {
+                        s.onmessage = e => {}
+                    })
+                });
+
+                ss.push(httpd.socket);
+                httpd.run(() => {});
+
+                assert.equal(test_util.countObject('WebSocket'), no1);
+
+                var s = new ws.Socket("ws://127.0.0.1:" + (8816 + base_port) + "/ws", "test");
+
+                s.onopen = () => {
+                    t = true;
+                };
+
+                s.onmessage = e => {}
+
+                for (var i = 0; i < 1000 && !t; i++)
+                    coroutine.sleep(1);
+
+                assert.equal(test_util.countObject('WebSocket'), no1 + 2);
+
+                s.close();
+                s = undefined;
+                GC();
+                coroutine.sleep(10);
+                GC();
+                assert.equal(test_util.countObject('WebSocket'), no1);
+            });
+
+            it("not gc in closure", () => {
+                var t = false;
+                GC();
+
+                var no1 = test_util.countObject('WebSocket');
+                var httpd = new http.Server(8817 + base_port, {
+                    "/ws": ws.upgrade((s, req) => {
+                        ss.push(s);
+                        s.send(new Date());
+                    })
+                });
+
+                ss.push(httpd.socket);
+                httpd.run(() => {});
+
+                GC();
+                assert.equal(test_util.countObject('WebSocket'), no1);
+
+                function test() {
+                    var s = new ws.Socket("ws://127.0.0.1:" + (8817 + base_port) + "/ws", "test");
+                    s.onmessage = e => {
+                        t = true;
+                        s.close();
+                    }
+                }
+
+                test();
+                GC();
+
+                coroutine.sleep(10);
+                assert.equal(test_util.countObject('WebSocket'), no1 + 2);
+                assert.isTrue(t);
+
+                GC();
+                assert.equal(test_util.countObject('WebSocket'), no1 + 1);
+            });
+        });
     });
 });
 

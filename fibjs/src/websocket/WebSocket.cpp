@@ -311,6 +311,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
 
         virtual int32_t error(int32_t v)
         {
+            m_this->m_holder.Release();
             m_this->isolate_unref();
             m_this->endConnect(1002, "");
             return v;
@@ -325,7 +326,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
     };
 
     obj_ptr<WebSocket> sock = new WebSocket(url, protocol, origin);
-    sock->wrap(This);
+    sock->m_holder = new ValueHolder(sock->wrap(This));
 
     (new asyncConnect(sock, sock->holder()))->apost(0);
 
@@ -342,12 +343,15 @@ void WebSocket::startRecv(Isolate* isolate)
             : AsyncState(NULL)
             , m_this(pThis)
         {
+            if (m_this->m_holder == NULL)
+                m_this->m_holder = new ValueHolder(m_this->wrap());
             m_isolate = isolate;
             set(recv);
         }
 
         ~asyncRead()
         {
+            m_this->m_holder.Release();
             m_this->isolate_unref();
         }
 
