@@ -419,6 +419,18 @@ private:
     static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
+class ValueHolder : public object_base {
+public:
+    ValueHolder(v8::Local<v8::Value> v)
+    {
+        m_v.Reset(holder()->m_isolate, v);
+        setJSObject();
+    }
+
+public:
+    v8::Global<v8::Value> m_v;
+};
+
 class RootModule {
 public:
     RootModule()
