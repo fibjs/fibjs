@@ -102,9 +102,7 @@ if (info === undefined) {
         "repository": '',
         "keywords": '',
         "author": '',
-        "license": 'ISC',
-        "dependencies": [],
-        "devDependencies": []
+        "license": 'ISC'
     }
 }
 
