@@ -13,6 +13,7 @@
 #include "path.h"
 #include "LruCache.h"
 #include "Buffer.h"
+#include "options.h"
 
 namespace fibjs {
 
@@ -220,8 +221,6 @@ result_t SandBox::resolveId(exlib::string& id, obj_ptr<Buffer_base>& data,
     return CALL_E_FILE_NOT_FOUND;
 }
 
-extern const char* opt_tools[];
-
 result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Value>& retVal)
 {
@@ -246,11 +245,11 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
         }
 #endif
 
-        for (i = 0; opt_tools[i] && qstrcmp(opt_tools[i], fname.c_str()); i += 2)
+        for (i = 0; opt_tools[i].name && qstrcmp(opt_tools[i].name, fname.c_str()); i++)
             ;
 
-        if (opt_tools[i]) {
-            data = new Buffer(opt_tools[i + 1]);
+        if (opt_tools[i].name) {
+            opt_tools[i].getDate(data);
             return 0;
         }
 
