@@ -230,7 +230,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
     int32_t i;
 
     if (!base.empty()) {
-        if (m_init) {
+        if (true || m_init) {
             fname = id;
 
             if (fname.substr(fname.length() - 3) == ".js")

@@ -66,6 +66,9 @@ SandBox::SandBox()
     loader = new JsLoader();
     m_loaders.push_back(loader);
 
+    loader = new TsLoader();
+    m_loaders.push_back(loader);
+
     loader = new JscLoader();
     m_loaders.push_back(loader);
 
