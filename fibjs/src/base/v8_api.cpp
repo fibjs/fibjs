@@ -23,6 +23,8 @@
 
 namespace fibjs {
 
+bool path_isAbsolute(exlib::string path);
+
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate)
 {
     v8::internal::Isolate* v8_isolate = (v8::internal::Isolate*)isolate;
@@ -169,6 +171,9 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
         if (!script->Name().ToLocal(&name))
             continue;
         std::string file_name = ToSTLString(isolate, name);
+        if (!path_isAbsolute(file_name))
+            continue;
+
         fprintf(file, "SF:%s\n", file_name.c_str());
         std::vector<uint32_t> lines;
         for (size_t j = 0; j < script_data.FunctionCount(); j++) {
