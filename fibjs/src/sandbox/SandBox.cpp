@@ -76,7 +76,6 @@ SandBox::SandBox()
     m_loaders.push_back(loader);
 
     m_global = false;
-    m_init = false;
 }
 
 void SandBox::initGlobal(v8::Local<v8::Object> global)
@@ -114,12 +113,7 @@ RootModule* RootModule::g_root = NULL;
 
 void SandBox::initRoot()
 {
-    m_init = true;
-
     Isolate* isolate = holder();
-
-    if (g_cov && isolate->m_id == 1)
-        pauseCoverage(isolate->m_isolate);
 
     RootModule* pModule = RootModule::g_root;
 
@@ -133,14 +127,6 @@ void SandBox::initRoot()
 
     v8::Local<v8::Object> _buffer = Buffer_base::class_info().getModule(isolate);
     _buffer->Set(isolate->NewString("Buffer"), _buffer);
-
-    v8::Local<v8::Value> m;
-    run_module("stream.js", "/", m);
-
-    m_init = false;
-
-    if (g_cov && isolate->m_id == 1)
-        beginCoverage(isolate->m_isolate);
 }
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)

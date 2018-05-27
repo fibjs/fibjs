@@ -12,6 +12,13 @@ namespace fibjs {
 
 #ifdef _WIN32
 DECLARE_MODULE_EX(path, path_win32);
+
+bool path_isAbsolute(exlib::string path)
+{
+    bool retVal;
+    path_win32_base::isAbsolute(path, retVal);
+    return retVal;
+}
 #endif
 
 result_t path_win32_base::normalize(exlib::string path, exlib::string& retVal)
