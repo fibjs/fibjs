@@ -9,10 +9,9 @@
 #include "SandBox.h"
 #include "Buffer.h"
 #include "path.h"
+#include "options.h"
 
 namespace fibjs {
-
-extern const char* opt_tools[];
 
 result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
 {
@@ -24,9 +23,9 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         exlib::string tmp("opt_tools/");
         tmp += fname.c_str() + 2;
 
-        for (i = 0; opt_tools[i] && qstrcmp(opt_tools[i], tmp.c_str()); i += 2)
+        for (i = 0; opt_tools[i].name && qstrcmp(opt_tools[i].name, tmp.c_str()); i++)
             ;
-        bin = new Buffer(opt_tools[i + 1]);
+        opt_tools[i].getDate(bin);
     } else {
         bool isAbs;
 

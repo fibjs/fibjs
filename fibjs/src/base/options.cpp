@@ -34,8 +34,6 @@ bool g_tracetcp = false;
 #define GUARD_SIZE 16
 #endif
 
-extern const char* opt_tools[];
-
 static void printHelp()
 {
     puts("Usage: fibjs [options] [script.js] [arguments] \n"
@@ -71,10 +69,10 @@ void options(int32_t& pos, char* argv[])
             exlib::string tmp("opt_tools/");
             tmp += argv[pos] + 2;
 
-            for (i = 0; opt_tools[i] && qstrcmp(opt_tools[i], tmp.c_str()); i += 2)
+            for (i = 0; opt_tools[i].name && qstrcmp(opt_tools[i].name, tmp.c_str()); i++)
                 ;
 
-            if (opt_tools[i])
+            if (opt_tools[i].name)
                 break;
         }
 

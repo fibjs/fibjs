@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var encoding = require('encoding');
+var zlib = require('zlib');
 
 var txts = [];
 var base = path.join(__dirname, "../fibjs/scripts");
@@ -16,7 +17,8 @@ function enc_folder(dir) {
             var pos = 0;
             var sz = 20;
 
-            var hex = new Buffer(code).hex();
+            var bin = zlib.deflate(new Buffer(code));
+            var hex = bin.hex();
 
             var cnt = 0;
             hex = '"' + hex.replace(/../g, s => {
@@ -28,7 +30,7 @@ function enc_folder(dir) {
                 return "\\x" + s;
             }) + '"';
 
-            txts.push('"' + path.join(dir, path.basename(f, ".js")) + '",\n    ' + hex + ',');
+            txts.push('{"' + path.join(dir, path.basename(f, ".js")) + '", ' + bin.length + ',\n    ' + hex + '},');
         }
     });
 }
@@ -42,11 +44,11 @@ fs.writeFile(path.join(__dirname, "../fibjs/src/base/opt_tools.cpp"), `/*
 *      Author: lion
 */
 
-#include "utils.h"
+#include "options.h"
 
 namespace fibjs {
-const char* opt_tools[] = {
+const OptData opt_tools[] = {
     ${txts.join('\n    ')}
-    NULL
+    {NULL, 0, NULL}
 };
 }`);
