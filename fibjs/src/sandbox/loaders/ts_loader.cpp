@@ -12,7 +12,7 @@
 #include "loaders.h"
 
 namespace fibjs {
-    
+
 extern const char* opt_tools[];
 
 result_t TsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
@@ -32,7 +32,7 @@ result_t TsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
 
         src->toString(strScript);
         const char* c_str = strScript.c_str();
-        
+
         if (strScript.length() > 2 && c_str[0] == '#' && c_str[1] == '!') {
             strScript[0] = '/';
             strScript[1] = '/';
@@ -40,7 +40,7 @@ result_t TsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
 
         /* transpile with typescript first :start */
         v8::Local<v8::Value> m;
-        ctx->m_sb->require("internal/typescript.js", "/", m);
+        ctx->m_sb->require("internal/typescript", "/", m);
         if (m.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
@@ -49,7 +49,7 @@ result_t TsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
         v8::Local<v8::Value> transFunc = object->Get(isolate->NewString("transpile", 9));
         v8::Local<v8::Value> pscript = isolate->NewString(strScript);
         v8::Local<v8::Value> compiledScript = v8::Local<v8::Function>::Cast(transFunc)->Call(object, 1, &pscript);
-        
+
         if (compiledScript.IsEmpty())
             return CALL_E_JAVASCRIPT;
 

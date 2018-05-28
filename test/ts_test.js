@@ -56,9 +56,11 @@ describe('typescript', () => {
     })
 
     it('require *.ts file', () => {
-        const basic = require('./ts_files/basic.ts')
+        const basic = require('./ts_files/basic')
+        const interface = require('./ts_files/interface')
         assertBasicModule(basic)
     })
 });
 
 require.main === module && test.run(console.DEBUG);
+
