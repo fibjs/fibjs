@@ -43,22 +43,25 @@ static struct _cipher_size {
         { "ARC4-128", 0, {} } }
 };
 
-void init_cipher()
-{
-    int32_t i, j, k;
+class cipher_initer {
+public:
+    cipher_initer()
+    {
+        int32_t i, j, k;
 
-    for (i = 0; i < PROVIDER_COUNT; i++)
-        for (j = 0; j < SIZE_COUNT; j++)
-            if (s_sizes[i][j].name)
-                for (k = 1; k < MODE_COUNT; k++) {
-                    exlib::string name = s_sizes[i][j].name;
+        for (i = 0; i < PROVIDER_COUNT; i++)
+            for (j = 0; j < SIZE_COUNT; j++)
+                if (s_sizes[i][j].name)
+                    for (k = 1; k < MODE_COUNT; k++) {
+                        exlib::string name = s_sizes[i][j].name;
 
-                    name.append(s_modes[k]);
-                    s_sizes[i][j].cis[k] = mbedtls_cipher_info_from_string(name.c_str());
-                    if (s_sizes[i][j].cis[k])
-                        s_sizes[i][j].size = s_sizes[i][j].cis[k]->key_bitlen;
-                }
-}
+                        name.append(s_modes[k]);
+                        s_sizes[i][j].cis[k] = mbedtls_cipher_info_from_string(name.c_str());
+                        if (s_sizes[i][j].cis[k])
+                            s_sizes[i][j].size = s_sizes[i][j].cis[k]->key_bitlen;
+                    }
+    }
+} s_cipher_initer;
 
 result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base* key,
     Buffer_base* iv, obj_ptr<Cipher_base>& retVal,
@@ -156,8 +159,7 @@ result_t Cipher::init(exlib::string& key, exlib::string& iv)
     m_key = key;
     m_iv = iv;
 
-    if (m_iv.length() && mbedtls_cipher_set_iv(&m_ctx, (unsigned char*)m_iv.c_str(),
-                             m_iv.length())) {
+    if (m_iv.length() && mbedtls_cipher_set_iv(&m_ctx, (unsigned char*)m_iv.c_str(), m_iv.length())) {
         m_iv.resize(0);
         return CHECK_ERROR(Runtime::setError("Cipher: Invalid iv size"));
     }

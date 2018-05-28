@@ -18,18 +18,10 @@
 namespace fibjs {
 
 void init_date();
-void init_rt();
 void init_argv(int32_t argc, char** argv);
 void init_start_argv(int32_t argc, char** argv);
-void init_prof();
-void init_cipher();
 void init_acThread();
-void init_logger();
 void init_aio();
-void init_fs();
-void init_fiber();
-void init_signal();
-void init_color();
 void init_process();
 void options(int32_t& pos, char* argv[]);
 result_t ifZipFile(exlib::string filename, bool& retVal);
@@ -52,16 +44,9 @@ void init()
 
     exlib::Service::init(cpus + 1);
 
-    // init_prof();
     init_date();
-    init_cipher();
     init_acThread();
-    init_logger();
     init_aio();
-    init_fs();
-    init_fiber();
-    init_signal();
-    init_color();
     init_process();
 
     srand((unsigned int)time(0));
@@ -182,8 +167,6 @@ void main(int32_t argc, char** argv)
         int32_t m_argc;
         char** m_argv;
     };
-
-    init_rt();
 
     MainThread* main_thread = new MainThread(argc, argv);
     main_thread->start();

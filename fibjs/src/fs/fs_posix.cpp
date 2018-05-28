@@ -66,10 +66,13 @@ inline int _copyfile(int ifd, int ofd)
 
 namespace fibjs {
 
-void init_fs()
-{
-    ::umask(0);
-}
+class fs_initer {
+public:
+    fs_initer()
+    {
+        ::umask(0);
+    }
+} s_fs_initer;
 
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 {
@@ -215,7 +218,7 @@ result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
 #if defined(Darwin) || defined(FreeBSD)
-#ifdef F_FULLFSYNC 
+#ifdef F_FULLFSYNC
     if (::fcntl(fd, F_FULLFSYNC))
         return CHECK_ERROR(LastError());
 #else

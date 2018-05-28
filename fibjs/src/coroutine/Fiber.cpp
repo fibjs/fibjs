@@ -19,11 +19,14 @@ namespace fibjs {
 int32_t g_spareFibers;
 static int32_t g_tlsCurrent;
 
-void init_fiber()
-{
-    g_spareFibers = MAX_IDLE;
-    g_tlsCurrent = exlib::Fiber::tlsAlloc();
-}
+class fiber_initer {
+public:
+    fiber_initer()
+    {
+        g_spareFibers = MAX_IDLE;
+        g_tlsCurrent = exlib::Fiber::tlsAlloc();
+    }
+} s_fiber_initer;
 
 void JSFiber::fiber_proc(void* p)
 {

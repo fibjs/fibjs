@@ -17,8 +17,11 @@
 
 namespace fibjs {
 
+void init_signal();
+
 void init_process()
 {
+    init_signal();
 }
 
 class PSTimer : public Timer {

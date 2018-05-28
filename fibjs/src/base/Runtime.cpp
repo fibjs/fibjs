@@ -22,10 +22,13 @@ namespace fibjs {
 
 static int32_t s_tls_rt;
 
-void init_rt()
-{
-    s_tls_rt = exlib::Fiber::tlsAlloc();
-}
+class rt_initer {
+public:
+    rt_initer()
+    {
+        s_tls_rt = exlib::Fiber::tlsAlloc();
+    }
+} s_rt_initer;
 
 void Runtime::reg()
 {

@@ -75,34 +75,37 @@ exlib::string COLOR_LIGHTWHITE = "";
 
 exlib::string COLOR_TITLE = "";
 
-void init_color()
-{
-    bool isatty = false;
-    tty_base::isatty(1, isatty);
-    if (isatty) {
-        COLOR_RESET = "\x1b[0m";
-        COLOR_BLACK = "\x1b[0;30m"; /* Black */
-        COLOR_RED = "\x1b[0;31m"; /* Red */
-        COLOR_GREEN = "\x1b[0;32m"; /* Green */
-        COLOR_YELLOW = "\x1b[0;33m"; /* Yellow */
-        COLOR_BLUE = "\x1b[0;34m"; /* Blue */
-        COLOR_MAGENTA = "\x1b[0;35m"; /* Magenta */
-        COLOR_CYAN = "\x1b[0;36m"; /* Cyan */
-        COLOR_WHITE = "\x1b[0;37m"; /* White */
-        COLOR_NORMAL = "\x1b[0;39m"; /* Normal */
-        COLOR_GREY = "\x1B[90m"; /* Grey */
+class color_initer {
+public:
+    color_initer()
+    {
+        bool isatty = false;
+        tty_base::isatty(1, isatty);
+        if (isatty) {
+            COLOR_RESET = "\x1b[0m";
+            COLOR_BLACK = "\x1b[0;30m"; /* Black */
+            COLOR_RED = "\x1b[0;31m"; /* Red */
+            COLOR_GREEN = "\x1b[0;32m"; /* Green */
+            COLOR_YELLOW = "\x1b[0;33m"; /* Yellow */
+            COLOR_BLUE = "\x1b[0;34m"; /* Blue */
+            COLOR_MAGENTA = "\x1b[0;35m"; /* Magenta */
+            COLOR_CYAN = "\x1b[0;36m"; /* Cyan */
+            COLOR_WHITE = "\x1b[0;37m"; /* White */
+            COLOR_NORMAL = "\x1b[0;39m"; /* Normal */
+            COLOR_GREY = "\x1B[90m"; /* Grey */
 
-        COLOR_LIGHTRED = "\x1b[1;31m"; /* Red */
-        COLOR_LIGHTGREEN = "\x1b[1;32m"; /* Green */
-        COLOR_LIGHTYELLOW = "\x1b[1;33m"; /* Yellow */
-        COLOR_LIGHTBLUE = "\x1b[1;34m"; /* Blue */
-        COLOR_LIGHTMAGENTA = "\x1b[1;35m"; /* Magenta */
-        COLOR_LIGHTCYAN = "\x1b[1;36m"; /* Cyan */
-        COLOR_LIGHTWHITE = "\x1b[1;37m"; /* White */
+            COLOR_LIGHTRED = "\x1b[1;31m"; /* Red */
+            COLOR_LIGHTGREEN = "\x1b[1;32m"; /* Green */
+            COLOR_LIGHTYELLOW = "\x1b[1;33m"; /* Yellow */
+            COLOR_LIGHTBLUE = "\x1b[1;34m"; /* Blue */
+            COLOR_LIGHTMAGENTA = "\x1b[1;35m"; /* Magenta */
+            COLOR_LIGHTCYAN = "\x1b[1;36m"; /* Cyan */
+            COLOR_LIGHTWHITE = "\x1b[1;37m"; /* White */
 
-        COLOR_TITLE = "\x1B[1;39m";
+            COLOR_TITLE = "\x1B[1;39m";
+        }
     }
-}
+} s_color_initer;
 
 extern std_logger* s_std;
 void asyncLog(int32_t priority, exlib::string msg);
