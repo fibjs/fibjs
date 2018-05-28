@@ -5,6 +5,10 @@
  *      Author: lion
  */
 
+#include <locale.h>
+#include <string.h>
+#include <time.h>
+#include "object.h"
 #include "Runtime.h"
 #include "Fiber.h"
 #include "SandBox.h"
@@ -12,13 +16,148 @@
 #include "LruCache.h"
 #include "Trigger.h"
 #include "ifs/global.h"
+#include "ifs/os.h"
 #include "ifs/process.h"
 #include "ifs/coroutine.h"
 #include "ifs/profiler.h"
+#include "path.h"
 #include "v8_api.h"
 #include "options.h"
+#include "include/libplatform/libplatform.h"
 
 namespace fibjs {
+
+void init_date();
+void init_acThread();
+void init_aio();
+void init_process();
+
+void init_argv(int32_t argc, char** argv);
+void init_start_argv(int32_t argc, char** argv);
+void options(int32_t& pos, char* argv[]);
+result_t ifZipFile(exlib::string filename, bool& retVal);
+
+exlib::string s_root;
+
+static void init()
+{
+    ::setlocale(LC_ALL, "");
+
+    int32_t cpus = 0;
+
+    process_base::cwd(s_root);
+
+    os_base::cpuNumbers(cpus);
+    if (cpus < 2)
+        cpus = 2;
+
+    exlib::Service::init(cpus + 1);
+
+    init_date();
+    init_acThread();
+    init_aio();
+    init_process();
+
+    srand((unsigned int)time(0));
+
+    v8::Platform* platform = v8::platform::CreateDefaultPlatform();
+    v8::V8::InitializePlatform(platform);
+
+    v8::V8::Initialize();
+}
+
+void start(int32_t argc, char** argv, result_t (*main)(Isolate*))
+{
+    class MainThread : public exlib::OSThread {
+    public:
+        MainThread(int32_t argc, char** argv, result_t (*main)(Isolate*))
+            : m_argc(argc)
+            , m_argv(argv)
+            , m_main(main)
+        {
+        }
+
+    public:
+        static void start_fiber(void* p)
+        {
+            MainThread* th = (MainThread*)p;
+            Isolate* isolate = new Isolate(th->m_start);
+            syncCall(isolate, th->m_main, isolate);
+        }
+
+        virtual void Run()
+        {
+            int32_t argc = m_argc;
+            char** argv = m_argv;
+
+            exlib::string exePath;
+            std::vector<char*> ptrArg;
+
+            process_base::get_execPath(exePath);
+
+            bool bZip;
+            ifZipFile(exePath, bZip);
+            if (bZip) {
+
+                exePath.append(1, '$');
+                ptrArg.resize(argc + 1);
+
+                ptrArg[0] = argv[0];
+                ptrArg[1] = exePath.c_buffer();
+
+                int32_t i;
+                for (i = 1; i < argc; i++)
+                    ptrArg[i + 1] = argv[i];
+
+                argv = &ptrArg[0];
+                argc++;
+            }
+
+            init_start_argv(argc, argv);
+
+            int32_t pos = argc;
+            options(pos, argv);
+
+            init();
+
+            if (pos < argc) {
+                if (argv[pos][0] == '-')
+                    m_start = argv[pos];
+                else {
+                    m_start = s_root;
+                    resolvePath(m_start, argv[pos]);
+                }
+
+                if (pos != 1) {
+                    int32_t p = 1;
+                    for (; pos < argc; pos++)
+                        argv[p++] = argv[pos];
+                    argc = p;
+                }
+            }
+
+            init_argv(argc, argv);
+            exlib::Service::Create(start_fiber, this, 256 * 1024, "start");
+
+            m_sem.Post();
+            exlib::Service::dispatch();
+        }
+
+    public:
+        exlib::OSSemaphore m_sem;
+
+    private:
+        int32_t m_argc;
+        char** m_argv;
+        exlib::string m_start;
+        result_t (*m_main)(Isolate*);
+    };
+
+    MainThread* main_thread = new MainThread(argc, argv, main);
+    main_thread->start();
+
+    main_thread->m_sem.Wait();
+}
 
 static int32_t s_tls_rt;
 

@@ -441,6 +441,9 @@
     <ClInclude Include="include\encoding_iconv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\fibjs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\Buffer.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -918,6 +921,9 @@
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\fibjs.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\base\fibjs_main.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\fuck_sym.cpp">
