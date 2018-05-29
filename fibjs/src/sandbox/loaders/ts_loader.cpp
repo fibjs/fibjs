@@ -40,7 +40,7 @@ result_t TsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
 
         /* transpile with typescript first :start */
         v8::Local<v8::Value> m;
-        ctx->m_sb->require("internal/typescript", "/", m);
+        isolate->m_topSandbox->require("internal/typescript", "/", m);
         if (m.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
