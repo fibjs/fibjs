@@ -60,7 +60,12 @@ describe('typescript', () => {
         const interface = require('./ts_files/interface')
         assertBasicModule(basic)
     })
+
+    it('FIX: crash in empty sandbox', () => {
+        assert.throws(() => {
+            new vm.SandBox({}).require('./ts_files/_4_sandbox', __dirname);
+        });
+    })
 });
 
 require.main === module && test.run(console.DEBUG);
-

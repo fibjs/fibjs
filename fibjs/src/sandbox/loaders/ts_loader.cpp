@@ -26,8 +26,7 @@ result_t TsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
 
     v8::Local<v8::Script> script;
     {
-        TryCatch try_catch;
-
+        result_t hr;
         exlib::string strScript;
 
         src->toString(strScript);
@@ -40,25 +39,26 @@ result_t TsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
 
         /* transpile with typescript first :start */
         v8::Local<v8::Value> m;
-        ctx->m_sb->require("internal/typescript", "/", m);
-        if (m.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+        hr = ctx->m_sb->require("internal/typescript", "/", m);
+        if (hr < 0)
+            return hr;
 
         v8::Local<v8::Object> object = m->ToObject();
 
         v8::Local<v8::Value> transFunc = object->Get(isolate->NewString("transpile", 9));
         v8::Local<v8::Value> pscript = isolate->NewString(strScript);
-        v8::Local<v8::Value> compiledScript = v8::Local<v8::Function>::Cast(transFunc)->Call(object, 1, &pscript);
 
+        v8::Local<v8::Value> compiledScript = v8::Local<v8::Function>::Cast(transFunc)->Call(object, 1, &pscript);
         if (compiledScript.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
-        result_t hr = GetArgumentValue(compiledScript, strScript, true);
+        hr = GetArgumentValue(compiledScript, strScript, true);
         if (hr < 0)
             return hr;
         /* transpile with typescript first :end */
         exlib::string src1 = arg_names + strScript + "\n});";
 
+        TryCatch try_catch;
         script = v8::Script::Compile(
             isolate->NewString(src1), soname);
         if (script.IsEmpty()) {
