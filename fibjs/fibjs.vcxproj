@@ -506,6 +506,7 @@
     <ClCompile Include="src\sandbox\loaders\js_loader.cpp" />
     <ClCompile Include="src\sandbox\loaders\jsc_loader.cpp" />
     <ClCompile Include="src\sandbox\loaders\json_loader.cpp" />
+    <ClCompile Include="src\sandbox\loaders\ts_loader.cpp" />
     <ClCompile Include="src\ssl\SslHandler.cpp" />
     <ClCompile Include="src\ssl\SslServer.cpp" />
     <ClCompile Include="src\ssl\SslSocket.cpp" />

@@ -1343,6 +1343,9 @@
     <ClCompile Include="src\sandbox\loaders\json_loader.cpp">
       <Filter>Source Files\sandbox\loaders</Filter>
     </ClCompile>
+    <ClCompile Include="src\sandbox\loaders\ts_loader.cpp">
+      <Filter>Source Files\sandbox\loaders</Filter>
+    </ClCompile>
     <ClCompile Include="src\ssl\SslHandler.cpp">
       <Filter>Source Files\ssl</Filter>
     </ClCompile>
