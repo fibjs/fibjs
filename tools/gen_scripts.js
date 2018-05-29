@@ -3,6 +3,7 @@ var path = require('path');
 var encoding = require('encoding');
 var zlib = require('zlib');
 
+var datas = [];
 var txts = [];
 var base = path.join(__dirname, "../fibjs/scripts");
 
@@ -35,16 +36,18 @@ function enc_folder(dir) {
         var hex = bin.hex();
 
         var cnt = 0;
-        hex = '"' + hex.replace(/../g, s => {
+        hex = '{\n    ' + hex.replace(/../g, s => {
             cnt++;
-            if (cnt == 30) {
+            if (cnt == 20) {
                 cnt = 0;
-                return "\\x" + s + '"\n    "';
+                return `0x${s},\n    `;
             }
-            return "\\x" + s;
-        }) + '"';
+            return `0x${s}, `;
+        }) + '0}';
 
-        txts.push('{"' + path.join(dir, path.basename(f, ".js")) + '", ' + bin.length + ',\n    ' + hex + '},');
+        var idx = datas.length;
+        datas.push(`static const unsigned char dat_${idx}[] = ` + hex + ';');
+        txts.push('{"' + path.join(dir, path.basename(f, ".js")) + '", ' + bin.length + `, (const char*)dat_${idx}},`);
     });
 }
 
@@ -60,6 +63,9 @@ fs.writeFile(path.join(__dirname, "../fibjs/src/base/opt_tools.cpp"), `/*
 #include "options.h"
 
 namespace fibjs {
+
+${datas.join('\n\n')}
+
 const OptData opt_tools[] = {
     ${txts.join('\n    ')}
     {NULL, 0, NULL}
