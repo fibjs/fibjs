@@ -284,8 +284,6 @@ Isolate::Isolate(exlib::string fname)
     m_currentFibers++;
     m_idleFibers++;
 
-    m_script_cache = new LruCache(0, 3000);
-
     exlib::Service::Create(init_proc, this, stack_size * 1024, "JSFiber");
 }
 
@@ -312,6 +310,9 @@ void Isolate::init()
     m_context.Reset(m_isolate, _context);
 
     v8::Context::Scope context_scope(_context);
+
+    m_script_cache = new LruCache(0, 3000);
+    m_script_cache_holder = new ValueHolder(m_script_cache->wrap());
 
     if (g_cov && m_id == 1)
         beginCoverage(m_isolate);
