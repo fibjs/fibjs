@@ -15,9 +15,6 @@ usage()
 	echo "      Specifies the environment is CI."
 	echo "  -h, --help:"
 	echo "      Print this message and exit."
-	echo "  -j: enable make '-j' option."
-	echo "      if 'n' is not given, will set jobs to auto detected core count, otherwise n is used."
-	echo "  -v: verbose make"
 	echo ""
 	exit 0
 }
@@ -57,11 +54,7 @@ do
 			;;
 		release|debug|clean) BUILD_TYPE=$i
 			;;
-		ci) CI="ci"
-			;;
-		-j*) ENABLE_JOBS=1; BUILD_JOBS="${i#-j}"
-			;;
-		 -v) BUILD_VERBOSE='VERBOSE=1' 
+			ci) CI="ci"
 			;;
   --help|-h) usage
 			;;
@@ -138,65 +131,71 @@ if [ "$BUILD_PREFIX" != "" ]; then
 	export CXX=${BUILD_PREFIX}g++
 fi
 
-inform()
-{
-	echo ""
-	echo "submodule vender is not existed!"
-	echo "you can execute the given command to init and update it."
-	echo " \$ git submodule init"
-	echo " \$ git submodule update"
-	echo ""
-	exit 1
-}
+FIBJS_PATH=`pwd`
+OUT_PATH=${FIBJS_PATH}/../../out
+BIN_ROOT=${FIBJS_PATH}/../../bin
+BIN_PATH=${FIBJS_PATH}/../../bin/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
 
-if [ "$ENABLE_JOBS" = "1" -a "$BUILD_JOBS" = "" ]; then
-	#get cpu core count 
-	CPU_CORE=1
-	case ${HOST_OS} in
-		Darwin)
-			CPU_CORE=$(sysctl hw.ncpu | awk '{print $2}')
-			;;
-		Linux)
-			CPU_CORE=$(cat /proc/cpuinfo | grep processor | wc -l)
-			;;
-		Windows)
-			CPU_CORE=$(echo $NUMBER_OF_PROCESSORS)
-			;;
-	esac
-	echo "host machine has ${CPU_CORE} core"
-
-	if [ "$CPU_CORE" = "1" ]; then
-		BUILD_JOBS=""
-	else
-		# set build jobs with cpu core count
-		BUILD_JOBS=${CPU_CORE}
+if [ ${BUILD_TYPE} = 'clean' ]; then
+	if [ -e "${OUT_PATH}" ]; then
+		rm -rf ${OUT_PATH}
 	fi
+
+	if [ -e "${BIN_ROOT}" ]; then
+		rm -rf ${BIN_ROOT}
+	fi
+
+	exit 0
 fi
 
-export BUILD_JOBS
-export BUILD_VERBOSE
+if [ ! -e "${OUT_PATH}" ]; then
+	mkdir "${OUT_PATH}"
+fi
 
-if [ -d vender ]; then 
-	cd vender
-	sh build $BUILD_TYPE $TARGET_ARCH
-	if [ $? != 0 ]; then
-		exit 1
-	fi
-	cd ..
+OUT_PATH=${OUT_PATH}/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
+if [ ! -e ${OUT_PATH} ]; then
+	mkdir ${OUT_PATH}
+fi
+
+OUT_PATH=${OUT_PATH}/program
+if [ ! -e ${OUT_PATH} ]; then
+	mkdir ${OUT_PATH}
+fi
+
+cd ${OUT_PATH}
+cmake -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION="${BUILD_OPTION}" ${FIBJS_PATH} > CMake.log
+if [ $? != 0 ]; then
+	exit 1
+fi
+
+if [ ! "$BUILD_JOBS" = "" ]; then
+	sh -c "${BUILD_VERBOSE} make -j${BUILD_JOBS}"
 else
-	inform
+	sh -c "${BUILD_VERBOSE} make"
 fi
-
-cd fibjs
-sh build $BUILD_TYPE $TARGET_ARCH $CI
 if [ $? != 0 ]; then
 	exit 1
 fi
-cd ..
 
-cd fibjs/program
-sh build $BUILD_TYPE $TARGET_ARCH $CI
-if [ $? != 0 ]; then
-	exit 1
+if [ "${BUILD_TYPE}" = "release" ]; then
+	cd "${BIN_PATH}"
+	cp "${FIBJS_PATH}/installer.txt" "installer.sh"
+	tar -zcf fibjs.tar.gz fibjs
+	echo '[100%] Built target fibjs.tar.gz'
+	cat fibjs.tar.gz >> installer.sh
+	chmod 777 installer.sh
+	echo '[100%] Built target install.sh'
+
+	if [ $TARGET_OS = "Linux" ]; then
+		echo ''
+		echo '==== GLIBC ===='
+		${BUILD_PREFIX}objdump fibjs -p | grep GLIBC_[0-9.]* -o | sort | uniq
+	fi
+
+	if [ "${CI}" = "ci" ]; then
+		xz -cz -T2 fibjs > fibjs.xz
+		echo '[100%] Built target fibjs.xz'
+	fi
 fi
-cd ../..
+
+cd "${FIBJS_PATH}"
