@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" 
+  xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -19,38 +20,124 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-<ClIncludes />
+    <ProjectReference Include="$(SolutionDir)fibjs/fibjs.vcxproj">
+      <Project>{238FDB2A-C47D-44E2-94A3-D0FA2BF3C965}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\exif\exif.vcxproj">
+      <Project>{238FDB2A-C47D-44E0-94A2-D0FA2BF3C964}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\exlib\exlib.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-0000000E211B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\expat\expat.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-000000E29AC9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\gd\gd.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-00000000009D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\gumbo\gumbo.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-00000009C3B0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\jpeg\jpeg.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-0000000019E9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\leveldb\leveldb.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-000001ECE1DB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\mongo\mongo.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-000000030C90}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\pcre\pcre.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-000000009C2E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\png\png.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-0000000009C9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\mbedtls\mbedtls.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-0000901A2331}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\snappy\snappy.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-0000003CA997}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\sqlite\sqlite.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-00000039117E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\tiff\tiff.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-000000007155}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\webp\webp.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-000000003BED}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\umysql\umysql.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-000000032391}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\unzip\unzip.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-000110032391}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\uuid\uuid.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-00000000CC1D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\winiconv\winiconv.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-0000031CC0CC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\zlib\zlib.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-00000000211B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\zmq\zmq.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-00000000239b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\v8\v8.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-0000000000C8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\jssdk\jssdk.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-00110039117e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\gtest\gtest.vcxproj">
+      <Project>{1F77AB58-706B-4BB5-BE73-00111039117e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-<ClCompiles />
+
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\object_async.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\fibjs.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="res\fibjs.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\fibjs.ico" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{238FDB2A-C47D-44E2-94A3-D0FA2BF3C965}</ProjectGuid>
+    <ProjectGuid>{05654A7E-DBAF-4211-886A-C23565833D05}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>fibjs</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
@@ -100,13 +187,14 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;DEBUG;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;$(SolutionDir)vender/mbedtls;$(SolutionDir)vender/zlib/include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;$(SolutionDir)vender/mbedtls;$(SolutionDir)vender/zlib/include;$(SolutionDir)fibjs/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4091;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;dbghelp.lib;shlwapi.lib;urlmon.lib;userenv.lib;advapi32.lib;Kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -120,13 +208,14 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;DEBUG;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;$(SolutionDir)vender/mbedtls;$(SolutionDir)vender/zlib/include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;$(SolutionDir)vender/mbedtls;$(SolutionDir)vender/zlib/include;$(SolutionDir)fibjs/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4091;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;dbghelp.lib;shlwapi.lib;urlmon.lib;userenv.lib;advapi32.lib;Kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -142,16 +231,17 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NDEBUG;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;$(SolutionDir)vender/mbedtls;$(SolutionDir)vender/zlib/include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;$(SolutionDir)vender/mbedtls;$(SolutionDir)vender/zlib/include;$(SolutionDir)fibjs/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4091;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;dbghelp.lib;shlwapi.lib;urlmon.lib;userenv.lib;advapi32.lib;Kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -166,7 +256,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NDEBUG;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;$(SolutionDir)vender/mbedtls;$(SolutionDir)vender/zlib/include;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vender;$(SolutionDir)vender/v8;$(SolutionDir)vender/v8/include;$(SolutionDir)vender/mbedtls;$(SolutionDir)vender/zlib/include;$(SolutionDir)fibjs/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
@@ -175,10 +265,11 @@
       <DisableSpecificWarnings>4091;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;psapi.lib;dbghelp.lib;shlwapi.lib;urlmon.lib;userenv.lib;advapi32.lib;Kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>

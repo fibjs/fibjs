@@ -920,9 +920,6 @@
     <ClCompile Include="src\base\date_cache.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
-    <ClCompile Include="src\base\fibjs.cpp">
-      <Filter>Source Files\base</Filter>
-    </ClCompile>
     <ClCompile Include="src\base\fibjs_main.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
