@@ -39,7 +39,7 @@ result_t TsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
 
         /* transpile with typescript first :start */
         v8::Local<v8::Value> m;
-        hr = ctx->m_sb->require("internal/typescript", "/", m);
+        hr = isolate->m_topSandbox->require("internal/typescript", "/", m);
         if (hr < 0)
             return hr;
 

@@ -1,9 +1,8 @@
-var test = require("test");
-test.setup();
+/// <reference path="../tools/node_modules/fib-types/declare/index.d.ts" />
+/// <reference path="../tools/node_modules/fib-types/declare/_test_env.d.ts" />
 
-var encoding = require("encoding");
-var util = require("util");
-var vm = require("vm");
+import * as test from "test";
+test.setup();
 
 describe('typescript', () => {
     function assertBasicModule(rawModule) {

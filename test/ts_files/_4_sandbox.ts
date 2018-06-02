@@ -1,2 +1,2 @@
-require('./basic')
+export const basic = require('./basic')
 require('./interface')
