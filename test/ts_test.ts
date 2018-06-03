@@ -1,5 +1,5 @@
-/// <reference path="../tools/node_modules/fib-types/declare/index.d.ts" />
-/// <reference path="../tools/node_modules/fib-types/declare/_test_env.d.ts" />
+// / <reference path="fib-types/declare/index.d.ts" />
+// / <reference path="fib-types/declare/_test_env.d.ts" />
 
 import * as test from "test";
 test.setup();
