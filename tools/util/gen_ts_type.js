@@ -133,7 +133,10 @@ module.exports = function (defs, baseFolder) {
             return {
                 def: def,
                 defNames: defNames,
-                member_fns: def.members.filter(x => x.memType === 'method'),
+                member_fns: util.flatten(def.members.filter(x => x.memType === 'method')
+                    .map(x => util.isArray(x.overs) && x.overs.length ? x.overs : x)
+                    , true
+                ),
                 member_constants: def.members.filter(x => x.memType === 'const'),
                 member_props: def.members.filter(x => x.memType === 'prop'),
                 typeMap,
