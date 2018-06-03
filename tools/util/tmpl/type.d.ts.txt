@@ -1,0 +1,145 @@
+/***************************************************************************
+ *                                                                         *
+ *   This file was automatically generated with idlc.js                   *
+ *                                                                         *
+ ***************************************************************************/
+
+/** 
+ * @author Richard <richardo2016@gmail.com>
+ *
+ */<%
+	var isInterface = def.declare.type === 'interface'
+	var isModule = def.declare.type === 'module' 
+	var needRefObject = isInterface && def.declare.name !== 'object'
+%>
+<% if (needRefObject) {%>/// <reference path="object.d.ts" /><% }
+%>
+
+<% if (filename === 'index') { %>
+<% for(var i=0; i<defModuleNames.length; i++) { 
+	var defName = defModuleNames[i]
+%>/// <reference path="<%- defName %>.d.ts" />
+<% } /** else of iteration`defModuleNames` */ %>
+import _Global from 'global';
+import _Process from 'process';
+/// <reference path="Buffer.d.ts" />
+
+declare global {
+<% for(var i=0; i<defModules['global'].members.length; i++) {
+	var member = defModules['global'].members[i]
+	console.log('global member', member.memType, member.name, member.type)
+	if (!topLevelVariablesInGlobalModule.includes(member.name)) {%>
+	/** const <%- member.name %>: <%- member.type || 'null' %>; */<%
+	continue;
+	}
+	if (member.memType === 'method') {%>
+	const <%- member.name %>: typeof _Global.<%- member.name %><% 
+	} else if (typeMap[member.type]) { /** else if of iteration`defModules['global'].members` */ %>
+	const <%- member.name %>: <%- typeMap[member.type] %>;
+	<% } 
+} /** end of iteration`defModules['global'].members` */ %>
+
+	const process: typeof _Process;
+	const global: typeof _Global;
+}
+
+<% } else if (filename === '_test_env') { /** elseif of `if (filename === 'index')` */ %>
+/// <reference path="test.d.ts" />
+import test from 'test'
+
+/// <reference path="assert.d.ts" />
+import _assert from 'assert'
+
+declare global {
+<% for(var i=0; i<member_fns.length; i++) { 
+	var fn_in_test_mod = member_fns[i]
+	var fn_name = fn_in_test_mod.name
+%>	const <%- fn_name %>: typeof test.<%- fn_name %>
+<% } /** else of iteration`member_fns` */ %>
+	const assert: typeof _assert
+}
+/** declare const describe: test.describe; */
+
+<% } /** else of `if (filename === 'index')` */ else {%>
+<% for(var i=0; i<refers.length; i++) { 
+	var refClassName = refers[i]
+%>
+/// <reference path="<%- refClassName %>.d.ts" />
+<% } /** end of `iteration about refers` */ %>
+<% if (isModule) {
+	for(var i=0; i<defObjectNames.length; i++) { 
+	var defClassName = defObjectNames[i]
+%>
+/// <reference path="<%- defClassName %>.d.ts" />
+<% } /** end of `iteration about defObjectNames` */ %>
+
+<% } %>
+/** module Or Internal Object */
+/**
+	* @brief <%- def.declare.doc.descript %>
+	* @detail <%- def.declare.doc.detail %>
+	*/<%
+	if (isInterface) {
+		var className = _fns.transObjectName(def.declare.name)
+		var extendClassName = _fns.transObjectName(def.declare.extend)
+%>
+declare class <%- className %> <%- extendClassName ? `extends ${extendClassName}` : '' %> {
+	<% for(var i=0; i<member_fns.length; i++) {
+			var fn = member_fns[i]
+			var isConstructor = fn.name === def.declare.name
+			var fn_name = isConstructor ? 'constructor' : fn.name
+	%>
+	/**
+		* <% var comments = fn.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
+		* <%- comment %><% } %>
+		* <%- fn.deprecated ? '@deprecated' : '' %>
+		* <%- fn.async ? '@async' : '' %>
+		*/<%
+		var paramList = _fns.params2paramList(fn.params, typeMap)
+
+		var returnType = fn.type ? typeMap[fn.type] : 'void'
+		if (isConstructor)
+			returnType = ''
+		%>
+	<%- fn.static ? 'static ' : '' %><%- fn_name %>(<%- paramList.join(', ') %>)<%- returnType ? `: ${returnType}` : '' %>;
+<% } /** end of iteration 'member_fns' */ %>
+} /** endof class */
+<% } /** endof `if (isInterface)` */ 
+
+if (isModule) { %>
+declare module "<%- def.declare.name %>" {
+	<% for(var i=0; i<member_constants.length; i++) {
+			var constant = member_constants[i]
+
+			var hasDefault = !!constant.default
+	%>
+	/**
+		* <% var comments = constant.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
+		* <%- comment %><% } %>
+		* <%- constant.deprecated ? '@deprecated' : '' %>
+		* <%- constant.async ? '@async' : '' %>
+		*/
+	export const <%- constant.name %><%- hasDefault ? ` = ${constant.default.value}` : ''%>;
+	<% } /** end of iteration 'member_constants' */ %>
+	
+	<% for(var i=0; i<member_fns.length; i++) {
+			var fn = member_fns[i]
+	%>
+	/**
+		* <% var comments = fn.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
+		* <%- comment %><% } %>
+		* <%- fn.deprecated ? '@deprecated' : '' %>
+		* <%- fn.async ? '@async' : '' %>
+		*/<%
+		var paramList = _fns.params2paramList(fn.params, typeMap)
+
+		var returnType = fn.type ? typeMap[fn.type] : 'void'
+		%>
+	export function <%- fn.name %>(<%- paramList.join(', ') %>): <%- returnType || 'void' %>;
+<% } /** end of iteration 'member_fns' */ %>
+}
+<%} /** endof `if (isModule)` */ 
+%>
+/** } /** endof `module Or Internal Object` */
+
+<% } /** end of `if (filename === 'index')` */ %>
