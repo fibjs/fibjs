@@ -5,6 +5,7 @@ var encoding = require("encoding");
 var typescript = require("internal/typescript");
 var util = require("util");
 var vm = require("vm");
+var coroutine = require("coroutine");
 
 const compilerOptions = {
     module: typescript.ModuleKind.CommonJS
@@ -61,10 +62,19 @@ describe('typescript', () => {
         assertBasicModule(basic)
     })
 
-    it('FIX: crash in empty sandbox', () => {
-        assert.throws(() => {
-            new vm.SandBox({}).require('./ts_files/_4_sandbox', __dirname);
-        });
+    it('sandbox increasing test', () => {
+        const iterbase = Array(5).fill(undefined);
+
+        function testBody() {
+            const module = (new vm.SandBox({})).require('./ts_files/_4_sandbox', __dirname);
+
+            assert.isObject(module);
+            assert.isObject(module.basic);
+            assert.isFunction(module.basic.add);
+        }
+
+        iterbase.forEach(() => testBody());
+        coroutine.parallel(iterbase, () => testBody());
     })
 });
 
