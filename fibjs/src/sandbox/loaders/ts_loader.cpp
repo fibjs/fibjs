@@ -50,9 +50,11 @@ result_t TsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
         v8::Local<v8::Object> compilerOptions = v8::Object::New(isolate->m_isolate);
 
         compilerOptions->Set(isolate->NewString("target"), isolate->NewString("ES6"));
+        compilerOptions->Set(isolate->NewString("module"), isolate->NewString("CommonJS"));
         compilerOptions->Set(isolate->NewString("strict"), v8::BooleanObject::New(isolate->m_isolate, true));
         compilerOptions->Set(isolate->NewString("diagnostics"), v8::BooleanObject::New(isolate->m_isolate, true));
         compilerOptions->Set(isolate->NewString("allowJs"), v8::BooleanObject::New(isolate->m_isolate, true));
+
         // compilerOptions->Set(isolate->NewString("inlineSourceMap"), v8::BooleanObject::New(isolate->m_isolate, true));
         // compilerOptions->Set(isolate->NewString("inlineSources"), v8::BooleanObject::New(isolate->m_isolate, true));
         // compilerOptions->Set(isolate->NewString("sourceMap"), v8::BooleanObject::New(isolate->m_isolate, true));
