@@ -46,7 +46,10 @@ describe('typescript', () => {
         export function hello () {
             return 'hello, world'
         }
-        `, _getOptions())
+        `, _getOptions({
+                inlineSourceMap: true,
+                alwaysStrict: true
+            }))
         assert.isString(compiledJScript)
 
         const sbox = new vm.SandBox({})
@@ -62,7 +65,7 @@ describe('typescript', () => {
         assertBasicModule(basic)
     })
 
-    it('sandbox increasing test', () => {
+    it('increasing/parallel sandbox', () => {
         const iterbase = Array(5).fill(undefined);
 
         function testBody() {
@@ -75,6 +78,39 @@ describe('typescript', () => {
 
         iterbase.forEach(() => testBody());
         coroutine.parallel(iterbase, () => testBody());
+    })
+
+    it('wrong syntax', () => {
+        assert.throws(() => {
+            const wrongSynTaxt = require('./ts_files/wrong_syntax1.1');
+        })
+        assert.throws(() => {
+            const wrongSynTaxt = require('./ts_files/wrong_syntax1.2');
+        })
+        assert.throws(() => {
+            const wrongSynTaxt = require('./ts_files/wrong_syntax1.3');
+        })
+        assert.throws(() => {
+            const wrongSynTaxt = require('./ts_files/wrong_syntax1.4');
+        })
+        const wrongSynTaxt2 = require('./ts_files/wrong_syntax2');
+        assert.isFunction(wrongSynTaxt2.add)
+        assert.equal(Object.keys(wrongSynTaxt2).length, 1)
+        assert.equal(wrongSynTaxt2.add(), 'psudo add')
+    })
+
+    it('class', () => {
+        const _class = require('./ts_files/class').default
+        const basic = require('./ts_files/basic')
+
+        assert.exist(_class.bar);
+        assert.exist(_class.bar2);
+
+        const ins = new _class()
+        assert.exist(ins);
+
+        assert.equal(ins.foo1(1, 2), basic.add(1, 2))
+        assert.equal(ins.foo2(), basic.hello())
     })
 });
 
