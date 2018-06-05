@@ -49,13 +49,6 @@ result_t TsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
         v8::Local<v8::Value> scriptContent = isolate->NewString(strScript);
         v8::Local<v8::Object> compilerOptions = v8::Object::New(isolate->m_isolate);
 
-        // v8::Local<v8::Array> tsLibs = v8::Array::New(isolate->m_isolate);
-        // int32_t tsLibCount = 0;
-        // tsLibs->Set(tsLibCount++, isolate->NewString("ES6"));
-        // tsLibs->Set(tsLibCount++, isolate->NewString("Iterable"));
-        // tsLibs->Set(tsLibCount++, isolate->NewString("ESNext"));
-        // compilerOptions->Set(isolate->NewString("lib"), tsLibs);
-
         compilerOptions->Set(isolate->NewString("target"), isolate->NewString("ES6"));
         compilerOptions->Set(isolate->NewString("module"), isolate->NewString("CommonJS"));
         compilerOptions->Set(isolate->NewString("strict"), v8::BooleanObject::New(isolate->m_isolate, true));
