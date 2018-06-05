@@ -33,7 +33,7 @@ result_t dns_base::resolve(exlib::string name, obj_ptr<NArray>& retVal, AsyncEve
 
     int res = getaddrinfo(name.c_str(), NULL, &hints, &result);
     if (res)
-        return CHECK_ERROR(-res);
+        return CHECK_ERROR(Runtime::setError(gai_strerror(res)));
 
     obj_ptr<NArray> arr = new NArray();
     for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
@@ -60,7 +60,7 @@ result_t dns_base::lookup(exlib::string name, exlib::string& retVal, AsyncEvent*
 
     int res = getaddrinfo(name.c_str(), NULL, &hints, &result);
     if (res)
-        return CHECK_ERROR(-res);
+        return CHECK_ERROR(Runtime::setError(gai_strerror(res)));
 
     for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
         inetAddr addr_info;
@@ -100,7 +100,7 @@ result_t net_base::resolve(exlib::string name, int32_t family,
 
     int res = getaddrinfo(name.c_str(), NULL, &hints, &result);
     if (res)
-        return CHECK_ERROR(-res);
+        return CHECK_ERROR(Runtime::setError(gai_strerror(res)));
 
     for (ptr = result; ptr != NULL; ptr = ptr->ai_next)
         if (ptr->ai_family == addr_info.addr4.sin_family) {
