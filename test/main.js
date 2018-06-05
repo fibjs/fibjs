@@ -32,6 +32,7 @@ run("./process_test.js");
 run("./encoding_test.js");
 run("./json_test.js");
 run("./module_test.js");
+run("./dns_test.js");
 run("./net_test.js");
 run("./dgram_test.js");
 run("./buffered_test.js");
