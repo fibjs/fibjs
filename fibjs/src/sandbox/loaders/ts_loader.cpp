@@ -44,11 +44,25 @@ result_t TsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
             return hr;
 
         v8::Local<v8::Object> object = m->ToObject();
-
         v8::Local<v8::Value> transFunc = object->Get(isolate->NewString("transpile", 9));
-        v8::Local<v8::Value> pscript = isolate->NewString(strScript);
 
-        v8::Local<v8::Value> compiledScript = v8::Local<v8::Function>::Cast(transFunc)->Call(object, 1, &pscript);
+        v8::Local<v8::Value> scriptContent = isolate->NewString(strScript);
+        v8::Local<v8::Object> compilerOptions = v8::Object::New(isolate->m_isolate);
+
+        compilerOptions->Set(isolate->NewString("target"), isolate->NewString("ES6"));
+        compilerOptions->Set(isolate->NewString("strict"), v8::BooleanObject::New(isolate->m_isolate, true));
+        compilerOptions->Set(isolate->NewString("diagnostics"), v8::BooleanObject::New(isolate->m_isolate, true));
+        compilerOptions->Set(isolate->NewString("allowJs"), v8::BooleanObject::New(isolate->m_isolate, true));
+        // compilerOptions->Set(isolate->NewString("inlineSourceMap"), v8::BooleanObject::New(isolate->m_isolate, true));
+        // compilerOptions->Set(isolate->NewString("inlineSources"), v8::BooleanObject::New(isolate->m_isolate, true));
+        // compilerOptions->Set(isolate->NewString("sourceMap"), v8::BooleanObject::New(isolate->m_isolate, true));
+
+        std::vector<v8::Local<v8::Value>> tranpileArgs;
+        tranpileArgs.resize(2);
+        tranpileArgs[0] = scriptContent;
+        tranpileArgs[1] = compilerOptions;
+
+        v8::Local<v8::Value> compiledScript = v8::Local<v8::Function>::Cast(transFunc)->Call(object, (int32_t)tranpileArgs.size(), tranpileArgs.data());
         if (compiledScript.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
