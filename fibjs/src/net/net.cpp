@@ -98,8 +98,9 @@ result_t net_base::resolve(exlib::string name, int32_t family,
     addrinfo* result = NULL;
     addrinfo* ptr = NULL;
 
-    if (getaddrinfo(name.c_str(), NULL, &hints, &result))
-        return CHECK_ERROR(SocketError());
+    int res = getaddrinfo(name.c_str(), NULL, &hints, &result);
+    if (res)
+        return CHECK_ERROR(-res);
 
     for (ptr = result; ptr != NULL; ptr = ptr->ai_next)
         if (ptr->ai_family == addr_info.addr4.sin_family) {
