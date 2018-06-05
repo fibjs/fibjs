@@ -31,8 +31,9 @@ result_t dns_base::resolve(exlib::string name, obj_ptr<NArray>& retVal, AsyncEve
     addrinfo* result = NULL;
     addrinfo* ptr = NULL;
 
-    if (getaddrinfo(name.c_str(), NULL, &hints, &result))
-        return CHECK_ERROR(SocketError());
+    int res = getaddrinfo(name.c_str(), NULL, &hints, &result);
+    if (res)
+        return CHECK_ERROR(-res);
 
     obj_ptr<NArray> arr = new NArray();
     for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
@@ -57,8 +58,9 @@ result_t dns_base::lookup(exlib::string name, exlib::string& retVal, AsyncEvent*
     addrinfo* result = NULL;
     addrinfo* ptr = NULL;
 
-    if (getaddrinfo(name.c_str(), NULL, &hints, &result))
-        return CHECK_ERROR(SocketError());
+    int res = getaddrinfo(name.c_str(), NULL, &hints, &result);
+    if (res)
+        return CHECK_ERROR(-res);
 
     for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
         inetAddr addr_info;
