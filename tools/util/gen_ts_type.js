@@ -22,10 +22,12 @@ module.exports = function (defs, baseFolder) {
     })
     const defModuleNames = Object.keys(defModules)
     const defObjectNames = Object.keys(defObjects)
+    // white list of Object would be declared in global index.d.ts
     const topLevelVariablesInGlobalModule = [
         '__dirname',
         '__filename',
         'require',
+        'Master',
         'setHrInterval',
         'clearHrInterval',
         'GC',
@@ -137,6 +139,7 @@ module.exports = function (defs, baseFolder) {
                     .map(x => util.isArray(x.overs) && x.overs.length ? x.overs : x)
                     , true
                 ),
+                member_objects: def.members.filter(x => x.memType === 'object'),
                 member_constants: def.members.filter(x => x.memType === 'const'),
                 member_props: def.members.filter(x => x.memType === 'prop'),
                 typeMap,

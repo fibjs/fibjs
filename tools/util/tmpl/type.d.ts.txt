@@ -22,7 +22,13 @@
 <% } /** else of iteration`defModuleNames` */ %>
 import _Global from 'global';
 import _Process from 'process';
-/// <reference path="Buffer.d.ts" />
+
+declare const process: typeof _Process;
+declare const global: typeof _Global;
+declare const __filename: string;
+declare const __dirname: string;
+declare const module: string;
+declare const requrie: typeof _Global.require;
 
 declare global {
 <% for(var i=0; i<defModules['global'].members.length; i++) {
@@ -38,9 +44,6 @@ declare global {
 	const <%- member.name %>: <%- typeMap[member.type] %>;
 	<% } 
 } /** end of iteration`defModules['global'].members` */ %>
-
-	const process: typeof _Process;
-	const global: typeof _Global;
 }
 
 <% } else if (filename === '_test_env') { /** elseif of `if (filename === 'index')` */ %>
@@ -63,10 +66,12 @@ declare global {
 <% } /** else of `if (filename === 'index')` */ else {%>
 <% for(var i=0; i<refers.length; i++) { 
 	var refClassName = refers[i]
+	if(defObjects[refClassName]) {%>/// <reference path="<%- refClassName %>.d.ts" /><%
+	} else if (defModules[refClassName]){%>import <%- refClassName %> = require('<%- refClassName %>')<%}
 %>
-/// <reference path="<%- refClassName %>.d.ts" />
+
 <% } /** end of `iteration about refers` */ %>
-<% if (isModule) {
+<% if (isModule) { // give all internal defined classes as reference
 	for(var i=0; i<defObjectNames.length; i++) { 
 	var defClassName = defObjectNames[i]
 %>
@@ -108,35 +113,61 @@ declare class <%- className %> <%- extendClassName ? `extends ${extendClassName}
 
 if (isModule) { %>
 declare module "<%- def.declare.name %>" {
-	<% for(var i=0; i<member_constants.length; i++) {
-			var constant = member_constants[i]
+	<% for(var i=0; i<refers.length; i++) { 
+		var refClassName = refers[i]
+		if(defModules[refClassName]) {%>
+	import <%- refClassName %>NS = require('<%- refClassName %>')<%}}%>
 
-			var hasDefault = !!constant.default
-	%>
-	/**
-		* <% var comments = constant.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
-		* <%- comment %><% } %>
-		* <%- constant.deprecated ? '@deprecated' : '' %>
-		* <%- constant.async ? '@async' : '' %>
-		*/
-	export const <%- constant.name %><%- hasDefault ? ` = ${constant.default.value}` : ''%>;
-	<% } /** end of iteration 'member_constants' */ %>
-	
-	<% for(var i=0; i<member_fns.length; i++) {
-			var fn = member_fns[i]
-	%>
-	/**
-		* <% var comments = fn.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
-		* <%- comment %><% } %>
-		* <%- fn.deprecated ? '@deprecated' : '' %>
-		* <%- fn.async ? '@async' : '' %>
-		*/<%
-		var paramList = _fns.params2paramList(fn.params, typeMap)
+	module <%- def.declare.name %> {
+		<% for(var i=0; i<member_constants.length; i++) {
+				var constant = member_constants[i]
 
-		var returnType = fn.type ? typeMap[fn.type] : 'void'
+				var hasDefault = !!constant.default
 		%>
-	export function <%- fn.name %>(<%- paramList.join(', ') %>): <%- returnType || 'void' %>;
-<% } /** end of iteration 'member_fns' */ %>
+		/**
+			* <% var comments = constant.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
+			* <%- comment %><% } %>
+			* <%- constant.deprecated ? '@deprecated' : '' %>
+			* <%- constant.async ? '@async' : '' %>
+			*/
+		export const <%- constant.name %><%- hasDefault ? ` = ${constant.default.value}` : ''%>;
+		<% } /** end of iteration 'member_constants' */ %>
+		
+		<% for(var i=0; i<member_objects.length; i++) {
+				var internalObj = member_objects[i]
+				var objectName = internalObj.name
+				var objectTypeDesc = internalObj.type || internalObj.name
+				if (defModules[objectTypeDesc]) {
+					objectTypeDesc = `typeof ${objectTypeDesc}NS`
+				}
+				var str = JSON.stringify(internalObj)
+		%>
+		/**
+			* <% var comments = internalObj.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
+			* <%- comment %><% } %>
+			* <%- internalObj.deprecated ? '@deprecated' : '' %>
+			* <%- internalObj.async ? '@async' : '' %>
+			*/
+		export const <%- objectName %>: <%- objectTypeDesc %>;
+		<% } /** end of iteration 'member_objects' */ %>
+		
+		<% for(var i=0; i<member_fns.length; i++) {
+				var fn = member_fns[i]
+		%>
+		/**
+			* <% var comments = fn.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
+			* <%- comment %><% } %>
+			* <%- fn.deprecated ? '@deprecated' : '' %>
+			* <%- fn.async ? '@async' : '' %>
+			*/<%
+			var paramList = _fns.params2paramList(fn.params, typeMap)
+
+			var returnType = fn.type ? typeMap[fn.type] : 'void'
+			%>
+		export function <%- fn.name %>(<%- paramList.join(', ') %>): <%- returnType || 'void' %>;
+	<% } /** end of iteration 'member_fns' */ %>
+	} /** end of `module <%- def.declare.name %>` */
+	export = <%- def.declare.name %>
 }
 <%} /** endof `if (isModule)` */ 
 %>
