@@ -84,7 +84,7 @@ module.exports = function (defs, baseFolder) {
         }
 
         function _uglifyClassName(name) {
-            return `${name}_Classbase`
+            return `Class_${name}`
         }
 
         function uglifyInternalClassName(internalClassName) {
