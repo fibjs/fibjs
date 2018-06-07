@@ -83,6 +83,22 @@ module.exports = function (defs, baseFolder) {
             return typeMap[t] || t;
         }
 
+        function _uglifyClassName(name) {
+            return `${name}_Classbase`
+        }
+
+        function uglifyInternalClassName(internalClassName) {
+            return _uglifyClassName(internalClassName)
+        }
+
+        function uglifyTypeInDefObjects(typeName) {
+            if (!defObjects[typeName]) {
+                return typeName
+            }
+
+            return _uglifyClassName(typeName)
+        }
+
         function params2paramList(params, typeMap = typeMap) {
             return (params || []).map(param => {
                 var hasDefault = param.default;
@@ -90,6 +106,7 @@ module.exports = function (defs, baseFolder) {
                     param.name = `...${param.name}`
                 }
                 var mappedType = typeMap[param.type] || 'any';
+                mappedType = uglifyTypeInDefObjects(mappedType, defObjects)
                 return `${param.name}${hasDefault ? '?' : ''}: ${mappedType}${hasDefault ? `/** = ${param.default.value}*/` : ''}`
             })
         }
@@ -153,6 +170,8 @@ module.exports = function (defs, baseFolder) {
                     get_type,
                     get_rtype,
                     params2paramList,
+                    uglifyInternalClassName,
+                    uglifyTypeInDefObjects,
                     isRestArgs,
                     transObjectName
                 },
