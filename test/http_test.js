@@ -797,6 +797,16 @@ describe("http", () => {
             assert.equal(ms.read(), 'GET / HTTP/1.1\r\nConnection: keep-alive\r\nContent-Length: 10\r\n\r\n0123456789');
         });
 
+        it("empty body request", () => {
+            var rep = new http.Request();
+
+            var ms = new io.MemoryStream();
+
+            rep.sendTo(ms);
+            ms.rewind();
+            assert.equal(ms.read(), 'GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n');
+        });
+
         it("response", () => {
             var ms = new io.MemoryStream();
 
