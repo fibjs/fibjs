@@ -87,8 +87,10 @@ declare global {
 	if (isInterface) {
 		var className = _fns.transObjectName(def.declare.name)
 		var extendClassName = _fns.transObjectName(def.declare.extend)
+		var renderClassParentRef = extendClassName && extendClassName !== '_object'
 %>
-declare class <%- className %> <%- extendClassName ? `extends ${extendClassName}` : '' %> {
+<% if (renderClassParentRef) {%>/// <reference path="<%- extendClassName %>.d.ts" /><%}%>
+declare class <%- _fns.uglifyInternalClassName(className) %> <%- extendClassName ? `extends ${_fns.uglifyInternalClassName(extendClassName)}` : '' %> {
 	<% for(var i=0; i<member_fns.length; i++) {
 			var fn = member_fns[i]
 			var isConstructor = fn.name === def.declare.name
@@ -102,7 +104,7 @@ declare class <%- className %> <%- extendClassName ? `extends ${extendClassName}
 		*/<%
 		var paramList = _fns.params2paramList(fn.params, typeMap)
 
-		var returnType = fn.type ? typeMap[fn.type] : 'void'
+		var returnType = fn.type ? _fns.uglifyTypeInDefObjects(typeMap[fn.type], defObjects) : 'void'
 		if (isConstructor)
 			returnType = ''
 		%>
@@ -134,13 +136,8 @@ declare module "<%- def.declare.name %>" {
 		<% } /** end of iteration 'member_constants' */ %>
 		
 		<% for(var i=0; i<member_objects.length; i++) {
-				var internalObj = member_objects[i]
-				var objectName = internalObj.name
-				var objectTypeDesc = internalObj.type || internalObj.name
-				if (defModules[objectTypeDesc]) {
-					objectTypeDesc = `typeof ${objectTypeDesc}NS`
-				}
-				var str = JSON.stringify(internalObj)
+			var internalObj = member_objects[i]
+			var objectName = internalObj.type || internalObj.name
 		%>
 		/**
 			* <% var comments = internalObj.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
@@ -148,7 +145,8 @@ declare module "<%- def.declare.name %>" {
 			* <%- internalObj.deprecated ? '@deprecated' : '' %>
 			* <%- internalObj.async ? '@async' : '' %>
 			*/
-		export const <%- objectName %>: <%- objectTypeDesc %>;
+		
+		export class <%- objectName %> extends <%- _fns.uglifyInternalClassName(objectName) %> {}
 		<% } /** end of iteration 'member_objects' */ %>
 		
 		<% for(var i=0; i<member_fns.length; i++) {
@@ -162,7 +160,7 @@ declare module "<%- def.declare.name %>" {
 			*/<%
 			var paramList = _fns.params2paramList(fn.params, typeMap)
 
-			var returnType = fn.type ? typeMap[fn.type] : 'void'
+			var returnType = fn.type ? _fns.uglifyTypeInDefObjects(typeMap[fn.type], defObjects) : 'void'
 			%>
 		export function <%- fn.name %>(<%- paramList.join(', ') %>): <%- returnType || 'void' %>;
 	<% } /** end of iteration 'member_fns' */ %>
