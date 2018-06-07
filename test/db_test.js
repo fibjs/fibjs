@@ -17,12 +17,14 @@ describe("db", () => {
     it("format", () => {
         assert.equal(db.format("test?", [1, 2, 3, 4]), "test(1,2,3,4)");
         assert.equal(db.format("test?", [1, [2, 3], 4]), "test(1,(2,3),4)");
+        assert.equal(db.format("test?"), "test?");
     });
 
     it("formatMySQL", () => {
         assert.equal(db.formatMySQL("test?, ?, ?, ?", 123, 'ds\r\na',
                 new Date('1998-4-14 12:12:12')),
-            "test123, 'ds\\r\\na', '1998-04-14 12:12:12', ''");
+            "test123, 'ds\\r\\na', '1998-04-14 12:12:12', ?");
+        assert.equal(db.formatMySQL("test?"), "test?");
     });
 
     function _test(conn_str) {
@@ -56,6 +58,11 @@ describe("db", () => {
             assert.throws(() => {
                 conn.execute("  ");
             })
+        });
+
+        it("empty sql", () => {
+            var rs = conn.execute('select "?" as v');
+            assert.equal(rs[0].v, '?');
         });
 
         it("escape", () => {
