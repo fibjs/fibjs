@@ -252,6 +252,24 @@ result_t console_base::time(exlib::string label)
     return 0;
 }
 
+result_t console_base::timeElapse(exlib::string label)
+{
+    int64_t t = Ticks() - s_timers[label];
+
+    exlib::string strBuffer;
+    char numStr[64];
+
+    sprintf(numStr, "%.10g", t / 1000.0);
+
+    strBuffer.append(label);
+    strBuffer.append(": ", 2);
+    strBuffer.append(numStr);
+    strBuffer.append("ms", 2);
+
+    asyncLog(_INFO, strBuffer);
+    return 0;
+}
+
 result_t console_base::timeEnd(exlib::string label)
 {
     int64_t t = Ticks() - s_timers[label];
