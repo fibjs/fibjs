@@ -66,14 +66,6 @@ proj = proj.replace('<ClCompiles />', txts.join('\r\n'));
 
 fs.writeFile(path.join(baseDir, "fibjs.vcxproj"), proj);
 
-
-proj = proj.replace(/_CONSOLE/g, '_WINDOWS');
-proj = proj.replace(/\\fibjs\\/g, '\\fibjs_gui\\');
-proj = proj.replace(/>fibjs</g, '>fibjs_gui<');
-proj = proj.replace(/<SubSystem>Console<\/SubSystem>/g, '<SubSystem>Windows<\/SubSystem>');
-
-fs.writeFile(path.join(baseDir, "fibjs_gui.vcxproj"), proj);
-
 filters.sort();
 
 txts = [];
@@ -103,4 +95,3 @@ txts.sort();
 filter = filter.replace('<ClCompiles />', txts.join('\r\n'));
 
 fs.writeFile(path.join(baseDir, "fibjs.vcxproj.filters"), filter);
-fs.writeFile(path.join(baseDir, "fibjs_gui.vcxproj.filters"), filter);

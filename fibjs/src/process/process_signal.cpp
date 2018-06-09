@@ -21,7 +21,7 @@
 namespace fibjs {
 
 extern exlib::LockedList<Isolate> s_isolates;
-exlib::atomic s_check_callback;
+static exlib::atomic s_check_callback;
 
 static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
 {
@@ -47,7 +47,7 @@ static result_t async_signal(const char* name)
     return 0;
 }
 
-void on_signal(int32_t s)
+static void on_signal(int32_t s)
 {
     const char* name = NULL;
 
@@ -80,7 +80,7 @@ typedef BOOL(WINAPI* MINIDUMPWRITEDUMP)(HANDLE hProcess, DWORD dwPid, HANDLE hFi
 
 static MINIDUMPWRITEDUMP s_pDump;
 
-HANDLE CreateUniqueDumpFile()
+static HANDLE CreateUniqueDumpFile()
 {
     char fname[MAX_PATH];
     int32_t l, i;

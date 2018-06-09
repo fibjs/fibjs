@@ -380,20 +380,28 @@ public:                                       \
         {                                         \
             return name##_base::class_info();     \
         }                                         \
-    } s_RootModule_##name;
+    };                                            \
+    static RootModule_##name s_RootModule_##name; \
+    RootModule* Module_##name = &s_RootModule_##name;
 
-#define DECLARE_MODULE_EX(mname, module)           \
-    class RootModule_##mname : public RootModule { \
-    public:                                        \
-        virtual ClassInfo& class_info()            \
-        {                                          \
-            return module##_base::class_info();    \
-        }                                          \
-        virtual const char* name()                 \
-        {                                          \
-            return #mname;                         \
-        }                                          \
-    } s_RootModule_##mname;
+#define DECLARE_MODULE_EX(mname, module)            \
+    class RootModule_##mname : public RootModule {  \
+    public:                                         \
+        virtual ClassInfo& class_info()             \
+        {                                           \
+            return module##_base::class_info();     \
+        }                                           \
+        virtual const char* name()                  \
+        {                                           \
+            return #mname;                          \
+        }                                           \
+    };                                              \
+    static RootModule_##mname s_RootModule_##mname; \
+    RootModule* Module_##mname = &s_RootModule_##mname;
+
+#define IMPORT_MODULE(name)           \
+    extern RootModule* Module_##name; \
+    Module_##name->install();
 
 #define EVENT_SUPPORT()                                                                    \
 public:                                                                                    \

@@ -195,6 +195,7 @@ describe('os', () => {
             assert.strictEqual(userInfo.shell, userInfoBuffer.shell.toString('utf8'));
         }
 
+        assert.equal(os.homedir(), userInfo.homedir);
         assert.isString(userInfo.username);
         assert.ok(userInfo.homedir.includes(path.sep));
         assert.strictEqual(userInfo.username, userInfoBuffer.username.toString('utf8'));

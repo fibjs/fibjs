@@ -186,7 +186,7 @@ result_t _format(const char* sql, OptArgs args, bool mysql, bool mssql,
 
                 _appendValue(str, v, mysql, mssql);
             } else
-                str.append("\'\'", 2);
+                str.append(1, '?');
 
             cnt++;
         }

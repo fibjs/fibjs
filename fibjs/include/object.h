@@ -433,7 +433,11 @@ public:
 
 class RootModule {
 public:
-    RootModule()
+    RootModule() : m_next(NULL)
+    {}
+
+public:
+    void install()
     {
         m_next = g_root;
         g_root = this;

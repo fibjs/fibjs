@@ -52,16 +52,19 @@ static BOOLEAN(WINAPI* pCreateSymbolicLink)(
 static DWORD(WINAPI* pGetFinalPathNameByHandle)(
     HANDLE hFile, LPCWSTR lpszFilePath, DWORD cchFilePath, DWORD dwFlags);
 
-void init_fs()
-{
-    HMODULE hKernel = GetModuleHandleA("KERNEL32");
+class fs_initer {
+public:
+    fs_initer()
+    {
+        HMODULE hKernel = GetModuleHandleA("KERNEL32");
 
-    pCreateSymbolicLink = (BOOLEAN(WINAPI*)(LPCWSTR, LPCWSTR, DWORD))
-        GetProcAddress(hKernel, "CreateSymbolicLinkW");
+        pCreateSymbolicLink = (BOOLEAN(WINAPI*)(LPCWSTR, LPCWSTR, DWORD))
+            GetProcAddress(hKernel, "CreateSymbolicLinkW");
 
-    pGetFinalPathNameByHandle = (DWORD(WINAPI*)(HANDLE, LPCWSTR, DWORD, DWORD))
-        GetProcAddress(hKernel, "GetFinalPathNameByHandleW");
-}
+        pGetFinalPathNameByHandle = (DWORD(WINAPI*)(HANDLE, LPCWSTR, DWORD, DWORD))
+            GetProcAddress(hKernel, "GetFinalPathNameByHandleW");
+    }
+} s_fs_initer;
 
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 {

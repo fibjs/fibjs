@@ -24,6 +24,18 @@ public:
         exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count);
 };
 
+class TsLoader : public SandBox::ExtLoader {
+public:
+    TsLoader()
+        : ExtLoader(".ts")
+    {
+    }
+
+public:
+    virtual result_t run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+        exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count);
+};
+
 class JscLoader : public SandBox::ExtLoader {
 public:
     JscLoader()

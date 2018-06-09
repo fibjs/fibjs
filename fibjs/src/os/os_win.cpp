@@ -673,7 +673,7 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
         }
     }
     CloseHandle(token);
-    homedir = utf16to8String(path, (int32_t)buffersize);
+    homedir = utf16to8String(path, (int32_t)buffersize - 1);
     path_base::normalize(homedir, homedir);
 
     if (homedir.length() > 1 && isPathSlash(homedir[homedir.length() - 1]))

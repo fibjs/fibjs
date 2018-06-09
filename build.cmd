@@ -72,7 +72,7 @@ msbuild fibjs.sln /t:Build /p:Configuration=!BUILD_TYPE!;Platform=!Platform!;Pla
 
 if "!BUILD_TYPE!"=="release" (
 	cd bin\Windows_!TARGET_ARCH!_!BUILD_TYPE!
-    fibjs ../../fibjs/gen_install.js
+    fibjs ../../fibjs/program/gen_install.js
     cd ..\..
     cd installer
     msbuild installer.sln /t:Build /p:Configuration=Release;Platform=!Platform!;PlatformToolset=v141!XP! !MT!

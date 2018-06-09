@@ -16,10 +16,13 @@ stream_logger* s_stream;
 #define MAX_LOGGER 10
 static logger* s_logs[MAX_LOGGER];
 
-void init_logger()
-{
-    s_std = new std_logger;
-}
+class logger_initer {
+public:
+    logger_initer()
+    {
+        s_std = new std_logger;
+    }
+} s_logger_initer;
 
 void outLog(int32_t priority, exlib::string msg)
 {

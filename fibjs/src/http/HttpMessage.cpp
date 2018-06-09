@@ -389,7 +389,7 @@ size_t HttpMessage::size()
             l /= 10;
             sz++;
         }
-    } else
+    } else if (m_bResponse)
         sz += 19;
 
     return sz;
@@ -443,7 +443,7 @@ size_t HttpMessage::getData(char* buf, size_t sz)
         }
 
         cp(buf, sz, pos, p, n);
-    } else
+    } else if (m_bResponse)
         cp(buf, sz, pos, "Content-Length: 0\r\n", 19);
 
     cp(buf, sz, pos, "\r\n", 2);

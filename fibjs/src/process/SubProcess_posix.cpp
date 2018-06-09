@@ -21,6 +21,7 @@ namespace fibjs {
 
 static exlib::spinlock s_lock;
 static std::map<pid_t, obj_ptr<SubProcess>> s_ids;
+void init_signal();
 
 static result_t async_signal_handler(int32_t n)
 {
@@ -59,6 +60,7 @@ static void async_init_sprocess(void* v)
 
 void init_process()
 {
+    init_signal();
     AsyncIO::run(async_init_sprocess);
 }
 

@@ -8,6 +8,7 @@
 #ifdef _WIN32
 #pragma warning(disable : 4800)
 #pragma warning(disable : 4101)
+#pragma warning(disable : 4244)
 #endif
 
 #include "v8.h"
@@ -22,6 +23,8 @@
 #include "v8_api.h"
 
 namespace fibjs {
+
+bool path_isAbsolute(exlib::string path);
 
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate)
 {
@@ -169,6 +172,9 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
         if (!script->Name().ToLocal(&name))
             continue;
         std::string file_name = ToSTLString(isolate, name);
+        if (!path_isAbsolute(file_name))
+            continue;
+
         fprintf(file, "SF:%s\n", file_name.c_str());
         std::vector<uint32_t> lines;
         for (size_t j = 0; j < script_data.FunctionCount(); j++) {

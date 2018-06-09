@@ -112,6 +112,11 @@ describe("net", () => {
 
         conn_socket();
         conn();
+
+        assert.throws(() => {
+            var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
+            s1.connect("999.999.999.999", 8080 + base_port);
+        });
     });
 
     it("copyTo", () => {

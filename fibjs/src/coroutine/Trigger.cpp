@@ -58,7 +58,9 @@ public:
     {
         return "events";
     }
-} s_RootModule_events;
+};
+static RootModule_events s_RootModule_events;
+RootModule* Module_events = &s_RootModule_events;
 
 result_t EventEmitter_base::_new(obj_ptr<EventEmitter_base>& retVal, v8::Local<v8::Object> This)
 {

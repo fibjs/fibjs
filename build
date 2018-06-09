@@ -193,3 +193,10 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 cd ..
+
+cd fibjs/program
+sh build $BUILD_TYPE $TARGET_ARCH $CI
+if [ $? != 0 ]; then
+	exit 1
+fi
+cd ../..
