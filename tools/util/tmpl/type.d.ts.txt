@@ -97,23 +97,43 @@ declare global {
 %>
 <% if (renderClassParentRef) {%>/// <reference path="<%- extendClassName %>.d.ts" /><%}%>
 declare class <%- _fns.uglifyInternalClassName(className) %> <%- extendClassName ? `extends ${_fns.uglifyInternalClassName(extendClassName)}` : '' %> {
-	<% for(var i=0; i<member_fns.length; i++) {
-			var fn = member_fns[i]
-			var isConstructor = fn.name === def.declare.name
-			var fn_name = isConstructor ? 'constructor' : fn.name
+	<% for(var i=0; i<member_props.length; i++) {
+		var memberProp = member_props[i]
+		var propName = memberProp.name 
+		var propType = typeMap[memberProp.type]
+		propType = _fns.uglifyTypeInDefObjects(propType)
+		var str = JSON.stringify(memberProp)
 	%>
 	/**
-		* <% var comments = fn.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
-		* <%- comment %><% } %>
-		* <%- fn.deprecated ? '@deprecated' : '' %>
-		* <%- fn.async ? '@async' : '' %>
-		*/<%
-		var paramList = _fns.params2paramList(fn.params, typeMap)
+	 * class prop <% str %>
+	 *
+	 * <% var comments = memberProp.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
+	 * <%- comment %><% } %>
+	 * <%- memberProp.static ? '@static' : '' %>
+	 * <%- memberProp.readonly ? '@readonly' : '' %>
+	 * @type <%- memberProp.type %>
+	 */
+	
+	<%- propName %>: <%- propType %>
+	<% } /** end of iteration 'member_props' */ %>
+	
+	<% for(var i=0; i<member_fns.length; i++) {
+		var fn = member_fns[i]
+		var isConstructor = fn.name === def.declare.name
+		var fn_name = isConstructor ? 'constructor' : fn.name
+	%>
+	/**
+	 * <% var comments = fn.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
+	 * <%- comment %><% } %>
+	 * <%- fn.deprecated ? '@deprecated' : '' %>
+	 * <%- fn.async ? '@async' : '' %>
+	 */<%
+	  var paramList = _fns.params2paramList(fn.params, typeMap)
 
-		var returnType = fn.type ? _fns.uglifyTypeInDefObjects(typeMap[fn.type], defObjects) : 'void'
-		if (isConstructor)
-			returnType = ''
-		%>
+	  var returnType = fn.type ? _fns.uglifyTypeInDefObjects(typeMap[fn.type], defObjects) : 'void'
+	  if (isConstructor)
+		returnType = ''
+	%>
 	<%- fn.static ? 'static ' : '' %><%- fn_name %>(<%- paramList.join(', ') %>)<%- returnType ? `: ${returnType}` : '' %>;
 <% } /** end of iteration 'member_fns' */ %>
 } /** endof class */
@@ -133,11 +153,11 @@ declare module "<%- def.declare.name %>" {
 				var hasDefault = !!constant.default
 		%>
 		/**
-			* <% var comments = constant.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
-			* <%- comment %><% } %>
-			* <%- constant.deprecated ? '@deprecated' : '' %>
-			* <%- constant.async ? '@async' : '' %>
-			*/
+		 * <% var comments = constant.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
+		 * <%- comment %><% } %>
+		 * <%- constant.deprecated ? '@deprecated' : '' %>
+		 * <%- constant.async ? '@async' : '' %>
+		 */
 		export const <%- constant.name %><%- hasDefault ? ` = ${constant.default.value}` : ''%>;
 		<% } /** end of iteration 'member_constants' */ %>
 		
@@ -146,11 +166,11 @@ declare module "<%- def.declare.name %>" {
 			var objectName = internalObj.type || internalObj.name
 		%>
 		/**
-			* <% var comments = internalObj.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
-			* <%- comment %><% } %>
-			* <%- internalObj.deprecated ? '@deprecated' : '' %>
-			* <%- internalObj.async ? '@async' : '' %>
-			*/
+		 * <% var comments = internalObj.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
+		 * <%- comment %><% } %>
+		 * <%- internalObj.deprecated ? '@deprecated' : '' %>
+		 * <%- internalObj.async ? '@async' : '' %>
+		 */
 		
 		export class <%- objectName %> extends <%- _fns.uglifyInternalClassName(objectName) %> {}
 		<% } /** end of iteration 'member_objects' */ %>
@@ -159,11 +179,11 @@ declare module "<%- def.declare.name %>" {
 				var fn = member_fns[i]
 		%>
 		/**
-			* <% var comments = fn.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
-			* <%- comment %><% } %>
-			* <%- fn.deprecated ? '@deprecated' : '' %>
-			* <%- fn.async ? '@async' : '' %>
-			*/<%
+		 * <% var comments = fn.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
+		 * <%- comment %><% } %>
+		 * <%- fn.deprecated ? '@deprecated' : '' %>
+		 * <%- fn.async ? '@async' : '' %>
+		 */<%
 			var paramList = _fns.params2paramList(fn.params, typeMap)
 
 			var returnType = fn.type ? _fns.uglifyTypeInDefObjects(typeMap[fn.type], defObjects) : 'void'
