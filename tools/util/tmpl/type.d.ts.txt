@@ -1,6 +1,9 @@
 /***************************************************************************
  *                                                                         *
- *   This file was automatically generated with idlc.js                   *
+ *   This file was automatically generated with idlc.js                    *
+ *	 build info: 								   						   *
+ *   	- fibjs	: <%- (buildInfo.fibjs + '').padEnd(45, ' ') %>            *
+ *   	- date	: <%- (buildInfo.date + '').padEnd(44, ' ') %>             *
  *                                                                         *
  ***************************************************************************/
 
@@ -144,7 +147,7 @@ declare module "<%- def.declare.name %>" {
 	<% for(var i=0; i<refers.length; i++) { 
 		var refClassName = refers[i]
 		if(defModules[refClassName]) {%>
-	import <%- refClassName %>NS = require('<%- refClassName %>')<%}}%>
+	import <%- _fns.getAliasNameForRefModule(refClassName) %> = require('<%- refClassName %>')<%}}%>
 
 	module <%- def.declare.name %> {
 		<% for(var i=0; i<member_constants.length; i++) {
@@ -164,6 +167,9 @@ declare module "<%- def.declare.name %>" {
 		<% for(var i=0; i<member_objects.length; i++) {
 			var internalObj = member_objects[i]
 			var objectName = internalObj.type || internalObj.name
+			// var str = JSON.stringify(internalObj)
+			var isInternalClass = !!defObjects[objectName]
+			var isInternalModule = !!defModules[objectName]
 		%>
 		/**
 		 * <% var comments = internalObj.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
@@ -171,8 +177,8 @@ declare module "<%- def.declare.name %>" {
 		 * <%- internalObj.deprecated ? '@deprecated' : '' %>
 		 * <%- internalObj.async ? '@async' : '' %>
 		 */
-		
-		export class <%- objectName %> extends <%- _fns.uglifyInternalClassName(objectName) %> {}
+		<% if (isInternalClass) {%>export class <%- objectName %> extends <%- _fns.uglifyInternalClassName(objectName) %> {}<%}%>
+		<% if (isInternalModule) {%>export const <%- objectName %>: typeof <%- _fns.getAliasNameForRefModule(objectName) %><%}%>
 		<% } /** end of iteration 'member_objects' */ %>
 		
 		<% for(var i=0; i<member_fns.length; i++) {

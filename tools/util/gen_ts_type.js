@@ -4,6 +4,8 @@ var path = require('path');
 var ejs = require('ejs');
 
 module.exports = function (defs, baseFolder) {
+    const buildInfo = util.buildInfo()
+
     const defNames = Object.keys(defs)
     const defModules = {}
     const defObjetMirror = {}
@@ -65,6 +67,10 @@ module.exports = function (defs, baseFolder) {
             return className === 'object' ? '_object' : className
         }
 
+        function getAliasNameForRefModule(refModuleName) {
+            return `${refModuleName}NS`
+        }
+
         var txts = [];
         var refers = [];
         var hasNew = false;
@@ -84,6 +90,8 @@ module.exports = function (defs, baseFolder) {
         }
 
         function _uglifyClassName(name) {
+            name = transObjectName(name)
+
             return `Class_${name}`
         }
 
@@ -100,14 +108,21 @@ module.exports = function (defs, baseFolder) {
         }
 
         function params2paramList(params, typeMap = typeMap) {
-            return (params || []).map(param => {
+            var latestOptionalIndex = -1
+            return (params || []).map((param, index) => {
                 var hasDefault = param.default;
-                if (isRestArgs(param.type)) {
+                var _isRestArgs = isRestArgs(param.type);
+                if (hasDefault) {
+                    latestOptionalIndex = index
+                }
+                var isOptional = !!hasDefault || (!_isRestArgs && latestOptionalIndex > -1 && index >= latestOptionalIndex)
+
+                if (_isRestArgs) {
                     param.name = `...${param.name}`
                 }
                 var mappedType = typeMap[param.type] || 'any';
                 mappedType = uglifyTypeInDefObjects(mappedType, defObjects)
-                return `${param.name}${hasDefault ? '?' : ''}: ${mappedType}${hasDefault ? `/** = ${param.default.value}*/` : ''}`
+                return `${param.name}${isOptional ? '?' : ''}: ${mappedType}${hasDefault ? `/** = ${param.default.value}*/` : ''}`
             })
         }
 
@@ -159,6 +174,7 @@ module.exports = function (defs, baseFolder) {
                 member_objects: def.members.filter(x => x.memType === 'object'),
                 member_constants: def.members.filter(x => x.memType === 'const'),
                 member_props: def.members.filter(x => x.memType === 'prop'),
+                buildInfo,
                 typeMap,
                 defModules,
                 defObjects,
@@ -173,7 +189,8 @@ module.exports = function (defs, baseFolder) {
                     uglifyInternalClassName,
                     uglifyTypeInDefObjects,
                     isRestArgs,
-                    transObjectName
+                    transObjectName,
+                    getAliasNameForRefModule
                 },
                 filename: def.filename || ''
             }
