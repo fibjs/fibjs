@@ -272,7 +272,13 @@ module console
      */
     static time(String label = "time");
 
-    /*! @brief 统计指定计时器的数值
+    /*! @brief 输出指定计时器当前计时值
+
+     @param label 标题，缺省为空字符串。
+     */
+    static timeElapse(String label = "time");
+
+    /*! @brief 结束指定计时器，并输出最后计时值
 
      @param label 标题，缺省为空字符串。
      */

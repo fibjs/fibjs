@@ -243,7 +243,13 @@ module console
      */
     static time(String label = "time");
 
-    /*! @brief Value of specified timer
+    /*! @brief Print elapse of specified timer
+
+     @param label Title, default is an empty string.
+     */
+    static timeElapse(String label = "time");
+
+    /*! @brief Stop the specified timer, and print last value.
 
      @param label Title, default is an empty string.
      */
