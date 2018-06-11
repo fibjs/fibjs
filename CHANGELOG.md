@@ -1,3 +1,78 @@
+## 2018-06-11, Version v0.25.0
+* **feature** :
+    * console - add console.timeElapse() (#433)(gmxyb)
+    * http - do not send Content-Length header in http request when body is empty.(xicilion)
+    * sandbox:
+      - upgrade typescript to 2.9.1 (#435)(Ray)
+      - give default compilerOptions for internal typescript. (#425)(Ray)
+      - add test cases for internal typescript. (#424)(Ray)
+      - support typescript loader.(Ray)
+    * tools:
+      - normalize uglified internal class name. (#429)(Ray)
+      - support generating *.d.ts by tools/tsdeclare.js based on idlc.js (#421)(Ray)
+
+* **bugfix** :
+    * core - compile warning on windows.(xicilion)
+    * db - do not process the escape character '?' when the parameter is insufficient.(xicilion)
+    * dns:
+      - dns.resolve crash on Linux.(xicilion)
+      - result error in dns.resolve and dns.lookup when host is unknown.(xicilion)
+    * net - result error in net.resolve when host is unknown.(xicilion)
+    * options - compile errors on Windows when embedding large script files.(xicilion)
+    * os - os.userInfo().homedir include a terminal character.(xicilion)
+    * sandbox:
+      - [internal/typescript]set 'compilerOptions.module' as 'CommonJS', to make test/ts_test.ts valid. (#426)(Ray)
+      - fix core dump when required ts in sub sandbox. (#422)(Ray)
+      - high frequency require in new sandbox will fail.(xicilion)
+      - application crashes when loading ts in an empty sandbox.(xicilion)
+      - missing files in the vs project file.(xicilion)
+    * tools:
+      - correct exportance for reference to internal module in some module(such as encoding). (#434)(Ray)
+      - fix lack of prop generation for internal class. (#432)(Ray)
+      - [type.d.ts.txt]fix global members. (#430)(Ray)
+      - correct exported static Class in some module(such as vm) (#428)(Ray)
+      - correct tsdeclare.js, and correct geneartion of *.d.ts (#427)(Ray)
+
+* **refactor** :
+    * core:
+      - separate fibjs library for reuse.(xicilion)
+      - split the source code to simplify fibjs.cpp.(xicilion)
+      - use static class to init module.(xicilion)
+      - compress embed script module.(xicilion)
+      - do not generate coverage report of non-absolute path files.(xicilion)
+
+### Commits
+* [[`312df05c58`](https://github.com/fibjs/fibjs/commit/312df05c58)] - **console, feat**: add console.timeElapse() (#433)(gmxyb)
+* [[`27b5f17d5b`](https://github.com/fibjs/fibjs/commit/27b5f17d5b)] - **sandbox, feat**: upgrade typescript to 2.9.1 (#435)(Ray)
+* [[`18b080f22b`](https://github.com/fibjs/fibjs/commit/18b080f22b)] - **tools, bugfix**: correct exportance for reference to internal module in some module(such as encoding). (#434)(Ray)
+* [[`6cb8e61aa9`](https://github.com/fibjs/fibjs/commit/6cb8e61aa9)] - **tools, bugfix**: fix lack of prop generation for internal class. (#432)(Ray)
+* [[`80c04a9015`](https://github.com/fibjs/fibjs/commit/80c04a9015)] - **tools, bugfix**: [type.d.ts.txt]fix global members. (#430)(Ray)
+* [[`67024c4349`](https://github.com/fibjs/fibjs/commit/67024c4349)] - **tools, feat**: normalize uglified internal class name. (#429)(Ray)
+* [[`652a0ac92c`](https://github.com/fibjs/fibjs/commit/652a0ac92c)] - **tools, bugfix**: correct exported static Class in some module(such as vm) (#428)(Ray)
+* [[`d20292ab9c`](https://github.com/fibjs/fibjs/commit/d20292ab9c)] - **db, bugfix**: do not process the escape character '?' when the parameter is insufficient.(xicilion)
+* [[`1975188359`](https://github.com/fibjs/fibjs/commit/1975188359)] - **http, feat**: do not send Content-Length header in http request when body is empty.(xicilion)
+* [[`bf4c92ecd0`](https://github.com/fibjs/fibjs/commit/bf4c92ecd0)] - **tools, bugfix**: correct tsdeclare.js, and correct geneartion of *.d.ts (#427)(Ray)
+* [[`4152310139`](https://github.com/fibjs/fibjs/commit/4152310139)] - **dns, bugfix**: dns.resolve crash on Linux.(xicilion)
+* [[`85b3d19d2a`](https://github.com/fibjs/fibjs/commit/85b3d19d2a)] - **core, bugfix**: compile warning on windows.(xicilion)
+* [[`4780cedb02`](https://github.com/fibjs/fibjs/commit/4780cedb02)] - **os, bugfix**: os.userInfo().homedir include a terminal character.(xicilion)
+* [[`917fac2e2b`](https://github.com/fibjs/fibjs/commit/917fac2e2b)] - **net, bugfix**: result error in net.resolve when host is unknown.(xicilion)
+* [[`0f37b624af`](https://github.com/fibjs/fibjs/commit/0f37b624af)] - **sandbox, bugfix**: [internal/typescript]set 'compilerOptions.module' as 'CommonJS', to make test/ts_test.ts valid. (#426)(Ray)
+* [[`f1bb38002c`](https://github.com/fibjs/fibjs/commit/f1bb38002c)] - **dns, bugfix**: result error in dns.resolve and dns.lookup when host is unknown.(xicilion)
+* [[`5c2dd77b42`](https://github.com/fibjs/fibjs/commit/5c2dd77b42)] - **sandbox, feat**: give default compilerOptions for internal typescript. (#425)(Ray)
+* [[`29e3901637`](https://github.com/fibjs/fibjs/commit/29e3901637)] - **sandbox, feat**: add test cases for internal typescript. (#424)(Ray)
+* [[`50555bebb9`](https://github.com/fibjs/fibjs/commit/50555bebb9)] - **tools, feat**: support generating *.d.ts by tools/tsdeclare.js based on idlc.js (#421)(Ray)
+* [[`1ac350bcba`](https://github.com/fibjs/fibjs/commit/1ac350bcba)] - **sandbox, bugfix**: fix core dump when required ts in sub sandbox. (#422)(Ray)
+* [[`545c9bed90`](https://github.com/fibjs/fibjs/commit/545c9bed90)] - **core, refactor**: separate fibjs library for reuse.(xicilion)
+* [[`5111e70816`](https://github.com/fibjs/fibjs/commit/5111e70816)] - **sandbox, bugfix**: high frequency require in new sandbox will fail.(xicilion)
+* [[`b23ef0f060`](https://github.com/fibjs/fibjs/commit/b23ef0f060)] - **sandbox, bugfix**: application crashes when loading ts in an empty sandbox.(xicilion)
+* [[`4b138f8cc6`](https://github.com/fibjs/fibjs/commit/4b138f8cc6)] - **options, bugfix**: compile errors on Windows when embedding large script files.(xicilion)
+* [[`73c9e2fc27`](https://github.com/fibjs/fibjs/commit/73c9e2fc27)] - **sandbox, bugfix**: missing files in the vs project file.(xicilion)
+* [[`7b0f6e1331`](https://github.com/fibjs/fibjs/commit/7b0f6e1331)] - **sandbox, feat**: support typescript loader.(Ray)
+* [[`aed8fd656a`](https://github.com/fibjs/fibjs/commit/aed8fd656a)] - **core, refactor**: split the source code to simplify fibjs.cpp.(xicilion)
+* [[`e6058640c2`](https://github.com/fibjs/fibjs/commit/e6058640c2)] - **core, refactor**: use static class to init module.(xicilion)
+* [[`f1a4589a11`](https://github.com/fibjs/fibjs/commit/f1a4589a11)] - **core, refactor**: compress embed script module.(xicilion)
+* [[`47a5f79c6e`](https://github.com/fibjs/fibjs/commit/47a5f79c6e)] - **core, refactor**: do not generate coverage report of non-absolute path files.(xicilion)
+
 ## 2018-05-26, Version v0.24.0
 * **feature** :
     * db:
