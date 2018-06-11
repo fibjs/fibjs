@@ -404,22 +404,24 @@ function parser_comment(comment) {
   return doc;
 }
 
-module.exports = function (baseFolder) {
-  var defs = {};
+module.exports = function (baseFolder, defs) {
+  defs = defs || {};
+
+  for (var n in defs)
+    defs[n].__skip = true;
 
   fs.readdir(baseFolder).sort().forEach(f => {
     if (path.extname(f) == '.idl') {
       f = path.join(baseFolder, f);
       var def = parser.parse(fs.readTextFile(f));
+
+      def.declare.doc = parser_comment(def.declare.comments);
+      for (var m in def.members)
+        def.members[m].doc = parser_comment(def.members[m].comments);
+
       defs[def.declare.name] = def;
     }
   });
-
-  for (var n in defs) {
-    defs[n].declare.doc = parser_comment(defs[n].declare.comments);
-    for (var m in defs[n].members)
-      defs[n].members[m].doc = parser_comment(defs[n].members[m].comments);
-  }
 
   delete defs['object'].declare.extend;
 

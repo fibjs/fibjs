@@ -852,7 +852,7 @@ module.exports = function (defs, baseFolder) {
         }
     }
 
-    for (var cls in defs) {
-        gen_code(cls, defs[cls]);
-    }
+    for (var cls in defs)
+        if (!defs[cls].__skip)
+            gen_code(cls, defs[cls]);
 }
