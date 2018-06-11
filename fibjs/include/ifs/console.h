@@ -61,6 +61,7 @@ public:
     static result_t alert(OptArgs args);
     static result_t dir(v8::Local<v8::Value> obj);
     static result_t time(exlib::string label);
+    static result_t timeElapse(exlib::string label);
     static result_t timeEnd(exlib::string label);
     static result_t trace(exlib::string label);
     static result_t _assert(v8::Local<v8::Value> value, exlib::string msg);
@@ -111,6 +112,7 @@ public:
     static void s_alert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_dir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_time(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_trace(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_assert(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -150,6 +152,7 @@ inline ClassInfo& console_base::class_info()
         { "alert", s_alert, true },
         { "dir", s_dir, true },
         { "time", s_time, true },
+        { "timeElapse", s_timeElapse, true },
         { "timeEnd", s_timeEnd, true },
         { "trace", s_trace, true },
         { "assert", s_assert, true },
@@ -476,6 +479,20 @@ inline void console_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args
     OPT_ARG(exlib::string, 0, "time");
 
     hr = time(v0);
+
+    METHOD_VOID();
+}
+
+inline void console_base::s_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("console.timeElapse");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "time");
+
+    hr = timeElapse(v0);
 
     METHOD_VOID();
 }
