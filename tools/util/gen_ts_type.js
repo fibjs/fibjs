@@ -25,15 +25,17 @@ module.exports = function (defs, baseFolder) {
     const defModuleNames = Object.keys(defModules)
     const defObjectNames = Object.keys(defObjects)
     // white list of Object would be declared in global index.d.ts
-    const topLevelVariablesInGlobalModule = [
-        '__dirname',
-        '__filename',
-        'require',
-        'Master',
-        'setHrInterval',
-        'clearHrInterval',
-        'GC',
-        'repl',
+    const excludedTopLevelVariablesInGlobalModule = [
+        'console',
+        'process',
+        'global',
+        'run',
+        'setTimeout',
+        'clearTimeout',
+        'setInterval',
+        'clearInterval',
+        'setImmediate',
+        'clearImmediate'
     ]
 
     function gen_ts_type_code(cls, def) {
@@ -180,7 +182,7 @@ module.exports = function (defs, baseFolder) {
                 defObjects,
                 defModuleNames,
                 defObjectNames,
-                topLevelVariablesInGlobalModule,
+                excludedTopLevelVariablesInGlobalModule,
                 refers: build_refer(def),
                 _fns: {
                     get_type,
