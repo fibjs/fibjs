@@ -31,6 +31,7 @@ class http_base : public object_base {
 
 public:
     // http_base
+    static result_t get_STATUS_CODES(v8::Local<v8::Array>& retVal);
     static result_t get_cookies(obj_ptr<NArray>& retVal);
     static result_t get_timeout(int32_t& retVal);
     static result_t set_timeout(int32_t newVal);
@@ -63,6 +64,7 @@ public:
     }
 
 public:
+    static void s_get_STATUS_CODES(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_cookies(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_timeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_timeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
@@ -133,6 +135,7 @@ inline ClassInfo& http_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
+        { "STATUS_CODES", s_get_STATUS_CODES, block_set, true },
         { "cookies", s_get_cookies, block_set, true },
         { "timeout", s_get_timeout, s_set_timeout, true },
         { "enableCookie", s_get_enableCookie, s_set_enableCookie, true },
@@ -149,6 +152,18 @@ inline ClassInfo& http_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
+}
+
+inline void http_base::s_get_STATUS_CODES(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_NAME("http.STATUS_CODES");
+    PROPERTY_ENTER();
+
+    hr = get_STATUS_CODES(vr);
+
+    METHOD_RETURN();
 }
 
 inline void http_base::s_get_cookies(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)

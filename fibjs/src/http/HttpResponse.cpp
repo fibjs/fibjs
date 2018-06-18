@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include "ifs/http.h"
 #include "HttpResponse.h"
 #include "HttpCookie.h"
 #include "Buffer.h"
@@ -262,6 +263,18 @@ public:
             status_lines_size[i] = (unsigned char)qstrlen(status_lines[i]);
     }
 } s_init_status_line;
+
+result_t http_base::get_STATUS_CODES(v8::Local<v8::Array>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    int32_t i;
+
+    retVal = v8::Array::New(isolate->m_isolate);
+    for (i = 0; i < RESPONSE_CODES; i++)
+        retVal->Set(atoi(status_lines[i]), isolate->NewString(status_lines[i] + 5));
+
+    return 0;
+}
 
 result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
 {
