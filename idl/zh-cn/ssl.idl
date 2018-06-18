@@ -1,4 +1,4 @@
-/*! @brief ssl/tls 模块 */
+/*! @brief ssl/tls 模块，模块别名：tls */
 module ssl
 {
     /*! @brief 证书验证模式，不验证 */

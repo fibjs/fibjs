@@ -20,6 +20,7 @@
 namespace fibjs {
 
 DECLARE_MODULE(http);
+DECLARE_MODULE_EX(https, http);
 
 static HttpClient* get_httpClient(Isolate* isolate = NULL)
 {

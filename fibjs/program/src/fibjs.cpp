@@ -30,6 +30,7 @@ void importModule()
     IMPORT_MODULE(hash);
     IMPORT_MODULE(hex);
     IMPORT_MODULE(http);
+    IMPORT_MODULE(https);
     IMPORT_MODULE(iconv);
     IMPORT_MODULE(io);
     IMPORT_MODULE(json);
@@ -42,6 +43,7 @@ void importModule()
     IMPORT_MODULE(punycode);
     IMPORT_MODULE(querystring);
     IMPORT_MODULE(ssl);
+    IMPORT_MODULE(tls);
     IMPORT_MODULE(string_decoder);
     IMPORT_MODULE(test);
     IMPORT_MODULE(timers);
