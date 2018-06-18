@@ -180,10 +180,11 @@ declare module "<%- def.declare.name %>" {
 		
 		<% for(var i=0; i<member_objects.length; i++) {
 			var internalObj = member_objects[i]
-			var objectName = internalObj.type || internalObj.name
+			var objectName = internalObj.name
+			var objectType = internalObj.type || internalObj.name
 			// var str = JSON.stringify(internalObj)
-			var isInternalClass = !!defObjects[objectName]
-			var isInternalModule = !!defModules[objectName]
+			var isInternalClass = !!defObjects[objectType]
+			var isInternalModule = !!defModules[objectType]
 		%>
 		/**
 		 * <% var comments = internalObj.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
@@ -191,8 +192,8 @@ declare module "<%- def.declare.name %>" {
 		 * <%- internalObj.deprecated ? '@deprecated' : '' %>
 		 * <%- internalObj.async ? '@async' : '' %>
 		 */
-		<% if (isInternalClass) {%>export class <%- objectName %> extends <%- _fns.uglifyInternalClassName(objectName) %> {}<%}%>
-		<% if (isInternalModule) {%>export const <%- objectName %>: typeof <%- _fns.getAliasNameForRefModule(objectName) %><%}%>
+		<% if (isInternalClass) {%>export class <%- objectName %> extends <%- _fns.uglifyInternalClassName(objectType) %> {}<%}%>
+		<% if (isInternalModule) {%>export const <%- objectName %>: typeof <%- _fns.getAliasNameForRefModule(objectType) %><%}%>
 		<% } /** end of iteration 'member_objects' */ %>
 		
 		<% for(var i=0; i<member_fns.length; i++) {
