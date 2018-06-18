@@ -138,13 +138,16 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
 result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Local<v8::Function>& retVal)
 {
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Function> func1;
 
     if (async_func || func->IsAsyncFunction())
         func = isolate->NewFunction("async_promise", async_promise, func);
 
-    retVal = isolate->NewFunction("sync", sync_stub, func);
-    retVal->SetPrivate(retVal->CreationContext(),
+    func1 = isolate->NewFunction("sync", sync_stub, func);
+    func1->SetPrivate(func1->CreationContext(),
         v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
+
+    retVal = func1;
 
     return 0;
 }

@@ -11,13 +11,13 @@
 
 namespace fibjs {
 
-const char* SandBox::script_args = "(function(__filename,__dirname,require,run,exports,module,argv,repl){";
+const char* SandBox::script_args = "(async function(__filename,__dirname,require,run,exports,module,argv,repl){";
 static const int32_t script_args_count = 8;
 
-const char* SandBox::worker_args = "(function(__filename,__dirname,require,run,exports,module,Master){";
+const char* SandBox::worker_args = "(async function(__filename,__dirname,require,run,exports,module,Master){";
 static const int32_t worker_args_count = 7;
 
-const char* SandBox::module_args = "(function(__filename,__dirname,require,run,exports,module){";
+const char* SandBox::module_args = "(async function(__filename,__dirname,require,run,exports,module){";
 static const int32_t module_args_count = 6;
 
 result_t SandBox::ExtLoader::run_script(Context* ctx, Buffer_base* src, exlib::string name,

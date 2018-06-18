@@ -87,6 +87,10 @@ describe("module", () => {
         });
     });
 
+    it("require async file", () => {
+        assert.equal(require('./module/d2'), 100);
+    });
+
     it("support symlink", () => {
         fs.symlink(path.join(__dirname, 'module', 'p6'), path.join(__dirname, 'module', 'p6_1'));
         assert.equal(require('./module/p6/t'), require('./module/p6_1/t'));
