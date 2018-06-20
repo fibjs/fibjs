@@ -37,6 +37,10 @@ public:
     virtual result_t set_autoRedirect(bool newVal) = 0;
     virtual result_t get_userAgent(exlib::string& retVal) = 0;
     virtual result_t set_userAgent(exlib::string newVal) = 0;
+    virtual result_t get_poolSize(int32_t& retVal) = 0;
+    virtual result_t set_poolSize(int32_t newVal) = 0;
+    virtual result_t get_poolTimeout(int32_t& retVal) = 0;
+    virtual result_t set_poolTimeout(int32_t newVal) = 0;
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t get(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
@@ -62,6 +66,10 @@ public:
     static void s_set_autoRedirect(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_userAgent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_userAgent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_poolSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_poolSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_poolTimeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_poolTimeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_post(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -108,7 +116,9 @@ inline ClassInfo& HttpClient_base::class_info()
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
         { "enableCookie", s_get_enableCookie, s_set_enableCookie, false },
         { "autoRedirect", s_get_autoRedirect, s_set_autoRedirect, false },
-        { "userAgent", s_get_userAgent, s_set_userAgent, false }
+        { "userAgent", s_get_userAgent, s_set_userAgent, false },
+        { "poolSize", s_get_poolSize, s_set_poolSize, false },
+        { "poolTimeout", s_get_poolTimeout, s_set_poolTimeout, false }
     };
 
     static ClassData s_cd = {
@@ -276,6 +286,56 @@ inline void HttpClient_base::s_set_userAgent(v8::Local<v8::Name> property, v8::L
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_userAgent(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void HttpClient_base::s_get_poolSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("HttpClient.poolSize");
+    METHOD_INSTANCE(HttpClient_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_poolSize(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_poolSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("HttpClient.poolSize");
+    METHOD_INSTANCE(HttpClient_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
+
+    hr = pInst->set_poolSize(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void HttpClient_base::s_get_poolTimeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("HttpClient.poolTimeout");
+    METHOD_INSTANCE(HttpClient_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_poolTimeout(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_poolTimeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("HttpClient.poolTimeout");
+    METHOD_INSTANCE(HttpClient_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
+
+    hr = pInst->set_poolTimeout(v0);
 
     PROPERTY_SET_LEAVE();
 }

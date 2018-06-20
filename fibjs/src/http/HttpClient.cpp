@@ -90,6 +90,30 @@ result_t HttpClient::set_userAgent(exlib::string newVal)
     return 0;
 }
 
+result_t HttpClient::get_poolSize(int32_t& retVal)
+{
+    retVal = m_poolSize;
+    return 0;
+}
+
+result_t HttpClient::set_poolSize(int32_t newVal)
+{
+    m_poolSize = newVal;
+    return 0;
+}
+
+result_t HttpClient::get_poolTimeout(int32_t& retVal)
+{
+    retVal = m_poolTimeout;
+    return 0;
+}
+
+result_t HttpClient::set_poolTimeout(int32_t newVal)
+{
+    m_poolTimeout = newVal;
+    return 0;
+}
+
 result_t HttpClient::update(HttpCookie_base* cookie)
 {
     int32_t length, i;
@@ -161,11 +185,11 @@ result_t HttpClient::update_cookies(exlib::string url, NArray* cookies)
     if (hr < 0)
         return hr;
 
-    m_lock_cookies.lock();
+    m_lock.lock();
 
     cookies->get_length(length);
     if (length == 0) {
-        m_lock_cookies.unlock();
+        m_lock.unlock();
         return 0;
     }
 
@@ -189,7 +213,7 @@ result_t HttpClient::update_cookies(exlib::string url, NArray* cookies)
             m_cookies->append(hc);
     }
 
-    m_lock_cookies.unlock();
+    m_lock.unlock();
     return 0;
 }
 
@@ -208,10 +232,10 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
     if (hr < 0)
         return hr;
 
-    m_lock_cookies.lock();
+    m_lock.lock();
     m_cookies->get_length(length);
     if (length == 0) {
-        m_lock_cookies.unlock();
+        m_lock.unlock();
         return 0;
     }
 
@@ -248,7 +272,7 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
     if (s.length() > 0)
         retVal = s.substr(0, s.length() - 2);
 
-    m_lock_cookies.unlock();
+    m_lock.unlock();
     return 0;
 }
 
@@ -423,6 +447,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                 pThis->m_req->set_body(pThis->m_body);
 
             pThis->set(connected);
+
+            if (pThis->m_hc->get_conn(pThis->m_connUrl, pThis->m_conn))
+                return 0;
+
             return net_base::connect(pThis->m_connUrl, pThis->m_hc->m_timeout, pThis->m_conn, pThis);
         }
 
@@ -451,6 +479,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                 obj_ptr<NArray> cookies;
                 pThis->m_retVal->get_cookies(cookies);
                 pThis->m_hc->update_cookies(pThis->m_url, cookies);
+            }
+
+            bool keepalive;
+            pThis->m_retVal->get_keepAlive(keepalive);
+            if (keepalive) {
+                pThis->m_hc->save_conn(pThis->m_connUrl, pThis->m_conn);
+                return 0;
             }
 
             return pThis->m_conn->close(pThis);

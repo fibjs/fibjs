@@ -1467,6 +1467,49 @@ describe("http", () => {
                 http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test");
                 assert.equal(cookie, "root=value2; gzip_test=value");
             });
+
+            it("keep-alive", () => {
+                var r1 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                var r2 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                assert.equal(r1.stream.stream, r2.stream.stream);
+            });
+
+            it("pooSize of keep-alive", () => {
+                assert.equal(http.poolSize, 128);
+
+                http.poolSize = 0;
+                assert.equal(http.poolSize, 0);
+
+                var r1 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                var r2 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                assert.notEqual(r1.stream.stream, r2.stream.stream);
+
+                http.poolSize = 128;
+                assert.equal(http.poolSize, 128);
+
+                var r1 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                var r2 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                assert.equal(r1.stream.stream, r2.stream.stream);
+            });
+
+            it("pooTimeout of keep-alive", () => {
+                assert.equal(http.poolTimeout, 10000);
+
+                http.poolTimeout = 0;
+                assert.equal(http.poolTimeout, 0);
+
+                var r1 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                coroutine.sleep(100);
+                var r2 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                assert.notEqual(r1.stream.stream, r2.stream.stream);
+
+                http.poolTimeout = 10000;
+                assert.equal(http.poolTimeout, 10000);
+
+                var r1 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                var r2 = http.get("http://127.0.0.1:" + (8882 + base_port) + "/request");
+                assert.equal(r1.stream.stream, r2.stream.stream);
+            });
         });
 
         describe("get", () => {

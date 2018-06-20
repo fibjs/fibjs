@@ -94,6 +94,26 @@ result_t http_base::set_userAgent(exlib::string newVal)
     return get_httpClient()->set_userAgent(newVal);
 }
 
+result_t http_base::get_poolSize(int32_t& retVal)
+{
+    return get_httpClient()->get_poolSize(retVal);
+}
+
+result_t http_base::set_poolSize(int32_t newVal)
+{
+    return get_httpClient()->set_poolSize(newVal);
+}
+
+result_t http_base::get_poolTimeout(int32_t& retVal)
+{
+    return get_httpClient()->get_poolTimeout(retVal);
+}
+
+result_t http_base::set_poolTimeout(int32_t newVal)
+{
+    return get_httpClient()->set_poolTimeout(newVal);
+}
+
 result_t http_base::request(Stream_base* conn, HttpRequest_base* req,
     obj_ptr<HttpResponse_base>& retVal,
     AsyncEvent* ac)
