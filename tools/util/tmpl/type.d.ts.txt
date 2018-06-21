@@ -26,48 +26,24 @@
 import _Global from 'global';
 import _Process from 'process';
 
-// declare const process: typeof _Process;
-// declare const global: typeof _Global;
-// declare const __filename: string;
-// declare const __dirname: string;
-// declare const require: typeof _Global.require;
-
 type GlobalExportsType = any;
 interface ModuleType {
 	exports: GlobalExportsType;
 }
 
-type O_Process = typeof _Process
-interface RealProcess extends O_Process {
-	env: {
-		[key: string]: string;
-	}
-}
-
 declare global {
 	var exports: GlobalExportsType;
 	const module: ModuleType;
-	const __filename: string;
-	const __dirname: string;
-	const process: RealProcess;
-	const global: typeof _Global;
-
 <% for(var i=0; i<defModules['global'].members.length; i++) {
 	var member = defModules['global'].members[i]
 	console.log('global member', member.memType, member.name, member.type)
 	if (excludedTopLevelVariablesInGlobalModule.includes(member.name)) {%>
 	/** const <%- member.name %>: <%- member.type || 'null' %>; */<%
 	continue;
-	}
-	if (member.memType === 'method') {%>
-	const <%- member.name %>: typeof _Global.<%- member.name %><% 
-	} else if (defObjects[member.type]) { /** else if of iteration`defModules['global'].members` */ %>
-	const <%- member.name %>: typeof <%- _fns.uglifyInternalClassName(typeMap[member.type]) %>;<% 
-	} else if (defModules[member.type]) { /** else if of iteration`defModules['global'].members` */ %>
-	const <%- member.name %>: typeof <%- member.type %> 
-	<% }
+	}%>
+	const <%- member.name %>: typeof _Global.<%- member.name %><%
 } /** end of iteration`defModules['global'].members` */ %>
-}
+} /** end of `declare global` */
 
 <% } else if (filename === '_test_env') { /** elseif of `if (filename === 'index')` */ %>
 /// <reference path="test.d.ts" />
@@ -119,6 +95,7 @@ declare class <%- _fns.uglifyInternalClassName(className) %> <%- extendClassName
 		var propName = memberProp.name 
 		var propType = typeMap[memberProp.type]
 		propType = _fns.uglifyTypeInDefObjects(propType)
+
 		var str = JSON.stringify(memberProp)
 	%>
 	/**
@@ -177,7 +154,31 @@ declare module "<%- def.declare.name %>" {
 		 */
 		export const <%- constant.name %><%- hasDefault ? ` = ${constant.default.value}` : ''%>;
 		<% } /** end of iteration 'member_constants' */ %>
-		
+		<% for(var i=0; i<member_props.length; i++) {
+				var prop = member_props[i]
+
+				var hasDefault = !!prop.default
+				var propType = typeMap[prop.type] || 'any'
+
+				var finalPropType = propType
+
+				var isInternalClass = !!defObjects[propType]
+				var isInternalModule = !!defModules[propType]
+				if (isInternalClass) {
+					finalPropType = _fns.uglifyTypeInDefObjects(propType)
+				}
+				if (isInternalModule) {
+					finalPropType = _fns.getAliasNameForRefModule(propType)
+				}
+		%>
+		/**
+		 * <% var comments = prop.comments.split('\n'); for(var idx=0; idx<comments.length; idx++) {var comment = comments[idx].trim().replace('! @', '@') %>
+		 * <%- comment %><% } %>
+		 * <%- prop.deprecated ? '@deprecated' : '' %>
+		 * <%- prop.async ? '@async' : '' %>
+		 */
+		export const <%- prop.name %>: <%- finalPropType %><%- hasDefault ? ` = ${prop.default.value}` : ''%>;
+		<% } /** end of iteration 'member_props' */ %>
 		<% for(var i=0; i<member_objects.length; i++) {
 			var internalObj = member_objects[i]
 			var objectName = internalObj.name
@@ -216,6 +217,6 @@ declare module "<%- def.declare.name %>" {
 }
 <%} /** endof `if (isModule)` */ 
 %>
-/** } /** endof `module Or Internal Object` */
+/** endof `module Or Internal Object` */
 
 <% } /** end of `if (filename === 'index')` */ %>
