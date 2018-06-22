@@ -27,9 +27,10 @@ module.exports = function (defs, baseFolder) {
     // white list of Object would be declared in global index.d.ts
     const excludedTopLevelVariablesInGlobalModule = [
         'console',
-        'process',
-        'global',
+        // 'process',
+        // 'global',
         'run',
+        // import methods below from 'global' module
         'setTimeout',
         'clearTimeout',
         'setInterval',
@@ -46,10 +47,10 @@ module.exports = function (defs, baseFolder) {
             "Boolean": "boolean",
             "String": "string",
             "Date": "Date",
-            "Object": "Object",
-            "Iterator": "Object",
+            "Object": 'Object',
+            "Iterator": 'Iterable<any>',
             "Array": "any[]",
-            "TypedArray": "TypedArray",
+            "TypedArray": "ArrayLike<any>",
             "ArrayBuffer": "ArrayBuffer",
             "ArrayBufferView": "ArrayBufferView",
             "Function": "Function",
@@ -63,6 +64,16 @@ module.exports = function (defs, baseFolder) {
 
         function isRestArgs(argType) {
             return argType === '...'
+        }
+
+        function getTypeStr_ObjectInArg(str) {
+            if (str !== 'Object') return str
+            return '{ [key: string]: any }'
+        }
+
+        function getTypeStr_ObjectInReturn(str) {
+            if (str !== 'Object') return str
+            return '{ [key: string]: any }'
         }
 
         function transObjectName(className) {
@@ -192,7 +203,9 @@ module.exports = function (defs, baseFolder) {
                     uglifyTypeInDefObjects,
                     isRestArgs,
                     transObjectName,
-                    getAliasNameForRefModule
+                    getAliasNameForRefModule,
+                    getTypeStr_ObjectInArg,
+                    getTypeStr_ObjectInReturn
                 },
                 filename: def.filename || ''
             }
