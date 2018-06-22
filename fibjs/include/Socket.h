@@ -7,6 +7,9 @@
 
 #include "ifs/Socket.h"
 #include "inetAddr.h"
+#ifndef _WIN32
+#include "unixAddr.h"
+#endif
 #include "AsyncIO.h"
 #include "Timer.h"
 
@@ -62,7 +65,9 @@ public:
     virtual result_t get_localPort(int32_t& retVal);
     virtual result_t get_timeout(int32_t& retVal);
     virtual result_t set_timeout(int32_t newVal);
+    virtual result_t connect(exlib::string path, AsyncEvent* ac);
     virtual result_t connect(exlib::string host, int32_t port, AsyncEvent* ac);
+    virtual result_t bind(exlib::string path);
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4);
     virtual result_t bind(int32_t port, bool allowIPv4);
     virtual result_t listen(int32_t backlog);
@@ -70,10 +75,15 @@ public:
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t recvfrom(int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac);
     virtual result_t send(Buffer_base* data, AsyncEvent* ac);
+    virtual result_t sendto(Buffer_base* data, exlib::string path, AsyncEvent* ac);
     virtual result_t sendto(Buffer_base* data, exlib::string host, int32_t port, AsyncEvent* ac);
 
 public:
     result_t create(int32_t family, int32_t type);
+#ifdef _WIN32
+    result_t bind(exlib::string path, BOOL firstInstance, BOOL bClient, intptr_t& retFd);
+    HANDLE open_named_pipe(exlib::string path);
+#endif
 
 private:
     class IOTimer : public Timer {

@@ -283,14 +283,24 @@ result_t AsyncIO::close(AsyncEvent* ac)
     (new asyncClose(m_fd, m_RecvOpt, m_SendOpt, ac))->post();
     return CALL_E_PENDDING;
 }
+result_t AsyncIO::connect(exlib::string path, AsyncEvent* ac, Timer_base* timer)
+{
+    return connect(path, 0, ac, timer);
+}
 
 result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Timer_base* timer)
 {
+    union s {
+        inetAddr ia;
+        unixAddr ua;
+    };
+
     class asyncConnect : public asyncProc {
     public:
-        asyncConnect(intptr_t& s, inetAddr& ai, AsyncEvent* ac, exlib::Locker& locker, void*& opt,
+        asyncConnect(intptr_t& s, union s& ai, int32_t family, AsyncEvent* ac, exlib::Locker& locker, void*& opt,
             Timer_base* timer)
             : asyncProc(s, EV_WRITE, ac, locker, opt)
+            , m_family(family)
             , m_ai(ai)
             , m_timer(timer)
         {
@@ -298,7 +308,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
 
         virtual result_t process()
         {
-            int32_t n = ::connect(m_s, (struct sockaddr*)&m_ai, m_ai.size());
+            int32_t n = ::connect(m_s, (struct sockaddr*)&m_ai, m_family == net_base::_AF_LOCAL ? m_ai.ua.size() : m_ai.ia.size());
             if (n == SOCKET_ERROR) {
                 int32_t nError = errno;
                 if (nError == EINPROGRESS)
@@ -320,8 +330,8 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
 
         virtual void proc()
         {
-            inetAddr addr_info;
-            socklen_t sz1 = sizeof(addr_info);
+            union s addr_info;
+            socklen_t sz1 = m_family == net_base::_AF_LOCAL ? sizeof(addr_info.ua) : sizeof(addr_info.ia);
 
             if (m_timer) {
                 m_timer->clear();
@@ -336,7 +346,8 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
         }
 
     public:
-        inetAddr m_ai;
+        int32_t m_family;
+        union s m_ai;
         obj_ptr<Timer_base> m_timer;
     };
 
@@ -349,27 +360,33 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    inetAddr addr_info;
+    union s addr_info;
 
-    addr_info.init(m_family);
-    addr_info.setPort(port);
-    if (addr_info.addr(host) < 0) {
-        exlib::string strAddr;
-        result_t hr = net_base::cc_resolve(host, m_family, strAddr);
-        if (hr < 0) {
-            if (timer)
-                timer->clear();
-            return hr;
-        }
+    if (m_family == net_base::_AF_LOCAL) {
+        addr_info.ua.init();
+        if (addr_info.ua.addr(host) < 0)
+            return CHECK_ERROR(Runtime::setError("path should be fullpath"));
+    } else {
+        addr_info.ia.init(m_family);
+        addr_info.ia.setPort(port);
+        if (addr_info.ia.addr(host) < 0) {
+            exlib::string strAddr;
+            result_t hr = net_base::cc_resolve(host, m_family, strAddr);
+            if (hr < 0) {
+                if (timer)
+                    timer->clear();
+                return hr;
+            }
 
-        if (addr_info.addr(strAddr) < 0) {
-            if (timer)
-                timer->clear();
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            if (addr_info.ia.addr(strAddr) < 0) {
+                if (timer)
+                    timer->clear();
+                return CHECK_ERROR(CALL_E_INVALIDARG);
+            }
         }
     }
 
-    return (new asyncConnect(m_fd, addr_info, ac, m_lockRecv, m_RecvOpt, timer))->call();
+    return (new asyncConnect(m_fd, addr_info, m_family, ac, m_lockRecv, m_RecvOpt, timer))->call();
 }
 
 result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
@@ -599,11 +616,12 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
 {
     class asyncRecvFrom : public asyncProc {
     public:
-        asyncRecvFrom(intptr_t& s, int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac,
+        asyncRecvFrom(intptr_t& s, int32_t bytes, int32_t family, obj_ptr<NObject>& retVal, AsyncEvent* ac,
             exlib::Locker& locker, void*& opt)
             : asyncProc(s, EV_READ, ac, locker, opt)
             , m_retVal(retVal)
             , m_bytes(bytes > 0 ? bytes : SOCKET_BUFF_SIZE)
+            , m_family(family)
         {
         }
 
@@ -613,8 +631,16 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
                 m_buf.resize(m_bytes);
 
             int32_t n;
-            inetAddr addr_info;
-            socklen_t sz = sizeof(addr_info);
+            union sAddr {
+                inetAddr ia;
+                unixAddr ua;
+            } addr_info;
+            socklen_t sz;
+
+            if (m_family == net_base::_AF_LOCAL)
+                sz = sizeof(addr_info.ua);
+            else
+                sz = sizeof(addr_info.ia);
 
             n = (int32_t)::recvfrom(m_s, &m_buf[0], m_buf.length(), MSG_NOSIGNAL,
                 (sockaddr*)&addr_info, &sz);
@@ -632,7 +658,10 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
                 return CALL_RETURN_NULL;
 
             m_buf.resize(n);
-            m_retVal = new DatagramPacket(m_buf, addr_info);
+            if (m_family == net_base::_AF_LOCAL)
+                m_retVal = new DatagramPacket(m_buf, addr_info.ua);
+            else
+                m_retVal = new DatagramPacket(m_buf, addr_info.ia);
 
             return 0;
         }
@@ -650,6 +679,7 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
     public:
         obj_ptr<NObject>& m_retVal;
         int32_t m_bytes;
+        int32_t m_family;
         exlib::string m_buf;
     };
 
@@ -659,7 +689,7 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRecvFrom(m_fd, bytes, retVal, ac, m_lockRecv, m_RecvOpt))->call();
+    return (new asyncRecvFrom(m_fd, bytes, m_family, retVal, ac, m_lockRecv, m_RecvOpt))->call();
 }
 
 void AsyncIO::run(void (*proc)(void*))

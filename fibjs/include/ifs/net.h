@@ -27,6 +27,7 @@ class net_base : public object_base {
 
 public:
     enum {
+        _AF_LOCAL = 1,
         _AF_INET = 2,
         _AF_INET6 = 10,
         _SOCK_STREAM = 1,
@@ -113,6 +114,7 @@ inline ClassInfo& net_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
+        { "AF_LOCAL", _AF_LOCAL },
         { "AF_INET", _AF_INET },
         { "AF_INET6", _AF_INET6 },
         { "SOCK_STREAM", _SOCK_STREAM },

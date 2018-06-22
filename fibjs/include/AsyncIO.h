@@ -11,6 +11,9 @@
 #include "ifs/Socket.h"
 #include "Timer.h"
 #include "inetAddr.h"
+#ifndef _WIN32
+#include "unixAddr.h"
+#endif
 
 #ifndef ASYNCIO_H_
 #define ASYNCIO_H_
@@ -20,12 +23,24 @@ namespace fibjs {
 #define KEEPALIVE_TIMEOUT 120
 #define SOCKET_BUFF_SIZE 2048
 
+#ifdef _WIN32
+#define SOCKET_FAMILY_NAMED_PIPE 1
+#define AF_LOCAL SOCKET_FAMILY_NAMED_PIPE
+#define SOCKET_TYPE_NAMED_PIPE -2
+#endif
+
 class AsyncIO {
 public:
     AsyncIO(intptr_t s, int32_t family, int32_t type)
         : m_fd(s)
         , m_family(family)
         , m_type(type)
+#ifdef _WIN32
+        , m_acceptFd(INVALID_SOCKET)
+        , m_shAio(NULL)
+        , m_bFirstIns(TRUE)
+        , m_bListen(FALSE)
+#endif
 #ifndef _WIN32
         , m_RecvOpt(NULL)
         , m_SendOpt(NULL)
@@ -41,33 +56,26 @@ public:
             add("address", addr.str());
             add("port", addr.port());
         }
+#ifndef _WIN32
+        DatagramPacket(exlib::string data, unixAddr& addr)
+        {
+            add("data", new Buffer(data));
+            add("path", addr.str());
+        }
+#endif
     };
 
 public:
     result_t connect(exlib::string host, int32_t port, AsyncEvent* ac, Timer_base* timer);
+#ifndef _WIN32
+    result_t connect(exlib::string path, AsyncEvent* ac, Timer_base* timer);
+#endif
     result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac);
     result_t write(Buffer_base* data, AsyncEvent* ac);
     result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         AsyncEvent* ac, bool bRead, Timer_base* timer);
     result_t recvfrom(int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac);
-
-#ifndef _WIN32
     result_t close(AsyncEvent* ac);
-#else
-    result_t close(AsyncEvent* ac)
-    {
-        if (m_fd != INVALID_SOCKET) {
-            if (m_type == -1)
-                ::CloseHandle((HANDLE)m_fd);
-            else
-                ::closesocket(m_fd);
-        }
-
-        m_fd = INVALID_SOCKET;
-
-        return 0;
-    }
-#endif
 
     static result_t waitpid(intptr_t pid, int32_t& retVal, AsyncEvent* ac);
 
@@ -77,6 +85,14 @@ public:
     intptr_t m_fd;
     int32_t m_family;
     int32_t m_type;
+#ifdef _WIN32
+    intptr_t m_acceptFd;
+    exlib::string m_NamedPipePath;
+    AsyncIO* m_shAio;
+    BOOL m_bFirstIns;
+    BOOL m_bListen;
+    exlib::spinlock m_lock;
+#endif
 
 private:
     exlib::Locker m_lockRecv;

@@ -35,11 +35,21 @@ interface Socket : Stream
     /*! @brief 查询和设置超时时间 单位毫秒*/
     Integer timeout;
 
+    /*! @brief 建立一个 unix 域数据报连接
+     @param path 指定 socket 文件路径
+     */
+    connect(String path) async;
+
     /*! @brief 建立一个 tcp 连接
      @param host 指定对方地址或主机名
      @param port 指定对方端口
      */
     connect(String host, Integer port) async;
+
+    /*! @brief 将当前 Socket 绑定至本地 socket 文件
+     @param path 指定绑定的本地 socket 文件路径
+     */
+    bind(String path);
 
     /*! @brief 将当前 Socket 绑定至本地所有地址的指定端口
      @param port 指定绑定的端口
@@ -84,6 +94,12 @@ interface Socket : Stream
      @param data 给定要写入的数据
      */
     send(Buffer data) async;
+
+    /*! @brief 向给定 socket 文件发送一个 UDP 包
+     @param data 给定要写入的数据
+     @param path 指定目标 socket 文件路径
+     */
+    sendto(Buffer data, String path) async;
 
     /*! @brief 向给定 ip:port 发送一个 UDP 包
      @param data 给定要写入的数据

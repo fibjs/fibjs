@@ -240,6 +240,9 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
         return CHECK_ERROR(CALL_E_INVALID_CALL);
     }
 
+    if (m_family == net_base::_AF_LOCAL)
+        return CHECK_ERROR(Runtime::setError("socket family error, should not be AF_LOCAL"));
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -271,10 +274,12 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
 {
     class asyncAccept : public asyncProc {
     public:
-        asyncAccept(SOCKET s, SOCKET sListen, obj_ptr<Socket_base>& retVal,
+        asyncAccept(SOCKET s, SOCKET sListen, BOOL bNPipe, AsyncIO* pThis, obj_ptr<Socket_base>& retVal,
             AsyncEvent* ac, exlib::Locker& locker)
             : asyncProc(s, ac, locker)
             , m_sListen(sListen)
+            , m_bNPipe(bNPipe)
+            , m_pThis(pThis)
             , m_retVal(retVal)
         {
         }
@@ -284,6 +289,15 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
             static LPFN_ACCEPTEX AcceptEx;
             int32_t nError;
 
+            if (m_bNPipe) {
+                ConnectNamedPipe((HANDLE)m_s, this);
+                nError = GetLastError();
+                if (nError == ERROR_PIPE_CONNECTED) {
+                    m_pThis->m_acceptFd = INVALID_SOCKET;
+                    return 0;
+                }
+                return CHECK_ERROR((nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError);
+            }
             if (!AcceptEx) {
                 GUID guidAcceptEx = WSAID_ACCEPTEX;
                 DWORD dwBytes;
@@ -305,16 +319,19 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
 
         virtual void ready(DWORD dwBytes, int32_t nError)
         {
-            if (!nError) {
+            if (!m_bNPipe && !nError) {
                 setsockopt(m_s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT,
                     (char*)&m_sListen, sizeof(m_sListen));
                 setOption(m_s);
             }
+            m_pThis->m_acceptFd = INVALID_SOCKET;
             asyncProc::ready(dwBytes, nError);
         }
 
     public:
         SOCKET m_sListen;
+        BOOL m_bNPipe;
+        AsyncIO* m_pThis;
         obj_ptr<Socket_base>& m_retVal;
         char m_Buf[(sizeof(inetAddr) + 16) * 2];
     };
@@ -325,14 +342,38 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<Socket> s = new Socket();
-    result_t hr = s->create(m_family, m_type);
-    if (hr < 0)
-        return hr;
+    obj_ptr<Socket> s;
+    result_t hr;
+    BOOL bNPipe = FALSE;
+
+    if (m_family == net_base::_AF_LOCAL) {
+        m_lock.lock();
+        if (m_bFirstIns) {
+            s = new Socket(m_fd, m_family, m_type);
+            m_bFirstIns = FALSE;
+            s->m_aio.m_bFirstIns = FALSE;
+            s->m_aio.m_shAio = this;
+            m_lock.unlock();
+        } else {
+            m_lock.unlock();
+            s = new Socket();
+            hr = s->create(m_family, net_base::_SOCK_STREAM);
+            if (hr < 0)
+                return hr;
+            hr = s->bind(m_NamedPipePath, FALSE, FALSE, m_acceptFd);
+            if (hr < 0)
+                return hr;
+        }
+        bNPipe = TRUE;
+    } else {
+        s = new Socket();
+        hr = s->create(m_family, m_type);
+        if (hr < 0)
+            return hr;
+    }
 
     retVal = s;
-
-    asyncAccept* pa = new asyncAccept(s->m_aio.m_fd, m_fd, retVal, ac, m_lockRecv);
+    asyncAccept* pa = new asyncAccept(s->m_aio.m_fd, m_fd, bNPipe, this, retVal, ac, m_lockRecv);
     s.Release();
 
     pa->post();
@@ -365,7 +406,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
             nError = GetLastError();
 
-            if (nError == ERROR_BROKEN_PIPE) {
+            if (nError == ERROR_BROKEN_PIPE || nError == ERROR_PIPE_NOT_CONNECTED) {
                 if (m_timer) {
                     m_timer->clear();
                     m_timer.Release();
@@ -391,7 +432,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                 m_timer.Release();
             }
 
-            if (nError == -ERROR_BROKEN_PIPE) {
+            if (nError == -ERROR_BROKEN_PIPE || nError == -ERROR_PIPE_NOT_CONNECTED) {
                 nError = 0;
                 dwBytes = 0;
             }
@@ -569,6 +610,38 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
     (new asyncRecvFrom(m_fd, bytes, retVal, ac, m_lockRecv))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
-}
 
+result_t AsyncIO::close(AsyncEvent* ac)
+{
+    if (m_fd != INVALID_SOCKET) {
+        if (m_type == -1)
+            ::CloseHandle((HANDLE)m_fd);
+        else if (m_type == SOCKET_TYPE_NAMED_PIPE) {
+            if (m_bFirstIns || m_bListen) {
+                FlushFileBuffers((HANDLE)m_fd);
+                DisconnectNamedPipe((HANDLE)m_fd);
+                ::CloseHandle((HANDLE)m_fd);
+            } else if (m_shAio) {
+                m_shAio->m_lock.lock();
+                FlushFileBuffers((HANDLE)m_fd);
+                DisconnectNamedPipe((HANDLE)m_fd);
+                m_shAio->m_bFirstIns = TRUE;
+                m_shAio->m_lock.unlock();
+                m_shAio = NULL;
+            }
+        } else
+            ::closesocket(m_fd);
+    }
+    if (m_acceptFd != INVALID_SOCKET) {
+        FlushFileBuffers((HANDLE)m_acceptFd);
+        DisconnectNamedPipe((HANDLE)m_acceptFd);
+        ::CloseHandle((HANDLE)m_acceptFd);
+        m_acceptFd = INVALID_SOCKET;
+    }
+
+    m_fd = INVALID_SOCKET;
+
+    return 0;
+}
+}
 #endif

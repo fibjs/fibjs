@@ -41,6 +41,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sys/un.h>
 
 typedef int32_t SOCKET;
 #define SOCKET_ERROR -1

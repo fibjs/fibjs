@@ -9,6 +9,7 @@ var path = require('path');
 var os = require('os');
 var coroutine = require('coroutine');
 
+var isWindows = os.type() == "Windows";
 var base_port = coroutine.vmid * 10000;
 
 var net_config = {
@@ -40,7 +41,7 @@ var backend = {
     "Darwin": "KQueue",
     "FreeBSD": "KQueue",
     "Linux": "EPoll"
-}[os.type()];
+} [os.type()];
 
 
 function del(f) {
@@ -204,6 +205,212 @@ describe("net", () => {
         assert.equal('c', c1.read(1));
         assert.equal('d', c1.read(3));
     });
+
+    describe("unix socket", () => {
+        var sockfile = path.join(__dirname, "test.sock");
+        var sockfile1 = path.join(__dirname, "test.sock.random");
+        var namedPipe = "\\\\.\\pipe\\mynamedpipe";
+        var namedPipe1 = "\\\\.\\pipe\\mynamedpipe1";
+        var namedPipe2 = "\\\\.\\pipe\\mynamedpipe2";
+        var sss = [];
+        beforeEach(() => {
+            if (fs.exists(sockfile))
+                fs.unlink(sockfile);
+            if (fs.exists(sockfile1))
+                fs.unlink(sockfile1);
+        });
+        afterEach(() => {
+            sss.forEach(function (s) {
+                s.close();
+            })
+            if (fs.exists(sockfile))
+                fs.unlink(sockfile);
+            if (fs.exists(sockfile1))
+                fs.unlink(sockfile1);
+        });
+
+        it("echo", () => {
+            function connect(c) {
+                try {
+                    var b;
+                    while (b = c.recv())
+                        c.send(b);
+                } finally {
+                    c.close();
+                }
+            }
+
+            function accept(s) {
+                while (1)
+                    coroutine.start(connect, s.accept());
+            }
+
+            var s = new net.Socket(net.AF_LOCAL, net.SOCK_STREAM);
+            sss.push(s);
+
+            if (isWindows)
+                s.bind(namedPipe);
+            else
+                s.bind(sockfile);
+            s.listen();
+            if (isWindows)
+                assert.equal(s.localAddress, namedPipe);
+            else
+                assert.equal(s.localAddress, sockfile);
+            coroutine.start(accept, s);
+
+            function conn_socket() {
+                var s1 = new net.Socket(net.AF_LOCAL, net.SOCK_STREAM);
+                if (isWindows)
+                    s1.connect(namedPipe)
+                else
+                    s1.connect(sockfile);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+                coroutine.sleep(100);
+            }
+
+            conn_socket();
+        });
+
+        it("copyTo", () => {
+            var str = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+
+            for (var i = 0; i < 8; i++)
+                str = str + str;
+
+            function accept1(s) {
+                while (true) {
+                    var c = s.accept();
+
+                    // c.write(str);
+
+                    fs.writeFile(path.join(__dirname, 'net_temp_000001' + base_port), str);
+                    var f = fs.openFile(path.join(__dirname, 'net_temp_000001' + base_port));
+                    assert.equal(f.copyTo(c), str.length);
+                    f.close();
+                    c.close();
+                }
+            }
+
+            var s1 = new net.Socket(net.AF_LOCAL, net.SOCK_STREAM);
+            sss.push(s1);
+
+            if (isWindows)
+                s1.bind(namedPipe1);
+            else
+                s1.bind(sockfile);
+            s1.listen();
+            coroutine.start(accept1, s1);
+
+            function t_conn() {
+                var c1 = new net.Socket(net.AF_LOCAL);
+                if (isWindows)
+                    c1.connect(namedPipe1);
+                else
+                    c1.connect(sockfile);
+
+                var f1 = fs.openFile(path.join(__dirname, 'net_temp_000002' + base_port), 'w');
+                assert.equal(c1.copyTo(f1), str.length);
+                c1.close();
+                f1.close();
+
+                assert.equal(str, fs.readTextFile(path.join(__dirname, 'net_temp_000002' + base_port)));
+            }
+
+            for (var i = 0; i < 100; i++)
+                t_conn();
+
+            for (var i = 0; i < 10; i++)
+                str = str + str;
+
+            t_conn();
+
+            del(path.join(__dirname, 'net_temp_000001' + base_port));
+            del(path.join(__dirname, 'net_temp_000002' + base_port));
+        });
+
+        it("read & recv", () => {
+            function accept2(s) {
+                while (true) {
+                    var c = s.accept();
+
+                    c.write('a');
+                    coroutine.sleep(100);
+                    c.write('a');
+                    coroutine.sleep(100);
+                    c.write('b');
+                    coroutine.sleep(100);
+                    c.write('c');
+                    coroutine.sleep(100);
+                    c.write('d');
+                    coroutine.sleep(100);
+
+                    c.close();
+                }
+            }
+
+            var s2 = new net.Socket(net.AF_LOCAL);
+            sss.push(s2);
+
+            if (isWindows)
+                s2.bind(namedPipe2);
+            else
+                s2.bind(sockfile);
+            s2.listen();
+            coroutine.start(accept2, s2);
+
+            var c1 = new net.Socket(net.AF_LOCAL);
+            if (isWindows)
+                c1.connect(namedPipe2);
+            else
+                c1.connect(sockfile);
+            assert.equal('a', c1.recv(100));
+            assert.equal('ab', c1.read(2));
+            assert.equal('c', c1.read(1));
+            assert.equal('d', c1.read(3));
+        });
+
+        if (!isWindows)
+            describe("udp", () => {
+                it("sendto/recvfrom", () => {
+                    setTimeout(() => {
+                        var c = new net.Socket(net.AF_LOCAL, net.SOCK_DGRAM);
+                        c.sendto("aaa", sockfile);
+                    }, 100);
+
+                    var s = new net.Socket(net.AF_LOCAL, net.SOCK_DGRAM);
+                    s.bind(sockfile);
+
+                    assert.equal(s.recvfrom().data.toString(), "aaa");
+                    s.close();
+                });
+
+                it("recvfrom address", () => {
+                    var data;
+                    setTimeout(() => {
+                        var c = new net.Socket(net.AF_LOCAL, net.SOCK_DGRAM);
+                        c.bind(sockfile1)
+                        c.sendto("aaa", sockfile);
+                        data = c.recvfrom();
+                        console.log(data);
+                    }, 100);
+
+                    var s = new net.Socket(net.AF_LOCAL, net.SOCK_DGRAM);
+                    s.bind(sockfile);
+
+                    var d = s.recvfrom();
+                    console.log(d);
+                    assert.equal(d.path, sockfile1);
+                    s.sendto("bbb", d.path);
+
+                    coroutine.sleep(100);
+                    assert.equal(data.data.toString(), "bbb");
+                    s.close();
+                });
+            });
+    })
 
     describe("udp", () => {
         it("sendto/recvfrom", () => {

@@ -35,7 +35,9 @@ public:
     virtual result_t get_localPort(int32_t& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
+    virtual result_t connect(exlib::string path, AsyncEvent* ac) = 0;
     virtual result_t connect(exlib::string host, int32_t port, AsyncEvent* ac) = 0;
+    virtual result_t bind(exlib::string path) = 0;
     virtual result_t bind(int32_t port, bool allowIPv4) = 0;
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4) = 0;
     virtual result_t listen(int32_t backlog) = 0;
@@ -43,6 +45,7 @@ public:
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t recvfrom(int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac) = 0;
     virtual result_t send(Buffer_base* data, AsyncEvent* ac) = 0;
+    virtual result_t sendto(Buffer_base* data, exlib::string path, AsyncEvent* ac) = 0;
     virtual result_t sendto(Buffer_base* data, exlib::string host, int32_t port, AsyncEvent* ac) = 0;
 
 public:
@@ -69,11 +72,13 @@ public:
     static void s_sendto(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
+    ASYNC_MEMBER1(Socket_base, connect, exlib::string);
     ASYNC_MEMBER2(Socket_base, connect, exlib::string, int32_t);
     ASYNC_MEMBERVALUE1(Socket_base, accept, obj_ptr<Socket_base>);
     ASYNC_MEMBERVALUE2(Socket_base, recv, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(Socket_base, recvfrom, int32_t, obj_ptr<NObject>);
     ASYNC_MEMBER1(Socket_base, send, Buffer_base*);
+    ASYNC_MEMBER2(Socket_base, sendto, Buffer_base*, exlib::string);
     ASYNC_MEMBER3(Socket_base, sendto, Buffer_base*, exlib::string, int32_t);
 };
 }
@@ -254,6 +259,16 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
 
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_connect(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_connect(v0);
+
     ASYNC_METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
@@ -273,6 +288,12 @@ inline void Socket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_NAME("Socket.bind");
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->bind(v0);
 
     METHOD_OVER(2, 1);
 
@@ -392,6 +413,17 @@ inline void Socket_base::s_sendto(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_NAME("Socket.sendto");
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(exlib::string, 1);
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_sendto(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_sendto(v0, v1);
 
     ASYNC_METHOD_OVER(3, 3);
 
