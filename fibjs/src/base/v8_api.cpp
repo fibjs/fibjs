@@ -37,8 +37,8 @@ V8FrameInfo save_fi(v8::Isolate* isolate)
     v8::internal::Isolate* v8_isolate = (v8::internal::Isolate*)isolate;
     V8FrameInfo fi;
 
-    fi.entry_fp = *v8_isolate->c_entry_fp_address();
-    fi.handle = *v8_isolate->handler_address();
+    fi.entry_fp = (void*)*v8_isolate->c_entry_fp_address();
+    fi.handle = (void*)*v8_isolate->handler_address();
 
     return fi;
 }
@@ -112,7 +112,9 @@ exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void
 exlib::string traceInfo(v8::Isolate* isolate, int32_t deep)
 {
     v8::internal::Isolate* v8_isolate = (v8::internal::Isolate*)isolate;
-    return traceInfo(isolate, deep, *v8_isolate->c_entry_fp_address(), *v8_isolate->handler_address());
+    return traceInfo(isolate, deep
+        , (void*)*v8_isolate->c_entry_fp_address()
+        , (void*)*v8_isolate->handler_address());
 }
 
 void beginCoverage(v8::Isolate* isolate)
