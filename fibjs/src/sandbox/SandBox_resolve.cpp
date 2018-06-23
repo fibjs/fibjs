@@ -186,8 +186,27 @@ result_t SandBox::resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
     return CALL_E_FILE_NOT_FOUND;
 }
 
-result_t SandBox::resolveId(exlib::string& id, obj_ptr<Buffer_base>& data,
-    v8::Local<v8::Value>& retVal)
+result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retVal)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Value> func = GetPrivate("require");
+
+    if (!func->IsUndefined()) {
+        v8::Local<v8::Value> arg = isolate->NewString(id);
+        retVal = v8::Local<v8::Function>::Cast(func)->Call(wrap(), 1, &arg);
+        if (retVal.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+
+        if (!IsEmpty(retVal)) {
+            InstallModule(id, retVal);
+            return 0;
+        }
+    }
+
+    return CALL_E_FILE_NOT_FOUND;
+}
+
+result_t SandBox::resolveId(exlib::string& id, v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Object> _mods = mods();
@@ -205,20 +224,7 @@ result_t SandBox::resolveId(exlib::string& id, obj_ptr<Buffer_base>& data,
             return 0;
     }
 
-    v8::Local<v8::Value> func = GetPrivate("require");
-    if (!func->IsUndefined()) {
-        v8::Local<v8::Value> arg = isolate->NewString(id);
-        retVal = v8::Local<v8::Function>::Cast(func)->Call(wrap(), 1, &arg);
-        if (retVal.IsEmpty())
-            return CALL_E_JAVASCRIPT;
-
-        if (!IsEmpty(retVal)) {
-            InstallModule(id, retVal);
-            return 0;
-        }
-    }
-
-    return CALL_E_FILE_NOT_FOUND;
+    return custom_resolveId(id, retVal);
 }
 
 result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
@@ -295,7 +301,7 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
         if (!isAbs) {
             result_t hr;
 
-            hr = resolveId(id, data, retVal);
+            hr = resolveId(id, retVal);
             if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
                 return hr;
             return resolveModule(base, id, data, retVal);

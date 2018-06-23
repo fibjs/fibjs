@@ -137,6 +137,9 @@ public:
     };
 
 public:
+    virtual result_t custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retVal);
+
+public:
     void initRoot();
     void initRequire(v8::Local<v8::Function> func)
     {
@@ -156,7 +159,7 @@ public:
 
     result_t resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Value>* retVal);
-    result_t resolveId(exlib::string& id, obj_ptr<Buffer_base>& data, v8::Local<v8::Value>& retVal);
+    result_t resolveId(exlib::string& id, v8::Local<v8::Value>& retVal);
     result_t resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Value>& retVal);
     result_t resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
