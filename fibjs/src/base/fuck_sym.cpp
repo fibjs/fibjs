@@ -7,6 +7,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+namespace fibjs {
+void init_sym()
+{}
+}
+
 extern "C" {
 
 #ifdef HAVE_GLIB_C_225_H

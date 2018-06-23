@@ -31,6 +31,7 @@ void init_date();
 void init_acThread();
 void init_aio();
 void init_process();
+void init_sym();
 
 void init_argv(int32_t argc, char** argv);
 void init_start_argv(int32_t argc, char** argv);
@@ -57,6 +58,10 @@ static void init()
     init_acThread();
     init_aio();
     init_process();
+
+#ifdef Linux
+    init_sym();
+#endif
 
     srand((unsigned int)time(0));
 
