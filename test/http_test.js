@@ -1466,6 +1466,18 @@ describe("http", () => {
                 assert.equal(cookie, "root=value2");
                 http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test");
                 assert.equal(cookie, "root=value2; gzip_test=value");
+
+                var maxBodySize = http.maxBodySize;
+
+                http.maxBodySize = 130;
+                http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test");
+
+                http.maxBodySize = 129;
+                assert.throws(() => {
+                    http.get("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test");
+                });
+
+                http.maxBodySize = maxBodySize;
             });
 
             it("keep-alive", () => {
