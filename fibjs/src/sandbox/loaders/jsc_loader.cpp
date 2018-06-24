@@ -21,7 +21,7 @@ result_t JscLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
     result_t hr;
 
     obj_ptr<Buffer_base> unz;
-    hr = zlib_base::cc_gunzip(src, unz);
+    hr = zlib_base::cc_gunzip(src, -1, unz);
     if (hr < 0)
         return hr;
 

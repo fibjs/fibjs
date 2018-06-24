@@ -20,6 +20,13 @@ describe("zlib", () => {
         assert.deepEqual(zlib.inflate(zlib.deflate(b)), b);
     });
 
+    it("inflate maxSize", () => {
+        zlib.inflate(zlib.deflate(b), M);
+        assert.throws(() => {
+            zlib.inflate(zlib.deflate(b), M - 1);
+        });
+    });
+
     it("gzip", () => {
         assert.deepEqual(zlib.gunzip(zlib.gzip(b)), b);
     });

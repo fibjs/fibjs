@@ -331,9 +331,11 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
                 exlib::string str = hdr.string();
 
                 if (str == "gzip")
-                    return zlib_base::gunzipTo(pThis->m_body, pThis->m_unzip, pThis);
+                    return zlib_base::gunzipTo(pThis->m_body, pThis->m_unzip,
+                        pThis->m_maxBodySize, pThis);
                 else if (str == "deflate")
-                    return zlib_base::inflateRawTo(pThis->m_body, pThis->m_unzip, pThis);
+                    return zlib_base::inflateRawTo(pThis->m_body, pThis->m_unzip,
+                        pThis->m_maxBodySize, pThis);
             }
 
             return 0;

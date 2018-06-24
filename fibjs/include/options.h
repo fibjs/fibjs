@@ -31,7 +31,7 @@ struct OptData {
     void getDate(obj_ptr<Buffer_base>& data) const
     {
         obj_ptr<Buffer_base> zdata = new Buffer(source, size);
-        zlib_base::cc_inflate(zdata, data);
+        zlib_base::cc_inflate(zdata, -1, data);
     }
 };
 

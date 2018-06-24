@@ -32,8 +32,9 @@ module zlib
 
     /*! @brief 创建一个 gunzip 流对象 
      @param to 用于存储处理结果的流
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      @return 返回封装过的流对象*/
-    static Stream createGunzip(Stream to);
+    static Stream createGunzip(Stream to, Integer maxSize = -1);
 
     /*! @brief 创建一个 gzip 流对象 
      @param to 用于存储处理结果的流
@@ -42,13 +43,15 @@ module zlib
 
     /*! @brief 创建一个 inflate 流对象 
      @param to 用于存储处理结果的流
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      @return 返回封装过的流对象*/
-    static Stream createInflate(Stream to);
+    static Stream createInflate(Stream to, Integer maxSize = -1);
 
     /*! @brief 创建一个 inflateRaw 流对象 
      @param to 用于存储处理结果的流
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      @return 返回封装过的流对象*/
-    static Stream createInflateRaw(Stream to);
+    static Stream createInflateRaw(Stream to, Integer maxSize = -1);
 
     /*! @brief 使用 deflate 算法压缩数据(zlib格式)
      @param data 给定要压缩的数据
@@ -73,21 +76,24 @@ module zlib
 
     /*! @brief 解压缩 deflate 算法压缩的数据(zlib格式)
      @param data 给定压缩后的数据
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      @return 返回解压缩后的二进制数据
      */
-    static Buffer inflate(Buffer data) async;
+    static Buffer inflate(Buffer data, Integer maxSize = -1) async;
 
     /*! @brief 解压缩 deflate 算法压缩的数据到流对象中(zlib格式)
      @param data 给定要解压缩的数据
      @param stm 指定存储解压缩数据的流
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      */
-    static inflateTo(Buffer data, Stream stm) async;
+    static inflateTo(Buffer data, Stream stm, Integer maxSize = -1) async;
 
     /*! @brief 解压缩源流中 deflate 算法压缩的数据到流对象中(zlib格式)
      @param src 给定要解压缩的数据所在的流
      @param stm 指定存储解压缩数据的流
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      */
-    static inflateTo(Stream src, Stream stm) async;
+    static inflateTo(Stream src, Stream stm, Integer maxSize = -1) async;
 
     /*! @brief 使用 gzip 算法压缩数据
      @param data 给定要压缩的数据
@@ -109,21 +115,24 @@ module zlib
 
     /*! @brief 解压缩 gzip 算法压缩的数据
      @param data 给定压缩后的数据
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      @return 返回解压缩后的二进制数据
      */
-    static Buffer gunzip(Buffer data) async;
+    static Buffer gunzip(Buffer data, Integer maxSize = -1) async;
 
     /*! @brief 解压缩 gzip 算法压缩的数据到流对象中
      @param data 给定要解压缩的数据
      @param stm 指定存储解压缩数据的流
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      */
-    static gunzipTo(Buffer data, Stream stm) async;
+    static gunzipTo(Buffer data, Stream stm, Integer maxSize = -1) async;
 
     /*! @brief 解压缩源流中 gzip 算法压缩的数据到流对象中
      @param src 给定要解压缩的数据所在的流
      @param stm 指定存储解压缩数据的流
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      */
-    static gunzipTo(Stream src, Stream stm) async;
+    static gunzipTo(Stream src, Stream stm, Integer maxSize = -1) async;
 
     /*! @brief 使用 deflate 算法压缩数据(deflateRaw)
      @param data 给定要压缩的数据
@@ -148,19 +157,22 @@ module zlib
 
     /*! @brief 解压缩 deflate 算法压缩的数据(inflateRaw)
      @param data 给定压缩后的数据
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      @return 返回解压缩后的二进制数据
      */
-    static Buffer inflateRaw(Buffer data) async;
+    static Buffer inflateRaw(Buffer data, Integer maxSize = -1) async;
 
     /*! @brief 解压缩 deflate 算法压缩的数据到流对象中(inflateRaw)
      @param data 给定要解压缩的数据
      @param stm 指定存储解压缩数据的流
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      */
-    static inflateRawTo(Buffer data, Stream stm) async;
+    static inflateRawTo(Buffer data, Stream stm, Integer maxSize = -1) async;
 
     /*! @brief 解压缩源流中 deflate 算法压缩的数据到流对象中(inflateRaw)
      @param src 给定要解压缩的数据所在的流
      @param stm 指定存储解压缩数据的流
+     @param maxSize 指定解压缩尺寸限制，缺省为 -1，不限制
      */
-    static inflateRawTo(Stream src, Stream stm) async;
+    static inflateRawTo(Stream src, Stream stm, Integer maxSize = -1) async;
 };

@@ -487,7 +487,7 @@ void WebSocket::enableCompress()
 {
     m_compress = true;
     m_deflate = new defraw(NULL);
-    m_inflate = new infraw(NULL);
+    m_inflate = new infraw(NULL, m_maxSize);
     m_flushTail = new Buffer("\x0\x0\xff\xff", 4);
 }
 

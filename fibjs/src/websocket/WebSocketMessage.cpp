@@ -392,7 +392,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
                     pThis->m_wss->m_inflate->attach(pThis->m_body);
                     pThis->m_zip = pThis->m_wss->m_inflate;
                 } else
-                    zlib_base::createInflateRaw(pThis->m_body, pThis->m_zip);
+                    zlib_base::createInflateRaw(pThis->m_body, pThis->m_pThis->m_maxSize, pThis->m_zip);
 
                 pThis->m_pThis->m_compress = true;
             } else if (ch & 0x70) {
