@@ -485,7 +485,10 @@ describe('ws', () => {
                             msg.stream.close();
                         else if (msg.data === "close")
                             this.close(3000, "remote");
-                        else
+                        else if (msg.data === "many") {
+                            for (var i = 0; i < 1025; i++)
+                                s.send(new Buffer(1024 * 64));
+                        } else
                             this.send(msg.data);
                     };
                 })
@@ -554,6 +557,32 @@ describe('ws', () => {
             assert.equal(msg.data.toString(), '456');
 
             s.close();
+        });
+
+        it('many compressed message', () => {
+            var cnt = 0;
+            var sz = 0;
+            var msg;
+            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", "test");
+            s.onopen = () => {
+                s.send('many');
+            };
+
+            s.onmessage = m => {
+                cnt++;
+                sz += m.data.length;
+            };
+
+            s.onerror = e => {
+                console.error(e);
+            };
+
+            for (var i = 0; i < 1000 && cnt < 1025; i++)
+                coroutine.sleep(1);
+
+            s.close();
+
+            assert.equal(sz, 1024 * 1025 * 64);
         });
 
         it('send/on("message")', () => {

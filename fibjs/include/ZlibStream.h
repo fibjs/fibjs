@@ -104,6 +104,7 @@ public:
     void attach(Stream_base* stm)
     {
         m_stm = stm;
+        m_dataSize = 0;
     }
 
 public:
