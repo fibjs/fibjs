@@ -31,6 +31,7 @@ public:
     virtual result_t add(v8::Local<v8::Object> mods) = 0;
     virtual result_t addScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t remove(exlib::string id) = 0;
+    virtual result_t has(exlib::string id, bool& retVal) = 0;
     virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv) = 0;
     virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal) = 0;
@@ -46,6 +47,7 @@ public:
     static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_addScript(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_has(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -63,6 +65,7 @@ inline ClassInfo& SandBox_base::class_info()
         { "add", s_add, false },
         { "addScript", s_addScript, false },
         { "remove", s_remove, false },
+        { "has", s_has, false },
         { "clone", s_clone, false },
         { "run", s_run, false },
         { "resolve", s_resolve, false },
@@ -181,6 +184,23 @@ inline void SandBox_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& ar
     hr = pInst->remove(v0);
 
     METHOD_VOID();
+}
+
+inline void SandBox_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("SandBox.has");
+    METHOD_INSTANCE(SandBox_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->has(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void SandBox_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -51,6 +51,12 @@ interface SandBox : object
      */
     remove(String id);
 
+    /*! @brief Check a module in the sandbox exists
+     @param id Module name
+     @return bool
+     */
+    Boolean has(String id);
+
     /*! @brief clone current sandbox, the cloned sandbox contains all current sandbox module, same name and same require function.
      @return cloned sanbox
      */
