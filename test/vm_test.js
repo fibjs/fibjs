@@ -38,6 +38,26 @@ describe("vm", () => {
         sbox.require('./vm_test/t1', __dirname).fun();
         assert.equal(1000, b.a);
     });
+    it("has", () => {
+        var b = {
+            a: 1000
+        }
+
+        sbox = new vm.SandBox({
+            a: 100,
+            assert: assert,
+            b: b
+        }, (name) => {
+            if (name == 'c')
+                return 300;
+        });
+
+        sbox.add('a', new Number(100));
+        sbox.add('coroutine', require('coroutine'));
+        assert.equal(true, sbox.has('a'));
+        assert.equal(true, sbox.has('coroutine'));
+        assert.equal(false, sbox.has('foo'));
+    });
 
     it("addScript", () => {
         var a = sbox.addScript("t1.js", "module.exports = {a : 100};");

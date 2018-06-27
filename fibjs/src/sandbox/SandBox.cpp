@@ -167,6 +167,17 @@ result_t SandBox::remove(exlib::string id)
     return 0;
 }
 
+result_t SandBox::has(exlib::string id, bool& retVal)
+{
+    path_base::normalize(id, id);
+    retVal = mods()->Has(
+                Isolate::current()->context(), 
+                holder()->NewString(id))
+            .ToChecked();
+
+    return 0;
+}
+
 result_t SandBox::clone(obj_ptr<SandBox_base>& retVal)
 {
     obj_ptr<SandBox> sbox = new SandBox();

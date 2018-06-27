@@ -27,6 +27,7 @@ public:
     virtual result_t add(v8::Local<v8::Object> mods);
     virtual result_t addScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal);
     virtual result_t remove(exlib::string id);
+    virtual result_t has(exlib::string id, bool& retVal);
     virtual result_t clone(obj_ptr<SandBox_base>& retVal);
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv);
     virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal);
