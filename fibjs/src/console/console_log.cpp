@@ -24,6 +24,20 @@ public:
     }
 } s_logger_initer;
 
+result_t addLogger(logger* lgr)
+{
+    int32_t n = 0;
+
+    for (n = 0; n < MAX_LOGGER && s_logs[n]; n++)
+        ;
+
+    if (n >= MAX_LOGGER)
+        return CHECK_ERROR(Runtime::setError("Too many items."));
+
+    s_logs[n] = lgr;
+    return 0;
+}
+
 void outLog(int32_t priority, exlib::string msg)
 {
     if (priority > s_loglevel)
@@ -101,14 +115,6 @@ result_t console_base::add(exlib::string type)
 
 result_t console_base::add(v8::Local<v8::Object> cfg)
 {
-    int32_t n = 0;
-
-    for (n = 0; n < MAX_LOGGER && s_logs[n]; n++)
-        ;
-
-    if (n >= MAX_LOGGER)
-        return CHECK_ERROR(Runtime::setError("Too many items."));
-
     v8::Local<v8::Value> type;
     Isolate* isolate = Isolate::current();
 
@@ -145,7 +151,9 @@ result_t console_base::add(v8::Local<v8::Object> cfg)
             return hr;
         }
 
-        s_logs[n] = lgr;
+        hr = addLogger(lgr);
+        if (hr < 0)
+            return hr;
     }
 
     return 0;
