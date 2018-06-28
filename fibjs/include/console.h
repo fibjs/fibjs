@@ -155,19 +155,23 @@ public:
 public:
     virtual result_t write(AsyncEvent* ac) = 0;
 
+    virtual void putLog(int32_t priority, exlib::string& msg)
+    {
+        item* i = new item(priority, msg);
+
+        m_lock.lock();
+        m_acLog.putTail(i);
+        if (!m_bWorking) {
+            m_bWorking = true;
+            async(CALL_E_NOSYNC);
+        }
+        m_lock.unlock();
+    }
+
     void log(int32_t priority, exlib::string& msg)
     {
-        if (priority >= 0 && priority < console_base::_NOTSET && m_levels[priority]) {
-            item* i = new item(priority, msg);
-
-            m_lock.lock();
-            m_acLog.putTail(i);
-            if (!m_bWorking) {
-                m_bWorking = true;
-                async(CALL_E_NOSYNC);
-            }
-            m_lock.unlock();
-        }
+        if (priority >= 0 && priority < console_base::_NOTSET && m_levels[priority])
+            putLog(priority, msg);
     }
 
     void flush()
