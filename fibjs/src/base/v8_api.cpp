@@ -26,6 +26,12 @@ namespace fibjs {
 
 bool path_isAbsolute(exlib::string path);
 
+v8::Local<v8::BigInt> BigInt_New(v8::Isolate* isolate, uint64_t value) {
+  v8::internal::Isolate* internal_isolate = reinterpret_cast<v8::internal::Isolate*>(isolate);
+  v8::internal::Handle<v8::internal::BigInt> result = v8::internal::BigInt::FromUint64(internal_isolate, value);
+  return v8::Utils::ToLocal(result);
+}
+
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate)
 {
     v8::internal::Isolate* v8_isolate = (v8::internal::Isolate*)isolate;

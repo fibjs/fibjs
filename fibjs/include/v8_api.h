@@ -10,6 +10,7 @@
 
 namespace fibjs {
 
+v8::Local<v8::BigInt> BigInt_New(v8::Isolate* isolate, uint64_t value);
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate);
 
 struct V8FrameInfo {
