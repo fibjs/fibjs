@@ -71,7 +71,6 @@ void JSFiber::fiber_proc(void* p)
                 AsyncEvent* ae = (AsyncEvent*)isolate->m_jobs.getHead();
 
                 hr = ae->js_invoke();
-                isolate->m_isolate->RunMicrotasks();
             }
 
             isolate->Unref(hr);
@@ -224,6 +223,8 @@ JSFiber::scope::scope(JSFiber* fb)
 
 JSFiber::scope::~scope()
 {
+    m_pFiber->holder()->m_isolate->RunMicrotasks();
+
     m_pFiber->m_quit.set();
 
     ReportException(try_catch, m_hr);
