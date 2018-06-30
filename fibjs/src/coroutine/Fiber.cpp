@@ -71,6 +71,7 @@ void JSFiber::fiber_proc(void* p)
                 AsyncEvent* ae = (AsyncEvent*)isolate->m_jobs.getHead();
 
                 hr = ae->js_invoke();
+                isolate->m_isolate->RunMicrotasks();
             }
 
             isolate->Unref(hr);
