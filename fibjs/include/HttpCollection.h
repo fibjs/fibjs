@@ -39,15 +39,12 @@ public:
 public:
     void add(const char* name, int32_t szName, const char* value, int32_t szValue)
     {
-        m_names[m_count].assign(name, szName);
-        m_values[m_count].assign(value, szValue);
-        m_count++;
+        add(exlib::string(name, szName), exlib::string(value, szValue));
     }
 
     void add(exlib::string& name, exlib::string& value)
     {
-        m_names[m_count].assign(name);
-        m_values[m_count].assign(value);
+        m_map[m_count] = pair(name, value);
         m_count++;
     }
 
@@ -58,8 +55,8 @@ public:
     result_t parseCookie(exlib::string& str);
 
 private:
-    QuickArray<exlib::string> m_names;
-    QuickArray<exlib::string> m_values;
+    typedef std::pair<exlib::string, exlib::string> pair;
+    QuickArray<pair> m_map;
     int32_t m_count;
 };
 
