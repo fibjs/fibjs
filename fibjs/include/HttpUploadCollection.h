@@ -39,8 +39,8 @@ public:
     void parse(exlib::string& str, const char* boundary);
 
 private:
-    QuickArray<exlib::string> m_names;
-    QuickArray<VariantEx> m_values;
+    typedef std::pair<exlib::string, VariantEx> pair;
+    QuickArray<pair> m_map;
     int32_t m_count;
 };
 
