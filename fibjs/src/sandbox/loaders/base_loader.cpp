@@ -12,16 +12,12 @@
 namespace fibjs {
 
 const char* SandBox::script_args = "(async function(__filename,__dirname,require,run,exports,module,argv,repl){";
-static const int32_t script_args_count = 8;
-
 const char* SandBox::worker_args = "(async function(__filename,__dirname,require,run,exports,module,Master){";
-static const int32_t worker_args_count = 7;
-
 const char* SandBox::module_args = "(async function(__filename,__dirname,require,run,exports,module){";
-static const int32_t module_args_count = 6;
+const char* SandBox::base_args = "(async function(__filename,__dirname,require,run,exports,module";
 
 result_t SandBox::ExtLoader::run_script(Context* ctx, Buffer_base* src, exlib::string name,
-    v8::Local<v8::Array> argv)
+    std::vector<arg>& extarg, bool is_main)
 {
     Isolate* isolate = ctx->m_sb->holder();
 
@@ -34,86 +30,39 @@ result_t SandBox::ExtLoader::run_script(Context* ctx, Buffer_base* src, exlib::s
     module->Set(strExports, exports);
     module->Set(strRequire, ctx->m_fnRequest);
 
-    v8::Local<v8::Value> args[10] = {
-        v8::Local<v8::Value>(), v8::Local<v8::Value>(),
-        ctx->m_fnRequest,
-        ctx->m_fnRun,
-        exports,
-        module,
-        argv,
-        v8::Undefined(ctx->m_sb->holder()->m_isolate)
-    };
+    if (is_main)
+        ctx->m_fnRequest->Set(isolate->NewString("main"), module);
 
-    return run(ctx, src, name, script_args, args, script_args_count);
-}
-
-result_t SandBox::ExtLoader::run_main(Context* ctx, Buffer_base* src, exlib::string name,
-    v8::Local<v8::Array> argv)
-{
-    Isolate* isolate = ctx->m_sb->holder();
-
-    v8::Local<v8::String> strRequire = isolate->NewString("require");
-    v8::Local<v8::String> strExports = isolate->NewString("exports");
-
-    v8::Local<v8::Object> module = v8::Object::New(isolate->m_isolate);
-    v8::Local<v8::Object> exports = v8::Object::New(isolate->m_isolate);
-
-    module->Set(strExports, exports);
-    module->Set(strRequire, ctx->m_fnRequest);
-
-    ctx->m_fnRequest->Set(isolate->NewString("main"), module);
-
-    v8::Local<v8::Value> replFunc = global_base::class_info().getModule(isolate)->Get(
-        isolate->NewString("repl"));
-
-    v8::Local<v8::Value> args[10] = {
-        v8::Local<v8::Value>(), v8::Local<v8::Value>(),
-        ctx->m_fnRequest,
-        ctx->m_fnRun,
-        exports,
-        module,
-        argv,
-        replFunc
-    };
-    return run(ctx, src, name, script_args, args, script_args_count);
-}
-
-result_t SandBox::ExtLoader::run_worker(Context* ctx, Buffer_base* src, exlib::string name,
-    Worker_base* master)
-{
-    Isolate* isolate = ctx->m_sb->holder();
-
-    v8::Local<v8::String> strRequire = isolate->NewString("require");
-    v8::Local<v8::String> strExports = isolate->NewString("exports");
-
-    v8::Local<v8::Object> module = v8::Object::New(isolate->m_isolate);
-    v8::Local<v8::Object> exports = v8::Object::New(isolate->m_isolate);
-
-    module->Set(strExports, exports);
-    module->Set(strRequire, ctx->m_fnRequest);
-
-    v8::Local<v8::Value> args[10] = {
-        v8::Local<v8::Value>(), v8::Local<v8::Value>(),
-        ctx->m_fnRequest,
-        ctx->m_fnRun,
-        exports,
-        module,
-        master->wrap()
-    };
-    return run(ctx, src, name, worker_args, args, worker_args_count);
+    return run_module(ctx, src, name, module, exports, extarg);
 }
 
 result_t SandBox::ExtLoader::run_module(Context* ctx, Buffer_base* src, exlib::string name,
-    v8::Local<v8::Object> module, v8::Local<v8::Object> exports)
+    v8::Local<v8::Object> module, v8::Local<v8::Object> exports,
+    std::vector<arg>& extarg)
 {
-    v8::Local<v8::Value> args[10] = {
-        v8::Local<v8::Value>(), v8::Local<v8::Value>(),
-        ctx->m_fnRequest,
-        ctx->m_fnRun,
-        exports,
-        module
-    };
+    std::vector<v8::Local<v8::Value>> args;
 
-    return run(ctx, src, name, module_args, args, module_args_count);
+    args.resize(extarg.size() + 6);
+
+    args[0] = v8::Local<v8::Value>();
+    args[1] = v8::Local<v8::Value>();
+    args[2] = ctx->m_fnRequest;
+    args[3] = ctx->m_fnRun;
+    args[4] = exports;
+    args[5] = module;
+
+    int32_t i;
+    exlib::string arg_names(base_args);
+
+    for (i = 0; i < (int32_t)extarg.size(); i++) {
+        arg& a = extarg[i];
+        arg_names.append(1, ',');
+        arg_names.append(a.first);
+        args[i + 6] = a.second;
+    }
+
+    arg_names.append("){", 2);
+
+    return run(ctx, src, name, arg_names.c_str(), args.data(), (int32_t)args.size());
 }
 }

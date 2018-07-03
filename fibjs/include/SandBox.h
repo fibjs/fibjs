@@ -117,14 +117,14 @@ public:
         }
 
     public:
+        typedef std::pair<exlib::string, v8::Local<v8::Value>> arg;
+
+    public:
         result_t run_script(Context* ctx, Buffer_base* src, exlib::string name,
-            v8::Local<v8::Array> argv);
-        result_t run_main(Context* ctx, Buffer_base* src, exlib::string name, 
-            v8::Local<v8::Array> argv);
-        result_t run_worker(Context* ctx, Buffer_base* src, exlib::string name,
-            Worker_base* master);
+            std::vector<arg>& extarg, bool is_main);
         result_t run_module(Context* ctx, Buffer_base* src, exlib::string name,
-            v8::Local<v8::Object> module, v8::Local<v8::Object> exports);
+            v8::Local<v8::Object> module, v8::Local<v8::Object> exports,
+            std::vector<arg>& extarg);
 
     public:
         virtual result_t run(Context* ctx, Buffer_base* src, exlib::string name,
@@ -212,6 +212,7 @@ public:
     static const char* script_args;
     static const char* worker_args;
     static const char* module_args;
+    static const char* base_args;
 
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;

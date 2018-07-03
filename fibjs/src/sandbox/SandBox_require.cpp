@@ -42,7 +42,8 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
 
     InstallModule(srcname, exports, mod);
 
-    hr = l->run_module(&context, script, srcname, mod, exports);
+    std::vector<ExtLoader::arg> extarg;
+    hr = l->run_module(&context, script, srcname, mod, exports, extarg);
     if (hr < 0) {
         // delete from modules
         remove(srcname);

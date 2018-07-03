@@ -10,6 +10,7 @@
 #include "Buffer.h"
 #include "path.h"
 #include "options.h"
+#include "ifs/global.h"
 
 namespace fibjs {
 
@@ -45,7 +46,14 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         return hr;
 
     Context context(this, fname);
-    return l->run_main(&context, bin, fname, argv);
+    Isolate* isolate = holder();
+
+    std::vector<ExtLoader::arg> extarg(2);
+    extarg[0] = ExtLoader::arg("argv", argv);
+    extarg[1] = ExtLoader::arg("repl",
+        global_base::class_info().getModule(isolate)->Get(isolate->NewString("repl")));
+
+    return l->run_script(&context, bin, fname, extarg, true);
 }
 
 result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
@@ -69,7 +77,11 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
         return hr;
 
     Context context(this, fname);
-    return l->run_worker(&context, bin, fname, master);
+
+    std::vector<ExtLoader::arg> extarg(1);
+    extarg[0] = ExtLoader::arg("Master", master->wrap());
+
+    return l->run_script(&context, bin, fname, extarg, false);
 }
 
 result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv)
@@ -95,6 +107,10 @@ result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv)
         return hr;
 
     Context context(this, fname);
-    return l->run_script(&context, bin, fname, argv);
+    std::vector<ExtLoader::arg> extarg(2);
+    extarg[0] = ExtLoader::arg("argv", argv);
+    extarg[1] = ExtLoader::arg("repl", v8::Undefined(holder()->m_isolate));
+
+    return l->run_script(&context, bin, fname, extarg, false);
 }
 }
