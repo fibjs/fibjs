@@ -56,8 +56,8 @@ public:
     }
 
 public:
-    virtual result_t run_module(SandBox::Context* ctx, Buffer_base* src,
-        exlib::string name, v8::Local<v8::Object> module, v8::Local<v8::Object> exports);
+    virtual result_t run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+        exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count);
 };
 
 } /* namespace fibjs */

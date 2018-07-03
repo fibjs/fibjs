@@ -117,14 +117,14 @@ public:
         }
 
     public:
-        virtual result_t run_script(Context* ctx, Buffer_base* src,
-            exlib::string name, v8::Local<v8::Array> argv);
-        virtual result_t run_main(Context* ctx, Buffer_base* src,
-            exlib::string name, v8::Local<v8::Array> argv);
-        virtual result_t run_worker(Context* ctx, Buffer_base* src,
-            exlib::string name, Worker_base* master);
-        virtual result_t run_module(Context* ctx, Buffer_base* src,
-            exlib::string name, v8::Local<v8::Object> module, v8::Local<v8::Object> exports);
+        result_t run_script(Context* ctx, Buffer_base* src, exlib::string name,
+            v8::Local<v8::Array> argv);
+        result_t run_main(Context* ctx, Buffer_base* src, exlib::string name, 
+            v8::Local<v8::Array> argv);
+        result_t run_worker(Context* ctx, Buffer_base* src, exlib::string name,
+            Worker_base* master);
+        result_t run_module(Context* ctx, Buffer_base* src, exlib::string name,
+            v8::Local<v8::Object> module, v8::Local<v8::Object> exports);
 
     public:
         virtual result_t run(Context* ctx, Buffer_base* src, exlib::string name,

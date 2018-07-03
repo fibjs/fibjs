@@ -11,8 +11,8 @@
 #include "loaders.h"
 
 namespace fibjs {
-result_t JsonLoader::run_module(SandBox::Context* ctx, Buffer_base* src,
-    exlib::string name, v8::Local<v8::Object> module, v8::Local<v8::Object> exports)
+result_t JsonLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+    exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count)
 {
     exlib::string strScript;
     v8::Local<v8::Value> v;
@@ -23,6 +23,7 @@ result_t JsonLoader::run_module(SandBox::Context* ctx, Buffer_base* src,
         return hr;
 
     Isolate* isolate = ctx->m_sb->holder();
+    v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
     module->Set(isolate->NewString("exports"), v);
 
     return 0;
