@@ -8,15 +8,15 @@ interface Digest : object
     Digest update(Buffer data);
 
     /*! @brief 计算并返回摘要
-     @param data 二进制数据块，此数据块将在计算前更新进摘要
-     @return 返回摘要的二进制数据
+     @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者系统支持的字符集
+     @return 返回摘要的字符串表示
      */
-    Buffer digest(Buffer data);
+    Value digest(String codec);
 
     /*! @brief 计算并返回摘要
       @return 返回摘要的二进制数据
      */
-    Buffer digest();
+    Value digest();
 
     /*! @brief 查询当前信息摘要算法的摘要字节数 */
     readonly Integer size;

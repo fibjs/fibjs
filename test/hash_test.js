@@ -10,16 +10,29 @@ describe("hash", () => {
         assert.equal(o.hash, hash.digest(hash[o.name],
             new Buffer(o.text)).digest().hex());
         assert.equal(o.hash, hash[o.name.toLowerCase()](o.text).digest().hex());
-        assert.equal(o.hash, hash.digest(hash[o.name]).digest(o.text).hex());
+        assert.equal(o.hash, hash.digest(hash[o.name]).update(o.text).digest().hex());
 
-        assert.equal(o.hash, crypto.createHash(o.name).digest(o.text).hex());
-        assert.equal(o.hash, crypto.createHash(o.name.toLowerCase()).digest(o.text).hex());
+        assert.equal(o.hash, crypto.createHash(o.name).update(o.text).digest().hex());
+        assert.equal(o.hash, crypto.createHash(o.name.toLowerCase()).update(o.text).digest().hex());
+
+        assert.equal(o.hash, hash.digest(hash[o.name], o.text).digest('hex'));
+        assert.equal(o.hash, hash.digest(hash[o.name],
+            new Buffer(o.text)).digest('hex'));
+        assert.equal(o.hash, hash[o.name.toLowerCase()](o.text).digest('hex'));
+        assert.equal(o.hash, hash.digest(hash[o.name]).update(o.text).digest('hex'));
+
+        assert.equal(o.hash, crypto.createHash(o.name).update(o.text).digest('hex'));
+        assert.equal(o.hash, crypto.createHash(o.name.toLowerCase()).update(o.text).digest('hex'));
     }
 
     function hmac_test(o) {
-        assert.equal(o.hmac, hash.hmac(hash[o.name], o.key).digest(o.text).hex());
-        assert.equal(o.hmac, hash['hmac_' + o.name.toLowerCase()](o.key).digest(o.text).hex());
-        assert.equal(o.hmac, crypto.createHmac(o.name, o.key).digest(o.text).hex());
+        assert.equal(o.hmac, hash.hmac(hash[o.name], o.key).update(o.text).digest().hex());
+        assert.equal(o.hmac, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest().hex());
+        assert.equal(o.hmac, crypto.createHmac(o.name, o.key).update(o.text).digest().hex());
+
+        assert.equal(o.hmac, hash.hmac(hash[o.name], o.key).update(o.text).digest('hex'));
+        assert.equal(o.hmac, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest('hex'));
+        assert.equal(o.hmac, crypto.createHmac(o.name, o.key).update(o.text).digest('hex'));
     }
 
     it("md2", () => {
