@@ -27,6 +27,9 @@ public:
         obj_ptr<Timer_base> retVal;
 
         int32_t nArgCount = args.Length();
+        if(nArgCount < 0)
+            nArgCount = 0;
+
         m_argv.resize(nArgCount);
         for (int i = 0; i < nArgCount; i++)
             m_argv[i].Reset(isolate->m_isolate, args[i]);
