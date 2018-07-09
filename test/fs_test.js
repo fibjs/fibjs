@@ -3,6 +3,7 @@ var coroutine = require('coroutine');
 var path = require('path');
 var fs = require('fs');
 var zip = require('zip');
+var io = require('io');
 
 test.setup();
 
@@ -12,7 +13,7 @@ var isWin32 = process.platform === 'win32';
 function unlink(pathname) {
     try {
         fs.rmdir(pathname);
-    } catch (e) { }
+    } catch (e) {}
 }
 
 var pathname = 'test_dir' + vmid;
@@ -30,7 +31,7 @@ describe('fs', () => {
     after(() => {
         try {
             fs.unlink(path.join(__dirname, 'unzip_test.zip'));
-        } catch (e) { }
+        } catch (e) {}
     });
 
     it("stat", () => {
@@ -345,6 +346,38 @@ describe('fs', () => {
 
         coroutine.sleep(4000);
         test_zip(2);
+    });
+
+    it("zip data", () => {
+        function save_zip(n) {
+            var stream = new io.MemoryStream();
+            var zipfile = zip.open(stream, "w");
+            zipfile.write(new Buffer('test ' + n), 'test.txt');
+            zipfile.close();
+
+            stream.rewind();
+            fs.setZipFS("/unzip_test.zip", stream.readAll());
+        }
+
+        function test_zip(n) {
+            assert.equal(fs.readTextFile(path.join("/unzip_test.zip$", "test.txt")),
+                "test " + n);
+        }
+
+        save_zip(1);
+        test_zip(1);
+
+        save_zip(2);
+        test_zip(2);
+
+        coroutine.sleep(4000);
+        test_zip(2);
+
+        fs.clearZipFS("/unzip_test.zip");
+
+        assert.throws(() => {
+            test_zip(2);
+        });
     });
 
     describe('read', () => {

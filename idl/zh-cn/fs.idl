@@ -257,8 +257,14 @@ module fs
      */
     static appendFile(String fname, Buffer data) async;
 
-    /*! @brief 创建二进制文件，并写入内容，是 appendFile 的同步版兼容接口
-     @param fname 指定文件名
-     @param data 指定要写入的二进制数据
+    /*! @brief 设置 zip 虚拟文件映射
+     @param fname 指定映射路径
+     @param data 指定映射的 zip 文件数据
      */
+    static setZipFS(String fname, Buffer data);
+
+    /*! @brief 清除 zip 虚拟文件映射
+     @param fname 指定映射路径，缺省清除全部缓存
+     */
+    static clearZipFS(String fname = "");
 };

@@ -68,6 +68,8 @@ public:
     static result_t writeTextFile(exlib::string fname, exlib::string txt, AsyncEvent* ac);
     static result_t writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac);
     static result_t appendFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac);
+    static result_t setZipFS(exlib::string fname, Buffer_base* data);
+    static result_t clearZipFS(exlib::string fname);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -116,6 +118,8 @@ public:
     static void s_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_appendFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setZipFS(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_clearZipFS(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(fs_base, exists, exlib::string, bool);
@@ -229,7 +233,9 @@ inline ClassInfo& fs_base::class_info()
         { "writeFile", s_writeFile, true },
         { "writeFileSync", s_writeFile, true },
         { "appendFile", s_appendFile, true },
-        { "appendFileSync", s_appendFile, true }
+        { "appendFileSync", s_appendFile, true },
+        { "setZipFS", s_setZipFS, true },
+        { "clearZipFS", s_clearZipFS, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -924,6 +930,35 @@ inline void fs_base::s_appendFile(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_appendFile(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void fs_base::s_setZipFS(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("fs.setZipFS");
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = setZipFS(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void fs_base::s_clearZipFS(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("fs.clearZipFS");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "");
+
+    hr = clearZipFS(v0);
 
     METHOD_VOID();
 }

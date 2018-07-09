@@ -36,6 +36,61 @@ public:
 static std::list<obj_ptr<cache_node>> s_cache;
 static exlib::spinlock s_cachelock;
 
+result_t fs_base::setZipFS(exlib::string fname, Buffer_base* data)
+{
+    result_t hr;
+    std::list<obj_ptr<cache_node>>::iterator it;
+    obj_ptr<ZipFile_base> zfile;
+    obj_ptr<cache_node> _node;
+
+    hr = zip_base::cc_open(data, "r", zip_base::_ZIP_DEFLATED, zfile);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<NArray> list;
+    hr = zfile->cc_readAll("", list);
+    if (hr < 0)
+        return hr;
+
+    _node = new cache_node();
+    _node->m_name = fname;
+    _node->m_list = list;
+    _node->m_date = INFINITY;
+    _node->m_mtime.now();
+
+    s_cachelock.lock();
+    for (it = s_cache.begin(); it != s_cache.end(); ++it)
+        if ((*it)->m_name == fname) {
+            *it = _node;
+            break;
+        }
+    if (it == s_cache.end())
+        s_cache.push_back(_node);
+    s_cachelock.unlock();
+    return 0;
+}
+
+result_t fs_base::clearZipFS(exlib::string fname)
+{
+    if (fname.empty()) {
+        s_cachelock.lock();
+        s_cache.clear();
+        s_cachelock.unlock();
+    } else {
+        std::list<obj_ptr<cache_node>>::iterator it;
+
+        s_cachelock.lock();
+        for (it = s_cache.begin(); it != s_cache.end(); ++it)
+            if ((*it)->m_name == fname) {
+                s_cache.erase(it);
+                break;
+            }
+        s_cachelock.unlock();
+    }
+
+    return 0;
+}
+
 result_t fs_base::openFile(exlib::string fname, exlib::string flags,
     obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
 {
