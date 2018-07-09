@@ -59,53 +59,34 @@ result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
     return 0;
 }
 
-result_t Digest::digest(exlib::string& retVal)
-{
-    if (m_iAlgo < 0)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    retVal.resize(mbedtls_md_get_size(m_ctx.md_info));
-
-    if (m_bMac)
-        mbedtls_md_hmac_finish(&m_ctx, (unsigned char*)&retVal[0]);
-    else
-        mbedtls_md_finish(&m_ctx, (unsigned char*)&retVal[0]);
-
-    m_iAlgo = -1;
-    mbedtls_md_hmac_reset(&m_ctx);
-
-    return 0;
-}
-
-result_t Digest::digest(v8::Local<v8::Value>& retVal)
-{
-    exlib::string strBuf;
-    result_t hr = digest(strBuf);
-    if (hr < 0)
-        return hr;
-
-    obj_ptr<Buffer_base> buf = new Buffer(strBuf);
-
-    retVal = buf->wrap();
-    return 0;
-}
-
 result_t Digest::digest(exlib::string codec,
     v8::Local<v8::Value>& retVal)
 {
     exlib::string strBuf;
-    result_t hr;
+    if (m_iAlgo < 0)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    hr = digest(strBuf);
-    if (hr < 0)
-        return hr;
+    strBuf.resize(mbedtls_md_get_size(m_ctx.md_info));
 
-    exlib::string data;
-    hr = commonEncode(codec, strBuf, data);
-    if (hr < 0)
-        return hr;
+    if (m_bMac)
+        mbedtls_md_hmac_finish(&m_ctx, (unsigned char*)&strBuf[0]);
+    else
+        mbedtls_md_finish(&m_ctx, (unsigned char*)&strBuf[0]);
 
-    retVal = holder()->NewString(data);
+    m_iAlgo = -1;
+    mbedtls_md_hmac_reset(&m_ctx);
+
+    if ((codec == "buffer")) {
+        obj_ptr<Buffer_base> buf = new Buffer(strBuf);
+        retVal = buf->wrap();
+    } else {
+        exlib::string data;
+        result_t hr = commonEncode(codec, strBuf, data);
+        if (hr < 0)
+            return hr;
+
+        retVal = holder()->NewString(data);
+    }
     return 0;
 }
 

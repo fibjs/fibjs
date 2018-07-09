@@ -24,8 +24,7 @@ class Digest_base : public object_base {
 public:
     // Digest_base
     virtual result_t update(Buffer_base* data, obj_ptr<Digest_base>& retVal) = 0;
-    virtual result_t digest(exlib::string encoding, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t digest(v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t digest(exlib::string codec, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get_size(int32_t& retVal) = 0;
 
 public:
@@ -95,15 +94,11 @@ inline void Digest_base::s_digest(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Digest_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(1, 0);
 
-    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 0, "buffer");
 
     hr = pInst->digest(v0, vr);
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->digest(vr);
 
     METHOD_RETURN();
 }
