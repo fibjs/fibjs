@@ -244,20 +244,20 @@ describe("timer", () => {
         });
     });
 
-   describe("clearInterval in callback", () => {
+    describe("clearInterval in callback", () => {
         function test(setInterval, clearInterval) {
             var n = 0;
 
             GC();
             var no1 = test_util.countObject('Timer');
 
-            setInterval(function() {
+            setInterval(function () {
                 n++;
                 clearInterval(this);
                 assert.isTrue(this.stopped);
             }, 1);
 
-            setInterval(function() {
+            setInterval(function () {
                 n++;
                 clearInterval(this);
                 assert.isTrue(this.stopped);
@@ -366,13 +366,13 @@ describe("timer", () => {
             GC();
             var no1 = test_util.countObject('Timer');
 
-            setHrInterval(function() {
+            setHrInterval(function () {
                 n++;
                 clearHrInterval(this);
                 assert.isTrue(this.stopped);
             }, 1);
 
-            setHrInterval(function() {
+            setHrInterval(function () {
                 n++;
                 clearHrInterval(this);
                 assert.isTrue(this.stopped);
