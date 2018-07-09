@@ -16,7 +16,7 @@ describe("timer", () => {
             GC();
             var no1 = test_util.countObject('Timer');
 
-            var t = setTimeout((a) => n = 1);
+            var t = setTimeout(() => n = 1);
 
             GC();
             var no2 = test_util.countObject('Timer');
