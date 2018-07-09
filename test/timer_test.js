@@ -9,6 +9,45 @@ var timers = require("timers");
 var os = require("os");
 
 describe("timer", () => {
+    describe("setTimeout undefined timeout", () => {
+        function test(setTimeout) {
+            var n = 0;
+
+            GC();
+            var no1 = test_util.countObject('Timer');
+
+            var t = setTimeout(() => n = 1);
+
+            GC();
+            var no2 = test_util.countObject('Timer');
+            assert.equal(no1 + 1, no2);
+
+            assert.equal(n, 0);
+            for (var i = 0; i < 1000 && n == 0; i++)
+                coroutine.sleep(10);
+
+            assert.equal(n, 1);
+            assert.isTrue(t.stopped);
+            t = undefined;
+
+            GC();
+            no2 = test_util.countObject('Timer');
+            assert.equal(no1, no2);
+        }
+
+        it("global setTimeout", () => {
+            test(setTimeout);
+        });
+
+        it("global.setTimeout", () => {
+            test(global.setTimeout);
+        });
+
+        it("timers.setTimeout", () => {
+            test(timers.setTimeout);
+        });
+    });
+
     describe("setTimeout/clearTimeout", () => {
         function test(setTimeout, clearTimeout) {
             var n = 0;

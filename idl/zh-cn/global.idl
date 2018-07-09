@@ -103,7 +103,7 @@ module global
     @param args 额外的参数，传入到指定的 callback 内，可选。
     @return 返回定时器对象
     */
-    static Timer setTimeout(Function callback, Number timeout, ...args);
+    static Timer setTimeout(Function callback, Number timeout = 1, ...args);
 
     /*! @brief 清除指定的定时器
      @param t 指定要清除的定时器
