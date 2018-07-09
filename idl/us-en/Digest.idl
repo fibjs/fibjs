@@ -7,15 +7,10 @@ interface Digest : object
     update(Buffer data);
 
     /*!	@brief Compute and return the digest
-     @param data Binary data packet which will be updated into the digest before computing
-     @return The binary digest
+     @param codec The encode format, can be "buffer", "hex", “base64”, "utf8" or any other character sets supported by the system.
+     @return The encode value representing the value of the digest
      */
-    Buffer digest(Buffer data);
-
-    /*!	@brief Compute and return the digest
-     @return The binary digest	
-     */
-    Buffer digest();
+    Value digest(String codec = "buffer");
 
     /*! @brief Query the number of bytes of the digest of the digest algorithm currently being used */
     readonly Integer size;
