@@ -9,6 +9,7 @@
 #include "ifs/hash.h"
 #include "Digest.h"
 #include "Buffer.h"
+#include "encoding.h"
 #include <string.h>
 
 namespace fibjs {
@@ -58,12 +59,12 @@ result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
     return 0;
 }
 
-result_t Digest::digest(obj_ptr<Buffer_base>& retVal)
+result_t Digest::digest(exlib::string codec,
+    v8::Local<v8::Value>& retVal)
 {
+    exlib::string strBuf;
     if (m_iAlgo < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    exlib::string strBuf;
 
     strBuf.resize(mbedtls_md_get_size(m_ctx.md_info));
 
@@ -75,20 +76,18 @@ result_t Digest::digest(obj_ptr<Buffer_base>& retVal)
     m_iAlgo = -1;
     mbedtls_md_hmac_reset(&m_ctx);
 
-    retVal = new Buffer(strBuf);
+    if ((codec == "buffer")) {
+        obj_ptr<Buffer_base> buf = new Buffer(strBuf);
+        retVal = buf->wrap();
+    } else {
+        exlib::string data;
+        result_t hr = commonEncode(codec, strBuf, data);
+        if (hr < 0)
+            return hr;
 
+        retVal = holder()->NewString(data);
+    }
     return 0;
-}
-
-result_t Digest::digest(Buffer_base* data,
-    obj_ptr<Buffer_base>& retVal)
-{
-    if (m_iAlgo < 0)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    obj_ptr<Digest_base> r;
-    update(data, r);
-    return digest(retVal);
 }
 
 result_t Digest::get_size(int32_t& retVal)

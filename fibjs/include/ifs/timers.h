@@ -88,10 +88,10 @@ inline void timers_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_NAME("timers.setTimeout");
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 2);
+    METHOD_OVER(-1, 1);
 
     ARG(v8::Local<v8::Function>, 0);
-    ARG(double, 1);
+    OPT_ARG(double, 1, 1);
     ARG_LIST(2);
 
     hr = setTimeout(v0, v1, v2, vr);

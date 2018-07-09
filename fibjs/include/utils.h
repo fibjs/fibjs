@@ -680,6 +680,8 @@ public:
         , m_base(base)
         , m_argc(argc)
     {
+        if (m_base > m_argc)
+            m_base = m_argc;
     }
 
     OptArgs(const OptArgs& a)
