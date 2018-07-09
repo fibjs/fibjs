@@ -84,7 +84,7 @@ module global
         @param args Optional arguments to pass when the callback is called.
         @return The returned timeoutID is a positive integer value which identifies the timer created by the call to setTimeout(); this value can be passed to clearTimeout() to cancel the timeout.
     */
-    static Timer setTimeout(Function callback, Number timeout, ...args);
+    static Timer setTimeout(Function callback, Number timeout = 1, ...args);
 
     /*! @brief run a callback function immediately after the browser has completed other operations such as events and display updates.
         @param callback the function you wish to call.
