@@ -118,18 +118,6 @@ public:
     }
 
 private:
-    class Conn : public obj_base {
-    public:
-        date_t d;
-        exlib::string url;
-        obj_ptr<Stream_base> conn;
-    };
-
-    std::vector<obj_ptr<Conn>> m_conns;
-    int32_t m_poolSize;
-    int32_t m_poolTimeout;
-
-private:
     result_t update(HttpCookie_base* cookie);
 
 private:
@@ -140,6 +128,18 @@ private:
     bool m_autoRedirect;
     int32_t m_maxBodySize;
     exlib::string m_userAgent;
+
+private:
+    class Conn : public obj_base {
+    public:
+        date_t d;
+        exlib::string url;
+        obj_ptr<Stream_base> conn;
+    };
+
+    std::vector<obj_ptr<Conn>> m_conns;
+    int32_t m_poolSize;
+    int32_t m_poolTimeout;
 };
 } /* namespace fibjs */
 
