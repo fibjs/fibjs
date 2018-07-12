@@ -215,7 +215,7 @@ inline void HttpCollection_base::i_NamedGetter(v8::Local<v8::String> property, c
 {
     Variant vr;
 
-    METHOD_NAME("HttpCollection.undefined[]");
+    METHOD_NAME("HttpCollection[]");
     METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 
@@ -235,7 +235,7 @@ inline void HttpCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInf
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("HttpCollection.undefined");
+    METHOD_NAME("HttpCollection[]");
     METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 
@@ -246,7 +246,7 @@ inline void HttpCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInf
 
 inline void HttpCollection_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpCollection.undefined");
+    METHOD_NAME("HttpCollection[]");
     METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 
@@ -267,7 +267,7 @@ inline void HttpCollection_base::i_NamedDeleter(v8::Local<v8::String> property, 
 {
     v8::Local<v8::Boolean> vr;
 
-    METHOD_NAME("HttpCollection.undefined");
+    METHOD_NAME("HttpCollection[]");
     METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 

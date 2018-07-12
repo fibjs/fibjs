@@ -180,7 +180,7 @@ inline void Stats_base::i_NamedGetter(v8::Local<v8::String> property, const v8::
 {
     int32_t vr;
 
-    METHOD_NAME("Stats.undefined[]");
+    METHOD_NAME("Stats[]");
     METHOD_INSTANCE(Stats_base);
     PROPERTY_ENTER();
 
@@ -200,7 +200,7 @@ inline void Stats_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Arr
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("Stats.undefined");
+    METHOD_NAME("Stats[]");
     METHOD_INSTANCE(Stats_base);
     PROPERTY_ENTER();
 

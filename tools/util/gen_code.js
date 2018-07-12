@@ -358,7 +358,7 @@ module.exports = function (defs, baseFolder) {
                 "stub_func": fn => {
                     if (fn.index) {
                         txts.push('inline void ' + cls + '_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ' + get_rtype(fn.type) + ' vr;\n');
-                        txts.push(`    METHOD_NAME("${cls}.${fname}[]");`);
+                        txts.push(`    METHOD_NAME("${cls}[]");`);
                         txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                         txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str()))\n        return;\n');
                         if (fn.deprecated)
@@ -366,14 +366,14 @@ module.exports = function (defs, baseFolder) {
                         txts.push('    hr = pInst->_named_getter(k, vr);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
                         txts.push('    METHOD_RETURN();\n}\n');
                         txts.push('inline void ' + cls + '_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args)\n{\n    v8::Local<v8::Array> vr;\n');
-                        txts.push(`    METHOD_NAME("${cls}.${fname}");`);
+                        txts.push(`    METHOD_NAME("${cls}[]");`);
                         txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                         txts.push('    hr = pInst->_named_enumerator(vr);\n');
                         txts.push('    METHOD_RETURN1();\n}\n');
 
                         if (!fn.readonly) {
                             txts.push('inline void ' + cls + '_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');
-                            txts.push(`    METHOD_NAME("${cls}.${fname}");`);
+                            txts.push(`    METHOD_NAME("${cls}[]");`);
                             txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                             txts.push('    PROPERTY_VAL(' + get_rtype(fn.type) + ');\n    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str()))\n        return;\n');
                             if (fn.deprecated)
@@ -381,7 +381,7 @@ module.exports = function (defs, baseFolder) {
                             txts.push('    hr = pInst->_named_setter(k, v0);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
                             txts.push('    METHOD_VOID();\n}\n');
                             txts.push('inline void ' + cls + '_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)\n{\n    v8::Local<v8::Boolean> vr;\n');
-                            txts.push(`    METHOD_NAME("${cls}.${fname}");`);
+                            txts.push(`    METHOD_NAME("${cls}[]");`);
                             txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                             txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str())) {\n        args.GetReturnValue().Set(v8::False(isolate));\n        return;\n    }\n');
                             txts.push('    hr = pInst->_named_deleter(k, vr);\n    METHOD_RETURN1();\n}\n');
@@ -389,7 +389,7 @@ module.exports = function (defs, baseFolder) {
                     } else {
                         txts.push('inline void ' + cls + '_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');
                         txts.push('    ' + get_rtype(fn.type) + ' vr;\n');
-                        txts.push(`    METHOD_NAME("${cls}.${fname}");`);
+                        txts.push(`    METHOD_NAME("${cls}[]");`);
                         txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                         if (fn.deprecated)
                             txts.push('    DEPRECATED_SOON("' + cls + fn.name + '");\n');
@@ -398,7 +398,7 @@ module.exports = function (defs, baseFolder) {
 
                         if (!fn.readonly) {
                             txts.push('inline void ' + cls + '_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{');
-                            txts.push(`    METHOD_NAME("${cls}.${fname}");`);
+                            txts.push(`    METHOD_NAME("${cls}[]");`);
                             txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                             if (fn.deprecated)
                                 txts.push('    DEPRECATED_SOON("' + cls + fn.name + '");\n');

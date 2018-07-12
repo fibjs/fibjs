@@ -129,7 +129,7 @@ inline void EventInfo_base::i_NamedGetter(v8::Local<v8::String> property, const 
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("EventInfo.undefined[]");
+    METHOD_NAME("EventInfo[]");
     METHOD_INSTANCE(EventInfo_base);
     PROPERTY_ENTER();
 
@@ -149,7 +149,7 @@ inline void EventInfo_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8:
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("EventInfo.undefined");
+    METHOD_NAME("EventInfo[]");
     METHOD_INSTANCE(EventInfo_base);
     PROPERTY_ENTER();
 

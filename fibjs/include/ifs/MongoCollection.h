@@ -379,7 +379,7 @@ inline void MongoCollection_base::i_NamedGetter(v8::Local<v8::String> property, 
 {
     obj_ptr<MongoCollection_base> vr;
 
-    METHOD_NAME("MongoCollection.undefined[]");
+    METHOD_NAME("MongoCollection[]");
     METHOD_INSTANCE(MongoCollection_base);
     PROPERTY_ENTER();
 
@@ -399,7 +399,7 @@ inline void MongoCollection_base::i_NamedEnumerator(const v8::PropertyCallbackIn
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("MongoCollection.undefined");
+    METHOD_NAME("MongoCollection[]");
     METHOD_INSTANCE(MongoCollection_base);
     PROPERTY_ENTER();
 

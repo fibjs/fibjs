@@ -129,7 +129,7 @@ inline void MongoDB_base::i_NamedGetter(v8::Local<v8::String> property, const v8
 {
     obj_ptr<MongoCollection_base> vr;
 
-    METHOD_NAME("MongoDB.undefined[]");
+    METHOD_NAME("MongoDB[]");
     METHOD_INSTANCE(MongoDB_base);
     PROPERTY_ENTER();
 
@@ -149,7 +149,7 @@ inline void MongoDB_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::A
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("MongoDB.undefined");
+    METHOD_NAME("MongoDB[]");
     METHOD_INSTANCE(MongoDB_base);
     PROPERTY_ENTER();
 

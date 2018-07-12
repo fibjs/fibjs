@@ -537,7 +537,7 @@ inline void Buffer_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallb
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.undefined");
+    METHOD_NAME("Buffer[]");
     METHOD_INSTANCE(Buffer_base);
     PROPERTY_ENTER();
 
@@ -550,7 +550,7 @@ inline void Buffer_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallb
 
 inline void Buffer_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Buffer.undefined");
+    METHOD_NAME("Buffer[]");
     METHOD_INSTANCE(Buffer_base);
     PROPERTY_ENTER();
 

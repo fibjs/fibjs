@@ -109,7 +109,7 @@ inline void XmlNamedNodeMap_base::i_IndexedGetter(uint32_t index, const v8::Prop
 {
     obj_ptr<XmlAttr_base> vr;
 
-    METHOD_NAME("XmlNamedNodeMap.undefined");
+    METHOD_NAME("XmlNamedNodeMap[]");
     METHOD_INSTANCE(XmlNamedNodeMap_base);
     PROPERTY_ENTER();
 

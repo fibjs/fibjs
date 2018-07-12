@@ -106,7 +106,7 @@ inline void XmlNodeList_base::i_IndexedGetter(uint32_t index, const v8::Property
 {
     obj_ptr<XmlNode_base> vr;
 
-    METHOD_NAME("XmlNodeList.undefined");
+    METHOD_NAME("XmlNodeList[]");
     METHOD_INSTANCE(XmlNodeList_base);
     PROPERTY_ENTER();
 
