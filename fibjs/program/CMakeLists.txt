@@ -36,21 +36,6 @@ set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections 
 set(ccflags "-std=c++11")
 set(link_flags " ")
 
-if(${OS} STREQUAL "Darwin")
-	set(link_flags "${link_flags} -mmacosx-version-min=10.9 -framework Carbon -framework IOKit")
-	set(flags "${flags} -mmacosx-version-min=10.9")
-	target_link_libraries(fibjs dl iconv stdc++)
-endif()
-
-if(${OS} STREQUAL "Linux")
-	target_link_libraries(fibjs dl rt)
-endif()
-
-if(${OS} STREQUAL "FreeBSD")
-	find_library(execinfo execinfo "/usr/local/lib" "/usr/lib")
-	target_link_libraries(fibjs ${execinfo})
-endif()
-
 if(${BUILD_TYPE} STREQUAL "release")
 	set(flags "${flags} -O3 -s ${BUILD_OPTION} -w -fvisibility=hidden")
 
@@ -90,5 +75,20 @@ foreach(lib ${libs})
 endforeach()
 
 target_link_libraries(fibjs pthread)
+
+if(${OS} STREQUAL "Darwin")
+	set(link_flags "${link_flags} -mmacosx-version-min=10.9 -framework Carbon -framework IOKit")
+	set(flags "${flags} -mmacosx-version-min=10.9")
+	target_link_libraries(fibjs dl iconv stdc++)
+endif()
+
+if(${OS} STREQUAL "Linux")
+	target_link_libraries(fibjs dl rt)
+endif()
+
+if(${OS} STREQUAL "FreeBSD")
+	find_library(execinfo execinfo "/usr/local/lib" "/usr/lib")
+	target_link_libraries(fibjs ${execinfo})
+endif()
 
 set_target_properties(fibjs PROPERTIES LINK_FLAGS ${link_flags})
