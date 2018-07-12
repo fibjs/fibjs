@@ -208,7 +208,6 @@ result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retV
 
 result_t SandBox::resolveId(exlib::string& id, v8::Local<v8::Value>& retVal)
 {
-    Isolate* isolate = holder();
     v8::Local<v8::Object> _mods = mods();
     size_t cnt = m_loaders.size();
 
