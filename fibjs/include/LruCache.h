@@ -35,6 +35,11 @@ public:
 public:
     // object_base
     virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
+    virtual result_t onEventChange(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
+    {
+        m_has_event = 1;
+        return 0;
+    }
 
     EVENT_SUPPORT();
 
@@ -191,7 +196,9 @@ private:
         ei->put("value", GetPrivate(it->first));
 
         Variant v = ei;
-        _emit("expire", &v, 1);
+
+        if(m_has_event)
+            _emit("expire", &v, 1);
 
         remove(it);
     }
@@ -210,6 +217,7 @@ private:
     int32_t m_size;
     int32_t m_timeout;
     date_t m_checkTime;
+    exlib::atomic m_has_event;
 };
 
 } /* namespace fibjs */
