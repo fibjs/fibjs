@@ -110,9 +110,6 @@ public:
 
     v8::Global<v8::Object> m_AssertionError;
 
-    obj_ptr<LruCache> m_script_cache;
-    obj_ptr<ValueHolder> m_script_cache_holder;
-
     obj_ptr<SandBox> m_topSandbox;
     obj_ptr<obj_base> m_httpclient;
 

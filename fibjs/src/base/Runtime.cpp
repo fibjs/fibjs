@@ -316,9 +316,6 @@ void Isolate::init()
 
     v8::Context::Scope context_scope(_context);
 
-    m_script_cache = new LruCache(0, 3000);
-    m_script_cache_holder = new ValueHolder(m_script_cache->wrap());
-
     if (g_cov && m_id == 1)
         beginCoverage(m_isolate);
 

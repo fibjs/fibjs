@@ -20,14 +20,7 @@ namespace fibjs {
 result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 {
     result_t hr;
-    v8::Local<v8::Value> v;
     Isolate* isolate = holder();
-
-    isolate->m_script_cache->get(fname, v);
-    if (!v.IsEmpty()) {
-        data = Buffer_base::getInstance(v);
-        return data ? 0 : CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
-    }
 
     Variant var;
     hr = fs_base::cc_readFile(fname, "", var);
@@ -36,11 +29,6 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
         hr = 0;
     } else
         data = Buffer_base::getInstance(var);
-
-    if (data)
-        isolate->m_script_cache->set(fname, data->wrap());
-    else
-        isolate->m_script_cache->set(fname, v8::Null(holder()->m_isolate));
 
     return hr;
 }
