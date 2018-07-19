@@ -406,9 +406,13 @@ function parser_comment(comment) {
 
 module.exports = function (baseFolder, defs) {
   var defs1 = {};
+  var collect = {};
 
   fs.readdir(baseFolder).sort().forEach(f => {
-    if (path.extname(f) == '.idl') {
+    if (f === 'collect.json') {
+      f = path.join(baseFolder, f);
+      collect = JSON.parse(fs.readTextFile(f));
+    } else if (path.extname(f) == '.idl') {
       f = path.join(baseFolder, f);
       var def = parser.parse(fs.readTextFile(f));
 
@@ -420,14 +424,28 @@ module.exports = function (baseFolder, defs) {
     }
   });
 
+  var defs2 = {};
+  for (var g in collect) {
+    collect[g].forEach(n => {
+      var def = defs1[n];
+      def.collect = g;
+      defs2[n] = def;
+      delete defs1[n];
+    });
+  }
+
+  for (var n in defs1) {
+    defs2[n] = defs1[n];
+  }
+
   if (defs) {
     for (var n in defs) {
       defs[n].__skip = true;
-      defs1[n] = defs[n];
+      defs2[n] = defs[n];
     }
-
-    delete defs1['object'].declare.extend;
   }
 
-  return defs1;
+  delete defs2['object'].declare.extend;
+
+  return defs2;
 };
