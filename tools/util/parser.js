@@ -405,10 +405,7 @@ function parser_comment(comment) {
 }
 
 module.exports = function (baseFolder, defs) {
-  defs = defs || {};
-
-  for (var n in defs)
-    defs[n].__skip = true;
+  var defs1 = {};
 
   fs.readdir(baseFolder).sort().forEach(f => {
     if (path.extname(f) == '.idl') {
@@ -419,11 +416,18 @@ module.exports = function (baseFolder, defs) {
       for (var m in def.members)
         def.members[m].doc = parser_comment(def.members[m].comments);
 
-      defs[def.declare.name] = def;
+      defs1[def.declare.name] = def;
     }
   });
 
-  delete defs['object'].declare.extend;
+  if (defs) {
+    for (var n in defs) {
+      defs[n].__skip = true;
+      defs1[n] = defs[n];
+    }
 
-  return defs;
+    delete defs1['object'].declare.extend;
+  }
+
+  return defs1;
 };
