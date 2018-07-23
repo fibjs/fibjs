@@ -200,3 +200,25 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 cd ../..
+
+txtbld=$(tput bold)
+bldred=${txtbld}$(tput setaf 1)
+txtrst=$(tput sgr0)
+                                             
+printf "\n\n${bldred}"
+printf "\t _______ _________ ______  _________ _______ \n"
+printf "\t(  ____ \\\\\\__   __/(  ___ \\ \\__    _/(  ____ \\\\\n"
+printf "\t| (    \\/   ) (   | (   ) )   )  (  | (    \\/\n"
+printf "\t| (__       | |   | (__/ /    |  |  | (_____ \n"
+printf "\t|  __)      | |   |  __ (     |  |  (_____  )\n"
+printf "\t| (         | |   | (  \\ \\    |  |        ) |\n"
+printf "\t| (_     ___) (___|（___) )|\\_)  )  /\\____) |\n"
+printf "\t(__/     \\_______/|______/ (____/   \\_______)\n"
+printf "${txtrst}"
+
+printf "\\n\\tFIBJS has been successfully built.\\n\\n"
+
+printf "\\tFor more information:\\n\\n"
+printf "\\twebsite: http://fibjs.org\\n"
+printf "\\trepository: https://github.com/fibjs\\n"
+printf "\n\n"
