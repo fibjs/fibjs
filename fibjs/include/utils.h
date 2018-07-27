@@ -679,6 +679,7 @@ class OptArgs {
 public:
     OptArgs(const v8::FunctionCallbackInfo<v8::Value>& args, int32_t base, int32_t argc)
         : m_args(&args)
+        , m_argv(NULL)
         , m_base(base)
         , m_argc(argc)
     {
@@ -686,8 +687,17 @@ public:
             m_base = m_argc;
     }
 
+    OptArgs(const std::vector<v8::Local<v8::Value>>& argv)
+        : m_args(NULL)
+        , m_argv(&argv)
+        , m_base(0)
+        , m_argc((int32_t)argv.size())
+    {
+    }
+
     OptArgs(const OptArgs& a)
         : m_args(a.m_args)
+        , m_argv(a.m_argv)
         , m_base(a.m_base)
         , m_argc(a.m_argc)
     {
@@ -695,6 +705,7 @@ public:
 
     OptArgs()
         : m_args(NULL)
+        , m_argv(NULL)
         , m_base(0)
         , m_argc(0)
     {
@@ -707,11 +718,21 @@ public:
 
     v8::Local<v8::Value> operator[](int32_t i) const
     {
+        if (m_argv)
+            return (*m_argv)[i];
+
         return (*m_args)[i + m_base];
     }
 
     void GetData(std::vector<v8::Local<v8::Value>>& datas)
     {
+        if (m_argv) {
+            datas.resize(m_argc);
+            for (int32_t i = 0; i < m_argc; i++)
+                datas[i] = (*m_argv)[i];
+            return;
+        }
+
         datas.resize(m_argc - m_base);
         for (int32_t i = 0; i < m_argc - m_base; i++)
             datas[i] = (*m_args)[m_base + i];
@@ -719,6 +740,7 @@ public:
 
 private:
     const v8::FunctionCallbackInfo<v8::Value>* m_args;
+    const std::vector<v8::Local<v8::Value>>* m_argv;
     int32_t m_base;
     int32_t m_argc;
 };
