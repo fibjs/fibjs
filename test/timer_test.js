@@ -435,6 +435,33 @@ describe("timer", () => {
             test(timers.setHrInterval, timers.clearHrInterval);
         });
     });
+
+    it("timeout call", () => {
+        function test1() {
+            while (true);
+        }
+
+        function test2() {
+            while (true)
+                coroutine.sleep(100);
+        }
+
+        var t1 = new Date();
+        assert.throws(() => {
+            timers.call(test1, 30);
+        });
+        var t2 = new Date();
+        assert.greaterThan(t2 - t1, 25);
+        assert.lessThan(t2 - t1, 100);
+
+        var t1 = new Date();
+        assert.throws(() => {
+            timers.call(test2, 30);
+        });
+        var t2 = new Date();
+        assert.greaterThan(t2 - t1, 90);
+        assert.lessThan(t2 - t1, 150);
+    });
 });
 
 require.main === module && test.run(console.DEBUG);
