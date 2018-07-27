@@ -14,6 +14,8 @@
 
 namespace fibjs {
 
+#define TIMEOUT_MAX 2147483647 // 2^31-1
+
 class Timer : public Timer_base,
               public exlib::Task_base {
 public:
@@ -105,6 +107,106 @@ private:
     int32_t m_timeout;
     bool m_repeat;
     exlib::atomic m_cancel;
+};
+
+class JSTimer : public Timer {
+public:
+    JSTimer(v8::Local<v8::Function> callback, OptArgs& args, int32_t timeout = 0,
+        bool repeat = false, bool hr = false)
+        : Timer(timeout, repeat)
+        , m_hr(hr)
+    {
+        Isolate* isolate = holder();
+        obj_ptr<Timer_base> retVal;
+
+        int32_t nArgCount = args.Length();
+        m_argv.resize(nArgCount);
+        for (int i = 0; i < nArgCount; i++)
+            m_argv[i].Reset(isolate->m_isolate, args[i]);
+
+        ref(retVal);
+
+        m_callback.Reset(isolate->m_isolate, callback);
+    }
+
+protected:
+    JSTimer(int32_t timeout = 0, bool repeat = false, bool hr = false)
+        : Timer(timeout, repeat)
+        , m_hr(hr)
+    {
+        obj_ptr<Timer_base> retVal;
+        ref(retVal);
+    }
+
+public:
+    virtual void resume()
+    {
+        Isolate* isolate = holder();
+
+        if (m_hr)
+            isolate->RequestInterrupt(_InterruptCallback, this);
+        else
+            syncCall(isolate, _callback, this);
+    }
+
+    static void _InterruptCallback(v8::Isolate* isolate, void* data)
+    {
+        _callback((JSTimer*)data);
+    }
+
+public:
+    // Timer_base
+    virtual result_t ref(obj_ptr<Timer_base>& retVal)
+    {
+        isolate_ref();
+        retVal = this;
+        return 0;
+    }
+
+    virtual result_t unref(obj_ptr<Timer_base>& retVal)
+    {
+        isolate_unref();
+        retVal = this;
+        return 0;
+    }
+
+public:
+    virtual void on_js_timer()
+    {
+        Isolate* isolate = holder();
+        v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(isolate->m_isolate, m_callback);
+        std::vector<v8::Local<v8::Value>> argv;
+
+        int32_t nArgCount = (int32_t)m_argv.size();
+        argv.resize(nArgCount);
+        for (int i = 0; i < nArgCount; i++)
+            argv[i] = v8::Local<v8::Value>::New(isolate->m_isolate, m_argv[i]);
+
+        callback->Call(wrap(), (int32_t)argv.size(), argv.data());
+    }
+
+    virtual void on_timer()
+    {
+        if (m_hr)
+            on_js_timer();
+        else {
+            JSFiber::scope s;
+            on_js_timer();
+        }
+    }
+
+    virtual void on_clean()
+    {
+        obj_ptr<Timer_base> retVal;
+
+        m_callback.Reset();
+        unref(retVal);
+    }
+
+private:
+    bool m_hr;
+    QuickArray<v8::Global<v8::Value>> m_argv;
+    v8::Global<v8::Function> m_callback;
 };
 }
 
