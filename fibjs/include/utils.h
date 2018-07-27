@@ -155,14 +155,16 @@ typedef int32_t result_t;
 #define CALL_E_GUICALL (CALL_E_MAX - 19)
 // Internal error.
 #define CALL_E_INTERNAL (CALL_E_MAX - 20)
+// The maximum amount of time for a script to execute was exceeded.
+#define CALL_E_TIMEOUT (CALL_E_MAX - 21)
 // Invalid return type.
-#define CALL_E_RETURN_TYPE (CALL_E_MAX - 21)
+#define CALL_E_RETURN_TYPE (CALL_E_MAX - 22)
 // Exception occurred.
-#define CALL_E_EXCEPTION (CALL_E_MAX - 22)
+#define CALL_E_EXCEPTION (CALL_E_MAX - 23)
 // JavaScript error.
-#define CALL_E_JAVASCRIPT (CALL_E_MAX - 23)
+#define CALL_E_JAVASCRIPT (CALL_E_MAX - 24)
 // Permission denied
-#define CALL_E_PERMIT (CALL_E_MAX - 24)
+#define CALL_E_PERMIT (CALL_E_MAX - 25)
 
 #define CALL_E_MIN -100100
 

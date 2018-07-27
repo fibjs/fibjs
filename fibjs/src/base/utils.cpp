@@ -64,6 +64,8 @@ exlib::string getResultMessage(result_t hr)
         "Operation is GUI call.",
         // CALL_E_INTERNAL
         "Internal error.",
+        // CALL_E_TIMEOUT
+        "The maximum amount of time for a script to execute was exceeded.",
         // CALL_E_RETURN_TYPE
         "Invalid return type.",
         // CALL_E_EXCEPTION
