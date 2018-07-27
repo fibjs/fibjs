@@ -135,6 +135,9 @@ save_method_name::save_method_name(const char* name)
 save_method_name::~save_method_name()
 {
     m_fb->m_native_name = m_name;
+
+    if (m_fb->m_termed && !m_fb->holder()->m_isolate->IsExecutionTerminating())
+        m_fb->holder()->m_isolate->TerminateExecution();
 }
 
 result_t JSFiber::get_id(int64_t& retVal)

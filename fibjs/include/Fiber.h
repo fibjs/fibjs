@@ -40,6 +40,7 @@ public:
         : m_native_name(NULL)
         , m_c_entry_fp_(NULL)
         , m_handler_(NULL)
+        , m_termed(false)
     {
         m_id = holder()->m_fid++;
     }
@@ -137,6 +138,7 @@ public:
     const char* m_native_name;
     void* m_c_entry_fp_;
     void* m_handler_;
+    bool m_termed;
 
 private:
     int64_t m_id;

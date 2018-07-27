@@ -31,6 +31,7 @@ public:
     static result_t clearHrInterval(v8::Local<v8::Value> t);
     static result_t setImmediate(v8::Local<v8::Function> callback, OptArgs args, obj_ptr<Timer_base>& retVal);
     static result_t clearImmediate(v8::Local<v8::Value> t);
+    static result_t call(v8::Local<v8::Function> func, double timeout, OptArgs args, v8::Local<v8::Value>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -52,6 +53,7 @@ public:
     static void s_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_call(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -68,7 +70,8 @@ inline ClassInfo& timers_base::class_info()
         { "setHrInterval", s_setHrInterval, true },
         { "clearHrInterval", s_clearHrInterval, true },
         { "setImmediate", s_setImmediate, true },
-        { "clearImmediate", s_clearImmediate, true }
+        { "clearImmediate", s_clearImmediate, true },
+        { "call", s_call, true }
     };
 
     static ClassData s_cd = {
@@ -206,6 +209,24 @@ inline void timers_base::s_clearImmediate(const v8::FunctionCallbackInfo<v8::Val
     hr = clearImmediate(v0);
 
     METHOD_VOID();
+}
+
+inline void timers_base::s_call(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_NAME("timers.call");
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 2);
+
+    ARG(v8::Local<v8::Function>, 0);
+    ARG(double, 1);
+    ARG_LIST(2);
+
+    hr = call(v0, v1, v2, vr);
+
+    METHOD_RETURN();
 }
 }
 
