@@ -1121,6 +1121,9 @@
     <ClCompile Include="src\global\global.cpp">
       <Filter>Source Files\global</Filter>
     </ClCompile>
+    <ClCompile Include="src\global\timeout.cpp">
+      <Filter>Source Files\global</Filter>
+    </ClCompile>
     <ClCompile Include="src\gui\other\gui.cpp">
       <Filter>Source Files\gui\other</Filter>
     </ClCompile>

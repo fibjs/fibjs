@@ -355,6 +355,7 @@
     <ClCompile Include="src\global\Int64.cpp" />
     <ClCompile Include="src\global\Timer.cpp" />
     <ClCompile Include="src\global\global.cpp" />
+    <ClCompile Include="src\global\timeout.cpp" />
     <ClCompile Include="src\gui\other\gui.cpp" />
     <ClCompile Include="src\gui\windows\WebView.cpp" />
     <ClCompile Include="src\gui\windows\script\console_js.cpp" />
