@@ -136,6 +136,7 @@ result_t SandBox::repl(v8::Local<v8::Array> cmds, Stream_base* out)
 
 extern stream_logger* s_stream;
 extern std_logger* s_std;
+exlib::string appname("fibjs");
 
 result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
 {
@@ -157,7 +158,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
         bs = new BufferedStream(out);
     }
 
-    exlib::string str_ver("Welcome to fibjs ");
+    exlib::string str_ver("Welcome to " + appname + " ");
 
     str_ver += fibjs_version;
     str_ver += '.';
