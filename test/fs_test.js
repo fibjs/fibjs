@@ -13,7 +13,7 @@ var isWin32 = process.platform === 'win32';
 function unlink(pathname) {
     try {
         fs.rmdir(pathname);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 var pathname = 'test_dir' + vmid;
@@ -31,7 +31,7 @@ describe('fs', () => {
     after(() => {
         try {
             fs.unlink(path.join(__dirname, 'unzip_test.zip'));
-        } catch (e) {}
+        } catch (e) { }
     });
 
     it("stat", () => {
@@ -329,23 +329,27 @@ describe('fs', () => {
         function save_zip(n) {
             var zipfile = zip.open(path.join(__dirname, 'unzip_test.zip'), "w");
             zipfile.write(new Buffer('test ' + n), 'test.txt');
+            zipfile.write(new Buffer(`module.exports = "fibjs-test-require-${n}"`), 'test.js');
             zipfile.close();
         }
 
-        function test_zip(n) {
+        function test_zip(n, first_test_n = n) {
             assert.equal(fs.readTextFile(path.join(__dirname, "unzip_test.zip$", "test.txt")),
                 "test " + n);
+            assert.equal(require('./unzip_test.zip$/test.js'), `fibjs-test-require-${first_test_n}`)
         }
 
-        save_zip(1);
+        var first_test_n = 1;
+
+        save_zip(first_test_n);
         coroutine.sleep(1000);
-        test_zip(1);
+        test_zip(first_test_n);
 
         save_zip(2);
-        test_zip(1);
+        test_zip(1, first_test_n);
 
         coroutine.sleep(4000);
-        test_zip(2);
+        test_zip(2, first_test_n);
     });
 
     it("zip data", () => {
