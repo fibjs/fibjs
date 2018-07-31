@@ -62,6 +62,11 @@ result_t path_posix_base::resolve(OptArgs ps, exlib::string& retVal)
     return _resolve(ps, retVal);
 }
 
+result_t path_posix_base::relative(exlib::string _from, exlib::string to, exlib::string& retVal)
+{
+    return _relative(_from, to, retVal);
+}
+
 result_t path_posix_base::toNamespacedPath(v8::Local<v8::Value> path,
     v8::Local<v8::Value>& retVal)
 {

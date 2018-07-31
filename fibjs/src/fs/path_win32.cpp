@@ -75,6 +75,11 @@ result_t path_win32_base::resolve(OptArgs ps, exlib::string& retVal)
     return _resolve_win32(ps, retVal);
 }
 
+result_t path_win32_base::relative(exlib::string _from, exlib::string to, exlib::string& retVal)
+{
+    return _relative_win32(_from, to, retVal);
+}
+
 result_t path_win32_base::toNamespacedPath(v8::Local<v8::Value> path,
     v8::Local<v8::Value>& retVal)
 {
