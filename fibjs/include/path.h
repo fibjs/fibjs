@@ -568,6 +568,18 @@ inline result_t _resolve(OptArgs ps, exlib::string& retVal)
     return _normalize(p.str(), retVal, true);
 }
 
+inline result_t _resolve(exlib::string& path)
+{
+    exlib::string str;
+    process_base::cwd(str);
+
+    Path p;
+    p.resolvePosix(str);
+    p.resolvePosix(path);
+
+    return _normalize(p.str(), path, true);
+}
+
 inline result_t _resolve_win32(OptArgs ps, exlib::string& retVal)
 {
     exlib::string str;
@@ -598,6 +610,234 @@ inline result_t _resolve_win32(exlib::string& path)
     p.resolveWin32(path);
 
     return _normalize_win32(p.str(), path, true);
+}
+
+inline result_t _relative(exlib::string from, exlib::string to, exlib::string& retVal)
+{
+    if (from == to)
+        return 0;
+
+    result_t hr;
+
+    hr = _resolve(from);
+    if (hr < 0)
+        return hr;
+
+    hr = _resolve(to);
+    if (hr < 0)
+        return hr;
+
+    if (from == to)
+        return 0;
+
+    // Trim any leading backslashes
+    int32_t fromStart = 1;
+    for (; fromStart < from.length(); ++fromStart) {
+        if (!isPosixPathSlash(from[fromStart]))
+            break;
+    }
+    int32_t fromEnd = (int32_t)from.length();
+    int32_t fromLen = (fromEnd - fromStart);
+
+    // Trim any leading backslashes
+    int32_t toStart = 1;
+    for (; toStart < to.length(); ++toStart) {
+        if (!isPosixPathSlash(to[toStart]))
+            break;
+    }
+    int32_t toEnd = (int32_t)to.length();
+    int32_t toLen = (toEnd - toStart);
+
+    // Compare paths to find the longest common path from root
+    int32_t length = (fromLen < toLen ? fromLen : toLen);
+    int32_t lastCommonSep = -1;
+    int32_t i = 0;
+    for (; i <= length; ++i) {
+        if (i == length) {
+            if (toLen > length) {
+                if (isPosixPathSlash(to[toStart + i])) {
+                    // We get here if `from` is the exact base path for `to`.
+                    // For example: from='/foo/bar'; to='/foo/bar/baz'
+                    return _normalize(to.substr(toStart + i + 1), retVal, false);
+                } else if (i == 0) {
+                    // We get here if `from` is the root
+                    // For example: from='/'; to='/foo'
+                    return _normalize(to.substr(toStart + i), retVal, false);
+                }
+
+            } else if (fromLen > length) {
+                if (isPosixPathSlash(from[fromStart + i])) {
+                    // We get here if `to` is the exact base path for `from`.
+                    // For example: from='/foo/bar/baz'; to='/foo/bar'
+                    lastCommonSep = i;
+                } else if (i == 0) {
+                    // We get here if `to` is the root.
+                    // For example: from='/foo'; to='/'
+                    lastCommonSep = 0;
+                }
+            }
+            break;
+        }
+        char fromChar = from[fromStart + i];
+        char toChar = to[toStart + i];
+        if (fromChar != toChar)
+            break;
+        else if (isPosixPathSlash(fromChar))
+            lastCommonSep = i;
+    }
+
+    exlib::string out = "";
+    // Generate the relative path based on the path difference between `to`
+    // and `from`
+    for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
+        if (i == fromEnd || isPosixPathSlash(from[i])) {
+            if (out.length() == 0)
+                out += "..";
+            else
+                out += "/..";
+        }
+    }
+
+    // Lastly, append the rest of the destination (`to`) path that comes after
+    // the common path parts
+    if (out.length() > 0) {
+        return _normalize(out + to.substr(toStart + lastCommonSep), retVal, false);
+    } else {
+        toStart += lastCommonSep;
+        if (isPosixPathSlash(to[toStart]))
+            ++toStart;
+
+        return _normalize(to.substr(toStart), retVal, false);
+    }
+
+    return 0;
+}
+
+inline result_t _relative_win32(exlib::string from, exlib::string to, exlib::string& retVal)
+{
+    if (from == to)
+        return 0;
+
+    exlib::string fromOrig = "" + from;
+    exlib::string toOrig = "" + to;
+
+    exlib::string str;
+    int32_t hr;
+
+    hr = _resolve_win32(from);
+    if (hr < 0)
+        return hr;
+    hr = _resolve_win32(to);
+    if (hr < 0)
+        return hr;
+
+    if (fromOrig == toOrig)
+        return 0;
+
+    from = "" + fromOrig;
+    from.tolower();
+    to = "" + toOrig;
+    to.tolower();
+
+    if (from == to)
+        return 0;
+
+    // Trim any leading backslashes
+    int32_t fromStart = 0;
+    for (; fromStart < from.length(); ++fromStart) {
+        if (!isWin32PathSlash(from[fromStart]))
+            break;
+    }
+    // Trim trailing backslashes (applicable to UNC paths only)
+    int32_t fromEnd = (int32_t)from.length();
+    for (; fromEnd - 1 > fromStart; --fromEnd) {
+        if (!isWin32PathSlash(from[fromEnd - 1]))
+            break;
+    }
+    int32_t fromLen = (fromEnd - fromStart);
+
+    // Trim any leading backslashes
+    int32_t toStart = 0;
+    for (; toStart < to.length(); ++toStart) {
+        if (!isWin32PathSlash(to[toStart]))
+            break;
+    }
+    // Trim trailing backslashes (applicable to UNC paths only)
+    int32_t toEnd = (int32_t)to.length();
+    for (; toEnd - 1 > toStart; --toEnd) {
+        if (!isWin32PathSlash(to[toEnd - 1]))
+            break;
+    }
+    int32_t toLen = (toEnd - toStart);
+
+    // Compare paths to find the longest common path from root
+    int32_t length = (fromLen < toLen ? fromLen : toLen);
+    int32_t lastCommonSep = -1;
+    int32_t i = 0;
+    for (; i <= length; ++i) {
+        if (i == length) {
+            if (toLen > length) {
+                if (isWin32PathSlash(to[toStart + i])) {
+                    // We get here if `from` is the exact base path for `to`.
+                    // For example: from='C:\\foo\\bar'; to='C:\\foo\\bar\\baz'
+                    return _normalize_win32(toOrig.substr(toStart + i + 1), retVal, true);
+                } else if (i == 2) {
+                    // We get here if `from` is the device root.
+                    // For example: from='C:\\'; to='C:\\foo'
+                    return _normalize_win32(toOrig.substr(toStart + i), retVal, true);
+                }
+            }
+            if (fromLen > length) {
+                if (isWin32PathSlash(from[fromStart + i])) {
+                    // We get here if `to` is the exact base path for `from`.
+                    // For example: from='C:\\foo\\bar'; to='C:\\foo'
+                    lastCommonSep = i;
+                } else if (i == 2) {
+                    // We get here if `to` is the device root.
+                    // For example: from='C:\\foo\\bar'; to='C:\\'
+                    lastCommonSep = 3;
+                }
+            }
+            break;
+        }
+        char fromChar = from[fromStart + i];
+        char toChar = to[toStart + i];
+        if (fromChar != toChar)
+            break;
+        else if (isWin32PathSlash(fromChar))
+            lastCommonSep = i;
+    }
+
+    // We found a mismatch before the first common path separator was seen, so
+    // return the original `to`.
+    if (i != length && lastCommonSep == -1) {
+        return _normalize_win32(toOrig, retVal, true);
+    }
+
+    exlib::string out = "";
+    if (lastCommonSep == -1)
+        lastCommonSep = 0;
+    // Generate the relative path based on the path difference between `to` and
+    // `from`
+    for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
+        if (i == fromEnd || isWin32PathSlash(from[i])) {
+            if (out.length() == 0)
+                out += "..";
+            else
+                out += "\\..";
+        }
+    }
+
+    // Lastly, append the rest of the destination (`to`) path that comes after
+    // the common path parts
+    if (out.length() > 0) {
+        return _normalize_win32(out + toOrig.substr(toStart + lastCommonSep), retVal, true);
+    } else {
+        toStart += lastCommonSep;
+        if (isWin32PathSlash(toOrig[toStart]))
+            ++toStart;
+        return _normalize_win32(toOrig.substr(toStart), retVal, true);
+    }
 }
 
 inline result_t _sep(exlib::string& retVal)

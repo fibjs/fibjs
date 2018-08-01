@@ -29,6 +29,7 @@ public:
     static result_t isAbsolute(exlib::string path, bool& retVal);
     static result_t join(OptArgs ps, exlib::string& retVal);
     static result_t resolve(OptArgs ps, exlib::string& retVal);
+    static result_t relative(exlib::string _from, exlib::string to, exlib::string& retVal);
     static result_t toNamespacedPath(v8::Local<v8::Value> path, v8::Local<v8::Value>& retVal);
     static result_t get_sep(exlib::string& retVal);
     static result_t get_delimiter(exlib::string& retVal);
@@ -55,6 +56,7 @@ public:
     static void s_isAbsolute(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_join(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_relative(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toNamespacedPath(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_sep(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_delimiter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -75,6 +77,7 @@ inline ClassInfo& path_base::class_info()
         { "isAbsolute", s_isAbsolute, true },
         { "join", s_join, true },
         { "resolve", s_resolve, true },
+        { "relative", s_relative, true },
         { "toNamespacedPath", s_toNamespacedPath, true }
     };
 
@@ -220,6 +223,23 @@ inline void path_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args
     ARG_LIST(0);
 
     hr = resolve(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void path_base::s_relative(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("path.relative");
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+
+    hr = relative(v0, v1, vr);
 
     METHOD_RETURN();
 }
