@@ -19,7 +19,7 @@ namespace fibjs {
 
 class SandBox : public SandBox_base {
 public:
-    SandBox();
+    SandBox(bool extLoader = true);
 
 public:
     // SandBox_base

@@ -59,18 +59,20 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods, v8::Local<v8::Function> 
     return 0;
 }
 
-SandBox::SandBox()
+SandBox::SandBox(bool extLoader)
 {
     obj_ptr<ExtLoader> loader;
 
     loader = new JsLoader();
     m_loaders.push_back(loader);
 
-    loader = new TsLoader();
-    m_loaders.push_back(loader);
+    if (extLoader) {
+        loader = new TsLoader();
+        m_loaders.push_back(loader);
 
-    loader = new JscLoader();
-    m_loaders.push_back(loader);
+        loader = new JscLoader();
+        m_loaders.push_back(loader);
+    }
 
     loader = new JsonLoader();
     m_loaders.push_back(loader);
@@ -171,9 +173,9 @@ result_t SandBox::has(exlib::string id, bool& retVal)
 {
     path_base::normalize(id, id);
     retVal = mods()->Has(
-                Isolate::current()->context(), 
-                holder()->NewString(id))
-            .ToChecked();
+                       Isolate::current()->context(),
+                       holder()->NewString(id))
+                 .ToChecked();
 
     return 0;
 }
