@@ -243,17 +243,20 @@ public:
         m_timer->sleep();
     }
 
-    result_t result()
+    result_t result(result_t hr = 0)
     {
         m_timer->clear();
 
-        if (try_catch.HasCaught()) {
+        if (hr < 0 || try_catch.HasCaught()) {
             if (this_fiber->m_termed) {
                 try_catch.Reset();
                 this_fiber->m_termed = false;
                 m_isolate->m_isolate->CancelTerminateExecution();
                 return CHECK_ERROR(CALL_E_TIMEOUT);
             } else {
+                if (hr < 0)
+                    return hr;
+
                 try_catch.ReThrow();
                 return CHECK_ERROR(CALL_E_JAVASCRIPT);
             }
