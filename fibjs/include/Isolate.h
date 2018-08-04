@@ -139,6 +139,8 @@ public:
     int32_t m_defaultMaxListeners;
 
     int32_t m_exitCode;
+
+    bool m_bFileAccess;
 };
 
 } /* namespace fibjs */

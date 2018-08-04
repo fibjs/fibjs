@@ -246,6 +246,14 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
         obj_ptr<File> pFile = new File();
         result_t hr;
 
+        Isolate* isolate = ac->isolate();
+
+        if (isolate == NULL)
+            isolate = Isolate::current();
+
+        if (isolate && !isolate->m_bFileAccess)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
         hr = pFile->open(safe_name, flags);
         if (hr < 0)
             return hr;
