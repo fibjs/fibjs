@@ -208,6 +208,66 @@ private:
     QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Function> m_callback;
 };
+
+class TimeoutScope {
+private:
+    class FuncTimer : public JSTimer {
+    public:
+        FuncTimer(JSFiber* fiber, int32_t timeout)
+            : JSTimer(timeout, false, true)
+            , m_fiber(fiber)
+        {
+        }
+
+    public:
+        virtual void on_js_timer()
+        {
+            m_fiber->m_termed = true;
+            if (JSFiber::current() == m_fiber)
+                m_fiber->holder()->m_isolate->TerminateExecution();
+        }
+
+    private:
+        obj_ptr<JSFiber> m_fiber;
+    };
+
+public:
+    TimeoutScope(double timeout)
+        : m_isolate(Isolate::current())
+        , this_fiber(JSFiber::current())
+        , m_timer(new FuncTimer(this_fiber, (int32_t)timeout))
+    {
+        if (timeout < 1 || timeout > TIMEOUT_MAX)
+            timeout = 1;
+
+        m_timer->sleep();
+    }
+
+    result_t result()
+    {
+        m_timer->clear();
+
+        if (try_catch.HasCaught()) {
+            if (this_fiber->m_termed) {
+                try_catch.Reset();
+                this_fiber->m_termed = false;
+                m_isolate->m_isolate->CancelTerminateExecution();
+                return CHECK_ERROR(CALL_E_TIMEOUT);
+            } else {
+                try_catch.ReThrow();
+                return CHECK_ERROR(CALL_E_JAVASCRIPT);
+            }
+        }
+
+        return 0;
+    }
+
+public:
+    TryCatch try_catch;
+    Isolate* m_isolate;
+    obj_ptr<JSFiber> this_fiber;
+    obj_ptr<JSTimer> m_timer;
+};
 }
 
 #endif
