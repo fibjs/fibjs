@@ -52,15 +52,18 @@ result_t fs_base::setZipFS(exlib::string fname, Buffer_base* data)
     if (hr < 0)
         return hr;
 
+    exlib::string safe_name;
+    path_base::normalize(fname, safe_name);
+
     _node = new cache_node();
-    _node->m_name = fname;
+    _node->m_name = safe_name;
     _node->m_list = list;
     _node->m_date = INFINITY;
     _node->m_mtime.now();
 
     s_cachelock.lock();
     for (it = s_cache.begin(); it != s_cache.end(); ++it)
-        if ((*it)->m_name == fname) {
+        if ((*it)->m_name == safe_name) {
             *it = _node;
             break;
         }
@@ -79,9 +82,12 @@ result_t fs_base::clearZipFS(exlib::string fname)
     } else {
         std::list<obj_ptr<cache_node>>::iterator it;
 
+        exlib::string safe_name;
+        path_base::normalize(fname, safe_name);
+
         s_cachelock.lock();
         for (it = s_cache.begin(); it != s_cache.end(); ++it)
-            if ((*it)->m_name == fname) {
+            if ((*it)->m_name == safe_name) {
                 s_cache.erase(it);
                 break;
             }
