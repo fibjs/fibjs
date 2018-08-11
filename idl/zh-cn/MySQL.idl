@@ -3,7 +3,7 @@
 
  使用 db.open 或 db.openMySQL 创建，创建方式：
  ```JavaScript
- var msql = db.openMySQL("mysql://user:pass@host/db");
+ var mysql = db.openMySQL("mysql://user:pass@host/db");
  ```
 */
 interface MySQL : DbConnection

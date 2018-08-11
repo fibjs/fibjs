@@ -3,7 +3,7 @@
 
 Used for db.open or db.openMySQL, to create:
  @code
- var msql = db.openSQLite("mysql://user:pass@host/db");
+ var mysql = db.openMySQL("mysql://user:pass@host/db");
  @endcode
 */
 interface MySQL : DbConnection
