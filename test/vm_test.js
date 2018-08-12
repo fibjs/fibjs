@@ -4,6 +4,7 @@ test.setup();
 var test_util = require('./test_util');
 
 var vm = require('vm');
+var gd = require('gd');
 var os = require('os');
 var fs = require('fs');
 var path = require('path');
@@ -160,6 +161,146 @@ describe("vm", () => {
         assert.deepEqual(b, b1);
     });
 
+
+    it("setModuleLoader: ext recognition", () => {
+        var sbox = new vm.SandBox({});
+
+        assert.throws(() => {
+            sbox.require('./vm_test/custom_ext', __dirname);
+        })
+        sbox.require('./vm_test/custom_ext.abc', __dirname);
+
+        sbox.setModuleLoader('.abc', function (content) {
+        });
+        sbox.require('./vm_test/custom_ext', __dirname);
+    })
+
+    it("setModuleLoader: basic", () => {
+        var sbox = new vm.SandBox({});
+
+        var testVarValue = 'lalala'
+
+        sbox.setModuleLoader('.abc', function (content) {
+            return testVarValue;
+        });
+
+        var testVar = sbox.require('./vm_test/custom_ext', __dirname);
+        assert.equal(testVar, 'lalala');
+
+        assert.throws(() => {
+            (new SandBox({})).setModuleLoader('^abc', function (content) {
+                return testVarValue;
+            });
+            (new SandBox({})).setModuleLoader('-abc', function (content) {
+                return testVarValue;
+            });
+        })
+    })
+
+    it("setModuleLoader: cached require", () => {
+        var sbox = new vm.SandBox({});
+
+        var testVarValue = 'I am not increasing:'
+        var initialCnt = cnt = 0;
+        sbox.setModuleLoader('.abc', function (content) {
+            var _return = testVarValue + cnt;
+
+            cnt++;
+            return _return;
+        });
+        assert.equal(cnt, initialCnt);
+
+        for (var i = initialCnt; i < 10; i++) {
+            var requiredVal = sbox.require('./vm_test/custom_ext', __dirname);
+            assert.equal(cnt, initialCnt + 1);
+            assert.equal(requiredVal, testVarValue + initialCnt);
+        }
+    })
+
+    it("setModuleLoader: re-setModuleLoader", () => {
+        var sbox1 = new vm.SandBox({});
+        var sbox2 = new vm.SandBox({});
+
+        var testVarValue = 'miaomiaomiao'
+
+        var t0 = Date.now();
+        sbox1.setModuleLoader('.abc', function (content) {
+            return { test: testVarValue + t0 };
+        });
+
+        var var0;
+
+        var0 = sbox1.require('./vm_test/custom_ext', __dirname);
+
+        assert.deepEqual(var0, { test: testVarValue + t0 })
+        assert.equal(JSON.stringify(var0), JSON.stringify({ test: testVarValue + t0 }))
+
+        var0 = sbox1.require('./vm_test/custom_ext', __dirname);
+
+        assert.equal(JSON.stringify(var0), JSON.stringify({ test: testVarValue + t0 }));
+        assert.notEqual(var0, testVarValue);
+
+        var testVar1;
+
+        /* 
+            #4d04262b-d752-4d18-a9ad-a107cbd05682
+
+            moduld would be cached via its moduleId. so if you really want to re-setModuleLoader,
+            it's better to delete the sandbox and build new one, then re-require all modules.
+         */
+        sbox1 = new vm.SandBox({})
+        sbox1.setModuleLoader('.abc', function (content) {
+            return testVarValue;
+        });
+        testVar1 = sbox1.require('./vm_test/custom_ext', __dirname);
+        assert.equal(testVar1, testVarValue);
+
+        var t = Date.now();
+
+        var testVar2;
+        sbox2.setModuleLoader('.abc', function (content) {
+            return testVarValue + t;
+        });
+        testVar2 = sbox2.require('./vm_test/custom_ext.abc', __dirname);
+        assert.equal(testVar2, testVarValue + t);
+    })
+
+    it("setModuleLoader: internal extname", () => {
+        assert.throws(() => { (new vm.SandBox({})).setModuleLoader('.js', () => undefined); });
+        assert.throws(() => { (new vm.SandBox({})).setModuleLoader('.jsc', () => undefined); });
+        assert.throws(() => { (new vm.SandBox({})).setModuleLoader('.json', () => undefined); });
+        assert.throws(() => { (new vm.SandBox({})).setModuleLoader('.wasm', () => undefined); });
+
+        (new vm.SandBox({})).setModuleLoader('.ts', () => undefined);
+    })
+
+    it("setModuleLoader: binary", () => {
+        const sbox = new vm.SandBox({});
+        sbox.setModuleLoader('.png', (buf) => {
+            return gd.load(buf);
+        });
+
+        var image1 = sbox.require('./vm_test/custom_ext.png', __dirname);
+        var imageBuf1 = image1.getData(gd.PNG, 1);
+
+        var image2 = gd.load(
+            path.resolve(__dirname, './vm_test/custom_ext.png')
+        );
+        var imageBuf2 = image2.getData(gd.PNG, 1);
+
+        assert.equal(imageBuf1.toString('base64'), imageBuf2.toString('base64'))
+
+        sbox.setModuleLoader('.error', (base64Str) => {
+            nonExistedValue = nonExistedValue1
+            gd.load(base64Str);
+            return nonExistedValue;
+        })
+
+        assert.throws(() => {
+            sbox.require('./vm_test/custom_ext.error, __dirname')
+        })
+    })
+
     it("clone", () => {
         sbox = new vm.SandBox({
             a: 100,
@@ -188,7 +329,12 @@ describe("vm", () => {
     it("block global repl&argv", () => {
         sbox = new vm.SandBox({});
 
-        assert.isUndefined(repl);
+        if (require.main === module) {
+            assert.isFunction(repl);
+        } else {
+            // when this file is tested alone, 'repl' is undefined
+            assert.isUndefined(repl);
+        }
 
         assert.throws(() => {
             sbox.addScript("t2.js", "argv[0];");
@@ -196,7 +342,7 @@ describe("vm", () => {
     });
 
     it("standalone global", () => {
-        function _t() {}
+        function _t() { }
         var sbox1 = new vm.SandBox({}, {
             var1: 100,
             func: _t
