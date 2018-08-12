@@ -170,7 +170,7 @@ describe("vm", () => {
         })
         sbox.require('./vm_test/custom_ext.abc', __dirname);
 
-        sbox.setModuleLoader('.abc', function (content) {
+        sbox.setModuleLoader('.abc', function (buf) {
         });
         sbox.require('./vm_test/custom_ext', __dirname);
     })
@@ -180,7 +180,7 @@ describe("vm", () => {
 
         var testVarValue = 'lalala'
 
-        sbox.setModuleLoader('.abc', function (content) {
+        sbox.setModuleLoader('.abc', function (buf) {
             return testVarValue;
         });
 
@@ -188,13 +188,31 @@ describe("vm", () => {
         assert.equal(testVar, 'lalala');
 
         assert.throws(() => {
-            (new SandBox({})).setModuleLoader('^abc', function (content) {
+            (new SandBox({})).setModuleLoader('^abc', function (buf) {
                 return testVarValue;
             });
-            (new SandBox({})).setModuleLoader('-abc', function (content) {
+        });
+        assert.throws(() => {
+            (new SandBox({})).setModuleLoader('-abc', function (buf) {
                 return testVarValue;
             });
         })
+    })
+
+    it("setModuleLoader: requireInfo", () => {
+        var sbox = new vm.SandBox({});
+
+        sbox.setModuleLoader('.abc', function (buf, requireInfo) {
+            return requireInfo;
+        });
+
+        var expectedRequireInfo = {
+            dirname: path.resolve(__dirname, './vm_test'),
+            filename: path.resolve(__dirname, './vm_test/custom_ext.abc')
+        }
+
+        var testArgs = sbox.require('./vm_test/custom_ext', __dirname);
+        assert.deepEqual(testArgs, expectedRequireInfo);
     })
 
     it("setModuleLoader: cached require", () => {
@@ -202,7 +220,7 @@ describe("vm", () => {
 
         var testVarValue = 'I am not increasing:'
         var initialCnt = cnt = 0;
-        sbox.setModuleLoader('.abc', function (content) {
+        sbox.setModuleLoader('.abc', function (buf) {
             var _return = testVarValue + cnt;
 
             cnt++;
@@ -224,7 +242,7 @@ describe("vm", () => {
         var testVarValue = 'miaomiaomiao'
 
         var t0 = Date.now();
-        sbox1.setModuleLoader('.abc', function (content) {
+        sbox1.setModuleLoader('.abc', function (buf) {
             return { test: testVarValue + t0 };
         });
 
@@ -249,7 +267,7 @@ describe("vm", () => {
             it's better to delete the sandbox and build new one, then re-require all modules.
          */
         sbox1 = new vm.SandBox({})
-        sbox1.setModuleLoader('.abc', function (content) {
+        sbox1.setModuleLoader('.abc', function (buf) {
             return testVarValue;
         });
         testVar1 = sbox1.require('./vm_test/custom_ext', __dirname);
@@ -258,7 +276,7 @@ describe("vm", () => {
         var t = Date.now();
 
         var testVar2;
-        sbox2.setModuleLoader('.abc', function (content) {
+        sbox2.setModuleLoader('.abc', function (buf) {
             return testVarValue + t;
         });
         testVar2 = sbox2.require('./vm_test/custom_ext.abc', __dirname);

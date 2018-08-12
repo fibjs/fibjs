@@ -22,15 +22,25 @@ result_t SandBox::CustomExtLoader::run(SandBox::Context* ctx, Buffer_base* src,
 {
     Isolate* isolate = ctx->m_sb->holder();
 
-    v8::Local<v8::String> soname = isolate->NewString(name);
+    v8::Local<v8::String> filename = isolate->NewString(name);
     exlib::string pname;
     path_base::dirname(name, pname);
 
     v8::Local<v8::Value> require_fn = ctx->m_sb->GetPrivate(SandBox::_get_extloader_pname(m_ext));
 
-    // transpile with customFile first :start
+    // read filecontent :start
     std::vector<v8::Local<v8::Value>> transpileArgs;
-    transpileArgs.resize(1);
+    transpileArgs.resize(2);
+
+    src->valueOf(transpileArgs[0]);
+
+    obj_ptr<NObject> requireInfo = new NObject();
+    requireInfo->add("dirname", pname);
+    requireInfo->add("filename", name);
+
+    v8::Local<v8::Value> callbackObj;
+    requireInfo->valueOf(callbackObj);
+    transpileArgs[1] = callbackObj;
 
     src->valueOf(transpileArgs[0]);
 
@@ -47,7 +57,7 @@ result_t SandBox::CustomExtLoader::run(SandBox::Context* ctx, Buffer_base* src,
         } else
             return CHECK_ERROR(Runtime::setError(GetException(try_catch, 0)));
     }
-    // transpile with customFile first :end
+    // read filecontent :end
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
     module->Set(isolate->NewString("exports"), fileContent);
