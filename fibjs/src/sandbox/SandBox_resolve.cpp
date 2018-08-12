@@ -20,7 +20,6 @@ namespace fibjs {
 result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 {
     result_t hr;
-    Isolate* isolate = holder();
 
     Variant var;
     hr = fs_base::cc_readFile(fname, "", var);
@@ -172,6 +171,37 @@ result_t SandBox::resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
     }
 
     return CALL_E_FILE_NOT_FOUND;
+}
+
+static const char* predefine_exts[] = {
+    ".js",
+    ".jsc",
+    ".json",
+    ".wasm"
+};
+result_t SandBox::setModuleLoader(exlib::string extname, v8::Local<v8::Function> once_require_func)
+{
+    if (extname.empty())
+        return CALL_E_INVALIDARG;
+
+    if (extname[0] != '.')
+        return CALL_E_INVALIDARG;
+
+    for (int i = 0; i < ARRAYSIZE(predefine_exts); i++)
+        if (extname == predefine_exts[i])
+            return CHECK_ERROR(Runtime::setError("SandBox: '" + extname + "' is reserved extension name!"));
+
+    obj_ptr<ExtLoader> loader;
+
+    find_loader("test" + extname, loader);
+
+    if (!loader) {
+        loader = new CustomExtLoader(extname);
+        m_loaders.push_back(loader);
+    }
+    SetPrivate(SandBox::_get_extloader_pname(extname), once_require_func);
+
+    return 0;
 }
 
 result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retVal)

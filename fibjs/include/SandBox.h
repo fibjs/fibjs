@@ -32,6 +32,7 @@ public:
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv);
     virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal);
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
+    virtual result_t setModuleLoader(exlib::string extname, v8::Local<v8::Function> once_require_func);
     virtual result_t get_global(v8::Local<v8::Object>& retVal);
 
 public:
@@ -137,6 +138,24 @@ public:
         exlib::string m_ext;
     };
 
+    static exlib::string _get_extloader_pname(exlib::string extname)
+    {
+        return "extloader_p_" + extname;
+    }
+
+    class CustomExtLoader : public SandBox::ExtLoader {
+    public:
+        CustomExtLoader(exlib::string t_extname)
+            : ExtLoader(t_extname.c_str())
+        {
+        }
+
+    public:
+        virtual result_t run(SandBox::Context* ctx, Buffer_base* src,
+            exlib::string name, exlib::string arg_names,
+            v8::Local<v8::Value>* args, int32_t args_count);
+    };
+
 public:
     virtual result_t custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retVal);
 
@@ -174,6 +193,16 @@ public:
 
     result_t get_loader(exlib::string fname, obj_ptr<ExtLoader>& retVal)
     {
+        find_loader(fname, retVal);
+
+        if (!retVal)
+            retVal = m_loaders[0];
+
+        return 0;
+    }
+
+    result_t find_loader(exlib::string fname, obj_ptr<ExtLoader>& retVal)
+    {
         size_t cnt = m_loaders.size();
 
         for (size_t i = 0; i < cnt; i++) {
@@ -186,7 +215,6 @@ public:
             }
         }
 
-        retVal = m_loaders[0];
         return 0;
     }
 

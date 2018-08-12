@@ -92,6 +92,12 @@ interface SandBox : object
      */
     Value require(String id, String base);
 
+    /*! @brief 对指定的 extname 添加特定的 resolve 方法
+     @param extname 指定的 extname, 必须以 '.' 开头, 且为非系统内置扩展名
+     @param once_require_func 一次性引入函数, 所有带 extname 的文件仅会 require 一次
+     */
+    setModuleLoader(String extname, Function once_require_func);
+
     /*! @brief 查询沙箱的 global 对象 */
     readonly Object global;
 };
