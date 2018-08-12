@@ -146,7 +146,7 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
         s_cachelock.unlock();
 
         if (_node && (_now.diff(_node->m_date) > 3000)) {
-            hr = cc_openFile(zip_file, "r", zip_stream);
+            hr = openFile(zip_file, "r", zip_stream, ac);
             if (hr < 0)
                 return hr;
 
@@ -165,7 +165,7 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
 
         if (_node == NULL) {
             if (zip_stream == NULL) {
-                hr = cc_openFile(zip_file, "r", zip_stream);
+                hr = openFile(zip_file, "r", zip_stream, ac);
                 if (hr < 0)
                     return hr;
 
@@ -252,10 +252,7 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
         obj_ptr<File> pFile = new File();
         result_t hr;
 
-        Isolate* isolate = ac->isolate();
-
-        if (isolate == NULL)
-            isolate = Isolate::current();
+        Isolate* isolate = Runtime::check() ? Isolate::current() : ac->isolate();
 
         if (isolate && !isolate->m_bFileAccess)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -317,7 +314,7 @@ result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<SeekableStream_base> pFile;
-    result_t hr = cc_openFile(fname, flags, pFile);
+    result_t hr = openFile(fname, flags, pFile, ac);
     if (hr < 0)
         return hr;
 
@@ -334,7 +331,7 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
     obj_ptr<Buffer_base> buf;
     result_t hr;
 
-    hr = cc_openFile(fname, "r", f);
+    hr = openFile(fname, "r", f, ac);
     if (hr < 0)
         return hr;
 
@@ -362,7 +359,7 @@ result_t fs_base::readFile(exlib::string fname, exlib::string encoding,
     obj_ptr<Buffer_base> buf;
     result_t hr;
 
-    hr = cc_openFile(fname, "r", f);
+    hr = openFile(fname, "r", f, ac);
     if (hr < 0)
         return hr;
 
@@ -416,7 +413,7 @@ result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt,
     obj_ptr<SeekableStream_base> f;
     result_t hr;
 
-    hr = cc_openFile(fname, "w", f);
+    hr = openFile(fname, "w", f, ac);
     if (hr < 0)
         return hr;
 
@@ -436,7 +433,7 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* 
     obj_ptr<SeekableStream_base> f;
     result_t hr;
 
-    hr = cc_openFile(fname, "w", f);
+    hr = openFile(fname, "w", f, ac);
     if (hr < 0)
         return hr;
 
@@ -453,7 +450,7 @@ result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, AsyncEvent*
     obj_ptr<SeekableStream_base> f;
     result_t hr;
 
-    hr = cc_openFile(fname, "a", f);
+    hr = openFile(fname, "a", f, ac);
     if (hr < 0)
         return hr;
 

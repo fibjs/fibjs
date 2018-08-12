@@ -190,7 +190,7 @@ result_t zip_base::open(exlib::string path, exlib::string mod, int32_t compress_
     bool exists;
 
     if ((mod == "w"))
-        hr = fs_base::cc_openFile(path, "w", file);
+        hr = fs_base::openFile(path, "w", file, ac);
     else if ((mod == "a") || (mod == "a+")) {
         hr = fs_base::cc_exists(path, exists);
         if (hr < 0)
@@ -199,11 +199,11 @@ result_t zip_base::open(exlib::string path, exlib::string mod, int32_t compress_
         if (!exists)
             return CHECK_ERROR(Runtime::setError("zip file not exists!"));
 
-        hr = fs_base::cc_openFile(path, "r+", file);
+        hr = fs_base::openFile(path, "r+", file, ac);
     }
 
     else
-        hr = fs_base::cc_openFile(path, "r", file);
+        hr = fs_base::openFile(path, "r", file, ac);
 
     if (hr < 0)
         return hr;
@@ -479,7 +479,7 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::strin
     if (err != UNZ_OK)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
-    hr = fs_base::cc_openFile(path, "w", file);
+    hr = fs_base::openFile(path, "w", file, ac);
     if (hr < 0)
         return hr;
 
@@ -579,7 +579,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncEv
             fpath1 += "?";
         } while (exists);
 
-        hr = fs_base::cc_openFile(fpath, "w", file);
+        hr = fs_base::openFile(fpath, "w", file, ac);
         if (hr < 0)
             return hr;
 
@@ -741,7 +741,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string inZipName, exlib::
     result_t hr;
     obj_ptr<SeekableStream_base> file;
 
-    hr = fs_base::cc_openFile(filename, "r", file);
+    hr = fs_base::openFile(filename, "r", file, ac);
     if (hr < 0)
         return hr;
 
