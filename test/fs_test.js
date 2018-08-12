@@ -374,11 +374,6 @@ describe('fs', () => {
         save_zip(2);
         test_zip(2);
 
-        /**
-         * content of zip-file(e.g. named with 'safename.zip') would be cached when
-         * read by 'fs' module, and expire after 3000ms, so here we sleep 4000ms to
-         * wait cached 'unzip_test.zip' expired
-         */
         coroutine.sleep(4000);
         test_zip(2);
 
