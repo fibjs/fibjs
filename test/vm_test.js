@@ -161,7 +161,6 @@ describe("vm", () => {
         assert.deepEqual(b, b1);
     });
 
-
     it("setModuleLoader: ext recognition", () => {
         var sbox = new vm.SandBox({});
 
@@ -242,10 +241,10 @@ describe("vm", () => {
 
         var testVar1;
 
-        /* 
+        /*
             #4d04262b-d752-4d18-a9ad-a107cbd05682
 
-            moduld would be cached via its moduleId. so if you really want to re-setModuleLoader,
+            module would be cached via its moduleId. so if you really want to re-setModuleLoader,
             it's better to delete the sandbox and build new one, then re-require all modules.
          */
         sbox1 = new vm.SandBox({})
@@ -376,6 +375,48 @@ describe("vm", () => {
         });
 
         sbox1.addScript("t1.js", "new mq.Routing({});");
+    });
+
+    it("modules(dict)", () => {
+        function assertSrcWithTarget(mods) {
+            var sbox = new vm.SandBox(mods);
+            assert.deepEqual(mods, sbox.modules);
+        }
+
+        const modList = [];
+
+        modList[0] = {
+            b: {
+                a: 100,
+                b: 200
+            }
+        };
+        modList[1] = {};
+        modList[2] = { Function, Object, Array, String, Boolean, _: new.target };
+        modList[3] = { a: new Map(), b: new Set(), c: new Array(), d: new Object() };
+        modList[4] = { a: undefined, b: null };
+        modList[5] = { a: Symbol(Date.now()) };
+        modList[6] = { a: 1, b: -1, c: Infinity, d: -Infinity, e: 0, d: +0, f: -0 };
+        modList[7] = { a: true, b: false };
+        modList[8] = { http: require('http'), util: require('util') };
+
+        modList.forEach(mod => assertSrcWithTarget(mod))
+
+        var sbox = new vm.SandBox(modList[0])
+        assert.deepEqual(modList[0], sbox.modules);
+        sbox.add('123', {})
+        assert.deepEqual({
+            123: {},
+            ...modList[0]
+        }, sbox.modules);
+        sbox.addScript('123.js', "exports.__456 = {abc: 123}")
+        assert.deepEqual({
+            123: {},
+            '123.js': {
+                __456: {abc: 123},
+            },
+            ...modList[0]
+        }, sbox.modules)
     });
 
     it("require.cache", () => {
