@@ -38,6 +38,7 @@ public:
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t setModuleLoader(exlib::string extname, v8::Local<v8::Function> once_require_func) = 0;
     virtual result_t get_global(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t get_modules(v8::Local<v8::Object>& retVal) = 0;
 
 public:
     template <typename T>
@@ -55,6 +56,7 @@ public:
     static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setModuleLoader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_global(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_modules(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -76,7 +78,8 @@ inline ClassInfo& SandBox_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "global", s_get_global, block_set, false }
+        { "global", s_get_global, block_set, false },
+        { "modules", s_get_modules, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -298,6 +301,19 @@ inline void SandBox_base::s_get_global(v8::Local<v8::Name> property, const v8::P
     PROPERTY_ENTER();
 
     hr = pInst->get_global(vr);
+
+    METHOD_RETURN();
+}
+
+inline void SandBox_base::s_get_modules(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_NAME("SandBox.modules");
+    METHOD_INSTANCE(SandBox_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_modules(vr);
 
     METHOD_RETURN();
 }

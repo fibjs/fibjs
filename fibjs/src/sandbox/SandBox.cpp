@@ -196,4 +196,22 @@ result_t SandBox::get_global(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
+result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = holder();
+
+    retVal = v8::Object::New(isolate->m_isolate);
+
+    v8::Local<v8::Object> ms = mods();
+    v8::Local<v8::Array> ks = ms->GetPropertyNames();
+
+    v8::Local<v8::String> mgetter = isolate->NewString("exports");
+    for (int32_t i = 0, len = ks->Length(); i < len; i++) {
+        v8::Local<v8::Value> k = ks->Get(i);
+        retVal->Set(k, ms->Get(k)->ToObject()->Get(mgetter));
+    }
+
+    return 0;
+}
+
 } /* namespace fibjs */

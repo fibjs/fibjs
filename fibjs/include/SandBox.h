@@ -34,6 +34,7 @@ public:
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
     virtual result_t setModuleLoader(exlib::string extname, v8::Local<v8::Function> once_require_func);
     virtual result_t get_global(v8::Local<v8::Object>& retVal);
+    virtual result_t get_modules(v8::Local<v8::Object>& retVal);
 
 public:
     v8::Local<v8::Object> mods()
