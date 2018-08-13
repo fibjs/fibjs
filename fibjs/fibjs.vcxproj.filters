@@ -1334,6 +1334,9 @@
     <ClCompile Include="src\sandbox\loaders\base_loader.cpp">
       <Filter>Source Files\sandbox\loaders</Filter>
     </ClCompile>
+    <ClCompile Include="src\sandbox\loaders\custom_loader.cpp">
+      <Filter>Source Files\sandbox\loaders</Filter>
+    </ClCompile>
     <ClCompile Include="src\sandbox\loaders\js_loader.cpp">
       <Filter>Source Files\sandbox\loaders</Filter>
     </ClCompile>
@@ -1341,9 +1344,6 @@
       <Filter>Source Files\sandbox\loaders</Filter>
     </ClCompile>
     <ClCompile Include="src\sandbox\loaders\json_loader.cpp">
-      <Filter>Source Files\sandbox\loaders</Filter>
-    </ClCompile>
-    <ClCompile Include="src\sandbox\loaders\ts_loader.cpp">
       <Filter>Source Files\sandbox\loaders</Filter>
     </ClCompile>
     <ClCompile Include="src\ssl\SslHandler.cpp">
