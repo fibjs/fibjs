@@ -67,9 +67,6 @@ SandBox::SandBox(bool extLoader)
     m_loaders.push_back(loader);
 
     if (extLoader) {
-        loader = new TsLoader();
-        m_loaders.push_back(loader);
-
         loader = new JscLoader();
         m_loaders.push_back(loader);
     }
