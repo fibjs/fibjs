@@ -105,6 +105,19 @@ result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
         vender->Set(isolate->NewString("zmq"), isolate->NewString(STR(ZMQ_VERSION_MAJOR) "." STR(ZMQ_VERSION_MINOR)));
     }
 
+    {
+        v8::Local<v8::Array> modules = v8::Array::New(isolate->m_isolate);
+        retVal->Set(isolate->NewString("modules"), modules);
+
+        RootModule* pModule = RootModule::g_root;
+        intptr_t icnt = 0;
+
+        while (pModule) {
+            modules->Set((int32_t)(icnt++), isolate->NewString(pModule->name()));
+            pModule = pModule->m_next;
+        }
+    }
+
     return 0;
 }
 }

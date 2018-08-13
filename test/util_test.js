@@ -1239,6 +1239,76 @@ describe('util', () => {
         });
     });
 
+    describe('buildInfo', () => {
+        it('properties', () => {
+            assert.property(util.buildInfo(), 'fibjs');
+            // clang
+            // gcc
+            // msvc
+            assert.property(util.buildInfo(), 'git');
+            assert.property(util.buildInfo(), 'date');
+            // debug
+            assert.property(util.buildInfo(), 'vender');
+            assert.property(util.buildInfo(), 'modules');
+        });
+
+        it('modules', () => {
+            const modules = util.buildInfo().modules;
+    
+            // built-in modules
+            ;[
+                "zmq",
+                "zlib",
+                "zip",
+                "xml",
+                "ws",
+                "vm",
+                "uuid",
+                "util",
+                "url",
+                "tty",
+                "timers",
+                "test",
+                "string_decoder",
+                "tls",
+                "ssl",
+                "querystring",
+                "punycode",
+                "profiler",
+                "process",
+                "path",
+                "os",
+                "net",
+                "mq",
+                "json",
+                "io",
+                "iconv",
+                "https",
+                "http",
+                "hex",
+                "hash",
+                "gd",
+                "fs",
+                "events",
+                "encoding",
+                "dns",
+                "dgram",
+                "db",
+                "crypto",
+                "coroutine",
+                "buffer",
+                "bson",
+                "base64vlq",
+                "base64",
+                "base32",
+                "assert"
+            ].forEach(moduleName => {
+                assert.isTrue(modules.includes(moduleName))
+                assert.isObject(require(moduleName))
+            });
+        });
+    });
+
     describe('LruCache', () => {
         var c;
 

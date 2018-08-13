@@ -271,31 +271,34 @@ module util
     static LruCache;
 
     /*! @brief Get current engine and components information
-
-     @return Struct info:
-     @code
-     {
-       "fibjs": "0.1.0",
-       "svn": 1753,
-       "build": "Dec 10 2013 21:44:17",
-       "vender": {
-         "ev": "4.11",
-         "exif": "0.6.21",
-         "gd": "2.1.0-alpha",
-         "jpeg": "8.3",
-         "log4cpp": "1.0",
-         "mongo": "0.7",
-         "pcre": "8.21",
-         "png": "1.5.4",
-         "sqlite": "3.8.1",
-         "tiff": "3.9.5",
-         "uuid": "1.6.2",
-         "v8": "3.23.17 (candidate)",
-         "zlib": "1.2.7",
-         "zmq": "3.1"
-       }
-     }
-     @endcode
+    
+      ```JavaScript
+      {
+        "fibjs": "0.25.0",
+        "clang": "9.1",
+        "date": "Jun 12 2018 07:22:40",
+        "vender": {
+          "ev": "4.24",
+          "expat": "2.2.5",
+          "gd": "2.2.4",
+          "jpeg": "8.3",
+          "leveldb": "1.17",
+          "mongo": "0.7",
+          "pcre": "8.21",
+          "png": "1.5.4",
+          "mbedtls": "2.6.1",
+          "snappy": "1.1.2",
+          "sqlite": "3.23.0",
+          "tiff": "3.9.5",
+          "uuid": "1.6.2",
+          "v8": "6.7.288.20",
+          "v8-snapshot": true,
+          "zlib": "1.2.7",
+          "zmq": "3.1"
+        }
+      }
+    ```
+     @return Struct info
      */
     static Object buildInfo();
 };
