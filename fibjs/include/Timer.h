@@ -255,26 +255,16 @@ public:
     {
         m_timer->clear();
 
-        if (hr < 0 || try_catch.HasCaught()) {
-            if (this_fiber->m_termed) {
-                try_catch.Reset();
-                this_fiber->m_termed = false;
-                m_isolate->m_isolate->CancelTerminateExecution();
-                return CHECK_ERROR(CALL_E_TIMEOUT);
-            } else {
-                if (hr < 0)
-                    return hr;
-
-                try_catch.ReThrow();
-                return CHECK_ERROR(CALL_E_JAVASCRIPT);
-            }
+        if (this_fiber->m_termed) {
+            this_fiber->m_termed = false;
+            m_isolate->m_isolate->CancelTerminateExecution();
+            return CHECK_ERROR(CALL_E_TIMEOUT);
         }
 
-        return 0;
+        return hr;
     }
 
 public:
-    TryCatch try_catch;
     Isolate* m_isolate;
     obj_ptr<JSFiber> this_fiber;
     obj_ptr<JSTimer> m_timer;

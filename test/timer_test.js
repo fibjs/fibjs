@@ -446,6 +446,10 @@ describe("timer", () => {
                 coroutine.sleep(100);
         }
 
+        function test3() {
+            throw Error(100);
+        }
+
         var t1 = new Date();
         assert.throws(() => {
             timers.call(test1, 30);
@@ -461,6 +465,10 @@ describe("timer", () => {
         var t2 = new Date();
         assert.greaterThan(t2 - t1, 90);
         assert.lessThan(t2 - t1, 150);
+
+        assert.throws(() => {
+            timers.call(test3, 30);
+        });
     });
 });
 

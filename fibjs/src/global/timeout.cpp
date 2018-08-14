@@ -19,6 +19,6 @@ result_t timers_base::call(v8::Local<v8::Function> func, double timeout,
 
     TimeoutScope ts(timeout);
     retVal = func->Call(v8::Undefined(ts.m_isolate->m_isolate), (int32_t)argv.size(), argv.data());
-    return ts.result();
+    return ts.result(retVal.IsEmpty() ? CALL_E_JAVASCRIPT : 0);
 }
 }
