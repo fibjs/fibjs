@@ -8,6 +8,8 @@
 #include "object.h"
 #include "SandBox.h"
 #include "ifs/global.h"
+#include "ifs/util.h"
+#include "path.h"
 
 namespace fibjs {
 
@@ -63,6 +65,38 @@ result_t SandBox::ExtLoader::run_module(Context* ctx, Buffer_base* src, exlib::s
 
     arg_names.append("){", 2);
 
-    return run(ctx, src, name, arg_names.c_str(), args);
+    return run(ctx, src, name, arg_names, args);
+}
+
+result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string name,
+    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
+{
+    result_t hr;
+    v8::Local<v8::Script> script;
+
+    hr = compile(ctx, src, name, arg_names, script);
+    if (hr < 0)
+        return hr;
+
+    v8::Local<v8::Value> v = script->Run();
+    if (v.IsEmpty())
+        return CALL_E_JAVASCRIPT;
+
+    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(v);
+    util_base::sync(func, true, func);
+
+    Isolate* isolate = ctx->m_sb->holder();
+
+    exlib::string pname;
+    path_base::dirname(name, pname);
+
+    args[0] = isolate->NewString(name);
+    args[1] = isolate->NewString(pname);
+    v8::Local<v8::Object> glob = isolate->context()->Global();
+    v = func->Call(glob, (int32_t)args.size(), args.data());
+    if (v.IsEmpty())
+        return CALL_E_JAVASCRIPT;
+
+    return 0;
 }
 }

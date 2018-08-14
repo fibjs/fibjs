@@ -15,8 +15,8 @@
 
 namespace fibjs {
 
-result_t JscLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
+result_t JscLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+    exlib::string arg_names, v8::Local<v8::Script>& script)
 {
     result_t hr;
 
@@ -66,7 +66,7 @@ result_t JscLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
         pos++;
     }
 
-    v8::MaybeLocal<v8::Script> script;
+    v8::MaybeLocal<v8::Script> mayscript;
     {
         TryCatch try_catch;
 
@@ -76,26 +76,14 @@ result_t JscLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
         v8::ScriptCompiler::Source source(isolate->NewString(s_temp_source),
             v8::ScriptOrigin(soname), cache);
 
-        script = v8::ScriptCompiler::Compile(isolate->context(), &source,
+        mayscript = v8::ScriptCompiler::Compile(isolate->context(), &source,
             v8::ScriptCompiler::kConsumeCodeCache);
 
-        if (script.IsEmpty())
+        if (mayscript.IsEmpty())
             return throwSyntaxError(try_catch);
     }
 
-    v8::Local<v8::Value> v = script.ToLocalChecked()->Run();
-    if (v.IsEmpty())
-        return CALL_E_JAVASCRIPT;
-
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(v);
-    util_base::sync(func, true, func);
-
-    args[0] = soname;
-    args[1] = isolate->NewString(pname);
-    v8::Local<v8::Object> glob = isolate->context()->Global();
-    v = func->Call(glob, (int32_t)args.size(), args.data());
-    if (v.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+    script = mayscript.ToLocalChecked();
 
     return 0;
 }

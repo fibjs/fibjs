@@ -129,11 +129,14 @@ public:
             std::vector<arg>& extarg);
 
     public:
-        virtual result_t run(Context* ctx, Buffer_base* src, exlib::string name,
-            exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
+        virtual result_t compile(Context* ctx, Buffer_base* src, exlib::string name,
+            exlib::string arg_names, v8::Local<v8::Script>& script)
         {
             return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
         }
+
+        virtual result_t run(Context* ctx, Buffer_base* src, exlib::string name,
+            exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
 
     public:
         exlib::string m_ext;

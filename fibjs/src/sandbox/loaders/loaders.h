@@ -20,8 +20,8 @@ public:
     }
 
 public:
-    virtual result_t run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
+    virtual result_t compile(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+        exlib::string arg_names, v8::Local<v8::Script>& script);
 };
 
 class JscLoader : public SandBox::ExtLoader {
@@ -32,8 +32,8 @@ public:
     }
 
 public:
-    virtual result_t run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
+    virtual result_t compile(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+        exlib::string arg_names, v8::Local<v8::Script>& script);
 };
 
 class JsonLoader : public SandBox::ExtLoader {
