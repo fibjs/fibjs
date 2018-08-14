@@ -12,7 +12,7 @@
 
 namespace fibjs {
 result_t JsonLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-    exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count)
+    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
 {
     exlib::string strScript;
     v8::Local<v8::Value> v;

@@ -14,6 +14,7 @@
 #include "LruCache.h"
 #include "Buffer.h"
 #include "options.h"
+#include "loaders/loaders.h"
 
 namespace fibjs {
 

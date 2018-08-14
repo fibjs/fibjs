@@ -130,7 +130,7 @@ public:
 
     public:
         virtual result_t run(Context* ctx, Buffer_base* src, exlib::string name,
-            exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count)
+            exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
         {
             return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
         }
@@ -143,19 +143,6 @@ public:
     {
         return "extloader_p_" + extname;
     }
-
-    class CustomExtLoader : public SandBox::ExtLoader {
-    public:
-        CustomExtLoader(exlib::string t_extname)
-            : ExtLoader(t_extname.c_str())
-        {
-        }
-
-    public:
-        virtual result_t run(SandBox::Context* ctx, Buffer_base* src,
-            exlib::string name, exlib::string arg_names,
-            v8::Local<v8::Value>* args, int32_t args_count);
-    };
 
 public:
     virtual result_t custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retVal);

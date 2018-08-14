@@ -15,10 +15,8 @@
 
 namespace fibjs {
 
-result_t SandBox::CustomExtLoader::run(SandBox::Context* ctx, Buffer_base* src,
-    exlib::string name, exlib::string arg_names,
-    v8::Local<v8::Value>* args,
-    int32_t args_count)
+result_t CustomExtLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
 {
     Isolate* isolate = ctx->m_sb->holder();
 

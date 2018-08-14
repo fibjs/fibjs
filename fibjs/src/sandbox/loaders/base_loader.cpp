@@ -63,6 +63,6 @@ result_t SandBox::ExtLoader::run_module(Context* ctx, Buffer_base* src, exlib::s
 
     arg_names.append("){", 2);
 
-    return run(ctx, src, name, arg_names.c_str(), args.data(), (int32_t)args.size());
+    return run(ctx, src, name, arg_names.c_str(), args);
 }
 }

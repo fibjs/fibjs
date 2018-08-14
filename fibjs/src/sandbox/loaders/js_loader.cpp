@@ -14,7 +14,7 @@
 namespace fibjs {
 
 result_t JsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-    exlib::string arg_names, v8::Local<v8::Value>* args, int32_t args_count)
+    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
 {
     Isolate* isolate = ctx->m_sb->holder();
 
@@ -68,7 +68,7 @@ result_t JsLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string na
     args[0] = soname;
     args[1] = isolate->NewString(pname);
     v8::Local<v8::Object> glob = isolate->context()->Global();
-    v = func->Call(glob, args_count, args);
+    v = func->Call(glob, (int32_t)args.size(), args.data());
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
