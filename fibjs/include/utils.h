@@ -1251,7 +1251,7 @@ inline result_t _error_checker(result_t hr, const char* file, int32_t line)
 }
 
 #ifndef NDEBUG
-#define CHECK_ERROR(hr) _error_checker((hr), __FILE__, __LINE__)
+#define CHECK_ERROR(hr) fibjs::_error_checker((hr), __FILE__, __LINE__)
 #else
 #define CHECK_ERROR(hr) (hr)
 #endif
