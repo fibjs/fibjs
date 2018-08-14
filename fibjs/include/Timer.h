@@ -68,6 +68,11 @@ public:
             resume();
     }
 
+    bool is_stopped()
+    {
+        return m_cancel != 0;
+    }
+
 public:
     virtual void on_timer()
     {
@@ -142,6 +147,9 @@ public:
     virtual void resume()
     {
         Isolate* isolate = holder();
+
+        if (is_stopped())
+            m_hr = false;
 
         if (m_hr)
             isolate->RequestInterrupt(_InterruptCallback, this);
