@@ -92,11 +92,38 @@ interface SandBox : object
      */
     Value require(String id, String base);
 
-    /*! @brief 对指定的 extname 添加特定的 resolve 方法
+    /*! @brief 对指定的 extname 添加 compiler, extname 不可为系统内置扩展名 (包括 {'.js', '.json', '.jsc', '.wasm'}), compiler 需返回有效的 javascript 脚本.
+
+      ```JavaScript
+      var vm = require('vm');
+      var sbox = new vm.SandBox({
+      });
+
+      // 编译 typescript 脚本为 js 并加载
+      sbox.setModuleCompiler('.ts', tsCompiler);
+      var mod_ts = sbox.require('./a.ts');
+
+      // 编译 coffee 脚本为 js 并加载
+      sbox.setModuleCompiler('.coffee', cafeCompiler);
+      var mod_coffee = sbox.require('./a.coffee');
+
+      // 编译 jsx 脚本为 js 并加载
+      sbox.setModuleCompiler('.jsx', reactCompiler);
+      var mod_react = sbox.require('./a.jsx');
+
+      // 编译 yml 脚本为自定义的内容(如 API 集合) 并加载
+      sbox.setModuleCompiler('.yml', yaml2Rest)
+      sbox.setModuleCompiler('.yaml', yaml2Rest)
+
+      // 编译 markdown 为自定义的内容(如 html 字符串或 XmlDocument 对象) 并加载
+      sbox.setModuleCompiler('.md', mdCompiler)
+      sbox.setModuleCompiler('.markdown', mdCompiler)
+      ```
+
      @param extname 指定的 extname, 必须以 '.' 开头, 且为非系统内置扩展名
-     @param once_require_func 一次性引入函数, 所有带 extname 的文件仅会 require 一次
+     @param compiler 编译回调函数, 所有带 extname 的文件仅会 require 一次. 该回调函数格式为 `compiler(buf, requireInfo)`, buf 为读取到的文件 Buffer, requireInfo 结构为 `{filename: string}`.
      */
-    setModuleLoader(String extname, Function once_require_func);
+    setModuleCompiler(String extname, Function compiler);
 
     /*! @brief 查询沙箱的 global 对象 */
     readonly Object global;

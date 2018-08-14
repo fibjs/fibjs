@@ -180,7 +180,7 @@ static const char* predefine_exts[] = {
     ".json",
     ".wasm"
 };
-result_t SandBox::setModuleLoader(exlib::string extname, v8::Local<v8::Function> once_require_func)
+result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler)
 {
     if (extname.empty())
         return CALL_E_INVALIDARG;
@@ -200,7 +200,7 @@ result_t SandBox::setModuleLoader(exlib::string extname, v8::Local<v8::Function>
         loader = new CustomExtLoader(extname);
         m_loaders.push_back(loader);
     }
-    SetPrivate(SandBox::_get_extloader_pname(extname), once_require_func);
+    SetPrivate(SandBox::_get_extloader_pname(extname), compiler);
 
     return 0;
 }

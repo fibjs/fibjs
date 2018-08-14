@@ -36,7 +36,7 @@ public:
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv) = 0;
     virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal) = 0;
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t setModuleLoader(exlib::string extname, v8::Local<v8::Function> once_require_func) = 0;
+    virtual result_t setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler) = 0;
     virtual result_t get_global(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get_modules(v8::Local<v8::Object>& retVal) = 0;
 
@@ -54,7 +54,7 @@ public:
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_setModuleLoader(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setModuleCompiler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_global(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_modules(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
@@ -74,7 +74,7 @@ inline ClassInfo& SandBox_base::class_info()
         { "run", s_run, false },
         { "resolve", s_resolve, false },
         { "require", s_require, false },
-        { "setModuleLoader", s_setModuleLoader, false }
+        { "setModuleCompiler", s_setModuleCompiler, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -276,9 +276,9 @@ inline void SandBox_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void SandBox_base::s_setModuleLoader(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void SandBox_base::s_setModuleCompiler(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("SandBox.setModuleLoader");
+    METHOD_NAME("SandBox.setModuleCompiler");
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
@@ -287,7 +287,7 @@ inline void SandBox_base::s_setModuleLoader(const v8::FunctionCallbackInfo<v8::V
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Function>, 1);
 
-    hr = pInst->setModuleLoader(v0, v1);
+    hr = pInst->setModuleCompiler(v0, v1);
 
     METHOD_VOID();
 }

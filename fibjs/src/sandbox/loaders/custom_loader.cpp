@@ -8,58 +8,40 @@
 
 #include "Buffer.h"
 #include "SandBox.h"
-#include "ifs/util.h"
 #include "loaders.h"
 #include "object.h"
-#include "path.h"
 
 namespace fibjs {
 
-result_t CustomExtLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
+result_t CustomExtLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+    exlib::string arg_names, v8::Local<v8::Script>& script)
 {
     Isolate* isolate = ctx->m_sb->holder();
-
-    v8::Local<v8::String> filename = isolate->NewString(name);
-    exlib::string pname;
-    path_base::dirname(name, pname);
+    v8::Local<v8::String> soname = isolate->NewString(name);
 
     v8::Local<v8::Value> require_fn = ctx->m_sb->GetPrivate(SandBox::_get_extloader_pname(m_ext));
 
-    // read filecontent :start
-    std::vector<v8::Local<v8::Value>> transpileArgs;
-    transpileArgs.resize(2);
+    exlib::string strScript;
+    // read filecontent and compile to strScript :start
+    v8::Local<v8::Value> transpileArgs[2];
 
     src->valueOf(transpileArgs[0]);
+    v8::Local<v8::Object> requireInfo = v8::Object::New(isolate->m_isolate);
+    transpileArgs[1] = requireInfo;
 
-    obj_ptr<NObject> requireInfo = new NObject();
-    requireInfo->add("dirname", pname);
-    requireInfo->add("filename", name);
+    requireInfo->Set(isolate->NewString("filename"), isolate->NewString(name));
 
-    v8::Local<v8::Value> callbackObj;
-    requireInfo->valueOf(callbackObj);
-    transpileArgs[1] = callbackObj;
+    v8::Local<v8::Value> fileContent = v8::Local<v8::Function>::Cast(require_fn)->Call(v8::Undefined(isolate->m_isolate), 2, transpileArgs);
+    if (fileContent.IsEmpty())
+        return CALL_E_JAVASCRIPT;
 
-    src->valueOf(transpileArgs[0]);
+    result_t hr = GetArgumentValue(fileContent, strScript, true);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+    // read filecontent and compile to strScript :end
 
-    TryCatch try_catch;
-    v8::Local<v8::Value> fileContent = v8::Local<v8::Function>::Cast(require_fn)
-                                           ->Call(v8::Undefined(isolate->m_isolate),
-                                               (int32_t)transpileArgs.size(), transpileArgs.data());
-    if (try_catch.HasCaught()) {
-        v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-            isolate->m_isolate, 1, v8::StackTrace::kScriptId);
-        if (stackTrace->GetFrameCount() > 0) {
-            try_catch.ReThrow();
-            return CALL_E_JAVASCRIPT;
-        } else
-            return CHECK_ERROR(Runtime::setError(GetException(try_catch, 0)));
-    }
-    // read filecontent :end
+    obj_ptr<Buffer_base> buf = new Buffer(strScript);
 
-    v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
-    module->Set(isolate->NewString("exports"), fileContent);
-
-    return 0;
-};
+    return JsLoader::compile(ctx, buf, name, arg_names, script);
+}
 } // namespace fibjs
