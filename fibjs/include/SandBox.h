@@ -32,7 +32,7 @@ public:
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv);
     virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal);
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
-    virtual result_t setModuleLoader(exlib::string extname, v8::Local<v8::Function> once_require_func);
+    virtual result_t setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler);
     virtual result_t get_global(v8::Local<v8::Object>& retVal);
     virtual result_t get_modules(v8::Local<v8::Object>& retVal);
 
