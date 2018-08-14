@@ -21,11 +21,6 @@ public:
         : v8::TryCatch(Isolate::current()->m_isolate)
     {
     }
-
-    ~TryCatch()
-    {
-        Reset();
-    }
 };
 
 inline bool IsEmpty(v8::Local<v8::Value>& v)
