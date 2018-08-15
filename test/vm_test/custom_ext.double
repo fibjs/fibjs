@@ -1,0 +1,5 @@
+module.exports = {
+    I: 'am .double',
+    a: 1,
+    b: 2
+}

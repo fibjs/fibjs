@@ -334,7 +334,92 @@ describe("vm", () => {
         assert.throws(() => {
             sbox.require('./vm_test/custom_ext.error, __dirname')
         })
-    })
+    });
+
+    it("setModuleCompiler: repetitive extname, double first", () => {
+        var sbox = new vm.SandBox({});
+        sbox.setModuleCompiler('.double.double', buf => buf.toString());
+
+        assert.deepEqual(sbox.require('./vm_test/custom_ext', __dirname), {
+            I: 'am .double.double',
+            a: 1,
+            b: 2
+        });
+
+        sbox.setModuleCompiler('.double', buf => buf.toString());
+        assert.deepEqual(sbox.require('./vm_test/custom_ext', __dirname), {
+            I: 'am .double.double',
+            a: 1,
+            b: 2
+        });
+    });
+
+    it("setModuleCompiler: repetitive extname, single first", () => {
+        var sbox = new vm.SandBox({});
+        sbox.setModuleCompiler('.double', buf => buf.toString());
+
+        assert.deepEqual(sbox.require('./vm_test/custom_ext', __dirname), {
+            I: 'am .double',
+            a: 1,
+            b: 2
+        });
+
+        sbox.setModuleCompiler('.double.double', buf => buf.toString());
+        assert.deepEqual(sbox.require('./vm_test/custom_ext', __dirname), {
+            I: 'am .double',
+            a: 1,
+            b: 2
+        });
+    });
+    /**
+     * SUMMARY: if repetitive extname(e.g. `.treble`/`.treble.treble`/`.treble.treble.treble`) set,
+     * the one set previously was found earlier than the other, just like case above.
+     * 
+     * That is, if '.treble' is registerd to SandBox earlier than '.treble.treble', when resolving moduleId
+     * './filename', SandBox try to found `./filename.treble` firstly, then(if not found) found `./filename.treble.treble`
+     * 
+     * On the other hand, multiple-dot extname with **post internal extname** makes NO sense.
+     * 
+     * **NOTICE**: '.js', '.json', '.jsc' is pre-registered internally, so it's in vain to register one
+     * extname like '.esm.js' or '.amd.js', though you did like that, SandBox would never found './filename.cjs.js' 
+     * by `require('./filename')`, it's walkmap of resolution is like that:
+     *  ---START---> ./filename/package.json ?
+     *      - 'main' in ./filename/package.json ?
+     *          - file specified by 'main' existed ?
+     *  ---NOT---> ./filename.js ?
+     *  ---NOT---> ./filename.jsc ?
+     *  ---NOT---> ./filename.json ?
+     *  <del>---NOT---> ./filename.cjs.js</del>
+     * 
+     * It's never try to found './filename' + '.cjs.js'!
+     * 
+     * But SandBox could find './filename.cjs.js' by `require('./filename.cjs')`. So just set compiler for
+     * extname without the post internal extname, such as 
+     * 
+     *  - .php
+     *  - .vue
+     *  - .jsx
+     *  - .md
+     *  - .vue
+     *  ...
+     */
+
+    it("setModuleCompiler: ext with internal extname", () => {
+        /**
+         * never write code in you real project like below --- it's bad practice
+         */
+        var sbox = new vm.SandBox({});
+        sbox.setModuleCompiler('.cjs.js', buf => buf.toString());
+
+        assert.throws(() => {
+            sbox.require('./vm_test/custom_ext_js/custom_ext', __dirname)
+        });
+
+        sbox.setModuleCompiler('.cjs.json', buf => buf.toString());
+        assert.throws(() => {
+            sbox.require('./vm_test/custom_ext_json/custom_ext', __dirname)
+        });
+    });
 
     it("clone", () => {
         sbox = new vm.SandBox({
