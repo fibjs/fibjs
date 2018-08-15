@@ -160,7 +160,7 @@ SandBox::Context::Context(SandBox* sb, exlib::string id)
 
     m_fnRequest = isolate->NewFunction("require", _require, _mod);
     m_fnRequest->Set(isolate->NewString("resolve"), isolate->NewFunction("resolve", _resolve, _mod));
-    m_fnRequest->Set(isolate->NewString("cache"), m_sb->mods());
+    // m_fnRequest->Set(isolate->NewString("cache"), m_sb->mods());
 
     m_fnRun = isolate->NewFunction("run", _run, _mod);
 }
