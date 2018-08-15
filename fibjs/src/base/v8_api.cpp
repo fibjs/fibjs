@@ -26,10 +26,11 @@ namespace fibjs {
 
 bool path_isAbsolute(exlib::string path);
 
-v8::Local<v8::BigInt> BigInt_New(v8::Isolate* isolate, uint64_t value) {
-  v8::internal::Isolate* internal_isolate = reinterpret_cast<v8::internal::Isolate*>(isolate);
-  v8::internal::Handle<v8::internal::BigInt> result = v8::internal::BigInt::FromUint64(internal_isolate, value);
-  return v8::Utils::ToLocal(result);
+v8::Local<v8::BigInt> BigInt_New(v8::Isolate* isolate, uint64_t value)
+{
+    v8::internal::Isolate* internal_isolate = reinterpret_cast<v8::internal::Isolate*>(isolate);
+    v8::internal::Handle<v8::internal::BigInt> result = v8::internal::BigInt::FromUint64(internal_isolate, value);
+    return v8::Utils::ToLocal(result);
 }
 
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate)
@@ -118,9 +119,7 @@ exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void
 exlib::string traceInfo(v8::Isolate* isolate, int32_t deep)
 {
     v8::internal::Isolate* v8_isolate = (v8::internal::Isolate*)isolate;
-    return traceInfo(isolate, deep
-        , (void*)*v8_isolate->c_entry_fp_address()
-        , (void*)*v8_isolate->handler_address());
+    return traceInfo(isolate, deep, (void*)*v8_isolate->c_entry_fp_address(), (void*)*v8_isolate->handler_address());
 }
 
 void beginCoverage(v8::Isolate* isolate)
@@ -226,5 +225,12 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
     }
 
     fclose(file);
+}
+
+bool isFrozen(v8::Handle<v8::Object> object)
+{
+    auto obj = v8::Utils::OpenHandle(*object);
+    v8::Maybe<bool> test = v8::internal::JSReceiver::TestIntegrityLevel(obj, v8::internal::FROZEN);
+    return test.ToChecked();
 }
 }

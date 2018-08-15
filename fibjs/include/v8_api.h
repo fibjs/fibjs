@@ -27,6 +27,8 @@ void beginCoverage(v8::Isolate* isolate);
 void pauseCoverage(v8::Isolate* isolate);
 void WriteLcovData(v8::Isolate* isolate, FILE* file);
 
+bool isFrozen(v8::Handle<v8::Object> object);
+
 } /* namespace fibjs */
 
 #endif /* _V8_API_H_ */
