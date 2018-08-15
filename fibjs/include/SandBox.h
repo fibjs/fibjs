@@ -30,6 +30,7 @@ public:
     virtual result_t has(exlib::string id, bool& retVal);
     virtual result_t clone(obj_ptr<SandBox_base>& retVal);
     virtual result_t freeze();
+    virtual result_t refresh();
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv);
     virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal);
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
@@ -67,15 +68,7 @@ public:
         mods()->Set(isolate->NewString(fname), m);
     }
 
-    v8::Local<v8::Value> get_module(v8::Local<v8::Object> mods, exlib::string id)
-    {
-        Isolate* isolate = holder();
-        v8::Local<v8::Value> m = mods->Get(isolate->NewString(id));
-        if (m->IsUndefined())
-            return m;
-
-        return v8::Local<v8::Object>::Cast(m)->Get(isolate->NewString("exports"));
-    }
+    v8::Local<v8::Value> get_module(v8::Local<v8::Object> mods, exlib::string id);
 
 public:
     class Context {

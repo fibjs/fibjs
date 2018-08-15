@@ -42,12 +42,16 @@ result_t SandBox::ExtLoader::run_module(Context* ctx, Buffer_base* src, exlib::s
     v8::Local<v8::Object> module, v8::Local<v8::Object> exports,
     std::vector<arg>& extarg)
 {
-    std::vector<v8::Local<v8::Value>> args;
+    Isolate* isolate = ctx->m_sb->holder();
 
+    std::vector<v8::Local<v8::Value>> args;
     args.resize(extarg.size() + 6);
 
-    args[0] = v8::Local<v8::Value>();
-    args[1] = v8::Local<v8::Value>();
+    exlib::string pname;
+    path_base::dirname(name, pname);
+
+    args[0] = isolate->NewString(name);
+    args[1] = isolate->NewString(pname);
     args[2] = ctx->m_fnRequest;
     args[3] = ctx->m_fnRun;
     args[4] = exports;
@@ -86,12 +90,11 @@ result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string n
     util_base::sync(func, true, func);
 
     Isolate* isolate = ctx->m_sb->holder();
+    v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
+    module->SetPrivate(module->CreationContext(),
+        v8::Private::ForApi(isolate->m_isolate, isolate->NewString("entry")),
+        func);
 
-    exlib::string pname;
-    path_base::dirname(name, pname);
-
-    args[0] = isolate->NewString(name);
-    args[1] = isolate->NewString(pname);
     v8::Local<v8::Object> glob = isolate->context()->Global();
     v = func->Call(glob, (int32_t)args.size(), args.data());
     if (v.IsEmpty())

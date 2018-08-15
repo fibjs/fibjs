@@ -70,6 +70,12 @@ describe("module", () => {
         });
     });
 
+    it("require error json", () => {
+        assert.throws(() => {
+            require('./module/data_err');
+        });
+    });
+
     it("require .js module folder", () => {
         assert.deepEqual(require('./module/p4.js'), {
             "v": 100

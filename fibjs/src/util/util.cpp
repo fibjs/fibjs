@@ -137,7 +137,6 @@ result_t util_base::deepFreeze(v8::Local<v8::Value> v)
         v8::Local<v8::Array> names = obj->GetPropertyNames(obj->CreationContext())
                                          .ToLocalChecked();
 
-        TryCatch try_catch;
         for (int32_t i = 0; i < names->Length(); i++)
             deepFreeze(obj->Get(names->Get(i)));
     }

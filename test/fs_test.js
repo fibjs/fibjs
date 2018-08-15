@@ -13,7 +13,7 @@ var isWin32 = process.platform === 'win32';
 function unlink(pathname) {
     try {
         fs.rmdir(pathname);
-    } catch (e) { }
+    } catch (e) {}
 }
 
 var pathname = 'test_dir' + vmid;
@@ -31,7 +31,7 @@ describe('fs', () => {
     after(() => {
         try {
             fs.unlink(path.join(__dirname, 'unzip_test.zip'));
-        } catch (e) { }
+        } catch (e) {}
     });
 
     it("stat", () => {
@@ -686,8 +686,9 @@ describe('fs', () => {
         });
         var sz = fl.length;
         assert.greaterThan(sz, 3);
-        assert.equal(fl[sz - 2], 't1.js');
-        assert.equal(fl[sz - 1], 't2.js');
+        assert.equal(fl[sz - 3], 't1.js');
+        assert.equal(fl[sz - 2], 't2.js');
+        assert.equal(fl[sz - 1], 'test_refresh.js');
     });
 
     it("writeFile & appendFile", () => {

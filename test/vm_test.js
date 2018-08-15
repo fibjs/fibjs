@@ -11,7 +11,7 @@ var path = require('path');
 var coroutine = require('coroutine');
 var util = require('util');
 
-function modulifyContent (jsonfiedVar) {
+function modulifyContent(jsonfiedVar) {
     return `module.exports = ${jsonfiedVar}`;
 }
 
@@ -173,8 +173,7 @@ describe("vm", () => {
         })
         sbox.require('./vm_test/custom_ext.abc', __dirname);
 
-        sbox.setModuleCompiler('.abc', function (buf) {
-        });
+        sbox.setModuleCompiler('.abc', function (buf) {});
         sbox.require('./vm_test/custom_ext', __dirname);
     })
 
@@ -251,21 +250,27 @@ describe("vm", () => {
 
         var t0 = Date.now();
         sbox1.setModuleCompiler('.abc', function (buf) {
-            return modulifyContent(JSON.stringify(
-                { test: testVarValue + t0 }
-            ));
+            return modulifyContent(JSON.stringify({
+                test: testVarValue + t0
+            }));
         });
 
         var var0;
 
         var0 = sbox1.require('./vm_test/custom_ext', __dirname);
 
-        assert.deepEqual(var0, { test: testVarValue + t0 })
-        assert.equal(JSON.stringify(var0), JSON.stringify({ test: testVarValue + t0 }))
+        assert.deepEqual(var0, {
+            test: testVarValue + t0
+        })
+        assert.equal(JSON.stringify(var0), JSON.stringify({
+            test: testVarValue + t0
+        }))
 
         var0 = sbox1.require('./vm_test/custom_ext', __dirname);
 
-        assert.equal(JSON.stringify(var0), JSON.stringify({ test: testVarValue + t0 }));
+        assert.equal(JSON.stringify(var0), JSON.stringify({
+            test: testVarValue + t0
+        }));
         assert.notEqual(var0, testVarValue);
 
         var testVar1;
@@ -298,10 +303,18 @@ describe("vm", () => {
     })
 
     it("setModuleCompiler: internal extname", () => {
-        assert.throws(() => { (new vm.SandBox({})).setModuleCompiler('.js', () => undefined); });
-        assert.throws(() => { (new vm.SandBox({})).setModuleCompiler('.jsc', () => undefined); });
-        assert.throws(() => { (new vm.SandBox({})).setModuleCompiler('.json', () => undefined); });
-        assert.throws(() => { (new vm.SandBox({})).setModuleCompiler('.wasm', () => undefined); });
+        assert.throws(() => {
+            (new vm.SandBox({})).setModuleCompiler('.js', () => undefined);
+        });
+        assert.throws(() => {
+            (new vm.SandBox({})).setModuleCompiler('.jsc', () => undefined);
+        });
+        assert.throws(() => {
+            (new vm.SandBox({})).setModuleCompiler('.json', () => undefined);
+        });
+        assert.throws(() => {
+            (new vm.SandBox({})).setModuleCompiler('.wasm', () => undefined);
+        });
 
         (new vm.SandBox({})).setModuleCompiler('.ts', () => undefined);
     })
@@ -439,6 +452,67 @@ describe("vm", () => {
         });
     });
 
+    it('refresh', () => {
+        var sbox = new vm.SandBox({});
+
+        var test = sbox.require('./vm_test/test_refresh', __dirname);
+        assert.deepEqual(test.test(), {
+            "n": 101,
+            "module.n": 101,
+            "require.n": 101,
+            "exports.n": 101
+        });
+
+        assert.deepEqual(test.test(), {
+            "n": 102,
+            "module.n": 102,
+            "require.n": 102,
+            "exports.n": 102
+        });
+
+        sbox.refresh();
+
+        test = sbox.require('./vm_test/test_refresh', __dirname);
+        assert.deepEqual(test.test(), {
+            "n": 101,
+            "module.n": 101,
+            "require.n": 101,
+            "exports.n": 101
+        });
+
+        var data = sbox.require('./vm_test/data', __dirname);
+        assert.deepEqual(data, {
+            "a": 100,
+            "b": 200
+        });
+
+        data.c = 300;
+        data = sbox.require('./vm_test/data', __dirname);
+        assert.deepEqual(data, {
+            "a": 100,
+            "b": 200,
+            "c": 300
+        });
+
+        sbox.refresh();
+
+        data = sbox.require('./vm_test/data', __dirname);
+        assert.deepEqual(data, {
+            "a": 100,
+            "b": 200
+        });
+
+        data.c = 300;
+
+        sbox.refresh();
+
+        data = sbox.require('./vm_test/data', __dirname);
+        assert.deepEqual(data, {
+            "a": 100,
+            "b": 200
+        });
+    });
+
     xit("block global hacker", () => {
         sbox = new vm.SandBox({});
         assert.throws(() => {
@@ -462,7 +536,7 @@ describe("vm", () => {
     });
 
     it("standalone global", () => {
-        function _t() { }
+        function _t() {}
         var sbox1 = new vm.SandBox({}, {
             var1: 100,
             func: _t
@@ -513,13 +587,44 @@ describe("vm", () => {
             }
         };
         modList[1] = {};
-        modList[2] = { Function, Object, Array, String, Boolean, _: new.target };
-        modList[3] = { a: new Map(), b: new Set(), c: new Array(), d: new Object() };
-        modList[4] = { a: undefined, b: null };
-        modList[5] = { a: Symbol(Date.now()) };
-        modList[6] = { a: 1, b: -1, c: Infinity, d: -Infinity, e: 0, d: +0, f: -0 };
-        modList[7] = { a: true, b: false };
-        modList[8] = { http: require('http'), util: require('util') };
+        modList[2] = {
+            Function,
+            Object,
+            Array,
+            String,
+            Boolean,
+            _: new.target
+        };
+        modList[3] = {
+            a: new Map(),
+            b: new Set(),
+            c: new Array(),
+            d: new Object()
+        };
+        modList[4] = {
+            a: undefined,
+            b: null
+        };
+        modList[5] = {
+            a: Symbol(Date.now())
+        };
+        modList[6] = {
+            a: 1,
+            b: -1,
+            c: Infinity,
+            d: -Infinity,
+            e: 0,
+            d: +0,
+            f: -0
+        };
+        modList[7] = {
+            a: true,
+            b: false
+        };
+        modList[8] = {
+            http: require('http'),
+            util: require('util')
+        };
 
         modList.forEach(mod => assertSrcWithTarget(mod))
 
@@ -534,7 +639,9 @@ describe("vm", () => {
         assert.deepEqual({
             123: {},
             '123.js': {
-                __456: {abc: 123},
+                __456: {
+                    abc: 123
+                },
             },
             ...modList[0]
         }, sbox.modules)
