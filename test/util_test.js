@@ -1266,10 +1266,19 @@ describe('util', () => {
     describe('buildInfo', () => {
         it('properties', () => {
             assert.property(util.buildInfo(), 'fibjs');
-            // clang
-            // gcc
-            // msvc
-            assert.property(util.buildInfo(), 'git');
+            switch (process.platform) {
+                case 'win32':
+                    assert.property(util.buildInfo(), 'msvc');
+                    break
+                case 'darwin':
+                    assert.property(util.buildInfo(), 'clang');
+                    break
+                case 'freebsd':
+                case 'linux':
+                    assert.property(util.buildInfo(), 'gcc');
+                    break
+            }
+            // git
             assert.property(util.buildInfo(), 'date');
             // debug
             assert.property(util.buildInfo(), 'vender');
