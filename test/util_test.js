@@ -486,6 +486,30 @@ describe('util', () => {
         util.clone(new Map());
     });
 
+    it('deepFreeze', () => {
+        var o = {
+            a: {
+                b: 100
+            },
+            b: [200]
+        };
+
+        util.deepFreeze(o);
+        o.c = 200;
+        o.a.c = 300;
+
+        assert.throws(() => {
+            o.b.push(400);
+        })
+
+        assert.deepEqual(o, {
+            a: {
+                b: 100
+            },
+            b: [200]
+        });
+    });
+
     it('extend', () => {
         var result;
         assert.equal(util.extend({}, {
@@ -1254,9 +1278,10 @@ describe('util', () => {
 
         it('modules', () => {
             const modules = util.buildInfo().modules;
-    
+
             // built-in modules
-            ;[
+            ;
+            [
                 "zmq",
                 "zlib",
                 "zip",

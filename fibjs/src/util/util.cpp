@@ -10,6 +10,7 @@
 #include "ifs/encoding.h"
 #include "QuickArray.h"
 #include <map>
+#include "v8_api.h"
 
 namespace fibjs {
 
@@ -120,6 +121,26 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
             retVal = v;
     } else
         retVal = v;
+
+    return 0;
+}
+
+result_t util_base::deepFreeze(v8::Local<v8::Value> v)
+{
+    if (v.IsEmpty() || !v->IsObject())
+        return 0;
+
+    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
+
+    if (!isFrozen(obj)) {
+        obj->SetIntegrityLevel(obj->CreationContext(), v8::IntegrityLevel::kFrozen).ToChecked();
+        v8::Local<v8::Array> names = obj->GetPropertyNames(obj->CreationContext())
+                                         .ToLocalChecked();
+
+        TryCatch try_catch;
+        for (int32_t i = 0; i < names->Length(); i++)
+            deepFreeze(obj->Get(names->Get(i)));
+    }
 
     return 0;
 }

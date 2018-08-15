@@ -243,6 +243,12 @@ module util
      */
     static Value clone(Value v);
 
+    /*! @brief 深度冻结一个对象，被冻结后的对象及其包含的对象都将不允许修改
+
+     @param v 指定要冻结的对象
+     */
+    static deepFreeze(Value v);
+
     /*! @brief 将一个或者多个对象的键值扩展到指定对象
 
      @param v 指定要扩展的对象

@@ -59,6 +59,7 @@ public:
     static result_t keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal);
     static result_t values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal);
     static result_t clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal);
+    static result_t deepFreeze(v8::Local<v8::Value> v);
     static result_t extend(v8::Local<v8::Value> v, OptArgs objs, v8::Local<v8::Value>& retVal);
     static result_t _extend(v8::Local<v8::Value> v, OptArgs objs, v8::Local<v8::Value>& retVal);
     static result_t pick(v8::Local<v8::Value> v, OptArgs objs, v8::Local<v8::Object>& retVal);
@@ -125,6 +126,7 @@ public:
     static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_values(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_deepFreeze(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_extend(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s__extend(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pick(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -187,6 +189,7 @@ inline ClassInfo& util_base::class_info()
         { "keys", s_keys, true },
         { "values", s_values, true },
         { "clone", s_clone, true },
+        { "deepFreeze", s_deepFreeze, true },
         { "extend", s_extend, true },
         { "_extend", s__extend, true },
         { "pick", s_pick, true },
@@ -756,6 +759,20 @@ inline void util_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
     hr = clone(v0, vr);
 
     METHOD_RETURN();
+}
+
+inline void util_base::s_deepFreeze(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("util.deepFreeze");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = deepFreeze(v0);
+
+    METHOD_VOID();
 }
 
 inline void util_base::s_extend(const v8::FunctionCallbackInfo<v8::Value>& args)
