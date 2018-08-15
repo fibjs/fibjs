@@ -187,6 +187,41 @@ result_t SandBox::clone(obj_ptr<SandBox_base>& retVal)
     return 0;
 }
 
+result_t deepFreeze(v8::Local<v8::Value> v)
+{
+    if (v.IsEmpty() || !v->IsObject())
+        return 0;
+
+    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
+
+    if (!isFrozen(obj)) {
+        obj->SetIntegrityLevel(obj->CreationContext(), v8::IntegrityLevel::kFrozen).ToChecked();
+        v8::Local<v8::Array> names = obj->GetPropertyNames(obj->CreationContext(), v8::KeyCollectionMode::kIncludePrototypes,
+                                            v8::ALL_PROPERTIES, v8::IndexFilter::kIncludeIndices)
+                                         .ToLocalChecked();
+
+        TryCatch try_catch;
+        for (int32_t i = 0; i < names->Length(); i++)
+            deepFreeze(obj->Get(names->Get(i)));
+    }
+
+    return 0;
+}
+
+result_t SandBox::freeze()
+{
+    v8::Local<v8::Object> global;
+    result_t hr;
+
+    hr = get_global(global);
+    if (hr < 0)
+        return hr;
+
+    deepFreeze(global);
+
+    return 0;
+}
+
 result_t SandBox::get_global(v8::Local<v8::Object>& retVal)
 {
     if (!m_global)

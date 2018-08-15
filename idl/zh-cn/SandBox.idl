@@ -72,6 +72,9 @@ interface SandBox : object
      */
     SandBox clone();
 
+    /*! @brief 冻结当前沙箱，冻结后的沙箱，对 global 所做的修改将被忽略 */
+    freeze();
+
     /*! @brief 运行一个脚本
      @param fname 指定要运行的脚本路径，此路径与当前运行脚本无关，必须为绝对路径
      @param argv 指定要运行的参数，此参数可在脚本内使用 argv 获取
