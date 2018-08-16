@@ -119,6 +119,9 @@ v8::Local<v8::Value> ThrowResult(result_t hr)
 
 exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
 {
+    if (hr < 0 && hr != CALL_E_JAVASCRIPT)
+        return getResultMessage(hr);
+
     Isolate* isolate = Isolate::current();
     v8::HandleScope handle_scope(isolate->m_isolate);
     v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
@@ -202,8 +205,7 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
         }
 
         return strError;
-    } else if (hr < 0)
-        return getResultMessage(hr);
+    }
 
     return "";
 }
