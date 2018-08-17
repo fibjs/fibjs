@@ -243,11 +243,11 @@ public:
     TimeoutScope(double timeout)
         : m_isolate(Isolate::current())
         , this_fiber(JSFiber::current())
-        , m_timer(new FuncTimer(this_fiber, (int32_t)timeout))
     {
         if (timeout < 1 || timeout > TIMEOUT_MAX)
             timeout = 1;
 
+        m_timer = new FuncTimer(this_fiber, (int32_t)timeout);
         m_timer->sleep();
     }
 
