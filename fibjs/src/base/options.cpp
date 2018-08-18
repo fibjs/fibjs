@@ -34,6 +34,21 @@ bool g_tracetcp = false;
 #define GUARD_SIZE 16
 #endif
 
+static class _init_v8_opt {
+public:
+    _init_v8_opt()
+    {
+        v8::internal::FLAG_lazy = false;
+        v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
+
+        v8::internal::FLAG_wasm_async_compilation = false;
+
+        v8::internal::FLAG_parallel_scavenge = false;
+        v8::internal::FLAG_parallel_marking = false;
+        v8::internal::FLAG_concurrent_marking = false;
+    }
+} s_init_v8_opt;
+
 static void printHelp()
 {
     puts("Usage: fibjs [options] [script.js] [arguments] \n"
@@ -125,15 +140,6 @@ void options(int32_t& pos, char* argv[])
             _exit(0);
         }
     }
-
-    v8::internal::FLAG_lazy = false;
-    v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
-
-    v8::internal::FLAG_wasm_async_compilation = false;
-
-    v8::internal::FLAG_parallel_scavenge = false;
-    v8::internal::FLAG_parallel_marking = false;
-    v8::internal::FLAG_concurrent_marking = false;
 
     if (df)
         argc -= df;
