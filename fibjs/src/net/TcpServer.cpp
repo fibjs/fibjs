@@ -120,6 +120,11 @@ result_t TcpServer::run(AsyncEvent* ac)
             return 0;
         }
 
+        virtual Isolate* isolate()
+        {
+            return m_pThis->holder();
+        }
+
     private:
         obj_ptr<TcpServer> m_pThis;
         obj_ptr<Socket_base> m_sock;
