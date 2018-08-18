@@ -113,6 +113,10 @@ module.exports = function (defs, baseFolder) {
         }
 
         function uglifyTypeInDefObjects(typeName) {
+            if (typeName === 'Object') {
+                return 'object'
+            }
+            
             if (!defObjects[typeName]) {
                 return typeName
             }
