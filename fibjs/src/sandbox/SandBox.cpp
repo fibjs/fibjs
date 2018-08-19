@@ -195,7 +195,7 @@ result_t deepFreeze(v8::Local<v8::Value> v)
     v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
     if (!isFrozen(obj)) {
-        obj->SetIntegrityLevel(obj->CreationContext(), v8::IntegrityLevel::kFrozen).ToChecked();
+        obj->SetIntegrityLevel(obj->CreationContext(), v8::IntegrityLevel::kFrozen);
         v8::Local<v8::Array> names = obj->GetPropertyNames(obj->CreationContext(), v8::KeyCollectionMode::kIncludePrototypes,
                                             v8::ALL_PROPERTIES, v8::IndexFilter::kIncludeIndices)
                                          .ToLocalChecked();
