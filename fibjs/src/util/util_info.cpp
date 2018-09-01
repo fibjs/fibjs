@@ -39,71 +39,78 @@ namespace internal {
 
 namespace fibjs {
 
+obj_ptr<NObject> g_info;
+obj_ptr<NObject> g_vender;
+
 #define _STR(s) #s
 #define STR(s) _STR(s)
+
+class init_info {
+public:
+    init_info()
+    {
+        g_info = new NObject();
+
+        g_info->add("fibjs", fibjs_version);
+
+#ifdef GIT_INFO
+        g_info->add("git", GIT_INFO);
+#endif
+
+#if defined(__clang__)
+        g_info->add("clang", STR(__clang_major__) "." STR(__clang_minor__));
+#elif defined(__GNUC__)
+        g_info->add("gcc", STR(__GNUC__) "." STR(__GNUC_MINOR__) "." STR(__GNUC_PATCHLEVEL__));
+#elif defined(_MSC_VER)
+        g_info->add("msvc", STR(_MSC_VER));
+#endif
+
+        g_info->add("date", __DATE__ " " __TIME__);
+
+#ifndef NDEBUG
+        g_info->add("debug", true);
+#endif
+
+        g_vender = new NObject();
+        g_info->add("vender", g_vender);
+
+        {
+            char str[64];
+
+            g_vender->add("ev", STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR));
+
+            g_vender->add("expat", STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION));
+
+            g_vender->add("gd", GD_VERSION_STRING);
+            g_vender->add("jpeg", STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR));
+            sprintf(str, "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
+            g_vender->add("leveldb", str);
+            g_vender->add("mongo", STR(MONGO_MAJOR) "." STR(MONGO_MINOR));
+            g_vender->add("pcre", STR(PCRE_MAJOR) "." STR(PCRE_MINOR));
+            g_vender->add("png", PNG_LIBPNG_VER_STRING);
+            g_vender->add("mbedtls", MBEDTLS_VERSION_STRING);
+            g_vender->add("snappy", STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL));
+            g_vender->add("sqlite", SQLITE_VERSION);
+            g_vender->add("tiff", TIFFLIB_VERSION_STR);
+            g_vender->add("uuid", "1.6.2");
+            g_vender->add("v8", v8::V8::GetVersion());
+
+            g_vender->add("v8-snapshot", (bool)v8::internal::Snapshot::DefaultSnapshotBlob());
+
+            g_vender->add("zlib", ZLIB_VERSION);
+            g_vender->add("zmq", STR(ZMQ_VERSION_MAJOR) "." STR(ZMQ_VERSION_MINOR));
+        }
+    }
+
+} s_init_info;
 
 result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
-    retVal = v8::Object::New(isolate->m_isolate);
 
-    retVal->Set(isolate->NewString("fibjs"), isolate->NewString(fibjs_version));
-
-#ifdef GIT_INFO
-    retVal->Set(isolate->NewString("git"), isolate->NewString(GIT_INFO));
-#endif
-
-#if defined(__clang__)
-    retVal->Set(isolate->NewString("clang"),
-        isolate->NewString(STR(__clang_major__) "." STR(__clang_minor__)));
-#elif defined(__GNUC__)
-    retVal->Set(isolate->NewString("gcc"),
-        isolate->NewString(STR(__GNUC__) "." STR(__GNUC_MINOR__) "." STR(__GNUC_PATCHLEVEL__)));
-#elif defined(_MSC_VER)
-    retVal->Set(isolate->NewString("msvc"),
-        isolate->NewString(STR(_MSC_VER)));
-#endif
-
-    retVal->Set(isolate->NewString("date"),
-        isolate->NewString(__DATE__ " " __TIME__));
-
-#ifndef NDEBUG
-    retVal->Set(isolate->NewString("debug"), v8::True(isolate->m_isolate));
-#endif
-
-    {
-        v8::Local<v8::Object> vender = v8::Object::New(isolate->m_isolate);
-        char str[64];
-
-        retVal->Set(isolate->NewString("vender"), vender);
-
-        vender->Set(isolate->NewString("ev"),
-            isolate->NewString(STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR)));
-
-        vender->Set(isolate->NewString("expat"),
-            isolate->NewString(STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION)));
-
-        vender->Set(isolate->NewString("gd"), isolate->NewString(GD_VERSION_STRING));
-        vender->Set(isolate->NewString("jpeg"), isolate->NewString(STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR)));
-        sprintf(str, "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
-        vender->Set(isolate->NewString("leveldb"), isolate->NewString(str));
-        vender->Set(isolate->NewString("mongo"), isolate->NewString(STR(MONGO_MAJOR) "." STR(MONGO_MINOR)));
-        vender->Set(isolate->NewString("pcre"), isolate->NewString(STR(PCRE_MAJOR) "." STR(PCRE_MINOR)));
-        vender->Set(isolate->NewString("png"), isolate->NewString(PNG_LIBPNG_VER_STRING));
-        vender->Set(isolate->NewString("mbedtls"), isolate->NewString(MBEDTLS_VERSION_STRING));
-        vender->Set(isolate->NewString("snappy"),
-            isolate->NewString(STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL)));
-        vender->Set(isolate->NewString("sqlite"), isolate->NewString(SQLITE_VERSION));
-        vender->Set(isolate->NewString("tiff"), isolate->NewString(TIFFLIB_VERSION_STR));
-        vender->Set(isolate->NewString("uuid"), isolate->NewString("1.6.2"));
-        vender->Set(isolate->NewString("v8"), isolate->NewString(v8::V8::GetVersion()));
-
-        vender->Set(isolate->NewString("v8-snapshot"),
-            v8::internal::Snapshot::DefaultSnapshotBlob() ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate));
-
-        vender->Set(isolate->NewString("zlib"), isolate->NewString(ZLIB_VERSION));
-        vender->Set(isolate->NewString("zmq"), isolate->NewString(STR(ZMQ_VERSION_MAJOR) "." STR(ZMQ_VERSION_MINOR)));
-    }
+    v8::Local<v8::Value> v;
+    g_info->valueOf(v);
+    retVal = v8::Local<v8::Object>::Cast(v);
 
     {
         v8::Local<v8::Array> modules = v8::Array::New(isolate->m_isolate);

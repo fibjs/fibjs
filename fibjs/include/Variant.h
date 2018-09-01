@@ -115,6 +115,12 @@ public:
         operator=(v);
     }
 
+    Variant(bool v)
+        : m_type(VT_Undefined)
+    {
+        operator=(v);
+    }
+
     template <typename T>
     Variant(obj_ptr<T>& v)
         : m_type(VT_Undefined)
@@ -235,6 +241,16 @@ public:
             set_type(VT_Long);
             m_Val.longVal = v;
         }
+
+        return *this;
+    }
+
+    Variant& operator=(bool v)
+    {
+        clear();
+
+        set_type(VT_Boolean);
+        m_Val.boolVal = v;
 
         return *this;
     }
