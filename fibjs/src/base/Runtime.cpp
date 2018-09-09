@@ -24,6 +24,7 @@
 #include "v8_api.h"
 #include "options.h"
 #include "include/libplatform/libplatform.h"
+#include "fibjs.h"
 
 namespace fibjs {
 
@@ -40,19 +41,29 @@ result_t ifZipFile(exlib::string filename, bool& retVal);
 
 exlib::string s_root;
 
-static void init()
+void init_coroutine()
 {
-    ::setlocale(LC_ALL, "");
-
     int32_t cpus = 0;
-
-    process_base::cwd(s_root);
 
     os_base::cpuNumbers(cpus);
     if (cpus < 2)
         cpus = 2;
 
     exlib::Service::init(cpus + 1);
+}
+
+void init_platform(v8::Platform* platform)
+{
+    if (platform == NULL)
+        platform = v8::platform::CreateDefaultPlatform();
+    v8::V8::InitializePlatform(platform);
+    v8::V8::Initialize();
+}
+
+static void init()
+{
+    process_base::cwd(s_root);
+    ::setlocale(LC_ALL, "");
 
     init_date();
     init_acThread();
@@ -64,11 +75,6 @@ static void init()
 #endif
 
     srand((unsigned int)time(0));
-
-    v8::Platform* platform = v8::platform::CreateDefaultPlatform();
-    v8::V8::InitializePlatform(platform);
-
-    v8::V8::Initialize();
 }
 
 void start(int32_t argc, char** argv, result_t (*main)(Isolate*))
