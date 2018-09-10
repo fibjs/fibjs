@@ -18,9 +18,8 @@ size_t HttpCollection::size()
     size_t sz = 0;
     int32_t i;
 
-    for (i = 0; i < m_count; i++)
-    {
-        pair &_pair = m_map[i];
+    for (i = 0; i < m_count; i++) {
+        pair& _pair = m_map[i];
         sz += _pair.first.length() + _pair.second.length() + 4;
     }
 
@@ -46,7 +45,7 @@ size_t HttpCollection::getData(char* buf, size_t sz)
     int32_t i;
 
     for (i = 0; i < m_count; i++) {
-        pair &_pair = m_map[i];
+        pair& _pair = m_map[i];
         exlib::string& n = _pair.first;
         exlib::string& v = _pair.second;
 
@@ -199,9 +198,8 @@ result_t HttpCollection::first(exlib::string name, Variant& retVal)
 {
     int32_t i;
 
-    for (i = 0; i < m_count; i++)
-    {
-        pair &_pair = m_map[i];
+    for (i = 0; i < m_count; i++) {
+        pair& _pair = m_map[i];
 
         if (!qstricmp(_pair.first.c_str(), name.c_str())) {
             retVal = _pair.second;
@@ -219,9 +217,8 @@ result_t HttpCollection::all(exlib::string name, obj_ptr<NArray>& retVal)
 
     list = new NArray();
 
-    for (i = 0; i < m_count; i++)
-    {
-        pair &_pair = m_map[i];
+    for (i = 0; i < m_count; i++) {
+        pair& _pair = m_map[i];
 
         if (!qstricmp(_pair.first.c_str(), name.c_str()))
             list->append(_pair.second);
@@ -251,7 +248,7 @@ result_t HttpCollection::add(v8::Local<v8::Object> map)
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
-        add(*v8::String::Utf8Value(k), map->Get(k));
+        add(ToCString(v8::String::Utf8Value(k)), map->Get(k));
     }
 
     return 0;
@@ -262,9 +259,8 @@ result_t HttpCollection::set(exlib::string name, Variant value)
     int32_t i;
     bool bFound = false;
 
-    for (i = 0; i < m_count; i++)
-    {
-        pair &_pair = m_map[i];
+    for (i = 0; i < m_count; i++) {
+        pair& _pair = m_map[i];
 
         if (!qstricmp(_pair.first.c_str(), name.c_str())) {
             exlib::string s;
@@ -280,9 +276,8 @@ result_t HttpCollection::set(exlib::string name, Variant value)
     if (bFound) {
         int32_t p = ++i;
 
-        for (; i < m_count; i++)
-        {
-            pair &_pair = m_map[i];
+        for (; i < m_count; i++) {
+            pair& _pair = m_map[i];
 
             if (qstricmp(_pair.first.c_str(), name.c_str())) {
                 if (i != p)
@@ -307,7 +302,7 @@ result_t HttpCollection::set(v8::Local<v8::Object> map)
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
-        set(*v8::String::Utf8Value(k), map->Get(k));
+        set(ToCString(v8::String::Utf8Value(k)), map->Get(k));
     }
 
     return 0;
@@ -318,9 +313,8 @@ result_t HttpCollection::remove(exlib::string name)
     int32_t i;
     int32_t p = 0;
 
-    for (i = 0; i < m_count; i++)
-    {
-        pair &_pair = m_map[i];
+    for (i = 0; i < m_count; i++) {
+        pair& _pair = m_map[i];
 
         if (qstricmp(_pair.first.c_str(), name.c_str())) {
             if (i != p)
@@ -342,9 +336,8 @@ result_t HttpCollection::_named_getter(exlib::string property, Variant& retVal)
     Variant v;
     v8::Local<v8::Array> a;
 
-    for (i = 0; i < m_count; i++)
-    {
-        pair &_pair = m_map[i];
+    for (i = 0; i < m_count; i++) {
+        pair& _pair = m_map[i];
 
         if (!qstricmp(_pair.first.c_str(), property.c_str())) {
             if (n == 0) {

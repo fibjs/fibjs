@@ -73,11 +73,11 @@ exlib::string json_format(v8::Local<v8::Value> obj)
         if (v.IsEmpty())
             strBuffer.append("undefined");
         else if (v->IsUndefined() || v->IsNull() || v->IsDate() || v->IsBoolean() || v->IsBooleanObject())
-            strBuffer.append(*v8::String::Utf8Value(v));
+            strBuffer.append(ToCString(v8::String::Utf8Value(v)));
         else if (v->IsNumber() || v->IsNumberObject())
-            strBuffer.append(*v8::String::Utf8Value(v->ToNumber(_context).ToLocalChecked()));
+            strBuffer.append(ToCString(v8::String::Utf8Value(v->ToNumber(_context).ToLocalChecked())));
         else if (v->IsBigInt() || v->IsBigIntObject()) {
-            strBuffer.append(*v8::String::Utf8Value(v->ToBigInt(_context).ToLocalChecked()));
+            strBuffer.append(ToCString(v8::String::Utf8Value(v->ToBigInt(_context).ToLocalChecked())));
             strBuffer.append('n');
         } else if (v->IsString() || v->IsStringObject())
             string_format(strBuffer, v);
@@ -87,7 +87,7 @@ exlib::string json_format(v8::Local<v8::Value> obj)
             v8::RegExp::Flags flgs = re->GetFlags();
 
             strBuffer.append('/');
-            strBuffer.append(*v8::String::Utf8Value(src));
+            strBuffer.append(ToCString(v8::String::Utf8Value(src)));
             strBuffer.append('/');
 
             if (flgs & v8::RegExp::kIgnoreCase)
@@ -102,7 +102,7 @@ exlib::string json_format(v8::Local<v8::Value> obj)
 
                 if (obj->IsNativeError()) {
                     v8::String::Utf8Value msg(obj);
-                    strBuffer.append(*msg);
+                    strBuffer.append(*msg, msg.length());
                     break;
                 }
 

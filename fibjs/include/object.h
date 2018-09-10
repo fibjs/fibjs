@@ -378,7 +378,7 @@ public:
 
         exlib::string strError = "Property \'";
 
-        strError += *v8::String::Utf8Value(property);
+        strError += ToCString(v8::String::Utf8Value(property));
         strError += "\' is read-only.";
         isolate->m_isolate->ThrowException(
             isolate->NewString(strError));
@@ -433,8 +433,10 @@ public:
 
 class RootModule {
 public:
-    RootModule() : m_next(NULL)
-    {}
+    RootModule()
+        : m_next(NULL)
+    {
+    }
 
 public:
     void install()

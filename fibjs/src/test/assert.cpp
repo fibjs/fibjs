@@ -734,7 +734,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     v8::String::Utf8Value s(prop);
     const char *p, *p1;
 
-    p = *s;
+    p = ToCString(s);
     while ((p1 = qstrchr(p, '.')) != NULL) {
         object = v->Get(isolate->NewString(p, (int32_t)(p1 - p)));
 
@@ -836,7 +836,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     v8::String::Utf8Value s(prop);
     const char *p, *p1;
 
-    p = *s;
+    p = ToCString(s);
     while ((p1 = qstrchr(p, '.')) != NULL) {
         object = v->Get(isolate->NewString(p, (int32_t)(p1 - p)));
 

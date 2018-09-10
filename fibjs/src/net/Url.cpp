@@ -426,7 +426,7 @@ bool getString(Isolate* isolate, v8::Local<v8::Object>& args,
     v8::Local<v8::Value> v = args->Get(isolate->NewString(key));
 
     if (!v.IsEmpty() && (v->IsString() || v->IsStringObject())) {
-        retVal = *v8::String::Utf8Value(v);
+        retVal = ToCString(v8::String::Utf8Value(v));
         return true;
     }
 
@@ -838,7 +838,7 @@ result_t Url::set_query(v8::Local<v8::Value> newVal)
 {
     if (!newVal.IsEmpty()) {
         if (newVal->IsString() || newVal->IsStringObject()) {
-            m_query = *v8::String::Utf8Value(newVal);
+            m_query = ToCString(v8::String::Utf8Value(newVal));
 
             if (m_queryParsed) {
                 m_queryParsed = new HttpCollection();

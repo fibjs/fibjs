@@ -34,7 +34,7 @@ public:
 
         for (i = 0; i < len; i++) {
             v8::Local<v8::Value> k = ks->Get(i);
-            add(*v8::String::Utf8Value(k), m->Get(k));
+            add(ToCString(v8::String::Utf8Value(k)), m->Get(k));
         }
 
         return 0;

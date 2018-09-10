@@ -61,7 +61,7 @@ void encodeValue(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
 
         *p = 0;
 
-        bson_append_regex(bb, name, *v8::String::Utf8Value(src), flgStr);
+        bson_append_regex(bb, name, ToCString(v8::String::Utf8Value(src)), flgStr);
     } else if (element->IsObject()) {
         {
             obj_ptr<Int64> num = (Int64*)Int64_base::getInstance(element);

@@ -202,7 +202,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
             script = v8::Script::Compile(isolate->NewString(buf), strFname);
             if (script.IsEmpty()) {
                 v8::String::Utf8Value exception(try_catch.Exception());
-                if (*exception && qstrcmp(*exception, "SyntaxError: Unexpected end of input")) {
+                if (*exception && qstrcmp(ToCString(exception), "SyntaxError: Unexpected end of input")) {
                     buf.clear();
                     ReportException(try_catch, 0, true);
                 }

@@ -76,7 +76,7 @@ exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void
             bFirst = false;
 
             v8::String::Utf8Value funcname(v8::Utils::ToLocal(summ.FunctionName()));
-            if (**funcname) {
+            if (*funcname) {
                 strBuffer.append(*funcname);
                 strBuffer.append(" (", 2);
             }

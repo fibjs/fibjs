@@ -150,7 +150,7 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
-        hr = add(*v8::String::Utf8Value(k), mods->Get(k));
+        hr = add(ToCString(v8::String::Utf8Value(k)), mods->Get(k));
         if (hr < 0)
             return hr;
     }

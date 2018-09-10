@@ -232,9 +232,8 @@ result_t HttpUploadCollection::first(exlib::string name, Variant& retVal)
 {
     int32_t i;
 
-    for (i = 0; i < m_count; i++)
-    {
-        pair &_pair = m_map[i];
+    for (i = 0; i < m_count; i++) {
+        pair& _pair = m_map[i];
 
         if (!qstricmp(_pair.first.c_str(), name.c_str())) {
             retVal = _pair.second;
@@ -252,9 +251,8 @@ result_t HttpUploadCollection::all(exlib::string name, obj_ptr<NArray>& retVal)
 
     list = new NArray();
 
-    for (i = 0; i < m_count; i++)
-    {
-        pair &_pair = m_map[i];
+    for (i = 0; i < m_count; i++) {
+        pair& _pair = m_map[i];
 
         if (!qstricmp(_pair.first.c_str(), name.c_str()))
             list->append(_pair.second);
@@ -280,7 +278,7 @@ result_t HttpUploadCollection::add(v8::Local<v8::Object> map)
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
-        add(*v8::String::Utf8Value(k), map->Get(k));
+        add(ToCString(v8::String::Utf8Value(k)), map->Get(k));
     }
 
     return 0;
@@ -291,9 +289,8 @@ result_t HttpUploadCollection::set(exlib::string name, Variant value)
     int32_t i;
     bool bFound = false;
 
-    for (i = 0; i < m_count; i++)
-    {
-        pair &_pair = m_map[i];
+    for (i = 0; i < m_count; i++) {
+        pair& _pair = m_map[i];
 
         if (!qstricmp(_pair.first.c_str(), name.c_str())) {
             _pair.second = value;
@@ -305,9 +302,8 @@ result_t HttpUploadCollection::set(exlib::string name, Variant value)
     if (bFound) {
         int32_t p = ++i;
 
-        for (; i < m_count; i++)
-        {
-            pair &_pair = m_map[i];
+        for (; i < m_count; i++) {
+            pair& _pair = m_map[i];
 
             if (qstricmp(_pair.first.c_str(), name.c_str())) {
                 if (i != p)
@@ -332,7 +328,7 @@ result_t HttpUploadCollection::set(v8::Local<v8::Object> map)
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
-        set(*v8::String::Utf8Value(k), map->Get(k));
+        set(ToCString(v8::String::Utf8Value(k)), map->Get(k));
     }
 
     return 0;
@@ -343,9 +339,8 @@ result_t HttpUploadCollection::remove(exlib::string name)
     int32_t i;
     int32_t p = 0;
 
-    for (i = 0; i < m_count; i++)
-    {
-        pair &_pair = m_map[i];
+    for (i = 0; i < m_count; i++) {
+        pair& _pair = m_map[i];
 
         if (qstricmp(_pair.first.c_str(), name.c_str())) {
             if (i != p)

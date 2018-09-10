@@ -193,7 +193,7 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
             if (message.IsEmpty() || message->IsUndefined() || name.IsEmpty() || name->IsUndefined()) {
                 // Not an error object. Just print as-is.
                 v8::String::Utf8Value message(err);
-                strError.append(*message ? *message : "<toString() threw exception>");
+                strError.append(ToCString(message));
                 strError.append("\n");
             } else {
                 v8::String::Utf8Value message_string(isolate->m_isolate, message);
@@ -241,7 +241,7 @@ result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)
         const char** p = keys;
 
         while (p[0]) {
-            if (!qstrcmp(*k, p[0]))
+            if (!qstrcmp(ToCString(k), p[0]))
                 break;
             p++;
         }

@@ -133,7 +133,7 @@ result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
         if (hr < 0)
             return hr;
 
-        append(method, *v8::String::Utf8Value(k), hdlr, r);
+        append(method, ToCString(v8::String::Utf8Value(k)), hdlr, r);
     }
 
     retVal = this;

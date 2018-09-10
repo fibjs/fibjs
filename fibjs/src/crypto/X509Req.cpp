@@ -190,7 +190,7 @@ result_t X509Req::parseString(v8::Local<v8::Value> v, const X509Cert::_name* pNa
 
     if (!IsEmpty(v)) {
         v8::String::Utf8Value str(v);
-        const char* ptr = *str;
+        const char* ptr = ToCString(str);
 
         if (!ptr)
             return CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_MPI_BAD_INPUT_DATA));

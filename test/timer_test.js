@@ -436,38 +436,59 @@ describe("timer", () => {
         });
     });
 
-    it("timeout call", () => {
-        function test1() {
-            while (true);
-        }
+    odescribe("timeout call", () => {
+        it("js code", () => {
+            function test1() {
+                while (true);
+            }
 
-        function test2() {
-            while (true)
-                coroutine.sleep(100);
-        }
-
-        function test3() {
-            throw Error(100);
-        }
-
-        var t1 = new Date();
-        assert.throws(() => {
-            timers.call(test1, 30);
+            var t1 = new Date();
+            assert.throws(() => {
+                timers.call(test1, 30);
+            });
+            var t2 = new Date();
+            assert.greaterThan(t2 - t1, 25);
+            assert.lessThan(t2 - t1, 100);
         });
-        var t2 = new Date();
-        assert.greaterThan(t2 - t1, 25);
-        assert.lessThan(t2 - t1, 100);
 
-        var t1 = new Date();
-        assert.throws(() => {
-            timers.call(test2, 30);
+        it("sleep", () => {
+            function test2() {
+                while (true)
+                    coroutine.sleep(100);
+            }
+
+            var t1 = new Date();
+            assert.throws(() => {
+                timers.call(test2, 30);
+            });
+            var t2 = new Date();
+            assert.greaterThan(t2 - t1, 90);
+            assert.lessThan(t2 - t1, 150);
         });
-        var t2 = new Date();
-        assert.greaterThan(t2 - t1, 90);
-        assert.lessThan(t2 - t1, 150);
 
-        assert.throws(() => {
-            timers.call(test3, 30);
+        it("native method", () => {
+            function test3() {
+                while (true)
+                    console.log(new Date());
+            }
+
+            var t1 = new Date();
+            assert.throws(() => {
+                timers.call(test3, 30);
+            });
+            var t2 = new Date();
+            assert.greaterThan(t2 - t1, 30);
+            assert.lessThan(t2 - t1, 100);
+        });
+
+        it("error", () => {
+            function test4() {
+                throw Error(100);
+            }
+
+            assert.throws(() => {
+                timers.call(test4, 30);
+            });
         });
     });
 });
