@@ -5,6 +5,7 @@ var test_util = require('./test_util');
 
 var coroutine = require("coroutine");
 var timers = require("timers");
+var util = require("util");
 
 var os = require("os");
 
@@ -466,10 +467,10 @@ describe("timer", () => {
             assert.lessThan(t2 - t1, 150);
         });
 
-        it("native method", () => {
+        it("util.format", () => {
             function test3() {
                 while (true)
-                    console.log(new Date());
+                    util.format(new Date());
             }
 
             var t1 = new Date();
@@ -477,7 +478,7 @@ describe("timer", () => {
                 timers.call(test3, 30);
             });
             var t2 = new Date();
-            assert.greaterThan(t2 - t1, 30);
+            assert.greaterThan(t2 - t1, 25);
             assert.lessThan(t2 - t1, 100);
         });
 
