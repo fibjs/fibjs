@@ -201,7 +201,7 @@ result_t deepFreeze(v8::Local<v8::Value> v)
                                          .ToLocalChecked();
 
         TryCatch try_catch;
-        for (int32_t i = 0; i < names->Length(); i++)
+        for (int32_t i = 0; i < (int32_t)names->Length(); i++)
             deepFreeze(obj->Get(names->Get(i)));
     }
 

@@ -75,7 +75,7 @@ result_t SandBox::refresh()
     v8::Local<v8::Object> modules = mods();
     v8::Local<v8::Array> names = modules->GetPropertyNames(modules->CreationContext()).ToLocalChecked();
 
-    for (int32_t i = 0; i < names->Length(); i++) {
+    for (int32_t i = 0; i < (int32_t)names->Length(); i++) {
         v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(modules->Get(names->Get(i)));
         v8::Local<v8::Value> v = module->GetPrivate(module->CreationContext(),
                                            v8::Private::ForApi(isolate->m_isolate, strEntry))
