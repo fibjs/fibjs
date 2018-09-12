@@ -33,6 +33,22 @@ v8::Local<v8::BigInt> BigInt_New(v8::Isolate* isolate, uint64_t value)
     return v8::Utils::ToLocal(result);
 }
 
+int64_t BigInt_AsInt64(v8::Isolate* isolate, v8::Local<v8::BigInt> value)
+{
+    v8::internal::Handle<v8::internal::Object> obj = v8::Utils::OpenHandle(*value);
+    v8::internal::Isolate* internal_isolate = reinterpret_cast<v8::internal::Isolate*>(isolate);
+    v8::internal::Handle<v8::internal::BigInt> bint = v8::internal::BigInt::FromObject(internal_isolate, obj).ToHandleChecked();
+    return bint->AsInt64(NULL);
+}
+
+uint64_t BigInt_AsUint64(v8::Isolate* isolate, v8::Local<v8::BigInt> value)
+{
+    v8::internal::Handle<v8::internal::Object> obj = v8::Utils::OpenHandle(*value);
+    v8::internal::Isolate* internal_isolate = reinterpret_cast<v8::internal::Isolate*>(isolate);
+    v8::internal::Handle<v8::internal::BigInt> bint = v8::internal::BigInt::FromObject(internal_isolate, obj).ToHandleChecked();
+    return bint->AsUint64(NULL);
+}
+
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate)
 {
     v8::internal::Isolate* v8_isolate = (v8::internal::Isolate*)isolate;
