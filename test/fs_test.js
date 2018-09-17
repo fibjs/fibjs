@@ -682,18 +682,12 @@ describe('fs', () => {
 
     it("readdir", () => {
         var fl = fs.readdir(path.join(__dirname, 'vm_test'));
-        fl.sort((a, b) => {
-            if (a > b)
-                return 1;
-            if (a < b)
-                return -1;
-            return 0;
-        });
+        fl.sort();
         var sz = fl.length;
         assert.greaterThan(sz, 3);
-        assert.equal(fl[sz - 3], 't1.js');
-        assert.equal(fl[sz - 2], 't2.js');
-        assert.equal(fl[sz - 1], 'test_refresh.js');
+        assert.equal(fl[sz - 4], 't1.js');
+        assert.equal(fl[sz - 3], 't2.js');
+        assert.equal(fl[sz - 2], 'test_refresh.js');
     });
 
     it("writeFile & appendFile", () => {

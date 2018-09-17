@@ -513,6 +513,29 @@ describe("vm", () => {
         });
     });
 
+    it('gc of refresh', () => {
+        var sbox = new vm.SandBox({});
+
+        GC();
+        var no1 = test_util.countObject('Buffer');
+
+        var test = sbox.require('./vm_test/test_refresh1', __dirname);
+
+        GC();
+        assert.equal(test_util.countObject('Buffer'), no1 + 1);
+
+        test = undefined;
+        sbox.refresh();
+
+        GC();
+        assert.equal(test_util.countObject('Buffer'), no1);
+
+        test = sbox.require('./vm_test/test_refresh1', __dirname);
+
+        GC();
+        assert.equal(test_util.countObject('Buffer'), no1 + 1);
+    });
+
     xit("block global hacker", () => {
         sbox = new vm.SandBox({});
         assert.throws(() => {
