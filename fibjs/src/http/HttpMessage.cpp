@@ -231,6 +231,9 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
             }
 
             if (pThis->m_bChunked) {
+                if (pThis->m_pThis->m_maxBodySize == 0)
+                    return pThis->done();
+
                 if (pThis->m_contentLength)
                     return CHECK_ERROR(CALL_E_INVALID_DATA);
 
