@@ -19,6 +19,7 @@ namespace fibjs {
 class MongoDB : public MongoDB_base {
 public:
     MongoDB()
+        : m_closed(false)
     {
         m_conn = new mongo();
         mongo_init(m_conn);
@@ -50,14 +51,13 @@ public:
 private:
     static result_t mongo_destroy(mongo* conn)
     {
-        if (mongo_is_connected(conn)) {
-            ::mongo_destroy(conn);
-            delete conn;
-        }
+        ::mongo_destroy(conn);
+        delete conn;
         return 0;
     }
 
 public:
+    bool m_closed;
     mongo* m_conn;
     exlib::string m_ns;
 };

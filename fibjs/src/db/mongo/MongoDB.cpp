@@ -225,6 +225,9 @@ result_t MongoDB::open(exlib::string connString)
 result_t MongoDB::getCollection(exlib::string name,
     obj_ptr<MongoCollection_base>& retVal)
 {
+    if (m_closed)
+        return CALL_E_INVALID_CALL;
+
     exlib::string nsStr;
     const char* ns = name.c_str();
 
@@ -242,6 +245,9 @@ result_t MongoDB::getCollection(exlib::string name,
 
 result_t MongoDB::_runCommand(bson* command, bson& out, AsyncEvent* ac)
 {
+    if (m_closed)
+        return CALL_E_INVALID_CALL;
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -255,6 +261,9 @@ result_t MongoDB::_runCommand(bson* command, bson& out, AsyncEvent* ac)
 
 result_t MongoDB::bsonHandler(bson* command, v8::Local<v8::Object>& retVal)
 {
+    if (m_closed)
+        return CALL_E_INVALID_CALL;
+
     bson out;
 
     result_t hr = ac__runCommand(command, out);
@@ -271,6 +280,9 @@ result_t MongoDB::bsonHandler(bson* command, v8::Local<v8::Object>& retVal)
 result_t MongoDB::runCommand(v8::Local<v8::Object> cmd,
     v8::Local<v8::Object>& retVal)
 {
+    if (m_closed)
+        return CALL_E_INVALID_CALL;
+
     bson bbq;
     result_t hr;
 
@@ -284,6 +296,9 @@ result_t MongoDB::runCommand(v8::Local<v8::Object> cmd,
 result_t MongoDB::runCommand(exlib::string cmd, v8::Local<v8::Value> arg,
     v8::Local<v8::Object>& retVal)
 {
+    if (m_closed)
+        return CALL_E_INVALID_CALL;
+
     bson bbq;
 
     bson_init(&bbq);
@@ -296,6 +311,9 @@ result_t MongoDB::runCommand(exlib::string cmd, v8::Local<v8::Value> arg,
 result_t MongoDB::_named_getter(exlib::string property,
     obj_ptr<MongoCollection_base>& retVal)
 {
+    if (m_closed)
+        return CALL_E_INVALID_CALL;
+
     return getCollection(property, retVal);
 }
 
@@ -306,20 +324,19 @@ result_t MongoDB::_named_enumerator(v8::Local<v8::Array>& retVal)
 
 result_t MongoDB::oid(exlib::string hexStr, obj_ptr<MongoID_base>& retVal)
 {
+    if (m_closed)
+        return CALL_E_INVALID_CALL;
+
     retVal = new MongoID(hexStr);
     return 0;
 }
 
 result_t MongoDB::close(AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    if (m_closed)
+        return CALL_E_INVALID_CALL;
 
-    if (m_conn) {
-        mongo_destroy(m_conn);
-        m_conn = NULL;
-    }
-
+    m_closed = true;
     return 0;
 }
 
