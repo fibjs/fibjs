@@ -312,7 +312,7 @@ result_t MongoDB::_named_getter(exlib::string property,
     obj_ptr<MongoCollection_base>& retVal)
 {
     if (m_closed)
-        return CALL_E_INVALID_CALL;
+        return CALL_RETURN_NULL;
 
     return getCollection(property, retVal);
 }
