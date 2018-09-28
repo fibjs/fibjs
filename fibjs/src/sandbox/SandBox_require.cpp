@@ -22,10 +22,14 @@ v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::stri
         return m;
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(m);
-    v8::Local<v8::Value> v = module->GetPrivate(module->CreationContext(),
-                                       v8::Private::ForApi(isolate->m_isolate, strEntry))
-                                 .ToLocalChecked();
     v8::Local<v8::Value> o = module->Get(strExports);
+
+    v8::MaybeLocal<v8::Value> mv = module->GetPrivate(module->CreationContext(),
+        v8::Private::ForApi(isolate->m_isolate, strEntry));
+    if (mv.IsEmpty())
+        return o;
+
+    v8::Local<v8::Value> v = mv.ToLocalChecked();
     if (!o->IsUndefined() || !v->IsFunction())
         return o;
 

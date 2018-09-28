@@ -47,12 +47,15 @@ result_t Handler_base::_new(v8::Local<v8::Function> hdlr, obj_ptr<Handler_base>&
     v8::Local<v8::Object> This)
 {
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Value> _async = hdlr->GetPrivate(hdlr->CreationContext(),
-                                          v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")))
-                                      .ToLocalChecked();
+    v8::MaybeLocal<v8::Value> mv = hdlr->GetPrivate(hdlr->CreationContext(),
+        v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")));
 
-    if (!IsEmpty(_async))
-        retVal = new JSHandler(_async, true);
+    v8::Local<v8::Value> v;
+    if (!mv.IsEmpty())
+        v = mv.ToLocalChecked();
+
+    if (!IsEmpty(v))
+        retVal = new JSHandler(v, true);
     else
         retVal = new JSHandler(hdlr);
 
