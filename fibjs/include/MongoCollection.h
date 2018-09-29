@@ -25,25 +25,17 @@ public:
 public:
     virtual bool enterTask(exlib::Task_base* current)
     {
-        obj_ptr<MongoDB> db(m_db);
-        if (!db)
-            return db->enterTask(current);
-
-        return true;
+        return m_db->enterTask(current);
     }
 
     virtual void enter()
     {
-        obj_ptr<MongoDB> db(m_db);
-        if (!db)
-            db->enter();
+        m_db->enter();
     }
 
     virtual void leave(exlib::Task_base* current = NULL)
     {
-        obj_ptr<MongoDB> db(m_db);
-        if (!db)
-            db->leave(current);
+        m_db->leave(current);
     }
 
 public:
@@ -86,7 +78,7 @@ private:
     ASYNC_MEMBERVALUE2_AC(MongoCollection, _remove, bson*, int32_t);
 
 private:
-    weak_ptr<MongoDB> m_db;
+    obj_ptr<MongoDB> m_db;
     exlib::string m_ns;
     exlib::string m_name;
 };
