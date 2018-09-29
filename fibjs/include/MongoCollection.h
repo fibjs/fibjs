@@ -25,17 +25,25 @@ public:
 public:
     virtual bool enterTask(exlib::Task_base* current)
     {
-        return m_db->enterTask(current);
+        obj_ptr<MongoDB> db(m_db);
+        if (!db)
+            return db->enterTask(current);
+
+        return true;
     }
 
     virtual void enter()
     {
-        m_db->enter();
+        obj_ptr<MongoDB> db(m_db);
+        if (!db)
+            db->enter();
     }
 
     virtual void leave(exlib::Task_base* current = NULL)
     {
-        m_db->leave(current);
+        obj_ptr<MongoDB> db(m_db);
+        if (!db)
+            db->leave(current);
     }
 
 public:
