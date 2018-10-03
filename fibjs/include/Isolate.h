@@ -141,7 +141,9 @@ public:
 
     int32_t m_exitCode;
 
-    bool m_bFileAccess;
+    bool m_enable_FileSystem;
+    bool m_safe_buffer;
+    int32_t m_max_buffer_size;
 };
 
 } /* namespace fibjs */

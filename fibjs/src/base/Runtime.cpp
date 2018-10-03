@@ -268,7 +268,9 @@ Isolate::Isolate(exlib::string fname)
     , m_loglevel(console_base::_NOTSET)
     , m_defaultMaxListeners(10)
     , m_exitCode(0)
-    , m_bFileAccess(true)
+    , m_enable_FileSystem(true)
+    , m_safe_buffer(false)
+    , m_max_buffer_size(-1)
 {
     m_fname = fname;
 

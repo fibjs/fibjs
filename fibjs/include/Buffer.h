@@ -123,6 +123,8 @@ public:
         return &m_data[0];
     }
 
+    bool is_safe_codec(exlib::string codec);
+
 public:
     result_t readNumber(int32_t offset, char* buf, int32_t size, bool noAssert, bool le);
     result_t writeNumber(int32_t offset, const char* buf, int32_t size, bool noAssert, bool le, int32_t& retVal);

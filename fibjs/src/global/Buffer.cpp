@@ -284,14 +284,39 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     return hr;
 }
 
+inline bool is_native_codec(exlib::string codec)
+{
+    return (codec == "hex") || (codec == "base64")
+        || (codec == "utf8") || (codec == "utf-8")
+        || (codec == "ucs2") || (codec == "ucs-2")
+        || (codec == "utf16le") || (codec == "utf-16le")
+        || (codec == "ucs4") || (codec == "ucs-4")
+        || (codec == "utf32le") || (codec == "utf-32le");
+}
+
+inline bool static_is_safe_codec(exlib::string codec)
+{
+    return !Isolate::current()->m_safe_buffer || is_native_codec(codec);
+}
+
 result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
 {
+    if (!static_is_safe_codec(codec)) {
+        retVal = false;
+        return 0;
+    }
+
     if ((codec == "utf8") || (codec == "utf-8") || (codec == "hex") || (codec == "base64")) {
         retVal = true;
     } else {
         iconv_base::isEncoding(codec, retVal);
     }
     return 0;
+}
+
+bool Buffer::is_safe_codec(exlib::string codec)
+{
+    return !holder()->m_safe_buffer || is_native_codec(codec);
 }
 
 result_t Buffer::_indexed_getter(uint32_t index, int32_t& retVal)
@@ -328,8 +353,13 @@ result_t Buffer::resize(int32_t sz)
     if (sz < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    extMemory(sz - (int32_t)m_data.length());
+    int32_t sz1 = (int32_t)m_data.length();
+    extMemory(sz - sz1);
+
     m_data.resize(sz);
+
+    if (sz > sz1 && holder()->m_safe_buffer)
+        memset(&m_data[sz1], 0, sz - sz1);
 
     return 0;
 }
@@ -346,6 +376,9 @@ result_t Buffer::append(Buffer_base* data)
 
 result_t Buffer::append(exlib::string str, exlib::string codec)
 {
+    if (!is_safe_codec(codec))
+        return CHECK_ERROR(Runtime::setError("Unknown codec."));
+
     if ((codec == "utf8") || (codec == "utf-8")) {
         extMemory((int32_t)str.length());
         m_data.append(str);
@@ -370,6 +403,9 @@ result_t Buffer::append(exlib::string str, exlib::string codec)
 
 result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal)
 {
+    if (!is_safe_codec(codec))
+        return CHECK_ERROR(Runtime::setError("Unknown codec."));
+
     int32_t max_length = 0;
     int32_t buffer_length = (int32_t)m_data.length();
 
@@ -1065,6 +1101,9 @@ result_t Buffer::toString(exlib::string& retVal)
 
 result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& retVal)
 {
+    if (!is_safe_codec(codec))
+        return CHECK_ERROR(Runtime::setError("Unknown codec."));
+
     exlib::string str;
     int32_t length = (int32_t)m_data.length();
 
@@ -1086,6 +1125,9 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& re
 
 result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal)
 {
+    if (!is_safe_codec(codec))
+        return CHECK_ERROR(Runtime::setError("Unknown codec."));
+
     exlib::string str;
     int32_t length = (int32_t)m_data.length();
 
