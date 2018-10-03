@@ -64,7 +64,7 @@ public:
 };
 }
 
-#include "Buffer.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& SandBox_base::class_info()

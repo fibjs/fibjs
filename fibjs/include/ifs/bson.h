@@ -43,7 +43,7 @@ public:
 };
 }
 
-#include "Buffer.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& bson_base::class_info()

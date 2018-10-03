@@ -47,7 +47,7 @@ public:
 };
 }
 
-#include "HttpCollection.h"
+#include "ifs/HttpCollection.h"
 
 namespace fibjs {
 inline ClassInfo& querystring_base::class_info()

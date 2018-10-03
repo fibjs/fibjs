@@ -45,7 +45,7 @@ public:
 };
 }
 
-#include "Buffer.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& Digest_base::class_info()

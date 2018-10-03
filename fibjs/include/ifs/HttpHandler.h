@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "HandlerEx.h"
+#include "ifs/HandlerEx.h"
 
 namespace fibjs {
 
@@ -54,7 +54,7 @@ public:
 };
 }
 
-#include "Handler.h"
+#include "ifs/Handler.h"
 
 namespace fibjs {
 inline ClassInfo& HttpHandler_base::class_info()

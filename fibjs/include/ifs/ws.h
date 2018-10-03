@@ -57,9 +57,9 @@ public:
 };
 }
 
-#include "WebSocketMessage.h"
-#include "WebSocket.h"
-#include "Handler.h"
+#include "ifs/WebSocketMessage.h"
+#include "ifs/WebSocket.h"
+#include "ifs/Handler.h"
 
 namespace fibjs {
 inline ClassInfo& ws_base::class_info()

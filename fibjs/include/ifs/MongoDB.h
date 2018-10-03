@@ -56,8 +56,8 @@ public:
 };
 }
 
-#include "MongoCollection.h"
-#include "MongoID.h"
+#include "ifs/MongoCollection.h"
+#include "ifs/MongoID.h"
 
 namespace fibjs {
 inline ClassInfo& MongoDB_base::class_info()

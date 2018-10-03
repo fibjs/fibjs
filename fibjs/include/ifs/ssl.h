@@ -84,12 +84,12 @@ public:
 };
 }
 
-#include "SslSocket.h"
-#include "SslHandler.h"
-#include "SslServer.h"
-#include "Stream.h"
-#include "X509Cert.h"
-#include "PKey.h"
+#include "ifs/SslSocket.h"
+#include "ifs/SslHandler.h"
+#include "ifs/SslServer.h"
+#include "ifs/Stream.h"
+#include "ifs/X509Cert.h"
+#include "ifs/PKey.h"
 
 namespace fibjs {
 inline ClassInfo& ssl_base::class_info()

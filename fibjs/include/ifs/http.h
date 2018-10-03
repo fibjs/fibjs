@@ -103,15 +103,15 @@ public:
 };
 }
 
-#include "HttpRequest.h"
-#include "HttpResponse.h"
-#include "HttpCookie.h"
-#include "HttpServer.h"
-#include "HttpClient.h"
-#include "HttpsServer.h"
-#include "HttpHandler.h"
-#include "Handler.h"
-#include "Stream.h"
+#include "ifs/HttpRequest.h"
+#include "ifs/HttpResponse.h"
+#include "ifs/HttpCookie.h"
+#include "ifs/HttpServer.h"
+#include "ifs/HttpClient.h"
+#include "ifs/HttpsServer.h"
+#include "ifs/HttpHandler.h"
+#include "ifs/Handler.h"
+#include "ifs/Stream.h"
 
 namespace fibjs {
 inline ClassInfo& http_base::class_info()

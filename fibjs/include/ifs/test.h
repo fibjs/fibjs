@@ -68,8 +68,8 @@ public:
 };
 }
 
-#include "console.h"
-#include "assert.h"
+#include "ifs/console.h"
+#include "ifs/assert.h"
 
 namespace fibjs {
 inline ClassInfo& test_base::class_info()

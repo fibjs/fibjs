@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "XmlText.h"
+#include "ifs/XmlText.h"
 
 namespace fibjs {
 

@@ -66,7 +66,7 @@ public:
 };
 }
 
-#include "Stream.h"
+#include "ifs/Stream.h"
 
 namespace fibjs {
 inline ClassInfo& Smtp_base::class_info()

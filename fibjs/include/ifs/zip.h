@@ -59,9 +59,9 @@ public:
 };
 }
 
-#include "ZipFile.h"
-#include "Buffer.h"
-#include "SeekableStream.h"
+#include "ifs/ZipFile.h"
+#include "ifs/Buffer.h"
+#include "ifs/SeekableStream.h"
 
 namespace fibjs {
 inline ClassInfo& zip_base::class_info()

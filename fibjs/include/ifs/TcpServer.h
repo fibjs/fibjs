@@ -55,9 +55,9 @@ public:
 };
 }
 
-#include "Handler.h"
-#include "Socket.h"
-#include "Stats.h"
+#include "ifs/Handler.h"
+#include "ifs/Socket.h"
+#include "ifs/Stats.h"
 
 namespace fibjs {
 inline ClassInfo& TcpServer_base::class_info()

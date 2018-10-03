@@ -76,7 +76,7 @@ public:
 };
 }
 
-#include "MongoCursor.h"
+#include "ifs/MongoCursor.h"
 
 namespace fibjs {
 inline ClassInfo& MongoCollection_base::class_info()

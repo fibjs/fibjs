@@ -100,9 +100,9 @@ public:
 };
 }
 
-#include "Image.h"
-#include "Buffer.h"
-#include "SeekableStream.h"
+#include "ifs/Image.h"
+#include "ifs/Buffer.h"
+#include "ifs/SeekableStream.h"
 
 namespace fibjs {
 inline ClassInfo& gd_base::class_info()

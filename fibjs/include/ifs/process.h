@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "EventEmitter.h"
+#include "ifs/EventEmitter.h"
 
 namespace fibjs {
 
@@ -96,8 +96,8 @@ public:
 };
 }
 
-#include "File.h"
-#include "SubProcess.h"
+#include "ifs/File.h"
+#include "ifs/SubProcess.h"
 
 namespace fibjs {
 inline ClassInfo& process_base::class_info()

@@ -53,7 +53,7 @@ public:
 };
 }
 
-#include "WebView.h"
+#include "ifs/WebView.h"
 
 namespace fibjs {
 inline ClassInfo& gui_base::class_info()

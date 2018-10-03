@@ -92,9 +92,9 @@ public:
 };
 }
 
-#include "SeekableStream.h"
-#include "Buffer.h"
-#include "Stream.h"
+#include "ifs/SeekableStream.h"
+#include "ifs/Buffer.h"
+#include "ifs/Stream.h"
 
 namespace fibjs {
 inline ClassInfo& Message_base::class_info()

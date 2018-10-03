@@ -53,13 +53,13 @@ public:
 };
 }
 
-#include "base32.h"
-#include "base64.h"
-#include "base64vlq.h"
-#include "hex.h"
-#include "iconv.h"
-#include "json.h"
-#include "bson.h"
+#include "ifs/base32.h"
+#include "ifs/base64.h"
+#include "ifs/base64vlq.h"
+#include "ifs/hex.h"
+#include "ifs/iconv.h"
+#include "ifs/json.h"
+#include "ifs/bson.h"
 
 namespace fibjs {
 inline ClassInfo& encoding_base::class_info()

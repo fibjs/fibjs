@@ -45,7 +45,7 @@ public:
 };
 }
 
-#include "XmlNode.h"
+#include "ifs/XmlNode.h"
 
 namespace fibjs {
 inline ClassInfo& XmlNodeList_base::class_info()

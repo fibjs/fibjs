@@ -65,7 +65,7 @@ public:
 };
 }
 
-#include "Buffer.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& RedisList_base::class_info()

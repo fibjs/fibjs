@@ -43,7 +43,7 @@ public:
 };
 }
 
-#include "Buffer.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& base32_base::class_info()

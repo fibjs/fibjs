@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "DbConnection.h"
+#include "ifs/DbConnection.h"
 
 namespace fibjs {
 

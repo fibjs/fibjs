@@ -75,12 +75,12 @@ public:
 };
 }
 
-#include "MySQL.h"
-#include "MSSQL.h"
-#include "SQLite.h"
-#include "MongoDB.h"
-#include "LevelDB.h"
-#include "Redis.h"
+#include "ifs/MySQL.h"
+#include "ifs/MSSQL.h"
+#include "ifs/SQLite.h"
+#include "ifs/MongoDB.h"
+#include "ifs/LevelDB.h"
+#include "ifs/Redis.h"
 
 namespace fibjs {
 inline ClassInfo& db_base::class_info()

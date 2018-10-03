@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "SeekableStream.h"
+#include "ifs/SeekableStream.h"
 
 namespace fibjs {
 

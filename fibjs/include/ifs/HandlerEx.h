@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "Handler.h"
+#include "ifs/Handler.h"
 
 namespace fibjs {
 
@@ -49,7 +49,7 @@ public:
 };
 }
 
-#include "Stats.h"
+#include "ifs/Stats.h"
 
 namespace fibjs {
 inline ClassInfo& HandlerEx_base::class_info()

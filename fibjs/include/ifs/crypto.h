@@ -105,13 +105,13 @@ public:
 };
 }
 
-#include "Cipher.h"
-#include "PKey.h"
-#include "X509Cert.h"
-#include "X509Crl.h"
-#include "X509Req.h"
-#include "Digest.h"
-#include "Buffer.h"
+#include "ifs/Cipher.h"
+#include "ifs/PKey.h"
+#include "ifs/X509Cert.h"
+#include "ifs/X509Crl.h"
+#include "ifs/X509Req.h"
+#include "ifs/Digest.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& crypto_base::class_info()

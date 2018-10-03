@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "HttpMessage.h"
+#include "ifs/HttpMessage.h"
 
 namespace fibjs {
 
@@ -57,8 +57,8 @@ public:
 };
 }
 
-#include "HttpResponse.h"
-#include "HttpCollection.h"
+#include "ifs/HttpResponse.h"
+#include "ifs/HttpCollection.h"
 
 namespace fibjs {
 inline ClassInfo& HttpRequest_base::class_info()

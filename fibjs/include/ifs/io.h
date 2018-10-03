@@ -49,9 +49,9 @@ public:
 };
 }
 
-#include "MemoryStream.h"
-#include "BufferedStream.h"
-#include "Stream.h"
+#include "ifs/MemoryStream.h"
+#include "ifs/BufferedStream.h"
+#include "ifs/Stream.h"
 
 namespace fibjs {
 inline ClassInfo& io_base::class_info()

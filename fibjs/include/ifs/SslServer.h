@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "TcpServer.h"
+#include "ifs/TcpServer.h"
 
 namespace fibjs {
 
@@ -47,9 +47,9 @@ public:
 };
 }
 
-#include "Handler.h"
-#include "X509Cert.h"
-#include "PKey.h"
+#include "ifs/Handler.h"
+#include "ifs/X509Cert.h"
+#include "ifs/PKey.h"
 
 namespace fibjs {
 inline ClassInfo& SslServer_base::class_info()

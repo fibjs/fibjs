@@ -426,7 +426,7 @@ module.exports = function (defs, baseFolder) {
 
             txts.push('#include "../object.h"');
             if (def.declare.extend && def.declare.extend !== 'object')
-                txts.push('#include "' + def.declare.extend + '.h"');
+                txts.push('#include "ifs/' + def.declare.extend + '.h"');
 
             txts.push('\nnamespace fibjs {\n');
         }
@@ -618,7 +618,7 @@ module.exports = function (defs, baseFolder) {
 
             if (refers.length) {
                 txts.push('');
-                refers.forEach(c => txts.push('#include "' + c + '.h"'));
+                refers.forEach(c => txts.push('#include "ifs/' + c + '.h"'));
             }
             txts.push('\nnamespace fibjs {');
         }

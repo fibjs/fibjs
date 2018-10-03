@@ -88,9 +88,9 @@ public:
 };
 }
 
-#include "HttpResponse.h"
-#include "Stream.h"
-#include "HttpRequest.h"
+#include "ifs/HttpResponse.h"
+#include "ifs/Stream.h"
+#include "ifs/HttpRequest.h"
 
 namespace fibjs {
 inline ClassInfo& HttpClient_base::class_info()

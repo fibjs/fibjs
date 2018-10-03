@@ -47,7 +47,7 @@ public:
 };
 }
 
-#include "SeekableStream.h"
+#include "ifs/SeekableStream.h"
 
 namespace fibjs {
 inline ClassInfo& HttpUploadData_base::class_info()

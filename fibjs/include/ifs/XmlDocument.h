@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "XmlNode.h"
+#include "ifs/XmlNode.h"
 
 namespace fibjs {
 
@@ -86,14 +86,14 @@ public:
 };
 }
 
-#include "Buffer.h"
-#include "XmlDocumentType.h"
-#include "XmlElement.h"
-#include "XmlNodeList.h"
-#include "XmlText.h"
-#include "XmlComment.h"
-#include "XmlCDATASection.h"
-#include "XmlProcessingInstruction.h"
+#include "ifs/Buffer.h"
+#include "ifs/XmlDocumentType.h"
+#include "ifs/XmlElement.h"
+#include "ifs/XmlNodeList.h"
+#include "ifs/XmlText.h"
+#include "ifs/XmlComment.h"
+#include "ifs/XmlCDATASection.h"
+#include "ifs/XmlProcessingInstruction.h"
 
 namespace fibjs {
 inline ClassInfo& XmlDocument_base::class_info()

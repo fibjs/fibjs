@@ -158,10 +158,10 @@ public:
 };
 }
 
-#include "Stat.h"
-#include "Buffer.h"
-#include "SeekableStream.h"
-#include "BufferedStream.h"
+#include "ifs/Stat.h"
+#include "ifs/Buffer.h"
+#include "ifs/SeekableStream.h"
+#include "ifs/BufferedStream.h"
 
 namespace fibjs {
 inline ClassInfo& fs_base::class_info()

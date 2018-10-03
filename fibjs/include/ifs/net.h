@@ -78,11 +78,11 @@ public:
 };
 }
 
-#include "Socket.h"
-#include "Stream.h"
-#include "Smtp.h"
-#include "TcpServer.h"
-#include "UrlObject.h"
+#include "ifs/Socket.h"
+#include "ifs/Stream.h"
+#include "ifs/Smtp.h"
+#include "ifs/TcpServer.h"
+#include "ifs/UrlObject.h"
 
 namespace fibjs {
 inline ClassInfo& net_base::class_info()

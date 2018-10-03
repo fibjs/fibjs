@@ -91,8 +91,8 @@ public:
 };
 }
 
-#include "Service.h"
-#include "BufferedStream.h"
+#include "ifs/Service.h"
+#include "ifs/BufferedStream.h"
 
 namespace fibjs {
 inline ClassInfo& os_base::class_info()

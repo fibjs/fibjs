@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "EventEmitter.h"
+#include "ifs/EventEmitter.h"
 
 namespace fibjs {
 

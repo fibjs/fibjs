@@ -47,7 +47,7 @@ public:
 };
 }
 
-#include "XmlAttr.h"
+#include "ifs/XmlAttr.h"
 
 namespace fibjs {
 inline ClassInfo& XmlNamedNodeMap_base::class_info()

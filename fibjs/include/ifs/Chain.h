@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "Handler.h"
+#include "ifs/Handler.h"
 
 namespace fibjs {
 

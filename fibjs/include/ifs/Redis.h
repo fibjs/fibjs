@@ -137,11 +137,11 @@ public:
 };
 }
 
-#include "Buffer.h"
-#include "RedisHash.h"
-#include "RedisList.h"
-#include "RedisSet.h"
-#include "RedisSortedSet.h"
+#include "ifs/Buffer.h"
+#include "ifs/RedisHash.h"
+#include "ifs/RedisList.h"
+#include "ifs/RedisSet.h"
+#include "ifs/RedisSortedSet.h"
 
 namespace fibjs {
 inline ClassInfo& Redis_base::class_info()

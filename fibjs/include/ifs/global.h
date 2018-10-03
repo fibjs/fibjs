@@ -80,13 +80,13 @@ public:
 };
 }
 
-#include "Buffer.h"
-#include "Int64.h"
-#include "console.h"
-#include "process.h"
-#include "Worker.h"
-#include "Timer.h"
-#include "Stream.h"
+#include "ifs/Buffer.h"
+#include "ifs/Int64.h"
+#include "ifs/console.h"
+#include "ifs/process.h"
+#include "ifs/Worker.h"
+#include "ifs/Timer.h"
+#include "ifs/Stream.h"
 
 namespace fibjs {
 inline ClassInfo& global_base::class_info()

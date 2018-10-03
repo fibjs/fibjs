@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "Stream.h"
+#include "ifs/Stream.h"
 
 namespace fibjs {
 

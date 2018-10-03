@@ -34,7 +34,7 @@ public:
 };
 }
 
-#include "SandBox.h"
+#include "ifs/SandBox.h"
 
 namespace fibjs {
 inline ClassInfo& vm_base::class_info()

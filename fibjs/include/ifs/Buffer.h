@@ -195,7 +195,7 @@ public:
 };
 }
 
-#include "Int64.h"
+#include "ifs/Int64.h"
 
 namespace fibjs {
 inline ClassInfo& Buffer_base::class_info()

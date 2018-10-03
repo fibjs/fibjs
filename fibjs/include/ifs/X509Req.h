@@ -56,10 +56,10 @@ public:
 };
 }
 
-#include "PKey.h"
-#include "hash.h"
-#include "Buffer.h"
-#include "X509Cert.h"
+#include "ifs/PKey.h"
+#include "ifs/hash.h"
+#include "ifs/Buffer.h"
+#include "ifs/X509Cert.h"
 
 namespace fibjs {
 inline ClassInfo& X509Req_base::class_info()

@@ -148,9 +148,9 @@ public:
 };
 }
 
-#include "Stats.h"
-#include "LruCache.h"
-#include "Buffer.h"
+#include "ifs/Stats.h"
+#include "ifs/LruCache.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& util_base::class_info()

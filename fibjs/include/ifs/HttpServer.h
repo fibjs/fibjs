@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "TcpServer.h"
+#include "ifs/TcpServer.h"
 
 namespace fibjs {
 
@@ -60,8 +60,8 @@ public:
 };
 }
 
-#include "Handler.h"
-#include "Stats.h"
+#include "ifs/Handler.h"
+#include "ifs/Stats.h"
 
 namespace fibjs {
 inline ClassInfo& HttpServer_base::class_info()

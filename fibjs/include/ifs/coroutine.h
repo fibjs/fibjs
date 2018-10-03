@@ -70,12 +70,12 @@ public:
 };
 }
 
-#include "Lock.h"
-#include "Semaphore.h"
-#include "Condition.h"
-#include "Event.h"
-#include "Worker.h"
-#include "Fiber.h"
+#include "ifs/Lock.h"
+#include "ifs/Semaphore.h"
+#include "ifs/Condition.h"
+#include "ifs/Event.h"
+#include "ifs/Worker.h"
+#include "ifs/Fiber.h"
 
 namespace fibjs {
 inline ClassInfo& coroutine_base::class_info()

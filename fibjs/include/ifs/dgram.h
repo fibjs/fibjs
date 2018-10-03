@@ -44,7 +44,7 @@ public:
 };
 }
 
-#include "DgramSocket.h"
+#include "ifs/DgramSocket.h"
 
 namespace fibjs {
 inline ClassInfo& dgram_base::class_info()

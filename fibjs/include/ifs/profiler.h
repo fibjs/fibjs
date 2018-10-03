@@ -75,8 +75,8 @@ public:
 };
 }
 
-#include "HeapSnapshot.h"
-#include "Timer.h"
+#include "ifs/HeapSnapshot.h"
+#include "ifs/Timer.h"
 
 namespace fibjs {
 inline ClassInfo& profiler_base::class_info()

@@ -57,7 +57,7 @@ public:
 };
 }
 
-#include "Timer.h"
+#include "ifs/Timer.h"
 
 namespace fibjs {
 inline ClassInfo& timers_base::class_info()

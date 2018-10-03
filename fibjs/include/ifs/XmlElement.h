@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "XmlNode.h"
+#include "ifs/XmlNode.h"
 
 namespace fibjs {
 
@@ -94,8 +94,8 @@ public:
 };
 }
 
-#include "XmlNamedNodeMap.h"
-#include "XmlNodeList.h"
+#include "ifs/XmlNamedNodeMap.h"
+#include "ifs/XmlNodeList.h"
 
 namespace fibjs {
 inline ClassInfo& XmlElement_base::class_info()

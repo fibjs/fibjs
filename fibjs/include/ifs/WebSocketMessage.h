@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "Message.h"
+#include "ifs/Message.h"
 
 namespace fibjs {
 
@@ -48,7 +48,7 @@ public:
 };
 }
 
-#include "ws.h"
+#include "ifs/ws.h"
 
 namespace fibjs {
 inline ClassInfo& WebSocketMessage_base::class_info()

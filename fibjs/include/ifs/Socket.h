@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "Stream.h"
+#include "ifs/Stream.h"
 
 namespace fibjs {
 
@@ -78,8 +78,8 @@ public:
 };
 }
 
-#include "net.h"
-#include "Buffer.h"
+#include "ifs/net.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& Socket_base::class_info()

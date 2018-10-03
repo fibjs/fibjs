@@ -50,8 +50,8 @@ public:
 };
 }
 
-#include "zmq.h"
-#include "Buffer.h"
+#include "ifs/zmq.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& ZmqSocket_base::class_info()

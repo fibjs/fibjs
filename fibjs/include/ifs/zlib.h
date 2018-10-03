@@ -110,8 +110,8 @@ public:
 };
 }
 
-#include "Stream.h"
-#include "Buffer.h"
+#include "ifs/Stream.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& zlib_base::class_info()

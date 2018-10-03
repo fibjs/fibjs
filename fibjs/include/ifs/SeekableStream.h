@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "Stream.h"
+#include "ifs/Stream.h"
 
 namespace fibjs {
 
@@ -63,8 +63,8 @@ public:
 };
 }
 
-#include "Buffer.h"
-#include "Stat.h"
+#include "ifs/Buffer.h"
+#include "ifs/Stat.h"
 
 namespace fibjs {
 inline ClassInfo& SeekableStream_base::class_info()

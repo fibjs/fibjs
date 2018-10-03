@@ -34,7 +34,7 @@ public:
 };
 }
 
-#include "StringDecoder.h"
+#include "ifs/StringDecoder.h"
 
 namespace fibjs {
 inline ClassInfo& string_decoder_base::class_info()

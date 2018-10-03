@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "EventEmitter.h"
+#include "ifs/EventEmitter.h"
 
 namespace fibjs {
 
@@ -69,7 +69,7 @@ public:
 };
 }
 
-#include "Buffer.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& WebSocket_base::class_info()

@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "XmlNode.h"
+#include "ifs/XmlNode.h"
 
 namespace fibjs {
 

@@ -184,9 +184,9 @@ public:
 };
 }
 
-#include "Buffer.h"
-#include "gd.h"
-#include "Stream.h"
+#include "ifs/Buffer.h"
+#include "ifs/gd.h"
+#include "ifs/Stream.h"
 
 namespace fibjs {
 inline ClassInfo& Image_base::class_info()

@@ -50,11 +50,11 @@ public:
 };
 }
 
-#include "Message.h"
-#include "HttpHandler.h"
-#include "Handler.h"
-#include "Chain.h"
-#include "Routing.h"
+#include "ifs/Message.h"
+#include "ifs/HttpHandler.h"
+#include "ifs/Handler.h"
+#include "ifs/Chain.h"
+#include "ifs/Routing.h"
 
 namespace fibjs {
 inline ClassInfo& mq_base::class_info()

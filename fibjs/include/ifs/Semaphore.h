@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "Lock.h"
+#include "ifs/Lock.h"
 
 namespace fibjs {
 

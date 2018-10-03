@@ -58,9 +58,9 @@ public:
 };
 }
 
-#include "XmlDocument.h"
-#include "Buffer.h"
-#include "XmlNode.h"
+#include "ifs/XmlDocument.h"
+#include "ifs/Buffer.h"
+#include "ifs/XmlNode.h"
 
 namespace fibjs {
 inline ClassInfo& xml_base::class_info()

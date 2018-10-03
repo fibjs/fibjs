@@ -49,7 +49,7 @@ public:
 };
 }
 
-#include "HeapGraphNode.h"
+#include "ifs/HeapGraphNode.h"
 
 namespace fibjs {
 inline ClassInfo& HeapGraphEdge_base::class_info()

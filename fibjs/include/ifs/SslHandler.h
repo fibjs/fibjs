@@ -13,7 +13,7 @@
  */
 
 #include "../object.h"
-#include "Handler.h"
+#include "ifs/Handler.h"
 
 namespace fibjs {
 
@@ -48,8 +48,8 @@ public:
 };
 }
 
-#include "X509Cert.h"
-#include "PKey.h"
+#include "ifs/X509Cert.h"
+#include "ifs/PKey.h"
 
 namespace fibjs {
 inline ClassInfo& SslHandler_base::class_info()
