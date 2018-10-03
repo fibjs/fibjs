@@ -80,7 +80,8 @@ public:
         v8::Local<v8::Value> data = v8::Local<v8::Value>())
     {
         v8::Local<v8::Function> func = v8::Function::New(m_isolate, callback, data);
-        func->SetName(NewString(funcName));
+        if (!func.IsEmpty())
+            func->SetName(NewString(funcName));
         return func;
     }
 

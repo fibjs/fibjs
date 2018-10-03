@@ -47,6 +47,10 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
         argv[i] = args[i];
 
     argv[i] = isolate->NewFunction("sync_callback", sync_callback, _data);
+    if (argv[i].IsEmpty()) {
+        ThrowError("function alloc error.");
+        return;
+    }
 
     v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
 
@@ -130,8 +134,17 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v = isolate->NewFunction("promise_then", promise_then, args[len - 1]);
+    if (v.IsEmpty()) {
+        ThrowError("function alloc error.");
+        return;
+    }
     _then->Call(result, 1, &v);
+
     v = isolate->NewFunction("promise_catch", promise_catch, args[len - 1]);
+    if (v.IsEmpty()) {
+        ThrowError("function alloc error.");
+        return;
+    }
     _catch->Call(result, 1, &v);
 }
 
@@ -140,10 +153,16 @@ result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Loca
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Function> func1;
 
-    if (async_func || func->IsAsyncFunction())
+    if (async_func || func->IsAsyncFunction()) {
         func = isolate->NewFunction("async_promise", async_promise, func);
+        if (func.IsEmpty())
+            return CHECK_ERROR(Runtime::setError("function alloc error."));
+    }
 
     func1 = isolate->NewFunction("sync", sync_stub, func);
+    if (func1.IsEmpty())
+        return CHECK_ERROR(Runtime::setError("function alloc error."));
+
     func1->SetPrivate(func1->CreationContext(),
         v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
 

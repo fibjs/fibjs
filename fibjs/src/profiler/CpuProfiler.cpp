@@ -69,9 +69,12 @@ result_t profiler_base::start(exlib::string fname, int32_t time, int32_t interva
     } else
         _data->Set(isolate->NewString("_time"), v8::Number::New(isolate->m_isolate, INFINITY));
 
+    v8::Local<v8::Function> func = isolate->NewFunction("_cpu_profiler", cpu_profiler, _data);
+    if (func.IsEmpty())
+        return CHECK_ERROR(Runtime::setError("function alloc error."));
+
     obj_ptr<Timer_base> t;
-    timers_base::setHrInterval(isolate->NewFunction("_cpu_profiler", cpu_profiler, _data),
-        interval, args, t);
+    timers_base::setHrInterval(func, interval, args, t);
 
     return t->unref(retVal);
 }

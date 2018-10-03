@@ -255,6 +255,9 @@ public:
         _data->Set(NewString("_ev"), NewString(ev));
 
         v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
+        if (wrap.IsEmpty())
+            return CHECK_ERROR(Runtime::setError("function alloc error."));
+
         wrap->Set(NewString("_func"), func);
         _data->Set(NewString("_wrap"), wrap);
 
@@ -277,6 +280,8 @@ public:
         _data->Set(NewString("_ev"), NewString(ev));
 
         v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
+        if (wrap.IsEmpty())
+            return CHECK_ERROR(Runtime::setError("function alloc error."));
 
         _data->Set(NewString("_wrap"), wrap);
 

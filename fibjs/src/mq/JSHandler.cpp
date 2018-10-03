@@ -66,6 +66,8 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             argv[i + 1] = v;
         }
         argv[len + 1] = isolate->NewFunction("done", _done, retVal->wrap());
+        if (argv[len + 1].IsEmpty())
+            return CHECK_ERROR(Runtime::setError("function alloc error."));
 
         proc->Call(v8::Undefined(isolate->m_isolate), len + 2, argv.data());
         return 0;

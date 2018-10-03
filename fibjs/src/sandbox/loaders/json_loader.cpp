@@ -36,6 +36,8 @@ result_t JsonLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string 
 {
     Isolate* isolate = ctx->m_sb->holder();
     v8::Local<v8::Function> func = isolate->NewFunction("json_loader", _json_loader, src->wrap());
+    if (func.IsEmpty())
+        return CHECK_ERROR(Runtime::setError("function alloc error."));
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
     module->SetPrivate(module->CreationContext(),
