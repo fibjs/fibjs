@@ -59,8 +59,7 @@ result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
     return 0;
 }
 
-result_t Digest::digest(exlib::string codec,
-    v8::Local<v8::Value>& retVal)
+result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
 {
     exlib::string strBuf;
     if (m_iAlgo < 0)
@@ -76,12 +75,12 @@ result_t Digest::digest(exlib::string codec,
     m_iAlgo = -1;
     mbedtls_md_hmac_reset(&m_ctx);
 
-    if ((codec == "buffer")) {
-        obj_ptr<Buffer_base> buf = new Buffer(strBuf);
+    obj_ptr<Buffer_base> buf = new Buffer(strBuf);
+    if ((codec == "buffer"))
         retVal = buf->wrap();
-    } else {
+    else {
         exlib::string data;
-        result_t hr = commonEncode(codec, strBuf, data);
+        result_t hr = buf->toString(codec, 0, data);
         if (hr < 0)
             return hr;
 
