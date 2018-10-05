@@ -17,8 +17,6 @@ result_t CustomExtLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib
     exlib::string arg_names, v8::Local<v8::Script>& script)
 {
     Isolate* isolate = ctx->m_sb->holder();
-    v8::Local<v8::String> soname = isolate->NewString(name);
-
     v8::Local<v8::Value> require_fn = ctx->m_sb->GetPrivate(SandBox::_get_extloader_pname(m_ext));
 
     exlib::string strScript;

@@ -188,7 +188,7 @@ result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Functio
     if (extname[0] != '.')
         return CALL_E_INVALIDARG;
 
-    for (int i = 0; i < ARRAYSIZE(predefine_exts); i++)
+    for (int32_t i = 0; i < (int32_t)ARRAYSIZE(predefine_exts); i++)
         if (extname == predefine_exts[i])
             return CHECK_ERROR(Runtime::setError("SandBox: '" + extname + "' is reserved extension name!"));
 

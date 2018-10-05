@@ -632,7 +632,7 @@ inline result_t _relative(exlib::string from, exlib::string to, exlib::string& r
 
     // Trim any leading backslashes
     int32_t fromStart = 1;
-    for (; fromStart < from.length(); ++fromStart) {
+    for (; fromStart < (int32_t)from.length(); ++fromStart) {
         if (!isPosixPathSlash(from[fromStart]))
             break;
     }
@@ -641,7 +641,7 @@ inline result_t _relative(exlib::string from, exlib::string to, exlib::string& r
 
     // Trim any leading backslashes
     int32_t toStart = 1;
-    for (; toStart < to.length(); ++toStart) {
+    for (; toStart < (int32_t)to.length(); ++toStart) {
         if (!isPosixPathSlash(to[toStart]))
             break;
     }
@@ -744,7 +744,7 @@ inline result_t _relative_win32(exlib::string from, exlib::string to, exlib::str
 
     // Trim any leading backslashes
     int32_t fromStart = 0;
-    for (; fromStart < from.length(); ++fromStart) {
+    for (; fromStart < (int32_t)from.length(); ++fromStart) {
         if (!isWin32PathSlash(from[fromStart]))
             break;
     }
@@ -758,7 +758,7 @@ inline result_t _relative_win32(exlib::string from, exlib::string to, exlib::str
 
     // Trim any leading backslashes
     int32_t toStart = 0;
-    for (; toStart < to.length(); ++toStart) {
+    for (; toStart < (int32_t)to.length(); ++toStart) {
         if (!isWin32PathSlash(to[toStart]))
             break;
     }
