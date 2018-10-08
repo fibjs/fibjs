@@ -306,29 +306,28 @@ result_t MongoCollection::reIndex(v8::Local<v8::Object>& retVal)
 result_t MongoCollection::dropIndex(exlib::string name,
     v8::Local<v8::Object>& retVal)
 {
-    return runCommand("deleteIndexes", "index", name, retVal);
+    return runCommand("dropIndexes", "index", name, retVal);
 }
 
 result_t MongoCollection::dropIndexes(v8::Local<v8::Object>& retVal)
 {
-    return runCommand("deleteIndexes", "index", "*", retVal);
+    return runCommand("dropIndexes", "index", "*", retVal);
 }
 
-result_t MongoCollection::getIndexes(obj_ptr<MongoCursor_base>& retVal)
+result_t MongoCollection::getIndexes(v8::Local<v8::Array>& retVal)
 {
-    result_t hr;
-    obj_ptr<MongoCollection_base> coll;
+    Isolate* isolate = holder();
+    v8::Local<v8::Object> r, cursor;
 
-    hr = m_db->getCollection("system.indexes", coll);
+    result_t hr = m_db->runCommand("listIndexes", isolate->NewString(m_name), r);
     if (hr < 0)
         return hr;
 
-    Isolate* isolate = holder();
-    v8::Local<v8::Object> f = v8::Object::New(isolate->m_isolate);
-    v8::Local<v8::Object> q = v8::Object::New(isolate->m_isolate);
-    q->Set(isolate->NewString("ns"), isolate->NewString(m_ns));
+    hr = GetConfigValue(isolate->m_isolate, r, "cursor", cursor, true);
+    if (hr < 0)
+        return hr;
 
-    return coll->find(q, f, retVal);
+    return GetConfigValue(isolate->m_isolate, cursor, "firstBatch", retVal, true);
 }
 
 result_t MongoCollection::getCollection(exlib::string name,

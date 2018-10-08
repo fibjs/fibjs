@@ -104,7 +104,7 @@ interface MongoCollection : object
     /*! @brief 查询当前集合全部索引
     @return 返回包含索引的结果集
    */
-    MongoCursor getIndexes();
+    Array getIndexes();
 
     /*! @brief 获取当前集合子命名空间的集合对象
     @param name 子命名空间名称

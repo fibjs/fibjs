@@ -39,7 +39,7 @@ public:
     virtual result_t reIndex(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t dropIndex(exlib::string name, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t dropIndexes(v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t getIndexes(obj_ptr<MongoCursor_base>& retVal) = 0;
+    virtual result_t getIndexes(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t getCollection(exlib::string name, obj_ptr<MongoCollection_base>& retVal) = 0;
     virtual result_t _named_getter(exlib::string property, obj_ptr<MongoCollection_base>& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
@@ -345,7 +345,7 @@ inline void MongoCollection_base::s_dropIndexes(const v8::FunctionCallbackInfo<v
 
 inline void MongoCollection_base::s_getIndexes(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<MongoCursor_base> vr;
+    v8::Local<v8::Array> vr;
 
     METHOD_NAME("MongoCollection.getIndexes");
     METHOD_INSTANCE(MongoCollection_base);
