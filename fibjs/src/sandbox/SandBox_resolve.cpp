@@ -177,8 +177,7 @@ result_t SandBox::resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
 static const char* predefine_exts[] = {
     ".js",
     ".jsc",
-    ".json",
-    ".wasm"
+    ".json"
 };
 result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler)
 {

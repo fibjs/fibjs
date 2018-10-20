@@ -312,9 +312,6 @@ describe("vm", () => {
         assert.throws(() => {
             (new vm.SandBox({})).setModuleCompiler('.json', () => undefined);
         });
-        assert.throws(() => {
-            (new vm.SandBox({})).setModuleCompiler('.wasm', () => undefined);
-        });
 
         (new vm.SandBox({})).setModuleCompiler('.ts', () => undefined);
     })

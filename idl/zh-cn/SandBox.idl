@@ -98,7 +98,7 @@ interface SandBox : object
      */
     Value require(String id, String base);
 
-    /*! @brief 对指定的 extname 添加 compiler, extname 不可为系统内置扩展名 (包括 {'.js', '.json', '.jsc', '.wasm'}), compiler 需返回有效的 javascript 脚本.
+    /*! @brief 对指定的 extname 添加 compiler, extname 不可为系统内置扩展名 (包括 {'.js', '.json', '.jsc'}), compiler 需返回有效的 javascript 脚本.
 
       ```JavaScript
       var vm = require('vm');
