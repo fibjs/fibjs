@@ -61,10 +61,8 @@ v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::stri
 
     v8::Local<v8::Object> glob = isolate->context()->Global();
     v = func->Call(glob, 6, args);
-    if (v.IsEmpty()) {
-        remove(id);
+    if (v.IsEmpty())
         return v;
-    }
 
     return mod->Get(strExports);
 }
