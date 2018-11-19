@@ -476,7 +476,23 @@ describe('ws', () => {
 
     describe('WebSocket', () => {
         it("server", () => {
-            var httpd = new http.Server(8814 + base_port, {
+            var httpd = new http.Server(8814 + base_port, [(req) => {
+                var apiToken = req.firstHeader("api-token");
+                if (apiToken === "valid")
+                    return;
+                if (apiToken === "invalid") {
+                    req.response.statusCode = 403;
+                    return req.end();
+                }
+            }, (req) => {
+                var sessionId = req.cookies["sessionId"];
+                if (sessionId === "valid")
+                    return;
+                if (sessionId === "invalid") {
+                    req.response.statusCode = 403;
+                    return req.end();
+                }
+            }, {
                 "/ws": ws.upgrade((s, req) => {
                     assert.equal(req.firstHeader("upgrade"), "websocket");
                     s.onmessage = function (msg) {
@@ -491,8 +507,15 @@ describe('ws', () => {
                         } else
                             this.send(msg.data);
                     };
-                })
-            });
+                }),
+                "/set-cookie": (req) => {
+                    var json = req.json()
+                    req.response.addCookie({
+                        name: "sessionId",
+                        value: json.value
+                    });
+                }
+            }]);
             ss.push(httpd.socket);
             httpd.run(() => {});
         });
@@ -558,6 +581,87 @@ describe('ws', () => {
 
             s.close();
         });
+
+        it('header authority', () => {
+            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
+                protocol: "test",
+                headers: {
+                    "api-token": "valid"
+                }
+            });
+            assert.equal(s.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
+            assert.equal(s.protocol, "test");
+
+            var opened = false;
+            s.onopen = () => {
+                opened = true;
+                s.close();
+            };
+            coroutine.sleep(100);
+            assert.equal(s.readyState, ws.CLOSED);
+            assert.isTrue(opened);
+
+            var s1 = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
+                protocol: "test",
+                headers: {
+                    "api-token": "invalid"
+                }
+            });
+            assert.equal(s1.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
+            assert.equal(s1.protocol, "test");
+            opened = false;
+            s1.onopen = () => {
+                opened = true;
+                s1.close();
+            };
+            coroutine.sleep(100);
+            assert.equal(s1.readyState, ws.CLOSED);
+            assert.isFalse(opened);
+        });
+
+        it("specialize httpClient", () => {
+            var hc = new http.Client();
+            hc.post("http://127.0.0.1:" + (8814 + base_port) + "/set-cookie", {
+                json: {
+                    value: "valid"
+                }
+            })
+            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
+                protocol: "test",
+                httpClient: hc
+            });
+            assert.equal(s.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
+            assert.equal(s.protocol, "test");
+
+            var opened = false;
+            s.onopen = () => {
+                opened = true;
+                s.close();
+            };
+            coroutine.sleep(100);
+            assert.equal(s.readyState, ws.CLOSED);
+            assert.isTrue(opened);
+
+            hc.post("http://127.0.0.1:" + (8814 + base_port) + "/set-cookie", {
+                json: {
+                    value: "invalid"
+                }
+            })
+            var s1 = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
+                protocol: "test",
+                httpClient: hc
+            });
+            assert.equal(s1.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
+            assert.equal(s1.protocol, "test");
+            var opened1 = false;
+            s1.onopen = () => {
+                opened1 = true;
+                s1.close();
+            };
+            coroutine.sleep(100);
+            assert.equal(s1.readyState, ws.CLOSED);
+            assert.isFalse(opened1);
+        })
 
         it('many compressed message', () => {
             var cnt = 0;

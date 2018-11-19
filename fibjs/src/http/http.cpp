@@ -39,6 +39,16 @@ result_t http_request(exlib::string method, exlib::string url,
     return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
 }
 
+result_t http_request2(HttpClient_base* httpClient, exlib::string method, exlib::string url,
+    SeekableStream_base* body, NObject* headers,
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+{
+    if (httpClient != NULL)
+        return ((HttpClient*)httpClient)->request(method, url, body, headers, retVal, ac);
+    else
+        return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
+}
+
 result_t http_base::get_cookies(obj_ptr<NArray>& retVal)
 {
     return get_httpClient()->get_cookies(retVal);

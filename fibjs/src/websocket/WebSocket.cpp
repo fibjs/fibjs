@@ -15,13 +15,14 @@
 #include <mbedtls/mbedtls/sha1.h>
 #include "encoding.h"
 #include "MemoryStream.h"
+#include "HttpClient.h"
 #include <stdlib.h>
 
 namespace fibjs {
 
 DECLARE_MODULE(ws);
 
-result_t http_request(exlib::string method, exlib::string url,
+result_t http_request2(HttpClient_base* httpClient, exlib::string method, exlib::string url,
     SeekableStream_base* body, NObject* headers,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
@@ -171,15 +172,31 @@ private:
     int64_t m_size;
 };
 
-result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::string origin,
+result_t WebSocket_base::_new(exlib::string url, exlib::string protocol,
+    exlib::string origin, obj_ptr<WebSocket_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    Isolate* isolate = Isolate::current();
+
+    v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
+
+    opts->Set(isolate->NewString("protocol", 8), isolate->NewString(protocol));
+    opts->Set(isolate->NewString("origin", 6), isolate->NewString(origin));
+
+    return WebSocket_base::_new(url, opts, retVal, This);
+}
+
+result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<WebSocket_base>& retVal,
     v8::Local<v8::Object> This)
 {
     class asyncConnect : public AsyncState {
     public:
-        asyncConnect(WebSocket* pThis, Isolate* isolate)
+        asyncConnect(WebSocket* pThis, obj_ptr<NObject> headers, HttpClient_base* hc, Isolate* isolate)
             : AsyncState(NULL)
             , m_this(pThis)
+            , m_headers(headers)
+            , m_hc(hc)
         {
             m_isolate = isolate;
             m_this->isolate_ref();
@@ -205,8 +222,6 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
                 pThis->m_this->endConnect(1002, "unknown protocol");
                 return CHECK_ERROR(Runtime::setError("websocket: unknown protocol"));
             }
-
-            pThis->m_headers = new NObject();
 
             pThis->m_headers->add("Upgrade", "websocket");
             pThis->m_headers->add("Connection", "Upgrade");
@@ -239,7 +254,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
                 6, (const char*)output, 20, pThis->m_accept);
 
             pThis->set(response);
-            return http_request("GET", url, NULL, pThis->m_headers,
+            return http_request2(pThis->m_hc, "GET", url, NULL, pThis->m_headers,
                 pThis->m_httprep, pThis);
         }
 
@@ -322,13 +337,29 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol, exlib::
         obj_ptr<WebSocket> m_this;
         obj_ptr<HttpResponse_base> m_httprep;
         obj_ptr<NObject> m_headers;
+        obj_ptr<HttpClient_base> m_hc;
         exlib::string m_accept;
     };
+
+    Isolate* isolate = Isolate::current();
+    exlib::string origin = "";
+    exlib::string protocol = "";
+    v8::Local<v8::Object> v;
+    obj_ptr<NObject> headers = new NObject();
+    obj_ptr<HttpClient_base> hc = NULL;
+
+    GetConfigValue(isolate->m_isolate, opts, "protocol", protocol);
+    GetConfigValue(isolate->m_isolate, opts, "origin", origin);
+
+    if (GetConfigValue(isolate->m_isolate, opts, "headers", v) >= 0)
+        headers->add(v);
+
+    GetConfigValue(isolate->m_isolate, opts, "httpClient", hc);
 
     obj_ptr<WebSocket> sock = new WebSocket(url, protocol, origin);
     sock->m_holder = new ValueHolder(sock->wrap(This));
 
-    (new asyncConnect(sock, sock->holder()))->apost(0);
+    (new asyncConnect(sock, headers, hc, sock->holder()))->apost(0);
 
     retVal = sock;
 
