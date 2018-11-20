@@ -26,6 +26,7 @@ class WebSocket_base : public EventEmitter_base {
 public:
     // WebSocket_base
     static result_t _new(exlib::string url, exlib::string protocol, exlib::string origin, obj_ptr<WebSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<WebSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_url(exlib::string& retVal) = 0;
     virtual result_t get_protocol(exlib::string& retVal) = 0;
     virtual result_t get_origin(exlib::string& retVal) = 0;
@@ -123,6 +124,13 @@ void WebSocket_base::__new(const T& args)
     OPT_ARG(exlib::string, 2, "");
 
     hr = _new(v0, v1, v2, vr, args.This());
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+    hr = _new(v0, v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
