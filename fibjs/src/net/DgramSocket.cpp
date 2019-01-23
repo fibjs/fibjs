@@ -155,9 +155,10 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
 {
     class asyncRecv : public AsyncState {
     public:
-        asyncRecv(DgramSocket* pThis)
+        asyncRecv(DgramSocket* pThis, ValueHolder* holder)
             : AsyncState(NULL)
             , m_pThis(pThis)
+            , m_holder(holder)
         {
             m_pThis->_emit("listening", NULL, 0);
             m_pThis->isolate_ref();
@@ -202,13 +203,18 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
     private:
         obj_ptr<DgramSocket> m_pThis;
         obj_ptr<NObject> m_msg;
+        obj_ptr<ValueHolder> m_holder;
     };
 
     if (m_closed || m_bound)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (ac->isSync())
+    if (ac->isSync()) {
+        ac->m_ctx.resize(1);
+        obj_ptr<ValueHolder> holder = new ValueHolder(wrap());
+        ac->m_ctx[0] = holder;
         return CHECK_ERROR(CALL_E_NOSYNC);
+    }
 
     inetAddr addr_info;
 
@@ -228,7 +234,8 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
     if (::bind(m_aio.m_fd, (struct sockaddr*)&addr_info, addr_info.size()) == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
 
-    (new asyncRecv(this))->post(0);
+    obj_ptr<ValueHolder> holder = (ValueHolder*)ac->m_ctx[0].object();
+    (new asyncRecv(this, holder))->post(0);
 
     m_bound = true;
 
