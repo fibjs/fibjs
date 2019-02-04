@@ -132,6 +132,7 @@ public:
     }
 
 public:
+    exlib::string m_message;
     exlib::Event m_quit;
     weak_ptr<Fiber_base> m_caller;
 

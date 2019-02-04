@@ -224,10 +224,16 @@ result_t throwSyntaxError(TryCatch& try_catch)
     return CALL_E_JAVASCRIPT;
 }
 
-void ReportException(TryCatch& try_catch, result_t hr, bool repl)
+exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl)
 {
-    if (try_catch.HasCaught() || hr < 0)
-        errorLog(GetException(try_catch, hr, repl));
+    exlib::string msg;
+
+    if (try_catch.HasCaught() || hr < 0) {
+        msg = GetException(try_catch, hr, repl);
+        errorLog(msg);
+    }
+
+    return msg;
 }
 
 result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)

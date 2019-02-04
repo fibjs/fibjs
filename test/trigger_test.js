@@ -174,6 +174,29 @@ function evevt_test(name, e) {
             e.off('order');
         });
 
+        it("on error", () => {
+            e.on('error', () => {});
+            e.emit('error');
+            e.off('error');
+
+            e.on('error', () => {
+                throw new Error('error');
+            });
+            assert.throws(() => {
+                e.emit('error');
+            });
+            e.off('error');
+
+            e.on('error', () => {});
+            e.on('error', () => {
+                throw new Error('error');
+            });
+            assert.throws(() => {
+                e.emit('error');
+            });
+            e.off('error');
+        });
+
         it("listeners(name)", () => {
             assert.equal(e.on('test1', t1), e);
             assert.equal(e.on('test1', t2), e);

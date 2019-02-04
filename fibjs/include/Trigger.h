@@ -456,6 +456,7 @@ public:
         retVal = false;
         QuickArray<obj_ptr<Fiber_base>> evs;
         v8::Local<v8::Function> ff;
+        exlib::string msg;
 
         hr = fireTrigger(GetHiddenList(ev), args, argCount, evs, ff);
         if (hr < 0)
@@ -469,13 +470,15 @@ public:
         if (evs.size() > 0) {
             int32_t i;
             METHOD_NAME("EventEmitter.emit");
-            for (i = 0; i < (int32_t)evs.size(); i++)
+            for (i = 0; i < (int32_t)evs.size(); i++) {
                 evs[i]->join();
+                msg = ((JSFiber*)(Fiber_base*)evs[i])->m_message;
+            }
 
             retVal = true;
         }
 
-        return 0;
+        return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : 0;
     }
 
     result_t emit(exlib::string ev, OptArgs args, bool& retVal)

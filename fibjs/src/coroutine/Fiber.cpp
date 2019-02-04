@@ -228,9 +228,10 @@ JSFiber::scope::~scope()
 {
     m_pFiber->holder()->m_isolate->RunMicrotasks();
 
+    m_pFiber->m_message = ReportException(try_catch, m_hr);
+
     m_pFiber->m_quit.set();
 
-    ReportException(try_catch, m_hr);
     m_pFiber->holder()->m_fibers.remove(m_pFiber);
     exlib::Fiber::tlsPut(g_tlsCurrent, 0);
 }
