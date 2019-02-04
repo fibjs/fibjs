@@ -463,8 +463,10 @@ public:
             return hr;
 
         if (!ff.IsEmpty()) {
-            ff->Call(o, argCount, args);
+            v8::Local<v8::Value> r = ff->Call(o, argCount, args);
             retVal = true;
+            if (r.IsEmpty())
+                hr = CALL_E_JAVASCRIPT;
         }
 
         if (evs.size() > 0) {
@@ -477,6 +479,9 @@ public:
 
             retVal = true;
         }
+
+        if (hr < 0)
+            return hr;
 
         return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : 0;
     }
