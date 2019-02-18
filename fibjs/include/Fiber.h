@@ -80,6 +80,7 @@ public:
             m_argv[i].Reset(isolate->m_isolate, args[i]);
         m_func.Reset(isolate->m_isolate, func);
         m_this.Reset(isolate->m_isolate, pThis);
+        m_holder = new ValueHolder(pThis);
 
         start();
     }
@@ -129,6 +130,7 @@ public:
         m_func.Reset();
         m_result.Reset();
         m_this.Reset();
+        m_holder.Release();
     }
 
 public:
@@ -147,6 +149,7 @@ private:
     QuickArray<v8::Global<v8::Value>> m_argv;
     v8::Global<v8::Value> m_result;
     v8::Global<v8::Object> m_this;
+    obj_ptr<object_base> m_holder;
 };
 
 } /* namespace fibjs */
