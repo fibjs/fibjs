@@ -12,10 +12,8 @@
 
 namespace fibjs {
 
-void init_coroutine();
-void init_platform(v8::Platform* platform = NULL);
 void run_gui();
-void start(int32_t argc, char** argv, result_t (*main)(Isolate*));
+void start(int32_t argc, char** argv, result_t (*main)(Isolate*), v8::Platform* (*get_platform)() = NULL);
 result_t main_fiber(Isolate* isolate);
 
 } /* namespace fibjs */

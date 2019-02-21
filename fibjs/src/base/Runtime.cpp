@@ -24,7 +24,6 @@
 #include "v8_api.h"
 #include "options.h"
 #include "include/libplatform/libplatform.h"
-#include "fibjs.h"
 
 namespace fibjs {
 
@@ -41,29 +40,19 @@ result_t ifZipFile(exlib::string filename, bool& retVal);
 
 exlib::string s_root;
 
-void init_coroutine()
+static void init(v8::Platform* (*get_platform)())
 {
+    ::setlocale(LC_ALL, "");
+
     int32_t cpus = 0;
+
+    process_base::cwd(s_root);
 
     os_base::cpuNumbers(cpus);
     if (cpus < 2)
         cpus = 2;
 
     exlib::Service::init(cpus + 1);
-}
-
-void init_platform(v8::Platform* platform)
-{
-    if (platform == NULL)
-        platform = v8::platform::CreateDefaultPlatform();
-    v8::V8::InitializePlatform(platform);
-    v8::V8::Initialize();
-}
-
-static void init()
-{
-    process_base::cwd(s_root);
-    ::setlocale(LC_ALL, "");
 
     init_date();
     init_acThread();
@@ -75,16 +64,28 @@ static void init()
 #endif
 
     srand((unsigned int)time(0));
+
+    v8::Platform* platform;
+
+    if (get_platform != NULL)
+        platform = get_platform();
+    else
+        platform = v8::platform::CreateDefaultPlatform();
+
+    v8::V8::InitializePlatform(platform);
+
+    v8::V8::Initialize();
 }
 
-void start(int32_t argc, char** argv, result_t (*main)(Isolate*))
+void start(int32_t argc, char** argv, result_t (*main)(Isolate*), v8::Platform* (*get_platform)())
 {
     class MainThread : public exlib::OSThread {
     public:
-        MainThread(int32_t argc, char** argv, result_t (*main)(Isolate*))
+        MainThread(int32_t argc, char** argv, result_t (*main)(Isolate*), v8::Platform* (*get_platform)())
             : m_argc(argc)
             , m_argv(argv)
             , m_main(main)
+            , m_get_platform(get_platform)
         {
         }
 
@@ -129,7 +130,7 @@ void start(int32_t argc, char** argv, result_t (*main)(Isolate*))
             int32_t pos = argc;
             options(pos, argv);
 
-            init();
+            init(m_get_platform);
 
             if (pos < argc) {
                 if (argv[pos][0] == '-')
@@ -162,9 +163,10 @@ void start(int32_t argc, char** argv, result_t (*main)(Isolate*))
         char** m_argv;
         exlib::string m_start;
         result_t (*m_main)(Isolate*);
+        v8::Platform* (*m_get_platform)();
     };
 
-    MainThread* main_thread = new MainThread(argc, argv, main);
+    MainThread* main_thread = new MainThread(argc, argv, main, get_platform);
     main_thread->start();
 
     main_thread->m_sem.Wait();

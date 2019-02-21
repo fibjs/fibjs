@@ -68,9 +68,6 @@ void main(int32_t argc, char** argv)
 {
     importModule();
 
-    init_coroutine();
-    init_platform();
-
     start(argc, argv, main_fiber);
     run_gui();
 }
