@@ -83,7 +83,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		arm)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="arm-linux-gnueabihf-"
-				BUILD_OPTION="-march=armv7-a -mfpu=vfp3 -marm"
+				BUILD_OPTION="-march=armv7-a  -mfpu=vfp3 -marm --target=arm-linux-gnueabihf  -L/usr/lib/gcc-cross/arm-linux-gnueabihf/5 -L/usr/arm-linux-gnueabihf/lib -I/usr/arm-linux-gnueabihf/include -I/usr/arm-linux-gnueabihf/include/c++/5 -I/usr/arm-linux-gnueabihf/include/c++/5/arm-linux-gnueabihf"
 			else
 				usage
 			fi
@@ -91,6 +91,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		arm64)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="aarch64-linux-gnu-"
+				BUILD_OPTION="--target=aarch64-linux-gnu  -L/usr/lib/gcc-cross/aarch64-linux-gnu/5 -L/usr/aarch64-linux-gnu/lib -I/usr/aarch64-linux-gnu/include -I/usr/aarch64-linux-gnu/include/c++/5 -I/usr/aarch64-linux-gnu/include/c++/5/aarch64-linux-gnu"
 			else
 				usage
 			fi
@@ -98,6 +99,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		mips)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="mips-linux-gnu-"
+				BUILD_OPTION="--target=mips-linux-gnu   -L/usr/lib/gcc-cross/mips-linux-gnu/5 -L/usr/mips-linux-gnu/lib -I/usr/mips-linux-gnu/include -I/usr/mips-linux-gnu/include/c++/5 -I/usr/mips-linux-gnu/include/c++/5/mips-linux-gnu"
 			else
 				usage
 			fi
@@ -105,6 +107,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		mips64)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="mips64-linux-gnuabi64-"
+				BUILD_OPTION="--target=mips64-linux-gnuabi64  -L/usr/lib/gcc-cross/mips64-linux-gnuabi64/5 -L/usr/mips64-linux-gnuabi64/lib -I/usr/mips64-linux-gnuabi64/include -I/usr/mips64-linux-gnuabi64/include/c++/5 -I/usr/mips64-linux-gnuabi64/include/c++/5/mips64-linux-gnuabi64"
 			else
 				usage
 			fi
@@ -112,6 +115,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		ppc)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="powerpc-linux-gnu-"
+                BUILD_OPTION="--target=powerpc-linux-gnu  -L/usr/lib/gcc-cross/powerpc-linux-gnu/5 -L/usr/powerpc-linux-gnu/lib -I/usr/powerpc-linux-gnu/include -I/usr/powerpc-linux-gnu/include/c++/5 -I/usr/powerpc-linux-gnu/include/c++/5/powerpc-linux-gnu"
 			else
 				usage
 			fi
@@ -119,6 +123,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		ppc64)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="powerpc64-linux-gnu-"
+                BUILD_OPTION="--target=powerpc64-linux-gnu  -L/usr/lib/gcc-cross/powerpc64-linux-gnu/5 -L/usr/powerpc64-linux-gnu/lib -I/usr/powerpc64-linux-gnu/include -I/usr/powerpc64-linux-gnu/include/c++/5 -I/usr/powerpc64-linux-gnu/include/c++/5/powerpc64-linux-gnu"
 			else
 				usage
 			fi
@@ -154,6 +159,7 @@ fi
 
 OUT_PATH=${OUT_PATH}/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
 if [ ! -e ${OUT_PATH} ]; then
+        print " ${OUT_PATH}"
 	mkdir ${OUT_PATH}
 fi
 
@@ -165,7 +171,8 @@ fi
 GIT_INFO=`git describe`
 
 cd ${OUT_PATH}
-cmake -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION="${BUILD_OPTION}" -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
+cmake -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${DCMAKE_CXX_COMPILER} -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION="${BUILD_OPTION}" -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
+
 if [ $? != 0 ]; then
 	exit 1
 fi

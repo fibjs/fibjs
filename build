@@ -24,6 +24,23 @@ usage()
 
 HOST_OS=`uname`
 HOST_ARCH=`uname -m`
+ClangInstalledDir=""
+
+checkenv()
+{
+	/bin/bash tools/check_envirment.sh $1
+}
+
+GetClangInstallDir()
+{
+	if clang-6.0 --version 2>/dev/null || false; then
+		printf "clang-6.0 has installed. \\n"
+		ClangInstalledDir="$(clang-6.0 --version | grep InstalledDir | awk -F': ' '{print $2}')/"
+	else
+		"require clang-6.0 but it's not installed."
+		exit;
+	fi
+}
 
 case ${HOST_ARCH} in
 	i386|i686) HOST_ARCH="i386"
@@ -90,7 +107,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		arm)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="arm-linux-gnueabihf-"
-				BUILD_OPTION="-march=armv7-a -mfpu=vfp3 -marm"
+				BUILD_OPTION="-march=armv7-a  -mfpu=vfp3 -marm --target=arm-linux-gnueabihf  -L/usr/lib/gcc-cross/arm-linux-gnueabihf/5 -L/usr/arm-linux-gnueabihf/lib -I/usr/arm-linux-gnueabihf/include -I/usr/arm-linux-gnueabihf/include/c++/5 -I/usr/arm-linux-gnueabihf/include/c++/5/arm-linux-gnueabihf"
 			else
 				usage
 			fi
@@ -98,6 +115,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		arm64)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="aarch64-linux-gnu-"
+				BUILD_OPTION="--target=aarch64-linux-gnu  -L/usr/lib/gcc-cross/aarch64-linux-gnu/5 -L/usr/aarch64-linux-gnu/lib -I/usr/aarch64-linux-gnu/include -I/usr/aarch64-linux-gnu/include/c++/5 -I/usr/aarch64-linux-gnu/include/c++/5/aarch64-linux-gnu"
 			else
 				usage
 			fi
@@ -105,6 +123,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		mips)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="mips-linux-gnu-"
+				BUILD_OPTION="--target=mips-linux-gnu   -L/usr/lib/gcc-cross/mips-linux-gnu/5 -L/usr/mips-linux-gnu/lib -I/usr/mips-linux-gnu/include -I/usr/mips-linux-gnu/include/c++/5 -I/usr/mips-linux-gnu/include/c++/5/mips-linux-gnu"
 			else
 				usage
 			fi
@@ -112,6 +131,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		mips64)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="mips64-linux-gnuabi64-"
+				BUILD_OPTION="--target=mips64-linux-gnuabi64  -L/usr/lib/gcc-cross/mips64-linux-gnuabi64/5 -L/usr/mips64-linux-gnuabi64/lib -I/usr/mips64-linux-gnuabi64/include -I/usr/mips64-linux-gnuabi64/include/c++/5 -I/usr/mips64-linux-gnuabi64/include/c++/5/mips64-linux-gnuabi64"
 			else
 				usage
 			fi
@@ -119,6 +139,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		ppc)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="powerpc-linux-gnu-"
+                BUILD_OPTION="--target=powerpc-linux-gnu  -L/usr/lib/gcc-cross/powerpc-linux-gnu/5 -L/usr/powerpc-linux-gnu/lib -I/usr/powerpc-linux-gnu/include -I/usr/powerpc-linux-gnu/include/c++/5 -I/usr/powerpc-linux-gnu/include/c++/5/powerpc-linux-gnu"
 			else
 				usage
 			fi
@@ -126,6 +147,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		ppc64)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="powerpc64-linux-gnu-"
+                BUILD_OPTION="--target=powerpc64-linux-gnu  -L/usr/lib/gcc-cross/powerpc64-linux-gnu/5 -L/usr/powerpc64-linux-gnu/lib -I/usr/powerpc64-linux-gnu/include -I/usr/powerpc64-linux-gnu/include/c++/5 -I/usr/powerpc64-linux-gnu/include/c++/5/powerpc64-linux-gnu"
 			else
 				usage
 			fi
@@ -175,6 +197,22 @@ fi
 
 export BUILD_JOBS
 export BUILD_VERBOSE
+
+if [ $BUILD_TYPE != "clean" ]; then
+	printf " - Checking necessary packages. \n"
+	checkenv $TARGET_ARCH
+	if [ $? != 0 ]; then
+		printf " - Checking environment failed! \n"
+		exit 1;
+	else 
+		printf " - Checking environment successfully! \n\n"
+	fi
+	GetClangInstallDir
+	if [ $? -eq 0 ] ; then
+		export CMAKE_C_COMPILER="${ClangInstalledDir}"clang-6.0
+		export CMAKE_CXX_COMPILER="${ClangInstalledDir}"clang++-6.0
+	fi
+fi
 
 if [ -d vender ]; then 
 	cd vender
