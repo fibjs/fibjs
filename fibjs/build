@@ -127,8 +127,8 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 fi
 
 if [ "$BUILD_PREFIX" != "" ]; then
-	export CC=${BUILD_PREFIX}clang
-	export CXX=${BUILD_PREFIX}clang++
+	export CC=${BUILD_PREFIX}clang-6.0
+	export CXX=${BUILD_PREFIX}clang++-6.0
 fi
 
 FIBJS_PATH=`pwd`
@@ -166,7 +166,7 @@ GIT_INFO=`git describe`
 
 cd ${OUT_PATH}
 #cmake -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION="${BUILD_OPTION}" -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
-cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION="${BUILD_OPTION}" -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
+cmake -DCMAKE_C_COMPILER=/usr/bin/clang-6.0 -DCMAKE_CXX_COMPILER=/usr/bin/clang++-6.0 -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION="${BUILD_OPTION}" -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
 
 if [ $? != 0 ]; then
 	exit 1

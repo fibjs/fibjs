@@ -26,11 +26,11 @@ set(CMAKE_C_FLAGS "${BUILD_OPTION}")
 check_include_files(iconv.h HAVE_ICONV_H)
 check_c_source_compiles("void posix_spawnp();
 	__asm__(\".symver posix_spawnp,posix_spawnp@GLIBC_2.2.5\");
-	void main(void){posix_spawnp();}" HAVE_GLIB_C_225_H)
+	int main(void){posix_spawnp();}" HAVE_GLIB_C_225_H)
 
 check_c_source_compiles("void posix_spawnp();
 	__asm__(\".symver posix_spawnp,posix_spawnp@GLIBC_2.2\");
-	void main(void){posix_spawnp();}" HAVE_GLIB_C_22_H)
+	int main(void){posix_spawnp();}" HAVE_GLIB_C_22_H)
 
 set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
 set(ccflags "-std=c++11")
