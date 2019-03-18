@@ -90,7 +90,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		arm)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="arm-linux-gnueabihf-"
-				BUILD_OPTION="-march=armv7-a  -mfpu=vfp3 -marm --sysroot=/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf -L/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/lib"
+				BUILD_OPTION="-march=armv7-a -mfpu=vfp3 -marm --sysroot=/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf -L/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/lib"
 			else
 				usage
 			fi
