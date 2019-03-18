@@ -26,11 +26,11 @@ set(CMAKE_C_FLAGS "${BUILD_OPTION}")
 check_include_files(iconv.h HAVE_ICONV_H)
 check_c_source_compiles("void posix_spawnp();
 	__asm__(\".symver posix_spawnp,posix_spawnp@GLIBC_2.2.5\");
-	int main(void){posix_spawnp();}" HAVE_GLIB_C_225_H)
+	void main(void){posix_spawnp();}" HAVE_GLIB_C_225_H)
 
 check_c_source_compiles("void posix_spawnp();
 	__asm__(\".symver posix_spawnp,posix_spawnp@GLIBC_2.2\");
-	int main(void){posix_spawnp();}" HAVE_GLIB_C_22_H)
+	void main(void){posix_spawnp();}" HAVE_GLIB_C_22_H)
 	
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/gitinfo.h.in ${CMAKE_CURRENT_BINARY_DIR}/gitinfo.h)

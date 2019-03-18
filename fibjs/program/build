@@ -83,7 +83,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		arm)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="arm-linux-gnueabihf-"
-				BUILD_OPTION="-march=armv7-a -mfpu=vfp3 -marm"
+				BUILD_OPTION="-march=armv7-a  -mfpu=vfp3 -marm --target=arm-linux-gnueabihf --sysroot=/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/libc  -I/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.4.1/ -I/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.4.1/arm-linux-gnueabihf -L/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.4.1/"
 			else
 				usage
 			fi
@@ -91,6 +91,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		arm64)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="aarch64-linux-gnu-"
+                BUILD_OPTION="--target=aarch64-linux-gnu  --sysroot=/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_aarch64-linux-gnu/aarch64-linux-gnu/libc  -L/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_aarch64-linux-gnu/lib/gcc/aarch64-linux-gnu/5.4.1  -I/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_aarch64-linux-gnu/aarch64-linux-gnu/libc/usr/include  -I/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_aarch64-linux-gnu/aarch64-linux-gnu/include/c++/5.4.1/aarch64-linux-gnu -I/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_aarch64-linux-gnu/aarch64-linux-gnu/include/c++/5.4.1"
 			else
 				usage
 			fi
@@ -98,6 +99,8 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		mips)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="mips-linux-gnu-"
+				BUILD_OPTION="--target=mips-linux-gnu --sysroot=/usr/mips-linux-gnu -L/usr/lib/gcc-cross/mips-linux-gnu/5 -L/usr/mips-linux-gnu/lib -I/usr/mips-linux-gnu/include -I/usr/mips-linux-gnu/include/c++/5 -I/usr/mips-linux-gnu/include/c++/5/mips-linux-gnu"
+
 			else
 				usage
 			fi
@@ -105,6 +108,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		mips64)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="mips64-linux-gnuabi64-"
+				BUILD_OPTION="--target=mips64-linux-gnuabi64 -L/usr/mips64-linux-gnuabi64/lib  -I/usr/mips64-linux-gnuabi64/include/c++/5 -I/usr/mips64-linux-gnuabi64/include/c++/5/mips64-linux-gnuabi64 -I/usr/mips64-linux-gnuabi64/include"
 			else
 				usage
 			fi
@@ -127,8 +131,8 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 fi
 
 if [ "$BUILD_PREFIX" != "" ]; then
-	export CC=${BUILD_PREFIX}clang-6.0
-	export CXX=${BUILD_PREFIX}clang++-6.0
+	export CC=${BUILD_PREFIX}gcc
+	export CXX=${BUILD_PREFIX}g++
 fi
 
 FIBJS_PATH=`pwd`
@@ -164,7 +168,7 @@ fi
 
 cd ${OUT_PATH}
 #cmake -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION="${BUILD_OPTION}" ${FIBJS_PATH} > CMake.log
-cmake -DCMAKE_C_COMPILER=/usr/bin/clang-6.0 -DCMAKE_CXX_COMPILER=/usr/bin/clang++-6.0 -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION="${BUILD_OPTION}" -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
+cmake -DCMAKE_C_COMPILER=/usr/local/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/bin/clang++ -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION="${BUILD_OPTION}" -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
 if [ $? != 0 ]; then
 	exit 1
 fi
@@ -179,6 +183,7 @@ if [ $? != 0 ]; then
 fi
 
 if [ "${BUILD_TYPE}" = "release" ]; then
+        printf  "${BIN_PATH}"
 	cd "${BIN_PATH}"
 	cp "${FIBJS_PATH}/installer.txt" "installer.sh"
 	tar -zcf fibjs.tar.gz fibjs

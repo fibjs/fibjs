@@ -90,7 +90,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		arm)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="arm-linux-gnueabihf-"
-				BUILD_OPTION="-march=armv7-a -mfpu=vfp3 -marm"
+				BUILD_OPTION="-march=armv7-a  -mfpu=vfp3 -marm --sysroot=/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf -L/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/lib"
 			else
 				usage
 			fi
@@ -98,6 +98,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		arm64)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="aarch64-linux-gnu-"
+                BUILD_OPTION="--target=aarch64-linux-gnu  --sysroot=/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_aarch64-linux-gnu/aarch64-linux-gnu/libc  -L/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_aarch64-linux-gnu/lib/gcc/aarch64-linux-gnu/5.4.1  -I/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_aarch64-linux-gnu/aarch64-linux-gnu/libc/usr/include  -I/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_aarch64-linux-gnu/aarch64-linux-gnu/include/c++/5.4.1/aarch64-linux-gnu -I/home/xiao/arm-cross-toolchain/gcc-linaro-5.4.1-2017.01-x86_64_aarch64-linux-gnu/aarch64-linux-gnu/include/c++/5.4.1"
 			else
 				usage
 			fi
@@ -105,6 +106,8 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		mips)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="mips-linux-gnu-"
+				BUILD_OPTION="--target=mips-linux-gnu --sysroot=/usr/mips-linux-gnu -L/usr/lib/gcc-cross/mips-linux-gnu/5 -L/usr/mips-linux-gnu/lib -I/usr/mips-linux-gnu/include -I/usr/mips-linux-gnu/include/c++/5 -I/usr/mips-linux-gnu/include/c++/5/mips-linux-gnu"
+
 			else
 				usage
 			fi
@@ -112,6 +115,7 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 		mips64)
 			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_PREFIX="mips64-linux-gnuabi64-"
+				BUILD_OPTION="--target=mips64-linux-gnuabi64 -L/usr/mips64-linux-gnuabi64/lib  -I/usr/mips64-linux-gnuabi64/include/c++/5 -I/usr/mips64-linux-gnuabi64/include/c++/5/mips64-linux-gnuabi64 -I/usr/mips64-linux-gnuabi64/include"
 			else
 				usage
 			fi
@@ -176,6 +180,7 @@ fi
 export BUILD_JOBS
 export BUILD_VERBOSE
 
+printf "ssssssssssssss $BUILD_TYPE $TARGET_ARCH   \n"
 if [ -d vender ]; then 
 	cd vender
 	sh build $BUILD_TYPE $TARGET_ARCH
