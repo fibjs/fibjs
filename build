@@ -63,7 +63,7 @@ do
 			;;
 		 -v) BUILD_VERBOSE='VERBOSE=1' 
 			;;
-  --help|-h) usage
+        --help|-h) usage
 			;;
 		  *) echo "illegal option $i"
 			usage
@@ -180,7 +180,7 @@ fi
 export BUILD_JOBS
 export BUILD_VERBOSE
 
-printf "ssssssssssssss $BUILD_TYPE $TARGET_ARCH   \n"
+
 if [ -d vender ]; then 
 	cd vender
 	sh build $BUILD_TYPE $TARGET_ARCH
