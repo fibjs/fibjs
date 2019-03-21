@@ -22,7 +22,6 @@ include(CheckIncludeFiles)
 include(CheckCSourceCompiles)
 
 set(CMAKE_C_FLAGS "${BUILD_OPTION}")
-message("programprogramprogramprogram")
 check_include_files(iconv.h HAVE_ICONV_H)
 check_c_source_compiles("void posix_spawnp();
 	__asm__(\".symver posix_spawnp,posix_spawnp@GLIBC_2.2.5\");
