@@ -63,4 +63,4 @@ deploy:
     overwrite: true
     on:
       tags: true
-      repo: jayshanx/fibjs
+      repo: fibjs/fibjs
