@@ -66,6 +66,9 @@ module process : EventEmitter
     /*! @brief 查询当前平台名称，可能的结果为 'darwin', 'freebsd', 'linux', 或 'win32' */
     static readonly String platform;
 
+    /*! @brief 读取当前对象指向的进程的 id */
+    static readonly Integer pid;
+
     /*! @brief 查询当前进程标准输入对象 */
     static readonly File stdin;
     
