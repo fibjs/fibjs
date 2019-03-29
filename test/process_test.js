@@ -37,6 +37,12 @@ describe('process', () => {
         assert.notGreaterThan(diff[0], 2);
     });
 
+    it("pid", () => {
+        assert.property(process, 'pid');
+        assert.isNumber(process.pid);
+        assert.ok(process.pid);
+    });
+
     it("stdout", () => {
         var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.js')]);
 

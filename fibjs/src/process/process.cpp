@@ -220,6 +220,17 @@ result_t process_base::get_platform(exlib::string& retVal)
     return os_base::platform(retVal);
 }
 
+result_t process_base::get_pid(int32_t& retVal)
+{
+    #ifdef _WIN32
+        retVal = GetCurrentProcessId();
+    #else
+        retVal = getpid();
+    #endif
+
+    return 0;
+}
+
 result_t process_base::get_stdin(obj_ptr<File_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
