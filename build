@@ -24,8 +24,6 @@ usage()
 
 HOST_OS=`uname`
 HOST_ARCH=`uname -m`
-ClangInstalledDir=""
-
 
 case ${HOST_ARCH} in
 	i386|i686) HOST_ARCH="i386"
