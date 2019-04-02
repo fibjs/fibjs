@@ -26,21 +26,6 @@ HOST_OS=`uname`
 HOST_ARCH=`uname -m`
 ClangInstalledDir=""
 
-checkenv()
-{
-	/bin/bash tools/check_envirment.sh $1
-}
-
-GetClangInstallDir()
-{
-	if clang-6.0 --version 2>/dev/null || false; then
-		printf "clang-6.0 has installed. \\n"
-		ClangInstalledDir="$(clang-6.0 --version | grep InstalledDir | awk -F': ' '{print $2}')/"
-	else
-		"require clang-6.0 but it's not installed."
-		exit;
-	fi
-}
 
 case ${HOST_ARCH} in
 	i386|i686) HOST_ARCH="i386"
@@ -197,22 +182,6 @@ fi
 
 export BUILD_JOBS
 export BUILD_VERBOSE
-
-if [ $BUILD_TYPE != "clean" ]; then
-	printf " - Checking necessary packages. \n"
-	checkenv $TARGET_ARCH
-	if [ $? != 0 ]; then
-		printf " - Checking environment failed! \n"
-		exit 1;
-	else 
-		printf " - Checking environment successfully! \n\n"
-	fi
-	GetClangInstallDir
-	if [ $? -eq 0 ] ; then
-		export CMAKE_C_COMPILER="${ClangInstalledDir}"clang-6.0
-		export CMAKE_CXX_COMPILER="${ClangInstalledDir}"clang++-6.0
-	fi
-fi
 
 if [ -d vender ]; then 
 	cd vender

@@ -11,7 +11,7 @@
 ### on ubuntu:
 
 ```sh
-apt install g++
+apt install clang-6.0
 apt install make
 apt install cmake
 apt install git
