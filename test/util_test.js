@@ -1271,11 +1271,9 @@ describe('util', () => {
                     assert.property(util.buildInfo(), 'msvc');
                     break
                 case 'darwin':
-                    assert.property(util.buildInfo(), 'clang');
-                    break
                 case 'freebsd':
                 case 'linux':
-                    assert.property(util.buildInfo(), 'gcc');
+                    assert.property(util.buildInfo(), 'clang');
                     break
             }
             // git

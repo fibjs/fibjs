@@ -2,7 +2,7 @@
 
 ## Prerequisites (unix)
 
-- GCC 4.8 or newer
+- CLang 3.8 or newer
 - CMake 2.6 or newer
 - GNU Make 3.81 or newer
 - libexecinfo (FreeBSD and OpenBSD only)
@@ -11,10 +11,11 @@
 ### on ubuntu:
 
 ```sh
-apt install g++
+apt install clang
 apt install make
 apt install cmake
 apt install git
+apt install ccache
 ```
 
 ### 32bit on ubuntu:
