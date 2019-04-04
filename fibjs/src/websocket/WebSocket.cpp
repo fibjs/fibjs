@@ -327,8 +327,8 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
         virtual int32_t error(int32_t v)
         {
             m_this->m_holder.Release();
-            m_this->isolate_unref();
             m_this->endConnect(1002, "");
+            m_this->isolate_unref();
             return v;
         }
 
