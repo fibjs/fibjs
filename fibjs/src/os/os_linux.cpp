@@ -16,6 +16,7 @@
 #include <sys/param.h>
 #include <string.h>
 #include "path.h"
+#include <time.h>
 
 #ifndef CLOCK_BOOTTIME
 #define CLOCK_BOOTTIME 7
@@ -28,27 +29,14 @@ result_t os_base::uptime(double& retVal)
     static volatile int32_t no_clock_boottime;
     struct timespec now;
     int32_t r;
-    int32_t (*fngettime)(clockid_t, struct timespec*);
-
-    void* handle = dlopen("librt.so", RTLD_LAZY);
-    if (!handle)
-        return CHECK_ERROR(LastError());
-
-    fngettime = (int32_t(*)(clockid_t, struct timespec*))dlsym(handle, "clock_gettime");
-    if (!fngettime) {
-        dlclose(handle);
-        return CHECK_ERROR(LastError());
-    }
 
     if (no_clock_boottime) {
     retry:
-        r = fngettime(CLOCK_MONOTONIC, &now);
-    } else if ((r = fngettime(CLOCK_BOOTTIME, &now)) && errno == EINVAL) {
+        r = clock_gettime(CLOCK_MONOTONIC, &now);
+    } else if ((r = clock_gettime(CLOCK_BOOTTIME, &now)) && errno == EINVAL) {
         no_clock_boottime = 1;
         goto retry;
     }
-
-    dlclose(handle);
 
     if (r)
         return CHECK_ERROR(LastError());
@@ -360,7 +348,7 @@ result_t os_base::memoryUsage(v8::Local<v8::Object>& retVal)
     /* Start of stack */
     if (fscanf(f, "%u ", &utmp) == 0)
         goto error;
-/* coverity[secure_coding] */
+    /* coverity[secure_coding] */
 
 error:
     fclose(f);
