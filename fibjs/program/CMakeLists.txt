@@ -45,15 +45,11 @@ if(${BUILD_TYPE} STREQUAL "release")
 		set(flags "${flags} -fomit-frame-pointer")
 	endif()
 
-	set(link_flags "${link_flags} ${BUILD_OPTION}")
+	set(link_flags "${link_flags} ${BUILD_OPTION} -static-libstdc++")
 	add_definitions(-DNDEBUG=1)
 
 	if(HAVE_GLIB_C_225_H)
 		set(link_flags "${link_flags} -Wl,--wrap=memcpy")
-	endif()
-
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(link_flags "${link_flags} -static-libgcc -static-libstdc++ -Wl,--no-as-needed")
 	endif()
 endif()
 

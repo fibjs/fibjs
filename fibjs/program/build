@@ -190,7 +190,7 @@ if [ "${BUILD_TYPE}" = "release" ]; then
 	if [ $TARGET_OS = "Linux" ]; then
 		echo ''
 		echo '==== GLIBC ===='
-		${BUILD_PREFIX}objdump fibjs -p | grep GLIBC_[0-9.]* -o | sort | uniq
+		${BUILD_PREFIX}objdump fibjs -p | grep GLIBCX*_[0-9.]* -o | sort | uniq
 	fi
 
 	if [ "${CI}" = "ci" ]; then
