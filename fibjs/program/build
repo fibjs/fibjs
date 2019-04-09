@@ -65,72 +65,75 @@ do
 	esac
 done
 
-if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
-	case $TARGET_ARCH in
-		i386)
-			if [ $HOST_ARCH = "amd64" ]; then
+case $TARGET_ARCH in
+	i386)
+		if [ $HOST_ARCH = "amd64" ]; then
+			if [ $TARGET_OS = "Linux" ]; then
+				BUILD_OPTION="-m32 -static-libstdc++"
+			else
 				BUILD_OPTION="-m32"
-			else
-				usage
 			fi
-			;;
-		amd64)
-			if [ $TARGET_OS = "Linux" ]; then
-				BUILD_PREFIX="x86_64-linux-gnu-"
-			else
-				usage
-			fi
-			;;
-		arm)
-			if [ $TARGET_OS = "Linux" ]; then
-				BUILD_PREFIX="arm-linux-gnueabihf-"
-				BUILD_OPTION="-march=armv7-a -mfpu=vfp3 -marm --target=arm-linux-gnueabihf -L/usr/lib/gcc-cross/arm-linux-gnueabihf/${GCC_VERSION} -L/usr/arm-linux-gnueabihf/lib -I/usr/arm-linux-gnueabihf/include -I/usr/arm-linux-gnueabihf/include/c++/${GCC_VERSION} -I/usr/arm-linux-gnueabihf/include/c++/${GCC_VERSION}/arm-linux-gnueabihf"
-			else
-				usage
-			fi
-			;;
-		arm64)
-			if [ $TARGET_OS = "Linux" ]; then
-				BUILD_PREFIX="aarch64-linux-gnu-"
-				BUILD_OPTION="--target=aarch64-linux-gnu -L/usr/lib/gcc-cross/aarch64-linux-gnu/${GCC_VERSION} -L/usr/aarch64-linux-gnu/lib -I/usr/aarch64-linux-gnu/include -I/usr/aarch64-linux-gnu/include/c++/${GCC_VERSION} -I/usr/aarch64-linux-gnu/include/c++/${GCC_VERSION}/aarch64-linux-gnu"
-			else
-				usage
-			fi
-			;;
-		mips)
-			if [ $TARGET_OS = "Linux" ]; then
-				BUILD_PREFIX="mips-linux-gnu-"
-				BUILD_OPTION="--target=mips-linux-gnu -L/usr/lib/gcc-cross/mips-linux-gnu/${GCC_VERSION} -L/usr/mips-linux-gnu/lib -I/usr/mips-linux-gnu/include -I/usr/mips-linux-gnu/include/c++/${GCC_VERSION} -I/usr/mips-linux-gnu/include/c++/${GCC_VERSION}/mips-linux-gnu"
-			else
-				usage
-			fi
-			;;
-		mips64)
-			if [ $TARGET_OS = "Linux" ]; then
-				BUILD_PREFIX="mips64-linux-gnuabi64-"
-				BUILD_OPTION="--target=mips64-linux-gnuabi64 -L/usr/lib/gcc-cross/mips64-linux-gnuabi64/${GCC_VERSION} -L/usr/mips64-linux-gnuabi64/lib -I/usr/mips64-linux-gnuabi64/include -I/usr/mips64-linux-gnuabi64/include/c++/${GCC_VERSION} -I/usr/mips64-linux-gnuabi64/include/c++/${GCC_VERSION}/mips64-linux-gnuabi64"
-			else
-				usage
-			fi
-			;;
-		ppc)
-			if [ $TARGET_OS = "Linux" ]; then
-				BUILD_PREFIX="powerpc-linux-gnu-"
-                BUILD_OPTION="--target=powerpc-linux-gnu -L/usr/lib/gcc-cross/powerpc-linux-gnu/${GCC_VERSION} -L/usr/powerpc-linux-gnu/lib -I/usr/powerpc-linux-gnu/include -I/usr/powerpc-linux-gnu/include/c++/${GCC_VERSION} -I/usr/powerpc-linux-gnu/include/c++/${GCC_VERSION}/powerpc-linux-gnu"
-			else
-				usage
-			fi
-			;;
-		ppc64)
-			if [ $TARGET_OS = "Linux" ]; then
-				BUILD_PREFIX="powerpc64-linux-gnu-"
-                BUILD_OPTION="--target=powerpc64-linux-gnu -L/usr/lib/gcc-cross/powerpc64-linux-gnu/${GCC_VERSION} -L/usr/powerpc64-linux-gnu/lib -I/usr/powerpc64-linux-gnu/include -I/usr/powerpc64-linux-gnu/include/c++/${GCC_VERSION} -I/usr/powerpc64-linux-gnu/include/c++/${GCC_VERSION}/powerpc64-linux-gnu"
-			else
-				usage
-			fi
-			;;
-	esac
-fi
+		else
+			usage
+		fi
+		;;
+	amd64)
+		if [ $TARGET_OS = "Linux" ]; then
+			BUILD_PREFIX="x86_64-linux-gnu-"
+			BUILD_OPTION="-static-libstdc++"
+		else
+			usage
+		fi
+		;;
+	arm)
+		if [ $TARGET_OS = "Linux" ]; then
+			BUILD_PREFIX="arm-linux-gnueabihf-"
+			BUILD_OPTION="-march=armv7-a -mfpu=vfp3 -marm --target=arm-linux-gnueabihf -L/usr/lib/gcc-cross/arm-linux-gnueabihf/${GCC_VERSION} -L/usr/arm-linux-gnueabihf/lib -I/usr/arm-linux-gnueabihf/include -I/usr/arm-linux-gnueabihf/include/c++/${GCC_VERSION} -I/usr/arm-linux-gnueabihf/include/c++/${GCC_VERSION}/arm-linux-gnueabihf -static"
+		else
+			usage
+		fi
+		;;
+	arm64)
+		if [ $TARGET_OS = "Linux" ]; then
+			BUILD_PREFIX="aarch64-linux-gnu-"
+			BUILD_OPTION="--target=aarch64-linux-gnu -L/usr/lib/gcc-cross/aarch64-linux-gnu/${GCC_VERSION} -L/usr/aarch64-linux-gnu/lib -I/usr/aarch64-linux-gnu/include -I/usr/aarch64-linux-gnu/include/c++/${GCC_VERSION} -I/usr/aarch64-linux-gnu/include/c++/${GCC_VERSION}/aarch64-linux-gnu -static"
+		else
+			usage
+		fi
+		;;
+	mips)
+		if [ $TARGET_OS = "Linux" ]; then
+			BUILD_PREFIX="mips-linux-gnu-"
+			BUILD_OPTION="--target=mips-linux-gnu -L/usr/lib/gcc-cross/mips-linux-gnu/${GCC_VERSION} -L/usr/mips-linux-gnu/lib -I/usr/mips-linux-gnu/include -I/usr/mips-linux-gnu/include/c++/${GCC_VERSION} -I/usr/mips-linux-gnu/include/c++/${GCC_VERSION}/mips-linux-gnu"
+		else
+			usage
+		fi
+		;;
+	mips64)
+		if [ $TARGET_OS = "Linux" ]; then
+			BUILD_PREFIX="mips64-linux-gnuabi64-"
+			BUILD_OPTION="--target=mips64-linux-gnuabi64 -L/usr/lib/gcc-cross/mips64-linux-gnuabi64/${GCC_VERSION} -L/usr/mips64-linux-gnuabi64/lib -I/usr/mips64-linux-gnuabi64/include -I/usr/mips64-linux-gnuabi64/include/c++/${GCC_VERSION} -I/usr/mips64-linux-gnuabi64/include/c++/${GCC_VERSION}/mips64-linux-gnuabi64"
+		else
+			usage
+		fi
+		;;
+	ppc)
+		if [ $TARGET_OS = "Linux" ]; then
+			BUILD_PREFIX="powerpc-linux-gnu-"
+							BUILD_OPTION="--target=powerpc-linux-gnu -L/usr/lib/gcc-cross/powerpc-linux-gnu/${GCC_VERSION} -L/usr/powerpc-linux-gnu/lib -I/usr/powerpc-linux-gnu/include -I/usr/powerpc-linux-gnu/include/c++/${GCC_VERSION} -I/usr/powerpc-linux-gnu/include/c++/${GCC_VERSION}/powerpc-linux-gnu"
+		else
+			usage
+		fi
+		;;
+	ppc64)
+		if [ $TARGET_OS = "Linux" ]; then
+			BUILD_PREFIX="powerpc64-linux-gnu-"
+			BUILD_OPTION="--target=powerpc64-linux-gnu -L/usr/lib/gcc-cross/powerpc64-linux-gnu/${GCC_VERSION} -L/usr/powerpc64-linux-gnu/lib -I/usr/powerpc64-linux-gnu/include -I/usr/powerpc64-linux-gnu/include/c++/${GCC_VERSION} -I/usr/powerpc64-linux-gnu/include/c++/${GCC_VERSION}/powerpc64-linux-gnu"
+		else
+			usage
+		fi
+		;;
+esac
 
 FIBJS_PATH=`pwd`
 OUT_PATH=${FIBJS_PATH}/../../out
