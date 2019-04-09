@@ -45,7 +45,7 @@ if(${BUILD_TYPE} STREQUAL "release")
 		set(flags "${flags} -fomit-frame-pointer")
 	endif()
 
-	set(link_flags "${link_flags} ${BUILD_OPTION} -static-libstdc++")
+	set(link_flags "${link_flags} ${BUILD_OPTION} -static")
 	add_definitions(-DNDEBUG=1)
 
 	if(HAVE_GLIB_C_225_H)
