@@ -16,7 +16,7 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
 
     if [[ $ARCH == "arm" ]]; then
         # Test on arm using qemu
-        DIR=`pwd`;sudo docker run -it -v ${DIR}:/home/ci fibjs/fibjs-test-env:latest /bin/sh -c "qemu-arm ./bin/Linux_amd_release/fibjs --prof test/main.js"
+        DIR=`pwd`;sudo docker run -it -v ${DIR}:/home/ci fibjs/fibjs-test-env:latest /bin/sh -c "qemu-arm ./bin/Linux_arm_release/fibjs --prof test/main.js"
     fi
 else # darwin
     if [[ $ARCH == "amd64" ]]; then
