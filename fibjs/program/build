@@ -68,22 +68,12 @@ done
 case $TARGET_ARCH in
 	i386)
 		if [ $HOST_ARCH = "amd64" ]; then
-			if [ $TARGET_OS = "Linux" ]; then
 				BUILD_OPTION="-m32 -static-libstdc++"
-			else
-				BUILD_OPTION="-m32"
-			fi
-		else
-			usage
 		fi
 		;;
 	amd64)
-		if [ $TARGET_OS = "Linux" ]; then
-			BUILD_PREFIX="x86_64-linux-gnu-"
-			BUILD_OPTION="-static-libstdc++"
-		else
-			usage
-		fi
+		BUILD_PREFIX="x86_64-linux-gnu-"
+		BUILD_OPTION="-static-libstdc++"
 		;;
 	arm)
 		if [ $TARGET_OS = "Linux" ]; then
