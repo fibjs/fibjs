@@ -143,7 +143,7 @@ public:
     {
         Type _t = type();
 
-        if (_t == VT_UNBOUND_ARRAY || _t == VT_UNBOUND_ARRAY)
+        if (_t == VT_UNBOUND_ARRAY || _t == VT_UNBOUND_OBJECT)
             clearUnbind();
         else if (_t == VT_String || _t == VT_JSON)
             strVal().~basic_string();
