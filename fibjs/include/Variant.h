@@ -180,7 +180,7 @@ public:
                 return operator=(v.jsVal());
         }
 
-        assert(_t != VT_UNBOUND_ARRAY && _t != VT_UNBOUND_ARRAY);
+        assert(_t != VT_UNBOUND_ARRAY && _t != VT_UNBOUND_OBJECT);
 
         clear();
         set_type(_t);
