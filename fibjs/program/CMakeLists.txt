@@ -79,7 +79,7 @@ if(${OS} STREQUAL "Darwin")
 endif()
 
 if(${OS} STREQUAL "Linux")
-	target_link_libraries(fibjs dl rt)
+	target_link_libraries(fibjs dl rt atomic)
 endif()
 
 if(${OS} STREQUAL "FreeBSD")
