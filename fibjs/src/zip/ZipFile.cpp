@@ -395,9 +395,10 @@ result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
 
     int32_t err;
     result_t hr;
-    obj_ptr<Buffer> buf = new Buffer();
+    obj_ptr<Buffer> buf;
+    exlib::string strBuf;
 
-    buf->resize(BUF_SIZE);
+    strBuf.resize(BUF_SIZE);
     if (!password.empty())
         err = unzOpenCurrentFilePassword(m_unz, password.c_str());
     else
@@ -406,7 +407,7 @@ result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
     do {
-        err = unzReadCurrentFile(m_unz, buf->data(), BUF_SIZE);
+        err = unzReadCurrentFile(m_unz, &strBuf[0], BUF_SIZE);
         if (err < 0) {
             unzCloseCurrentFile(m_unz);
             return CHECK_ERROR(Runtime::setError(zip_error(err)));
@@ -414,7 +415,8 @@ result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
 
         if (err > 0) {
             if (err < BUF_SIZE)
-                buf->resize(err);
+                strBuf.resize(err);
+            buf = new Buffer(strBuf);
             hr = strm->cc_write(buf);
             if (hr < 0)
                 return hr;
