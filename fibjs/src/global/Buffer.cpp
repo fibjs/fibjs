@@ -358,7 +358,11 @@ result_t Buffer::resize(int32_t sz)
 
     m_data.resize(sz);
 
-    if (sz > sz1 && holder()->m_safe_buffer)
+    Isolate* isolate = get_holder();
+    if (!isolate)
+        return 0;
+
+    if (sz > sz1 && isolate->m_safe_buffer)
         memset(&m_data[sz1], 0, sz - sz1);
 
     return 0;
