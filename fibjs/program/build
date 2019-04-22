@@ -46,7 +46,7 @@ TARGET_ARCH=$HOST_ARCH
 BUILD_TYPE="release"
 BUILD_PREFIX=""
 BUILD_OPTION=""
-GCC_VERSION=`gcc --version | grep ^gcc | sed 's/^.* //g'`
+GCC_VERSION=`gcc -dumpversion`
 
 for i in "$@"
 do
@@ -68,17 +68,15 @@ done
 case $TARGET_ARCH in
 	i386)
 		if [ $HOST_ARCH = "amd64" ]; then
-				BUILD_OPTION="-m32 -static-libstdc++"
+			BUILD_OPTION="-m32"
+		else
+			usage
 		fi
-		;;
-	amd64)
-		BUILD_PREFIX="x86_64-linux-gnu-"
-		BUILD_OPTION="-static-libstdc++"
 		;;
 	arm)
 		if [ $TARGET_OS = "Linux" ]; then
 			BUILD_PREFIX="arm-linux-gnueabihf-"
-			BUILD_OPTION="-march=armv7-a -mfpu=vfp3 -marm --target=arm-linux-gnueabihf -L/usr/lib/gcc-cross/arm-linux-gnueabihf/${GCC_VERSION} -L/usr/arm-linux-gnueabihf/lib -I/usr/arm-linux-gnueabihf/include -I/usr/arm-linux-gnueabihf/include/c++/${GCC_VERSION} -I/usr/arm-linux-gnueabihf/include/c++/${GCC_VERSION}/arm-linux-gnueabihf -static"
+			BUILD_OPTION="-march=armv7-a -mfpu=vfp3 -marm --target=arm-linux-gnueabihf -L/usr/lib/gcc-cross/arm-linux-gnueabihf/${GCC_VERSION} -L/usr/arm-linux-gnueabihf/lib -I/usr/arm-linux-gnueabihf/include -I/usr/arm-linux-gnueabihf/include/c++/${GCC_VERSION} -I/usr/arm-linux-gnueabihf/include/c++/${GCC_VERSION}/arm-linux-gnueabihf"
 		else
 			usage
 		fi
@@ -86,7 +84,7 @@ case $TARGET_ARCH in
 	arm64)
 		if [ $TARGET_OS = "Linux" ]; then
 			BUILD_PREFIX="aarch64-linux-gnu-"
-			BUILD_OPTION="--target=aarch64-linux-gnu -L/usr/lib/gcc-cross/aarch64-linux-gnu/${GCC_VERSION} -L/usr/aarch64-linux-gnu/lib -I/usr/aarch64-linux-gnu/include -I/usr/aarch64-linux-gnu/include/c++/${GCC_VERSION} -I/usr/aarch64-linux-gnu/include/c++/${GCC_VERSION}/aarch64-linux-gnu -static"
+			BUILD_OPTION="--target=aarch64-linux-gnu -L/usr/lib/gcc-cross/aarch64-linux-gnu/${GCC_VERSION} -L/usr/aarch64-linux-gnu/lib -I/usr/aarch64-linux-gnu/include -I/usr/aarch64-linux-gnu/include/c++/${GCC_VERSION} -I/usr/aarch64-linux-gnu/include/c++/${GCC_VERSION}/aarch64-linux-gnu"
 		else
 			usage
 		fi
@@ -110,7 +108,7 @@ case $TARGET_ARCH in
 	ppc)
 		if [ $TARGET_OS = "Linux" ]; then
 			BUILD_PREFIX="powerpc-linux-gnu-"
-							BUILD_OPTION="--target=powerpc-linux-gnu -L/usr/lib/gcc-cross/powerpc-linux-gnu/${GCC_VERSION} -L/usr/powerpc-linux-gnu/lib -I/usr/powerpc-linux-gnu/include -I/usr/powerpc-linux-gnu/include/c++/${GCC_VERSION} -I/usr/powerpc-linux-gnu/include/c++/${GCC_VERSION}/powerpc-linux-gnu"
+			BUILD_OPTION="--target=powerpc-linux-gnu -L/usr/lib/gcc-cross/powerpc-linux-gnu/${GCC_VERSION} -L/usr/powerpc-linux-gnu/lib -I/usr/powerpc-linux-gnu/include -I/usr/powerpc-linux-gnu/include/c++/${GCC_VERSION} -I/usr/powerpc-linux-gnu/include/c++/${GCC_VERSION}/powerpc-linux-gnu"
 		else
 			usage
 		fi

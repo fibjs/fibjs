@@ -1,5 +1,13 @@
 
 
 #cmakedefine HAVE_ICONV_H 1
+
+// posix_spawnp
 #cmakedefine HAVE_GLIB_C_225_H 1
 #cmakedefine HAVE_GLIB_C_22_H 1
+
+// fcntl64
+#cmakedefine HAVE_GLIB_C_FCNTL_2_H 1
+#cmakedefine HAVE_GLIB_C_FCNTL_225_H 1
+#cmakedefine HAVE_GLIB_C_FCNTL_24_H 1
+#cmakedefine HAVE_GLIB_C_FCNTL_217_H 1

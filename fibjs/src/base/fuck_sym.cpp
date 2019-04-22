@@ -9,7 +9,8 @@
 
 namespace fibjs {
 void init_sym()
-{}
+{
+}
 }
 
 extern "C" {
@@ -48,6 +49,31 @@ int __isoc99_sscanf(const char* s, const char* format, ...)
     va_end(arg);
 
     return done;
+}
+
+// GLIBC_2.28
+#undef fcntl
+
+#ifdef HAVE_GLIB_C_FCNTL_2_H
+__asm__(".symver fcntl,fcntl@GLIBC_2.0");
+#endif
+
+#ifdef HAVE_GLIB_C_FCNTL_225_H
+__asm__(".symver fcntl,fcntl@GLIBC_2.2.5");
+#endif
+
+#ifdef HAVE_GLIB_C_FCNTL_24_H
+__asm__(".symver fcntl,fcntl@GLIBC_2.4");
+#endif
+
+#ifdef HAVE_GLIB_C_FCNTL_217_H
+__asm__(".symver fcntl,fcntl@GLIBC_2.17");
+#endif
+
+int fcntl(int fd, int cmd, void* lock);
+int fcntl64(int fd, int cmd, void* lock)
+{
+    return fcntl(fd, cmd, lock);
 }
 }
 

@@ -45,7 +45,7 @@ TARGET_OS=$HOST_OS
 TARGET_ARCH=$HOST_ARCH
 BUILD_TYPE="release"
 BUILD_OPTION=""
-GCC_VERSION=`gcc --version | grep ^gcc | sed 's/^.* //g'`
+GCC_VERSION=`gcc -dumpversion`
 
 for i in "$@"
 do
@@ -70,11 +70,6 @@ if [ $TARGET_ARCH != $HOST_ARCH ] || [ $TARGET_OS != $HOST_OS ]; then
 			if [ $HOST_ARCH = "amd64" ]; then
 				BUILD_OPTION="-m32"
 			else
-				usage
-			fi
-			;;
-		amd64)
-			if [ $TARGET_OS != "Linux" ]; then
 				usage
 			fi
 			;;

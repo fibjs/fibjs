@@ -24,6 +24,7 @@ include(CheckCSourceCompiles)
 set(CMAKE_C_FLAGS "${BUILD_OPTION}")
 
 check_include_files(iconv.h HAVE_ICONV_H)
+
 check_c_source_compiles("void posix_spawnp();
 	__asm__(\".symver posix_spawnp,posix_spawnp@GLIBC_2.2.5\");
 	void main(void){posix_spawnp();}" HAVE_GLIB_C_225_H)
@@ -31,6 +32,22 @@ check_c_source_compiles("void posix_spawnp();
 check_c_source_compiles("void posix_spawnp();
 	__asm__(\".symver posix_spawnp,posix_spawnp@GLIBC_2.2\");
 	void main(void){posix_spawnp();}" HAVE_GLIB_C_22_H)
+
+check_c_source_compiles("void fcntl();
+	__asm__(\".symver fcntl,fcntl@GLIBC_2.2.5\");
+	void main(void){fcntl();}" HAVE_GLIB_C_FCNTL_225_H)
+
+check_c_source_compiles("void fcntl();
+	__asm__(\".symver fcntl,fcntl@GLIBC_2.0\");
+	void main(void){fcntl();}" HAVE_GLIB_C_FCNTL_2_H)
+
+check_c_source_compiles("void fcntl();
+	__asm__(\".symver fcntl,fcntl@GLIBC_2.4\");
+	void main(void){fcntl();}" HAVE_GLIB_C_FCNTL_24_H)
+
+check_c_source_compiles("void fcntl();
+	__asm__(\".symver fcntl,fcntl@GLIBC_2.17\");
+	void main(void){fcntl();}" HAVE_GLIB_C_FCNTL_217_H)
 
 set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
 set(ccflags "-std=c++11")
@@ -45,8 +62,12 @@ if(${BUILD_TYPE} STREQUAL "release")
 		set(flags "${flags} -fomit-frame-pointer")
 	endif()
 
-	set(link_flags "${link_flags} ${BUILD_OPTION}")
+	set(link_flags "${link_flags} ${BUILD_OPTION} -static-libstdc++")
 	add_definitions(-DNDEBUG=1)
+
+	if(${OS} STREQUAL "Linux")
+		set(link_flags "${link_flags} ${link_flags} -static-libgcc")
+	endif()
 
 	if(HAVE_GLIB_C_225_H)
 		set(link_flags "${link_flags} -Wl,--wrap=memcpy")
@@ -79,7 +100,7 @@ if(${OS} STREQUAL "Darwin")
 endif()
 
 if(${OS} STREQUAL "Linux")
-	target_link_libraries(fibjs dl rt atomic)
+	target_link_libraries(fibjs dl rt)
 endif()
 
 if(${OS} STREQUAL "FreeBSD")
