@@ -6,9 +6,7 @@ apt install cmake -y
 apt install git -y
 apt install ccache -y
 
-GCC_VERSION=`gcc -dumpversion`
-
-apt install lib32stdc++-${GCC_VERSION}-dev -y
+apt install g++-multilib -y
 
 apt install g++-arm-linux-gnueabihf -y
 
