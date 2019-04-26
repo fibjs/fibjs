@@ -173,7 +173,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (!qstrcmp(m_value.c_str(), "../", 3)) {
                 set(stop);
             } else {
-                m_url = m_pThis->m_root + m_value.substr(1, m_value.length());
+                m_url = m_pThis->m_root + (m_value.c_str() + 1);
                 set(start);
             }
         }
