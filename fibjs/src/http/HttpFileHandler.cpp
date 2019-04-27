@@ -170,10 +170,14 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             Url::decodeURI(m_value, m_value);
             path_base::normalize(m_value, m_value);
 
-            if (!qstrcmp(m_value.c_str(), "../", 3)) {
+            if (!qstrcmp(m_value.c_str(), "..", 2) && isPosixPathSlash(m_value.c_str()[2])) {
                 set(stop);
             } else {
-                m_url = m_pThis->m_root + (m_value.c_str() + 1);
+                if (isPosixPathSlash(m_value.c_str()[0])) {
+                    m_url = m_pThis->m_root + (m_value.c_str() + 1);
+                } else {
+                    m_url = m_pThis->m_root + m_value;
+                }
                 set(start);
             }
         }

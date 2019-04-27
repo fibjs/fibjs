@@ -1146,7 +1146,7 @@ describe("http", () => {
     describe("file handler", () => {
         var baseFolder = __dirname;
         var hfHandler = new http.fileHandler(baseFolder);
-        var url = "/" + base_port + 'test.html';
+        var url = base_port + 'test.html';
         var filePath = path.join(baseFolder, url);
         var rep;
 
@@ -1220,13 +1220,13 @@ describe("http", () => {
         });
 
         it("autoindex", () => {
-            var rep = hfh_test("/http_autoindex/");
+            var rep = hfh_test("http_autoindex/");
             assert.equal(404, rep.statusCode);
 
             hfHandler = new http.fileHandler(baseFolder, {}, true);
 
             var re = /<a href=\"t.*\">/g;
-            var rep = hfh_test("/http_autoindex/");
+            var rep = hfh_test("http_autoindex/");
             assert.equal(200, rep.statusCode);
             assert.equal('text/html', rep.firstHeader('Content-Type'));
             var data = rep.readAll().toString();
@@ -1238,7 +1238,7 @@ describe("http", () => {
         });
 
         it("dir 404", () => {
-            var rep = hfh_test("/not_exists/");
+            var rep = hfh_test("not_exists/");
             assert.equal(404, rep.statusCode);
         });
 
@@ -1272,7 +1272,7 @@ describe("http", () => {
         });
 
         describe("zip virtual file", () => {
-            var zurl = "/" + base_port + 'test.html.zip$/test.html';
+            var zurl = base_port + 'test.html.zip$/test.html';
 
             before(() => {
                 var zipfile = zip.open(filePath + '.zip', "w");
@@ -1319,9 +1319,9 @@ describe("http", () => {
                 let str = `this is test in sub folder.`;
                 let urls = [
                     '/http_autoindex/test_dir/',
-                    '/http_autoindex/../http_autoindex/test_dir/',
+                    'http_autoindex/../http_autoindex/test_dir/',
                     '/http_autoindex/test_dir/../../http_autoindex/test_dir/',
-                    '/http_autoindex/../http_autoindex/test_dir/../test_dir/',
+                    'http_autoindex/../http_autoindex/test_dir/../test_dir/',
 
                     '/http_autoindex%2ftest_dir%2f',
                     '/http_autoindex%2f..%2fhttp_autoindex%2ftest_dir%2f',
