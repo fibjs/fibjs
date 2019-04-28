@@ -1316,6 +1316,17 @@ describe("http", () => {
         });
 
         describe("check path", () => {
+            let testpath;
+
+            before(() => {
+                testpath = process.cwd();
+                process.chdir(__dirname);
+            });
+
+            after(() => {
+                process.chdir(testpath);
+            });
+
             it("can read child path", () => {
                 let str = `this is test in sub folder.`;
                 let urls = [
