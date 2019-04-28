@@ -437,7 +437,7 @@ describe("timer", () => {
         });
     });
 
-    odescribe("timeout call", () => {
+    describe("timeout call", () => {
         it("js code", () => {
             function test1() {
                 while (true);
