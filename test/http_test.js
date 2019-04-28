@@ -1313,6 +1313,116 @@ describe("http", () => {
                 rep.clear();
             });
         });
+
+        describe("check path", () => {
+            it("can read child path", () => {
+                let str = `this is test in sub folder.`;
+                let urls = [
+                    '/http_autoindex/test_dir/',
+                    'http_autoindex/../http_autoindex/test_dir/',
+                    '/http_autoindex/test_dir/../../http_autoindex/test_dir/',
+                    'http_autoindex/../http_autoindex/test_dir/../test_dir/',
+
+                    '/http_autoindex%2ftest_dir%2f',
+                    '/http_autoindex%2f..%2fhttp_autoindex%2ftest_dir%2f',
+                    '/http_autoindex%2ftest_dir%2f..%2f..%2fhttp_autoindex%2ftest_dir%2f',
+                    '/http_autoindex%2f..%2fhttp_autoindex%2ftest_dir%2f..%2ftest_dir%2f',
+
+                    '/./http_autoindex/./test_dir/',
+                    '/./http_autoindex/.././http_autoindex/test_dir/',
+                    '/./http_autoindex/test_dir/../.././http_autoindex/./test_dir/',
+                    '/./http_autoindex/.././http_autoindex/test_dir/../test_dir/',
+
+                    '//http_autoindex//test_dir//',
+                    '//http_autoindex//..//http_autoindex//test_dir//',
+                    '//http_autoindex/test_dir//..//..//http_autoindex/test_dir//',
+                    '//http_autoindex//..//http_autoindex//test_dir//../test_dir//',
+                ];
+
+                hfHandler = new http.fileHandler(baseFolder);
+                urls.forEach(url => {
+                    var resp = hfh_test(url + 'test.txt');
+                    assert.equal(resp.statusCode, 200);
+                    assert.equal(str, resp.readAll().toString());
+                });
+
+                hfHandler = new http.fileHandler("./");
+                urls.forEach(url => {
+                    var resp = hfh_test(url + 'test.txt');
+                    assert.equal(resp.statusCode, 200);
+                    assert.equal(str, resp.readAll().toString());
+                })
+            });
+
+            it("can't read parent of server root path", () => {
+                let str = `this is test in sub folder.`;
+                let urls400 = [
+                    '/http_autoindex\\test_dir/',
+                    'http_autoindex/../http_autoindex\\test_dir/',
+                    '/http_autoindex/test_dir/../../http_autoindex\\test_dir/',
+                    'http_autoindex/../http_autoindex/test_dir\\..\\test_dir/',
+                    '../test/http_autoindex/../test_dir/',
+                    '../test/http_autoindex/../http_autoindex/test_dir/',
+                    '../test/http_autoindex/test_dir/../../http_autoindex/test_dir/',
+                    '../test/http_autoindex/../http_autoindex/test_dir/../test_dir/',
+
+                    '../../fibjs/test/http_autoindex/test_dir/',
+                    '../../fibjs/test/http_autoindex/../http_autoindex/test_dir/',
+                    '../../fibjs/test/http_autoindex/test_dir/../../http_autoindex/test_dir/',
+                    '../../fibjs/test/http_autoindex/../http_autoindex/test_dir/../test_dir/',
+                ];
+
+                let urls404 = [
+                    '/../test/http_autoindex/../test_dir/',
+                    '/../test/http_autoindex/../http_autoindex/test_dir/',
+                    '/../test/http_autoindex/test_dir/../../http_autoindex/test_dir/',
+                    '/../test/http_autoindex/../http_autoindex/test_dir/../test_dir/',
+
+                    '/../../fibjs/test/http_autoindex/test_dir/',
+                    '/../../fibjs/test/http_autoindex/../http_autoindex/test_dir/',
+                    '/../../fibjs/test/http_autoindex/test_dir/../../http_autoindex/test_dir/',
+                    '/../../fibjs/test/http_autoindex/../http_autoindex/test_dir/../test_dir/',
+
+                    '/http_autoindex%2ftest_dir%2f..%2f..%2f..%2ftest%2fhttp_autoindex%2ftest_dir%2f',
+                    '/http_autoindex%2f..%2f..%2ftest%2fhttp_autoindex%2ftest_dir%2f',
+                    '/http_autoindex%2ftest_dir%2f..%2f..%2f..%2ftest%2fhttp_autoindex%2ftest_dir%2f',
+                    '/http_autoindex%2f..%2f..%2ftest%2fhttp_autoindex%2ftest_dir%2f..%2ftest_dir%2f',
+
+                    '/http_autoindex%2ftest_dir%2f..%2f..%2f..%2ftest%2fhttp_autoindex%2ftest_dir%2f',
+                    '/http_autoindex%2f..%2f..%2ftest%2fhttp_autoindex%2ftest_dir%2f',
+                    '/http_autoindex%2ftest_dir%2f..%2f..%2f..%2ftest%2fhttp_autoindex%2ftest_dir%2f',
+                    '/http_autoindex%2f..%2f..%2ftest%2fhttp_autoindex%2ftest_dir%2f..%2ftest_dir%2f',
+                ];
+
+                hfHandler = new http.fileHandler(baseFolder);
+                urls400.forEach(url => {
+                    var resp = hfh_test(url + 'test.txt');
+                    assert.equal(resp.statusCode, 400);
+                    assert.equal(resp.length, 0);
+                });
+
+
+                urls404.forEach(url => {
+                    var resp = hfh_test(url + 'test.txt');
+                    assert.equal(resp.statusCode, 404);
+                    assert.equal(resp.length, 0);
+                });
+
+
+                hfHandler = new http.fileHandler("./");
+                urls400.forEach(url => {
+                    var resp = hfh_test(url + 'test.txt');
+                    assert.equal(resp.statusCode, 400);
+                    assert.equal(resp.length, 0);
+                });
+
+                urls404.forEach(url => {
+                    var resp = hfh_test(url + 'test.txt');
+                    assert.equal(resp.statusCode, 404);
+                    assert.equal(resp.length, 0);
+                });
+            });
+        });
     });
 
     describe("server/global request", () => {

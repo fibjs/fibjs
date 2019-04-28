@@ -168,9 +168,14 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             m_req->get_value(m_value);
             Url::decodeURI(m_value, m_value);
-            path_base::normalize(m_pThis->m_root + m_value, m_url);
+            path_base::normalize(m_value, m_value);
 
-            set(start);
+            if (!qstrcmp(m_value.c_str(), "../", 3) || qstrchr(m_value.c_str(), '\\')) {
+                set(stop);
+            } else {
+                path_base::normalize(m_pThis->m_root + m_value, m_url);
+                set(start);
+            }
         }
 
         static int32_t start(AsyncState* pState, int32_t n)
@@ -194,6 +199,14 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             pThis->set(open);
             return fs_base::openFile(pThis->m_path, "r", pThis->m_file, pThis);
+        }
+
+        static int32_t stop(AsyncState* pState, int32_t n)
+        {
+            asyncInvoke* pThis = (asyncInvoke*)pState;
+
+            pThis->m_rep->set_statusCode(400);
+            return pThis->done(CALL_RETURN_NULL);
         }
 
         static int32_t autoindex(AsyncState* pState, int32_t n)
