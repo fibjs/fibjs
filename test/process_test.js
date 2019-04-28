@@ -132,8 +132,7 @@ describe('process', () => {
 
         it("websocket connect", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec18.js')]);
-            assert.equal(p.readLine(), "1800");
-            assert.equal(p.wait(), 18);
+            assert.equal(p.wait(), 81);
         });
 
         it("websocket disconnect", () => {
