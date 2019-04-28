@@ -67,4 +67,4 @@ run("./profiler_test.js");
 
 run("./v8_test.js");
 
-test.run();
+process.exitCode = test.run();
