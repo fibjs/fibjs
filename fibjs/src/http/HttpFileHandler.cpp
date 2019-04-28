@@ -168,7 +168,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             m_req->get_value(m_value);
             Url::decodeURI(m_value, m_value);
-            path_base::normalize(m_value, m_value);
+            path_posix_base::normalize(m_value, m_value);
 
             if (!qstrcmp(m_value.c_str(), "../", 3) || qstrchr(m_value.c_str(), '\\')) {
                 set(stop);
