@@ -681,7 +681,7 @@ describe('ws', () => {
                 console.error(e);
             };
 
-            for (var i = 0; i < 1000 && cnt < 1025; i++)
+            for (var i = 0; i < 10000 && cnt < 1025; i++)
                 coroutine.sleep(1);
 
             s.close();
