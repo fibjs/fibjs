@@ -62,6 +62,7 @@ describe("http", () => {
     var ss = [];
 
     after(() => {
+        http.timeout = 0;
         http.autoRedirect = true;
         http.enableCookie = true;
 
