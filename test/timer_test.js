@@ -390,6 +390,8 @@ describe("timer", () => {
             GC();
             var no1 = test_util.countObject('Timer');
 
+            var t = setHrInterval(() => n++, Math.pow(2, 31) - 1);
+
             setHrInterval(function () {
                 n++;
                 clearHrInterval(this);
@@ -401,8 +403,6 @@ describe("timer", () => {
                 clearHrInterval(this);
                 assert.isTrue(this.stopped);
             }, Math.pow(2, 31));
-
-            var t = setHrInterval(() => n++, Math.pow(2, 31) - 1);
 
             assert.equal(n, 0);
             deadLoop(100);
