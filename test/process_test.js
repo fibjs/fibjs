@@ -75,11 +75,12 @@ describe('process', () => {
         assert.equal(process.run(cmd, [path.join(__dirname, 'process', 'exec14.js')]), 101);
     });
 
-    it("run throw error", () => {
-        assert.throws(() => {
-            process.run("not_exists_exec_file");
+    if (require("os").type() != "Linux")
+        it("run throw error", () => {
+            assert.throws(() => {
+                process.run("not_exists_exec_file");
+            });
         });
-    });
 
     it("multi run", () => {
         coroutine.parallel([1, 2, 3, 4, 5, 6], (n) => {
