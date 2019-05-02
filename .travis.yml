@@ -46,9 +46,10 @@ install:
 script:
   - echo "${ARCH}"
   - ./.travis/build.sh
-  - ./.travis/test.sh
-  - if [[ "$TRAVIS_TAG" != "" ]]; then 
-      ./.travis/release.sh; 
+  - if [[ -z $TRAVIS_TAG ]]; then
+      ./.travis/test.sh;
+    else
+      ./.travis/release.sh;
     fi
 deploy:
   - provider: releases
