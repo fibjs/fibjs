@@ -33,6 +33,7 @@
     <ClInclude Include="include\DateCache.h" />
     <ClInclude Include="include\DgramSocket.h" />
     <ClInclude Include="include\Digest.h" />
+    <ClInclude Include="include\DnsClient.h" />
     <ClInclude Include="include\Event.h" />
     <ClInclude Include="include\EventInfo.h" />
     <ClInclude Include="include\Fiber.h" />
@@ -53,6 +54,8 @@
     <ClInclude Include="include\HttpUploadCollection.h" />
     <ClInclude Include="include\HttpUploadData.h" />
     <ClInclude Include="include\HttpsServer.h" />
+    <ClInclude Include="include\ifs\dns.h" />
+    <ClInclude Include="include\ifs\DnsClient.h" />
     <ClInclude Include="include\Image.h" />
     <ClInclude Include="include\Int64.h" />
     <ClInclude Include="include\Isolate.h" />
@@ -340,6 +343,8 @@
     <ClCompile Include="src\db\sql\SQLite.cpp" />
     <ClCompile Include="src\db\sql\mssql.cpp" />
     <ClCompile Include="src\db\sql\mysql.cpp" />
+    <ClCompile Include="src\dns\dns.cpp" />
+    <ClCompile Include="src\dns\DnsClient.cpp" />
     <ClCompile Include="src\encoding\encoding.cpp" />
     <ClCompile Include="src\encoding\encoding_bson.cpp" />
     <ClCompile Include="src\encoding\encoding_iconv.cpp" />

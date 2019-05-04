@@ -14,6 +14,7 @@
 #include "ifs/net.h"
 #include "ifs/console.h"
 #include "Buffer.h"
+#include "AresChannel.h"
 #include <ev/ev.h>
 #include <fcntl.h>
 #include <exlib/include/thread.h>
@@ -116,6 +117,111 @@ public:
         post();
     }
 };
+
+class asyncAresTask : public asyncEv,
+                      public ChannelTask {
+public:
+    asyncAresTask(ares_socket_t s, int32_t op, AresChannel* channel)
+        : ChannelTask(channel, s)
+        , m_bAgain(false)
+        , m_s(s)
+        , m_op(op)
+    {
+    }
+    virtual void start()
+    {
+        if (m_s == ARES_SOCKET_BAD) {
+            delete this;
+            return;
+        }
+        if(m_bAgain) {
+            ev_io_set(&m_io, m_s, m_op);
+            return;
+        }
+        ev_io_init(&m_io, io_cb, m_s, m_op);
+        ev_io_start(s_loop, &m_io);
+    }
+
+public:
+    bool m_bAgain;
+    ares_socket_t m_s;
+    int32_t m_op;
+    ev_io m_io;
+
+private:
+    static void io_cb(struct ev_loop* loop, struct ev_io* watcher, int32_t revents)
+    {
+        asyncAresTask* p = NULL;
+        asyncAresTask* task = NULL;
+        task = ((asyncAresTask*)((intptr_t)watcher - (intptr_t)&p->m_io));
+        AresChannel* channel = task->m_channel;
+        ares_process_fd(channel->m_channel, revents & EV_READ ? task->m_s : ARES_SOCKET_BAD, revents & EV_WRITE ? task->m_s : ARES_SOCKET_BAD);
+    }
+};
+
+class asyncAresCallback : public asyncEv,
+                      public ChannelTask {
+public:
+    asyncAresCallback(asyncDNSQuery *query)
+        : m_query(query)
+    {
+    }
+
+    virtual void start()
+    {
+        m_query->onready();
+    }
+
+public:
+    asyncDNSQuery *m_query;
+};
+
+class asyncAresClose : public asyncEv,
+                      public ChannelTask {
+public:
+    asyncAresClose(ChannelTask *task)
+        : m_task(task)
+    {
+    }
+
+    virtual void start()
+    {
+        ev_io_stop(s_loop, &((asyncAresTask*)m_task)->m_io);
+        delete m_task;
+        delete this;
+    }
+
+public:
+    ChannelTask *m_task;
+};
+
+void AresChannel::AsyncClose(ChannelTask* task)
+{
+    (new asyncAresClose(task))->post();
+}
+
+void AresChannel::AsyncCallback(asyncDNSQuery *query)
+{
+    (new asyncAresCallback(query))->post();
+}
+
+ChannelTask* AresChannel::AsyncSend(ChannelTask* task, int32_t read, int32_t write, bool exists)
+{
+    int32_t op = (read ? EV_READ : 0) | (write ? EV_WRITE : 0);
+    asyncAresTask* retTask;
+
+    if(exists) {
+        retTask = (asyncAresTask*)task;
+        retTask->m_bAgain = true;
+        retTask->m_op = op;
+        retTask->post();
+        return task;
+    }
+
+    retTask = new asyncAresTask(task->m_sock, op, this);
+    retTask->post();
+    return (ChannelTask*)retTask;
+}
 
 class asyncProc : public asyncEv {
 public:

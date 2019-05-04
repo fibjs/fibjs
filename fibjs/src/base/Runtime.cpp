@@ -30,6 +30,7 @@ namespace fibjs {
 void init_date();
 void init_acThread();
 void init_aio();
+void init_ares();
 void init_process();
 void init_sym();
 
@@ -57,6 +58,7 @@ static void init(v8::Platform* (*get_platform)())
     init_date();
     init_acThread();
     init_aio();
+    init_ares();
     init_process();
 
 #ifdef Linux

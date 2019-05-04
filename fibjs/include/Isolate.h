@@ -113,6 +113,7 @@ public:
 
     obj_ptr<SandBox> m_topSandbox;
     obj_ptr<obj_base> m_httpclient;
+    obj_ptr<obj_base> m_dnsclient;
 
     obj_ptr<File_base> m_stdin;
     obj_ptr<File_base> m_stdout;
