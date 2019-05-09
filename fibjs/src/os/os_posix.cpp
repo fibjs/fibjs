@@ -315,7 +315,7 @@ result_t os_base::homedir(exlib::string& retVal)
             free(buf);
             return CHECK_ERROR(LastError());
         }
-        retVal.append(pwd.pw_dir, strlen(pwd.pw_dir) + 1);
+        retVal.append(pwd.pw_dir, strlen(pwd.pw_dir));
         free(buf);
     }
     path_base::normalize(retVal, retVal);

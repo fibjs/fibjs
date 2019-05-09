@@ -167,8 +167,14 @@ describe('os', () => {
         assert.isString(homedir);
         if (isWindows) {
             assert.equal(os.homedir(), process.env.USERPROFILE);
+            delete process.env.USERPROFILE;
+            assert.equal(os.homedir(), homedir);
+            process.env.USERPROFILE = homedir;
         } else {
             assert.equal(os.homedir(), process.env.HOME);
+            delete process.env.HOME;
+            assert.equal(os.homedir(), homedir);
+            process.env.HOME = homedir;
         }
     });
 
