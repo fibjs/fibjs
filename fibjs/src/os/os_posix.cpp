@@ -258,9 +258,9 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
         free(buf);
         return CHECK_ERROR(LastError());
     }
-    homedir.append(pwd.pw_dir, strlen(pwd.pw_dir));
-    username.append(pwd.pw_name, strlen(pwd.pw_name));
-    shell.append(pwd.pw_shell, strlen(pwd.pw_shell));
+    homedir.append(pwd.pw_dir);
+    username.append(pwd.pw_name);
+    shell.append(pwd.pw_shell);
 
     free(buf);
 
@@ -315,7 +315,7 @@ result_t os_base::homedir(exlib::string& retVal)
             free(buf);
             return CHECK_ERROR(LastError());
         }
-        retVal.append(pwd.pw_dir, strlen(pwd.pw_dir) + 1);
+        retVal.append(pwd.pw_dir);
         free(buf);
     }
     path_base::normalize(retVal, retVal);
