@@ -66,6 +66,42 @@ describe('process', () => {
         assert.equal(bs.readLine(), "hello, exec1");
     });
 
+    it("stdin/stdout stream", () => {
+        var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.chargeable.js')]);
+        var outputs = []
+
+        process.nextTick(() => {
+            var oline = null
+
+            while (true) {
+                oline = bs.stdout.readLine()
+                if (oline === 'exit') {
+                    break
+                }
+
+                if (oline) {
+                    outputs.push(oline)
+                }
+            }
+        });
+
+        process.nextTick(() => {
+            bs.stdin.writeLine('line1')
+            bs.stdin.writeLine('line2')
+            bs.stdin.writeLine('.exit')
+        })
+
+        bs.wait()
+
+        assert.deepEqual(
+            outputs,
+            [
+                `> your input is: line1`,
+                `> your input is: line2`,
+            ]
+        )
+    });
+
     it("run", () => {
         assert.equal(process.run(cmd, [path.join(__dirname, 'process', 'exec.js')]), 100);
     });
