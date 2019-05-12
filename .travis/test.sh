@@ -16,7 +16,12 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
 
     if [[ $ARCH == "arm" ]]; then
         # Test on arm using qemu
-        DIR=`pwd`;sudo docker run -it -v ${DIR}:/home/ci fibjs/build-env:clang /bin/sh -c "cd /home/ci; qemu-arm ./bin/Linux_arm_release/fibjs test/main.js"
+        DIR=`pwd`;sudo docker run --privileged=true -it -v ${DIR}:/home/ci fibjs/build-env:clang /bin/sh -c "
+        cd /home;
+        sh init_armhf.sh;
+        cp -f ./ci/bin/Linux_arm_release/fibjs ./arm_root_fs/bin/fibjs;
+        cp -rf ./ci/test ./arm_root_fs/home/test
+        chroot ./arm_root_fs fibjs /home/test/main.js"
     fi
 
     if [[ $ARCH == "arm64" ]]; then
