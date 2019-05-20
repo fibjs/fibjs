@@ -734,8 +734,7 @@ result_t os_base::homedir(exlib::string& retVal)
 
         CloseHandle(token);
 
-        buffersize = sizeof(path);
-        retVal = utf16to8String(path, (int32_t)buffersize);
+        retVal = utf16to8String(path, (int32_t)buffersize - 1);
     }
     path_base::normalize(retVal, retVal);
 
