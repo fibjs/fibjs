@@ -16,6 +16,7 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
 
     if [[ $ARCH == "arm" ]]; then
         # Test on arm using qemu
+        sudo docker run --rm --privileged multiarch/qemu-user-static:register
         DIR=`pwd`;sudo docker run --privileged=true -it -v ${DIR}:/home/ci fibjs/build-env:clang /bin/sh -c "
         cd /home;
         sh init_armhf.sh;
@@ -26,6 +27,7 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
 
     if [[ $ARCH == "arm64" ]]; then
         # Test on arm64 using qemu
+        sudo docker run --rm --privileged multiarch/qemu-user-static:register
         DIR=`pwd`;sudo docker run --privileged=true -it -v ${DIR}:/home/ci fibjs/build-env:clang /bin/sh -c "
         cd /home;
         sh init_arm64.sh;
