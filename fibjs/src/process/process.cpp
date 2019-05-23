@@ -236,7 +236,7 @@ result_t process_base::get_stdin(obj_ptr<File_base>& retVal)
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_stdin)
-        isolate->m_stdin = new File(0);
+        isolate->m_stdin = new File(stdin);
     retVal = isolate->m_stdin;
 
     return 0;
@@ -247,7 +247,7 @@ result_t process_base::get_stdout(obj_ptr<File_base>& retVal)
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_stdout)
-        isolate->m_stdout = new File(1);
+        isolate->m_stdout = new File(stdout);
     retVal = isolate->m_stdout;
 
     return 0;
@@ -258,7 +258,7 @@ result_t process_base::get_stderr(obj_ptr<File_base>& retVal)
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_stderr)
-        isolate->m_stderr = new File(2);
+        isolate->m_stderr = new File(stderr);
     retVal = isolate->m_stderr;
 
     return 0;
