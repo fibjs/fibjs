@@ -352,15 +352,15 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             , m_bRead(bRead)
             , m_timer(timer)
         {
-            m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
+            m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);  
         }
 
         virtual result_t process()
         {
             int32_t nError;
-
-            if (ReadFile((HANDLE)m_s, &m_buf[m_pos],
-                    (DWORD)m_buf.length() - m_pos, NULL, this))
+            
+            DWORD len = (DWORD)m_buf.length() - m_pos;
+            if (ReadFile((HANDLE)m_s, &m_buf[m_pos], (len <= 65536) ? len : 65536, NULL, this))
                 return CHECK_ERROR(CALL_E_PENDDING);
 
             nError = GetLastError();
@@ -460,7 +460,8 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
         {
             int32_t nError;
 
-            if (WriteFile((HANDLE)m_s, (LPCSTR)m_p, m_sz, NULL, this))
+            DWORD len = (m_sz <= 65536) ? m_sz : 65536;
+            if (WriteFile((HANDLE)m_s, (LPCSTR)m_p, len, NULL, this))
                 return CHECK_ERROR(CALL_E_PENDDING);
 
             nError = GetLastError();
