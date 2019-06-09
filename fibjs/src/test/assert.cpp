@@ -785,8 +785,15 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> v = object->ToObject();
+    
+    TryCatch try_catch;
     got = v->Get(prop);
-    retVal = value->Equals(got);
+    if (got.IsEmpty()) {
+        ReportException(try_catch, 0);
+        retVal = false;
+    } else {
+        retVal = value->Equals(got);
+    }
 
     return 0;
 }
@@ -838,9 +845,15 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
     p = ToCString(s);
     while ((p1 = qstrchr(p, '.')) != NULL) {
+        TryCatch try_catch;
         object = v->Get(isolate->NewString(p, (int32_t)(p1 - p)));
+        if (object.IsEmpty()) {
+            ReportException(try_catch, 0);
+            retVal = false;
+            return 0;
+        }
 
-        if (object.IsEmpty() || (!object->IsObject() && !object->IsString())) {
+        if ((!object->IsObject() && !object->IsString())) {
             retVal = false;
             return 0;
         }
@@ -849,8 +862,14 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         p = p1 + 1;
     }
 
+    TryCatch try_catch;
     got = v->Get(isolate->NewString(p));
-    retVal = value->Equals(got);
+    if (got.IsEmpty()) {
+        ReportException(try_catch, 0);
+        retVal = false;
+    } else {
+        retVal = value->Equals(got);
+    }
 
     return 0;
 }

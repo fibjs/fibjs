@@ -468,6 +468,38 @@ describe('assert', () => {
         }, "expected { foo: { bar: 'baz' } } to not have a deep property 'foo.bar' of 'baz'");
     });
 
+    it("exception - propertyVal", () => {
+        const test = { get abc () { throw 'I am exception' } }
+        assert.property(test, 'abc')
+
+        assert.throws(() => {
+            assert.propertyVal(test, 'abc', undefined)
+        }, `expected  to have a property "abc" of undefined, but got undefined`);
+    });
+
+    it("exception - propertyNotVal", () => {
+        const test = { get abc () { throw 'I am exception' } }
+
+        assert.propertyNotVal(test, 'abc', undefined)
+        assert.propertyNotVal(test, 'abc', null)
+    });
+
+    it("exception - deepPropertyVal", () => {
+        const test = { a: { get bc () { throw 'I am deep Exception' } } }
+        assert.deepProperty(test, 'a.bc')
+
+        assert.throws(() => {
+            assert.deepPropertyVal(test, 'a.bc', undefined)
+        }, `expected { "a": } to have a deep property "a.bc" of undefined, but got undefined`);
+    });
+
+    it("exception - deepPropertyNotVal", () => {
+        const test = { a: { get bc () { throw 'I am deep Exception' } } }
+
+        assert.deepPropertyNotVal(test, 'a.bc', undefined)
+        assert.deepPropertyNotVal(test, 'a.bc', null)
+    });
+
     it('throws', () => {
         assert.throws(() => {
             throw new Error('foo');

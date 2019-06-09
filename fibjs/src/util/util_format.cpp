@@ -232,7 +232,14 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                 if (len == 0)
                     strBuffer.append("{}");
                 else {
-                    if (len == 1 && v->StrictEquals(obj->Get(keys->Get(0))))
+                    TryCatch try_catch;
+                    v8::Local<v8::Value> _v = obj->Get(keys->Get(0));
+                    if (_v.IsEmpty()) {
+                        ReportException(try_catch, 0);
+                        continue ;
+                    }
+                    
+                    if (len == 1 && v->StrictEquals(_v))
                         strBuffer.append("[Circular]");
                     else {
                         stk.resize(sz + 1);
