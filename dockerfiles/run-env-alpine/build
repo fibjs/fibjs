@@ -1,0 +1,124 @@
+#! /bin/bash -
+
+# set envrionment variables fisrtly
+#
+# RELEASE=${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
+# GROUP=fibjs
+
+# @sample: 
+# GROUP=fibjs \
+# RELEASE=Linux_amd64_release \
+# ./build release
+
+usage()
+{
+	echo ""
+	echo "Usage: `basename $0` [Command]"
+	echo "Command:"
+	echo "  release: "
+	echo "      release fibjs in alpine image."
+	echo "  test: "
+	echo "      release fibjs in alpine image and test."
+	echo "  -h, --help:"
+	echo "      Print this message and exit."
+	echo ""
+	exit 0
+}
+
+if [ "$FIBJS_DIR" = "" ]; then
+    FIBJS_DIR=../../
+fi
+if [ "$GROUP" = "" ]; then
+    GROUP=fibjs
+fi
+if [ "$RELEASE" = "" ]; then
+    RELEASE=Linux_amd64_release
+fi
+
+NOW=$(echo $(date +'%Y-%m-%d_%H-%M-%S'))
+
+DIR=`pwd`
+
+IMG_NAME=$(echo "$RELEASE" | tr '[:upper:]' '[:lower:]')
+IMG_REPO=$GROUP/alpine-$IMG_NAME
+
+TARGET_NAME=$IMG_REPO:building
+
+BUILD_CTX=$DIR/tmp/$RELEASE/
+TEST_DIR=$DIR/tmp/test
+
+build()
+{
+    clean_tmp
+    mkdir -p ./tmp
+
+    mkdir -p $BUILD_CTX
+    cp $FIBJS_DIR/bin/$RELEASE/fibjs $BUILD_CTX
+    cp -r $FIBJS_DIR/test $TEST_DIR
+
+    echo "would build docker $TARGET_NAME"
+    docker build \
+        -f ./Dockerfile \
+        --rm -t $TARGET_NAME $BUILD_CTX
+    echo "finish building docker $TARGET_NAME"
+
+    RESULT_V=$(docker run --rm $TARGET_NAME fibjs --version)
+    echo ""
+    echo "version: $RESULT_V"
+
+    # must run before change name
+    if [ "$FIBJS_BUILD_ALPINE_TEST" = "1" ]; then
+        do_test
+    fi
+
+    OLD_TARGET_NAME=$TARGET_NAME
+
+    if [ "$USE_VERSION" == "1" ]; then
+        IMG_TAG=$RESULT_V
+    elif [ "$FIBJS_BUILD_ALPINE_LATEST" = "1" ]; then
+        IMG_TAG=latest
+    else
+        IMG_TAG=$RESULT_V-$NOW
+    fi
+
+    TARGET_NAME=$IMG_REPO:$IMG_TAG
+    docker tag $OLD_TARGET_NAME $TARGET_NAME
+    docker rmi $OLD_TARGET_NAME
+
+    echo "build success!"
+    clean_tmp
+}
+
+clean_tmp()
+{
+    rm -rf tmp
+}
+
+do_test()
+{
+    docker run -it \
+        -v ${TEST_DIR}:/home/test $TARGET_NAME \
+        /bin/sh -c "cd /home/test; fibjs test"
+}
+
+for i in "$@"
+do
+	case $i in
+        --help|-h)
+            usage
+            ;;
+        release)
+            USE_VERSION=1
+            build
+            ;;
+		test)
+            FIBJS_BUILD_ALPINE_TEST=1
+            build
+            do_test
+			;;
+        latest)
+            FIBJS_BUILD_ALPINE_LATEST=1
+            build
+            ;;
+	esac
+done
