@@ -62,7 +62,8 @@ public:
 
         if (m.IsEmpty()) {
             m = v8::Object::New(isolate->m_isolate);
-            m->Set(isolate->NewString("exports"), o);
+            if (!o.IsEmpty())
+                m->Set(isolate->NewString("exports"), o);
         }
 
         mods()->Set(isolate->NewString(fname), m);

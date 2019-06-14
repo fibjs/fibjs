@@ -256,7 +256,12 @@ bool objectEquals(QuickArray<v8::Local<v8::Object>>& acts,
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> ks = keys->Get(i);
-        if (!deepEquals(acts, exps, act->Get(ks), exp->Get(ks))) {
+        v8::Local<v8::Value> v1 = act->Get(ks);
+        v8::Local<v8::Value> v2 = exp->Get(ks);
+        if (v1.IsEmpty() || v2.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+
+        if (!deepEquals(acts, exps, v1, v2)) {
             acts.pop();
             exps.pop();
             return false;
@@ -786,6 +791,9 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
     v8::Local<v8::Object> v = object->ToObject();
     got = v->Get(prop);
+    if(got.IsEmpty())
+        return CALL_E_JAVASCRIPT;
+
     retVal = value->Equals(got);
 
     return 0;
@@ -850,6 +858,8 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     }
 
     got = v->Get(isolate->NewString(p));
+    if(got.IsEmpty())
+        return CALL_E_JAVASCRIPT;
     retVal = value->Equals(got);
 
     return 0;
