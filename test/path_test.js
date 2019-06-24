@@ -843,6 +843,13 @@ describe('path', () => {
         assert.strictEqual(failures.length, 0, failures.join(''));
     });
 
+    it('root resolve', () => {
+        const cwd = process.cwd();
+        process.chdir('/');
+        assert.equal(path.resolve('a/b/c/', '../../..'), process.cwd());
+        process.chdir(cwd);
+    });
+
     it('relative', () => {
         const failures = [];
         const slashRE = /\//g;
