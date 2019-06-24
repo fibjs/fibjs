@@ -565,7 +565,14 @@ inline result_t _resolve(OptArgs ps, exlib::string& retVal)
         p.resolvePosix(s);
     }
 
-    return _normalize(p.str(), retVal, true);
+    result_t hr = _normalize(p.str(), retVal, true);
+    if (hr < 0)
+        return hr;
+
+    if (retVal.empty())
+        retVal = "/";
+
+    return 0;
 }
 
 inline result_t _resolve(exlib::string& path)
