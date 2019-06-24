@@ -556,6 +556,9 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool 
     else
         return CALL_E_TYPEMISMATCH;
 
+    if (str.IsEmpty())
+        return CALL_E_JAVASCRIPT;
+
     int32_t bufUtf8Len = str->Utf8Length();
     n.resize(bufUtf8Len);
     int flags = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
@@ -580,6 +583,9 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, double& n, bool bStrict
 
         v = v->ToNumber(Isolate::current()->m_isolate);
     }
+
+    if (v.IsEmpty())
+        return CALL_E_JAVASCRIPT;
 
     n = v->NumberValue();
     if (std::isnan(n))
