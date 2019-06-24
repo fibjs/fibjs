@@ -51,6 +51,7 @@ result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base>& retVal,
     v8::Local<v8::Object> This)
 {
     retVal = new Buffer();
+    retVal->wrap(This);
     return retVal->resize(size);
 }
 
