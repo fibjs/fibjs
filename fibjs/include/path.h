@@ -287,7 +287,7 @@ inline void _path_array(exlib::string path, std::vector<exlib::string>& a)
     a.push_back(exlib::string(p + p1, i - p1));
 }
 
-inline result_t _normalize(exlib::string path, exlib::string& retVal, bool removeSlash = false)
+inline result_t _normalize(exlib::string path, exlib::string& retVal, bool removeSlash = false, bool root = false)
 {
     int32_t i;
 
@@ -297,11 +297,15 @@ inline result_t _normalize(exlib::string path, exlib::string& retVal, bool remov
     _normalize_array(a, removeSlash);
 
     retVal.clear();
+
     for (i = 0; i < (int32_t)a.size(); i++) {
         if (i > 0)
             retVal.append(1, PATH_SLASH_POSIX);
         retVal.append(a[i]);
     }
+
+    if (root && a.size() == 1 && a[0].empty())
+        retVal.append(1, PATH_SLASH_POSIX);
 
     return 0;
 }
@@ -342,7 +346,7 @@ inline void _path_array_win32(exlib::string path, std::vector<exlib::string>& a,
     }
 }
 
-inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool removeSlash = false)
+inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool removeSlash = false, bool root = false)
 {
     int32_t i;
 
@@ -372,6 +376,9 @@ inline result_t _normalize_win32(exlib::string path, exlib::string& retVal, bool
             retVal.append(1, PATH_SLASH_WIN32);
         retVal.append(a[i]);
     }
+
+    if (root && a.size() == 1 && a[0].empty())
+        retVal.append(1, PATH_SLASH_WIN32);
 
     return 0;
 }
@@ -565,14 +572,7 @@ inline result_t _resolve(OptArgs ps, exlib::string& retVal)
         p.resolvePosix(s);
     }
 
-    result_t hr = _normalize(p.str(), retVal, true);
-    if (hr < 0)
-        return hr;
-
-    if (retVal.empty())
-        retVal = "/";
-
-    return 0;
+    return _normalize(p.str(), retVal, true, true);
 }
 
 inline result_t _resolve(exlib::string& path)
@@ -584,7 +584,7 @@ inline result_t _resolve(exlib::string& path)
     p.resolvePosix(str);
     p.resolvePosix(path);
 
-    return _normalize(p.str(), path, true);
+    return _normalize(p.str(), path, true, true);
 }
 
 inline result_t _resolve_win32(OptArgs ps, exlib::string& retVal)
@@ -604,7 +604,7 @@ inline result_t _resolve_win32(OptArgs ps, exlib::string& retVal)
         p.resolveWin32(s);
     }
 
-    return _normalize_win32(p.str(), retVal, true);
+    return _normalize_win32(p.str(), retVal, true, true);
 }
 
 inline result_t _resolve_win32(exlib::string& path)
