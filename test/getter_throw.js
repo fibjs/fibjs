@@ -313,7 +313,7 @@ describe('getter throw', () => {
     });
 
 
-    it('assert', () => {
+    xit('assert', () => {
         checkthrow([
             () => {
                 assert.deepEqual(arr, arr);

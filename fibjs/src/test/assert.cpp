@@ -256,10 +256,20 @@ bool objectEquals(QuickArray<v8::Local<v8::Object>>& acts,
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> ks = keys->Get(i);
+        if (ks.IsEmpty()) {
+            acts.pop();
+            exps.pop();
+            return false;
+        }
+
         v8::Local<v8::Value> v1 = act->Get(ks);
         v8::Local<v8::Value> v2 = exp->Get(ks);
-        if (v1.IsEmpty() || v2.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+
+        if (v1.IsEmpty() || v2.IsEmpty()) {
+            acts.pop();
+            exps.pop();
+            return false;
+        }
 
         if (!deepEquals(acts, exps, v1, v2)) {
             acts.pop();

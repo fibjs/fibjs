@@ -142,6 +142,10 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                 }
 
                 v8::Local<v8::Array> keys = obj->GetPropertyNames();
+                if (keys.IsEmpty()) {
+                    strBuffer.append("{}");
+                    break;
+                }
 
                 if (v->IsFunction() && keys->Length() == 0) {
                     strBuffer.append("[Function]");
