@@ -313,8 +313,8 @@ describe('getter throw', () => {
     });
 
 
-    xit('assert', () => {
-        checkthrow([
+    it('assert', () => {
+        [
             () => {
                 assert.deepEqual(arr, arr);
             },
@@ -337,7 +337,12 @@ describe('getter throw', () => {
                 assert.propertyVal(obj2, "abc", 'ball');
             },
 
-        ]);
+        ].forEach(fn => {
+            assert.throws(() => {
+                fn();
+            });
+        })
+
         assert.deepEqual(obj2, obj2);
 
         assert.throws(() => {
