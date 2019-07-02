@@ -427,4 +427,10 @@ module console
      @return 返回用户输入的信息
      */
     static String readLine(String msg = "") async;
+
+    /*! @brief 从控制台读取用户输入的密码
+     @param msg 提示信息
+     @return 返回用户输入的密码
+     */
+    static String getpass(String msg = "") async;
 };

@@ -83,6 +83,7 @@ public:
     static result_t mouseDown(exlib::string button);
     static result_t clickMouse(exlib::string button, bool dbclick);
     static result_t readLine(exlib::string msg, exlib::string& retVal, AsyncEvent* ac);
+    static result_t getpass(exlib::string msg, exlib::string& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -130,9 +131,11 @@ public:
     static void s_mouseDown(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clickMouse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getpass(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(console_base, readLine, exlib::string, exlib::string);
+    ASYNC_STATICVALUE2(console_base, getpass, exlib::string, exlib::string);
 };
 }
 
@@ -170,7 +173,9 @@ inline ClassInfo& console_base::class_info()
         { "mouseDown", s_mouseDown, true },
         { "clickMouse", s_clickMouse, true },
         { "readLine", s_readLine, true },
-        { "readLineSync", s_readLine, true }
+        { "readLineSync", s_readLine, true },
+        { "getpass", s_getpass, true },
+        { "getpassSync", s_getpass, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -766,6 +771,26 @@ inline void console_base::s_readLine(const v8::FunctionCallbackInfo<v8::Value>& 
         hr = CALL_RETURN_NULL;
     } else
         hr = ac_readLine(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void console_base::s_getpass(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("console.getpass");
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "");
+
+    if (!cb.IsEmpty()) {
+        acb_getpass(v0, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_getpass(v0, vr);
 
     METHOD_RETURN();
 }

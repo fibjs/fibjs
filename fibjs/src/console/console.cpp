@@ -19,6 +19,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <conio.h>
 
 static LARGE_INTEGER systemFrequency;
 
@@ -40,6 +41,8 @@ inline int64_t Ticks()
 #include "editline/include/editline.h"
 
 #include "utils.h" // for ARRAYSIZE()
+
+#define _getch getchar
 
 inline int64_t Ticks()
 {
@@ -488,11 +491,44 @@ result_t console_base::clear()
 
 #endif
 
-char* read_line()
-{
-    char* text = (char*)malloc(1024);
+#define INPUT_BUFFER_SIZE 1024
 
-    if (fgets(text, 1024, stdin) != NULL) {
+char* getpass()
+{
+    char* p;
+    int c;
+    char* password = (char*)malloc(INPUT_BUFFER_SIZE);
+
+    for (p = password; (c = _getch()) != 13 && c != EOF;) {
+        if (p < &password[INPUT_BUFFER_SIZE - 1]) {
+            if (c == 0 || c == 0xE0) {
+                /* FN Keys (0 or E0) are a sentinal for a FN code */
+                c = (c << 4) | _getch();
+                /* Catch {DELETE}, {<--}, Num{DEL} and Num{<--} */
+                if ((c == 0xE53 || c == 0xE4B || c == 0x053 || c == 0x04b) && p > password)
+                    p--;
+            } else if ((c == '\b' || c == 127)) /* BS/DEL */ {
+                if (p > password)
+                    p--;
+            } else
+                *p++ = c;
+        } else
+            break;
+    }
+    *p = '\0';
+    puts("");
+
+    return password;
+}
+
+char* read_line(bool no_echo)
+{
+    if (no_echo)
+        return getpass();
+
+    char* text = (char*)malloc(INPUT_BUFFER_SIZE);
+
+    if (fgets(text, INPUT_BUFFER_SIZE, stdin) != NULL) {
         int32_t textLen = (int32_t)qstrlen(text);
         if (textLen > 0 && text[textLen - 1] == '\n')
             text[textLen - 1] = '\0'; // getting rid of newline character
@@ -503,8 +539,7 @@ char* read_line()
     return NULL;
 }
 
-result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
-    AsyncEvent* ac)
+result_t readInput(exlib::string msg, exlib::string& retVal, AsyncEvent* ac, bool no_echo)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
@@ -516,6 +551,7 @@ result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
         char* line;
         const char* lfptr = qstrrchr(msg.c_str(), '\n');
 
+        el_no_echo = no_echo;
         if (lfptr != NULL) {
             puts(msg.substr(0, lfptr - msg.c_str()).c_str());
             line = readline(lfptr + 1);
@@ -524,6 +560,9 @@ result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
 
         if (!line)
             return CHECK_ERROR(LastError());
+
+        if (no_echo)
+            puts("");
 
         if (*line) {
             add_history(line);
@@ -534,8 +573,7 @@ result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
 #endif
     {
         std_logger::out(msg);
-        char* line = read_line();
-
+        char* line = read_line(no_echo);
         if (!line)
             return CHECK_ERROR(LastError());
 
@@ -544,5 +582,17 @@ result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
     }
 
     return 0;
+}
+
+result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
+    AsyncEvent* ac)
+{
+    return readInput(msg, retVal, ac, false);
+}
+
+result_t console_base::getpass(exlib::string msg, exlib::string& retVal,
+    AsyncEvent* ac)
+{
+    return readInput(msg, retVal, ac, true);
 }
 };
