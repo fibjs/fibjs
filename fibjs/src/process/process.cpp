@@ -27,6 +27,8 @@
 
 #else
 
+#include "editline/include/editline.h"
+
 inline int32_t _umask(int32_t m)
 {
     return ::umask(m);
@@ -222,11 +224,11 @@ result_t process_base::get_platform(exlib::string& retVal)
 
 result_t process_base::get_pid(int32_t& retVal)
 {
-    #ifdef _WIN32
-        retVal = GetCurrentProcessId();
-    #else
-        retVal = getpid();
-    #endif
+#ifdef _WIN32
+    retVal = GetCurrentProcessId();
+#else
+    retVal = getpid();
+#endif
 
     return 0;
 }
@@ -285,6 +287,7 @@ result_t process_base::exit()
 #ifdef _WIN32
     TerminateProcess(GetCurrentProcess(), code);
 #else
+    rl_deprep_terminal();
     ::_exit(code);
 #endif
 
