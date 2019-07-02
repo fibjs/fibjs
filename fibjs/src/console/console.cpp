@@ -35,9 +35,9 @@ inline int64_t Ticks()
 }
 
 #else
-#include <dlfcn.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
+#include "editline/include/editline.h"
 
 #include "utils.h" // for ARRAYSIZE()
 
@@ -503,13 +503,6 @@ char* read_line()
     return NULL;
 }
 
-#ifndef _WIN32
-extern "C" {
-char* readline(const char* prompt);
-void add_history(char* line);
-}
-#endif
-
 result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
     AsyncEvent* ac)
 {
@@ -519,55 +512,21 @@ result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
     flushLog();
 
 #ifndef _WIN32
-    static bool _init = false;
-    static char* (*_readline)(const char*);
-    static void (*_add_history)(char*);
-
-    if (!_init) {
-        _init = true;
-
-#ifdef __clang__
-        void* handle = dlopen("libreadline.dylib", RTLD_LAZY);
-#else
-        const char* readline_dylib_names[] = {
-            "libreadline.so.6",
-            "libreadline.so.5",
-            "libreadline.so"
-        };
-        const size_t readline_dylib_names_size = ARRAYSIZE(readline_dylib_names);
-        void* handle = 0;
-
-        for (size_t i = 0; i < readline_dylib_names_size; i++) {
-            handle = dlopen(readline_dylib_names[i], RTLD_LAZY);
-            if (handle)
-                break;
-        }
-#endif
-
-        if (handle) {
-            _readline = (char* (*)(const char*))dlsym(handle, "readline");
-            _add_history = (void (*)(char*))dlsym(handle, "add_history");
-        } else {
-            _readline = readline;
-            _add_history = add_history;
-        }
-    }
-
     if (isatty(fileno(stdin))) {
         char* line;
         const char* lfptr = qstrrchr(msg.c_str(), '\n');
 
         if (lfptr != NULL) {
             puts(msg.substr(0, lfptr - msg.c_str()).c_str());
-            line = _readline(lfptr + 1);
+            line = readline(lfptr + 1);
         } else
-            line = _readline(msg.c_str());
+            line = readline(msg.c_str());
 
         if (!line)
             return CHECK_ERROR(LastError());
 
         if (*line) {
-            _add_history(line);
+            add_history(line);
             retVal = line;
         }
         free(line);
