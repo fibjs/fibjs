@@ -539,6 +539,8 @@ char* read_line(bool no_echo)
     return NULL;
 }
 
+bool g_in_readline = false;
+
 result_t readInput(exlib::string msg, exlib::string& retVal, AsyncEvent* ac, bool no_echo)
 {
     if (ac->isSync())
@@ -552,11 +554,13 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncEvent* ac, boo
         const char* lfptr = qstrrchr(msg.c_str(), '\n');
 
         el_no_echo = no_echo;
+        g_in_readline = true;
         if (lfptr != NULL) {
             puts(msg.substr(0, lfptr - msg.c_str()).c_str());
             line = readline(lfptr + 1);
         } else
             line = readline(msg.c_str());
+        g_in_readline = false;
 
         if (!line)
             return CHECK_ERROR(LastError());

@@ -266,6 +266,8 @@ result_t process_base::get_stderr(obj_ptr<File_base>& retVal)
     return 0;
 }
 
+extern bool g_in_readline;
+
 result_t process_base::exit()
 {
     Isolate* isolate = Isolate::current();
@@ -287,7 +289,8 @@ result_t process_base::exit()
 #ifdef _WIN32
     TerminateProcess(GetCurrentProcess(), code);
 #else
-    rl_deprep_terminal();
+    if (g_in_readline && isatty(fileno(stdin)))
+        rl_deprep_terminal();
     ::_exit(code);
 #endif
 
