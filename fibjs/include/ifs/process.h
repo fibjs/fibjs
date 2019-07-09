@@ -55,8 +55,8 @@ public:
     static result_t open(exlib::string command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
     static result_t start(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
     static result_t start(exlib::string command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
-    static result_t run(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, int32_t& retVal);
-    static result_t run(exlib::string command, v8::Local<v8::Object> opts, int32_t& retVal);
+    static result_t run(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
+    static result_t run(exlib::string command, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -95,6 +95,10 @@ public:
     static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_STATICVALUE4(process_base, run, exlib::string, v8::Local<v8::Array>, v8::Local<v8::Object>, int32_t);
+    ASYNC_STATICVALUE3(process_base, run, exlib::string, v8::Local<v8::Object>, int32_t);
 };
 }
 
@@ -115,7 +119,8 @@ inline ClassInfo& process_base::class_info()
         { "nextTick", s_nextTick, true },
         { "open", s_open, true },
         { "start", s_start, true },
-        { "run", s_run, true }
+        { "run", s_run, true },
+        { "runSync", s_run, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -499,20 +504,28 @@ inline void process_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_NAME("process.run");
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    ASYNC_METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Array>, 1);
     OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-    hr = run(v0, v1, v2, vr);
+    if (!cb.IsEmpty()) {
+        acb_run(v0, v1, v2, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_run(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-    hr = run(v0, v1, vr);
+    if (!cb.IsEmpty()) {
+        acb_run(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = ac_run(v0, v1, vr);
 
     METHOD_RETURN();
 }

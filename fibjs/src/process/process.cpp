@@ -351,24 +351,37 @@ result_t process_base::start(exlib::string command, v8::Local<v8::Object> opts,
 }
 
 result_t process_base::run(exlib::string command, v8::Local<v8::Array> args,
-    v8::Local<v8::Object> opts, int32_t& retVal)
+    v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
 {
-    result_t hr;
     obj_ptr<SubProcess_base> _sub;
 
-    hr = SubProcess::create(command, args, opts, false, _sub);
-    if (hr < 0)
-        return hr;
+    if (ac->isSync()) {
+        result_t hr;
 
-    return _sub->ac_wait(retVal);
+        hr = SubProcess::create(command, args, opts, false, _sub);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = _sub;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    _sub = SubProcess_base::getInstance(ac->m_ctx[0].object());
+    return _sub->wait(retVal, ac);
 }
 
 result_t process_base::run(exlib::string command, v8::Local<v8::Object> opts,
-    int32_t& retVal)
+    int32_t& retVal, AsyncEvent* ac)
 {
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
+    v8::Local<v8::Array> args;
 
-    return run(command, args, opts, retVal);
+    if (ac->isSync()) {
+        Isolate* isolate = Isolate::current();
+        args = v8::Array::New(isolate->m_isolate);
+    }
+
+    return run(command, args, opts, retVal, ac);
 }
 }

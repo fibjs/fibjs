@@ -227,7 +227,7 @@ module process : EventEmitter
      @param opts 指定运行的选项
      @return 返回命令的运行结果
      */
-    static Integer run(String command, Array args, Object opts = {});
+    static Integer run(String command, Array args, Object opts = {}) async;
 
     /*! @brief 运行指定的命令行，并返回进程的结束代码
 
@@ -242,5 +242,5 @@ module process : EventEmitter
      @param opts 指定运行的选项
      @return 返回命令的运行结果
      */
-    static Integer run(String command, Object opts = {});
+    static Integer run(String command, Object opts = {}) async;
 };
