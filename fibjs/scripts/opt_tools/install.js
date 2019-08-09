@@ -1458,7 +1458,15 @@ function find_version(m, v, parent) {
 
 function get_root() {
     var p = process.cwd();
-    var info = JSON.parse(fs.readTextFile(path.join(p, 'package.json')));
+    var txt;
+
+    try {
+        txt = fs.readTextFile(path.join(p, 'package.json'));
+    } catch (e) {
+        txt = "{}";
+    }
+
+    var info = JSON.parse(txt);
 
     var deps = util.clone(info.dependencies || {});
     deps = util.extend(deps, info.devDependencies || {});
