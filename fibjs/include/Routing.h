@@ -49,6 +49,8 @@ public:
     virtual result_t append(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
     virtual result_t append(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal);
     virtual result_t append(exlib::string method, exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal);
+    virtual result_t host(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    virtual result_t host(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal);
     virtual result_t all(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
     virtual result_t all(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal);
     virtual result_t get(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);

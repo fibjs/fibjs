@@ -45,6 +45,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
     exlib::string value;
     exlib::string method;
+    exlib::string host;
 
     msg->get_value(value);
 
@@ -54,11 +55,34 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
     for (i = (int32_t)m_array.size() - 1; i >= 0; i--) {
         obj_ptr<rule>& r = m_array[i];
+        exlib::string& test = value;
+        bool isHost = false;
 
-        if (htmsg && r->m_method != "*" && qstricmp(method.c_str(), r->m_method.c_str()))
-            continue;
+        if (htmsg) {
+            if (!qstricmp(r->m_method.c_str(), "HOST")) {
+                if (host.empty()) {
+                    Variant v;
 
-        rc = pcre_exec(r->m_re, NULL, value.c_str(), (int32_t)value.length(),
+                    htmsg->firstHeader("host", v);
+                    host = v.string();
+                    if (host.empty())
+                        host = "*";
+                    else {
+                        size_t pos = host.find(':');
+                        if (pos != exlib::string::npos)
+                            host = host.substr(0, pos);
+                    }
+                }
+
+                test = host;
+                isHost = true;
+            } else {
+                if (r->m_method != "*" && qstricmp(method.c_str(), r->m_method.c_str()))
+                    continue;
+            }
+        }
+
+        rc = pcre_exec(r->m_re, NULL, test.c_str(), (int32_t)test.length(),
             0, 0, ovector, RE_SIZE);
         if (rc > 0) {
             obj_ptr<NArray> list;
@@ -83,13 +107,15 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 if (r->m_bSub) {
                     i = rc - 1;
-                    msg->set_value(value.substr(ovector[i * 2], ovector[i * 2 + 1] - ovector[i * 2]));
+                    if (!isHost)
+                        msg->set_value(test.substr(ovector[i * 2], ovector[i * 2 + 1] - ovector[i * 2]));
                 } else {
                     if (levelCount[1] == 1) {
-                        msg->set_value(value.substr(ovector[2], ovector[3] - ovector[2]));
+                        if (!isHost)
+                            msg->set_value(test.substr(ovector[2], ovector[3] - ovector[2]));
                         if (levelCount[2] > 0)
                             p = 2;
-                    } else
+                    } else if (!isHost)
                         msg->set_value("");
 
                     if (levelCount[p]) {
@@ -97,7 +123,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         for (i = 0; i < rc; i++)
                             if (level[i] == p) {
                                 if (ovector[i * 2 + 1] - ovector[i * 2] > 0)
-                                    list->append(value.substr(ovector[i * 2],
+                                    list->append(test.substr(ovector[i * 2],
                                         ovector[i * 2 + 1] - ovector[i * 2]));
                                 else
                                     list->append(vUndefined);
@@ -232,6 +258,36 @@ exlib::string path2RegExp(exlib::string pattern)
     return res;
 }
 
+exlib::string host2RegExp(exlib::string pattern)
+{
+    size_t len = pattern.length();
+
+    if (len > 0 && pattern[len - 1] == '/')
+        pattern.resize(len - 1);
+
+    _parser p(pattern);
+    exlib::string res;
+    exlib::string str;
+    exlib::string re, re1;
+    char ch, last_ch;
+
+    while (!p.end()) {
+        ch = p.getChar();
+        if (ch == '\\') {
+            res.append(1, '\\');
+            res.append(1, p.getChar());
+        } else if (ch == '.') {
+            res.append("\\.");
+        } else if (ch == '*') {
+            res.append("((?:.*))");
+        } else
+            res.append(1, ch);
+    }
+
+    res = "^" + res + "(?:/(?=$))?$";
+    return res;
+}
+
 result_t Routing::append(exlib::string method, exlib::string pattern, Handler_base* hdlr,
     obj_ptr<Routing_base>& retVal)
 {
@@ -242,16 +298,20 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
     bool bSub = false;
 
     if (pattern.length() > 0 && pattern[0] != '^') {
-        obj_ptr<Routing_base> rt = Routing_base::getInstance(hdlr);
-        if (rt) {
-            int32_t len = (int32_t)pattern.length();
-            if (len > 0 && pattern[len - 1] == '/')
-                pattern.resize(len - 1);
-            pattern += "(.*)";
-            bSub = true;
-        }
+        if (!qstricmp(method.c_str(), "HOST"))
+            pattern = host2RegExp(pattern);
+        else {
+            obj_ptr<Routing_base> rt = Routing_base::getInstance(hdlr);
+            if (rt) {
+                int32_t len = (int32_t)pattern.length();
+                if (len > 0 && pattern[len - 1] == '/')
+                    pattern.resize(len - 1);
+                pattern += "(.*)";
+                bSub = true;
+            }
 
-        pattern = path2RegExp(pattern);
+            pattern = path2RegExp(pattern);
+        }
     }
 
     re = pcre_compile(pattern.c_str(), opt, &error, &erroffset, NULL);
@@ -310,6 +370,16 @@ result_t Routing::append(exlib::string pattern, Handler_base* hdlr,
     obj_ptr<Routing_base>& retVal)
 {
     return append("*", pattern, hdlr, retVal);
+}
+
+result_t Routing::host(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
+{
+    return _append("HOST", map, retVal);
+}
+
+result_t Routing::host(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal)
+{
+    return append("HOST", pattern, hdlr, retVal);
 }
 
 result_t Routing::all(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)

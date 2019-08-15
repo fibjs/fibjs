@@ -110,12 +110,25 @@ interface Routing : Handler
     Routing append(String pattern, Handler hdlr);
 
     /*! @brief 添加一条路由规则
-   @param method 指定 http 请求方法，"*" 接受所有方法
+   @param method 指定 http 请求方法，"*" 接受所有方法，"host" 指定虚拟域名
    @param pattern 消息匹配格式
    @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
    @return 返回路由对象本身
    */
     Routing append(String method, String pattern, Handler hdlr);
+
+    /*! @brief 添加一组 http 域名的路由规则
+   @param map 路由参数
+   @return 返回路由对象本身
+   */
+    Routing host(Object map);
+
+    /*! @brief 添加一条接受 http 域名的路由规则
+   @param pattern 消息匹配格式
+   @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+   @return 返回路由对象本身
+   */
+    Routing host(String pattern, Handler hdlr);
 
     /*! @brief 添加一组接受所有 http 方法路由规则
    @param map 路由参数

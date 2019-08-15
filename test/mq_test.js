@@ -533,6 +533,31 @@ var p2r_sub_tests = {
     }
 };
 
+var p2r_host_tests = {
+    "test.com": {
+        "test.com": ["test.com"],
+        "test.com:80": ["test.com:80"],
+        "www.test.com": null,
+        "test1.com": null
+    },
+    "*.test.com": {
+        "test.com": null,
+        "www.test.com": ["www.test.com", "www"],
+        "test1.com": null
+    },
+    "w*.test.com": {
+        "test.com": null,
+        "web.test.com": ["web.test.com", "eb"],
+        "web.test.com:8080": ["web.test.com:8080", "eb"],
+        "test1.com": null
+    },
+    "www.*.test.com": {
+        "test.com": null,
+        "www.api.test.com": ["www.api.test.com", "api"],
+        "test1.com": null
+    }
+};
+
 var n;
 
 function hdlr1(v) {
@@ -957,6 +982,36 @@ describe("mq", () => {
 
             for (k in p2r_sub_tests)
                 test_one_sub(k);
+
+            function test_host_route(p, v) {
+                var r = null;
+                var rt = new mq.Routing();
+                rt.append("host", p, function (v1) {
+                    r = Array.prototype.slice.call(arguments);
+                    r[0] = v;
+                    assert.equal(v1.value, '/test');
+                });
+
+                rt.append("^.*$", () => {});
+
+                var m = new http.Request();
+                m.value = '/test';
+                m.addHeader('host', v);
+
+                mq.invoke(rt, m);
+                return r;
+            }
+
+            function test_one_host(k) {
+                it("host: " + k, () => {
+                    var cases = p2r_host_tests[k];
+                    for (u in cases)
+                        assert.deepEqual(test_host_route(k, u), cases[u]);
+                });
+            }
+
+            for (k in p2r_host_tests)
+                test_one_host(k);
         });
 
         describe("order", () => {
