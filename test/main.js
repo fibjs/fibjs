@@ -69,4 +69,8 @@ run("./profiler_test.js");
 run("./v8_test.js");
 
 run("./getter_throw.js")
+
+run("./internal_test/helpers.js")
+run("./opt_tools_test/index.js")
+
 process.exitCode = test.run();
