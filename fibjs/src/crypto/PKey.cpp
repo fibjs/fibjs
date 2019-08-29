@@ -311,12 +311,12 @@ result_t PKey::importKey(Buffer_base* DerKey, exlib::string password)
 
     clear();
 
-    ret = mbedtls_pk_parse_key(&m_key, (unsigned char*)key.c_str(), key.length() + 1,
+    ret = mbedtls_pk_parse_key(&m_key, (unsigned char*)key.c_str(), key.length(),
         !password.empty() ? (unsigned char*)password.c_str() : NULL,
         password.length());
 
     if (ret == MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
-        ret = mbedtls_pk_parse_public_key(&m_key, (unsigned char*)key.c_str(), key.length() + 1);
+        ret = mbedtls_pk_parse_public_key(&m_key, (unsigned char*)key.c_str(), key.length());
 
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
