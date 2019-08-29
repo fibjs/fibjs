@@ -451,7 +451,7 @@ result_t Url::format(v8::Local<v8::Object> args)
         set_password(str);
 
     if (getString(isolate, args, "host", str))
-        set_host(str);
+        set__host(str);
     if (getString(isolate, args, "port", str))
         set_port(str);
 
@@ -617,7 +617,7 @@ result_t Url::get_href(exlib::string& retVal)
         retVal.append(1, '@');
     }
 
-    get_host(str);
+    get__host(str);
     retVal.append(str);
 
     get_path(str);
@@ -724,13 +724,13 @@ result_t Url::set_password(exlib::string newVal)
     return 0;
 }
 
-result_t Url::get_host(exlib::string& retVal)
+result_t Url::get__host(exlib::string& retVal)
 {
     retVal = m_host;
     return 0;
 }
 
-result_t Url::set_host(exlib::string newVal)
+result_t Url::set__host(exlib::string newVal)
 {
     m_host = newVal;
     return 0;

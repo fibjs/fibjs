@@ -56,9 +56,9 @@ public:
     static void s_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_shiftLeft(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_shiftRight(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_and(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_or(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_xor(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__and(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__or(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__xor(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_sub(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_multi(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -76,9 +76,9 @@ inline ClassInfo& Int64_base::class_info()
         { "compare", s_compare, false },
         { "shiftLeft", s_shiftLeft, false },
         { "shiftRight", s_shiftRight, false },
-        { "and", s_and, false },
-        { "or", s_or, false },
-        { "xor", s_xor, false },
+        { "and", s__and, false },
+        { "or", s__or, false },
+        { "xor", s__xor, false },
         { "add", s_add, false },
         { "sub", s_sub, false },
         { "multi", s_multi, false },
@@ -247,7 +247,7 @@ inline void Int64_base::s_shiftRight(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
-inline void Int64_base::s_and(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Int64_base::s__and(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Int64_base> vr;
 
@@ -264,7 +264,7 @@ inline void Int64_base::s_and(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void Int64_base::s_or(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Int64_base::s__or(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Int64_base> vr;
 
@@ -281,7 +281,7 @@ inline void Int64_base::s_or(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void Int64_base::s_xor(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Int64_base::s__xor(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Int64_base> vr;
 

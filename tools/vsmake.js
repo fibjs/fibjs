@@ -4,7 +4,8 @@ var fs = require("fs");
 var hash = require("hash");
 var path = require("path");
 
-var baseDir = path.join(__dirname, '../fibjs');
+var baseDir = process.cwd();
+var prjName = path.basename(baseDir);
 
 var Includes = {};
 var Compiles = {};
@@ -43,8 +44,8 @@ function do_folder(p, base) {
 do_folder("include", "Header Files");
 do_folder("src", "Source Files");
 
-var proj = fs.readTextFile(path.join(__dirname, './tpls/proj.txt'));
-var filter = fs.readTextFile(path.join(__dirname, './tpls/filter.txt'));
+var proj = fs.readTextFile(path.join(baseDir, 'tools/proj.txt'));
+var filter = fs.readTextFile(path.join(baseDir, 'tools/filter.txt'));
 
 var txts, f, s, h;
 
@@ -64,7 +65,7 @@ txts.sort();
 proj = proj.replace('<ClCompiles />', txts.join('\r\n'));
 
 
-fs.writeFile(path.join(baseDir, "fibjs.vcxproj"), proj);
+fs.writeFile(path.join(baseDir, prjName + ".vcxproj"), proj);
 
 filters.sort();
 
@@ -94,4 +95,4 @@ for (f in Compiles) {
 txts.sort();
 filter = filter.replace('<ClCompiles />', txts.join('\r\n'));
 
-fs.writeFile(path.join(baseDir, "fibjs.vcxproj.filters"), filter);
+fs.writeFile(path.join(baseDir, prjName + ".vcxproj.filters"), filter);

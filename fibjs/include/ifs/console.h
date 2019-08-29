@@ -116,7 +116,7 @@ public:
     static void s_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_trace(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_assert(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__assert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_print(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_moveTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -158,7 +158,7 @@ inline ClassInfo& console_base::class_info()
         { "timeElapse", s_timeElapse, true },
         { "timeEnd", s_timeEnd, true },
         { "trace", s_trace, true },
-        { "assert", s_assert, true },
+        { "assert", s__assert, true },
         { "print", s_print, true },
         { "moveTo", s_moveTo, true },
         { "hideCursor", s_hideCursor, true },
@@ -530,7 +530,7 @@ inline void console_base::s_trace(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void console_base::s_assert(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s__assert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.assert");
     METHOD_ENTER();

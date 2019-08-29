@@ -30,8 +30,8 @@ public:
     virtual result_t append(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
     virtual result_t append(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
     virtual result_t append(exlib::string method, exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
-    virtual result_t host(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
-    virtual result_t host(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t _host(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
+    virtual result_t _host(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
     virtual result_t all(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
     virtual result_t all(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal) = 0;
     virtual result_t get(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal) = 0;
@@ -54,7 +54,7 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_host(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__host(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_all(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_post(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -70,7 +70,7 @@ inline ClassInfo& Routing_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "append", s_append, false },
-        { "host", s_host, false },
+        { "host", s__host, false },
         { "all", s_all, false },
         { "get", s_get, false },
         { "post", s_post, false },
@@ -158,7 +158,7 @@ inline void Routing_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void Routing_base::s_host(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Routing_base::s__host(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Routing_base> vr;
 
@@ -170,14 +170,14 @@ inline void Routing_base::s_host(const v8::FunctionCallbackInfo<v8::Value>& args
 
     ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->host(v0, vr);
+    hr = pInst->_host(v0, vr);
 
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Handler_base>, 1);
 
-    hr = pInst->host(v0, v1, vr);
+    hr = pInst->_host(v0, v1, vr);
 
     METHOD_RETURN();
 }

@@ -50,6 +50,7 @@ module.exports = function (defs, baseFolder) {
                 "or": true,
                 "xor": true,
                 "new": true,
+                "host": true,
                 "assert": true,
                 "delete": true
             };
@@ -79,7 +80,7 @@ module.exports = function (defs, baseFolder) {
 
                         fns += fstatic ? "static " : "virtual ";
                         fns += "result_t ";
-                        fns += fname;
+                        fns += get_name(fname);
                         fns += "(";
 
                         var ps = [];
@@ -117,7 +118,7 @@ module.exports = function (defs, baseFolder) {
                     else if (fname == "Function")
                         fname = "_function";
 
-                    txts.push("    static void s_" + fname + "(const v8::FunctionCallbackInfo<v8::Value>& args);");
+                    txts.push("    static void s_" + get_name(fname) + "(const v8::FunctionCallbackInfo<v8::Value>& args);");
                 },
                 "stub_func": fn => {
                     var fname = fn.name;
@@ -132,7 +133,7 @@ module.exports = function (defs, baseFolder) {
                         ftype = def.declare.name;
                     }
 
-                    txts.push('inline void ' + cls + '_base::s_' + fname + '(const v8::FunctionCallbackInfo<v8::Value>& args)\n{');
+                    txts.push('inline void ' + cls + '_base::s_' + get_name(fname) + '(const v8::FunctionCallbackInfo<v8::Value>& args)\n{');
 
                     if (fname == '_new') {
                         txts.push('    CONSTRUCT_INIT();\n    __new(args);\n}\n');
@@ -238,7 +239,7 @@ module.exports = function (defs, baseFolder) {
 
                         fns += fstatic ? "static " : "virtual ";
                         fns += "result_t get_";
-                        fns += fname;
+                        fns += get_name(fname);
                         fns += "(";
 
                         fns += get_rtype(fn.type) + "& retVal";
@@ -252,7 +253,7 @@ module.exports = function (defs, baseFolder) {
 
                             fns += fstatic ? "static " : "virtual ";
                             fns += "result_t set_";
-                            fns += fname;
+                            fns += get_name(fname);
                             fns += "(";
 
                             fns += get_type(fn.type) + " newVal";
@@ -269,16 +270,16 @@ module.exports = function (defs, baseFolder) {
                     var fstatic = fn.static;
 
                     if (fname) {
-                        txts.push("    static void s_get_" + fname + "(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
+                        txts.push("    static void s_get_" + get_name(fname) + "(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
                         if (!fn.readonly)
-                            txts.push("    static void s_set_" + fname + "(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);");
+                            txts.push("    static void s_set_" + get_name(fname) + "(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);");
                     }
                 },
                 "stub_func": fn => {
                     var fname = fn.name;
                     var fstatic = fn.static;
 
-                    txts.push('inline void ' + cls + '_base::s_get_' + fname + '(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ' + get_rtype(fn.type) + ' vr;\n');
+                    txts.push('inline void ' + cls + '_base::s_get_' + get_name(fname) + '(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ' + get_rtype(fn.type) + ' vr;\n');
 
                     txts.push(`    METHOD_NAME("${cls}.${fname}");`);
                     if (!fstatic)
@@ -289,13 +290,13 @@ module.exports = function (defs, baseFolder) {
                         txts.push('    DEPRECATED_SOON("' + cls + '.' + fname + '");\n');
 
                     if (fstatic)
-                        txts.push('    hr = get_' + fname + '(vr);\n');
+                        txts.push('    hr = get_' + get_name(fname) + '(vr);\n');
                     else
-                        txts.push('    hr = pInst->get_' + fname + '(vr);\n');
+                        txts.push('    hr = pInst->get_' + get_name(fname) + '(vr);\n');
                     txts.push('    METHOD_RETURN();\n}\n');
 
                     if (!fn.readonly) {
-                        txts.push('inline void ' + cls + '_base::s_set_' + fname + '(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)\n{');
+                        txts.push('inline void ' + cls + '_base::s_set_' + get_name(fname) + '(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)\n{');
                         txts.push(`    METHOD_NAME("${cls}.${fname}");`);
                         if (!fstatic)
                             txts.push(`    METHOD_INSTANCE(${cls}_base);`);
@@ -305,9 +306,9 @@ module.exports = function (defs, baseFolder) {
                             txts.push('    DEPRECATED_SOON("' + cls + '.' + fname + '");\n');
 
                         if (fstatic)
-                            txts.push('    hr = set_' + fname + '(v0);\n');
+                            txts.push('    hr = set_' + get_name(fname) + '(v0);\n');
                         else
-                            txts.push('    hr = pInst->set_' + fname + '(v0);\n');
+                            txts.push('    hr = pInst->set_' + get_name(fname) + '(v0);\n');
                         txts.push('    PROPERTY_SET_LEAVE();\n}\n');
                     }
 
@@ -643,9 +644,9 @@ module.exports = function (defs, baseFolder) {
                         return;
 
                     if (fn.memType == "method") {
-                        deflist.push('        { "' + fname + '", s_' + fname + ', ' + (fstatic ? 'true' : 'false') + ' }');
+                        deflist.push('        { "' + fname + '", s_' + get_name(fname) + ', ' + (fstatic ? 'true' : 'false') + ' }');
                         if (fn.async)
-                            deflist.push('        { "' + `${fname}Sync` + '", s_' + fname + ', ' + (fstatic ? 'true' : 'false') + ' }');
+                            deflist.push('        { "' + `${fname}Sync` + '", s_' + get_name(fname) + ', ' + (fstatic ? 'true' : 'false') + ' }');
                     }
                 });
 
@@ -679,8 +680,8 @@ module.exports = function (defs, baseFolder) {
                 def.members.forEach(fn => {
                     if (fn.memType == 'prop') {
                         var fname = fn.name;
-                        deflist.push('        { "' + fname + '", s_get_' + fname + ', ' +
-                            (fn.readonly ? 'block_set' : 's_set_' + fname) + ', ' +
+                        deflist.push('        { "' + fname + '", s_get_' + get_name(fname) + ', ' +
+                            (fn.readonly ? 'block_set' : 's_set_' + get_name(fname)) + ', ' +
                             (fn.static ? 'true' : 'false') + ' }');
                     }
                 });

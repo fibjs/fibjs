@@ -39,8 +39,8 @@ public:
     virtual result_t set_username(exlib::string newVal) = 0;
     virtual result_t get_password(exlib::string& retVal) = 0;
     virtual result_t set_password(exlib::string newVal) = 0;
-    virtual result_t get_host(exlib::string& retVal) = 0;
-    virtual result_t set_host(exlib::string newVal) = 0;
+    virtual result_t get__host(exlib::string& retVal) = 0;
+    virtual result_t set__host(exlib::string newVal) = 0;
     virtual result_t get_hostname(exlib::string& retVal) = 0;
     virtual result_t set_hostname(exlib::string newVal) = 0;
     virtual result_t get_port(exlib::string& retVal) = 0;
@@ -78,8 +78,8 @@ public:
     static void s_set_username(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_password(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_password(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_host(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_host(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get__host(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set__host(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_hostname(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_hostname(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_port(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -114,7 +114,7 @@ inline ClassInfo& UrlObject_base::class_info()
         { "auth", s_get_auth, s_set_auth, false },
         { "username", s_get_username, s_set_username, false },
         { "password", s_get_password, s_set_password, false },
-        { "host", s_get_host, s_set_host, false },
+        { "host", s_get__host, s_set__host, false },
         { "hostname", s_get_hostname, s_set_hostname, false },
         { "port", s_get_port, s_set_port, false },
         { "path", s_get_path, s_set_path, false },
@@ -377,7 +377,7 @@ inline void UrlObject_base::s_set_password(v8::Local<v8::Name> property, v8::Loc
     PROPERTY_SET_LEAVE();
 }
 
-inline void UrlObject_base::s_get_host(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void UrlObject_base::s_get__host(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -385,19 +385,19 @@ inline void UrlObject_base::s_get_host(v8::Local<v8::Name> property, const v8::P
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
-    hr = pInst->get_host(vr);
+    hr = pInst->get__host(vr);
 
     METHOD_RETURN();
 }
 
-inline void UrlObject_base::s_set_host(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void UrlObject_base::s_set__host(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("UrlObject.host");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
-    hr = pInst->set_host(v0);
+    hr = pInst->set__host(v0);
 
     PROPERTY_SET_LEAVE();
 }

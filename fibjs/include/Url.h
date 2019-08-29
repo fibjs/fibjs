@@ -45,8 +45,8 @@ public:
     virtual result_t set_username(exlib::string newVal);
     virtual result_t get_password(exlib::string& retVal);
     virtual result_t set_password(exlib::string newVal);
-    virtual result_t get_host(exlib::string& retVal);
-    virtual result_t set_host(exlib::string newVal);
+    virtual result_t get__host(exlib::string& retVal);
+    virtual result_t set__host(exlib::string newVal);
     virtual result_t get_hostname(exlib::string& retVal);
     virtual result_t set_hostname(exlib::string newVal);
     virtual result_t get_port(exlib::string& retVal);

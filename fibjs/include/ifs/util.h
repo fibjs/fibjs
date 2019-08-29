@@ -134,7 +134,7 @@ public:
     static void s_first(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_last(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unique(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_union(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__union(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_intersection(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_flatten(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_without(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -197,7 +197,7 @@ inline ClassInfo& util_base::class_info()
         { "first", s_first, true },
         { "last", s_last, true },
         { "unique", s_unique, true },
-        { "union", s_union, true },
+        { "union", s__union, true },
         { "intersection", s_intersection, true },
         { "flatten", s_flatten, true },
         { "without", s_without, true },
@@ -906,7 +906,7 @@ inline void util_base::s_unique(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void util_base::s_union(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void util_base::s__union(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 

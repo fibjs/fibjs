@@ -269,7 +269,7 @@ exlib::string host2RegExp(exlib::string pattern)
     exlib::string res;
     exlib::string str;
     exlib::string re, re1;
-    char ch, last_ch;
+    char ch;
 
     while (!p.end()) {
         ch = p.getChar();
@@ -372,12 +372,12 @@ result_t Routing::append(exlib::string pattern, Handler_base* hdlr,
     return append("*", pattern, hdlr, retVal);
 }
 
-result_t Routing::host(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
+result_t Routing::_host(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
 {
     return _append("HOST", map, retVal);
 }
 
-result_t Routing::host(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal)
+result_t Routing::_host(exlib::string pattern, Handler_base* hdlr, obj_ptr<Routing_base>& retVal)
 {
     return append("HOST", pattern, hdlr, retVal);
 }
