@@ -15,33 +15,38 @@
 namespace fibjs {
 
 #define SIZE_COUNT 4
-#define PROVIDER_COUNT 7
-#define MODE_COUNT 10
 
-static const char* s_modes[MODE_COUNT] = {
-    "", "-ECB", "-CBC", "-CFB64", "-CFB128", "-OFB", "-CTR", "-GCM", "", "-CCM"
+static const char* s_modes[] = {
+    "", "-ECB", "-CBC", "-CFB64", "-CFB128", "-OFB", "-CTR", "-GCM", "", "-CCM", "-XTS", "-POLY1305"
 };
+
+#define MODE_COUNT ARRAYSIZE(s_modes)
 
 static struct _cipher_size {
     const char* name;
-    size_t size;
     const mbedtls_cipher_info_t* cis[MODE_COUNT];
 } s_sizes[][SIZE_COUNT] = {
-    { { "AES-128", 0, {} },
-        { "AES-192", 0, {} },
-        { "AES-256", 0, {} } },
-    { { "CAMELLIA-128", 0, {} },
-        { "CAMELLIA-192", 0, {} },
-        { "CAMELLIA-256", 0, {} } },
-    { { "DES", 0, {} } },
-    { { "DES-EDE", 0, {} } },
-    { { "DES-EDE3", 0, {} } },
-    { { "BLOWFISH", 0, {} } },
-    { { "ARC4-40", 0, {} },
-        { "ARC4-56", 0, {} },
-        { "ARC4-64", 0, {} },
-        { "ARC4-128", 0, {} } }
+    { { "AES-128", {} },
+        { "AES-192", {} },
+        { "AES-256", {} } },
+    { { "CAMELLIA-128", {} },
+        { "CAMELLIA-192", {} },
+        { "CAMELLIA-256", {} } },
+    { { "DES", {} } },
+    { { "DES-EDE", {} } },
+    { { "DES-EDE3", {} } },
+    { { "BLOWFISH", {} } },
+    { { "ARC4-40", {} },
+        { "ARC4-56", {} },
+        { "ARC4-64", {} },
+        { "ARC4-128", {} } },
+    { { "ARIA-128", {} },
+        { "ARIA-192", {} },
+        { "ARIA-256", {} } },
+    { { "CHACHA20", {} } }
 };
+
+#define PROVIDER_COUNT ARRAYSIZE(s_sizes)
 
 class cipher_initer {
 public:
@@ -57,8 +62,6 @@ public:
 
                         name.append(s_modes[k]);
                         s_sizes[i][j].cis[k] = mbedtls_cipher_info_from_string(name.c_str());
-                        if (s_sizes[i][j].cis[k])
-                            s_sizes[i][j].size = s_sizes[i][j].cis[k]->key_bitlen;
                     }
     }
 } s_cipher_initer;
@@ -67,13 +70,14 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base* key,
     Buffer_base* iv, obj_ptr<Cipher_base>& retVal,
     v8::Local<v8::Object> This)
 {
-    if (provider < crypto_base::_AES || provider > crypto_base::_ARC4)
+    if (provider < crypto_base::_AES || provider > crypto_base::_CHACHA20)
         return CHECK_ERROR(Runtime::setError("Cipher: Invalid provider"));
-    if (mode < crypto_base::_ECB || mode > crypto_base::_CCM)
+    if (mode < crypto_base::_ECB || mode > crypto_base::_POLY1305)
         return CHECK_ERROR(Runtime::setError("Cipher: Invalid mode"));
 
     exlib::string strKey;
     const mbedtls_cipher_info_t* info = NULL;
+    bool bFoundMode = false;
 
     key->toString(strKey);
     size_t keylen = strKey.length();
@@ -86,13 +90,19 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base* key,
         keylen = 24;
     }
 
-    for (int32_t i = 0; i < SIZE_COUNT; i++)
-        if (s_sizes[provider - crypto_base::_AES][i].size == keylen * 8) {
-            info = s_sizes[provider - crypto_base::_AES][i].cis[mode];
-            if (info == NULL)
-                return CHECK_ERROR(Runtime::setError("Cipher: Invalid mode"));
-            break;
+    for (int32_t i = 0; i < SIZE_COUNT; i++) {
+        const mbedtls_cipher_info_t* mod_info = s_sizes[provider - crypto_base::_AES][i].cis[mode];
+        if (mod_info) {
+            bFoundMode = true;
+            if (mod_info->key_bitlen == keylen * 8) {
+                info = mod_info;
+                break;
+            }
         }
+    }
+
+    if (!bFoundMode)
+        return CHECK_ERROR(Runtime::setError("Cipher: Invalid mode"));
 
     if (info == NULL)
         return CHECK_ERROR(Runtime::setError("Cipher: Invalid key size"));
@@ -220,11 +230,14 @@ result_t Cipher::process(const mbedtls_operation_t operation, Buffer_base* data,
     size_t olen, ilen, offset, block_size, data_size;
 
     data->toString(input);
-    block_size = mbedtls_cipher_get_block_size(&m_ctx);
     data_size = input.length();
 
-    for (offset = 0; offset < data_size; offset += block_size) {
-        ilen = ((uint32_t)data_size - offset > block_size) ? block_size : (uint32_t)(data_size - offset);
+    block_size = mbedtls_cipher_get_block_size(&m_ctx);
+    if (block_size == 1)
+        block_size = sizeof(buffer);
+
+    for (offset = 0; offset < data_size; offset += olen) {
+        ilen = ((uint32_t)(data_size - offset) > block_size) ? block_size : (uint32_t)(data_size - offset);
 
         ret = mbedtls_cipher_update(&m_ctx, (unsigned char*)input.c_str() + offset,
             ilen, buffer, &olen);

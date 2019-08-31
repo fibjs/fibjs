@@ -193,11 +193,18 @@ describe('crypto', () => {
 
                     if (mode == crypto.CBC)
                         c.paddingMode(crypto.NOPADDING);
-                    assert.equal(c[item[1]](hex.decode(item[4])).hex(), item[5], item[0]);
+                    assert.equal(c[item[1]](hex.decode(item[4])).hex(), item[5]);
                 });
 
             });
         }
+
+        describe('AES', () => {
+            test_cipher(crypto.AES, "aes.cbc");
+            test_cipher(crypto.AES, "aes.cfb");
+            test_cipher(crypto.AES, "aes.ecb");
+            // test_cipher(crypto.AES, "aes.xts");
+        });
 
         test_cipher(crypto.CAMELLIA, "camellia");
         test_cipher(crypto.DES, "des");
@@ -205,11 +212,7 @@ describe('crypto', () => {
         test_cipher(crypto.BLOWFISH, "blowfish");
         test_cipher(crypto.ARC4, "arc4");
 
-        describe('AES', () => {
-            test_cipher(crypto.AES, "aes.cbc");
-            test_cipher(crypto.AES, "aes.cfb");
-            test_cipher(crypto.AES, "aes.ecb");
-        });
+        test_cipher(crypto.ARIA, "aria");
     });
 
     describe("PKey", () => {
@@ -712,7 +715,6 @@ describe('crypto', () => {
             pk.importKey(rsa1024_pem);
 
             req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk);
-
             assert.deepEqual(req.exportPem(), req1);
         })
 
