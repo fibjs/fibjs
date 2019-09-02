@@ -1,6 +1,30 @@
-//--------------------- json_format -----------------------------
-var json_format = (function () {
-    var p = [],
+const url = require('url');
+const util = require('util');
+const coroutine = require('coroutine');
+const fs = require('fs');
+const path = require('path');
+const ssl = require('ssl');
+const http = require('http');
+const zlib = require('zlib');
+const zip = require('zip');
+const hash = require('hash');
+const semver = require('internal/helpers/semver');
+const untar = require('internal/helpers/untar');
+
+const helpers_pkg = require('internal/helpers/package');
+const helpers_fs = require('internal/helpers/fs');
+const helpers_string = require('internal/helpers/string');
+const CST = require('internal/constant');
+
+const DEPENDENCIES = 'dependencies';
+const DEVDEPENDENCIES = 'devDependencies';
+const DEV_KEY_TUPLE = [ DEPENDENCIES, DEVDEPENDENCIES ];
+const SEP = path.sep;
+
+const install_log = process.env.FIBJS_SILENT_INSALL ? () => undefined : console.log.bind(console)
+
+const json_format = (function () {
+    let p = [],
         indentConfig = {
             tab: {
                 char: '\t',
@@ -26,8 +50,7 @@ var json_format = (function () {
 
     function JSONFormat(json, indentType) {
         p = [];
-        var out = "",
-            indent = 0;
+        let out = "", indent = 0;
 
         // Extract backslashes and strings
         json = json
@@ -36,8 +59,8 @@ var json_format = (function () {
             .replace(/\s+/, '');
 
         // Indent and insert newlines
-        for (var i = 0; i < json.length; i++) {
-            var c = json.charAt(i);
+        for (let i = 0; i < json.length; i++) {
+            const c = json.charAt(i);
 
             switch (c) {
                 case '{':
@@ -74,1324 +97,49 @@ var json_format = (function () {
 
     return function (json, config) {
         config = config || configDefault;
-        var indent = indentConfig[config.type];
+        const indent = indentConfig[config.type];
 
         if (indent == null) {
             throw new Error('Unrecognized indent type: "' + config.type + '"');
         }
-        var indentType = new Array((config.size || indent.size) + 1).join(indent.char);
+        const indentType = new Array((config.size || indent.size) + 1).join(indent.char);
         return JSONFormat(JSON.stringify(json), indentType);
     }
 })();
 
-//--------------------- untar -----------------------------
-var untar = (function () {
-    /*
-     * bytestream.js
-     *
-     * Provides readers for byte streams (reading).
-     *
-     * Licensed under the MIT License
-     *
-     * Copyright(c) 2011 Google Inc.
-     * Copyright(c) 2011 antimatter15
-     */
-
-    /**
-     * This object allows you to peek and consume bytes as numbers and strings
-     * out of an ArrayBuffer.  In this buffer, everything must be byte-aligned.
-     *
-     * @param {ArrayBuffer} ab The ArrayBuffer object.
-     * @param {number=} opt_offset The offset into the ArrayBuffer
-     * @param {number=} opt_length The length of this BitStream
-     * @constructor
-     */
-    ByteStream = function (ab, opt_offset, opt_length) {
-        var offset = opt_offset || 0;
-        var length = opt_length || ab.byteLength;
-        this.bytes = new Uint8Array(ab, offset, length);
-        this.ptr = 0;
-    };
-
-
-    /**
-     * Peeks at the next n bytes as an unsigned number but does not advance the
-     * pointer
-     * TODO: This apparently cannot read more than 4 bytes as a number?
-     * @param {number} n The number of bytes to peek at.
-     * @return {number} The n bytes interpreted as an unsigned number.
-     */
-    ByteStream.prototype.peekNumber = function (n) {
-        // TODO: return error if n would go past the end of the stream?
-        if (n <= 0 || typeof n != typeof 1)
-            return -1;
-
-        var result = 0;
-        // read from last byte to first byte and roll them in
-        var curByte = this.ptr + n - 1;
-        while (curByte >= this.ptr) {
-            result <<= 8;
-            result |= this.bytes[curByte];
-            --curByte;
-        }
-        return result;
-    };
-
-
-    /**
-     * Returns the next n bytes as an unsigned number (or -1 on error)
-     * and advances the stream pointer n bytes.
-     * @param {number} n The number of bytes to read.
-     * @return {number} The n bytes interpreted as an unsigned number.
-     */
-    ByteStream.prototype.readNumber = function (n) {
-        var num = this.peekNumber(n);
-        this.ptr += n;
-        return num;
-    };
-
-
-    /**
-     * Returns the next n bytes as a signed number but does not advance the
-     * pointer.
-     * @param {number} n The number of bytes to read.
-     * @return {number} The bytes interpreted as a signed number.
-     */
-    ByteStream.prototype.peekSignedNumber = function (n) {
-        var num = this.peekNumber(n);
-        var HALF = Math.pow(2, (n * 8) - 1);
-        var FULL = HALF * 2;
-
-        if (num >= HALF) num -= FULL;
-
-        return num;
-    };
-
-
-    /**
-     * Returns the next n bytes as a signed number and advances the stream pointer.
-     * @param {number} n The number of bytes to read.
-     * @return {number} The bytes interpreted as a signed number.
-     */
-    ByteStream.prototype.readSignedNumber = function (n) {
-        var num = this.peekSignedNumber(n);
-        this.ptr += n;
-        return num;
-    };
-
-
-    /**
-     * This returns n bytes as a sub-array, advancing the pointer if movePointers
-     * is true.
-     * @param {number} n The number of bytes to read.
-     * @param {boolean} movePointers Whether to move the pointers.
-     * @return {Uint8Array} The subarray.
-     */
-    ByteStream.prototype.peekBytes = function (n, movePointers) {
-        if (n <= 0 || typeof n != typeof 1) {
-            return null;
-        }
-
-        var result = this.bytes.subarray(this.ptr, this.ptr + n);
-
-        if (movePointers) {
-            this.ptr += n;
-        }
-
-        return result;
-    };
-
-
-    /**
-     * Reads the next n bytes as a sub-array.
-     * @param {number} n The number of bytes to read.
-     * @return {Uint8Array} The subarray.
-     */
-    ByteStream.prototype.readBytes = function (n) {
-        return this.peekBytes(n, true);
-    };
-
-
-    /**
-     * Peeks at the next n bytes as a string but does not advance the pointer.
-     * @param {number} n The number of bytes to peek at.
-     * @return {string} The next n bytes as a string.
-     */
-    ByteStream.prototype.peekString = function (n) {
-        if (n <= 0 || typeof n != typeof 1) {
-            return "";
-        }
-
-        var result = "";
-        for (var p = this.ptr, end = this.ptr + n; p < end; ++p) {
-            result += String.fromCharCode(this.bytes[p]);
-        }
-        return result;
-    };
-
-
-    /**
-     * Returns the next n bytes as an ASCII string and advances the stream pointer
-     * n bytes.
-     * @param {number} n The number of bytes to read.
-     * @return {string} The next n bytes as a string.
-     */
-    ByteStream.prototype.readString = function (n) {
-        var strToReturn = this.peekString(n);
-        this.ptr += n;
-        return strToReturn;
-    };
-
-
-    // Removes all characters from the first zero-byte in the string onwards.
-    var readCleanString = function (bstr, numBytes) {
-        var str = bstr.readString(numBytes);
-        var zIndex = str.indexOf(String.fromCharCode(0));
-        return zIndex != -1 ? str.substr(0, zIndex) : str;
-    };
-
-    // takes a ByteStream and parses out the local file information
-    function TarLocalFile(bstream) {
-        this.isValid = false;
-
-        // Read in the header block
-        this.name = readCleanString(bstream, 100);
-        this.mode = readCleanString(bstream, 8);
-        this.uid = readCleanString(bstream, 8);
-        this.gid = readCleanString(bstream, 8);
-
-        this.size = parseInt(readCleanString(bstream, 12), 8);
-        this.mtime = readCleanString(bstream, 12);
-        this.chksum = readCleanString(bstream, 8);
-        this.typeflag = readCleanString(bstream, 1);
-        this.linkname = readCleanString(bstream, 100);
-        this.maybeMagic = readCleanString(bstream, 6);
-
-        // 100+8+8+8+12+12+8+1+100+6 = 263 Bytes
-
-        if (this.maybeMagic == "ustar") {
-            this.version = readCleanString(bstream, 2);
-            this.uname = readCleanString(bstream, 32);
-            this.gname = readCleanString(bstream, 32);
-            this.devmajor = readCleanString(bstream, 8);
-            this.devminor = readCleanString(bstream, 8);
-            this.prefix = readCleanString(bstream, 155);
-
-            // 2+32+32+8+8+155 = 237 Bytes
-
-            if (this.prefix.length) {
-                this.name = this.prefix + this.name;
-            }
-            bstream.readBytes(12); // 512 - 263 - 237
-        } else {
-            bstream.readBytes(249); // 512 - 263
-        }
-
-        // Done header, now rest of blocks are the file contents.
-        this.filename = this.name;
-        this.fileData = null;
-
-        // console.info("Untarring file '" + this.filename + "'");
-        // console.info("  size = " + this.size);
-        // console.info("  typeflag = " + this.typeflag);
-
-        if (this.typeflag == 0) {
-            // console.info("  This is a regular file.");
-            var sizeInBytes = parseInt(this.size);
-            this.fileData = new Uint8Array(bstream.bytes.buffer, bstream.ptr, this.size);
-            if (this.name.length > 0 && this.fileData.buffer) {
-                this.isValid = true;
-            }
-        } else if (this.typeflag == 5) {
-            // console.info("  This is a directory.")
-        }
-
-        bstream.ptr += this.size;
-        // Round up to 512-byte blocks.
-        var remaining = 512 - bstream.ptr % 512;
-        // console.log('remaining')
-        if (remaining > 0 && remaining < 512) {
-            bstream.readBytes(remaining)
-        }
-    };
-
-    return function (arrayBuffer) {
-        var bstream = new ByteStream(arrayBuffer);
-        var localFiles = [];
-        // While we don't encounter an empty block, keep making TarLocalFiles.
-        while (bstream.peekNumber(4) != 0) {
-            var oneLocalFile = new TarLocalFile(bstream);
-            if (oneLocalFile && oneLocalFile.isValid) {
-                localFiles.push(oneLocalFile);
-                // totalUncompressedBytesInArchive += oneLocalFile.size;
-            }
-        }
-        return localFiles;
+// ---------------------- UTILS :start ------------------------- //
+/**
+ * @description read modules from `node_modules` to generate existed modules snapshot
+ * @sample 
+    {
+        name: "module",
+        version: "1.0.0",
+        dep_vs: { "module-a": "1.0.0" },
+        devDeps: { "dev-module-a": "1.0.0" },
+        node_modules: {},
+        parent: null,
+        // dist info from registry
+        dist: {},
+        new_module: true,
     }
-})();
-//--------------------- untar -----------------------------
-var semvar = (function () {
-    var exports = {};
-    var debug;
-    if (typeof process === 'object' &&
-        process.env &&
-        process.env.NODE_DEBUG &&
-        /\bsemver\b/i.test(process.env.NODE_DEBUG))
-        debug = function () {};
-    else
-        debug = function () {};
-    exports.SEMVER_SPEC_VERSION = '2.0.0';
-    var MAX_LENGTH = 256;
-    var MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER || 9007199254740991;
-    var re = exports.re = [];
-    var src = exports.src = [];
-    var R = 0;
-
-    var NUMERICIDENTIFIER = R++;
-    src[NUMERICIDENTIFIER] = '0|[1-9]\\d*';
-    var NUMERICIDENTIFIERLOOSE = R++;
-    src[NUMERICIDENTIFIERLOOSE] = '[0-9]+';
-
-    var NONNUMERICIDENTIFIER = R++;
-    src[NONNUMERICIDENTIFIER] = '\\d*[a-zA-Z-][a-zA-Z0-9-]*';
-
-    var MAINVERSION = R++;
-    src[MAINVERSION] = '(' + src[NUMERICIDENTIFIER] + ')\\.' +
-        '(' + src[NUMERICIDENTIFIER] + ')\\.' +
-        '(' + src[NUMERICIDENTIFIER] + ')';
-    var MAINVERSIONLOOSE = R++;
-    src[MAINVERSIONLOOSE] = '(' + src[NUMERICIDENTIFIERLOOSE] + ')\\.' +
-        '(' + src[NUMERICIDENTIFIERLOOSE] + ')\\.' +
-        '(' + src[NUMERICIDENTIFIERLOOSE] + ')';
-
-    var PRERELEASEIDENTIFIER = R++;
-    src[PRERELEASEIDENTIFIER] = '(?:' + src[NUMERICIDENTIFIER] +
-        '|' + src[NONNUMERICIDENTIFIER] + ')';
-    var PRERELEASEIDENTIFIERLOOSE = R++;
-    src[PRERELEASEIDENTIFIERLOOSE] = '(?:' + src[NUMERICIDENTIFIERLOOSE] +
-        '|' + src[NONNUMERICIDENTIFIER] + ')';
-
-    var PRERELEASE = R++;
-    src[PRERELEASE] = '(?:-(' + src[PRERELEASEIDENTIFIER] +
-        '(?:\\.' + src[PRERELEASEIDENTIFIER] + ')*))';
-    var PRERELEASELOOSE = R++;
-    src[PRERELEASELOOSE] = '(?:-?(' + src[PRERELEASEIDENTIFIERLOOSE] +
-        '(?:\\.' + src[PRERELEASEIDENTIFIERLOOSE] + ')*))';
-
-    var BUILDIDENTIFIER = R++;
-    src[BUILDIDENTIFIER] = '[0-9A-Za-z-]+';
-
-    var BUILD = R++;
-    src[BUILD] = '(?:\\+(' + src[BUILDIDENTIFIER] +
-        '(?:\\.' + src[BUILDIDENTIFIER] + ')*))';
-
-    var FULL = R++;
-    var FULLPLAIN = 'v?' + src[MAINVERSION] +
-        src[PRERELEASE] + '?' +
-        src[BUILD] + '?';
-    src[FULL] = '^' + FULLPLAIN + '$';
-    var LOOSEPLAIN = '[v=\\s]*' + src[MAINVERSIONLOOSE] +
-        src[PRERELEASELOOSE] + '?' +
-        src[BUILD] + '?';
-    var LOOSE = R++;
-    src[LOOSE] = '^' + LOOSEPLAIN + '$';
-    var GTLT = R++;
-    src[GTLT] = '((?:<|>)?=?)';
-    var XRANGEIDENTIFIERLOOSE = R++;
-    src[XRANGEIDENTIFIERLOOSE] = src[NUMERICIDENTIFIERLOOSE] + '|x|X|\\*';
-    var XRANGEIDENTIFIER = R++;
-    src[XRANGEIDENTIFIER] = src[NUMERICIDENTIFIER] + '|x|X|\\*';
-    var XRANGEPLAIN = R++;
-    src[XRANGEPLAIN] = '[v=\\s]*(' + src[XRANGEIDENTIFIER] + ')' +
-        '(?:\\.(' + src[XRANGEIDENTIFIER] + ')' +
-        '(?:\\.(' + src[XRANGEIDENTIFIER] + ')' +
-        '(?:' + src[PRERELEASE] + ')?' +
-        src[BUILD] + '?' +
-        ')?)?';
-    var XRANGEPLAINLOOSE = R++;
-    src[XRANGEPLAINLOOSE] = '[v=\\s]*(' + src[XRANGEIDENTIFIERLOOSE] + ')' +
-        '(?:\\.(' + src[XRANGEIDENTIFIERLOOSE] + ')' +
-        '(?:\\.(' + src[XRANGEIDENTIFIERLOOSE] + ')' +
-        '(?:' + src[PRERELEASELOOSE] + ')?' +
-        src[BUILD] + '?' +
-        ')?)?';
-    var XRANGE = R++;
-    src[XRANGE] = '^' + src[GTLT] + '\\s*' + src[XRANGEPLAIN] + '$';
-    var XRANGELOOSE = R++;
-    src[XRANGELOOSE] = '^' + src[GTLT] + '\\s*' + src[XRANGEPLAINLOOSE] + '$';
-    var LONETILDE = R++;
-    src[LONETILDE] = '(?:~>?)';
-    var TILDETRIM = R++;
-    src[TILDETRIM] = '(\\s*)' + src[LONETILDE] + '\\s+';
-    re[TILDETRIM] = new RegExp(src[TILDETRIM], 'g');
-    var tildeTrimReplace = '$1~';
-    var TILDE = R++;
-    src[TILDE] = '^' + src[LONETILDE] + src[XRANGEPLAIN] + '$';
-    var TILDELOOSE = R++;
-    src[TILDELOOSE] = '^' + src[LONETILDE] + src[XRANGEPLAINLOOSE] + '$';
-    var LONECARET = R++;
-    src[LONECARET] = '(?:\\^)';
-    var CARETTRIM = R++;
-    src[CARETTRIM] = '(\\s*)' + src[LONECARET] + '\\s+';
-    re[CARETTRIM] = new RegExp(src[CARETTRIM], 'g');
-    var caretTrimReplace = '$1^';
-    var CARET = R++;
-    src[CARET] = '^' + src[LONECARET] + src[XRANGEPLAIN] + '$';
-    var CARETLOOSE = R++;
-    src[CARETLOOSE] = '^' + src[LONECARET] + src[XRANGEPLAINLOOSE] + '$';
-    var COMPARATORLOOSE = R++;
-    src[COMPARATORLOOSE] = '^' + src[GTLT] + '\\s*(' + LOOSEPLAIN + ')$|^$';
-    var COMPARATOR = R++;
-    src[COMPARATOR] = '^' + src[GTLT] + '\\s*(' + FULLPLAIN + ')$|^$';
-
-    var COMPARATORTRIM = R++;
-    src[COMPARATORTRIM] = '(\\s*)' + src[GTLT] +
-        '\\s*(' + LOOSEPLAIN + '|' + src[XRANGEPLAIN] + ')';
-    re[COMPARATORTRIM] = new RegExp(src[COMPARATORTRIM], 'g');
-    var comparatorTrimReplace = '$1$2$3';
-
-    var HYPHENRANGE = R++;
-    src[HYPHENRANGE] = '^\\s*(' + src[XRANGEPLAIN] + ')' +
-        '\\s+-\\s+' +
-        '(' + src[XRANGEPLAIN] + ')' +
-        '\\s*$';
-    var HYPHENRANGELOOSE = R++;
-    src[HYPHENRANGELOOSE] = '^\\s*(' + src[XRANGEPLAINLOOSE] + ')' +
-        '\\s+-\\s+' +
-        '(' + src[XRANGEPLAINLOOSE] + ')' +
-        '\\s*$';
-    var STAR = R++;
-    src[STAR] = '(<|>)?=?\\s*\\*';
-    for (var i = 0; i < R; i++) {
-        debug(i, src[i]);
-        if (!re[i])
-            re[i] = new RegExp(src[i]);
-    }
-    exports.parse = parse;
-
-    function parse(version, loose) {
-        if (version instanceof SemVer)
-            return version;
-        if (typeof version !== 'string')
-            return null;
-        if (version.length > MAX_LENGTH)
-            return null;
-        var r = loose ? re[LOOSE] : re[FULL];
-        if (!r.test(version))
-            return null;
-        try {
-            return new SemVer(version, loose);
-        } catch (er) {
-            return null;
-        }
-    }
-    exports.valid = valid;
-
-    function valid(version, loose) {
-        var v = parse(version, loose);
-        return v ? v.version : null;
-    }
-
-    exports.clean = clean;
-
-    function clean(version, loose) {
-        var s = parse(version.trim().replace(/^[=v]+/, ''), loose);
-        return s ? s.version : null;
-    }
-    exports.SemVer = SemVer;
-
-    function SemVer(version, loose) {
-        if (version instanceof SemVer) {
-            if (version.loose === loose)
-                return version;
-            else
-                version = version.version;
-        } else if (typeof version !== 'string') {
-            throw new TypeError('Invalid Version: ' + version);
-        }
-        if (version.length > MAX_LENGTH)
-            throw new TypeError('version is longer than ' + MAX_LENGTH + ' characters')
-        if (!(this instanceof SemVer))
-            return new SemVer(version, loose);
-        debug('SemVer', version, loose);
-        this.loose = loose;
-        var m = version.trim().match(loose ? re[LOOSE] : re[FULL]);
-        if (!m)
-            throw new TypeError('Invalid Version: ' + version);
-        this.raw = version;
-        this.major = +m[1];
-        this.minor = +m[2];
-        this.patch = +m[3];
-        if (this.major > MAX_SAFE_INTEGER || this.major < 0)
-            throw new TypeError('Invalid major version')
-        if (this.minor > MAX_SAFE_INTEGER || this.minor < 0)
-            throw new TypeError('Invalid minor version')
-        if (this.patch > MAX_SAFE_INTEGER || this.patch < 0)
-            throw new TypeError('Invalid patch version')
-        if (!m[4])
-            this.prerelease = [];
-        else
-            this.prerelease = m[4].split('.').map(function (id) {
-                if (/^[0-9]+$/.test(id)) {
-                    var num = +id;
-                    if (num >= 0 && num < MAX_SAFE_INTEGER)
-                        return num;
-                }
-                return id;
-            });
-        this.build = m[5] ? m[5].split('.') : [];
-        this.format();
-    }
-    SemVer.prototype.format = function () {
-        this.version = this.major + '.' + this.minor + '.' + this.patch;
-        if (this.prerelease.length)
-            this.version += '-' + this.prerelease.join('.');
-        return this.version;
-    };
-    SemVer.prototype.toString = function () {
-        return this.version;
-    };
-    SemVer.prototype.compare = function (other) {
-        debug('SemVer.compare', this.version, this.loose, other);
-        if (!(other instanceof SemVer))
-            other = new SemVer(other, this.loose);
-        return this.compareMain(other) || this.comparePre(other);
-    };
-    SemVer.prototype.compareMain = function (other) {
-        if (!(other instanceof SemVer))
-            other = new SemVer(other, this.loose);
-        return compareIdentifiers(this.major, other.major) ||
-            compareIdentifiers(this.minor, other.minor) ||
-            compareIdentifiers(this.patch, other.patch);
-    };
-    SemVer.prototype.comparePre = function (other) {
-        if (!(other instanceof SemVer))
-            other = new SemVer(other, this.loose);
-        if (this.prerelease.length && !other.prerelease.length)
-            return -1;
-        else if (!this.prerelease.length && other.prerelease.length)
-            return 1;
-        else if (!this.prerelease.length && !other.prerelease.length)
-            return 0;
-        var i = 0;
-        do {
-            var a = this.prerelease[i];
-            var b = other.prerelease[i];
-            debug('prerelease compare', i, a, b);
-            if (a === undefined && b === undefined)
-                return 0;
-            else if (b === undefined)
-                return 1;
-            else if (a === undefined)
-                return -1;
-            else if (a === b)
-                continue;
-            else
-                return compareIdentifiers(a, b);
-        } while (++i);
-    };
-    SemVer.prototype.inc = function (release, identifier) {
-        switch (release) {
-            case 'premajor':
-                this.prerelease.length = 0;
-                this.patch = 0;
-                this.minor = 0;
-                this.major++;
-                this.inc('pre', identifier);
-                break;
-            case 'preminor':
-                this.prerelease.length = 0;
-                this.patch = 0;
-                this.minor++;
-                this.inc('pre', identifier);
-                break;
-            case 'prepatch':
-                this.prerelease.length = 0;
-                this.inc('patch', identifier);
-                this.inc('pre', identifier);
-                break;
-            case 'prerelease':
-                if (this.prerelease.length === 0)
-                    this.inc('patch', identifier);
-                this.inc('pre', identifier);
-                break;
-            case 'major':
-                if (this.minor !== 0 || this.patch !== 0 || this.prerelease.length === 0)
-                    this.major++;
-                this.minor = 0;
-                this.patch = 0;
-                this.prerelease = [];
-                break;
-            case 'minor':
-                if (this.patch !== 0 || this.prerelease.length === 0)
-                    this.minor++;
-                this.patch = 0;
-                this.prerelease = [];
-                break;
-            case 'patch':
-                if (this.prerelease.length === 0)
-                    this.patch++;
-                this.prerelease = [];
-                break;
-            case 'pre':
-                if (this.prerelease.length === 0)
-                    this.prerelease = [0];
-                else {
-                    var i = this.prerelease.length;
-                    while (--i >= 0) {
-                        if (typeof this.prerelease[i] === 'number') {
-                            this.prerelease[i]++;
-                            i = -2;
-                        }
-                    }
-                    if (i === -1) // didn't increment anything
-                        this.prerelease.push(0);
-                }
-                if (identifier) {
-                    if (this.prerelease[0] === identifier) {
-                        if (isNaN(this.prerelease[1]))
-                            this.prerelease = [identifier, 0];
-                    } else
-                        this.prerelease = [identifier, 0];
-                }
-                break;
-            default:
-                throw new Error('invalid increment argument: ' + release);
-        }
-        this.format();
-        this.raw = this.version;
-        return this;
-    };
-    exports.inc = inc;
-
-    function inc(version, release, loose, identifier) {
-        if (typeof (loose) === 'string') {
-            identifier = loose;
-            loose = undefined;
-        }
-        try {
-            return new SemVer(version, loose).inc(release, identifier).version;
-        } catch (er) {
-            return null;
-        }
-    }
-    exports.diff = diff;
-
-    function diff(version1, version2) {
-        if (eq(version1, version2)) {
-            return null;
-        } else {
-            var v1 = parse(version1);
-            var v2 = parse(version2);
-            if (v1.prerelease.length || v2.prerelease.length) {
-                for (var key in v1) {
-                    if (key === 'major' || key === 'minor' || key === 'patch') {
-                        if (v1[key] !== v2[key]) {
-                            return 'pre' + key;
-                        }
-                    }
-                }
-                return 'prerelease';
-            }
-            for (var key in v1) {
-                if (key === 'major' || key === 'minor' || key === 'patch') {
-                    if (v1[key] !== v2[key]) {
-                        return key;
-                    }
-                }
-            }
-        }
-    }
-    exports.compareIdentifiers = compareIdentifiers;
-    var numeric = /^[0-9]+$/;
-
-    function compareIdentifiers(a, b) {
-        var anum = numeric.test(a);
-        var bnum = numeric.test(b);
-        if (anum && bnum) {
-            a = +a;
-            b = +b;
-        }
-        return (anum && !bnum) ? -1 :
-            (bnum && !anum) ? 1 :
-            a < b ? -1 :
-            a > b ? 1 :
-            0;
-    }
-    exports.rcompareIdentifiers = rcompareIdentifiers;
-
-    function rcompareIdentifiers(a, b) {
-        return compareIdentifiers(b, a);
-    }
-    exports.major = major;
-
-    function major(a, loose) {
-        return new SemVer(a, loose).major;
-    }
-    exports.minor = minor;
-
-    function minor(a, loose) {
-        return new SemVer(a, loose).minor;
-    }
-    exports.patch = patch;
-
-    function patch(a, loose) {
-        return new SemVer(a, loose).patch;
-    }
-    exports.compare = compare;
-
-    function compare(a, b, loose) {
-        return new SemVer(a, loose).compare(new SemVer(b, loose));
-    }
-    exports.compareLoose = compareLoose;
-
-    function compareLoose(a, b) {
-        return compare(a, b, true);
-    }
-    exports.rcompare = rcompare;
-
-    function rcompare(a, b, loose) {
-        return compare(b, a, loose);
-    }
-    exports.sort = sort;
-
-    function sort(list, loose) {
-        return list.sort(function (a, b) {
-            return exports.compare(a, b, loose);
-        });
-    }
-    exports.rsort = rsort;
-
-    function rsort(list, loose) {
-        return list.sort(function (a, b) {
-            return exports.rcompare(a, b, loose);
-        });
-    }
-    exports.gt = gt;
-
-    function gt(a, b, loose) {
-        return compare(a, b, loose) > 0;
-    }
-    exports.lt = lt;
-
-    function lt(a, b, loose) {
-        return compare(a, b, loose) < 0;
-    }
-    exports.eq = eq;
-
-    function eq(a, b, loose) {
-        return compare(a, b, loose) === 0;
-    }
-    exports.neq = neq;
-
-    function neq(a, b, loose) {
-        return compare(a, b, loose) !== 0;
-    }
-    exports.gte = gte;
-
-    function gte(a, b, loose) {
-        return compare(a, b, loose) >= 0;
-    }
-    exports.lte = lte;
-
-    function lte(a, b, loose) {
-        return compare(a, b, loose) <= 0;
-    }
-    exports.cmp = cmp;
-
-    function cmp(a, op, b, loose) {
-        var ret;
-        switch (op) {
-            case '===':
-                if (typeof a === 'object') a = a.version;
-                if (typeof b === 'object') b = b.version;
-                ret = a === b;
-                break;
-            case '!==':
-                if (typeof a === 'object') a = a.version;
-                if (typeof b === 'object') b = b.version;
-                ret = a !== b;
-                break;
-            case '':
-            case '=':
-            case '==':
-                ret = eq(a, b, loose);
-                break;
-            case '!=':
-                ret = neq(a, b, loose);
-                break;
-            case '>':
-                ret = gt(a, b, loose);
-                break;
-            case '>=':
-                ret = gte(a, b, loose);
-                break;
-            case '<':
-                ret = lt(a, b, loose);
-                break;
-            case '<=':
-                ret = lte(a, b, loose);
-                break;
-            default:
-                throw new TypeError('Invalid operator: ' + op);
-        }
-        return ret;
-    }
-    exports.Comparator = Comparator;
-
-    function Comparator(comp, loose) {
-        if (comp instanceof Comparator) {
-            if (comp.loose === loose)
-                return comp;
-            else
-                comp = comp.value;
-        }
-        if (!(this instanceof Comparator))
-            return new Comparator(comp, loose);
-        debug('comparator', comp, loose);
-        this.loose = loose;
-        this.parse(comp);
-        if (this.semver === ANY)
-            this.value = '';
-        else
-            this.value = this.operator + this.semver.version;
-        debug('comp', this);
-    }
-    var ANY = {};
-    Comparator.prototype.parse = function (comp) {
-        var r = this.loose ? re[COMPARATORLOOSE] : re[COMPARATOR];
-        var m = comp.match(r);
-        if (!m)
-            throw new TypeError('Invalid comparator: ' + comp);
-        this.operator = m[1];
-        if (this.operator === '=')
-            this.operator = '';
-        if (!m[2])
-            this.semver = ANY;
-        else
-            this.semver = new SemVer(m[2], this.loose);
-    };
-    Comparator.prototype.toString = function () {
-        return this.value;
-    };
-    Comparator.prototype.test = function (version) {
-        debug('Comparator.test', version, this.loose);
-        if (this.semver === ANY)
-            return true;
-        if (typeof version === 'string')
-            version = new SemVer(version, this.loose);
-        return cmp(version, this.operator, this.semver, this.loose);
-    };
-    Comparator.prototype.intersects = function (comp, loose) {
-        if (!(comp instanceof Comparator)) {
-            throw new TypeError('a Comparator is required');
-        }
-        var rangeTmp;
-        if (this.operator === '') {
-            rangeTmp = new Range(comp.value, loose);
-            return satisfies(this.value, rangeTmp, loose);
-        } else if (comp.operator === '') {
-            rangeTmp = new Range(this.value, loose);
-            return satisfies(comp.semver, rangeTmp, loose);
-        }
-        var sameDirectionIncreasing =
-            (this.operator === '>=' || this.operator === '>') &&
-            (comp.operator === '>=' || comp.operator === '>');
-        var sameDirectionDecreasing =
-            (this.operator === '<=' || this.operator === '<') &&
-            (comp.operator === '<=' || comp.operator === '<');
-        var sameSemVer = this.semver.version === comp.semver.version;
-        var differentDirectionsInclusive =
-            (this.operator === '>=' || this.operator === '<=') &&
-            (comp.operator === '>=' || comp.operator === '<=');
-        var oppositeDirectionsLessThan =
-            cmp(this.semver, '<', comp.semver, loose) &&
-            ((this.operator === '>=' || this.operator === '>') &&
-                (comp.operator === '<=' || comp.operator === '<'));
-        var oppositeDirectionsGreaterThan =
-            cmp(this.semver, '>', comp.semver, loose) &&
-            ((this.operator === '<=' || this.operator === '<') &&
-                (comp.operator === '>=' || comp.operator === '>'));
-        return sameDirectionIncreasing || sameDirectionDecreasing ||
-            (sameSemVer && differentDirectionsInclusive) ||
-            oppositeDirectionsLessThan || oppositeDirectionsGreaterThan;
-    };
-
-    exports.Range = Range;
-
-    function Range(range, loose) {
-        if (range instanceof Range) {
-            if (range.loose === loose) {
-                return range;
-            } else {
-                return new Range(range.raw, loose);
-            }
-        }
-        if (range instanceof Comparator) {
-            return new Range(range.value, loose);
-        }
-        if (!(this instanceof Range))
-            return new Range(range, loose);
-        this.loose = loose;
-        this.raw = range;
-        this.set = range.split(/\s*\|\|\s*/).map(function (range) {
-            return this.parseRange(range.trim());
-        }, this).filter(function (c) {
-            return c.length;
-        });
-        if (!this.set.length) {
-            throw new TypeError('Invalid SemVer Range: ' + range);
-        }
-        this.format();
-    }
-    Range.prototype.format = function () {
-        this.range = this.set.map(function (comps) {
-            return comps.join(' ').trim();
-        }).join('||').trim();
-        return this.range;
-    };
-    Range.prototype.toString = function () {
-        return this.range;
-    };
-    Range.prototype.parseRange = function (range) {
-        var loose = this.loose;
-        range = range.trim();
-        debug('range', range, loose);
-        var hr = loose ? re[HYPHENRANGELOOSE] : re[HYPHENRANGE];
-        range = range.replace(hr, hyphenReplace);
-        debug('hyphen replace', range);
-        range = range.replace(re[COMPARATORTRIM], comparatorTrimReplace);
-        debug('comparator trim', range, re[COMPARATORTRIM]);
-        range = range.replace(re[TILDETRIM], tildeTrimReplace);
-        range = range.replace(re[CARETTRIM], caretTrimReplace);
-        range = range.split(/\s+/).join(' ');
-
-        var compRe = loose ? re[COMPARATORLOOSE] : re[COMPARATOR];
-        var set = range.split(' ').map(function (comp) {
-            return parseComparator(comp, loose);
-        }).join(' ').split(/\s+/);
-        if (this.loose) {
-            set = set.filter(function (comp) {
-                return !!comp.match(compRe);
-            });
-        }
-        set = set.map(function (comp) {
-            return new Comparator(comp, loose);
-        });
-        return set;
-    };
-    Range.prototype.intersects = function (range, loose) {
-        if (!(range instanceof Range)) {
-            throw new TypeError('a Range is required');
-        }
-        return this.set.some(function (thisComparators) {
-            return thisComparators.every(function (thisComparator) {
-                return range.set.some(function (rangeComparators) {
-                    return rangeComparators.every(function (rangeComparator) {
-                        return thisComparator.intersects(rangeComparator, loose);
-                    });
-                });
-            });
-        });
-    };
-    exports.toComparators = toComparators;
-
-    function toComparators(range, loose) {
-        return new Range(range, loose).set.map(function (comp) {
-            return comp.map(function (c) {
-                return c.value;
-            }).join(' ').trim().split(' ');
-        });
-    }
-
-    function parseComparator(comp, loose) {
-        debug('comp', comp);
-        comp = replaceCarets(comp, loose);
-        debug('caret', comp);
-        comp = replaceTildes(comp, loose);
-        debug('tildes', comp);
-        comp = replaceXRanges(comp, loose);
-        debug('xrange', comp);
-        comp = replaceStars(comp, loose);
-        debug('stars', comp);
-        return comp;
-    }
-
-    function isX(id) {
-        return !id || id.toLowerCase() === 'x' || id === '*';
-    }
-
-    function replaceTildes(comp, loose) {
-        return comp.trim().split(/\s+/).map(function (comp) {
-            return replaceTilde(comp, loose);
-        }).join(' ');
-    }
-
-    function replaceTilde(comp, loose) {
-        var r = loose ? re[TILDELOOSE] : re[TILDE];
-        return comp.replace(r, function (_, M, m, p, pr) {
-            debug('tilde', comp, _, M, m, p, pr);
-            var ret;
-            if (isX(M))
-                ret = '';
-            else if (isX(m))
-                ret = '>=' + M + '.0.0 <' + (+M + 1) + '.0.0';
-            else if (isX(p))
-                ret = '>=' + M + '.' + m + '.0 <' + M + '.' + (+m + 1) + '.0';
-            else if (pr) {
-                debug('replaceTilde pr', pr);
-                if (pr.charAt(0) !== '-')
-                    pr = '-' + pr;
-                ret = '>=' + M + '.' + m + '.' + p + pr +
-                    ' <' + M + '.' + (+m + 1) + '.0';
-            } else
-                ret = '>=' + M + '.' + m + '.' + p +
-                ' <' + M + '.' + (+m + 1) + '.0';
-            debug('tilde return', ret);
-            return ret;
-        });
-    }
-
-    function replaceCarets(comp, loose) {
-        return comp.trim().split(/\s+/).map(function (comp) {
-            return replaceCaret(comp, loose);
-        }).join(' ');
-    }
-
-    function replaceCaret(comp, loose) {
-        debug('caret', comp, loose);
-        var r = loose ? re[CARETLOOSE] : re[CARET];
-        return comp.replace(r, function (_, M, m, p, pr) {
-            debug('caret', comp, _, M, m, p, pr);
-            var ret;
-            if (isX(M))
-                ret = '';
-            else if (isX(m))
-                ret = '>=' + M + '.0.0 <' + (+M + 1) + '.0.0';
-            else if (isX(p)) {
-                if (M === '0')
-                    ret = '>=' + M + '.' + m + '.0 <' + M + '.' + (+m + 1) + '.0';
-                else
-                    ret = '>=' + M + '.' + m + '.0 <' + (+M + 1) + '.0.0';
-            } else if (pr) {
-                debug('replaceCaret pr', pr);
-                if (pr.charAt(0) !== '-')
-                    pr = '-' + pr;
-                if (M === '0') {
-                    if (m === '0')
-                        ret = '>=' + M + '.' + m + '.' + p + pr +
-                        ' <' + M + '.' + m + '.' + (+p + 1);
-                    else
-                        ret = '>=' + M + '.' + m + '.' + p + pr +
-                        ' <' + M + '.' + (+m + 1) + '.0';
-                } else
-                    ret = '>=' + M + '.' + m + '.' + p + pr +
-                    ' <' + (+M + 1) + '.0.0';
-            } else {
-                debug('no pr');
-                if (M === '0') {
-                    if (m === '0')
-                        ret = '>=' + M + '.' + m + '.' + p +
-                        ' <' + M + '.' + m + '.' + (+p + 1);
-                    else
-                        ret = '>=' + M + '.' + m + '.' + p +
-                        ' <' + M + '.' + (+m + 1) + '.0';
-                } else
-                    ret = '>=' + M + '.' + m + '.' + p +
-                    ' <' + (+M + 1) + '.0.0';
-            }
-            debug('caret return', ret);
-            return ret;
-        });
-    }
-
-    function replaceXRanges(comp, loose) {
-        debug('replaceXRanges', comp, loose);
-        return comp.split(/\s+/).map(function (comp) {
-            return replaceXRange(comp, loose);
-        }).join(' ');
-    }
-
-    function replaceXRange(comp, loose) {
-        comp = comp.trim();
-        var r = loose ? re[XRANGELOOSE] : re[XRANGE];
-        return comp.replace(r, function (ret, gtlt, M, m, p, pr) {
-            debug('xRange', comp, ret, gtlt, M, m, p, pr);
-            var xM = isX(M);
-            var xm = xM || isX(m);
-            var xp = xm || isX(p);
-            var anyX = xp;
-            if (gtlt === '=' && anyX)
-                gtlt = '';
-            if (xM) {
-                if (gtlt === '>' || gtlt === '<') {
-                    ret = '<0.0.0';
-                } else {
-                    ret = '*';
-                }
-            } else if (gtlt && anyX) {
-                if (xm)
-                    m = 0;
-                if (xp)
-                    p = 0;
-                if (gtlt === '>') {
-                    gtlt = '>=';
-                    if (xm) {
-                        M = +M + 1;
-                        m = 0;
-                        p = 0;
-                    } else if (xp) {
-                        m = +m + 1;
-                        p = 0;
-                    }
-                } else if (gtlt === '<=') {
-                    gtlt = '<';
-                    if (xm)
-                        M = +M + 1;
-                    else
-                        m = +m + 1;
-                }
-                ret = gtlt + M + '.' + m + '.' + p;
-            } else if (xm) {
-                ret = '>=' + M + '.0.0 <' + (+M + 1) + '.0.0';
-            } else if (xp) {
-                ret = '>=' + M + '.' + m + '.0 <' + M + '.' + (+m + 1) + '.0';
-            }
-            debug('xRange return', ret);
-            return ret;
-        });
-    }
-
-    function replaceStars(comp, loose) {
-        debug('replaceStars', comp, loose);
-        return comp.trim().replace(re[STAR], '');
-    }
-
-    function hyphenReplace($0,
-        from, fM, fm, fp, fpr, fb,
-        to, tM, tm, tp, tpr, tb) {
-        if (isX(fM))
-            from = '';
-        else if (isX(fm))
-            from = '>=' + fM + '.0.0';
-        else if (isX(fp))
-            from = '>=' + fM + '.' + fm + '.0';
-        else
-            from = '>=' + from;
-        if (isX(tM))
-            to = '';
-        else if (isX(tm))
-            to = '<' + (+tM + 1) + '.0.0';
-        else if (isX(tp))
-            to = '<' + tM + '.' + (+tm + 1) + '.0';
-        else if (tpr)
-            to = '<=' + tM + '.' + tm + '.' + tp + '-' + tpr;
-        else
-            to = '<=' + to;
-        return (from + ' ' + to).trim();
-    }
-
-    Range.prototype.test = function (version) {
-        if (!version)
-            return false;
-        if (typeof version === 'string')
-            version = new SemVer(version, this.loose);
-        for (var i = 0; i < this.set.length; i++) {
-            if (testSet(this.set[i], version))
-                return true;
-        }
-        return false;
-    };
-
-    function testSet(set, version) {
-        for (var i = 0; i < set.length; i++) {
-            if (!set[i].test(version))
-                return false;
-        }
-        if (version.prerelease.length) {
-            for (var i = 0; i < set.length; i++) {
-                debug(set[i].semver);
-                if (set[i].semver === ANY)
-                    continue;
-                if (set[i].semver.prerelease.length > 0) {
-                    var allowed = set[i].semver;
-                    if (allowed.major === version.major &&
-                        allowed.minor === version.minor &&
-                        allowed.patch === version.patch)
-                        return true;
-                }
-            }
-            return false;
-        }
-        return true;
-    }
-    exports.satisfies = satisfies;
-
-    function satisfies(version, range, loose) {
-        try {
-            range = new Range(range, loose);
-        } catch (er) {
-            return false;
-        }
-        return range.test(version);
-    }
-    exports.maxSatisfying = maxSatisfying;
-
-    function maxSatisfying(versions, range, loose) {
-        var max = null;
-        var maxSV = null;
-        try {
-            var rangeObj = new Range(range, loose);
-        } catch (er) {
-            return null;
-        }
-        versions.forEach(function (v) {
-            if (rangeObj.test(v)) { // satisfies(v, range, loose)
-                if (!max || maxSV.compare(v) === -1) { // compare(max, v, true)
-                    max = v;
-                    maxSV = new SemVer(max, loose);
-                }
-            }
-        })
-        return max;
-    }
-    exports.minSatisfying = minSatisfying;
-
-    function minSatisfying(versions, range, loose) {
-        var min = null;
-        var minSV = null;
-        try {
-            var rangeObj = new Range(range, loose);
-        } catch (er) {
-            return null;
-        }
-        versions.forEach(function (v) {
-            if (rangeObj.test(v)) { // satisfies(v, range, loose)
-                if (!min || minSV.compare(v) === 1) { // compare(min, v, true)
-                    min = v;
-                    minSV = new SemVer(min, loose);
-                }
-            }
-        })
-        return min;
-    }
-    exports.validRange = validRange;
-
-    function validRange(range, loose) {
-        try {
-            return new Range(range, loose).range || '*';
-        } catch (er) {
-            return null;
-        }
-    }
-    exports.ltr = ltr;
-
-    function ltr(version, range, loose) {
-        return outside(version, range, '<', loose);
-    }
-    exports.gtr = gtr;
-
-    function gtr(version, range, loose) {
-        return outside(version, range, '>', loose);
-    }
-    exports.outside = outside;
-
-    function outside(version, range, hilo, loose) {
-        version = new SemVer(version, loose);
-        range = new Range(range, loose);
-        var gtfn, ltefn, ltfn, comp, ecomp;
-        switch (hilo) {
-            case '>':
-                gtfn = gt;
-                ltefn = lte;
-                ltfn = lt;
-                comp = '>';
-                ecomp = '>=';
-                break;
-            case '<':
-                gtfn = lt;
-                ltefn = gte;
-                ltfn = gt;
-                comp = '<';
-                ecomp = '<=';
-                break;
-            default:
-                throw new TypeError('Must provide a hilo val of "<" or ">"');
-        }
-        if (satisfies(version, range, loose)) {
-            return false;
-        }
-
-        for (var i = 0; i < range.set.length; ++i) {
-            var comparators = range.set[i];
-            var high = null;
-            var low = null;
-            comparators.forEach(function (comparator) {
-                if (comparator.semver === ANY) {
-                    comparator = new Comparator('>=0.0.0')
-                }
-                high = high || comparator;
-                low = low || comparator;
-                if (gtfn(comparator.semver, high.semver, loose)) {
-                    high = comparator;
-                } else if (ltfn(comparator.semver, low.semver, loose)) {
-                    low = comparator;
-                }
-            });
-            if (high.operator === comp || high.operator === ecomp) {
-                return false;
-            }
-            if ((!low.operator || low.operator === comp) &&
-                ltefn(version, low.semver)) {
-                return false;
-            } else if (low.operator === ecomp && ltfn(version, low.semver)) {
-                return false;
-            }
-        }
-        return true;
-    }
-    exports.prerelease = prerelease;
-
-    function prerelease(version, loose) {
-        var parsed = parse(version, loose);
-        return (parsed && parsed.prerelease.length) ? parsed.prerelease : null;
-    }
-    exports.intersects = intersects;
-
-    function intersects(r1, r2, loose) {
-        r1 = new Range(r1, loose)
-        r2 = new Range(r2, loose)
-        return r1.intersects(r2)
-    }
-    return exports;
-})();
-
-//--------------------- install ---------------------------
-
-var util = require('util');
-var coroutine = require('coroutine');
-var fs = require('fs');
-var path = require('path');
-var ssl = require('ssl');
-var http = require('http');
-var zlib = require('zlib');
-var hash = require('hash');
-
+ */
 function read_module(p, parent) {
-    var modules = {};
+    const modules = {};
     if (fs.exists(path.join(p, 'node_modules'))) {
-        var files = fs.readdir(path.join(p, 'node_modules'));
+        const files = fs.readdir(path.join(p, 'node_modules'));
 
         files.forEach(n => {
-            var f = path.join(p, 'node_modules', n, 'package.json');
+            const f = path.join(p, 'node_modules', n, 'package.json');
             if (fs.exists(f)) {
-                var minfo = JSON.parse(fs.readTextFile(f));
+                const minfo = JSON.parse(fs.readTextFile(f));
 
-                var deps = util.clone(minfo.dependencies || {});
+                const dep_vs = util.clone(minfo.dependencies || {});
+                const dev_dep_vs = util.clone(minfo.devDependencies || {});
 
                 modules[n] = {
                     version: minfo.version,
-                    deps: deps,
+                    dep_vs: dep_vs,
+                    dev_dep_vs: dev_dep_vs,
                     parent: parent
                 };
 
@@ -1403,246 +151,514 @@ function read_module(p, parent) {
     return modules;
 }
 
-var infos = {};
+function http_get(u, { quit_if_error = true } = {}) {
+    let cnt = 0;
 
-function http_get(u) {
-    var cnt = 0;
-
-    while (cnt < 3)
+    while (cnt++ < 3)
         try {
             return http.get(u);
         } catch (e) {
-            console.warn("download error. retry ", u);
+            console.warn(`download error. retry ${cnt}: ${u}`);
         }
 
     console.error("download error.", u);
-    process.exit(-1);
+    if (quit_if_error)
+        process.exit(-1);
 }
 
-function get_version(m, v, parent) {
-    var info = infos[m];
-
-    if (info === undefined) {
-        var url = snap.registry + m.replace(/\//g, '%2F');
-        console.log('fetch metadata:', m, "=>", url);
-        infos[m] = info = JSON.parse(http_get(url).body.readAll().toString());
-    }
-
-    var vers = [];
-    Object.keys(info.versions).forEach(ver => semvar.satisfies(ver, v) ? vers.push(ver) : undefined);
-    vers.sort(semvar.rcompare);
-
-    var minfo = info.versions[vers[0]];
-
-    var deps = util.clone(minfo.dependencies || {});
-
-    return {
-        version: minfo.version,
-        deps: deps,
-        node_modules: {},
-        parent: parent,
-        dist: minfo.dist,
-        new_module: true
-    }
+function json_parse_response (http_response) {
+    return JSON.parse(http_response.body.readAll().toString())
 }
 
 function find_version(m, v, parent) {
     while (parent !== undefined) {
-        var info = parent.node_modules[m];
+        const info = parent.node_modules[m];
         if (info !== undefined)
-            return semvar.satisfies(info.version, v);
+            return semver.satisfies(info.version, v);
 
         parent = parent.parent;
     }
 }
 
-function get_root() {
-    var p = process.cwd();
-    var txt;
+function normalize_registry_origin (registry) {
+    const urlObj = url.parse(registry)
 
+    const protocol = urlObj.protocol || 'https:'
+    const hostname = urlObj.hostname || 'registry.npmjs.org'
+
+    return `${protocol}//${hostname}/`
+}
+// ---------------------- UTILS :end ------------------------- //
+
+const pkg_registrytype_module_infos = {};
+const pkg_githubtype_module_infos = {};
+function fetch_leveled_module_info(m, v, parent) {
+    const pkg_install_typeinfo = helpers_pkg.parse_pkg_installname(m, v);
+    
+    switch (pkg_install_typeinfo.type) {
+        case 'registry':
+            let info = pkg_registrytype_module_infos[m];
+            if (info === undefined) {
+                const registry_url = `${rootsnap.registry}${encodeURIComponent(m)}`
+                install_log('fetch metadata:', m, "=>", registry_url);
+                pkg_registrytype_module_infos[m] = info = json_parse_response(http_get(registry_url));
+            }
+            /* registry: match version :start */
+            const all_vers = Object.keys(info.versions);
+            let filtered_vers = [];
+
+            switch (v) {
+                case 'latest':
+                    filtered_vers = all_vers.sort(semver.rcompare);
+                    break
+                default:
+                    all_vers.forEach(ver => semver.satisfies(ver, v) ? filtered_vers.push(ver) : undefined)
+
+                    filtered_vers.sort(semver.rcompare);
+                    break
+            }
+
+            matched_ver = filtered_vers[0];
+
+            if (!matched_ver)
+                throw new Error(`[package/${info.name}]no matched for pattern '${v}'`)
+            /* registry: match version :end */
+
+            const minfo = info.versions[matched_ver];
+
+            const dep_vs = util.clone(minfo.dependencies || {});
+            const dev_dep_vs = util.clone(minfo.devDependencies || {});
+
+            return {
+                name: minfo.name,
+                version: minfo.version,
+                dep_vs: dep_vs,
+                dev_dep_vs: dev_dep_vs,
+                node_modules: {},
+                parent: parent,
+                dist: minfo.dist,
+                pkg_install_typeinfo: pkg_install_typeinfo,
+                new_module: true
+            }
+        case 'git':
+            const git_origin = pkg_install_typeinfo.git_origin = pkg_install_typeinfo.git_origin || rootsnap.git_origin || CST.DEFAULT_GIT_ORIGIN;
+            let pkgjson_info = pkg_githubtype_module_infos[m];
+
+            if (pkgjson_info === undefined) {
+                const git_pkgjson_uri = helpers_pkg.get_git_raw_url('/package.json', pkg_install_typeinfo, { git_origin });
+                const git_r = http_get(git_pkgjson_uri, { quit_if_error: false })
+
+                if (git_r.statusCode !== 200)
+                    throw new Error(`Could not install from "${ctx.new_pkgname || git_pkgjson_uri}" as it does not contain a package.json file.`)
+                
+                try {
+                    install_log('fetch package.json:', m, "=>", git_pkgjson_uri);
+                    pkg_githubtype_module_infos[m] = pkgjson_info = json_parse_response(git_r);
+                } catch (error) {
+                    console.warn(`error occured when try to fetch package.json from '${git_pkgjson_uri}' for '${m}'`)
+                    throw new Error(`[package/${m}] error detail: \n${error.message}\n${error.stack}`)
+                }
+                
+            }
+
+            return {
+                name: pkgjson_info.name,
+                version: pkgjson_info.version,
+                dep_vs: util.extend({}, pkgjson_info.dependencies),
+                dev_dep_vs: util.extend({}, pkgjson_info.devDependencies),
+                node_modules: {},
+                parent: parent,
+                dist: null,
+                pkg_install_typeinfo,
+                new_module: true
+            }
+        default:
+            throw new Error(`unsupported package type '${pkg_install_typeinfo.type}' !`)
+    }
+}
+
+function get_root_snapshot() {
+    const pwd = process.cwd();
+    const root_is_new = true;
+
+    let pkgjson;
     try {
-        txt = fs.readTextFile(path.join(p, 'package.json'));
+        pkgjson = JSON.parse(
+            fs.readTextFile(path.join(pwd, 'package.json'))
+        );
+        root_is_new = false;
     } catch (e) {
-        txt = "{}";
+        txt = {};
     }
 
-    var info = JSON.parse(txt);
+    const dep_vs = util.extend({}, pkgjson.dependencies);
+    const dev_dep_vs = util.extend({}, pkgjson.devDependencies);
 
-    var deps = util.clone(info.dependencies || {});
-    deps = util.extend(deps, info.devDependencies || {});
+    const registry = normalize_registry_origin(pkgjson.registry || 'https://registry.npmjs.org/');
 
-    var m = {
-        version: info.version,
-        deps: deps,
+    const m = {
+        name: pkgjson.name,
+        version: pkgjson.version,
+        dep_vs: dep_vs,
+        dev_dep_vs: dev_dep_vs,
         new_module: true,
-        registry: info.registry || 'https://registry.npmjs.org/',
-        info: info
+        registry: registry,
+        root_is_new: root_is_new,
+        pkgjson: pkgjson
     };
-    m.node_modules = read_module(p, m);
+    m.node_modules = read_module(pwd, m);
 
     return m;
 }
 
-function get_deps(info) {
-    if (info.new_module) {
-        var deps = info.deps;
+const name_maps_installation2pkg = {}
+/**
+ * @description walk throught to generate dep_vs/dev_dep_vs information recursively
+ */
+function walkthrough_deps(level_info, need_dev_deps = false) {
+    if (level_info.new_module) {
+        ;[
+            ['dep_vs', 'dependencies']
+        ].concat(
+            need_dev_deps ? [['dev_dep_vs', 'devDependencies']] : []
+        ).forEach(([dep_type]) => {
+            coroutine.parallel(
+                Object.keys(level_info[dep_type]),
+                dname => {
+                    const _deps = level_info[dep_type];
 
-        coroutine.parallel(Object.keys(deps), d => {
-            var v = deps[d];
-            var m = info.node_modules[d];
+                    let v = _deps[dname];
+                    let child_level_info = level_info.node_modules[dname];
 
-            if (m === undefined || !semvar.satisfies(m.version, v)) {
-                if (!find_version(d, v, info))
-                    info.node_modules[d] = get_version(d, v, info);
-            }
-        }, 10);
+                    if (child_level_info === undefined || !semver.satisfies(child_level_info.version, v)) {
+                        if (!find_version(dname, v, level_info))
+                            child_level_info = level_info.node_modules[dname] = fetch_leveled_module_info(dname, v, level_info);
 
-        for (var k in info.node_modules)
-            get_deps(info.node_modules[k]);
+                        /**
+                         * @todo deal with special installation name, such as 'fibjs/fib-graphql'
+                         */
+                        if (child_level_info && child_level_info.name !== dname) {                            
+                            const pkg_name = child_level_info.name;
+                            const installnation_name = dname;
+                            child_level_info = level_info.node_modules[pkg_name] = level_info.node_modules[dname]
+
+                            if (child_level_info.parent) {
+                                if (child_level_info.parent.dep_vs[installnation_name]) {
+                                    child_level_info.parent.dep_vs[pkg_name] = installnation_name
+                                    delete child_level_info.parent.dep_vs[installnation_name]
+                                    name_maps_installation2pkg[installnation_name] = pkg_name
+                                }
+                                if (child_level_info.parent.dev_dep_vs[installnation_name]) {
+                                    child_level_info.parent.dev_dep_vs[installnation_name] = installnation_name
+                                    delete child_level_info.parent.dev_dep_vs[installnation_name]
+                                    name_maps_installation2pkg[installnation_name] = pkg_name
+                                }
+                            }
+
+                            delete level_info.node_modules[installnation_name]
+                            dname = pkg_name
+                        }
+                    }
+
+                    if (child_level_info) _deps[dname] = child_level_info.version;
+                },
+                CST.DEFAULT_FIBERS
+            );
+        });
+
+        for (let k in level_info.node_modules) {
+            walkthrough_deps(
+                level_info.node_modules[k],
+                // only ask if need_dev_deps for installation's source root
+                false
+            );
+        }
     }
 }
 
-function move_up(info, parent) {
-    if (info.new_module) {
-        for (var k in info.node_modules)
-            move_up(info.node_modules[k], info);
+function move_up(level_info, parent) {
+    if (level_info.new_module) {
+        for (let k in level_info.node_modules)
+            move_up(level_info.node_modules[k], level_info);
 
         if (parent !== undefined)
-            for (var k in info.node_modules) {
-                var m = info.node_modules[k];
+            for (let k in level_info.node_modules) {
+                const m = level_info.node_modules[k];
                 if (m.new_module) {
-                    var m1 = parent.node_modules[k];
+                    const m1 = parent.node_modules[k];
                     if (m1 === undefined || m1.version === m.version) {
                         parent.node_modules[k] = m;
-                        delete info.node_modules[k];
+                        delete level_info.node_modules[k];
                     }
                 }
             }
     }
 }
 
-var paths = {};
+const mv_paths = {};
+function generate_mv_paths(level_info, parent_p) {
+    if (level_info.new_module) {
+        for (let k in level_info.node_modules) {
+            const lmod = level_info.node_modules[k];
+            const mp = path.join(parent_p, 'node_modules', lmod.name);
 
-function get_paths(info, p) {
-    if (info.new_module) {
-        for (var k in info.node_modules) {
-            var m = info.node_modules[k];
-            if (m.new_module) {
-                var mv = k + '@' + m.version;
-                var ps = paths[mv];
-                var mp = path.join(p, 'node_modules', k);
-                if (ps === undefined)
-                    paths[mv] = ps = {
-                        dist: m.dist,
-                        path: [mp]
-                    };
-                else
+            if (lmod.new_module) {
+                const mv = k + '@' + lmod.version;
+                
+                let ps = mv_paths[mv];
+                if (ps === undefined) {
+                    switch (lmod.pkg_install_typeinfo.type) {
+                        case 'registry':
+                            ps = {
+                                pkg_install_typeinfo: lmod.pkg_install_typeinfo,
+                                dist: lmod.dist,
+                                path: [mp]
+                            };
+                            break
+                        case 'git':
+                            ps = {
+                                pkg_install_typeinfo: lmod.pkg_install_typeinfo,
+                                dist: null,
+                                path: [mp]
+                            };
+                            break
+                    }
+
+                    mv_paths[mv] = ps;
+                } else
                     ps.path.push(mp);
             }
 
-            get_paths(m, mp);
+            generate_mv_paths(lmod, mp);
         }
-    }
-}
-
-function mkdir(p) {
-    try {
-        if (!fs.exists(p))
-            fs.mkdir(p);
-    } catch (e) {
-        mkdir(path.dirname(p));
-        try {
-            fs.mkdir(p);
-        } catch (e) {}
     }
 }
 
 function download_module() {
-    coroutine.parallel(Object.keys(paths), m => {
-        m = paths[m];
-        var r = http_get(m.dist.tarball);
-        if (r.statusCode !== 200) {
-            console.error('doenload error::', m.dist.tarball);
-            process.exit();
-        }
+    coroutine.parallel(
+        Object.keys(mv_paths),
+        mkey => {
+            const mvm = mv_paths[mkey];
+            let archive_root_name;
 
-        var tgz = r.data;
+            const registry_i_tuples = [];
+            const git_i_tuples = [];
+            const existed_dirs = {};
+            function ensure_dir (dirname) {
+                if (process.platform === 'win32')
+                    if (existed_dirs[dirname]) return ;
+                
+                existed_dirs[dirname] = true;
+                helpers_fs.mkdirp(dirname);
+            }
 
-        if (hash.sha1(tgz).digest().hex() !== m.dist.shasum) {
-            console.error('shasum:', m.dist.tarball);
-            process.exit();
-        }
+            switch (mvm.pkg_install_typeinfo.type) {
+                case 'registry':
+                    const r = http_get(mvm.dist.tarball);
+                    if (r.statusCode !== 200) {
+                        console.error('download error::', mvm.dist.tarball);
+                        process.exit();
+                    }
 
-        var t;
-        if (tgz[0] === 0x1f && tgz[1] === 0x8b)
-            t = zlib.gunzip(tgz);
-        else
-            t = tgz;
+                    const tgz = r.data;
 
-        untar(t).map(function (file) {
-            var ps = file.filename.split('/');
-            var p = ps.slice(1).join(path.sep);
+                    if (hash.sha1(tgz).digest().hex() !== mvm.dist.shasum) {
+                        console.error('shasum:', mvm.dist.tarball);
+                        process.exit();
+                    }
 
-            m.path.forEach(bp => {
-                p = path.join(bp, p);
-                mkdir(path.dirname(p));
-                fs.writeFile(p, file.fileData);
-            });
-        });
+                    let t;
+                    if (tgz[0] === 0x1f && tgz[1] === 0x8b)
+                        t = zlib.gunzip(tgz);
+                    else
+                        t = tgz;
 
-        console.log('extract:', m.dist.tarball);
-    }, 10);
+                    const untar_files = untar(t);
+
+                    // most package from registry is archived with root directory `package`
+                    archive_root_name = `package`;
+                    if (untar_files[0].filename.indexOf(archive_root_name) !== 0) {
+                        archive_root_name = helpers_string.ensure_unsuffx(
+                            helpers_string.find_least_common_str(untar_files[0].filename, untar_files[1].filename)
+                        )
+                    }
+                
+                    mvm.path.forEach(bp => {
+                        coroutine.parallel(untar_files, (file) => {
+                            const relpath = file.filename.slice(archive_root_name.length);
+
+                            if (!relpath) return ;
+
+                            const tpath = path.join(bp, relpath);
+                            helpers_fs.mkdirp(path.dirname(tpath));
+                            
+                            fs.writeFile(tpath, file.fileData);
+                        })
+                    });
+
+                    install_log('extract:', mvm.dist.tarball);
+                    break
+                case 'git':
+                    const git_archive_url = helpers_pkg.get_git_archive_url(mvm.pkg_install_typeinfo);
+                    const git_r = http_get(git_archive_url);
+
+                    if (git_r.statusCode !== 200) {
+                        console.error('download error::', mvm.dist.tarball);
+                        process.exit();
+                    }
+                    const git_zip_file = zip.open(git_r.body.readAll());
+                    const namelist = git_zip_file.namelist();
+
+                    archive_root_name = `${mvm.pkg_install_typeinfo.git_basename}-${mvm.pkg_install_typeinfo.git_reference}`;
+                    if (namelist[0].indexOf(archive_root_name) !== 0) {
+                        archive_root_name = helpers_string.ensure_unsuffx(
+                            helpers_string.find_least_common_str(namelist[0], namelist[1])
+                        )
+                    }
+
+                    mvm.path.forEach(bp => {
+                        namelist.forEach((member) => {
+                            const relpath = member.slice(archive_root_name.length);
+                            if (!relpath) return ;
+
+                            const tpath = path.join(bp, relpath);
+
+                            // skip directory
+                            if (tpath.endsWith(SEP)) return ;
+                            ensure_dir(path.dirname(tpath));
+                            
+                            git_i_tuples.push([
+                                member, tpath
+                            ]);
+                        })
+                    });
+
+                    coroutine.parallel(git_i_tuples, ([member, tpath]) => {
+                        git_zip_file.extract(member, tpath);
+                    });
+
+                    install_log('extract:', git_archive_url);
+                    break
+            }
+        },
+        CST.DEFAULT_FIBERS
+    );
 }
 
 function dump_snap() {
     function dump_mod(base, k, m, end) {
-        var has_ms = !util.isEmpty(m.node_modules);
-        console.log(base + (end ? '└' : '├') + '─' + (has_ms ? '┬' : '─'), k + '@' + m.version);
+        const has_ms = !util.isEmpty(m.node_modules);
+        install_log(base + (end ? '└' : '├') + '─' + (has_ms ? '┬' : '─'), k + '@' + m.version);
         if (has_ms)
             dump_mods(base + (end ? ' ' : '│') + ' ', m.node_modules);
     }
 
     function dump_mods(base, ms) {
-        var ks = Object.keys(ms).sort();
+        const ks = Object.keys(ms).sort();
         ks.forEach((k, i) => {
             dump_mod(base, k, ms[k], i == ks.length - 1);
         });
     }
 
-    dump_mods('', snap.node_modules);
+    dump_mods('', rootsnap.node_modules);
 }
 
-ssl.loadRootCerts();
+function update_pkgjson(rootsnap) {
+    const pkgjson = rootsnap.pkgjson;
 
-var snap = get_root();
+    const [ real_pkgname, special_source_installation_name ] = [
+        name_maps_installation2pkg[ctx.new_pkgname] ? name_maps_installation2pkg[ctx.new_pkgname] : ctx.new_pkgname,
+        ctx.new_pkgname
+    ];
 
-if (process.argv.length > 2 && snap.deps[process.argv[2]] === undefined)
-    snap.deps[process.argv[2]] = '*';
+    if (need_dev_deps_for_root) {
+        ctx.dep_against_k = DEV_KEY_TUPLE[0];
+        ctx.depk = DEV_KEY_TUPLE[1];
+    } else if (rootsnap.dep_vs && rootsnap.dep_vs[real_pkgname]) {
+        ctx.depk = DEV_KEY_TUPLE[0];
+        ctx.dep_against_k = DEV_KEY_TUPLE[1];
+    } else if (rootsnap.dev_dep_vs && rootsnap.dev_dep_vs[real_pkgname]) {
+        ctx.dep_against_k = DEV_KEY_TUPLE[0];
+        ctx.depk = DEV_KEY_TUPLE[1];
+    }
+    
+    if (real_pkgname) {
+        try {
+            delete pkgjson[ctx.dep_against_k][real_pkgname];
+        } catch (error) {};
 
-get_deps(snap);
-move_up(snap);
-get_paths(snap, process.cwd());
-download_module();
+        if (!pkgjson[ctx.depk])
+            pkgjson[ctx.depk] = {};
 
-dump_snap();
+        if (!pkgjson[ctx.depk][real_pkgname]) {
+            if (special_source_installation_name !== real_pkgname) {
+                pkgjson[ctx.depk][real_pkgname] = special_source_installation_name;
+            } else {
+                pkgjson[ctx.depk][real_pkgname] = `^${rootsnap.node_modules[real_pkgname].version}`;
+            }
+        }
 
-if (process.argv.length > 3) {
-    var info = snap.info;
-    var k = '';
-    if (process.argv[3] === '--save')
-        k = 'dependencies';
-    else if (process.argv[3] === '--save-dev')
-        k = 'devDependencies';
-
-    if (k !== '') {
-        if (info[k] === undefined)
-            info[k] = {};
-        if (info[k][process.argv[2]] == undefined)
-            info[k][process.argv[2]] = '^' + snap.node_modules[process.argv[2]].version;
-
-        fs.writeFile('package.json', json_format(info, {
+        fs.writeFile('package.json', json_format(pkgjson, {
             type: 'space',
             size: 2
         }));
     }
 }
+
+const ctx = {};
+
+/**
+ * dependencies, devDependencies
+ */
+ctx.depk = ctx.dep_against_k = ''
+
+let need_dev_deps_for_root = false
+if (process.argv.indexOf('--save', 2) > -1 || process.argv.indexOf('-S', 2) > -1) {
+    ctx.depk = DEPENDENCIES;
+    ctx.dep_against_k = DEVDEPENDENCIES;
+} else if (process.argv.indexOf('--save-dev', 2) > -1 || process.argv.indexOf('-D', 2) > -1) {
+    ctx.depk = DEVDEPENDENCIES;
+    ctx.dep_against_k = DEPENDENCIES;
+    need_dev_deps_for_root = true;
+} else {
+    ctx.depk = DEPENDENCIES;
+}
+
+ssl.loadRootCerts();
+
+const rootsnap = get_root_snapshot();
+// when specified new_pkgname, install it only
+ctx.new_pkgname = process.argv[2];
+
+;(function process_new_pkgname () {
+    const new_pkginstall_typeinfo = helpers_pkg.parse_pkg_installname(ctx.new_pkgname || '');
+
+    switch (new_pkginstall_typeinfo.type) {
+        case 'git':
+            if (new_pkginstall_typeinfo.from_http) {
+                ctx.new_pkgname = `${new_pkginstall_typeinfo.git_path}#${new_pkginstall_typeinfo.git_reference}`;
+            }
+    
+            if (rootsnap.dep_vs[ctx.new_pkgname] === undefined)
+                rootsnap.dep_vs[ctx.new_pkgname] = '*';
+            break
+        case 'registry':
+            if (new_pkginstall_typeinfo.registry_semver) {
+                rootsnap.dep_vs[new_pkginstall_typeinfo.package_name] = new_pkginstall_typeinfo.registry_semver
+
+                ctx.new_pkgname = new_pkginstall_typeinfo.registry_pkg_path
+            }
+    
+            if (rootsnap.dep_vs[ctx.new_pkgname] === undefined)
+                rootsnap.dep_vs[ctx.new_pkgname] = '*';
+            break
+    }
+})();
+
+walkthrough_deps(rootsnap, need_dev_deps_for_root);
+move_up(rootsnap);
+generate_mv_paths(rootsnap, process.cwd());
+download_module();
+
+dump_snap();
+update_pkgjson(rootsnap);
