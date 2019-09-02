@@ -157,7 +157,7 @@ module process : EventEmitter
      ```JavaScript
      {
          "timeout": 100, // 单位为 ms
-         "envs": [] // 进程环境变量
+         "env": {} // 进程环境变量
      }
      ```
      @param command 指定运行的命令行
@@ -173,7 +173,7 @@ module process : EventEmitter
      ```JavaScript
      {
          "timeout": 100, // 单位为 ms
-         "envs": [] // 进程环境变量
+         "env": {} // 进程环境变量
      }
      ```
      @param command 指定运行的命令行
@@ -188,7 +188,7 @@ module process : EventEmitter
      ```JavaScript
      {
          "timeout": 100, // 单位为 ms
-         "envs": [] // 进程环境变量
+         "env": {} // 进程环境变量
      }
      ```
      @param command 指定运行的命令行
@@ -204,7 +204,7 @@ module process : EventEmitter
      ```JavaScript
      {
          "timeout": 100, // 单位为 ms
-         "envs": [] // 进程环境变量
+         "env": {} // 进程环境变量
      }
      ```
      @param command 指定运行的命令行
@@ -219,7 +219,7 @@ module process : EventEmitter
      ```JavaScript
      {
          "timeout": 100, // 单位为 ms
-         "envs": [] // 进程环境变量
+         "env": {} // 进程环境变量
      }
      ```
      @param command 指定运行的命令行
@@ -235,7 +235,7 @@ module process : EventEmitter
      ```JavaScript
      {
          "timeout": 100, // 单位为 ms
-         "envs": [] // 进程环境变量
+         "env": {} // 进程环境变量
      }
      ```
      @param command 指定运行的命令行

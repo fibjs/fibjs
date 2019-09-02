@@ -18,7 +18,7 @@ chdirAndDo(
 
 const processRunOptions = {
     env: {
-        ...process.env,
+        // all required environment would fallback to the parent's one
         FIBJS_SILENT_INSALL: 1
     }
 }

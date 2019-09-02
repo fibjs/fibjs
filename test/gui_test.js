@@ -3,10 +3,9 @@ test.setup();
 
 var test_util = require('./test_util');
 
-var os = require("os");
 var path = require("path");
 
-var win = process.platform == 'win32';
+var win = process.platform === 'win32';
 
 var html =
     `<html>

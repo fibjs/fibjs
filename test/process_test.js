@@ -344,6 +344,152 @@ describe('process', () => {
             ]);
         });
     });
+    
+    describe("SubProcess Spec", () => {
+        it("default kvs", () => {
+            var retcode = process.run(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
+            assert.equal(retcode, 0)
+        });
+
+        if (process.platform === 'win32') {
+            const win_keys = [
+                'SystemRoot',
+                'TEMP',
+                'TMP',
+                'CommonProgramFiles',
+                'CommonProgramFiles(x86)',
+                'CommonProgramW6432',
+                'ProgramFiles',
+                'ProgramFiles(x86)',
+                'ProgramW6432',
+            ];
+
+            it(`default kvs: win32`, () => {
+                var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
+                bs.wait()
+
+                assert.deepEqual(
+                    bs.stdout.readLines(),
+                    Math.random(0, 1) < 0.5 ?
+                    win_keys.map(key => `process.env['${key}']=${process.env[key]}`)
+                    : [
+                        `process.env['SystemRoot']=${process.env['SystemRoot']}`,
+                        `process.env['TEMP']=${process.env['TEMP']}`,
+                        `process.env['TMP']=${process.env['TMP']}`,
+                        `process.env['CommonProgramFiles']=${process.env['CommonProgramFiles']}`,
+                        `process.env['CommonProgramFiles(x86)']=${process.env['CommonProgramFiles(x86)']}`,
+                        `process.env['CommonProgramW6432']=${process.env['CommonProgramW6432']}`,
+                        `process.env['ProgramFiles']=${process.env['ProgramFiles']}`,
+                        `process.env['ProgramFiles(x86)']=${process.env['ProgramFiles(x86)']}`,
+                        `process.env['ProgramW6432']=${process.env['ProgramW6432']}`,
+                    ]
+                );
+            });
+
+            it(`specify kvs: win32`, () => {
+                const envs = {};
+                /**
+                 * @notice win32's program lifecycle depends on some reserve environment, never override them
+                 */
+                win_keys.forEach(key => envs[`nothing_${key}`] = `nothing_${key}`);
+
+                Object.keys(envs).forEach(x => {
+                    assert.notEqual(x, process.env[x])
+                });
+
+                var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], { env: envs });
+                bs.wait()
+
+                assert.deepEqual(
+                    bs.stdout.readLines(),
+                    win_keys.map(key => `process.env['${key}']=${process.env[key]}`)
+                )
+            });
+        }
+
+        if (process.platform === 'darwin') {
+            it(`default kvs: darwin`, () => {
+                var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
+                bs.wait()
+
+                assert.deepEqual(
+                    bs.stdout.readLines(),
+                    [
+                        `process.env.HOME=${process.env.HOME}`,
+                        `process.env.TMPDIR=${process.env.TMPDIR}`,
+                    ]
+                )
+            });
+
+            it(`specify kvs: darwin`, () => {
+                const envs = {
+                    HOME: 'noHome',
+                    TMPDIR: 'noTMPDIR'
+                };
+
+                var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], { env: envs });
+                bs.wait()
+
+                assert.deepEqual(
+                    bs.stdout.readLines(),
+                    [
+                        `process.env.HOME=${envs.HOME}`,
+                        `process.env.TMPDIR=${envs.TMPDIR}`,
+                    ]
+                )
+
+                Object.keys(envs).forEach(x => assert.notEqual(x, process.env[x]))
+            });
+        }
+
+        if (process.platform === 'linux') {
+            it(`default kvs: linux`, () => {
+                var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
+                bs.wait()
+
+                assert.deepEqual(
+                    bs.stdout.readLines(),
+                    [
+                        `process.env.HOME=${process.env.HOME}`,
+                        `process.env.TMPDIR=${process.env.TMPDIR}`,
+                    ]
+                )
+            });
+
+            it(`specify kvs: linux`, () => {
+                const envs = {
+                    HOME: 'noHome',
+                    TMPDIR: 'noTMPDIR'
+                };
+
+                var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], { env: envs });
+                bs.wait()
+
+                assert.deepEqual(
+                    bs.stdout.readLines(),
+                    [
+                        `process.env.HOME=${envs.HOME}`,
+                        `process.env.TMPDIR=${envs.TMPDIR}`,
+                    ]
+                )
+
+                Object.keys(envs).forEach(x => assert.notEqual(x, process.env[x]))
+            });
+        }
+
+        it("dns.resolve", () => {
+            var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.dns.js')]);
+            bs.wait()
+
+            assert.deepEqual(
+                bs.stdout.readLines(),
+                [
+                    `resolve domain success!`,
+                    `lookup domain success!`,
+                ]
+            )
+        });
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

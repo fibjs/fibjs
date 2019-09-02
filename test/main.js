@@ -3,9 +3,9 @@
 var test = require("test");
 test.setup();
 
-var coroutine = require('coroutine');
-
 global.full_test = process.argv.indexOf('full') >= 0;
+
+const CI_SUBPROCESS_CHECK = !!process.env.CI_SUBPROCESS_CHECK;
 
 run("./assert_test.js");
 run("./test_test.js");
@@ -29,7 +29,7 @@ run("./fs_test.js");
 run("./ms_test.js");
 run("./io_test.js");
 run("./os_test.js");
-run("./process_test.js");
+!CI_SUBPROCESS_CHECK && run("./process_test.js");
 run("./encoding_test.js");
 run("./json_test.js");
 run("./module_test.js");
@@ -71,6 +71,6 @@ run("./v8_test.js");
 run("./getter_throw.js")
 
 run("./internal_test/helpers.js")
-run("./opt_tools_test/index.js")
+!CI_SUBPROCESS_CHECK && run("./opt_tools_test/index.js")
 
 process.exitCode = test.run();
