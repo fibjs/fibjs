@@ -9,6 +9,7 @@
 
 #include "object.h"
 #include "ifs/process.h"
+#include "ifs/util.h"
 #include "SubProcess.h"
 #include <vector>
 #include <psapi.h>
@@ -16,6 +17,20 @@
 #include "utf8.h"
 
 namespace fibjs {
+
+static const char* DEFT_ENV_KEYS[] = {
+    "SystemRoot",
+    "TEMP",
+    "TMP",
+    // for registry :start
+    "CommonProgramFiles",
+    "CommonProgramFiles(x86)",
+    "CommonProgramW6432",
+    "ProgramFiles",
+    "ProgramFiles(x86)",
+    "ProgramW6432"
+    // for registry :end
+};
 
 void init_signal();
 
@@ -134,20 +149,35 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
 
     exlib::wstring envstr;
 
-    v8::Local<v8::Object> envs;
-
-    hr = GetConfigValue(isolate->m_isolate, opts, "env", envs, true);
-    if (hr == CALL_E_PARAMNOTOPTIONAL)
-        hr = process_base::get_env(envs);
+    v8::Local<v8::Object> cur_envs;
+    hr = process_base::get_env(cur_envs);
     if (hr < 0)
         return hr;
 
-    v8::Local<v8::Array> keys = envs->GetPropertyNames();
+    v8::Local<v8::Value> opt_envs_v;
+    hr = GetConfigValue(isolate->m_isolate, opts, "env", opt_envs_v, true);
+    if (hr == CALL_E_PARAMNOTOPTIONAL)
+        util_base::clone(cur_envs, opt_envs_v);
+    else if (hr < 0)
+        return hr;
+    
+    v8::Local<v8::Object> opt_envs = opt_envs_v->ToObject();
+    v8::Local<v8::Value> dflt_k;
+    bool has_k;
+    for (int32_t i = 0; i < (int32_t)ARRAYSIZE(DEFT_ENV_KEYS); i++) {
+        util_base::has(opt_envs, DEFT_ENV_KEYS[i], has_k);
+        if (!has_k) {
+            dflt_k = isolate->NewString(DEFT_ENV_KEYS[i]);
+            opt_envs->Set(dflt_k, cur_envs->Get(dflt_k));
+        }
+    }
+
+    v8::Local<v8::Array> keys = opt_envs->GetPropertyNames();
     len = (int32_t)keys->Length();
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = keys->Get(i);
-        v8::Local<v8::Value> v = envs->Get(k);
+        v8::Local<v8::Value> v = opt_envs->Get(k);
         exlib::string ks, vs;
 
         hr = GetArgumentValue(k, ks);

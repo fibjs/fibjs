@@ -96,7 +96,7 @@ module process
      @code
         {
             "timeout": 100, // unit ms
-            "envs": [] // Enviroment variable of child process.
+            "env": {} // Enviroment variable of child process.
         }
      @endcode
      @return Child process object containing result of command.
@@ -109,7 +109,7 @@ module process
      @code
         {
             "timeout": 100, // unit ms
-            "envs": [] // Environment variable of child process.
+            "env": {} // Environment variable of child process.
         }
      @endcode
      @return Child process object containing result of command.
@@ -123,7 +123,7 @@ module process
      @code
         {
             "timeout": 100, // unit ms
-            "envs": [] // Environment variable of child process.
+            "env": {} // Environment variable of child process.
         }
      @endcode
      @return Child process object containing result of the command.
@@ -136,7 +136,7 @@ module process
      @code
         {
             "timeout": 100, // unit ms
-            "envs": [] // Environment variable of child process.
+            "env": {} // Environment variable of child process.
         }
      @endcode
      @return Child process object containing result of the command.
@@ -150,7 +150,7 @@ module process
      @code
         {
             "timeout": 100, // unit ms
-            "envs": [] // Environment variable of child process.
+            "env": {} // Environment variable of child process.
         }
      @endcode
      @return Result code of bash command.
@@ -163,7 +163,7 @@ module process
      @code
         {
             "timeout": 100, // unit ms
-            "envs": [] // Environment variable of child process.
+            "env": {} // Environment variable of child process.
         }
      @endcode
      @return Result code of bash command.
