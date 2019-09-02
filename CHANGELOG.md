@@ -1,3 +1,81 @@
+## 2019-09-03, Version 0.28.0 
+* **feature** :
+    * ci - add dockerfiles. (#510)(Ray)
+    * console:
+      - support console.getpass.(xicilion)
+      - use editline on all posix platforms.(xicilion)
+    * crypto - support aria.(xicilion)
+    * io - improve payload size when processing async read in win32. (#507)(Ray)
+    * option:
+      - better opt_tools/install, dedupe its structure, support installing package from github. (#515)(Ray)
+      - skip package.json when the file does not exist.(xicilion)
+    * process:
+      - change process.run to async mode.(xicilion)
+      - clean up the terminal when exiting the process.(xicilion)
+    * Routing - support virtual host routing.(xicilion)
+    * test:
+      - basic test cases about io (#506)(Ray)
+      - add path.resolve root test case(Henry Zhuang)
+      - skip test when releasing. (#498)(Henry Zhuang)
+    * vender - update mbedtls to v2.16.2.(xicilion)
+
+* **bugfix** :
+    * assert - deepEqual crash on proxy object.(xicilion)
+    * Buffer - bind isolate when creating a new Buffer(FiberMan)
+    * cmake - warning in cmake.(xicilion)
+    * console - do not reset the terminal outside of console.readLine.(xicilion)
+    * core - javascript getter throw in libs(assert, jsonformat, util, sandbox) (#511)(FiberMan)
+    * os:
+      - fix os.homedir() when USERPROFILE not set on Windows (#503)(Henry Zhuang)
+      - os.homedir() fallback should work (#499)(Henry Zhuang)
+    * path:
+      - result error in path.resolve root test case on windows.(xicilion)
+      - result error in path.resolve root test case.(xicilion)
+    * process - use real pipe-like struct to initial stdio in process. (#501)(Ray)
+    * Routing - compile error on windows.(xicilion)
+    * test:
+      - deepEqual crash on proxy object. (#513)(FiberMan)
+      - fix the arm64 test env (#504)(Henry Zhuang)
+      - enable the full arm test env (#502)(Henry Zhuang)
+
+* **fix** :
+    * process - make requried envs' kv fallback to the ones of parent process. (#516)(Ray)
+
+* **others** :
+    * Merge branch 'add_path_resolve_test' into dev(xicilion)
+
+### Commits
+* [[`6c8a8d0931`](https://github.com/fibjs/fibjs/commit/6c8a8d0931)] - **process, fix**: make requried envs' kv fallback to the ones of parent process. (#516)(Ray)
+* [[`efa57bef37`](https://github.com/fibjs/fibjs/commit/efa57bef37)] - **option, feat**: better opt_tools/install, dedupe its structure, support installing package from github. (#515)(Ray)
+* [[`ff4e9743cc`](https://github.com/fibjs/fibjs/commit/ff4e9743cc)] - **crypto, feat**: support aria.(xicilion)
+* [[`1829d2471e`](https://github.com/fibjs/fibjs/commit/1829d2471e)] - **Routing, bugfix**: compile error on windows.(xicilion)
+* [[`a0b4af9069`](https://github.com/fibjs/fibjs/commit/a0b4af9069)] - **vender, feat**: update mbedtls to v2.16.2.(xicilion)
+* [[`330d1d049e`](https://github.com/fibjs/fibjs/commit/330d1d049e)] - **Routing, feat**: support virtual host routing.(xicilion)
+* [[`612271ce54`](https://github.com/fibjs/fibjs/commit/612271ce54)] - **option, feat**: skip package.json when the file does not exist.(xicilion)
+* [[`5820c65b1e`](https://github.com/fibjs/fibjs/commit/5820c65b1e)] - **cmake, bugfix**: warning in cmake.(xicilion)
+* [[`75903b7fce`](https://github.com/fibjs/fibjs/commit/75903b7fce)] - **process, feat**: change process.run to async mode.(xicilion)
+* [[`ce4af53d00`](https://github.com/fibjs/fibjs/commit/ce4af53d00)] - **console, bugfix**: do not reset the terminal outside of console.readLine.(xicilion)
+* [[`0fee0ead6c`](https://github.com/fibjs/fibjs/commit/0fee0ead6c)] - **console, feat**: support console.getpass.(xicilion)
+* [[`34b7e61501`](https://github.com/fibjs/fibjs/commit/34b7e61501)] - **process, feat**: clean up the terminal when exiting the process.(xicilion)
+* [[`abf7897264`](https://github.com/fibjs/fibjs/commit/abf7897264)] - **console, feat**: use editline on all posix platforms.(xicilion)
+* [[`f7c08817d7`](https://github.com/fibjs/fibjs/commit/f7c08817d7)] - **test, bugfix**: deepEqual crash on proxy object. (#513)(FiberMan)
+* [[`be4efe6325`](https://github.com/fibjs/fibjs/commit/be4efe6325)] - **assert, bugfix**: deepEqual crash on proxy object.(xicilion)
+* [[`453b78c6d6`](https://github.com/fibjs/fibjs/commit/453b78c6d6)] - **path, bugfix**: result error in path.resolve root test case on windows.(xicilion)
+* [[`15b9de4517`](https://github.com/fibjs/fibjs/commit/15b9de4517)] - Merge branch 'add_path_resolve_test' into dev(xicilion)
+* [[`83cc7399a4`](https://github.com/fibjs/fibjs/commit/83cc7399a4)] - **path, bugfix**: result error in path.resolve root test case.(xicilion)
+* [[`750f23e084`](https://github.com/fibjs/fibjs/commit/750f23e084)] - **core, bugfix**: javascript getter throw in libs(assert, jsonformat, util, sandbox) (#511)(FiberMan)
+* [[`c6fa2d78ae`](https://github.com/fibjs/fibjs/commit/c6fa2d78ae)] - **Buffer, bugfix**: bind isolate when creating a new Buffer(FiberMan)
+* [[`3c46c38fb8`](https://github.com/fibjs/fibjs/commit/3c46c38fb8)] - **ci, feat**: add dockerfiles. (#510)(Ray)
+* [[`965c955fd4`](https://github.com/fibjs/fibjs/commit/965c955fd4)] - **io, feat**: improve payload size when processing async read in win32. (#507)(Ray)
+* [[`9f71c39695`](https://github.com/fibjs/fibjs/commit/9f71c39695)] - **test, feat**: basic test cases about io (#506)(Ray)
+* [[`6e8e02c487`](https://github.com/fibjs/fibjs/commit/6e8e02c487)] - **test, feat**: add path.resolve root test case(Henry Zhuang)
+* [[`babc961c5f`](https://github.com/fibjs/fibjs/commit/babc961c5f)] - **test, bugfix**: fix the arm64 test env (#504)(Henry Zhuang)
+* [[`46da2f74a1`](https://github.com/fibjs/fibjs/commit/46da2f74a1)] - **os, bugfix**: fix os.homedir() when USERPROFILE not set on Windows (#503)(Henry Zhuang)
+* [[`4272135dda`](https://github.com/fibjs/fibjs/commit/4272135dda)] - **process, bugfix**: use real pipe-like struct to initial stdio in process. (#501)(Ray)
+* [[`aaf9f31263`](https://github.com/fibjs/fibjs/commit/aaf9f31263)] - **test, bugfix**: enable the full arm test env (#502)(Henry Zhuang)
+* [[`6dd53e7ec0`](https://github.com/fibjs/fibjs/commit/6dd53e7ec0)] - **os, bugfix**: os.homedir() fallback should work (#499)(Henry Zhuang)
+* [[`2c1cb15094`](https://github.com/fibjs/fibjs/commit/2c1cb15094)] - **test, feat**: skip test when releasing. (#498)(Henry Zhuang)
+
 ## 2019-05-02, Version v0.27.0
 * **feature** :
     * Buffer - support safe buffer mode.(xicilion)
