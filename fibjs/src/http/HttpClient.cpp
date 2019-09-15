@@ -463,10 +463,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             if (pThis->m_headers)
                 pThis->m_req->addHeader(pThis->m_headers);
 
-            bool bCheck = false;
-            pThis->m_req->hasHeader("User-Agent", bCheck);
-            if (!bCheck)
-                pThis->m_req->addHeader("User-Agent", pThis->m_hc->agent());
+            exlib::string a = pThis->m_hc->agent();
+            if (!a.empty()) {
+                bool bCheck = false;
+                pThis->m_req->hasHeader("User-Agent", bCheck);
+                if (!bCheck)
+                    pThis->m_req->addHeader("User-Agent", a);
+            }
 
             if (pThis->m_body)
                 pThis->m_req->set_body(pThis->m_body);
