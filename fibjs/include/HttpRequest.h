@@ -67,8 +67,10 @@ public:
     virtual result_t firstHeader(exlib::string name, exlib::string& retVal);
     virtual result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal);
     virtual result_t addHeader(v8::Local<v8::Object> map);
+    virtual result_t addHeader(exlib::string name, v8::Local<v8::Array> values);
     virtual result_t addHeader(exlib::string name, exlib::string value);
     virtual result_t setHeader(v8::Local<v8::Object> map);
+    virtual result_t setHeader(exlib::string name, v8::Local<v8::Array> values);
     virtual result_t setHeader(exlib::string name, exlib::string value);
     virtual result_t removeHeader(exlib::string name);
 

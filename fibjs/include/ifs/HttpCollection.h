@@ -26,8 +26,10 @@ public:
     virtual result_t first(exlib::string name, Variant& retVal) = 0;
     virtual result_t all(exlib::string name, obj_ptr<NArray>& retVal) = 0;
     virtual result_t add(v8::Local<v8::Object> map) = 0;
+    virtual result_t add(exlib::string name, v8::Local<v8::Array> values) = 0;
     virtual result_t add(exlib::string name, Variant value) = 0;
     virtual result_t set(v8::Local<v8::Object> map) = 0;
+    virtual result_t set(exlib::string name, v8::Local<v8::Array> values) = 0;
     virtual result_t set(exlib::string name, Variant value) = 0;
     virtual result_t remove(exlib::string name) = 0;
     virtual result_t _named_getter(exlib::string property, Variant& retVal) = 0;
@@ -167,6 +169,13 @@ inline void HttpCollection_base::s_add(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Array>, 1);
+
+    hr = pInst->add(v0, v1);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
     ARG(Variant, 1);
 
     hr = pInst->add(v0, v1);
@@ -185,6 +194,13 @@ inline void HttpCollection_base::s_set(const v8::FunctionCallbackInfo<v8::Value>
     ARG(v8::Local<v8::Object>, 0);
 
     hr = pInst->set(v0);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Array>, 1);
+
+    hr = pInst->set(v0, v1);
 
     METHOD_OVER(2, 2);
 

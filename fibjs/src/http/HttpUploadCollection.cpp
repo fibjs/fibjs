@@ -278,46 +278,32 @@ result_t HttpUploadCollection::add(v8::Local<v8::Object> map)
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
-        add(ToCString(v8::String::Utf8Value(k)), map->Get(k));
+        v8::Local<v8::Value> v = map->Get(k);
+
+        if (v->IsArray())
+            add(ToCString(v8::String::Utf8Value(k)), v8::Local<v8::Array>::Cast(v));
+        else
+            add(ToCString(v8::String::Utf8Value(k)), (Variant)v);
     }
+
+    return 0;
+}
+
+result_t HttpUploadCollection::add(exlib::string name, v8::Local<v8::Array> values)
+{
+    int32_t len = values->Length();
+    int32_t i;
+
+    for (i = 0; i < len; i++)
+        add(name, (Variant)values->Get(i));
 
     return 0;
 }
 
 result_t HttpUploadCollection::set(exlib::string name, Variant value)
 {
-    int32_t i;
-    bool bFound = false;
-
-    for (i = 0; i < m_count; i++) {
-        pair& _pair = m_map[i];
-
-        if (!qstricmp(_pair.first.c_str(), name.c_str())) {
-            _pair.second = value;
-            bFound = true;
-            break;
-        }
-    }
-
-    if (bFound) {
-        int32_t p = ++i;
-
-        for (; i < m_count; i++) {
-            pair& _pair = m_map[i];
-
-            if (qstricmp(_pair.first.c_str(), name.c_str())) {
-                if (i != p)
-                    m_map[p] = _pair;
-
-                p++;
-            }
-        }
-
-        m_count = p;
-    } else
-        return add(name, value);
-
-    return 0;
+    remove(name);
+    return add(name, value);
 }
 
 result_t HttpUploadCollection::set(v8::Local<v8::Object> map)
@@ -328,8 +314,25 @@ result_t HttpUploadCollection::set(v8::Local<v8::Object> map)
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
-        set(ToCString(v8::String::Utf8Value(k)), map->Get(k));
+        v8::Local<v8::Value> v = map->Get(k);
+
+        if (v->IsArray())
+            set(ToCString(v8::String::Utf8Value(k)), v8::Local<v8::Array>::Cast(v));
+        else
+            set(ToCString(v8::String::Utf8Value(k)), (Variant)v);
     }
+
+    return 0;
+}
+
+result_t HttpUploadCollection::set(exlib::string name, v8::Local<v8::Array> values)
+{
+    int32_t len = values->Length();
+    int32_t i;
+
+    remove(name);
+    for (i = 0; i < len; i++)
+        add(name, (Variant)values->Get(i));
 
     return 0;
 }
