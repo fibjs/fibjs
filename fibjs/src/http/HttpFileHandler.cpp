@@ -123,13 +123,17 @@ result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
 
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> ks = keys->Get(i);
-        exlib::string v;
+        v8::Local<v8::Value> v;
+        exlib::string s;
 
-        hr = GetArgumentValue(mimes->Get(ks), v);
+        v = mimes->Get(ks);
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+        hr = GetArgumentValue(v, s);
         if (hr < 0)
             return CHECK_ERROR(hr);
 
-        m_mimes.insert(std::pair<exlib::string, exlib::string>(ToCString(v8::String::Utf8Value(ks)), v));
+        m_mimes.insert(std::pair<exlib::string, exlib::string>(ToCString(v8::String::Utf8Value(ks)), s));
     }
 
     return 0;

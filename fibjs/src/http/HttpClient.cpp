@@ -592,7 +592,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 
         ac->m_ctx.resize(3);
 
-        hr = GetArgumentValue(opts->Get(isolate->NewString("query", 5)), o);
+        v = opts->Get(isolate->NewString("query", 5));
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+        hr = GetArgumentValue(v, o);
         if (hr >= 0) {
             exlib::string s;
             hr = querystring_base::stringify(o, "&", "=", v8::Local<v8::Object>(), s);
@@ -605,7 +608,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         ac->m_ctx[1] = map;
 
         o.Clear();
-        hr = GetArgumentValue(opts->Get(isolate->NewString("headers", 7)), o);
+        v = opts->Get(isolate->NewString("headers", 7));
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+        hr = GetArgumentValue(v, o);
         if (hr >= 0) {
             v8::Local<v8::Array> ks = o->GetPropertyNames();
             int32_t len = ks->Length();
@@ -614,6 +620,9 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             for (i = 0; i < len; i++) {
                 v8::Local<v8::Value> k = ks->Get(i);
                 v8::Local<v8::Value> v = o->Get(k);
+
+                if (v.IsEmpty())
+                    return CALL_E_JAVASCRIPT;
 
                 if (v->IsArray()) {
                     obj_ptr<NArray> arr = new NArray();
@@ -632,6 +641,9 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         }
 
         v = opts->Get(isolate->NewString("body", 4));
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+
         if (!v->IsUndefined()) {
             stm = SeekableStream_base::getInstance(v);
             if (!stm) {
@@ -659,6 +671,8 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             }
         } else {
             v = opts->Get(isolate->NewString("json", 4));
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
             if (!v->IsUndefined()) {
                 obj_ptr<Buffer_base> buf;
 
