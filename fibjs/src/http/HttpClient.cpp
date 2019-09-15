@@ -66,6 +66,18 @@ result_t HttpClient::set_autoRedirect(bool newVal)
     return 0;
 }
 
+result_t HttpClient::get_enableEncoding(bool& retVal)
+{
+    retVal = m_enableEncoding;
+    return 0;
+}
+
+result_t HttpClient::set_enableEncoding(bool newVal)
+{
+    m_enableEncoding = newVal;
+    return 0;
+}
+
 result_t HttpClient::get_maxBodySize(int32_t& retVal)
 {
     retVal = m_maxBodySize;
@@ -282,12 +294,13 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
 {
     class asyncRequest : public AsyncState {
     public:
-        asyncRequest(Stream_base* conn, HttpRequest_base* req, int32_t maxBodySize,
+        asyncRequest(Stream_base* conn, HttpRequest_base* req, int32_t maxBodySize, bool enableEncoding,
             obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
             : AsyncState(ac)
             , m_conn(conn)
             , m_req(req)
             , m_maxBodySize(maxBodySize)
+            , m_enableEncoding(enableEncoding)
             , m_retVal(retVal)
         {
             set(send);
@@ -310,7 +323,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
             pThis->m_bs = new BufferedStream(pThis->m_conn);
             pThis->m_bs->set_EOL("\r\n");
 
-            pThis->set(unzip);
+            pThis->set(pThis->m_enableEncoding ? unzip : close);
             return pThis->m_retVal->readFrom(pThis->m_bs, pThis);
         }
 
@@ -357,6 +370,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
         Stream_base* m_conn;
         HttpRequest_base* m_req;
         int32_t m_maxBodySize;
+        bool m_enableEncoding;
         obj_ptr<HttpResponse_base>& m_retVal;
         obj_ptr<BufferedStream> m_bs;
         obj_ptr<MemoryStream> m_unzip;
@@ -366,7 +380,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRequest(conn, req, m_maxBodySize, retVal, ac))->post(0);
+    return (new asyncRequest(conn, req, m_maxBodySize, m_enableEncoding, retVal, ac))->post(0);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
@@ -432,7 +446,12 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             pThis->m_req->set_address(path);
 
             pThis->m_req->addHeader("Host", u->m_host);
-            pThis->m_req->setHeader("Accept-Encoding", "gzip,deflate");
+
+            bool enableEncoding = false;
+            pThis->m_hc->get_enableEncoding(enableEncoding);
+            if (enableEncoding)
+                pThis->m_req->setHeader("Accept-Encoding", "gzip,deflate");
+
             bool enableCookie = false;
             pThis->m_hc->get_enableCookie(enableCookie);
             if (enableCookie) {

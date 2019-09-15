@@ -20,6 +20,7 @@ public:
         : m_timeout(0)
         , m_enableCookie(true)
         , m_autoRedirect(true)
+        , m_enableEncoding(true)
         , m_maxBodySize(-1)
         , m_poolSize(128)
         , m_poolTimeout(10000)
@@ -37,6 +38,8 @@ public:
     virtual result_t set_enableCookie(bool newVal);
     virtual result_t get_autoRedirect(bool& retVal);
     virtual result_t set_autoRedirect(bool newVal);
+    virtual result_t get_enableEncoding(bool& retVal);
+    virtual result_t set_enableEncoding(bool newVal);
     virtual result_t get_maxBodySize(int32_t& retVal);
     virtual result_t set_maxBodySize(int32_t newVal);
     virtual result_t get_userAgent(exlib::string& retVal);
@@ -126,6 +129,7 @@ private:
     int32_t m_timeout;
     bool m_enableCookie;
     bool m_autoRedirect;
+    bool m_enableEncoding;
     int32_t m_maxBodySize;
     exlib::string m_userAgent;
 

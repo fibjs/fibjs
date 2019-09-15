@@ -35,6 +35,8 @@ public:
     virtual result_t set_enableCookie(bool newVal) = 0;
     virtual result_t get_autoRedirect(bool& retVal) = 0;
     virtual result_t set_autoRedirect(bool newVal) = 0;
+    virtual result_t get_enableEncoding(bool& retVal) = 0;
+    virtual result_t set_enableEncoding(bool newVal) = 0;
     virtual result_t get_userAgent(exlib::string& retVal) = 0;
     virtual result_t set_userAgent(exlib::string newVal) = 0;
     virtual result_t get_poolSize(int32_t& retVal) = 0;
@@ -64,6 +66,8 @@ public:
     static void s_set_enableCookie(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_autoRedirect(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_autoRedirect(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_enableEncoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_enableEncoding(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_userAgent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_userAgent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_poolSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -116,6 +120,7 @@ inline ClassInfo& HttpClient_base::class_info()
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
         { "enableCookie", s_get_enableCookie, s_set_enableCookie, false },
         { "autoRedirect", s_get_autoRedirect, s_set_autoRedirect, false },
+        { "enableEncoding", s_get_enableEncoding, s_set_enableEncoding, false },
         { "userAgent", s_get_userAgent, s_set_userAgent, false },
         { "poolSize", s_get_poolSize, s_set_poolSize, false },
         { "poolTimeout", s_get_poolTimeout, s_set_poolTimeout, false }
@@ -261,6 +266,31 @@ inline void HttpClient_base::s_set_autoRedirect(v8::Local<v8::Name> property, v8
     PROPERTY_VAL(bool);
 
     hr = pInst->set_autoRedirect(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void HttpClient_base::s_get_enableEncoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("HttpClient.enableEncoding");
+    METHOD_INSTANCE(HttpClient_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_enableEncoding(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_enableEncoding(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("HttpClient.enableEncoding");
+    METHOD_INSTANCE(HttpClient_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(bool);
+
+    hr = pInst->set_enableEncoding(v0);
 
     PROPERTY_SET_LEAVE();
 }

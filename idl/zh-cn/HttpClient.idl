@@ -24,11 +24,14 @@ interface HttpClient : object
     /*! @brief 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 -1，不限制尺寸 */
     Integer maxBodySize;
 
-    /*! @brief cookie功能开关，默认开启 */
+    /*! @brief cookie 功能开关，默认开启 */
     Boolean enableCookie;
 
-    /*! @brief 自动redirect功能开关，默认开启 */
+    /*! @brief 自动 redirect 功能开关，默认开启 */
     Boolean autoRedirect;
+
+    /*! @brief 自动解压缩功能开关，默认开启 */
+    Boolean enableEncoding;
 
     /*! @brief 查询和设置 http 请求中的浏览器标识 */
     String userAgent;
