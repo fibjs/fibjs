@@ -40,7 +40,7 @@ public:
     virtual result_t get_socket(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t hasHeader(exlib::string name, bool& retVal) = 0;
     virtual result_t firstHeader(exlib::string name, exlib::string& retVal) = 0;
-    virtual result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal) = 0;
+    virtual result_t allHeader(exlib::string name, obj_ptr<NObject>& retVal) = 0;
     virtual result_t addHeader(v8::Local<v8::Object> map) = 0;
     virtual result_t addHeader(exlib::string name, v8::Local<v8::Array> values) = 0;
     virtual result_t addHeader(exlib::string name, exlib::string value) = 0;
@@ -304,15 +304,15 @@ inline void HttpMessage_base::s_firstHeader(const v8::FunctionCallbackInfo<v8::V
 
 inline void HttpMessage_base::s_allHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    obj_ptr<NObject> vr;
 
     METHOD_NAME("HttpMessage.allHeader");
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(1, 0);
 
-    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 0, "");
 
     hr = pInst->allHeader(v0, vr);
 
