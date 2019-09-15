@@ -1714,9 +1714,9 @@ describe("http", () => {
                 http.enableCookie = false;
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/name").body.read().toString(),
                     "/name");
-                assert.equal(cookie, "root=value2");
+                assert.isUndefined(cookie);
                 http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/name");
-                assert.equal(cookie, "root=value2");
+                assert.isUndefined(cookie);
             })
         })
     });

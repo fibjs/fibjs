@@ -433,9 +433,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
             pThis->m_req->addHeader("Host", u->m_host);
             pThis->m_req->setHeader("Accept-Encoding", "gzip,deflate");
-            pThis->m_hc->get_cookie(pThis->m_url, cookie);
-            if (cookie.length() > 0)
-                pThis->m_req->setHeader("Cookie", cookie);
+            bool enableCookie = false;
+            pThis->m_hc->get_enableCookie(enableCookie);
+            if (enableCookie) {
+                pThis->m_hc->get_cookie(pThis->m_url, cookie);
+                if (cookie.length() > 0)
+                    pThis->m_req->setHeader("Cookie", cookie);
+            }
 
             if (pThis->m_headers)
                 pThis->m_req->addHeader(pThis->m_headers);
