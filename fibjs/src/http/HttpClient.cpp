@@ -606,8 +606,30 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 
         o.Clear();
         hr = GetArgumentValue(opts->Get(isolate->NewString("headers", 7)), o);
-        if (hr >= 0)
-            map->add(o);
+        if (hr >= 0) {
+            v8::Local<v8::Array> ks = o->GetPropertyNames();
+            int32_t len = ks->Length();
+            int32_t i;
+
+            for (i = 0; i < len; i++) {
+                v8::Local<v8::Value> k = ks->Get(i);
+                v8::Local<v8::Value> v = o->Get(k);
+
+                if (v->IsArray()) {
+                    obj_ptr<NArray> arr = new NArray();
+                    v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
+                    int32_t len1 = a->Length();
+                    int32_t i1;
+
+                    for (i1 = 0; i1 < len1; i1++)
+                        arr->append(ToCString(v8::String::Utf8Value(a->Get(i1))));
+
+                    map->add(ToCString(v8::String::Utf8Value(k)), arr);
+                } else
+                    map->add(ToCString(v8::String::Utf8Value(k)),
+                        ToCString(v8::String::Utf8Value(v)));
+            }
+        }
 
         v = opts->Get(isolate->NewString("body", 4));
         if (!v->IsUndefined()) {

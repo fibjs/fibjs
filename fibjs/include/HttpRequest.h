@@ -91,8 +91,16 @@ public:
     result_t addHeader(NObject* map)
     {
         std::map<exlib::string, Variant>::iterator iter;
-        for (iter = map->m_datas.begin(); iter != map->m_datas.end(); iter++)
-            addHeader(iter->first, iter->second.string());
+        for (iter = map->m_datas.begin(); iter != map->m_datas.end(); iter++) {
+            Variant& v = iter->second;
+            if (v.type() == Variant::VT_Object) {
+                obj_ptr<NArray> arr = (NArray*)v.object();
+
+                for (int32_t i = 0; i < (int32_t)arr->m_array.size(); i++)
+                    addHeader(iter->first, arr->m_array[i].string());
+            } else
+                addHeader(iter->first, iter->second.string());
+        }
 
         return 0;
     }

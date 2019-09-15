@@ -131,7 +131,7 @@ private:
         return s1.compare(s2) < 0;
     }
 
-protected:
+public:
     std::vector<Variant> m_array;
 };
 
