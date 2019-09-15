@@ -807,7 +807,7 @@ describe("http", () => {
     describe("encode", () => {
         it("request", () => {
             var rep = new http.Request();
-            rep.body.write("0123456789");
+            rep.write("0123456789");
 
             var ms = new io.MemoryStream();
 
@@ -830,7 +830,7 @@ describe("http", () => {
             var ms = new io.MemoryStream();
 
             var rep = new http.Response();
-            rep.body.write("0123456789");
+            rep.write("0123456789");
 
             rep.sendTo(ms);
             ms.rewind();
@@ -841,7 +841,7 @@ describe("http", () => {
             var ms = new io.MemoryStream();
 
             var rep = new http.Response();
-            rep.body.write("0123456789");
+            rep.write("0123456789");
 
             rep.sendHeader(ms);
             ms.rewind();
@@ -903,7 +903,7 @@ describe("http", () => {
 
         it("address", () => {
             var rep = new http.Request();
-            rep.body.write("0123456789");
+            rep.write("0123456789");
             rep.address = "/docs/";
             rep.value = "/docs/";
 
@@ -916,7 +916,7 @@ describe("http", () => {
 
         it("query", () => {
             var rep = new http.Request();
-            rep.body.write("0123456789");
+            rep.write("0123456789");
             rep.address = "/docs";
             rep.value = "/docs";
             rep.queryString = "page=100&style=wap";
@@ -1474,7 +1474,7 @@ describe("http", () => {
 
                 if (r.address == "/name") {
                     r.response.addHeader("set-cookie", "name=value; path=/name");
-                    r.response.body.write(r.address);
+                    r.response.write(r.address);
                 } else if (r.address == "/redirect") {
                     r.response.addHeader("test", "test1");
                     r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/request");
@@ -1482,16 +1482,16 @@ describe("http", () => {
                     r.response.redirect("http://127.0.0.1:" + (8882 + base_port) + "/redirect1");
                 } else if (r.address == "/agent") {
                     if (r.allHeader("user-agent").length == 1)
-                        r.response.body.write(r.firstHeader("user-agent"));
+                        r.response.write(r.firstHeader("user-agent"));
                 } else if (r.address == "/request_query:") {
-                    r.response.body.write(r.address);
-                    r.response.body.write(r.query.test_field);
+                    r.response.write(r.address);
+                    r.response.write(r.query.test_field);
                 } else if (r.address == "/request_url:") {
-                    r.response.body.write(r.address);
-                    r.response.body.write(r.form.test_field);
+                    r.response.write(r.address);
+                    r.response.write(r.form.test_field);
                 } else if (r.address == "/request_json:") {
-                    r.response.body.write(r.address);
-                    r.response.body.write(r.json().test_field);
+                    r.response.write(r.address);
+                    r.response.write(r.json().test_field);
                 } else if (r.address != "/gzip_test") {
                     r.response.addHeader("set-cookie", [
                         "request=value; domain=127.0.0.1; path=/request",
@@ -1499,14 +1499,18 @@ describe("http", () => {
                         "request2=value; domain=127.0.0.1; path=/request; secure",
                         "request3=value; domain=127.0.0.1:" + port + "; path=/request;"
                     ]);
-                    r.response.body.write(r.address);
+                    r.response.write(r.address);
                     r.body.copyTo(r.response.body);
+
                     if (r.hasHeader("test_header"))
-                        r.response.body.write(r.firstHeader("test_header"));
+                        r.response.write(r.firstHeader("test_header"));
+
+                    if (r.hasHeader("test_headers"))
+                        r.response.json(r.allHeader("test_headers"));
                 } else {
                     r.response.addHeader("set-cookie", "gzip_test=value; domain=127.0.0.1; path=/gzip_test");
                     r.response.addHeader("Content-Type", "text/html");
-                    r.response.body.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 }
             });
             svr.asyncRun();
@@ -1581,6 +1585,19 @@ describe("http", () => {
                         "test_header": "header"
                     }
                 }).body.read().toString(), "/request:header");
+                assert.equal(cookie, "root=value2");
+            });
+
+            it("headers", () => {
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                    headers: {
+                        "test_headers": [
+                            "header1",
+                            "header2",
+                            "header3"
+                        ]
+                    }
+                }).body.read().toString(), "[\"header1\",\"header2\",\"header3\"]");
                 assert.equal(cookie, "root=value2");
             });
 
@@ -1756,13 +1773,13 @@ describe("http", () => {
                 if (r.address != "/gzip_test") {
                     r.response.addHeader("set-cookie", "request1=value; path=/");
                     r.response.addHeader("set-cookie", "request2=value; path=/; secure");
-                    r.response.body.write(r.address);
+                    r.response.write(r.address);
                     r.body.copyTo(r.response.body);
                     if (r.hasHeader("test_header"))
-                        r.response.body.write(r.firstHeader("test_header"));
+                        r.response.write(r.firstHeader("test_header"));
                 } else {
                     r.response.addHeader("Content-Type", "text/html");
-                    r.response.body.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 }
             });
             svr.asyncRun();
@@ -1858,10 +1875,10 @@ describe("http", () => {
 
                 if (r.address == "/timeout") {
                     coroutine.sleep(500);
-                    r.response.body.write(r.address);
+                    r.response.write(r.address);
                 } else if (r.address == "/name") {
                     r.response.addHeader("set-cookie", "name=value; domain=127.0.0.1:" + port + "; path=/name");
-                    r.response.body.write(r.address);
+                    r.response.write(r.address);
                 } else if (r.address == "/redirect") {
                     r.response.redirect("request");
                 } else if (r.address == "/redirect/a/b/c") {
@@ -1882,14 +1899,14 @@ describe("http", () => {
                     r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1; path=/request");
                     r.response.addHeader("set-cookie", "request2=value; domain=127.0.0.1; path=/request; secure");
                     r.response.addHeader("set-cookie", "request3=value; domain=127.0.0.1:" + port + "; path=/request;");
-                    r.response.body.write(r.address);
+                    r.response.write(r.address);
                     r.body.copyTo(r.response.body);
                     if (r.hasHeader("test_header"))
-                        r.response.body.write(r.firstHeader("test_header"));
+                        r.response.write(r.firstHeader("test_header"));
                 } else {
                     r.response.addHeader("Content-Type", "text/html");
                     r.response.addHeader("set-cookie", "gzip_test=value; domain=127.0.0.1; path=/gzip_test");
-                    r.response.body.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 }
             });
             svr.asyncRun();
