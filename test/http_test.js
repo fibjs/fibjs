@@ -120,27 +120,45 @@ describe("http", () => {
         it("add({})", () => {
             d.add({
                 d: "900",
-                b: "1000"
+                b: "1000",
+                f: ["200", "400"]
             });
+
+            d.add("g", ["300", "700"]);
 
             var a = d.all('d');
             assert.deepEqual(a, ['500', '700', '900']);
 
             a = d.all('b');
             assert.deepEqual(a, ['200', '1000']);
+
+            a = d.all('f');
+            assert.deepEqual(a, ["200", "400"]);
+
+            a = d.all('g');
+            assert.deepEqual(a, ["300", "700"]);
         });
 
         it("set({})", () => {
             d.set({
                 d: "900",
-                b: "1000"
+                b: "1000",
+                f: ["2000", "4000"]
             });
+
+            d.set("g", ["3000", "7000"]);
 
             var a = d.all('d');
             assert.deepEqual(a, ['900']);
 
             a = d.all('b');
             assert.deepEqual(a, ['1000']);
+
+            a = d.all('f');
+            assert.deepEqual(a, ["2000", "4000"]);
+
+            a = d.all('g');
+            assert.deepEqual(a, ["3000", "7000"]);
         });
 
         it("set other type", () => {
@@ -1447,10 +1465,12 @@ describe("http", () => {
                 var port = 8882 + base_port;
                 cookie = r.headers.cookie;
 
-                r.response.addHeader("set-cookie", "root1=value1; domain=127.0.0.2; path=/");
-                r.response.addHeader("set-cookie", "root=value; domain=127.0.0.1:" + port + "; path=/");
-                r.response.addHeader("set-cookie", "root=value; path=/");
-                r.response.addHeader("set-cookie", "root=value2; path=/");
+                r.response.addHeader("set-cookie", [
+                    "root1=value1; domain=127.0.0.2; path=/",
+                    "root=value; domain=127.0.0.1:" + port + "; path=/",
+                    "root=value; path=/",
+                    "root=value2; path=/"
+                ]);
 
                 if (r.address == "/name") {
                     r.response.addHeader("set-cookie", "name=value; path=/name");
@@ -1473,10 +1493,12 @@ describe("http", () => {
                     r.response.body.write(r.address);
                     r.response.body.write(r.json().test_field);
                 } else if (r.address != "/gzip_test") {
-                    r.response.addHeader("set-cookie", "request=value; domain=127.0.0.1; path=/request");
-                    r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1; path=/request");
-                    r.response.addHeader("set-cookie", "request2=value; domain=127.0.0.1; path=/request; secure");
-                    r.response.addHeader("set-cookie", "request3=value; domain=127.0.0.1:" + port + "; path=/request;");
+                    r.response.addHeader("set-cookie", [
+                        "request=value; domain=127.0.0.1; path=/request",
+                        "request1=value; domain=127.0.0.1; path=/request",
+                        "request2=value; domain=127.0.0.1; path=/request; secure",
+                        "request3=value; domain=127.0.0.1:" + port + "; path=/request;"
+                    ]);
                     r.response.body.write(r.address);
                     r.body.copyTo(r.response.body);
                     if (r.hasHeader("test_header"))

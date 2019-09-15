@@ -49,8 +49,10 @@ public:
     result_t firstHeader(exlib::string name, exlib::string& retVal);
     result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal);
     result_t addHeader(v8::Local<v8::Object> map);
+    result_t addHeader(exlib::string name, v8::Local<v8::Array> values);
     result_t addHeader(exlib::string name, exlib::string value);
     result_t setHeader(v8::Local<v8::Object> map);
+    result_t setHeader(exlib::string name, v8::Local<v8::Array> values);
     result_t setHeader(exlib::string name, exlib::string value);
     result_t removeHeader(exlib::string name);
     result_t get_stream(obj_ptr<Stream_base>& retVal);

@@ -560,6 +560,11 @@ result_t HttpMessage::addHeader(exlib::string name, exlib::string value)
     return m_headers->add(name, value);
 }
 
+result_t HttpMessage::addHeader(exlib::string name, v8::Local<v8::Array> values)
+{
+    return m_headers->add(name, values);
+}
+
 result_t HttpMessage::setHeader(v8::Local<v8::Object> map)
 {
     return m_headers->set(map);
@@ -568,6 +573,11 @@ result_t HttpMessage::setHeader(v8::Local<v8::Object> map)
 result_t HttpMessage::setHeader(exlib::string name, exlib::string value)
 {
     return m_headers->set(name, value);
+}
+
+result_t HttpMessage::setHeader(exlib::string name, v8::Local<v8::Array> values)
+{
+    return m_headers->set(name, values);
 }
 
 result_t HttpMessage::removeHeader(exlib::string name)

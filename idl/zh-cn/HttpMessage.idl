@@ -46,6 +46,12 @@ interface HttpMessage : Message
      */
     addHeader(Object map);
 
+    /*! @brief 添加指定名称的一组消息头，添加数据并不修改已存在的键值的消息头
+     @param name 指定要添加的键值
+     @param values 指定要添加的一组数据
+     */
+    addHeader(String name, Array values);
+
     /*! @brief 添加一个消息头，添加数据并不修改已存在的键值的消息头
      @param name 指定要添加的键值
      @param value 指定要添加的数据
@@ -56,6 +62,12 @@ interface HttpMessage : Message
      @param map 指定要设定的键值数据字典
      */
     setHeader(Object map);
+
+    /*! @brief 设定指定名称的一组消息头，设定数据将修改键值所对应的数值，并清除相同键值的其余消息头
+     @param name 指定要设定的键值
+     @param values 指定要设定的一组数据
+     */
+    setHeader(String name, Array values);
 
     /*! @brief 设定一个消息头，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余消息头
      @param name 指定要设定的键值
