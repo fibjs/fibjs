@@ -262,7 +262,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
         {
             asyncConnect* pThis = (asyncConnect*)pState;
 
-            Variant v;
+            exlib::string v;
             result_t hr;
             int32_t status;
 
@@ -281,7 +281,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
                 return CHECK_ERROR(Runtime::setError("websocket: missing Upgrade header."));
             }
 
-            if (qstricmp(v.string().c_str(), "websocket")) {
+            if (qstricmp(v.c_str(), "websocket")) {
                 pThis->m_this->endConnect(1002, "invalid Upgrade header.");
                 return CHECK_ERROR(Runtime::setError("websocket: invalid Upgrade header."));
             }
@@ -302,7 +302,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
                 return CHECK_ERROR(Runtime::setError("websocket: missing Sec-WebSocket-Accept header."));
             }
 
-            if (v.string() != pThis->m_accept) {
+            if (v != pThis->m_accept) {
                 pThis->m_this->endConnect(1002, "invalid Sec-WebSocket-Accept header.");
                 return CHECK_ERROR(Runtime::setError("websocket: invalid Sec-WebSocket-Accept header."));
             }
@@ -311,7 +311,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             if (hr < 0)
                 return hr;
 
-            if (hr != CALL_RETURN_NULL && !qstricmp(v.string().c_str(), "permessage-deflate", 18))
+            if (hr != CALL_RETURN_NULL && !qstricmp(v.c_str(), "permessage-deflate", 18))
                 pThis->m_this->enableCompress();
 
             pThis->m_httprep->get_stream(pThis->m_this->m_stream);

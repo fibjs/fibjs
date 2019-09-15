@@ -125,7 +125,7 @@ result_t HttpResponse::hasHeader(exlib::string name, bool& retVal)
     return m_message->hasHeader(name, retVal);
 }
 
-result_t HttpResponse::firstHeader(exlib::string name, Variant& retVal)
+result_t HttpResponse::firstHeader(exlib::string name, exlib::string& retVal)
 {
     return m_message->firstHeader(name, retVal);
 }
@@ -140,7 +140,7 @@ result_t HttpResponse::addHeader(v8::Local<v8::Object> map)
     return m_message->addHeader(map);
 }
 
-result_t HttpResponse::addHeader(exlib::string name, Variant value)
+result_t HttpResponse::addHeader(exlib::string name, exlib::string value)
 {
     return m_message->addHeader(name, value);
 }
@@ -150,7 +150,7 @@ result_t HttpResponse::setHeader(v8::Local<v8::Object> map)
     return m_message->setHeader(map);
 }
 
-result_t HttpResponse::setHeader(exlib::string name, Variant value)
+result_t HttpResponse::setHeader(exlib::string name, exlib::string value)
 {
     return m_message->setHeader(name, value);
 }

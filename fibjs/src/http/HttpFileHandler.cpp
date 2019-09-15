@@ -157,14 +157,11 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         {
             req->get_response(m_rep);
 
-            Variant hdr;
+            exlib::string hdr;
 
-            if (m_req->firstHeader("Accept-Encoding", hdr) != CALL_RETURN_NULL) {
-                exlib::string str = hdr.string();
-
-                if (qstristr(str.c_str(), "gzip"))
+            if (m_req->firstHeader("Accept-Encoding", hdr) != CALL_RETURN_NULL)
+                if (qstristr(hdr.c_str(), "gzip"))
                     m_pre_gz = true;
-            }
 
             m_req->get_value(m_value);
             Url::decodeURI(m_value, m_value);
@@ -330,14 +327,13 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             pThis->m_stat->get_mtime(d);
 
-            Variant v;
-            if (pThis->m_req->firstHeader("If-Modified-Since", v)
+            exlib::string lastModified;
+            if (pThis->m_req->firstHeader("If-Modified-Since", lastModified)
                 != CALL_RETURN_NULL) {
                 date_t d1;
                 double diff;
-                exlib::string str = v.string();
 
-                d1.parse(str);
+                d1.parse(lastModified);
                 diff = d.diff(d1);
 
                 if (diff > -1000 && diff < 1000) {
@@ -346,9 +342,9 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 }
             }
 
-            d.toGMTString(str);
+            d.toGMTString(lastModified);
 
-            pThis->m_rep->addHeader("Last-Modified", str);
+            pThis->m_rep->addHeader("Last-Modified", lastModified);
             pThis->m_rep->set_body(pThis->m_file);
 
             if (pThis->m_pre_gz)

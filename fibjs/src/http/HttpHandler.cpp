@@ -127,7 +127,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (pThis->m_pThis->m_crossDomain) {
                 pThis->m_req->get_address(str);
 
-                Variant origin;
+                exlib::string origin;
 
                 if (pThis->m_req->firstHeader("origin", origin)
                     != CALL_RETURN_NULL) {
@@ -217,26 +217,24 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_rep->get_length(len);
 
             if (len > 128 && len < 1024 * 1024 * 64) {
-                Variant hdr;
+                exlib::string hdr;
 
                 if (pThis->m_req->firstHeader("Accept-Encoding", hdr)
                     != CALL_RETURN_NULL) {
-                    exlib::string str = hdr.string();
                     int32_t type = 0;
 
-                    if (qstristr(str.c_str(), "gzip"))
+                    if (qstristr(hdr.c_str(), "gzip"))
                         type = 1;
-                    else if (qstristr(str.c_str(), "deflate"))
+                    else if (qstristr(hdr.c_str(), "deflate"))
                         type = 2;
 
                     if (type != 0) {
                         if (pThis->m_rep->firstHeader("Content-Type", hdr)
                             != CALL_RETURN_NULL) {
-                            str = hdr.string();
 
-                            if (qstricmp(str.c_str(), "text/", 5)
-                                && qstricmp(str.c_str(), "application/x-javascript")
-                                && qstricmp(str.c_str(), "application/json"))
+                            if (qstricmp(hdr.c_str(), "text/", 5)
+                                && qstricmp(hdr.c_str(), "application/x-javascript")
+                                && qstricmp(hdr.c_str(), "application/json"))
                                 type = 0;
                         } else
                             type = 0;

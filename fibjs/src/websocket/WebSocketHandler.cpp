@@ -52,7 +52,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         {
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
-            Variant v;
+            exlib::string v;
             result_t hr;
 
             hr = pThis->m_httpreq->firstHeader("Upgrade", v);
@@ -62,7 +62,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (hr == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: missing Upgrade header."));
 
-            if (qstricmp(v.string().c_str(), "websocket"))
+            if (qstricmp(v.c_str(), "websocket"))
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: invalid Upgrade header."));
 
             hr = pThis->m_httpreq->firstHeader("Sec-WebSocket-Version", v);
@@ -72,7 +72,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (hr == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: missing Sec-WebSocket-Version header."));
 
-            if (qstricmp(v.string().c_str(), "13"))
+            if (qstricmp(v.c_str(), "13"))
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: invalid Sec-WebSocket-Version header."));
 
             bool bUpgrade;
@@ -87,7 +87,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (hr == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: missing Sec-WebSocket-Key header."));
 
-            exlib::string key(v.string());
+            exlib::string key(v);
 
             key.append("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
 
@@ -109,7 +109,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (hr < 0)
                 return hr;
 
-            if (hr != CALL_RETURN_NULL && !qstricmp(v.string().c_str(), "permessage-deflate", 18)) {
+            if (hr != CALL_RETURN_NULL && !qstricmp(v.c_str(), "permessage-deflate", 18)) {
                 pThis->m_httprep->addHeader("Sec-WebSocket-Extensions", "permessage-deflate");
                 pThis->m_compress = true;
             }

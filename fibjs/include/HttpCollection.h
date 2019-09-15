@@ -42,10 +42,28 @@ public:
         add(exlib::string(name, szName), exlib::string(value, szValue));
     }
 
-    void add(exlib::string& name, exlib::string& value)
+    result_t add(exlib::string& name, exlib::string value)
     {
         m_map[m_count] = pair(name, value);
         m_count++;
+
+        return 0;
+    }
+
+    result_t first(exlib::string name, exlib::string& retVal)
+    {
+        int32_t i;
+
+        for (i = 0; i < m_count; i++) {
+            pair& _pair = m_map[i];
+
+            if (!qstricmp(_pair.first.c_str(), name.c_str())) {
+                retVal = _pair.second;
+                return 0;
+            }
+        }
+
+        return CALL_RETURN_NULL;
     }
 
     size_t size();

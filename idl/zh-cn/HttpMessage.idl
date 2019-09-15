@@ -33,7 +33,7 @@ interface HttpMessage : Message
      @param name 指定要查询的键值
      @return 返回键值所对应的值，若不存在，则返回 undefined
      */
-    Variant firstHeader(String name);
+    String firstHeader(String name);
 
     /*! @brief 查询指定键值的全部消息头
      @param name 指定要查询的键值
@@ -50,7 +50,7 @@ interface HttpMessage : Message
      @param name 指定要添加的键值
      @param value 指定要添加的数据
      */
-    addHeader(String name, Variant value);
+    addHeader(String name, String value);
 
     /*! @brief 设定一个消息头，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余消息头
      @param map 指定要设定的键值数据字典
@@ -61,7 +61,7 @@ interface HttpMessage : Message
      @param name 指定要设定的键值
      @param value 指定要设定的数据
      */
-    setHeader(String name, Variant value);
+    setHeader(String name, String value);
 
     /*! @brief 删除指定键值的全部消息头
      @param name 指定要删除的键值

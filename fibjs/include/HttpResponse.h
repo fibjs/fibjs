@@ -63,12 +63,12 @@ public:
     virtual result_t set_maxBodySize(int32_t newVal);
     virtual result_t get_socket(obj_ptr<Stream_base>& retVal);
     virtual result_t hasHeader(exlib::string name, bool& retVal);
-    virtual result_t firstHeader(exlib::string name, Variant& retVal);
+    virtual result_t firstHeader(exlib::string name, exlib::string& retVal);
     virtual result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal);
     virtual result_t addHeader(v8::Local<v8::Object> map);
-    virtual result_t addHeader(exlib::string name, Variant value);
+    virtual result_t addHeader(exlib::string name, exlib::string value);
     virtual result_t setHeader(v8::Local<v8::Object> map);
-    virtual result_t setHeader(exlib::string name, Variant value);
+    virtual result_t setHeader(exlib::string name, exlib::string value);
     virtual result_t removeHeader(exlib::string name);
 
 public:

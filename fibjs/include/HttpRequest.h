@@ -64,12 +64,12 @@ public:
     virtual result_t set_maxBodySize(int32_t newVal);
     virtual result_t get_socket(obj_ptr<Stream_base>& retVal);
     virtual result_t hasHeader(exlib::string name, bool& retVal);
-    virtual result_t firstHeader(exlib::string name, Variant& retVal);
+    virtual result_t firstHeader(exlib::string name, exlib::string& retVal);
     virtual result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal);
     virtual result_t addHeader(v8::Local<v8::Object> map);
-    virtual result_t addHeader(exlib::string name, Variant value);
+    virtual result_t addHeader(exlib::string name, exlib::string value);
     virtual result_t setHeader(v8::Local<v8::Object> map);
-    virtual result_t setHeader(exlib::string name, Variant value);
+    virtual result_t setHeader(exlib::string name, exlib::string value);
     virtual result_t removeHeader(exlib::string name);
 
 public:
@@ -90,19 +90,9 @@ public:
     {
         std::map<exlib::string, Variant>::iterator iter;
         for (iter = map->m_datas.begin(); iter != map->m_datas.end(); iter++)
-            addHeader(iter->first, iter->second);
+            addHeader(iter->first, iter->second.string());
 
         return 0;
-    }
-
-    void header(const char* name, exlib::string& retVal)
-    {
-        Variant varCookie;
-        obj_ptr<HttpCollection_base> hdrs;
-
-        m_message->get_headers(hdrs);
-        hdrs->first(name, varCookie);
-        retVal = varCookie.string();
     }
 
 private:

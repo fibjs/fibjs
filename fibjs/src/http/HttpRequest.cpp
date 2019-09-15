@@ -124,7 +124,7 @@ result_t HttpRequest::hasHeader(exlib::string name, bool& retVal)
     return m_message->hasHeader(name, retVal);
 }
 
-result_t HttpRequest::firstHeader(exlib::string name, Variant& retVal)
+result_t HttpRequest::firstHeader(exlib::string name, exlib::string& retVal)
 {
     return m_message->firstHeader(name, retVal);
 }
@@ -139,7 +139,7 @@ result_t HttpRequest::addHeader(v8::Local<v8::Object> map)
     return m_message->addHeader(map);
 }
 
-result_t HttpRequest::addHeader(exlib::string name, Variant value)
+result_t HttpRequest::addHeader(exlib::string name, exlib::string value)
 {
     return m_message->addHeader(name, value);
 }
@@ -149,7 +149,7 @@ result_t HttpRequest::setHeader(v8::Local<v8::Object> map)
     return m_message->setHeader(map);
 }
 
-result_t HttpRequest::setHeader(exlib::string name, Variant value)
+result_t HttpRequest::setHeader(exlib::string name, exlib::string value)
 {
     return m_message->setHeader(name, value);
 }
@@ -395,7 +395,7 @@ result_t HttpRequest::get_cookies(obj_ptr<HttpCollection_base>& retVal)
         exlib::string strCookie;
         obj_ptr<HttpCollection> c = new HttpCollection();
 
-        header("cookie", strCookie);
+        firstHeader("cookie", strCookie);
 
         c->parseCookie(strCookie);
         m_cookies = c;
@@ -416,12 +416,9 @@ result_t HttpRequest::get_form(obj_ptr<HttpCollection_base>& retVal)
         else {
             exlib::string strType;
             bool bUpload = false;
-            Variant v;
 
-            if (firstHeader("Content-Type", v) == CALL_RETURN_NULL)
+            if (firstHeader("Content-Type", strType) == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
-
-            strType = v.string();
 
             if (!qstricmp(strType.c_str(), "multipart/form-data;", 20))
                 bUpload = true;

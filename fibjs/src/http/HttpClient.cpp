@@ -333,7 +333,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
 
             pThis->set(close);
 
-            Variant hdr;
+            exlib::string hdr;
 
             if (pThis->m_retVal->firstHeader("Content-Encoding", hdr) != CALL_RETURN_NULL) {
                 pThis->m_retVal->removeHeader("Content-Encoding");
@@ -341,12 +341,10 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
                 pThis->m_retVal->get_body(pThis->m_body);
                 pThis->m_unzip = new MemoryStream();
 
-                exlib::string str = hdr.string();
-
-                if (str == "gzip")
+                if (hdr == "gzip")
                     return zlib_base::gunzipTo(pThis->m_body, pThis->m_unzip,
                         pThis->m_maxBodySize, pThis);
-                else if (str == "deflate")
+                else if (hdr == "deflate")
                     return zlib_base::inflateRawTo(pThis->m_body, pThis->m_unzip,
                         pThis->m_maxBodySize, pThis);
             }
@@ -526,7 +524,6 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             result_t hr;
             int32_t status;
             exlib::string location;
-            Variant v;
             obj_ptr<Url> u = new Url();
             obj_ptr<UrlObject_base> u1;
 
@@ -537,11 +534,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             if (!pThis->m_hc->m_autoRedirect || (status != 302 && status != 301))
                 return pThis->done(0);
 
-            hr = pThis->m_retVal->firstHeader("location", v);
+            hr = pThis->m_retVal->firstHeader("location", location);
             if (hr < 0)
                 return hr;
 
-            location = v.string();
             u->parse(pThis->m_url);
             u->resolve(location, u1);
             location.resize(0);

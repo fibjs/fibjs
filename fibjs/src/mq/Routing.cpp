@@ -61,10 +61,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         if (htmsg) {
             if (!qstricmp(r->m_method.c_str(), "HOST")) {
                 if (host.empty()) {
-                    Variant v;
-
-                    htmsg->firstHeader("host", v);
-                    host = v.string();
+                    htmsg->firstHeader("host", host);
                     if (host.empty())
                         host = "*";
                     else {

@@ -131,21 +131,16 @@ result_t HttpMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retV
 
 result_t HttpMessage::json(v8::Local<v8::Value>& retVal)
 {
-    Variant v;
-    exlib::string str;
+    exlib::string strType;
 
-    firstHeader("Content-Type", v);
+    if (firstHeader("Content-Type", strType) == CALL_RETURN_NULL)
+        return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
 
-    if (v.isUndefined())
-        return CHECK_ERROR(Runtime::setError("HttpMessage: Content-Type is missing."));
-
-    str = v.string();
-
-    size_t pos = str.find(';');
+    size_t pos = strType.find(';');
     if (pos != exlib::string::npos)
-        str = str.substr(0, pos);
+        strType = strType.substr(0, pos);
 
-    if (str != "application/json")
+    if (strType != "application/json")
         return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
 
     return Message::json(retVal);
@@ -545,7 +540,7 @@ result_t HttpMessage::hasHeader(exlib::string name, bool& retVal)
     return m_headers->has(name, retVal);
 }
 
-result_t HttpMessage::firstHeader(exlib::string name, Variant& retVal)
+result_t HttpMessage::firstHeader(exlib::string name, exlib::string& retVal)
 {
     return m_headers->first(name, retVal);
 }
@@ -560,7 +555,7 @@ result_t HttpMessage::addHeader(v8::Local<v8::Object> map)
     return m_headers->add(map);
 }
 
-result_t HttpMessage::addHeader(exlib::string name, Variant value)
+result_t HttpMessage::addHeader(exlib::string name, exlib::string value)
 {
     return m_headers->add(name, value);
 }
@@ -570,7 +565,7 @@ result_t HttpMessage::setHeader(v8::Local<v8::Object> map)
     return m_headers->set(map);
 }
 
-result_t HttpMessage::setHeader(exlib::string name, Variant value)
+result_t HttpMessage::setHeader(exlib::string name, exlib::string value)
 {
     return m_headers->set(name, value);
 }

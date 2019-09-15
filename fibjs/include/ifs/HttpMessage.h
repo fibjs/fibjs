@@ -39,12 +39,12 @@ public:
     virtual result_t set_maxBodySize(int32_t newVal) = 0;
     virtual result_t get_socket(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t hasHeader(exlib::string name, bool& retVal) = 0;
-    virtual result_t firstHeader(exlib::string name, Variant& retVal) = 0;
+    virtual result_t firstHeader(exlib::string name, exlib::string& retVal) = 0;
     virtual result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal) = 0;
     virtual result_t addHeader(v8::Local<v8::Object> map) = 0;
-    virtual result_t addHeader(exlib::string name, Variant value) = 0;
+    virtual result_t addHeader(exlib::string name, exlib::string value) = 0;
     virtual result_t setHeader(v8::Local<v8::Object> map) = 0;
-    virtual result_t setHeader(exlib::string name, Variant value) = 0;
+    virtual result_t setHeader(exlib::string name, exlib::string value) = 0;
     virtual result_t removeHeader(exlib::string name) = 0;
 
 public:
@@ -285,7 +285,7 @@ inline void HttpMessage_base::s_hasHeader(const v8::FunctionCallbackInfo<v8::Val
 
 inline void HttpMessage_base::s_firstHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Variant vr;
+    exlib::string vr;
 
     METHOD_NAME("HttpMessage.firstHeader");
     METHOD_INSTANCE(HttpMessage_base);
@@ -332,7 +332,7 @@ inline void HttpMessage_base::s_addHeader(const v8::FunctionCallbackInfo<v8::Val
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
-    ARG(Variant, 1);
+    ARG(exlib::string, 1);
 
     hr = pInst->addHeader(v0, v1);
 
@@ -354,7 +354,7 @@ inline void HttpMessage_base::s_setHeader(const v8::FunctionCallbackInfo<v8::Val
     METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
-    ARG(Variant, 1);
+    ARG(exlib::string, 1);
 
     hr = pInst->setHeader(v0, v1);
 
