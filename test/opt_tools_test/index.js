@@ -8,14 +8,6 @@ var bin = process.execPath;
 
 var { chdirAndDo, ensureDirectoryExisted, readJson } = require('../_helpers/process');
 
-chdirAndDo(
-    path.resolve(__dirname),
-    () => {
-        // ensure dependencies of this test existed
-        process.run(bin, ['--install']);
-    }
-)()
-
 const processRunOptions = {
     env: {
         // all required environment would fallback to the parent's one
@@ -43,6 +35,16 @@ function ensurePackageJson(dirname, pkgJsonContent) {
 
 describe('opt_tools/install', () => {
     var installTarget = null
+
+    before(() => {
+        chdirAndDo(
+            path.resolve(__dirname),
+            () => {
+                // ensure dependencies of this test existed
+                process.run(bin, ['--install']);
+            }
+        )()
+    })
 
     describe('helpers', () => {
         it('is_special_installname', () => {
