@@ -275,6 +275,9 @@ result_t HttpUploadCollection::add(v8::Local<v8::Object> map)
         v8::Local<v8::Value> k = ks->Get(i);
         v8::Local<v8::Value> v = map->Get(k);
 
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+
         if (v->IsArray())
             add(ToCString(v8::String::Utf8Value(k)), v8::Local<v8::Array>::Cast(v));
         else
@@ -310,6 +313,9 @@ result_t HttpUploadCollection::set(v8::Local<v8::Object> map)
     for (i = 0; i < len; i++) {
         v8::Local<v8::Value> k = ks->Get(i);
         v8::Local<v8::Value> v = map->Get(k);
+
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
 
         if (v->IsArray())
             set(ToCString(v8::String::Utf8Value(k)), v8::Local<v8::Array>::Cast(v));
