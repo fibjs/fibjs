@@ -382,7 +382,7 @@ result_t Buffer::append(Buffer_base* data)
 result_t Buffer::append(exlib::string str, exlib::string codec)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(Runtime::setError("Unknown codec."));
+        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec."));
 
     if ((codec == "utf8") || (codec == "utf-8")) {
         extMemory((int32_t)str.length());
@@ -409,7 +409,7 @@ result_t Buffer::append(exlib::string str, exlib::string codec)
 result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(Runtime::setError("Unknown codec."));
+        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec."));
 
     int32_t max_length = 0;
     int32_t buffer_length = (int32_t)m_data.length();
@@ -1107,7 +1107,7 @@ result_t Buffer::toString(exlib::string& retVal)
 result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& retVal)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(Runtime::setError("Unknown codec."));
+        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec."));
 
     exlib::string str;
     int32_t length = (int32_t)m_data.length();
@@ -1131,7 +1131,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& re
 result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal)
 {
     if (!is_safe_codec(codec))
-        return CHECK_ERROR(Runtime::setError("Unknown codec."));
+        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec."));
 
     exlib::string str;
     int32_t length = (int32_t)m_data.length();

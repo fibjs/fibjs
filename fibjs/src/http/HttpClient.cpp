@@ -411,10 +411,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             } else if (u->m_protocol == "http:")
                 pThis->m_connUrl = "tcp://";
             else
-                return CHECK_ERROR(Runtime::setError("http: unknown protocol"));
+                return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
 
             if (u->m_host.empty())
-                return CHECK_ERROR(Runtime::setError("http: unknown host"));
+                return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
 
             pThis->m_connUrl.append(u->m_host);
 
@@ -526,7 +526,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             u1->toString(location);
 
             if (pThis->m_urls.find(location) != pThis->m_urls.end())
-                return CHECK_ERROR(Runtime::setError("http: redirect cycle"));
+                return CHECK_ERROR(Runtime::setError("HttpClient: redirect cycle"));
 
             pThis->m_url = location;
 

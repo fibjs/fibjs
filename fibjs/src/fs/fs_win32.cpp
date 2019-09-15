@@ -187,7 +187,7 @@ result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent
         /* UNC paths are never valid for junctions so we don't care about them. */
         if (!(w_target_len >= 6 && w_target[0] == L'\\' && w_target[1] == L'?' && w_target[2] == L'?' && w_target[3] == L'\\' && ((w_target[4] >= L'A' && w_target[4] <= L'Z') || (w_target[4] >= L'a' && w_target[4] <= L'z')) && w_target[5] == L':' && (w_target_len == 6 || w_target[6] == L'\\'))) {
             CloseHandle(handle);
-            return CHECK_ERROR(Runtime::setError("Symlink not supported"));
+            return CHECK_ERROR(Runtime::setError("fs: Symlink not supported"));
         }
 
         /* Remove leading \??\ */
@@ -197,7 +197,7 @@ result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent
     } else {
         /* Reparse tag does not indicate a symlink. */
         CloseHandle(handle);
-        return CHECK_ERROR(Runtime::setError("Symlink not supported"));
+        return CHECK_ERROR(Runtime::setError("fs: Symlink not supported"));
     }
 
     retVal = utf16to8String(w_target, w_target_len);
@@ -293,7 +293,7 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
         == 0) {
         CloseHandle(handle);
         free(w_realpath_buf);
-        return CHECK_ERROR(Runtime::setError("Invalid File Handle"));
+        return CHECK_ERROR(Runtime::setError("fs: Invalid File Handle"));
     }
 
     /* convert UNC path to long path */
@@ -313,7 +313,7 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     } else {
         free(w_realpath_buf);
         CloseHandle(handle);
-        return CHECK_ERROR(Runtime::setError("Invalid File Handle"));
+        return CHECK_ERROR(Runtime::setError("fs: Invalid File Handle"));
     }
 
     retVal = utf16to8String(w_realpath_ptr, w_realpath_len - 1);
@@ -378,7 +378,7 @@ result_t _create_junction(const WCHAR* path, const WCHAR* new_path)
     }
 
     if (!is_absolute)
-        return CHECK_ERROR(Runtime::setError("Not supporting relative paths"));
+        return CHECK_ERROR(Runtime::setError("fs: Not supporting relative paths"));
 
     /* Do a pessimistic calculation of the required buffer size */
     needed_buf_size = FIELD_OFFSET(REPARSE_DATA_BUFFER, MountPointReparseBuffer.PathBuffer) + JUNCTION_PREFIX_LEN * sizeof(WCHAR) + 2 * (target_len + 2) * sizeof(WCHAR);

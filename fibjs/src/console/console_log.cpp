@@ -32,7 +32,7 @@ result_t addLogger(logger* lgr)
         ;
 
     if (n >= MAX_LOGGER)
-        return CHECK_ERROR(Runtime::setError("Too many items."));
+        return CHECK_ERROR(Runtime::setError("console: Too many items."));
 
     s_logs[n] = lgr;
     return 0;
@@ -126,11 +126,11 @@ result_t console_base::add(v8::Local<v8::Object> cfg)
 
     type = cfg->Get(isolate->NewString("type", 4));
     if (IsEmpty(type))
-        return CHECK_ERROR(Runtime::setError("Missing log type."));
+        return CHECK_ERROR(Runtime::setError("console: Missing log type."));
 
     v8::String::Utf8Value s(type);
     if (!*s)
-        return CHECK_ERROR(Runtime::setError("Unknown log type."));
+        return CHECK_ERROR(Runtime::setError("console: Unknown log type."));
 
     logger* lgr;
 
@@ -148,7 +148,7 @@ result_t console_base::add(v8::Local<v8::Object> cfg)
     else if (!qstrcmp(*s, "file"))
         lgr = new file_logger();
     else
-        return CHECK_ERROR(Runtime::setError("Unknown log type."));
+        return CHECK_ERROR(Runtime::setError("console: Unknown log type."));
 
     if (lgr) {
         result_t hr = lgr->config(isolate, cfg);

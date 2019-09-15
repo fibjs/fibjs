@@ -137,7 +137,7 @@ result_t HttpMessage::json(v8::Local<v8::Value>& retVal)
     firstHeader("Content-Type", v);
 
     if (v.isUndefined())
-        return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
+        return CHECK_ERROR(Runtime::setError("HttpMessage: Content-Type is missing."));
 
     str = v.string();
 
@@ -146,7 +146,7 @@ result_t HttpMessage::json(v8::Local<v8::Value>& retVal)
         str = str.substr(0, pos);
 
     if (str != "application/json")
-        return CHECK_ERROR(Runtime::setError("HttpRequest: Invalid content type."));
+        return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
 
     return Message::json(retVal);
 }
@@ -466,7 +466,7 @@ result_t HttpMessage::set_protocol(exlib::string newVal)
 
     if (qstrcmp(c_str, "HTTP/", 5) || !qisdigit(c_str[5]) || c_str[6] != '.'
         || !qisdigit(c_str[7]) || c_str[8])
-        return CHECK_ERROR(Runtime::setError("HttpRequest: bad protocol version."));
+        return CHECK_ERROR(Runtime::setError("HttpMessage: bad protocol version."));
 
     m_keepAlive = ((c_str[5] - '0') * 10 + c_str[7] - '0') > 10;
 

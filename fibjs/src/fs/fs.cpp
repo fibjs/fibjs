@@ -506,12 +506,12 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     buffer->get_length(bufLength);
 
     if (offset < 0 || offset >= bufLength)
-        return Runtime::setError("Offset is out of bounds");
+        return Runtime::setError("fs: Offset is out of bounds");
 
     exlib::string strBuf;
 
     if (length < 0 || (offset + length > bufLength)) {
-        return Runtime::setError("Length extends beyond buffer");
+        return Runtime::setError("fs: Length extends beyond buffer");
     }
 
     if (position > -1) {

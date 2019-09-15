@@ -197,7 +197,7 @@ result_t zip_base::open(exlib::string path, exlib::string mod, int32_t compress_
             return hr;
 
         if (!exists)
-            return CHECK_ERROR(Runtime::setError("zip file not exists!"));
+            return CHECK_ERROR(Runtime::setError("ZipFile: zip file not exists!"));
 
         hr = fs_base::openFile(path, "r+", file, ac);
     }
@@ -283,7 +283,7 @@ result_t ZipFile::namelist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     obj_ptr<NArray> names = new NArray();
 
     if (m_mod != "r")
-        return CHECK_ERROR(Runtime::setError("can not read!"));
+        return CHECK_ERROR(Runtime::setError("ZipFile: can not read!"));
 
     err = unzGetGlobalInfo64(m_unz, &gi);
     if (err != UNZ_OK)
@@ -328,7 +328,7 @@ result_t ZipFile::infolist(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     obj_ptr<NArray> names = new NArray();
 
     if (m_mod != "r")
-        return CHECK_ERROR(Runtime::setError("can not read!"));
+        return CHECK_ERROR(Runtime::setError("ZipFile: can not read!"));
 
     err = unzGetGlobalInfo64(m_unz, &gi);
     if (err != UNZ_OK)
@@ -369,7 +369,7 @@ result_t ZipFile::getinfo(exlib::string member, obj_ptr<NObject>& retVal, AsyncE
     int32_t err;
 
     if (m_mod != "r")
-        return CHECK_ERROR(Runtime::setError("can not read!"));
+        return CHECK_ERROR(Runtime::setError("ZipFile: can not read!"));
 
     err = unzLocateFile(m_unz, member.c_str(), 0);
     if (err != UNZ_OK)
@@ -548,7 +548,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncEv
     if (hr < 0)
         return hr;
     if (!exists)
-        return CHECK_ERROR(Runtime::setError("no such file or directory"));
+        return CHECK_ERROR(Runtime::setError("ZipFile: no such file or directory"));
 
     err = unzGetGlobalInfo64(m_unz, &gi);
     if (err != UNZ_OK)
