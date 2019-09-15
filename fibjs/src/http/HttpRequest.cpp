@@ -129,7 +129,7 @@ result_t HttpRequest::firstHeader(exlib::string name, exlib::string& retVal)
     return m_message->firstHeader(name, retVal);
 }
 
-result_t HttpRequest::allHeader(exlib::string name, obj_ptr<NArray>& retVal)
+result_t HttpRequest::allHeader(exlib::string name, obj_ptr<NObject>& retVal)
 {
     return m_message->allHeader(name, retVal);
 }

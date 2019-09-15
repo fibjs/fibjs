@@ -24,7 +24,7 @@ public:
     virtual result_t clear() = 0;
     virtual result_t has(exlib::string name, bool& retVal) = 0;
     virtual result_t first(exlib::string name, Variant& retVal) = 0;
-    virtual result_t all(exlib::string name, obj_ptr<NArray>& retVal) = 0;
+    virtual result_t all(exlib::string name, obj_ptr<NObject>& retVal) = 0;
     virtual result_t add(v8::Local<v8::Object> map) = 0;
     virtual result_t add(exlib::string name, v8::Local<v8::Array> values) = 0;
     virtual result_t add(exlib::string name, Variant value) = 0;
@@ -139,15 +139,15 @@ inline void HttpCollection_base::s_first(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    obj_ptr<NObject> vr;
 
     METHOD_NAME("HttpCollection.all");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(1, 0);
 
-    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 0, "");
 
     hr = pInst->all(v0, vr);
 

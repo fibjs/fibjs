@@ -47,7 +47,7 @@ public:
     result_t get_socket(obj_ptr<Stream_base>& retVal);
     result_t hasHeader(exlib::string name, bool& retVal);
     result_t firstHeader(exlib::string name, exlib::string& retVal);
-    result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal);
+    result_t allHeader(exlib::string name, obj_ptr<NObject>& retVal);
     result_t addHeader(v8::Local<v8::Object> map);
     result_t addHeader(exlib::string name, v8::Local<v8::Array> values);
     result_t addHeader(exlib::string name, exlib::string value);
@@ -72,6 +72,11 @@ public:
     result_t addHeader(exlib::string& strLine);
     size_t size();
     size_t getData(char* buf, size_t sz);
+
+    result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal)
+    {
+        return m_headers->all(name, retVal);
+    }
 
 public:
     obj_ptr<Stream_base> m_stm;

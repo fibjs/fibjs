@@ -244,21 +244,16 @@ result_t HttpUploadCollection::first(exlib::string name, Variant& retVal)
     return CALL_RETURN_NULL;
 }
 
-result_t HttpUploadCollection::all(exlib::string name, obj_ptr<NArray>& retVal)
+result_t HttpUploadCollection::all(exlib::string name, obj_ptr<NObject>& retVal)
 {
-    obj_ptr<NArray> list;
-    int32_t i;
+    if (!name.empty()) {
+        obj_ptr<NArray> list;
 
-    list = new NArray();
+        all(name, list);
+        retVal = list;
+    } else
+        all(retVal);
 
-    for (i = 0; i < m_count; i++) {
-        pair& _pair = m_map[i];
-
-        if (!qstricmp(_pair.first.c_str(), name.c_str()))
-            list->append(_pair.second);
-    }
-
-    retVal = list;
     return 0;
 }
 

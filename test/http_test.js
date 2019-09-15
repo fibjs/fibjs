@@ -92,6 +92,23 @@ describe("http", () => {
         it("all", () => {
             var a = d.all('a');
             assert.deepEqual(a, ['100', '300']);
+
+            a = d.all();
+            assert.deepEqual(a, {
+                "a": [
+                    "100",
+                    "300"
+                ],
+                "b": "200",
+                "c": [
+                    "400",
+                    "600"
+                ],
+                "d": [
+                    "500",
+                    "700"
+                ]
+            });
         });
 
         it("remove", () => {
