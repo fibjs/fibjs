@@ -174,7 +174,7 @@ describe('internal/helpers', () => {
                 'https://github.com/fibjs/fib-graphql/archive/v3.0.0.zip'
             ],
         ].forEach(([args, result]) => {
-            it(`[get_git_archive_url] arguments: ${args}, target: ${result}`, () => {
+            it(`[get_git_archive_url] arguments: ${JSON.stringify(args)}, target: ${result}`, () => {
                 assert.equal(
                     helpers_package.get_git_archive_url(...args),
                     result
@@ -196,7 +196,7 @@ describe('internal/helpers', () => {
                 'https://github.com/fibjs/fib-graphql/raw/v3.0.0/package.json'
             ],
         ].forEach(([args, result]) => {
-            it(`[get_git_raw_url] arguments: ${args}, target: ${result}`, () => {
+            it(`[get_git_raw_url] arguments: ${JSON.stringify(args)}, target: ${result}`, () => {
                 assert.equal(
                     helpers_package.get_git_raw_url(...args),
                     result
