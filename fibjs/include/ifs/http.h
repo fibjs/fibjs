@@ -39,6 +39,8 @@ public:
     static result_t set_enableCookie(bool newVal);
     static result_t get_autoRedirect(bool& retVal);
     static result_t set_autoRedirect(bool newVal);
+    static result_t get_enableEncoding(bool& retVal);
+    static result_t set_enableEncoding(bool newVal);
     static result_t get_maxBodySize(int32_t& retVal);
     static result_t set_maxBodySize(int32_t newVal);
     static result_t get_userAgent(exlib::string& retVal);
@@ -76,6 +78,8 @@ public:
     static void s_set_enableCookie(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_autoRedirect(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_autoRedirect(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_enableEncoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_enableEncoding(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_maxBodySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_userAgent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -148,6 +152,7 @@ inline ClassInfo& http_base::class_info()
         { "timeout", s_get_timeout, s_set_timeout, true },
         { "enableCookie", s_get_enableCookie, s_set_enableCookie, true },
         { "autoRedirect", s_get_autoRedirect, s_set_autoRedirect, true },
+        { "enableEncoding", s_get_enableEncoding, s_set_enableEncoding, true },
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, true },
         { "userAgent", s_get_userAgent, s_set_userAgent, true },
         { "poolSize", s_get_poolSize, s_set_poolSize, true },
@@ -253,6 +258,29 @@ inline void http_base::s_set_autoRedirect(v8::Local<v8::Name> property, v8::Loca
     PROPERTY_VAL(bool);
 
     hr = set_autoRedirect(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void http_base::s_get_enableEncoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("http.enableEncoding");
+    PROPERTY_ENTER();
+
+    hr = get_enableEncoding(vr);
+
+    METHOD_RETURN();
+}
+
+inline void http_base::s_set_enableEncoding(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("http.enableEncoding");
+    PROPERTY_ENTER();
+    PROPERTY_VAL(bool);
+
+    hr = set_enableEncoding(v0);
 
     PROPERTY_SET_LEAVE();
 }

@@ -84,6 +84,16 @@ result_t http_base::set_autoRedirect(bool newVal)
     return get_httpClient()->set_autoRedirect(newVal);
 }
 
+result_t http_base::get_enableEncoding(bool& retVal)
+{
+    return get_httpClient()->get_enableEncoding(retVal);
+}
+
+result_t http_base::set_enableEncoding(bool newVal)
+{
+    return get_httpClient()->set_enableEncoding(newVal);
+}
+
 result_t http_base::get_maxBodySize(int32_t& retVal)
 {
     return get_httpClient()->get_maxBodySize(retVal);

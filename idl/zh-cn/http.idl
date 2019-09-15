@@ -32,11 +32,14 @@ module http
     /*! @brief 查询和设置超时时间 */
     static Integer timeout;
 
-    /*! @brief cookie功能开关，默认开启 */
+    /*! @brief cookie 功能开关，默认开启 */
     static Boolean enableCookie;
 
-    /*! @brief 自动redirect功能开关，默认开启 */
+    /*! @brief 自动 redirect 功能开关，默认开启 */
     static Boolean autoRedirect;
+
+    /*! @brief 自动解压缩功能开关，默认开启 */
+    static Boolean enableEncoding;
 
     /*! @brief 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 -1，不限制尺寸 */
     static Integer maxBodySize;
