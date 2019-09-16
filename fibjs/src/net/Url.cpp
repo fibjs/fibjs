@@ -509,7 +509,7 @@ result_t Url::resolve(exlib::string url, obj_ptr<UrlObject_base>& retVal)
         if (isUrlSlash(u->m_pathname[0]))
             base->m_pathname = u->m_pathname;
         else {
-            if (!isUrlSlash(m_pathname[m_pathname.length() - 1]))
+            if (!isUrlSlash(base->m_pathname[base->m_pathname.length() - 1]))
                 base->m_pathname.append("/../", 4);
             base->m_pathname.append(u->m_pathname);
         }

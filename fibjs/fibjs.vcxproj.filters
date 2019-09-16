@@ -201,6 +201,9 @@
     <ClInclude Include="include\HttpMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\HttpRepeater.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\HttpRequest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -511,6 +514,9 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\HttpMessage.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ifs\HttpRepeater.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\HttpRequest.h">
@@ -1149,6 +1155,9 @@
       <Filter>Source Files\http</Filter>
     </ClCompile>
     <ClCompile Include="src\http\HttpMessage.cpp">
+      <Filter>Source Files\http</Filter>
+    </ClCompile>
+    <ClCompile Include="src\http\HttpRepeater.cpp">
       <Filter>Source Files\http</Filter>
     </ClCompile>
     <ClCompile Include="src\http\HttpRequest.cpp">

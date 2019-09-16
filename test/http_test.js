@@ -2061,6 +2061,211 @@ describe("http", () => {
             })
         });
     });
+
+    describe("repeater", () => {
+        var svr;
+
+        before(() => {
+            svr = new http.Server(8885 + base_port, (r) => {
+                if (r.address === '/header/test') {
+                    r.response.json(r.allHeader());
+                } else if (r.address === '/method/test') {
+                    r.response.write('method: ' + r.method);
+                } else if (r.address === '/cookie/test') {
+                    r.response.addCookie(new http.Cookie("test1", "value1"));
+                    r.response.json(r.allHeader());
+                } else {
+                    r.response.write(r.address);
+                }
+            });
+            svr.asyncRun();
+
+            ss.push(svr.socket);
+        });
+
+        describe("constructor", () => {
+            it("allow url&arrray", () => {
+                new http.Repeater("http://127.0.0.1/");
+                new http.Repeater([
+                    "http://127.0.0.1/",
+                    "http://127.0.0.1/test"
+                ]);
+            });
+
+            it("property urls", () => {
+                assert.deepEqual(new http.Repeater([
+                    "http://127.0.0.1/",
+                    "http://127.0.0.1/test"
+                ]).urls, [
+                    "http://127.0.0.1/",
+                    "http://127.0.0.1/test"
+                ]);
+            });
+
+            it("not allow empty array", () => {
+                assert.throws(() => {
+                    new http.Repeater([]);
+                });
+            });
+
+            it("not allow empty hostname", () => {
+                assert.throws(() => {
+                    new http.Repeater('/test');
+                });
+
+                assert.throws(() => {
+                    new http.Repeater(['/test']);
+                });
+            });
+
+            it("not allow query", () => {
+                assert.throws(() => {
+                    new http.Repeater('http://127.0.0.1/test?test');
+                });
+
+                assert.throws(() => {
+                    new http.Repeater(['http://127.0.0.1/test?test']);
+                });
+            });
+
+            it("not allow hash", () => {
+                assert.throws(() => {
+                    new http.Repeater('http://127.0.0.1/test#test');
+                });
+
+                assert.throws(() => {
+                    new http.Repeater(['http://127.0.0.1/test#test']);
+                });
+            });
+
+            it("check client config", () => {
+                var r = new http.Repeater("http://127.0.0.1/");
+                assert.isFalse(r.client.enableCookie);
+                assert.isFalse(r.client.autoRedirect);
+                assert.isFalse(r.client.enableEncoding);
+                assert.equal(r.client.userAgent, "");
+            });
+        });
+
+        describe("load", () => {
+            it("basic test", () => {
+                var hr = new http.Repeater("http://127.0.0.1/");
+                hr.load([
+                    "http://127.0.0.1/test1",
+                    "http://127.0.0.1/test2"
+                ]);
+
+                assert.deepEqual(hr.urls, [
+                    "http://127.0.0.1/test1",
+                    "http://127.0.0.1/test2"
+                ]);
+            });
+
+            it("not change urls when throw error", () => {
+                var hr = new http.Repeater("http://127.0.0.1/");
+                assert.throws(() => {
+                    hr.load([
+                        "http://127.0.0.1/test1",
+                        'http://127.0.0.1/test?test',
+                        "http://127.0.0.1/test2"
+                    ]);
+                });
+
+                assert.deepEqual(hr.urls, [
+                    "http://127.0.0.1/"
+                ]);
+
+                hr.load([
+                    "http://127.0.0.1/test1",
+                    "http://127.0.0.1/test2"
+                ]);
+
+                assert.deepEqual(hr.urls, [
+                    "http://127.0.0.1/test1",
+                    "http://127.0.0.1/test2"
+                ]);
+            });
+        });
+
+        describe("invoke", () => {
+            function req_path(hr, p) {
+                var r = new http.Request();
+                r.address = r.value = p;
+                hr.invoke(r);
+                return r.response.read().toString();
+            }
+
+            function req_method(hr, m) {
+                var r = new http.Request();
+                r.address = r.value = 'test';
+                r.method = m;
+                hr.invoke(r);
+                return r.response.read().toString();
+            }
+
+            function req_header(hr, p) {
+                var r = new http.Request();
+                r.address = r.value = p;
+                hr.invoke(r);
+                return r.response.json();
+            }
+
+            function req_cookie(hr, p) {
+                var r = new http.Request();
+                r.address = r.value = p;
+                hr.invoke(r);
+                return r.response.json();
+            }
+
+            it("basic repeater", () => {
+                var hr = new http.Repeater('http://127.0.0.1:' + (8885 + base_port) + '/path');
+                assert.equal(req_path(hr, 'path'), '/path/path');
+            });
+
+            it("rotation repeater", () => {
+                var hr = new http.Repeater([
+                    'http://127.0.0.1:' + (8885 + base_port) + '/path',
+                    'http://127.0.0.1:' + (8885 + base_port) + '/path1',
+                    'http://127.0.0.1:' + (8885 + base_port) + '/path2'
+                ]);
+
+                assert.equal(req_path(hr, 'path'), '/path/path');
+                assert.equal(req_path(hr, 'path1'), '/path1/path1');
+                assert.equal(req_path(hr, 'path2'), '/path2/path2');
+
+                assert.equal(req_path(hr, 'path'), '/path/path');
+                assert.equal(req_path(hr, 'path1'), '/path1/path1');
+                assert.equal(req_path(hr, 'path2'), '/path2/path2');
+            });
+
+            it("method", () => {
+                var hr = new http.Repeater('http://127.0.0.1:' + (8885 + base_port) + '/method');
+                assert.equal(req_method(hr, 'test'), "method: test");
+            });
+
+            it("header", () => {
+                var hr = new http.Repeater('http://127.0.0.1:' + (8885 + base_port) + '/header');
+                assert.deepEqual(req_header(hr, 'test'), {
+                    "Host": "127.0.0.1:" + (8885 + base_port)
+                });
+            });
+
+            it("cookie", () => {
+                var hr = new http.Repeater('http://127.0.0.1:' + (8885 + base_port) + '/cookie');
+                req_cookie(hr, 'test');
+                assert.deepEqual(req_cookie(hr, 'test'), {
+                    "Host": "127.0.0.1:" + (8885 + base_port)
+                });
+            });
+
+            it("bad end", () => {
+                var hr = new http.Repeater('http://127.0.0.1:' + (10000 + base_port) + '/path');
+                assert.throws(() => {
+                    req_path(hr, 'path');
+                });
+            });
+        });
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

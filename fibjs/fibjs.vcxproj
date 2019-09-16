@@ -47,6 +47,7 @@
     <ClInclude Include="include\HttpFileHandler.h" />
     <ClInclude Include="include\HttpHandler.h" />
     <ClInclude Include="include\HttpMessage.h" />
+    <ClInclude Include="include\HttpRepeater.h" />
     <ClInclude Include="include\HttpRequest.h" />
     <ClInclude Include="include\HttpResponse.h" />
     <ClInclude Include="include\HttpServer.h" />
@@ -151,6 +152,7 @@
     <ClInclude Include="include\ifs\HttpCookie.h" />
     <ClInclude Include="include\ifs\HttpHandler.h" />
     <ClInclude Include="include\ifs\HttpMessage.h" />
+    <ClInclude Include="include\ifs\HttpRepeater.h" />
     <ClInclude Include="include\ifs\HttpRequest.h" />
     <ClInclude Include="include\ifs\HttpResponse.h" />
     <ClInclude Include="include\ifs\HttpServer.h" />
@@ -365,6 +367,7 @@
     <ClCompile Include="src\http\HttpFileHandler.cpp" />
     <ClCompile Include="src\http\HttpHandler.cpp" />
     <ClCompile Include="src\http\HttpMessage.cpp" />
+    <ClCompile Include="src\http\HttpRepeater.cpp" />
     <ClCompile Include="src\http\HttpRequest.cpp" />
     <ClCompile Include="src\http\HttpResponse.cpp" />
     <ClCompile Include="src\http\HttpServer.cpp" />

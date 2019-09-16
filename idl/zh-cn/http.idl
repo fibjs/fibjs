@@ -23,6 +23,9 @@ module http
     /*! @brief 创建一个 http 协议处理器对象，参见 HttpHandler */
     static HttpHandler new Handler();
 
+    /*! @brief 创建一个 http 请求转发处理器对象，参见 HttpRepeater */
+    static HttpRepeater new Repeater();
+
     /*! @brief 返回标准的 HTTP 响应状态码的集合，以及各自的简短描述。 */
     static readonly Array STATUS_CODES;
 
