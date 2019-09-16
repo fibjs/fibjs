@@ -1,5 +1,5 @@
 var fs = require("fs");
-var path = require("path");
+var mkdirp = require("internal/helpers/fs").mkdirp;
 
 exports.chdirAndDo = function (target, cb) {
     var current = process.cwd();
@@ -19,7 +19,7 @@ exports.chdirAndDo = function (target, cb) {
 
 exports.ensureDirectoryExisted = function (dirname) {
     if (!fs.exists(dirname)) {
-        fs.mkdir(dirname)
+        mkdirp(dirname)
         return 
     }
 

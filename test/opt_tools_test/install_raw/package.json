@@ -1,0 +1,7 @@
+{
+  "name": "install_raw",
+  "version": "1.0.0",
+  "dependencies": {
+    "@fibjs/rmdirr": "^2.0.0"
+  }
+}
