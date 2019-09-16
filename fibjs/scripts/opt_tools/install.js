@@ -281,15 +281,16 @@ function get_root_snapshot() {
     const pwd = process.cwd();
     const root_is_new = true;
 
-    let pkgjson;
+    let pkgjson = {};
     try {
         pkgjson = JSON.parse(
             fs.readTextFile(path.join(pwd, 'package.json'))
         );
         root_is_new = false;
     } catch (e) {
-        txt = {};
     }
+    pkgjson.name = pkgjson.name || (path.basename(pwd, path.extname(pwd))).toLowerCase();
+    pkgjson.version = pkgjson.version || '1.0.0';
 
     const dep_vs = util.extend({}, pkgjson.dependencies);
     const dev_dep_vs = util.extend({}, pkgjson.devDependencies);
