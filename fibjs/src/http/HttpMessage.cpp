@@ -236,12 +236,11 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                 return chunk_head(pState, n);
             }
 
-            if (pThis->m_contentLength > 0) {
+            if (!pThis->m_pThis->m_bNoBody && pThis->m_contentLength > 0) {
                 pThis->m_pThis->get_body(pThis->m_body);
 
                 pThis->set(body);
-                return pThis->m_stm->copyTo(pThis->m_body,
-                    pThis->m_contentLength, pThis->m_copySize, pThis);
+                return pThis->m_stm->copyTo(pThis->m_body, pThis->m_contentLength, pThis->m_copySize, pThis);
             }
 
             return pThis->done();
@@ -251,7 +250,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
         {
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
-            if (pThis->m_contentLength != pThis->m_copySize)
+            if (!pThis->m_pThis->m_bNoBody && pThis->m_contentLength != pThis->m_copySize)
                 return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
 
             pThis->m_body->rewind();

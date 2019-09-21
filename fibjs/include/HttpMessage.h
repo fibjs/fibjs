@@ -20,6 +20,7 @@ class HttpMessage : public Message {
 public:
     HttpMessage(bool bResponse = false)
         : m_bResponse(bResponse)
+        , m_bNoBody(false)
         , m_maxHeadersCount(128)
         , m_maxBodySize(64)
     {
@@ -82,6 +83,7 @@ public:
     obj_ptr<Stream_base> m_stm;
     obj_ptr<Stream_base> m_socket;
     bool m_bResponse;
+    bool m_bNoBody;
     exlib::string m_protocol;
     bool m_keepAlive;
     bool m_upgrade;
