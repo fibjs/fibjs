@@ -30,26 +30,33 @@ matrix:
     - os: linux
       env:
         - ARCH=mips64
+cache: ccache
+addons:
+  apt:
+    packages:
+      - ccache
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      rvm install ruby-2.4.0;
-      rvm --default use 2.4.0;
-      ruby -v;
-      brew update;
+    rvm install ruby-2.4.0;
+    rvm --default use 2.4.0;
+    ruby -v;
+    brew update;
     fi
 install:
   - git submodule init
   - git submodule update
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew install xz;
+    brew install ccache;
+    export PATH="/usr/local/opt/ccache/libexec:$PATH";
+    brew install xz;
     fi
 script:
   - echo "${ARCH}"
   - ./.travis/build.sh
   - if [[ -z $TRAVIS_TAG ]]; then
-      ./.travis/test.sh;
+    ./.travis/test.sh;
     else
-      ./.travis/release.sh;
+    ./.travis/release.sh;
     fi
 deploy:
   - provider: releases
