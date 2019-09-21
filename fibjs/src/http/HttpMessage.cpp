@@ -60,7 +60,7 @@ public:
             pThis->m_buffer.Release();
 
             if (pThis->m_contentLength != (int32_t)pThis->m_body.length())
-                return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complate."));
+                return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
         }
 
         sz1 = pThis->m_pThis->size();
@@ -105,7 +105,7 @@ public:
         asyncSendTo* pThis = (asyncSendTo*)pState;
 
         if (pThis->m_contentLength != pThis->m_copySize)
-            return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complate."));
+            return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
 
         return pThis->done();
     }
@@ -236,12 +236,11 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                 return chunk_head(pState, n);
             }
 
-            if (pThis->m_contentLength > 0) {
+            if (!pThis->m_pThis->m_bNoBody && pThis->m_contentLength > 0) {
                 pThis->m_pThis->get_body(pThis->m_body);
 
                 pThis->set(body);
-                return pThis->m_stm->copyTo(pThis->m_body,
-                    pThis->m_contentLength, pThis->m_copySize, pThis);
+                return pThis->m_stm->copyTo(pThis->m_body, pThis->m_contentLength, pThis->m_copySize, pThis);
             }
 
             return pThis->done();
@@ -251,8 +250,8 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
         {
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
-            if (pThis->m_contentLength != pThis->m_copySize)
-                return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complate."));
+            if (!pThis->m_pThis->m_bNoBody && pThis->m_contentLength != pThis->m_copySize)
+                return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
 
             pThis->m_body->rewind();
 

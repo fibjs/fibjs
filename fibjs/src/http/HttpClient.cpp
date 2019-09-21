@@ -15,6 +15,7 @@
 #include "ifs/zlib.h"
 #include "ifs/json.h"
 #include "ifs/querystring.h"
+#include <string.h>
 
 namespace fibjs {
 
@@ -304,6 +305,10 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
             , m_retVal(retVal)
         {
             set(send);
+
+            exlib::string method;
+            m_req->get_method(method);
+            m_bNoBody = !qstricmp(method.c_str(), "head", 4);
         }
 
         static int32_t send(AsyncState* pState, int32_t n)
@@ -317,8 +322,11 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
         static int32_t recv(AsyncState* pState, int32_t n)
         {
             asyncRequest* pThis = (asyncRequest*)pState;
+            
+            obj_ptr<HttpResponse> resp = new HttpResponse();
+            resp->m_message->m_bNoBody = pThis->m_bNoBody;
 
-            pThis->m_retVal = new HttpResponse();
+            pThis->m_retVal = resp;
             pThis->m_retVal->set_maxBodySize(pThis->m_maxBodySize);
             pThis->m_bs = new BufferedStream(pThis->m_conn);
             pThis->m_bs->set_EOL("\r\n");
@@ -373,6 +381,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
         obj_ptr<BufferedStream> m_bs;
         obj_ptr<MemoryStream> m_unzip;
         obj_ptr<SeekableStream_base> m_body;
+        bool m_bNoBody;
     };
 
     if (ac->isSync())

@@ -57,6 +57,16 @@ function cookie_data(cookie) {
     return o;
 }
 
+function set_header_for_head_req (r, cookie_for) {
+    if (r.method.toUpperCase() === 'HEAD') {
+        cookie_for['head'] = r.headers.cookie
+        if (r.hasHeader("test_header")) {
+            r.response.setHeader('test_header', 'foobar')
+        } else {
+            r.response.setHeader('no_test_header', 'true')
+        }
+    }
+}
 
 describe("http", () => {
     var ss = [];
@@ -1474,14 +1484,18 @@ describe("http", () => {
 
     describe("server/global request", () => {
         var svr;
-        var cookie;
+
+        var cookie_for = {
+            _: undefined,
+            head: undefined
+        };
 
         before(() => {
             http.enableCookie = true;
             svr = new http.Server(8882 + base_port, (r) => {
                 var port = 8882 + base_port;
-                cookie = r.headers.cookie;
-
+                
+                cookie_for['_'] = r.headers.cookie;
                 r.response.addHeader("set-cookie", [
                     "root1=value1; domain=127.0.0.2; path=/",
                     "root=value; domain=127.0.0.1:" + port + "; path=/",
@@ -1489,7 +1503,13 @@ describe("http", () => {
                     "root=value2; path=/"
                 ]);
 
-                if (r.address == "/name") {
+                set_header_for_head_req(r, cookie_for);
+
+                if (r.address == "/clear_cookie") {
+                    r.response.addHeader("set-cookie", []);
+                    cookie_for['head'] = undefined;
+                    cookie_for['_'] = undefined;
+                } else if (r.address == "/name") {
                     r.response.addHeader("set-cookie", "name=value; path=/name");
                     r.response.write(r.address);
                 } else if (r.address == "/redirect") {
@@ -1702,6 +1722,44 @@ describe("http", () => {
             });
         });
 
+        describe("head", () => {
+            before(() => {
+                http.request("HEAD", "http://127.0.0.1:" + (8882 + base_port) + "/clear_cookie");
+            })
+
+            after(() => {
+                http.request("HEAD", "http://127.0.0.1:" + (8882 + base_port) + "/clear_cookie");
+            })
+
+            it("simple", () => {
+                assert.equal(cookie_for['head'], undefined);
+                assert.equal(http.request('head', "http://127.0.0.1:" + (8882 + base_port) + "/request").body.read(), null);
+                assert.equal(cookie_for['head'], "root=value2; request=value; request1=value");
+            });
+
+            it("header", () => {
+                assert.equal(http.request('HEAD', "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                    headers: {
+                        "test_header": "header"
+                    }
+                }).body.read(), null);
+
+                assert.equal(http.request('HEAD', "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
+                    headers: {
+                        "test_header": "header"
+                    }
+                }).headers['test_header'], 'foobar');
+            });
+
+            it("async", (done) => {
+                http.request('HEAD', "http://127.0.0.1:" + (8882 + base_port) + "/request", (e, r) => {
+                    assert.equal(r.data, null);
+                    assert.equal(r.headers['no_test_header'], "true");
+                    done();
+                });
+            });
+        });
+
         describe("get", () => {
             it("simple", () => {
                 assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/request").body.read().toString(),
@@ -1779,15 +1837,26 @@ describe("http", () => {
 
     describe("https server/global https request", () => {
         var svr;
-        var cookie;
+
+        var cookie_for = {
+            _: undefined,
+            head: undefined
+        };
 
         before(() => {
             ssl.ca.load(ca_pem);
 
             http.enableCookie = true;
             svr = new http.HttpsServer(crt, pk, 8883 + base_port, (r) => {
-                cookie = r.headers.cookie;
-                if (r.address != "/gzip_test") {
+                cookie_for['_'] = r.headers.cookie;
+
+                set_header_for_head_req(r, cookie_for);
+                
+                if (r.address == "/clear_cookie") {
+                    r.response.addHeader("set-cookie", []);
+                    cookie_for['head'] = undefined;
+                    cookie_for['_'] = undefined;
+                } else if (r.address != "/gzip_test") {
                     r.response.addHeader("set-cookie", "request1=value; path=/");
                     r.response.addHeader("set-cookie", "request2=value; path=/; secure");
                     r.response.write(r.address);
@@ -1812,9 +1881,9 @@ describe("http", () => {
             it("simple", () => {
                 assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request").body.read().toString(),
                     "/request");
-                assert.equal(cookie, undefined);
+                assert.equal(cookie_for['_'], undefined);
                 http.request("GET", "https://localhost:" + (8883 + base_port) + "/request");
-                assert.equal(cookie, "request1=value; request2=value");
+                assert.equal(cookie_for['_'], "request1=value; request2=value");
             });
 
             it("body", () => {
@@ -1835,6 +1904,44 @@ describe("http", () => {
             it("gzip", () => {
                 assert.equal(http.get("https://localhost:" + (8883 + base_port) + "/gzip_test").body.read().toString(),
                     "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+            });
+        });
+
+        describe("head", () => {
+            before(() => {
+                http.request("HEAD", "https://localhost:" + (8883 + base_port) + "/clear_cookie");
+            })
+
+            after(() => {
+                http.request("HEAD", "https://localhost:" + (8883 + base_port) + "/clear_cookie");
+            })
+
+            it("simple", () => {
+                assert.equal(cookie_for['head'], undefined);
+                assert.equal(http.request('head', "https://localhost:" + (8883 + base_port) + "/request").body.read(), null);
+                assert.equal(cookie_for['head'], "request1=value; request2=value");
+            });
+
+            it("header", () => {
+                assert.equal(http.request('HEAD', "https://localhost:" + (8883 + base_port) + "/request:", {
+                    headers: {
+                        "test_header": "header"
+                    }
+                }).body.read(), null);
+
+                assert.equal(http.request('HEAD', "https://localhost:" + (8883 + base_port) + "/request:", {
+                    headers: {
+                        "test_header": "header"
+                    }
+                }).headers['test_header'], 'foobar');
+            });
+
+            it("async", (done) => {
+                http.request('HEAD', "https://localhost:" + (8883 + base_port) + "/request", (e, r) => {
+                    assert.equal(r.data, null);
+                    assert.equal(r.headers['no_test_header'], "true");
+                    done();
+                });
             });
         });
 
@@ -1876,21 +1983,31 @@ describe("http", () => {
 
     describe("server/client", () => {
         var svr;
-        var cookie;
+
+        var cookie_for = {
+            _: undefined,
+            head: undefined
+        };
 
         before(() => {
             http.enableCookie = true;
             var pcnt = 0;
             svr = new http.Server(8884 + base_port, (r) => {
                 var port = 8884 + base_port;
-                cookie = r.headers.cookie;
+                cookie_for['_'] = r.headers.cookie;
 
                 r.response.addHeader("set-cookie", "root1=value1; domain=127.0.0.2; path=/");
                 r.response.addHeader("set-cookie", "root=value; domain=127.0.0.1:" + port + "; path=/");
                 r.response.addHeader("set-cookie", "root=value; path=/");
                 r.response.addHeader("set-cookie", "root=value2; path=/");
-
-                if (r.address == "/timeout") {
+                
+                set_header_for_head_req(r, cookie_for);
+                
+                if (r.address == "/clear_cookie") {
+                    r.response.addHeader("set-cookie", []);
+                    cookie_for['head'] = undefined;
+                    cookie_for['_'] = undefined;
+                } else if (r.address == "/timeout") {
                     coroutine.sleep(500);
                     r.response.write(r.address);
                 } else if (r.address == "/name") {
@@ -1938,16 +2055,54 @@ describe("http", () => {
                 assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request").body.readAll().toString(),
                     "/request");
 
-                assert.equal(cookie, undefined);
+                assert.equal(cookie_for['_'], undefined);
                 client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request");
-                assert.equal(cookie, "root=value2; request=value; request1=value");
+                assert.equal(cookie_for['_'], "root=value2; request=value; request1=value");
+            });
+
+            describe("head", () => {
+                before(() => {
+                    client.request("HEAD", "http://127.0.0.1:" + (8884 + base_port) + "/clear_cookie");
+                })
+
+                after(() => {
+                    client.request("HEAD", "http://127.0.0.1:" + (8884 + base_port) + "/clear_cookie");
+                })
+
+                it("simple", () => {
+                    assert.equal(cookie_for['head'], undefined);
+                    assert.equal(client.request('head', "http://127.0.0.1:" + (8884 + base_port) + "/request").body.read(), null);
+                    assert.equal(cookie_for['head'], "root=value2; request=value; request1=value");
+                });
+
+                it("header", () => {
+                    assert.equal(client.request('HEAD', "http://127.0.0.1:" + (8884 + base_port) + "/request:", {
+                        headers: {
+                            "test_header": "header"
+                        }
+                    }).body.read(), null);
+
+                    assert.equal(client.request('HEAD', "http://127.0.0.1:" + (8884 + base_port) + "/request:", {
+                        headers: {
+                            "test_header": "header"
+                        }
+                    }).headers['test_header'], 'foobar');
+                });
+
+                it("async", (done) => {
+                    client.request('HEAD', "http://127.0.0.1:" + (8884 + base_port) + "/request", (e, r) => {
+                        assert.equal(r.data, null);
+                        assert.equal(r.headers['no_test_header'], "true");
+                        done();
+                    });
+                });
             });
 
             it("redirect", () => {
                 assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect").body.readAll().toString(),
                     "/request");
 
-                assert.equal(cookie, "root=value2; request=value; request1=value");
+                assert.equal(cookie_for['_'], "root=value2; request=value; request1=value");
                 assert.throws(() => {
                     client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect1")
                 });
@@ -1977,9 +2132,9 @@ describe("http", () => {
             it("gzip", () => {
                 assert.equal(client.get("http://127.0.0.1:" + (8884 + base_port) + "/gzip_test").body.readAll().toString(),
                     "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
-                assert.equal(cookie, "root=value2");
+                assert.equal(cookie_for['_'], "root=value2");
                 client.get("http://127.0.0.1:" + (8884 + base_port) + "/gzip_test");
-                assert.equal(cookie, "root=value2; gzip_test=value");
+                assert.equal(cookie_for['_'], "root=value2; gzip_test=value");
             });
 
             it('parallel', () => {
@@ -1998,10 +2153,10 @@ describe("http", () => {
                 client.enableCookie = false;
                 assert.equal(client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/name").body.readAll().toString(),
                     "/name");
-                assert.equal(cookie, undefined);
+                assert.equal(cookie_for['_'], undefined);
 
                 client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/name");
-                assert.equal(cookie, undefined);
+                assert.equal(cookie_for['_'], undefined);
             })
         });
 
