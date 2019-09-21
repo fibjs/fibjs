@@ -13,6 +13,13 @@ case "${ARCH}" in
       ;;
 esac
 
+if [[ -z $TRAVIS_TAG && $TRAVIS_BRANCH == "beta" ]]; then
+  GIT_COMMIT_SHORTCUTS=$(git log --format=%h -1)
+  GIT_COMMIT_TIME=$(git show -s --format="%cd" --date=format:%Y%m%d%H%M%S $TRAVIS_BRANCH)
+  TRAVIS_TAG="$GIT_COMMIT_TIME-$GIT_COMMIT_SHORTCUTS"
+  echo "TRAVIS_TAG is $TRAVIS_TAG";
+fi
+
 mkdir -p ${TRAVIS_TAG}
 
 DIST_FILE=""
@@ -45,9 +52,8 @@ else # darwin
 
   if [[ $TARGET_ARCH == 'x64' ]]; then
     echo "zip fullsrc..."
-    sudo rm -rf .git
     sudo sh build clean
-    zip -r ./${TRAVIS_TAG}/fullsrc.zip ./ -x ${TRAVIS_TAG}/*
+    zip -r ./${TRAVIS_TAG}/fullsrc.zip ./ -x *.git* ${TRAVIS_TAG} ${TRAVIS_TAG}/*
   fi
 fi
 
