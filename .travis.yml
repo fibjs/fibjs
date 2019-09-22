@@ -1,5 +1,6 @@
 dist: trusty
 language: cpp
+if: (branch =~ ^(dev|beta|master|test_ci)$) || (tag =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$)
 services:
   - docker
 matrix:
@@ -53,11 +54,24 @@ install:
 script:
   - echo "${ARCH}"
   - ./.travis/build.sh
-  - if [[ -z $TRAVIS_TAG ]]; then
+  - if [[ -z $TRAVIS_TAG && $TRAVIS_BRANCH != "beta" ]]; then
     ./.travis/test.sh;
     else
     ./.travis/release.sh;
     fi
+before_deploy:
+  - export GIT_COMMIT_SHORTCUTS=$(git log --format=%h -1)
+  - export GIT_COMMIT_TIME=$(git show -s --format="%cd" --date=format:%Y%m%d%H%M%S $TRAVIS_BRANCH)
+  - if [[ -z $TRAVIS_TAG ]]; then
+    export TRAVIS_TAG="$GIT_COMMIT_TIME-$GIT_COMMIT_SHORTCUTS";
+    if [ $(git tag --list | egrep "^$TRAVIS_TAG$") ]; then
+    echo "tag $TRAVIS_TAG existed";
+    else
+    git tag "$TRAVIS_TAG" "$GIT_COMMIT_SHORTCUTS";
+    echo "created new tag $TRAVIS_TAG";
+    fi
+    fi
+  - echo "$TRAVIS_TAG" "$GIT_COMMIT_SHORTCUTS"
 deploy:
   - provider: releases
     api_key:
@@ -68,4 +82,17 @@ deploy:
     overwrite: true
     on:
       tags: true
+      repo: fibjs/fibjs
+  - provider: releases
+    name: beta
+    body: Automated release from Travis CI on beta (${TRAVIS_COMMIT})
+    prerelease: true
+    api_key:
+      secure: e8Vlz6ZGelHDh7FXXu39xuGBk08jSXfmddJKG2nAg3HfXKXOEPniVKXtlsCpXD7FrzAo23V3caKBdFRye785JCJ1Xgf6rJx1lwB/0uAYaYYqq+DIVsiK+w3IoaZWvf/yEw6wYXsGI2jgUz3RIinETr/HomO5HAFAQHwbHqL6Jn8=
+    file_glob: true
+    file: ${TRAVIS_TAG}/*
+    skip_cleanup: true
+    overwrite: true
+    on:
+      branch: beta
       repo: fibjs/fibjs
