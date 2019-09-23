@@ -43,6 +43,23 @@ describe('process', () => {
         assert.ok(process.pid);
     });
 
+    describe("ppid", () => {
+        it("basic", () => {
+            assert.property(process, 'ppid');
+            assert.isNumber(process.ppid);
+        });
+
+        it("`ppid` in subprocess equals to its parent process's `pid`", () => {
+            var sp = process.open(cmd, [path.join(__dirname, 'process', 'exec.ppid.js')]);
+            var sp_pid = sp.pid;
+            var [_ppid, _pid] = sp.readLines();
+            sp.close();
+
+            assert.strictEqual(_pid, `${sp_pid}`);
+            assert.strictEqual(_ppid, `${process.pid}`);
+        });
+    });
+
     it("stdout", () => {
         var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.js')]);
 
@@ -181,7 +198,7 @@ describe('process', () => {
                 })
             });
             ss.push(httpd.socket);
-            httpd.run(() => {});
+            httpd.run(() => { });
 
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec19.js')]);
             assert.equal(p.readLine(), "1900");
@@ -226,8 +243,8 @@ describe('process', () => {
             "arg1",
             "arg2"
         ]).readLine()), [
-            cmd, path.join(__dirname, "process", "exec2.js"), "arg1", "arg2"
-        ]);
+                cmd, path.join(__dirname, "process", "exec2.js"), "arg1", "arg2"
+            ]);
     });
 
     it("argv 1", () => {
@@ -238,8 +255,8 @@ describe('process', () => {
             "arg1",
             "arg2"
         ]).readLine()), [
-            cmd, path.join(__dirname, "process", "exec2.js"), "arg1", "arg2"
-        ]);
+                cmd, path.join(__dirname, "process", "exec2.js"), "arg1", "arg2"
+            ]);
     });
 
     it("argv utf8", () => {
@@ -248,8 +265,8 @@ describe('process', () => {
             "参数1",
             "参数2"
         ]).readLine()), [
-            cmd, path.join(__dirname, "process", "exec2.js"), "参数1", "参数2"
-        ]);
+                cmd, path.join(__dirname, "process", "exec2.js"), "参数1", "参数2"
+            ]);
     });
 
     it("execArgv", () => {
@@ -260,9 +277,9 @@ describe('process', () => {
             "arg1",
             "arg2"
         ]).readLine()), [
-            "--use_strict",
-            "--test",
-        ]);
+                "--use_strict",
+                "--test",
+            ]);
     });
 
     it("env", () => {
@@ -276,10 +293,10 @@ describe('process', () => {
         var env = json.decode(process.open(cmd, [
             path.join(__dirname, "process", "exec4.js")
         ], {
-            env: {
-                abcd: "234"
-            }
-        }).readLine());
+                env: {
+                    abcd: "234"
+                }
+            }).readLine());
 
         assert.isUndefined(env.abc);
         assert.equal(env.abcd, "234");
@@ -290,8 +307,8 @@ describe('process', () => {
         process.run(cmd, [
             path.join(__dirname, "process", "exec5.js")
         ], {
-            timeout: 1000
-        });
+                timeout: 1000
+            });
 
         assert.lessThan(new Date() - d, 2000);
     });
@@ -344,7 +361,7 @@ describe('process', () => {
             ]);
         });
     });
-    
+
     describe("SubProcess Spec", () => {
         it("default kvs", () => {
             var retcode = process.run(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
@@ -371,18 +388,18 @@ describe('process', () => {
                 assert.deepEqual(
                     bs.stdout.readLines(),
                     Math.random(0, 1) < 0.5 ?
-                    win_keys.map(key => `process.env['${key}']=${process.env[key]}`)
-                    : [
-                        `process.env['SystemRoot']=${process.env['SystemRoot']}`,
-                        `process.env['TEMP']=${process.env['TEMP']}`,
-                        `process.env['TMP']=${process.env['TMP']}`,
-                        `process.env['CommonProgramFiles']=${process.env['CommonProgramFiles']}`,
-                        `process.env['CommonProgramFiles(x86)']=${process.env['CommonProgramFiles(x86)']}`,
-                        `process.env['CommonProgramW6432']=${process.env['CommonProgramW6432']}`,
-                        `process.env['ProgramFiles']=${process.env['ProgramFiles']}`,
-                        `process.env['ProgramFiles(x86)']=${process.env['ProgramFiles(x86)']}`,
-                        `process.env['ProgramW6432']=${process.env['ProgramW6432']}`,
-                    ]
+                        win_keys.map(key => `process.env['${key}']=${process.env[key]}`)
+                        : [
+                            `process.env['SystemRoot']=${process.env['SystemRoot']}`,
+                            `process.env['TEMP']=${process.env['TEMP']}`,
+                            `process.env['TMP']=${process.env['TMP']}`,
+                            `process.env['CommonProgramFiles']=${process.env['CommonProgramFiles']}`,
+                            `process.env['CommonProgramFiles(x86)']=${process.env['CommonProgramFiles(x86)']}`,
+                            `process.env['CommonProgramW6432']=${process.env['CommonProgramW6432']}`,
+                            `process.env['ProgramFiles']=${process.env['ProgramFiles']}`,
+                            `process.env['ProgramFiles(x86)']=${process.env['ProgramFiles(x86)']}`,
+                            `process.env['ProgramW6432']=${process.env['ProgramW6432']}`,
+                        ]
                 );
             });
 

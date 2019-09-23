@@ -28,6 +28,12 @@ module process
     /*! @brief query current platform，possible value can be: 'darwin', 'freebsd', 'linux', or 'win32' */
     static readonly String platform;
 
+    /*! @brief read id of current process */
+    static readonly Integer pid;
+
+    /*! @brief read id of current process's parent process */
+    static readonly Integer ppid;
+
     /*! @brief change the current umask，Windows does't support this.
      @param mask the mask to set
      @return the previous mask
