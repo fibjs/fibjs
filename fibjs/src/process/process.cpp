@@ -24,9 +24,10 @@
 #ifdef _WIN32
 #include <psapi.h>
 #include "utf8.h"
-
+#include "process_win.h"
 #else
 
+#include <unistd.h>
 #include "editline/include/editline.h"
 
 inline int32_t _umask(int32_t m)
@@ -228,6 +229,17 @@ result_t process_base::get_pid(int32_t& retVal)
     retVal = GetCurrentProcessId();
 #else
     retVal = getpid();
+#endif
+
+    return 0;
+}
+
+result_t process_base::get_ppid(int32_t& retVal)
+{
+#ifdef _WIN32
+    retVal = (int32_t)GetParentProcessID();
+#else
+    retVal = getppid();
 #endif
 
     return 0;

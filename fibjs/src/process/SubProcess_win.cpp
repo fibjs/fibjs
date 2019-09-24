@@ -160,7 +160,7 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         util_base::clone(cur_envs, opt_envs_v);
     else if (hr < 0)
         return hr;
-    
+
     v8::Local<v8::Object> opt_envs = opt_envs_v->ToObject();
     v8::Local<v8::Value> dflt_k;
     bool has_k;
@@ -209,7 +209,9 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
 
     ::CloseHandle(pi.hThread);
 
-    obj_ptr<SubProcess> sub = new SubProcess((intptr_t)pi.hProcess);
+    int32_t _current_pid = -1;
+    process_base::get_pid(_current_pid);
+    obj_ptr<SubProcess> sub = new SubProcess((intptr_t)pi.hProcess, (intptr_t)_current_pid);
     if (redirect) {
         ::CloseHandle(cin_pipe[1]);
         ::CloseHandle(cout_pipe[1]);
@@ -231,6 +233,12 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
 result_t SubProcess::get_pid(int32_t& retVal)
 {
     retVal = GetProcessId((HANDLE)m_pid);
+    return 0;
+}
+
+result_t SubProcess::get_ppid(int32_t& retVal)
+{
+    retVal = (int32_t)m_ppid;
     return 0;
 }
 

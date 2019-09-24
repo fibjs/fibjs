@@ -42,6 +42,32 @@ describe('process', () => {
         assert.isNumber(process.pid);
         assert.ok(process.pid);
     });
+    
+    describe("ppid", () => {
+        it("basic", () => {
+            assert.property(process, 'ppid');
+            assert.isNumber(process.ppid);
+        });
+
+        it("`ppid` in subprocess equals to its parent process's `pid`", () => {
+            var sp = process.open(cmd, [path.join(__dirname, 'process', 'exec.ppid.js')]);
+            var [_ppid, _pid] = sp.readLines();
+
+            assert.strictEqual(_pid, `${sp.pid}`);
+            assert.strictEqual(_ppid, `${process.pid}`);
+            sp.close();
+        });
+
+        it("SubProcess::ppid equals to its parent process's `pid`", () => {
+            var sp = process.open(cmd, [path.join(__dirname, 'process', 'exec.ppid.js')]);
+            var [_ppid, _pid] = sp.readLines();
+
+            assert.strictEqual(_pid, `${sp.pid}`);
+            assert.strictEqual(_ppid, `${sp.ppid}`);
+            assert.strictEqual(sp.ppid, process.pid);
+            sp.close();
+        });
+    });
 
     it("stdout", () => {
         var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.js')]);
