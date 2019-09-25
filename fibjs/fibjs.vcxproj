@@ -58,6 +58,7 @@
     <ClInclude Include="include\Int64.h" />
     <ClInclude Include="include\Isolate.h" />
     <ClInclude Include="include\JSHandler.h" />
+    <ClInclude Include="include\JSType.h" />
     <ClInclude Include="include\LevelDB.h" />
     <ClInclude Include="include\Lock.h" />
     <ClInclude Include="include\LruCache.h" />
@@ -282,6 +283,7 @@
     <ClInclude Include="include\version.h" />
     <ClInclude Include="src\db\sql\trans.h" />
     <ClInclude Include="src\gui\windows\WebView.h" />
+    <ClInclude Include="src\process\process_win.h" />
     <ClInclude Include="src\sandbox\loaders\loaders.h" />
   </ItemGroup>
   <ItemGroup>

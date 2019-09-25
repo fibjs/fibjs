@@ -234,6 +234,9 @@
     <ClInclude Include="include\JSHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\JSType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\LevelDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -905,6 +908,9 @@
     </ClInclude>
     <ClInclude Include="src\gui\windows\WebView.h">
       <Filter>Source Files\gui\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="src\process\process_win.h">
+      <Filter>Source Files\process</Filter>
     </ClInclude>
     <ClInclude Include="src\sandbox\loaders\loaders.h">
       <Filter>Source Files\sandbox\loaders</Filter>

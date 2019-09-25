@@ -17,19 +17,14 @@ v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::stri
     v8::Local<v8::String> strEntry = isolate->NewString("entry");
     v8::Local<v8::String> strExports = isolate->NewString("exports");
 
-    v8::Local<v8::Value> m = mods->Get(isolate->NewString(id));
+    JSValue m = mods->Get(isolate->NewString(id));
     if (m->IsUndefined())
         return m;
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(m);
-    v8::Local<v8::Value> o = module->Get(strExports);
-
-    v8::MaybeLocal<v8::Value> mv = module->GetPrivate(module->CreationContext(),
+    JSValue o = module->Get(strExports);
+    JSValue v = module->GetPrivate(module->CreationContext(),
         v8::Private::ForApi(isolate->m_isolate, strEntry));
-    if (mv.IsEmpty())
-        return o;
-
-    v8::Local<v8::Value> v = mv.ToLocalChecked();
     if (!o->IsUndefined() || !v->IsFunction())
         return o;
 
@@ -64,7 +59,7 @@ v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::stri
     if (v.IsEmpty())
         return v;
 
-    return mod->Get(strExports);
+    return JSValue(mod->Get(strExports));
 }
 
 result_t SandBox::refresh()
@@ -75,13 +70,12 @@ result_t SandBox::refresh()
     v8::Local<v8::String> strExports = isolate->NewString("exports");
 
     v8::Local<v8::Object> modules = mods();
-    v8::Local<v8::Array> names = modules->GetPropertyNames(modules->CreationContext()).ToLocalChecked();
+    JSArray names = modules->GetPropertyNames(modules->CreationContext());
 
     for (int32_t i = 0; i < (int32_t)names->Length(); i++) {
         v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(modules->Get(names->Get(i)));
-        v8::Local<v8::Value> v = module->GetPrivate(module->CreationContext(),
-                                           v8::Private::ForApi(isolate->m_isolate, strEntry))
-                                     .ToLocalChecked();
+        JSValue v = module->GetPrivate(module->CreationContext(),
+                                           v8::Private::ForApi(isolate->m_isolate, strEntry));
         if (v->IsFunction())
             module->Delete(strExports);
     }
@@ -129,7 +123,7 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     }
 
     // use module.exports as result value
-    retVal = mod->Get(strExports);
+    retVal = JSValue(mod->Get(strExports));
     return 0;
 }
 

@@ -43,9 +43,8 @@ private:
 
     void initEv()
     {
-        v8::Local<v8::Value> obj = o->GetPrivate(o->CreationContext(),
-                                        v8::Private::ForApi(isolate, NewString("_ev")))
-                                       .ToLocalChecked();
+        JSValue obj = o->GetPrivate(o->CreationContext(),
+            v8::Private::ForApi(isolate, NewString("_ev")));
         if (obj->IsUndefined() || obj->IsNull()) {
             events = v8::Object::New(isolate);
             o->SetPrivate(o->CreationContext(),
@@ -58,7 +57,7 @@ private:
 public:
     v8::Local<v8::Value> GetPrivate(exlib::string key)
     {
-        return events->Get(NewString(key));
+        return JSValue(events->Get(NewString(key)));
     }
 
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
@@ -94,7 +93,7 @@ public:
 
         _args[0] = NewString(ev);
 
-        _args[1] = func->Get(NewString("_func"));
+        _args[1] = JSValue(func->Get(NewString("_func")));
         if (_args[1]->IsUndefined())
             _args[1] = func;
         else
@@ -129,10 +128,9 @@ public:
         int32_t len = esa->Length();
         int32_t i;
 
-        for (i = len; i > 0; i--) {
-            v8::Local<v8::Value> v = esa->Get(i - 1);
-            esa->Set(i, v);
-        }
+        for (i = len; i > 0; i--)
+            esa->Set(i, esa->Get(i - 1));
+
         esa->Set(0, func);
         return 0;
     }
@@ -157,7 +155,7 @@ public:
         int32_t i;
 
         for (i = len - 1; i >= 0; i--) {
-            v8::Local<v8::Value> v = esa->Get(i);
+            JSValue v = esa->Get(i);
             if (v->Equals(func)) {
                 spliceOne(esa, i);
                 result_t hr;
@@ -175,15 +173,15 @@ public:
         result_t (JSTrigger::*fn)(exlib::string, v8::Local<v8::Function>, v8::Local<v8::Object>&),
         v8::Local<v8::Object>& retVal)
     {
-        v8::Local<v8::Array> ks = m->GetPropertyNames();
+        JSArray ks = m->GetPropertyNames();
         int32_t len = ks->Length();
         int32_t i;
 
         for (i = 0; i < len; i++) {
-            v8::Local<v8::Value> k = ks->Get(i);
+            JSValue k = ks->Get(i);
 
             if (!k->IsNumber()) {
-                v8::Local<v8::Value> v = m->Get(k);
+                JSValue v = m->Get(k);
 
                 if (v->IsFunction())
                     (this->*fn)(ToCString(v8::String::Utf8Value(k)),
@@ -227,7 +225,7 @@ public:
         v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
 
         v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(_data->Get(isolate->NewString("_func")));
-        v8::Local<v8::Value> v = _data->Get(isolate->NewString("_ev"));
+        JSValue v = _data->Get(isolate->NewString("_ev"));
         v8::Local<v8::Function> _wrap = v8::Local<v8::Function>::Cast(_data->Get(isolate->NewString("_wrap")));
 
         exlib::string ev;
@@ -331,7 +329,7 @@ public:
         result_t hr;
 
         for (i = 0; i < len; i++) {
-            v8::Local<v8::Value> v = evs->Get(i);
+            JSValue v = evs->Get(i);
             exlib::string key;
 
             hr = GetArgumentValue(v, key, true);
@@ -360,9 +358,8 @@ public:
     result_t getMaxListeners(int32_t& retVal)
     {
         Isolate* _isolate = Isolate::current();
-        v8::Local<v8::Value> maxListeners = o->GetPrivate(o->CreationContext(),
-                                                 v8::Private::ForApi(isolate, NewString("_maxListeners")))
-                                                .ToLocalChecked();
+        JSValue maxListeners = o->GetPrivate(o->CreationContext(),
+            v8::Private::ForApi(isolate, NewString("_maxListeners")));
         if (maxListeners->IsUndefined() || maxListeners->IsNull()) {
             retVal = _isolate->m_defaultMaxListeners;
         } else {
@@ -399,10 +396,8 @@ public:
             int32_t len = esa->Length();
             int32_t i;
 
-            for (i = 0; i < len; i++) {
-                v8::Local<v8::Value> v = esa->Get(i);
-                retVal->Set(n++, v);
-            }
+            for (i = 0; i < len; i++)
+                retVal->Set(n++, esa->Get(i));
         }
 
         return 0;
@@ -432,7 +427,7 @@ public:
         result_t hr;
 
         for (i = 0; i < len; i++) {
-            v8::Local<v8::Value> func = esa->Get(i);
+            JSValue func = esa->Get(i);
             if (func->IsFunction()) {
                 if (ff.IsEmpty())
                     ff = v8::Local<v8::Function>::Cast(func);
@@ -463,7 +458,7 @@ public:
             return hr;
 
         if (!ff.IsEmpty()) {
-            v8::Local<v8::Value> r = ff->Call(o, argCount, args);
+            JSValue r = ff->Call(o, argCount, args);
             retVal = true;
             if (r.IsEmpty())
                 hr = CALL_E_JAVASCRIPT;
@@ -496,7 +491,7 @@ public:
 
     result_t eventNames(v8::Local<v8::Array>& retVal)
     {
-        retVal = events->GetOwnPropertyNames();
+        retVal = JSArray(events->GetOwnPropertyNames());
         return 0;
     }
 

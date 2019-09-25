@@ -80,6 +80,7 @@ typedef int32_t SOCKET;
 #include <v8/include/v8.h>
 #include "obj_ptr.h"
 #include <Isolate.h>
+#include <JSType.h>
 
 #include <cmath>
 #include <vector>
@@ -831,7 +832,7 @@ inline bool IsJSObject(v8::Local<v8::Value> v)
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
     v8::Local<v8::Context> _context = o->CreationContext();
-    v8::Local<v8::Value> proto = _context->GetEmbedderData(1);
+    JSValue proto = _context->GetEmbedderData(1);
     if (!proto->Equals(o->GetPrototype()))
         return false;
 
@@ -957,7 +958,7 @@ template <typename T>
 result_t GetConfigValue(v8::Isolate* isolate, v8::Local<v8::Object> o,
     const char* key, T& n, bool bStrict = false)
 {
-    v8::Local<v8::Value> v = o->Get(NewString(isolate, key));
+    JSValue v = o->Get(NewString(isolate, key));
     if (IsEmpty(v))
         return CALL_E_PARAMNOTOPTIONAL;
 
@@ -1052,7 +1053,7 @@ inline v8::Local<v8::Value> ThrowError(v8::Local<v8::Value> exception)
 inline v8::Local<v8::Value> ThrowError(result_t hr, exlib::string msg)
 {
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Value> exception = v8::Exception::Error(isolate->NewString(msg));
+    JSValue exception = v8::Exception::Error(isolate->NewString(msg));
     exception->ToObject()->Set(isolate->NewString("number"),
         v8::Int32::New(isolate->m_isolate, -hr));
     return ThrowError(exception);
@@ -1160,11 +1161,11 @@ inline v8::Local<v8::Value> ThrowAssertionError(v8::Local<v8::Object>& msg)
     Isolate* isolate = Isolate::current();
     auto _context = isolate->context();
     v8::Local<v8::Value> args[] = { msg };
-    v8::Local<v8::Value> error;
+    JSValue error;
 
     {
         v8::Local<v8::Object> AssertionError = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_AssertionError);
-        error = AssertionError->CallAsConstructor(_context, 1, args).ToLocalChecked();
+        error = AssertionError->CallAsConstructor(_context, 1, args);
     }
 
     return ThrowError(error);
