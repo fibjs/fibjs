@@ -109,7 +109,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
         return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-    v8::Local<v8::Value> main = o->Get(isolate->NewString("main", 4));
+    JSValue main = o->Get(isolate->NewString("main", 4));
     if (IsEmpty(main))
         return CALL_E_FILE_NOT_FOUND;
 

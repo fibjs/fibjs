@@ -365,7 +365,7 @@ result_t HttpHandler::onerror(v8::Local<v8::Object> hdlrs)
 
     for (i = 0; i < 3; i++) {
         v8::Local<v8::String> key = isolate->NewString(s_err_keys[i]);
-        v8::Local<v8::Value> hdlr = hdlrs->Get(key);
+        JSValue hdlr = hdlrs->Get(key);
 
         if (!IsEmpty(hdlr)) {
             obj_ptr<Handler_base> hdlr1;

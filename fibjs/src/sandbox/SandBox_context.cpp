@@ -31,9 +31,9 @@ void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Object> _mod = args.Data()->ToObject();
-    v8::Local<v8::Value> path = _mod->Get(NewString(isolate, "_id"));
+    JSValue path = _mod->Get(NewString(isolate, "_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
-        _mod->Get(NewString(isolate, "_sbox")));
+        JSValue(_mod->Get(NewString(isolate, "_sbox"))));
 
     exlib::string strPath;
     path_base::dirname(ToCString(v8::String::Utf8Value(path)), strPath);
@@ -72,9 +72,9 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Object> _mod = args.Data()->ToObject();
-    v8::Local<v8::Value> path = _mod->Get(NewString(isolate, "_id"));
+    JSValue path = _mod->Get(NewString(isolate, "_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
-        _mod->Get(NewString(isolate, "_sbox")));
+        JSValue(_mod->Get(NewString(isolate, "_sbox"))));
 
     exlib::string strPath;
     path_base::dirname(ToCString(v8::String::Utf8Value(path)), strPath);
@@ -125,7 +125,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
         _mod->Get(NewString(isolate, "_sbox")));
 
     if (SandBox::is_relative(id)) {
-        v8::Local<v8::Value> path = _mod->Get(NewString(isolate, "_id"));
+        JSValue path = _mod->Get(NewString(isolate, "_id"));
 
         exlib::string strPath;
 

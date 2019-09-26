@@ -129,7 +129,7 @@ public:
         int32_t i;
 
         for (i = len; i > 0; i--)
-            esa->Set(i, esa->Get(i - 1));
+            esa->Set(i, JSValue(esa->Get(i - 1)));
 
         esa->Set(0, func);
         return 0;
@@ -140,7 +140,7 @@ public:
         int32_t i;
         int32_t len = esa->Length();
         for (i = index; i < len - 1; i++)
-            esa->Set(i, esa->Get(i + 1));
+            esa->Set(i, JSValue(esa->Get(i + 1)));
         esa->Delete(esa->CreationContext(), len - 1).ToChecked();
         esa->Set(NewString("length"),
             v8::Integer::New(isolate, len - 1));
@@ -224,9 +224,9 @@ public:
         Isolate* isolate = Isolate::current();
         v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
 
-        v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(_data->Get(isolate->NewString("_func")));
+        v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(JSValue(_data->Get(isolate->NewString("_func"))));
         JSValue v = _data->Get(isolate->NewString("_ev"));
-        v8::Local<v8::Function> _wrap = v8::Local<v8::Function>::Cast(_data->Get(isolate->NewString("_wrap")));
+        v8::Local<v8::Function> _wrap = v8::Local<v8::Function>::Cast(JSValue(_data->Get(isolate->NewString("_wrap"))));
 
         exlib::string ev;
         GetArgumentValue(v, ev, true);
@@ -397,7 +397,7 @@ public:
             int32_t i;
 
             for (i = 0; i < len; i++)
-                retVal->Set(n++, esa->Get(i));
+                retVal->Set(n++, JSValue(esa->Get(i)));
         }
 
         return 0;

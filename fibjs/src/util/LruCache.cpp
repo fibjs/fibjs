@@ -167,13 +167,13 @@ result_t LruCache::set(exlib::string name, v8::Local<v8::Value> value)
 inline result_t _map(LruCache* o, v8::Local<v8::Object> m,
     result_t (LruCache::*fn)(exlib::string name, v8::Local<v8::Value> value))
 {
-    v8::Local<v8::Array> ks = m->GetPropertyNames();
+    JSArray ks = m->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> k = ks->Get(i);
-        (o->*fn)(ToCString(v8::String::Utf8Value(k)), m->Get(k));
+        JSValue k = ks->Get(i);
+        (o->*fn)(ToCString(v8::String::Utf8Value(k)), JSValue(m->Get(k)));
     }
 
     return 0;

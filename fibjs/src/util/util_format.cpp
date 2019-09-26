@@ -141,7 +141,7 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                     break;
                 }
 
-                v8::Local<v8::Array> keys = obj->GetPropertyNames();
+                JSArray keys = obj->GetPropertyNames();
                 if (keys.IsEmpty()) {
                     strBuffer.append("{}");
                     break;
@@ -164,7 +164,7 @@ exlib::string json_format(v8::Local<v8::Value> obj)
 
                 vals.append(obj);
 
-                v8::Local<v8::Value> toArray = obj->Get(isolate->NewString("toArray"));
+                JSValue toArray = obj->Get(isolate->NewString("toArray"));
                 if (!IsEmpty(toArray) && toArray->IsFunction()) {
                     TryCatch try_catch;
                     v8::Local<v8::Value> v1 = v8::Local<v8::Function>::Cast(toArray)->Call(obj, 0, NULL);
@@ -183,7 +183,7 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                     if (len == 0)
                         strBuffer.append("[]");
                     else {
-                        if (len == 1 && v->StrictEquals(array->Get(0)))
+                        if (len == 1 && v->StrictEquals(JSValue(array->Get(0))))
                             strBuffer.append("[Circular]");
                         else {
                             stk.resize(sz + 1);
@@ -211,9 +211,9 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                         v8::Local<v8::Array> array = v8::Array::New(isolate->m_isolate);
 
                         for (i = 0; i < len; i++)
-                            array->Set(i, typedarray->Get(i));
+                            array->Set(i, JSValue(typedarray->Get(i)));
 
-                        if (len == 1 && v->StrictEquals(array->Get(0)))
+                        if (len == 1 && v->StrictEquals(JSValue(array->Get(0))))
                             strBuffer.append("[Circular]");
                         else {
                             stk.resize(sz + 1);
@@ -236,8 +236,8 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                 if (len == 0)
                     strBuffer.append("{}");
                 else {
-                    v8::Local<v8::Value> k1 = keys->Get(0);
-                    v8::Local<v8::Value> v1;
+                    JSValue k1 = keys->Get(0);
+                    JSValue v1;
                     if (!k1.IsEmpty())
                         v1 = obj->Get(k1);
 

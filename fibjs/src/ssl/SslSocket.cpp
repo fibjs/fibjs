@@ -41,16 +41,16 @@ result_t SslSocket_base::_new(v8::Local<v8::Array> certs,
         int32_t i;
 
         for (i = 0; i < sz; i++) {
-            v8::Local<v8::Value> v = certs->Get(i);
+            JSValue v = certs->Get(i);
 
             if (v->IsObject()) {
                 v8::Local<v8::Object> o = v->ToObject();
 
-                obj_ptr<X509Cert_base> crt = X509Cert_base::getInstance(o->Get(sCrt));
+                obj_ptr<X509Cert_base> crt = X509Cert_base::getInstance(JSValue(o->Get(sCrt)));
                 if (!crt)
                     return CHECK_ERROR(CALL_E_INVALIDARG);
 
-                obj_ptr<PKey_base> key = PKey_base::getInstance(o->Get(sKey));
+                obj_ptr<PKey_base> key = PKey_base::getInstance(JSValue(o->Get(sKey)));
                 if (!key)
                     return CHECK_ERROR(CALL_E_INVALIDARG);
 

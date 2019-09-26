@@ -116,14 +116,14 @@ result_t http_base::fileHandler(exlib::string root, v8::Local<v8::Object> mimes,
 
 result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
 {
-    v8::Local<v8::Array> keys = mimes->GetPropertyNames();
+    JSArray keys = mimes->GetPropertyNames();
     int32_t len = keys->Length();
     int32_t i;
     result_t hr;
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> ks = keys->Get(i);
-        v8::Local<v8::Value> v;
+        JSValue ks = keys->Get(i);
+        JSValue v;
         exlib::string s;
 
         v = mimes->Get(ks);

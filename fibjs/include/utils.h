@@ -1136,7 +1136,7 @@ inline v8::Local<v8::Value> ThrowEvalError(const char* msg)
     Isolate* isolate = Isolate::current();
     auto _context = isolate->context();
     auto glob = _context->Global();
-    auto EvalError = (glob->Get(isolate->NewString("EvalError"))).As<v8::Object>();
+    auto EvalError = (JSValue(glob->Get(isolate->NewString("EvalError")))).As<v8::Object>();
 
     v8::Local<v8::Value> args[] = { isolate->NewString(msg) };
     auto error = EvalError->CallAsConstructor(_context, 1, args).ToLocalChecked();

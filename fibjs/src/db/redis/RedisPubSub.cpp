@@ -98,20 +98,20 @@ result_t Redis::_map(v8::Local<v8::Object>& map, int32_t cmd)
         m_subMode = 1;
 
     Isolate* isolate = holder();
-    v8::Local<v8::Array> channels = map->GetPropertyNames();
+    JSArray channels = map->GetPropertyNames();
     int32_t sz = channels->Length();
     int32_t i;
     v8::Local<v8::Array> subs = v8::Array::New(isolate->m_isolate);
     int32_t count = 0;
 
     for (i = 0; i < sz; i++) {
-        v8::Local<v8::Value> channel = channels->Get(i);
+        JSValue channel = channels->Get(i);
         exlib::string s;
 
         GetArgumentValue(channel, s);
         s = s_cmd[cmd][1] + s;
 
-        v8::Local<v8::Value> value = map->Get(channel);
+        JSValue value = map->Get(channel);
 
         if (!value->IsFunction())
             return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -179,7 +179,7 @@ result_t Redis::unsub(v8::Local<v8::Array>& channels, int32_t cmd)
     int32_t i;
 
     for (i = 0; i < sz; i++) {
-        v8::Local<v8::Value> key = channels->Get(i);
+        JSValue key = channels->Get(i);
         exlib::string s;
 
         GetArgumentValue(key, s);

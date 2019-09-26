@@ -17,7 +17,7 @@ static void sync_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
 
     obj_ptr<Event_base> ev;
-    ev = Event_base::getInstance(_data->Get(NewString(isolate, "_ev")));
+    ev = Event_base::getInstance(JSValue(_data->Get(NewString(isolate, "_ev"))));
 
     int32_t len = args.Length();
 
@@ -67,12 +67,12 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     isolate->m_isolate->RunMicrotasks();
     ev->wait();
 
-    v8::Local<v8::Value> error = _data->Get(isolate->NewString("_error"));
+    JSValue error = _data->Get(isolate->NewString("_error"));
 
     if (!error.IsEmpty() && !error->IsUndefined() && !error->IsNull())
         isolate->m_isolate->ThrowException(error);
     else
-        args.GetReturnValue().Set(_data->Get(isolate->NewString("_result")));
+        args.GetReturnValue().Set(JSValue(_data->Get(isolate->NewString("_result"))));
 }
 
 static void promise_then(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -114,7 +114,7 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     v8::Local<v8::Function> _then;
     v8::Local<v8::Function> _catch;
-    v8::Local<v8::Value> v;
+    JSValue v;
 
     if (result->IsObject()) {
         v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(result);

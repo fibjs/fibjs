@@ -59,13 +59,13 @@ result_t util_base::keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
     if (v->IsObject()) {
         v8::Local<v8::Object> obj = v->ToObject();
 
-        retVal = obj->GetPropertyNames();
+        retVal = JSArray(obj->GetPropertyNames());
         if (obj->IsArray()) {
             int32_t len = retVal->Length();
             int32_t i;
 
             for (i = 0; i < len; i++)
-                retVal->Set(i, retVal->Get(i)->ToString());
+                retVal->Set(i, JSValue(retVal->Get(i))->ToString());
         }
     } else
         retVal = v8::Array::New(Isolate::current()->m_isolate);
@@ -78,18 +78,15 @@ result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
     Isolate* isolate = Isolate::current();
     if (v->IsObject()) {
         v8::Local<v8::Object> obj = v->ToObject();
-        v8::Local<v8::Array> keys = obj->GetPropertyNames();
+        JSArray keys = obj->GetPropertyNames();
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
 
         int32_t len = keys->Length();
         int32_t i, n = 0;
 
         for (i = 0; i < len; i++) {
-            v8::Local<v8::Value> key = keys->Get(i);
-            v8::Local<v8::Value> value = obj->Get(key);
-            if (value.IsEmpty())
-                return CALL_E_JAVASCRIPT;
-            arr->Set(n++, value);
+            JSValue key = keys->Get(i);
+            arr->Set(n++, JSValue(obj->Get(key)));
         }
 
         retVal = arr;
@@ -140,11 +137,10 @@ result_t util_base::deepFreeze(v8::Local<v8::Value> v)
 
     if (!isFrozen(obj)) {
         obj->SetIntegrityLevel(obj->CreationContext(), v8::IntegrityLevel::kFrozen).ToChecked();
-        v8::Local<v8::Array> names = obj->GetPropertyNames(obj->CreationContext())
-                                         .ToLocalChecked();
+        JSArray names = obj->GetPropertyNames(obj->CreationContext()).ToLocalChecked();
 
         for (int32_t i = 0; i < (int32_t)names->Length(); i++)
-            deepFreeze(obj->Get(names->Get(i)));
+            deepFreeze(JSValue(obj->Get(JSValue(names->Get(i)))));
     }
 
     return 0;
@@ -175,15 +171,12 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
         v8::Local<v8::Object> obj1 = val->ToObject();
-        v8::Local<v8::Array> keys = obj1->GetPropertyNames();
+        JSArray keys = obj1->GetPropertyNames();
         int32_t len = keys->Length();
 
         for (j = 0; j < len; j++) {
-            v8::Local<v8::Value> key = keys->Get(j);
-            v8::Local<v8::Value> value = obj1->Get(key);
-            if (value.IsEmpty())
-                return CALL_E_JAVASCRIPT;
-            obj->Set(key, value);
+            JSValue key = keys->Get(j);
+            obj->Set(key, JSValue(obj1->Get(key)));
         }
     }
 
@@ -222,24 +215,16 @@ result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
             int32_t len = arr->Length();
 
             for (j = 0; j < len; j++) {
-                v8::Local<v8::Value> k = arr->Get(j);
+                JSValue k = arr->Get(j);
 
-                if (obj->Has(k)) {
-                    v8::Local<v8::Value> v = obj->Get(k);
-                    if (v.IsEmpty())
-                        return CALL_E_JAVASCRIPT;
-                    obj1->Set(k, v);
-                }
+                if (obj->Has(k))
+                    obj1->Set(k, JSValue(obj->Get(k)));
             }
         } else {
-            v8::Local<v8::Value> k = o;
+            JSValue k = o;
 
-            if (obj->Has(k)) {
-                v8::Local<v8::Value> v = obj->Get(k);
-                if (v.IsEmpty())
-                    return CALL_E_JAVASCRIPT;
-                obj1->Set(k, v);
-            }
+            if (obj->Has(k))
+                obj1->Set(k, JSValue(obj->Get(k)));
         }
     }
 
@@ -275,7 +260,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
 
             for (j = 0; j < len; j++) {
                 exlib::string k;
-                hr = GetArgumentValue(arr->Get(j), k);
+                hr = GetArgumentValue(JSValue(arr->Get(j)), k);
                 if (hr < 0)
                     return CHECK_ERROR(hr);
 
@@ -291,19 +276,15 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
         }
     }
 
-    v8::Local<v8::Array> keys1 = obj->GetPropertyNames();
+    JSArray keys1 = obj->GetPropertyNames();
     int32_t len = keys1->Length();
     v8::Local<v8::Object> obj1 = v8::Object::New(isolate->m_isolate);
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> key = keys1->Get(i);
+        JSValue key = keys1->Get(i);
 
-        if (_map.find(ToCString(v8::String::Utf8Value(key))) == _map.end()) {
-            v8::Local<v8::Value> value = obj->Get(key);
-            if (value.IsEmpty())
-                return CALL_E_JAVASCRIPT;
-            obj1->Set(key, value);
-        }
+        if (_map.find(ToCString(v8::String::Utf8Value(key))) == _map.end())
+            obj1->Set(key, JSValue(obj->Get(key)));
     }
 
     retVal = obj1;
@@ -319,7 +300,7 @@ result_t util_base::intersection(OptArgs arrs,
     int32_t i, j, k, n = 0;
 
     if (argc > 0) {
-        v8::Local<v8::Value> v0 = arrs[0];
+        JSValue v0 = arrs[0];
 
         if (v0->IsUndefined() || v0->IsNull()) {
             retVal = arr;
@@ -332,7 +313,7 @@ result_t util_base::intersection(OptArgs arrs,
         v8::Local<v8::Array> base = v8::Local<v8::Array>::Cast(v0);
         int32_t len = base->Length();
         int32_t left = len;
-        QuickArray<v8::Local<v8::Value>> erase;
+        QuickArray<JSValue> erase;
 
         erase.resize(len);
         for (i = 0; i < len; i++)
@@ -349,7 +330,7 @@ result_t util_base::intersection(OptArgs arrs,
             for (j = 0; left > 0 && j < len; j++)
                 if (!erase[j].IsEmpty()) {
                     for (k = 0; k < len1; k++)
-                        if (erase[j]->Equals(other->Get(k)))
+                        if (erase[j]->Equals(JSValue(other->Get(k))))
                             break;
 
                     if (k == len1) {
@@ -396,7 +377,7 @@ result_t util_base::first(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
         return 0;
     }
 
-    retVal = arr->Get(0);
+    retVal = JSValue(arr->Get(0));
 
     return 0;
 }
@@ -423,7 +404,7 @@ result_t util_base::first(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value
     v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate);
 
     for (i = 0; i < n; i++)
-        arr1->Set(i, arr->Get(i));
+        arr1->Set(i, JSValue(arr->Get(i)));
 
     retVal = arr1;
 
@@ -450,7 +431,7 @@ result_t util_base::last(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
         return 0;
     }
 
-    retVal = arr->Get(len - 1);
+    retVal = JSValue(arr->Get(len - 1));
     return 0;
 }
 
@@ -475,7 +456,7 @@ result_t util_base::last(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>
     v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate);
 
     for (i = 0; i < n; i++)
-        arr1->Set(i, arr->Get(len - n + i));
+        arr1->Set(i, JSValue(arr->Get(len - n + i)));
 
     retVal = arr1;
 
@@ -496,12 +477,12 @@ result_t util_base::unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Ar
     v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate);
     v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
     int32_t len = arr->Length();
-    QuickArray<v8::Local<v8::Value>> vals;
+    QuickArray<JSValue> vals;
     int32_t i, j, n = 0;
 
     vals.resize(len);
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> val = arr->Get(i);
+        JSValue val = arr->Get(i);
 
         for (j = i - 1; j >= 0; j--)
             if (!vals[j].IsEmpty()) {
@@ -544,7 +525,7 @@ result_t util_base::_union(OptArgs arrs,
         int32_t len = arr1->Length();
 
         for (j = 0; j < len; j++) {
-            v8::Local<v8::Value> v = arr1->Get(j);
+            JSValue v = arr1->Get(j);
 
             for (k = 0; k < n; k++)
                 if (v->StrictEquals(arr->Get(k)))
@@ -576,7 +557,7 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
         bNext = false;
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
-    v8::Local<v8::Value> v = o->Get(isolate->NewString("length"));
+    JSValue v = o->Get(isolate->NewString("length"));
     if (IsEmpty(v))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -590,13 +571,13 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
             v8::Local<v8::Object> o1 = v8::Local<v8::Object>::Cast(v);
             v = o->Get(isolate->NewString("length"));
             if (IsEmpty(v))
-                retVal->Set(cnt++, o->Get(i));
+                retVal->Set(cnt++, JSValue(o->Get(i)));
             else {
                 flatten(o1, shallow, retVal);
                 cnt = retVal->Length();
             }
         } else
-            retVal->Set(cnt++, o->Get(i));
+            retVal->Set(cnt++, JSValue(o->Get(i)));
     }
 
     return 0;
@@ -611,7 +592,7 @@ result_t util_base::without(v8::Local<v8::Value> arr, OptArgs els,
     Isolate* isolate = Isolate::current();
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(arr);
-    v8::Local<v8::Value> v = o->Get(isolate->NewString("length"));
+    JSValue v = o->Get(isolate->NewString("length"));
     if (IsEmpty(v))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -622,7 +603,7 @@ result_t util_base::without(v8::Local<v8::Value> arr, OptArgs els,
     int32_t i, j, n = 0;
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> v = o->Get(i);
+        JSValue v = o->Get(i);
 
         for (j = 0; j < argc; j++)
             if (v->StrictEquals(els[j]))
@@ -646,7 +627,7 @@ result_t util_base::difference(v8::Local<v8::Array> arr, OptArgs arrs,
     int32_t i, j, k, n = 0, len1;
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> v = arr->Get(i);
+        JSValue v = arr->Get(i);
 
         for (j = 0; j < argc; j++) {
             v8::Local<v8::Value> o = arrs[j];
@@ -657,7 +638,7 @@ result_t util_base::difference(v8::Local<v8::Array> arr, OptArgs arrs,
             len1 = without->Length();
 
             for (k = 0; k < len1; k++)
-                if (v->StrictEquals(without->Get(k)))
+                if (v->StrictEquals(JSValue(without->Get(k))))
                     break;
 
             if (k < len1)
@@ -686,10 +667,10 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
-    v8::Local<v8::Value> v = o->Get(isolate->NewString("length"));
+    JSValue v = o->Get(isolate->NewString("length"));
 
     if (IsEmpty(v)) {
-        v8::Local<v8::Array> keys = o->GetPropertyNames();
+        JSArray keys = o->GetPropertyNames();
         int32_t len = 0;
         if (!keys.IsEmpty())
             len = keys->Length();
@@ -697,8 +678,8 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
         int32_t i;
 
         for (i = 0; i < len; i++) {
-            args[1] = keys->Get(i);
-            args[0] = o->Get(args[1]);
+            args[1] = JSValue(keys->Get(i));
+            args[0] = JSValue(o->Get(args[1]));
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -743,19 +724,19 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
     args[2] = list;
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
-    v8::Local<v8::Value> v = o->Get(isolate->NewString("length"));
+    JSValue v = o->Get(isolate->NewString("length"));
     int32_t cnt = 0;
 
     if (IsEmpty(v)) {
-        v8::Local<v8::Array> keys = o->GetPropertyNames();
+        JSArray keys = o->GetPropertyNames();
         int32_t len = 0;
         if (!keys.IsEmpty())
             len = keys->Length();
         int32_t i;
 
         for (i = 0; i < len; i++) {
-            args[1] = keys->Get(i);
-            args[0] = o->Get(args[1]);
+            args[1] = JSValue(keys->Get(i));
+            args[0] = JSValue(o->Get(args[1]));
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -772,7 +753,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
 
         for (i = 0; i < len; i++) {
             args[1] = v8::Int32::New(isolate->m_isolate, i);
-            args[0] = o->Get(args[1]);
+            args[0] = JSValue(o->Get(args[1]));
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -803,10 +784,10 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
-    v8::Local<v8::Value> v = o->Get(isolate->NewString("length"));
+    JSValue v = o->Get(isolate->NewString("length"));
 
     if (IsEmpty(v)) {
-        v8::Local<v8::Array> keys = o->GetPropertyNames();
+        JSArray keys = o->GetPropertyNames();
         int32_t len = 0;
         if (!keys.IsEmpty())
             len = keys->Length();
@@ -814,8 +795,8 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
         int32_t i;
 
         for (i = 0; i < len; i++) {
-            args[2] = keys->Get(i);
-            args[1] = o->Get(args[2]);
+            args[2] = JSValue(keys->Get(i));
+            args[1] = JSValue(o->Get(args[2]));
             if (args[1].IsEmpty() || args[2].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -832,7 +813,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 
         for (i = 0; i < len; i++) {
             args[2] = v8::Int32::New(isolate->m_isolate, i);
-            args[1] = o->Get(args[2]);
+            args[1] = JSValue(o->Get(args[2]));
             if (args[1].IsEmpty() || args[2].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 

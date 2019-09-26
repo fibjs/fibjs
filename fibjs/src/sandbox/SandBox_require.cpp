@@ -73,9 +73,9 @@ result_t SandBox::refresh()
     JSArray names = modules->GetPropertyNames(modules->CreationContext());
 
     for (int32_t i = 0; i < (int32_t)names->Length(); i++) {
-        v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(modules->Get(names->Get(i)));
+        v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(JSValue(modules->Get(JSValue(names->Get(i)))));
         JSValue v = module->GetPrivate(module->CreationContext(),
-                                           v8::Private::ForApi(isolate->m_isolate, strEntry));
+            v8::Private::ForApi(isolate->m_isolate, strEntry));
         if (v->IsFunction())
             module->Delete(strExports);
     }

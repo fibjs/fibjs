@@ -318,7 +318,7 @@ result_t registry_base::set(int32_t root, exlib::string key, v8::Local<v8::Array
         exlib::string v;
         exlib::wstring wv;
 
-        hr = GetArgumentValue(value->Get(i), v, false);
+        hr = GetArgumentValue(JSValue(value->Get(i)), v, false);
         if (hr < 0)
             return hr;
 

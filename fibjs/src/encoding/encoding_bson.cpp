@@ -118,7 +118,7 @@ void encodeArray(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
     bson_append_start_array(bb, name);
 
     for (int32_t i = 0, l = a->Length(); i < l; i++) {
-        v8::Local<v8::Value> val = a->Get(i);
+        JSValue val = a->Get(i);
         char numStr[32];
 
         sprintf(numStr, "%d", i);
@@ -134,11 +134,11 @@ bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Va
     v8::Local<v8::Object> object = element->ToObject();
 
     if (doJson) {
-        v8::Local<v8::Value> jsonFun = object->Get(isolate->NewString("toJSON", 6));
+        JSValue jsonFun = object->Get(isolate->NewString("toJSON", 6));
 
         if (!IsEmpty(jsonFun) && jsonFun->IsFunction()) {
-            v8::Local<v8::Value> p = isolate->NewString(name ? name : "");
-            v8::Local<v8::Value> element1 = v8::Local<v8::Function>::Cast(jsonFun)->Call(object, 1, &p);
+            JSValue p = isolate->NewString(name ? name : "");
+            JSValue element1 = v8::Local<v8::Function>::Cast(jsonFun)->Call(object, 1, &p);
 
             if (name) {
                 encodeValue(isolate, bb, name, element1, false);
@@ -160,11 +160,11 @@ bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Va
     if (name)
         bson_append_start_object(bb, name);
 
-    v8::Local<v8::Array> properties = object->GetPropertyNames();
+    JSArray properties = object->GetPropertyNames();
 
     for (int32_t i = 0; i < (int32_t)properties->Length(); i++) {
-        v8::Local<v8::Value> prop_name = properties->Get(i);
-        v8::Local<v8::Value> prop_val = object->Get(prop_name);
+        JSValue prop_name = properties->Get(i);
+        JSValue prop_val = object->Get(prop_name);
 
         v8::String::Utf8Value n(prop_name);
         const char* pname = ToCString(n);

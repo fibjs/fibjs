@@ -117,7 +117,7 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
     for (i = 0; i < len; i++) {
         exlib::string str;
 
-        hr = GetArgumentValue(isolate->m_isolate, args->Get(i), str);
+        hr = GetArgumentValue(isolate->m_isolate, JSValue(args->Get(i)), str);
         if (hr < 0)
             return hr;
 
@@ -168,16 +168,16 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         util_base::has(opt_envs, DEFT_ENV_KEYS[i], has_k);
         if (!has_k) {
             dflt_k = isolate->NewString(DEFT_ENV_KEYS[i]);
-            opt_envs->Set(dflt_k, cur_envs->Get(dflt_k));
+            opt_envs->Set(dflt_k, JSValue(cur_envs->Get(dflt_k)));
         }
     }
 
-    v8::Local<v8::Array> keys = opt_envs->GetPropertyNames();
+    JSArray keys = opt_envs->GetPropertyNames();
     len = (int32_t)keys->Length();
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> k = keys->Get(i);
-        v8::Local<v8::Value> v = opt_envs->Get(k);
+        JSValue k = keys->Get(i);
+        JSValue v = opt_envs->Get(k);
         exlib::string ks, vs;
 
         hr = GetArgumentValue(k, ks);

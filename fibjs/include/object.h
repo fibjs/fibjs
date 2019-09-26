@@ -288,13 +288,7 @@ public:
         v8::Local<v8::Object> o = wrap();
         Isolate* isolate = holder();
 
-        v8::MaybeLocal<v8::Value> mv = o->GetPrivate(o->CreationContext(),
-            v8::Private::ForApi(isolate->m_isolate, isolate->NewString(key)));
-
-        if (mv.IsEmpty())
-            return v8::Undefined(isolate->m_isolate);
-
-        return mv.ToLocalChecked();
+        return JSValue(o->GetPrivate(o->CreationContext(), v8::Private::ForApi(isolate->m_isolate, isolate->NewString(key))));
     }
 
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)

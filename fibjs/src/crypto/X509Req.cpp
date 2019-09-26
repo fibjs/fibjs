@@ -250,7 +250,7 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
     if (ac->isSync()) {
         Isolate* isolate = holder();
         mbedtls_mpi serial;
-        v8::Local<v8::Value> v;
+        JSValue v;
 
         mbedtls_x509write_crt_init(&m_crt);
 
@@ -342,7 +342,7 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
             goto exit;
         }
 
-        int32_t key_usage = parseString(opts->Get(isolate->NewString("usage", 5)), X509Cert::g_usages);
+        int32_t key_usage = parseString(JSValue(opts->Get(isolate->NewString("usage", 5))), X509Cert::g_usages);
         if (key_usage < 0) {
             hr = key_usage;
             goto exit;
@@ -354,7 +354,7 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
             }
         }
 
-        int32_t cert_type = parseString(opts->Get(isolate->NewString("type", 4)), X509Cert::g_types);
+        int32_t cert_type = parseString(JSValue(opts->Get(isolate->NewString("type", 4))), X509Cert::g_types);
         if (cert_type < 0) {
             hr = cert_type;
             goto exit;

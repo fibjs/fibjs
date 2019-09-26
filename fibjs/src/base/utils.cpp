@@ -178,8 +178,8 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
                 stack_trace_string.As<v8::String>());
             strError.append(ToCString(stack_trace));
         } else {
-            v8::Local<v8::Value> message;
-            v8::Local<v8::Value> name;
+            JSValue message;
+            JSValue name;
 
             if (repl) {
                 strError.append("Thrown: ");
@@ -238,12 +238,12 @@ exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl)
 
 result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)
 {
-    v8::Local<v8::Array> ks = opts->GetPropertyNames();
+    JSArray ks = opts->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
 
     for (i = 0; i < len; i++) {
-        v8::String::Utf8Value k(ks->Get(i));
+        v8::String::Utf8Value k(JSValue(ks->Get(i)));
         const char** p = keys;
 
         while (p[0]) {

@@ -21,7 +21,7 @@ result_t Stats_base::_new(v8::Local<v8::Array> keys,
     pStats->init(0, n);
 
     for (i = 0; i < n; i++) {
-        hr = pStats->set_key(i, keys->Get(i));
+        hr = pStats->set_key(i, JSValue(keys->Get(i)));
         if (hr < 0)
             return hr;
     }
@@ -43,13 +43,13 @@ result_t Stats_base::_new(v8::Local<v8::Array> staticKeys,
     pStats->init(sn, n + sn);
 
     for (i = 0; i < sn; i++) {
-        hr = pStats->set_key(i, staticKeys->Get(i));
+        hr = pStats->set_key(i, JSValue(staticKeys->Get(i)));
         if (hr < 0)
             return hr;
     }
 
     for (i = 0; i < n; i++) {
-        hr = pStats->set_key(sn + i, keys->Get(i));
+        hr = pStats->set_key(sn + i, JSValue(keys->Get(i)));
         if (hr < 0)
             return hr;
     }

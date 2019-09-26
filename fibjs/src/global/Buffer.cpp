@@ -256,7 +256,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     Isolate* isolate = Isolate::current();
 
     for (int32_t i = 0; i < sz; i++) {
-        v8::Local<v8::Value> v = buflist->Get(i);
+        JSValue v = buflist->Get(i);
         obj_ptr<Buffer_base> vdata;
 
         hr = GetArgumentValue(isolate->m_isolate, v, vdata);

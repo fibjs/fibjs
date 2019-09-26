@@ -219,7 +219,7 @@ bool arrayEquals(QuickArray<v8::Local<v8::Object>>& acts,
     }
 
     for (i = 0; i < len; i++)
-        if (!deepEquals(acts, exps, act->Get(i), exp->Get(i))) {
+        if (!deepEquals(acts, exps, JSValue(act->Get(i)), JSValue(exp->Get(i)))) {
             acts.pop();
             exps.pop();
             return false;
@@ -245,25 +245,25 @@ bool objectEquals(QuickArray<v8::Local<v8::Object>>& acts,
     if (i == -1)
         return false;
 
-    v8::Local<v8::Array> keys = act->GetPropertyNames();
+    JSArray keys = act->GetPropertyNames();
     int32_t len = (int32_t)keys->Length();
 
-    if (len != (int32_t)exp->GetPropertyNames()->Length()) {
+    if (len != (int32_t)JSArray(exp->GetPropertyNames())->Length()) {
         acts.pop();
         exps.pop();
         return false;
     }
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> ks = keys->Get(i);
+        JSValue ks = keys->Get(i);
         if (ks.IsEmpty()) {
             acts.pop();
             exps.pop();
             return false;
         }
 
-        v8::Local<v8::Value> v1 = act->Get(ks);
-        v8::Local<v8::Value> v2 = exp->Get(ks);
+        JSValue v1 = act->Get(ks);
+        JSValue v2 = exp->Get(ks);
 
         if (v1.IsEmpty() || v2.IsEmpty()) {
             acts.pop();
@@ -801,7 +801,7 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
     v8::Local<v8::Object> v = object->ToObject();
     got = v->Get(prop);
-    if(got.IsEmpty())
+    if (got.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
     retVal = value->Equals(got);
@@ -868,7 +868,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     }
 
     got = v->Get(isolate->NewString(p));
-    if(got.IsEmpty())
+    if (got.IsEmpty())
         return CALL_E_JAVASCRIPT;
     retVal = value->Equals(got);
 

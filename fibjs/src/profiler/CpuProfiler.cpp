@@ -26,7 +26,7 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Array> stacks = v8::Array::New(isolate);
     for (i = 0; i < len; i++) {
         exlib::string stack;
-        obj_ptr<Fiber_base> fb = Fiber_base::getInstance(fibers->Get(i));
+        obj_ptr<Fiber_base> fb = Fiber_base::getInstance(JSValue(fibers->Get(i)));
 
         fb->get_stack(stack);
         if (stack != "")
@@ -44,7 +44,7 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     date_t d;
     d.now();
-    if (d.date() > _data->Get(NewString(isolate, "_time"))->NumberValue())
+    if (d.date() > JSValue(_data->Get(NewString(isolate, "_time")))->NumberValue())
         Timer_base::getInstance(args.This())->clear();
 }
 

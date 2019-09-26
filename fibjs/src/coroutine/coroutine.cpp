@@ -41,10 +41,10 @@ private:
 
             m_pos++;
             if (func.IsEmpty())
-                v = v8::Local<v8::Function>::Cast(datas->Get(pos))
+                v = v8::Local<v8::Function>::Cast(JSValue(datas->Get(pos)))
                         ->Call(s->wrap(), 0, NULL);
             else {
-                v8::Local<v8::Value> a = datas->Get(pos);
+                JSValue a = datas->Get(pos);
                 v = func->Call(s->wrap(), 1, &a);
             }
 
@@ -106,7 +106,7 @@ public:
         m_fibers = (fibers > 0 && fibers < m_count) ? fibers : m_count;
 
         for (i = 0; i < m_count; i++) {
-            v8::Local<v8::Value> v = funcs->Get(i);
+            JSValue v = funcs->Get(i);
             if (v.IsEmpty() || !v->IsFunction())
                 return CHECK_ERROR(CALL_E_INVALIDARG);
         }
