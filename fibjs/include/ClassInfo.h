@@ -302,11 +302,13 @@ public:
 private:
     cache* _init(Isolate* isolate)
     {
+        static exlib::atomic m_gid;
+
         if (m_id < 0)
-            m_id = (int32_t)isolate->m_classInfo.size();
+            m_id = (int32_t)m_gid.inc();
 
         void* p = NULL;
-        while ((int32_t)isolate->m_classInfo.size() < m_id + 1)
+        while ((int32_t)isolate->m_classInfo.size() < m_id)
             isolate->m_classInfo.append(p);
 
         cache* _cache = (cache*)isolate->m_classInfo[m_id];
