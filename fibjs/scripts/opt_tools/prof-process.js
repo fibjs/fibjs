@@ -1,5 +1,6 @@
 var fs = require('fs');
 var io = require('io');
+var gd = require('gd');
 
 function read_log(f) {
     var bs = new io.BufferedStream(fs.openFile(f));
@@ -405,25 +406,21 @@ function gen_svg(f, root) {
     var f = fs.openFile(f, "w");
     f.write(svg_head);
 
-    function hot() {
-        var r = Math.floor(Math.random() * 50) + 205;
-        var g = Math.floor(Math.random() * 230) + 0;
-        var b = Math.floor(Math.random() * 55) + 0;
-        return `rgb(${r},${g},${b})`;
-    }
+    function color(deep, hot) {
+        var h = hot > 0.2 ? deep * 60 : 240 - deep * 60;
+        var s = 1 - deep * 0.8;
+        var b = 1;
+        var c = gd.hsb(h, s, b);
+        var s = (0x1000000 + c).toString(16).substr(1);
 
-    function cold() {
-        var r = Math.floor(Math.random() * 60) + 80;
-        var g = Math.floor(Math.random() * 60) + 80;
-        var b = Math.floor(Math.random() * 55) + 190;
-        return `rgb(${r},${g},${b})`;
+        return `#${s}`;
     }
 
     function gen_node(name, node, pos) {
         var x = 10 + 981 * pos / sum;
         var y = h - 49 - node.level * 16;
 
-        var rgb = node.js > 0 ? hot() : cold();
+        var rgb = color(node.level / (root.deep - 1), node.js / node.cnt);
 
         f.write(`<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
 <title>${name} (${node.cnt} samples, ${(100*node.cnt/sum).toFixed(2)}%)</title><rect x="${x.toFixed(2)}" y="${y}" width="${(981*node.cnt/sum).toFixed(2)}" height="15.0" fill="${rgb}" rx="2" ry="2" />
