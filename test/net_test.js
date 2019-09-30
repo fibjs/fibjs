@@ -40,7 +40,7 @@ var backend = {
     "Darwin": "KQueue",
     "FreeBSD": "KQueue",
     "Linux": "EPoll"
-}[os.type()];
+} [os.type()];
 
 
 function del(f) {
@@ -359,8 +359,10 @@ describe("net", () => {
 
         var no = test_util.countObject('Timer');
         c1.connect('127.0.0.1', 8085 + base_port);
-        for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++)
+        for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++) {
+            GC();
             coroutine.sleep(50);
+        }
         assert.equal(no, test_util.countObject('Timer'));
 
         var t1 = new Date();
