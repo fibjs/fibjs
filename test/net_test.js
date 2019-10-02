@@ -358,6 +358,7 @@ describe("net", () => {
         c1.timeout = 50;
 
         var no = test_util.countObject('Timer');
+        coroutine.sleep(50);
         c1.connect('127.0.0.1', 8085 + base_port);
         for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++) {
             GC();
