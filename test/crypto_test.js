@@ -101,14 +101,14 @@ var pk = "-----BEGIN PUBLIC KEY-----\n" +
     "-----END PUBLIC KEY-----\n";
 
 var req1 = "-----BEGIN CERTIFICATE REQUEST-----\n" +
-    "MIIBcDCB2gIBADAxMQswCQYDVQQGEwJDTjEQMA4GA1UECgwHYmFvei5jbjEQMA4G\n" +
-    "A1UEAwwHYmFvei5tZTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA0m5lvKpW\n" +
+    "MIIBcDCB2gIBADAxMQswCQYDVQQGEwJDTjEQMA4GA1UEChMHYmFvei5jbjEQMA4G\n" +
+    "A1UEAxMHYmFvei5tZTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA0m5lvKpW\n" +
     "qy9JS7tV2HIPqHCYHLquSuxIC3F8strIQLJKO3rZmTT96KTnhsOfBO7Y1bI7mnT0\n" +
     "PB3/vcHd9ekWMEoZJQw7MuB8KeM/Wn54+elJr5DNLk5bMppSGxX7ZnumiXGG51/X\n" +
     "3Yp+/EbGtDG80GxXXix7Mucyo7K25uE0uW8CAwEAAaAAMA0GCSqGSIb3DQEBBQUA\n" +
-    "A4GBALyElVlapPjcP7YlIA38kUWEDmuwGSaqJBetD28QMBF6VHIYggf2aIcjJTCp\n" +
-    "FptoY0mh3ZiU8W96cvMo9Vp/cqqBPklxcppVSIHSUHWGFAjddLVQoGOXNmWTtOzY\n" +
-    "DN21j9j2/Ooygoh64ReClWyzwirSVbscelMjpSpE1FvT0HeR\n" +
+    "A4GBACx6pUvyyU3YmwR42MjRT9q2cN5KVt5oWCdSgOC+WTNi4FeMRCxPC8ExNkzN\n" +
+    "mn71AolBNc1ve5cgyr3CGN3mYK86heH2y0x4xApN/IJeUCdAtzMFvLbvkEBSLtkz\n" +
+    "G3f1zTP01fknEN1WH762dXrisQONk6qmbga6ytMo7KbJ0Xgl\n" +
     "-----END CERTIFICATE REQUEST-----\n"
 
 var rsa_pub_key = "-----BEGIN RSA PUBLIC KEY-----\n" +
@@ -212,7 +212,7 @@ describe('crypto', () => {
         test_cipher(crypto.BLOWFISH, "blowfish");
         test_cipher(crypto.ARC4, "arc4");
 
-        test_cipher(crypto.ARIA, "aria");
+        // test_cipher(crypto.ARIA, "aria");
     });
 
     describe("PKey", () => {
