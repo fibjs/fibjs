@@ -11,6 +11,7 @@
 #include "Cipher.h"
 #include "ssl.h"
 #include <mbedtls/mbedtls/net.h>
+#include "PKey.h"
 
 #ifndef SSLSOCKET_H_
 #define SSLSOCKET_H_
@@ -164,6 +165,7 @@ public:
     virtual result_t set_verification(int32_t newVal);
     virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal);
     virtual result_t get_peerCert(obj_ptr<X509Cert_base>& retVal);
+    virtual result_t get_hostname(exlib::string& retVal);
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
     virtual result_t connect(Stream_base* s, exlib::string server_name, int32_t& retVal, AsyncEvent* ac);
     virtual result_t accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal, AsyncEvent* ac);
@@ -178,16 +180,35 @@ private:
     result_t handshake(int32_t* retVal, AsyncEvent* ac);
 
 public:
-    result_t setCert(X509Cert_base* crt, PKey_base* key);
+    result_t setCert(exlib::string name, X509Cert_base* crt, PKey_base* key);
 
 public:
     mbedtls_ssl_context m_ssl;
     mbedtls_ssl_config m_ssl_conf;
 
+public:
+    static int sni_callback(void* p_info, mbedtls_ssl_context* ssl,
+        const unsigned char* name, size_t name_len);
+
+    class Cert {
+    public:
+        Cert(exlib::string name, X509Cert_base* crt, PKey_base* key)
+            : m_name(name)
+            , m_crt((X509Cert*)crt)
+            , m_key((PKey*)key)
+        {
+        }
+
+    public:
+        exlib::string m_name;
+        obj_ptr<X509Cert> m_crt;
+        obj_ptr<PKey> m_key;
+    };
+
+    std::vector<Cert> m_crts;
+
 private:
     obj_ptr<X509Cert> m_ca;
-    std::vector<obj_ptr<X509Cert_base>> m_crts;
-    std::vector<obj_ptr<PKey_base>> m_keys;
     obj_ptr<Stream_base> m_s;
     exlib::string m_recv;
     int32_t m_recv_pos;

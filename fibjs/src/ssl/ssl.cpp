@@ -177,7 +177,7 @@ result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
             pThis->m_ssl_sock = new SslSocket();
 
             if (g_ssl.m_crt && g_ssl.m_key) {
-                result_t hr = pThis->m_ssl_sock->setCert(g_ssl.m_crt, g_ssl.m_key);
+                result_t hr = pThis->m_ssl_sock->setCert("", g_ssl.m_crt, g_ssl.m_key);
                 if (hr < 0)
                     return hr;
             }

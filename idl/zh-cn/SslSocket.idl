@@ -14,6 +14,7 @@ interface SslSocket : Stream
     ```JavaScript
     [
         {
+            name: "fibjs.org",
             crt: [X509Cert object],
             key: [PKey object]
         },
@@ -41,6 +42,9 @@ interface SslSocket : Stream
 
     /*! @brief 连接对方的证书 */
     readonly X509Cert peerCert;
+
+    /*! @brief 连接的主机名 */
+    readonly String hostname;
 
     /*! @brief 查询消息 ssl 建立时的下层流对象 */
     readonly Stream stream;

@@ -25,7 +25,11 @@ if (os.type() == 'Windows' && os.version < "6.0")
 var pk = new crypto.PKey();
 pk.genRsaKey(1024);
 
+var pk1 = new crypto.PKey();
+pk1.genRsaKey(1024);
+
 var crt = new crypto.X509Req("CN=localhost", pk).sign("CN=baoz.me", pk);
+var crt1 = new crypto.X509Req("CN=localhost1", pk1).sign("CN=baoz.me", pk);
 var ca = new crypto.X509Req("CN=baoz.me", pk).sign("CN=baoz.me", pk, {
     ca: true
 });
@@ -62,9 +66,16 @@ describe('ssl', () => {
         assert.deepEqual(s, s1.slice(s1.length - s.length));
     });
 
-
     it("echo server", () => {
-        sss = new ssl.Socket(crt, pk);
+        sss = new ssl.Socket([{
+            name: 'localhost',
+            crt: crt,
+            key: pk
+        }, {
+            name: 'localhost1',
+            crt: crt1,
+            key: pk1
+        }]);
         sss.verification = ssl.VERIFY_NONE;
 
         var svr = new net.TcpServer(9080 + base_port, (s) => {
@@ -111,6 +122,16 @@ describe('ssl', () => {
         s.close();
     }
 
+    function test_hostname(server) {
+        var s = new net.Socket();
+        s.connect("127.0.0.1", 9080 + base_port);
+
+        var ss = new ssl.Socket();
+        ss.connect(s, server);
+        ss.close();
+        s.close();
+    }
+
     it("client verify", () => {
         ssl.verification = ssl.VERIFY_OPTIONAL;
         test_handshake();
@@ -148,6 +169,16 @@ describe('ssl', () => {
             ss.close();
             s1.close();
         }
+    });
+
+    it("hostname", () => {
+        sss.verification = ssl.VERIFY_NONE;
+        assert.throws(() => {
+            test_hostname("fuck");
+        });
+
+        test_hostname("localhost");
+        test_hostname("localhost1");
     });
 
     it("ssl.connect", () => {

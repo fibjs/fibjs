@@ -32,6 +32,7 @@ public:
     virtual result_t set_verification(int32_t newVal) = 0;
     virtual result_t get_ca(obj_ptr<X509Cert_base>& retVal) = 0;
     virtual result_t get_peerCert(obj_ptr<X509Cert_base>& retVal) = 0;
+    virtual result_t get_hostname(exlib::string& retVal) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t connect(Stream_base* s, exlib::string server_name, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal, AsyncEvent* ac) = 0;
@@ -46,6 +47,7 @@ public:
     static void s_set_verification(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_peerCert(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_hostname(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_stream(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -73,6 +75,7 @@ inline ClassInfo& SslSocket_base::class_info()
         { "verification", s_get_verification, s_set_verification, false },
         { "ca", s_get_ca, block_set, false },
         { "peerCert", s_get_peerCert, block_set, false },
+        { "hostname", s_get_hostname, block_set, false },
         { "stream", s_get_stream, block_set, false }
     };
 
@@ -163,6 +166,19 @@ inline void SslSocket_base::s_get_peerCert(v8::Local<v8::Name> property, const v
     PROPERTY_ENTER();
 
     hr = pInst->get_peerCert(vr);
+
+    METHOD_RETURN();
+}
+
+inline void SslSocket_base::s_get_hostname(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("SslSocket.hostname");
+    METHOD_INSTANCE(SslSocket_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_hostname(vr);
 
     METHOD_RETURN();
 }

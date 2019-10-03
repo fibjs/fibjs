@@ -18,7 +18,7 @@ result_t SslSocket_base::_new(X509Cert_base* crt, PKey_base* key,
     v8::Local<v8::Object> This)
 {
     obj_ptr<SslSocket> ss = new SslSocket();
-    result_t hr = ss->setCert(crt, key);
+    result_t hr = ss->setCert("", crt, key);
     if (hr < 0)
         return hr;
 
@@ -30,36 +30,36 @@ result_t SslSocket_base::_new(v8::Local<v8::Array> certs,
     obj_ptr<SslSocket_base>& retVal,
     v8::Local<v8::Object> This)
 {
+    result_t hr;
     obj_ptr<SslSocket> ss = new SslSocket();
 
+    Isolate* isolate = ss->holder();
+    int32_t i;
     int32_t sz = certs->Length();
 
-    if (sz) {
-        Isolate* isolate = ss->holder();
-        v8::Local<v8::Value> sCrt = isolate->NewString("crt", 3);
-        v8::Local<v8::Value> sKey = isolate->NewString("key", 3);
-        int32_t i;
+    for (i = 0; i < sz; i++) {
+        v8::Local<v8::Object> o;
+        exlib::string name;
+        obj_ptr<X509Cert_base> crt;
+        obj_ptr<PKey_base> key;
 
-        for (i = 0; i < sz; i++) {
-            v8::Local<v8::Value> v = certs->Get(i);
+        hr = GetArgumentValue(certs->Get(i), o, true);
+        if (hr < 0)
+            return hr;
 
-            if (v->IsObject()) {
-                v8::Local<v8::Object> o = v->ToObject();
+        GetConfigValue(isolate->m_isolate, o, "name", name);
 
-                obj_ptr<X509Cert_base> crt = X509Cert_base::getInstance(o->Get(sCrt));
-                if (!crt)
-                    return CHECK_ERROR(CALL_E_INVALIDARG);
+        hr = GetConfigValue(isolate->m_isolate, o, "crt", crt, true);
+        if (hr < 0)
+            return hr;
 
-                obj_ptr<PKey_base> key = PKey_base::getInstance(o->Get(sKey));
-                if (!key)
-                    return CHECK_ERROR(CALL_E_INVALIDARG);
+        hr = GetConfigValue(isolate->m_isolate, o, "key", key, true);
+        if (hr < 0)
+            return hr;
 
-                result_t hr = ss->setCert(crt, key);
-                if (hr < 0)
-                    return hr;
-            } else
-                return CHECK_ERROR(CALL_E_INVALIDARG);
-        }
+        result_t hr = ss->setCert(name, crt, key);
+        if (hr < 0)
+            return hr;
     }
 
     retVal = ss;
@@ -90,7 +90,7 @@ SslSocket::~SslSocket()
     memset(&m_ssl, 0, sizeof(m_ssl));
 }
 
-result_t SslSocket::setCert(X509Cert_base* crt, PKey_base* key)
+result_t SslSocket::setCert(exlib::string name, X509Cert_base* crt, PKey_base* key)
 {
     result_t hr;
     bool priv;
@@ -107,8 +107,7 @@ result_t SslSocket::setCert(X509Cert_base* crt, PKey_base* key)
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    m_crts.push_back(crt);
-    m_keys.push_back(key);
+    m_crts.push_back(Cert(name, crt, key));
 
     return 0;
 }
@@ -337,6 +336,13 @@ result_t SslSocket::get_peerCert(obj_ptr<X509Cert_base>& retVal)
     return 0;
 }
 
+result_t SslSocket::get_hostname(exlib::string& retVal)
+{
+    if (m_ssl.hostname)
+        retVal = m_ssl.hostname;
+    return 0;
+}
+
 result_t SslSocket::get_stream(obj_ptr<Stream_base>& retVal)
 {
     if (!m_s)
@@ -405,6 +411,32 @@ result_t SslSocket::connect(Stream_base* s, exlib::string server_name,
     return handshake(&retVal, ac);
 }
 
+int SslSocket::sni_callback(void* p_info, mbedtls_ssl_context* ssl,
+    const unsigned char* name, size_t name_len)
+{
+    SslSocket* ss = (SslSocket*)p_info;
+    int32_t sz = (int32_t)ss->m_crts.size();
+    int32_t i;
+
+    if (sz == 0)
+        return -1;
+
+    for (i = 0; i < sz; i++) {
+        Cert& crt = ss->m_crts[i];
+
+        if (crt.m_name.length() == name_len
+            && !qstrcmp((const char*)name, crt.m_name.c_str())) {
+            mbedtls_ssl_set_hostname(&ss->m_ssl, crt.m_name.c_str());
+            return mbedtls_ssl_set_hs_own_cert(ssl, &crt.m_crt->m_crt,
+                &crt.m_key->m_key);
+        }
+    }
+
+    Cert& crt = ss->m_crts[0];
+    return mbedtls_ssl_set_hs_own_cert(ssl, &crt.m_crt->m_crt,
+        &crt.m_key->m_key);
+}
+
 result_t SslSocket::accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal,
     AsyncEvent* ac)
 {
@@ -422,7 +454,8 @@ result_t SslSocket::accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal,
     int32_t ret;
 
     for (i = 0; i < sz; i++) {
-        hr = ss->setCert(m_crts[i], m_keys[i]);
+        Cert& crt = m_crts[i];
+        hr = ss->setCert(crt.m_name, crt.m_crt, crt.m_key);
         if (hr < 0)
             return hr;
     }
@@ -430,6 +463,7 @@ result_t SslSocket::accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal,
     ss->m_s = s;
     mbedtls_ssl_conf_authmode(&ss->m_ssl_conf, m_ssl_conf.authmode);
     mbedtls_ssl_conf_endpoint(&ss->m_ssl_conf, MBEDTLS_SSL_IS_SERVER);
+    mbedtls_ssl_conf_sni(&ss->m_ssl_conf, sni_callback, ss);
 
     ret = mbedtls_ssl_conf_dh_param(&ss->m_ssl_conf,
         MBEDTLS_DHM_RFC5114_MODP_2048_P,
