@@ -30,6 +30,7 @@ pk1.genRsaKey(1024);
 
 var crt = new crypto.X509Req("CN=localhost", pk).sign("CN=baoz.me", pk);
 var crt1 = new crypto.X509Req("CN=localhost1", pk1).sign("CN=baoz.me", pk);
+var crt2 = new crypto.X509Req("CN=*.any", pk).sign("CN=baoz.me", pk);
 var ca = new crypto.X509Req("CN=baoz.me", pk).sign("CN=baoz.me", pk, {
     ca: true
 });
@@ -75,6 +76,10 @@ describe('ssl', () => {
             name: 'localhost1',
             crt: crt1,
             key: pk1
+        }, {
+            name: '*.any',
+            crt: crt2,
+            key: pk
         }]);
         sss.verification = ssl.VERIFY_NONE;
 
@@ -128,8 +133,11 @@ describe('ssl', () => {
 
         var ss = new ssl.Socket();
         ss.connect(s, server);
+        var subject = ss.peerCert.subject;
         ss.close();
         s.close();
+
+        return subject;
     }
 
     it("client verify", () => {
@@ -177,8 +185,10 @@ describe('ssl', () => {
             test_hostname("fuck");
         });
 
-        test_hostname("localhost");
-        test_hostname("localhost1");
+        assert.equal(test_hostname("localhost"), 'CN=localhost');
+        assert.equal(test_hostname("localhost1"), 'CN=localhost1');
+        assert.equal(test_hostname("123.any"), 'CN=*.any');
+        assert.equal(test_hostname("www.any"), 'CN=*.any');
     });
 
     it("ssl.connect", () => {

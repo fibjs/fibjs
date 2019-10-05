@@ -164,7 +164,7 @@ result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
     return 0;
 }
 
-exlib::string path2RegExp(exlib::string pattern)
+exlib::string Routing::path2RegExp(exlib::string pattern)
 {
     size_t len = pattern.length();
 
@@ -255,7 +255,7 @@ exlib::string path2RegExp(exlib::string pattern)
     return res;
 }
 
-exlib::string host2RegExp(exlib::string pattern)
+exlib::string Routing::host2RegExp(exlib::string pattern)
 {
     size_t len = pattern.length();
 

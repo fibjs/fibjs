@@ -12,6 +12,7 @@
 #include "ssl.h"
 #include <mbedtls/mbedtls/net.h>
 #include "PKey.h"
+#include "Routing.h"
 
 #ifndef SSLSOCKET_H_
 #define SSLSOCKET_H_
@@ -180,32 +181,35 @@ private:
     result_t handshake(int32_t* retVal, AsyncEvent* ac);
 
 public:
-    result_t setCert(exlib::string name, X509Cert_base* crt, PKey_base* key);
-
-public:
-    mbedtls_ssl_context m_ssl;
-    mbedtls_ssl_config m_ssl_conf;
-
-public:
     static int sni_callback(void* p_info, mbedtls_ssl_context* ssl,
         const unsigned char* name, size_t name_len);
 
-    class Cert {
+    class Cert : public object_base {
     public:
-        Cert(exlib::string name, X509Cert_base* crt, PKey_base* key)
-            : m_name(name)
-            , m_crt((X509Cert*)crt)
-            , m_key((PKey*)key)
+        Cert(exlib::string name, X509Cert_base* crt, PKey_base* key);
+        ~Cert()
         {
+            if (m_re)
+                pcre_free(m_re);
         }
 
     public:
         exlib::string m_name;
+        pcre* m_re;
         obj_ptr<X509Cert> m_crt;
         obj_ptr<PKey> m_key;
     };
 
-    std::vector<Cert> m_crts;
+    result_t setCert(Cert* crt);
+    result_t setCert(exlib::string name, X509Cert_base* crt, PKey_base* key)
+    {
+        return setCert(new Cert(name, crt, key));
+    }
+
+public:
+    mbedtls_ssl_context m_ssl;
+    mbedtls_ssl_config m_ssl_conf;
+    std::vector<obj_ptr<Cert>> m_crts;
 
 private:
     obj_ptr<X509Cert> m_ca;

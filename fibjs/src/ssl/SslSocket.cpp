@@ -90,24 +90,37 @@ SslSocket::~SslSocket()
     memset(&m_ssl, 0, sizeof(m_ssl));
 }
 
-result_t SslSocket::setCert(exlib::string name, X509Cert_base* crt, PKey_base* key)
+SslSocket::Cert::Cert(exlib::string name, X509Cert_base* crt, PKey_base* key)
+    : m_name(name)
+    , m_crt((X509Cert*)crt)
+    , m_key((PKey*)key)
+{
+    int32_t opt = PCRE_JAVASCRIPT_COMPAT | PCRE_NEWLINE_ANYCRLF | PCRE_UCP | PCRE_CASELESS;
+    const char* error;
+    int32_t erroffset;
+
+    m_re = pcre_compile(Routing::host2RegExp(name).c_str(), opt,
+        &error, &erroffset, NULL);
+}
+
+result_t SslSocket::setCert(Cert* crt)
 {
     result_t hr;
     bool priv;
 
-    hr = key->isPrivate(priv);
+    hr = crt->m_key->isPrivate(priv);
     if (hr < 0)
         return hr;
 
     if (!priv)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    int32_t ret = mbedtls_ssl_conf_own_cert(&m_ssl_conf, &((X509Cert*)crt)->m_crt,
-        &((PKey*)key)->m_key);
+    int32_t ret = mbedtls_ssl_conf_own_cert(&m_ssl_conf, &crt->m_crt->m_crt,
+        &crt->m_key->m_key);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    m_crts.push_back(Cert(name, crt, key));
+    m_crts.push_back(crt);
 
     return 0;
 }
@@ -411,30 +424,42 @@ result_t SslSocket::connect(Stream_base* s, exlib::string server_name,
     return handshake(&retVal, ac);
 }
 
+#define RE_SIZE 64
 int SslSocket::sni_callback(void* p_info, mbedtls_ssl_context* ssl,
     const unsigned char* name, size_t name_len)
 {
     SslSocket* ss = (SslSocket*)p_info;
     int32_t sz = (int32_t)ss->m_crts.size();
     int32_t i;
+    Cert* def_crt = NULL;
+    int32_t rc = 0;
+    int32_t ovector[RE_SIZE];
 
     if (sz == 0)
         return -1;
 
     for (i = 0; i < sz; i++) {
-        Cert& crt = ss->m_crts[i];
+        Cert* crt = ss->m_crts[i];
 
-        if (crt.m_name.length() == name_len
-            && !qstrcmp((const char*)name, crt.m_name.c_str())) {
-            mbedtls_ssl_set_hostname(&ss->m_ssl, crt.m_name.c_str());
-            return mbedtls_ssl_set_hs_own_cert(ssl, &crt.m_crt->m_crt,
-                &crt.m_key->m_key);
+        if (crt->m_name.empty()) {
+            if (def_crt == NULL)
+                def_crt = crt;
+        } else {
+            rc = pcre_exec(crt->m_re, NULL, (const char*)name, (int32_t)name_len,
+                0, 0, ovector, RE_SIZE);
+            if (rc > 0) {
+                mbedtls_ssl_set_hostname(&ss->m_ssl, crt->m_name.c_str());
+                return mbedtls_ssl_set_hs_own_cert(ssl, &crt->m_crt->m_crt,
+                    &crt->m_key->m_key);
+            }
         }
     }
 
-    Cert& crt = ss->m_crts[0];
-    return mbedtls_ssl_set_hs_own_cert(ssl, &crt.m_crt->m_crt,
-        &crt.m_key->m_key);
+    if (!def_crt)
+        return -1;
+
+    return mbedtls_ssl_set_hs_own_cert(ssl, &def_crt->m_crt->m_crt,
+        &def_crt->m_key->m_key);
 }
 
 result_t SslSocket::accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal,
@@ -454,8 +479,7 @@ result_t SslSocket::accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal,
     int32_t ret;
 
     for (i = 0; i < sz; i++) {
-        Cert& crt = m_crts[i];
-        hr = ss->setCert(crt.m_name, crt.m_crt, crt.m_key);
+        hr = ss->setCert(m_crts[i]);
         if (hr < 0)
             return hr;
     }

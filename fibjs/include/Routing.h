@@ -68,6 +68,8 @@ public:
 
 public:
     result_t _append(exlib::string method, v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    static exlib::string host2RegExp(exlib::string pattern);
+    static exlib::string path2RegExp(exlib::string pattern);
 
 private:
     std::vector<obj_ptr<rule>> m_array;

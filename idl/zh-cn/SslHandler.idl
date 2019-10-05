@@ -20,10 +20,12 @@ interface SslHandler : Handler
     ```JavaScript
     [
         {
+            name: "fibjs.org",
             crt: [X509Cert object],
             key: [PKey object]
         },
         {
+            name: "*.fibjs.org",
             crt: [X509Cert object],
             key: [PKey object]
         }

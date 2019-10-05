@@ -24,10 +24,12 @@ interface SslServer : TcpServer
     ```JavaScript
     [
         {
+            name: "fibjs.org",
             crt: [X509Cert object],
             key: [PKey object]
         },
         {
+            name: "*.fibjs.org",
             crt: [X509Cert object],
             key: [PKey object]
         }
@@ -45,10 +47,12 @@ interface SslServer : TcpServer
     ```JavaScript
     [
         {
+            name: "fibjs.org",
             crt: [X509Cert object],
             key: [PKey object]
         },
         {
+            name: "*.fibjs.org",
             crt: [X509Cert object],
             key: [PKey object]
         }
