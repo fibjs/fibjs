@@ -59,27 +59,12 @@ public:
 
     result_t all(obj_ptr<NObject>& retVal)
     {
-        obj_ptr<NObject> map = new NObject();
+        obj_ptr<NObject> map = new NObject(true);
         int32_t i;
 
         for (i = 0; i < m_count; i++) {
             pair& _pair = m_map[i];
-            std::map<exlib::string, Variant>::iterator it = map->m_datas.find(_pair.first);
-
-            if (it == map->m_datas.end())
-                map->m_datas.insert(std::pair<exlib::string, VariantEx>(_pair.first, _pair.second));
-            else {
-                obj_ptr<NArray> list;
-
-                if (it->second.type() != Variant::VT_Object) {
-                    list = new NArray();
-                    list->append(it->second);
-                    it->second = list;
-                } else
-                    list = (NArray*)it->second.object();
-
-                list->append(_pair.second);
-            }
+            map->add(_pair.first, _pair.second);
         }
 
         retVal = map;

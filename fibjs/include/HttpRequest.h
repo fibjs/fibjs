@@ -90,16 +90,18 @@ public:
 public:
     result_t addHeader(NObject* map)
     {
-        std::map<exlib::string, Variant>::iterator iter;
-        for (iter = map->m_datas.begin(); iter != map->m_datas.end(); iter++) {
-            Variant& v = iter->second;
-            if (v.type() == Variant::VT_Object) {
-                obj_ptr<NArray> arr = (NArray*)v.object();
+        for (int32_t i = 0; i < (int32_t)map->m_values.size(); i++) {
+            NObject::Value& v = map->m_values[i];
 
-                for (int32_t i = 0; i < (int32_t)arr->m_array.size(); i++)
-                    addHeader(iter->first, arr->m_array[i].string());
-            } else
-                addHeader(iter->first, iter->second.string());
+            if (!v.m_val.isUndefined()) {
+                obj_ptr<NArray> list = NArray::getInstance(v.m_val.object());
+
+                if (list) {
+                    for (int32_t i = 0; i < (int32_t)list->m_array.size(); i++)
+                        addHeader(v.m_pos->first, list->m_array[i].string());
+                } else
+                    addHeader(v.m_pos->first, v.m_val.string());
+            }
         }
 
         return 0;

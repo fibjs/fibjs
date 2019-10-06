@@ -57,7 +57,7 @@ function cookie_data(cookie) {
     return o;
 }
 
-function set_header_for_head_req (r, cookie_for) {
+function set_header_for_head_req(r, cookie_for) {
     if (r.method.toUpperCase() === 'HEAD') {
         cookie_for['head'] = r.headers.cookie
         if (r.hasHeader("test_header")) {
@@ -85,13 +85,13 @@ describe("http", () => {
         var d = new http.Request().headers;
 
         it("add", () => {
-            d.add('a', '100');
             d.add('b', '200');
-            d.add('a', '300');
             d.add('c', '400');
             d.add('d', '500');
             d.add('c', '600');
             d.add('d', '700');
+            d.add('a', '100');
+            d.add('a', '300');
 
             assert.deepEqual(d['a'], ['100', '300']);
 
@@ -1494,7 +1494,7 @@ describe("http", () => {
             http.enableCookie = true;
             svr = new http.Server(8882 + base_port, (r) => {
                 var port = 8882 + base_port;
-                
+
                 cookie_for['_'] = r.headers.cookie;
                 r.response.addHeader("set-cookie", [
                     "root1=value1; domain=127.0.0.2; path=/",
@@ -1851,7 +1851,7 @@ describe("http", () => {
                 cookie_for['_'] = r.headers.cookie;
 
                 set_header_for_head_req(r, cookie_for);
-                
+
                 if (r.address == "/clear_cookie") {
                     r.response.addHeader("set-cookie", []);
                     cookie_for['head'] = undefined;
@@ -2000,9 +2000,9 @@ describe("http", () => {
                 r.response.addHeader("set-cookie", "root=value; domain=127.0.0.1:" + port + "; path=/");
                 r.response.addHeader("set-cookie", "root=value; path=/");
                 r.response.addHeader("set-cookie", "root=value2; path=/");
-                
+
                 set_header_for_head_req(r, cookie_for);
-                
+
                 if (r.address == "/clear_cookie") {
                     r.response.addHeader("set-cookie", []);
                     cookie_for['head'] = undefined;

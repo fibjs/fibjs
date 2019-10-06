@@ -14,18 +14,30 @@
 namespace fibjs {
 
 class NObject : public object_base {
+    DECLARE_CLASS(NObject);
 
 public:
-    void add(exlib::string key, Variant value)
-    {
-        std::map<exlib::string, Variant>::iterator it = m_datas.find(key);
+    class Value {
+    public:
+        Value(std::map<exlib::string, int32_t>::iterator pos, Variant val)
+            : m_pos(pos)
+            , m_val(val)
+        {
+        }
 
-        if (it == m_datas.end())
-            m_datas.insert(std::pair<exlib::string, VariantEx>(key, value));
-        else
-            it->second = value;
+    public:
+        std::map<exlib::string, int32_t>::iterator m_pos;
+        VariantEx m_val;
+    };
+
+public:
+    NObject(bool multi_value)
+        : m_multi_value(multi_value)
+    {
     }
 
+public:
+    void add(exlib::string key, Variant value);
     result_t add(v8::Local<v8::Object> m)
     {
         v8::Local<v8::Array> ks = m->GetPropertyNames();
@@ -42,12 +54,23 @@ public:
 
     result_t get(exlib::string key, Variant& retVal)
     {
-        std::map<exlib::string, Variant>::iterator it = m_datas.find(key);
+        std::map<exlib::string, int32_t>::iterator it = m_keys.find(key);
 
-        if (it == m_datas.end())
+        if (it == m_keys.end())
             return CALL_RETURN_NULL;
 
-        retVal = it->second;
+        retVal = m_values[it->second].m_val;
+        return 0;
+    }
+
+    result_t remove(exlib::string key)
+    {
+        std::map<exlib::string, int32_t>::iterator it = m_keys.find(key);
+
+        if (it == m_keys.end())
+            return CALL_RETURN_NULL;
+
+        m_values[it->second].m_val.clear();
         return 0;
     }
 
@@ -56,7 +79,6 @@ public:
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
         Isolate* isolate = Isolate::current();
-        std::map<exlib::string, Variant>::iterator iter;
         v8::Local<v8::Object> obj;
 
         if (retVal.IsEmpty()) {
@@ -65,17 +87,23 @@ public:
         } else
             obj = v8::Local<v8::Object>::Cast(retVal);
 
-        for (iter = m_datas.begin(); iter != m_datas.end(); iter++)
-            obj->Set(isolate->NewString(iter->first), iter->second);
+        for (int32_t i = 0; i < (int32_t)m_values.size(); i++) {
+            Value& v = m_values[i];
+            obj->Set(isolate->NewString(v.m_pos->first), v.m_val);
+        }
 
         return 0;
     }
 
 public:
-    std::map<exlib::string, Variant> m_datas;
+    std::map<exlib::string, int32_t> m_keys;
+    std::vector<Value> m_values;
+    bool m_multi_value = false;
 };
 
 class NArray : public NObject {
+    DECLARE_CLASS(NArray);
+
 public:
     void resize(size_t sz)
     {
@@ -132,7 +160,7 @@ private:
     }
 
 public:
-    std::vector<Variant> m_array;
+    std::vector<VariantEx> m_array;
 };
 
 class NType : public object_base {
@@ -161,6 +189,54 @@ public:
     {
     }
 };
+
+inline ClassInfo& NObject::class_info()
+{
+    static ClassData s_cd = {
+        "NObject", false, NULL, NULL,
+        0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
+
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
+
+inline ClassInfo& NArray::class_info()
+{
+    static ClassData s_cd = {
+        "NArray", false, NULL, NULL,
+        0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        &NObject::class_info()
+    };
+
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
+
+inline void NObject::add(exlib::string key, Variant value)
+{
+    std::map<exlib::string, int32_t>::iterator it = m_keys.find(key);
+
+    if (it == m_keys.end()) {
+        it = m_keys.insert(std::pair<exlib::string, int32_t>(key, (int32_t)m_values.size())).first;
+        m_values.push_back(Value(it, value));
+    } else {
+        NObject::Value& v = m_values[it->second];
+        if (m_multi_value && !v.m_val.isUndefined()) {
+            obj_ptr<NArray> list = NArray::getInstance(v.m_val.object());
+
+            if (!list) {
+                list = new NArray();
+                list->append(v.m_val);
+                v.m_val = list;
+            }
+
+            list->append(value);
+        } else
+            v.m_val = value;
+    }
+}
 
 } /* namespace fibjs */
 
