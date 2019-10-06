@@ -137,6 +137,9 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    if (!ac->isolate()->m_enable_FileSystem)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     char buf[MAX_PATH_LENGTH];
 
     if (::realpath(path.c_str(), buf) == NULL)
@@ -342,6 +345,9 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal,
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!ac->isolate()->m_enable_FileSystem)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     DIR* dp;
     struct dirent* ep;

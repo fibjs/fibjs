@@ -23,7 +23,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     result_t hr;
 
     Variant var;
-    hr = fs_base::cc_readFile(fname, "", var);
+    hr = fs_base::cc_readFile(fname, "", var, holder());
     if (hr == CALL_RETURN_NULL) {
         data = new Buffer();
         hr = 0;
@@ -40,7 +40,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
     result_t hr;
     exlib::string fname1;
 
-    hr = fs_base::cc_realpath(fname, fname1);
+    hr = fs_base::cc_realpath(fname, fname1, holder());
     if (hr < 0)
         fname1 = fname;
 
@@ -62,7 +62,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
         obj_ptr<ExtLoader>& l = m_loaders[i];
         exlib::string fname2 = fname + l->m_ext;
 
-        hr = fs_base::cc_realpath(fname2, fname1);
+        hr = fs_base::cc_realpath(fname2, fname1, holder());
         if (hr < 0)
             fname1 = fname2;
 

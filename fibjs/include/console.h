@@ -266,6 +266,7 @@ private:
     result_t initFile();
 
 private:
+    Isolate* m_isolate;
     exlib::string m_folder;
     exlib::string m_name1;
     exlib::string m_name2;

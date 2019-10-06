@@ -249,13 +249,11 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
 
         retVal = new MemoryStream::CloneStream(strData, _d);
     } else {
+        if (!ac->isolate()->m_enable_FileSystem)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
         obj_ptr<File> pFile = new File();
         result_t hr;
-
-        Isolate* isolate = Runtime::check() ? Isolate::current() : ac->isolate();
-
-        if (isolate && !isolate->m_enable_FileSystem)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         hr = pFile->open(safe_name, flags);
         if (hr < 0)

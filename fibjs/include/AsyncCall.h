@@ -10,8 +10,9 @@ namespace fibjs {
 
 class AsyncEvent : public exlib::Task_base {
 public:
-    AsyncEvent()
-        : m_async(false)
+    AsyncEvent(Isolate* isolate = NULL)
+        : m_isolate(isolate)
+        , m_async(false)
     {
     }
 
@@ -54,8 +55,8 @@ public:
 
     virtual Isolate* isolate()
     {
-        assert(false);
-        return NULL;
+        assert(m_isolate);
+        return m_isolate;
     }
 
     bool isAsync() const
@@ -76,6 +77,9 @@ public:
 public:
     std::vector<Variant> m_ctx;
 
+protected:
+    Isolate* m_isolate;
+
 private:
     bool m_async;
 };
@@ -83,9 +87,9 @@ private:
 class AsyncCall : public AsyncEvent {
 public:
     AsyncCall(void** a)
-        : args(a)
+        : AsyncEvent(Isolate::current())
+        , args(a)
     {
-        m_isolate = Isolate::current();
     }
 
     virtual int32_t post(int32_t v)
@@ -121,26 +125,20 @@ public:
         return m_v;
     }
 
-    virtual Isolate* isolate()
-    {
-        assert(m_isolate);
-        return m_isolate;
-    }
-
 protected:
     exlib::Event weak;
     void** args;
 
 private:
-    Isolate* m_isolate;
     exlib::string m_error;
     int32_t m_v;
 };
 
 class CAsyncCall : public AsyncEvent {
 public:
-    CAsyncCall(void** a)
-        : args(a)
+    CAsyncCall(void** a, Isolate* isolate = NULL)
+        : AsyncEvent(isolate)
+        , args(a)
     {
     }
 
@@ -424,7 +422,6 @@ protected:
     v8::Global<v8::Function> m_cb;
 
 private:
-    Isolate* m_isolate;
     exlib::string m_error;
     int32_t m_v;
 };

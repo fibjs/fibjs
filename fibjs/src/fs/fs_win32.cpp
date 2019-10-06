@@ -253,6 +253,9 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    if (!ac->isolate()->m_enable_FileSystem)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (!pGetFinalPathNameByHandle) {
         retVal = path;
         return 0;
@@ -584,6 +587,9 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEven
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (!ac->isolate()->m_enable_FileSystem)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     WIN32_FIND_DATAW fd;
     HANDLE hFind;

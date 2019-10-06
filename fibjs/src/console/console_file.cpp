@@ -22,6 +22,8 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
     if (hr < 0)
         return hr;
 
+    m_isolate = isolate;
+
     exlib::string path;
     hr = GetConfigValue(isolate->m_isolate, o, "path", path);
     if (hr < 0)
@@ -100,9 +102,9 @@ void file_logger::clearFile()
     exlib::string name;
 
     if (m_folder.empty())
-        hr = fs_base::cc_readdir(".", fd);
+        hr = fs_base::cc_readdir(".", fd, m_isolate);
     else
-        hr = fs_base::cc_readdir(m_folder, fd);
+        hr = fs_base::cc_readdir(m_folder, fd, m_isolate);
     if (hr < 0)
         return;
 
@@ -141,7 +143,7 @@ void file_logger::clearFile()
         int32_t dels = (int32_t)files.size() - m_count + 1;
 
         for (i = 0; i < dels; i++)
-            fs_base::cc_unlink(files[i]);
+            fs_base::cc_unlink(files[i], m_isolate);
     }
 }
 
