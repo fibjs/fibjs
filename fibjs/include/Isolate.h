@@ -30,6 +30,7 @@ inline v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str)
 
 class SandBox;
 class JSFiber;
+class HttpClient;
 class LruCache;
 class File_base;
 class ValueHolder;
@@ -112,7 +113,7 @@ public:
     v8::Global<v8::Object> m_AssertionError;
 
     obj_ptr<SandBox> m_topSandbox;
-    obj_ptr<obj_base> m_httpclient;
+    obj_ptr<HttpClient> m_httpclient;
 
     obj_ptr<File_base> m_stdin;
     obj_ptr<File_base> m_stdout;

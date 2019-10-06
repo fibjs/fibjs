@@ -29,7 +29,7 @@ static HttpClient* get_httpClient(Isolate* isolate = NULL)
 
     if (!isolate->m_httpclient)
         isolate->m_httpclient = new HttpClient();
-    return (HttpClient*)(obj_base*)isolate->m_httpclient;
+    return isolate->m_httpclient;
 }
 
 result_t http_request(exlib::string method, exlib::string url,

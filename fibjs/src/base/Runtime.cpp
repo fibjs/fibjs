@@ -12,6 +12,7 @@
 #include "Runtime.h"
 #include "Fiber.h"
 #include "SandBox.h"
+#include "HttpClient.h"
 #include "console.h"
 #include "LruCache.h"
 #include "Trigger.h"
