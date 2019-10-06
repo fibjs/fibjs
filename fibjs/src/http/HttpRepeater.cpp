@@ -69,12 +69,12 @@ result_t HttpRepeater::load(v8::Local<v8::Array> urls)
 {
     std::vector<obj_ptr<Url>> _urls;
     result_t hr;
-    int64_t len = urls->Length();
+    int32_t len = urls->Length();
 
     if (len == 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    for (int64_t i = 0; i < len; i++) {
+    for (int32_t i = 0; i < len; i++) {
         v8::Local<v8::Value> v = urls->Get(i);
         exlib::string url;
 
