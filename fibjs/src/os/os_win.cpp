@@ -395,7 +395,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
             o->Set(isolate->NewString("internal"),
                 adapter_address->IfType == IF_TYPE_SOFTWARE_LOOPBACK ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate));
 
-            sprintf(mac, "%02X-%02X-%02X-%02X-%02X-%02X",
+            sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x",
                 MACData[0], MACData[1], MACData[2], MACData[3], MACData[4], MACData[5]);
             o->Set(isolate->NewString("mac"), isolate->NewString(mac));
 
