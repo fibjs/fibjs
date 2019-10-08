@@ -1,6 +1,8 @@
 var crypto = require("crypto");
 var fs = require("fs");
 
+process.run('perl', ['mk-ca-bundle.pl']);
+
 var cert = new crypto.X509Cert();
 cert.loadFile('certdata.txt');
 var a = cert.dump();
