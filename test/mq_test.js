@@ -729,18 +729,18 @@ describe("mq", () => {
             var svr = new net.TcpServer(8888, () => {});
             ss.push(svr.socket);
 
-            GC();
+            test_util.gc();
             var no1 = test_util.countObject('Chain');
 
             svr.handler = new mq.Chain([(v) => {}, (v) => {}]);
 
-            GC();
+            test_util.gc();
             assert.equal(no1 + 1, test_util.countObject('Chain'));
 
             svr.handler = (v) => {};
             svr = undefined;
 
-            GC();
+            test_util.gc();
             assert.equal(no1, test_util.countObject('Chain'));
         });
     });
@@ -1056,10 +1056,12 @@ describe("mq", () => {
         });
 
         it("memory leak", () => {
+            test_util.gc();
+
             var svr = new net.TcpServer(8890, () => {});
             ss.push(svr.socket);
 
-            GC();
+            test_util.gc();
             var no1 = test_util.countObject('Routing');
 
             svr.handler = new mq.Routing({
@@ -1067,13 +1069,13 @@ describe("mq", () => {
                 "^/api/a(/.*)$": (v) => {}
             });
 
-            GC();
+            test_util.gc();
             assert.equal(no1 + 1, test_util.countObject('Routing'));
 
             svr.handler = (v) => {};
             svr = undefined;
 
-            GC();
+            test_util.gc();
             assert.equal(no1, test_util.countObject('Routing'));
         });
 
@@ -1096,7 +1098,7 @@ describe("mq", () => {
                 assert.equal(no2 + 1, test_util.countObject('Routing'));
             })();
 
-            GC();
+            test_util.gc();
             assert.equal(no1, test_util.countObject('Chain'));
             assert.equal(no2, test_util.countObject('Routing'));
         });
@@ -1104,6 +1106,8 @@ describe("mq", () => {
         it("memory leak 2", () => {
             var c;
             var closed = false;
+
+            test_util.gc();
 
             var no1 = test_util.countObject('Chain');
             var no2 = test_util.countObject('Routing');
@@ -1136,24 +1140,20 @@ describe("mq", () => {
                 }, 10);
             })();
 
-            GC();
             assert.equal(closed, false);
             assert.equal(no1 + 1, test_util.countObject('Chain'));
             assert.equal(no2 + 1, test_util.countObject('Routing'));
             assert.equal(no3 + 1, test_util.countObject('Buffer'));
 
-            coroutine.sleep(100);
-
-            GC();
+            test_util.gc();
             assert.equal(closed, true);
             assert.equal(no1 + 1, test_util.countObject('Chain'));
             assert.equal(no2 + 1, test_util.countObject('Routing'));
             assert.equal(no3 + 1, test_util.countObject('Buffer'));
 
             c.close();
-            coroutine.sleep(10);
 
-            GC();
+            test_util.gc();
             assert.equal(no1, test_util.countObject('Chain'));
             assert.equal(no2, test_util.countObject('Routing'));
             assert.equal(no3, test_util.countObject('Buffer'));

@@ -1,6 +1,7 @@
 var os = require('os');
+var coroutine = require('coroutine');
 
-exports.countObject = function(nm) {
+exports.countObject = nm => {
     var cnt = 0;
 
     function count(l) {
@@ -17,4 +18,11 @@ exports.countObject = function(nm) {
 
     count(os.memoryUsage().nativeObjects);
     return cnt;
+}
+
+exports.gc = () => {
+    for (var i = 0; i < 20; i++) {
+        coroutine.sleep(1);
+        GC();
+    }
 }

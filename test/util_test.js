@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('./test_util');
+
 var util = require('util');
 var mq = require('mq');
 var coroutine = require('coroutine');
@@ -1575,7 +1577,7 @@ describe('util', () => {
         });
 
         it("Garbage Collection", () => {
-            GC();
+            test_util.gc();
             var no1 = os.memoryUsage().nativeObjects.objects;
 
             var lc = new util.LruCache(1024);
@@ -1588,7 +1590,7 @@ describe('util', () => {
             lc.remove("test1");
             lc = undefined;
 
-            GC();
+            test_util.gc();
             assert.equal(no1, os.memoryUsage().nativeObjects.objects);
         });
     });

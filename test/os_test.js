@@ -25,12 +25,12 @@ describe('os', () => {
     });
 
     it("nativeObjects", () => {
-        GC();
+        test_util.gc();
         var no1 = test_util.countObject('Buffer');
         var b = new Buffer();
         assert.equal(no1 + 1, test_util.countObject('Buffer'));
         b = undefined;
-        GC();
+        test_util.gc();
         assert.equal(no1, test_util.countObject('Buffer'));
     });
 

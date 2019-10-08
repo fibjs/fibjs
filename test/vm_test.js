@@ -516,23 +516,23 @@ describe("vm", () => {
     it('gc of refresh', () => {
         var sbox = new vm.SandBox({});
 
-        GC();
+        test_util.gc();
         var no1 = test_util.countObject('Buffer');
 
         var test = sbox.require('./vm_test/test_refresh1', __dirname);
 
-        GC();
+        test_util.gc();
         assert.equal(test_util.countObject('Buffer'), no1 + 1);
 
         test = undefined;
         sbox.refresh();
 
-        GC();
+        test_util.gc();
         assert.equal(test_util.countObject('Buffer'), no1);
 
         test = sbox.require('./vm_test/test_refresh1', __dirname);
 
-        GC();
+        test_util.gc();
         assert.equal(test_util.countObject('Buffer'), no1 + 1);
     });
 
@@ -684,39 +684,39 @@ describe("vm", () => {
     it("Garbage Collection", () => {
         sbox = undefined;
 
-        GC();
+        test_util.gc();
         var no1 = test_util.countObject('Buffer');
 
         sbox = new vm.SandBox({});
         assert.equal(no1, test_util.countObject('Buffer'));
 
         var a = sbox.addScript("t1.js", "module.exports = {a : new Buffer()};");
-        GC();
+        test_util.gc();
         assert.equal(no1 + 1, test_util.countObject('Buffer'));
 
         sbox = undefined;
 
-        GC();
+        test_util.gc();
         assert.equal(no1 + 1, test_util.countObject('Buffer'));
 
         a = undefined;
 
-        GC();
+        test_util.gc();
         assert.equal(no1, test_util.countObject('Buffer'));
     });
 
     it("Garbage Collection 1", () => {
-        GC();
+        test_util.gc();
         var no1 = test_util.countObject('Buffer');
 
         var a = {
             b: new vm.SandBox({}).addScript('b.js', "module.exports = new Buffer()")
         };
-        GC();
+        test_util.gc();
         assert.equal(no1 + 1, test_util.countObject('Buffer'));
 
         a = undefined;
-        GC();
+        test_util.gc();
 
         assert.equal(no1, test_util.countObject('Buffer'));
     });

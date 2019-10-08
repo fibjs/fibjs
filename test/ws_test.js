@@ -900,7 +900,8 @@ describe('ws', () => {
         describe('gc', () => {
             it("gc on close", () => {
                 var t = false;
-                GC();
+
+                test_util.gc();
 
                 var no1 = test_util.countObject('WebSocket');
                 var httpd = new http.Server(8816 + base_port, {
@@ -925,19 +926,20 @@ describe('ws', () => {
                 for (var i = 0; i < 1000 && !t; i++)
                     coroutine.sleep(1);
 
+                s.close();
                 assert.equal(test_util.countObject('WebSocket'), no1 + 2);
 
-                s.close();
                 s = undefined;
-                GC();
+                test_util.gc();
                 coroutine.sleep(10);
-                GC();
+                test_util.gc();
                 assert.equal(test_util.countObject('WebSocket'), no1);
             });
 
             it("not gc in closure", () => {
                 var t = false;
-                GC();
+
+                test_util.gc();
 
                 var no1 = test_util.countObject('WebSocket');
                 var httpd = new http.Server(8817 + base_port, {
@@ -950,11 +952,13 @@ describe('ws', () => {
                 ss.push(httpd.socket);
                 httpd.run(() => {});
 
-                GC();
+                test_util.gc();
                 assert.equal(test_util.countObject('WebSocket'), no1);
 
+                var s;
+
                 function test() {
-                    var s = new ws.Socket("ws://127.0.0.1:" + (8817 + base_port) + "/ws", "test");
+                    s = new ws.Socket("ws://127.0.0.1:" + (8817 + base_port) + "/ws", "test");
                     s.onmessage = e => {
                         t = true;
                         s.close();
@@ -962,13 +966,14 @@ describe('ws', () => {
                 }
 
                 test();
-                GC();
 
-                coroutine.sleep(10);
+                test_util.gc();
                 assert.equal(test_util.countObject('WebSocket'), no1 + 2);
                 assert.isTrue(t);
 
-                GC();
+                s = undefined;
+
+                test_util.gc();
                 assert.equal(test_util.countObject('WebSocket'), no1 + 1);
             });
         });

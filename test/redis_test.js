@@ -670,8 +670,8 @@ describe("redis", () => {
 
         it("Memory Leak detect", () => {
             rdb = undefined;
-            GC();
-            coroutine.sleep(200);
+
+            test_util.gc();
 
             var no1 = test_util.countObject('Redis');
             var no2 = test_util.countObject('Socket');
@@ -683,22 +683,19 @@ describe("redis", () => {
 
             rdb.sub("test.ch1", subf1);
 
-            coroutine.sleep(200);
-
-            GC();
+            test_util.gc();
             assert.equal(no1 + 1, test_util.countObject('Redis'));
             assert.equal(no2 + 1, test_util.countObject('Socket'));
 
             rdb.close();
-            coroutine.sleep(200);
 
-            GC();
+            test_util.gc();
             assert.equal(no1 + 1, test_util.countObject('Redis'));
             assert.equal(no2, test_util.countObject('Socket'));
 
             rdb = undefined;
 
-            GC();
+            test_util.gc();
             assert.equal(no1, test_util.countObject('Redis'));
             assert.equal(no2, test_util.countObject('Socket'));
         });

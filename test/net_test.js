@@ -77,8 +77,10 @@ describe("net", () => {
         }
 
         function accept(s) {
-            while (1)
-                coroutine.start(connect, s.accept());
+            try {
+                while (1)
+                    coroutine.start(connect, s.accept());
+            } catch (e) {}
         }
 
         var s = new net.Socket(net_config.family,
@@ -126,17 +128,19 @@ describe("net", () => {
             str = str + str;
 
         function accept1(s) {
-            while (true) {
-                var c = s.accept();
+            try {
+                while (true) {
+                    var c = s.accept();
 
-                // c.write(str);
+                    // c.write(str);
 
-                fs.writeFile(path.join(__dirname, 'net_temp_000001' + base_port), str);
-                var f = fs.openFile(path.join(__dirname, 'net_temp_000001' + base_port));
-                assert.equal(f.copyTo(c), str.length);
-                f.close();
-                c.close();
-            }
+                    fs.writeFile(path.join(__dirname, 'net_temp_000001' + base_port), str);
+                    var f = fs.openFile(path.join(__dirname, 'net_temp_000001' + base_port));
+                    assert.equal(f.copyTo(c), str.length);
+                    f.close();
+                    c.close();
+                }
+            } catch (e) {}
         }
 
         var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
@@ -172,22 +176,24 @@ describe("net", () => {
 
     it("read & recv", () => {
         function accept2(s) {
-            while (true) {
-                var c = s.accept();
+            try {
+                while (true) {
+                    var c = s.accept();
 
-                c.write('a');
-                coroutine.sleep(100);
-                c.write('a');
-                coroutine.sleep(100);
-                c.write('b');
-                coroutine.sleep(100);
-                c.write('c');
-                coroutine.sleep(100);
-                c.write('d');
-                coroutine.sleep(100);
+                    c.write('a');
+                    coroutine.sleep(100);
+                    c.write('a');
+                    coroutine.sleep(100);
+                    c.write('b');
+                    coroutine.sleep(100);
+                    c.write('c');
+                    coroutine.sleep(100);
+                    c.write('d');
+                    coroutine.sleep(100);
 
-                c.close();
-            }
+                    c.close();
+                }
+            } catch (e) {}
         }
 
         var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
@@ -341,9 +347,11 @@ describe("net", () => {
 
     it("timeout", () => {
         function accept4(s) {
-            while (true) {
-                ss.push(s.accept());
-            }
+            try {
+                while (true) {
+                    ss.push(s.accept());
+                }
+            } catch (e) {}
         }
 
         var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
@@ -357,11 +365,12 @@ describe("net", () => {
 
         c1.timeout = 50;
 
+        test_util.gc();
+
         var no = test_util.countObject('Timer');
-        coroutine.sleep(50);
         c1.connect('127.0.0.1', 8085 + base_port);
         for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++) {
-            GC();
+            test_util.gc();
             coroutine.sleep(50);
         }
         assert.equal(no, test_util.countObject('Timer'));
@@ -573,22 +582,22 @@ describe("net", () => {
 
     it("Memory Leak detect", () => {
         var ss, no1;
-        GC();
-        coroutine.sleep(100);
-        GC();
+
+        test_util.gc();
         no1 = test_util.countObject('Socket');
 
         ss = new net.TcpServer(9812, (c) => {});
         coroutine.start(() => {
-            ss.run();
+            try {
+                ss.run();
+            } catch (e) {}
         });
 
         coroutine.sleep(50);
         ss.stop();
         ss = undefined;
-        coroutine.sleep(50);
 
-        GC();
+        test_util.gc();
         assert.equal(no1, test_util.countObject('Socket'));
 
         ss = new net.TcpServer(9813, (c) => {});
@@ -597,18 +606,15 @@ describe("net", () => {
         coroutine.sleep(50);
         ss.stop();
         ss = undefined;
-        coroutine.sleep(50);
 
-        GC();
+        test_util.gc();
         assert.equal(no1, test_util.countObject('Socket'));
 
         (() => {
             var s = new net.TcpServer(9884, () => {});
         })();
 
-        coroutine.sleep(50);
-
-        GC();
+        test_util.gc();
         assert.equal(no1, test_util.countObject('Socket'));
     });
 

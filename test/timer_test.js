@@ -14,12 +14,11 @@ describe("timer", () => {
         function test(setTimeout) {
             var n = 0;
 
-            GC();
+            test_util.gc();
             var no1 = test_util.countObject('Timer');
 
             var t = setTimeout(() => n = 1);
 
-            GC();
             var no2 = test_util.countObject('Timer');
             assert.equal(no1 + 1, no2);
 
@@ -31,7 +30,7 @@ describe("timer", () => {
             assert.isTrue(t.stopped);
             t = undefined;
 
-            GC();
+            test_util.gc();
             no2 = test_util.countObject('Timer');
             assert.equal(no1, no2);
         }
@@ -53,12 +52,11 @@ describe("timer", () => {
         function test(setTimeout, clearTimeout) {
             var n = 0;
 
-            GC();
+            test_util.gc();
             var no1 = test_util.countObject('Timer');
 
             var t = setTimeout((a) => n = a, 1, 1);
 
-            GC();
             var no2 = test_util.countObject('Timer');
             assert.equal(no1 + 1, no2);
 
@@ -70,13 +68,12 @@ describe("timer", () => {
             assert.isTrue(t.stopped);
             t = undefined;
 
-            GC();
+            test_util.gc();
             no2 = test_util.countObject('Timer');
             assert.equal(no1, no2);
 
             setTimeout((a) => n = a, Math.pow(2, 31), 3);
 
-            GC();
             var no3 = test_util.countObject('Timer');
             assert.equal(no1 + 1, no3);
             assert.equal(n, 1);
@@ -91,15 +88,14 @@ describe("timer", () => {
             coroutine.sleep(100);
             assert.equal(n, 3);
 
-            GC();
+            test_util.gc();
             var no4 = test_util.countObject('Timer');
             assert.equal(no1 + 1, no4);
             clearTimeout(t);
             assert.isTrue(t.stopped);
             t = undefined;
 
-            coroutine.sleep(200);
-            GC();
+            test_util.gc();
 
             no4 = test_util.countObject('Timer');
             assert.equal(no1, no4);
@@ -144,12 +140,11 @@ describe("timer", () => {
         function test(setImmediate) {
             var n = 0;
 
-            GC();
+            test_util.gc();
             var no1 = test_util.countObject('Timer');
 
             setImmediate((a) => n = a, 1);
 
-            GC();
             var no2 = test_util.countObject('Timer');
             assert.equal(no1 + 1, no2);
 
@@ -158,7 +153,7 @@ describe("timer", () => {
                 coroutine.sleep(1);
             assert.equal(n, 1);
 
-            GC();
+            test_util.gc();
             no2 = test_util.countObject('Timer');
             assert.equal(no1, no2);
         }
@@ -180,7 +175,7 @@ describe("timer", () => {
         function test(clearImmediate) {
             var n = 0;
 
-            GC();
+            test_util.gc();
             var no1 = test_util.countObject('Timer');
 
             var t = setImmediate(() => n = 1);
@@ -192,7 +187,7 @@ describe("timer", () => {
             coroutine.sleep(100);
             assert.equal(n, 0);
 
-            GC();
+            test_util.gc();
             var no2 = test_util.countObject('Timer');
             assert.equal(no1, no2);
         }
@@ -216,7 +211,7 @@ describe("timer", () => {
             var n2 = 0;
             var n3 = 0;
 
-            GC();
+            test_util.gc();
             var no1 = test_util.countObject('Timer');
 
             var t1 = setInterval(() => n1++, 50);
@@ -241,16 +236,15 @@ describe("timer", () => {
             assert.greaterThan(n2, 0);
             assert.equal(n3, 0);
 
-            GC();
+            test_util.gc();
             var no2 = test_util.countObject('Timer');
             assert.equal(no1 + 1, no2);
 
             clearInterval(t3);
             assert.isTrue(t3.stopped);
             t3 = undefined;
-            coroutine.sleep(100);
 
-            GC();
+            test_util.gc();
             var no3 = test_util.countObject('Timer');
             assert.equal(no2 - 1, no3);
         }
@@ -272,7 +266,7 @@ describe("timer", () => {
         function test(setInterval, clearInterval) {
             var n = 0;
 
-            GC();
+            test_util.gc();
             var no1 = test_util.countObject('Timer');
 
             setInterval(function () {
@@ -293,7 +287,7 @@ describe("timer", () => {
             coroutine.sleep(100);
             assert.equal(n, 2);
 
-            GC();
+            test_util.gc();
             var no2 = test_util.countObject('Timer');
             assert.equal(no1 + 1, no2);
 
@@ -302,7 +296,7 @@ describe("timer", () => {
 
             coroutine.sleep(100);
 
-            GC();
+            test_util.gc();
             var no3 = test_util.countObject('Timer');
             assert.equal(no2 - 1, no3);
         }
@@ -331,7 +325,7 @@ describe("timer", () => {
             var n2 = 0;
             var n3 = 0;
 
-            GC();
+            test_util.gc();
             var no1 = test_util.countObject('Timer');
 
             var t1 = setHrInterval(() => n1++, 50);
@@ -355,8 +349,7 @@ describe("timer", () => {
             assert.greaterThan(n2, 0);
             assert.equal(n3, 0);
 
-            coroutine.sleep(10);
-            GC();
+            test_util.gc();
             var no2 = test_util.countObject('Timer');
             assert.equal(no1 + 1, no2);
 
@@ -364,8 +357,7 @@ describe("timer", () => {
             t3 = undefined;
             deadLoop(100);
 
-            coroutine.sleep(10);
-            GC();
+            test_util.gc();
             var no3 = test_util.countObject('Timer');
             assert.equal(no2 - 1, no3);
         }
@@ -387,7 +379,7 @@ describe("timer", () => {
         function test(setHrInterval, clearHrInterval) {
             var n = 0;
 
-            GC();
+            test_util.gc();
             var no1 = test_util.countObject('Timer');
 
             var t = setHrInterval(() => n++, Math.pow(2, 31) - 1);
@@ -404,12 +396,10 @@ describe("timer", () => {
                 assert.isTrue(this.stopped);
             }, Math.pow(2, 31));
 
-            assert.equal(n, 0);
             deadLoop(100);
             assert.equal(n, 2);
 
-            coroutine.sleep(10);
-            GC();
+            test_util.gc();
             var no2 = test_util.countObject('Timer');
             assert.equal(no1 + 1, no2);
 
@@ -418,8 +408,7 @@ describe("timer", () => {
 
             deadLoop(100);
 
-            coroutine.sleep(10);
-            GC();
+            test_util.gc();
             var no3 = test_util.countObject('Timer');
             assert.equal(no2 - 1, no3);
         }

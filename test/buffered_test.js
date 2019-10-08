@@ -53,13 +53,15 @@ describe("buffered stream", () => {
 
     it("buffered tcp stream", () => {
         function accept1(s) {
-            while (true) {
-                var c = s.accept();
-                var f = fs.openFile(path.join(__dirname, "test0000" + base_port));
-                f.copyTo(c);
-                f.close();
-                c.close();
-            }
+            try {
+                while (true) {
+                    var c = s.accept();
+                    var f = fs.openFile(path.join(__dirname, "test0000" + base_port));
+                    f.copyTo(c);
+                    f.close();
+                    c.close();
+                }
+            } catch (e) {};
         }
 
         ss = new net.Socket();

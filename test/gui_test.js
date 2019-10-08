@@ -74,10 +74,10 @@ if (win) {
 
             for (var i = 0; i < 1000 && test_util.countObject('WebView'); i++) {
                 coroutine.sleep(100);
-                GC();
+                test_util.gc();
             }
 
-            GC();
+            test_util.gc();
             assert.equal(test_util.countObject('WebView'), 0);
             assert.equal(closed, true);
             assert.equal(cnt, 2);
