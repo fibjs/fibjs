@@ -984,6 +984,7 @@ describe("http", () => {
                     st.wait(2);
                 }
             });
+            hdr.enableCrossOrigin(true);
             svr = new net.TcpServer(8881 + base_port, hdr);
 
             svr.asyncRun();
@@ -1187,6 +1188,18 @@ describe("http", () => {
             assert.equal(err_404, 0);
         });
 
+        it("options request", () => {
+            c.write("OPTIONS / HTTP/1.1\r\norigin: localhost\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Access-Control-Allow-Origin'), 'localhost');
+            assert.isNull(req.firstHeader('Cache-Control'));
+
+            c.write("GET / HTTP/1.1\r\norigin: localhost\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Cache-Control'), 'no-cache, no-store');
+        });
     });
 
     describe("file handler", () => {

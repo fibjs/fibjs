@@ -68,6 +68,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
+            , m_options(false)
         {
             m_stmBuffered = new BufferedStream(stm);
             m_stmBuffered->set_EOL("\r\n");
@@ -90,6 +91,8 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             if (!bKeepAlive)
                 return pThis->done(CALL_RETURN_NULL);
+
+            pThis->m_options = false;
 
             pThis->m_zip.Release();
             pThis->m_body.Release();
@@ -137,6 +140,8 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     pThis->m_req->get_method(str);
 
                     if (!qstricmp(str.c_str(), "options")) {
+                        pThis->m_options = true;
+
                         pThis->m_rep->setHeader("Access-Control-Allow-Methods", "*");
                         pThis->m_rep->setHeader("Access-Control-Allow-Headers",
                             pThis->m_pThis->m_allowHeaders);
@@ -193,7 +198,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_pThis->m_stats->add(HTTP_TOTAL_TIME, (int32_t)d.diff(pThis->m_d));
 
             pThis->m_rep->get_statusCode(s);
-            if (s == 200) {
+            if (s == 200 && !pThis->m_options) {
                 pThis->m_rep->hasHeader("Last-Modified", t);
                 if (!t) {
                     pThis->m_rep->addHeader("Cache-Control", "no-cache, no-store");
@@ -339,6 +344,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<MemoryStream> m_zip;
         obj_ptr<SeekableStream_base> m_body;
         date_t m_d;
+        bool m_options;
     };
 
     if (ac->isSync())
