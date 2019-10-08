@@ -30,8 +30,6 @@ public:
     static result_t _new(exlib::string addr, int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t onerror(v8::Local<v8::Object> hdlrs) = 0;
     virtual result_t enableCrossOrigin(exlib::string allowHeaders) = 0;
-    virtual result_t get_forceGZIP(bool& retVal) = 0;
-    virtual result_t set_forceGZIP(bool newVal) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
     virtual result_t get_maxBodySize(int32_t& retVal) = 0;
@@ -48,8 +46,6 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_enableCrossOrigin(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_forceGZIP(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_forceGZIP(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_maxHeadersCount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_maxHeadersCount(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_maxBodySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -72,7 +68,6 @@ inline ClassInfo& HttpServer_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "forceGZIP", s_get_forceGZIP, s_set_forceGZIP, false },
         { "maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false },
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
         { "serverName", s_get_serverName, s_set_serverName, false },
@@ -149,31 +144,6 @@ inline void HttpServer_base::s_enableCrossOrigin(const v8::FunctionCallbackInfo<
     hr = pInst->enableCrossOrigin(v0);
 
     METHOD_VOID();
-}
-
-inline void HttpServer_base::s_get_forceGZIP(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    bool vr;
-
-    METHOD_NAME("HttpServer.forceGZIP");
-    METHOD_INSTANCE(HttpServer_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_forceGZIP(vr);
-
-    METHOD_RETURN();
-}
-
-inline void HttpServer_base::s_set_forceGZIP(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
-{
-    METHOD_NAME("HttpServer.forceGZIP");
-    METHOD_INSTANCE(HttpServer_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(bool);
-
-    hr = pInst->set_forceGZIP(v0);
-
-    PROPERTY_SET_LEAVE();
 }
 
 inline void HttpServer_base::s_get_maxHeadersCount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)

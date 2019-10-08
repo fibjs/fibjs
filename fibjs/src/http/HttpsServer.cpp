@@ -145,16 +145,6 @@ result_t HttpsServer::enableCrossOrigin(exlib::string allowHeaders)
     return m_hdlr->enableCrossOrigin(allowHeaders);
 }
 
-result_t HttpsServer::get_forceGZIP(bool& retVal)
-{
-    return m_hdlr->get_forceGZIP(retVal);
-}
-
-result_t HttpsServer::set_forceGZIP(bool newVal)
-{
-    return m_hdlr->set_forceGZIP(newVal);
-}
-
 result_t HttpsServer::get_maxHeadersCount(int32_t& retVal)
 {
     return m_hdlr->get_maxHeadersCount(retVal);

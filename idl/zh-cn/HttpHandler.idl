@@ -22,9 +22,6 @@ interface HttpHandler : HandlerEx
      */
     enableCrossOrigin(String allowHeaders = "Content-Type");
 
-    /*! @brief 查询和设置是否允强制使用 gzip 压缩输出，缺省为 false */
-    Boolean forceGZIP;
-
     /*! @brief 查询和设置最大请求头个数，缺省为 128 */
     Integer maxHeadersCount;
 

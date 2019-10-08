@@ -48,7 +48,6 @@ result_t HttpHandler_base::_new(Handler_base* hdlr, obj_ptr<HttpHandler_base>& r
 
 HttpHandler::HttpHandler()
     : m_crossDomain(false)
-    , m_forceGZIP(false)
     , m_maxHeadersCount(
           128)
     , m_maxBodySize(64)
@@ -150,14 +149,6 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         return 0;
                     }
                 }
-            }
-
-            if (pThis->m_pThis->m_forceGZIP) {
-                bool v;
-
-                pThis->m_req->hasHeader("Accept-Encoding", v);
-                if (!v)
-                    pThis->m_req->setHeader("Accept-Encoding", "gzip");
             }
 
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis);
@@ -392,18 +383,6 @@ result_t HttpHandler::enableCrossOrigin(exlib::string allowHeaders)
 {
     m_crossDomain = true;
     m_allowHeaders = allowHeaders;
-    return 0;
-}
-
-result_t HttpHandler::get_forceGZIP(bool& retVal)
-{
-    retVal = m_forceGZIP;
-    return 0;
-}
-
-result_t HttpHandler::set_forceGZIP(bool newVal)
-{
-    m_forceGZIP = newVal;
     return 0;
 }
 
