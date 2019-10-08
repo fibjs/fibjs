@@ -221,6 +221,9 @@ describe('crypto', () => {
                 var pk = new crypto.PKey();
                 pk.importKey(rsa1024_pem);
                 assert.equal(pk.exportPem(), rsa1024_pem);
+
+                var pk = new crypto.PKey(rsa1024_pem);
+                assert.equal(pk.exportPem(), rsa1024_pem);
             });
 
             it("toString", () => {
@@ -234,6 +237,9 @@ describe('crypto', () => {
                 pk.importKey(rsa1024_pem);
                 var der = pk.exportDer();
                 pk.importKey(der);
+                assert.equal(pk.exportPem(), rsa1024_pem);
+
+                var pk = new crypto.PKey(der);
                 assert.equal(pk.exportPem(), rsa1024_pem);
             });
 
@@ -268,6 +274,9 @@ describe('crypto', () => {
                 });
 
                 pk.importKey(json);
+                assert.equal(pk.exportPem(), pub_rsa1024_pem);
+
+                pk = new crypto.PKey(json);
                 assert.equal(pk.exportPem(), pub_rsa1024_pem);
             });
 
@@ -357,6 +366,9 @@ describe('crypto', () => {
                 var pk = new crypto.PKey();
                 pk.importKey(ec_pem);
                 assert.equal(pk.exportPem(), ec_pem);
+
+                pk = new crypto.PKey(ec_pem);
+                assert.equal(pk.exportPem(), ec_pem);
             });
 
             it("toString", () => {
@@ -370,6 +382,9 @@ describe('crypto', () => {
                 pk.importKey(ec_pem);
                 var der = pk.exportDer();
                 pk.importKey(der);
+                assert.equal(pk.exportPem(), ec_pem);
+
+                pk = new crypto.PKey(der);
                 assert.equal(pk.exportPem(), ec_pem);
             });
 
@@ -401,6 +416,9 @@ describe('crypto', () => {
                 });
 
                 pk.importKey(json);
+                assert.equal(pk.exportPem(), pub_ec_pem);
+
+                var pk = new crypto.PKey(json);
                 assert.equal(pk.exportPem(), pub_ec_pem);
             });
 
@@ -517,6 +535,12 @@ describe('crypto', () => {
             cert.load(s.join('\n'));
 
             assert.deepEqual(cert.dump(), s);
+
+            var cert1 = new crypto.X509Cert(s[0]);
+            assert.deepEqual(cert1.dump()[0], s[0]);
+
+            var cert2 = new crypto.X509Cert(cert1.dump(false)[0]);
+            assert.deepEqual(cert2.dump()[0], s[0]);
         });
 
         it("load file", () => {
@@ -660,6 +684,12 @@ describe('crypto', () => {
             crl.load(s.join('\n'));
 
             assert.deepEqual(crl.dump(), s);
+
+            var crl1 = new crypto.X509Crl(s[0]);
+            assert.deepEqual(crl1.dump()[0], s[0]);
+
+            var crl2 = new crypto.X509Crl(crl1.dump(false)[0]);
+            assert.deepEqual(crl2.dump()[0], s[0]);
         });
 
         it("load x509 crl file", () => {
@@ -699,6 +729,7 @@ describe('crypto', () => {
             req1.load(s);
 
             assert.equal(req1.exportPem(), s);
+            assert.equal(new crypto.X509Req(s).exportPem(), s);
         });
 
         it("import/export der", () => {
@@ -707,7 +738,8 @@ describe('crypto', () => {
             var req1 = new crypto.X509Req();
             req1.load(s);
 
-            assert.deepEqual(req1.exportDer().toJSON(), s.toJSON());
+            assert.deepEqual(req1.exportDer(), s);
+            assert.deepEqual(new crypto.X509Req(s).exportDer(), s);
         });
 
         it("create", () => {

@@ -74,12 +74,12 @@ describe('ssl', () => {
             key: pk
         }, {
             name: 'localhost1',
-            crt: crt1,
-            key: pk1
+            crt: crt1.dump(false)[0],
+            key: pk1.exportPem()
         }, {
             name: '*.any',
-            crt: crt2,
-            key: pk
+            crt: crt2.dump()[0],
+            key: pk.exportDer()
         }]);
         sss.verification = ssl.VERIFY_NONE;
 

@@ -49,11 +49,11 @@ result_t SslSocket_base::_new(v8::Local<v8::Array> certs,
 
         GetConfigValue(isolate->m_isolate, o, "name", name);
 
-        hr = GetConfigValue(isolate->m_isolate, o, "crt", crt, true);
+        hr = GetConfigValue(isolate->m_isolate, o, "crt", crt);
         if (hr < 0)
             return hr;
 
-        hr = GetConfigValue(isolate->m_isolate, o, "key", key, true);
+        hr = GetConfigValue(isolate->m_isolate, o, "key", key);
         if (hr < 0)
             return hr;
 

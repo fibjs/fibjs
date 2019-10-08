@@ -23,7 +23,7 @@ public:
     virtual result_t load(Buffer_base* derCrl);
     virtual result_t load(exlib::string pemCrl);
     virtual result_t loadFile(exlib::string filename);
-    virtual result_t dump(v8::Local<v8::Array>& retVal);
+    virtual result_t dump(bool pem, v8::Local<v8::Array>& retVal);
     virtual result_t clear();
 
 private:

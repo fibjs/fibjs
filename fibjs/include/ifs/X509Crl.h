@@ -24,10 +24,12 @@ class X509Crl_base : public object_base {
 public:
     // X509Crl_base
     static result_t _new(obj_ptr<X509Crl_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Buffer_base* derCrl, obj_ptr<X509Crl_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string pemCrl, obj_ptr<X509Crl_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t load(Buffer_base* derCrl) = 0;
     virtual result_t load(exlib::string pemCrl) = 0;
     virtual result_t loadFile(exlib::string filename) = 0;
-    virtual result_t dump(v8::Local<v8::Array>& retVal) = 0;
+    virtual result_t dump(bool pem, v8::Local<v8::Array>& retVal) = 0;
     virtual result_t clear() = 0;
 
 public:
@@ -83,6 +85,18 @@ void X509Crl_base::__new(const T& args)
 
     hr = _new(vr, args.This());
 
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = _new(v0, vr, args.This());
+
     CONSTRUCT_RETURN();
 }
 
@@ -130,9 +144,11 @@ inline void X509Crl_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(X509Crl_base);
     METHOD_ENTER();
 
-    METHOD_OVER(0, 0);
+    METHOD_OVER(1, 0);
 
-    hr = pInst->dump(vr);
+    OPT_ARG(bool, 0, true);
+
+    hr = pInst->dump(v0, vr);
 
     METHOD_RETURN();
 }

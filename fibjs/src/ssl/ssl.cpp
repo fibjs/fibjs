@@ -55,9 +55,9 @@ public:
         return m_ca->verify(cert, retVal, ac);
     }
 
-    result_t dump(v8::Local<v8::Array>& retVal)
+    result_t dump(bool pem, v8::Local<v8::Array>& retVal)
     {
-        return m_ca->dump(retVal);
+        return m_ca->dump(pem, retVal);
     }
 
     result_t clear()

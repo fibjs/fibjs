@@ -28,6 +28,8 @@ public:
     // X509Req_base
     static result_t _new(obj_ptr<X509Req_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string subject, PKey_base* key, int32_t hash, obj_ptr<X509Req_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Buffer_base* derReq, obj_ptr<X509Req_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string pemReq, obj_ptr<X509Req_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t load(Buffer_base* derReq) = 0;
     virtual result_t load(exlib::string pemReq) = 0;
     virtual result_t loadFile(exlib::string filename) = 0;
@@ -113,6 +115,18 @@ void X509Req_base::__new(const T& args)
     OPT_ARG(int32_t, 2, hash_base::_SHA1);
 
     hr = _new(v0, v1, v2, vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }

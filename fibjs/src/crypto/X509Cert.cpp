@@ -13,6 +13,7 @@
 #include <mbedtls/mbedtls/pem.h>
 #include "PKey.h"
 #include "QuickArray.h"
+#include "Buffer.h"
 #include <map>
 
 namespace fibjs {
@@ -41,6 +42,28 @@ X509Cert::_name X509Cert::g_types[] = {
 result_t X509Cert_base::_new(obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new X509Cert();
+    return 0;
+}
+
+result_t X509Cert_base::_new(Buffer_base* derCert, obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Object> This)
+{
+    obj_ptr<X509Cert> crt = new X509Cert();
+    result_t hr = crt->load(derCert);
+    if (hr < 0)
+        return hr;
+
+    retVal = crt;
+    return 0;
+}
+
+result_t X509Cert_base::_new(exlib::string txtCert, obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Object> This)
+{
+    obj_ptr<X509Cert> crt = new X509Cert();
+    result_t hr = crt->load(txtCert);
+    if (hr < 0)
+        return hr;
+
+    retVal = crt;
     return 0;
 }
 
@@ -272,21 +295,17 @@ result_t X509Cert::loadFile(exlib::string filename)
 
     result_t hr;
     exlib::string data;
-    int32_t ret;
+    obj_ptr<Buffer> buf;
 
     hr = fs_base::ac_readTextFile(filename, data);
     if (hr < 0)
         return hr;
 
     if (qstrstr(data.c_str(), "BEGIN CERTIFICATE") || qstrstr(data.c_str(), "CKO_CERTIFICATE"))
-        return load(data.c_str());
+        return load(data);
 
-    ret = mbedtls_x509_crt_parse_der(&m_crt, (const unsigned char*)data.c_str(),
-        data.length());
-    if (ret != 0)
-        return CHECK_ERROR(_ssl::setError(ret));
-
-    return 0;
+    buf = new Buffer(data);
+    return load(buf);
 }
 
 result_t X509Cert::loadRootCerts()
@@ -300,8 +319,7 @@ result_t X509Cert::loadRootCerts()
 
     while (pca->size) {
         ret = mbedtls_x509_crt_parse_der(&m_crt,
-            (const unsigned char*)pca->data,
-            pca->size);
+            (const unsigned char*)pca->data, pca->size);
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -331,7 +349,7 @@ result_t X509Cert::verify(X509Cert_base* cert, bool& retVal, AsyncEvent* ac)
 #define PEM_BEGIN_CRT "-----BEGIN CERTIFICATE-----\n"
 #define PEM_END_CRT "-----END CERTIFICATE-----\n"
 
-result_t X509Cert::dump(v8::Local<v8::Array>& retVal)
+result_t X509Cert::dump(bool pem, v8::Local<v8::Array>& retVal)
 {
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -346,14 +364,19 @@ result_t X509Cert::dump(v8::Local<v8::Array>& retVal)
 
     while (pCert) {
         if (pCert->raw.len > 0) {
-            buf.resize(pCert->raw.len * 2 + 64);
-            ret = mbedtls_pem_write_buffer(PEM_BEGIN_CRT, PEM_END_CRT,
-                pCert->raw.p, pCert->raw.len,
-                (unsigned char*)&buf[0], buf.length(), &olen);
-            if (ret != 0)
-                return CHECK_ERROR(_ssl::setError(ret));
+            if (pem) {
+                buf.resize(pCert->raw.len * 2 + 64);
+                ret = mbedtls_pem_write_buffer(PEM_BEGIN_CRT, PEM_END_CRT,
+                    pCert->raw.p, pCert->raw.len,
+                    (unsigned char*)&buf[0], buf.length(), &olen);
+                if (ret != 0)
+                    return CHECK_ERROR(_ssl::setError(ret));
 
-            retVal->Set(n++, isolate->NewString(buf.c_str(), (int32_t)olen - 1));
+                retVal->Set(n++, isolate->NewString(buf.c_str(), (int32_t)olen - 1));
+            } else {
+                obj_ptr<Buffer> data = new Buffer(pCert->raw.p, pCert->raw.len);
+                retVal->Set(n++, data->wrap());
+            }
         }
         pCert = pCert->next;
     }

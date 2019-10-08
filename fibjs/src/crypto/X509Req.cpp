@@ -36,7 +36,34 @@ result_t X509Req_base::_new(exlib::string subject, PKey_base* key,
         return hr;
 
     retVal = req;
+    return 0;
+}
 
+result_t X509Req_base::_new(Buffer_base* derReq, obj_ptr<X509Req_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<X509Req> req = new X509Req();
+    result_t hr;
+
+    hr = req->load(derReq);
+    if (hr < 0)
+        return hr;
+
+    retVal = req;
+    return 0;
+}
+
+result_t X509Req_base::_new(exlib::string pemReq, obj_ptr<X509Req_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<X509Req> req = new X509Req();
+    result_t hr;
+
+    hr = req->load(pemReq);
+    if (hr < 0)
+        return hr;
+
+    retVal = req;
     return 0;
 }
 
@@ -125,23 +152,17 @@ result_t X509Req::loadFile(exlib::string filename)
 {
     result_t hr;
     exlib::string data;
-    int32_t ret;
-
-    clear();
+    obj_ptr<Buffer> buf;
 
     hr = fs_base::ac_readTextFile(filename, data);
     if (hr < 0)
         return hr;
 
-    ret = mbedtls_x509_csr_parse(&m_csr, (const unsigned char*)data.c_str(),
-        data.length() + 1);
-    if (ret != 0)
-        return CHECK_ERROR(_ssl::setError(ret));
+    if (qstrstr(data.c_str(), "BEGIN"))
+        return load(data);
 
-    exlib::string buf;
-    buf.resize(8192);
-
-    return 0;
+    buf = new Buffer(data);
+    return load(buf);
 }
 
 #define PEM_BEGIN_CSR "-----BEGIN CERTIFICATE REQUEST-----\n"

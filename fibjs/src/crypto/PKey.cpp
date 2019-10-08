@@ -496,12 +496,17 @@ result_t PKey::importFile(exlib::string filename, exlib::string password)
 {
     result_t hr;
     exlib::string data;
+    obj_ptr<Buffer> buf;
 
     hr = fs_base::ac_readTextFile(filename, data);
     if (hr < 0)
         return hr;
 
-    return importKey(data, password);
+    if (qstrstr(data.c_str(), "BEGIN"))
+        return importKey(data, password);
+
+    buf = new Buffer(data);
+    return importKey(buf, password);
 }
 
 result_t PKey::exportPem(exlib::string& retVal)

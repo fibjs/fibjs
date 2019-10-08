@@ -11,6 +11,18 @@ interface X509Cert : object
     /*! @brief X509Cert 构造函数 */
     X509Cert();
 
+    /*! @brief X509Cert 构造函数，加载一个 DER 格式的证书
+     @param derCert DER 格式的证书
+    */
+    X509Cert(Buffer derCert);
+
+    /*! @brief X509Cert 构造函数，加载一个 CRT/PEM/TXT 格式的证书
+
+    load 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
+     @param txtCert CRT/PEM/TXT 格式的证书
+    */
+    X509Cert(String txtCert);
+
     /*! @brief 加载一个 DER 格式的证书，可多次调用
      @param derCert DER 格式的证书
     */
@@ -19,7 +31,7 @@ interface X509Cert : object
     /*! @brief 加载一个 CRT/PEM/TXT 格式的证书，可多次调用
 
     load 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
-     @param txtCert PEM 格式的证书
+     @param txtCert CRT/PEM/TXT 格式的证书
     */
     load(String txtCert);
 
@@ -41,9 +53,10 @@ interface X509Cert : object
     Boolean verify(X509Cert cert) async;
 
     /*! @brief 导出已经加载的证书
+     @param pem 指定输出 PEM 格式的撤销证书，缺省为 true
      @return 以数组方式导出证书链
     */
-    Array dump();
+    Array dump(Boolean pem = true);
 
     /*! @brief 清空已经加载的证书 */
     clear();
