@@ -1301,27 +1301,7 @@ describe("http", () => {
             assert.equal(404, rep.statusCode);
         });
 
-        it("pre-gzip", () => {
-            var sgz = 'gz test file';
-            var gz = fs.openFile(filePath + '.gz', 'w');
-            gz.write(zlib.gzip(new Buffer(sgz)));
-            gz.close();
-
-            var rep = hfh_test(url, {
-                'Accept-Encoding': 'deflate,gzip'
-            });
-            assert.equal(200, rep.statusCode);
-            assert.equal('gzip', rep.firstHeader('Content-Encoding'));
-            assert.equal('text/html', rep.firstHeader('Content-Type'));
-            rep.body.rewind();
-            assert.equal(sgz, zlib.gunzip(rep.body.readAll()).toString());
-            rep.body.close();
-            rep.clear();
-        });
-
         it("don't gzip small file", () => {
-            fs.unlink(filePath + '.gz');
-
             var rep = hfh_test(url, {
                 'Accept-Encoding': 'deflate,gzip'
             });

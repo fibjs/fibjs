@@ -155,17 +155,10 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             , m_pThis(pThis)
             , m_req(req)
             , m_autoIndex(autoIndex)
-            , m_pre_gz(false)
             , m_index(false)
             , m_dirPos(0)
         {
             req->get_response(m_rep);
-
-            exlib::string hdr;
-
-            if (m_req->firstHeader("Accept-Encoding", hdr) != CALL_RETURN_NULL)
-                if (qstristr(hdr.c_str(), "gzip"))
-                    m_pre_gz = true;
 
             m_req->get_value(m_value);
             Url::decodeURI(m_value, m_value);
@@ -194,9 +187,6 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 pThis->m_path.append("index.html", 10);
                 pThis->m_index = true;
             }
-
-            if (pThis->m_pre_gz)
-                pThis->m_path.append(".gz", 3);
 
             pThis->set(open);
             return fs_base::openFile(pThis->m_path, "r", pThis->m_file, pThis);
@@ -351,22 +341,12 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_rep->addHeader("Last-Modified", lastModified);
             pThis->m_rep->set_body(pThis->m_file);
 
-            if (pThis->m_pre_gz)
-                pThis->m_rep->addHeader("Content-Encoding", "gzip");
-
             return pThis->done(CALL_RETURN_NULL);
         }
 
         virtual int32_t error(int32_t v)
         {
             if (is(open)) {
-                if (m_pre_gz) {
-                    m_pre_gz = false;
-
-                    set(start);
-                    return 0;
-                }
-
                 if (m_index) {
                     m_index = false;
 
@@ -391,7 +371,6 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         exlib::string m_url;
         exlib::string m_path;
         bool m_autoIndex;
-        bool m_pre_gz;
         bool m_index;
         obj_ptr<NArray> m_dir;
         int32_t m_dirPos;
