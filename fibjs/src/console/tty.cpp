@@ -17,13 +17,13 @@ result_t tty_base::isatty(int32_t fd, bool& retVal)
     int32_t hr = ::isatty(fd);
 #else
     int32_t hr = _isatty(fd);
+    if (hr == FALSE && _lseek(fd, 0, SEEK_CUR) < 0)
+        hr = TRUE;
 #endif
     if (hr < 0)
         return CHECK_ERROR(LastError());
-    if (hr)
-        retVal = true;
-    else
-        retVal = false;
+
+    retVal = !!hr;
     return 0;
 }
 }

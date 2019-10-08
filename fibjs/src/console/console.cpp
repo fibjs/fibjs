@@ -83,7 +83,7 @@ public:
     color_initer()
     {
         bool isatty = false;
-        tty_base::isatty(1, isatty);
+        tty_base::isatty(_fileno(stdout), isatty);
         if (isatty) {
             COLOR_RESET = "\x1b[0m";
             COLOR_BLACK = "\x1b[0;30m"; /* Black */

@@ -8,6 +8,7 @@
 #include "console.h"
 #include "utf8.h"
 #include <stdio.h>
+#include "ifs/tty.h"
 
 namespace fibjs {
 
@@ -19,13 +20,7 @@ void std_logger::out(exlib::string& txt)
     public:
         color_out()
         {
-            m_tty = _isatty(_fileno(stdout)) != FALSE;
-
-            if (!m_tty) {
-                fpos_t pos;
-                fgetpos(stdout, &pos);
-                m_tty = pos < 0;
-            }
+            tty_base::isatty(_fileno(stdout), m_tty);
 
             if (!m_tty) {
                 m_handle = GetStdHandle(STD_OUTPUT_HANDLE);
