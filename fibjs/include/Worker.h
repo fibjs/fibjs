@@ -37,7 +37,7 @@ public:
 
 private:
     static result_t worker_fiber(Worker* worker);
-    result_t _main();
+    void _main();
 
 private:
     Isolate* m_isolate;

@@ -277,7 +277,37 @@ describe('coroutine', () => {
         var worker;
 
         it("new", () => {
-            worker = new coroutine.Worker(path.join(__dirname, 'worker_main.js'));
+            worker = new coroutine.Worker(path.join(__dirname, 'worker_files/worker_main.js'));
+        });
+
+        describe("error", () => {
+            it("file not found", () => {
+                var flag = false;
+                var worker1 = new coroutine.Worker(path.join(__dirname, 'worker_files/not_exists.js'));
+
+                worker1.on('error', e => {
+                    flag = true;
+                });
+
+                for (var i = 0; i < 100 && !flag; i++)
+                    coroutine.sleep(10);
+
+                assert.isTrue(flag);
+            });
+
+            it("syntax error", () => {
+                var flag = false;
+                var worker1 = new coroutine.Worker(path.join(__dirname, 'worker_files/worker_main1.js'));
+
+                worker1.on('error', e => {
+                    flag = true;
+                });
+
+                for (var i = 0; i < 100 && !flag; i++)
+                    coroutine.sleep(10);
+
+                assert.isTrue(flag);
+            });
         });
 
         describe("message", () => {

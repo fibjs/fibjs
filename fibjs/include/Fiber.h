@@ -30,7 +30,7 @@ public:
     public:
         result_t m_hr;
 
-    private:
+    public:
         obj_ptr<JSFiber> m_pFiber;
         TryCatch try_catch;
     };

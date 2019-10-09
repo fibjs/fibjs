@@ -10,6 +10,7 @@
 #include "WorkerMessage.h"
 #include "SandBox.h"
 #include "Fiber.h"
+#include "EventInfo.h"
 #include "path.h"
 
 namespace fibjs {
@@ -37,7 +38,7 @@ void Worker::start()
     m_event->wait();
 }
 
-result_t Worker::_main()
+void Worker::_main()
 {
     JSFiber::scope s;
 
@@ -45,12 +46,18 @@ result_t Worker::_main()
 
     m_worker->wrap();
     m_event->set();
-    return m_isolate->m_topSandbox->run_worker(m_isolate->m_fname, m_worker);
+
+    s.m_hr = m_isolate->m_topSandbox->run_worker(m_isolate->m_fname, m_worker);
+    if (s.m_hr < 0) {
+        Variant v = new EventInfo(this, "error", s.m_hr, GetException(s.try_catch, s.m_hr));
+        _emit("error", &v, 1);
+    }
 }
 
 result_t Worker::worker_fiber(Worker* worker)
 {
-    return worker->_main();
+    worker->_main();
+    return 0;
 }
 
 Worker::Worker(exlib::string path, v8::Local<v8::Object> opts)
