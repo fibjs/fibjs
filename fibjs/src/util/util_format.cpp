@@ -101,8 +101,8 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                 v8::Local<v8::Object> obj = v->ToObject();
 
                 if (obj->IsNativeError()) {
-                    v8::String::Utf8Value msg(obj);
-                    strBuffer.append(*msg, msg.length());
+                    v8::String::Utf8Value stk(obj->Get(isolate->NewString("stack")));
+                    strBuffer.append(*stk, stk.length());
                     break;
                 }
 

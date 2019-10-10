@@ -1018,6 +1018,11 @@ describe('util', () => {
             }), '{\n  "a": [Function]\n}');
         });
 
+        it("Error", () => {
+            var e = new Error;
+            assert.equal(util.format(e), e.stack);
+        });
+
         it("%d", () => {
             assert.equal(util.format('%d', 42.0), '42');
             assert.equal(util.format('%d', 42), '42');
