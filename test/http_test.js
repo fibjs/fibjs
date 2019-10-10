@@ -1011,33 +1011,7 @@ describe("http", () => {
             return req;
         }
 
-        function getStats(hdr) {
-            var o = hdr.stats.toJSON();
-            delete o.totalTime;
-            return o;
-        }
-
         var throw_in_handler = false;
-        var err_400 = 0;
-        var err_404 = 0;
-        var err_500 = 0;
-
-        it("onerror", () => {
-            hdr.onerror({
-                400: (v) => {
-                    err_400++;
-                },
-                404: (v) => {
-                    if (throw_in_handler)
-                        throw new Error('throw in error handler');
-                    err_404++;
-                },
-                500: (v) => {
-                    console.error(v.lastError);
-                    err_500++;
-                }
-            });
-        });
 
         it("normal request", () => {
             c.write("GET / HTTP/1.0\r\n\r\n");
@@ -1045,137 +1019,58 @@ describe("http", () => {
             assert.equal(req.statusCode, 200);
 
             coroutine.sleep(100);
-            assert.deepEqual(getStats(hdr), {
-                "total": 1,
-                "pendding": 0,
-                "request": 1,
-                "response": 1,
-                "error": 0,
-                "error_400": 0,
-                "error_404": 0,
-                "error_500": 0
-            });
         });
 
         it("bad request(error 400)", () => {
             c.write("GET /\r\n\r\n");
             var req = get_response();
             assert.equal(req.statusCode, 400);
-
-            coroutine.sleep(100);
-            assert.equal(err_400, 1);
-            assert.deepEqual(getStats(hdr), {
-                "total": 2,
-                "pendding": 0,
-                "request": 2,
-                "response": 2,
-                "error": 1,
-                "error_400": 1,
-                "error_404": 0,
-                "error_500": 0
-            });
         });
 
         it("error 404", () => {
             c.write("GET /not_found HTTP/1.0\r\n\r\n");
             var req = get_response();
             assert.equal(req.statusCode, 404);
-
-            coroutine.sleep(100);
-            assert.equal(err_404, 1);
-            assert.deepEqual(getStats(hdr), {
-                "total": 3,
-                "pendding": 0,
-                "request": 3,
-                "response": 3,
-                "error": 1,
-                "error_400": 1,
-                "error_404": 1,
-                "error_500": 0
-            });
         });
 
         it("error 500", () => {
             c.write("GET /throw HTTP/1.0\r\n\r\n");
             var req = get_response();
             assert.equal(req.statusCode, 500);
-
-            coroutine.sleep(100);
-            assert.equal(err_500, 1);
-            assert.deepEqual(getStats(hdr), {
-                "total": 4,
-                "pendding": 0,
-                "request": 4,
-                "response": 4,
-                "error": 2,
-                "error_400": 1,
-                "error_404": 1,
-                "error_500": 1
-            });
         });
 
         it("remote close when response", () => {
             st = new Step();
 
+            test_util.gc();
+            var no = test_util.countObject('Socket');
+
             c.write("GET /remote_close HTTP/1.0\r\n\r\n");
             c.close();
 
+            assert.equal(no, test_util.countObject('Socket'));
+
             st.wait(1);
 
-            assert.deepEqual(getStats(hdr), {
-                "total": 5,
-                "pendding": 1,
-                "request": 5,
-                "response": 4,
-                "error": 2,
-                "error_400": 1,
-                "error_404": 1,
-                "error_500": 1
-            });
-
-            st.wait(3);
-            coroutine.sleep(50);
-            assert.deepEqual(getStats(hdr), {
-                "total": 5,
-                "pendding": 0,
-                "request": 5,
-                "response": 5,
-                "error": 2,
-                "error_400": 1,
-                "error_404": 1,
-                "error_500": 1
-            });
+            test_util.gc();
+            assert.equal(no, test_util.countObject('Socket') + 1);
         });
 
         it("remote close when request", () => {
+            test_util.gc();
+            var no = test_util.countObject('Socket');
+
             c.write("GET / HTTP/1.0\r\n");
+
+            test_util.gc();
+            assert.equal(no, test_util.countObject('Socket'));
+
             c.close();
 
-            coroutine.sleep(10);
-            assert.deepEqual(getStats(hdr), {
-                "total": 6,
-                "pendding": 0,
-                "request": 6,
-                "response": 6,
-                "error": 2,
-                "error_400": 1,
-                "error_404": 1,
-                "error_500": 1
-            });
-        });
+            assert.equal(no, test_util.countObject('Socket'));
 
-        it("reset stats", () => {
-            hdr.stats.reset();
-            assert.deepEqual(getStats(hdr), {
-                "total": 6,
-                "pendding": 0,
-                "request": 0,
-                "response": 0,
-                "error": 0,
-                "error_400": 0,
-                "error_404": 0,
-                "error_500": 0
-            });
+            test_util.gc();
+            assert.equal(no, test_util.countObject('Socket') + 1);
         });
 
         it("error in error handler", () => {

@@ -9,7 +9,6 @@
 #include "ifs/Handler.h"
 #include "ifs/TcpServer.h"
 #include "Socket.h"
-#include "Stats.h"
 
 #ifndef TCPSERVER_H_
 #define TCPSERVER_H_
@@ -30,7 +29,6 @@ public:
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal);
     virtual result_t get_handler(obj_ptr<Handler_base>& retVal);
     virtual result_t set_handler(Handler_base* newVal);
-    virtual result_t get_stats(obj_ptr<Stats_base>& retVal);
 
 public:
     class Holder : public object_base {
@@ -45,7 +43,6 @@ private:
     bool m_running;
     obj_ptr<Socket_base> m_socket;
     obj_ptr<Handler_base> m_hdlr;
-    obj_ptr<Stats> m_stats;
 };
 
 } /* namespace fibjs */

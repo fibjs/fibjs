@@ -148,9 +148,4 @@ result_t SslServer::get_ca(obj_ptr<X509Cert_base>& retVal)
 {
     return m_hdlr->get_ca(retVal);
 }
-
-result_t SslServer::get_stats(obj_ptr<Stats_base>& retVal)
-{
-    return m_server->get_stats(retVal);
-}
 }

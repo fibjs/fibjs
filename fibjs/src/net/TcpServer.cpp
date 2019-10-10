@@ -41,20 +41,8 @@ result_t TcpServer_base::_new(exlib::string addr, int32_t port,
     return _new_tcpServer(addr, port, listener, retVal, This);
 }
 
-static const char* s_staticCounter[] = { "total", "connections" };
-static const char* s_Counter[] = { "accept", "close" };
-
-enum {
-    TCPS_TOTAL = 0,
-    TCPS_CONNECTIONS,
-    TCPS_ACCEPT,
-    TCPS_CLOSE
-};
-
 TcpServer::TcpServer()
 {
-    m_stats = new Stats();
-    m_stats->init(s_staticCounter, 2, s_Counter, 2);
     m_running = false;
 }
 
@@ -108,8 +96,6 @@ result_t TcpServer::run(AsyncEvent* ac)
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
             pThis->done();
-            pThis->m_pThis->m_stats->inc(TCPS_CLOSE);
-            pThis->m_pThis->m_stats->dec(TCPS_CONNECTIONS);
             return pThis->m_sock->close(pThis);
         }
 
@@ -154,10 +140,6 @@ result_t TcpServer::run(AsyncEvent* ac)
         static int32_t invoke(AsyncState* pState, int32_t n)
         {
             asyncAccept* pThis = (asyncAccept*)pState;
-
-            pThis->m_pThis->m_stats->inc(TCPS_TOTAL);
-            pThis->m_pThis->m_stats->inc(TCPS_ACCEPT);
-            pThis->m_pThis->m_stats->inc(TCPS_CONNECTIONS);
 
             if (pThis->m_retVal) {
                 (new asyncInvoke(pThis->m_pThis, pThis->m_retVal, pThis->m_holder))->apost(0);
@@ -272,12 +254,6 @@ result_t TcpServer::set_handler(Handler_base* newVal)
     SetPrivate("handler", newVal->wrap());
     m_hdlr = newVal;
 
-    return 0;
-}
-
-result_t TcpServer::get_stats(obj_ptr<Stats_base>& retVal)
-{
-    retVal = m_stats;
     return 0;
 }
 

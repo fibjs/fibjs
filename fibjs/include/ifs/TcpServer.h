@@ -18,7 +18,6 @@ namespace fibjs {
 
 class Handler_base;
 class Socket_base;
-class Stats_base;
 
 class TcpServer_base : public object_base {
     DECLARE_CLASS(TcpServer_base);
@@ -33,7 +32,6 @@ public:
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
     virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
     virtual result_t set_handler(Handler_base* newVal) = 0;
-    virtual result_t get_stats(obj_ptr<Stats_base>& retVal) = 0;
 
 public:
     template <typename T>
@@ -47,7 +45,6 @@ public:
     static void s_get_socket(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_handler(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_handler(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_stats(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER0(TcpServer_base, run);
@@ -57,7 +54,6 @@ public:
 
 #include "ifs/Handler.h"
 #include "ifs/Socket.h"
-#include "ifs/Stats.h"
 
 namespace fibjs {
 inline ClassInfo& TcpServer_base::class_info()
@@ -72,8 +68,7 @@ inline ClassInfo& TcpServer_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "socket", s_get_socket, block_set, false },
-        { "handler", s_get_handler, s_set_handler, false },
-        { "stats", s_get_stats, block_set, false }
+        { "handler", s_get_handler, s_set_handler, false }
     };
 
     static ClassData s_cd = {
@@ -201,19 +196,6 @@ inline void TcpServer_base::s_set_handler(v8::Local<v8::Name> property, v8::Loca
     hr = pInst->set_handler(v0);
 
     PROPERTY_SET_LEAVE();
-}
-
-inline void TcpServer_base::s_get_stats(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Stats_base> vr;
-
-    METHOD_NAME("TcpServer.stats");
-    METHOD_INSTANCE(TcpServer_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_stats(vr);
-
-    METHOD_RETURN();
 }
 }
 

@@ -6,7 +6,6 @@
  */
 
 #include "ifs/HttpHandler.h"
-#include "Stats.h"
 
 #ifndef HTTPHANDLER_H_
 #define HTTPHANDLER_H_
@@ -25,13 +24,6 @@ public:
         AsyncEvent* ac);
 
 public:
-    // HandlerEx_base
-    virtual result_t onerror(v8::Local<v8::Object> hdlrs);
-    virtual result_t get_handler(obj_ptr<Handler_base>& retVal);
-    virtual result_t set_handler(Handler_base* newVal);
-    virtual result_t get_stats(obj_ptr<Stats_base>& retVal);
-
-public:
     // HttpHandler_base
     virtual result_t enableCrossOrigin(exlib::string allowHeaders);
     virtual result_t get_maxHeadersCount(int32_t& retVal);
@@ -40,13 +32,11 @@ public:
     virtual result_t set_maxBodySize(int32_t newVal);
     virtual result_t get_serverName(exlib::string& retVal);
     virtual result_t set_serverName(exlib::string newVal);
-
-public:
-    obj_ptr<Stats> m_stats;
+    virtual result_t get_handler(obj_ptr<Handler_base>& retVal);
+    virtual result_t set_handler(Handler_base* newVal);
 
 private:
     obj_ptr<Handler_base> m_hdlr;
-    obj_ptr<Handler_base> m_err_hdlrs[3];
 
     bool m_crossDomain;
     exlib::string m_allowHeaders;

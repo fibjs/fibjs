@@ -19,7 +19,6 @@ namespace fibjs {
 
 class TcpServer_base;
 class Handler_base;
-class Stats_base;
 
 class HttpServer_base : public TcpServer_base {
     DECLARE_CLASS(HttpServer_base);
@@ -28,7 +27,6 @@ public:
     // HttpServer_base
     static result_t _new(int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t onerror(v8::Local<v8::Object> hdlrs) = 0;
     virtual result_t enableCrossOrigin(exlib::string allowHeaders) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
@@ -36,7 +34,6 @@ public:
     virtual result_t set_maxBodySize(int32_t newVal) = 0;
     virtual result_t get_serverName(exlib::string& retVal) = 0;
     virtual result_t set_serverName(exlib::string newVal) = 0;
-    virtual result_t get_httpStats(obj_ptr<Stats_base>& retVal) = 0;
 
 public:
     template <typename T>
@@ -44,7 +41,6 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_enableCrossOrigin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_maxHeadersCount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_maxHeadersCount(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
@@ -52,26 +48,22 @@ public:
     static void s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_serverName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_serverName(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_httpStats(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
 
 #include "ifs/Handler.h"
-#include "ifs/Stats.h"
 
 namespace fibjs {
 inline ClassInfo& HttpServer_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "onerror", s_onerror, false },
         { "enableCrossOrigin", s_enableCrossOrigin, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
         { "maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false },
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
-        { "serverName", s_get_serverName, s_set_serverName, false },
-        { "httpStats", s_get_httpStats, block_set, false }
+        { "serverName", s_get_serverName, s_set_serverName, false }
     };
 
     static ClassData s_cd = {
@@ -114,21 +106,6 @@ void HttpServer_base::__new(const T& args)
     hr = _new(v0, v1, v2, vr, args.This());
 
     CONSTRUCT_RETURN();
-}
-
-inline void HttpServer_base::s_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("HttpServer.onerror");
-    METHOD_INSTANCE(HttpServer_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Object>, 0);
-
-    hr = pInst->onerror(v0);
-
-    METHOD_VOID();
 }
 
 inline void HttpServer_base::s_enableCrossOrigin(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -219,19 +196,6 @@ inline void HttpServer_base::s_set_serverName(v8::Local<v8::Name> property, v8::
     hr = pInst->set_serverName(v0);
 
     PROPERTY_SET_LEAVE();
-}
-
-inline void HttpServer_base::s_get_httpStats(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Stats_base> vr;
-
-    METHOD_NAME("HttpServer.httpStats");
-    METHOD_INSTANCE(HttpServer_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_httpStats(vr);
-
-    METHOD_RETURN();
 }
 }
 

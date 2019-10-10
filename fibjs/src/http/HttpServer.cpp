@@ -86,11 +86,6 @@ result_t HttpServer::set_handler(Handler_base* newVal)
     return m_hdlr->set_handler(newVal);
 }
 
-result_t HttpServer::onerror(v8::Local<v8::Object> hdlrs)
-{
-    return m_hdlr->onerror(hdlrs);
-}
-
 result_t HttpServer::enableCrossOrigin(exlib::string allowHeaders)
 {
     return m_hdlr->enableCrossOrigin(allowHeaders);
@@ -124,16 +119,6 @@ result_t HttpServer::get_serverName(exlib::string& retVal)
 result_t HttpServer::set_serverName(exlib::string newVal)
 {
     return m_hdlr->set_serverName(newVal);
-}
-
-result_t HttpServer::get_httpStats(obj_ptr<Stats_base>& retVal)
-{
-    return m_hdlr->get_stats(retVal);
-}
-
-result_t HttpServer::get_stats(obj_ptr<Stats_base>& retVal)
-{
-    return m_server->get_stats(retVal);
 }
 
 } /* namespace fibjs */

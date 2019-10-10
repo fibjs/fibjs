@@ -6,7 +6,6 @@
  */
 
 #include "ifs/Handler.h"
-#include "Stats.h"
 
 #ifndef WEBSOCKETHANDLER_H_
 #define WEBSOCKETHANDLER_H_

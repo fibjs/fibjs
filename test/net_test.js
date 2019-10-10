@@ -410,54 +410,6 @@ describe("net", () => {
         ss.push(svr.socket);
     });
 
-    it("stats", () => {
-        var svr = new net.TcpServer(8812 + base_port, (c) => {
-            var d;
-            while (d = c.read(100))
-                c.write(d);
-        });
-
-        ss.push(svr.socket);
-        svr.asyncRun();
-
-        assert.deepEqual({
-            "total": 0,
-            "connections": 0,
-            "accept": 0,
-            "close": 0
-        }, svr.stats.toJSON());
-
-        var c1 = new net.Socket();
-        c1.connect('127.0.0.1', 8812 + base_port);
-
-        coroutine.sleep(10);
-        assert.deepEqual({
-            "total": 1,
-            "connections": 1,
-            "accept": 1,
-            "close": 0
-        }, svr.stats.toJSON());
-
-        svr.stats.reset();
-        assert.deepEqual({
-            "total": 1,
-            "connections": 1,
-            "accept": 0,
-            "close": 0
-        }, svr.stats.toJSON());
-
-        c1.close();
-
-        // svr.stats.reset();
-        coroutine.sleep(10);
-        assert.deepEqual({
-            "total": 1,
-            "connections": 0,
-            "accept": 0,
-            "close": 1
-        }, svr.stats.toJSON());
-    });
-
     describe("abort Pending I/O", () => {
         function close_it(s) {
             coroutine.sleep(50);

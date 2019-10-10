@@ -25,11 +25,9 @@ public:
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal);
     virtual result_t get_handler(obj_ptr<Handler_base>& retVal);
     virtual result_t set_handler(Handler_base* newVal);
-    virtual result_t get_stats(obj_ptr<Stats_base>& retVal);
 
 public:
     // HttpServer_base
-    virtual result_t onerror(v8::Local<v8::Object> hdlrs);
     virtual result_t enableCrossOrigin(exlib::string allowHeaders);
     virtual result_t get_maxHeadersCount(int32_t& retVal);
     virtual result_t set_maxHeadersCount(int32_t newVal);
@@ -37,7 +35,6 @@ public:
     virtual result_t set_maxBodySize(int32_t newVal);
     virtual result_t get_serverName(exlib::string& retVal);
     virtual result_t set_serverName(exlib::string newVal);
-    virtual result_t get_httpStats(obj_ptr<Stats_base>& retVal);
 
 public:
     result_t create(exlib::string addr, int32_t port, Handler_base* hdlr);

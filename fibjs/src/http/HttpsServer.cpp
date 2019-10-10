@@ -135,11 +135,6 @@ result_t HttpsServer::set_handler(Handler_base* newVal)
     return m_hdlr->set_handler(newVal);
 }
 
-result_t HttpsServer::onerror(v8::Local<v8::Object> hdlrs)
-{
-    return m_hdlr->onerror(hdlrs);
-}
-
 result_t HttpsServer::enableCrossOrigin(exlib::string allowHeaders)
 {
     return m_hdlr->enableCrossOrigin(allowHeaders);
@@ -186,16 +181,6 @@ result_t HttpsServer::set_verification(int32_t newVal)
 result_t HttpsServer::get_ca(obj_ptr<X509Cert_base>& retVal)
 {
     return m_server->get_ca(retVal);
-}
-
-result_t HttpsServer::get_httpStats(obj_ptr<Stats_base>& retVal)
-{
-    return m_hdlr->get_stats(retVal);
-}
-
-result_t HttpsServer::get_stats(obj_ptr<Stats_base>& retVal)
-{
-    return m_server->get_stats(retVal);
 }
 
 } /* namespace fibjs */

@@ -19,21 +19,6 @@
 
 namespace fibjs {
 
-static const char* s_staticCounter[] = { "total", "pendding" };
-static const char* s_Counter[] = { "request", "response", "error", "error_400", "error_404", "error_500", "totalTime" };
-
-enum {
-    HTTP_TOTAL = 0,
-    HTTP_PENDDING,
-    HTTP_REQUEST,
-    HTTP_RESPONSE,
-    HTTP_ERROR,
-    HTTP_ERROR_400,
-    HTTP_ERROR_404,
-    HTTP_ERROR_500,
-    HTTP_TOTAL_TIME
-};
-
 result_t HttpHandler_base::_new(Handler_base* hdlr, obj_ptr<HttpHandler_base>& retVal,
     v8::Local<v8::Object> This)
 {
@@ -48,14 +33,11 @@ result_t HttpHandler_base::_new(Handler_base* hdlr, obj_ptr<HttpHandler_base>& r
 
 HttpHandler::HttpHandler()
     : m_crossDomain(false)
-    , m_maxHeadersCount(
-          128)
+    , m_maxHeadersCount(128)
     , m_maxBodySize(64)
 {
     m_serverName = "fibjs/";
     m_serverName.append(fibjs_version);
-    m_stats = new Stats();
-    m_stats->init(s_staticCounter, 2, s_Counter, 7);
 }
 
 result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -107,10 +89,6 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (n == CALL_RETURN_NULL)
                 return pThis->done(CALL_RETURN_NULL);
 
-            pThis->m_pThis->m_stats->inc(HTTP_TOTAL);
-            pThis->m_pThis->m_stats->inc(HTTP_REQUEST);
-            pThis->m_pThis->m_stats->inc(HTTP_PENDDING);
-
             exlib::string str;
 
             pThis->m_req->get_protocol(str);
@@ -123,7 +101,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_req->get_keepAlive(bKeepAlive);
             pThis->m_rep->set_keepAlive(bKeepAlive);
 
-            pThis->set(check_error);
+            pThis->set(send);
             pThis->m_d.now();
 
             if (pThis->m_pThis->m_crossDomain) {
@@ -154,30 +132,6 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis);
         }
 
-        static int32_t check_error(AsyncState* pState, int32_t n)
-        {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-            int32_t s;
-            int32_t err_idx = -1;
-
-            pThis->m_rep->get_statusCode(s);
-            if (s == 400) {
-                err_idx = 0;
-                pThis->m_pThis->m_stats->inc(HTTP_ERROR_400);
-            } else if (s == 404) {
-                err_idx = 1;
-                pThis->m_pThis->m_stats->inc(HTTP_ERROR_404);
-            } else if (s == 500) {
-                err_idx = 2;
-                pThis->m_pThis->m_stats->inc(HTTP_ERROR_500);
-            }
-
-            pThis->set(send);
-            if (err_idx == -1 || !pThis->m_pThis->m_err_hdlrs[err_idx])
-                return 0;
-            return mq_base::invoke(pThis->m_pThis->m_err_hdlrs[err_idx], pThis->m_req, pThis);
-        }
-
         static int32_t send(AsyncState* pState, int32_t n)
         {
             asyncInvoke* pThis = (asyncInvoke*)pState;
@@ -186,7 +140,6 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             date_t d;
 
             d.now();
-            pThis->m_pThis->m_stats->add(HTTP_TOTAL_TIME, (int32_t)d.diff(pThis->m_d));
 
             pThis->m_rep->get_statusCode(s);
             if (s == 200 && !pThis->m_options) {
@@ -281,9 +234,6 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (!pThis->m_body)
                 pThis->m_rep->get_body(pThis->m_body);
 
-            pThis->m_pThis->m_stats->inc(HTTP_RESPONSE);
-            pThis->m_pThis->m_stats->dec(HTTP_PENDDING);
-
             pThis->set(read);
             if (!pThis->m_body)
                 return 0;
@@ -293,9 +243,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
         virtual int32_t error(int32_t v)
         {
-            m_pThis->m_stats->inc(HTTP_ERROR);
-
-            if (is(check_error)) {
+            if (is(send)) {
                 exlib::string err = getResultMessage(v);
 
                 m_req->set_lastError(err);
@@ -306,23 +254,13 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
 
             if (is(invoke)) {
-                m_pThis->m_stats->inc(HTTP_TOTAL);
-                m_pThis->m_stats->inc(HTTP_REQUEST);
-                m_pThis->m_stats->inc(HTTP_PENDDING);
-
                 m_rep->set_keepAlive(false);
                 m_rep->set_statusCode(400);
-                set(check_error);
+                set(send);
                 m_d.now();
                 return 0;
             }
 
-            if (is(send)) {
-                errorLog("HttpHandler: " + getResultMessage(v));
-                return 0;
-            }
-
-            m_pThis->m_stats->dec(HTTP_PENDDING);
             return done(CALL_RETURN_NULL);
         }
 
@@ -352,31 +290,6 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         return CHECK_ERROR(CALL_E_BADVARTYPE);
 
     return (new asyncInvoke(this, stm, ac))->post(0);
-}
-
-result_t HttpHandler::onerror(v8::Local<v8::Object> hdlrs)
-{
-    static const char* s_err_keys[] = { "400", "404", "500" };
-    int32_t i;
-    Isolate* isolate = holder();
-
-    for (i = 0; i < 3; i++) {
-        v8::Local<v8::String> key = isolate->NewString(s_err_keys[i]);
-        v8::Local<v8::Value> hdlr = hdlrs->Get(key);
-
-        if (!IsEmpty(hdlr)) {
-            obj_ptr<Handler_base> hdlr1;
-
-            result_t hr = JSHandler::New(hdlr, hdlr1);
-            if (hr < 0)
-                return hr;
-
-            SetPrivate(s_err_keys[i], hdlr1->wrap());
-            m_err_hdlrs[i] = hdlr1;
-        }
-    }
-
-    return 0;
 }
 
 result_t HttpHandler::enableCrossOrigin(exlib::string allowHeaders)
@@ -436,12 +349,6 @@ result_t HttpHandler::set_handler(Handler_base* newVal)
     SetPrivate("handler", newVal->wrap());
     m_hdlr = newVal;
 
-    return 0;
-}
-
-result_t HttpHandler::get_stats(obj_ptr<Stats_base>& retVal)
-{
-    retVal = m_stats;
     return 0;
 }
 }

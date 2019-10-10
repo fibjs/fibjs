@@ -144,7 +144,6 @@
     <ClInclude Include="include\ifs\Fiber.h" />
     <ClInclude Include="include\ifs\File.h" />
     <ClInclude Include="include\ifs\Handler.h" />
-    <ClInclude Include="include\ifs\HandlerEx.h" />
     <ClInclude Include="include\ifs\HeapGraphEdge.h" />
     <ClInclude Include="include\ifs\HeapGraphNode.h" />
     <ClInclude Include="include\ifs\HeapSnapshot.h" />

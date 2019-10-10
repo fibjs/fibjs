@@ -13,14 +13,13 @@
  */
 
 #include "../object.h"
-#include "ifs/HandlerEx.h"
+#include "ifs/Handler.h"
 
 namespace fibjs {
 
-class HandlerEx_base;
 class Handler_base;
 
-class HttpHandler_base : public HandlerEx_base {
+class HttpHandler_base : public Handler_base {
     DECLARE_CLASS(HttpHandler_base);
 
 public:
@@ -33,6 +32,8 @@ public:
     virtual result_t set_maxBodySize(int32_t newVal) = 0;
     virtual result_t get_serverName(exlib::string& retVal) = 0;
     virtual result_t set_serverName(exlib::string newVal) = 0;
+    virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
+    virtual result_t set_handler(Handler_base* newVal) = 0;
 
 public:
     template <typename T>
@@ -47,10 +48,10 @@ public:
     static void s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_serverName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_serverName(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_handler(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_handler(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
 }
-
-#include "ifs/Handler.h"
 
 namespace fibjs {
 inline ClassInfo& HttpHandler_base::class_info()
@@ -62,13 +63,14 @@ inline ClassInfo& HttpHandler_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false },
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
-        { "serverName", s_get_serverName, s_set_serverName, false }
+        { "serverName", s_get_serverName, s_set_serverName, false },
+        { "handler", s_get_handler, s_set_handler, false }
     };
 
     static ClassData s_cd = {
         "HttpHandler", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
-        &HandlerEx_base::class_info()
+        &Handler_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
@@ -184,6 +186,31 @@ inline void HttpHandler_base::s_set_serverName(v8::Local<v8::Name> property, v8:
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_serverName(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void HttpHandler_base::s_get_handler(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Handler_base> vr;
+
+    METHOD_NAME("HttpHandler.handler");
+    METHOD_INSTANCE(HttpHandler_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_handler(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpHandler_base::s_set_handler(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("HttpHandler.handler");
+    METHOD_INSTANCE(HttpHandler_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(obj_ptr<Handler_base>);
+
+    hr = pInst->set_handler(v0);
 
     PROPERTY_SET_LEAVE();
 }
