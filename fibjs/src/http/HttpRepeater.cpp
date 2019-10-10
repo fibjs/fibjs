@@ -159,16 +159,15 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             req->get_response(m_rep);
 
-            set(request);
+            next(request);
         }
 
         static int32_t request(AsyncState* pState, int32_t n)
         {
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
-            pThis->set(response);
             return pThis->m_pThis->m_client->request(pThis->m_method, pThis->m_url,
-                pThis->m_body, pThis->m_headers, pThis->m_ret, pThis);
+                pThis->m_body, pThis->m_headers, pThis->m_ret, pThis->next(response));
         }
 
         static int32_t response(AsyncState* pState, int32_t n)
@@ -191,7 +190,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_ret->get_body(body);
             pThis->m_rep->set_body(body);
 
-            return pThis->done(CALL_RETURN_NULL);
+            return pThis->next(CALL_RETURN_NULL);
         }
 
     public:

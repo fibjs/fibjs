@@ -151,7 +151,7 @@ result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
             , m_timeout(timeout)
             , m_retVal(retVal)
         {
-            set(connect);
+            next(connect);
         }
 
         static int32_t connect(AsyncState* pState, int32_t n)
@@ -163,16 +163,12 @@ result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
                 net_base::_SOCK_STREAM);
 
             pThis->m_sock->set_timeout(pThis->m_timeout);
-
-            pThis->set(handshake);
-            return pThis->m_sock->connect(pThis->m_host, pThis->m_port, pThis);
+            return pThis->m_sock->connect(pThis->m_host, pThis->m_port, pThis->next(handshake));
         }
 
         static int32_t handshake(AsyncState* pState, int32_t n)
         {
             asyncConnect* pThis = (asyncConnect*)pState;
-
-            pThis->set(ok);
 
             pThis->m_ssl_sock = new SslSocket();
 
@@ -182,7 +178,7 @@ result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
                     return hr;
             }
 
-            return pThis->m_ssl_sock->connect(pThis->m_sock, pThis->m_host, pThis->m_temp, pThis);
+            return pThis->m_ssl_sock->connect(pThis->m_sock, pThis->m_host, pThis->m_temp, pThis->next(ok));
         }
 
         static int32_t ok(AsyncState* pState, int32_t n)
@@ -190,7 +186,7 @@ result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
             asyncConnect* pThis = (asyncConnect*)pState;
 
             pThis->m_retVal = pThis->m_ssl_sock;
-            return pThis->done();
+            return pThis->next();
         }
 
     private:

@@ -304,7 +304,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
             , m_enableEncoding(enableEncoding)
             , m_retVal(retVal)
         {
-            set(send);
+            next(send);
 
             exlib::string method;
             m_req->get_method(method);
@@ -314,15 +314,13 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
         static int32_t send(AsyncState* pState, int32_t n)
         {
             asyncRequest* pThis = (asyncRequest*)pState;
-
-            pThis->set(recv);
-            return pThis->m_req->sendTo(pThis->m_conn, pThis);
+            return pThis->m_req->sendTo(pThis->m_conn, pThis->next(recv));
         }
 
         static int32_t recv(AsyncState* pState, int32_t n)
         {
             asyncRequest* pThis = (asyncRequest*)pState;
-            
+
             obj_ptr<HttpResponse> resp = new HttpResponse();
             resp->m_message->m_bNoBody = pThis->m_bNoBody;
 
@@ -331,15 +329,12 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
             pThis->m_bs = new BufferedStream(pThis->m_conn);
             pThis->m_bs->set_EOL("\r\n");
 
-            pThis->set(pThis->m_enableEncoding ? unzip : close);
-            return pThis->m_retVal->readFrom(pThis->m_bs, pThis);
+            return pThis->m_retVal->readFrom(pThis->m_bs, pThis->next(pThis->m_enableEncoding ? unzip : close));
         }
 
         static int32_t unzip(AsyncState* pState, int32_t n)
         {
             asyncRequest* pThis = (asyncRequest*)pState;
-
-            pThis->set(close);
 
             exlib::string hdr;
 
@@ -351,13 +346,13 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
 
                 if (hdr == "gzip")
                     return zlib_base::gunzipTo(pThis->m_body, pThis->m_unzip,
-                        pThis->m_maxBodySize, pThis);
+                        pThis->m_maxBodySize, pThis->next(close));
                 else if (hdr == "deflate")
                     return zlib_base::inflateRawTo(pThis->m_body, pThis->m_unzip,
-                        pThis->m_maxBodySize, pThis);
+                        pThis->m_maxBodySize, pThis->next(close));
             }
 
-            return 0;
+            return pThis->next(close);
         }
 
         static int32_t close(AsyncState* pState, int32_t n)
@@ -369,7 +364,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
                 pThis->m_retVal->set_body(pThis->m_unzip);
             }
 
-            return pThis->done();
+            return pThis->next();
         }
 
     private:
@@ -406,7 +401,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             , m_retVal(retVal)
             , m_hc(hc)
         {
-            set(prepare);
+            next(prepare);
         }
 
         static int32_t prepare(AsyncState* pState, int32_t n)
@@ -481,20 +476,16 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             if (pThis->m_body)
                 pThis->m_req->set_body(pThis->m_body);
 
-            pThis->set(connected);
-
             if (pThis->m_hc->get_conn(pThis->m_connUrl, pThis->m_conn))
-                return 0;
+                return pThis->next(connected);
 
-            return net_base::connect(pThis->m_connUrl, pThis->m_hc->m_timeout, pThis->m_conn, pThis);
+            return net_base::connect(pThis->m_connUrl, pThis->m_hc->m_timeout, pThis->m_conn, pThis->next(connected));
         }
 
         static int32_t connected(AsyncState* pState, int32_t n)
         {
             asyncRequest* pThis = (asyncRequest*)pState;
-
-            pThis->set(requested);
-            return pThis->m_hc->request(pThis->m_conn, pThis->m_req, pThis->m_retVal, pThis);
+            return pThis->m_hc->request(pThis->m_conn, pThis->m_req, pThis->m_retVal, pThis->next(requested));
         }
 
         static int32_t requested(AsyncState* pState, int32_t n)
@@ -502,12 +493,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             asyncRequest* pThis = (asyncRequest*)pState;
             bool enableCookie = false;
 
-            pThis->set(closed);
-
             bool upgrade;
             pThis->m_retVal->get_upgrade(upgrade);
             if (upgrade)
-                return 0;
+                return pThis->next(closed);
 
             pThis->m_hc->get_enableCookie(enableCookie);
             if (enableCookie) {
@@ -520,10 +509,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             pThis->m_retVal->get_keepAlive(keepalive);
             if (keepalive) {
                 pThis->m_hc->save_conn(pThis->m_connUrl, pThis->m_conn);
-                return 0;
+                return pThis->next(closed);
             }
 
-            return pThis->m_conn->close(pThis);
+            return pThis->m_conn->close(pThis->next(closed));
         }
 
         static int32_t closed(AsyncState* pState, int32_t n)
@@ -541,7 +530,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                 return hr;
 
             if (!pThis->m_hc->m_autoRedirect || (status != 302 && status != 301))
-                return pThis->done(0);
+                return pThis->next();
 
             hr = pThis->m_retVal->firstHeader("location", location);
             if (hr < 0)
@@ -557,8 +546,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
             pThis->m_url = location;
 
-            pThis->set(prepare);
-            return 0;
+            return pThis->next(prepare);
         }
 
     private:

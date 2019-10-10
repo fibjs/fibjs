@@ -19,7 +19,7 @@ result_t stream_logger::write(AsyncEvent* ac)
             , m_out(out)
             , m_logs(logs)
         {
-            set(write);
+            next(write);
         }
 
     public:
@@ -52,7 +52,7 @@ result_t stream_logger::write(AsyncEvent* ac)
             }
 
             if (outBuffer.empty())
-                return pThis->done();
+                return pThis->next();
 
             pThis->m_buffer = new Buffer(outBuffer);
 

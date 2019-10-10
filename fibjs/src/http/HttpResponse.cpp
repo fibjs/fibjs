@@ -357,16 +357,14 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
             , m_stm(stm)
         {
             m_pThis->clear();
-            set(begin);
+            next(begin);
         }
 
         static int32_t begin(AsyncState* pState, int32_t n)
         {
             asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
-            pThis->set(command);
-            return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine,
-                pThis);
+            return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis->next(command));
         }
 
         static int32_t command(AsyncState* pState, int32_t n)
@@ -389,8 +387,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
             if (hr < 0)
                 return hr;
 
-            pThis->done();
-            return pThis->m_pThis->m_message->readFrom(pThis->m_stm, pThis);
+            return pThis->m_pThis->m_message->readFrom(pThis->m_stm, pThis->next());
         }
 
     public:

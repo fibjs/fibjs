@@ -28,7 +28,7 @@ private:
             , m_pThis(pThis)
             , m_ret(0)
         {
-            set(process);
+            next(process);
         }
 
     public:
@@ -53,16 +53,14 @@ private:
 
             pThis->m_ret = pThis->process();
             if (pThis->m_ret == 0) {
-                if (pThis->m_pThis->m_send.length() > 0) {
-                    pThis->set(flush);
-                    return 0;
-                } else
-                    return pThis->done(pThis->finally());
+                if (pThis->m_pThis->m_send.length() > 0)
+                    return pThis->next(flush);
+                else
+                    return pThis->next(pThis->finally());
             }
 
-            pThis->set(send);
             if (pThis->m_ret == MBEDTLS_ERR_SSL_WANT_READ || pThis->m_ret == MBEDTLS_ERR_SSL_WANT_WRITE)
-                return 0;
+                return pThis->next(send);
 
             return CHECK_ERROR(_ssl::setError(pThis->m_ret));
         }
@@ -73,14 +71,13 @@ private:
 
             exlib::string& m_send = pThis->m_pThis->m_send;
 
-            pThis->set(recv);
             if (m_send.empty())
-                return 0;
+                return pThis->next(recv);
 
             pThis->m_buf = new Buffer(m_send);
             m_send.resize(0);
 
-            return pThis->m_pThis->m_s->write(pThis->m_buf, pThis);
+            return pThis->m_pThis->m_s->write(pThis->m_buf, pThis->next(recv));
         }
 
         static int32_t recv(AsyncState* pState, int32_t n)
@@ -89,11 +86,10 @@ private:
 
             pThis->m_buf.Release();
 
-            pThis->set(process);
             if (pThis->m_ret == MBEDTLS_ERR_SSL_WANT_WRITE)
-                return 0;
+                return pThis->next(process);
 
-            return pThis->m_pThis->m_s->read(-1, pThis->m_buf, pThis);
+            return pThis->m_pThis->m_s->read(-1, pThis->m_buf, pThis->next(process));
         }
 
         static int32_t flush(AsyncState* pState, int32_t n)
@@ -105,14 +101,13 @@ private:
             pThis->m_buf = new Buffer(m_send);
             m_send.resize(0);
 
-            pThis->set(end);
-            return pThis->m_pThis->m_s->write(pThis->m_buf, pThis);
+            return pThis->m_pThis->m_s->write(pThis->m_buf, pThis->next(end));
         }
 
         static int32_t end(AsyncState* pState, int32_t n)
         {
             asyncSsl* pThis = (asyncSsl*)pState;
-            return pThis->done(pThis->finally());
+            return pThis->next(pThis->finally());
         }
 
     protected:

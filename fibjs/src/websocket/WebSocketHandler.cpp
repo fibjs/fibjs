@@ -45,7 +45,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_httpreq->get_response(m_httprep);
             m_httpreq->get_stream(m_stm);
 
-            set(handshake);
+            next(handshake);
         }
 
         static int32_t handshake(AsyncState* pState, int32_t n)
@@ -114,15 +114,12 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 pThis->m_compress = true;
             }
 
-            pThis->set(accept);
-            return pThis->m_httprep->sendTo(pThis->m_stm, pThis);
+            return pThis->m_httprep->sendTo(pThis->m_stm, pThis->next(accept));
         }
 
         static int32_t accept(AsyncState* pState, int32_t n)
         {
             asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            pThis->done(CALL_RETURN_NULL);
 
             obj_ptr<WebSocketHandler> pHandler = pThis->m_pThis;
             obj_ptr<WebSocket> sock = new WebSocket(pThis->m_stm, "", pThis);
@@ -134,6 +131,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             vs[1] = pThis->m_httpreq;
             pHandler->_emit("accept", vs, 2);
 
+            pThis->next(CALL_RETURN_NULL);
             return CALL_E_PENDDING;
         }
 

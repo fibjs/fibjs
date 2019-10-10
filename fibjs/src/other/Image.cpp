@@ -74,7 +74,7 @@ result_t gd_base::load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal,
             , m_stm(stm)
             , m_retVal(retVal)
         {
-            set(read);
+            next(read);
         }
 
         static int32_t read(AsyncState* pState, int32_t n)
@@ -91,8 +91,7 @@ result_t gd_base::load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal,
             if (hr < 0)
                 return hr;
 
-            pThis->set(load);
-            return pThis->m_stm->read((int32_t)len, pThis->m_buffer, pThis);
+            return pThis->m_stm->read((int32_t)len, pThis->m_buffer, pThis->next(load));
         }
 
         static int32_t load(AsyncState* pState, int32_t n)
@@ -108,7 +107,7 @@ result_t gd_base::load(SeekableStream_base* stm, obj_ptr<Image_base>& retVal,
                 return hr;
 
             pThis->m_retVal = img;
-            return pThis->done();
+            return pThis->next();
         }
 
     private:
@@ -134,31 +133,28 @@ result_t gd_base::load(exlib::string fname, obj_ptr<Image_base>& retVal,
             , m_fname(fname)
             , m_retVal(retVal)
         {
-            set(open);
+            next(open);
         }
 
         static int32_t open(AsyncState* pState, int32_t n)
         {
             asyncLoad* pThis = (asyncLoad*)pState;
 
-            pThis->set(read);
-            return fs_base::openFile(pThis->m_fname, "r", pThis->m_file, pThis);
+            return fs_base::openFile(pThis->m_fname, "r", pThis->m_file, pThis->next(read));
         }
 
         static int32_t read(AsyncState* pState, int32_t n)
         {
             asyncLoad* pThis = (asyncLoad*)pState;
 
-            pThis->set(close);
-            return load(pThis->m_file, pThis->m_retVal, pThis);
+            return load(pThis->m_file, pThis->m_retVal, pThis->next(close));
         }
 
         static int32_t close(AsyncState* pState, int32_t n)
         {
             asyncLoad* pThis = (asyncLoad*)pState;
 
-            pThis->done();
-            return pThis->m_file->close(pThis);
+            return pThis->m_file->close(pThis->next());
         }
 
     private:
@@ -554,23 +550,21 @@ result_t Image::save(Stream_base* stm, int32_t format, int32_t quality,
             , m_format(format)
             , m_quality(quality)
         {
-            set(getData);
+            next(getData);
         }
 
         static int32_t getData(AsyncState* pState, int32_t n)
         {
             asyncSave* pThis = (asyncSave*)pState;
 
-            pThis->set(save);
-            return pThis->m_pThis->getData(pThis->m_format, pThis->m_quality, pThis->m_buf, pThis);
+            return pThis->m_pThis->getData(pThis->m_format, pThis->m_quality, pThis->m_buf, pThis->next(save));
         }
 
         static int32_t save(AsyncState* pState, int32_t n)
         {
             asyncSave* pThis = (asyncSave*)pState;
 
-            pThis->done();
-            return pThis->m_stm->write(pThis->m_buf, pThis);
+            return pThis->m_stm->write(pThis->m_buf, pThis->next());
         }
 
     private:
@@ -603,31 +597,28 @@ result_t Image::save(exlib::string fname, int32_t format, int32_t quality,
             , m_format(format)
             , m_quality(quality)
         {
-            set(open);
+            next(open);
         }
 
         static int32_t open(AsyncState* pState, int32_t n)
         {
             asyncSave* pThis = (asyncSave*)pState;
 
-            pThis->set(save);
-            return fs_base::openFile(pThis->m_fname, "w", pThis->m_file, pThis);
+            return fs_base::openFile(pThis->m_fname, "w", pThis->m_file, pThis->next(save));
         }
 
         static int32_t save(AsyncState* pState, int32_t n)
         {
             asyncSave* pThis = (asyncSave*)pState;
 
-            pThis->set(close);
-            return pThis->m_pThis->save(pThis->m_file, pThis->m_format, pThis->m_quality, pThis);
+            return pThis->m_pThis->save(pThis->m_file, pThis->m_format, pThis->m_quality, pThis->next(close));
         }
 
         static int32_t close(AsyncState* pState, int32_t n)
         {
             asyncSave* pThis = (asyncSave*)pState;
 
-            pThis->done();
-            return pThis->m_file->close(pThis);
+            return pThis->m_file->close(pThis->next());
         }
 
     private:

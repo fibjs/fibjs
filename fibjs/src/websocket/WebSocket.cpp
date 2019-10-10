@@ -88,7 +88,7 @@ public:
 
     void start()
     {
-        set(lock_buffer_for_encode);
+        next(lock_buffer_for_encode);
         if (m_this->m_lockEncode.lock(this))
             apost(0);
     }
@@ -96,7 +96,8 @@ public:
     static int32_t lock_buffer_for_encode(AsyncState* pState, int32_t n)
     {
         asyncSend* pThis = (asyncSend*)pState;
-        pThis->set(encode);
+
+        pThis->next(encode);
         return pThis->lock(pThis->m_this->m_lockBuffer);
     }
 
@@ -107,8 +108,7 @@ public:
         if (!pThis->m_this->m_buffer)
             pThis->m_this->m_buffer = new MemoryStream();
 
-        pThis->set(encode_ok);
-        return pThis->m_msg->sendTo(pThis->m_this->m_buffer, pThis->m_this, pThis);
+        return pThis->m_msg->sendTo(pThis->m_this->m_buffer, pThis->m_this, pThis->next(encode_ok));
     }
 
     static int32_t encode_ok(AsyncState* pState, int32_t n)
@@ -117,14 +117,15 @@ public:
         pThis->unlock(pThis->m_this->m_lockBuffer);
         pThis->unlock(pThis->m_this->m_lockEncode);
 
-        pThis->set(lock_buffer_for_send);
+        pThis->next(lock_buffer_for_send);
         return pThis->lock(pThis->m_this->m_lockSend);
     }
 
     static int32_t lock_buffer_for_send(AsyncState* pState, int32_t n)
     {
         asyncSend* pThis = (asyncSend*)pState;
-        pThis->set(send);
+
+        pThis->next(send);
         return pThis->lock(pThis->m_this->m_lockBuffer);
     }
 
@@ -136,13 +137,11 @@ public:
         pThis->m_this->m_buffer.Release();
         pThis->unlock(pThis->m_this->m_lockBuffer);
 
-        pThis->set(ok);
-
         if (!pThis->m_buffer)
-            return 0;
+            return pThis->next(ok);
 
         pThis->m_buffer->rewind();
-        return pThis->m_buffer->copyTo(pThis->m_this->m_stream, -1, pThis->m_size, pThis);
+        return pThis->m_buffer->copyTo(pThis->m_this->m_stream, -1, pThis->m_size, pThis->next(ok));
     }
 
     static int32_t ok(AsyncState* pState, int32_t n)
@@ -155,7 +154,7 @@ public:
 
             pThis->m_this->endConnect(body);
         }
-        return pThis->done();
+        return pThis->next();
     }
 
     virtual int32_t error(int32_t v)
@@ -200,7 +199,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
         {
             m_isolate = isolate;
             m_this->isolate_ref();
-            set(handshake);
+            next(handshake);
         }
 
         virtual Isolate* isolate()
@@ -253,9 +252,8 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
                 6, (const char*)output, 20, pThis->m_accept);
 
-            pThis->set(response);
             return http_request2(pThis->m_hc, "GET", url, NULL, pThis->m_headers,
-                pThis->m_httprep, pThis);
+                pThis->m_httprep, pThis->next(response));
         }
 
         static int32_t response(AsyncState* pState, int32_t n)
@@ -321,7 +319,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 
             pThis->m_this->startRecv(pThis->m_isolate);
 
-            return pThis->done(0);
+            return pThis->next(0);
         }
 
         virtual int32_t error(int32_t v)
@@ -377,7 +375,7 @@ void WebSocket::startRecv(Isolate* isolate)
             if (m_this->m_holder == NULL)
                 m_this->m_holder = new ValueHolder(m_this->wrap());
             m_isolate = isolate;
-            set(recv);
+            next(recv);
         }
 
         ~asyncRead()
@@ -391,9 +389,7 @@ void WebSocket::startRecv(Isolate* isolate)
             asyncRead* pThis = (asyncRead*)pState;
 
             pThis->m_msg = new WebSocketMessage(ws_base::_TEXT, false, false, pThis->m_this->m_maxSize);
-
-            pThis->set(event);
-            return pThis->m_msg->readFrom(pThis->m_this->m_stream, pThis->m_this, pThis);
+            return pThis->m_msg->readFrom(pThis->m_this->m_stream, pThis->m_this, pThis->next(event));
         }
 
         static int32_t event(AsyncState* pState, int32_t n)
@@ -426,7 +422,7 @@ void WebSocket::startRecv(Isolate* isolate)
                 else
                     pThis->m_this->endConnect(body);
 
-                return pThis->done(0);
+                return pThis->next(0);
             }
             case ws_base::_TEXT:
             case ws_base::_BINARY: {
@@ -435,8 +431,7 @@ void WebSocket::startRecv(Isolate* isolate)
             }
             }
 
-            pThis->set(recv);
-            return 0;
+            return pThis->next(recv);
         }
 
         virtual int32_t error(int32_t v)

@@ -60,7 +60,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_req->set_maxHeadersCount(pThis->m_maxHeadersCount);
             m_req->set_maxBodySize(pThis->m_maxBodySize);
 
-            set(read);
+            next(read);
         }
 
         static int32_t read(AsyncState* pState, int32_t n)
@@ -71,15 +71,14 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_rep->get_keepAlive(bKeepAlive);
 
             if (!bKeepAlive)
-                return pThis->done(CALL_RETURN_NULL);
+                return pThis->next(CALL_RETURN_NULL);
 
             pThis->m_options = false;
 
             pThis->m_zip.Release();
             pThis->m_body.Release();
 
-            pThis->set(invoke);
-            return pThis->m_req->readFrom(pThis->m_stmBuffered, pThis);
+            return pThis->m_req->readFrom(pThis->m_stmBuffered, pThis->next(invoke));
         }
 
         static int32_t invoke(AsyncState* pState, int32_t n)
@@ -87,7 +86,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
             if (n == CALL_RETURN_NULL)
-                return pThis->done(CALL_RETURN_NULL);
+                return pThis->next(CALL_RETURN_NULL);
 
             exlib::string str;
 
@@ -101,7 +100,6 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_req->get_keepAlive(bKeepAlive);
             pThis->m_rep->set_keepAlive(bKeepAlive);
 
-            pThis->set(send);
             pThis->m_d.now();
 
             if (pThis->m_pThis->m_crossDomain) {
@@ -124,12 +122,12 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                             pThis->m_pThis->m_allowHeaders);
                         pThis->m_rep->setHeader("Access-Control-Max-Age", "1728000");
 
-                        return 0;
+                        return pThis->next(send);
                     }
                 }
             }
 
-            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis);
+            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis->next(send));
         }
 
         static int32_t send(AsyncState* pState, int32_t n)
@@ -156,9 +154,8 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             bool headOnly = !qstricmp(str.c_str(), "head");
 
             if (headOnly) {
-                pThis->set(end);
                 pThis->m_rep->set_keepAlive(false);
-                return pThis->m_rep->sendHeader(pThis->m_stm, pThis);
+                return pThis->m_rep->sendHeader(pThis->m_stm, pThis->next(end));
             }
 
             int64_t len;
@@ -203,18 +200,15 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                         pThis->m_zip = new MemoryStream();
 
-                        pThis->set(zip);
-
                         if (type == 1)
-                            return zlib_base::gzipTo(pThis->m_body, pThis->m_zip, pThis);
+                            return zlib_base::gzipTo(pThis->m_body, pThis->m_zip, pThis->next(zip));
                         else
-                            return zlib_base::deflateTo(pThis->m_body, pThis->m_zip, -1, pThis);
+                            return zlib_base::deflateTo(pThis->m_body, pThis->m_zip, -1, pThis->next(zip));
                     }
                 }
             }
 
-            pThis->set(end);
-            return pThis->m_rep->sendTo(pThis->m_stm, pThis);
+            return pThis->m_rep->sendTo(pThis->m_stm, pThis->next(end));
         }
 
         static int32_t zip(AsyncState* pState, int32_t n)
@@ -222,9 +216,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
             pThis->m_rep->set_body(pThis->m_zip);
-
-            pThis->set(end);
-            return pThis->m_rep->sendTo(pThis->m_stm, pThis);
+            return pThis->m_rep->sendTo(pThis->m_stm, pThis->next(end));
         }
 
         static int32_t end(AsyncState* pState, int32_t n)
@@ -234,16 +226,15 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (!pThis->m_body)
                 pThis->m_rep->get_body(pThis->m_body);
 
-            pThis->set(read);
             if (!pThis->m_body)
-                return 0;
+                return pThis->next(read);
 
-            return pThis->m_body->close(pThis);
+            return pThis->m_body->close(pThis->next(read));
         }
 
         virtual int32_t error(int32_t v)
         {
-            if (is(send)) {
+            if (at(invoke)) {
                 exlib::string err = getResultMessage(v);
 
                 m_req->set_lastError(err);
@@ -253,15 +244,15 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 return 0;
             }
 
-            if (is(invoke)) {
+            if (at(read)) {
                 m_rep->set_keepAlive(false);
                 m_rep->set_statusCode(400);
-                set(send);
+                next(send);
                 m_d.now();
                 return 0;
             }
 
-            return done(CALL_RETURN_NULL);
+            return next(CALL_RETURN_NULL);
         }
 
     private:

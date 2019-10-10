@@ -30,7 +30,7 @@ public:
             m_hdrs.resize(1);
             m_hdrs[0] = hdlr;
 
-            set(invoke);
+            next(invoke);
         }
 
         asyncInvoke(QuickArray<obj_ptr<Handler_base>>& hdlrs, object_base* v, AsyncEvent* ac)
@@ -47,7 +47,7 @@ public:
             for (i = 0; i < (int32_t)hdlrs.size(); i++)
                 m_hdrs[i] = hdlrs[i];
 
-            set(invoke);
+            next(invoke);
         }
 
     public:
@@ -64,7 +64,7 @@ public:
                 if (pThis->m_msg)
                     pThis->m_msg->isEnded(end);
                 if (end || (pThis->m_pos == (int32_t)pThis->m_hdrs.size()))
-                    return pThis->done(CALL_RETURN_NULL);
+                    return pThis->next(CALL_RETURN_NULL);
 
                 pThis->m_next = pThis->m_hdrs[pThis->m_pos++];
             }
@@ -73,7 +73,7 @@ public:
                 Runtime::setError(pThis->m_message);
 
             if (pThis->m_hr < 0)
-                return pThis->m_hr;
+                return pThis->next(pThis->m_hr);
 
             pThis->m_hdlr = pThis->m_next;
             pThis->m_next.Release();

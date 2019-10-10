@@ -165,10 +165,10 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             path_posix_base::normalize(m_value, m_value);
 
             if (!qstrcmp(m_value.c_str(), "../", 3) || qstrchr(m_value.c_str(), '\\')) {
-                set(stop);
+                next(stop);
             } else {
                 path_base::normalize(m_pThis->m_root + m_value, m_url);
-                set(start);
+                next(start);
             }
         }
 
@@ -178,7 +178,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             if (qstrchr(pThis->m_url.c_str(), '%')) {
                 pThis->m_rep->set_statusCode(400);
-                return pThis->done(CALL_RETURN_NULL);
+                return pThis->next(CALL_RETURN_NULL);
             }
 
             pThis->m_path = pThis->m_url;
@@ -188,8 +188,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 pThis->m_index = true;
             }
 
-            pThis->set(open);
-            return fs_base::openFile(pThis->m_path, "r", pThis->m_file, pThis);
+            return fs_base::openFile(pThis->m_path, "r", pThis->m_file, pThis->next(open));
         }
 
         static int32_t stop(AsyncState* pState, int32_t n)
@@ -197,7 +196,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
             pThis->m_rep->set_statusCode(400);
-            return pThis->done(CALL_RETURN_NULL);
+            return pThis->next(CALL_RETURN_NULL);
         }
 
         static int32_t autoindex(AsyncState* pState, int32_t n)
@@ -205,8 +204,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
             pThis->m_path = pThis->m_url;
-            pThis->set(list_stat);
-            return fs_base::readdir(pThis->m_path, pThis->m_dir, pThis);
+            return fs_base::readdir(pThis->m_path, pThis->m_dir, pThis->next(list_stat));
         }
 
         static int32_t list_stat(AsyncState* pState, int32_t n)
@@ -264,7 +262,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 pThis->m_rep->set_body(pThis->m_file);
                 pThis->m_rep->addHeader("Content-Type", "text/html");
 
-                return pThis->done(CALL_RETURN_NULL);
+                return pThis->next(CALL_RETURN_NULL);
             }
 
             Variant v;
@@ -309,8 +307,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 }
             }
 
-            pThis->set(stat);
-            return pThis->m_file->stat(pThis->m_stat, pThis);
+            return pThis->m_file->stat(pThis->m_stat, pThis->next(stat));
         }
 
         static int32_t stat(AsyncState* pState, int32_t n)
@@ -332,7 +329,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 if (diff > -1000 && diff < 1000) {
                     pThis->m_rep->set_statusCode(304);
-                    return pThis->done(CALL_RETURN_NULL);
+                    return pThis->next(CALL_RETURN_NULL);
                 }
             }
 
@@ -341,24 +338,22 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             pThis->m_rep->addHeader("Last-Modified", lastModified);
             pThis->m_rep->set_body(pThis->m_file);
 
-            return pThis->done(CALL_RETURN_NULL);
+            return pThis->next(CALL_RETURN_NULL);
         }
 
         virtual int32_t error(int32_t v)
         {
-            if (is(open)) {
+            if (at(start)) {
                 if (m_index) {
                     m_index = false;
 
-                    if (m_autoIndex) {
-                        set(autoindex);
-                        return 0;
-                    }
+                    if (m_autoIndex)
+                        return next(autoindex);
                 }
             }
 
             m_rep->set_statusCode(404);
-            return done(CALL_RETURN_NULL);
+            return next(CALL_RETURN_NULL);
         }
 
     private:

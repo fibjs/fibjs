@@ -79,7 +79,7 @@ result_t TcpServer::run(AsyncEvent* ac)
             , m_sock(pSock)
             , m_holder(holder)
         {
-            set(invoke);
+            next(invoke);
         }
 
     public:
@@ -87,23 +87,20 @@ result_t TcpServer::run(AsyncEvent* ac)
         {
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
-            pThis->set(close);
-            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_sock, pThis);
+            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_sock, pThis->next(close));
         }
 
         static int32_t close(AsyncState* pState, int32_t n)
         {
             asyncInvoke* pThis = (asyncInvoke*)pState;
 
-            pThis->done();
-            return pThis->m_sock->close(pThis);
+            return pThis->m_sock->close(pThis->next());
         }
 
         virtual int32_t error(int32_t v)
         {
             errorLog("TcpServer: " + getResultMessage(v));
-            set(close);
-            return 0;
+            return next(close);
         }
 
         virtual Isolate* isolate()
@@ -125,7 +122,7 @@ result_t TcpServer::run(AsyncEvent* ac)
             , m_pThis(pThis)
             , m_holder(ac->m_ctx[0].object())
         {
-            set(accept);
+            next(accept);
         }
 
     public:
@@ -133,8 +130,7 @@ result_t TcpServer::run(AsyncEvent* ac)
         {
             asyncAccept* pThis = (asyncAccept*)pState;
 
-            pThis->set(invoke);
-            return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
+            return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis->next(invoke));
         }
 
         static int32_t invoke(AsyncState* pState, int32_t n)
@@ -193,7 +189,7 @@ result_t TcpServer::asyncRun()
             : AsyncState(NULL)
             , m_pThis(pThis)
         {
-            set(accept);
+            next(accept);
         }
 
     public:

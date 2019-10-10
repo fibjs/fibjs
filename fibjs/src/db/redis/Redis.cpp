@@ -76,9 +76,8 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
             , m_retVal(retVal)
         {
             m_subMode = pThis->m_subMode;
-
             m_stmBuffered = pThis->m_stmBuffered;
-            set(send);
+            next(send);
         }
 
         asyncCommand(Redis* pThis)
@@ -87,9 +86,8 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
             , m_retVal(m_val)
         {
             m_subMode = pThis->m_subMode;
-
             m_stmBuffered = pThis->m_stmBuffered;
-            set(read);
+            next(read);
         }
 
         static int32_t send(AsyncState* pState, int32_t n)
@@ -97,9 +95,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
             asyncCommand* pThis = (asyncCommand*)pState;
 
             pThis->m_buffer = new Buffer(pThis->m_req);
-
-            pThis->set(read);
-            return pThis->m_stmBuffered->write(pThis->m_buffer, pThis);
+            return pThis->m_stmBuffered->write(pThis->m_buffer, pThis->next(read));
         }
 
         static int32_t read(AsyncState* pState, int32_t n)
@@ -107,10 +103,9 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
             asyncCommand* pThis = (asyncCommand*)pState;
 
             if (pThis->m_subMode == 2)
-                return pThis->done(n);
+                return pThis->next(n);
 
-            pThis->set(read_ok);
-            return pThis->m_stmBuffered->readLine(REDIS_MAX_LINE, pThis->m_strLine, pThis);
+            return pThis->m_stmBuffered->readLine(REDIS_MAX_LINE, pThis->m_strLine, pThis->next(read_ok));
         }
 
         void _emit()
@@ -171,8 +166,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
 
                 if (m_counts[idx]) {
                     m_val.clear();
-                    set(read);
-                    return 0;
+                    return next(read);
                 }
 
                 m_val = m_lists[idx];
@@ -183,18 +177,17 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
             }
 
             if (hr < 0)
-                return done(hr);
+                return next(hr);
 
             if (m_subMode == 0) {
                 m_retVal = m_val;
-                return done(hr);
+                return next(hr);
             }
 
             _emit();
 
             m_val.clear();
-            set(read);
-            return 0;
+            return next(read);
         }
 
         static int32_t read_ok(AsyncState* pState, int32_t n)
@@ -227,8 +220,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
                     return pThis->setResult(CALL_RETURN_NULL);
                 }
 
-                pThis->set(bulk_ok);
-                return pThis->m_stmBuffered->read(sz + 2, pThis->m_buffer, pThis);
+                return pThis->m_stmBuffered->read(sz + 2, pThis->m_buffer, pThis->next(bulk_ok));
             }
 
             if (ch == '*') {
@@ -247,8 +239,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
                 pThis->m_lists.append(new NArray());
                 pThis->m_counts.append(sz);
 
-                pThis->set(read);
-                return 0;
+                return pThis->next(read);
             }
 
             return CHECK_ERROR(Runtime::setError("Redis: Invalid response."));

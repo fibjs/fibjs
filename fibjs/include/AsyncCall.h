@@ -184,27 +184,54 @@ public:
         : m_ac(ac)
         , m_bAsyncState(false)
         , m_state(NULL)
+        , m_next(NULL)
     {
         setAsync();
     }
 
 public:
-    void set(int32_t (*fn)(AsyncState*, int32_t))
+    class ASResult {
+    public:
+        ASResult(AsyncState* as, int32_t r)
+            : m_as(as)
+            , m_r(r)
+        {
+        }
+
+        operator AsyncState*() const
+        {
+            return m_as;
+        }
+
+        operator int32_t() const
+        {
+            return m_r;
+        }
+
+    private:
+        AsyncState* m_as;
+        int32_t m_r;
+    };
+
+public:
+    ASResult next(int32_t (*fn)(AsyncState*, int32_t), int32_t r = 0)
     {
-        m_state = fn;
+        m_next = fn;
+        return ASResult(this, r);
     }
 
-    bool is(int32_t (*fn)(AsyncState*, int32_t))
+    ASResult next(int32_t r = 0)
+    {
+        m_next = NULL;
+        return ASResult(this, r);
+    }
+
+    bool at(int32_t (*fn)(AsyncState*, int32_t))
     {
         return m_state == fn;
     }
 
-    int32_t done(int32_t v = 0)
-    {
-        m_state = NULL;
-        return v;
-    }
-
+public:
     virtual int32_t post(int32_t v)
     {
         result_t hr = v;
@@ -217,7 +244,7 @@ public:
             if (hr < 0)
                 hr = error(hr);
 
-            if (hr < 0 || !m_state) {
+            if (hr < 0 || !m_next) {
                 if (bAsyncState && m_ac)
                     m_ac->post(hr);
 
@@ -225,6 +252,7 @@ public:
                 return hr;
             }
 
+            m_state = m_next;
             hr = m_state(this, hr);
         } while (hr != CALL_E_PENDDING);
 
@@ -274,6 +302,7 @@ private:
     bool m_bAsyncState;
     int32_t m_v;
     int32_t (*m_state)(AsyncState*, int32_t);
+    int32_t (*m_next)(AsyncState*, int32_t);
 };
 
 template <typename T, typename T1>

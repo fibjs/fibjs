@@ -162,7 +162,7 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
         {
             m_pThis->_emit("listening", NULL, 0);
             m_pThis->isolate_ref();
-            set(recv);
+            next(recv);
         }
 
         ~asyncRecv()
@@ -357,7 +357,7 @@ result_t DgramSocket::close()
             : AsyncState(NULL)
             , m_pThis(pThis)
         {
-            set(close);
+            next(close);
         }
 
     public:
@@ -365,8 +365,7 @@ result_t DgramSocket::close()
         {
             asyncClose* pThis = (asyncClose*)pState;
 
-            pThis->set(closed);
-            return pThis->m_pThis->m_aio.close(pThis);
+            return pThis->m_pThis->m_aio.close(pThis->next(closed));
         }
 
         static int32_t closed(AsyncState* pState, int32_t n)
@@ -374,7 +373,7 @@ result_t DgramSocket::close()
             asyncClose* pThis = (asyncClose*)pState;
 
             pThis->m_pThis->_emit("close", NULL, 0);
-            return pThis->done();
+            return pThis->next();
         }
 
         virtual int32_t error(int32_t v)

@@ -19,7 +19,7 @@ public:
         , m_streamEnd(false)
         , m_pThis(pThis)
     {
-        set(process);
+        next(process);
     }
 
     virtual result_t process(bool end)
@@ -38,10 +38,9 @@ public:
         }
 
         if (hr != CALL_E_PENDDING)
-            return pThis->done(hr);
+            return pThis->next(hr);
 
-        pThis->set(ready);
-        return pThis->m_pThis->m_stm->read(-1, pThis->m_buf, pThis);
+        return pThis->m_pThis->m_stm->read(-1, pThis->m_buf, pThis->next(ready));
     }
 
     static int32_t ready(AsyncState* pState, int32_t n)

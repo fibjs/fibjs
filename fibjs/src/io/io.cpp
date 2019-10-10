@@ -30,7 +30,7 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
                   retVal)
         {
             m_retVal = 0;
-            set(read);
+            next(read);
         }
 
         static int32_t read(AsyncState* pState, int32_t n)
@@ -38,10 +38,8 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
             asyncCopy* pThis = (asyncCopy*)pState;
             int64_t len;
 
-            pThis->set(write);
-
             if (pThis->m_bytes == 0)
-                return pThis->done();
+                return pThis->next();
 
             if (pThis->m_bytes < 0)
                 len = -1;
@@ -51,7 +49,7 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
                 len = pThis->m_bytes;
 
             pThis->m_buf.Release();
-            return pThis->m_from->read((int32_t)len, pThis->m_buf, pThis);
+            return pThis->m_from->read((int32_t)len, pThis->m_buf, pThis->next(write));
         }
 
         static int32_t write(AsyncState* pState, int32_t n)
@@ -59,10 +57,8 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
             asyncCopy* pThis = (asyncCopy*)pState;
             int32_t blen;
 
-            pThis->set(read);
-
             if (n == CALL_RETURN_NULL)
-                return pThis->done();
+                return pThis->next();
 
             pThis->m_buf->get_length(blen);
             pThis->m_retVal += blen;
@@ -70,7 +66,7 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
             if (pThis->m_bytes > 0)
                 pThis->m_bytes -= blen;
 
-            return pThis->m_to->write(pThis->m_buf, pThis);
+            return pThis->m_to->write(pThis->m_buf, pThis->next(read));
         }
 
     public:
@@ -103,7 +99,7 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
                 , m_from(idx)
                 , m_to(1 - idx)
             {
-                set(read);
+                next(read);
             }
 
             static int32_t read(AsyncState* pState, int32_t n)
@@ -117,9 +113,8 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
                     != BRIDGE_WRITE)
                     return pThis->error(0);
 
-                pThis->set(write);
                 return pThis->m_data->m_stms[pThis->m_from]->read(-1,
-                    pThis->m_buf, pThis);
+                    pThis->m_buf, pThis->next(write));
             }
 
             static int32_t write(AsyncState* pState, int32_t n)
@@ -134,16 +129,14 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
                     != BRIDGE_READ)
                     return pThis->error(0);
 
-                pThis->set(read);
-                return pThis->m_data->m_stms[pThis->m_to]->write(pThis->m_buf, pThis);
+                return pThis->m_data->m_stms[pThis->m_to]->write(pThis->m_buf, pThis->next(read));
             }
 
             static int32_t cancel(AsyncState* pState, int32_t n)
             {
                 AsyncCopy* pThis = (AsyncCopy*)pState;
 
-                pThis->set(end);
-                return pThis->m_data->m_stms[pThis->m_to]->close(pThis);
+                return pThis->m_data->m_stms[pThis->m_to]->close(pThis->next(end));
             }
 
             static int32_t end(AsyncState* pState, int32_t n)
@@ -156,12 +149,11 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
             {
                 if (m_data->m_states[m_from].xchg(BRIDGE_DONE) == BRIDGE_READ) {
                     m_data->m_states[m_to].xchg(BRIDGE_DONE);
-                    set(cancel);
-                    return 0;
+                    return next(cancel);
                 }
 
                 m_data->release();
-                return done();
+                return next();
             }
 
         public:

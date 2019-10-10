@@ -62,7 +62,7 @@ result_t SubProcess::close(AsyncEvent* ac)
             , m_stdin(pipein)
             , m_stdout(pipeout)
         {
-            set(close_in);
+            next(close_in);
         }
 
     public:
@@ -70,16 +70,14 @@ result_t SubProcess::close(AsyncEvent* ac)
         {
             asyncClose* pThis = (asyncClose*)pState;
 
-            pThis->set(close_out);
-            return pThis->m_stdin->close(pThis);
+            return pThis->m_stdin->close(pThis->next(close_out));
         }
 
         static int32_t close_out(AsyncState* pState, int32_t n)
         {
             asyncClose* pThis = (asyncClose*)pState;
 
-            pThis->set(0);
-            return pThis->m_stdout->close(pThis);
+            return pThis->m_stdout->close(pThis->next());
         }
 
     private:

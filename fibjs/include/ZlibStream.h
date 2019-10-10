@@ -31,7 +31,7 @@ private:
             pThis->strm.avail_in = (int32_t)m_strBuf.length();
             pThis->strm.next_in = (unsigned char*)m_strBuf.c_str();
 
-            set(process);
+            next(process);
         }
 
         asyncWrite(ZlibStream* pThis, Stream_base* stm, int32_t flush, AsyncEvent* ac)
@@ -43,7 +43,7 @@ private:
             pThis->strm.avail_in = 0;
             pThis->strm.next_in = (unsigned char*)m_strBuf.c_str();
 
-            set(process);
+            next(process);
         }
 
         static int32_t process(AsyncState* pState, int32_t n)
@@ -56,10 +56,10 @@ private:
                 return CHECK_ERROR(Runtime::setError(zError(err)));
 
             if (pThis->m_pThis->strm.avail_out == ZLIB_CHUNK)
-                return pThis->done();
+                return pThis->next();
 
             if (pThis->m_pThis->strm.avail_in == 0 && pThis->m_flush == Z_NO_FLUSH)
-                return pThis->done();
+                return pThis->next();
 
             int32_t size = ZLIB_CHUNK - pThis->m_pThis->strm.avail_out;
             if (pThis->m_pThis->m_maxSize >= 0) {
@@ -148,23 +148,21 @@ public:
                 m_stm = new MemoryStream();
                 m_pThis->m_stm = m_stm;
 
-                set(write);
+                next(write);
             }
 
             static int32_t write(AsyncState* pState, int32_t n)
             {
                 asyncProcess* pThis = (asyncProcess*)pState;
 
-                pThis->set(write_ok);
-                return pThis->m_pThis->write(pThis->m_data, pThis);
+                return pThis->m_pThis->write(pThis->m_data, pThis->next(write_ok));
             }
 
             static int32_t write_ok(AsyncState* pState, int32_t n)
             {
                 asyncProcess* pThis = (asyncProcess*)pState;
 
-                pThis->set(read);
-                return pThis->m_pThis->close(pThis);
+                return pThis->m_pThis->close(pThis->next(read));
             }
 
             static int32_t read(AsyncState* pState, int32_t n)
@@ -172,8 +170,7 @@ public:
                 asyncProcess* pThis = (asyncProcess*)pState;
 
                 pThis->m_stm->rewind();
-                pThis->done();
-                return pThis->m_stm->readAll(pThis->m_retVal, pThis);
+                return pThis->m_stm->readAll(pThis->m_retVal, pThis->next());
             }
 
         private:
@@ -195,23 +192,21 @@ public:
                 , m_pThis(pThis)
                 , m_data(data)
             {
-                set(write);
+                next(write);
             }
 
             static int32_t write(AsyncState* pState, int32_t n)
             {
                 asyncProcess* pThis = (asyncProcess*)pState;
 
-                pThis->set(write_ok);
-                return pThis->m_pThis->write(pThis->m_data, pThis);
+                return pThis->m_pThis->write(pThis->m_data, pThis->next(write_ok));
             }
 
             static int32_t write_ok(AsyncState* pState, int32_t n)
             {
                 asyncProcess* pThis = (asyncProcess*)pState;
 
-                pThis->done();
-                return pThis->m_pThis->close(pThis);
+                return pThis->m_pThis->close(pThis->next());
             }
 
         private:
@@ -231,23 +226,21 @@ public:
                 , m_pThis(pThis)
                 , m_src(src)
             {
-                set(copy);
+                next(copy);
             }
 
             static int32_t copy(AsyncState* pState, int32_t n)
             {
                 asyncProcess* pThis = (asyncProcess*)pState;
 
-                pThis->set(copy_ok);
-                return pThis->m_src->copyTo(pThis->m_pThis, -1, pThis->m_size, pThis);
+                return pThis->m_src->copyTo(pThis->m_pThis, -1, pThis->m_size, pThis->next(copy_ok));
             }
 
             static int32_t copy_ok(AsyncState* pState, int32_t n)
             {
                 asyncProcess* pThis = (asyncProcess*)pState;
 
-                pThis->done();
-                return pThis->m_pThis->close(pThis);
+                return pThis->m_pThis->close(pThis->next());
             }
 
         private:

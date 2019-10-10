@@ -263,7 +263,7 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
             , m_timer(timer)
             , m_retVal(retVal)
         {
-            set(wait);
+            next(wait);
         }
 
     public:
@@ -271,7 +271,7 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
         {
             asyncWaitHandle* pThis = (asyncWaitHandle*)pState;
 
-            pThis->set(result);
+            pThis->next(result);
             BOOL result = RegisterWaitForSingleObject(&pThis->m_hWait, pThis->m_hProcess, OnExited, pThis, INFINITE, WT_EXECUTEONLYONCE);
             if (!result)
                 return CHECK_ERROR(LastError());
