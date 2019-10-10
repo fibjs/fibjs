@@ -442,6 +442,8 @@ static void RegMainClass()
 
 WebView::WebView(exlib::string url, NObject* opt)
 {
+    holder()->Ref();
+
     m_url = url;
     m_opt = opt;
 
@@ -726,6 +728,8 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
             Variant v = new EventInfo(webView1, "closed");
             webView1->_emit("closed", &v, 1);
 
+            webView1->holder()->Unref();
+
             webView1->clear();
             webView1->Release();
         }
@@ -815,15 +819,6 @@ result_t WebView::close(AsyncEvent* ac)
 
     PostMessage(hWndParent, WM_CLOSE, 0, 0);
     return 0;
-}
-
-result_t WebView::wait(AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_GUICALL);
-
-    m_ac = ac;
-    return CALL_E_PENDDING;
 }
 
 result_t WebView::postClose(_variant_t& retVal)

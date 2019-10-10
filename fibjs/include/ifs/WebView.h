@@ -27,7 +27,6 @@ public:
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac) = 0;
     virtual result_t print(int32_t mode, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
-    virtual result_t wait(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
     virtual result_t get_visible(bool& retVal) = 0;
     virtual result_t set_visible(bool newVal) = 0;
@@ -57,7 +56,6 @@ public:
     static void s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_print(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_visible(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_visible(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
@@ -76,7 +74,6 @@ public:
     ASYNC_MEMBER1(WebView_base, setHtml, exlib::string);
     ASYNC_MEMBER1(WebView_base, print, int32_t);
     ASYNC_MEMBER0(WebView_base, close);
-    ASYNC_MEMBER0(WebView_base, wait);
     ASYNC_MEMBER1(WebView_base, postMessage, exlib::string);
 };
 }
@@ -91,8 +88,6 @@ inline ClassInfo& WebView_base::class_info()
         { "printSync", s_print, false },
         { "close", s_close, false },
         { "closeSync", s_close, false },
-        { "wait", s_wait, false },
-        { "waitSync", s_wait, false },
         { "postMessage", s_postMessage, false },
         { "postMessageSync", s_postMessage, false }
     };
@@ -167,23 +162,6 @@ inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = CALL_RETURN_NULL;
     } else
         hr = pInst->ac_close();
-
-    METHOD_VOID();
-}
-
-inline void WebView_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("WebView.wait");
-    METHOD_INSTANCE(WebView_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(0, 0);
-
-    if (!cb.IsEmpty()) {
-        pInst->acb_wait(cb);
-        hr = CALL_RETURN_NULL;
-    } else
-        hr = pInst->ac_wait();
 
     METHOD_VOID();
 }

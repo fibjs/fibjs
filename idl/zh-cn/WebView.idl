@@ -63,11 +63,6 @@ interface WebView : EventEmitter
     /*! @brief 关闭当前窗口 */
     close() async;
 
-    /*! @brief 等待当前窗口关闭	
-	宿主程序在创建窗口后，需要进入等待，否则随着宿主程序的退出，窗口将自动关闭。同时 wait 的调用也并不是必须的，你可以在打开窗口后处理其它业务，只需要保证程序不会自行退出即可。
-	*/
-    wait() async;
-
     /*! @brief 向 webview 内发送消息
      postMessage 需要在窗口加载完成后发送消息，在此之前发送的消息会丢失。因此建议在 onload 事件触发后再调用此方法。
 	 @param msg 要发送的消息

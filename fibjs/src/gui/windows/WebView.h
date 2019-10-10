@@ -48,7 +48,6 @@ public:
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
     virtual result_t print(int32_t mode, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
-    virtual result_t wait(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
     virtual result_t get_visible(bool& retVal);
     virtual result_t set_visible(bool newVal);

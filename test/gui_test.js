@@ -7,8 +7,7 @@ var path = require("path");
 
 var win = process.platform === 'win32';
 
-var html =
-    `<html>
+var html = `<html>
 <script>
     external.onmessage = function(m) {
         external.postMessage('send back: ' + m)
@@ -19,7 +18,9 @@ var html =
         if(first)
         {
             first = false;
-            external.postMessage('try close')
+            setTimeout(function() {
+                external.postMessage('try close');
+            }, 10);
             return false;
         }
     }
@@ -54,7 +55,6 @@ if (win) {
                     win.close();
                     win = undefined;
                 } else {
-
                     win.close();
                 }
             };
@@ -72,12 +72,9 @@ if (win) {
 
             assert.ok(check);
 
-            for (var i = 0; i < 1000 && test_util.countObject('WebView'); i++) {
-                coroutine.sleep(100);
+            for (var i = 0; i < 1000 && test_util.countObject('WebView'); i++)
                 test_util.gc();
-            }
 
-            test_util.gc();
             assert.equal(test_util.countObject('WebView'), 0);
             assert.equal(closed, true);
             assert.equal(cnt, 2);
