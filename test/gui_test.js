@@ -35,6 +35,14 @@ if (win) {
     var base_port = coroutine.vmid * 10000;
 
     describe("gui", () => {
+        var ss = [];
+
+        after(() => {
+            ss.forEach((s) => {
+                s.close();
+            });
+        });
+
         it("webview", () => {
             var check = false;
             var closed = false;
@@ -43,6 +51,7 @@ if (win) {
                 r.response.write(html);
             });
             svr.start();
+            ss.push(svr.socket);
 
             var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
 
