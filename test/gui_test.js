@@ -42,7 +42,7 @@ if (win) {
                 check = true;
                 r.response.write(html);
             });
-            svr.asyncRun();
+            svr.start();
 
             var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
 

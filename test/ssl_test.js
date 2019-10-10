@@ -102,7 +102,7 @@ describe('ssl', () => {
                 s.close();
             }
         });
-        svr.asyncRun();
+        svr.start();
 
         ss.push(svr.socket);
     });
@@ -230,7 +230,7 @@ describe('ssl', () => {
             s.close();
         });
         ss.push(svr.socket);
-        svr.asyncRun();
+        svr.start();
 
         function t_conn() {
             var c1 = new net.Socket();
@@ -266,7 +266,7 @@ describe('ssl', () => {
                 s.write(buf);
         }));
         ss.push(svr.socket);
-        svr.asyncRun();
+        svr.start();
 
         for (var i = 0; i < 10; i++) {
             var s1 = new net.Socket();
@@ -291,7 +291,7 @@ describe('ssl', () => {
                 s.write(buf);
         });
         ss.push(svr.socket);
-        svr.asyncRun();
+        svr.start();
 
         for (var i = 0; i < 10; i++) {
             var s1 = new net.Socket();

@@ -69,11 +69,11 @@ result_t TcpServer::create(exlib::string addr, int32_t port,
     return 0;
 }
 
-result_t TcpServer::run(AsyncEvent* ac)
+result_t TcpServer::start()
 {
     class asyncInvoke : public AsyncState {
     public:
-        asyncInvoke(TcpServer* pThis, Socket_base* pSock, object_base* holder)
+        asyncInvoke(TcpServer* pThis, Socket_base* pSock, ValueHolder* holder)
             : AsyncState(NULL)
             , m_pThis(pThis)
             , m_sock(pSock)
@@ -112,16 +112,17 @@ result_t TcpServer::run(AsyncEvent* ac)
         obj_ptr<TcpServer> m_pThis;
         obj_ptr<Socket_base> m_sock;
         obj_ptr<Handler_base> m_hdlr;
-        obj_ptr<object_base> m_holder;
+        obj_ptr<ValueHolder> m_holder;
     };
 
     class asyncAccept : public AsyncState {
     public:
-        asyncAccept(TcpServer* pThis, AsyncEvent* ac)
-            : AsyncState(ac)
+        asyncAccept(TcpServer* pThis, ValueHolder* holder)
+            : AsyncState(NULL)
             , m_pThis(pThis)
-            , m_holder(ac->m_ctx[0].object())
+            , m_holder(holder)
         {
+            m_pThis->holder()->Ref();
             next(accept);
         }
 
@@ -130,25 +131,27 @@ result_t TcpServer::run(AsyncEvent* ac)
         {
             asyncAccept* pThis = (asyncAccept*)pState;
 
-            return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis->next(invoke));
+            return pThis->m_pThis->m_socket->accept(pThis->m_accept, pThis->next(invoke));
         }
 
         static int32_t invoke(AsyncState* pState, int32_t n)
         {
             asyncAccept* pThis = (asyncAccept*)pState;
 
-            if (pThis->m_retVal) {
-                (new asyncInvoke(pThis->m_pThis, pThis->m_retVal, pThis->m_holder))->apost(0);
-                pThis->m_retVal.Release();
+            if (pThis->m_accept) {
+                (new asyncInvoke(pThis->m_pThis, pThis->m_accept, pThis->m_holder))->apost(0);
+                pThis->m_accept.Release();
             }
 
-            return pThis->m_pThis->m_socket->accept(pThis->m_retVal, pThis);
+            return pThis->m_pThis->m_socket->accept(pThis->m_accept, pThis);
         }
 
         virtual int32_t error(int32_t v)
         {
-            if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL)
-                return v;
+            if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL) {
+                m_pThis->holder()->Unref();
+                return next();
+            }
 
             errorLog("TcpServer: " + getResultMessage(v));
             return 0;
@@ -156,69 +159,20 @@ result_t TcpServer::run(AsyncEvent* ac)
 
     private:
         obj_ptr<TcpServer> m_pThis;
-        obj_ptr<Socket_base> m_retVal;
-        obj_ptr<object_base> m_holder;
+        obj_ptr<Socket_base> m_accept;
+        obj_ptr<ValueHolder> m_holder;
     };
-
-    if (ac->isSync()) {
-        obj_ptr<Holder> h = new Holder();
-        h->setJSObject();
-        h->m_server.Reset(holder()->m_isolate, wrap());
-
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = h;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
 
     if (!m_socket)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (m_running)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     m_running = true;
 
-    return (new asyncAccept(this, ac))->post(0);
-}
-
-result_t TcpServer::asyncRun()
-{
-    class asyncCall : public AsyncState {
-    public:
-        asyncCall(TcpServer* pThis)
-            : AsyncState(NULL)
-            , m_pThis(pThis)
-        {
-            next(accept);
-        }
-
-    public:
-        static int32_t accept(AsyncState* pState, int32_t n)
-        {
-            asyncCall* pThis = (asyncCall*)pState;
-            return pThis->m_pThis->run(pThis);
-        }
-
-    private:
-        obj_ptr<TcpServer> m_pThis;
-    };
-
-    if (!m_socket)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (m_running)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    AsyncEvent* ac = new asyncCall(this);
-
-    obj_ptr<Holder> h = new Holder();
-    h->setJSObject();
-    h->m_server.Reset(holder()->m_isolate, wrap());
-
-    ac->m_ctx.resize(1);
-    ac->m_ctx[0] = h;
-
-    ac->apost(0);
+    obj_ptr<ValueHolder> holder = new ValueHolder(wrap());
+    (new asyncAccept(this, holder))->apost(0);
     return 0;
 }
 

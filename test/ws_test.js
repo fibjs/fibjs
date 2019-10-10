@@ -273,7 +273,7 @@ describe('ws', () => {
                 })
             });
             ss.push(httpd.socket);
-            httpd.run(() => {});
+            httpd.start();
         });
 
         describe("handshake", () => {
@@ -517,7 +517,7 @@ describe('ws', () => {
                 }
             }]);
             ss.push(httpd.socket);
-            httpd.run(() => {});
+            httpd.start();
         });
 
         it('init property', () => {
@@ -703,7 +703,7 @@ describe('ws', () => {
                 })
             });
             ss.push(httpd.socket);
-            httpd.run(() => {});
+            httpd.start();
 
             var t = false;
             var msg;
@@ -911,7 +911,7 @@ describe('ws', () => {
                 });
 
                 ss.push(httpd.socket);
-                httpd.run(() => {});
+                httpd.start();
 
                 assert.equal(test_util.countObject('WebSocket'), no1);
 
@@ -950,7 +950,7 @@ describe('ws', () => {
                 });
 
                 ss.push(httpd.socket);
-                httpd.run(() => {});
+                httpd.start();
 
                 test_util.gc();
                 assert.equal(test_util.countObject('WebSocket'), no1);

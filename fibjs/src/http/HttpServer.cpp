@@ -56,14 +56,9 @@ result_t HttpServer::create(exlib::string addr, int32_t port, Handler_base* hdlr
     return _server->create(addr, port, _handler);
 }
 
-result_t HttpServer::run(AsyncEvent* ac)
+result_t HttpServer::start()
 {
-    return m_server->run(ac);
-}
-
-result_t HttpServer::asyncRun()
-{
-    return m_server->asyncRun();
+    return m_server->start();
 }
 
 result_t HttpServer::stop(AsyncEvent* ac)

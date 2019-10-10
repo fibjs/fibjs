@@ -1131,7 +1131,7 @@ describe("mq", () => {
                 assert.equal(no2 + 1, test_util.countObject('Routing'));
                 assert.equal(no3 + 1, test_util.countObject('Buffer'));
 
-                svr.asyncRun();
+                svr.start();
 
                 setTimeout(() => {
                     c = net.connect('tcp://127.0.0.1:8892');

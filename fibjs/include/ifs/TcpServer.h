@@ -26,8 +26,7 @@ public:
     // TcpServer_base
     static result_t _new(int32_t port, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, int32_t port, Handler_base* listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t run(AsyncEvent* ac) = 0;
-    virtual result_t asyncRun() = 0;
+    virtual result_t start() = 0;
     virtual result_t stop(AsyncEvent* ac) = 0;
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
     virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
@@ -39,15 +38,13 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_asyncRun(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_stop(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_socket(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_handler(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_handler(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 
 public:
-    ASYNC_MEMBER0(TcpServer_base, run);
     ASYNC_MEMBER0(TcpServer_base, stop);
 };
 }
@@ -59,9 +56,7 @@ namespace fibjs {
 inline ClassInfo& TcpServer_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "run", s_run, false },
-        { "runSync", s_run, false },
-        { "asyncRun", s_asyncRun, false },
+        { "start", s_start, false },
         { "stop", s_stop, false },
         { "stopSync", s_stop, false }
     };
@@ -113,32 +108,15 @@ void TcpServer_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void TcpServer_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void TcpServer_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("TcpServer.run");
-    METHOD_INSTANCE(TcpServer_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(0, 0);
-
-    if (!cb.IsEmpty()) {
-        pInst->acb_run(cb);
-        hr = CALL_RETURN_NULL;
-    } else
-        hr = pInst->ac_run();
-
-    METHOD_VOID();
-}
-
-inline void TcpServer_base::s_asyncRun(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("TcpServer.asyncRun");
+    METHOD_NAME("TcpServer.start");
     METHOD_INSTANCE(TcpServer_base);
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->asyncRun();
+    hr = pInst->start();
 
     METHOD_VOID();
 }

@@ -539,21 +539,7 @@ describe("net", () => {
         no1 = test_util.countObject('Socket');
 
         ss = new net.TcpServer(9812, (c) => {});
-        coroutine.start(() => {
-            try {
-                ss.run();
-            } catch (e) {}
-        });
-
-        coroutine.sleep(50);
-        ss.stop();
-        ss = undefined;
-
-        test_util.gc();
-        assert.equal(no1, test_util.countObject('Socket'));
-
-        ss = new net.TcpServer(9813, (c) => {});
-        ss.asyncRun();
+        ss.start();
 
         coroutine.sleep(50);
         ss.stop();

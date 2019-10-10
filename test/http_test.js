@@ -987,7 +987,7 @@ describe("http", () => {
             hdr.enableCrossOrigin(true);
             svr = new net.TcpServer(8881 + base_port, hdr);
 
-            svr.asyncRun();
+            svr.start();
 
             ss.push(svr.socket);
         });
@@ -1438,7 +1438,7 @@ describe("http", () => {
                     r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 }
             });
-            svr.asyncRun();
+            svr.start();
 
             ss.push(svr.socket);
         });
@@ -1756,7 +1756,7 @@ describe("http", () => {
                     r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 }
             });
-            svr.asyncRun();
+            svr.start();
 
             ss.push(svr.socket);
         });
@@ -1931,7 +1931,7 @@ describe("http", () => {
                     r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 }
             });
-            svr.asyncRun();
+            svr.start();
 
             ss.push(svr.socket);
         });
@@ -2121,7 +2121,7 @@ describe("http", () => {
                     r.response.write(r.address);
                 }
             });
-            svr.asyncRun();
+            svr.start();
 
             ss.push(svr.socket);
         });

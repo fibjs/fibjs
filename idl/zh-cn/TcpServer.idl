@@ -31,11 +31,8 @@ interface TcpServer : object
    */
     TcpServer(String addr, Integer port, Handler listener);
 
-    /*! @brief 运行服务器并开始接收和分发连接，此函数不会返回 */
-    run() async;
-
-    /*! @brief 异步运行服务器并开始接收和分发连接，调用后立即返回，服务器在后台运行 */
-    asyncRun();
+    /*! @brief 启动当前服务器 */
+    start();
 
     /*! @brief 关闭 socket中止正在运行的服务器 */
     stop() async;

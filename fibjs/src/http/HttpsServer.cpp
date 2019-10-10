@@ -105,14 +105,9 @@ result_t HttpsServer::create(v8::Local<v8::Array> certs, exlib::string addr, int
     return 0;
 }
 
-result_t HttpsServer::run(AsyncEvent* ac)
+result_t HttpsServer::start()
 {
-    return m_server->run(ac);
-}
-
-result_t HttpsServer::asyncRun()
-{
-    return m_server->asyncRun();
+    return m_server->start();
 }
 
 result_t HttpsServer::stop(AsyncEvent* ac)

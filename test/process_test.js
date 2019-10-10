@@ -6,6 +6,7 @@ var coroutine = require("coroutine");
 var path = require('path');
 var json = require('json');
 var ws = require('ws');
+var net = require('net');
 var http = require('http');
 
 var cmd;
@@ -42,7 +43,7 @@ describe('process', () => {
         assert.isNumber(process.pid);
         assert.ok(process.pid);
     });
-    
+
     describe("ppid", () => {
         it("basic", () => {
             assert.property(process, 'ppid');
@@ -207,7 +208,7 @@ describe('process', () => {
                 })
             });
             ss.push(httpd.socket);
-            httpd.run(() => {});
+            httpd.start();
 
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec19.js')]);
             assert.equal(p.readLine(), "1900");
@@ -225,6 +226,16 @@ describe('process', () => {
             assert.equal(p.readLine(), "600");
             assert.equal(p.wait(), 12);
         });
+
+        it("tcp server", () => {
+            var p = process.open(cmd, [path.join(__dirname, 'process', 'exec21.js')]);
+            coroutine.sleep(100);
+            net.connect('tcp://127.0.0.1:28080');
+
+            assert.equal(p.readLine(), "700");
+            assert.equal(p.wait(), 21);
+        });
+
     });
 
     it("start", () => {
@@ -370,7 +381,7 @@ describe('process', () => {
             ]);
         });
     });
-    
+
     describe("SubProcess Spec", () => {
         it("default kvs", () => {
             var retcode = process.run(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
@@ -397,8 +408,7 @@ describe('process', () => {
                 assert.deepEqual(
                     bs.stdout.readLines(),
                     Math.random(0, 1) < 0.5 ?
-                    win_keys.map(key => `process.env['${key}']=${process.env[key]}`)
-                    : [
+                    win_keys.map(key => `process.env['${key}']=${process.env[key]}`) : [
                         `process.env['SystemRoot']=${process.env['SystemRoot']}`,
                         `process.env['TEMP']=${process.env['TEMP']}`,
                         `process.env['TMP']=${process.env['TMP']}`,
@@ -423,7 +433,9 @@ describe('process', () => {
                     assert.notEqual(x, process.env[x])
                 });
 
-                var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], { env: envs });
+                var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
+                    env: envs
+                });
                 bs.wait()
 
                 assert.deepEqual(
@@ -453,7 +465,9 @@ describe('process', () => {
                     TMPDIR: 'noTMPDIR'
                 };
 
-                var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], { env: envs });
+                var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
+                    env: envs
+                });
                 bs.wait()
 
                 assert.deepEqual(
@@ -488,7 +502,9 @@ describe('process', () => {
                     TMPDIR: 'noTMPDIR'
                 };
 
-                var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], { env: envs });
+                var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
+                    env: envs
+                });
                 bs.wait()
 
                 assert.deepEqual(
