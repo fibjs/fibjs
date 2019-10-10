@@ -225,8 +225,14 @@ describe('process', () => {
 
         it("tcp server", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec21.js')]);
-            coroutine.sleep(100);
-            net.connect('tcp://127.0.0.1:28080');
+
+            for (var i = 0; i < 100; i++) {
+                coroutine.sleep(10);
+                try {
+                    net.connect('tcp://127.0.0.1:28080');
+                    break;
+                } catch (e) {}
+            }
 
             assert.equal(p.readLine(), "700");
             assert.equal(p.wait(), 21);
