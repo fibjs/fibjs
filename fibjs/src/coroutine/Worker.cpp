@@ -62,8 +62,21 @@ result_t Worker::worker_fiber(Worker* worker)
 
 Worker::Worker(exlib::string path, v8::Local<v8::Object> opts)
 {
+    bool v;
+    result_t hr;
+
     m_worker = new Worker(this);
     m_isolate = new Isolate(path);
+
+    v = true;
+    hr = GetConfigValue(holder()->m_isolate, opts, "file_system", v, false);
+    if (hr >= 0)
+        m_isolate->m_enable_FileSystem = v;
+
+    v = false;
+    hr = GetConfigValue(holder()->m_isolate, opts, "safe_buffer", v, false);
+    if (hr >= 0)
+        m_isolate->m_safe_buffer = v;
 }
 
 result_t Worker::postMessage(v8::Local<v8::Value> data)

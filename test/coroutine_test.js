@@ -398,6 +398,25 @@ describe('coroutine', () => {
                     v1.close();
                 });
             });
+
+        });
+
+        describe('opt', () => {
+            it('file system', () => {
+                var flag = false;
+                worker = new coroutine.Worker(path.join(__dirname, 'worker_files/worker_main.js'), {
+                    file_system: false
+                });
+
+                worker.on('error', e => {
+                    flag = true;
+                });
+
+                for (var i = 0; i < 100 && !flag; i++)
+                    coroutine.sleep(10);
+
+                assert.isTrue(flag);
+            });
         });
     });
 });
