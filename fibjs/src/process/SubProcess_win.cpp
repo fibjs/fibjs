@@ -293,7 +293,7 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
             if (pThis->m_timer)
                 pThis->m_timer->clear();
 
-            return pThis->done();
+            return pThis->next();
         }
 
     private:
