@@ -54,13 +54,7 @@ describe("net", () => {
         assert.equal(net.backend(), backend);
     });
 
-    var ss = [];
-
-    after(() => {
-        ss.forEach((s) => {
-            s.close();
-        });
-    });
+    after(test_util.cleanup);
 
     it("echo", () => {
         function connect(c) {
@@ -85,7 +79,7 @@ describe("net", () => {
 
         var s = new net.Socket(net_config.family,
             net.SOCK_STREAM);
-        ss.push(s);
+        test_util.push(s);
 
         s.bind(8080 + base_port);
         s.listen();
@@ -144,7 +138,7 @@ describe("net", () => {
         }
 
         var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
-        ss.push(s1);
+        test_util.push(s1);
 
         s1.bind(8081 + base_port);
         s1.listen();
@@ -197,7 +191,7 @@ describe("net", () => {
         }
 
         var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
-        ss.push(s2);
+        test_util.push(s2);
 
         s2.bind(8082 + base_port);
         s2.listen();
@@ -272,12 +266,12 @@ describe("net", () => {
             var t = 0;
 
             function accept2(s, n) {
-                ss.push(s.accept());
+                test_util.push(s.accept());
                 t = n;
             }
 
             var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
-            ss.push(s2);
+            test_util.push(s2);
 
             s2.bind(8083 + base_port);
             s2.listen();
@@ -320,7 +314,7 @@ describe("net", () => {
             }
 
             var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
-            ss.push(s2);
+            test_util.push(s2);
 
             s2.bind(8084 + base_port);
             s2.listen();
@@ -349,13 +343,13 @@ describe("net", () => {
         function accept4(s) {
             try {
                 while (true) {
-                    ss.push(s.accept());
+                    test_util.push(s.accept());
                 }
             } catch (e) {}
         }
 
         var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
-        ss.push(s2);
+        test_util.push(s2);
 
         s2.bind(8085 + base_port);
         s2.listen();
@@ -407,7 +401,7 @@ describe("net", () => {
         assert.throws(() => {
             new net.TcpServer(8811 + base_port, (c) => {});
         });
-        ss.push(svr.socket);
+        test_util.push(svr.socket);
     });
 
     describe("abort Pending I/O", () => {

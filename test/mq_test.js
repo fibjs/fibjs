@@ -577,13 +577,7 @@ describe("mq", () => {
         var m = new mq.Message();
     });
 
-    var ss = [];
-
-    after(() => {
-        ss.forEach((s) => {
-            s.close();
-        });
-    });
+    after(test_util.cleanup);
 
     describe("function handler", () => {
         var n = 0;
@@ -727,7 +721,7 @@ describe("mq", () => {
 
         it("memory leak", () => {
             var svr = new net.TcpServer(8888, () => {});
-            ss.push(svr.socket);
+            test_util.push(svr.socket);
 
             test_util.gc();
             var no1 = test_util.countObject('Chain');
@@ -1059,7 +1053,7 @@ describe("mq", () => {
             test_util.gc();
 
             var svr = new net.TcpServer(8890, () => {});
-            ss.push(svr.socket);
+            test_util.push(svr.socket);
 
             test_util.gc();
             var no1 = test_util.countObject('Routing');

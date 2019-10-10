@@ -11,13 +11,7 @@ var test_util = require('./test_util');
 var base_port = coroutine.vmid * 10000;
 
 describe('ws', () => {
-    var ss = [];
-
-    after(() => {
-        ss.forEach((s) => {
-            s.close();
-        });
-    });
+    after(test_util.cleanup);
 
     describe('Message', () => {
         function load_msg(data) {
@@ -272,7 +266,7 @@ describe('ws', () => {
                     };
                 })
             });
-            ss.push(httpd.socket);
+            test_util.push(httpd.socket);
             httpd.start();
         });
 
@@ -516,7 +510,7 @@ describe('ws', () => {
                     });
                 }
             }]);
-            ss.push(httpd.socket);
+            test_util.push(httpd.socket);
             httpd.start();
         });
 
@@ -702,7 +696,7 @@ describe('ws', () => {
                     });
                 })
             });
-            ss.push(httpd.socket);
+            test_util.push(httpd.socket);
             httpd.start();
 
             var t = false;
@@ -910,7 +904,7 @@ describe('ws', () => {
                     })
                 });
 
-                ss.push(httpd.socket);
+                test_util.push(httpd.socket);
                 httpd.start();
 
                 assert.equal(test_util.countObject('WebSocket'), no1);
@@ -944,12 +938,12 @@ describe('ws', () => {
                 var no1 = test_util.countObject('WebSocket');
                 var httpd = new http.Server(8817 + base_port, {
                     "/ws": ws.upgrade((s, req) => {
-                        ss.push(s);
+                        test_util.push(s);
                         s.send(new Date());
                     })
                 });
 
-                ss.push(httpd.socket);
+                test_util.push(httpd.socket);
                 httpd.start();
 
                 test_util.gc();

@@ -1,6 +1,8 @@
 var os = require('os');
 var coroutine = require('coroutine');
 
+var ss = [];
+
 exports.countObject = nm => {
     var cnt = 0;
 
@@ -25,4 +27,12 @@ exports.gc = () => {
         coroutine.sleep(1);
         GC();
     }
+}
+
+exports.push = s => ss.push(s);
+
+exports.cleanup = () => {
+    ss.forEach(s => {
+        s.close();
+    });
 }

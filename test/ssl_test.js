@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('./test_util');
+
 var ssl = require("ssl");
 var crypto = require("crypto");
 var net = require("net");
@@ -46,14 +48,7 @@ function del(f) {
 describe('ssl', () => {
     var sss;
 
-    var ss = [];
-
-    after(() => {
-        ss.forEach((s) => {
-            s.close();
-        });
-        ssl.ca.clear();
-    });
+    after(test_util.cleanup);
 
     it("root ca", () => {
         var cert = new crypto.X509Cert();
@@ -104,7 +99,7 @@ describe('ssl', () => {
         });
         svr.start();
 
-        ss.push(svr.socket);
+        test_util.push(svr.socket);
     });
 
     function test_handshake() {
@@ -229,7 +224,7 @@ describe('ssl', () => {
             ss.close();
             s.close();
         });
-        ss.push(svr.socket);
+        test_util.push(svr.socket);
         svr.start();
 
         function t_conn() {
@@ -265,7 +260,7 @@ describe('ssl', () => {
             while (buf = s.read())
                 s.write(buf);
         }));
-        ss.push(svr.socket);
+        test_util.push(svr.socket);
         svr.start();
 
         for (var i = 0; i < 10; i++) {
@@ -290,7 +285,7 @@ describe('ssl', () => {
             while (buf = s.read())
                 s.write(buf);
         });
-        ss.push(svr.socket);
+        test_util.push(svr.socket);
         svr.start();
 
         for (var i = 0; i < 10; i++) {

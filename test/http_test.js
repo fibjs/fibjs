@@ -69,17 +69,13 @@ function set_header_for_head_req(r, cookie_for) {
 }
 
 describe("http", () => {
-    var ss = [];
-
     after(() => {
         http.timeout = 0;
         http.autoRedirect = true;
         http.enableCookie = true;
-
-        ss.forEach((s) => {
-            s.close();
-        });
     });
+
+    after(test_util.cleanup);
 
     describe("headers", () => {
         var d = new http.Request().headers;
@@ -989,7 +985,7 @@ describe("http", () => {
 
             svr.start();
 
-            ss.push(svr.socket);
+            test_util.push(svr.socket);
         });
 
         beforeEach(() => {
@@ -1440,7 +1436,7 @@ describe("http", () => {
             });
             svr.start();
 
-            ss.push(svr.socket);
+            test_util.push(svr.socket);
         });
 
         describe("request", () => {
@@ -1758,7 +1754,7 @@ describe("http", () => {
             });
             svr.start();
 
-            ss.push(svr.socket);
+            test_util.push(svr.socket);
         });
 
         after(() => {
@@ -1933,7 +1929,7 @@ describe("http", () => {
             });
             svr.start();
 
-            ss.push(svr.socket);
+            test_util.push(svr.socket);
         });
 
         describe("request & cookie", () => {
@@ -2123,7 +2119,7 @@ describe("http", () => {
             });
             svr.start();
 
-            ss.push(svr.socket);
+            test_util.push(svr.socket);
         });
 
         describe("constructor", () => {

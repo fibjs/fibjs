@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('./test_util');
+
 var process = require('process');
 var coroutine = require("coroutine");
 var path = require('path');
@@ -17,13 +19,7 @@ describe('process', () => {
         cmd = process.execPath;
     });
 
-    var ss = [];
-
-    after(() => {
-        ss.forEach((s) => {
-            s.close();
-        });
-    });
+    after(test_util.cleanup);
 
     it("hrtime", () => {
         var start = process.hrtime();
@@ -207,7 +203,7 @@ describe('process', () => {
                     };
                 })
             });
-            ss.push(httpd.socket);
+            test_util.push(httpd.socket);
             httpd.start();
 
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec19.js')]);
