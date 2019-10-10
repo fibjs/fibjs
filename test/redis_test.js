@@ -246,13 +246,13 @@ describe("redis", () => {
 
         it("dump", () => {
             rdb.set("greeting", "hello, dumping world!");
-            assert.equal(rdb.dump("greeting").hex(), "001568656c6c6f2c2064756d70696e6720776f726c642107002c7fe7f125ed2857");
+            assert.equal(rdb.dump("greeting").hex(), "001568656c6c6f2c2064756d70696e6720776f726c642108006a60debd843e7775");
             assert.isNull(rdb.dump("greeting1"));
             rdb.del("greeting");
         });
 
         it("restore", () => {
-            rdb.restore("greeting", encoding.hex.decode("001568656c6c6f2c2064756d70696e6720776f726c642107002c7fe7f125ed2857"));
+            rdb.restore("greeting", encoding.hex.decode("001568656c6c6f2c2064756d70696e6720776f726c642108006a60debd843e7775"));
             assert.equal(rdb.command("get", "greeting"), "hello, dumping world!");
         });
     });
