@@ -27,6 +27,8 @@ DECLARE_MODULE(gui);
 static exlib::LockedList<AsyncEvent> s_uiPool;
 static uint32_t s_thread;
 
+extern exlib::LockedList<Isolate> s_isolates;
+
 void putGuiPool(AsyncEvent* ac)
 {
     s_uiPool.putTail(ac);
@@ -99,7 +101,7 @@ private:
             m_pProtSink = pIProtSink;
             m_pProtSink->AddRef();
 
-            result_t hr = fs_base::cc_openFile(utf16to8String(szUrl + 3), "r", m_file);
+            result_t hr = fs_base::cc_openFile(utf16to8String(szUrl + 3), "r", m_file, s_isolates.head());
             if (hr < 0)
                 return INET_E_OBJECT_NOT_FOUND;
 
