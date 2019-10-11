@@ -283,37 +283,39 @@ public:
     static void __new(const T& args) {}
 
 public:
-    v8::Local<v8::Value> GetPrivate(exlib::string key)
+    v8::Local<v8::Object> GetPrivateObject()
     {
         v8::Local<v8::Object> o = wrap();
         Isolate* isolate = holder();
 
-        v8::MaybeLocal<v8::Value> mv = o->GetPrivate(o->CreationContext(),
-            v8::Private::ForApi(isolate->m_isolate, isolate->NewString(key)));
+        v8::Local<v8::Private> k = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_private_object"));
+        v8::MaybeLocal<v8::Value> mv = o->GetPrivate(o->CreationContext(), k);
 
-        if (mv.IsEmpty())
-            return v8::Undefined(isolate->m_isolate);
+        if (!mv.IsEmpty()) {
+            v8::Local<v8::Value> v = mv.ToLocalChecked();
+            if(v->IsObject())
+                return v8::Local<v8::Object>::Cast(v);
+        }
 
-        return mv.ToLocalChecked();
+        v8::Local<v8::Object> po = v8::Object::New(isolate->m_isolate);
+        o->SetPrivate(o->CreationContext(), k, po);
+
+        return po;
+    }
+
+    v8::Local<v8::Value> GetPrivate(exlib::string key)
+    {
+        return GetPrivateObject()->Get(holder()->NewString(key));
     }
 
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
     {
-        v8::Local<v8::Object> o = wrap();
-        Isolate* isolate = holder();
-
-        o->SetPrivate(o->CreationContext(),
-            v8::Private::ForApi(isolate->m_isolate, isolate->NewString(key)),
-            value);
+        GetPrivateObject()->Set(holder()->NewString(key), value);
     }
 
     void DeletePrivate(exlib::string key)
     {
-        v8::Local<v8::Object> o = wrap();
-        Isolate* isolate = holder();
-
-        o->DeletePrivate(o->CreationContext(),
-            v8::Private::ForApi(isolate->m_isolate, isolate->NewString(key)));
+        GetPrivateObject()->Delete(holder()->NewString(key));
     }
 
 public:

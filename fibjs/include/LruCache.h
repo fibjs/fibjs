@@ -191,14 +191,14 @@ private:
 
     void expire(std::map<exlib::string, _linkedNode>::iterator it)
     {
-        obj_ptr<EventInfo> ei = new EventInfo(this, "expire");
-        ei->put("key", it->first);
-        ei->put("value", GetPrivate(it->first));
+        if (m_has_event) {
+            obj_ptr<EventInfo> ei = new EventInfo(this, "expire");
+            ei->put("key", it->first);
+            ei->put("value", GetPrivate(it->first));
 
-        Variant v = ei;
-
-        if(m_has_event)
+            Variant v = ei;
             _emit("expire", &v, 1);
+        }
 
         remove(it);
     }
