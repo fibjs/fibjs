@@ -661,9 +661,6 @@ describe('Buffer', () => {
         assert.equal(buf.readUIntBE(), 0x123456789abc);
         assert.equal(buf.readUIntLE(), 0xbc9a78563412);
 
-        assert.equal(buf.readInt64BE().toString(16), "0x123456789abcdef0");
-        assert.equal(buf.readInt64LE().toString(16), "0xf0debc9a78563412");
-
         var buf = new Buffer([
             0x00,
             0x00,
@@ -752,56 +749,6 @@ describe('Buffer', () => {
             0x56,
             0x34,
             0x12
-        ]);
-
-        var buf = new Buffer(8);
-
-        assert.equal(buf.writeInt64BE(0x12345678abcd, 0), 8);
-        assert.deepEqual(buf.toArray(), [
-            0x0,
-            0x0,
-            0x12,
-            0x34,
-            0x56,
-            0x78,
-            0xab,
-            0xcd
-        ]);
-
-        assert.equal(buf.writeInt64LE(0x12345678abcd, 0), 8);
-        assert.deepEqual(buf.toArray(), [
-            0xcd,
-            0xab,
-            0x78,
-            0x56,
-            0x34,
-            0x12,
-            0x0,
-            0x0
-        ]);
-
-        assert.equal(buf.writeInt64BE(new Int64(0x12345678abcd), 0), 8);
-        assert.deepEqual(buf.toArray(), [
-            0x0,
-            0x0,
-            0x12,
-            0x34,
-            0x56,
-            0x78,
-            0xab,
-            0xcd
-        ]);
-
-        assert.equal(buf.writeInt64LE(new Int64(0x12345678abcd), 0), 8);
-        assert.deepEqual(buf.toArray(), [
-            0xcd,
-            0xab,
-            0x78,
-            0x56,
-            0x34,
-            0x12,
-            0x0,
-            0x0
         ]);
 
         var buf = new Buffer(4);

@@ -11,7 +11,6 @@ run("./assert_test.js");
 run("./test_test.js");
 run("./console_test.js");
 run("./punycode_test.js");
-run("./int64_test.js");
 run("./timer_test.js");
 run("./buffer_test.js");
 run("./path_test.js");
@@ -73,4 +72,4 @@ run("./getter_throw.js")
 run("./internal_test/helpers.js")
 run("./opt_tools_test/index.js")
 
-process.exitCode = test.run();
+test.run();

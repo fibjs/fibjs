@@ -3,7 +3,6 @@
 #include "StringBuffer.h"
 #include "encoding_iconv.h"
 #include "encoding.h"
-#include "Int64.h"
 #include "utf8.h"
 #include <cstring>
 #include <string>
@@ -757,28 +756,6 @@ result_t Buffer::readInt64BE(int32_t offset, bool noAssert, int64_t& retVal)
     READ_NUMBER(int64_t, false);
 }
 
-result_t Buffer::readInt64LE(int32_t offset, bool noAssert, obj_ptr<Int64_base>& retVal)
-{
-    int64_t v;
-    result_t hr = readInt64LE(offset, noAssert, v);
-    if (hr < 0)
-        return hr;
-
-    retVal = new Int64(v);
-    return 0;
-}
-
-result_t Buffer::readInt64BE(int32_t offset, bool noAssert, obj_ptr<Int64_base>& retVal)
-{
-    int64_t v;
-    result_t hr = readInt64BE(offset, noAssert, v);
-    if (hr < 0)
-        return hr;
-
-    retVal = new Int64(v);
-    return 0;
-}
-
 result_t Buffer::readFloatLE(int32_t offset, bool noAssert, double& retVal)
 {
     READ_NUMBER(float, true);
@@ -922,19 +899,9 @@ result_t Buffer::writeInt64LE(int64_t value, int32_t offset, bool noAssert, int3
     WRITE_NUMBER(int64_t, true);
 }
 
-result_t Buffer::writeInt64LE(Int64_base* value, int32_t offset, bool noAssert, int32_t& retVal)
-{
-    return writeInt64LE(((Int64*)value)->m_num, offset, noAssert, retVal);
-}
-
 result_t Buffer::writeInt64BE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
 {
     WRITE_NUMBER(int64_t, false);
-}
-
-result_t Buffer::writeInt64BE(Int64_base* value, int32_t offset, bool noAssert, int32_t& retVal)
-{
-    return writeInt64BE(((Int64*)value)->m_num, offset, noAssert, retVal);
 }
 
 result_t Buffer::writeFloatLE(double value, int32_t offset, bool noAssert, int32_t& retVal)

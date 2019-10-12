@@ -8,7 +8,6 @@
 #include "object.h"
 #include "ifs/util.h"
 #include "ifs/encoding.h"
-#include "ifs/Int64.h"
 #include "QuickArray.h"
 #include "StringBuffer.h"
 #include <map>
@@ -129,14 +128,6 @@ exlib::string json_format(v8::Local<v8::Value> obj)
 
                     s[i * 3 + 7] = '>';
 
-                    strBuffer.append(s);
-                    break;
-                }
-
-                obj_ptr<Int64_base> int64Val = Int64_base::getInstance(v);
-                if (int64Val) {
-                    exlib::string s;
-                    int64Val->toString(10, s);
                     strBuffer.append(s);
                     break;
                 }

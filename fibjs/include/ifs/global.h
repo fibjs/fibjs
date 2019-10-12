@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class Buffer_base;
-class Int64_base;
 class console_base;
 class process_base;
 class Worker_base;
@@ -81,7 +80,6 @@ public:
 }
 
 #include "ifs/Buffer.h"
-#include "ifs/Int64.h"
 #include "ifs/console.h"
 #include "ifs/process.h"
 #include "ifs/Worker.h"
@@ -108,7 +106,6 @@ inline ClassInfo& global_base::class_info()
 
     static ClassData::ClassObject s_object[] = {
         { "Buffer", Buffer_base::class_info },
-        { "Int64", Int64_base::class_info },
         { "console", console_base::class_info },
         { "process", process_base::class_info }
     };

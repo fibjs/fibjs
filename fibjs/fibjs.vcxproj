@@ -55,7 +55,6 @@
     <ClInclude Include="include\HttpUploadData.h" />
     <ClInclude Include="include\HttpsServer.h" />
     <ClInclude Include="include\Image.h" />
-    <ClInclude Include="include\Int64.h" />
     <ClInclude Include="include\Isolate.h" />
     <ClInclude Include="include\JSHandler.h" />
     <ClInclude Include="include\JSType.h" />
@@ -159,7 +158,6 @@
     <ClInclude Include="include\ifs\HttpUploadData.h" />
     <ClInclude Include="include\ifs\HttpsServer.h" />
     <ClInclude Include="include\ifs\Image.h" />
-    <ClInclude Include="include\ifs\Int64.h" />
     <ClInclude Include="include\ifs\LevelDB.h" />
     <ClInclude Include="include\ifs\Lock.h" />
     <ClInclude Include="include\ifs\LruCache.h" />
@@ -355,7 +353,6 @@
     <ClCompile Include="src\fs\path_posix.cpp" />
     <ClCompile Include="src\fs\path_win32.cpp" />
     <ClCompile Include="src\global\Buffer.cpp" />
-    <ClCompile Include="src\global\Int64.cpp" />
     <ClCompile Include="src\global\Timer.cpp" />
     <ClCompile Include="src\global\global.cpp" />
     <ClCompile Include="src\global\timeout.cpp" />

@@ -225,9 +225,6 @@
     <ClInclude Include="include\Image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Int64.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Isolate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -535,9 +532,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Image.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\Int64.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\LevelDB.h">
@@ -1119,9 +1113,6 @@
       <Filter>Source Files\fs</Filter>
     </ClCompile>
     <ClCompile Include="src\global\Buffer.cpp">
-      <Filter>Source Files\global</Filter>
-    </ClCompile>
-    <ClCompile Include="src\global\Int64.cpp">
       <Filter>Source Files\global</Filter>
     </ClCompile>
     <ClCompile Include="src\global\Timer.cpp">

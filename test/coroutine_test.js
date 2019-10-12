@@ -371,13 +371,6 @@ describe('coroutine', () => {
                     });
                 });
 
-                it('Int64', () => {
-                    var v = new Int64(1000);
-                    var v1 = msg_trans(v);
-                    assert.notEqual(v, v1);
-                    assert.deepEqual(v, v1);
-                });
-
                 it('Buffer', () => {
                     var v = new Buffer("1234567890");
                     var v1 = msg_trans(v);

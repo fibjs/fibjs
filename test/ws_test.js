@@ -142,7 +142,7 @@ describe('ws', () => {
                     s += "0123456789";
 
                 var buf = new Buffer([0x82, 0x7f, 0, 0, 0, 0, 0, 0, 0, 0]);
-                buf.writeInt64BE(s.length, 2);
+                buf.writeIntBE(s.length, 4);
                 buf.append(s);
 
                 assert.deepEqual(load_msg(buf), {

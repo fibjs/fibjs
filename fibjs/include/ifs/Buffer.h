@@ -16,8 +16,6 @@
 
 namespace fibjs {
 
-class Int64_base;
-
 class Buffer_base : public object_base {
     DECLARE_CLASS(Buffer_base);
 
@@ -76,8 +74,6 @@ public:
     virtual result_t readInt32BE(int32_t offset, bool noAssert, int32_t& retVal) = 0;
     virtual result_t readIntLE(int32_t offset, bool noAssert, int64_t& retVal) = 0;
     virtual result_t readIntBE(int32_t offset, bool noAssert, int64_t& retVal) = 0;
-    virtual result_t readInt64LE(int32_t offset, bool noAssert, obj_ptr<Int64_base>& retVal) = 0;
-    virtual result_t readInt64BE(int32_t offset, bool noAssert, obj_ptr<Int64_base>& retVal) = 0;
     virtual result_t readFloatLE(int32_t offset, bool noAssert, double& retVal) = 0;
     virtual result_t readFloatBE(int32_t offset, bool noAssert, double& retVal) = 0;
     virtual result_t readDoubleLE(int32_t offset, bool noAssert, double& retVal) = 0;
@@ -96,8 +92,6 @@ public:
     virtual result_t writeInt32BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
     virtual result_t writeIntLE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
     virtual result_t writeIntBE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
-    virtual result_t writeInt64LE(Int64_base* value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
-    virtual result_t writeInt64BE(Int64_base* value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
     virtual result_t writeFloatLE(double value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
     virtual result_t writeFloatBE(double value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
     virtual result_t writeDoubleLE(double value, int32_t offset, bool noAssert, int32_t& retVal) = 0;
@@ -155,8 +149,6 @@ public:
     static void s_readInt32BE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readIntLE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readIntBE(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readInt64LE(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readInt64BE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readFloatLE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readFloatBE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readDoubleLE(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -175,8 +167,6 @@ public:
     static void s_writeInt32BE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeIntLE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeIntBE(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_writeInt64LE(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_writeInt64BE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeFloatLE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeFloatBE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeDoubleLE(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -194,8 +184,6 @@ public:
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
-
-#include "ifs/Int64.h"
 
 namespace fibjs {
 inline ClassInfo& Buffer_base::class_info()
@@ -230,8 +218,6 @@ inline ClassInfo& Buffer_base::class_info()
         { "readInt32BE", s_readInt32BE, false },
         { "readIntLE", s_readIntLE, false },
         { "readIntBE", s_readIntBE, false },
-        { "readInt64LE", s_readInt64LE, false },
-        { "readInt64BE", s_readInt64BE, false },
         { "readFloatLE", s_readFloatLE, false },
         { "readFloatBE", s_readFloatBE, false },
         { "readDoubleLE", s_readDoubleLE, false },
@@ -250,8 +236,6 @@ inline ClassInfo& Buffer_base::class_info()
         { "writeInt32BE", s_writeInt32BE, false },
         { "writeIntLE", s_writeIntLE, false },
         { "writeIntBE", s_writeIntBE, false },
-        { "writeInt64LE", s_writeInt64LE, false },
-        { "writeInt64BE", s_writeInt64BE, false },
         { "writeFloatLE", s_writeFloatLE, false },
         { "writeFloatBE", s_writeFloatBE, false },
         { "writeDoubleLE", s_writeDoubleLE, false },
@@ -1001,42 +985,6 @@ inline void Buffer_base::s_readIntBE(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
-inline void Buffer_base::s_readInt64LE(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Int64_base> vr;
-
-    METHOD_NAME("Buffer.readInt64LE");
-    METHOD_INSTANCE(Buffer_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 0);
-
-    OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(bool, 1, false);
-
-    hr = pInst->readInt64LE(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
-inline void Buffer_base::s_readInt64BE(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Int64_base> vr;
-
-    METHOD_NAME("Buffer.readInt64BE");
-    METHOD_INSTANCE(Buffer_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 0);
-
-    OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(bool, 1, false);
-
-    hr = pInst->readInt64BE(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
 inline void Buffer_base::s_readFloatLE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     double vr;
@@ -1371,44 +1319,6 @@ inline void Buffer_base::s_writeIntBE(const v8::FunctionCallbackInfo<v8::Value>&
     OPT_ARG(bool, 2, false);
 
     hr = pInst->writeIntBE(v0, v1, v2, vr);
-
-    METHOD_RETURN();
-}
-
-inline void Buffer_base::s_writeInt64LE(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_NAME("Buffer.writeInt64LE");
-    METHOD_INSTANCE(Buffer_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(3, 1);
-
-    ARG(obj_ptr<Int64_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(bool, 2, false);
-
-    hr = pInst->writeInt64LE(v0, v1, v2, vr);
-
-    METHOD_RETURN();
-}
-
-inline void Buffer_base::s_writeInt64BE(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_NAME("Buffer.writeInt64BE");
-    METHOD_INSTANCE(Buffer_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(3, 1);
-
-    ARG(obj_ptr<Int64_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(bool, 2, false);
-
-    hr = pInst->writeInt64BE(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }

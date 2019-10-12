@@ -956,10 +956,6 @@ describe('util', () => {
             assert.equal(util.format(new Buffer('fibjs')), '<Buffer 66 69 62 6a 73>');
         });
 
-        it("Int64", () => {
-            assert.equal(util.format(new Int64(12345678)), '12345678');
-        });
-
         it("levels", () => {
             assert.equal(util.format({}), '{}');
             assert.equal(util.format([
