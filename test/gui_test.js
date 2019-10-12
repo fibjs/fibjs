@@ -18,9 +18,7 @@ var html = `<html>
         if(first)
         {
             first = false;
-            setTimeout(function() {
-                external.postMessage('try close');
-            }, 10);
+            external.postMessage('try close');
             return false;
         }
     }
@@ -57,7 +55,6 @@ if (win) {
 
                 if (m === 'try close') {
                     win.close();
-                    win = undefined;
                 } else {
                     win.close();
                 }
@@ -65,6 +62,7 @@ if (win) {
 
             win.onclosed = () => {
                 closed = true;
+                win = undefined;
             };
 
             win.onload = () => {
