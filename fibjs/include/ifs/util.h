@@ -16,7 +16,6 @@
 
 namespace fibjs {
 
-class Stats_base;
 class LruCache_base;
 class Buffer_base;
 
@@ -148,7 +147,6 @@ public:
 };
 }
 
-#include "ifs/Stats.h"
 #include "ifs/LruCache.h"
 #include "ifs/Buffer.h"
 
@@ -211,7 +209,6 @@ inline ClassInfo& util_base::class_info()
     };
 
     static ClassData::ClassObject s_object[] = {
-        { "Stats", Stats_base::class_info },
         { "LruCache", LruCache_base::class_info }
     };
 

@@ -327,9 +327,6 @@
     <ClInclude Include="include\Stat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Stats.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\StringBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -619,9 +616,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Stat.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\Stats.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\Stream.h">
@@ -1371,9 +1365,6 @@
       <Filter>Source Files\test</Filter>
     </ClCompile>
     <ClCompile Include="src\util\LruCache.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
-    <ClCompile Include="src\util\Stats.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="src\util\util.cpp">

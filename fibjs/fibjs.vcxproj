@@ -89,7 +89,6 @@
     <ClInclude Include="include\SslServer.h" />
     <ClInclude Include="include\SslSocket.h" />
     <ClInclude Include="include\Stat.h" />
-    <ClInclude Include="include\Stats.h" />
     <ClInclude Include="include\StringBuffer.h" />
     <ClInclude Include="include\StringDecoder.h" />
     <ClInclude Include="include\SubProcess.h" />
@@ -187,7 +186,6 @@
     <ClInclude Include="include\ifs\SslServer.h" />
     <ClInclude Include="include\ifs\SslSocket.h" />
     <ClInclude Include="include\ifs\Stat.h" />
-    <ClInclude Include="include\ifs\Stats.h" />
     <ClInclude Include="include\ifs\Stream.h" />
     <ClInclude Include="include\ifs\StringDecoder.h" />
     <ClInclude Include="include\ifs\SubProcess.h" />
@@ -439,7 +437,6 @@
     <ClCompile Include="src\test\assert.cpp" />
     <ClCompile Include="src\test\test.cpp" />
     <ClCompile Include="src\util\LruCache.cpp" />
-    <ClCompile Include="src\util\Stats.cpp" />
     <ClCompile Include="src\util\util.cpp" />
     <ClCompile Include="src\util\util_compile.cpp" />
     <ClCompile Include="src\util\util_format.cpp" />
