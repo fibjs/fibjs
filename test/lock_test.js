@@ -88,7 +88,9 @@ describe('lock', () => {
         cond.acquire();
         v = 100;
         cond.notify();
-        coroutine.sleep(1);
+
+        for (var i = 0; i < 100 && v === 100; i++)
+            coroutine.sleep(1);
         assert.equal(200, v);
     });
 });
