@@ -693,6 +693,9 @@ describe('Buffer', () => {
         assert.equal(buf.writeUInt16LE(16931, 0), 2);
         assert.equal(buf.readUInt16BE(), 9026);
 
+        assert.equal(buf.writeUInt16BE(9026n, 0), 2);
+        assert.equal(buf.readUInt16BE(), 9026);
+
         buf[1] = 0x00;
         assert.equal(buf.writeUInt16BE(16896, 1, true), 2);
         assert.equal(buf[1], 0x42);

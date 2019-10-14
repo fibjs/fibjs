@@ -10,7 +10,6 @@
 #include "ifs/encoding.h"
 #include "QuickArray.h"
 #include <map>
-#include "v8_api.h"
 
 namespace fibjs {
 

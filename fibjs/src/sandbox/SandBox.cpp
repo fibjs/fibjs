@@ -14,7 +14,6 @@
 #include "ifs/Buffer.h"
 #include "ifs/EventEmitter.h"
 #include "loaders/loaders.h"
-#include "v8_api.h"
 #include "options.h"
 
 namespace fibjs {

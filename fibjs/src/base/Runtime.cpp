@@ -22,7 +22,6 @@
 #include "ifs/coroutine.h"
 #include "ifs/profiler.h"
 #include "path.h"
-#include "v8_api.h"
 #include "options.h"
 #include "include/libplatform/libplatform.h"
 

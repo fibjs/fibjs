@@ -19,7 +19,6 @@
 #include "SubProcess.h"
 #include <vector>
 #include "options.h"
-#include "v8_api.h"
 
 #ifdef _WIN32
 #include <psapi.h>

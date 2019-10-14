@@ -9,7 +9,6 @@
 #include "Fiber.h"
 #include "ifs/os.h"
 #include "ifs/process.h"
-#include "v8_api.h"
 #include "options.h"
 
 namespace fibjs {
