@@ -652,7 +652,7 @@ describe('Buffer', () => {
             0x9a,
             0xbc,
             0xde,
-            0xf0
+            0x10
         ]);
 
         assert.equal(buf.readIntBE(), 0x123456789abc);
@@ -660,6 +660,9 @@ describe('Buffer', () => {
 
         assert.equal(buf.readUIntBE(), 0x123456789abc);
         assert.equal(buf.readUIntLE(), 0xbc9a78563412);
+
+        assert.equal(buf.readInt64BE().toString(16), "123456789abcde10");
+        assert.equal(buf.readInt64LE().toString(16), "10debc9a78563412");
 
         var buf = new Buffer([
             0x00,
@@ -753,6 +756,48 @@ describe('Buffer', () => {
             0x34,
             0x12
         ]);
+
+        var buf = new Buffer(8);
+
+        assert.equal(buf.writeInt64BE(BigInt('0x3112345678abcdef'), 0), 8);
+        assert.deepEqual(buf.toArray(), [
+            0x31,
+            0x12,
+            0x34,
+            0x56,
+            0x78,
+            0xab,
+            0xcd,
+            0xef
+        ]);
+
+        assert.equal(buf.writeInt64LE(BigInt('0x3112345678abcdef'), 0), 8);
+        assert.deepEqual(buf.toArray(), [
+            0xef,
+            0xcd,
+            0xab,
+            0x78,
+            0x56,
+            0x34,
+            0x12,
+            0x31
+        ]);
+
+        buf.writeInt64BE(BigInt('0x7fffffffffffffff'), 0);
+        assert.deepEqual(buf.toArray(), [
+            0x7f,
+            0xff,
+            0xff,
+            0xff,
+            0xff,
+            0xff,
+            0xff,
+            0xff
+        ]);
+
+        assert.throws(() => {
+            buf.writeInt64LE(BigInt('0x8000000000000000'), 0);
+        });
 
         var buf = new Buffer(4);
         assert.equal(buf.writeFloatLE(1, 0), 4);
