@@ -598,11 +598,14 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
         return CALL_E_TYPEMISMATCH;
 
     if (v->IsBigInt() || v->IsBigIntObject()) {
+        bool less;
         v8::MaybeLocal<v8::BigInt> mv = v->ToBigInt(isolate->GetCurrentContext());
         if (mv.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
-        n = BigInt_AsInt64(isolate, mv.ToLocalChecked());
+        n = BigInt_AsInt64(isolate, mv.ToLocalChecked(), &less);
+        if (!less)
+            return CALL_E_OUTRANGE;
 
         return 0;
     }

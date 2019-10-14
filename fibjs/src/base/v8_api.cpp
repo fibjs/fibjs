@@ -33,20 +33,20 @@ v8::Local<v8::BigInt> BigInt_New(v8::Isolate* isolate, uint64_t value)
     return v8::Utils::ToLocal(result);
 }
 
-int64_t BigInt_AsInt64(v8::Isolate* isolate, v8::Local<v8::BigInt> value)
+int64_t BigInt_AsInt64(v8::Isolate* isolate, v8::Local<v8::BigInt> value, bool* lossless)
 {
     v8::internal::Handle<v8::internal::Object> obj = v8::Utils::OpenHandle(*value);
     v8::internal::Isolate* internal_isolate = reinterpret_cast<v8::internal::Isolate*>(isolate);
     v8::internal::Handle<v8::internal::BigInt> bint = v8::internal::BigInt::FromObject(internal_isolate, obj).ToHandleChecked();
-    return bint->AsInt64(NULL);
+    return bint->AsInt64(lossless);
 }
 
-uint64_t BigInt_AsUint64(v8::Isolate* isolate, v8::Local<v8::BigInt> value)
+uint64_t BigInt_AsUint64(v8::Isolate* isolate, v8::Local<v8::BigInt> value, bool* lossless)
 {
     v8::internal::Handle<v8::internal::Object> obj = v8::Utils::OpenHandle(*value);
     v8::internal::Isolate* internal_isolate = reinterpret_cast<v8::internal::Isolate*>(isolate);
     v8::internal::Handle<v8::internal::BigInt> bint = v8::internal::BigInt::FromObject(internal_isolate, obj).ToHandleChecked();
-    return bint->AsUint64(NULL);
+    return bint->AsUint64(lossless);
 }
 
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate)
