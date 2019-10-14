@@ -62,12 +62,8 @@ public:
         }
 
         Isolate* isolate = Isolate::current();
-        v8::MaybeLocal<v8::Value> mv = o->GetPrivate(o->CreationContext(),
+        JSValue v = o->GetPrivate(o->CreationContext(),
             v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")));
-
-        v8::Local<v8::Value> v;
-        if (!mv.IsEmpty())
-            v = mv.ToLocalChecked();
 
         if (!IsEmpty(v))
             retVal = new JSHandler(v, true);

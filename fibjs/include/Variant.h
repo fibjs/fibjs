@@ -32,13 +32,13 @@ inline void extend(const v8::Local<v8::Object> src,
     v8::Local<v8::Object>& dest, bool bDataOnly = true)
 {
     TryCatch try_catch;
-    v8::Local<v8::Array> ks = src->GetPropertyNames();
+    JSArray ks = src->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> k = ks->Get(i);
-        v8::Local<v8::Value> v = src->Get(k);
+        JSValue k = ks->Get(i);
+        JSValue v = src->Get(k);
 
         if (!bDataOnly || (!v.IsEmpty() && !v->IsFunction()))
             dest->Set(k, v);

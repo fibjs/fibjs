@@ -1004,7 +1004,7 @@ result_t getPoints(v8::Local<v8::Array>& points, std::vector<gdPoint>& pts)
     pts.resize(len);
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> v = points->Get(i);
+        JSValue v = points->Get(i);
 
         if (!v->IsArray())
             return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -1014,8 +1014,8 @@ result_t getPoints(v8::Local<v8::Array>& points, std::vector<gdPoint>& pts)
         if (pt->Length() != 2)
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        pts[i].x = pt->Get(0)->Int32Value();
-        pts[i].y = pt->Get(1)->Int32Value();
+        pts[i].x = JSValue(pt->Get(0))->Int32Value();
+        pts[i].y = JSValue(pt->Get(1))->Int32Value();
     }
 
     return 0;
@@ -1531,7 +1531,7 @@ result_t Image::affine(v8::Local<v8::Array> affine, int32_t x, int32_t y, int32_
         ac->m_ctx.resize(6);
 
         for (int32_t i = 0; i < 6; i++)
-            ac->m_ctx[i] = affine->Get(i)->NumberValue();
+            ac->m_ctx[i] = JSValue(affine->Get(i))->NumberValue();
 
         return CHECK_ERROR(CALL_E_NOSYNC);
     }

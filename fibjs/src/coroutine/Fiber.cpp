@@ -95,8 +95,8 @@ void JSFiber::set_caller(Fiber_base* caller)
         int32_t i;
 
         for (i = 0; i < len; i++) {
-            v8::Local<v8::Value> k = ks->Get(i);
-            o->Set(k, co->Get(k));
+            JSValue k = ks->Get(i);
+            o->Set(k, JSValue(co->Get(k)));
         }
     }
 }

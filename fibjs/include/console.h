@@ -91,7 +91,7 @@ public:
             int32_t sz = levels->Length();
 
             for (i = 0; i < sz; i++) {
-                v8::Local<v8::Value> l = levels->Get(i);
+                JSValue l = levels->Get(i);
                 int32_t num;
 
                 hr = GetArgumentValue(l, num);

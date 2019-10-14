@@ -44,7 +44,7 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     date_t d;
     d.now();
-    if (d.date() > _data->Get(NewString(isolate, "_time"))->NumberValue())
+    if (d.date() > JSValue(_data->Get(NewString(isolate, "_time")))->NumberValue())
         Timer_base::getInstance(args.This())->clear();
 }
 

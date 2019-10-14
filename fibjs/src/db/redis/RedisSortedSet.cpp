@@ -15,15 +15,15 @@ result_t RedisSortedSet::add(v8::Local<v8::Object> sms, int32_t& retVal)
     if (sms->IsArray())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Array> keys = sms->GetPropertyNames();
+    JSArray keys = sms->GetPropertyNames();
     v8::Local<v8::Array> mss = v8::Array::New(holder()->m_isolate);
 
     int32_t i, n = 0;
 
     for (i = 0; i < (int32_t)keys->Length(); i++) {
-        v8::Local<v8::Value> v = keys->Get(i);
+        JSValue v = keys->Get(i);
 
-        mss->Set(n++, sms->Get(v));
+        mss->Set(n++, JSValue(sms->Get(v)));
         mss->Set(n++, v);
     }
 

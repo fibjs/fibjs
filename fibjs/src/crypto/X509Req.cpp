@@ -271,7 +271,7 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
     if (ac->isSync()) {
         Isolate* isolate = holder();
         mbedtls_mpi serial;
-        v8::Local<v8::Value> v;
+        JSValue v;
 
         mbedtls_x509write_crt_init(&m_crt);
 

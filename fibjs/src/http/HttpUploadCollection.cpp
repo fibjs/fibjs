@@ -267,13 +267,13 @@ result_t HttpUploadCollection::add(exlib::string name, Variant value)
 
 result_t HttpUploadCollection::add(v8::Local<v8::Object> map)
 {
-    v8::Local<v8::Array> ks = map->GetPropertyNames();
+    JSArray ks = map->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> k = ks->Get(i);
-        v8::Local<v8::Value> v = map->Get(k);
+        JSValue k = ks->Get(i);
+        JSValue v = map->Get(k);
 
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -306,13 +306,13 @@ result_t HttpUploadCollection::set(exlib::string name, Variant value)
 
 result_t HttpUploadCollection::set(v8::Local<v8::Object> map)
 {
-    v8::Local<v8::Array> ks = map->GetPropertyNames();
+    JSArray ks = map->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> k = ks->Get(i);
-        v8::Local<v8::Value> v = map->Get(k);
+        JSValue k = ks->Get(i);
+        JSValue v = map->Get(k);
 
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;

@@ -289,17 +289,13 @@ public:
         Isolate* isolate = holder();
 
         v8::Local<v8::Private> k = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_private_object"));
-        v8::MaybeLocal<v8::Value> mv = o->GetPrivate(o->CreationContext(), k);
+        JSValue v = o->GetPrivate(o->CreationContext(), k);
 
-        if (!mv.IsEmpty()) {
-            v8::Local<v8::Value> v = mv.ToLocalChecked();
-            if(v->IsObject())
-                return v8::Local<v8::Object>::Cast(v);
-        }
+        if (v->IsObject())
+            return v8::Local<v8::Object>::Cast(v);
 
         v8::Local<v8::Object> po = v8::Object::New(isolate->m_isolate);
         o->SetPrivate(o->CreationContext(), k, po);
-
         return po;
     }
 

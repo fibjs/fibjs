@@ -40,12 +40,12 @@ public:
     void add(exlib::string key, Variant value);
     result_t add(v8::Local<v8::Object> m)
     {
-        v8::Local<v8::Array> ks = m->GetPropertyNames();
+        JSArray ks = m->GetPropertyNames();
         int32_t len = ks->Length();
         int32_t i;
 
         for (i = 0; i < len; i++) {
-            v8::Local<v8::Value> k = ks->Get(i);
+            JSValue k = ks->Get(i);
             add(ToCString(v8::String::Utf8Value(k)), m->Get(k));
         }
 

@@ -67,7 +67,7 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     isolate->m_isolate->RunMicrotasks();
     ev->wait();
 
-    v8::Local<v8::Value> error = _data->Get(isolate->NewString("_error"));
+    JSValue error = _data->Get(isolate->NewString("_error"));
 
     if (!error.IsEmpty() && !error->IsUndefined() && !error->IsNull())
         isolate->m_isolate->ThrowException(error);
@@ -114,7 +114,7 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     v8::Local<v8::Function> _then;
     v8::Local<v8::Function> _catch;
-    v8::Local<v8::Value> v;
+    JSValue v;
 
     if (result->IsObject()) {
         v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(result);

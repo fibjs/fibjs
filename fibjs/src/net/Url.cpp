@@ -423,7 +423,7 @@ result_t Url::parse(exlib::string url, bool parseQueryString, bool slashesDenote
 bool getString(Isolate* isolate, v8::Local<v8::Object>& args,
     const char* key, exlib::string& retVal)
 {
-    v8::Local<v8::Value> v = args->Get(isolate->NewString(key));
+    JSValue v = args->Get(isolate->NewString(key));
 
     if (!v.IsEmpty() && (v->IsString() || v->IsStringObject())) {
         retVal = ToCString(v8::String::Utf8Value(v));
@@ -440,7 +440,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     Isolate* isolate = holder();
 
     exlib::string str;
-    v8::Local<v8::Value> v;
+    JSValue v;
 
     if (getString(isolate, args, "protocol", str))
         set_protocol(str);

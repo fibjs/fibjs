@@ -372,13 +372,13 @@ result_t Variant::unbind()
                 m_Val.buffer.data = data = new UNBIND_DATA[len];
 
                 for (i = 0; i < len; i++)
-                    data[i].v = a->Get(i);
+                    data[i].v = JSValue(a->Get(i));
             }
         } else if (GetArgumentValue(v, o, true) >= 0) {
             clear();
             set_type(VT_UNBOUND_OBJECT);
 
-            v8::Local<v8::Array> ks = o->GetPropertyNames();
+            JSArray ks = o->GetPropertyNames();
             len = ks->Length();
 
             m_Val.buffer.cnt = len;
@@ -387,9 +387,9 @@ result_t Variant::unbind()
 
                 m_Val.buffer.data = data = new UNBIND_DATA[len];
                 for (i = 0; i < len; i++) {
-                    v8::Local<v8::Value> k = ks->Get(i);
+                    JSValue k = ks->Get(i);
                     GetArgumentValue(isolate->m_isolate, k, data[i].k);
-                    data[i].v = o->Get(k);
+                    data[i].v = JSValue(o->Get(k));
                 }
             }
         } else

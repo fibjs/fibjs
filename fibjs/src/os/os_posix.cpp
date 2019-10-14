@@ -113,7 +113,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
 
         name = isolate->NewString(ent->ifa_name);
         if (retVal->Has(name)) {
-            ret = v8::Local<v8::Array>::Cast(retVal->Get(name));
+            ret = JSArray(v8::Local<v8::Array>::Cast(retVal->Get(name)));
         } else {
             ret = v8::Array::New(isolate->m_isolate);
             retVal->Set(name, ret);
@@ -164,7 +164,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
         if (!retVal->Has(name)) {
             continue;
         }
-        ret = v8::Local<v8::Array>::Cast(retVal->Get(name));
+        ret = JSArray(v8::Local<v8::Array>::Cast(retVal->Get(name)));
 
 #ifdef Linux
         struct sockaddr_ll* s = (struct sockaddr_ll*)ent->ifa_addr;
