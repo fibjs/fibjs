@@ -237,7 +237,7 @@ describe('fs', () => {
         f1.write(f.read(f.size()));
 
         f1.rewind();
-        var b = f1.read(f1.size() + 100);
+        var b = f1.read(f1.size() + 100n);
         assert.equal(true, f1.eof());
         assert.equal(f1.size(), b.length);
 
@@ -294,18 +294,18 @@ describe('fs', () => {
 
     it("seek", () => {
         var f = fs.openFile(path.join(__dirname, 'fs_test.js'));
-        f.seek(f.size() + 10, fs.SEEK_SET);
-        assert.equal(f.tell(), f.size() + 10);
+        f.seek(f.size() + 10n, fs.SEEK_SET);
+        assert.equal(f.tell(), f.size() + 10n);
         f.seek(10, fs.SEEK_SET);
         var b = f.read(f.size());
-        assert.equal(f.size() - 10, b.length);
+        assert.equal(f.size() - 10n, b.length);
         f.close();
     });
 
     it("seek 64 bits", () => {
         var f = fs.openFile(path.join(__dirname, 'fs_test.js'));
-        f.seek(f.size() + 8589934592, fs.SEEK_SET);
-        assert.equal(f.tell(), f.size() + 8589934592);
+        f.seek(f.size() + 8589934592n, fs.SEEK_SET);
+        assert.equal(f.tell(), f.size() + 8589934592n);
         f.close();
     });
 

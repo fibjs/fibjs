@@ -29,7 +29,7 @@ describe('ms', () => {
     it("seek", () => {
         ms.seek(-10, fs.SEEK_END);
         assert.equal(16, ms.tell());
-        ms.seek(ms.size() + 10, fs.SEEK_SET);
+        ms.seek(ms.size() + 10n, fs.SEEK_SET);
         assert.equal(26, ms.tell());
     });
 
