@@ -91,7 +91,7 @@ result_t base64vlq_base::encode(v8::Local<v8::Array> data, exlib::string& retVal
 
     for (int32_t i = 0; i < len; i++) {
         int32_t num;
-        hr = GetArgumentValue(data->Get(i), num);
+        hr = GetArgumentValue(JSValue(data->Get(i)), num);
         if (hr < 0)
             return CHECK_ERROR(hr);
 

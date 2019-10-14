@@ -60,7 +60,7 @@ result_t Chain::append(v8::Local<v8::Array> hdlrs)
     result_t hr;
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> v = hdlrs->Get(i);
+        JSValue v = hdlrs->Get(i);
         obj_ptr<Handler_base> hdlr;
 
         hr = GetArgumentValue(isolate->m_isolate, v, hdlr);

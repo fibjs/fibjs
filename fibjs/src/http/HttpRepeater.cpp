@@ -75,7 +75,7 @@ result_t HttpRepeater::load(v8::Local<v8::Array> urls)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     for (int32_t i = 0; i < len; i++) {
-        v8::Local<v8::Value> v = urls->Get(i);
+        JSValue v = urls->Get(i);
         exlib::string url;
 
         hr = GetArgumentValue(v, url, true);

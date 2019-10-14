@@ -130,7 +130,7 @@ void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql, bool 
         str += '(';
 
         for (i = 0; i < len; i++) {
-            v8::Local<v8::Value> v1 = a->Get(i);
+            JSValue v1 = a->Get(i);
 
             if (i > 0)
                 str += ',';

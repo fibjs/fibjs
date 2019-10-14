@@ -580,7 +580,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         obj_ptr<NObject> map = new NObject();
         obj_ptr<SeekableStream_base> stm;
         v8::Local<v8::Object> o;
-        v8::Local<v8::Value> v;
+        JSValue v;
         result_t hr;
 
         hr = CheckConfig(opts, s_keys);
@@ -610,13 +610,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             return CALL_E_JAVASCRIPT;
         hr = GetArgumentValue(v, o);
         if (hr >= 0) {
-            v8::Local<v8::Array> ks = o->GetPropertyNames();
+            JSArray ks = o->GetPropertyNames();
             int32_t len = ks->Length();
             int32_t i;
 
             for (i = 0; i < len; i++) {
-                v8::Local<v8::Value> k = ks->Get(i);
-                v8::Local<v8::Value> v = o->Get(k);
+                JSValue k = ks->Get(i);
+                JSValue v = o->Get(k);
 
                 if (v.IsEmpty())
                     return CALL_E_JAVASCRIPT;

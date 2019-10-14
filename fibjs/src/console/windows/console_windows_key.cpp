@@ -318,7 +318,7 @@ result_t CheckKeyFlags(v8::Local<v8::Array> modifier, int32_t* flags)
 
     for (i = 0; i < len; i++) {
         exlib::string f;
-        v8::Local<v8::Value> v = modifier->Get(i);
+        JSValue v = modifier->Get(i);
         hr = GetArgumentValue(v, f);
         if (hr < 0)
             return hr;

@@ -49,7 +49,7 @@ bool repl_command(exlib::string& line, v8::Local<v8::Array> cmds)
         Isolate* isolate = Isolate::current();
 
         for (i = 0; i < len; i++) {
-            v8::Local<v8::Value> v = cmds->Get(i);
+            JSValue v = cmds->Get(i);
             v8::Local<v8::Object> o;
             exlib::string cmd;
             exlib::string help;
@@ -88,7 +88,7 @@ bool repl_command(exlib::string& line, v8::Local<v8::Array> cmds)
     Isolate* isolate = Isolate::current();
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> v = cmds->Get(i);
+        JSValue v = cmds->Get(i);
         v8::Local<v8::Object> o;
         exlib::string cmd;
         v8::Local<v8::Function> exec;

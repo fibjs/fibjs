@@ -47,7 +47,7 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
 {
     StringBuffer bufs;
 
-    v8::Local<v8::Array> ks = obj->GetPropertyNames();
+    JSArray ks = obj->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
     result_t hr;
@@ -55,8 +55,8 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
     for (i = 0; i < len; i++) {
         exlib::string strKey, strValue, str;
         v8::Local<v8::Array> vs;
-        v8::Local<v8::Value> k = ks->Get(i);
-        v8::Local<v8::Value> v = obj->Get(k);
+        JSValue k = ks->Get(i);
+        JSValue v = obj->Get(k);
 
         GetArgumentValue(k, strKey);
         encoding_base::encodeURIComponent(strKey, strKey);

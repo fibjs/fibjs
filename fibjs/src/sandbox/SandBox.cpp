@@ -92,13 +92,13 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
     _global->Delete(isolate->NewString("console"));
     _global->Set(isolate->NewString("global"), _global);
 
-    v8::Local<v8::Array> ks = global->GetPropertyNames();
+    JSArray ks = global->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> k = ks->Get(i);
-        v8::Local<v8::Value> v = global->Get(k);
+        JSValue k = ks->Get(i);
+        JSValue v = global->Get(k);
 
         _global->Set(k, v);
     }
@@ -142,13 +142,13 @@ result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
 
 result_t SandBox::add(v8::Local<v8::Object> mods)
 {
-    v8::Local<v8::Array> ks = mods->GetPropertyNames();
+    JSArray ks = mods->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
     result_t hr;
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> k = ks->Get(i);
+        JSValue k = ks->Get(i);
         hr = add(ToCString(v8::String::Utf8Value(k)), mods->Get(k));
         if (hr < 0)
             return hr;
@@ -195,13 +195,12 @@ result_t deepFreeze(v8::Local<v8::Value> v)
 
     if (!isFrozen(obj)) {
         obj->SetIntegrityLevel(obj->CreationContext(), v8::IntegrityLevel::kFrozen);
-        v8::Local<v8::Array> names = obj->GetPropertyNames(obj->CreationContext(), v8::KeyCollectionMode::kIncludePrototypes,
-                                            v8::ALL_PROPERTIES, v8::IndexFilter::kIncludeIndices)
-                                         .ToLocalChecked();
+        JSArray names = obj->GetPropertyNames(obj->CreationContext(), v8::KeyCollectionMode::kIncludePrototypes,
+            v8::ALL_PROPERTIES, v8::IndexFilter::kIncludeIndices);
 
         TryCatch try_catch;
         for (int32_t i = 0; i < (int32_t)names->Length(); i++)
-            deepFreeze(obj->Get(names->Get(i)));
+            deepFreeze(obj->Get(JSValue(names->Get(i))));
     }
 
     return 0;
@@ -237,12 +236,12 @@ result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
     retVal = v8::Object::New(isolate->m_isolate);
 
     v8::Local<v8::Object> ms = mods();
-    v8::Local<v8::Array> ks = ms->GetPropertyNames();
+    JSArray ks = ms->GetPropertyNames();
 
     v8::Local<v8::String> mgetter = isolate->NewString("exports");
     for (int32_t i = 0, len = ks->Length(); i < len; i++) {
-        v8::Local<v8::Value> k = ks->Get(i);
-        retVal->Set(k, ms->Get(k)->ToObject()->Get(mgetter));
+        JSValue k = ks->Get(i);
+        retVal->Set(k, JSValue(JSValue(ms->Get(k))->ToObject()->Get(mgetter)));
     }
 
     return 0;

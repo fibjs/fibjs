@@ -155,7 +155,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
     Isolate* isolate = holder();
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> v = keys->Get(i);
+        JSValue v = keys->Get(i);
         obj_ptr<Buffer_base> buf;
 
         hr = GetArgumentValue(isolate->m_isolate, v, buf);
@@ -213,13 +213,13 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
     leveldb::WriteBatch batch;
     leveldb::WriteBatch* batch_ = m_batch ? m_batch : &batch;
 
-    v8::Local<v8::Array> ks = map->GetPropertyNames();
+    JSArray ks = map->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
     result_t hr;
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> k = ks->Get(i);
+        JSValue k = ks->Get(i);
         v8::String::Utf8Value uk(k);
         exlib::string key(*uk, uk.length());
 
@@ -252,7 +252,7 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
 
     for (i = 0; i < len; i++) {
         exlib::string key;
-        hr = getValue(keys->Get(i), key);
+        hr = getValue(JSValue(keys->Get(i)), key);
         if (hr < 0)
             return hr;
 

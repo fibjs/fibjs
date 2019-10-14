@@ -125,7 +125,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t& retVal)
     Isolate* isolate = holder();
     if (m_bSpecial)
         encodeValue(isolate, &bbq, "query",
-            v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Get(isolate->NewString("query")));
+            JSValue(v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Get(isolate->NewString("query"))));
     else
         encodeValue(isolate, &bbq, "query", v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
 
@@ -144,7 +144,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t& retVal)
     if (hr < 0)
         return hr;
 
-    retVal = res->Get(isolate->NewString("n"))->Int32Value();
+    retVal = JSValue(res->Get(isolate->NewString("n")))->Int32Value();
 
     return 0;
 }

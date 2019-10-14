@@ -110,12 +110,12 @@ inline result_t GetArray(v8::Local<v8::Value> v, QuickArray<T>& n)
     if (v.IsEmpty() || !v->IsArray())
         return CALL_E_INVALIDARG;
 
-    v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
+    JSArray a = v8::Local<v8::Array>::Cast(v);
     result_t hr;
 
     for (int32_t i = 0; i < (int32_t)a->Length(); i++) {
         T vr;
-        hr = GetArgumentValue(a->Get(i), vr, true);
+        hr = GetArgumentValue(JSValue(a->Get(i)), vr, true);
         if (hr < 0)
             return hr;
 
@@ -148,7 +148,7 @@ result_t HeapSnapshot::load(exlib::string fname)
 {
     Isolate* isolate = holder();
     result_t hr;
-    v8::Local<v8::Value> v;
+    JSValue v;
     v8::Local<v8::Object> o;
 
     QuickArray<int32_t> nodes;

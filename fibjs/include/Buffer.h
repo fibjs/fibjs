@@ -144,7 +144,7 @@ public:
 
             str.resize(sz);
             for (i = 0; i < sz; i++) {
-                v8::Local<v8::Value> v = datas->Get(i);
+                JSValue v = datas->Get(i);
                 int32_t num;
 
                 hr = GetArgumentValue(v, num);

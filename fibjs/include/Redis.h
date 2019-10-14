@@ -147,13 +147,13 @@ public:
             if (kvs->IsArray())
                 return CHECK_ERROR(CALL_E_INVALIDARG);
 
-            v8::Local<v8::Array> keys = kvs->GetPropertyNames();
+            JSArray keys = kvs->GetPropertyNames();
 
             result_t hr;
             int32_t i;
 
             for (i = 0; i < (int32_t)keys->Length(); i++) {
-                v8::Local<v8::Value> v = keys->Get(i);
+                JSValue v = keys->Get(i);
 
                 hr = add(v);
                 if (hr < 0)

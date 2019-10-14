@@ -122,7 +122,7 @@ result_t console_base::add(v8::Local<v8::Object> cfg)
     if (isolate->m_id > 1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    v8::Local<v8::Value> type;
+    JSValue type;
 
     type = cfg->Get(isolate->NewString("type", 4));
     if (IsEmpty(type))
@@ -176,7 +176,7 @@ result_t console_base::add(v8::Local<v8::Array> cfg)
     result_t hr;
 
     for (i = 0; i < sz; i++) {
-        v8::Local<v8::Value> v = cfg->Get(i);
+        JSValue v = cfg->Get(i);
         exlib::string s;
 
         hr = GetArgumentValue(v, s, true);

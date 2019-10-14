@@ -168,8 +168,8 @@ result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& r
     uint64_t t = exlib::_hrtime();
 
     if (diff->Length() == 2) {
-        uint64_t seconds = diff->Get(0)->Uint32Value();
-        uint64_t nanos = diff->Get(1)->Uint32Value();
+        uint64_t seconds = JSValue(diff->Get(0))->Uint32Value();
+        uint64_t nanos = JSValue(diff->Get(1))->Uint32Value();
         t -= (seconds * NANOS_PER_SEC) + nanos;
     }
 

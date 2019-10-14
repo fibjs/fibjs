@@ -88,7 +88,7 @@ result_t MongoCollection::insert(v8::Local<v8::Array> documents)
         pbbs.resize(n);
 
         for (i = 0; i < n; i++) {
-            hr = encodeObject(isolate, &bbs[i], documents->Get(i));
+            hr = encodeObject(isolate, &bbs[i], JSValue(documents->Get(i)));
             if (hr < 0) {
                 n = i;
                 for (i = 0; i < n; i++)
@@ -137,7 +137,7 @@ result_t MongoCollection::save(v8::Local<v8::Object> document)
     Isolate* isolate = holder();
 
     v8::Local<v8::String> strId = isolate->NewString("_id", 3);
-    v8::Local<v8::Value> id = document->Get(strId);
+    JSValue id = document->Get(strId);
 
     if (IsEmpty(id))
         return insert(document);
@@ -186,8 +186,8 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
 {
     Isolate* isolate = holder();
     return update(query, document,
-        options->Get(isolate->NewString("upsert", 6))->BooleanValue(),
-        options->Get(isolate->NewString("multi", 5))->BooleanValue());
+        JSValue(options->Get(isolate->NewString("upsert", 6)))->BooleanValue(),
+        JSValue(options->Get(isolate->NewString("multi", 5)))->BooleanValue());
 }
 
 result_t MongoCollection::remove(v8::Local<v8::Object> query)
@@ -259,13 +259,13 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
 {
     exlib::string name;
 
-    v8::Local<v8::Array> ks = keys->GetPropertyNames();
+    JSArray ks = keys->GetPropertyNames();
     int32_t len = (int32_t)ks->Length();
     int32_t i;
 
     for (i = 0; i < len; i++) {
-        v8::Local<v8::Value> k = ks->Get(i);
-        v8::Local<v8::Value> v = keys->Get(k);
+        JSValue k = ks->Get(i);
+        JSValue v = keys->Get(k);
 
         if (!v->IsNumber() && !v->IsNumberObject())
             return CHECK_ERROR(CALL_E_INVALIDARG);

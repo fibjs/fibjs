@@ -242,7 +242,8 @@ public:
         JSTrigger t(args);
         t.off(ev, _wrap, vr);
 
-        func->Call(args.This(), (int32_t)_args.size(), _args.data());
+        if (!func.IsEmpty() && !_wrap.IsEmpty())
+            func->Call(args.This(), (int32_t)_args.size(), _args.data());
     }
 
     result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)

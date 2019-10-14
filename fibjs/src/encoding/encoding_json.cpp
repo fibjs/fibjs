@@ -304,8 +304,8 @@ inline result_t _jsonDecode(exlib::string data,
 
             AdvanceSkipWhitespace();
 
-            v8::Local<v8::Value> type = json_object->Get(isolate->NewString("type"));
-            v8::Local<v8::Value> data = json_object->Get(isolate->NewString("data"));
+            JSValue type = json_object->Get(isolate->NewString("type"));
+            JSValue data = json_object->Get(isolate->NewString("data"));
 
             if (!type.IsEmpty() && !data.IsEmpty()) {
                 v8::String::Utf8Value str(type);
