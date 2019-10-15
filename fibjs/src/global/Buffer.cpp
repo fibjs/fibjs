@@ -1156,13 +1156,37 @@ result_t Buffer::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     return 0;
 }
 
-void Buffer::fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Object>& o)
+result_t Buffer::fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Object>& o)
 {
-    if (data->IsArray()) {
+    result_t hr;
+    v8::Local<v8::Array> arr;
+    exlib::string str;
+
+    hr = GetArgumentValue(isolate->m_isolate, data, arr, true);
+    if (hr >= 0) {
         obj_ptr<Buffer> buf = new Buffer();
-        buf->_append(v8::Local<v8::Array>::Cast(data));
+
+        hr = buf->_append(arr);
+        if (hr < 0)
+            return hr;
         o = buf->wrap();
+
+        return 0;
     }
+
+    hr = GetArgumentValue(isolate->m_isolate, data, str, true);
+    if (hr >= 0) {
+        obj_ptr<Buffer_base> buf;
+
+        hr = base64_base::decode(str, buf);
+        if (hr < 0)
+            return hr;
+        o = buf->wrap();
+
+        return 0;
+    }
+
+    return CALL_E_TYPEMISMATCH;
 }
 
 result_t Buffer::unbind(obj_ptr<object_base>& retVal)

@@ -8,6 +8,7 @@ var base64 = require('base64');
 var hex = require('hex');
 var iconv = require('iconv');
 var base64vlq = require('base64vlq');
+var util = require('util');
 
 describe('encoding', () => {
     it('base64', () => {
@@ -256,8 +257,21 @@ describe('encoding', () => {
 
         var buf = new Buffer('test');
         var j = json.encode(buf);
+        assert.equal(j, '{"type":"Buffer","data":[116,101,115,116]}');
 
-        assert.isTrue(Buffer.isBuffer(json.decode(j)));
+        var buf1 = json.decode(json.encode({
+            "type": "Buffer",
+            "data": buf.toArray()
+        }));
+
+        assert.deepEqual(buf, buf1);
+
+        var buf1 = json.decode(json.encode({
+            "type": "Buffer",
+            "data": buf.base64()
+        }));
+
+        assert.deepEqual(buf, buf1);
     });
 
     it('json encode error when circular', () => {

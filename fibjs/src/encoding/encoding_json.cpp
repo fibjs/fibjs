@@ -18,7 +18,7 @@ DECLARE_MODULE(json);
 
 struct _from {
     const char* name;
-    void (*from)(Isolate*, v8::Local<v8::Value>, v8::Local<v8::Object>&);
+    result_t (*from)(Isolate*, v8::Local<v8::Value>, v8::Local<v8::Object>&);
 } s_from[] = {
     { "Buffer", Buffer::fromJSON },
     { NULL }
@@ -307,7 +307,7 @@ inline result_t _jsonDecode(exlib::string data,
             JSValue type = json_object->Get(isolate->NewString("type"));
             JSValue data = json_object->Get(isolate->NewString("data"));
 
-            if (!type.IsEmpty() && !data.IsEmpty()) {
+            if (!IsEmpty(type) && !IsEmpty(data)) {
                 v8::String::Utf8Value str(type);
 
                 if (*str) {
@@ -315,7 +315,9 @@ inline result_t _jsonDecode(exlib::string data,
 
                     for (i = 0; s_from[i].name; i++)
                         if (!qstrcmp(*str, s_from[i].name)) {
-                            s_from[i].from(isolate, data, json_object);
+                            hr = s_from[i].from(isolate, data, json_object);
+                            if (hr < 0)
+                                return hr;
                             break;
                         }
                 }
