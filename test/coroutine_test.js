@@ -277,7 +277,17 @@ describe('coroutine', () => {
         var worker;
 
         it("new", () => {
+            var flag = false;
             worker = new coroutine.Worker(path.join(__dirname, 'worker_files/worker_main.js'));
+
+            worker.onload = e => {
+                flag = true;
+            };
+
+            for (var i = 0; i < 100 && !flag; i++)
+                coroutine.sleep(10);
+
+            assert.isTrue(flag);
         });
 
         describe("error", () => {
@@ -285,9 +295,9 @@ describe('coroutine', () => {
                 var flag = false;
                 var worker1 = new coroutine.Worker(path.join(__dirname, 'worker_files/not_exists.js'));
 
-                worker1.on('error', e => {
+                worker1.onerror = e => {
                     flag = true;
-                });
+                };
 
                 for (var i = 0; i < 100 && !flag; i++)
                     coroutine.sleep(10);

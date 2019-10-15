@@ -13,6 +13,12 @@ interface Worker : EventEmitter
      */
     postMessage(Value data);
 
+    /*! @brief 查询和绑定接受 load 消息事件，相当于 on("load", func); */
+    Function onload;
+
     /*! @brief 查询和绑定接受 postMessage 消息事件，相当于 on("message", func); */
     Function onmessage;
+
+    /*! @brief 查询和绑定接受 error 消息事件，相当于 on("error", func); */
+    Function onerror;
 };

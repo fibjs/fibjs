@@ -33,9 +33,7 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
 
 void Worker::start()
 {
-    m_event = new Event();
     syncCall(m_isolate, worker_fiber, this);
-    m_event->wait();
 }
 
 void Worker::_main()
@@ -45,12 +43,14 @@ void Worker::_main()
     m_isolate->start_profiler();
 
     m_worker->wrap();
-    m_event->set();
 
     s.m_hr = m_isolate->m_topSandbox->run_worker(m_isolate->m_fname, m_worker);
     if (s.m_hr < 0) {
         Variant v = new EventInfo(this, "error", s.m_hr, GetException(s.try_catch, s.m_hr));
         _emit("error", &v, 1);
+    } else {
+        Variant v = new EventInfo(this, "load");
+        _emit("load", &v, 1);
     }
 }
 
