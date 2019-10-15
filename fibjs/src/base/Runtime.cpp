@@ -312,6 +312,17 @@ Isolate* Isolate::current()
     return rt->isolate();
 }
 
+static void BigInt_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Isolate* isolate = args.GetIsolate();
+    v8::Local<v8::Object> o = v8::Object::New(isolate);
+
+    o->Set(NewString(isolate, "type", 4), NewString(isolate, "BigInt", 6));
+    o->Set(NewString(isolate, "data", 4), args.This()->ToString(isolate));
+
+    args.GetReturnValue().Set(o);
+}
+
 void Isolate::init()
 {
     s_isolates.putTail(this);
@@ -331,6 +342,9 @@ void Isolate::init()
         beginCoverage(m_isolate);
 
     _context->SetEmbedderData(1, v8::Object::New(m_isolate)->GetPrototype());
+
+    v8::Local<v8::Object> proto = v8::Local<v8::Object>::Cast(v8::Local<v8::Object>::Cast(v8::BigIntObject::New(m_isolate, 0))->GetPrototype());
+    proto->Set(NewString("toJSON"), NewFunction("toJSON", BigInt_toJSON));
 
     static const char* skips[] = { "Master", "repl", "argv", "__filename", "__dirname", NULL };
     global_base::class_info().Attach(this, _context->Global(), skips);

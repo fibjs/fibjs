@@ -1156,7 +1156,7 @@ result_t Buffer::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     return 0;
 }
 
-result_t Buffer::fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Object>& o)
+result_t Buffer::fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Value>& o)
 {
     result_t hr;
     v8::Local<v8::Array> arr;
