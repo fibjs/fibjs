@@ -198,6 +198,16 @@ describe('util', () => {
         assert.isFalse(util.isNumber([5]));
     });
 
+    it('isBigInt', () => {
+        assert.isTrue(util.isBigInt(1n));
+        assert.isTrue(util.isBigInt(BigInt('3')));
+
+        assert.isFalse(util.isBigInt('1n'));
+
+        assert.isFalse(util.isBigInt('hello'));
+        assert.isFalse(util.isBigInt([5n]));
+    });
+
     it('isString', () => {
         assert.isTrue(util.isString('Foo'));
         assert.isTrue(util.isString(new String('foo')));

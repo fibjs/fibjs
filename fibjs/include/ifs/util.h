@@ -34,6 +34,7 @@ public:
     static result_t isNull(v8::Local<v8::Value> v, bool& retVal);
     static result_t isNullOrUndefined(v8::Local<v8::Value> v, bool& retVal);
     static result_t isNumber(v8::Local<v8::Value> v, bool& retVal);
+    static result_t isBigInt(v8::Local<v8::Value> v, bool& retVal);
     static result_t isString(v8::Local<v8::Value> v, bool& retVal);
     static result_t isUndefined(v8::Local<v8::Value> v, bool& retVal);
     static result_t isRegExp(v8::Local<v8::Value> v, bool& retVal);
@@ -101,6 +102,7 @@ public:
     static void s_isNull(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isNullOrUndefined(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isNumber(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isBigInt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isString(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isUndefined(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isRegExp(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -163,6 +165,7 @@ inline ClassInfo& util_base::class_info()
         { "isNull", s_isNull, true },
         { "isNullOrUndefined", s_isNullOrUndefined, true },
         { "isNumber", s_isNumber, true },
+        { "isBigInt", s_isBigInt, true },
         { "isString", s_isString, true },
         { "isUndefined", s_isUndefined, true },
         { "isRegExp", s_isRegExp, true },
@@ -369,6 +372,22 @@ inline void util_base::s_isNumber(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(v8::Local<v8::Value>, 0);
 
     hr = isNumber(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_isBigInt(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("util.isBigInt");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = isBigInt(v0, vr);
 
     METHOD_RETURN();
 }
