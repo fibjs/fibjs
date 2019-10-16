@@ -17,47 +17,143 @@
 #include "v8/src/isolate.h"
 #include "v8/src/frames.h"
 #include "v8/src/frames-inl.h"
-#include "src/debug/debug-interface.h"
+#include "v8/src/json-stringifier.h"
+#include "v8/src/debug/debug-interface.h"
 
 #include "exlib/include/qstring.h"
 #include "v8_api.h"
 
+namespace i = i;
+using namespace v8;
+
 namespace fibjs {
+
+template <bool do_callback>
+class CallDepthScope {
+public:
+    explicit CallDepthScope(i::Isolate* isolate, Local<Context> context)
+        : isolate_(isolate)
+        , context_(context)
+        , escaped_(false)
+        , safe_for_termination_(isolate->next_v8_call_is_safe_for_termination())
+        , interrupts_scope_(isolate_, i::StackGuard::TERMINATE_EXECUTION,
+              isolate_->only_terminate_in_safe_scope()
+                  ? (safe_for_termination_
+                            ? i::InterruptsScope::kRunInterrupts
+                            : i::InterruptsScope::kPostponeInterrupts)
+                  : i::InterruptsScope::kNoop)
+    {
+        // TODO(dcarney): remove this when blink stops crashing.
+        DCHECK(!isolate_->external_caught_exception());
+        isolate_->handle_scope_implementer()->IncrementCallDepth();
+        isolate_->set_next_v8_call_is_safe_for_termination(false);
+        if (!context.IsEmpty()) {
+            i::Handle<i::Context> env = Utils::OpenHandle(*context);
+            i::HandleScopeImplementer* impl = isolate->handle_scope_implementer();
+            if (isolate->context() != nullptr && isolate->context()->native_context() == env->native_context()) {
+                context_ = Local<Context>();
+            } else {
+                impl->SaveContext(isolate->context());
+                isolate->set_context(*env);
+            }
+        }
+        if (do_callback)
+            isolate_->FireBeforeCallEnteredCallback();
+    }
+    ~CallDepthScope()
+    {
+        if (!context_.IsEmpty()) {
+            i::HandleScopeImplementer* impl = isolate_->handle_scope_implementer();
+            isolate_->set_context(impl->RestoreContext());
+        }
+        if (!escaped_)
+            isolate_->handle_scope_implementer()->DecrementCallDepth();
+        if (do_callback)
+            isolate_->FireCallCompletedCallback();
+// TODO(jochen): This should be #ifdef DEBUG
+#ifdef V8_CHECK_MICROTASKS_SCOPES_CONSISTENCY
+        if (do_callback)
+            CheckMicrotasksScopesConsistency(isolate_);
+#endif
+        isolate_->set_next_v8_call_is_safe_for_termination(safe_for_termination_);
+    }
+
+    void Escape()
+    {
+        DCHECK(!escaped_);
+        escaped_ = true;
+        auto handle_scope_implementer = isolate_->handle_scope_implementer();
+        handle_scope_implementer->DecrementCallDepth();
+        bool call_depth_is_zero = handle_scope_implementer->CallDepthIsZero();
+        isolate_->OptionalRescheduleException(call_depth_is_zero);
+    }
+
+private:
+    i::Isolate* const isolate_;
+    Local<Context> context_;
+    bool escaped_;
+    bool do_callback_;
+    bool safe_for_termination_;
+    i::InterruptsScope interrupts_scope_;
+};
 
 bool path_isAbsolute(exlib::string path);
 
-v8::Local<v8::BigInt> BigInt_New(v8::Isolate* isolate, uint64_t value)
+Local<BigInt> BigInt_New(Isolate* isolate, uint64_t value)
 {
-    v8::internal::Isolate* internal_isolate = reinterpret_cast<v8::internal::Isolate*>(isolate);
-    v8::internal::Handle<v8::internal::BigInt> result = v8::internal::BigInt::FromUint64(internal_isolate, value);
-    return v8::Utils::ToLocal(result);
+    i::Isolate* v8_isolate = reinterpret_cast<i::Isolate*>(isolate);
+    i::Handle<i::BigInt> result = i::BigInt::FromUint64(v8_isolate, value);
+    return Utils::ToLocal(result);
 }
 
-int64_t BigInt_AsInt64(v8::Isolate* isolate, v8::Local<v8::BigInt> value, bool* lossless)
+int64_t BigInt_AsInt64(Isolate* isolate, Local<BigInt> value, bool* lossless)
 {
-    v8::internal::Handle<v8::internal::Object> obj = v8::Utils::OpenHandle(*value);
-    v8::internal::Isolate* internal_isolate = reinterpret_cast<v8::internal::Isolate*>(isolate);
-    v8::internal::Handle<v8::internal::BigInt> bint = v8::internal::BigInt::FromObject(internal_isolate, obj).ToHandleChecked();
+    i::Isolate* v8_isolate = reinterpret_cast<i::Isolate*>(isolate);
+    i::Handle<i::Object> obj = Utils::OpenHandle(*value);
+    i::Handle<i::BigInt> bint = i::BigInt::FromObject(v8_isolate, obj).ToHandleChecked();
     return bint->AsInt64(lossless);
 }
 
-uint64_t BigInt_AsUint64(v8::Isolate* isolate, v8::Local<v8::BigInt> value, bool* lossless)
+uint64_t BigInt_AsUint64(Isolate* isolate, Local<BigInt> value, bool* lossless)
 {
-    v8::internal::Handle<v8::internal::Object> obj = v8::Utils::OpenHandle(*value);
-    v8::internal::Isolate* internal_isolate = reinterpret_cast<v8::internal::Isolate*>(isolate);
-    v8::internal::Handle<v8::internal::BigInt> bint = v8::internal::BigInt::FromObject(internal_isolate, obj).ToHandleChecked();
+    i::Isolate* v8_isolate = reinterpret_cast<i::Isolate*>(isolate);
+    i::Handle<i::Object> obj = Utils::OpenHandle(*value);
+    i::Handle<i::BigInt> bint = i::BigInt::FromObject(v8_isolate, obj).ToHandleChecked();
     return bint->AsUint64(lossless);
 }
 
-void InvokeApiInterruptCallbacks(v8::Isolate* isolate)
+Local<String> JSON_Stringify(Isolate* isolate,
+    Local<Value> json_object, Local<Function> json_replacer)
 {
-    v8::internal::Isolate* v8_isolate = (v8::internal::Isolate*)isolate;
+    i::Isolate* v8_isolate = reinterpret_cast<i::Isolate*>(isolate);
+    CallDepthScope<false> call_depth_scope(v8_isolate, isolate->GetCurrentContext());
+
+    i::Handle<i::Object> object = Utils::OpenHandle(*json_object);
+    i::Handle<i::Object> replacer = Utils::OpenHandle(*json_replacer);
+    i::Handle<i::String> gap_string = v8_isolate->factory()->empty_string();
+    i::Handle<i::Object> maybe;
+    Local<String> result;
+
+    if (i::JsonStringifier(v8_isolate)
+            .Stringify(object, replacer, gap_string)
+            .ToHandle(&maybe))
+        ToLocal<String>(i::Object::ToString(v8_isolate, maybe), &result);
+
+    if (result.IsEmpty())
+        call_depth_scope.Escape();
+
+    return result;
+}
+
+void InvokeApiInterruptCallbacks(Isolate* isolate)
+{
+    i::Isolate* v8_isolate = (i::Isolate*)isolate;
     v8_isolate->InvokeApiInterruptCallbacks();
 }
 
-V8FrameInfo save_fi(v8::Isolate* isolate)
+V8FrameInfo save_fi(Isolate* isolate)
 {
-    v8::internal::Isolate* v8_isolate = (v8::internal::Isolate*)isolate;
+    i::Isolate* v8_isolate = (i::Isolate*)isolate;
     V8FrameInfo fi;
 
     fi.entry_fp = (void*)*v8_isolate->c_entry_fp_address();
@@ -66,32 +162,32 @@ V8FrameInfo save_fi(v8::Isolate* isolate)
     return fi;
 }
 
-exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void* handle)
+exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* handle)
 {
-    v8::internal::Isolate* v8_isolate = (v8::internal::Isolate*)isolate;
-    v8::internal::ThreadLocalTop tt;
+    i::Isolate* v8_isolate = (i::Isolate*)isolate;
+    i::ThreadLocalTop tt;
 
-    tt.c_entry_fp_ = (v8::internal::Address)entry_fp;
-    tt.handler_ = (v8::internal::Address)handle;
+    tt.c_entry_fp_ = (i::Address)entry_fp;
+    tt.handler_ = (i::Address)handle;
 
-    v8::internal::JavaScriptFrameIterator it(v8_isolate, &tt);
+    i::JavaScriptFrameIterator it(v8_isolate, &tt);
 
     exlib::string strBuffer;
     bool bFirst = true;
 
     for (; !it.done() && deep-- > 0; it.Advance()) {
-        v8::internal::JavaScriptFrame* frame = it.frame();
-        std::vector<v8::internal::FrameSummary> frames;
+        i::JavaScriptFrame* frame = it.frame();
+        std::vector<i::FrameSummary> frames;
 
         frame->Summarize(&frames);
 
-        const v8::internal::FrameSummary::JavaScriptFrameSummary& summ = frames[0].AsJavaScript();
-        v8::internal::Handle<v8::internal::Script> script = v8::internal::Handle<v8::internal::Script>::cast(summ.script());
-        if (script->type() == v8::internal::Script::TYPE_NORMAL) {
+        const i::FrameSummary::JavaScriptFrameSummary& summ = frames[0].AsJavaScript();
+        i::Handle<i::Script> script = i::Handle<i::Script>::cast(summ.script());
+        if (script->type() == i::Script::TYPE_NORMAL) {
             strBuffer.append(bFirst ? "    at " : "\n    at ");
             bFirst = false;
 
-            v8::String::Utf8Value funcname(v8::Utils::ToLocal(summ.FunctionName()));
+            String::Utf8Value funcname(Utils::ToLocal(summ.FunctionName()));
             if (*funcname) {
                 strBuffer.append(*funcname);
                 strBuffer.append(" (", 2);
@@ -99,17 +195,17 @@ exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void
 
             int32_t line_number = 0;
             int32_t column_number = 0;
-            v8::internal::Script::PositionInfo info;
-            bool valid_pos = v8::internal::Script::GetPositionInfo(script, summ.SourcePosition(),
-                &info, v8::internal::Script::WITH_OFFSET);
+            i::Script::PositionInfo info;
+            bool valid_pos = i::Script::GetPositionInfo(script, summ.SourcePosition(),
+                &info, i::Script::WITH_OFFSET);
 
             if (valid_pos) {
                 line_number = info.line + 1;
                 column_number = info.column + 1;
             }
 
-            v8::internal::Handle<v8::internal::Object> name(script->name(), v8_isolate);
-            v8::String::Utf8Value filename(v8::Utils::ToLocal(name));
+            i::Handle<i::Object> name(script->name(), v8_isolate);
+            String::Utf8Value filename(Utils::ToLocal(name));
 
             char numStr[32];
 
@@ -132,31 +228,31 @@ exlib::string traceInfo(v8::Isolate* isolate, int32_t deep, void* entry_fp, void
     return strBuffer;
 }
 
-exlib::string traceInfo(v8::Isolate* isolate, int32_t deep)
+exlib::string traceInfo(Isolate* isolate, int32_t deep)
 {
-    v8::internal::Isolate* v8_isolate = (v8::internal::Isolate*)isolate;
+    i::Isolate* v8_isolate = (i::Isolate*)isolate;
     return traceInfo(isolate, deep, (void*)*v8_isolate->c_entry_fp_address(), (void*)*v8_isolate->handler_address());
 }
 
-void beginCoverage(v8::Isolate* isolate)
+void beginCoverage(Isolate* isolate)
 {
-    v8::debug::Coverage::SelectMode(isolate, v8::debug::Coverage::kBlockCount);
+    debug::Coverage::SelectMode(isolate, debug::Coverage::kBlockCount);
 }
 
-void pauseCoverage(v8::Isolate* isolate)
+void pauseCoverage(Isolate* isolate)
 {
-    v8::debug::Coverage::SelectMode(isolate, v8::debug::Coverage::kBestEffort);
+    debug::Coverage::SelectMode(isolate, debug::Coverage::kBestEffort);
 }
 
-inline std::string ToSTLString(v8::Isolate* isolate, v8::Local<v8::String> v8_str)
+inline std::string ToSTLString(Isolate* isolate, Local<String> v8_str)
 {
-    v8::String::Utf8Value utf8(isolate, v8_str);
+    String::Utf8Value utf8(isolate, v8_str);
     return *utf8;
 }
 
-inline int LineFromOffset(v8::Local<v8::debug::Script> script, int offset)
+inline int LineFromOffset(Local<debug::Script> script, int offset)
 {
-    v8::debug::Location location = script->GetSourceLocation(offset);
+    debug::Location location = script->GetSourceLocation(offset);
     return location.GetLineNumber();
 }
 
@@ -182,16 +278,16 @@ inline void WriteLcovDataForNamedRange(FILE* sink,
     fprintf(sink, "FNDA:%d,%s\n", count, name.c_str());
 }
 
-void WriteLcovData(v8::Isolate* isolate, FILE* file)
+void WriteLcovData(Isolate* isolate, FILE* file)
 {
-    v8::HandleScope handle_scope(isolate);
-    v8::debug::Coverage coverage = v8::debug::Coverage::CollectPrecise(isolate);
+    HandleScope handle_scope(isolate);
+    debug::Coverage coverage = debug::Coverage::CollectPrecise(isolate);
 
     for (size_t i = 0; i < coverage.ScriptCount(); i++) {
-        v8::debug::Coverage::ScriptData script_data = coverage.GetScriptData(i);
-        v8::Local<v8::debug::Script> script = script_data.GetScript();
+        debug::Coverage::ScriptData script_data = coverage.GetScriptData(i);
+        Local<debug::Script> script = script_data.GetScript();
         // Skip unnamed scripts.
-        v8::Local<v8::String> name;
+        Local<String> name;
         if (!script->Name().ToLocal(&name))
             continue;
         std::string file_name = ToSTLString(isolate, name);
@@ -201,17 +297,17 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
         fprintf(file, "SF:%s\n", file_name.c_str());
         std::vector<uint32_t> lines;
         for (size_t j = 0; j < script_data.FunctionCount(); j++) {
-            v8::debug::Coverage::FunctionData function_data = script_data.GetFunctionData(j);
+            debug::Coverage::FunctionData function_data = script_data.GetFunctionData(j);
 
             // Write function stats.
             {
-                v8::debug::Location start = script->GetSourceLocation(function_data.StartOffset());
-                v8::debug::Location end = script->GetSourceLocation(function_data.EndOffset());
+                debug::Location start = script->GetSourceLocation(function_data.StartOffset());
+                debug::Location end = script->GetSourceLocation(function_data.EndOffset());
                 int start_line = start.GetLineNumber();
                 int end_line = end.GetLineNumber();
                 uint32_t count = function_data.Count();
 
-                v8::Local<v8::String> name;
+                Local<String> name;
                 std::stringstream name_stream;
                 if (function_data.Name().ToLocal(&name)) {
                     name_stream << ToSTLString(isolate, name);
@@ -226,7 +322,7 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
 
             // Process inner blocks.
             for (size_t k = 0; k < function_data.BlockCount(); k++) {
-                v8::debug::Coverage::BlockData block_data = function_data.GetBlockData(k);
+                debug::Coverage::BlockData block_data = function_data.GetBlockData(k);
                 int start_line = LineFromOffset(script, block_data.StartOffset());
                 int end_line = LineFromOffset(script, block_data.EndOffset() - 1);
                 uint32_t count = block_data.Count();
@@ -243,10 +339,10 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file)
     fclose(file);
 }
 
-bool isFrozen(v8::Handle<v8::Object> object)
+bool isFrozen(Handle<Object> object)
 {
-    auto obj = v8::Utils::OpenHandle(*object);
-    v8::Maybe<bool> test = v8::internal::JSReceiver::TestIntegrityLevel(obj, v8::internal::FROZEN);
+    auto obj = Utils::OpenHandle(*object);
+    Maybe<bool> test = i::JSReceiver::TestIntegrityLevel(obj, i::FROZEN);
     return test.ToChecked();
 }
 }

@@ -16,7 +16,7 @@ namespace fibjs {
 
 DECLARE_MODULE(json);
 
-result_t BigInt_fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+static result_t BigInt_fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
 {
     TryCatch try_catch;
 
@@ -39,21 +39,33 @@ struct _from {
     { NULL }
 };
 
-inline result_t _jsonEncode(v8::Local<v8::Value> data, exlib::string& retVal)
+static void json_replacer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> v = args[1];
+
+    if (!v.IsEmpty() && (v->IsBigInt() || v->IsBigIntObject())) {
+        v8::Isolate* isolate = args.GetIsolate();
+        v8::Local<v8::Object> o = v8::Object::New(isolate);
+
+        o->Set(NewString(isolate, "type", 4), NewString(isolate, "BigInt", 6));
+        o->Set(NewString(isolate, "data", 4), v->ToString(isolate));
+
+        v = o;
+    }
+
+    args.GetReturnValue().Set(v);
+}
+
+result_t json_base::encode(v8::Local<v8::Value> data, exlib::string& retVal)
 {
     Isolate* isolate = Isolate::current();
 
-    v8::MaybeLocal<v8::String> str = v8::JSON::Stringify(isolate->context(), data);
+    v8::Local<v8::String> str = JSON_Stringify(isolate->m_isolate,
+        data, isolate->NewFunction("replacer", json_replacer));
     if (str.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    return GetArgumentValue(isolate->m_isolate, str.ToLocalChecked(), retVal);
-}
-
-result_t json_base::encode(v8::Local<v8::Value> data,
-    exlib::string& retVal)
-{
-    return _jsonEncode(data, retVal);
+    return GetArgumentValue(isolate->m_isolate, str, retVal);
 }
 
 inline bool IsInRange(int32_t value, int32_t lower_limit, int32_t higher_limit)
