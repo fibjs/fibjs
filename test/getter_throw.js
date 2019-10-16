@@ -158,7 +158,6 @@ describe('getter throw', () => {
         });
     });
 
-
     it('db format', () => {
         var db = require('db');
 
@@ -186,8 +185,6 @@ describe('getter throw', () => {
                 base64vlq.encode(obj2);
             },
         ]);
-
-        base64vlq.encode(obj);
     });
 
     it('HttpCollection', () => {

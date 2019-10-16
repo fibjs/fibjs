@@ -42,15 +42,15 @@ describe("console", () => {
             levels: [console.DEBUG, console.ERROR]
         });
 
-        console.add({
-            type: "console",
-            levels: [console.DEBUG, {}]
-        });
+        // console.add({
+        //     type: "console",
+        //     levels: [console.DEBUG, {}]
+        // });
 
-        console.add({
-            type: "console",
-            levels: [console.DEBUG, NaN]
-        });
+        // console.add({
+        //     type: "console",
+        //     levels: [console.DEBUG, NaN]
+        // });
 
         console.add({
             type: "console",

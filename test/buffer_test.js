@@ -735,6 +735,14 @@ describe('Buffer', () => {
             0x12
         ]);
 
+        assert.equal(buf.writeInt32LE("0x12345679", 0), 4);
+        assert.deepEqual(buf.toArray(), [
+            0x79,
+            0x56,
+            0x34,
+            0x12
+        ]);
+
         var buf = new Buffer(6);
 
         assert.equal(buf.writeIntBE(0x12345678abcd, 0), 6);
@@ -795,6 +803,30 @@ describe('Buffer', () => {
             0xff
         ]);
 
+        buf.writeInt64BE(9007199254740992, 0);
+        assert.deepEqual(buf.toArray(), [
+            0,
+            32,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]);
+
+        buf.writeInt64BE(9007199254740999n, 0);
+        assert.deepEqual(buf.toArray(), [
+            0,
+            32,
+            0,
+            0,
+            0,
+            0,
+            0,
+            7
+        ]);
+
         assert.throws(() => {
             buf.writeInt64LE(BigInt('0x8000000000000000'), 0);
         });
@@ -824,15 +856,15 @@ describe('Buffer', () => {
         assert.doesNotThrow(() => {
             buf.resize("12")
         });
-        assert.doesNotThrow(() => {
+        assert.throws(() => {
             buf.resize("a12")
         });
 
-        assert.doesNotThrow(() => {
+        assert.throws(() => {
             buf.resize("12a")
         });
 
-        assert.doesNotThrow(() => {
+        assert.throws(() => {
             buf.resize("12.a")
         });
     });

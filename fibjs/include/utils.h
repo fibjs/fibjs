@@ -575,21 +575,20 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, d
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
-    if (!v->IsNumber() && !v->IsNumberObject()) {
-        if (bStrict)
-            return CALL_E_TYPEMISMATCH;
-
-        v = v->ToNumber(isolate);
+    if (v->IsNumber() || v->IsNumberObject()) {
+        n = v->NumberValue();
+        return std::isnan(n) ? CALL_E_TYPEMISMATCH : 0;
     }
 
+    if (bStrict)
+        return CALL_E_TYPEMISMATCH;
+
+    v = v->ToNumber(isolate);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
     n = v->NumberValue();
-    if (std::isnan(n))
-        n = 0;
-
-    return 0;
+    return std::isnan(n) ? CALL_E_TYPEMISMATCH : 0;
 }
 
 inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, int64_t& n, bool bStrict = false)
@@ -597,31 +596,47 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
-    if (v->IsBigInt() || v->IsBigIntObject()) {
-        bool less;
-        v8::MaybeLocal<v8::BigInt> mv = v->ToBigInt(isolate->GetCurrentContext());
+    v8::MaybeLocal<v8::BigInt> mv;
+
+    if (!v->IsBigInt() && !v->IsBigIntObject()) {
+        if (!v->IsNumber() && !v->IsNumberObject()) {
+            if (bStrict)
+                return CALL_E_TYPEMISMATCH;
+
+            {
+                TryCatch try_catch;
+                mv = v->ToBigInt(isolate->GetCurrentContext());
+            }
+            if (mv.IsEmpty()) {
+                v = v->ToNumber(isolate);
+                if (v.IsEmpty())
+                    return CALL_E_JAVASCRIPT;
+            }
+        }
+    } else {
+        mv = v->ToBigInt(isolate->GetCurrentContext());
         if (mv.IsEmpty())
             return CALL_E_JAVASCRIPT;
-
-        n = BigInt_AsInt64(isolate, mv.ToLocalChecked(), &less);
-        if (!less)
-            return CALL_E_OUTRANGE;
-
-        return 0;
     }
 
-    double num;
+    if (!mv.IsEmpty()) {
+        bool less;
 
-    result_t hr = GetArgumentValue(isolate, v, num, bStrict);
-    if (hr < 0)
-        return hr;
+        n = BigInt_AsInt64(isolate, mv.ToLocalChecked(), &less);
+        return less ? 0 : CALL_E_OUTRANGE;
+    } else {
+        double num;
 
-    if (num < -9007199254740992ll || num > 9007199254740992ll)
-        return CALL_E_OUTRANGE;
+        num = v->NumberValue();
+        if (std::isnan(num))
+            return CALL_E_TYPEMISMATCH;
 
-    n = (int64_t)num;
+        if (num < -9007199254740992ll || num > 9007199254740992ll)
+            return CALL_E_OUTRANGE;
 
-    return 0;
+        n = (int64_t)num;
+        return 0;
+    }
 }
 
 inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, int32_t& n, bool bStrict = false)
