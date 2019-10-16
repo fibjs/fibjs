@@ -1413,6 +1413,9 @@ describe("http", () => {
                 } else if (r.address == "/request_json:") {
                     r.response.write(r.address);
                     r.response.write(r.json().test_field);
+                } else if (r.address == "/host:") {
+                    r.response.write(r.address);
+                    r.response.write(r.firstHeader('host'));
                 } else if (r.address != "/gzip_test") {
                     r.response.addHeader("set-cookie", [
                         "request=value; domain=127.0.0.1; path=/request",
@@ -1507,6 +1510,15 @@ describe("http", () => {
                     }
                 }).body.read().toString(), "/request:header");
                 assert.equal(cookie_for['_'], "root=value2");
+
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/host:")
+                    .body.read().toString(), "/host:127.0.0.1:" + (8882 + base_port));
+
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/host:", {
+                    headers: {
+                        "Host": "host"
+                    }
+                }).body.read().toString(), "/host:host");
             });
 
             it("headers", () => {

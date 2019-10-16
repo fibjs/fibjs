@@ -505,19 +505,17 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             } else
                 pThis->m_req->set_address(pThis->m_url);
 
-            pThis->m_req->addHeader("Host", u->m_host);
-
             bool enableEncoding = false;
             pThis->m_hc->get_enableEncoding(enableEncoding);
             if (enableEncoding)
-                pThis->m_req->setHeader("Accept-Encoding", "gzip,deflate");
+                pThis->m_req->addHeader("Accept-Encoding", "gzip,deflate");
 
             bool enableCookie = false;
             pThis->m_hc->get_enableCookie(enableCookie);
             if (enableCookie) {
                 pThis->m_hc->get_cookie(pThis->m_url, cookie);
                 if (cookie.length() > 0)
-                    pThis->m_req->setHeader("Cookie", cookie);
+                    pThis->m_req->addHeader("Cookie", cookie);
             }
 
             if (pThis->m_headers)
@@ -530,6 +528,11 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                 if (!bCheck)
                     pThis->m_req->addHeader("User-Agent", a);
             }
+
+            bool bHost = false;
+            pThis->m_req->hasHeader("Host", bHost);
+            if (!bHost)
+                pThis->m_req->addHeader("Host", u->m_host);
 
             if (pThis->m_body)
                 pThis->m_req->set_body(pThis->m_body);
