@@ -419,17 +419,14 @@ describe("Trigger/EventEmitter", () => {
 
         it('isolate', () => {
             var worker = new Worker(path.join(__dirname, 'event_files', 'worker.js'));
+            worker.onload = () => worker.postMessage('get');
+
             var get_worker_max_listeners = util.sync((done) => {
-                worker.onmessage = (evt) => {
-                    done(null, evt.data);
-                };
-                worker.postMessage('get');
+                worker.onmessage = (evt) => done(null, evt.data);
             });
 
             var change_worker_max_listeners = util.sync((done) => {
-                worker.onmessage = (evt) => {
-                    done(null, evt.data);
-                };
+                worker.onmessage = (evt) => done(null, evt.data);
                 worker.postMessage('');
             });
 
