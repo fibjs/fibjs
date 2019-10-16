@@ -291,19 +291,21 @@ interface Buffer : object
      */
     Long readUInt32BE(Integer offset = 0, Boolean noAssert = false);
 
-    /*! @brief 从缓存对象读取一个无符号整型数值，最大支持 48 位，以低字节序的存储方式
+    /*! @brief 从缓存对象读取一个无符号整型数值，最大支持 64 位，以低字节序的存储方式
      @param offset 指定读取的起始位置，缺省为 0
+     @param byteLength 指定读取的字节数，缺省 8 个字节
      @param noAssert 指定读取越界时不抛出错误，缺省为 flase，抛出
      @return 返回读取的整型数值
      */
-    Long readUIntLE(Integer offset = 0, Boolean noAssert = false);
+    Long readUIntLE(Integer offset = 0, Integer byteLength = 8, Boolean noAssert = false);
 
-    /*! @brief 从缓存对象读取一个无符号整型数值，最大支持 48 位，以高字节序的存储方式
+    /*! @brief 从缓存对象读取一个无符号整型数值，最大支持 64 位，以高字节序的存储方式
      @param offset 指定读取的起始位置，缺省为 0
+     @param byteLength 指定读取的字节数，缺省 8 个字节
      @param noAssert 指定读取越界时不抛出错误，缺省为 flase，抛出
      @return 返回读取的整型数值
      */
-    Long readUIntBE(Integer offset = 0, Boolean noAssert = false);
+    Long readUIntBE(Integer offset = 0, Integer byteLength = 8, Boolean noAssert = false);
 
     /*! @brief 从缓存对象读取一个 64 位整型数值，以低字节序的存储方式
      @param offset 指定读取的起始位置，缺省为 0
@@ -354,19 +356,21 @@ interface Buffer : object
      */
     Integer readInt32BE(Integer offset = 0, Boolean noAssert = false);
 
-    /*! @brief 从缓存对象读取一个整型数值，最大支持 48 位，以低字节序的存储方式
+    /*! @brief 从缓存对象读取一个整型数值，最大支持 64 位，以低字节序的存储方式
      @param offset 指定读取的起始位置，缺省为 0
+     @param byteLength 指定读取的字节数，缺省 8 个字节
      @param noAssert 指定读取越界时不抛出错误，缺省为 flase，抛出
      @return 返回读取的整型数值
      */
-    Long readIntLE(Integer offset = 0, Boolean noAssert = false);
+    Long readIntLE(Integer offset = 0, Integer byteLength = 8, Boolean noAssert = false);
 
-    /*! @brief 从缓存对象读取一个整型数值，最大支持 48 位，以高字节序的存储方式
+    /*! @brief 从缓存对象读取一个整型数值，最大支持 64 位，以高字节序的存储方式
      @param offset 指定读取的起始位置，缺省为 0
+     @param byteLength 指定读取的字节数，缺省 8 个字节
      @param noAssert 指定读取越界时不抛出错误，缺省为 flase，抛出
      @return 返回读取的整型数值
      */
-    Long readIntBE(Integer offset = 0, Boolean noAssert = false);
+    Long readIntBE(Integer offset = 0, Integer byteLength = 8, Boolean noAssert = false);
 
     /*! @brief 向缓存对象写入一个 64 位整型数值，以低字节序的存储方式
      @param value 指定写入的数值
@@ -452,21 +456,23 @@ interface Buffer : object
      */
     Integer writeUInt32BE(Long value, Integer offset = 0, Boolean noAssert = false);
 
-    /*! @brief 向缓存对象写入一个无符号整型数值，最大支持 48 位，以低字节序的存储方式
+    /*! @brief 向缓存对象写入一个无符号整型数值，最大支持 64 位，以低字节序的存储方式
      @param value 指定写入的数值
+     @param byteLength 指定写入的字节数，缺省 8 个字节
      @param offset 指定写入的起始位置
      @param noAssert 指定写入越界时不抛出错误，缺省为 flase，抛出
      @return offset 加上写入的字节数
      */
-    Integer writeUIntLE(Long value, Integer offset = 0, Boolean noAssert = false);
+    Integer writeUIntLE(Long value, Integer offset = 0, Integer byteLength = 8, Boolean noAssert = false);
 
-    /*! @brief 向缓存对象写入一个无符号整型数值，最大支持 48 位，以高字节序的存储方式
+    /*! @brief 向缓存对象写入一个无符号整型数值，最大支持 64 位，以高字节序的存储方式
      @param value 指定写入的数值
+     @param byteLength 指定写入的字节数，缺省 8 个字节
      @param offset 指定写入的起始位置
      @param noAssert 指定写入越界时不抛出错误，缺省为 flase，抛出
      @return offset 加上写入的字节数
      */
-    Integer writeUIntBE(Long value, Integer offset = 0, Boolean noAssert = false);
+    Integer writeUIntBE(Long value, Integer offset = 0, Integer byteLength = 8, Boolean noAssert = false);
 
     /*! @brief 向缓存对象写入一个 8 位整型数值
      @param value 指定写入的数值
@@ -508,21 +514,23 @@ interface Buffer : object
      */
     Integer writeInt32BE(Integer value, Integer offset = 0, Boolean noAssert = false);
 
-    /*! @brief 向缓存对象写入一个整型数值，最大支持 48 位，以低字节序的存储方式
+    /*! @brief 向缓存对象写入一个整型数值，最大支持 64 位，以低字节序的存储方式
      @param value 指定写入的数值
+     @param byteLength 指定写入的字节数，缺省 8 个字节
      @param offset 指定写入的起始位置
      @param noAssert 指定写入越界时不抛出错误，缺省为 flase，抛出
      @return offset 加上写入的字节数
      */
-    Integer writeIntLE(Long value, Integer offset = 0, Boolean noAssert = false);
+    Integer writeIntLE(Long value, Integer offset = 0, Integer byteLength = 8, Boolean noAssert = false);
 
-    /*! @brief 向缓存对象写入一个整型数值，最大支持 48 位，以高字节序的存储方式
+    /*! @brief 向缓存对象写入一个整型数值，最大支持 64 位，以高字节序的存储方式
      @param value 指定写入的数值
+     @param byteLength 指定写入的字节数，缺省 8 个字节
      @param offset 指定写入的起始位置
      @param noAssert 指定写入越界时不抛出错误，缺省为 flase，抛出
      @return offset 加上写入的字节数
      */
-    Integer writeIntBE(Long value, Integer offset = 0, Boolean noAssert = false);
+    Integer writeIntBE(Long value, Integer offset = 0, Integer byteLength = 8, Boolean noAssert = false);
 
     /*! @brief 向缓存对象写入一个浮点数，以低字节序的存储方式
      @param value 指定写入的数值

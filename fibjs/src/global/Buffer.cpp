@@ -658,22 +658,26 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size, bool noAsse
     retVal = v;                                                           \
     return 0;
 
-#define READ_U_NUMBER_48(t, le)                                   \
-    t v = 0;                                                      \
-    result_t hr = readNumber(offset, (char*)&v, 6, noAssert, le); \
-    if (hr < 0)                                                   \
-        return hr;                                                \
-    retVal = v;                                                   \
+#define READ_U_NUMBER_48(t, sz, le)                                \
+    if (sz <= 0 || sz > 8)                                         \
+        return CALL_E_INVALIDARG;                                  \
+    t v = 0;                                                       \
+    result_t hr = readNumber(offset, (char*)&v, sz, noAssert, le); \
+    if (hr < 0)                                                    \
+        return hr;                                                 \
+    retVal = v;                                                    \
     return 0;
 
-#define READ_NUMBER_48(t, le)                                     \
-    t v = 0;                                                      \
-    result_t hr = readNumber(offset, (char*)&v, 6, noAssert, le); \
-    if (hr < 0)                                                   \
-        return hr;                                                \
-    if (v & 0x800000000000)                                       \
-        v = -(v & 0x7fffffffffff);                                \
-    retVal = v;                                                   \
+#define READ_NUMBER_48(t, sz, le)                                  \
+    if (sz <= 0 || sz > 8)                                         \
+        return CALL_E_INVALIDARG;                                  \
+    t v = 0;                                                       \
+    result_t hr = readNumber(offset, (char*)&v, sz, noAssert, le); \
+    if (hr < 0)                                                    \
+        return hr;                                                 \
+    if ((sz < 8) && (v & (((t)1) << (8 * sz - 1))))                \
+        v |= ((t)-1) << (8 * sz);                                  \
+    retVal = v;                                                    \
     return 0;
 
 result_t Buffer::readUInt8(int32_t offset, bool noAssert, int32_t& retVal)
@@ -701,14 +705,14 @@ result_t Buffer::readUInt32BE(int32_t offset, bool noAssert, int64_t& retVal)
     READ_NUMBER(uint32_t, false);
 }
 
-result_t Buffer::readUIntLE(int32_t offset, bool noAssert, int64_t& retVal)
+result_t Buffer::readUIntLE(int32_t offset, int32_t byteLength, bool noAssert, int64_t& retVal)
 {
-    READ_U_NUMBER_48(uint64_t, true);
+    READ_U_NUMBER_48(uint64_t, byteLength, true);
 }
 
-result_t Buffer::readUIntBE(int32_t offset, bool noAssert, int64_t& retVal)
+result_t Buffer::readUIntBE(int32_t offset, int32_t byteLength, bool noAssert, int64_t& retVal)
 {
-    READ_U_NUMBER_48(uint64_t, false);
+    READ_U_NUMBER_48(uint64_t, byteLength, false);
 }
 
 result_t Buffer::readInt8(int32_t offset, bool noAssert, int32_t& retVal)
@@ -736,14 +740,14 @@ result_t Buffer::readInt32BE(int32_t offset, bool noAssert, int32_t& retVal)
     READ_NUMBER(int32_t, false);
 }
 
-result_t Buffer::readIntLE(int32_t offset, bool noAssert, int64_t& retVal)
+result_t Buffer::readIntLE(int32_t offset, int32_t byteLength, bool noAssert, int64_t& retVal)
 {
-    READ_NUMBER_48(int64_t, true);
+    READ_NUMBER_48(int64_t, byteLength, true);
 }
 
-result_t Buffer::readIntBE(int32_t offset, bool noAssert, int64_t& retVal)
+result_t Buffer::readIntBE(int32_t offset, int32_t byteLength, bool noAssert, int64_t& retVal)
 {
-    READ_NUMBER_48(int64_t, false);
+    READ_NUMBER_48(int64_t, byteLength, false);
 }
 
 result_t Buffer::readInt64LE(int32_t offset, bool noAssert, int64_t& retVal)
@@ -817,11 +821,13 @@ result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size, bool
         return hr;                                                                 \
     return 0;
 
-#define WRITE_NUMBER_48(t, le)                                             \
-    t v = (t)value;                                                        \
-    result_t hr = writeNumber(offset, (char*)&v, 6, noAssert, le, retVal); \
-    if (hr < 0)                                                            \
-        return hr;                                                         \
+#define WRITE_NUMBER_48(t, sz, le)                                          \
+    if (sz <= 0 || sz > 8)                                                  \
+        return CALL_E_INVALIDARG;                                           \
+    t v = (t)value;                                                         \
+    result_t hr = writeNumber(offset, (char*)&v, sz, noAssert, le, retVal); \
+    if (hr < 0)                                                             \
+        return hr;                                                          \
     return 0;
 
 result_t Buffer::writeUInt8(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
@@ -849,14 +855,14 @@ result_t Buffer::writeUInt32BE(int64_t value, int32_t offset, bool noAssert, int
     WRITE_NUMBER(uint32_t, false);
 }
 
-result_t Buffer::writeUIntLE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeUIntLE(int64_t value, int32_t offset, int32_t byteLength, bool noAssert, int32_t& retVal)
 {
-    WRITE_NUMBER_48(uint64_t, true);
+    WRITE_NUMBER_48(uint64_t, byteLength, true);
 }
 
-result_t Buffer::writeUIntBE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeUIntBE(int64_t value, int32_t offset, int32_t byteLength, bool noAssert, int32_t& retVal)
 {
-    WRITE_NUMBER_48(uint64_t, false);
+    WRITE_NUMBER_48(uint64_t, byteLength, false);
 }
 
 result_t Buffer::writeInt8(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
@@ -884,14 +890,14 @@ result_t Buffer::writeInt32BE(int32_t value, int32_t offset, bool noAssert, int3
     WRITE_NUMBER(int32_t, false);
 }
 
-result_t Buffer::writeIntLE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeIntLE(int64_t value, int32_t offset, int32_t byteLength, bool noAssert, int32_t& retVal)
 {
-    WRITE_NUMBER_48(int64_t, true);
+    WRITE_NUMBER_48(int64_t, byteLength, true);
 }
 
-result_t Buffer::writeIntBE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeIntBE(int64_t value, int32_t offset, int32_t byteLength, bool noAssert, int32_t& retVal)
 {
-    WRITE_NUMBER_48(int64_t, false);
+    WRITE_NUMBER_48(int64_t, byteLength, false);
 }
 
 result_t Buffer::writeInt64LE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
