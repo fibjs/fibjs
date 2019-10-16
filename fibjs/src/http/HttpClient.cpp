@@ -8,8 +8,8 @@
 #include "HttpClient.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
-#include "Url.h"
 #include "HttpRequest.h"
+#include "SslSocket.h"
 #include "BufferedStream.h"
 #include "ifs/net.h"
 #include "ifs/zlib.h"
@@ -124,6 +124,61 @@ result_t HttpClient::get_poolTimeout(int32_t& retVal)
 result_t HttpClient::set_poolTimeout(int32_t newVal)
 {
     m_poolTimeout = newVal;
+    return 0;
+}
+
+result_t HttpClient::get_proxyAgent(exlib::string& retVal)
+{
+    retVal = m_proxyAgent;
+    return 0;
+}
+
+result_t HttpClient::set_proxyAgent(exlib::string newVal)
+{
+    if (newVal.empty()) {
+        m_proxyAgent.clear();
+        m_proxyConnUrl.clear();
+        m_proxyAgentUrl.Release();
+    } else {
+        obj_ptr<Url> u = new Url();
+        result_t hr;
+        exlib::string connUrl;
+        bool ssl = false;
+
+        hr = u->parse(newVal);
+        if (hr < 0)
+            return hr;
+
+        if (u->m_protocol == "https:") {
+            ssl = true;
+            connUrl = "ssl://";
+        } else if (u->m_protocol == "http:")
+            connUrl = "tcp://";
+        else
+            return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
+
+        if (u->m_host.empty())
+            return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
+
+        connUrl.append(u->m_host);
+
+        if (!u->m_port.empty()) {
+            connUrl.append(":", 1);
+            connUrl.append(u->m_port);
+        } else
+            connUrl.append(ssl ? ":443" : ":80");
+
+        m_proxyAgent = newVal;
+        m_proxyConnUrl = connUrl;
+        m_proxyAgentUrl = u;
+    }
+
+    date_t d;
+
+    d.now();
+    d.add(m_poolTimeout, date_t::_MICROSECOND);
+    clean_coon(d);
+
     return 0;
 }
 
@@ -444,8 +499,11 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
             pThis->m_req->set_method(pThis->m_method);
 
-            u->get_path(path);
-            pThis->m_req->set_address(path);
+            if (pThis->m_hc->m_proxyConnUrl.empty()) {
+                u->get_path(path);
+                pThis->m_req->set_address(path);
+            } else
+                pThis->m_req->set_address(pThis->m_url);
 
             pThis->m_req->addHeader("Host", u->m_host);
 
@@ -479,7 +537,64 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             if (pThis->m_hc->get_conn(pThis->m_connUrl, pThis->m_conn))
                 return pThis->next(connected);
 
-            return net_base::connect(pThis->m_connUrl, pThis->m_hc->m_timeout, pThis->m_conn, pThis->next(connected));
+            if (pThis->m_hc->m_proxyConnUrl.empty())
+                return net_base::connect(pThis->m_connUrl, pThis->m_hc->m_timeout, pThis->m_conn, pThis->next(connected));
+            else {
+                if (ssl) {
+                    exlib::string host = pThis->m_connUrl.substr(6);
+                    pThis->m_reqConn = new HttpRequest();
+
+                    pThis->m_reqConn->set_method("CONNECT");
+                    pThis->m_reqConn->set_address(host);
+                    pThis->m_reqConn->addHeader("Host", host);
+                    pThis->m_host = u->m_hostname;
+
+                    exlib::string a = pThis->m_hc->agent();
+                    if (!a.empty())
+                        pThis->m_reqConn->addHeader("User-Agent", a);
+                }
+                return net_base::connect(pThis->m_hc->m_proxyConnUrl,
+                    pThis->m_hc->m_timeout, pThis->m_conn, pThis->next(ssl ? ssl_connect : connected));
+            }
+        }
+
+        static int32_t ssl_connect(AsyncState* pState, int32_t n)
+        {
+            asyncRequest* pThis = (asyncRequest*)pState;
+            return pThis->m_hc->request(pThis->m_conn, pThis->m_reqConn, pThis->m_retVal, pThis->next(ssl_handshake));
+        }
+
+        static int32_t ssl_handshake(AsyncState* pState, int32_t n)
+        {
+            asyncRequest* pThis = (asyncRequest*)pState;
+            int32_t status;
+            result_t hr;
+
+            hr = pThis->m_retVal->get_statusCode(status);
+            if (hr < 0)
+                return hr;
+
+            if (status != 200) {
+                exlib::string msg;
+
+                pThis->m_retVal->get_statusMessage(msg);
+                return CHECK_ERROR(Runtime::setError("HttpClient: " + msg));
+            }
+
+            pThis->m_reqConn.Release();
+            pThis->m_retVal.Release();
+
+            obj_ptr<SslSocket> ss = new SslSocket();
+            obj_ptr<Stream_base> conn = pThis->m_conn;
+            pThis->m_conn = ss;
+
+            if (g_ssl.m_crt && g_ssl.m_key) {
+                result_t hr = ss->setCert("", g_ssl.m_crt, g_ssl.m_key);
+                if (hr < 0)
+                    return hr;
+            }
+
+            return ss->connect(conn, pThis->m_host, pThis->m_temp, pThis->next(connected));
         }
 
         static int32_t connected(AsyncState* pState, int32_t n)
@@ -552,14 +667,17 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
     private:
         exlib::string m_method;
         exlib::string m_url;
+        exlib::string m_host;
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<NObject> m_headers;
         obj_ptr<HttpResponse_base>& m_retVal;
         std::map<exlib::string, bool> m_urls;
         obj_ptr<Stream_base> m_conn;
         obj_ptr<HttpRequest> m_req;
+        obj_ptr<HttpRequest> m_reqConn;
         exlib::string m_connUrl;
         obj_ptr<HttpClient> m_hc;
+        int32_t m_temp;
     };
 
     if (ac->isSync())

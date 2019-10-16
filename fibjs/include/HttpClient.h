@@ -9,6 +9,7 @@
 
 #include "ifs/HttpClient.h"
 #include "HttpCookie.h"
+#include "Url.h"
 
 namespace fibjs {
 
@@ -48,6 +49,8 @@ public:
     virtual result_t set_poolSize(int32_t newVal);
     virtual result_t get_poolTimeout(int32_t& retVal);
     virtual result_t set_poolTimeout(int32_t newVal);
+    virtual result_t get_proxyAgent(exlib::string& retVal);
+    virtual result_t set_proxyAgent(exlib::string newVal);
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t get(exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -74,7 +77,7 @@ public:
 
         m_lock.lock();
         while (((int32_t)m_conns.size() > m_poolSize)
-            || (m_conns.size() && d.diff(m_conns[0]->d) > (double)m_poolTimeout)) {
+            || (m_conns.size() && d.diff(m_conns[0]->d) >= (double)m_poolTimeout)) {
             keep_conns.push_back(m_conns[0]);
             m_conns.erase(m_conns.begin());
         }
@@ -132,6 +135,7 @@ private:
     bool m_enableEncoding;
     int32_t m_maxBodySize;
     exlib::string m_userAgent;
+    exlib::string m_proxyConnUrl;
 
 private:
     class Conn : public obj_base {
@@ -144,6 +148,8 @@ private:
     std::vector<obj_ptr<Conn>> m_conns;
     int32_t m_poolSize;
     int32_t m_poolTimeout;
+    exlib::string m_proxyAgent;
+    obj_ptr<Url> m_proxyAgentUrl;
 };
 } /* namespace fibjs */
 

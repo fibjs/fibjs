@@ -50,6 +50,8 @@ public:
     static result_t set_poolSize(int32_t newVal);
     static result_t get_poolTimeout(int32_t& retVal);
     static result_t set_poolTimeout(int32_t newVal);
+    static result_t get_proxyAgent(exlib::string& retVal);
+    static result_t set_proxyAgent(exlib::string newVal);
     static result_t fileHandler(exlib::string root, v8::Local<v8::Object> mimes, bool autoIndex, obj_ptr<Handler_base>& retVal);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -89,6 +91,8 @@ public:
     static void s_set_poolSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_poolTimeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_poolTimeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_proxyAgent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_proxyAgent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -159,7 +163,8 @@ inline ClassInfo& http_base::class_info()
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, true },
         { "userAgent", s_get_userAgent, s_set_userAgent, true },
         { "poolSize", s_get_poolSize, s_set_poolSize, true },
-        { "poolTimeout", s_get_poolTimeout, s_set_poolTimeout, true }
+        { "poolTimeout", s_get_poolTimeout, s_set_poolTimeout, true },
+        { "proxyAgent", s_get_proxyAgent, s_set_proxyAgent, true }
     };
 
     static ClassData s_cd = {
@@ -376,6 +381,29 @@ inline void http_base::s_set_poolTimeout(v8::Local<v8::Name> property, v8::Local
     PROPERTY_VAL(int32_t);
 
     hr = set_poolTimeout(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void http_base::s_get_proxyAgent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("http.proxyAgent");
+    PROPERTY_ENTER();
+
+    hr = get_proxyAgent(vr);
+
+    METHOD_RETURN();
+}
+
+inline void http_base::s_set_proxyAgent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("http.proxyAgent");
+    PROPERTY_ENTER();
+    PROPERTY_VAL(exlib::string);
+
+    hr = set_proxyAgent(v0);
 
     PROPERTY_SET_LEAVE();
 }
