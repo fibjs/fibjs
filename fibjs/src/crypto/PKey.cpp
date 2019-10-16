@@ -16,6 +16,52 @@
 
 namespace fibjs {
 
+struct curve_info {
+    mbedtls_ecp_group_id id;
+    const char* name;
+};
+
+static const curve_info supported_curves[] = {
+    { MBEDTLS_ECP_DP_SECP192R1, "P-192" },
+    { MBEDTLS_ECP_DP_SECP192R1, "secp192r1" },
+    { MBEDTLS_ECP_DP_SECP224R1, "P-224" },
+    { MBEDTLS_ECP_DP_SECP224R1, "secp224r1" },
+    { MBEDTLS_ECP_DP_SECP256R1, "P-256" },
+    { MBEDTLS_ECP_DP_SECP256R1, "secp256r1" },
+    { MBEDTLS_ECP_DP_SECP384R1, "P-384" },
+    { MBEDTLS_ECP_DP_SECP384R1, "secp384r1" },
+    { MBEDTLS_ECP_DP_SECP521R1, "P-521" },
+    { MBEDTLS_ECP_DP_SECP521R1, "secp521r1" },
+    { MBEDTLS_ECP_DP_BP256R1, "brainpoolP256r1" },
+    { MBEDTLS_ECP_DP_BP384R1, "brainpoolP384r1" },
+    { MBEDTLS_ECP_DP_BP512R1, "brainpoolP512r1" },
+    { MBEDTLS_ECP_DP_SECP192K1, "secp192k1" },
+    { MBEDTLS_ECP_DP_SECP224K1, "secp224k1" },
+    { MBEDTLS_ECP_DP_SECP256K1, "secp256k1" }
+};
+
+mbedtls_ecp_group_id get_curve_id(exlib::string& curve)
+{
+    int32_t i;
+
+    for (i = 0; i < ARRAYSIZE(supported_curves); i++)
+        if (!strcmp(curve.c_str(), supported_curves[i].name))
+            return supported_curves[i].id;
+
+    return MBEDTLS_ECP_DP_NONE;
+}
+
+const char* get_curve_name(mbedtls_ecp_group_id id)
+{
+    int32_t i;
+
+    for (i = 0; i < ARRAYSIZE(supported_curves); i++)
+        if (supported_curves[i].id == id)
+            return supported_curves[i].name;
+
+    return NULL;
+}
+
 result_t PKey_base::_new(obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new PKey();
@@ -99,44 +145,13 @@ result_t PKey::genRsaKey(int32_t size, AsyncEvent* ac)
     return 0;
 }
 
-void alias_curve(exlib::string& curve)
-{
-    if (curve == "P-521")
-        curve = "secp521r1";
-    else if (curve == "P-384")
-        curve = "secp384r1";
-    else if (curve == "P-256")
-        curve = "secp256r1";
-    else if (curve == "P-224")
-        curve = "secp224r1";
-    else if (curve == "P-192")
-        curve = "secp192r1";
-}
-
-void curve_alias(exlib::string& curve)
-{
-    if (curve == "secp521r1")
-        curve = "P-521";
-    else if (curve == "secp384r1")
-        curve = "P-384";
-    else if (curve == "secp256r1")
-        curve = "P-256";
-    else if (curve == "secp224r1")
-        curve = "P-224";
-    else if (curve == "secp192r1")
-        curve = "P-192";
-}
-
 result_t PKey::genEcKey(exlib::string curve, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    alias_curve(curve);
-
-    const mbedtls_ecp_curve_info* curve_info;
-    curve_info = mbedtls_ecp_curve_info_from_name(curve.c_str());
-    if (curve_info == NULL)
+    mbedtls_ecp_group_id id = get_curve_id(curve);
+    if (id == MBEDTLS_ECP_DP_NONE)
         return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
 
     int32_t ret;
@@ -147,9 +162,8 @@ result_t PKey::genEcKey(exlib::string curve, AsyncEvent* ac)
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    ret = mbedtls_ecp_gen_key(curve_info->grp_id, mbedtls_pk_ec(m_key),
+    ret = mbedtls_ecp_gen_key(id, mbedtls_pk_ec(m_key),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
-
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -447,11 +461,8 @@ result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
         if (hr < 0)
             return hr;
 
-        alias_curve(curve);
-
-        const mbedtls_ecp_curve_info* curve_info;
-        curve_info = mbedtls_ecp_curve_info_from_name(curve.c_str());
-        if (curve_info == NULL)
+        mbedtls_ecp_group_id id = get_curve_id(curve);
+        if (id == MBEDTLS_ECP_DP_NONE)
             return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
 
         ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
@@ -460,7 +471,7 @@ result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
-        mbedtls_ecp_group_load(&ecp->grp, curve_info->grp_id);
+        mbedtls_ecp_group_load(&ecp->grp, id);
 
         hr = mpi_load(isolate, &ecp->Q.X, jsonKey, "x");
         if (hr < 0)
@@ -610,14 +621,13 @@ result_t PKey::exportJson(v8::Local<v8::Object>& retVal)
     if (type == MBEDTLS_PK_ECKEY) {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-        const mbedtls_ecp_curve_info* ci = mbedtls_ecp_curve_info_from_grp_id(ecp->grp.id);
-
-        exlib::string crv = ci->name;
-
-        curve_alias(crv);
+        const char* _name = get_curve_name(ecp->grp.id);
 
         o->Set(isolate->NewString("kty"), isolate->NewString("EC"));
-        o->Set(isolate->NewString("crv"), isolate->NewString(crv));
+
+        if (_name)
+            o->Set(isolate->NewString("crv"), isolate->NewString(_name));
+
         mpi_dump(isolate, o, "x", &ecp->Q.X);
         mpi_dump(isolate, o, "y", &ecp->Q.Y);
 

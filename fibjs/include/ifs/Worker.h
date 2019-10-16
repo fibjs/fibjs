@@ -26,8 +26,12 @@ public:
     // Worker_base
     static result_t _new(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t postMessage(v8::Local<v8::Value> data) = 0;
+    virtual result_t get_onload(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_onload(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onmessage(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onmessage(v8::Local<v8::Function> newVal) = 0;
+    virtual result_t get_onerror(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_onerror(v8::Local<v8::Function> newVal) = 0;
 
 public:
     template <typename T>
@@ -36,8 +40,12 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onload(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onload(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onerror(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onerror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
 }
 
@@ -49,7 +57,9 @@ inline ClassInfo& Worker_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "onmessage", s_get_onmessage, s_set_onmessage, false }
+        { "onload", s_get_onload, s_set_onload, false },
+        { "onmessage", s_get_onmessage, s_set_onmessage, false },
+        { "onerror", s_get_onerror, s_set_onerror, false }
     };
 
     static ClassData s_cd = {
@@ -101,6 +111,31 @@ inline void Worker_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_VOID();
 }
 
+inline void Worker_base::s_get_onload(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_NAME("Worker.onload");
+    METHOD_INSTANCE(Worker_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_onload(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Worker_base::s_set_onload(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("Worker.onload");
+    METHOD_INSTANCE(Worker_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(v8::Local<v8::Function>);
+
+    hr = pInst->set_onload(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
 inline void Worker_base::s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
@@ -122,6 +157,31 @@ inline void Worker_base::s_set_onmessage(v8::Local<v8::Name> property, v8::Local
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onmessage(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void Worker_base::s_get_onerror(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_NAME("Worker.onerror");
+    METHOD_INSTANCE(Worker_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_onerror(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Worker_base::s_set_onerror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("Worker.onerror");
+    METHOD_INSTANCE(Worker_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(v8::Local<v8::Function>);
+
+    hr = pInst->set_onerror(v0);
 
     PROPERTY_SET_LEAVE();
 }

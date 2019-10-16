@@ -16,11 +16,26 @@ namespace fibjs {
 
 DECLARE_MODULE(json);
 
+result_t BigInt_fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+{
+    TryCatch try_catch;
+
+    v8::MaybeLocal<v8::BigInt> v = data->ToBigInt(isolate->context());
+    try_catch.Reset();
+
+    if (v.IsEmpty())
+        return CALL_E_TYPEMISMATCH;
+
+    retVal = v.ToLocalChecked();
+    return 0;
+}
+
 struct _from {
     const char* name;
-    void (*from)(Isolate*, v8::Local<v8::Value>, v8::Local<v8::Object>&);
+    result_t (*from)(Isolate*, v8::Local<v8::Value>, v8::Local<v8::Value>&);
 } s_from[] = {
     { "Buffer", Buffer::fromJSON },
+    { "BigInt", BigInt_fromJSON },
     { NULL }
 };
 
@@ -307,7 +322,7 @@ inline result_t _jsonDecode(exlib::string data,
             JSValue type = json_object->Get(isolate->NewString("type"));
             JSValue data = json_object->Get(isolate->NewString("data"));
 
-            if (!type.IsEmpty() && !data.IsEmpty()) {
+            if (!IsEmpty(type) && !IsEmpty(data)) {
                 v8::String::Utf8Value str(type);
 
                 if (*str) {
@@ -315,7 +330,9 @@ inline result_t _jsonDecode(exlib::string data,
 
                     for (i = 0; s_from[i].name; i++)
                         if (!qstrcmp(*str, s_from[i].name)) {
-                            s_from[i].from(isolate, data, json_object);
+                            hr = s_from[i].from(isolate, data, retVal);
+                            if (hr >= 0)
+                                return 0;
                             break;
                         }
                 }

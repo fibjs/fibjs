@@ -72,6 +72,12 @@ result_t util_base::isNumber(v8::Local<v8::Value> v, bool& retVal)
     return 0;
 }
 
+result_t util_base::isBigInt(v8::Local<v8::Value> v, bool& retVal)
+{
+    retVal = v->IsBigInt() || v->IsBigIntObject();
+    return 0;
+}
+
 result_t util_base::isString(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsString() || v->IsStringObject();

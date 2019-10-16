@@ -8,6 +8,7 @@ var base64 = require('base64');
 var hex = require('hex');
 var iconv = require('iconv');
 var base64vlq = require('base64vlq');
+var util = require('util');
 
 describe('encoding', () => {
     it('base64', () => {
@@ -253,11 +254,60 @@ describe('encoding', () => {
 
         assert.equal(json.encode(json.decode('{"a":100,"b":200}')),
             '{"a":100,"b":200}');
+    });
 
+    it('json encode object', () => {
         var buf = new Buffer('test');
         var j = json.encode(buf);
+        assert.equal(j, '{"type":"Buffer","data":[116,101,115,116]}');
 
-        assert.isTrue(Buffer.isBuffer(json.decode(j)));
+        var buf1 = json.decode(json.encode({
+            "type": "Buffer",
+            "data": buf.toArray()
+        }));
+
+        assert.deepEqual(buf, buf1);
+
+        var buf1 = json.decode(json.encode({
+            "type": "Buffer",
+            "data": buf.base64()
+        }));
+
+        assert.deepEqual(buf, buf1);
+
+        var o = {
+            "type": "Buffer",
+            "data": {
+                a: 100,
+                b: 200
+            }
+        };
+        assert.deepEqual(json.decode(json.encode(o)), o)
+
+        var o = {
+            bigint: 10000n
+        };
+
+        var j = json.encode(o);
+        assert.equal(j, '{"bigint":{"type":"BigInt","data":"10000"}}')
+
+        var o1 = json.decode(j);
+        assert.deepEqual(o, o1);
+
+        var o = {
+            "type": "BigInt",
+            "data": "aaaaa"
+        };
+        assert.deepEqual(json.decode(json.encode(o)), o)
+
+        var o = {
+            "type": "BigInt",
+            "data": {
+                a: 100,
+                b: 200
+            }
+        };
+        assert.deepEqual(json.decode(json.encode(o)), o)
     });
 
     it('json encode error when circular', () => {
