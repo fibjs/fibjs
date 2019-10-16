@@ -622,7 +622,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
     if (!mv.IsEmpty()) {
         bool less;
 
-        n = BigInt_AsInt64(isolate, mv.ToLocalChecked(), &less);
+        n = mv.ToLocalChecked()->Int64Value(&less);
         return less ? 0 : CALL_E_OUTRANGE;
     } else {
         double num;

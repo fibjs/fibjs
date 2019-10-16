@@ -99,29 +99,6 @@ private:
 
 bool path_isAbsolute(exlib::string path);
 
-Local<BigInt> BigInt_New(Isolate* isolate, uint64_t value)
-{
-    i::Isolate* v8_isolate = reinterpret_cast<i::Isolate*>(isolate);
-    i::Handle<i::BigInt> result = i::BigInt::FromUint64(v8_isolate, value);
-    return Utils::ToLocal(result);
-}
-
-int64_t BigInt_AsInt64(Isolate* isolate, Local<BigInt> value, bool* lossless)
-{
-    i::Isolate* v8_isolate = reinterpret_cast<i::Isolate*>(isolate);
-    i::Handle<i::Object> obj = Utils::OpenHandle(*value);
-    i::Handle<i::BigInt> bint = i::BigInt::FromObject(v8_isolate, obj).ToHandleChecked();
-    return bint->AsInt64(lossless);
-}
-
-uint64_t BigInt_AsUint64(Isolate* isolate, Local<BigInt> value, bool* lossless)
-{
-    i::Isolate* v8_isolate = reinterpret_cast<i::Isolate*>(isolate);
-    i::Handle<i::Object> obj = Utils::OpenHandle(*value);
-    i::Handle<i::BigInt> bint = i::BigInt::FromObject(v8_isolate, obj).ToHandleChecked();
-    return bint->AsUint64(lossless);
-}
-
 Local<String> JSON_Stringify(Isolate* isolate,
     Local<Value> json_object, Local<Function> json_replacer)
 {

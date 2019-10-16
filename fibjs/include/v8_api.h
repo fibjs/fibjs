@@ -10,10 +10,6 @@
 
 namespace fibjs {
 
-v8::Local<v8::BigInt> BigInt_New(v8::Isolate* isolate, uint64_t value);
-int64_t BigInt_AsInt64(v8::Isolate* isolate, v8::Local<v8::BigInt> value, bool* lossless = NULL);
-uint64_t BigInt_AsUint64(v8::Isolate* isolate, v8::Local<v8::BigInt> value, bool* lossless = NULL);
-
 v8::Local<v8::String> JSON_Stringify(v8::Isolate* isolate,
     v8::Local<v8::Value> json_object, v8::Local<v8::Function> json_replacer);
 
