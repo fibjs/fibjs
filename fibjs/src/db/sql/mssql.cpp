@@ -273,11 +273,11 @@ result_t mssql::execute(const char* sql, int32_t sLen,
                                 break;
                             case VT_I4:
                             case VT_INT:
-                                v = value.lVal;
+                                v = (double)value.lVal;
                                 break;
                             case VT_UI4:
                             case VT_UINT:
-                                v = (int64_t)value.ulVal;
+                                v = (double)value.ulVal;
                                 break;
                             case VT_R4:
                                 v = value.dblVal;

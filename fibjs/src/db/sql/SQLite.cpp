@@ -288,7 +288,7 @@ result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
                             break;
 
                         case SQLITE_INTEGER:
-                            v = (int64_t)sqlite3_column_int64(stmt, i);
+                            v = (double)sqlite3_column_int64(stmt, i);
                             break;
 
                         case SQLITE_FLOAT:

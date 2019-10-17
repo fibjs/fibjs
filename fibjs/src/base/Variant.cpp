@@ -34,22 +34,18 @@ Variant& Variant::operator=(v8::Local<v8::Value> v)
         set_type(VT_Boolean);
         m_Val.boolVal = v->BooleanValue();
     } else if (v->IsNumber() || v->IsNumberObject()) {
-
         double n = v->NumberValue();
         int64_t num = (int64_t)n;
 
-        if (n == (double)num) {
-            if (num >= -2147483648ll && num <= 2147483647ll) {
-                set_type(VT_Integer);
-                m_Val.intVal = (int32_t)num;
-            } else {
-                set_type(VT_Long);
-                m_Val.longVal = num;
-            }
-        } else {
-            set_type(VT_Number);
-            m_Val.dblVal = n;
-        }
+        set_type(VT_Number);
+        m_Val.dblVal = n;
+    } else if (v->IsBigInt() || v->IsBigIntObject()) {
+        v8::MaybeLocal<v8::BigInt> mv;
+        bool less;
+
+        mv = v->ToBigInt(Isolate::current()->context());
+        set_type(VT_Long);
+        m_Val.longVal = mv.ToLocalChecked()->Int64Value(&less);
     } else if (v->IsString() || v->IsStringObject()) {
         exlib::string str;
         GetArgumentValue(Isolate::current()->m_isolate, v, str);
@@ -91,7 +87,7 @@ Variant::operator v8::Local<v8::Value>() const
     case VT_Integer:
         return v8::Int32::New(isolate->m_isolate, m_Val.intVal);
     case VT_Long:
-        return v8::Number::New(isolate->m_isolate, (double)m_Val.longVal);
+        return v8::BigInt::New(isolate->m_isolate, m_Val.longVal);
     case VT_Number:
         return v8::Number::New(isolate->m_isolate, m_Val.dblVal);
     case VT_Date:
@@ -237,13 +233,8 @@ void Variant::parseNumber(const char* str, int32_t len)
     if (bNeg)
         digit = -digit;
 
-    if (digit >= -2147483648ll && digit <= 2147483647ll) {
-        set_type(VT_Integer);
-        m_Val.intVal = (int32_t)digit;
-    } else {
-        set_type(VT_Long);
-        m_Val.longVal = digit;
-    }
+    set_type(VT_Number);
+    m_Val.dblVal = digit;
 }
 
 #define STRING_BUF_SIZE 1024

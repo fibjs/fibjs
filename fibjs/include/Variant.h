@@ -234,13 +234,8 @@ public:
     {
         clear();
 
-        if (v >= -2147483648ll && v <= 2147483647ll) {
-            set_type(VT_Integer);
-            m_Val.intVal = (int32_t)v;
-        } else {
-            set_type(VT_Long);
-            m_Val.longVal = v;
-        }
+        set_type(VT_Long);
+        m_Val.longVal = v;
 
         return *this;
     }
