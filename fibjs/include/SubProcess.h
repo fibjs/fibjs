@@ -33,28 +33,6 @@ public:
     FIBER_FREE();
 
 public:
-    // Stream_base
-    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t write(Buffer_base* data, AsyncEvent* ac);
-    virtual result_t flush(AsyncEvent* ac);
-    virtual result_t close(AsyncEvent* ac);
-    virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac);
-
-public:
-    // BufferedStream_base
-    virtual result_t readText(int32_t size, exlib::string& retVal, AsyncEvent* ac);
-    virtual result_t readLine(int32_t maxlen, exlib::string& retVal, AsyncEvent* ac);
-    virtual result_t readLines(int32_t maxlines, v8::Local<v8::Array>& retVal);
-    virtual result_t readUntil(exlib::string mk, int32_t maxlen, exlib::string& retVal, AsyncEvent* ac);
-    virtual result_t writeText(exlib::string txt, AsyncEvent* ac);
-    virtual result_t writeLine(exlib::string txt, AsyncEvent* ac);
-    virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
-    virtual result_t get_charset(exlib::string& retVal);
-    virtual result_t set_charset(exlib::string newVal);
-    virtual result_t get_EOL(exlib::string& retVal);
-    virtual result_t set_EOL(exlib::string newVal);
-
-public:
     // SubProcess_base
     virtual result_t kill(int32_t signal);
     virtual result_t wait(int32_t& retVal, AsyncEvent* ac);
@@ -137,9 +115,9 @@ public:
     int32_t m_status;
 
 private:
+    obj_ptr<Timer> m_timer;
     obj_ptr<BufferedStream_base> m_stdin;
     obj_ptr<BufferedStream_base> m_stdout;
-    obj_ptr<Timer> m_timer;
 
     intptr_t m_pid;
     intptr_t m_ppid;

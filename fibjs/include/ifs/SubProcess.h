@@ -13,13 +13,12 @@
  */
 
 #include "../object.h"
-#include "ifs/BufferedStream.h"
 
 namespace fibjs {
 
 class BufferedStream_base;
 
-class SubProcess_base : public BufferedStream_base {
+class SubProcess_base : public object_base {
     DECLARE_CLASS(SubProcess_base);
 
 public:
@@ -57,6 +56,8 @@ public:
 };
 }
 
+#include "ifs/BufferedStream.h"
+
 namespace fibjs {
 inline ClassInfo& SubProcess_base::class_info()
 {
@@ -77,7 +78,7 @@ inline ClassInfo& SubProcess_base::class_info()
     static ClassData s_cd = {
         "SubProcess", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
-        &BufferedStream_base::class_info()
+        &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);

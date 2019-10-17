@@ -48,45 +48,43 @@ describe('process', () => {
 
         it("`ppid` in subprocess equals to its parent process's `pid`", () => {
             var sp = process.open(cmd, [path.join(__dirname, 'process', 'exec.ppid.js')]);
-            var [_ppid, _pid] = sp.readLines();
+            var [_ppid, _pid] = sp.stdout.readLines();
 
             assert.strictEqual(_pid, `${sp.pid}`);
             assert.strictEqual(_ppid, `${process.pid}`);
-            sp.close();
         });
 
         it("SubProcess::ppid equals to its parent process's `pid`", () => {
             var sp = process.open(cmd, [path.join(__dirname, 'process', 'exec.ppid.js')]);
-            var [_ppid, _pid] = sp.readLines();
+            var [_ppid, _pid] = sp.stdout.readLines();
 
             assert.strictEqual(_pid, `${sp.pid}`);
             assert.strictEqual(_ppid, `${sp.ppid}`);
             assert.strictEqual(sp.ppid, process.pid);
-            sp.close();
         });
     });
 
     it("stdout", () => {
         var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.js')]);
 
-        assert.equal(bs.readLine(), "exec testing....");
+        assert.equal(bs.stdout.readLine(), "exec testing....");
 
         var t0 = new Date().getTime();
 
-        bs.readLine();
-        assert.equal(bs.readLine(), "console.print....");
+        bs.stdout.readLine();
+        assert.equal(bs.stdout.readLine(), "console.print....");
         assert.closeTo(new Date().getTime() - t0, 1000, 500);
 
-        bs.readLine();
-        assert.equal(bs.readLine(), "console.print....");
+        bs.stdout.readLine();
+        assert.equal(bs.stdout.readLine(), "console.print....");
         assert.closeTo(new Date().getTime() - t0, 2000, 500);
     });
 
     it("stdin/stdout", () => {
         var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec1.js')]);
 
-        bs.writeLine("hello, exec1");
-        assert.equal(bs.readLine(), "hello, exec1");
+        bs.stdin.writeLine("hello, exec1");
+        assert.equal(bs.stdout.readLine(), "hello, exec1");
     });
 
     it("stdin/stdout stream", () => {
@@ -150,43 +148,43 @@ describe('process', () => {
     describe('process holding', () => {
         it("multi fiber", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec7.js')]);
-            assert.equal(p.readLine(), "100");
+            assert.equal(p.stdout.readLine(), "100");
             assert.equal(p.wait(), 7);
         });
 
         it("pendding callback", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec8.js')]);
-            assert.equal(p.readLine(), "200");
+            assert.equal(p.stdout.readLine(), "200");
             assert.equal(p.wait(), 8);
         });
 
         it("setTimeout", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec9.js')]);
-            assert.equal(p.readLine(), "300");
+            assert.equal(p.stdout.readLine(), "300");
             assert.equal(p.wait(), 9);
         });
 
         it("setTimeout unref", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec9.1.js')]);
-            assert.equal(p.readLine(), "301");
+            assert.equal(p.stdout.readLine(), "301");
             assert.equal(p.wait(), 0);
         });
 
         it("setTimeout ref", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec9.2.js')]);
-            assert.equal(p.readLine(), "302");
+            assert.equal(p.stdout.readLine(), "302");
             assert.equal(p.wait(), 9);
         });
 
         it("setInterval", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec10.js')]);
-            assert.equal(p.readLine(), "400");
+            assert.equal(p.stdout.readLine(), "400");
             assert.equal(p.wait(), 10);
         });
 
         it("setImmediate", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec11.js')]);
-            assert.equal(p.readLine(), "500");
+            assert.equal(p.stdout.readLine(), "500");
             assert.equal(p.wait(), 11);
         });
 
@@ -207,19 +205,19 @@ describe('process', () => {
             httpd.start();
 
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec19.js')]);
-            assert.equal(p.readLine(), "1900");
+            assert.equal(p.stdout.readLine(), "1900");
             assert.equal(p.wait(), 19);
         });
 
         it("worker", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec20.js')]);
-            assert.equal(p.readLine(), "2000");
+            assert.equal(p.stdout.readLine(), "2000");
             assert.equal(p.wait(), 20);
         });
 
         it("bugfix: multi fiber async", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec12.js')]);
-            assert.equal(p.readLine(), "600");
+            assert.equal(p.stdout.readLine(), "600");
             assert.equal(p.wait(), 12);
         });
 
@@ -234,7 +232,7 @@ describe('process', () => {
                 } catch (e) {}
             }
 
-            assert.equal(p.readLine(), "700");
+            assert.equal(p.stdout.readLine(), "700");
             assert.equal(p.wait(), 21);
         });
 
@@ -264,7 +262,7 @@ describe('process', () => {
             path.join(__dirname, "process", "exec2.js"),
             "arg1",
             "arg2"
-        ]).readLine()), [
+        ]).stdout.readLine()), [
             cmd, path.join(__dirname, "process", "exec2.js"), "arg1", "arg2"
         ]);
     });
@@ -276,7 +274,7 @@ describe('process', () => {
             path.join(__dirname, "process", "exec2.js"),
             "arg1",
             "arg2"
-        ]).readLine()), [
+        ]).stdout.readLine()), [
             cmd, path.join(__dirname, "process", "exec2.js"), "arg1", "arg2"
         ]);
     });
@@ -286,7 +284,7 @@ describe('process', () => {
             path.join(__dirname, "process", "exec2.js"),
             "参数1",
             "参数2"
-        ]).readLine()), [
+        ]).stdout.readLine()), [
             cmd, path.join(__dirname, "process", "exec2.js"), "参数1", "参数2"
         ]);
     });
@@ -298,7 +296,7 @@ describe('process', () => {
             path.join(__dirname, "process", "exec3.js"),
             "arg1",
             "arg2"
-        ]).readLine()), [
+        ]).stdout.readLine()), [
             "--use_strict",
             "--test",
         ]);
@@ -308,7 +306,7 @@ describe('process', () => {
         process.env.abc = 123;
         assert.equal(json.decode(process.open(cmd, [
             path.join(__dirname, "process", "exec4.js")
-        ]).readLine()).abc, "123");
+        ]).stdout.readLine()).abc, "123");
     });
 
     it("env1", () => {
@@ -318,7 +316,7 @@ describe('process', () => {
             env: {
                 abcd: "234"
             }
-        }).readLine());
+        }).stdout.readLine());
 
         assert.isUndefined(env.abc);
         assert.equal(env.abcd, "234");
@@ -363,7 +361,7 @@ describe('process', () => {
     describe("Event", () => {
         it("beforeExit", () => {
             var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec15.js')]);
-            assert.deepEqual(bs.readLines(), [
+            assert.deepEqual(bs.stdout.readLines(), [
                 "beforeExit 101",
                 "other beforeExit 101",
                 "new work 101",
@@ -372,12 +370,12 @@ describe('process', () => {
             ]);
 
             var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec16.js')]);
-            assert.deepEqual(bs.readLines(), []);
+            assert.deepEqual(bs.stdout.readLines(), []);
         });
 
         it("exit", () => {
             var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec17.js')]);
-            assert.deepEqual(bs.readLines(), [
+            assert.deepEqual(bs.stdout.readLines(), [
                 "exit 101",
                 "other exit 101"
             ]);
