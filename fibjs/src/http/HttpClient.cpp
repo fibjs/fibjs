@@ -556,6 +556,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                     if (!a.empty())
                         pThis->m_reqConn->addHeader("User-Agent", a);
                 }
+
+                if (pThis->m_hc->get_conn(pThis->m_hc->m_proxyConnUrl, pThis->m_conn))
+                    return pThis->next(ssl ? ssl_connect : connected);
+
                 return net_base::connect(pThis->m_hc->m_proxyConnUrl,
                     pThis->m_hc->m_timeout, pThis->m_conn, pThis->next(ssl ? ssl_connect : connected));
             }
@@ -626,7 +630,11 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             bool keepalive;
             pThis->m_retVal->get_keepAlive(keepalive);
             if (keepalive) {
-                pThis->m_hc->save_conn(pThis->m_connUrl, pThis->m_conn);
+                if (pThis->m_hc->m_proxyConnUrl.empty() || !pThis->m_host.empty())
+                    pThis->m_hc->save_conn(pThis->m_connUrl, pThis->m_conn);
+                else
+                    pThis->m_hc->save_conn(pThis->m_hc->m_proxyConnUrl, pThis->m_conn);
+
                 return pThis->next(closed);
             }
 
