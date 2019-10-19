@@ -267,33 +267,29 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
         }
 
     public:
-        static int32_t wait(AsyncState* pState, int32_t n)
+        ON_STATE(asyncWaitHandle, wait)
         {
-            asyncWaitHandle* pThis = (asyncWaitHandle*)pState;
-
-            pThis->next(result);
-            BOOL result = RegisterWaitForSingleObject(&pThis->m_hWait, pThis->m_hProcess, OnExited, pThis, INFINITE, WT_EXECUTEONLYONCE);
+            next(result);
+            BOOL result = RegisterWaitForSingleObject(&m_hWait, m_hProcess, OnExited, pThis, INFINITE, WT_EXECUTEONLYONCE);
             if (!result)
                 return CHECK_ERROR(LastError());
 
             return CALL_E_PENDDING;
         }
 
-        static int32_t result(AsyncState* pState, int32_t n)
+        ON_STATE(asyncWaitHandle, result)
         {
-            asyncWaitHandle* pThis = (asyncWaitHandle*)pState;
-
-            ::UnregisterWaitEx(pThis->m_hWait, INVALID_HANDLE_VALUE);
+            ::UnregisterWaitEx(m_hWait, INVALID_HANDLE_VALUE);
 
             DWORD dwCode;
 
-            GetExitCodeProcess(pThis->m_hProcess, &dwCode);
-            pThis->m_retVal = (int32_t)dwCode;
+            GetExitCodeProcess(m_hProcess, &dwCode);
+            m_retVal = (int32_t)dwCode;
 
-            if (pThis->m_timer)
-                pThis->m_timer->clear();
+            if (m_timer)
+                m_timer->clear();
 
-            return pThis->next();
+            return next();
         }
 
     private:

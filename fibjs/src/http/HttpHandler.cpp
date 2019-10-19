@@ -63,109 +63,105 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             next(read);
         }
 
-        static int32_t read(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, read)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
             bool bKeepAlive = false;
 
-            pThis->m_rep->get_keepAlive(bKeepAlive);
+            m_rep->get_keepAlive(bKeepAlive);
 
             if (!bKeepAlive)
-                return pThis->next(CALL_RETURN_NULL);
+                return next(CALL_RETURN_NULL);
 
-            pThis->m_options = false;
+            m_options = false;
 
-            pThis->m_zip.Release();
-            pThis->m_body.Release();
+            m_zip.Release();
+            m_body.Release();
 
-            return pThis->m_req->readFrom(pThis->m_stmBuffered, pThis->next(invoke));
+            return m_req->readFrom(m_stmBuffered, next(invoke));
         }
 
-        static int32_t invoke(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, invoke)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
             if (n == CALL_RETURN_NULL)
-                return pThis->next(CALL_RETURN_NULL);
+                return next(CALL_RETURN_NULL);
 
             exlib::string str;
 
-            pThis->m_req->get_protocol(str);
-            pThis->m_rep->set_protocol(str);
+            m_req->get_protocol(str);
+            m_rep->set_protocol(str);
 
-            pThis->m_rep->addHeader("Server", pThis->m_pThis->m_serverName);
+            m_rep->addHeader("Server", m_pThis->m_serverName);
 
             bool bKeepAlive;
 
-            pThis->m_req->get_keepAlive(bKeepAlive);
-            pThis->m_rep->set_keepAlive(bKeepAlive);
+            m_req->get_keepAlive(bKeepAlive);
+            m_rep->set_keepAlive(bKeepAlive);
 
-            pThis->m_d.now();
+            m_d.now();
 
-            if (pThis->m_pThis->m_crossDomain) {
-                pThis->m_req->get_address(str);
+            if (m_pThis->m_crossDomain) {
+                m_req->get_address(str);
 
                 exlib::string origin;
 
-                if (pThis->m_req->firstHeader("origin", origin)
+                if (m_req->firstHeader("origin", origin)
                     != CALL_RETURN_NULL) {
-                    pThis->m_rep->setHeader("Access-Control-Allow-Credentials", "true");
-                    pThis->m_rep->setHeader("Access-Control-Allow-Origin", origin);
+                    m_rep->setHeader("Access-Control-Allow-Credentials", "true");
+                    m_rep->setHeader("Access-Control-Allow-Origin", origin);
 
-                    pThis->m_req->get_method(str);
+                    m_req->get_method(str);
 
                     if (!qstricmp(str.c_str(), "options")) {
-                        pThis->m_options = true;
+                        m_options = true;
 
-                        pThis->m_rep->setHeader("Access-Control-Allow-Methods", "*");
-                        pThis->m_rep->setHeader("Access-Control-Allow-Headers",
-                            pThis->m_pThis->m_allowHeaders);
-                        pThis->m_rep->setHeader("Access-Control-Max-Age", "1728000");
+                        m_rep->setHeader("Access-Control-Allow-Methods", "*");
+                        m_rep->setHeader("Access-Control-Allow-Headers",
+                            m_pThis->m_allowHeaders);
+                        m_rep->setHeader("Access-Control-Max-Age", "1728000");
 
-                        return pThis->next(send);
+                        return next(send);
                     }
                 }
             }
 
-            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_req, pThis->next(send));
+            return mq_base::invoke(m_pThis->m_hdlr, m_req, next(send));
         }
 
-        static int32_t send(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, send)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
             int32_t s;
             bool t = false;
             date_t d;
 
             d.now();
 
-            pThis->m_rep->get_statusCode(s);
-            if (s == 200 && !pThis->m_options) {
-                pThis->m_rep->hasHeader("Last-Modified", t);
+            m_rep->get_statusCode(s);
+            if (s == 200 && !m_options) {
+                m_rep->hasHeader("Last-Modified", t);
                 if (!t) {
-                    pThis->m_rep->addHeader("Cache-Control", "no-cache, no-store");
-                    pThis->m_rep->addHeader("Expires", "-1");
+                    m_rep->addHeader("Cache-Control", "no-cache, no-store");
+                    m_rep->addHeader("Expires", "-1");
                 }
             }
 
             exlib::string str;
 
-            pThis->m_req->get_method(str);
+            m_req->get_method(str);
             bool headOnly = !qstricmp(str.c_str(), "head");
 
             if (headOnly) {
-                pThis->m_rep->set_keepAlive(false);
-                return pThis->m_rep->sendHeader(pThis->m_stm, pThis->next(end));
+                m_rep->set_keepAlive(false);
+                return m_rep->sendHeader(m_stm, next(end));
             }
 
             int64_t len;
 
-            pThis->m_rep->get_length(len);
+            m_rep->get_length(len);
 
             if (len > 128 && len < 1024 * 1024 * 64) {
                 exlib::string hdr;
 
-                if (pThis->m_req->firstHeader("Accept-Encoding", hdr)
+                if (m_req->firstHeader("Accept-Encoding", hdr)
                     != CALL_RETURN_NULL) {
                     int32_t type = 0;
 
@@ -175,7 +171,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         type = 2;
 
                     if (type != 0) {
-                        if (pThis->m_rep->firstHeader("Content-Type", hdr)
+                        if (m_rep->firstHeader("Content-Type", hdr)
                             != CALL_RETURN_NULL) {
 
                             if (qstricmp(hdr.c_str(), "text/", 5)
@@ -187,49 +183,45 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     }
 
                     if (type != 0) {
-                        if (pThis->m_rep->firstHeader("Content-Encoding", hdr)
+                        if (m_rep->firstHeader("Content-Encoding", hdr)
                             != CALL_RETURN_NULL)
                             type = 0;
                     }
 
                     if (type != 0) {
-                        pThis->m_rep->addHeader("Content-Encoding", type == 1 ? "gzip" : "deflate");
+                        m_rep->addHeader("Content-Encoding", type == 1 ? "gzip" : "deflate");
 
-                        pThis->m_rep->get_body(pThis->m_body);
-                        pThis->m_body->rewind();
+                        m_rep->get_body(m_body);
+                        m_body->rewind();
 
-                        pThis->m_zip = new MemoryStream();
+                        m_zip = new MemoryStream();
 
                         if (type == 1)
-                            return zlib_base::gzipTo(pThis->m_body, pThis->m_zip, pThis->next(zip));
+                            return zlib_base::gzipTo(m_body, m_zip, next(zip));
                         else
-                            return zlib_base::deflateTo(pThis->m_body, pThis->m_zip, -1, pThis->next(zip));
+                            return zlib_base::deflateTo(m_body, m_zip, -1, next(zip));
                     }
                 }
             }
 
-            return pThis->m_rep->sendTo(pThis->m_stm, pThis->next(end));
+            return m_rep->sendTo(m_stm, next(end));
         }
 
-        static int32_t zip(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, zip)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            pThis->m_rep->set_body(pThis->m_zip);
-            return pThis->m_rep->sendTo(pThis->m_stm, pThis->next(end));
+            m_rep->set_body(m_zip);
+            return m_rep->sendTo(m_stm, next(end));
         }
 
-        static int32_t end(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, end)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
+            if (!m_body)
+                m_rep->get_body(m_body);
 
-            if (!pThis->m_body)
-                pThis->m_rep->get_body(pThis->m_body);
+            if (!m_body)
+                return next(read);
 
-            if (!pThis->m_body)
-                return pThis->next(read);
-
-            return pThis->m_body->close(pThis->next(read));
+            return m_body->close(next(read));
         }
 
         virtual int32_t error(int32_t v)

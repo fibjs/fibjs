@@ -19,7 +19,7 @@ public:
         , m_streamEnd(false)
         , m_pThis(pThis)
     {
-        next(process);
+        next(read);
     }
 
     virtual result_t process(bool end)
@@ -27,36 +27,32 @@ public:
         return CALL_RETURN_NULL;
     }
 
-    static int32_t process(AsyncState* pState, int32_t n)
+    ON_STATE(asyncBuffer, read)
     {
-        asyncBuffer* pThis = (asyncBuffer*)pState;
-
-        result_t hr = pThis->process(pThis->m_streamEnd);
-        if (pThis->m_pThis->m_pos == (int32_t)pThis->m_pThis->m_buf.length()) {
-            pThis->m_pThis->m_buf.clear();
-            pThis->m_pThis->m_pos = 0;
+        result_t hr = process(m_streamEnd);
+        if (m_pThis->m_pos == (int32_t)m_pThis->m_buf.length()) {
+            m_pThis->m_buf.clear();
+            m_pThis->m_pos = 0;
         }
 
         if (hr != CALL_E_PENDDING)
-            return pThis->next(hr);
+            return next(hr);
 
-        return pThis->m_pThis->m_stm->read(-1, pThis->m_buf, pThis->next(ready));
+        return m_pThis->m_stm->read(-1, m_buf, next(ready));
     }
 
-    static int32_t ready(AsyncState* pState, int32_t n)
+    ON_STATE(asyncBuffer, ready)
     {
-        asyncBuffer* pThis = (asyncBuffer*)pState;
-
-        pThis->m_pThis->m_buf.clear();
-        pThis->m_pThis->m_pos = 0;
+        m_pThis->m_buf.clear();
+        m_pThis->m_pos = 0;
 
         if (n != CALL_RETURN_NULL) {
-            pThis->m_buf->toString(pThis->m_pThis->m_buf);
-            pThis->m_buf.Release();
+            m_buf->toString(m_pThis->m_buf);
+            m_buf.Release();
         } else
-            pThis->m_streamEnd = true;
+            m_streamEnd = true;
 
-        return process(pState, n);
+        return next(read);
     }
 
 public:

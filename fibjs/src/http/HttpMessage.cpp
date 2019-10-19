@@ -36,65 +36,58 @@ public:
             next(header);
     }
 
-    static int32_t tinybody(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSendTo, tinybody)
     {
-        asyncSendTo* pThis = (asyncSendTo*)pState;
-
-        pThis->m_pThis->body()->rewind();
-        return pThis->m_pThis->body()->read((int32_t)pThis->m_contentLength, pThis->m_buffer, pThis->next(header));
+        m_pThis->body()->rewind();
+        return m_pThis->body()->read((int32_t)m_contentLength, m_buffer, next(header));
     }
 
-    static int32_t header(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSendTo, header)
     {
-        asyncSendTo* pThis = (asyncSendTo*)pState;
-        size_t sz = pThis->m_strCommand.length();
+        size_t sz = m_strCommand.length();
         size_t sz1;
         exlib::string m_strBuf;
         char* pBuf;
 
-        if (pThis->m_buffer != NULL) {
-            pThis->m_buffer->toString(pThis->m_body);
-            pThis->m_buffer.Release();
+        if (m_buffer != NULL) {
+            m_buffer->toString(m_body);
+            m_buffer.Release();
 
-            if (pThis->m_contentLength != (int32_t)pThis->m_body.length())
+            if (m_contentLength != (int32_t)m_body.length())
                 return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
         }
 
-        sz1 = pThis->m_pThis->size();
-        m_strBuf = pThis->m_strCommand;
-        m_strBuf.resize(sz + sz1 + 2 + pThis->m_body.length());
+        sz1 = m_pThis->size();
+        m_strBuf = m_strCommand;
+        m_strBuf.resize(sz + sz1 + 2 + m_body.length());
 
         pBuf = &m_strBuf[sz];
         *pBuf++ = '\r';
         *pBuf++ = '\n';
 
-        pBuf += pThis->m_pThis->getData(pBuf, sz1);
+        pBuf += m_pThis->getData(pBuf, sz1);
 
-        if (pThis->m_body.length() > 0)
-            memcpy(pBuf, pThis->m_body.c_str(), pThis->m_body.length());
+        if (m_body.length() > 0)
+            memcpy(pBuf, m_body.c_str(), m_body.length());
 
-        pThis->m_buffer = new Buffer(m_strBuf);
-        return pThis->m_stm->write(pThis->m_buffer, pThis->next(body));
+        m_buffer = new Buffer(m_strBuf);
+        return m_stm->write(m_buffer, next(body));
     }
 
-    static int32_t body(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSendTo, body)
     {
-        asyncSendTo* pThis = (asyncSendTo*)pState;
+        if (m_headerOnly || m_contentLength == 0 || m_body.length() > 0)
+            return next();
 
-        if (pThis->m_headerOnly || pThis->m_contentLength == 0 || pThis->m_body.length() > 0)
-            return pThis->next();
-
-        pThis->m_pThis->body()->rewind();
-        return pThis->m_pThis->body()->copyTo(pThis->m_stm, pThis->m_contentLength, pThis->m_copySize, pThis->next(body_ok));
+        m_pThis->body()->rewind();
+        return m_pThis->body()->copyTo(m_stm, m_contentLength, m_copySize, next(body_ok));
     }
 
-    static int32_t body_ok(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSendTo, body_ok)
     {
-        asyncSendTo* pThis = (asyncSendTo*)pState;
-
-        if (pThis->m_contentLength != pThis->m_copySize)
+        if (m_contentLength != m_copySize)
             return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
-        return pThis->next();
+        return next();
     }
 
 public:
@@ -167,89 +160,80 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
             next(begin);
         }
 
-        static int32_t begin(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, begin)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
-            return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis->next(header));
+            return m_stm->readLine(HTTP_MAX_LINE, m_strLine, next(header));
         }
 
-        static int32_t header(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, header)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
+            if (m_strLine.length() > 0) {
+                if (!qstricmp(m_strLine.c_str(), "content-length:", 15)) {
+                    m_contentLength = atoi(m_strLine.c_str() + 15);
 
-            if (pThis->m_strLine.length() > 0) {
-                if (!qstricmp(pThis->m_strLine.c_str(), "content-length:", 15)) {
-                    pThis->m_contentLength = atoi(pThis->m_strLine.c_str() + 15);
-
-                    if ((pThis->m_contentLength < 0)
-                        || (pThis->m_pThis->m_maxBodySize >= 0
-                               && pThis->m_contentLength > pThis->m_pThis->m_maxBodySize * 1024 * 1024))
+                    if ((m_contentLength < 0)
+                        || (m_pThis->m_maxBodySize >= 0
+                               && m_contentLength > m_pThis->m_maxBodySize * 1024 * 1024))
                         return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
-                } else if (!qstricmp(pThis->m_strLine.c_str(),
+                } else if (!qstricmp(m_strLine.c_str(),
                                "transfer-encoding:", 18)) {
-                    _parser p(pThis->m_strLine.c_str() + 18,
-                        (int32_t)pThis->m_strLine.length() - 18);
+                    _parser p(m_strLine.c_str() + 18,
+                        (int32_t)m_strLine.length() - 18);
 
                     p.skipSpace();
                     if (qstricmp(p.now(), "chunked"))
                         return CHECK_ERROR(Runtime::setError("HttpMessage: unknown transfer-encoding."));
 
-                    pThis->m_bChunked = true;
+                    m_bChunked = true;
                 } else {
-                    result_t hr = pThis->m_pThis->addHeader(pThis->m_strLine);
+                    result_t hr = m_pThis->addHeader(m_strLine);
                     if (hr < 0)
                         return hr;
 
-                    pThis->m_headCount++;
-                    if (pThis->m_headCount > pThis->m_pThis->m_maxHeadersCount)
+                    m_headCount++;
+                    if (m_headCount > m_pThis->m_maxHeadersCount)
                         return CHECK_ERROR(Runtime::setError("HttpMessage: too many headers."));
                 }
 
-                return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis);
+                return m_stm->readLine(HTTP_MAX_LINE, m_strLine, this);
             }
 
-            if (pThis->m_bChunked) {
-                if (pThis->m_pThis->m_maxBodySize == 0)
-                    return pThis->next();
+            if (m_bChunked) {
+                if (m_pThis->m_maxBodySize == 0)
+                    return next();
 
-                if (pThis->m_contentLength)
+                if (m_contentLength)
                     return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-                pThis->m_pThis->get_body(pThis->m_body);
-                return chunk_head(pState, n);
+                m_pThis->get_body(m_body);
+                return next(chunk_head);
             }
 
-            if (!pThis->m_pThis->m_bNoBody && pThis->m_contentLength > 0) {
-                pThis->m_pThis->get_body(pThis->m_body);
-                return pThis->m_stm->copyTo(pThis->m_body, pThis->m_contentLength, pThis->m_copySize, pThis->next(body));
+            if (!m_pThis->m_bNoBody && m_contentLength > 0) {
+                m_pThis->get_body(m_body);
+                return m_stm->copyTo(m_body, m_contentLength, m_copySize, next(body));
             }
 
-            return pThis->next();
+            return next();
         }
 
-        static int32_t body(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, body)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
-            if (!pThis->m_pThis->m_bNoBody && pThis->m_contentLength != pThis->m_copySize)
+            if (!m_pThis->m_bNoBody && m_contentLength != m_copySize)
                 return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
 
-            pThis->m_body->rewind();
-            return pThis->next();
+            m_body->rewind();
+            return next();
         }
 
-        static int32_t chunk_head(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, chunk_head)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
-            return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis->next(chunk_body));
+            return m_stm->readLine(HTTP_MAX_LINE, m_strLine, next(chunk_body));
         }
 
-        static int32_t chunk_body(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, chunk_body)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-            _parser p(pThis->m_strLine);
+            _parser p(m_strLine);
             char ch;
             int64_t sz = 0;
 
@@ -264,29 +248,25 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
             }
 
             if (sz) {
-                if (pThis->m_pThis->m_maxBodySize >= 0
-                    && sz + pThis->m_contentLength > pThis->m_pThis->m_maxBodySize * 1024 * 1024)
+                if (m_pThis->m_maxBodySize >= 0
+                    && sz + m_contentLength > m_pThis->m_maxBodySize * 1024 * 1024)
                     return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
-                return pThis->m_stm->copyTo(pThis->m_body, sz, pThis->m_copySize, pThis->next(chunk_body_end));
+                return m_stm->copyTo(m_body, sz, m_copySize, next(chunk_body_end));
             }
 
-            return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis->next(chunk_end));
+            return m_stm->readLine(HTTP_MAX_LINE, m_strLine, next(chunk_end));
         }
 
-        static int32_t chunk_body_end(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, chunk_body_end)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
-            pThis->m_contentLength += pThis->m_copySize;
-            return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis->next(chunk_head));
+            m_contentLength += m_copySize;
+            return m_stm->readLine(HTTP_MAX_LINE, m_strLine, next(chunk_head));
         }
 
-        static int32_t chunk_end(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, chunk_end)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
-            pThis->m_body->rewind();
-            return pThis->next();
+            m_body->rewind();
+            return next();
         }
 
     public:

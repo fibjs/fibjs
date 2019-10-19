@@ -171,22 +171,20 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
         }
 
     public:
-        static int32_t recv(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRecv, recv)
         {
-            asyncRecv* pThis = (asyncRecv*)pState;
-
-            if (pThis->m_msg) {
+            if (m_msg) {
                 Variant v[2];
 
-                pThis->m_msg->get("data", v[0]);
-                v[1] = pThis->m_msg;
+                m_msg->get("data", v[0]);
+                v[1] = m_msg;
 
-                pThis->m_pThis->_emit("message", v, 2);
+                m_pThis->_emit("message", v, 2);
 
-                pThis->m_msg.Release();
+                m_msg.Release();
             }
 
-            return pThis->m_pThis->m_aio.recvfrom(-1, pThis->m_msg, pThis);
+            return m_pThis->m_aio.recvfrom(-1, m_msg, this);
         }
 
         virtual int32_t error(int32_t v)
@@ -361,19 +359,15 @@ result_t DgramSocket::close()
         }
 
     public:
-        static int32_t close(AsyncState* pState, int32_t n)
+        ON_STATE(asyncClose, close)
         {
-            asyncClose* pThis = (asyncClose*)pState;
-
-            return pThis->m_pThis->m_aio.close(pThis->next(closed));
+            return m_pThis->m_aio.close(next(closed));
         }
 
-        static int32_t closed(AsyncState* pState, int32_t n)
+        ON_STATE(asyncClose, closed)
         {
-            asyncClose* pThis = (asyncClose*)pState;
-
-            pThis->m_pThis->_emit("close", NULL, 0);
-            return pThis->next();
+            m_pThis->_emit("close", NULL, 0);
+            return next();
         }
 
         virtual int32_t error(int32_t v)

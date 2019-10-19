@@ -162,35 +162,32 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             next(request);
         }
 
-        static int32_t request(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, request)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            return pThis->m_pThis->m_client->request(pThis->m_method, pThis->m_url,
-                pThis->m_body, pThis->m_headers, pThis->m_ret, pThis->next(response));
+            return m_pThis->m_client->request(m_method, m_url,
+                m_body, m_headers, m_ret, next(response));
         }
 
-        static int32_t response(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, response)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
             int32_t code;
             exlib::string msg;
             obj_ptr<NObject> headers;
             obj_ptr<SeekableStream_base> body;
 
-            pThis->m_ret->get_statusCode(code);
-            pThis->m_rep->set_statusCode(code);
+            m_ret->get_statusCode(code);
+            m_rep->set_statusCode(code);
 
-            pThis->m_ret->get_statusMessage(msg);
-            pThis->m_rep->set_statusMessage(msg);
+            m_ret->get_statusMessage(msg);
+            m_rep->set_statusMessage(msg);
 
-            pThis->m_ret->allHeader("", headers);
-            ((HttpResponse*)(HttpResponse_base*)pThis->m_rep)->addHeader(headers);
+            m_ret->allHeader("", headers);
+            ((HttpResponse*)(HttpResponse_base*)m_rep)->addHeader(headers);
 
-            pThis->m_ret->get_body(body);
-            pThis->m_rep->set_body(body);
+            m_ret->get_body(body);
+            m_rep->set_body(body);
 
-            return pThis->next(CALL_RETURN_NULL);
+            return next(CALL_RETURN_NULL);
         }
 
     public:

@@ -295,6 +295,13 @@ private:
     int32_t (*m_next)(AsyncState*, int32_t);
 };
 
+#define ON_STATE(cls, fn)                            \
+    static int32_t fn(AsyncState* pState, int32_t n) \
+    {                                                \
+        return ((cls*)pState)->_##fn(n);             \
+    }                                                \
+    int32_t _##fn(int32_t n)
+
 template <typename T, typename T1>
 class AsyncFunc : public AsyncEvent {
 public:

@@ -366,60 +366,53 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
             m_bNoBody = !qstricmp(method.c_str(), "head", 4);
         }
 
-        static int32_t send(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRequest, send)
         {
-            asyncRequest* pThis = (asyncRequest*)pState;
-            return pThis->m_req->sendTo(pThis->m_conn, pThis->next(recv));
+            return m_req->sendTo(m_conn, next(recv));
         }
 
-        static int32_t recv(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRequest, recv)
         {
-            asyncRequest* pThis = (asyncRequest*)pState;
-
             obj_ptr<HttpResponse> resp = new HttpResponse();
-            resp->m_message->m_bNoBody = pThis->m_bNoBody;
+            resp->m_message->m_bNoBody = m_bNoBody;
 
-            pThis->m_retVal = resp;
-            pThis->m_retVal->set_maxBodySize(pThis->m_maxBodySize);
-            pThis->m_bs = new BufferedStream(pThis->m_conn);
-            pThis->m_bs->set_EOL("\r\n");
+            m_retVal = resp;
+            m_retVal->set_maxBodySize(m_maxBodySize);
+            m_bs = new BufferedStream(m_conn);
+            m_bs->set_EOL("\r\n");
 
-            return pThis->m_retVal->readFrom(pThis->m_bs, pThis->next(pThis->m_enableEncoding ? unzip : close));
+            return m_retVal->readFrom(m_bs, next(m_enableEncoding ? unzip : close));
         }
 
-        static int32_t unzip(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRequest, unzip)
         {
-            asyncRequest* pThis = (asyncRequest*)pState;
-
             exlib::string hdr;
 
-            if (pThis->m_retVal->firstHeader("Content-Encoding", hdr) != CALL_RETURN_NULL) {
-                pThis->m_retVal->removeHeader("Content-Encoding");
+            if (m_retVal->firstHeader("Content-Encoding", hdr) != CALL_RETURN_NULL) {
+                m_retVal->removeHeader("Content-Encoding");
 
-                pThis->m_retVal->get_body(pThis->m_body);
-                pThis->m_unzip = new MemoryStream();
+                m_retVal->get_body(m_body);
+                m_unzip = new MemoryStream();
 
                 if (hdr == "gzip")
-                    return zlib_base::gunzipTo(pThis->m_body, pThis->m_unzip,
-                        pThis->m_maxBodySize, pThis->next(close));
+                    return zlib_base::gunzipTo(m_body, m_unzip,
+                        m_maxBodySize, next(close));
                 else if (hdr == "deflate")
-                    return zlib_base::inflateRawTo(pThis->m_body, pThis->m_unzip,
-                        pThis->m_maxBodySize, pThis->next(close));
+                    return zlib_base::inflateRawTo(m_body, m_unzip,
+                        m_maxBodySize, next(close));
             }
 
-            return pThis->next(close);
+            return next(close);
         }
 
-        static int32_t close(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRequest, close)
         {
-            asyncRequest* pThis = (asyncRequest*)pState;
-
-            if (pThis->m_unzip) {
-                pThis->m_unzip->rewind();
-                pThis->m_retVal->set_body(pThis->m_unzip);
+            if (m_unzip) {
+                m_unzip->rewind();
+                m_retVal->set_body(m_unzip);
             }
 
-            return pThis->next();
+            return next();
         }
 
     private:
@@ -459,141 +452,137 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             next(prepare);
         }
 
-        static int32_t prepare(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRequest, prepare)
         {
-            asyncRequest* pThis = (asyncRequest*)pState;
-
             result_t hr;
             bool ssl = false;
 
-            pThis->m_urls[pThis->m_url] = true;
+            m_urls[m_url] = true;
 
             obj_ptr<Url> u = new Url();
             exlib::string path;
             exlib::string cookie;
 
-            hr = u->parse(pThis->m_url);
+            hr = u->parse(m_url);
             if (hr < 0)
                 return hr;
 
             if (u->m_protocol == "https:") {
                 ssl = true;
-                pThis->m_connUrl = "ssl://";
+                m_connUrl = "ssl://";
             } else if (u->m_protocol == "http:")
-                pThis->m_connUrl = "tcp://";
+                m_connUrl = "tcp://";
             else
                 return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
 
             if (u->m_host.empty())
                 return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
 
-            pThis->m_connUrl.append(u->m_host);
+            m_connUrl.append(u->m_host);
 
             if (!u->m_port.empty()) {
-                pThis->m_connUrl.append(":", 1);
-                pThis->m_connUrl.append(u->m_port);
+                m_connUrl.append(":", 1);
+                m_connUrl.append(u->m_port);
             } else
-                pThis->m_connUrl.append(ssl ? ":443" : ":80");
+                m_connUrl.append(ssl ? ":443" : ":80");
 
-            pThis->m_req = new HttpRequest();
+            m_req = new HttpRequest();
 
-            pThis->m_req->set_method(pThis->m_method);
+            m_req->set_method(m_method);
 
-            if (pThis->m_hc->m_proxyConnUrl.empty()) {
+            if (m_hc->m_proxyConnUrl.empty()) {
                 u->get_path(path);
-                pThis->m_req->set_address(path);
+                m_req->set_address(path);
             } else
-                pThis->m_req->set_address(pThis->m_url);
+                m_req->set_address(m_url);
 
             bool enableEncoding = false;
-            pThis->m_hc->get_enableEncoding(enableEncoding);
+            m_hc->get_enableEncoding(enableEncoding);
             if (enableEncoding)
-                pThis->m_req->addHeader("Accept-Encoding", "gzip,deflate");
+                m_req->addHeader("Accept-Encoding", "gzip,deflate");
 
             bool enableCookie = false;
-            pThis->m_hc->get_enableCookie(enableCookie);
+            m_hc->get_enableCookie(enableCookie);
             if (enableCookie) {
-                pThis->m_hc->get_cookie(pThis->m_url, cookie);
+                m_hc->get_cookie(m_url, cookie);
                 if (cookie.length() > 0)
-                    pThis->m_req->addHeader("Cookie", cookie);
+                    m_req->addHeader("Cookie", cookie);
             }
 
-            if (pThis->m_headers)
-                pThis->m_req->addHeader(pThis->m_headers);
+            if (m_headers)
+                m_req->addHeader(m_headers);
 
-            exlib::string a = pThis->m_hc->agent();
+            exlib::string a = m_hc->agent();
             if (!a.empty()) {
                 bool bCheck = false;
-                pThis->m_req->hasHeader("User-Agent", bCheck);
+                m_req->hasHeader("User-Agent", bCheck);
                 if (!bCheck)
-                    pThis->m_req->addHeader("User-Agent", a);
+                    m_req->addHeader("User-Agent", a);
             }
 
             bool bHost = false;
-            pThis->m_req->hasHeader("Host", bHost);
+            m_req->hasHeader("Host", bHost);
             if (!bHost)
-                pThis->m_req->addHeader("Host", u->m_host);
+                m_req->addHeader("Host", u->m_host);
 
-            if (pThis->m_body)
-                pThis->m_req->set_body(pThis->m_body);
+            if (m_body)
+                m_req->set_body(m_body);
 
-            if (pThis->m_hc->get_conn(pThis->m_connUrl, pThis->m_conn))
-                return pThis->next(connected);
+            if (m_hc->get_conn(m_connUrl, m_conn))
+                return next(connected);
 
-            if (pThis->m_hc->m_proxyConnUrl.empty())
-                return net_base::connect(pThis->m_connUrl, pThis->m_hc->m_timeout, pThis->m_conn, pThis->next(connected));
+            if (m_hc->m_proxyConnUrl.empty())
+                return net_base::connect(m_connUrl, m_hc->m_timeout, m_conn, next(connected));
             else {
                 if (ssl) {
-                    exlib::string host = pThis->m_connUrl.substr(6);
-                    pThis->m_reqConn = new HttpRequest();
+                    exlib::string host = m_connUrl.substr(6);
+                    m_reqConn = new HttpRequest();
 
-                    pThis->m_reqConn->set_method("CONNECT");
-                    pThis->m_reqConn->set_address(host);
-                    pThis->m_reqConn->addHeader("Host", host);
-                    pThis->m_host = u->m_hostname;
+                    m_reqConn->set_method("CONNECT");
+                    m_reqConn->set_address(host);
+                    m_reqConn->addHeader("Host", host);
+                    m_host = u->m_hostname;
 
-                    exlib::string a = pThis->m_hc->agent();
+                    exlib::string a = m_hc->agent();
                     if (!a.empty())
-                        pThis->m_reqConn->addHeader("User-Agent", a);
+                        m_reqConn->addHeader("User-Agent", a);
                 }
 
-                if (pThis->m_hc->get_conn(pThis->m_hc->m_proxyConnUrl, pThis->m_conn))
-                    return pThis->next(ssl ? ssl_connect : connected);
+                if (m_hc->get_conn(m_hc->m_proxyConnUrl, m_conn))
+                    return next(ssl ? ssl_connect : connected);
 
-                return net_base::connect(pThis->m_hc->m_proxyConnUrl,
-                    pThis->m_hc->m_timeout, pThis->m_conn, pThis->next(ssl ? ssl_connect : connected));
+                return net_base::connect(m_hc->m_proxyConnUrl,
+                    m_hc->m_timeout, m_conn, next(ssl ? ssl_connect : connected));
             }
         }
 
-        static int32_t ssl_connect(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRequest, ssl_connect)
         {
-            asyncRequest* pThis = (asyncRequest*)pState;
-            return pThis->m_hc->request(pThis->m_conn, pThis->m_reqConn, pThis->m_retVal, pThis->next(ssl_handshake));
+            return m_hc->request(m_conn, m_reqConn, m_retVal, next(ssl_handshake));
         }
 
-        static int32_t ssl_handshake(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRequest, ssl_handshake)
         {
-            asyncRequest* pThis = (asyncRequest*)pState;
             int32_t status;
             result_t hr;
 
-            hr = pThis->m_retVal->get_statusCode(status);
+            hr = m_retVal->get_statusCode(status);
             if (hr < 0)
                 return hr;
 
             if (status != 200) {
                 exlib::string msg;
 
-                pThis->m_retVal->get_statusMessage(msg);
+                m_retVal->get_statusMessage(msg);
                 return CHECK_ERROR(Runtime::setError("HttpClient: " + msg));
             }
 
-            pThis->m_reqConn.Release();
-            pThis->m_retVal.Release();
+            m_reqConn.Release();
+            m_retVal.Release();
 
             obj_ptr<SslSocket> ss = new SslSocket();
-            obj_ptr<Stream_base> conn = pThis->m_conn;
-            pThis->m_conn = ss;
+            obj_ptr<Stream_base> conn = m_conn;
+            m_conn = ss;
 
             if (g_ssl.m_crt && g_ssl.m_key) {
                 result_t hr = ss->setCert("", g_ssl.m_crt, g_ssl.m_key);
@@ -601,78 +590,74 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                     return hr;
             }
 
-            return ss->connect(conn, pThis->m_host, pThis->m_temp, pThis->next(connected));
+            return ss->connect(conn, m_host, m_temp, next(connected));
         }
 
-        static int32_t connected(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRequest, connected)
         {
-            asyncRequest* pThis = (asyncRequest*)pState;
-            return pThis->m_hc->request(pThis->m_conn, pThis->m_req, pThis->m_retVal, pThis->next(requested));
+            return m_hc->request(m_conn, m_req, m_retVal, next(requested));
         }
 
-        static int32_t requested(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRequest, requested)
         {
-            asyncRequest* pThis = (asyncRequest*)pState;
             bool enableCookie = false;
 
             bool upgrade;
-            pThis->m_retVal->get_upgrade(upgrade);
+            m_retVal->get_upgrade(upgrade);
             if (upgrade)
-                return pThis->next(closed);
+                return next(closed);
 
-            pThis->m_hc->get_enableCookie(enableCookie);
+            m_hc->get_enableCookie(enableCookie);
             if (enableCookie) {
                 obj_ptr<NArray> cookies;
-                pThis->m_retVal->get_cookies(cookies);
-                pThis->m_hc->update_cookies(pThis->m_url, cookies);
+                m_retVal->get_cookies(cookies);
+                m_hc->update_cookies(m_url, cookies);
             }
 
             bool keepalive;
-            pThis->m_retVal->get_keepAlive(keepalive);
+            m_retVal->get_keepAlive(keepalive);
             if (keepalive) {
-                if (pThis->m_hc->m_proxyConnUrl.empty() || !pThis->m_host.empty())
-                    pThis->m_hc->save_conn(pThis->m_connUrl, pThis->m_conn);
+                if (m_hc->m_proxyConnUrl.empty() || !m_host.empty())
+                    m_hc->save_conn(m_connUrl, m_conn);
                 else
-                    pThis->m_hc->save_conn(pThis->m_hc->m_proxyConnUrl, pThis->m_conn);
+                    m_hc->save_conn(m_hc->m_proxyConnUrl, m_conn);
 
-                return pThis->next(closed);
+                return next(closed);
             }
 
-            return pThis->m_conn->close(pThis->next(closed));
+            return m_conn->close(next(closed));
         }
 
-        static int32_t closed(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRequest, closed)
         {
-            asyncRequest* pThis = (asyncRequest*)pState;
-
             result_t hr;
             int32_t status;
             exlib::string location;
             obj_ptr<Url> u = new Url();
             obj_ptr<UrlObject_base> u1;
 
-            hr = pThis->m_retVal->get_statusCode(status);
+            hr = m_retVal->get_statusCode(status);
             if (hr < 0)
                 return hr;
 
-            if (!pThis->m_hc->m_autoRedirect || (status != 302 && status != 301))
-                return pThis->next();
+            if (!m_hc->m_autoRedirect || (status != 302 && status != 301))
+                return next();
 
-            hr = pThis->m_retVal->firstHeader("location", location);
+            hr = m_retVal->firstHeader("location", location);
             if (hr < 0)
                 return hr;
 
-            u->parse(pThis->m_url);
+            u->parse(m_url);
             u->resolve(location, u1);
             location.resize(0);
             u1->toString(location);
 
-            if (pThis->m_urls.find(location) != pThis->m_urls.end())
+            if (m_urls.find(location) != m_urls.end())
                 return CHECK_ERROR(Runtime::setError("HttpClient: redirect cycle"));
 
-            pThis->m_url = location;
+            m_url = location;
 
-            return pThis->next(prepare);
+            return next(prepare);
         }
 
     private:

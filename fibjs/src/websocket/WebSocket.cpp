@@ -86,72 +86,59 @@ public:
         m_this->m_lockSend.unlock(this);
     }
 
-    static int32_t start(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSend, start)
     {
-        asyncSend* pThis = (asyncSend*)pState;
-
-        return pThis->lock(pThis->m_this->m_lockEncode, pThis->next(lock_buffer_for_encode));
+        return lock(m_this->m_lockEncode, next(lock_buffer_for_encode));
     }
 
-    static int32_t lock_buffer_for_encode(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSend, lock_buffer_for_encode)
     {
-        asyncSend* pThis = (asyncSend*)pState;
-
-        return pThis->lock(pThis->m_this->m_lockBuffer, pThis->next(encode));
+        return lock(m_this->m_lockBuffer, next(encode));
     }
 
-    static int32_t encode(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSend, encode)
     {
-        asyncSend* pThis = (asyncSend*)pState;
+        if (!m_this->m_buffer)
+            m_this->m_buffer = new MemoryStream();
 
-        if (!pThis->m_this->m_buffer)
-            pThis->m_this->m_buffer = new MemoryStream();
-
-        return pThis->m_msg->sendTo(pThis->m_this->m_buffer, pThis->m_this, pThis->next(encode_ok));
+        return m_msg->sendTo(m_this->m_buffer, m_this, next(encode_ok));
     }
 
-    static int32_t encode_ok(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSend, encode_ok)
     {
-        asyncSend* pThis = (asyncSend*)pState;
-        pThis->m_this->m_lockBuffer.unlock(pThis);
-        pThis->m_this->m_lockEncode.unlock(pThis);
+        m_this->m_lockBuffer.unlock(this);
+        m_this->m_lockEncode.unlock(this);
 
-        return pThis->lock(pThis->m_this->m_lockSend, pThis->next(lock_buffer_for_send));
+        return lock(m_this->m_lockSend, next(lock_buffer_for_send));
     }
 
-    static int32_t lock_buffer_for_send(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSend, lock_buffer_for_send)
     {
-        asyncSend* pThis = (asyncSend*)pState;
-
-        return pThis->lock(pThis->m_this->m_lockBuffer, pThis->next(send));
+        return lock(m_this->m_lockBuffer, next(send));
     }
 
-    static int32_t send(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSend, send)
     {
-        asyncSend* pThis = (asyncSend*)pState;
+        m_buffer = m_this->m_buffer;
+        m_this->m_buffer.Release();
+        m_this->m_lockBuffer.unlock(this);
 
-        pThis->m_buffer = pThis->m_this->m_buffer;
-        pThis->m_this->m_buffer.Release();
-        pThis->m_this->m_lockBuffer.unlock(pThis);
+        if (!m_buffer)
+            return next(ok);
 
-        if (!pThis->m_buffer)
-            return pThis->next(ok);
-
-        pThis->m_buffer->rewind();
-        return pThis->m_buffer->copyTo(pThis->m_this->m_stream, -1, pThis->m_size, pThis->next(ok));
+        m_buffer->rewind();
+        return m_buffer->copyTo(m_this->m_stream, -1, m_size, next(ok));
     }
 
-    static int32_t ok(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSend, ok)
     {
-        asyncSend* pThis = (asyncSend*)pState;
-
-        if (pThis->m_type == ws_base::_CLOSE) {
+        if (m_type == ws_base::_CLOSE) {
             obj_ptr<SeekableStream_base> body;
 
-            pThis->m_msg->get_body(body);
-            pThis->m_this->endConnect(body);
+            m_msg->get_body(body);
+            m_this->endConnect(body);
         }
-        return pThis->next();
+        return next();
     }
 
     virtual int32_t error(int32_t v)
@@ -210,27 +197,26 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             return m_isolate;
         }
 
-        static int32_t handshake(AsyncState* pState, int32_t n)
+        ON_STATE(asyncConnect, handshake)
         {
-            asyncConnect* pThis = (asyncConnect*)pState;
             exlib::string url;
 
-            if (!qstrcmp(pThis->m_this->m_url.c_str(), "wss://", 6))
-                url = "https://" + pThis->m_this->m_url.substr(6);
-            else if (!qstrcmp(pThis->m_this->m_url.c_str(), "ws://", 5))
-                url = "http://" + pThis->m_this->m_url.substr(5);
+            if (!qstrcmp(m_this->m_url.c_str(), "wss://", 6))
+                url = "https://" + m_this->m_url.substr(6);
+            else if (!qstrcmp(m_this->m_url.c_str(), "ws://", 5))
+                url = "http://" + m_this->m_url.substr(5);
             else {
-                pThis->m_this->endConnect(1002, "unknown protocol");
+                m_this->endConnect(1002, "unknown protocol");
                 return CHECK_ERROR(Runtime::setError("websocket: unknown protocol"));
             }
 
-            pThis->m_headers->add("Upgrade", "websocket");
-            pThis->m_headers->add("Connection", "Upgrade");
-            pThis->m_headers->add("Sec-WebSocket-Version", "13");
-            pThis->m_headers->add("Sec-WebSocket-Extensions", "permessage-deflate");
+            m_headers->add("Upgrade", "websocket");
+            m_headers->add("Connection", "Upgrade");
+            m_headers->add("Sec-WebSocket-Version", "13");
+            m_headers->add("Sec-WebSocket-Extensions", "permessage-deflate");
 
-            if (!pThis->m_this->m_origin.empty())
-                pThis->m_headers->add("Origin", pThis->m_this->m_origin);
+            if (!m_this->m_origin.empty())
+                m_headers->add("Origin", m_this->m_origin);
 
             char keys[16];
             int32_t i;
@@ -243,7 +229,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
                 6, (const char*)&keys, sizeof(keys), key);
 
-            pThis->m_headers->add("Sec-WebSocket-Key", key);
+            m_headers->add("Sec-WebSocket-Key", key);
 
             key.append("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
 
@@ -252,76 +238,74 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 
             baseEncode(
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-                6, (const char*)output, 20, pThis->m_accept);
+                6, (const char*)output, 20, m_accept);
 
-            return http_request2(pThis->m_hc, "GET", url, NULL, pThis->m_headers,
-                pThis->m_httprep, pThis->next(response));
+            return http_request2(m_hc, "GET", url, NULL, m_headers,
+                m_httprep, next(response));
         }
 
-        static int32_t response(AsyncState* pState, int32_t n)
+        ON_STATE(asyncConnect, response)
         {
-            asyncConnect* pThis = (asyncConnect*)pState;
-
             exlib::string v;
             result_t hr;
             int32_t status;
 
-            pThis->m_httprep->get_statusCode(status);
+            m_httprep->get_statusCode(status);
             if (status != 101) {
-                pThis->m_this->endConnect(1002, "server error.");
+                m_this->endConnect(1002, "server error.");
                 return CHECK_ERROR(Runtime::setError("websocket: server error."));
             }
 
-            hr = pThis->m_httprep->firstHeader("Upgrade", v);
+            hr = m_httprep->firstHeader("Upgrade", v);
             if (hr < 0)
                 return hr;
 
             if (hr == CALL_RETURN_NULL) {
-                pThis->m_this->endConnect(1002, "missing Upgrade header.");
+                m_this->endConnect(1002, "missing Upgrade header.");
                 return CHECK_ERROR(Runtime::setError("websocket: missing Upgrade header."));
             }
 
             if (qstricmp(v.c_str(), "websocket")) {
-                pThis->m_this->endConnect(1002, "invalid Upgrade header.");
+                m_this->endConnect(1002, "invalid Upgrade header.");
                 return CHECK_ERROR(Runtime::setError("websocket: invalid Upgrade header."));
             }
 
             bool bUpgrade;
-            pThis->m_httprep->get_upgrade(bUpgrade);
+            m_httprep->get_upgrade(bUpgrade);
             if (!bUpgrade) {
-                pThis->m_this->endConnect(1002, "invalid connection header.");
+                m_this->endConnect(1002, "invalid connection header.");
                 return CHECK_ERROR(Runtime::setError("websocket: invalid connection header."));
             }
 
-            hr = pThis->m_httprep->firstHeader("Sec-WebSocket-Accept", v);
+            hr = m_httprep->firstHeader("Sec-WebSocket-Accept", v);
             if (hr < 0)
                 return hr;
 
             if (hr == CALL_RETURN_NULL) {
-                pThis->m_this->endConnect(1002, "missing Sec-WebSocket-Accept header.");
+                m_this->endConnect(1002, "missing Sec-WebSocket-Accept header.");
                 return CHECK_ERROR(Runtime::setError("websocket: missing Sec-WebSocket-Accept header."));
             }
 
-            if (v != pThis->m_accept) {
-                pThis->m_this->endConnect(1002, "invalid Sec-WebSocket-Accept header.");
+            if (v != m_accept) {
+                m_this->endConnect(1002, "invalid Sec-WebSocket-Accept header.");
                 return CHECK_ERROR(Runtime::setError("websocket: invalid Sec-WebSocket-Accept header."));
             }
 
-            hr = pThis->m_httprep->firstHeader("Sec-WebSocket-Extensions", v);
+            hr = m_httprep->firstHeader("Sec-WebSocket-Extensions", v);
             if (hr < 0)
                 return hr;
 
             if (hr != CALL_RETURN_NULL && !qstricmp(v.c_str(), "permessage-deflate", 18))
-                pThis->m_this->enableCompress();
+                m_this->enableCompress();
 
-            pThis->m_httprep->get_stream(pThis->m_this->m_stream);
+            m_httprep->get_stream(m_this->m_stream);
 
-            pThis->m_this->m_readyState = ws_base::_OPEN;
-            pThis->m_this->_emit("open", NULL, 0);
+            m_this->m_readyState = ws_base::_OPEN;
+            m_this->_emit("open", NULL, 0);
 
-            pThis->m_this->startRecv(pThis->m_isolate);
+            m_this->startRecv(m_isolate);
 
-            return pThis->next(0);
+            return next(0);
         }
 
         virtual int32_t error(int32_t v)
@@ -386,54 +370,50 @@ void WebSocket::startRecv(Isolate* isolate)
             m_this->isolate_unref();
         }
 
-        static int32_t recv(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRead, recv)
         {
-            asyncRead* pThis = (asyncRead*)pState;
-
-            pThis->m_msg = new WebSocketMessage(ws_base::_TEXT, false, false, pThis->m_this->m_maxSize);
-            return pThis->m_msg->readFrom(pThis->m_this->m_stream, pThis->m_this, pThis->next(event));
+            m_msg = new WebSocketMessage(ws_base::_TEXT, false, false, m_this->m_maxSize);
+            return m_msg->readFrom(m_this->m_stream, m_this, next(event));
         }
 
-        static int32_t event(AsyncState* pState, int32_t n)
+        ON_STATE(asyncRead, event)
         {
-            asyncRead* pThis = (asyncRead*)pState;
-
             bool masked;
-            pThis->m_msg->get_masked(masked);
-            if (masked == pThis->m_this->m_masked) {
-                pThis->m_msg->m_error = 1007;
+            m_msg->get_masked(masked);
+            if (masked == m_this->m_masked) {
+                m_msg->m_error = 1007;
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: Payload data is not masked."));
             }
 
             int32_t type;
-            pThis->m_msg->get_type(type);
+            m_msg->get_type(type);
 
             switch (type) {
             case ws_base::_PING: {
                 obj_ptr<SeekableStream_base> body;
-                pThis->m_msg->get_body(body);
-                (new asyncSend(pThis->m_this, body, ws_base::_PONG))->post(0);
+                m_msg->get_body(body);
+                (new asyncSend(m_this, body, ws_base::_PONG))->post(0);
                 break;
             }
             case ws_base::_CLOSE: {
                 obj_ptr<SeekableStream_base> body;
-                pThis->m_msg->get_body(body);
+                m_msg->get_body(body);
 
-                if (pThis->m_this->m_closeState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING) == ws_base::_OPEN)
-                    (new asyncSend(pThis->m_this, body, ws_base::_CLOSE))->post(0);
+                if (m_this->m_closeState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING) == ws_base::_OPEN)
+                    (new asyncSend(m_this, body, ws_base::_CLOSE))->post(0);
                 else
-                    pThis->m_this->endConnect(body);
+                    m_this->endConnect(body);
 
-                return pThis->next(0);
+                return next(0);
             }
             case ws_base::_TEXT:
             case ws_base::_BINARY: {
-                Variant v = pThis->m_msg;
-                pThis->m_this->_emit("message", &v, 1);
+                Variant v = m_msg;
+                m_this->_emit("message", &v, 1);
             }
             }
 
-            return pThis->next(recv);
+            return next(recv);
         }
 
         virtual int32_t error(int32_t v)

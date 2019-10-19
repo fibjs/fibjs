@@ -172,59 +172,52 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
         }
 
-        static int32_t start(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, start)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            if (qstrchr(pThis->m_url.c_str(), '%')) {
-                pThis->m_rep->set_statusCode(400);
-                return pThis->next(CALL_RETURN_NULL);
+            if (qstrchr(m_url.c_str(), '%')) {
+                m_rep->set_statusCode(400);
+                return next(CALL_RETURN_NULL);
             }
 
-            pThis->m_path = pThis->m_url;
+            m_path = m_url;
 
-            if (isPathSlash(pThis->m_path[pThis->m_path.length() - 1])) {
-                pThis->m_path.append("index.html", 10);
-                pThis->m_index = true;
+            if (isPathSlash(m_path[m_path.length() - 1])) {
+                m_path.append("index.html", 10);
+                m_index = true;
             }
 
-            return fs_base::openFile(pThis->m_path, "r", pThis->m_file, pThis->next(open));
+            return fs_base::openFile(m_path, "r", m_file, next(open));
         }
 
-        static int32_t stop(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, stop)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            pThis->m_rep->set_statusCode(400);
-            return pThis->next(CALL_RETURN_NULL);
+            m_rep->set_statusCode(400);
+            return next(CALL_RETURN_NULL);
         }
 
-        static int32_t autoindex(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, autoindex)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            pThis->m_path = pThis->m_url;
-            return fs_base::readdir(pThis->m_path, pThis->m_dir, pThis->next(list_stat));
+            m_path = m_url;
+            return fs_base::readdir(m_path, m_dir, next(list_stat));
         }
 
-        static int32_t list_stat(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, list_stat)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
             int32_t length;
             static char padding[] = "                                                              ";
 
-            pThis->m_dir->get_length(length);
+            m_dir->get_length(length);
 
-            if (pThis->m_dirPos == 0) {
-                pThis->m_dir->sort();
+            if (m_dirPos == 0) {
+                m_dir->sort();
 
-                pThis->m_file = new MemoryStream();
-                pThis->m_file->cc_write(new Buffer("<html>\n<head><title>Index of "
-                    + pThis->m_value + "</title></head>\n<body bgcolor=white>\n<h1>Index of "
-                    + pThis->m_value + "</h1><hr><pre>"));
+                m_file = new MemoryStream();
+                m_file->cc_write(new Buffer("<html>\n<head><title>Index of "
+                    + m_value + "</title></head>\n<body bgcolor=white>\n<h1>Index of "
+                    + m_value + "</h1><hr><pre>"));
 
-                if (pThis->m_value.length() > 1)
-                    pThis->m_file->cc_write(new Buffer("<a href=\"../\">../</a>\n"));
+                if (m_value.length() > 1)
+                    m_file->cc_write(new Buffer("<a href=\"../\">../</a>\n"));
             } else {
                 exlib::string name, ds, ss;
                 date_t d;
@@ -232,68 +225,67 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 bool is_dir = false;
                 int32_t padding_len;
 
-                pThis->m_stat->get_name(name);
-                pThis->m_stat->isDirectory(is_dir);
+                m_stat->get_name(name);
+                m_stat->isDirectory(is_dir);
                 if (is_dir)
                     name += '/';
-                pThis->m_file->cc_write(new Buffer("<a href=\"" + name + "\">" + name + "</a>"));
+                m_file->cc_write(new Buffer("<a href=\"" + name + "\">" + name + "</a>"));
                 padding_len = 40 - (int32_t)name.length();
                 if (padding_len < 1)
                     padding_len = 1;
-                pThis->m_file->cc_write(new Buffer(padding, padding_len));
+                m_file->cc_write(new Buffer(padding, padding_len));
 
-                pThis->m_stat->get_mtime(d);
+                m_stat->get_mtime(d);
                 d.sqlString(ds);
-                pThis->m_file->cc_write(new Buffer(ds));
+                m_file->cc_write(new Buffer(ds));
 
-                pThis->m_stat->get_size(sz);
+                m_stat->get_size(sz);
                 ss = niceSize((intptr_t)sz);
                 padding_len = 12 - (int32_t)ss.length();
                 if (padding_len < 1)
                     padding_len = 1;
-                pThis->m_file->cc_write(new Buffer(padding, padding_len));
-                pThis->m_file->cc_write(new Buffer(ss + '\n'));
+                m_file->cc_write(new Buffer(padding, padding_len));
+                m_file->cc_write(new Buffer(ss + '\n'));
             }
 
-            if (pThis->m_dirPos >= length) {
-                pThis->m_file->cc_write(new Buffer("</pre><hr></body>\n</html>"));
-                pThis->m_file->rewind();
+            if (m_dirPos >= length) {
+                m_file->cc_write(new Buffer("</pre><hr></body>\n</html>"));
+                m_file->rewind();
 
-                pThis->m_rep->set_body(pThis->m_file);
-                pThis->m_rep->addHeader("Content-Type", "text/html");
+                m_rep->set_body(m_file);
+                m_rep->addHeader("Content-Type", "text/html");
 
-                return pThis->next(CALL_RETURN_NULL);
+                return next(CALL_RETURN_NULL);
             }
 
             Variant v;
 
-            pThis->m_dir->_indexed_getter(pThis->m_dirPos, v);
-            pThis->m_dirPos++;
+            m_dir->_indexed_getter(m_dirPos, v);
+            m_dirPos++;
 
-            pThis->m_path = pThis->m_url;
-            pThis->m_path += v.string();
+            m_path = m_url;
+            m_path += v.string();
 
-            return fs_base::stat(pThis->m_path, pThis->m_stat, pThis);
+            return fs_base::stat(m_path, m_stat, this);
         }
 
-        static int32_t open(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, open)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
             exlib::string ext;
 
-            if (pThis->m_index)
-                pThis->m_rep->addHeader("Content-Type", "text/html");
+            if (m_index)
+                m_rep->addHeader("Content-Type", "text/html");
             else {
-                path_base::extname(pThis->m_url, ext);
+                path_base::extname(m_url, ext);
 
                 if (ext.length() > 0) {
                     const char* pKey = ext.c_str() + 1;
-                    std::map<exlib::string, exlib::string>& _mimes = pThis->m_pThis->m_mimes;
+                    std::map<exlib::string, exlib::string>& _mimes = m_pThis->m_mimes;
 
                     std::map<exlib::string, exlib::string>::iterator it = _mimes.find(pKey);
 
                     if (it != _mimes.end())
-                        pThis->m_rep->addHeader("Content-Type", it->second);
+                        m_rep->addHeader("Content-Type", it->second);
                     else {
                         const char** pMimeType = (const char**)bsearch(&pKey,
                             &s_mimeTypes, sizeof(s_mimeTypes) / sizeof(s_defType),
@@ -302,24 +294,23 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         if (!pMimeType)
                             pMimeType = s_defType;
 
-                        pThis->m_rep->addHeader("Content-Type", pMimeType[1]);
+                        m_rep->addHeader("Content-Type", pMimeType[1]);
                     }
                 }
             }
 
-            return pThis->m_file->stat(pThis->m_stat, pThis->next(stat));
+            return m_file->stat(m_stat, next(stat));
         }
 
-        static int32_t stat(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, stat)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
             date_t d;
             exlib::string str;
 
-            pThis->m_stat->get_mtime(d);
+            m_stat->get_mtime(d);
 
             exlib::string lastModified;
-            if (pThis->m_req->firstHeader("If-Modified-Since", lastModified)
+            if (m_req->firstHeader("If-Modified-Since", lastModified)
                 != CALL_RETURN_NULL) {
                 date_t d1;
                 double diff;
@@ -328,17 +319,17 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 diff = d.diff(d1);
 
                 if (diff > -1000 && diff < 1000) {
-                    pThis->m_rep->set_statusCode(304);
-                    return pThis->next(CALL_RETURN_NULL);
+                    m_rep->set_statusCode(304);
+                    return next(CALL_RETURN_NULL);
                 }
             }
 
             d.toGMTString(lastModified);
 
-            pThis->m_rep->addHeader("Last-Modified", lastModified);
-            pThis->m_rep->set_body(pThis->m_file);
+            m_rep->addHeader("Last-Modified", lastModified);
+            m_rep->set_body(m_file);
 
-            return pThis->next(CALL_RETURN_NULL);
+            return next(CALL_RETURN_NULL);
         }
 
         virtual int32_t error(int32_t v)

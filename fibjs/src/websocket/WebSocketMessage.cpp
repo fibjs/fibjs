@@ -119,52 +119,50 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
             next(read);
         }
 
-        static int32_t read(AsyncState* pState, int32_t n)
+        ON_STATE(asyncCopy, read)
         {
-            asyncCopy* pThis = (asyncCopy*)pState;
             int64_t len;
 
-            if (pThis->m_bytes == 0)
-                return pThis->next();
+            if (m_bytes == 0)
+                return next();
 
-            if (pThis->m_bytes > STREAM_BUFF_SIZE)
+            if (m_bytes > STREAM_BUFF_SIZE)
                 len = STREAM_BUFF_SIZE;
             else
-                len = pThis->m_bytes;
+                len = m_bytes;
 
-            pThis->m_buf.Release();
-            return pThis->m_from->read((int32_t)len, pThis->m_buf, pThis->next(write));
+            m_buf.Release();
+            return m_from->read((int32_t)len, m_buf, next(write));
         }
 
-        static int32_t write(AsyncState* pState, int32_t n)
+        ON_STATE(asyncCopy, write)
         {
-            asyncCopy* pThis = (asyncCopy*)pState;
             int32_t blen;
 
             if (n == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
 
-            if (pThis->m_mask != 0) {
+            if (m_mask != 0) {
                 exlib::string strBuffer;
                 int32_t i, n;
-                uint8_t* mask = (uint8_t*)&pThis->m_mask;
+                uint8_t* mask = (uint8_t*)&m_mask;
 
-                pThis->m_buf->toString(strBuffer);
+                m_buf->toString(strBuffer);
 
                 n = (int32_t)strBuffer.length();
                 for (i = 0; i < n; i++)
-                    strBuffer[i] ^= mask[(pThis->m_copyed + i) & 3];
+                    strBuffer[i] ^= mask[(m_copyed + i) & 3];
 
-                pThis->m_buf = new Buffer(strBuffer);
+                m_buf = new Buffer(strBuffer);
             }
 
-            pThis->m_buf->get_length(blen);
-            pThis->m_copyed += blen;
+            m_buf->get_length(blen);
+            m_copyed += blen;
 
-            if (pThis->m_bytes > 0)
-                pThis->m_bytes -= blen;
+            if (m_bytes > 0)
+                m_bytes -= blen;
 
-            return pThis->m_to->write(pThis->m_buf, pThis->next(read));
+            return m_to->write(m_buf, next(read));
         }
 
     public:
@@ -213,40 +211,34 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* 
             }
         }
 
-        static int32_t deflate(AsyncState* pState, int32_t n)
+        ON_STATE(asyncSendTo, deflate)
         {
-            asyncSendTo* pThis = (asyncSendTo*)pState;
-
-            pThis->m_body->rewind();
-            return pThis->m_body->copyTo(pThis->m_zip, -1, pThis->m_size, pThis->next(flush));
+            m_body->rewind();
+            return m_body->copyTo(m_zip, -1, m_size, next(flush));
         }
 
-        static int32_t flush(AsyncState* pState, int32_t n)
+        ON_STATE(asyncSendTo, flush)
         {
-            asyncSendTo* pThis = (asyncSendTo*)pState;
-
-            return pThis->m_zip->flush(pThis->next(head));
+            return m_zip->flush(next(head));
         }
 
-        static int32_t head(AsyncState* pState, int32_t n)
+        ON_STATE(asyncSendTo, head)
         {
-            asyncSendTo* pThis = (asyncSendTo*)pState;
-
-            if (pThis->m_take_over)
-                pThis->m_wss->m_deflate->attach(NULL);
+            if (m_take_over)
+                m_wss->m_deflate->attach(NULL);
 
             int64_t size;
-            pThis->m_data->size(size);
-            if (pThis->m_pThis->m_compress)
+            m_data->size(size);
+            if (m_pThis->m_compress)
                 size -= 4;
-            pThis->m_size = size;
+            m_size = size;
 
             uint8_t buf[16];
             int32_t pos = 0;
 
             int32_t type;
-            pThis->m_pThis->get_type(type);
-            if (pThis->m_pThis->m_compress)
+            m_pThis->get_type(type);
+            if (m_pThis->m_compress)
                 buf[0] = 0xc0 | (type & 0x0f);
             else
                 buf[0] = 0x80 | (type & 0x0f);
@@ -272,14 +264,14 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* 
                 pos = 10;
             }
 
-            if (pThis->m_pThis->m_masked) {
+            if (m_pThis->m_masked) {
                 buf[1] |= 0x80;
 
                 uint32_t r = 0;
                 while (r == 0)
                     r = rand();
 
-                pThis->m_mask = r;
+                m_mask = r;
 
                 buf[pos++] = (uint8_t)(r & 0xff);
                 buf[pos++] = (uint8_t)((r >> 8) & 0xff);
@@ -287,16 +279,14 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* 
                 buf[pos++] = (uint8_t)((r >> 24) & 0xff);
             }
 
-            pThis->m_buffer = new Buffer((const char*)buf, pos);
-            return pThis->m_stm->write(pThis->m_buffer, pThis->next(sendData));
+            m_buffer = new Buffer((const char*)buf, pos);
+            return m_stm->write(m_buffer, next(sendData));
         }
 
-        static int32_t sendData(AsyncState* pState, int32_t n)
+        ON_STATE(asyncSendTo, sendData)
         {
-            asyncSendTo* pThis = (asyncSendTo*)pState;
-
-            pThis->m_data->rewind();
-            return copy(pThis->m_data, pThis->m_stm, pThis->m_size, pThis->m_mask, pThis->next());
+            m_data->rewind();
+            return copy(m_data, m_stm, m_size, m_mask, next());
         }
 
         virtual int32_t error(int32_t v)
@@ -352,19 +342,15 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
             next(head);
         }
 
-        static int32_t head(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, head)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
-            return pThis->m_stm->read(2, pThis->m_buffer, pThis->next(extHead));
+            return m_stm->read(2, m_buffer, next(extHead));
         }
 
-        static int32_t extHead(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, extHead)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
             if (n == CALL_RETURN_NULL) {
-                pThis->m_pThis->m_error = 1001;
+                m_pThis->m_error = 1001;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
             }
 
@@ -372,133 +358,123 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
             char ch;
             int32_t sz = 0;
 
-            pThis->m_buffer->toString(strBuffer);
-            pThis->m_buffer.Release();
+            m_buffer->toString(strBuffer);
+            m_buffer.Release();
 
             ch = strBuffer[0];
             if (ch & 0x40) {
-                if (pThis->m_wss && pThis->m_wss->m_compress) {
-                    pThis->m_take_over = true;
-                    pThis->m_wss->m_inflate->attach(pThis->m_body);
-                    pThis->m_zip = pThis->m_wss->m_inflate;
+                if (m_wss && m_wss->m_compress) {
+                    m_take_over = true;
+                    m_wss->m_inflate->attach(m_body);
+                    m_zip = m_wss->m_inflate;
                 } else
-                    zlib_base::createInflateRaw(pThis->m_body, pThis->m_pThis->m_maxSize, pThis->m_zip);
+                    zlib_base::createInflateRaw(m_body, m_pThis->m_maxSize, m_zip);
 
-                pThis->m_pThis->m_compress = true;
+                m_pThis->m_compress = true;
             } else if (ch & 0x70) {
-                pThis->m_pThis->m_error = 1007;
+                m_pThis->m_error = 1007;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: non-zero RSV values."));
             }
 
-            pThis->m_fin = (ch & 0x80) != 0;
+            m_fin = (ch & 0x80) != 0;
 
-            if (pThis->m_fragmented) {
+            if (m_fragmented) {
                 if ((ch & 0x0f) != ws_base::_CONTINUE) {
-                    pThis->m_pThis->m_error = 1007;
+                    m_pThis->m_error = 1007;
                     return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
                 }
             } else
-                pThis->m_pThis->set_type(ch & 0x0f);
+                m_pThis->set_type(ch & 0x0f);
 
             ch = strBuffer[1];
 
-            if (pThis->m_fragmented) {
-                if (pThis->m_masked != (pThis->m_pThis->m_masked = (ch & 0x80) != 0)) {
-                    pThis->m_pThis->m_error = 1007;
+            if (m_fragmented) {
+                if (m_masked != (m_pThis->m_masked = (ch & 0x80) != 0)) {
+                    m_pThis->m_error = 1007;
                     return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
                 }
             } else
-                pThis->m_masked = pThis->m_pThis->m_masked = (ch & 0x80) != 0;
+                m_masked = m_pThis->m_masked = (ch & 0x80) != 0;
 
-            if (pThis->m_masked)
+            if (m_masked)
                 sz += 4;
 
-            pThis->m_size = ch & 0x7f;
-            if (pThis->m_size == 126)
+            m_size = ch & 0x7f;
+            if (m_size == 126)
                 sz += 2;
-            else if (pThis->m_size == 127)
+            else if (m_size == 127)
                 sz += 8;
 
             if (sz)
-                return pThis->m_stm->read(sz, pThis->m_buffer, pThis->next(extReady));
+                return m_stm->read(sz, m_buffer, next(extReady));
 
-            return pThis->next(copy);
+            return next(copy);
         }
 
-        static int32_t extReady(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, extReady)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
             if (n == CALL_RETURN_NULL) {
-                pThis->m_pThis->m_error = 1007;
+                m_pThis->m_error = 1007;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
             }
 
             exlib::string strBuffer;
             int32_t pos = 0;
 
-            pThis->m_buffer->toString(strBuffer);
-            pThis->m_buffer.Release();
+            m_buffer->toString(strBuffer);
+            m_buffer.Release();
 
-            if (pThis->m_size == 126) {
-                pThis->m_size = ((uint32_t)(uint8_t)strBuffer[0] << 8) + (uint8_t)strBuffer[1];
+            if (m_size == 126) {
+                m_size = ((uint32_t)(uint8_t)strBuffer[0] << 8) + (uint8_t)strBuffer[1];
                 pos += 2;
-            } else if (pThis->m_size == 127) {
-                pThis->m_size = ((int64_t)(uint8_t)strBuffer[0] << 56) + ((int64_t)(uint8_t)strBuffer[1] << 48) + ((int64_t)(uint8_t)strBuffer[2] << 40) + ((int64_t)(uint8_t)strBuffer[3] << 32) + ((int64_t)(uint8_t)strBuffer[4] << 24) + ((int64_t)(uint8_t)strBuffer[5] << 16) + ((int64_t)(uint8_t)strBuffer[6] << 8) + (int64_t)(uint8_t)strBuffer[7];
+            } else if (m_size == 127) {
+                m_size = ((int64_t)(uint8_t)strBuffer[0] << 56) + ((int64_t)(uint8_t)strBuffer[1] << 48) + ((int64_t)(uint8_t)strBuffer[2] << 40) + ((int64_t)(uint8_t)strBuffer[3] << 32) + ((int64_t)(uint8_t)strBuffer[4] << 24) + ((int64_t)(uint8_t)strBuffer[5] << 16) + ((int64_t)(uint8_t)strBuffer[6] << 8) + (int64_t)(uint8_t)strBuffer[7];
                 pos += 8;
             }
 
-            if (pThis->m_masked)
-                memcpy(&pThis->m_mask, &strBuffer[pos], 4);
+            if (m_masked)
+                memcpy(&m_mask, &strBuffer[pos], 4);
 
-            return pThis->next(copy);
+            return next(copy);
         }
 
-        static int32_t copy(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, copy)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
-            if (pThis->m_fullsize + pThis->m_size > pThis->m_pThis->m_maxSize) {
-                pThis->m_pThis->m_error = 1009;
+            if (m_fullsize + m_size > m_pThis->m_maxSize) {
+                m_pThis->m_error = 1009;
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: Message Too Big."));
             }
 
-            return WebSocketMessage::copy(pThis->m_stm, pThis->m_zip, pThis->m_size, pThis->m_mask, pThis->next(copy_end));
+            return WebSocketMessage::copy(m_stm, m_zip, m_size, m_mask, next(copy_end));
         }
 
-        static int32_t copy_end(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, copy_end)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
-            if (!pThis->m_fin) {
-                pThis->m_fragmented = true;
-                pThis->m_mask = 0;
-                pThis->m_fullsize += pThis->m_size;
-                return pThis->next(head);
+            if (!m_fin) {
+                m_fragmented = true;
+                m_mask = 0;
+                m_fullsize += m_size;
+                return next(head);
             }
 
-            if (pThis->m_take_over)
-                return pThis->m_zip->write(pThis->m_wss->m_flushTail, pThis->next(tail_end));
+            if (m_take_over)
+                return m_zip->write(m_wss->m_flushTail, next(tail_end));
 
-            return pThis->m_zip->flush(pThis->next(body_end));
+            return m_zip->flush(next(body_end));
         }
 
-        static int32_t tail_end(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, tail_end)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
-            return pThis->m_zip->flush(pThis->next(body_end));
+            return m_zip->flush(next(body_end));
         }
 
-        static int32_t body_end(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, body_end)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
+            if (m_take_over)
+                m_wss->m_inflate->attach(NULL);
 
-            if (pThis->m_take_over)
-                pThis->m_wss->m_inflate->attach(NULL);
-
-            pThis->m_body->rewind();
-            return pThis->next();
+            m_body->rewind();
+            return next();
         }
 
         virtual int32_t error(int32_t v)

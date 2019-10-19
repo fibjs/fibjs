@@ -38,76 +38,67 @@ private:
             return 0;
         }
 
-        static int32_t process(AsyncState* pState, int32_t n)
+        ON_STATE(asyncSsl, process)
         {
-            asyncSsl* pThis = (asyncSsl*)pState;
-
-            if (pThis->m_ret == MBEDTLS_ERR_SSL_WANT_READ) {
-                if (pThis->m_buf) {
-                    pThis->m_pThis->m_recv_pos = 0;
-                    pThis->m_buf->toString(pThis->m_pThis->m_recv);
-                    pThis->m_buf.Release();
+            if (m_ret == MBEDTLS_ERR_SSL_WANT_READ) {
+                if (m_buf) {
+                    m_pThis->m_recv_pos = 0;
+                    m_buf->toString(m_pThis->m_recv);
+                    m_buf.Release();
                 } else
-                    pThis->m_pThis->m_recv_pos = -1;
+                    m_pThis->m_recv_pos = -1;
             }
 
-            pThis->m_ret = pThis->process();
-            if (pThis->m_ret == 0) {
-                if (pThis->m_pThis->m_send.length() > 0)
-                    return pThis->next(flush);
+            m_ret = process();
+            if (m_ret == 0) {
+                if (m_pThis->m_send.length() > 0)
+                    return next(flush);
                 else
-                    return pThis->next(pThis->finally());
+                    return next(finally());
             }
 
-            if (pThis->m_ret == MBEDTLS_ERR_SSL_WANT_READ || pThis->m_ret == MBEDTLS_ERR_SSL_WANT_WRITE)
-                return pThis->next(send);
+            if (m_ret == MBEDTLS_ERR_SSL_WANT_READ || m_ret == MBEDTLS_ERR_SSL_WANT_WRITE)
+                return next(send);
 
-            return CHECK_ERROR(_ssl::setError(pThis->m_ret));
+            return CHECK_ERROR(_ssl::setError(m_ret));
         }
 
-        static int32_t send(AsyncState* pState, int32_t n)
+        ON_STATE(asyncSsl, send)
         {
-            asyncSsl* pThis = (asyncSsl*)pState;
-
-            exlib::string& m_send = pThis->m_pThis->m_send;
+            exlib::string& m_send = m_pThis->m_send;
 
             if (m_send.empty())
-                return pThis->next(recv);
+                return next(recv);
 
-            pThis->m_buf = new Buffer(m_send);
+            m_buf = new Buffer(m_send);
             m_send.resize(0);
 
-            return pThis->m_pThis->m_s->write(pThis->m_buf, pThis->next(recv));
+            return m_pThis->m_s->write(m_buf, next(recv));
         }
 
-        static int32_t recv(AsyncState* pState, int32_t n)
+        ON_STATE(asyncSsl, recv)
         {
-            asyncSsl* pThis = (asyncSsl*)pState;
+            m_buf.Release();
 
-            pThis->m_buf.Release();
+            if (m_ret == MBEDTLS_ERR_SSL_WANT_WRITE)
+                return next(process);
 
-            if (pThis->m_ret == MBEDTLS_ERR_SSL_WANT_WRITE)
-                return pThis->next(process);
-
-            return pThis->m_pThis->m_s->read(-1, pThis->m_buf, pThis->next(process));
+            return m_pThis->m_s->read(-1, m_buf, next(process));
         }
 
-        static int32_t flush(AsyncState* pState, int32_t n)
+        ON_STATE(asyncSsl, flush)
         {
-            asyncSsl* pThis = (asyncSsl*)pState;
+            exlib::string& m_send = m_pThis->m_send;
 
-            exlib::string& m_send = pThis->m_pThis->m_send;
-
-            pThis->m_buf = new Buffer(m_send);
+            m_buf = new Buffer(m_send);
             m_send.resize(0);
 
-            return pThis->m_pThis->m_s->write(pThis->m_buf, pThis->next(end));
+            return m_pThis->m_s->write(m_buf, next(end));
         }
 
-        static int32_t end(AsyncState* pState, int32_t n)
+        ON_STATE(asyncSsl, end)
         {
-            asyncSsl* pThis = (asyncSsl*)pState;
-            return pThis->next(pThis->finally());
+            return next(finally());
         }
 
     protected:

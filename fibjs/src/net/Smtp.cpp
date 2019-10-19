@@ -39,23 +39,19 @@ public:
         m_stmBuffered = pThis->m_stmBuffered;
     }
 
-    static int32_t ok(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSmtp, ok)
     {
-        asyncSmtp* pThis = (asyncSmtp*)pState;
-
-        return pThis->m_stmBuffered->readLine(SMTP_MAX_LINE, pThis->m_strLine, pThis->next(recv));
+        return m_stmBuffered->readLine(SMTP_MAX_LINE, m_strLine, next(recv));
     }
 
-    static int32_t recv(AsyncState* pState, int32_t n)
+    ON_STATE(asyncSmtp, recv)
     {
-        asyncSmtp* pThis = (asyncSmtp*)pState;
+        exlib::string& strLine = m_strLine;
 
-        exlib::string& strLine = pThis->m_strLine;
-
-        if (&pThis->m_retVal != &strLine) {
-            if (pThis->m_retVal.length())
-                pThis->m_retVal.append("\r\n", 2);
-            pThis->m_retVal.append(strLine);
+        if (&m_retVal != &strLine) {
+            if (m_retVal.length())
+                m_retVal.append("\r\n", 2);
+            m_retVal.append(strLine);
         }
 
         if (qisdigit(strLine[0]) && qisdigit(strLine[1]) && qisdigit(strLine[2])
@@ -63,10 +59,10 @@ public:
             if (strLine[0] == '5')
                 return CHECK_ERROR(Runtime::setError(strLine));
 
-            return pThis->recv_ok();
+            return recv_ok();
         }
 
-        return pThis->m_stmBuffered->readLine(SMTP_MAX_LINE, strLine, pThis);
+        return m_stmBuffered->readLine(SMTP_MAX_LINE, strLine, this);
     }
 
     virtual int32_t recv_ok()
@@ -113,11 +109,9 @@ public:
     }
 
 public:
-    static int32_t command(AsyncState* pState, int32_t n)
+    ON_STATE(asyncCommand, command)
     {
-        asyncCommand* pThis = (asyncCommand*)pState;
-
-        return pThis->m_stmBuffered->write(pThis->m_buf, pThis->next(ok));
+        return m_stmBuffered->write(m_buf, next(ok));
     }
 
 private:
@@ -136,23 +130,19 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
         }
 
     public:
-        static int32_t connect(AsyncState* pState, int32_t n)
+        ON_STATE(asyncConnect, connect)
         {
-            asyncConnect* pThis = (asyncConnect*)pState;
-
-            return net_base::connect(pThis->m_url, pThis->m_pThis->m_timeout,
-                pThis->m_pThis->m_conn, pThis->next(connected));
+            return net_base::connect(m_url, m_pThis->m_timeout,
+                m_pThis->m_conn, next(connected));
         }
 
-        static int32_t connected(AsyncState* pState, int32_t n)
+        ON_STATE(asyncConnect, connected)
         {
-            asyncConnect* pThis = (asyncConnect*)pState;
+            m_pThis->m_stmBuffered = new BufferedStream(m_pThis->m_conn);
+            m_pThis->m_stmBuffered->set_EOL("\r\n");
 
-            pThis->m_pThis->m_stmBuffered = new BufferedStream(pThis->m_pThis->m_conn);
-            pThis->m_pThis->m_stmBuffered->set_EOL("\r\n");
-
-            pThis->m_stmBuffered = pThis->m_pThis->m_stmBuffered;
-            return pThis->next(ok);
+            m_stmBuffered = m_pThis->m_stmBuffered;
+            return next(ok);
         }
 
     private:
@@ -212,14 +202,12 @@ result_t Smtp::login(exlib::string username, exlib::string password,
             next(begin);
         }
 
-        static int32_t begin(AsyncState* pState, int32_t n)
+        ON_STATE(asyncLogin, begin)
         {
-            asyncLogin* pThis = (asyncLogin*)pState;
-
             exlib::string s("AUTH LOGIN\r\n", 12);
 
             obj_ptr<Buffer> buf = new Buffer(s);
-            return pThis->m_stmBuffered->write(buf, pThis->next(ok));
+            return m_stmBuffered->write(buf, next(ok));
         }
 
         int32_t send_base64(exlib::string str)
@@ -234,16 +222,14 @@ result_t Smtp::login(exlib::string username, exlib::string password,
             return m_stmBuffered->write(buf, next(ok));
         }
 
-        static int32_t send_username(AsyncState* pState, int32_t n)
+        ON_STATE(asyncLogin, send_username)
         {
-            asyncLogin* pThis = (asyncLogin*)pState;
-            return pThis->send_base64(pThis->m_username);
+            return send_base64(m_username);
         }
 
-        static int32_t send_password(AsyncState* pState, int32_t n)
+        ON_STATE(asyncLogin, send_password)
         {
-            asyncLogin* pThis = (asyncLogin*)pState;
-            return pThis->send_base64(pThis->m_password);
+            return send_base64(m_password);
         }
 
         virtual int32_t recv_ok()
@@ -296,26 +282,22 @@ result_t Smtp::data(exlib::string txt, AsyncEvent* ac)
             next(begin);
         }
 
-        static int32_t begin(AsyncState* pState, int32_t n)
+        ON_STATE(asyncData, begin)
         {
-            asyncData* pThis = (asyncData*)pState;
-
             exlib::string s("DATA\r\n", 6);
 
             obj_ptr<Buffer> buf = new Buffer(s);
-            return pThis->m_stmBuffered->write(buf, pThis->next(ok));
+            return m_stmBuffered->write(buf, next(ok));
         }
 
-        static int32_t send_data(AsyncState* pState, int32_t n)
+        ON_STATE(asyncData, send_data)
         {
-            asyncData* pThis = (asyncData*)pState;
-
-            exlib::string s(pThis->m_txt);
+            exlib::string s(m_txt);
 
             s.append("\r\n.\r\n", 5);
 
             obj_ptr<Buffer> buf = new Buffer(s);
-            return pThis->m_stmBuffered->write(buf, pThis->next(ok));
+            return m_stmBuffered->write(buf, next(ok));
         }
 
         virtual int32_t recv_ok()

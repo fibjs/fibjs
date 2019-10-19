@@ -48,14 +48,12 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             next(handshake);
         }
 
-        static int32_t handshake(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, handshake)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
             exlib::string v;
             result_t hr;
 
-            hr = pThis->m_httpreq->firstHeader("Upgrade", v);
+            hr = m_httpreq->firstHeader("Upgrade", v);
             if (hr < 0)
                 return hr;
 
@@ -65,7 +63,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (qstricmp(v.c_str(), "websocket"))
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: invalid Upgrade header."));
 
-            hr = pThis->m_httpreq->firstHeader("Sec-WebSocket-Version", v);
+            hr = m_httpreq->firstHeader("Sec-WebSocket-Version", v);
             if (hr < 0)
                 return hr;
 
@@ -76,11 +74,11 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: invalid Sec-WebSocket-Version header."));
 
             bool bUpgrade;
-            pThis->m_httpreq->get_upgrade(bUpgrade);
+            m_httpreq->get_upgrade(bUpgrade);
             if (!bUpgrade)
                 return CHECK_ERROR(Runtime::setError("WebSocketHandler: invalid connection header."));
 
-            hr = pThis->m_httpreq->firstHeader("Sec-WebSocket-Key", v);
+            hr = m_httpreq->firstHeader("Sec-WebSocket-Key", v);
             if (hr < 0)
                 return hr;
 
@@ -100,38 +98,36 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
                 6, (const char*)output, 20, out);
 
-            pThis->m_httprep->set_statusCode(101);
-            pThis->m_httprep->addHeader("Sec-WebSocket-Accept", out);
-            pThis->m_httprep->addHeader("Upgrade", "websocket");
-            pThis->m_httprep->set_upgrade(true);
+            m_httprep->set_statusCode(101);
+            m_httprep->addHeader("Sec-WebSocket-Accept", out);
+            m_httprep->addHeader("Upgrade", "websocket");
+            m_httprep->set_upgrade(true);
 
-            hr = pThis->m_httpreq->firstHeader("Sec-WebSocket-Extensions", v);
+            hr = m_httpreq->firstHeader("Sec-WebSocket-Extensions", v);
             if (hr < 0)
                 return hr;
 
             if (hr != CALL_RETURN_NULL && !qstricmp(v.c_str(), "permessage-deflate", 18)) {
-                pThis->m_httprep->addHeader("Sec-WebSocket-Extensions", "permessage-deflate");
-                pThis->m_compress = true;
+                m_httprep->addHeader("Sec-WebSocket-Extensions", "permessage-deflate");
+                m_compress = true;
             }
 
-            return pThis->m_httprep->sendTo(pThis->m_stm, pThis->next(accept));
+            return m_httprep->sendTo(m_stm, next(accept));
         }
 
-        static int32_t accept(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, accept)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            obj_ptr<WebSocketHandler> pHandler = pThis->m_pThis;
-            obj_ptr<WebSocket> sock = new WebSocket(pThis->m_stm, "", pThis);
-            if (pThis->m_compress)
+            obj_ptr<WebSocketHandler> pHandler = m_pThis;
+            obj_ptr<WebSocket> sock = new WebSocket(m_stm, "", this);
+            if (m_compress)
                 sock->enableCompress();
 
             Variant vs[2];
             vs[0] = sock;
-            vs[1] = pThis->m_httpreq;
+            vs[1] = m_httpreq;
             pHandler->_emit("accept", vs, 2);
 
-            pThis->next(CALL_RETURN_NULL);
+            next(CALL_RETURN_NULL);
             return CALL_E_PENDDING;
         }
 

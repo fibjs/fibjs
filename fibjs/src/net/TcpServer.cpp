@@ -83,18 +83,14 @@ result_t TcpServer::start()
         }
 
     public:
-        static int32_t invoke(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, invoke)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_sock, pThis->next(close));
+            return mq_base::invoke(m_pThis->m_hdlr, m_sock, next(close));
         }
 
-        static int32_t close(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, close)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            return pThis->m_sock->close(pThis->next());
+            return m_sock->close(next());
         }
 
         virtual int32_t error(int32_t v)
@@ -127,23 +123,19 @@ result_t TcpServer::start()
         }
 
     public:
-        static int32_t accept(AsyncState* pState, int32_t n)
+        ON_STATE(asyncAccept, accept)
         {
-            asyncAccept* pThis = (asyncAccept*)pState;
-
-            return pThis->m_pThis->m_socket->accept(pThis->m_accept, pThis->next(invoke));
+            return m_pThis->m_socket->accept(m_accept, next(invoke));
         }
 
-        static int32_t invoke(AsyncState* pState, int32_t n)
+        ON_STATE(asyncAccept, invoke)
         {
-            asyncAccept* pThis = (asyncAccept*)pState;
-
-            if (pThis->m_accept) {
-                (new asyncInvoke(pThis->m_pThis, pThis->m_accept, pThis->m_holder))->apost(0);
-                pThis->m_accept.Release();
+            if (m_accept) {
+                (new asyncInvoke(m_pThis, m_accept, m_holder))->apost(0);
+                m_accept.Release();
             }
 
-            return pThis->m_pThis->m_socket->accept(pThis->m_accept, pThis);
+            return m_pThis->m_socket->accept(m_accept, this);
         }
 
         virtual int32_t error(int32_t v)

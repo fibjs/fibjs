@@ -33,40 +33,38 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
             next(read);
         }
 
-        static int32_t read(AsyncState* pState, int32_t n)
+        ON_STATE(asyncCopy, read)
         {
-            asyncCopy* pThis = (asyncCopy*)pState;
             int64_t len;
 
-            if (pThis->m_bytes == 0)
-                return pThis->next();
+            if (m_bytes == 0)
+                return next();
 
-            if (pThis->m_bytes < 0)
+            if (m_bytes < 0)
                 len = -1;
-            else if (pThis->m_bytes > STREAM_BUFF_SIZE)
+            else if (m_bytes > STREAM_BUFF_SIZE)
                 len = STREAM_BUFF_SIZE;
             else
-                len = pThis->m_bytes;
+                len = m_bytes;
 
-            pThis->m_buf.Release();
-            return pThis->m_from->read((int32_t)len, pThis->m_buf, pThis->next(write));
+            m_buf.Release();
+            return m_from->read((int32_t)len, m_buf, next(write));
         }
 
-        static int32_t write(AsyncState* pState, int32_t n)
+        ON_STATE(asyncCopy, write)
         {
-            asyncCopy* pThis = (asyncCopy*)pState;
             int32_t blen;
 
             if (n == CALL_RETURN_NULL)
-                return pThis->next();
+                return next();
 
-            pThis->m_buf->get_length(blen);
-            pThis->m_retVal += blen;
+            m_buf->get_length(blen);
+            m_retVal += blen;
 
-            if (pThis->m_bytes > 0)
-                pThis->m_bytes -= blen;
+            if (m_bytes > 0)
+                m_bytes -= blen;
 
-            return pThis->m_to->write(pThis->m_buf, pThis->next(read));
+            return m_to->write(m_buf, next(read));
         }
 
     public:
@@ -102,47 +100,39 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncEvent* ac)
                 next(read);
             }
 
-            static int32_t read(AsyncState* pState, int32_t n)
+            ON_STATE(AsyncCopy, read)
             {
-                AsyncCopy* pThis = (AsyncCopy*)pState;
+                m_buf.Release();
 
-                pThis->m_buf.Release();
-
-                if (pThis->m_data->m_states[pThis->m_from].CompareAndSwap(
+                if (m_data->m_states[m_from].CompareAndSwap(
                         BRIDGE_WRITE, BRIDGE_READ)
                     != BRIDGE_WRITE)
-                    return pThis->error(0);
+                    return error(0);
 
-                return pThis->m_data->m_stms[pThis->m_from]->read(-1,
-                    pThis->m_buf, pThis->next(write));
+                return m_data->m_stms[m_from]->read(-1, m_buf, next(write));
             }
 
-            static int32_t write(AsyncState* pState, int32_t n)
+            ON_STATE(AsyncCopy, write)
             {
-                AsyncCopy* pThis = (AsyncCopy*)pState;
-
                 if (n == CALL_RETURN_NULL)
-                    return pThis->error(0);
+                    return error(0);
 
-                if (pThis->m_data->m_states[pThis->m_from].CompareAndSwap(
+                if (m_data->m_states[m_from].CompareAndSwap(
                         BRIDGE_READ, BRIDGE_WRITE)
                     != BRIDGE_READ)
-                    return pThis->error(0);
+                    return error(0);
 
-                return pThis->m_data->m_stms[pThis->m_to]->write(pThis->m_buf, pThis->next(read));
+                return m_data->m_stms[m_to]->write(m_buf, next(read));
             }
 
-            static int32_t cancel(AsyncState* pState, int32_t n)
+            ON_STATE(AsyncCopy, cancel)
             {
-                AsyncCopy* pThis = (AsyncCopy*)pState;
-
-                return pThis->m_data->m_stms[pThis->m_to]->close(pThis->next(end));
+                return m_data->m_stms[m_to]->close(next(end));
             }
 
-            static int32_t end(AsyncState* pState, int32_t n)
+            ON_STATE(AsyncCopy, end)
             {
-                AsyncCopy* pThis = (AsyncCopy*)pState;
-                return pThis->error(0);
+                return error(0);
             }
 
             virtual int32_t error(int32_t v)

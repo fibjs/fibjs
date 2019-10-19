@@ -23,13 +23,12 @@ result_t stream_logger::write(AsyncEvent* ac)
         }
 
     public:
-        static int32_t write(AsyncState* pState, int32_t n)
+        ON_STATE(asyncWrite, write)
         {
-            asyncWrite* pThis = (asyncWrite*)pState;
             exlib::string outBuffer;
             item* p1;
 
-            while ((p1 = pThis->m_logs.getHead()) != 0) {
+            while ((p1 = m_logs.getHead()) != 0) {
                 exlib::string txt;
 
                 if (p1->m_priority == console_base::_NOTICE)
@@ -52,11 +51,11 @@ result_t stream_logger::write(AsyncEvent* ac)
             }
 
             if (outBuffer.empty())
-                return pThis->next();
+                return next();
 
-            pThis->m_buffer = new Buffer(outBuffer);
+            m_buffer = new Buffer(outBuffer);
 
-            return pThis->m_out->write(pThis->m_buffer, pThis);
+            return m_out->write(m_buffer, this);
         }
 
         virtual int32_t error(int32_t v)

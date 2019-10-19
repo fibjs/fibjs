@@ -360,34 +360,31 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
             next(begin);
         }
 
-        static int32_t begin(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, begin)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
-            return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis->next(command));
+            return m_stm->readLine(HTTP_MAX_LINE, m_strLine, next(command));
         }
 
-        static int32_t command(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, command)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
             result_t hr;
-            const char* c_str = pThis->m_strLine.c_str();
-            int32_t len = (int32_t)pThis->m_strLine.length();
+            const char* c_str = m_strLine.c_str();
+            int32_t len = (int32_t)m_strLine.length();
 
             if (len < 12 || c_str[8] != ' '
                 || !qisdigit(c_str[9]) || !qisdigit(c_str[10]) || !qisdigit(c_str[11])
                 || qisdigit(c_str[12]))
-                return CHECK_ERROR(Runtime::setError("HttpResponse: bad protocol: " + pThis->m_strLine));
+                return CHECK_ERROR(Runtime::setError("HttpResponse: bad protocol: " + m_strLine));
 
-            pThis->m_pThis->set_statusCode((c_str[9] - '0') * 100 + (c_str[10] - '0') * 10 + (c_str[11] - '0'));
-            pThis->m_pThis->set_statusMessage(c_str[12] == ' ' ? c_str + 13 : c_str + 12);
+            m_pThis->set_statusCode((c_str[9] - '0') * 100 + (c_str[10] - '0') * 10 + (c_str[11] - '0'));
+            m_pThis->set_statusMessage(c_str[12] == ' ' ? c_str + 13 : c_str + 12);
 
-            pThis->m_strLine.resize(8);
-            hr = pThis->m_pThis->set_protocol(pThis->m_strLine);
+            m_strLine.resize(8);
+            hr = m_pThis->set_protocol(m_strLine);
             if (hr < 0)
                 return hr;
 
-            return pThis->m_pThis->m_message->readFrom(pThis->m_stm, pThis->next());
+            return m_pThis->m_message->readFrom(m_stm, next());
         }
 
     public:

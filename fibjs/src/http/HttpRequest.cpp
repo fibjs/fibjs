@@ -281,29 +281,26 @@ result_t HttpRequest::readFrom(Stream_base* stm, AsyncEvent* ac)
             next(begin);
         }
 
-        static int32_t begin(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, begin)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
-
-            return pThis->m_stm->readLine(HTTP_MAX_LINE, pThis->m_strLine, pThis->next(command));
+            return m_stm->readLine(HTTP_MAX_LINE, m_strLine, next(command));
         }
 
-        static int32_t command(AsyncState* pState, int32_t n)
+        ON_STATE(asyncReadFrom, command)
         {
-            asyncReadFrom* pThis = (asyncReadFrom*)pState;
 
             if (n == CALL_RETURN_NULL)
-                return pThis->next(CALL_RETURN_NULL);
+                return next(CALL_RETURN_NULL);
 
-            _parser p(pThis->m_strLine);
+            _parser p(m_strLine);
             result_t hr;
 
-            if (!p.getWord(pThis->m_pThis->m_method))
+            if (!p.getWord(m_pThis->m_method))
                 return CHECK_ERROR(Runtime::setError("HttpRequest: bad method."));
 
             p.skipSpace();
 
-            exlib::string& addr = pThis->m_pThis->m_address;
+            exlib::string& addr = m_pThis->m_address;
 
             if (!p.getWord(addr, '?'))
                 return CHECK_ERROR(Runtime::setError("HttpRequest: bad address."));
@@ -311,23 +308,23 @@ result_t HttpRequest::readFrom(Stream_base* stm, AsyncEvent* ac)
             if (!qstricmp(addr.c_str(), "http://", 7)) {
                 const char* p = qstrchr(addr.c_str() + 7, '/');
                 if (p)
-                    pThis->m_pThis->m_message->set_value(p);
+                    m_pThis->m_message->set_value(p);
             } else
-                pThis->m_pThis->m_message->set_value(addr);
+                m_pThis->m_message->set_value(addr);
 
             if (p.want('?'))
-                p.getWord(pThis->m_pThis->m_queryString);
+                p.getWord(m_pThis->m_queryString);
 
             p.skipSpace();
 
             if (p.end())
                 return CHECK_ERROR(Runtime::setError("HttpRequest: bad protocol version."));
 
-            hr = pThis->m_pThis->set_protocol(p.now());
+            hr = m_pThis->set_protocol(p.now());
             if (hr < 0)
                 return hr;
 
-            return pThis->m_pThis->m_message->readFrom(pThis->m_stm, pThis->next());
+            return m_pThis->m_message->readFrom(m_stm, next());
         }
 
     public:

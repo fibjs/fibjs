@@ -51,36 +51,35 @@ public:
         }
 
     public:
-        static int32_t invoke(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, invoke)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
             result_t hr;
 
-            if (n == CALL_RETURN_NULL || pThis->m_hr == CALL_RETURN_NULL) {
+            if (n == CALL_RETURN_NULL || m_hr == CALL_RETURN_NULL) {
                 bool end = false;
 
-                pThis->m_hr = 0;
+                m_hr = 0;
 
-                if (pThis->m_msg)
-                    pThis->m_msg->isEnded(end);
-                if (end || (pThis->m_pos == (int32_t)pThis->m_hdrs.size()))
-                    return pThis->next(CALL_RETURN_NULL);
+                if (m_msg)
+                    m_msg->isEnded(end);
+                if (end || (m_pos == (int32_t)m_hdrs.size()))
+                    return next(CALL_RETURN_NULL);
 
-                pThis->m_next = pThis->m_hdrs[pThis->m_pos++];
+                m_next = m_hdrs[m_pos++];
             }
 
-            if (pThis->m_hr == CALL_E_EXCEPTION)
-                Runtime::setError(pThis->m_message);
+            if (m_hr == CALL_E_EXCEPTION)
+                Runtime::setError(m_message);
 
-            if (pThis->m_hr < 0)
-                return pThis->next(pThis->m_hr);
+            if (m_hr < 0)
+                return next(m_hr);
 
-            pThis->m_hdlr = pThis->m_next;
-            pThis->m_next.Release();
+            m_hdlr = m_next;
+            m_next.Release();
 
-            hr = pThis->m_hdlr->invoke(pThis->m_v, pThis->m_next, pThis);
+            hr = m_hdlr->invoke(m_v, m_next, this);
             if (hr == CALL_E_NOASYNC) {
-                pThis->sync(pThis->m_hdlr->holder());
+                sync(m_hdlr->holder());
                 return CALL_E_PENDDING;
             }
 

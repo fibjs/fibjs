@@ -90,22 +90,18 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
             next(read);
         }
 
-        static int32_t send(AsyncState* pState, int32_t n)
+        ON_STATE(asyncCommand, send)
         {
-            asyncCommand* pThis = (asyncCommand*)pState;
-
-            pThis->m_buffer = new Buffer(pThis->m_req);
-            return pThis->m_stmBuffered->write(pThis->m_buffer, pThis->next(read));
+            m_buffer = new Buffer(m_req);
+            return m_stmBuffered->write(m_buffer, next(read));
         }
 
-        static int32_t read(AsyncState* pState, int32_t n)
+        ON_STATE(asyncCommand, read)
         {
-            asyncCommand* pThis = (asyncCommand*)pState;
+            if (m_subMode == 2)
+                return next(n);
 
-            if (pThis->m_subMode == 2)
-                return pThis->next(n);
-
-            return pThis->m_stmBuffered->readLine(REDIS_MAX_LINE, pThis->m_strLine, pThis->next(read_ok));
+            return m_stmBuffered->readLine(REDIS_MAX_LINE, m_strLine, next(read_ok));
         }
 
         void _emit()
@@ -190,75 +186,71 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
             return next(read);
         }
 
-        static int32_t read_ok(AsyncState* pState, int32_t n)
+        ON_STATE(asyncCommand, read_ok)
         {
-            asyncCommand* pThis = (asyncCommand*)pState;
-
-            if (pThis->m_strLine.length() == 0)
+            if (m_strLine.length() == 0)
                 return CHECK_ERROR(Runtime::setError("Redis: Invalid response."));
 
-            char ch = pThis->m_strLine[0];
+            char ch = m_strLine[0];
 
             if (ch == '+') {
-                pThis->m_val = new Buffer(pThis->m_strLine.substr(1));
-                return pThis->setResult();
+                m_val = new Buffer(m_strLine.substr(1));
+                return setResult();
             }
 
             if (ch == '-')
-                return CHECK_ERROR(Runtime::setError(pThis->m_strLine.substr(1)));
+                return CHECK_ERROR(Runtime::setError(m_strLine.substr(1)));
 
             if (ch == ':') {
-                pThis->m_val = atoi(pThis->m_strLine.c_str() + 1);
-                return pThis->setResult();
+                m_val = atoi(m_strLine.c_str() + 1);
+                return setResult();
             }
 
             if (ch == '$') {
-                int32_t sz = atoi(pThis->m_strLine.c_str() + 1);
+                int32_t sz = atoi(m_strLine.c_str() + 1);
 
                 if (sz < 0) {
-                    pThis->m_val.setNull();
-                    return pThis->setResult(CALL_RETURN_NULL);
+                    m_val.setNull();
+                    return setResult(CALL_RETURN_NULL);
                 }
 
-                return pThis->m_stmBuffered->read(sz + 2, pThis->m_buffer, pThis->next(bulk_ok));
+                return m_stmBuffered->read(sz + 2, m_buffer, next(bulk_ok));
             }
 
             if (ch == '*') {
-                int32_t sz = atoi(pThis->m_strLine.c_str() + 1);
+                int32_t sz = atoi(m_strLine.c_str() + 1);
 
                 if (sz < 0) {
-                    pThis->m_val.setNull();
-                    return pThis->setResult(CALL_RETURN_NULL);
+                    m_val.setNull();
+                    return setResult(CALL_RETURN_NULL);
                 }
 
                 if (sz == 0) {
-                    pThis->m_val = new NArray();
-                    return pThis->setResult();
+                    m_val = new NArray();
+                    return setResult();
                 }
 
-                pThis->m_lists.append(new NArray());
-                pThis->m_counts.append(sz);
+                m_lists.append(new NArray());
+                m_counts.append(sz);
 
-                return pThis->next(read);
+                return next(read);
             }
 
             return CHECK_ERROR(Runtime::setError("Redis: Invalid response."));
         }
 
-        static int32_t bulk_ok(AsyncState* pState, int32_t n)
+        ON_STATE(asyncCommand, bulk_ok)
         {
-            asyncCommand* pThis = (asyncCommand*)pState;
-
             if (n == CALL_RETURN_NULL)
-                return pThis->setResult(CALL_RETURN_NULL);
+                return setResult(CALL_RETURN_NULL);
 
             int32_t sz;
-            pThis->m_buffer->get_length(sz);
-            pThis->m_buffer->resize(sz - 2);
-            pThis->m_val = pThis->m_buffer;
-            pThis->m_buffer.Release();
+            m_buffer->get_length(sz);
+            m_buffer->resize(sz - 2);
+            m_val = m_buffer;
+            m_buffer.Release();
 
-            return pThis->setResult();
+            return setResult();
         }
 
         virtual int32_t error(int32_t v)

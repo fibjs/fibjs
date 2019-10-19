@@ -154,39 +154,33 @@ result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
             next(connect);
         }
 
-        static int32_t connect(AsyncState* pState, int32_t n)
+        ON_STATE(asyncConnect, connect)
         {
-            asyncConnect* pThis = (asyncConnect*)pState;
-
-            pThis->m_sock = new Socket();
-            pThis->m_sock->create(pThis->m_ipv6 ? net_base::_AF_INET6 : net_base::_AF_INET,
+            m_sock = new Socket();
+            m_sock->create(m_ipv6 ? net_base::_AF_INET6 : net_base::_AF_INET,
                 net_base::_SOCK_STREAM);
 
-            pThis->m_sock->set_timeout(pThis->m_timeout);
-            return pThis->m_sock->connect(pThis->m_host, pThis->m_port, pThis->next(handshake));
+            m_sock->set_timeout(m_timeout);
+            return m_sock->connect(m_host, m_port, next(handshake));
         }
 
-        static int32_t handshake(AsyncState* pState, int32_t n)
+        ON_STATE(asyncConnect, handshake)
         {
-            asyncConnect* pThis = (asyncConnect*)pState;
-
-            pThis->m_ssl_sock = new SslSocket();
+            m_ssl_sock = new SslSocket();
 
             if (g_ssl.m_crt && g_ssl.m_key) {
-                result_t hr = pThis->m_ssl_sock->setCert("", g_ssl.m_crt, g_ssl.m_key);
+                result_t hr = m_ssl_sock->setCert("", g_ssl.m_crt, g_ssl.m_key);
                 if (hr < 0)
                     return hr;
             }
 
-            return pThis->m_ssl_sock->connect(pThis->m_sock, pThis->m_host, pThis->m_temp, pThis->next(ok));
+            return m_ssl_sock->connect(m_sock, m_host, m_temp, next(ok));
         }
 
-        static int32_t ok(AsyncState* pState, int32_t n)
+        ON_STATE(asyncConnect, ok)
         {
-            asyncConnect* pThis = (asyncConnect*)pState;
-
-            pThis->m_retVal = pThis->m_ssl_sock;
-            return pThis->next();
+            m_retVal = m_ssl_sock;
+            return next();
         }
 
     private:

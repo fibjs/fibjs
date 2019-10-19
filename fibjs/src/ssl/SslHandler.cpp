@@ -82,32 +82,24 @@ result_t SslHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             next(accept);
         }
 
-        static int32_t accept(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, accept)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            return pThis->m_pThis->m_socket->accept(pThis->m_stm, pThis->m_socket, pThis->next(invoke));
+            return m_pThis->m_socket->accept(m_stm, m_socket, next(invoke));
         }
 
-        static int32_t invoke(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, invoke)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            return mq_base::invoke(pThis->m_pThis->m_hdlr, pThis->m_socket, pThis->next(close));
+            return mq_base::invoke(m_pThis->m_hdlr, m_socket, next(close));
         }
 
-        static int32_t close(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, close)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            return pThis->m_socket->close(pThis->next(exit));
+            return m_socket->close(next(exit));
         }
 
-        static int32_t exit(AsyncState* pState, int32_t n)
+        ON_STATE(asyncInvoke, exit)
         {
-            asyncInvoke* pThis = (asyncInvoke*)pState;
-
-            return pThis->next(CALL_RETURN_NULL);
+            return next(CALL_RETURN_NULL);
         }
 
     private:
