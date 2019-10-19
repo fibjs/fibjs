@@ -234,7 +234,7 @@ void Variant::parseNumber(const char* str, int32_t len)
         digit = -digit;
 
     set_type(VT_Number);
-    m_Val.dblVal = digit;
+    m_Val.dblVal = (double)digit;
 }
 
 #define STRING_BUF_SIZE 1024
