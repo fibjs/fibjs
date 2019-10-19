@@ -270,7 +270,7 @@ result_t SubProcess::wait(int32_t& retVal, AsyncEvent* ac)
         ON_STATE(asyncWaitHandle, wait)
         {
             next(result);
-            BOOL result = RegisterWaitForSingleObject(&m_hWait, m_hProcess, OnExited, pThis, INFINITE, WT_EXECUTEONLYONCE);
+            BOOL result = RegisterWaitForSingleObject(&m_hWait, m_hProcess, OnExited, this, INFINITE, WT_EXECUTEONLYONCE);
             if (!result)
                 return CHECK_ERROR(LastError());
 
