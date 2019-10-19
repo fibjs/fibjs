@@ -15,7 +15,7 @@
 namespace fibjs {
 
 class JSFiber : public Fiber_base,
-                public AsyncEvent {
+                public exlib::linkitem {
 public:
     class scope {
     public:
@@ -66,7 +66,7 @@ public:
     void set_caller(Fiber_base* caller);
 
     static JSFiber* current();
-    virtual result_t js_invoke();
+    result_t js_invoke();
 
     template <typename T>
     void New(v8::Local<v8::Function> func, T* args, int32_t nArgCount,

@@ -101,16 +101,16 @@ void JSFiber::set_caller(Fiber_base* caller)
     }
 }
 
+result_t sync_invoke(JSFiber* fiber)
+{
+    return fiber->js_invoke();
+}
+
 void JSFiber::start()
 {
-    Isolate* isolate = holder();
-
-    set_caller(JSFiber::current());
-
-    isolate->Ref();
-    isolate->m_jobs.putTail(this);
-    isolate->m_sem.post();
     Ref();
+    set_caller(JSFiber::current());
+    syncCall(holder(), sync_invoke, this);
 }
 
 result_t JSFiber::join()
