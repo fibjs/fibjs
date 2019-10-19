@@ -84,7 +84,7 @@ if (win) {
 
         it("log", () => {
             var p = process.open(process.execPath, [path.join(__dirname, 'gui_files', 'gui1.js')]);
-            var r = p.readLines();
+            var r = p.stdout.readLines();
             assert.equal(r[0], 'this is.a log');
             assert.equal(r[1], 'this is.a warn');
             assert.ok(r[2].startsWith('WebView Error:'));
@@ -92,7 +92,7 @@ if (win) {
 
         it("debug", () => {
             var p = process.open(process.execPath, [path.join(__dirname, 'gui_files', 'gui2.js')]);
-            var r = p.readLines();
+            var r = p.stdout.readLines();
             assert.equal(r.length, 0);
         });
     });
