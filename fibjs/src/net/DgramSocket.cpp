@@ -10,6 +10,7 @@
 #include "DgramSocket.h"
 #include "Buffer.h"
 #include "SimpleObject.h"
+#include "EventInfo.h"
 #include <fcntl.h>
 
 namespace fibjs {
@@ -160,7 +161,7 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
             , m_pThis(pThis)
             , m_holder(holder)
         {
-            m_pThis->_emit("listening", NULL, 0);
+            m_pThis->_emit("listening");
             m_pThis->isolate_ref();
             next(recv);
         }
@@ -189,12 +190,7 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
 
         virtual int32_t error(int32_t v)
         {
-            obj_ptr<NObject> o = new NObject();
-            o->add("code", v);
-
-            Variant e;
-            e = o;
-            m_pThis->_emit("error", &e, 1);
+            m_pThis->_emit("error", new EventInfo(m_pThis, "error", v, getResultMessage(v)));
             return v;
         }
 
@@ -366,18 +362,13 @@ result_t DgramSocket::close()
 
         ON_STATE(asyncClose, closed)
         {
-            m_pThis->_emit("close", NULL, 0);
+            m_pThis->_emit("close");
             return next();
         }
 
         virtual int32_t error(int32_t v)
         {
-            obj_ptr<NObject> o = new NObject();
-            o->add("code", v);
-
-            Variant e;
-            e = o;
-            m_pThis->_emit("error", &e, 1);
+            m_pThis->_emit("error", new EventInfo(m_pThis, "error", v, getResultMessage(v)));
             return v;
         }
 

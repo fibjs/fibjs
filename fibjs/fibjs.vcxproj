@@ -34,7 +34,6 @@
     <ClInclude Include="include\DgramSocket.h" />
     <ClInclude Include="include\Digest.h" />
     <ClInclude Include="include\Event.h" />
-    <ClInclude Include="include\EventInfo.h" />
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\HeapGraphEdge.h" />
@@ -138,7 +137,6 @@
     <ClInclude Include="include\ifs\Digest.h" />
     <ClInclude Include="include\ifs\Event.h" />
     <ClInclude Include="include\ifs\EventEmitter.h" />
-    <ClInclude Include="include\ifs\EventInfo.h" />
     <ClInclude Include="include\ifs\Fiber.h" />
     <ClInclude Include="include\ifs\File.h" />
     <ClInclude Include="include\ifs\Handler.h" />

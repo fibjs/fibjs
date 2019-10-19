@@ -193,11 +193,10 @@ private:
     {
         if (m_has_event) {
             obj_ptr<EventInfo> ei = new EventInfo(this, "expire");
-            ei->put("key", it->first);
-            ei->put("value", GetPrivate(it->first));
+            ei->add("key", it->first);
+            ei->add("value", GetPrivate(it->first));
 
-            Variant v = ei;
-            _emit("expire", &v, 1);
+            _emit("expire", ei);
         }
 
         remove(it);

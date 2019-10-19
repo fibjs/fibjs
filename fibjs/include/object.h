@@ -221,7 +221,8 @@ public:
     result_t emit(exlib::string ev, OptArgs args, bool& retVal);
     result_t eventNames(v8::Local<v8::Array>& retVal);
     result_t _emit(exlib::string ev, v8::Local<v8::Value>* args, int32_t argCount, bool& retVal);
-    result_t _emit(exlib::string ev, Variant* args, int32_t argCount);
+    result_t _emit(exlib::string ev, Variant* args = NULL, int32_t argCount = 0);
+    result_t _emit(exlib::string ev, Variant arg);
 
     virtual result_t onEventChange(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
     {

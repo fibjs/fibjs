@@ -234,15 +234,15 @@ static void WINAPI service_ctrl(DWORD dwCtrlCode)
 
     switch (dwCtrlCode) {
     case SERVICE_CONTROL_STOP:
-        srv->_emit("stop", (Variant*)NULL, 0);
+        srv->_emit("stop");
         break;
     case SERVICE_CONTROL_CONTINUE:
         ReportStatusToSCMgr(SERVICE_RUNNING, NO_ERROR, 0);
-        srv->_emit("continue", (Variant*)NULL, 0);
+        srv->_emit("continue");
         break;
     case SERVICE_CONTROL_PAUSE:
         ReportStatusToSCMgr(SERVICE_PAUSED, NO_ERROR, 0);
-        srv->_emit("pause", (Variant*)NULL, 0);
+        srv->_emit("pause");
         break;
     }
 }

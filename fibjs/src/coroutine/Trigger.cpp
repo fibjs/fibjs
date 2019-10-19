@@ -183,6 +183,11 @@ result_t object_base::listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
     return JSTrigger(this).listeners(ev, retVal);
 }
 
+result_t object_base::_emit(exlib::string ev, Variant arg)
+{
+    return _emit(ev, &arg, 1);
+}
+
 result_t object_base::_emit(exlib::string ev, Variant* args, int32_t argCount)
 {
     class jsTrigger : public AsyncEvent {

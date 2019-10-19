@@ -685,11 +685,10 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
             webView1->GetDPI(&dpix, &dpiy);
 
             obj_ptr<EventInfo> ei = new EventInfo(webView1, "move");
-            ei->put("left", (int32_t)rcWin.left * 96 / dpix);
-            ei->put("top", (int32_t)rcWin.top * 96 / dpiy);
+            ei->add("left", (int32_t)rcWin.left * 96 / dpix);
+            ei->add("top", (int32_t)rcWin.top * 96 / dpiy);
 
-            Variant v = ei;
-            webView1->_emit("move", &v, 1);
+            webView1->_emit("move", ei);
         }
         break;
     case WM_SIZE:
@@ -707,11 +706,10 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
             webView1->GetDPI(&dpix, &dpiy);
 
             obj_ptr<EventInfo> ei = new EventInfo(webView1, "resize");
-            ei->put("width", (int32_t)(rcWin.right - rcWin.left) * 96 / dpix);
-            ei->put("height", (int32_t)(rcWin.bottom - rcWin.top) * 96 / dpiy);
+            ei->add("width", (int32_t)(rcWin.right - rcWin.left) * 96 / dpix);
+            ei->add("height", (int32_t)(rcWin.bottom - rcWin.top) * 96 / dpiy);
 
-            Variant v = ei;
-            webView1->_emit("resize", &v, 1);
+            webView1->_emit("resize", ei);
         }
         break;
     case WM_CLOSE:
@@ -725,8 +723,7 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
             SetWindowLongPtr(hWnd, 0, 0);
 
-            Variant v = new EventInfo(webView1, "closed");
-            webView1->_emit("closed", &v, 1);
+            webView1->_emit("closed");
 
             webView1->holder()->Unref();
 
@@ -1581,8 +1578,7 @@ HRESULT WebView::OnDocumentComplete(DISPPARAMS* pDispParams)
         if (frame == webBrowser2) {
             oleObject->DoVerb(OLEIVERB_UIACTIVATE, NULL, this, -1, hWndParent, &rObject);
 
-            Variant v = new EventInfo(this, "load");
-            _emit("load", &v, 1);
+            _emit("load");
         }
 
         frame->Release();
@@ -1697,19 +1693,16 @@ HRESULT WebView::OnPostMessage(DISPPARAMS* pDispParams)
     if (pDispParams->cArgs != 1)
         return DISP_E_BADPARAMCOUNT;
 
-    Variant v;
-    if (pDispParams->rgvarg[0].vt == VT_BSTR) {
-        v = utf16to8String(pDispParams->rgvarg[0].bstrVal);
-        _emit("message", &v, 1);
-    } else {
+    if (pDispParams->rgvarg[0].vt == VT_BSTR)
+        _emit("message", utf16to8String(pDispParams->rgvarg[0].bstrVal));
+    else {
         _variant_t vstr;
         HRESULT hr = VariantChangeType(&vstr, &pDispParams->rgvarg[0],
             VARIANT_ALPHABOOL, VT_BSTR);
         if (!SUCCEEDED(hr))
             return hr;
 
-        v = utf16to8String(vstr.bstrVal);
-        _emit("message", &v, 1);
+        _emit("message", utf16to8String(vstr.bstrVal));
     }
 
     return S_OK;

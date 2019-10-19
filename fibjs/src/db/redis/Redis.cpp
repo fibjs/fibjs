@@ -256,7 +256,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
         virtual int32_t error(int32_t v)
         {
             if (m_subMode == 1)
-                m_pThis->_emit("suberror", (Variant*)NULL, 0);
+                m_pThis->_emit("suberror");
 
             return v;
         }

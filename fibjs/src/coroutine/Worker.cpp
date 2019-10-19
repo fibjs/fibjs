@@ -45,13 +45,10 @@ void Worker::_main()
     m_worker->wrap();
 
     s.m_hr = m_isolate->m_topSandbox->run_worker(m_isolate->m_fname, m_worker);
-    if (s.m_hr < 0) {
-        Variant v = new EventInfo(this, "error", s.m_hr, GetException(s.try_catch, s.m_hr));
-        _emit("error", &v, 1);
-    } else {
-        Variant v = new EventInfo(this, "load");
-        _emit("load", &v, 1);
-    }
+    if (s.m_hr < 0)
+        _emit("error", new EventInfo(this, "error", s.m_hr, GetException(s.try_catch, s.m_hr)));
+    else
+        _emit("load");
 }
 
 result_t Worker::worker_fiber(Worker* worker)
@@ -86,8 +83,7 @@ result_t Worker::postMessage(v8::Local<v8::Value> data)
     if (hr < 0)
         return hr;
 
-    Variant m = wm;
-    m_worker->_emit("message", &m, 1);
+    m_worker->_emit("message", wm);
 
     return 0;
 }

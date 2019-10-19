@@ -301,7 +301,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             m_httprep->get_stream(m_this->m_stream);
 
             m_this->m_readyState = ws_base::_OPEN;
-            m_this->_emit("open", NULL, 0);
+            m_this->_emit("open");
 
             m_this->startRecv(m_isolate);
 
@@ -407,10 +407,8 @@ void WebSocket::startRecv(Isolate* isolate)
                 return next(0);
             }
             case ws_base::_TEXT:
-            case ws_base::_BINARY: {
-                Variant v = m_msg;
-                m_this->_emit("message", &v, 1);
-            }
+            case ws_base::_BINARY:
+                m_this->_emit("message", m_msg);
             }
 
             return next(recv);
@@ -445,8 +443,7 @@ void WebSocket::endConnect(int32_t code, exlib::string reason)
                 m_code = 1006;
                 m_reason = "Abnormal Closure";
 
-                Variant v = new EventInfo(this, "error", code, reason);
-                _emit("error", &v, 1);
+                _emit("error", new EventInfo(this, "error", code, reason));
             } else {
                 m_code = code;
                 m_reason = reason;
@@ -458,8 +455,7 @@ void WebSocket::endConnect(int32_t code, exlib::string reason)
             if (m_ac)
                 m_ac->post(CALL_RETURN_NULL);
 
-            Variant v = new EventInfo(this, "close", m_code, m_reason);
-            _emit("close", &v, 1);
+            _emit("close", new EventInfo(this, "close", m_code, m_reason));
         }
     }
 }
