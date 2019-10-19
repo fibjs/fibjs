@@ -287,16 +287,6 @@ public:
         apost(0);
     }
 
-    result_t lock(exlib::Locker& l)
-    {
-        return l.lock(this) ? 0 : CALL_E_PENDDING;
-    }
-
-    void unlock(exlib::Locker& l)
-    {
-        l.unlock(this);
-    }
-
 private:
     AsyncEvent* m_ac;
     bool m_bAsyncState;
