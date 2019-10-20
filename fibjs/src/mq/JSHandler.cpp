@@ -75,7 +75,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
     v8::Local<v8::Value> hdlr = GetPrivate("handler");
 
-    while (true) {
+    while (hdlr->IsFunction()) {
         v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(hdlr);
         obj_ptr<NArray> params;
         std::vector<v8::Local<v8::Value>> argv;
@@ -117,15 +117,19 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
         if (IsEmpty(hdlr))
             return CALL_RETURN_NULL;
-
-        if (!hdlr->IsFunction()) {
-            if (hdlr->IsObject())
-                return JSHandler::New(hdlr, retVal);
-            return CALL_RETURN_NULL;
-        }
     }
 
-    return 0;
+    retVal = Handler_base::getInstance(hdlr);
+    if (retVal)
+        return 0;
+
+    if (hdlr->IsArray())
+        return Handler_base::_new(v8::Local<v8::Array>::Cast(hdlr), retVal);
+
+    if (IsJSObject(hdlr))
+        return Handler_base::_new(v8::Local<v8::Object>::Cast(hdlr), retVal);
+
+    return CHECK_ERROR(CALL_E_BADVARTYPE);
 }
 
 } /* namespace fibjs */

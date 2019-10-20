@@ -27,52 +27,6 @@ public:
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         AsyncEvent* ac);
 
-public:
-    static result_t New(v8::Local<v8::Value> hdlr, obj_ptr<Handler_base>& retVal)
-    {
-        if (hdlr->IsString() || hdlr->IsStringObject() || hdlr->IsNumberObject() || hdlr->IsRegExp()
-            || (!hdlr->IsFunction() && !hdlr->IsObject()))
-            return CHECK_ERROR(CALL_E_BADVARTYPE);
-
-        retVal = Handler_base::getInstance(hdlr);
-        if (retVal)
-            return 0;
-
-        if (hdlr->IsArray()) {
-            v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(hdlr);
-
-            obj_ptr<Chain_base> chain = new Chain();
-            result_t hr = Chain_base::_new(a, chain);
-            if (hr < 0)
-                return hr;
-
-            retVal = chain;
-            return 0;
-        }
-
-        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(hdlr);
-        if (!hdlr->IsFunction()) {
-            obj_ptr<Routing_base> routing;
-            result_t hr = Routing_base::_new(o, routing);
-            if (hr < 0)
-                return hr;
-
-            retVal = routing;
-            return 0;
-        }
-
-        Isolate* isolate = Isolate::current();
-        JSValue v = o->GetPrivate(o->CreationContext(),
-            v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")));
-
-        if (!IsEmpty(v))
-            retVal = new JSHandler(v, true);
-        else
-            retVal = new JSHandler(hdlr);
-
-        return 0;
-    }
-
 private:
     bool m_async;
 };
