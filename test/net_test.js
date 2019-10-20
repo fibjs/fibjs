@@ -8,6 +8,7 @@ var fs = require('fs');
 var path = require('path');
 var os = require('os');
 var coroutine = require('coroutine');
+var ssl = require('ssl');
 
 var base_port = coroutine.vmid * 10000;
 
@@ -554,6 +555,14 @@ describe("net", () => {
         describe("Smtp", () => {
             var s;
 
+            before(() => {
+                ssl.ca.loadRootCerts();
+            });
+
+            after(() => {
+                ssl.ca.clear();
+            });
+
             it("new & connect", () => {
                 s = new net.Smtp();
                 s.connect("tcp://smtp.ym.163.com:25");
@@ -575,24 +584,6 @@ describe("net", () => {
 
             it("hello", () => {
                 s.hello();
-            });
-
-            xdescribe("Auth", () => {
-                it("login", () => {
-                    s.login("lion@baoz.cn", "");
-                });
-
-                it("from", () => {
-                    s.from("lion@baoz.cn");
-                });
-
-                it("to", () => {
-                    s.to("lion@baoz.cn");
-                });
-
-                it("data", () => {
-                    s.data("from:lion@baoz.cn\r\n" + "to:lion@baoz.cn\r\n" + "subject:test title\r\n\r\n" + "test text");
-                });
             });
 
             it("quit", () => {
