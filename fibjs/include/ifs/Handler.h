@@ -24,6 +24,7 @@ public:
     static result_t _new(v8::Local<v8::Array> hdlrs, obj_ptr<Handler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> map, obj_ptr<Handler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Function> hdlr, obj_ptr<Handler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string hdlr, obj_ptr<Handler_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
@@ -86,6 +87,12 @@ void Handler_base::__new(const T& args)
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Function>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
 
     hr = _new(v0, vr, args.This());
 

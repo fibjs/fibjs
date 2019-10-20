@@ -8,14 +8,32 @@
 #include "object.h"
 #include "JSHandler.h"
 #include "ifs/mq.h"
+#include "ifs/HttpRepeater.h"
 #include "NullHandler.h"
 #include "HttpHandler.h"
 #include "Chain.h"
 #include "Routing.h"
+#include "HttpFileHandler.h"
 
 namespace fibjs {
 
 DECLARE_MODULE(mq);
+
+result_t Handler_base::_new(exlib::string hdlr, obj_ptr<Handler_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    if (!qstrcmp(hdlr.c_str(), "http:", 5) || !qstrcmp(hdlr.c_str(), "https:", 6)) {
+        obj_ptr<HttpRepeater_base> repeater;
+        result_t hr = HttpRepeater_base::_new(hdlr, repeater, This);
+        if (hr < 0)
+            return hr;
+
+        retVal = repeater;
+    } else
+        retVal = new HttpFileHandler(hdlr, false);
+
+    return 0;
+}
 
 result_t Handler_base::_new(v8::Local<v8::Array> hdlrs, obj_ptr<Handler_base>& retVal,
     v8::Local<v8::Object> This)

@@ -119,17 +119,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             return CALL_RETURN_NULL;
     }
 
-    retVal = Handler_base::getInstance(hdlr);
-    if (retVal)
-        return 0;
-
-    if (hdlr->IsArray())
-        return Handler_base::_new(v8::Local<v8::Array>::Cast(hdlr), retVal);
-
-    if (IsJSObject(hdlr))
-        return Handler_base::_new(v8::Local<v8::Object>::Cast(hdlr), retVal);
-
-    return CHECK_ERROR(CALL_E_BADVARTYPE);
+    return GetArgumentValue(hdlr, retVal);
 }
 
 } /* namespace fibjs */

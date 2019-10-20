@@ -16,6 +16,11 @@ interface Handler : object
      */
     Handler(Function hdlr);
 
+    /*! @brief 构造一个 fileHandler 或者 HttpRepeater
+     @param hdlr 处理器的地址参数
+     */
+    Handler(String hdlr);
+
     /*! @brief 处理一个消息或对象
      @param v 指定处理的消息或对象
      @return 返回下一步的处理器
