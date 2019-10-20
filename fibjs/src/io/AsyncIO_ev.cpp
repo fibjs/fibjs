@@ -488,7 +488,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
             m_buf.resize(m_pos);
             m_retVal = new Buffer(m_buf);
-            if (g_tracetcp)
+            if (g_tcpdump)
                 outLog(console_base::_NOTICE, clean_string(m_buf));
 
             return 0;
@@ -543,7 +543,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
             m_p = m_buf.c_str();
             m_sz = m_buf.length();
 
-            if (g_tracetcp)
+            if (g_tcpdump)
                 outLog(console_base::_WARN, clean_string(m_buf));
         }
 

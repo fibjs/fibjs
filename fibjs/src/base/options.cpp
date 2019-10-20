@@ -26,7 +26,7 @@ int32_t g_prof_interval = 1000;
 
 FILE* g_cov = nullptr;
 
-bool g_tracetcp = false;
+bool g_tcpdump = false;
 
 #ifdef DEBUG
 #define GUARD_SIZE 32
@@ -58,6 +58,7 @@ static void printHelp()
          "  -v, --version        print fibjs version.\n"
          "\n"
          "  --use-thread         run fibjs in thread mode.\n"
+         "  --tcpdump            print out the contents of the tcp package.\n"
          "\n"
          "  --init               write a package.json file.\n"
          "  --install            install the dependencies in the local node_modules folder.\n"
@@ -108,6 +109,9 @@ void options(int32_t& pos, char* argv[])
             _exit(0);
         } else if (!qstrcmp(arg, "--use-thread")) {
             exlib::Service::use_thread = true;
+            df++;
+        } else if (!qstrcmp(arg, "--tcpdump")) {
+            g_tcpdump = true;
             df++;
         } else if (!qstrcmp(arg, "--prof")) {
             g_prof = true;
