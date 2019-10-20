@@ -162,10 +162,7 @@ result_t HttpClient::set_proxyAgent(exlib::string newVal)
 
         connUrl.append(u->m_host);
 
-        if (!u->m_port.empty()) {
-            connUrl.append(":", 1);
-            connUrl.append(u->m_port);
-        } else
+        if (u->m_port.empty())
             connUrl.append(ssl ? ":443" : ":80");
 
         m_proxyAgent = newVal;
@@ -480,17 +477,14 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
             m_connUrl.append(u->m_host);
 
-            if (!u->m_port.empty()) {
-                m_connUrl.append(":", 1);
-                m_connUrl.append(u->m_port);
-            } else
+            if (u->m_port.empty())
                 m_connUrl.append(ssl ? ":443" : ":80");
 
             m_req = new HttpRequest();
 
             m_req->set_method(m_method);
 
-            if (m_hc->m_proxyConnUrl.empty()) {
+            if (m_hc->m_proxyConnUrl.empty() || ssl) {
                 u->get_path(path);
                 m_req->set_address(path);
             } else
@@ -528,6 +522,11 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             if (m_body)
                 m_req->set_body(m_body);
 
+            if (ssl)
+                m_sslhost = u->m_hostname;
+            else
+                m_sslhost.clear();
+
             if (m_hc->get_conn(m_connUrl, m_conn))
                 return next(connected);
 
@@ -541,7 +540,6 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                     m_reqConn->set_method("CONNECT");
                     m_reqConn->set_address(host);
                     m_reqConn->addHeader("Host", host);
-                    m_host = u->m_hostname;
 
                     exlib::string a = m_hc->agent();
                     if (!a.empty())
@@ -590,7 +588,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                     return hr;
             }
 
-            return ss->connect(conn, m_host, m_temp, next(connected));
+            return ss->connect(conn, m_sslhost, m_temp, next(connected));
         }
 
         ON_STATE(asyncRequest, connected)
@@ -617,7 +615,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             bool keepalive;
             m_retVal->get_keepAlive(keepalive);
             if (keepalive) {
-                if (m_hc->m_proxyConnUrl.empty() || !m_host.empty())
+                if (m_hc->m_proxyConnUrl.empty() || !m_sslhost.empty())
                     m_hc->save_conn(m_connUrl, m_conn);
                 else
                     m_hc->save_conn(m_hc->m_proxyConnUrl, m_conn);
@@ -663,7 +661,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
     private:
         exlib::string m_method;
         exlib::string m_url;
-        exlib::string m_host;
+        exlib::string m_sslhost;
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<NObject> m_headers;
         obj_ptr<HttpResponse_base>& m_retVal;

@@ -2317,6 +2317,79 @@ describe("http", () => {
             });
         });
     });
+
+    describe("proxyAgent", () => {
+        var svr;
+
+        before(() => {
+            ssl.ca.load(ca_pem);
+            var sslhdr = new ssl.Handler(crt, pk, new http.Handler((r) => {
+                r.response.write('https: ' + (r.stream.stream.stream.test || '') + r.address);
+            }));
+
+            svr = new http.Server(8886 + base_port, (r) => {
+                if (r.method == 'CONNECT') {
+                    test_util.push(r.stream);
+                    r.stream.write('HTTP/1.1 200 Connected\r\n\r\n');
+                    try {
+                        sslhdr.invoke(r.stream);
+                    } catch (e) {};
+                    return;
+                }
+
+                if (r.address == 'http://fibjs.org/share_1') {
+                    r.response.write('share_1');
+                    r.stream.test = 'share_1: ';
+                } else if (r.address == 'http://fibjs.org/share_2') {
+                    r.response.write('share_2');
+                    r.stream.test = 'share_2: ';
+                } else
+                    r.response.write('http: ' + (r.stream.test || '') + r.address);
+            });
+            svr.start();
+
+            test_util.push(svr.socket);
+        });
+
+        after(() => {
+            ssl.ca.clear();
+        });
+
+        function test_proxy(hc, url) {
+            return hc.get(url).data.toString();
+        }
+
+        it('basic request', () => {
+            var hc = new http.Client();
+            hc.proxyAgent = 'http://127.0.0.1:' + (8886 + base_port);
+
+            test_proxy(hc, 'http://fibjs.org/test.html');
+            test_proxy(hc, 'https://localhost/test.html');
+        });
+
+        it('share connection between domains', () => {
+            var hc = new http.Client();
+            hc.proxyAgent = 'http://127.0.0.1:' + (8886 + base_port);
+
+            assert.equal(test_proxy(hc, 'http://fibjs.org/share_1'), 'share_1');
+            assert.equal(test_proxy(hc, 'http://fibjs1.org/share_2'), 'http: share_1: http://fibjs1.org/share_2');
+            assert.equal(test_proxy(hc, 'http://fibjs2.org/share_3'), 'http: share_1: http://fibjs2.org/share_3');
+        });
+
+        it('use http connection to connect https server', () => {
+            var hc = new http.Client();
+            hc.proxyAgent = 'http://127.0.0.1:' + (8886 + base_port);
+
+            assert.equal(test_proxy(hc, 'http://fibjs.org/share_1'), 'share_1');
+            assert.equal(test_proxy(hc, 'https://localhost/test.html'), 'https: share_1: /test.html');
+            assert.equal(test_proxy(hc, 'https://localhost/test2.html'), 'https: share_1: /test2.html');
+
+            assert.equal(test_proxy(hc, 'http://fibjs.org/share_2'), 'share_2');
+            assert.equal(test_proxy(hc, 'http://fibjs1.org/test1.html'), 'http: share_2: http://fibjs1.org/test1.html');
+            assert.equal(test_proxy(hc, 'https://localhost/test3.html'), 'https: share_1: /test3.html');
+        });
+
+    });
 });
 
 require.main === module && test.run(console.DEBUG);
