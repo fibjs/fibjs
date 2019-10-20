@@ -276,7 +276,7 @@ exlib::string Routing::host2RegExp(exlib::string pattern)
         } else if (ch == '.') {
             res.append("\\.");
         } else if (ch == '*') {
-            res.append("((?:.*))");
+            res.append("((?:[^\\.]+))");
         } else
             res.append(1, ch);
     }

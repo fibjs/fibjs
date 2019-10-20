@@ -543,6 +543,7 @@ var p2r_host_tests = {
     "*.test.com": {
         "test.com": null,
         "www.test.com": ["www.test.com", "www"],
+        "sub.www.test.com": null,
         "test1.com": null
     },
     "w*.test.com": {
