@@ -24,7 +24,10 @@ describe('coroutine', () => {
 
             var f = coroutine.start(t_fiber, 100, 200);
             assert.equal(n, 123);
-            coroutine.sleep(1);
+
+            for (var i = 0; i < 1000 && n == 123; i++)
+                coroutine.sleep(1);
+
             assert.equal(n, 300);
 
         });
