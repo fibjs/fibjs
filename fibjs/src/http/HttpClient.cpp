@@ -598,19 +598,18 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
         ON_STATE(asyncRequest, requested)
         {
-            bool enableCookie = false;
-
-            bool upgrade;
-            m_retVal->get_upgrade(upgrade);
-            if (upgrade)
-                return next(closed);
-
+            bool enableCookie;
             m_hc->get_enableCookie(enableCookie);
             if (enableCookie) {
                 obj_ptr<NArray> cookies;
                 m_retVal->get_cookies(cookies);
                 m_hc->update_cookies(m_url, cookies);
             }
+
+            bool upgrade;
+            m_retVal->get_upgrade(upgrade);
+            if (upgrade)
+                return next(closed);
 
             bool keepalive;
             m_retVal->get_keepAlive(keepalive);
