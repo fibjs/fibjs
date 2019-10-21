@@ -7,6 +7,7 @@
 
 #include "ifs/Handler.h"
 #include "map"
+#include "path.h"
 
 #ifndef HTTPFILEHANDLER_H_
 #define HTTPFILEHANDLER_H_
@@ -18,9 +19,9 @@ class HttpFileHandler : public Handler_base {
 
 public:
     HttpFileHandler(exlib::string root, bool autoIndex)
-        : m_root(root)
-        , m_autoIndex(autoIndex)
+        : m_autoIndex(autoIndex)
     {
+        path_base::normalize(root, m_root);
         if (!m_root.empty() && !isPathSlash(m_root.c_str()[m_root.length() - 1]))
             m_root += PATH_SLASH;
     }

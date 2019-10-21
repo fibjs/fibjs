@@ -159,26 +159,32 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             , m_dirPos(0)
         {
             req->get_response(m_rep);
-
             m_req->get_value(m_value);
-            Url::decodeURI(m_value, m_value);
-            path_posix_base::normalize(m_value, m_value);
 
-            if (!qstrcmp(m_value.c_str(), "../", 3) || qstrchr(m_value.c_str(), '\\')) {
-                next(stop);
-            } else {
-                path_base::normalize(m_pThis->m_root + m_value, m_url);
+            if (m_value.empty()) {
+                m_url = m_pThis->m_root;
                 next(start);
+                return;
             }
+
+            Url::decodeURI(m_value, m_value);
+            if (qstrchr(m_value.c_str(), '\\') || qstrchr(m_value.c_str(), '%')) {
+                next(stop);
+                return;
+            }
+
+            path_posix_base::normalize(m_value, m_value);
+            if (!qstrcmp(m_value.c_str(), "../", 3)) {
+                next(stop);
+                return;
+            }
+
+            m_url = m_pThis->m_root + m_value;
+            next(start);
         }
 
         ON_STATE(asyncInvoke, start)
         {
-            if (qstrchr(m_url.c_str(), '%')) {
-                m_rep->set_statusCode(400);
-                return next(CALL_RETURN_NULL);
-            }
-
             m_path = m_url;
 
             if (isPathSlash(m_path[m_path.length() - 1])) {

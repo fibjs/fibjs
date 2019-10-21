@@ -1169,6 +1169,18 @@ describe("http", () => {
             assert.equal("this is index.html", rep.readAll().toString());
         });
 
+        it("empty value", () => {
+            var rep = hfh_test("");
+            assert.equal(200, rep.statusCode);
+            assert.equal('text/html', rep.firstHeader('Content-Type'));
+            assert.equal("this is index.html", rep.readAll().toString());
+        });
+
+        it("bad request", () => {
+            var rep = hfh_test("/%25");
+            assert.equal(400, rep.statusCode);
+        });
+
         it("autoindex", () => {
             var rep = hfh_test("http_autoindex/");
             assert.equal(404, rep.statusCode);
