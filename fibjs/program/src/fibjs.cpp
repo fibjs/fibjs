@@ -19,6 +19,7 @@ void importModule()
     IMPORT_MODULE(bson);
     IMPORT_MODULE(buffer);
     IMPORT_MODULE(coroutine);
+    IMPORT_MODULE(constants);
     IMPORT_MODULE(crypto);
     IMPORT_MODULE(db);
     IMPORT_MODULE(dgram);
