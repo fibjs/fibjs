@@ -211,6 +211,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         {
             int32_t length;
             static char padding[] = "                                                              ";
+            obj_ptr<Buffer_base> buf;
 
             m_dir->get_length(length);
 
@@ -218,12 +219,15 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_dir->sort();
 
                 m_file = new MemoryStream();
-                m_file->cc_write(new Buffer("<html>\n<head><title>Index of "
+                buf = new Buffer("<html>\n<head><title>Index of "
                     + m_value + "</title></head>\n<body bgcolor=white>\n<h1>Index of "
-                    + m_value + "</h1><hr><pre>"));
+                    + m_value + "</h1><hr><pre>");
+                m_file->cc_write(buf);
 
-                if (m_value.length() > 1)
-                    m_file->cc_write(new Buffer("<a href=\"../\">../</a>\n"));
+                if (m_value.length() > 1) {
+                    buf = new Buffer("<a href=\"../\">../</a>\n");
+                    m_file->cc_write(buf);
+                }
             } else {
                 exlib::string name, ds, ss;
                 date_t d;
@@ -235,27 +239,33 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_stat->isDirectory(is_dir);
                 if (is_dir)
                     name += '/';
-                m_file->cc_write(new Buffer("<a href=\"" + name + "\">" + name + "</a>"));
+                buf = new Buffer("<a href=\"" + name + "\">" + name + "</a>");
+                m_file->cc_write(buf);
                 padding_len = 40 - (int32_t)name.length();
                 if (padding_len < 1)
                     padding_len = 1;
-                m_file->cc_write(new Buffer(padding, padding_len));
+                buf = new Buffer(padding, padding_len);
+                m_file->cc_write(buf);
 
                 m_stat->get_mtime(d);
                 d.sqlString(ds);
-                m_file->cc_write(new Buffer(ds));
+                buf = new Buffer(ds);
+                m_file->cc_write(buf);
 
                 m_stat->get_size(sz);
                 ss = niceSize((intptr_t)sz);
                 padding_len = 12 - (int32_t)ss.length();
                 if (padding_len < 1)
                     padding_len = 1;
-                m_file->cc_write(new Buffer(padding, padding_len));
-                m_file->cc_write(new Buffer(ss + '\n'));
+                buf = new Buffer(padding, padding_len);
+                m_file->cc_write(buf);
+                buf = new Buffer(ss + '\n');
+                m_file->cc_write(buf);
             }
 
             if (m_dirPos >= length) {
-                m_file->cc_write(new Buffer("</pre><hr></body>\n</html>"));
+                buf = new Buffer("</pre><hr></body>\n</html>");
+                m_file->cc_write(buf);
                 m_file->rewind();
 
                 m_rep->set_body(m_file);

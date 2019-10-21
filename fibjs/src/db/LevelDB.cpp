@@ -131,8 +131,10 @@ result_t LevelDB::_mget(std::vector<exlib::string>* keys,
             list->append(nil);
         else if (!s.ok())
             return CHECK_ERROR(Runtime::setError(s.ToString()));
-        else
-            list->append(new Buffer(value));
+        else {
+            obj_ptr<Buffer_base> buf = new Buffer(value);
+            list->append(buf);
+        }
     }
 
     retVal = list;
