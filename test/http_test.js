@@ -978,8 +978,20 @@ describe("http", () => {
                 else if (r.value == '/remote_close') {
                     st.step = 1;
                     st.wait(2);
+                } else if (r.value == '/gzip_test') {
+                    r.response.addHeader("Content-Type", "text/html");
+                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                } else if (r.value == '/gzip_json') {
+                    r.response.addHeader("Content-Type", "application/json");
+                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                } else if (r.value == '/gzip_small') {
+                    r.response.addHeader("Content-Type", "text/html");
+                    r.response.write("01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567");
+                } else if (r.value == '/gzip_bin') {
+                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 }
             });
+
             hdr.enableCrossOrigin(true);
             svr = new net.TcpServer(8881 + base_port, hdr);
 
@@ -1013,8 +1025,34 @@ describe("http", () => {
             c.write("GET / HTTP/1.0\r\n\r\n");
             var req = get_response();
             assert.equal(req.statusCode, 200);
+        });
 
-            coroutine.sleep(100);
+        it("gzip request", () => {
+            c.write("GET /gzip_test HTTP/1.0\r\nAccept-Encoding: gzip,deflate\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Content-Encoding'), 'gzip');
+        });
+
+        it("gzip json", () => {
+            c.write("GET /gzip_json HTTP/1.0\r\nAccept-Encoding: gzip,deflate\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Content-Encoding'), 'gzip');
+        });
+
+        it("not zip small file", () => {
+            c.write("GET /gzip_small HTTP/1.0\r\nAccept-Encoding: gzip,deflate\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Content-Encoding'), null);
+        });
+
+        it("not zip bin file", () => {
+            c.write("GET /gzip_bin HTTP/1.0\r\nAccept-Encoding: gzip,deflate\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Content-Encoding'), null);
         });
 
         it("bad request(error 400)", () => {
@@ -1202,15 +1240,6 @@ describe("http", () => {
         it("dir 404", () => {
             var rep = hfh_test("not_exists/");
             assert.equal(404, rep.statusCode);
-        });
-
-        it("don't gzip small file", () => {
-            var rep = hfh_test(url, {
-                'Accept-Encoding': 'deflate,gzip'
-            });
-            assert.equal(200, rep.statusCode);
-            assert.equal(null, rep.firstHeader('Content-Encoding'));
-            rep.clear();
         });
 
         describe("zip virtual file", () => {
