@@ -75,7 +75,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
         else if (v->IsUndefined() || v->IsNull())
             strBuffer.append(color_string(COLOR_TITLE, ToCString(v8::String::Utf8Value(v)), color));
         else if (v->IsDate())
-            strBuffer.append(color_string(COLOR_RED, ToCString(v8::String::Utf8Value(v)), color));
+            strBuffer.append(color_string(COLOR_MAGENTA, ToCString(v8::String::Utf8Value(v)), color));
         else if (v->IsBoolean() || v->IsBooleanObject())
             strBuffer.append(color_string(COLOR_YELLOW, ToCString(v8::String::Utf8Value(v)), color));
         else if (v->IsNumber() || v->IsNumberObject()) {
@@ -155,7 +155,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                         s.append(1, ' ');
                         s.append(*n, n.length());
                     }
-                    strBuffer.append(color_string(COLOR_BLUE, s + ']', color));
+                    strBuffer.append(color_string(COLOR_CYAN, s + ']', color));
                     break;
                 }
 
@@ -165,7 +165,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                         break;
 
                 if (i < sz1) {
-                    strBuffer.append(color_string(COLOR_BLUE, "[Circular]", color));
+                    strBuffer.append(color_string(COLOR_CYAN, "[Circular]", color));
                     break;
                 }
 
