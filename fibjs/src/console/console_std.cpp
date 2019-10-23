@@ -71,94 +71,56 @@ void std_logger::out(exlib::string& txt)
             exlib::wstring ws = utf8to16String(s);
             exlib::wchar* ptr = &ws[0];
             exlib::wchar* pend = ptr + ws.length();
+            exlib::wchar* ptr1;
             exlib::wchar* ptr2;
 
-            while (ptr2 = (exlib::wchar*)qstrchr(ptr, L'\x1b')) {
-                if (ptr2[1] == '[') {
-                    WriteConsole(ptr, ptr2 - ptr);
+            while (ptr1 = (exlib::wchar*)qstrstr(ptr, L"\x1b[")) {
+                for (ptr2 = ptr1 + 2; *ptr2 == ';' || qisdigit(ptr2[0]); ptr2++)
+                    ;
 
-                    ptr2 += 2;
+                if (ptr1 > ptr)
+                    WriteConsole(ptr, ptr1 - ptr);
+                ptr = ptr2;
+                if (ptr2[0])
+                    ptr++;
 
-                    while (true) {
-                        if (ptr2[0] == 'm') {
-                            m_Now = m_wAttr;
-                            m_wLight = m_wAttr & FOREGROUND_INTENSITY;
-                            SetConsoleTextAttribute(m_handle, m_Now);
-                            ptr2++;
-                            break;
-                        }
+                if (ptr2[0] != 'm')
+                    continue;
 
-                        if (qisdigit(ptr2[0])) {
-                            if (ptr2[1] == 'm') {
-                                if (ptr2[0] == '0') {
-                                    m_Now = m_wAttr;
-                                    m_wLight = m_wAttr & FOREGROUND_INTENSITY;
-                                    SetConsoleTextAttribute(m_handle, m_Now);
-                                }
-                                ptr2 += 2;
-                                break;
-                            }
+                WORD _Now = m_Now;
 
-                            WORD mask, val;
-                            WORD light = m_wLight;
+                ptr1 += 2;
+                if (ptr2 == ptr1 + 1 && *ptr1 == '0') {
+                    _Now = m_wAttr;
+                } else {
+                    while (ptr1 < ptr2) {
+                        if (*ptr1 == ';')
+                            continue;
 
-                            if (ptr2[1] == ';') {
-                                if (ptr2[0] == '0')
-                                    m_wLight = light = 0;
-                                else if (ptr2[0] == '1')
-                                    m_wLight = light = FOREGROUND_INTENSITY;
-                                ptr2 += 2;
-                            }
+                        DWORD n = 0;
+                        exlib::wchar ch;
 
-                            if (ptr2[0] == '3') {
-                                mask = 0xf0;
-                                ptr2++;
-                            } else if (ptr2[0] == '4') {
-                                mask = 0x0f;
-                                ptr2++;
-                            } else if (ptr2[0] == '9') {
-                                mask = 0xf0;
-                                light |= FOREGROUND_INTENSITY;
-                                ptr2++;
-                            } else if (ptr2[0] == '1' && ptr2[1] == '0') {
-                                mask = 0x0f;
-                                light |= FOREGROUND_INTENSITY << 4;
-                                ptr2 += 2;
-                            } else
-                                break;
+                        while (qisdigit(ch = *ptr1++))
+                            n = n * 10 + (ch - '0');
 
-                            if (!qisdigit(ptr2[0]))
-                                break;
+                        WORD val = n % 10;
+                        val = (val & 2) | ((val & 1) << 2) | ((val & 4) >> 2);
 
-                            val = ptr2[0] - '0';
-
-                            if (val != 8) {
-                                if (val == 9) {
-                                    val = (m_wAttr & 0x0f) | (m_Now & 0xf0);
-
-                                    m_Now = val | light;
-                                    SetConsoleTextAttribute(m_handle, m_Now);
-                                } else {
-                                    val = (val & 2) | ((val & 1) ? 4 : 0)
-                                        | ((val & 4) ? 1 : 0);
-
-                                    if (mask == 0x0f)
-                                        val <<= 4;
-
-                                    m_Now = (m_Now & mask) | val | light;
-                                    SetConsoleTextAttribute(m_handle, m_Now);
-                                }
-                            }
-
-                            ptr2++;
-                            if (ptr2[0] == 'm') {
-                                ptr2++;
-                                break;
-                            }
-                        }
+                        if (n >= 0 && n < 2)
+                            _Now = (_Now & ~FOREGROUND_INTENSITY) | (n ? FOREGROUND_INTENSITY : 0);
+                        else if (n >= 30 && n < 38)
+                            _Now = (_Now & 0xf8) | val;
+                        else if (n >= 40 && n < 48)
+                            _Now = (_Now & 0x0f) | (val << 4);
+                        else if (n >= 90 && n < 98)
+                            _Now = (_Now & 0xf0) | val | FOREGROUND_INTENSITY;
                     }
                 }
-                ptr = ptr2;
+
+                if (_Now != m_Now) {
+                    m_Now = _Now;
+                    SetConsoleTextAttribute(m_handle, m_Now);
+                }
             }
 
             WriteConsole(ptr, pend - ptr);
