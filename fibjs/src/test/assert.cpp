@@ -15,7 +15,7 @@ namespace fibjs {
 
 DECLARE_MODULE(assert);
 
-exlib::string json_format(v8::Local<v8::Value> obj);
+exlib::string json_format(v8::Local<v8::Value> obj, bool color);
 
 class _msg {
 public:
@@ -107,19 +107,19 @@ public:
             str = strs[0];
 
             if (strs[1]) {
-                str.append(json_format(*vs[0]));
+                str.append(json_format(*vs[0], false));
                 str.append(strs[1]);
 
                 if (strs[2]) {
-                    str.append(json_format(*vs[1]));
+                    str.append(json_format(*vs[1], false));
                     str.append(strs[2]);
 
                     if (strs[3]) {
-                        str.append(json_format(*vs[2]));
+                        str.append(json_format(*vs[2], false));
                         str.append(strs[3]);
 
                         if (strs[4]) {
-                            str.append(json_format(*vs[3]));
+                            str.append(json_format(*vs[3], false));
                             str.append(strs[4]);
                         }
                     }

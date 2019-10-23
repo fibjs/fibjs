@@ -10,6 +10,7 @@
 #include "ifs/encoding.h"
 #include "QuickArray.h"
 #include "StringBuffer.h"
+#include "TextColor.h"
 #include <map>
 
 namespace fibjs {
@@ -48,14 +49,14 @@ public:
     int32_t mode;
 };
 
-void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v)
+void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color)
 {
     exlib::string s;
     json_base::encode(v, s);
-    strBuffer.append(s);
+    strBuffer.append(color_string(COLOR_GREEN, s, color));
 }
 
-exlib::string json_format(v8::Local<v8::Value> obj)
+exlib::string json_format(v8::Local<v8::Value> obj, bool color)
 {
     StringBuffer strBuffer;
 
@@ -70,38 +71,46 @@ exlib::string json_format(v8::Local<v8::Value> obj)
 
     while (true) {
         if (v.IsEmpty())
-            strBuffer.append("undefined");
-        else if (v->IsUndefined() || v->IsNull() || v->IsDate() || v->IsBoolean() || v->IsBooleanObject())
-            strBuffer.append(ToCString(v8::String::Utf8Value(v)));
-        else if (v->IsNumber() || v->IsNumberObject())
-            strBuffer.append(ToCString(v8::String::Utf8Value(v->ToNumber(_context).ToLocalChecked())));
-        else if (v->IsBigInt() || v->IsBigIntObject()) {
-            strBuffer.append(ToCString(v8::String::Utf8Value(v->ToBigInt(_context).ToLocalChecked())));
-            strBuffer.append('n');
+            strBuffer.append(color_string(COLOR_TITLE, "undefined", color));
+        else if (v->IsUndefined() || v->IsNull())
+            strBuffer.append(color_string(COLOR_TITLE, ToCString(v8::String::Utf8Value(v)), color));
+        else if (v->IsDate())
+            strBuffer.append(color_string(COLOR_RED, ToCString(v8::String::Utf8Value(v)), color));
+        else if (v->IsBoolean() || v->IsBooleanObject())
+            strBuffer.append(color_string(COLOR_YELLOW, ToCString(v8::String::Utf8Value(v)), color));
+        else if (v->IsNumber() || v->IsNumberObject()) {
+            exlib::string s(ToCString(v8::String::Utf8Value(v->ToNumber(_context).ToLocalChecked())));
+            strBuffer.append(color_string(COLOR_YELLOW, s, color));
+        } else if (v->IsBigInt() || v->IsBigIntObject()) {
+            exlib::string s(ToCString(v8::String::Utf8Value(v->ToBigInt(_context).ToLocalChecked())));
+            strBuffer.append(color_string(COLOR_YELLOW, s + 'n', color));
         } else if (v->IsString() || v->IsStringObject())
-            string_format(strBuffer, v);
+            string_format(strBuffer, v, color);
         else if (v->IsRegExp()) {
+            exlib::string s;
             v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(v);
             v8::Local<v8::String> src = re->GetSource();
             v8::RegExp::Flags flgs = re->GetFlags();
 
-            strBuffer.append('/');
-            strBuffer.append(ToCString(v8::String::Utf8Value(src)));
-            strBuffer.append('/');
+            s.append(1, '/');
+            s.append(ToCString(v8::String::Utf8Value(src)));
+            s.append(1, '/');
 
             if (flgs & v8::RegExp::kIgnoreCase)
-                strBuffer.append('i');
+                s.append(1, 'i');
             if (flgs & v8::RegExp::kGlobal)
-                strBuffer.append('g');
+                s.append(1, 'g');
             if (flgs & v8::RegExp::kMultiline)
-                strBuffer.append('m');
+                s.append(1, 'm');
+
+            strBuffer.append(color_string(COLOR_RED, s, color));
         } else if (v->IsObject()) {
             do {
                 v8::Local<v8::Object> obj = v->ToObject();
 
                 if (obj->IsNativeError()) {
-                    v8::String::Utf8Value stk(JSValue(obj->Get(isolate->NewString("stack"))));
-                    strBuffer.append(*stk, stk.length());
+                    exlib::string s(ToCString(v8::String::Utf8Value(JSValue(obj->Get(isolate->NewString("stack"))))));
+                    strBuffer.append(color_string(COLOR_LIGHTRED, s, color));
                     break;
                 }
 
@@ -139,7 +148,14 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                 }
 
                 if (v->IsFunction() && keys->Length() == 0) {
-                    strBuffer.append("[Function]");
+                    exlib::string s("[Function");
+                    v8::String::Utf8Value n(v8::Local<v8::Function>::Cast(v)->GetName());
+
+                    if (n.length()) {
+                        s.append(1, ' ');
+                        s.append(*n, n.length());
+                    }
+                    strBuffer.append(color_string(COLOR_BLUE, s + ']', color));
                     break;
                 }
 
@@ -149,7 +165,7 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                         break;
 
                 if (i < sz1) {
-                    strBuffer.append("[Circular]");
+                    strBuffer.append(color_string(COLOR_BLUE, "[Circular]", color));
                     break;
                 }
 
@@ -174,20 +190,16 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                     if (len == 0)
                         strBuffer.append("[]");
                     else {
-                        if (len == 1 && v->StrictEquals(array->Get(0)))
-                            strBuffer.append("[Circular]");
-                        else {
-                            stk.resize(sz + 1);
-                            it = &stk[sz];
+                        stk.resize(sz + 1);
+                        it = &stk[sz];
 
-                            it->val = v;
+                        it->val = v;
 
-                            it->keys = array;
-                            it->len = len;
+                        it->keys = array;
+                        it->len = len;
 
-                            strBuffer.append('[');
-                            padding += tab_size;
-                        }
+                        strBuffer.append('[');
+                        padding += tab_size;
                     }
                     break;
                 }
@@ -204,20 +216,16 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                         for (i = 0; i < len; i++)
                             array->Set(i, JSValue(typedarray->Get(i)));
 
-                        if (len == 1 && v->StrictEquals(array->Get(0)))
-                            strBuffer.append("[Circular]");
-                        else {
-                            stk.resize(sz + 1);
-                            it = &stk[sz];
+                        stk.resize(sz + 1);
+                        it = &stk[sz];
 
-                            it->val = v;
+                        it->val = v;
 
-                            it->keys = array;
-                            it->len = len;
+                        it->keys = array;
+                        it->len = len;
 
-                            strBuffer.append('[');
-                            padding += tab_size;
-                        }
+                        strBuffer.append('[');
+                        padding += tab_size;
                     }
                     break;
                 }
@@ -235,21 +243,17 @@ exlib::string json_format(v8::Local<v8::Value> obj)
                     if (v1.IsEmpty())
                         v1 = v8::Undefined(isolate->m_isolate);
 
-                    if (len == 1 && v->StrictEquals(v1))
-                        strBuffer.append("[Circular]");
-                    else {
-                        stk.resize(sz + 1);
-                        it = &stk[sz];
+                    stk.resize(sz + 1);
+                    it = &stk[sz];
 
-                        it->val = v;
+                    it->val = v;
 
-                        it->obj = obj;
-                        it->keys = keys;
-                        it->len = len;
+                    it->obj = obj;
+                    it->keys = keys;
+                    it->len = len;
 
-                        strBuffer.append('{');
-                        padding += tab_size;
-                    }
+                    strBuffer.append('{');
+                    padding += tab_size;
                 }
             } while (false);
         }
@@ -281,7 +285,7 @@ exlib::string json_format(v8::Local<v8::Value> obj)
             if (!it->obj.IsEmpty()) {
                 TryCatch try_catch;
 
-                string_format(strBuffer, v);
+                string_format(strBuffer, v, false);
                 strBuffer.append(": ");
                 v = it->obj->Get(v);
             }
@@ -294,11 +298,11 @@ exlib::string json_format(v8::Local<v8::Value> obj)
 
 result_t util_base::inspect(v8::Local<v8::Object> obj, v8::Local<v8::Object> options, exlib::string& retVal)
 {
-    retVal = json_format(obj);
+    retVal = json_format(obj, false);
     return 0;
 }
 
-result_t util_base::format(exlib::string fmt, OptArgs args, exlib::string& retVal)
+result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string& retVal)
 {
     const char* s1;
     char ch;
@@ -345,7 +349,7 @@ result_t util_base::format(exlib::string fmt, OptArgs args, exlib::string& retVa
             case 'j':
                 if (idx < argc) {
                     exlib::string s;
-                    s = json_format(args[idx++]);
+                    s = json_format(args[idx++], color);
                     retVal.append(s);
                 } else
                     retVal.append("%j", 2);
@@ -374,7 +378,7 @@ result_t util_base::format(exlib::string fmt, OptArgs args, exlib::string& retVa
             retVal.append(*s, s.length());
         } else {
             exlib::string s;
-            s = json_format(v);
+            s = json_format(v, color);
 
             retVal.append(s);
         }
@@ -383,8 +387,13 @@ result_t util_base::format(exlib::string fmt, OptArgs args, exlib::string& retVa
     return 0;
 }
 
+result_t util_base::format(exlib::string fmt, OptArgs args, exlib::string& retVal)
+{
+    return util_format(fmt, args, false, retVal);
+}
+
 result_t util_base::format(OptArgs args, exlib::string& retVal)
 {
-    return format("", args, retVal);
+    return util_format("", args, false, retVal);
 }
 }

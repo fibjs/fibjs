@@ -33,6 +33,11 @@ extern exlib::string COLOR_LIGHTCYAN;
 extern exlib::string COLOR_LIGHTWHITE;
 
 extern exlib::string COLOR_TITLE;
+
+inline exlib::string color_string(exlib::string lead, exlib::string str, bool color = true)
+{
+    return color ? lead + str + COLOR_RESET : str;
+}
 }
 
 #endif /* STAT_H_ */

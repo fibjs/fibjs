@@ -109,8 +109,19 @@ public:
     }
 } s_color_initer;
 
+exlib::string json_format(v8::Local<v8::Value> obj, bool color);
+result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string& retVal);
+
 extern std_logger* s_std;
 void asyncLog(int32_t priority, exlib::string msg);
+
+bool colors(int32_t type)
+{
+    if (type <= console_base::_NOTICE)
+        return false;
+
+    return true;
+}
 
 void _log(int32_t type, exlib::string fmt, OptArgs args)
 {
@@ -121,7 +132,7 @@ void _log(int32_t type, exlib::string fmt, OptArgs args)
     if (type <= level) {
         exlib::string str;
 
-        util_base::format(fmt, args, str);
+        util_format(fmt, args, colors(type), str);
         asyncLog(type, str);
     }
 }
@@ -135,7 +146,7 @@ void _log(int32_t type, OptArgs args)
     if (type <= level) {
         exlib::string str;
 
-        util_base::format(args, str);
+        util_format("", args, colors(type), str);
         asyncLog(type, str);
     }
 }
@@ -236,11 +247,9 @@ result_t console_base::alert(OptArgs args)
     return 0;
 }
 
-exlib::string json_format(v8::Local<v8::Value> obj);
-
 result_t console_base::dir(v8::Local<v8::Value> obj)
 {
-    exlib::string strBuffer = json_format(obj);
+    exlib::string strBuffer = json_format(obj, colors(_INFO));
     asyncLog(_INFO, strBuffer);
     return 0;
 }

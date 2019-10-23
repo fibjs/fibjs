@@ -993,7 +993,7 @@ describe('util', () => {
         it("Circular", () => {
             var a = [];
             a[0] = a;
-            assert.equal(util.format(a), '[Circular]');
+            assert.equal(util.format(a), '[\n  [Circular]\n]');
 
             var a1 = [100, 200];
             a1[2] = a1;
@@ -1001,7 +1001,7 @@ describe('util', () => {
 
             var o = {};
             o.o = o;
-            assert.equal(util.format(o), '[Circular]');
+            assert.equal(util.format(o), '{\n  \"o\": [Circular]\n}');
 
             var o1 = {
                 a: 100,
@@ -1021,7 +1021,7 @@ describe('util', () => {
 
             assert.equal(util.format({
                 a: () => {}
-            }), '{\n  "a": [Function]\n}');
+            }), '{\n  "a": [Function a]\n}');
         });
 
         it("Error", () => {
