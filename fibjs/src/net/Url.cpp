@@ -11,6 +11,7 @@
 #include "ifs/encoding.h"
 #include "ifs/url.h"
 #include "ifs/punycode.h"
+#include "ifs/querystring.h"
 
 namespace fibjs {
 
@@ -836,18 +837,35 @@ result_t Url::get_query(v8::Local<v8::Value>& retVal)
 
 result_t Url::set_query(v8::Local<v8::Value> newVal)
 {
+    result_t hr;
+
     if (!newVal.IsEmpty()) {
         if (newVal->IsString() || newVal->IsStringObject()) {
             m_query = ToCString(v8::String::Utf8Value(newVal));
 
             if (m_queryParsed) {
                 m_queryParsed = new HttpCollection();
-                m_queryParsed->parse(m_query);
+                hr = m_queryParsed->parse(m_query);
+                if (hr < 0)
+                    return hr;
             }
         } else {
             obj_ptr<HttpCollection> queryParsed = (HttpCollection*)HttpCollection_base::getInstance(newVal);
-            if (!queryParsed)
-                return CHECK_ERROR(CALL_E_INVALIDARG);
+            if (!queryParsed) {
+                if (newVal->IsObject()) {
+                    hr = querystring_base::stringify(v8::Local<v8::Object>::Cast(newVal), "&", "=", v8::Local<v8::Object>(), m_query);
+                    if (hr < 0)
+                        return hr;
+
+                    if (m_queryParsed) {
+                        m_queryParsed = new HttpCollection();
+                        hr = m_queryParsed->parse(m_query);
+                        if (hr < 0)
+                            return hr;
+                    }
+                } else
+                    return CHECK_ERROR(CALL_E_INVALIDARG);
+            }
             m_queryParsed = queryParsed;
         }
     }
