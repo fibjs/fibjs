@@ -42,40 +42,40 @@ module global
             node [fontname = "Helvetica,sans-Serif", fontsize = 10];
             edge [fontname = "Helvetica,sans-Serif", fontsize = 10];
 
-            start [label="起始"];
+            start [label="start"];
             resolve [label="path.resolve" shape="rect"];
-            search [label="从当前路径\n向上递归查找\nnode_modules" shape="rect"];
-            load [label="加载" shape="rect"];
-            end [label="返回" shape="doublecircle"];
+            search [label="recursive lookup\nnode_modules\nfrom the current path" shape="rect"];
+            load [label="load" shape="rect"];
+            end [label="end" shape="doublecircle"];
 
-            is_native [label="内置模块?" shape="diamond"];
-            is_mod [label="模块?" shape="diamond"];
-            is_abs [label="绝对路径？" shape="diamond"];
-            has_file [label="原名存在？" shape="diamond"];
-            has_ext [label="增加 .js 存在？" shape="diamond"];
-            has_package [label="/package.json\n存在？" shape="diamond"];
-            has_main [label="main 存在？" shape="diamond"];
-            has_index [label="index.js 存在？" shape="diamond"];
+            is_native [label="is internal module?" shape="diamond"];
+            is_mod [label="is module?" shape="diamond"];
+            is_abs [label="is absolute?" shape="diamond"];
+            has_file [label="module exists?" shape="diamond"];
+            has_ext [label="module.js exists?" shape="diamond"];
+            has_package [label="/package.json\nexists?" shape="diamond"];
+            has_main [label="main exists?" shape="diamond"];
+            has_index [label="index.js exists?" shape="diamond"];
 
             start -> is_native;
-            is_native -> end [label="是"];
-            is_native -> is_mod [label="否"];
-            is_mod -> search [label="是"];
+            is_native -> end [label="Yes"];
+            is_native -> is_mod [label="No"];
+            is_mod -> search [label="Yes"];
             search -> has_file;
-            is_mod -> is_abs [label="否"];
-            is_abs -> has_file [label="是"];
-            is_abs -> resolve [label="否"];
+            is_mod -> is_abs [label="No"];
+            is_abs -> has_file [label="Yes"];
+            is_abs -> resolve [label="No"];
             resolve -> has_file;
-            has_file -> load [label="是"];
-            has_file -> has_ext [label="否"];
-            has_ext -> load [label="是"];
-            has_ext -> has_package [label="否"];
-            has_package -> has_main [label="是"];
-            has_package -> has_index [label="否"];
-            has_main -> load [label="是"];
-            has_main -> has_index [label="否"];
-            has_index -> load [label="是"];
-            has_index -> end [label="否"];
+            has_file -> load [label="Yes"];
+            has_file -> has_ext [label="No"];
+            has_ext -> load [label="Yes"];
+            has_ext -> has_package [label="No"];
+            has_package -> has_main [label="Yes"];
+            has_package -> has_index [label="No"];
+            has_main -> load [label="Yes"];
+            has_main -> has_index [label="No"];
+            has_index -> load [label="Yes"];
+            has_index -> end [label="No"];
             load -> end;
         }
      ```
