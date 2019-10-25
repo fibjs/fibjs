@@ -288,7 +288,6 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
     int32_t len = ks->Length();
     int32_t i;
     bool bAnd = true;
-    result_t hr;
 
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(i);
