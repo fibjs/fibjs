@@ -34,6 +34,7 @@
     <ClInclude Include="include\DgramSocket.h" />
     <ClInclude Include="include\Digest.h" />
     <ClInclude Include="include\Event.h" />
+    <ClInclude Include="include\EventInfo.h" />
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
     <ClInclude Include="include\HeapGraphEdge.h" />
@@ -120,7 +121,6 @@
     <ClInclude Include="include\XmlText.h" />
     <ClInclude Include="include\ZipFile.h" />
     <ClInclude Include="include\ZlibStream.h" />
-    <ClInclude Include="include\ZmqSocket.h" />
     <ClInclude Include="include\console.h" />
     <ClInclude Include="include\date.h" />
     <ClInclude Include="include\encoding.h" />
@@ -210,7 +210,6 @@
     <ClInclude Include="include\ifs\XmlProcessingInstruction.h" />
     <ClInclude Include="include\ifs\XmlText.h" />
     <ClInclude Include="include\ifs\ZipFile.h" />
-    <ClInclude Include="include\ifs\ZmqSocket.h" />
     <ClInclude Include="include\ifs\assert.h" />
     <ClInclude Include="include\ifs\base32.h" />
     <ClInclude Include="include\ifs\base64.h" />
@@ -259,7 +258,6 @@
     <ClInclude Include="include\ifs\xml.h" />
     <ClInclude Include="include\ifs\zip.h" />
     <ClInclude Include="include\ifs\zlib.h" />
-    <ClInclude Include="include\ifs\zmq.h" />
     <ClInclude Include="include\inetAddr.h" />
     <ClInclude Include="include\mssql.h" />
     <ClInclude Include="include\mysql.h" />
@@ -382,7 +380,6 @@
     <ClCompile Include="src\mq\Message.cpp" />
     <ClCompile Include="src\mq\NullHandler.cpp" />
     <ClCompile Include="src\mq\Routing.cpp" />
-    <ClCompile Include="src\mq\ZmqSocket.cpp" />
     <ClCompile Include="src\mq\mq.cpp" />
     <ClCompile Include="src\net\DgramSocket.cpp" />
     <ClCompile Include="src\net\Smtp.cpp" />

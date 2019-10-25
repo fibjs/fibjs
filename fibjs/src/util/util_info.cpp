@@ -21,7 +21,6 @@
 #include <snappy/include/snappy.h>
 #include <leveldb/db.h>
 #include <expat/include/expat.h>
-#include <zmq/include/zmq.h>
 
 namespace v8 {
 namespace internal {
@@ -98,7 +97,6 @@ public:
             g_vender->add("v8-snapshot", (bool)v8::internal::Snapshot::DefaultSnapshotBlob());
 
             g_vender->add("zlib", ZLIB_VERSION);
-            g_vender->add("zmq", STR(ZMQ_VERSION_MAJOR) "." STR(ZMQ_VERSION_MINOR));
         }
     }
 

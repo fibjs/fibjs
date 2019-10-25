@@ -162,6 +162,9 @@
     <ClInclude Include="include\Event.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\EventInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\Fiber.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -418,9 +421,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\ZlibStream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ZmqSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\console.h">
@@ -690,9 +690,6 @@
     <ClInclude Include="include\ifs\ZipFile.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
-    <ClInclude Include="include\ifs\ZmqSocket.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
     <ClInclude Include="include\ifs\assert.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -835,9 +832,6 @@
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\ifs\zlib.h">
-      <Filter>Header Files\ifs</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ifs\zmq.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
     <ClInclude Include="include\inetAddr.h">
@@ -1200,9 +1194,6 @@
       <Filter>Source Files\mq</Filter>
     </ClCompile>
     <ClCompile Include="src\mq\Routing.cpp">
-      <Filter>Source Files\mq</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mq\ZmqSocket.cpp">
       <Filter>Source Files\mq</Filter>
     </ClCompile>
     <ClCompile Include="src\mq\mq.cpp">
