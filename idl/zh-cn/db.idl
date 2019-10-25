@@ -52,6 +52,14 @@ module db
 
     /*! @brief 格式化一个 sql 命令，并返回格式化结果
 
+     @param table 指定查询的表名
+     @param opts 可选参数列表
+     @return 返回格式化之后的 sql 命令
+     */
+    static String format(String table, Object opts);
+
+    /*! @brief 格式化一个 sql 命令，并返回格式化结果
+
      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
      @param args 可选参数列表
      @return 返回格式化之后的 sql 命令
@@ -60,11 +68,27 @@ module db
 
     /*! @brief 格式化一个 mysql 命令，并返回格式化结果
 
+     @param table 指定查询的表名
+     @param opts 可选参数列表
+     @return 返回格式化之后的 mysql 命令
+     */
+    static String formatMySQL(String table, Object opts);
+
+    /*! @brief 格式化一个 mysql 命令，并返回格式化结果
+
      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
      @param args 可选参数列表
      @return 返回格式化之后的 sql 命令
      */
     static String formatMySQL(String sql, ...args);
+
+    /*! @brief 格式化一个 mssql 命令，并返回格式化结果
+
+     @param table 指定查询的表名
+     @param opts 可选参数列表
+     @return 返回格式化之后的 mssql 命令
+     */
+    static String formatMSSQL(String table, Object opts);
 
     /*! @brief 格式化一个 mssql 命令，并返回格式化结果
 

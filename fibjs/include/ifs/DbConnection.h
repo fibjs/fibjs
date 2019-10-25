@@ -28,6 +28,8 @@ public:
     virtual result_t rollback(AsyncEvent* ac) = 0;
     virtual result_t trans(v8::Local<v8::Function> func, bool& retVal) = 0;
     virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal) = 0;
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal) = 0;
 
 public:
@@ -49,6 +51,7 @@ public:
     static void s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_trans(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_execute(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_find(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -57,6 +60,7 @@ public:
     ASYNC_MEMBER0(DbConnection_base, commit);
     ASYNC_MEMBER0(DbConnection_base, rollback);
     ASYNC_MEMBERVALUE3(DbConnection_base, execute, exlib::string, OptArgs, obj_ptr<NArray>);
+    ASYNC_MEMBERVALUE3(DbConnection_base, find, exlib::string, v8::Local<v8::Object>, obj_ptr<NArray>);
 };
 }
 
@@ -75,6 +79,8 @@ inline ClassInfo& DbConnection_base::class_info()
         { "trans", s_trans, false },
         { "execute", s_execute, false },
         { "executeSync", s_execute, false },
+        { "find", s_find, false },
+        { "findSync", s_find, false },
         { "format", s_format, false }
     };
 
@@ -212,6 +218,28 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_RETURN();
 }
 
+inline void DbConnection_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NArray> vr;
+
+    METHOD_NAME("DbConnection.find");
+    METHOD_INSTANCE(DbConnection_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_find(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_find(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
 inline void DbConnection_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
@@ -219,6 +247,13 @@ inline void DbConnection_base::s_format(const v8::FunctionCallbackInfo<v8::Value
     METHOD_NAME("DbConnection.format");
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
+
+    hr = pInst->format(v0, v1, vr);
 
     METHOD_OVER(-1, 1);
 

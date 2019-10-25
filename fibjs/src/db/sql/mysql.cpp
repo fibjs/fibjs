@@ -349,6 +349,33 @@ result_t mysql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal
     return execute(str.c_str(), (int32_t)str.length(), retVal);
 }
 
+result_t mysql::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
+    AsyncEvent* ac)
+{
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (ac->isSync()) {
+        exlib::string str;
+        result_t hr = format(table, opts, str);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = str;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    exlib::string str = ac->m_ctx[0].string();
+    return execute(str.c_str(), (int32_t)str.length(), retVal);
+}
+
+result_t mysql::format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal)
+{
+    return db_base::formatMySQL(table, opts, retVal);
+}
+
 result_t mysql::format(exlib::string sql, OptArgs args,
     exlib::string& retVal)
 {

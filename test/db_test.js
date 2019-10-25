@@ -27,6 +27,226 @@ describe("db", () => {
         assert.equal(db.formatMySQL("test?"), "test?");
     });
 
+    describe("format.find", () => {
+        it('basic', () => {
+            assert.equal(db.format("test", {}), "SELECT * FROM [test]");
+        });
+
+        it('keys', () => {
+            assert.equal(db.format("test", {
+                keys: ["a", "b", "c"]
+            }), "SELECT `a`,`b`,`c` FROM [test]");
+        });
+
+        it('where', () => {
+            assert.equal(db.format("test", {
+                where: {
+                    a: 100
+                }
+            }), "SELECT * FROM [test] WHERE `a`=100");
+
+            assert.equal(db.format("test", {
+                where: {
+                    "aaa`ddd": 100
+                }
+            }), "SELECT * FROM [test] WHERE `aaa\\`ddd`=100");
+        });
+
+        it('operator', () => {
+            var ops = {
+                eq: "=",
+                ne: "<>",
+                gt: ">",
+                gte: ">=",
+                lt: "<",
+                lte: "<=",
+                like: " LIKE ",
+                not_like: " NOT LIKE "
+            }
+
+            for (var o in ops) {
+                var opts = {}
+                opts[o] = {};
+                opts[o][o] = 100;
+
+                assert.equal(db.format("test", {
+                    where: opts
+                }), "SELECT * FROM [test] WHERE `" + o + "`" + ops[o] + "100");
+            }
+
+            assert.equal(db.format("test", {
+                where: {
+                    a: {
+                        in: [100, 200, 300]
+                    }
+                }
+            }), "SELECT * FROM [test] WHERE `a` IN (100,200,300)");
+
+            assert.equal(db.format("test", {
+                where: {
+                    a: {
+                        not_in: [100, 200, 300]
+                    }
+                }
+            }), "SELECT * FROM [test] WHERE `a` NOT IN (100,200,300)");
+
+            assert.equal(db.format("test", {
+                where: {
+                    a: {
+                        between: [100, 200]
+                    }
+                }
+            }), "SELECT * FROM [test] WHERE `a` BETWEEN 100 AND 200");
+
+            assert.equal(db.format("test", {
+                where: {
+                    a: {
+                        not_between: [100, 200]
+                    }
+                }
+            }), "SELECT * FROM [test] WHERE `a` NOT BETWEEN 100 AND 200");
+        });
+
+        it('where and', () => {
+            assert.equal(db.format("test", {
+                where: {
+                    a: 100,
+                    b: 200
+                }
+            }), "SELECT * FROM [test] WHERE `a`=100 AND `b`=200");
+        });
+
+        it('where or', () => {
+            assert.equal(db.format("test", {
+                where: {
+                    or: {
+                        a: 100,
+                        b: 200
+                    }
+                }
+            }), "SELECT * FROM [test] WHERE `a`=100 OR `b`=200");
+
+            assert.equal(db.format("test", {
+                where: {
+                    or: [{
+                            a: 100
+                        },
+                        {
+                            b: 200
+                        }
+                    ]
+                }
+            }), "SELECT * FROM [test] WHERE `a`=100 OR `b`=200");
+        });
+
+        it('where or/and', () => {
+            assert.equal(db.format("test", {
+                where: {
+                    or: [{
+                            a: 100,
+                            c: 300
+                        },
+                        {
+                            b: 200,
+                            d: 400
+                        }
+                    ]
+                }
+            }), "SELECT * FROM [test] WHERE (`a`=100 AND `c`=300) OR (`b`=200 AND `d`=400)");
+
+            assert.equal(db.format("test", {
+                where: {
+                    or: [{
+                            or: {
+                                a: 100,
+                                c: 300
+                            }
+                        },
+                        {
+                            b: 200,
+                            d: 400
+                        }
+                    ]
+                }
+            }), "SELECT * FROM [test] WHERE `a`=100 OR `c`=300 OR (`b`=200 AND `d`=400)");
+
+            assert.equal(db.format("test", {
+                where: {
+                    or: [{
+                        or: {
+                            a: 100,
+                            c: 300
+                        }
+                    }]
+                }
+            }), "SELECT * FROM [test] WHERE `a`=100 OR `c`=300");
+
+            assert.equal(db.format("test", {
+                where: [{
+                        a: 100,
+                        c: 300
+                    },
+                    {
+                        or: {
+                            b: 200,
+                            d: 400
+                        }
+                    }
+                ]
+            }), "SELECT * FROM [test] WHERE `a`=100 AND `c`=300 AND (`b`=200 OR `d`=400)");
+
+            assert.equal(db.format("test", {
+                where: [{
+                        a: 100,
+                        c: 300
+                    },
+                    {
+                        b: 200,
+                        d: 400
+                    }
+                ]
+            }), "SELECT * FROM [test] WHERE `a`=100 AND `c`=300 AND `b`=200 AND `d`=400");
+        });
+
+        it('skip', () => {
+            assert.equal(db.format("test", {
+                where: {
+                    a: 200
+                },
+                skip: 100
+            }), "SELECT * FROM [test] WHERE `a`=200 SKIP 100");
+        });
+
+        it('limit', () => {
+            assert.equal(db.format("test", {
+                where: {
+                    a: 200
+                },
+                limit: 100
+            }), "SELECT * FROM [test] WHERE `a`=200 LIMIT 100");
+        });
+
+        it('skip/limit', () => {
+            assert.equal(db.format("test", {
+                where: {
+                    a: 200
+                },
+                skip: 100,
+                limit: 100
+            }), "SELECT * FROM [test] WHERE `a`=200 SKIP 100 LIMIT 100");
+        });
+
+        it('order', () => {
+            assert.equal(db.format("test", {
+                where: {
+                    a: 200
+                },
+                limit: 100,
+                order: ['a', 'b', '-c']
+            }), "SELECT * FROM [test] WHERE `a`=200 LIMIT 100 ORDER BY `a`,`b`,`c` DESC");
+        });
+    });
+
     function _test(conn_str) {
         var conn;
 
@@ -128,6 +348,29 @@ describe("db", () => {
                 assert.isNull(rs.t3);
                 assert.isNull(rs.t4);
             }
+        });
+
+        it("find", () => {
+            var rs = conn.find('test');
+            var r = rs[0];
+
+            assert.equal(typeof r['t1'], 'number');
+            assert.equal(typeof r['t2'], 'string');
+            assert.equal(typeof r['t3'], 'object');
+            assert.equal(typeof r['t4'], 'object');
+
+            assert.strictEqual(r['t1'], 1123);
+            assert.strictEqual(r['t2'], 'aaaaa');
+            assert.strictEqual(r['t3'].toString(), 'DDDDDDDDDD');
+            assert.deepEqual(r['t4'], new Date('1998-04-14 12:12:12'));
+
+            assert.deepEqual(Object.keys(r), [
+                "t0",
+                "t1",
+                "t2",
+                "t3",
+                "t4"
+            ]);
         });
 
         it("multi sql", () => {

@@ -35,6 +35,22 @@ interface DbConnection : object
      */
     NArray execute(String sql, ...args) async;
 
+    /*! @brief 根据指定的条件查询数据
+
+     @param table 指定查询的表名
+     @param opts 可选参数列表
+     @return 返回包含结果记录
+     */
+    NArray find(String table, Object opts = {}) async;
+
+    /*! @brief 格式化一个 sql 命令，并返回格式化结果
+
+     @param table 指定查询的表名
+     @param opts 可选参数列表
+     @return 返回格式化之后的 sql 命令
+     */
+    String format(String table, Object opts);
+
     /*! @brief 格式化一个 sql 命令，并返回格式化结果
 
      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
