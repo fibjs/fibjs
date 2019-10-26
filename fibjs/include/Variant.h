@@ -372,9 +372,9 @@ public:
         if (type() == VT_Integer)
             return m_Val.intVal;
         if (type() == VT_Long)
-            return m_Val.longVal;
+            return (int32_t)m_Val.longVal;
         if (type() == VT_Number)
-            return m_Val.dblVal;
+            return (int32_t)m_Val.dblVal;
         return 0;
     }
 
@@ -385,7 +385,7 @@ public:
         if (type() == VT_Long)
             return m_Val.longVal;
         if (type() == VT_Number)
-            return m_Val.dblVal;
+            return (int64_t)m_Val.dblVal;
         return 0;
     }
 
@@ -401,7 +401,7 @@ public:
         if (type() == VT_Integer)
             return m_Val.intVal;
         if (type() == VT_Long)
-            return m_Val.longVal;
+            return (double)m_Val.longVal;
         if (type() == VT_Number)
             return m_Val.dblVal;
         return 0;
