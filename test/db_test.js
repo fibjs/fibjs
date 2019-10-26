@@ -30,6 +30,9 @@ describe("db", () => {
     describe("format.find", () => {
         it('basic', () => {
             assert.equal(db.format("test", {}), "SELECT * FROM `test`");
+            assert.equal(db.format("test", {
+                method: "find"
+            }), "SELECT * FROM `test`");
         });
 
         it('keys', () => {
@@ -255,6 +258,26 @@ describe("db", () => {
                 limit: 100,
                 order: ['a', 'b', '-c']
             }), "SELECT * FROM `test` WHERE `a`=200 LIMIT 100 ORDER BY `a`,`b`,`c` DESC");
+        });
+    });
+
+    describe("format.count", () => {
+        it('basic', () => {
+            assert.equal(db.format("test", {}), "SELECT * FROM `test`");
+            assert.equal(db.format("test", {
+                method: "count"
+            }), "SELECT COUNT(*) FROM `test`");
+        });
+
+        it('skip/limit', () => {
+            assert.equal(db.format("test", {
+                method: "count",
+                where: {
+                    a: 200
+                },
+                skip: 100,
+                limit: 100
+            }), "SELECT COUNT(*) FROM `test` WHERE `a`=200 SKIP 100 LIMIT 100");
         });
     });
 

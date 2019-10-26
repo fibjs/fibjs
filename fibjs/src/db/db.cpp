@@ -164,7 +164,7 @@ void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql, bool 
     }
 }
 
-result_t _format(const char* sql, OptArgs args, bool mysql, bool mssql,
+result_t db_format(const char* sql, OptArgs args, bool mysql, bool mssql,
     exlib::string& retVal)
 {
     exlib::string str;
@@ -205,19 +205,19 @@ result_t _format(const char* sql, OptArgs args, bool mysql, bool mssql,
 result_t db_base::format(exlib::string sql, OptArgs args,
     exlib::string& retVal)
 {
-    return _format(sql.c_str(), args, false, false, retVal);
+    return db_format(sql.c_str(), args, false, false, retVal);
 }
 
 result_t db_base::formatMySQL(exlib::string sql, OptArgs args,
     exlib::string& retVal)
 {
-    return _format(sql.c_str(), args, true, false, retVal);
+    return db_format(sql.c_str(), args, true, false, retVal);
 }
 
 result_t db_base::formatMSSQL(exlib::string sql, OptArgs args,
     exlib::string& retVal)
 {
-    return _format(sql.c_str(), args, false, true, retVal);
+    return db_format(sql.c_str(), args, false, true, retVal);
 }
 
 inline exlib::string _escape_field(const char* str, int32_t sz)
@@ -409,7 +409,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
     return 0;
 }
 
-result_t _format(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+result_t _format_find(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
     result_t hr;
@@ -517,22 +517,97 @@ result_t _format(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bo
     return 0;
 }
 
+result_t _format_count(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+    exlib::string& retVal)
+{
+    result_t hr;
+    exlib::string str("SELECT ");
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Value> v;
+    v8::Local<v8::Array> a;
+
+    str.append("COUNT(*)");
+    str.append(" FROM `" + _escape_field(table.c_str(), table.length()) + "`");
+
+    hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        exlib::string _where;
+        bool retAnd;
+
+        hr = _format_where(v, mysql, mssql, _where, retAnd);
+        if (hr < 0)
+            return hr;
+
+        if (!_where.empty())
+            str.append(" WHERE " + _where);
+    }
+
+    int64_t skip;
+    hr = GetConfigValue(isolate->m_isolate, opts, "skip", skip);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+
+        str.append(" SKIP " + std::to_string(skip));
+    }
+
+    int64_t limit;
+    hr = GetConfigValue(isolate->m_isolate, opts, "limit", limit);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+
+        str.append(" LIMIT " + std::to_string(limit));
+    }
+
+    retVal = str;
+    return 0;
+}
+
+result_t db_format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+    exlib::string& retVal)
+{
+    if (method == "find")
+        return _format_find(table, opts, mysql, mssql, retVal);
+    else if (method == "count")
+        return _format_count(table, opts, mysql, mssql, retVal);
+
+    return CHECK_ERROR(Runtime::setError("db: Unknown method."));
+}
+
+result_t db_format(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+    exlib::string& retVal)
+{
+    result_t hr;
+    exlib::string method;
+    Isolate* isolate = Isolate::current();
+
+    v8::Local<v8::Array> keys;
+    hr = GetConfigValue(isolate->m_isolate, opts, "method", method, true);
+    if (hr == CALL_E_PARAMNOTOPTIONAL)
+        method = "find";
+    else if (hr < 0)
+        return hr;
+
+    return db_format(table, method, opts, mysql, mssql, retVal);
+}
+
 result_t db_base::format(exlib::string table, v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    return _format(table, opts, false, false, retVal);
+    return db_format(table, opts, false, false, retVal);
 }
 
 result_t db_base::formatMySQL(exlib::string table, v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    return _format(table, opts, true, false, retVal);
+    return db_format(table, opts, true, false, retVal);
 }
 
 result_t db_base::formatMSSQL(exlib::string table, v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    return _format(table, opts, false, true, retVal);
+    return db_format(table, opts, false, true, retVal);
 }
 
 result_t db_base::escape(exlib::string str, bool mysql, exlib::string& retVal)
