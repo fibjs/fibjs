@@ -303,6 +303,15 @@ describe("db", () => {
         }), "INSERT INTO `test` (`a`, `b`) VALUES (100, 200)");
     });
 
+    it("format.remove", () => {
+        assert.equal(db.format("test", {
+            method: "remove",
+            where: {
+                a: 200
+            }
+        }), "DELETE FROM `test` WHERE `a`=200");
+    });
+
     function _test(conn_str) {
         var conn;
 
@@ -437,6 +446,20 @@ describe("db", () => {
             assert.equal(conn.update('test', {
                 values: {
                     t2: "200"
+                }
+            }), 1);
+        });
+
+        it("conn.insert/remove", () => {
+            conn.insert('test', {
+                values: {
+                    t2: "2200"
+                }
+            });
+
+            assert.equal(conn.remove('test', {
+                where: {
+                    t2: "2200"
                 }
             }), 1);
         });

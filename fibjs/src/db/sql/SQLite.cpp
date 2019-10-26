@@ -455,6 +455,19 @@ result_t SQLite::update(exlib::string table, v8::Local<v8::Object> opts, int32_t
     return 0;
 }
 
+result_t SQLite::remove(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+    AsyncEvent* ac)
+{
+    obj_ptr<NArray> _retVal;
+    result_t hr = execute(table, "remove", opts, _retVal, ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = _retVal->m_values[0].m_val.intVal();
+
+    return 0;
+}
+
 result_t SQLite::format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal)
 {
     return db_base::format(table, opts, retVal);

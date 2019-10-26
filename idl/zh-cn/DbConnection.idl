@@ -66,6 +66,14 @@ interface DbConnection : object
      */
     Integer update(String table, Object opts) async;
 
+    /*! @brief 根据指定的条件删除数据
+
+     @param table 指定操作的表名
+     @param opts 可选参数列表
+     @return 返回包含更新的记录数
+     */
+    Integer remove(String table, Object opts = {}) async;
+
     /*! @brief 格式化一个 sql 命令，并返回格式化结果
 
      @param table 指定查询的表名

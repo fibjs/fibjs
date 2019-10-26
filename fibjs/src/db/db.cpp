@@ -672,6 +672,33 @@ result_t _format_insert(exlib::string table, v8::Local<v8::Object> opts, bool my
     return 0;
 }
 
+result_t _format_remove(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+    exlib::string& retVal)
+{
+    result_t hr;
+    exlib::string str;
+    Isolate* isolate = Isolate::current();
+
+    str.append("DELETE FROM `" + _escape_field(table.c_str(), (int32_t)table.length()) + "`");
+
+    v8::Local<v8::Value> v;
+    hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        exlib::string _where;
+        bool retAnd;
+
+        hr = _format_where(v, mysql, mssql, _where, retAnd);
+        if (hr < 0)
+            return hr;
+
+        if (!_where.empty())
+            str.append(" WHERE " + _where);
+    }
+
+    retVal = str;
+    return 0;
+}
+
 result_t db_format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
@@ -683,6 +710,8 @@ result_t db_format(exlib::string table, exlib::string method, v8::Local<v8::Obje
         return _format_update(table, opts, mysql, mssql, retVal);
     else if (method == "insert")
         return _format_insert(table, opts, mysql, mssql, retVal);
+    else if (method == "remove")
+        return _format_remove(table, opts, mysql, mssql, retVal);
 
     return CHECK_ERROR(Runtime::setError("db: Unknown method."));
 }

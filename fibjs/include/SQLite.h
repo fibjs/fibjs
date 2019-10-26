@@ -37,6 +37,7 @@ public:
     virtual result_t count(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
     virtual result_t update(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
     virtual result_t format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal);
+    virtual result_t remove(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal);
 
 public:
