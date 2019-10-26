@@ -28,7 +28,10 @@ public:
     virtual result_t rollback(AsyncEvent* ac) = 0;
     virtual result_t trans(v8::Local<v8::Function> func, bool& retVal) = 0;
     virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t insert(exlib::string table, v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
     virtual result_t find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t count(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t update(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal) = 0;
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal) = 0;
 
@@ -51,7 +54,10 @@ public:
     static void s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_trans(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_execute(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_insert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_find(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_count(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_update(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -60,7 +66,10 @@ public:
     ASYNC_MEMBER0(DbConnection_base, commit);
     ASYNC_MEMBER0(DbConnection_base, rollback);
     ASYNC_MEMBERVALUE3(DbConnection_base, execute, exlib::string, OptArgs, obj_ptr<NArray>);
+    ASYNC_MEMBER2(DbConnection_base, insert, exlib::string, v8::Local<v8::Object>);
     ASYNC_MEMBERVALUE3(DbConnection_base, find, exlib::string, v8::Local<v8::Object>, obj_ptr<NArray>);
+    ASYNC_MEMBERVALUE3(DbConnection_base, count, exlib::string, v8::Local<v8::Object>, int32_t);
+    ASYNC_MEMBERVALUE3(DbConnection_base, update, exlib::string, v8::Local<v8::Object>, int32_t);
 };
 }
 
@@ -79,8 +88,14 @@ inline ClassInfo& DbConnection_base::class_info()
         { "trans", s_trans, false },
         { "execute", s_execute, false },
         { "executeSync", s_execute, false },
+        { "insert", s_insert, false },
+        { "insertSync", s_insert, false },
         { "find", s_find, false },
         { "findSync", s_find, false },
+        { "count", s_count, false },
+        { "countSync", s_count, false },
+        { "update", s_update, false },
+        { "updateSync", s_update, false },
         { "format", s_format, false }
     };
 
@@ -218,6 +233,26 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_RETURN();
 }
 
+inline void DbConnection_base::s_insert(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("DbConnection.insert");
+    METHOD_INSTANCE(DbConnection_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_insert(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_insert(v0, v1);
+
+    METHOD_VOID();
+}
+
 inline void DbConnection_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
@@ -236,6 +271,50 @@ inline void DbConnection_base::s_find(const v8::FunctionCallbackInfo<v8::Value>&
         hr = CALL_RETURN_NULL;
     } else
         hr = pInst->ac_find(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void DbConnection_base::s_count(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("DbConnection.count");
+    METHOD_INSTANCE(DbConnection_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_count(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_count(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void DbConnection_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("DbConnection.update");
+    METHOD_INSTANCE(DbConnection_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_update(v0, v1, cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_update(v0, v1, vr);
 
     METHOD_RETURN();
 }

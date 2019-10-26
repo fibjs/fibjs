@@ -483,13 +483,13 @@ HRESULT WebView::open()
         Variant v;
 
         if (m_opt->get("left", v) == 0)
-            x = v;
+            x = v.intVal();
         if (m_opt->get("top", v) == 0)
-            y = v;
+            y = v.intVal();
         if (m_opt->get("width", v) == 0)
-            nWidth = v;
+            nWidth = v.intVal();
         if (m_opt->get("height", v) == 0)
-            nHeight = v;
+            nHeight = v.intVal();
 
         if (!(m_opt->get("border", v) == 0 && !v.boolVal())) {
             dwStyle |= WS_BORDER;

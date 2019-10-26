@@ -33,7 +33,10 @@ public:
     virtual result_t rollback(AsyncEvent* ac);
     virtual result_t trans(v8::Local<v8::Function> func, bool& retVal);
     virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t insert(exlib::string table, v8::Local<v8::Object> opts, AsyncEvent* ac);
     virtual result_t find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t count(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t update(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
     virtual result_t format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal);
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal);
 
@@ -49,6 +52,8 @@ public:
     result_t connect(const char* host, int32_t port, const char* username,
         const char* password, const char* dbName);
     result_t execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal);
+    result_t execute(exlib::string table, exlib::string method, v8::Local<v8::Object> opts,
+        obj_ptr<NArray>& retVal, AsyncEvent* ac);
 
 private:
     inline result_t error()

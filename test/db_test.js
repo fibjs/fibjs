@@ -429,6 +429,18 @@ describe("db", () => {
             ]);
         });
 
+        it("conn.count", () => {
+            assert.equal(conn.count('test'), 1);
+        });
+
+        it("conn.update", () => {
+            assert.equal(conn.update('test', {
+                values: {
+                    t2: "200"
+                }
+            }), 1);
+        });
+
         it("multi sql", () => {
             assert.deepEqual(conn.execute('select 100 as n'), [{
                 n: 100

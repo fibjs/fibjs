@@ -116,17 +116,17 @@ result_t db_base::openSQLite(exlib::string connString,
 result_t SQLite::open(const char* file)
 {
     sqlite3_enable_shared_cache(1);
-    if (sqlite3_open_v2(file, &m_db, SQLITE_OPEN_FLAGS, 0)) {
-        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
-        sqlite3_close(m_db);
-        m_db = NULL;
+    if (sqlite3_open_v2(file, &m_conn, SQLITE_OPEN_FLAGS, 0)) {
+        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_conn)));
+        sqlite3_close(m_conn);
+        m_conn = NULL;
         return hr;
     }
 
     obj_ptr<NArray> retVal;
     execute("PRAGMA journal_mode=WAL;", 24, retVal);
 
-    hook_fts5_api(m_db);
+    hook_fts5_api(m_conn);
 
     m_file = file;
 
@@ -135,8 +135,8 @@ result_t SQLite::open(const char* file)
 
 SQLite::~SQLite()
 {
-    if (m_db)
-        asyncCall(sqlite3_close, m_db);
+    if (m_conn)
+        asyncCall(sqlite3_close, m_conn);
 }
 
 result_t SQLite::get_type(exlib::string& retVal)
@@ -147,21 +147,21 @@ result_t SQLite::get_type(exlib::string& retVal)
 
 result_t SQLite::close(AsyncEvent* ac)
 {
-    if (!m_db)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    sqlite3_close(m_db);
-    m_db = NULL;
+    sqlite3_close(m_conn);
+    m_conn = NULL;
 
     return 0;
 }
 
 result_t SQLite::begin(AsyncEvent* ac)
 {
-    if (!m_db)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
@@ -173,7 +173,7 @@ result_t SQLite::begin(AsyncEvent* ac)
 
 result_t SQLite::commit(AsyncEvent* ac)
 {
-    if (!m_db)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
@@ -185,7 +185,7 @@ result_t SQLite::commit(AsyncEvent* ac)
 
 result_t SQLite::rollback(AsyncEvent* ac)
 {
-    if (!m_db)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
@@ -243,7 +243,7 @@ int32_t sqlite3_prepare_sleep(sqlite3* db, const char* zSql, int nByte,
 
 result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
 {
-    if (!m_db)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     const char* pStr1;
@@ -251,8 +251,8 @@ result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
     do {
         sqlite3_stmt* stmt = 0;
 
-        if (sqlite3_prepare_sleep(m_db, sql, sLen, &stmt, &pStr1, m_nCmdTimeout)) {
-            result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
+        if (sqlite3_prepare_sleep(m_conn, sql, sLen, &stmt, &pStr1, m_nCmdTimeout)) {
+            result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_conn)));
             if (stmt)
                 sqlite3_finalize(stmt);
             return hr;
@@ -332,17 +332,17 @@ result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
                     break;
                 else {
                     sqlite3_finalize(stmt);
-                    return CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
+                    return CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_conn)));
                 }
             }
         } else {
             int32_t r = sqlite3_step_sleep(stmt, m_nCmdTimeout);
             if (r == SQLITE_DONE)
-                res = new DBResult(0, sqlite3_changes(m_db),
-                    sqlite3_last_insert_rowid(m_db));
+                res = new DBResult(0, sqlite3_changes(m_conn),
+                    sqlite3_last_insert_rowid(m_conn));
             else {
                 sqlite3_finalize(stmt);
-                return CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
+                return CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_conn)));
             }
         }
 
@@ -371,7 +371,7 @@ result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
 result_t SQLite::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,
     AsyncEvent* ac)
 {
-    if (!m_db)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync()) {
@@ -390,15 +390,18 @@ result_t SQLite::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVa
     return execute(str.c_str(), (int32_t)str.length(), retVal);
 }
 
-result_t SQLite::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
-    AsyncEvent* ac)
+result_t db_format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+    exlib::string& retVal);
+
+result_t SQLite::execute(exlib::string table, exlib::string method, v8::Local<v8::Object> opts,
+    obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
-    if (!m_db)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync()) {
         exlib::string str;
-        result_t hr = format(table, opts, str);
+        result_t hr = db_format(table, method, opts, false, false, str);
         if (hr < 0)
             return hr;
 
@@ -410,6 +413,46 @@ result_t SQLite::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<N
 
     exlib::string str = ac->m_ctx[0].string();
     return execute(str.c_str(), (int32_t)str.length(), retVal);
+}
+
+result_t SQLite::insert(exlib::string table, v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    obj_ptr<NArray> _retVal;
+    return execute(table, "insert", opts, _retVal, ac);
+}
+
+result_t SQLite::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
+    AsyncEvent* ac)
+{
+    return execute(table, "find", opts, retVal, ac);
+}
+
+result_t SQLite::count(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+    AsyncEvent* ac)
+{
+    obj_ptr<NArray> _retVal;
+    result_t hr = execute(table, "count", opts, _retVal, ac);
+    if (hr < 0)
+        return hr;
+
+    Variant v;
+    _retVal->_indexed_getter(0, v);
+    retVal = ((NObject*)v.object())->m_values[0].m_val.intVal();
+
+    return 0;
+}
+
+result_t SQLite::update(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+    AsyncEvent* ac)
+{
+    obj_ptr<NArray> _retVal;
+    result_t hr = execute(table, "update", opts, _retVal, ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = _retVal->m_values[0].m_val.intVal();
+
+    return 0;
 }
 
 result_t SQLite::format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal)
@@ -425,7 +468,7 @@ result_t SQLite::format(exlib::string sql, OptArgs args,
 
 result_t SQLite::get_fileName(exlib::string& retVal)
 {
-    if (!m_db)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = m_file;
@@ -434,7 +477,7 @@ result_t SQLite::get_fileName(exlib::string& retVal)
 
 result_t SQLite::get_timeout(int32_t& retVal)
 {
-    if (!m_db)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = m_nCmdTimeout;
@@ -443,7 +486,7 @@ result_t SQLite::get_timeout(int32_t& retVal)
 
 result_t SQLite::set_timeout(int32_t newVal)
 {
-    if (!m_db)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     m_nCmdTimeout = newVal;
@@ -452,7 +495,7 @@ result_t SQLite::set_timeout(int32_t newVal)
 
 result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
 {
-    if (!m_db)
+    if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
@@ -472,7 +515,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
         return hr;
     }
 
-    pBackup = sqlite3_backup_init(db2, "main", m_db, "main");
+    pBackup = sqlite3_backup_init(db2, "main", m_conn, "main");
     if (pBackup) {
         do {
             rc = sqlite3_backup_step(pBackup, 5);
@@ -482,7 +525,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
 
         sqlite3_backup_finish(pBackup);
     } else {
-        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_db)));
+        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_conn)));
         sqlite3_close(db2);
         return hr;
     }

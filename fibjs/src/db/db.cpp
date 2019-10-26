@@ -443,7 +443,7 @@ result_t _format_find(exlib::string table, v8::Local<v8::Object> opts, bool mysq
     } else
         str.append("*");
 
-    str.append(" FROM `" + _escape_field(table.c_str(), table.length()) + "`");
+    str.append(" FROM `" + _escape_field(table.c_str(), (int32_t)table.length()) + "`");
 
     hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
@@ -525,7 +525,7 @@ result_t _format_count(exlib::string table, v8::Local<v8::Object> opts, bool mys
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Value> v;
 
-    str.append("SELECT COUNT(*) FROM `" + _escape_field(table.c_str(), table.length()) + "`");
+    str.append("SELECT COUNT(*) FROM `" + _escape_field(table.c_str(), (int32_t)table.length()) + "`");
 
     hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
@@ -569,7 +569,7 @@ result_t _format_update(exlib::string table, v8::Local<v8::Object> opts, bool my
     exlib::string str;
     Isolate* isolate = Isolate::current();
 
-    str.append("UPDATE `" + _escape_field(table.c_str(), table.length()) + "` SET ");
+    str.append("UPDATE `" + _escape_field(table.c_str(), (int32_t)table.length()) + "` SET ");
 
     v8::Local<v8::Object> o;
     hr = GetConfigValue(isolate->m_isolate, opts, "values", o, true);
@@ -628,7 +628,7 @@ result_t _format_insert(exlib::string table, v8::Local<v8::Object> opts, bool my
     exlib::string str;
     Isolate* isolate = Isolate::current();
 
-    str.append("INSERT INTO `" + _escape_field(table.c_str(), table.length()) + "` (");
+    str.append("INSERT INTO `" + _escape_field(table.c_str(), (int32_t)table.length()) + "` (");
 
     v8::Local<v8::Object> o;
     hr = GetConfigValue(isolate->m_isolate, opts, "values", o, true);

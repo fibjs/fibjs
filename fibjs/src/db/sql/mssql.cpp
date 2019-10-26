@@ -369,15 +369,18 @@ result_t mssql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal
     return execute(str.c_str(), (int32_t)str.length(), retVal);
 }
 
-result_t mssql::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
-    AsyncEvent* ac)
+result_t db_format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+    exlib::string& retVal);
+
+result_t mssql::execute(exlib::string table, exlib::string method, v8::Local<v8::Object> opts,
+    obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync()) {
         exlib::string str;
-        result_t hr = format(table, opts, str);
+        result_t hr = db_format(table, method, opts, false, true, str);
         if (hr < 0)
             return hr;
 
@@ -389,6 +392,46 @@ result_t mssql::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NA
 
     exlib::string str = ac->m_ctx[0].string();
     return execute(str.c_str(), (int32_t)str.length(), retVal);
+}
+
+result_t mssql::insert(exlib::string table, v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    obj_ptr<NArray> _retVal;
+    return execute(table, "insert", opts, _retVal, ac);
+}
+
+result_t mssql::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
+    AsyncEvent* ac)
+{
+    return execute(table, "find", opts, retVal, ac);
+}
+
+result_t mssql::count(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+    AsyncEvent* ac)
+{
+    obj_ptr<NArray> _retVal;
+    result_t hr = execute(table, "count", opts, _retVal, ac);
+    if (hr < 0)
+        return hr;
+
+    Variant v;
+    _retVal->_indexed_getter(0, v);
+    retVal = ((NObject*)v.object())->m_values[0].m_val.intVal();
+
+    return 0;
+}
+
+result_t mssql::update(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+    AsyncEvent* ac)
+{
+    obj_ptr<NArray> _retVal;
+    result_t hr = execute(table, "update", opts, _retVal, ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = _retVal->m_values[0].m_val.intVal();
+
+    return 0;
 }
 
 result_t mssql::format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal)
