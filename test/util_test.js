@@ -1225,7 +1225,6 @@ describe('util', () => {
             // built-in modules
             ;
             [
-                "zmq",
                 "zlib",
                 "zip",
                 "xml",
