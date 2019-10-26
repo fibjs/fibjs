@@ -258,7 +258,7 @@ result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncEvent* ac)
         ac->m_ctx[1] = addr;
     }
 
-    int32_t port = (int32_t)ac->m_ctx[0];
+    int32_t port = ac->m_ctx[0].intVal();
     exlib::string addr = ac->m_ctx[1].string();
 
     return bind(port, addr, ac);

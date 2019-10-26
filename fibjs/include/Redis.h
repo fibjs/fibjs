@@ -260,7 +260,19 @@ public:
 
     static result_t retValue(Variant& v, bool& retVal)
     {
-        retVal = !!(int32_t)v;
+        retVal = !!v.intVal();
+        return 0;
+    }
+
+    static result_t retValue(Variant& v, int32_t& retVal)
+    {
+        retVal = v.intVal();
+        return 0;
+    }
+
+    static result_t retValue(Variant& v, int64_t& retVal)
+    {
+        retVal = v.longVal();
         return 0;
     }
 

@@ -367,11 +367,26 @@ public:
 
     operator v8::Local<v8::Value>() const;
 
-    operator int32_t() const
+    int32_t intVal() const
     {
-        if (type() != VT_Integer)
-            return 0;
-        return m_Val.intVal;
+        if (type() == VT_Integer)
+            return m_Val.intVal;
+        if (type() == VT_Long)
+            return m_Val.longVal;
+        if (type() == VT_Number)
+            return m_Val.dblVal;
+        return 0;
+    }
+
+    int64_t longVal() const
+    {
+        if (type() == VT_Integer)
+            return m_Val.intVal;
+        if (type() == VT_Long)
+            return m_Val.longVal;
+        if (type() == VT_Number)
+            return m_Val.dblVal;
+        return 0;
     }
 
     bool boolVal() const
@@ -383,9 +398,13 @@ public:
 
     double dblVal() const
     {
-        if (type() != VT_Number)
-            return 0;
-        return m_Val.dblVal;
+        if (type() == VT_Integer)
+            return m_Val.intVal;
+        if (type() == VT_Long)
+            return m_Val.longVal;
+        if (type() == VT_Number)
+            return m_Val.dblVal;
+        return 0;
     }
 
     void parseNumber(const char* str, int32_t len = -1);
