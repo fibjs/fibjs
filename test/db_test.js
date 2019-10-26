@@ -293,6 +293,16 @@ describe("db", () => {
         }), "UPDATE `test` SET `a`=100, `b`=200 WHERE `a`=200");
     });
 
+    it("format.insert", () => {
+        assert.equal(db.format("test", {
+            method: "insert",
+            values: {
+                a: 100,
+                b: 200
+            }
+        }), "INSERT INTO `test` (`a`, `b`) VALUES (100, 200)");
+    });
+
     function _test(conn_str) {
         var conn;
 
