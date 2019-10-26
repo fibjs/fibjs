@@ -17,8 +17,8 @@ public:
         if (sz)
             m_keys.resize(sz);
 
-        add("affected", affected);
-        add("insertId", insertId);
+        add("affected", (double)affected);
+        add("insertId", (double)insertId);
     }
 
     DBResult(int32_t sz, int64_t affected)
@@ -26,7 +26,7 @@ public:
         if (sz)
             m_keys.resize(sz);
 
-        add("affected", affected);
+        add("affected", (double)affected);
     }
 
     DBResult(int32_t sz)
