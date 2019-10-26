@@ -409,6 +409,33 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
     return 0;
 }
 
+result_t _format_values(v8::Local<v8::Object> o, bool mysql, bool mssql, exlib::string& retVal)
+{
+    exlib::string str;
+    JSArray ks = o->GetPropertyNames();
+    int32_t len = ks->Length();
+    int32_t i;
+    bool bAnd = true;
+
+    for (i = 0; i < len; i++) {
+        JSValue k = ks->Get(i);
+        JSValue v = o->Get(k);
+
+        v8::String::Utf8Value s(k);
+
+        if (s.length() == 0)
+            return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
+        str.append('`' + _escape_field(*s, s.length()) + "`=");
+        _appendValue(str, v, mysql, mssql);
+
+        if (i + 1 < len)
+            str.append(", ", 2);
+    }
+
+    retVal = str;
+    return 0;
+}
+
 result_t _format_find(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
@@ -437,7 +464,7 @@ result_t _format_find(exlib::string table, v8::Local<v8::Object> opts, bool mysq
                 str.append('`' + _escape_field(*s, s.length()) + '`');
 
                 if (i + 1 < len)
-                    str.append(1, ',');
+                    str.append(", ", 2);
             }
         }
     } else
@@ -508,7 +535,7 @@ result_t _format_find(exlib::string table, v8::Local<v8::Object> opts, bool mysq
                     str.append(" DESC");
 
                 if (i + 1 < len)
-                    str.append(1, ',');
+                    str.append(", ", 2);
             }
         }
     }
@@ -521,13 +548,11 @@ result_t _format_count(exlib::string table, v8::Local<v8::Object> opts, bool mys
     exlib::string& retVal)
 {
     result_t hr;
-    exlib::string str("SELECT ");
+    exlib::string str;
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Value> v;
-    v8::Local<v8::Array> a;
 
-    str.append("COUNT(*)");
-    str.append(" FROM `" + _escape_field(table.c_str(), table.length()) + "`");
+    str.append("SELECT COUNT(*) FROM `" + _escape_field(table.c_str(), table.length()) + "`");
 
     hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
@@ -564,6 +589,49 @@ result_t _format_count(exlib::string table, v8::Local<v8::Object> opts, bool mys
     return 0;
 }
 
+result_t _format_update(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+    exlib::string& retVal)
+{
+    result_t hr;
+    exlib::string str;
+    Isolate* isolate = Isolate::current();
+
+    str.append("UPDATE `" + _escape_field(table.c_str(), table.length()) + "` SET ");
+
+    v8::Local<v8::Object> o;
+    hr = GetConfigValue(isolate->m_isolate, opts, "values", o, true);
+    if (hr == CALL_E_PARAMNOTOPTIONAL)
+        return CHECK_ERROR(Runtime::setError("db: No updated values specified."));
+    if (hr < 0)
+        return hr;
+
+    exlib::string _values;
+    hr = _format_values(o, mysql, mssql, _values);
+    if (hr < 0)
+        return hr;
+
+    if (_values.empty())
+        return CHECK_ERROR(Runtime::setError("db: No updated values specified."));
+    str.append(_values);
+
+    v8::Local<v8::Value> v;
+    hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        exlib::string _where;
+        bool retAnd;
+
+        hr = _format_where(v, mysql, mssql, _where, retAnd);
+        if (hr < 0)
+            return hr;
+
+        if (!_where.empty())
+            str.append(" WHERE " + _where);
+    }
+
+    retVal = str;
+    return 0;
+}
+
 result_t db_format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
@@ -571,6 +639,8 @@ result_t db_format(exlib::string table, exlib::string method, v8::Local<v8::Obje
         return _format_find(table, opts, mysql, mssql, retVal);
     else if (method == "count")
         return _format_count(table, opts, mysql, mssql, retVal);
+    else if (method == "update")
+        return _format_update(table, opts, mysql, mssql, retVal);
 
     return CHECK_ERROR(Runtime::setError("db: Unknown method."));
 }

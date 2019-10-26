@@ -38,7 +38,7 @@ describe("db", () => {
         it('keys', () => {
             assert.equal(db.format("test", {
                 keys: ["a", "b", "c"]
-            }), "SELECT `a`,`b`,`c` FROM `test`");
+            }), "SELECT `a`, `b`, `c` FROM `test`");
         });
 
         it('where', () => {
@@ -257,13 +257,12 @@ describe("db", () => {
                 },
                 limit: 100,
                 order: ['a', 'b', '-c']
-            }), "SELECT * FROM `test` WHERE `a`=200 LIMIT 100 ORDER BY `a`,`b`,`c` DESC");
+            }), "SELECT * FROM `test` WHERE `a`=200 LIMIT 100 ORDER BY `a`, `b`, `c` DESC");
         });
     });
 
     describe("format.count", () => {
         it('basic', () => {
-            assert.equal(db.format("test", {}), "SELECT * FROM `test`");
             assert.equal(db.format("test", {
                 method: "count"
             }), "SELECT COUNT(*) FROM `test`");
@@ -279,6 +278,19 @@ describe("db", () => {
                 limit: 100
             }), "SELECT COUNT(*) FROM `test` WHERE `a`=200 SKIP 100 LIMIT 100");
         });
+    });
+
+    it("format.update", () => {
+        assert.equal(db.format("test", {
+            method: "update",
+            values: {
+                a: 100,
+                b: 200
+            },
+            where: {
+                a: 200
+            }
+        }), "UPDATE `test` SET `a`=100, `b`=200 WHERE `a`=200");
     });
 
     function _test(conn_str) {
