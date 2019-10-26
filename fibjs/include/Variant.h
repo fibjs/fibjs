@@ -109,6 +109,12 @@ public:
         operator=(v);
     }
 
+    Variant(double v)
+        : m_type(VT_Undefined)
+    {
+        operator=(v);
+    }
+
     Variant(date_t v)
         : m_type(VT_Undefined)
     {
