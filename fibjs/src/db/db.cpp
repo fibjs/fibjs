@@ -299,11 +299,15 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
         exlib::string op("=");
         exlib::string key;
 
+        if (s.length() == 0)
+            return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
+
         if (v->IsFunction())
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        if (len == 1 && bAnd && s.length() == 2 && !qstrcmp(*s, "or", 2)) {
-            bAnd = false;
+        key = _escape_field(*s, s.length());
+        while (len == 1 && (!qstrcmp(key.c_str(), "$or", 3) || !qstrcmp(key.c_str(), "$and", 4))) {
+            bAnd = key[1] == 'a';
 
             if (v->IsArray())
                 return _format_where(v8::Local<v8::Array>::Cast(v), bAnd, mysql, mssql, retVal, retAnd);
@@ -323,10 +327,6 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
                 key = _escape_field(*s1, s1.length());
             } else
                 return CHECK_ERROR(Runtime::setError("db: The argument of the [or] operation must be an object or an array."));
-        } else {
-            if (s.length() == 0)
-                return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
-            key = _escape_field(*s, s.length());
         }
 
         if (v->IsObject()) {
@@ -343,32 +343,32 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
             if (!*_ops)
                 return CHECK_ERROR(Runtime::setError("db: The condition of the field " + key + " is illegal."));
 
-            if (!qstrcmp(*_ops, "eq"))
+            if (!qstrcmp(*_ops, "$eq"))
                 op = "=";
-            else if (!qstrcmp(*_ops, "ne"))
+            else if (!qstrcmp(*_ops, "$ne"))
                 op = "<>";
-            else if (!qstrcmp(*_ops, "gt"))
+            else if (!qstrcmp(*_ops, "$gt"))
                 op = ">";
-            else if (!qstrcmp(*_ops, "gte"))
+            else if (!qstrcmp(*_ops, "$gte"))
                 op = ">=";
-            else if (!qstrcmp(*_ops, "lt"))
+            else if (!qstrcmp(*_ops, "$lt"))
                 op = "<";
-            else if (!qstrcmp(*_ops, "lte"))
+            else if (!qstrcmp(*_ops, "$lte"))
                 op = "<=";
-            else if (!qstrcmp(*_ops, "like"))
+            else if (!qstrcmp(*_ops, "$like"))
                 op = " LIKE ";
-            else if (!qstrcmp(*_ops, "not_like"))
+            else if (!qstrcmp(*_ops, "$nlike"))
                 op = " NOT LIKE ";
-            else if (!qstrcmp(*_ops, "in")) {
+            else if (!qstrcmp(*_ops, "$in")) {
                 bIn = true;
                 op = " IN ";
-            } else if (!qstrcmp(*_ops, "not_in")) {
+            } else if (!qstrcmp(*_ops, "$nin")) {
                 bIn = true;
                 op = " NOT IN ";
-            } else if (!qstrcmp(*_ops, "between")) {
+            } else if (!qstrcmp(*_ops, "$between")) {
                 bBetween = true;
                 op = " BETWEEN ";
-            } else if (!qstrcmp(*_ops, "not_between")) {
+            } else if (!qstrcmp(*_ops, "$nbetween")) {
                 bBetween = true;
                 op = " NOT BETWEEN ";
             }
@@ -412,9 +412,6 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
 result_t _format(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
-    if (table.find(']') != exlib::string::npos)
-        return CALL_E_INVALIDARG;
-
     result_t hr;
     exlib::string str("SELECT ");
     Isolate* isolate = Isolate::current();
@@ -446,7 +443,7 @@ result_t _format(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bo
     } else
         str.append("*");
 
-    str.append(" FROM [" + table + "]");
+    str.append(" FROM `" + _escape_field(table.c_str(), table.length()) + "`");
 
     hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
