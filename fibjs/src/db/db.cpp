@@ -326,7 +326,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
                     return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
                 key = _escape_field(*s1, s1.length());
             } else
-                return CHECK_ERROR(Runtime::setError("db: The argument of the [or] operation must be an object or an array."));
+                return CHECK_ERROR(Runtime::setError("db: The argument of the [or/and] operation must be an object or an array."));
         }
 
         if (v->IsObject()) {
@@ -377,15 +377,15 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
 
             if (bIn) {
                 if (!v->IsArray())
-                    return CHECK_ERROR(Runtime::setError("db: The argument of the [between] operation must be an array."));
+                    return CHECK_ERROR(Runtime::setError("db: The argument of the [in/nin] operation must be an array."));
             } else if (bBetween) {
                 if (!v->IsArray())
-                    return CHECK_ERROR(Runtime::setError("db: The argument of the [between] operation must be an array."));
+                    return CHECK_ERROR(Runtime::setError("db: The argument of the [between/nbetween] operation must be an array."));
 
                 JSArray vals = v8::Local<v8::Array>::Cast(v);
                 int32_t vals_len = vals->Length();
                 if (vals_len != 2)
-                    return CHECK_ERROR(Runtime::setError("db: The argument size of the [between] operation must be 2."));
+                    return CHECK_ERROR(Runtime::setError("db: The argument size of the [between/nbetween] operation must be 2."));
 
                 v = vals->Get(0);
                 v1 = vals->Get(1);
