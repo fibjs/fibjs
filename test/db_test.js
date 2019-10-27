@@ -451,11 +451,9 @@ describe("db", () => {
         });
 
         it("conn.insert/remove", () => {
-            conn.insert('test', {
-                values: {
-                    t2: "2200"
-                }
-            });
+            assert.equal(conn.insert('test', {
+                t2: "2200"
+            }), 2);
 
             assert.equal(conn.remove('test', {
                 where: {

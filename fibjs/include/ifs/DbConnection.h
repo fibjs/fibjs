@@ -28,7 +28,7 @@ public:
     virtual result_t rollback(AsyncEvent* ac) = 0;
     virtual result_t trans(v8::Local<v8::Function> func, bool& retVal) = 0;
     virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t insert(exlib::string table, v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
+    virtual result_t insert(exlib::string table, v8::Local<v8::Object> obj, double& retVal, AsyncEvent* ac) = 0;
     virtual result_t find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
     virtual result_t count(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t update(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
@@ -68,7 +68,7 @@ public:
     ASYNC_MEMBER0(DbConnection_base, commit);
     ASYNC_MEMBER0(DbConnection_base, rollback);
     ASYNC_MEMBERVALUE3(DbConnection_base, execute, exlib::string, OptArgs, obj_ptr<NArray>);
-    ASYNC_MEMBER2(DbConnection_base, insert, exlib::string, v8::Local<v8::Object>);
+    ASYNC_MEMBERVALUE3(DbConnection_base, insert, exlib::string, v8::Local<v8::Object>, double);
     ASYNC_MEMBERVALUE3(DbConnection_base, find, exlib::string, v8::Local<v8::Object>, obj_ptr<NArray>);
     ASYNC_MEMBERVALUE3(DbConnection_base, count, exlib::string, v8::Local<v8::Object>, int32_t);
     ASYNC_MEMBERVALUE3(DbConnection_base, update, exlib::string, v8::Local<v8::Object>, int32_t);
@@ -240,6 +240,8 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void DbConnection_base::s_insert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    double vr;
+
     METHOD_NAME("DbConnection.insert");
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
@@ -253,9 +255,9 @@ inline void DbConnection_base::s_insert(const v8::FunctionCallbackInfo<v8::Value
         pInst->acb_insert(v0, v1, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = pInst->ac_insert(v0, v1);
+        hr = pInst->ac_insert(v0, v1, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void DbConnection_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args)

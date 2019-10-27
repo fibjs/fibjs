@@ -358,9 +358,9 @@ result_t SQLite::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVa
     return db_execute(this, sql, args, retVal, ac);
 }
 
-result_t SQLite::insert(exlib::string table, v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t SQLite::insert(exlib::string table, v8::Local<v8::Object> obj, double& retVal, AsyncEvent* ac)
 {
-    return db_insert(this, table, opts, ac);
+    return db_insert(this, table, obj, retVal, ac);
 }
 
 result_t SQLite::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,

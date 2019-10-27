@@ -58,10 +58,20 @@ result_t db_execute(T* pThis, exlib::string table, exlib::string method, v8::Loc
 }
 
 template <typename T>
-result_t db_insert(T* pThis, exlib::string table, v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t db_insert(T* pThis, exlib::string table, v8::Local<v8::Object> o, double& retVal, AsyncEvent* ac)
 {
+    Isolate* isolate = pThis->holder();
     obj_ptr<NArray> _retVal;
-    return db_execute(pThis, table, "insert", opts, _retVal, ac);
+    v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
+
+    opts->Set(isolate->NewString("values"), o);
+    result_t hr = db_execute(pThis, table, "insert", opts, _retVal, ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = _retVal->m_values[1].m_val.dblVal();
+
+    return 0;
 }
 
 template <typename T>

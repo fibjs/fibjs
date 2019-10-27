@@ -38,9 +38,10 @@ interface DbConnection : object
     /*! @brief 插入新记录
 
      @param table 指定操作的表名
-     @param opts 参数列表
+     @param obj 创建的对象
+     @return 返回包含插入的 id，如果引擎不支持则返回 0
      */
-    insert(String table, Object opts) async;
+    Number insert(String table, Object obj) async;
 
     /*! @brief 根据指定的条件查询数据
 

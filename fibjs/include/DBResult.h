@@ -12,27 +12,13 @@ namespace fibjs {
 
 class DBResult : public NArray {
 public:
-    DBResult(int32_t sz, int64_t affected, int64_t insertId)
+    DBResult(int32_t sz, int64_t affected = 0, int64_t insertId = 0)
     {
         if (sz)
             m_keys.resize(sz);
 
         add("affected", (double)affected);
         add("insertId", (double)insertId);
-    }
-
-    DBResult(int32_t sz, int64_t affected)
-    {
-        if (sz)
-            m_keys.resize(sz);
-
-        add("affected", (double)affected);
-    }
-
-    DBResult(int32_t sz)
-    {
-        if (sz)
-            m_keys.resize(sz);
     }
 
 public:
