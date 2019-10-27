@@ -50,12 +50,13 @@ public:
 public:
     result_t open(const char* file);
     result_t execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal);
-    result_t execute(exlib::string table, exlib::string method, v8::Local<v8::Object> opts,
-        obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    result_t format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
+
+public:
+    sqlite3* m_conn;
 
 private:
     exlib::string m_file;
-    sqlite3* m_conn;
     int32_t m_nCmdTimeout;
 };
 

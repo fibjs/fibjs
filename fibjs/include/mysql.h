@@ -53,8 +53,7 @@ public:
     result_t connect(const char* host, int32_t port, const char* username,
         const char* password, const char* dbName);
     result_t execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal);
-    result_t execute(exlib::string table, exlib::string method, v8::Local<v8::Object> opts,
-        obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    result_t format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
 
 private:
     inline result_t error()
@@ -69,7 +68,7 @@ private:
         return Runtime::errNumber();
     }
 
-private:
+public:
     UMConnection m_conn;
 };
 

@@ -49,8 +49,7 @@ public:
 public:
     result_t connect(const char* server, const char* username, const char* password, const char* dbName);
     result_t execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal);
-    result_t execute(exlib::string table, exlib::string method, v8::Local<v8::Object> opts,
-        obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    result_t format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
 
 private:
     inline result_t error(HRESULT hr)
@@ -81,7 +80,7 @@ private:
         return hr;
     }
 
-private:
+public:
     ADODB::_Connection* m_conn;
 };
 

@@ -12,7 +12,7 @@
 #include "ifs/db.h"
 #include "DBResult.h"
 #include "Url.h"
-#include "trans.h"
+#include "db_api.h"
 
 namespace fibjs {
 
@@ -254,47 +254,6 @@ result_t mysql::use(exlib::string dbName, AsyncEvent* ac)
     return execute(s.c_str(), (int32_t)s.length(), retVal);
 }
 
-result_t mysql::begin(AsyncEvent* ac)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    obj_ptr<NArray> retVal;
-    return execute("BEGIN", 5, retVal);
-}
-
-result_t mysql::commit(AsyncEvent* ac)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    obj_ptr<NArray> retVal;
-    return execute("COMMIT", 6, retVal);
-}
-
-result_t mysql::rollback(AsyncEvent* ac)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    obj_ptr<NArray> retVal;
-    return execute("ROLLBACK", 8, retVal);
-}
-
-result_t mysql::trans(v8::Local<v8::Function> func, bool& retVal)
-{
-    return _trans(this, func, retVal);
-}
-
 result_t mysql::execute(const char* sql, int32_t sLen,
     obj_ptr<NArray>& retVal)
 {
@@ -327,104 +286,64 @@ result_t mysql::execute(const char* sql, int32_t sLen,
     return 0;
 }
 
+result_t mysql::format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
+{
+    return db_format(table, method, opts, true, false, retVal);
+}
+
+result_t mysql::begin(AsyncEvent* ac)
+{
+    return db_begin(this, ac);
+}
+
+result_t mysql::commit(AsyncEvent* ac)
+{
+    return db_commit(this, ac);
+}
+
+result_t mysql::rollback(AsyncEvent* ac)
+{
+    return db_rollback(this, ac);
+}
+
+result_t mysql::trans(v8::Local<v8::Function> func, bool& retVal)
+{
+    return db_trans(this, func, retVal);
+}
+
 result_t mysql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,
     AsyncEvent* ac)
 {
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync()) {
-        exlib::string str;
-        result_t hr = format(sql, args, str);
-        if (hr < 0)
-            return hr;
-
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = str;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
-
-    exlib::string str = ac->m_ctx[0].string();
-    return execute(str.c_str(), (int32_t)str.length(), retVal);
-}
-
-result_t db_format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
-    exlib::string& retVal);
-
-result_t mysql::execute(exlib::string table, exlib::string method, v8::Local<v8::Object> opts,
-    obj_ptr<NArray>& retVal, AsyncEvent* ac)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync()) {
-        exlib::string str;
-        result_t hr = db_format(table, method, opts, true, false, str);
-        if (hr < 0)
-            return hr;
-
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = str;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
-
-    exlib::string str = ac->m_ctx[0].string();
-    return execute(str.c_str(), (int32_t)str.length(), retVal);
+    return db_execute(this, sql, args, retVal, ac);
 }
 
 result_t mysql::insert(exlib::string table, v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
-    obj_ptr<NArray> _retVal;
-    return execute(table, "insert", opts, _retVal, ac);
+    return db_insert(this, table, opts, ac);
 }
 
 result_t mysql::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
     AsyncEvent* ac)
 {
-    return execute(table, "find", opts, retVal, ac);
+    return db_find(this, table, opts, retVal, ac);
 }
 
 result_t mysql::count(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    obj_ptr<NArray> _retVal;
-    result_t hr = execute(table, "count", opts, _retVal, ac);
-    if (hr < 0)
-        return hr;
-
-    Variant v;
-    _retVal->_indexed_getter(0, v);
-    retVal = ((NObject*)v.object())->m_values[0].m_val.intVal();
-
-    return 0;
+    return db_count(this, table, opts, retVal, ac);
 }
 
 result_t mysql::update(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    obj_ptr<NArray> _retVal;
-    result_t hr = execute(table, "update", opts, _retVal, ac);
-    if (hr < 0)
-        return hr;
-
-    retVal = _retVal->m_values[0].m_val.intVal();
-
-    return 0;
+    return db_update(this, table, opts, retVal, ac);
 }
 
 result_t mysql::remove(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    obj_ptr<NArray> _retVal;
-    result_t hr = execute(table, "remove", opts, _retVal, ac);
-    if (hr < 0)
-        return hr;
-
-    retVal = _retVal->m_values[0].m_val.intVal();
-
-    return 0;
+    return db_remove(this, table, opts, retVal, ac);
 }
 
 result_t mysql::format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal)

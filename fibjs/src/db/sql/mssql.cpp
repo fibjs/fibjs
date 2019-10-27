@@ -15,7 +15,7 @@
 #include "DBResult.h"
 #include "Buffer.h"
 #include "date.h"
-#include "trans.h"
+#include "db_api.h"
 
 namespace fibjs {
 
@@ -133,63 +133,6 @@ result_t mssql::use(exlib::string dbName, AsyncEvent* ac)
         return error(hr);
 
     return 0;
-}
-
-result_t mssql::begin(AsyncEvent* ac)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    HRESULT hr;
-    long level = 0;
-
-    hr = m_conn->BeginTrans(&level);
-    if (FAILED(hr))
-        return error(hr);
-
-    return 0;
-}
-
-result_t mssql::commit(AsyncEvent* ac)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    HRESULT hr;
-
-    hr = m_conn->CommitTrans();
-    if (FAILED(hr))
-        return error(hr);
-
-    return 0;
-}
-
-result_t mssql::rollback(AsyncEvent* ac)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    HRESULT hr;
-
-    hr = m_conn->RollbackTrans();
-    if (FAILED(hr))
-        return error(hr);
-
-    return 0;
-}
-
-result_t mssql::trans(v8::Local<v8::Function> func, bool& retVal)
-{
-    return _trans(this, func, retVal);
 }
 
 result_t mssql::execute(const char* sql, int32_t sLen,
@@ -347,104 +290,65 @@ result_t mssql::execute(const char* sql, int32_t sLen,
     return 0;
 }
 
+result_t mssql::format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts,
+    exlib::string& retVal)
+{
+    return db_format(table, method, opts, false, true, retVal);
+}
+
+result_t mssql::begin(AsyncEvent* ac)
+{
+    return db_begin(this, ac);
+}
+
+result_t mssql::commit(AsyncEvent* ac)
+{
+    return db_commit(this, ac);
+}
+
+result_t mssql::rollback(AsyncEvent* ac)
+{
+    return db_rollback(this, ac);
+}
+
+result_t mssql::trans(v8::Local<v8::Function> func, bool& retVal)
+{
+    return db_trans(this, func, retVal);
+}
+
 result_t mssql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,
     AsyncEvent* ac)
 {
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync()) {
-        exlib::string str;
-        result_t hr = format(sql, args, str);
-        if (hr < 0)
-            return hr;
-
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = str;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
-
-    exlib::string str = ac->m_ctx[0].string();
-    return execute(str.c_str(), (int32_t)str.length(), retVal);
-}
-
-result_t db_format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
-    exlib::string& retVal);
-
-result_t mssql::execute(exlib::string table, exlib::string method, v8::Local<v8::Object> opts,
-    obj_ptr<NArray>& retVal, AsyncEvent* ac)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync()) {
-        exlib::string str;
-        result_t hr = db_format(table, method, opts, false, true, str);
-        if (hr < 0)
-            return hr;
-
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = str;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
-
-    exlib::string str = ac->m_ctx[0].string();
-    return execute(str.c_str(), (int32_t)str.length(), retVal);
+    return db_execute(this, sql, args, retVal, ac);
 }
 
 result_t mssql::insert(exlib::string table, v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
-    obj_ptr<NArray> _retVal;
-    return execute(table, "insert", opts, _retVal, ac);
+    return db_insert(this, table, opts, ac);
 }
 
 result_t mssql::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
     AsyncEvent* ac)
 {
-    return execute(table, "find", opts, retVal, ac);
+    return db_find(this, table, opts, retVal, ac);
 }
 
 result_t mssql::count(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    obj_ptr<NArray> _retVal;
-    result_t hr = execute(table, "count", opts, _retVal, ac);
-    if (hr < 0)
-        return hr;
-
-    Variant v;
-    _retVal->_indexed_getter(0, v);
-    retVal = ((NObject*)v.object())->m_values[0].m_val.intVal();
-
-    return 0;
+    return db_count(this, table, opts, retVal, ac);
 }
 
 result_t mssql::update(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    obj_ptr<NArray> _retVal;
-    result_t hr = execute(table, "update", opts, _retVal, ac);
-    if (hr < 0)
-        return hr;
-
-    retVal = _retVal->m_values[0].m_val.intVal();
-
-    return 0;
+    return db_update(this, table, opts, retVal, ac);
 }
 
 result_t mssql::remove(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    obj_ptr<NArray> _retVal;
-    result_t hr = execute(table, "remove", opts, _retVal, ac);
-    if (hr < 0)
-        return hr;
-
-    retVal = _retVal->m_values[0].m_val.intVal();
-
-    return 0;
+    return db_remove(this, table, opts, retVal, ac);
 }
 
 result_t mssql::format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal)
