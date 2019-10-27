@@ -276,6 +276,12 @@ result_t _format_where(v8::Local<v8::Array> o, bool bAnd, bool mysql, bool mssql
 
 result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::string& retVal, bool& retAnd)
 {
+    if (val->IsString() || val->IsStringObject()) {
+        v8::String::Utf8Value s(val);
+        retVal.assign(*s, s.length());
+        return 0;
+    }
+
     if (val->IsArray())
         return _format_where(v8::Local<v8::Array>::Cast(val), true, mysql, mssql, retVal, retAnd);
 
@@ -357,18 +363,18 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
                 op = "<=";
             else if (!qstrcmp(*_ops, "$like"))
                 op = " LIKE ";
-            else if (!qstrcmp(*_ops, "$nlike"))
+            else if (!qstrcmp(*_ops, "$not_like"))
                 op = " NOT LIKE ";
             else if (!qstrcmp(*_ops, "$in")) {
                 bIn = true;
                 op = " IN ";
-            } else if (!qstrcmp(*_ops, "$nin")) {
+            } else if (!qstrcmp(*_ops, "$not_in")) {
                 bIn = true;
                 op = " NOT IN ";
             } else if (!qstrcmp(*_ops, "$between")) {
                 bBetween = true;
                 op = " BETWEEN ";
-            } else if (!qstrcmp(*_ops, "$nbetween")) {
+            } else if (!qstrcmp(*_ops, "$not_between")) {
                 bBetween = true;
                 op = " NOT BETWEEN ";
             }
@@ -377,15 +383,15 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
 
             if (bIn) {
                 if (!v->IsArray())
-                    return CHECK_ERROR(Runtime::setError("db: The argument of the [in/nin] operation must be an array."));
+                    return CHECK_ERROR(Runtime::setError("db: The argument of the [in/not_in] operation must be an array."));
             } else if (bBetween) {
                 if (!v->IsArray())
-                    return CHECK_ERROR(Runtime::setError("db: The argument of the [between/nbetween] operation must be an array."));
+                    return CHECK_ERROR(Runtime::setError("db: The argument of the [between/not_between] operation must be an array."));
 
                 JSArray vals = v8::Local<v8::Array>::Cast(v);
                 int32_t vals_len = vals->Length();
                 if (vals_len != 2)
-                    return CHECK_ERROR(Runtime::setError("db: The argument size of the [between/nbetween] operation must be 2."));
+                    return CHECK_ERROR(Runtime::setError("db: The argument size of the [between/not_between] operation must be 2."));
 
                 v = vals->Get(0);
                 v1 = vals->Get(1);
@@ -418,28 +424,32 @@ result_t _format_find(exlib::string table, v8::Local<v8::Object> opts, bool mysq
     v8::Local<v8::Value> v;
     v8::Local<v8::Array> a;
 
-    v8::Local<v8::Array> keys;
-    hr = GetConfigValue(isolate->m_isolate, opts, "keys", keys, true);
+    hr = GetConfigValue(isolate->m_isolate, opts, "keys", v, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
-        if (hr < 0)
-            return hr;
+        if (v->IsString() || v->IsStringObject()) {
+            v8::String::Utf8Value s(v);
+            str.append(*s, s.length());
+        } else if (v->IsArray()) {
+            v8::Local<v8::Array> keys = v8::Local<v8::Array>::Cast(v);
 
-        int32_t len = keys->Length();
-        int32_t i;
+            int32_t len = keys->Length();
+            int32_t i;
 
-        if (len > 0) {
-            for (i = 0; i < len; i++) {
-                JSValue ov = keys->Get(i);
-                v8::String::Utf8Value s(ov);
+            if (len > 0) {
+                for (i = 0; i < len; i++) {
+                    JSValue ov = keys->Get(i);
+                    v8::String::Utf8Value s(ov);
 
-                if (s.length() == 0)
-                    return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
-                str.append('`' + _escape_field(*s, s.length()) + '`');
+                    if (s.length() == 0)
+                        return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
+                    str.append('`' + _escape_field(*s, s.length()) + '`');
 
-                if (i + 1 < len)
-                    str.append(", ", 2);
+                    if (i + 1 < len)
+                        str.append(", ", 2);
+                }
             }
-        }
+        } else
+            return CHECK_ERROR(Runtime::setError("db: keys must be a string or an array."));
     } else
         str.append("*");
 

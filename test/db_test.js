@@ -39,6 +39,10 @@ describe("db", () => {
             assert.equal(db.format("test", {
                 keys: ["a", "b", "c"]
             }), "SELECT `a`, `b`, `c` FROM `test`");
+
+            assert.equal(db.format("test", {
+                keys: "`a`, `b`, `c`"
+            }), "SELECT `a`, `b`, `c` FROM `test`");
         });
 
         it('where', () => {
@@ -53,6 +57,10 @@ describe("db", () => {
                     "aaa`ddd": 100
                 }
             }), "SELECT * FROM `test` WHERE `aaa\\`ddd`=100");
+
+            assert.equal(db.format("test", {
+                where: "`a`=100"
+            }), "SELECT * FROM `test` WHERE `a`=100");
         });
 
         it('operator', () => {
@@ -64,7 +72,7 @@ describe("db", () => {
                 "$lt": "<",
                 "$lte": "<=",
                 "$like": " LIKE ",
-                "$nlike": " NOT LIKE "
+                "$not_like": " NOT LIKE "
             }
 
             for (var o in ops) {
@@ -88,7 +96,7 @@ describe("db", () => {
             assert.equal(db.format("test", {
                 where: {
                     a: {
-                        "$nin": [100, 200, 300]
+                        "$not_in": [100, 200, 300]
                     }
                 }
             }), "SELECT * FROM `test` WHERE `a` NOT IN (100,200,300)");
@@ -104,7 +112,7 @@ describe("db", () => {
             assert.equal(db.format("test", {
                 where: {
                     a: {
-                        "$nbetween": [100, 200]
+                        "$not_between": [100, 200]
                     }
                 }
             }), "SELECT * FROM `test` WHERE `a` NOT BETWEEN 100 AND 200");
