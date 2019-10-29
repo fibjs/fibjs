@@ -9,7 +9,7 @@
 
 namespace fibjs {
 
-result_t db_format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+result_t db_format(exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal);
 
 template <typename T>
@@ -35,7 +35,7 @@ result_t db_execute(T* pThis, exlib::string sql, OptArgs args, obj_ptr<NArray>& 
 }
 
 template <typename T>
-result_t db_execute(T* pThis, exlib::string table, exlib::string method, v8::Local<v8::Object> opts,
+result_t db_execute(T* pThis, exlib::string method, v8::Local<v8::Object> opts,
     obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!pThis->m_conn)
@@ -43,7 +43,7 @@ result_t db_execute(T* pThis, exlib::string table, exlib::string method, v8::Loc
 
     if (ac->isSync()) {
         exlib::string str;
-        result_t hr = pThis->format(table, method, opts, str);
+        result_t hr = pThis->format(method, opts, str);
         if (hr < 0)
             return hr;
 
@@ -58,14 +58,10 @@ result_t db_execute(T* pThis, exlib::string table, exlib::string method, v8::Loc
 }
 
 template <typename T>
-result_t db_insert(T* pThis, exlib::string table, v8::Local<v8::Object> o, double& retVal, AsyncEvent* ac)
+result_t db_insert(T* pThis, v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
 {
-    Isolate* isolate = pThis->holder();
     obj_ptr<NArray> _retVal;
-    v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
-
-    opts->Set(isolate->NewString("values"), o);
-    result_t hr = db_execute(pThis, table, "insert", opts, _retVal, ac);
+    result_t hr = db_execute(pThis, "insert", opts, _retVal, ac);
     if (hr < 0)
         return hr;
 
@@ -75,18 +71,18 @@ result_t db_insert(T* pThis, exlib::string table, v8::Local<v8::Object> o, doubl
 }
 
 template <typename T>
-result_t db_find(T* pThis, exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
+result_t db_find(T* pThis, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
     AsyncEvent* ac)
 {
-    return db_execute(pThis, table, "find", opts, retVal, ac);
+    return db_execute(pThis, "find", opts, retVal, ac);
 }
 
 template <typename T>
-result_t db_count(T* pThis, exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+result_t db_count(T* pThis, v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
     obj_ptr<NArray> _retVal;
-    result_t hr = db_execute(pThis, table, "count", opts, _retVal, ac);
+    result_t hr = db_execute(pThis, "count", opts, _retVal, ac);
     if (hr < 0)
         return hr;
 
@@ -98,11 +94,11 @@ result_t db_count(T* pThis, exlib::string table, v8::Local<v8::Object> opts, int
 }
 
 template <typename T>
-result_t db_update(T* pThis, exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+result_t db_update(T* pThis, v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
     obj_ptr<NArray> _retVal;
-    result_t hr = db_execute(pThis, table, "update", opts, _retVal, ac);
+    result_t hr = db_execute(pThis, "update", opts, _retVal, ac);
     if (hr < 0)
         return hr;
 
@@ -112,11 +108,11 @@ result_t db_update(T* pThis, exlib::string table, v8::Local<v8::Object> opts, in
 }
 
 template <typename T>
-result_t db_remove(T* pThis, exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+result_t db_remove(T* pThis, v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
     obj_ptr<NArray> _retVal;
-    result_t hr = db_execute(pThis, table, "remove", opts, _retVal, ac);
+    result_t hr = db_execute(pThis, "remove", opts, _retVal, ac);
     if (hr < 0)
         return hr;
 

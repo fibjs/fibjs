@@ -28,12 +28,12 @@ public:
     virtual result_t rollback(AsyncEvent* ac) = 0;
     virtual result_t trans(v8::Local<v8::Function> func, bool& retVal) = 0;
     virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t insert(exlib::string table, v8::Local<v8::Object> obj, double& retVal, AsyncEvent* ac) = 0;
-    virtual result_t find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t count(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t update(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t remove(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal) = 0;
+    virtual result_t insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac) = 0;
+    virtual result_t find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t update(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
+    virtual result_t format(v8::Local<v8::Object> opts, exlib::string& retVal) = 0;
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal) = 0;
 
 public:
@@ -68,11 +68,11 @@ public:
     ASYNC_MEMBER0(DbConnection_base, commit);
     ASYNC_MEMBER0(DbConnection_base, rollback);
     ASYNC_MEMBERVALUE3(DbConnection_base, execute, exlib::string, OptArgs, obj_ptr<NArray>);
-    ASYNC_MEMBERVALUE3(DbConnection_base, insert, exlib::string, v8::Local<v8::Object>, double);
-    ASYNC_MEMBERVALUE3(DbConnection_base, find, exlib::string, v8::Local<v8::Object>, obj_ptr<NArray>);
-    ASYNC_MEMBERVALUE3(DbConnection_base, count, exlib::string, v8::Local<v8::Object>, int32_t);
-    ASYNC_MEMBERVALUE3(DbConnection_base, update, exlib::string, v8::Local<v8::Object>, int32_t);
-    ASYNC_MEMBERVALUE3(DbConnection_base, remove, exlib::string, v8::Local<v8::Object>, int32_t);
+    ASYNC_MEMBERVALUE2(DbConnection_base, insert, v8::Local<v8::Object>, double);
+    ASYNC_MEMBERVALUE2(DbConnection_base, find, v8::Local<v8::Object>, obj_ptr<NArray>);
+    ASYNC_MEMBERVALUE2(DbConnection_base, count, v8::Local<v8::Object>, int32_t);
+    ASYNC_MEMBERVALUE2(DbConnection_base, update, v8::Local<v8::Object>, int32_t);
+    ASYNC_MEMBERVALUE2(DbConnection_base, remove, v8::Local<v8::Object>, int32_t);
 };
 }
 
@@ -246,16 +246,15 @@ inline void DbConnection_base::s_insert(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG(v8::Local<v8::Object>, 0);
 
     if (!cb.IsEmpty()) {
-        pInst->acb_insert(v0, v1, cb);
+        pInst->acb_insert(v0, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = pInst->ac_insert(v0, v1, vr);
+        hr = pInst->ac_insert(v0, vr);
 
     METHOD_RETURN();
 }
@@ -268,16 +267,15 @@ inline void DbConnection_base::s_find(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    ARG(v8::Local<v8::Object>, 0);
 
     if (!cb.IsEmpty()) {
-        pInst->acb_find(v0, v1, cb);
+        pInst->acb_find(v0, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = pInst->ac_find(v0, v1, vr);
+        hr = pInst->ac_find(v0, vr);
 
     METHOD_RETURN();
 }
@@ -290,16 +288,15 @@ inline void DbConnection_base::s_count(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    ARG(v8::Local<v8::Object>, 0);
 
     if (!cb.IsEmpty()) {
-        pInst->acb_count(v0, v1, cb);
+        pInst->acb_count(v0, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = pInst->ac_count(v0, v1, vr);
+        hr = pInst->ac_count(v0, vr);
 
     METHOD_RETURN();
 }
@@ -312,16 +309,15 @@ inline void DbConnection_base::s_update(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG(v8::Local<v8::Object>, 0);
 
     if (!cb.IsEmpty()) {
-        pInst->acb_update(v0, v1, cb);
+        pInst->acb_update(v0, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = pInst->ac_update(v0, v1, vr);
+        hr = pInst->ac_update(v0, vr);
 
     METHOD_RETURN();
 }
@@ -334,16 +330,15 @@ inline void DbConnection_base::s_remove(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    ASYNC_METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    ARG(v8::Local<v8::Object>, 0);
 
     if (!cb.IsEmpty()) {
-        pInst->acb_remove(v0, v1, cb);
+        pInst->acb_remove(v0, cb);
         hr = CALL_RETURN_NULL;
     } else
-        hr = pInst->ac_remove(v0, v1, vr);
+        hr = pInst->ac_remove(v0, vr);
 
     METHOD_RETURN();
 }
@@ -356,12 +351,11 @@ inline void DbConnection_base::s_format(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->format(v0, v1, vr);
+    hr = pInst->format(v0, vr);
 
     METHOD_OVER(-1, 1);
 

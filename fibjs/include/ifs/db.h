@@ -35,11 +35,11 @@ public:
     static result_t openMongoDB(exlib::string connString, obj_ptr<MongoDB_base>& retVal, AsyncEvent* ac);
     static result_t openLevelDB(exlib::string connString, obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac);
     static result_t openRedis(exlib::string connString, obj_ptr<Redis_base>& retVal, AsyncEvent* ac);
-    static result_t format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal);
+    static result_t format(v8::Local<v8::Object> opts, exlib::string& retVal);
     static result_t format(exlib::string sql, OptArgs args, exlib::string& retVal);
-    static result_t formatMySQL(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal);
+    static result_t formatMySQL(v8::Local<v8::Object> opts, exlib::string& retVal);
     static result_t formatMySQL(exlib::string sql, OptArgs args, exlib::string& retVal);
-    static result_t formatMSSQL(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal);
+    static result_t formatMSSQL(v8::Local<v8::Object> opts, exlib::string& retVal);
     static result_t formatMSSQL(exlib::string sql, OptArgs args, exlib::string& retVal);
     static result_t escape(exlib::string str, bool mysql, exlib::string& retVal);
 
@@ -266,12 +266,11 @@ inline void db_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_NAME("db.format");
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG(v8::Local<v8::Object>, 0);
 
-    hr = format(v0, v1, vr);
+    hr = format(v0, vr);
 
     METHOD_OVER(-1, 1);
 
@@ -290,12 +289,11 @@ inline void db_base::s_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_NAME("db.formatMySQL");
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG(v8::Local<v8::Object>, 0);
 
-    hr = formatMySQL(v0, v1, vr);
+    hr = formatMySQL(v0, vr);
 
     METHOD_OVER(-1, 1);
 
@@ -314,12 +312,11 @@ inline void db_base::s_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_NAME("db.formatMSSQL");
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG(v8::Local<v8::Object>, 0);
 
-    hr = formatMSSQL(v0, v1, vr);
+    hr = formatMSSQL(v0, vr);
 
     METHOD_OVER(-1, 1);
 

@@ -327,9 +327,9 @@ result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
     return 0;
 }
 
-result_t SQLite::format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
+result_t SQLite::format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
 {
-    return db_format(table, method, opts, false, false, retVal);
+    return db_format(method, opts, false, false, retVal);
 }
 
 result_t SQLite::begin(AsyncEvent* ac)
@@ -358,38 +358,38 @@ result_t SQLite::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVa
     return db_execute(this, sql, args, retVal, ac);
 }
 
-result_t SQLite::insert(exlib::string table, v8::Local<v8::Object> obj, double& retVal, AsyncEvent* ac)
+result_t SQLite::insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
 {
-    return db_insert(this, table, obj, retVal, ac);
+    return db_insert(this, opts, retVal, ac);
 }
 
-result_t SQLite::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
+result_t SQLite::find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
     AsyncEvent* ac)
 {
-    return db_find(this, table, opts, retVal, ac);
+    return db_find(this, opts, retVal, ac);
 }
 
-result_t SQLite::count(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+result_t SQLite::count(v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    return db_count(this, table, opts, retVal, ac);
+    return db_count(this, opts, retVal, ac);
 }
 
-result_t SQLite::update(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+result_t SQLite::update(v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    return db_update(this, table, opts, retVal, ac);
+    return db_update(this, opts, retVal, ac);
 }
 
-result_t SQLite::remove(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+result_t SQLite::remove(v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    return db_remove(this, table, opts, retVal, ac);
+    return db_remove(this, opts, retVal, ac);
 }
 
-result_t SQLite::format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal)
+result_t SQLite::format(v8::Local<v8::Object> opts, exlib::string& retVal)
 {
-    return db_base::format(table, opts, retVal);
+    return db_base::format(opts, retVal);
 }
 
 result_t SQLite::format(exlib::string sql, OptArgs args,

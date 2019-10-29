@@ -37,51 +37,45 @@ interface DbConnection : object
 
     /*! @brief 插入新记录
 
-     @param table 指定操作的表名
-     @param obj 创建的对象
+     @param opts 参数列表
      @return 返回包含插入的 id，如果引擎不支持则返回 0
      */
-    Number insert(String table, Object obj) async;
+    Number insert(Object opts) async;
 
     /*! @brief 根据指定的条件查询数据
 
-     @param table 指定查询的表名
-     @param opts 可选参数列表
+     @param opts 参数列表
      @return 返回包含结果记录
      */
-    NArray find(String table, Object opts = {}) async;
+    NArray find(Object opts) async;
 
     /*! @brief 根据指定的条件统计数据记录数
 
-     @param table 指定查询的表名
-     @param opts 可选参数列表
+     @param opts 参数列表
      @return 返回包含结果记录数
      */
-    Integer count(String table, Object opts = {}) async;
+    Integer count(Object opts) async;
 
     /*! @brief 根据指定的条件更新数据
 
-     @param table 指定操作的表名
      @param opts 参数列表
      @return 返回包含更新的记录数
      */
-    Integer update(String table, Object opts) async;
+    Integer update(Object opts) async;
 
     /*! @brief 根据指定的条件删除数据
 
-     @param table 指定操作的表名
      @param opts 可选参数列表
      @return 返回包含更新的记录数
      */
-    Integer remove(String table, Object opts = {}) async;
+    Integer remove(Object opts) async;
 
     /*! @brief 格式化一个 sql 命令，并返回格式化结果
 
-     @param table 指定查询的表名
      @param opts 可选参数列表
      @return 返回格式化之后的 sql 命令
      */
-    String format(String table, Object opts);
+    String format(Object opts);
 
     /*! @brief 格式化一个 sql 命令，并返回格式化结果
 

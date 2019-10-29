@@ -415,7 +415,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
     return 0;
 }
 
-result_t _format_find(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
     result_t hr;
@@ -423,21 +423,26 @@ result_t _format_find(exlib::string table, v8::Local<v8::Object> opts, bool mysq
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Value> v;
     v8::Local<v8::Array> a;
+    exlib::string table;
 
-    hr = GetConfigValue(isolate->m_isolate, opts, "keys", v, true);
+    hr = GetConfigValue(isolate->m_isolate, opts, "table", table);
+    if (hr < 0)
+        return hr;
+
+    hr = GetConfigValue(isolate->m_isolate, opts, "fields", v, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (v->IsString() || v->IsStringObject()) {
             v8::String::Utf8Value s(v);
             str.append(*s, s.length());
         } else if (v->IsArray()) {
-            v8::Local<v8::Array> keys = v8::Local<v8::Array>::Cast(v);
+            v8::Local<v8::Array> fields = v8::Local<v8::Array>::Cast(v);
 
-            int32_t len = keys->Length();
+            int32_t len = fields->Length();
             int32_t i;
 
             if (len > 0) {
                 for (i = 0; i < len; i++) {
-                    JSValue ov = keys->Get(i);
+                    JSValue ov = fields->Get(i);
                     v8::String::Utf8Value s(ov);
 
                     if (s.length() == 0)
@@ -449,7 +454,7 @@ result_t _format_find(exlib::string table, v8::Local<v8::Object> opts, bool mysq
                 }
             }
         } else
-            return CHECK_ERROR(Runtime::setError("db: keys must be a string or an array."));
+            return CHECK_ERROR(Runtime::setError("db: fields must be a string or an array."));
     } else
         str.append("*");
 
@@ -527,13 +532,18 @@ result_t _format_find(exlib::string table, v8::Local<v8::Object> opts, bool mysq
     return 0;
 }
 
-result_t _format_count(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+result_t _format_count(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
     result_t hr;
     exlib::string str;
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Value> v;
+    exlib::string table;
+
+    hr = GetConfigValue(isolate->m_isolate, opts, "table", table);
+    if (hr < 0)
+        return hr;
 
     str.append("SELECT COUNT(*) FROM `" + _escape_field(table.c_str(), (int32_t)table.length()) + "`");
 
@@ -572,12 +582,17 @@ result_t _format_count(exlib::string table, v8::Local<v8::Object> opts, bool mys
     return 0;
 }
 
-result_t _format_update(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+result_t _format_update(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
     result_t hr;
     exlib::string str;
     Isolate* isolate = Isolate::current();
+    exlib::string table;
+
+    hr = GetConfigValue(isolate->m_isolate, opts, "table", table);
+    if (hr < 0)
+        return hr;
 
     str.append("UPDATE `" + _escape_field(table.c_str(), (int32_t)table.length()) + "` SET ");
 
@@ -631,12 +646,17 @@ result_t _format_update(exlib::string table, v8::Local<v8::Object> opts, bool my
     return 0;
 }
 
-result_t _format_insert(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+result_t _format_insert(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
     result_t hr;
     exlib::string str;
     Isolate* isolate = Isolate::current();
+    exlib::string table;
+
+    hr = GetConfigValue(isolate->m_isolate, opts, "table", table);
+    if (hr < 0)
+        return hr;
 
     str.append("INSERT INTO `" + _escape_field(table.c_str(), (int32_t)table.length()) + "` (");
 
@@ -682,12 +702,17 @@ result_t _format_insert(exlib::string table, v8::Local<v8::Object> opts, bool my
     return 0;
 }
 
-result_t _format_remove(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+result_t _format_remove(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
     result_t hr;
     exlib::string str;
     Isolate* isolate = Isolate::current();
+    exlib::string table;
+
+    hr = GetConfigValue(isolate->m_isolate, opts, "table", table);
+    if (hr < 0)
+        return hr;
 
     str.append("DELETE FROM `" + _escape_field(table.c_str(), (int32_t)table.length()) + "`");
 
@@ -709,56 +734,55 @@ result_t _format_remove(exlib::string table, v8::Local<v8::Object> opts, bool my
     return 0;
 }
 
-result_t db_format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+result_t db_format(exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
     if (method == "find")
-        return _format_find(table, opts, mysql, mssql, retVal);
+        return _format_find(opts, mysql, mssql, retVal);
     else if (method == "count")
-        return _format_count(table, opts, mysql, mssql, retVal);
+        return _format_count(opts, mysql, mssql, retVal);
     else if (method == "update")
-        return _format_update(table, opts, mysql, mssql, retVal);
+        return _format_update(opts, mysql, mssql, retVal);
     else if (method == "insert")
-        return _format_insert(table, opts, mysql, mssql, retVal);
+        return _format_insert(opts, mysql, mssql, retVal);
     else if (method == "remove")
-        return _format_remove(table, opts, mysql, mssql, retVal);
+        return _format_remove(opts, mysql, mssql, retVal);
 
     return CHECK_ERROR(Runtime::setError("db: Unknown method."));
 }
 
-result_t db_format(exlib::string table, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+result_t db_format(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
     result_t hr;
     exlib::string method;
     Isolate* isolate = Isolate::current();
 
-    v8::Local<v8::Array> keys;
     hr = GetConfigValue(isolate->m_isolate, opts, "method", method, true);
     if (hr == CALL_E_PARAMNOTOPTIONAL)
         method = "find";
     else if (hr < 0)
         return hr;
 
-    return db_format(table, method, opts, mysql, mssql, retVal);
+    return db_format(method, opts, mysql, mssql, retVal);
 }
 
-result_t db_base::format(exlib::string table, v8::Local<v8::Object> opts,
+result_t db_base::format(v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    return db_format(table, opts, false, false, retVal);
+    return db_format(opts, false, false, retVal);
 }
 
-result_t db_base::formatMySQL(exlib::string table, v8::Local<v8::Object> opts,
+result_t db_base::formatMySQL(v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    return db_format(table, opts, true, false, retVal);
+    return db_format(opts, true, false, retVal);
 }
 
-result_t db_base::formatMSSQL(exlib::string table, v8::Local<v8::Object> opts,
+result_t db_base::formatMSSQL(v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    return db_format(table, opts, false, true, retVal);
+    return db_format(opts, false, true, retVal);
 }
 
 result_t db_base::escape(exlib::string str, bool mysql, exlib::string& retVal)

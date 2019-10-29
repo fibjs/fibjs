@@ -290,10 +290,10 @@ result_t mssql::execute(const char* sql, int32_t sLen,
     return 0;
 }
 
-result_t mssql::format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts,
+result_t mssql::format(exlib::string method, v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    return db_format(table, method, opts, false, true, retVal);
+    return db_format(method, opts, false, true, retVal);
 }
 
 result_t mssql::begin(AsyncEvent* ac)
@@ -322,38 +322,38 @@ result_t mssql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal
     return db_execute(this, sql, args, retVal, ac);
 }
 
-result_t mssql::insert(exlib::string table, v8::Local<v8::Object> obj, double& retVal, AsyncEvent* ac)
+result_t mssql::insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
 {
-    return db_insert(this, table, obj, retVal, ac);
+    return db_insert(this, opts, retVal, ac);
 }
 
-result_t mssql::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
+result_t mssql::find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
     AsyncEvent* ac)
 {
-    return db_find(this, table, opts, retVal, ac);
+    return db_find(this, opts, retVal, ac);
 }
 
-result_t mssql::count(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+result_t mssql::count(v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    return db_count(this, table, opts, retVal, ac);
+    return db_count(this, opts, retVal, ac);
 }
 
-result_t mssql::update(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+result_t mssql::update(v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    return db_update(this, table, opts, retVal, ac);
+    return db_update(this, opts, retVal, ac);
 }
 
-result_t mssql::remove(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+result_t mssql::remove(v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    return db_remove(this, table, opts, retVal, ac);
+    return db_remove(this, opts, retVal, ac);
 }
 
-result_t mssql::format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal)
+result_t mssql::format(v8::Local<v8::Object> opts, exlib::string& retVal)
 {
-    return db_base::formatMSSQL(table, opts, retVal);
+    return db_base::formatMSSQL(opts, retVal);
 }
 
 result_t mssql::format(exlib::string sql, OptArgs args,

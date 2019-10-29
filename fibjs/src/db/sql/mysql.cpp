@@ -286,9 +286,9 @@ result_t mysql::execute(const char* sql, int32_t sLen,
     return 0;
 }
 
-result_t mysql::format(exlib::string table, exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
+result_t mysql::format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
 {
-    return db_format(table, method, opts, true, false, retVal);
+    return db_format(method, opts, true, false, retVal);
 }
 
 result_t mysql::begin(AsyncEvent* ac)
@@ -317,38 +317,38 @@ result_t mysql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal
     return db_execute(this, sql, args, retVal, ac);
 }
 
-result_t mysql::insert(exlib::string table, v8::Local<v8::Object> obj, double& retVal, AsyncEvent* ac)
+result_t mysql::insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
 {
-    return db_insert(this, table, obj, retVal, ac);
+    return db_insert(this, opts, retVal, ac);
 }
 
-result_t mysql::find(exlib::string table, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
+result_t mysql::find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
     AsyncEvent* ac)
 {
-    return db_find(this, table, opts, retVal, ac);
+    return db_find(this, opts, retVal, ac);
 }
 
-result_t mysql::count(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+result_t mysql::count(v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    return db_count(this, table, opts, retVal, ac);
+    return db_count(this, opts, retVal, ac);
 }
 
-result_t mysql::update(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+result_t mysql::update(v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    return db_update(this, table, opts, retVal, ac);
+    return db_update(this, opts, retVal, ac);
 }
 
-result_t mysql::remove(exlib::string table, v8::Local<v8::Object> opts, int32_t& retVal,
+result_t mysql::remove(v8::Local<v8::Object> opts, int32_t& retVal,
     AsyncEvent* ac)
 {
-    return db_remove(this, table, opts, retVal, ac);
+    return db_remove(this, opts, retVal, ac);
 }
 
-result_t mysql::format(exlib::string table, v8::Local<v8::Object> opts, exlib::string& retVal)
+result_t mysql::format(v8::Local<v8::Object> opts, exlib::string& retVal)
 {
-    return db_base::formatMySQL(table, opts, retVal);
+    return db_base::formatMySQL(opts, retVal);
 }
 
 result_t mysql::format(exlib::string sql, OptArgs args,
