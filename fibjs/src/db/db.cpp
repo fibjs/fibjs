@@ -246,6 +246,17 @@ inline exlib::string _escape_field(const char* str, int32_t sz)
     return retVal;
 }
 
+inline exlib::string _escape_field(v8::Local<v8::Value> v)
+{
+    v8::String::Utf8Value s(v);
+    return _escape_field(*s, s.length());
+}
+
+inline exlib::string _escape_field(exlib::string s)
+{
+    return _escape_field(s.c_str(), (int32_t)s.length());
+}
+
 result_t _format_where(v8::Local<v8::Value> o, bool mysql, bool mssql, exlib::string& retVal, bool& retAnd);
 result_t _format_where(v8::Local<v8::Array> o, bool bAnd, bool mysql, bool mssql, exlib::string& retVal, bool& retAnd)
 {
@@ -309,17 +320,14 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
         JSValue v1;
         bool bBetween = false;
         bool bIn = false;
-        v8::String::Utf8Value s(k);
+        bool bField = false;
         exlib::string op("=");
         exlib::string key;
-
-        if (s.length() == 0)
-            return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
 
         if (v->IsFunction())
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        key = _escape_field(*s, s.length());
+        key = _escape_field(k);
         while (len == 1 && (!qstrcmp(key.c_str(), "`$or`", 5) || !qstrcmp(key.c_str(), "`$and`", 6))) {
             bAnd = key[2] == 'a';
 
@@ -335,10 +343,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
                 k = ks->Get(0);
                 v = o->Get(k);
 
-                v8::String::Utf8Value s1(k);
-                if (s1.length() == 0)
-                    return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
-                key = _escape_field(*s1, s1.length());
+                key = _escape_field(k);
             } else
                 return CHECK_ERROR(Runtime::setError("db: The argument of the [or/and] operation must be an object or an array."));
         }
@@ -385,10 +390,38 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
             } else if (!qstrcmp(*_ops, "$not_between")) {
                 bBetween = true;
                 op = " NOT BETWEEN ";
-            }
+            } else if (!qstrcmp(*_ops, "$field")) {
+                bField = true;
+            } else
+                return CHECK_ERROR(Runtime::setError("db: The condition of the field " + key + " is illegal."));
 
             v = ops->Get(opv);
 
+            if (!bField && !bIn && !bBetween && v->IsObject()) {
+                ops = v8::Local<v8::Object>::Cast(v);
+                opks = ops->GetPropertyNames();
+                oplen = opks->Length();
+
+                if (oplen != 1)
+                    return CHECK_ERROR(Runtime::setError("db: The condition of the field " + key + " is illegal."));
+
+                opv = opks->Get(0);
+                v8::String::Utf8Value _ops(opv);
+
+                if (qstrcmp(*_ops, "$field"))
+                    return CHECK_ERROR(Runtime::setError("db: The condition of the field " + key + " is illegal."));
+
+                bField = true;
+                v = ops->Get(opv);
+            }
+        }
+
+        if (bField) {
+            if (!v->IsString() && !v->IsStringObject())
+                return CHECK_ERROR(Runtime::setError("db: field must be a string."));
+
+            str.append(key + op + _escape_field(v));
+        } else {
             if (bIn) {
                 if (!v->IsArray())
                     return CHECK_ERROR(Runtime::setError("db: The argument of the [in/not_in] operation must be an array."));
@@ -404,13 +437,13 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
                 v = vals->Get(0);
                 v1 = vals->Get(1);
             }
-        }
 
-        str.append(key + op);
-        _appendValue(str, v, mysql, mssql);
-        if (bBetween) {
-            str.append(" AND ");
-            _appendValue(str, v1, mysql, mssql);
+            str.append(key + op);
+            _appendValue(str, v, mysql, mssql);
+            if (bBetween) {
+                str.append(" AND ");
+                _appendValue(str, v1, mysql, mssql);
+            }
         }
 
         if (i + 1 < len) {
@@ -423,6 +456,60 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
     return 0;
 }
 
+result_t _format_name_list(v8::Local<v8::Value> v, exlib::string& retVal)
+{
+    exlib::string table;
+
+    if (v->IsArray()) {
+        v8::Local<v8::Array> tables = v8::Local<v8::Array>::Cast(v);
+
+        int32_t len = tables->Length();
+        int32_t i;
+
+        if (len > 0) {
+            for (i = 0; i < len; i++) {
+                table.append(_escape_field(tables->Get(i)));
+                if (i + 1 < len)
+                    table.append(", ", 2);
+            }
+        }
+    } else if (v->IsObject()) {
+        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+        JSArray ks = o->GetPropertyNames();
+        int32_t len = ks->Length();
+        int32_t i;
+
+        for (i = 0; i < len; i++) {
+            JSValue k = ks->Get(i);
+
+            table.append(_escape_field(k) + " AS " + _escape_field(o->Get(k)));
+            if (i + 1 < len)
+                table.append(", ", 2);
+        }
+    } else
+        return CALL_E_TYPEMISMATCH;
+
+    retVal = table;
+    return 0;
+}
+
+result_t _format_table(v8::Local<v8::Object> opts, exlib::string& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    result_t hr;
+    v8::Local<v8::Value> v;
+
+    hr = GetConfigValue(isolate->m_isolate, opts, "table", v);
+    if (hr < 0)
+        return hr;
+
+    if (v->IsString() || v->IsStringObject()) {
+        retVal = _escape_field(v);
+        return 0;
+    } else
+        return _format_name_list(v, retVal);
+}
+
 result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
@@ -433,40 +520,27 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     v8::Local<v8::Array> a;
     exlib::string table;
 
-    hr = GetConfigValue(isolate->m_isolate, opts, "table", table);
+    hr = _format_table(opts, table);
     if (hr < 0)
         return hr;
 
-    hr = GetConfigValue(isolate->m_isolate, opts, "fields", v, true);
-    if (hr != CALL_E_PARAMNOTOPTIONAL) {
-        if (v->IsString() || v->IsStringObject()) {
-            v8::String::Utf8Value s(v);
-            str.append(*s, s.length());
-        } else if (v->IsArray()) {
-            v8::Local<v8::Array> fields = v8::Local<v8::Array>::Cast(v);
-
-            int32_t len = fields->Length();
-            int32_t i;
-
-            if (len > 0) {
-                for (i = 0; i < len; i++) {
-                    JSValue ov = fields->Get(i);
-                    v8::String::Utf8Value s(ov);
-
-                    if (s.length() == 0)
-                        return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
-                    str.append(_escape_field(*s, s.length()));
-
-                    if (i + 1 < len)
-                        str.append(", ", 2);
-                }
-            }
-        } else
-            return CHECK_ERROR(Runtime::setError("db: fields must be a string or an array."));
-    } else
+    hr = GetConfigValue(isolate->m_isolate, opts, "fields", v);
+    if (hr == CALL_E_PARAMNOTOPTIONAL)
         str.append("*");
+    else if (v->IsString() || v->IsStringObject()) {
+        v8::String::Utf8Value s(v);
+        str.append(*s, s.length());
+    } else {
+        exlib::string str1;
 
-    str.append(" FROM " + _escape_field(table.c_str(), (int32_t)table.length()));
+        hr = _format_name_list(v, str1);
+        if (hr < 0)
+            return hr;
+
+        str.append(str1);
+    }
+
+    str.append(" FROM " + table);
 
     hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
@@ -549,11 +623,11 @@ result_t _format_count(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     v8::Local<v8::Value> v;
     exlib::string table;
 
-    hr = GetConfigValue(isolate->m_isolate, opts, "table", table);
+    hr = _format_table(opts, table);
     if (hr < 0)
         return hr;
 
-    str.append("SELECT COUNT(*) FROM " + _escape_field(table.c_str(), (int32_t)table.length()));
+    str.append("SELECT COUNT(*) FROM " + table);
 
     hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
@@ -598,11 +672,11 @@ result_t _format_update(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     Isolate* isolate = Isolate::current();
     exlib::string table;
 
-    hr = GetConfigValue(isolate->m_isolate, opts, "table", table);
+    hr = _format_table(opts, table);
     if (hr < 0)
         return hr;
 
-    str.append("UPDATE " + _escape_field(table.c_str(), (int32_t)table.length()) + " SET ");
+    str.append("UPDATE " + table + " SET ");
 
     v8::Local<v8::Object> o;
     hr = GetConfigValue(isolate->m_isolate, opts, "values", o, true);
@@ -621,11 +695,8 @@ result_t _format_update(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(i);
         JSValue v = o->Get(k);
-        v8::String::Utf8Value s(k);
 
-        if (s.length() == 0)
-            return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
-        _values.append(_escape_field(*s, s.length()) + "=");
+        _values.append(_escape_field(k) + "=");
         _appendValue(_values, v, mysql, mssql);
 
         if (i + 1 < len)
@@ -662,11 +733,11 @@ result_t _format_insert(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     Isolate* isolate = Isolate::current();
     exlib::string table;
 
-    hr = GetConfigValue(isolate->m_isolate, opts, "table", table);
+    hr = _format_table(opts, table);
     if (hr < 0)
         return hr;
 
-    str.append("INSERT INTO " + _escape_field(table.c_str(), (int32_t)table.length()) + " (");
+    str.append("INSERT INTO " + table + " (");
 
     v8::Local<v8::Object> o;
     hr = GetConfigValue(isolate->m_isolate, opts, "values", o, true);
@@ -686,11 +757,8 @@ result_t _format_insert(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(i);
         JSValue v = o->Get(k);
-        v8::String::Utf8Value s(k);
 
-        if (s.length() == 0)
-            return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
-        _fields.append(_escape_field(*s, s.length()));
+        _fields.append(_escape_field(k));
         _appendValue(_values, v, mysql, mssql);
 
         if (i + 1 < len) {
@@ -718,11 +786,11 @@ result_t _format_remove(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     Isolate* isolate = Isolate::current();
     exlib::string table;
 
-    hr = GetConfigValue(isolate->m_isolate, opts, "table", table);
+    hr = _format_table(opts, table);
     if (hr < 0)
         return hr;
 
-    str.append("DELETE FROM " + _escape_field(table.c_str(), (int32_t)table.length()));
+    str.append("DELETE FROM " + table);
 
     v8::Local<v8::Value> v;
     hr = GetConfigValue(isolate->m_isolate, opts, "where", v);

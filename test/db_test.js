@@ -39,7 +39,7 @@ describe("db", () => {
             }), "SELECT * FROM `test`");
         });
 
-        it('keys', () => {
+        it('fields', () => {
             assert.equal(db.format({
                 table: "test",
                 fields: ["a", "b", "c"]
@@ -49,6 +49,22 @@ describe("db", () => {
                 table: "test",
                 fields: "`a`, `b`, `c`"
             }), "SELECT `a`, `b`, `c` FROM `test`");
+        });
+
+        it('alias', () => {
+            assert.equal(db.format({
+                table: {
+                    test: "a",
+                    test1: "b"
+                },
+            }), "SELECT * FROM `test` AS `a`, `test1` AS `b`");
+
+            assert.equal(db.format({
+                table: "test",
+                fields: {
+                    'aaa': 'a'
+                }
+            }), "SELECT `aaa` AS `a` FROM `test`");
         });
 
         it('where', () => {
@@ -301,6 +317,23 @@ describe("db", () => {
                 limit: 100,
                 order: ['a', 'b', '-c']
             }), "SELECT * FROM `test` WHERE `a`=200 LIMIT 100 ORDER BY `a`, `b`, `c` DESC");
+        });
+
+        it('multi table', () => {
+            assert.equal(db.format({
+                table: ['test1', 'test2'],
+                fields: ['test1.a', 'test2.b'],
+                where: {
+                    "test1.a": {
+                        "$field": "test2.b"
+                    },
+                    "test1.b": {
+                        "$gt": {
+                            "$field": "test2.b"
+                        }
+                    }
+                }
+            }), "SELECT `test1`.`a`, `test2`.`b` FROM `test1`, `test2` WHERE `test1`.`a`=`test2`.`b` AND `test1`.`b`>`test2`.`b`");
         });
     });
 
