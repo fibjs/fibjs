@@ -9,9 +9,6 @@
 
 namespace fibjs {
 
-result_t db_format(exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
-    exlib::string& retVal);
-
 template <typename T>
 result_t db_execute(T* pThis, exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {

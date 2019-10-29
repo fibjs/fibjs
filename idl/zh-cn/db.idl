@@ -52,10 +52,11 @@ module db
 
     /*! @brief 格式化一个 sql 命令，并返回格式化结果
 
+     @param method 指定请求的方法
      @param opts 参数列表
      @return 返回格式化之后的 sql 命令
      */
-    static String format(Object opts);
+    static String format(String method, Object opts);
 
     /*! @brief 格式化一个 sql 命令，并返回格式化结果
 
@@ -67,10 +68,11 @@ module db
 
     /*! @brief 格式化一个 mysql 命令，并返回格式化结果
 
+     @param method 指定请求的方法
      @param opts 参数列表
      @return 返回格式化之后的 mysql 命令
      */
-    static String formatMySQL(Object opts);
+    static String formatMySQL(String method, Object opts);
 
     /*! @brief 格式化一个 mysql 命令，并返回格式化结果
 
@@ -82,10 +84,11 @@ module db
 
     /*! @brief 格式化一个 mssql 命令，并返回格式化结果
 
+     @param method 指定请求的方法
      @param opts 参数列表
      @return 返回格式化之后的 mssql 命令
      */
-    static String formatMSSQL(Object opts);
+    static String formatMSSQL(String method, Object opts);
 
     /*! @brief 格式化一个 mssql 命令，并返回格式化结果
 

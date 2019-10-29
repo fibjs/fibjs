@@ -33,7 +33,7 @@ public:
     virtual result_t count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t update(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
-    virtual result_t format(v8::Local<v8::Object> opts, exlib::string& retVal) = 0;
+    virtual result_t format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal) = 0;
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal) = 0;
 
 public:
@@ -351,11 +351,12 @@ inline void DbConnection_base::s_format(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 2);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
 
-    hr = pInst->format(v0, vr);
+    hr = pInst->format(v0, v1, vr);
 
     METHOD_OVER(-1, 1);
 

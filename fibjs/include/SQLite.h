@@ -36,8 +36,8 @@ public:
     virtual result_t find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac);
     virtual result_t count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
     virtual result_t update(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t format(v8::Local<v8::Object> opts, exlib::string& retVal);
     virtual result_t remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal);
 
 public:
@@ -50,7 +50,6 @@ public:
 public:
     result_t open(const char* file);
     result_t execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal);
-    result_t format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
 
 public:
     sqlite3* m_conn;

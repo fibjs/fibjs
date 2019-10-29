@@ -30,36 +30,32 @@ describe("db", () => {
 
     describe("format.find", () => {
         it('basic', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test"
-            }), "SELECT * FROM `test`");
-            assert.equal(db.format({
-                table: "test",
-                method: "find"
             }), "SELECT * FROM `test`");
         });
 
         it('fields', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 fields: ["a", "b", "c"]
             }), "SELECT `a`, `b`, `c` FROM `test`");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 fields: "`a`, `b`, `c`"
             }), "SELECT `a`, `b`, `c` FROM `test`");
         });
 
         it('alias', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: {
                     test: "a",
                     test1: "b"
                 },
             }), "SELECT * FROM `test` AS `a`, `test1` AS `b`");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 fields: {
                     'aaa': 'a'
@@ -68,21 +64,21 @@ describe("db", () => {
         });
 
         it('where', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     a: 100
                 }
             }), "SELECT * FROM `test` WHERE `a`=100");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     "aaa`ddd": 100
                 }
             }), "SELECT * FROM `test` WHERE `aaa``ddd`=100");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 fields: ["a.b"],
                 where: {
@@ -90,7 +86,7 @@ describe("db", () => {
                 }
             }), "SELECT `a`.`b` FROM `test` WHERE `aaa`.`ddd`=100");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: "`a`=100"
             }), "SELECT * FROM `test` WHERE `a`=100");
@@ -113,13 +109,13 @@ describe("db", () => {
                 opts[o] = {};
                 opts[o][o] = 100;
 
-                assert.equal(db.format({
+                assert.equal(db.format("find", {
                     table: "test",
                     where: opts
                 }), "SELECT * FROM `test` WHERE `" + o + "`" + ops[o] + "100");
             }
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     a: {
@@ -128,7 +124,7 @@ describe("db", () => {
                 }
             }), "SELECT * FROM `test` WHERE `a` IN (100,200,300)");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     a: {
@@ -137,7 +133,7 @@ describe("db", () => {
                 }
             }), "SELECT * FROM `test` WHERE `a` NOT IN (100,200,300)");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     a: {
@@ -146,7 +142,7 @@ describe("db", () => {
                 }
             }), "SELECT * FROM `test` WHERE `a` BETWEEN 100 AND 200");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     a: {
@@ -157,7 +153,7 @@ describe("db", () => {
         });
 
         it('where and', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     a: 100,
@@ -167,7 +163,7 @@ describe("db", () => {
         });
 
         it('where or', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     "$or": {
@@ -177,7 +173,7 @@ describe("db", () => {
                 }
             }), "SELECT * FROM `test` WHERE `a`=100 OR `b`=200");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     "$or": [{
@@ -192,7 +188,7 @@ describe("db", () => {
         });
 
         it('where or/and', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     "$or": [{
@@ -207,7 +203,7 @@ describe("db", () => {
                 }
             }), "SELECT * FROM `test` WHERE (`a`=100 AND `c`=300) OR (`b`=200 AND `d`=400)");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     "$or": [{
@@ -224,7 +220,7 @@ describe("db", () => {
                 }
             }), "SELECT * FROM `test` WHERE `a`=100 OR `c`=300 OR (`b`=200 AND `d`=400)");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     "$or": {
@@ -236,7 +232,7 @@ describe("db", () => {
                 }
             }), "SELECT * FROM `test` WHERE `a`=100 OR `c`=300");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     "$and": {
@@ -248,7 +244,7 @@ describe("db", () => {
                 }
             }), "SELECT * FROM `test` WHERE `a`=100 AND `c`=300");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: [{
                         a: 100,
@@ -263,7 +259,7 @@ describe("db", () => {
                 ]
             }), "SELECT * FROM `test` WHERE `a`=100 AND `c`=300 AND (`b`=200 OR `d`=400)");
 
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: [{
                         a: 100,
@@ -278,7 +274,7 @@ describe("db", () => {
         });
 
         it('skip', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     a: 200
@@ -288,7 +284,7 @@ describe("db", () => {
         });
 
         it('limit', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     a: 200
@@ -298,7 +294,7 @@ describe("db", () => {
         });
 
         it('skip/limit', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     a: 200
@@ -309,7 +305,7 @@ describe("db", () => {
         });
 
         it('order', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: "test",
                 where: {
                     a: 200
@@ -320,7 +316,7 @@ describe("db", () => {
         });
 
         it('multi table', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("find", {
                 table: ['test1', 'test2'],
                 fields: ['test1.a', 'test2.b'],
                 where: {
@@ -339,16 +335,14 @@ describe("db", () => {
 
     describe("format.count", () => {
         it('basic', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("count", {
                 table: "test",
-                method: "count"
             }), "SELECT COUNT(*) FROM `test`");
         });
 
         it('skip/limit', () => {
-            assert.equal(db.format({
+            assert.equal(db.format("count", {
                 table: "test",
-                method: "count",
                 where: {
                     a: 200
                 },
@@ -359,9 +353,8 @@ describe("db", () => {
     });
 
     it("format.update", () => {
-        assert.equal(db.format({
+        assert.equal(db.format("update", {
             table: "test",
-            method: "update",
             values: {
                 a: 100,
                 b: 200
@@ -373,9 +366,8 @@ describe("db", () => {
     });
 
     it("format.insert", () => {
-        assert.equal(db.format({
+        assert.equal(db.format("insert", {
             table: "test",
-            method: "insert",
             values: {
                 a: 100,
                 b: 200
@@ -384,9 +376,8 @@ describe("db", () => {
     });
 
     it("format.remove", () => {
-        assert.equal(db.format({
+        assert.equal(db.format("remove", {
             table: "test",
-            method: "remove",
             where: {
                 a: 200
             }

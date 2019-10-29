@@ -38,7 +38,7 @@ public:
     virtual result_t count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
     virtual result_t update(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
     virtual result_t remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
-    virtual result_t format(v8::Local<v8::Object> opts, exlib::string& retVal);
+    virtual result_t format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal);
 
 public:
@@ -53,7 +53,6 @@ public:
     result_t connect(const char* host, int32_t port, const char* username,
         const char* password, const char* dbName);
     result_t execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal);
-    result_t format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
 
 private:
     inline result_t error()

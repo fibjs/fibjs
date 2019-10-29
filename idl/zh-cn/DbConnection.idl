@@ -72,10 +72,11 @@ interface DbConnection : object
 
     /*! @brief 格式化一个 sql 命令，并返回格式化结果
 
+     @param method 指定请求的方法
      @param opts 可选参数列表
      @return 返回格式化之后的 sql 命令
      */
-    String format(Object opts);
+    String format(String method, Object opts);
 
     /*! @brief 格式化一个 sql 命令，并返回格式化结果
 

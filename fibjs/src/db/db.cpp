@@ -827,38 +827,22 @@ result_t db_format(exlib::string method, v8::Local<v8::Object> opts, bool mysql,
     return CHECK_ERROR(Runtime::setError("db: Unknown method."));
 }
 
-result_t db_format(v8::Local<v8::Object> opts, bool mysql, bool mssql,
+result_t db_base::format(exlib::string method, v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    result_t hr;
-    exlib::string method;
-    Isolate* isolate = Isolate::current();
-
-    hr = GetConfigValue(isolate->m_isolate, opts, "method", method, true);
-    if (hr == CALL_E_PARAMNOTOPTIONAL)
-        method = "find";
-    else if (hr < 0)
-        return hr;
-
-    return db_format(method, opts, mysql, mssql, retVal);
+    return db_format(method, opts, false, false, retVal);
 }
 
-result_t db_base::format(v8::Local<v8::Object> opts,
+result_t db_base::formatMySQL(exlib::string method, v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    return db_format(opts, false, false, retVal);
+    return db_format(method, opts, true, false, retVal);
 }
 
-result_t db_base::formatMySQL(v8::Local<v8::Object> opts,
+result_t db_base::formatMSSQL(exlib::string method, v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    return db_format(opts, true, false, retVal);
-}
-
-result_t db_base::formatMSSQL(v8::Local<v8::Object> opts,
-    exlib::string& retVal)
-{
-    return db_format(opts, false, true, retVal);
+    return db_format(method, opts, false, true, retVal);
 }
 
 result_t db_base::escape(exlib::string str, bool mysql, exlib::string& retVal)

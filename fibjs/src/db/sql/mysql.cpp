@@ -286,11 +286,6 @@ result_t mysql::execute(const char* sql, int32_t sLen,
     return 0;
 }
 
-result_t mysql::format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
-{
-    return db_format(method, opts, true, false, retVal);
-}
-
 result_t mysql::begin(AsyncEvent* ac)
 {
     return db_begin(this, ac);
@@ -346,9 +341,9 @@ result_t mysql::remove(v8::Local<v8::Object> opts, int32_t& retVal,
     return db_remove(this, opts, retVal, ac);
 }
 
-result_t mysql::format(v8::Local<v8::Object> opts, exlib::string& retVal)
+result_t mysql::format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
 {
-    return db_base::formatMySQL(opts, retVal);
+    return db_base::formatMySQL(method, opts, retVal);
 }
 
 result_t mysql::format(exlib::string sql, OptArgs args,
