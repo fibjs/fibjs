@@ -231,7 +231,7 @@ inline exlib::string _escape_field(const char* str, int32_t sz)
     while (sz--) {
         char ch = *str++;
         if (ch == '`')
-            *ptr++ = '\\';
+            *ptr++ = '`';
         *ptr++ = ch;
     }
     *ptr++ = '`';

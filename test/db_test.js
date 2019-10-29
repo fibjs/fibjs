@@ -64,7 +64,7 @@ describe("db", () => {
                 where: {
                     "aaa`ddd": 100
                 }
-            }), "SELECT * FROM `test` WHERE `aaa\\`ddd`=100");
+            }), "SELECT * FROM `test` WHERE `aaa``ddd`=100");
 
             assert.equal(db.format({
                 table: "test",
