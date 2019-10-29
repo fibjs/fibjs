@@ -224,15 +224,17 @@ inline exlib::string _escape_field(const char* str, int32_t sz)
 {
     exlib::string retVal;
 
-    retVal.resize(sz * 2);
+    retVal.resize(sz * 2 + 2);
     char* ptr = retVal.c_buffer();
 
+    *ptr++ = '`';
     while (sz--) {
         char ch = *str++;
         if (ch == '`')
             *ptr++ = '\\';
         *ptr++ = ch;
     }
+    *ptr++ = '`';
 
     retVal.resize(ptr - retVal.c_buffer());
     return retVal;
@@ -312,8 +314,8 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
         key = _escape_field(*s, s.length());
-        while (len == 1 && (!qstrcmp(key.c_str(), "$or", 3) || !qstrcmp(key.c_str(), "$and", 4))) {
-            bAnd = key[1] == 'a';
+        while (len == 1 && (!qstrcmp(key.c_str(), "`$or`", 5) || !qstrcmp(key.c_str(), "`$and`", 6))) {
+            bAnd = key[2] == 'a';
 
             if (v->IsArray())
                 return _format_where(v8::Local<v8::Array>::Cast(v), bAnd, mysql, mssql, retVal, retAnd);
@@ -398,7 +400,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
             }
         }
 
-        str.append('`' + key + '`' + op);
+        str.append(key + op);
         _appendValue(str, v, mysql, mssql);
         if (bBetween) {
             str.append(" AND ");
@@ -447,7 +449,7 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql,
 
                     if (s.length() == 0)
                         return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
-                    str.append('`' + _escape_field(*s, s.length()) + '`');
+                    str.append(_escape_field(*s, s.length()));
 
                     if (i + 1 < len)
                         str.append(", ", 2);
@@ -458,7 +460,7 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     } else
         str.append("*");
 
-    str.append(" FROM `" + _escape_field(table.c_str(), (int32_t)table.length()) + "`");
+    str.append(" FROM " + _escape_field(table.c_str(), (int32_t)table.length()));
 
     hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
@@ -518,7 +520,7 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql,
                 } else
                     key = _escape_field(*s, s.length());
 
-                str.append('`' + key + '`');
+                str.append(key);
                 if (desc)
                     str.append(" DESC");
 
@@ -545,7 +547,7 @@ result_t _format_count(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     if (hr < 0)
         return hr;
 
-    str.append("SELECT COUNT(*) FROM `" + _escape_field(table.c_str(), (int32_t)table.length()) + "`");
+    str.append("SELECT COUNT(*) FROM " + _escape_field(table.c_str(), (int32_t)table.length()));
 
     hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
@@ -594,7 +596,7 @@ result_t _format_update(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     if (hr < 0)
         return hr;
 
-    str.append("UPDATE `" + _escape_field(table.c_str(), (int32_t)table.length()) + "` SET ");
+    str.append("UPDATE " + _escape_field(table.c_str(), (int32_t)table.length()) + " SET ");
 
     v8::Local<v8::Object> o;
     hr = GetConfigValue(isolate->m_isolate, opts, "values", o, true);
@@ -617,7 +619,7 @@ result_t _format_update(v8::Local<v8::Object> opts, bool mysql, bool mssql,
 
         if (s.length() == 0)
             return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
-        _values.append('`' + _escape_field(*s, s.length()) + "`=");
+        _values.append(_escape_field(*s, s.length()) + "=");
         _appendValue(_values, v, mysql, mssql);
 
         if (i + 1 < len)
@@ -658,7 +660,7 @@ result_t _format_insert(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     if (hr < 0)
         return hr;
 
-    str.append("INSERT INTO `" + _escape_field(table.c_str(), (int32_t)table.length()) + "` (");
+    str.append("INSERT INTO " + _escape_field(table.c_str(), (int32_t)table.length()) + " (");
 
     v8::Local<v8::Object> o;
     hr = GetConfigValue(isolate->m_isolate, opts, "values", o, true);
@@ -682,7 +684,7 @@ result_t _format_insert(v8::Local<v8::Object> opts, bool mysql, bool mssql,
 
         if (s.length() == 0)
             return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
-        _fields.append('`' + _escape_field(*s, s.length()) + "`");
+        _fields.append(_escape_field(*s, s.length()));
         _appendValue(_values, v, mysql, mssql);
 
         if (i + 1 < len) {
@@ -714,7 +716,7 @@ result_t _format_remove(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     if (hr < 0)
         return hr;
 
-    str.append("DELETE FROM `" + _escape_field(table.c_str(), (int32_t)table.length()) + "`");
+    str.append("DELETE FROM " + _escape_field(table.c_str(), (int32_t)table.length()));
 
     v8::Local<v8::Value> v;
     hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
