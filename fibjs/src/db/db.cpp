@@ -230,9 +230,15 @@ inline exlib::string _escape_field(const char* str, int32_t sz)
     *ptr++ = '`';
     while (sz--) {
         char ch = *str++;
-        if (ch == '`')
+        if (ch == '`') {
             *ptr++ = '`';
-        *ptr++ = ch;
+            *ptr++ = '`';
+        } else if (ch == '.') {
+            *ptr++ = '`';
+            *ptr++ = '.';
+            *ptr++ = '`';
+        } else
+            *ptr++ = ch;
     }
     *ptr++ = '`';
 

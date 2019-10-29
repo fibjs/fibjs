@@ -68,6 +68,14 @@ describe("db", () => {
 
             assert.equal(db.format({
                 table: "test",
+                fields: ["a.b"],
+                where: {
+                    "aaa.ddd": 100
+                }
+            }), "SELECT `a`.`b` FROM `test` WHERE `aaa`.`ddd`=100");
+
+            assert.equal(db.format({
+                table: "test",
                 where: "`a`=100"
             }), "SELECT * FROM `test` WHERE `a`=100");
         });
