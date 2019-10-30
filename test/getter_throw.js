@@ -158,7 +158,7 @@ describe('getter throw', () => {
         });
     });
 
-    it('db format', () => {
+    xit('db format', () => {
         var db = require('db');
 
         db.format('?, ?', arr);
