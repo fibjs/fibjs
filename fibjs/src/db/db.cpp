@@ -13,6 +13,9 @@ namespace fibjs {
 
 DECLARE_MODULE(db);
 
+result_t db_format(exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
+    exlib::string& retVal);
+
 result_t db_base::open(exlib::string connString, obj_ptr<object_base>& retVal, AsyncEvent* ac)
 {
     if (!qstrcmp(connString.c_str(), "mysql:", 6))
@@ -423,8 +426,8 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
             str.append(key + op + _escape_field(v));
         } else {
             if (bIn) {
-                if (!v->IsArray())
-                    return CHECK_ERROR(Runtime::setError("db: The argument of the [in/not_in] operation must be an array."));
+                if (!v->IsObject())
+                    return CHECK_ERROR(Runtime::setError("db: The argument of the [in/not_in] operation must be an array or a query."));
             } else if (bBetween) {
                 if (!v->IsArray())
                     return CHECK_ERROR(Runtime::setError("db: The argument of the [between/not_between] operation must be an array."));
@@ -436,13 +439,23 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
 
                 v = vals->Get(0);
                 v1 = vals->Get(1);
-            }
+            } else if (v->IsObject())
+                return CHECK_ERROR(Runtime::setError("db: The argument of the [" + op + "] operation can not be a object."));
 
-            str.append(key + op);
-            _appendValue(str, v, mysql, mssql);
-            if (bBetween) {
-                str.append(" AND ");
-                _appendValue(str, v1, mysql, mssql);
+            if (v->IsObject() && !v->IsArray()) {
+                exlib::string sub_query;
+                result_t hr = db_format("find", v8::Local<v8::Object>::Cast(v), mysql, mssql, sub_query);
+                if (hr < 0)
+                    return hr;
+
+                str.append(key + op + '(' + sub_query + ')');
+            } else {
+                str.append(key + op);
+                _appendValue(str, v, mysql, mssql);
+                if (bBetween) {
+                    str.append(" AND ");
+                    _appendValue(str, v1, mysql, mssql);
+                }
             }
         }
 

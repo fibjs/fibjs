@@ -331,6 +331,27 @@ describe("db", () => {
                 }
             }), "SELECT `test1`.`a`, `test2`.`b` FROM `test1`, `test2` WHERE `test1`.`a`=`test2`.`b` AND `test1`.`b`>`test2`.`b`");
         });
+
+        it('sub query', () => {
+            assert.equal(db.format("find", {
+                table: 'test1',
+                fields: ['a', 'b'],
+                where: {
+                    "a": {
+                        "$in": [1, 2, 3, 4, 5]
+                    },
+                    "b": {
+                        "$in": {
+                            table: 'test1',
+                            fields: ['a'],
+                            where: {
+                                d: 100
+                            }
+                        }
+                    }
+                }
+            }), "SELECT `a`, `b` FROM `test1` WHERE `a` IN (1,2,3,4,5) AND `b` IN (SELECT `a` FROM `test1` WHERE `d`=100)");
+        });
     });
 
     describe("format.count", () => {
@@ -386,27 +407,24 @@ describe("db", () => {
 
     function _test(conn_str) {
         var conn;
+        var tables = ['test', 'test_null', 'test2', 'test3'];
 
         before(() => {
             conn = db.open(conn_str);
-            try {
-                conn.execute('drop table test;');
-            } catch (e) {}
 
-            try {
-                conn.execute('drop table test_null;');
-            } catch (e) {}
-
+            tables.forEach(t => {
+                try {
+                    conn.execute('drop table ' + t);
+                } catch (e) {}
+            });
         });
 
         after(() => {
-            try {
-                conn.execute('drop table test;');
-            } catch (e) {}
-
-            try {
-                conn.execute('drop table test_null;');
-            } catch (e) {}
+            tables.forEach(t => {
+                try {
+                    conn.execute('drop table ' + t);
+                } catch (e) {}
+            });
 
             conn.close();
         });
@@ -434,6 +452,9 @@ describe("db", () => {
                 conn.execute('create table test(t0 INTEGER AUTO_INCREMENT PRIMARY KEY, t1 int, t2 varchar(128), t3 BLOB, t4 datetime);');
                 conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 BLOB NULL, t4 datetime NULL);');
             }
+
+            conn.execute('create table test2(t1 varchar(10), t2 varchar(10));');
+            conn.execute('create table test3(t1 varchar(10), t2 varchar(10));');
         });
 
         it("insert", () => {
@@ -510,6 +531,44 @@ describe("db", () => {
                 "t3",
                 "t4"
             ]);
+        });
+
+        it("sub query", () => {
+            conn.insert({
+                table: "test2",
+                values: {
+                    t1: 'aaa',
+                    t2: 'bbb'
+                }
+            });
+
+            conn.insert({
+                table: "test3",
+                values: {
+                    t1: 'aaa',
+                    t2: '200'
+                }
+            });
+
+            var rs = conn.find({
+                table: 'test2',
+                where: {
+                    t1: {
+                        "$in": {
+                            table: 'test3',
+                            fields: ['t1'],
+                            where: {
+                                t2: '200'
+                            }
+                        }
+                    }
+                }
+            })
+
+            assert.deepEqual(rs, [{
+                "t1": "aaa",
+                "t2": "bbb"
+            }]);
         });
 
         it("conn.count", () => {
